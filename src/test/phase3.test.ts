@@ -15,7 +15,7 @@
  *   P3.12 — ErrorBoundary component
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { rbacService } from '@/services/rbac.service'
 import { readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
@@ -175,38 +175,25 @@ describe('P3.4 — PWA asset manifest audit', () => {
     }
   })
 
-  it('produces missing asset report — icons are absent from public/icons/', () => {
+  it('all 8 icon files are present in public/icons/', () => {
     const iconsDir = join(process.cwd(), 'public/icons')
-    let existingFiles: string[] = []
-    try {
-      existingFiles = readdirSync(iconsDir)
-    } catch {
-      existingFiles = []
-    }
+    const existingFiles = readdirSync(iconsDir)
     const missing = manifest.icons
       .map((i: { src: string }) => i.src.replace('/icons/', ''))
       .filter((f: string) => !existingFiles.includes(f))
-
-    // Report (not a failure — P3.4 only reports, does not generate assets)
-    if (missing.length > 0) {
-      console.info(`[P3.4] Missing PWA icon assets (${missing.length}):`, missing)
-    }
-    expect(missing.length).toBeGreaterThan(0) // expected — icons not yet generated
+    expect(missing).toHaveLength(0)
   })
 
-  it('produces missing asset report — screenshot absent from public/screenshots/', () => {
-    const screenshots: Array<{ src: string }> = manifest.screenshots ?? []
-    const missing = screenshots
-      .map((s) => s.src)
-      .filter((src) => {
-        const filePath = join(process.cwd(), 'public', src.replace(/^\//, ''))
-        try { readFileSync(filePath); return false } catch { return true }
-      })
+  it('screenshot file is present at public/screenshots/menu.png', () => {
+    const screenshotPath = join(process.cwd(), 'public/screenshots/menu.png')
+    const exists = (() => { try { readFileSync(screenshotPath); return true } catch { return false } })()
+    expect(exists).toBe(true)
+  })
 
-    if (missing.length > 0) {
-      console.info('[P3.4] Missing PWA screenshot assets:', missing)
-    }
-    expect(missing).toContain('/screenshots/menu.png')
+  it('og-image.jpg is present at public/og-image.jpg', () => {
+    const ogPath = join(process.cwd(), 'public/og-image.jpg')
+    const exists = (() => { try { readFileSync(ogPath); return true } catch { return false } })()
+    expect(exists).toBe(true)
   })
 })
 
@@ -377,49 +364,33 @@ describe('P3.8 — ReactQueryDevtools guard', () => {
   })
 })
 
-// ── P3.9 Dead Dependency Audit ────────────────────────────────────────────────
+// ── P3.9 Dead Dependency Removal ─────────────────────────────────────────────
 
-describe('P3.9 — Dead dependency audit', () => {
+describe('P3.9 — Dead dependency removal', () => {
   const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'))
   const allDeps = { ...pkg.dependencies, ...pkg.devDependencies }
 
-  it('socket.io-client is listed in package.json', () => {
-    expect(allDeps['socket.io-client']).toBeDefined()
+  it('socket.io-client has been removed from package.json', () => {
+    expect(allDeps['socket.io-client']).toBeUndefined()
   })
 
-  it('websocket.service.ts does NOT import socket.io-client (uses native WebSocket)', () => {
+  it('next-pwa has been removed from package.json', () => {
+    expect(allDeps['next-pwa']).toBeUndefined()
+  })
+
+  it('websocket.service.ts uses native WebSocket (not socket.io)', () => {
     const src = readFileSync(
       join(process.cwd(), 'src/services/websocket.service.ts'),
       'utf8',
     )
     expect(src).not.toContain('socket.io')
-    expect(src).not.toContain('socket.io-client')
-    // Confirms native WebSocket usage
     expect(src).toContain('new WebSocket(')
   })
 
-  it('next-pwa is listed in package.json', () => {
-    expect(allDeps['next-pwa']).toBeDefined()
-  })
-
-  it('next.config.ts does NOT import next-pwa (manual sw.js used instead)', () => {
+  it('next.config.ts does not reference next-pwa', () => {
     const src = readFileSync(join(process.cwd(), 'next.config.ts'), 'utf8')
     expect(src).not.toContain('next-pwa')
     expect(src).not.toContain('withPWA')
-  })
-
-  it('produces audit report', () => {
-    const deadCandidates = []
-    // socket.io-client is in package.json but native WebSocket is used
-    const wsSrc = readFileSync(join(process.cwd(), 'src/services/websocket.service.ts'), 'utf8')
-    if (!wsSrc.includes('socket.io-client')) deadCandidates.push('socket.io-client')
-    // next-pwa is in package.json but not imported in next.config.ts
-    const nextCfg = readFileSync(join(process.cwd(), 'next.config.ts'), 'utf8')
-    if (!nextCfg.includes('next-pwa')) deadCandidates.push('next-pwa')
-
-    console.info('[P3.9] Dead dependency candidates (review before removing):', deadCandidates)
-    expect(deadCandidates).toContain('socket.io-client')
-    expect(deadCandidates).toContain('next-pwa')
   })
 })
 
