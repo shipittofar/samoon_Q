@@ -53,24 +53,36 @@ function RTLProvider({ children }: { children: ReactNode }) {
 }
 
 /**
- * Loads the active tenant once at app startup.
+ * Coordinates the full app bootstrap sequence at startup (P1B.6).
  *
- * Phase 1A/1B: calls loadTenant() with no slug argument so the service resolves
- * the default tenant (mock mode) or the current tenant from the API.
- * Falls back to DEFAULT_TENANT automatically if the service call fails (M-1 fix).
+ * Sequence:
+ *   1. loadTenant() — resolves tenant; sets tenantState to 'ready' or 'fallback'
+ *   2. setRbacInitialized(true) — STUB until P1B.1 ships its own RBAC initializer.
+ *      When P1B.1 is implemented, remove this line; the RBAC initializer will call
+ *      useTenantStore.getState().setRbacInitialized(true) after its own setup.
+ *   3. setFeatureFlagsInitialized(true) — STUB until P1B.2 ships.
+ *      When P1B.2 is implemented, remove this line; the feature flag initializer
+ *      will call useTenantStore.getState().setFeatureFlagsInitialized(true).
+ *
+ * After this sequence, useSystemReady().canExecute becomes true and all
+ * Phase 1B systems (RBAC, feature flags, routing) are permitted to execute.
  *
  * Phase 1B (P1B.3): middleware will inject X-Tenant-Slug from the subdomain;
- * this bootstrapper will be updated at that point to pass the slug from the header.
- * No environment-based multi-tenant switching is introduced here.
+ * this bootstrapper will pass the slug to loadTenant() at that point.
  */
 function TenantBootstrapper({ children }: { children: ReactNode }) {
-  const { loadTenant } = useTenantStore()
+  const { loadTenant, setRbacInitialized, setFeatureFlagsInitialized } = useTenantStore()
   const booted = useRef(false)
   useEffect(() => {
     if (booted.current) return
     booted.current = true
-    loadTenant()
-  }, [loadTenant])
+    loadTenant().then(() => {
+      // STUB: mark RBAC and feature flags as initialized until their real
+      // initializers ship in P1B.1 and P1B.2 respectively.
+      setRbacInitialized(true)
+      setFeatureFlagsInitialized(true)
+    })
+  }, [loadTenant, setRbacInitialized, setFeatureFlagsInitialized])
   return <>{children}</>
 }
 

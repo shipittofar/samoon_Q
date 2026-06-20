@@ -230,17 +230,25 @@ export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned'
 export type TenantLifecycle = 'loading' | 'ready' | 'fallback'
 
 /**
- * Authoritative execution gate for all Phase 1B systems.
- * Returned by useSystemReady() — fully derived from TenantLifecycle,
- * no additional state.
+ * Authoritative execution gate for all Phase 1B+ systems.
+ * Returned by useSystemReady() — fully derived at runtime, never persisted.
  *
- * canExecutePhase1B is the single field all consumers should check first:
- *   false (loading)         → block; return safe defaults
- *   true  (ready/fallback)  → proceed with the appropriate rule set
+ * Responsibility: P1B.6 — System Execution Gate.
+ * This is NOT a store, NOT a source of truth, NOT business logic.
+ * It is a safety layer that aggregates three independent bootstrap signals:
+ *   TenantState     → lifecycle (loading / ready / fallback)
+ *   rbacInitialized → RBAC system has completed its own setup (P1B.1)
+ *   featureFlagsInitialized → Feature flag system has completed setup (P1B.2)
  *
- * isReady and isFallback allow consumers that need finer-grained branching
- * (e.g. "show a degraded-mode banner when isFallback") without re-deriving
- * the same logic from tenantState in every callsite.
+ * Layer responsibilities:
+ *   TenantState     → tenant lifecycle (single source of truth)
+ *   RBAC            → permissions
+ *   Feature Flags   → capability toggles
+ *   SystemReadiness → execution safety gate (derived from the above)
+ *
+ * canExecute is the single field all consumers must check:
+ *   false → block; return safe defaults (deny RBAC, module-only flags, skip routing)
+ *   true  → all subsystems ready; proceed with appropriate rules for isReady/isFallback
  */
 export interface SystemReadiness {
   /** tenantState === 'loading' */
@@ -250,13 +258,16 @@ export interface SystemReadiness {
   /** tenantState === 'fallback' — DEFAULT_TENANT in use, single-tenant rules apply */
   isFallback: boolean
   /**
-   * true when tenantState is 'ready' OR 'fallback'.
-   * The single gate all Phase 1B systems check before executing:
-   *   RBAC        → if (!canExecutePhase1B) return safe default (deny)
-   *   Feature flags → if (!canExecutePhase1B) return module defaults only
-   *   Routing     → if (!canExecutePhase1B) skip access validation
+   * true when ALL of the following hold:
+   *   tenantState !== 'loading'    — bootstrap completed (ready or fallback)
+   *   rbacInitialized === true     — RBAC system ready (P1B.1)
+   *   featureFlagsInitialized === true — Feature flags ready (P1B.2)
+   *
+   * Canonical usage in every Phase 1B consumer:
+   *   const { canExecute, isFallback } = useSystemReady()
+   *   if (!canExecute) return <safe-default>
    */
-  canExecutePhase1B: boolean
+  canExecute: boolean
 }
 
 export interface Tenant {

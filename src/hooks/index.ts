@@ -25,30 +25,36 @@ export function useTenantState(): TenantLifecycle {
   return useTenantStore((s) => s.tenantState)
 }
 
-// ── System Ready Hook (Phase 1B execution gate) ───────────────────────────────
+// ── System Ready Hook — P1B.6 execution gate ─────────────────────────────────
 /**
- * Returns the authoritative readiness signal for all Phase 1B systems.
- * Fully derived from tenantState — introduces no new state.
+ * Returns the authoritative execution gate for all Phase 1B+ systems.
+ * Fully derived — introduces no new state, not persisted.
  *
- * Canonical usage pattern for every Phase 1B consumer:
+ * Aggregates three independent bootstrap signals:
+ *   tenantState             (P1A.1) — must not be 'loading'
+ *   rbacInitialized         (P1B.1) — RBAC system must have completed setup
+ *   featureFlagsInitialized (P1B.2) — feature flag system must have completed setup
  *
- *   const { canExecutePhase1B, isFallback } = useSystemReady()
- *   if (!canExecutePhase1B) return <safe-default>
- *   // proceed — tenant is either 'ready' or 'fallback'
- *   // use isFallback to apply DEFAULT_TENANT rules vs. full tenant rules
+ * Canonical usage in every Phase 1B consumer:
  *
- * See SystemReadiness in types/index.ts for the full field contract.
+ *   const { canExecute, isFallback } = useSystemReady()
+ *   if (!canExecute) return <safe-default>
+ *   // all subsystems ready; branch on isFallback for DEFAULT_TENANT vs. full rules
+ *
+ * See SystemReadiness in types/index.ts for the complete field contract.
  */
 export function useSystemReady(): SystemReadiness {
-  const tenantState = useTenantStore((s) => s.tenantState)
-  const isLoading   = tenantState === 'loading'
-  const isReady     = tenantState === 'ready'
-  const isFallback  = tenantState === 'fallback'
+  const tenantState             = useTenantStore((s) => s.tenantState)
+  const rbacInitialized         = useTenantStore((s) => s.rbacInitialized)
+  const featureFlagsInitialized = useTenantStore((s) => s.featureFlagsInitialized)
+  const isLoading  = tenantState === 'loading'
+  const isReady    = tenantState === 'ready'
+  const isFallback = tenantState === 'fallback'
   return {
     isLoading,
     isReady,
     isFallback,
-    canExecutePhase1B: !isLoading,   // ready OR fallback are both safe to execute
+    canExecute: !isLoading && rbacInitialized && featureFlagsInitialized,
   }
 }
 

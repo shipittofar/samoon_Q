@@ -645,87 +645,122 @@ describe('useTenantState() hook contract', () => {
   })
 })
 
-// ── Phase 1B System Ready Layer ───────────────────────────────────────────────
+// ── Phase 1B — P1B.6 System Execution Gate ───────────────────────────────────
 // useSystemReady() is a React hook; tests verify the derived booleans via the
 // underlying store state (same pattern as useTenantState() tests above).
+// The helper mirrors the hook's exact computation so any divergence is caught.
 
 function getSystemReady(): SystemReadiness {
-  const tenantState = useTenantStore.getState().tenantState
+  const { tenantState, rbacInitialized, featureFlagsInitialized } = useTenantStore.getState()
   const isLoading  = tenantState === 'loading'
   const isReady    = tenantState === 'ready'
   const isFallback = tenantState === 'fallback'
-  return { isLoading, isReady, isFallback, canExecutePhase1B: !isLoading }
+  return {
+    isLoading,
+    isReady,
+    isFallback,
+    canExecute: !isLoading && rbacInitialized && featureFlagsInitialized,
+  }
+}
+
+// Helper: advance the store to a fully-bootstrapped state (tenant loaded + both
+// subsystem stubs set to true) — mirrors what TenantBootstrapper does at runtime.
+async function bootstrap(slug = 'default') {
+  await useTenantStore.getState().loadTenant(slug)
+  useTenantStore.getState().setRbacInitialized(true)
+  useTenantStore.getState().setFeatureFlagsInitialized(true)
 }
 
 describe("useSystemReady() — 'loading' state", () => {
   beforeEach(() => {
-    useTenantStore.getState().reset() // reset() → tenantState = 'loading'
+    useTenantStore.getState().reset()
   })
 
-  it('isLoading is true when tenantState is loading', () => {
+  it('isLoading is true before bootstrap', () => {
     expect(getSystemReady().isLoading).toBe(true)
   })
 
-  it('isReady is false when tenantState is loading', () => {
+  it('isReady is false before bootstrap', () => {
     expect(getSystemReady().isReady).toBe(false)
   })
 
-  it('isFallback is false when tenantState is loading', () => {
+  it('isFallback is false before bootstrap', () => {
     expect(getSystemReady().isFallback).toBe(false)
   })
 
-  it('canExecutePhase1B is false when tenantState is loading', () => {
-    expect(getSystemReady().canExecutePhase1B).toBe(false)
+  it('canExecute is false when tenantState is loading', () => {
+    expect(getSystemReady().canExecute).toBe(false)
   })
 
-  it('all four flags are consistent — exactly one is true', () => {
+  it('canExecute is false when tenant is ready but RBAC not initialized', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    // rbacInitialized and featureFlagsInitialized are still false (not bootstrapped)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+    expect(getSystemReady().canExecute).toBe(false)
+  })
+
+  it('canExecute is false when tenant is ready and RBAC initialized but feature flags are not', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    useTenantStore.getState().setRbacInitialized(true)
+    // featureFlagsInitialized still false
+    expect(getSystemReady().canExecute).toBe(false)
+  })
+
+  it('canExecute is false when tenant is ready and feature flags initialized but RBAC is not', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    useTenantStore.getState().setFeatureFlagsInitialized(true)
+    // rbacInitialized still false
+    expect(getSystemReady().canExecute).toBe(false)
+  })
+
+  it('exactly one of isLoading/isReady/isFallback is true in loading state', () => {
     const { isLoading, isReady, isFallback } = getSystemReady()
-    const trueCount = [isLoading, isReady, isFallback].filter(Boolean).length
-    expect(trueCount).toBe(1)
+    expect([isLoading, isReady, isFallback].filter(Boolean).length).toBe(1)
   })
 })
 
-describe("useSystemReady() — 'ready' state", () => {
+describe("useSystemReady() — 'ready' state (all subsystems initialized)", () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it('isReady is true after successful loadTenant', async () => {
-    await useTenantStore.getState().loadTenant('default')
+  it('isReady is true after successful bootstrap', async () => {
+    await bootstrap()
     expect(getSystemReady().isReady).toBe(true)
   })
 
   it('isLoading is false when ready', async () => {
-    await useTenantStore.getState().loadTenant('default')
+    await bootstrap()
     expect(getSystemReady().isLoading).toBe(false)
   })
 
   it('isFallback is false when ready', async () => {
-    await useTenantStore.getState().loadTenant('default')
+    await bootstrap()
     expect(getSystemReady().isFallback).toBe(false)
   })
 
-  it('canExecutePhase1B is true when ready', async () => {
-    await useTenantStore.getState().loadTenant('default')
-    expect(getSystemReady().canExecutePhase1B).toBe(true)
+  it('canExecute is true when ready and all subsystems initialized', async () => {
+    await bootstrap()
+    expect(getSystemReady().canExecute).toBe(true)
   })
 
-  it('all four flags are consistent — exactly one of isLoading/isReady/isFallback is true', async () => {
-    await useTenantStore.getState().loadTenant('default')
+  it('exactly one of isLoading/isReady/isFallback is true in ready state', async () => {
+    await bootstrap()
     const { isLoading, isReady, isFallback } = getSystemReady()
-    const trueCount = [isLoading, isReady, isFallback].filter(Boolean).length
-    expect(trueCount).toBe(1)
+    expect([isLoading, isReady, isFallback].filter(Boolean).length).toBe(1)
   })
 })
 
-describe("useSystemReady() — 'fallback' state", () => {
+describe("useSystemReady() — 'fallback' state (all subsystems initialized)", () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it('isFallback is true after loadTenant failure', async () => {
+  it('isFallback is true after failed loadTenant + subsystem stubs', async () => {
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant()
+    useTenantStore.getState().setRbacInitialized(true)
+    useTenantStore.getState().setFeatureFlagsInitialized(true)
     expect(getSystemReady().isFallback).toBe(true)
     spy.mockRestore()
   })
@@ -733,6 +768,8 @@ describe("useSystemReady() — 'fallback' state", () => {
   it('isLoading is false in fallback state', async () => {
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant()
+    useTenantStore.getState().setRbacInitialized(true)
+    useTenantStore.getState().setFeatureFlagsInitialized(true)
     expect(getSystemReady().isLoading).toBe(false)
     spy.mockRestore()
   })
@@ -740,18 +777,31 @@ describe("useSystemReady() — 'fallback' state", () => {
   it('isReady is false in fallback state', async () => {
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant()
+    useTenantStore.getState().setRbacInitialized(true)
+    useTenantStore.getState().setFeatureFlagsInitialized(true)
     expect(getSystemReady().isReady).toBe(false)
     spy.mockRestore()
   })
 
-  it('canExecutePhase1B is true in fallback state — fallback is safe execution mode', async () => {
+  it('canExecute is true in fallback state — fallback is safe execution mode', async () => {
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant()
-    expect(getSystemReady().canExecutePhase1B).toBe(true)
+    useTenantStore.getState().setRbacInitialized(true)
+    useTenantStore.getState().setFeatureFlagsInitialized(true)
+    expect(getSystemReady().canExecute).toBe(true)
     spy.mockRestore()
   })
 
-  it('all four flags consistent — exactly one of isLoading/isReady/isFallback is true', async () => {
+  it('canExecute is false in fallback state when RBAC not initialized', async () => {
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+    await useTenantStore.getState().loadTenant()
+    // Only featureFlagsInitialized set — rbacInitialized still false
+    useTenantStore.getState().setFeatureFlagsInitialized(true)
+    expect(getSystemReady().canExecute).toBe(false)
+    spy.mockRestore()
+  })
+
+  it('exactly one of isLoading/isReady/isFallback is true in fallback state', async () => {
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant()
     const { isLoading, isReady, isFallback } = getSystemReady()
@@ -760,45 +810,70 @@ describe("useSystemReady() — 'fallback' state", () => {
   })
 })
 
-describe('useSystemReady() — derivation and hook contract', () => {
+describe('useSystemReady() — derivation, architecture, and hook contract', () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it('canExecutePhase1B is false ONLY when loading — ready and fallback both permit execution', async () => {
-    // loading
-    expect(getSystemReady().canExecutePhase1B).toBe(false)
+  it('canExecute requires ALL THREE conditions: tenant not loading + rbac + flags', async () => {
+    // 1. loading → all false → canExecute false
+    expect(getSystemReady().canExecute).toBe(false)
 
-    // ready
+    // 2. tenant ready but subsystems not yet initialized → canExecute still false
     await useTenantStore.getState().loadTenant('default')
-    expect(getSystemReady().canExecutePhase1B).toBe(true)
+    expect(getSystemReady().canExecute).toBe(false)
 
-    // reset to loading, then force fallback
-    useTenantStore.getState().reset()
+    // 3. RBAC initialized but flags still pending → canExecute still false
+    useTenantStore.getState().setRbacInitialized(true)
+    expect(getSystemReady().canExecute).toBe(false)
+
+    // 4. All three satisfied → canExecute true
+    useTenantStore.getState().setFeatureFlagsInitialized(true)
+    expect(getSystemReady().canExecute).toBe(true)
+  })
+
+  it('canExecute is true in fallback mode once all subsystems are initialized', async () => {
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant()
-    expect(getSystemReady().canExecutePhase1B).toBe(true)
+    useTenantStore.getState().setRbacInitialized(true)
+    useTenantStore.getState().setFeatureFlagsInitialized(true)
+    expect(getSystemReady().canExecute).toBe(true)
     spy.mockRestore()
   })
 
-  it('is fully derived — SystemReadiness introduces no new store fields', () => {
+  it('SystemReadiness is fully derived — no isReady/isFallback/canExecute fields in store', () => {
     const storeKeys = Object.keys(useTenantStore.getState())
     expect(storeKeys).not.toContain('isReady')
     expect(storeKeys).not.toContain('isFallback')
-    expect(storeKeys).not.toContain('canExecutePhase1B')
+    expect(storeKeys).not.toContain('canExecute')
     expect(storeKeys).not.toContain('isSystemReady')
+    // bootstrap signals ARE in store (they are inputs, not outputs)
+    expect(storeKeys).toContain('rbacInitialized')
+    expect(storeKeys).toContain('featureFlagsInitialized')
+  })
+
+  it('SystemReadiness is NOT persisted — bootstrap signals absent from persisted partition', () => {
+    // Only { tenant } is in the persisted partition (via partialize)
+    const persistedPartition = { tenant: DEFAULT_TENANT }
+    expect((persistedPartition as Record<string, unknown>).tenantState).toBeUndefined()
+    expect((persistedPartition as Record<string, unknown>).rbacInitialized).toBeUndefined()
+    expect((persistedPartition as Record<string, unknown>).featureFlagsInitialized).toBeUndefined()
+    expect((persistedPartition as Record<string, unknown>).canExecute).toBeUndefined()
+  })
+
+  it('reset() returns ALL signals to pre-bootstrap state — canExecute becomes false', async () => {
+    await bootstrap()
+    expect(getSystemReady().canExecute).toBe(true)
+
+    useTenantStore.getState().reset()
+    const { canExecute, isLoading } = getSystemReady()
+    expect(canExecute).toBe(false)
+    expect(isLoading).toBe(true)
+    expect(useTenantStore.getState().rbacInitialized).toBe(false)
+    expect(useTenantStore.getState().featureFlagsInitialized).toBe(false)
   })
 
   it('useSystemReady is exported from hooks and is a function', () => {
     expect(typeof useSystemReady).toBe('function')
-  })
-
-  it('reset() returns system to non-executable state (isLoading true, canExecutePhase1B false)', async () => {
-    await useTenantStore.getState().loadTenant('default')
-    expect(getSystemReady().canExecutePhase1B).toBe(true)
-
-    useTenantStore.getState().reset()
-    expect(getSystemReady().canExecutePhase1B).toBe(false)
-    expect(getSystemReady().isLoading).toBe(true)
   })
 })

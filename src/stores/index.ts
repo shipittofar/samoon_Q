@@ -159,40 +159,52 @@ export const useLangStore = create<LangState>()(
   ),
 )
 
-// ── Tenant Store  (Phase 1A — P1A.1 / Phase 1B stabilization) ───────────────
+// ── Tenant Store  (Phase 1A — P1A.1 / Phase 1B P1B.6) ───────────────────────
 /**
- * Holds the active tenant context for the session.
- * Initialises from DEFAULT_TENANT (single-tenant backward compatibility, P1A.4).
+ * Holds the active tenant context and the bootstrap lifecycle signals for all
+ * Phase 1B subsystems. Serves as the single bootstrap coordinator for:
+ *   tenantState            — tenant lifecycle (P1A.1)
+ *   rbacInitialized        — RBAC system ready signal (P1B.1 stub → real in P1B.1)
+ *   featureFlagsInitialized — Feature flag system ready signal (P1B.2 stub → real in P1B.2)
  *
- * Lifecycle state machine (Phase 1B):
- *   tenantState drives all Phase 1B system decisions. Transitions:
+ * The RBAC and feature flag flags are BOOTSTRAP SIGNALS, not RBAC/flag business logic.
+ * They belong here because this is the bootstrap coordinator, not because the
+ * tenant store knows anything about RBAC rules or feature flag values.
  *
- *     'loading'  → initial state; TenantBootstrapper has not yet completed
- *     'ready'    → loadTenant() succeeded; tenant is from a verified source
- *     'fallback' → loadTenant() failed; tenant is DEFAULT_TENANT
- *
- *   tenantState is NOT persisted — it is a runtime-only value, always 'loading'
- *   at page load so the bootstrap sequence runs on every visit.
+ * Lifecycle state machine:
+ *   tenantState: 'loading' → initial; 'ready' → loaded; 'fallback' → degraded
  *
  * Hydration flow:
- *   Phase 1A/1B: TenantBootstrapper calls loadTenant() in Providers.
- *   Phase 1B (P1B.3): middleware will inject X-Tenant-Slug from the subdomain;
- *   loadTenant(slug) will be updated to pass that slug at that point.
+ *   Phase 1A/1B: TenantBootstrapper calls loadTenant() and then sets both
+ *   initialized flags (stub until P1B.1/P1B.2 ship their own initializers).
+ *   Phase 1B (P1B.3): middleware injects X-Tenant-Slug; loadTenant() updated then.
  *
- * Persist version 1 — any cached v0 state is discarded on first load.
- * tenantState is excluded from persist via partialize.
+ * Persist version 1. All runtime signals excluded via partialize.
  */
 interface TenantState {
   tenant: Tenant
   isLoading: boolean
   /**
-   * Deterministic lifecycle state for the tenant bootstrap sequence.
-   * See TenantLifecycle in types/index.ts for the full state contract.
-   * All Phase 1B systems (RBAC, feature flags, routing) must branch on this.
+   * Deterministic tenant lifecycle state. See TenantLifecycle in types/index.ts.
+   * TenantState = ONLY source of tenant lifecycle truth.
    */
   tenantState: TenantLifecycle
+  /**
+   * True once the RBAC system has completed its initialization sequence (P1B.1).
+   * Set by the RBAC initializer; default false so canExecute blocks until RBAC is ready.
+   * STUB: TenantBootstrapper sets this to true until P1B.1 ships its own initializer.
+   */
+  rbacInitialized: boolean
+  /**
+   * True once the feature flag system has completed its initialization sequence (P1B.2).
+   * Set by the feature flag initializer; default false so canExecute blocks until ready.
+   * STUB: TenantBootstrapper sets this to true until P1B.2 ships its own initializer.
+   */
+  featureFlagsInitialized: boolean
   setTenant: (tenant: Tenant) => void
   loadTenant: (slug?: string) => Promise<void>
+  setRbacInitialized: (v: boolean) => void
+  setFeatureFlagsInitialized: (v: boolean) => void
   reset: () => void
 }
 
@@ -202,6 +214,8 @@ export const useTenantStore = create<TenantState>()(
       tenant: DEFAULT_TENANT,
       isLoading: false,
       tenantState: 'loading' as TenantLifecycle,
+      rbacInitialized: false,
+      featureFlagsInitialized: false,
       setTenant: (tenant) => set({ tenant }),
       loadTenant: async (slug?: string) => {
         set({ isLoading: true, tenantState: 'loading' })
@@ -215,14 +229,23 @@ export const useTenantStore = create<TenantState>()(
           set({ tenant: DEFAULT_TENANT, isLoading: false, tenantState: 'fallback' })
         }
       },
-      reset: () => set({ tenant: DEFAULT_TENANT, isLoading: false, tenantState: 'loading' }),
+      setRbacInitialized: (v) => set({ rbacInitialized: v }),
+      setFeatureFlagsInitialized: (v) => set({ featureFlagsInitialized: v }),
+      // reset() returns ALL runtime signals to their pre-bootstrap state.
+      reset: () => set({
+        tenant: DEFAULT_TENANT,
+        isLoading: false,
+        tenantState: 'loading',
+        rbacInitialized: false,
+        featureFlagsInitialized: false,
+      }),
     }),
     {
       name: TENANT_KEY,
       version: 1,
-      migrate: () => ({ tenant: DEFAULT_TENANT, isLoading: false, tenantState: 'loading' as TenantLifecycle }),
-      // tenantState and isLoading are runtime-only — exclude from localStorage
-      // so the bootstrap sequence always runs fresh on every page load.
+      migrate: () => ({ tenant: DEFAULT_TENANT }),
+      // Only tenant is persisted. All runtime signals start fresh on every page
+      // load: tenantState = 'loading', rbacInitialized = false, featureFlagsInitialized = false.
       partialize: (state) => ({ tenant: state.tenant }),
     },
   ),
