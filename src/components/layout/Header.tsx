@@ -11,6 +11,7 @@ import { cn, formatCurrency } from '@/utils'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { getHeaderNav } from '@/modules/registry'
 import toast from 'react-hot-toast'
 
@@ -158,20 +159,22 @@ export function Header() {
 
             {/* Notifications */}
             {isAuthenticated && (
-              <Link href="/dashboard">
-                <Button variant="ghost" size="icon" className="relative" aria-label={`${unreadCount} notifications`}>
-                  <Bell className="h-4 w-4" />
-                  {unreadCount > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center px-1"
-                    >
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </motion.span>
-                  )}
-                </Button>
-              </Link>
+              <ErrorBoundary feature="NotificationCenter">
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="icon" className="relative" aria-label={`${unreadCount} notifications`}>
+                    <Bell className="h-4 w-4" />
+                    {unreadCount > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center px-1"
+                      >
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </motion.span>
+                    )}
+                  </Button>
+                </Link>
+              </ErrorBoundary>
             )}
 
             {/* Cart */}

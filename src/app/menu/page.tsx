@@ -7,6 +7,7 @@ import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, List, Sparkles } fr
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FoodCard } from '@/components/menu/FoodCard'
 import { FoodDetailModal } from '@/components/menu/FoodDetailModal'
 import { FoodCardSkeleton, Badge } from '@/components/ui'
@@ -98,8 +99,8 @@ function MenuContent() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
-      <CartDrawer />
-      <FloatingCart />
+      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
+      <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Hero */}
       <div className="pt-16 bg-gradient-to-b from-orange-50/80 to-transparent dark:from-orange-950/20 dark:to-transparent">
