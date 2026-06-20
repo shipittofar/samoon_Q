@@ -52,17 +52,23 @@ function RTLProvider({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+// ── Bootstrap stubs — TEMPORARY (Phase 1B.1 / 1B.2 pending) ─────────────────
+// Replace each stub with a real initializer call when its phase ships:
+//   P1B.1 → RBAC initializer calls useTenantStore.getState().setRbacInitialized(true)
+//   P1B.2 → Feature flag initializer calls useTenantStore.getState().setFeatureFlagsInitialized(true)
+// When a real initializer is in place, remove the corresponding line from BOOTSTRAP_STUBS.
+const BOOTSTRAP_STUBS = {
+  rbacInitialized: true,         // TEMPORARY STUB — remove when P1B.1 RBAC initializer ships
+  featureFlagsInitialized: true, // TEMPORARY STUB — remove when P1B.2 feature flag initializer ships
+} as const
+
 /**
  * Coordinates the full app bootstrap sequence at startup (P1B.6).
  *
  * Sequence:
  *   1. loadTenant() — resolves tenant; sets tenantState to 'ready' or 'fallback'
- *   2. setRbacInitialized(true) — STUB until P1B.1 ships its own RBAC initializer.
- *      When P1B.1 is implemented, remove this line; the RBAC initializer will call
- *      useTenantStore.getState().setRbacInitialized(true) after its own setup.
- *   3. setFeatureFlagsInitialized(true) — STUB until P1B.2 ships.
- *      When P1B.2 is implemented, remove this line; the feature flag initializer
- *      will call useTenantStore.getState().setFeatureFlagsInitialized(true).
+ *   2. setRbacInitialized — sourced from BOOTSTRAP_STUBS until P1B.1 ships its real initializer
+ *   3. setFeatureFlagsInitialized — sourced from BOOTSTRAP_STUBS until P1B.2 ships
  *
  * After this sequence, useSystemReady().canExecute becomes true and all
  * Phase 1B systems (RBAC, feature flags, routing) are permitted to execute.
@@ -77,10 +83,8 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
     if (booted.current) return
     booted.current = true
     loadTenant().then(() => {
-      // STUB: mark RBAC and feature flags as initialized until their real
-      // initializers ship in P1B.1 and P1B.2 respectively.
-      setRbacInitialized(true)
-      setFeatureFlagsInitialized(true)
+      setRbacInitialized(BOOTSTRAP_STUBS.rbacInitialized)
+      setFeatureFlagsInitialized(BOOTSTRAP_STUBS.featureFlagsInitialized)
     })
   }, [loadTenant, setRbacInitialized, setFeatureFlagsInitialized])
   return <>{children}</>
