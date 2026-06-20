@@ -8,6 +8,7 @@ import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenant
 import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
+import { useNotificationWebSocket } from '@/hooks/client'
 import type { TenantTheme } from '@/types'
 
 function makeQueryClient() {
@@ -121,6 +122,16 @@ function TenantThemeProvider({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * Activates the notification WebSocket for authenticated users (P3.6).
+ * Placed inside AuthBootstrapper so it only runs after auth hydration.
+ * Wraps children transparently — no visual output.
+ */
+function NotificationWebSocketProvider({ children }: { children: ReactNode }) {
+  useNotificationWebSocket()
+  return <>{children}</>
+}
+
 function AuthBootstrapper({ children }: { children: ReactNode }) {
   const { setUser, setLoading } = useAuthStore()
   const setFavorites = useFavoritesStore((s) => s.setFavorites)
@@ -150,14 +161,16 @@ export function Providers({ children }: { children: ReactNode }) {
           <TenantBootstrapper>
             <TenantThemeProvider>
               <AuthBootstrapper>
-                {children}
-                <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
+                <NotificationWebSocketProvider>
+                  {children}
+                  <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
+                </NotificationWebSocketProvider>
               </AuthBootstrapper>
             </TenantThemeProvider>
           </TenantBootstrapper>
         </RTLProvider>
       </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   )
 }
