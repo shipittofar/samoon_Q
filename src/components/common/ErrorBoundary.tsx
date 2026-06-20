@@ -18,6 +18,7 @@
 
 import { Component, type ReactNode, type ErrorInfo } from 'react'
 import { captureException } from '@/lib/sentry'
+import { VERSION } from '@/lib/version'
 
 export interface ErrorBoundaryProps {
   children: ReactNode
@@ -45,7 +46,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, info: ErrorInfo) {
     const feature = this.props.feature ?? 'Unknown'
     console.error(`[ErrorBoundary:${feature}] Caught render error:`, error, info.componentStack)
-    captureException(error, { feature, componentStack: info.componentStack ?? undefined })
+
+    // P4.6.5 — Enrich Sentry events with observability context.
+    // Only non-sensitive fields: no tokens, no PII beyond what's already in user context.
+    const pathname =
+      typeof window !== 'undefined' ? window.location.pathname : undefined
+
+    captureException(error, {
+      feature,
+      componentStack: info.componentStack ?? undefined,
+      // Route context
+      pathname,
+      // Build context
+      release: VERSION,
+    })
   }
 
   reset = () => this.setState({ hasError: false, error: null })

@@ -10,6 +10,7 @@ import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useNotificationWebSocket } from '@/hooks/client'
+import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import type { TenantTheme } from '@/types'
 
 function makeQueryClient() {
@@ -96,6 +97,7 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (booted.current) return
     booted.current = true
+    setEnvironmentTags()
     loadTenant().then(() => {
       // P1B.1 — RBAC: static permission map; initialization is synchronous
       setRbacInitialized(true)
@@ -104,6 +106,9 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
       const { tenant } = useTenantStore.getState()
       setFeatureFlags(featureFlagsService.resolve(tenant))
       setFeatureFlagsInitialized(true)
+
+      // P4.6.3 — Tag Sentry events with the resolved tenant slug
+      setSentryTenant(tenant.slug)
     })
   }, [loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags])
   return <>{children}</>
@@ -162,9 +167,10 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     if (!token) { setLoading(false); return }
     authService.getMe().then((user) => {
       setUser(user)
+      setSentryUser({ id: user.id, email: user.email, role: user.role })
       userService.getFavorites().then(setFavorites).catch(() => {})
     }).catch(() => setLoading(false))
-    const handleLogout = () => setUser(null)
+    const handleLogout = () => { setUser(null); clearSentryUser() }
     window.addEventListener('auth:logout', handleLogout)
     return () => window.removeEventListener('auth:logout', handleLogout)
   }, [setUser, setLoading, setFavorites])

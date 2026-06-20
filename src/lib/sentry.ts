@@ -1,5 +1,5 @@
 /**
- * Sentry integration — Phase 3 (P3.11)
+ * Sentry integration — Phase 3 (P3.11) / Phase 4.6 (P4.6.1–P4.6.4)
  *
  * This module provides a safe wrapper around the Sentry SDK.
  * Error reporting is only activated when NEXT_PUBLIC_SENTRY_DSN is set,
@@ -16,9 +16,16 @@
  *   2. Set SENTRY_DSN in .env.local (server-side, for source map upload)
  *   3. Telemetry begins automatically once the DSN is present.
  *   4. To disable telemetry in production, unset or empty the DSN.
+ *
+ * P4.6 additions:
+ *   setSentryUser    — P4.6.1: set user context (id, role, tenant, email)
+ *   clearSentryUser  — P4.6.1: remove user context on logout
+ *   setSentryTenant  — P4.6.3: tag events with tenant.slug
+ *   setEnvironmentTags — P4.6.4: tag environment + release (called once at init)
  */
 
 import * as SentrySDK from '@sentry/nextjs'
+import { VERSION } from '@/lib/version'
 
 const DSN = process.env.NEXT_PUBLIC_SENTRY_DSN
 
@@ -37,14 +44,80 @@ export function captureException(
   context?: Record<string, unknown>,
 ): void {
   if (!sentryEnabled) return
-  SentrySDK.captureException(error, { extra: context })
+  try {
+    SentrySDK.captureException(error, { extra: context })
+  } catch {
+    // Never throw from error reporting
+  }
 }
 
 /**
- * Set a user context for subsequent Sentry events.
- * Call after successful authentication; call with null on logout.
+ * P4.6.1 — Set user context for subsequent Sentry events.
+ *
+ * Only forwards id, role, tenant, and email — never tokens or passwords.
+ * Call after successful authentication.
+ * Safe no-op when DSN is not configured.
  */
-export function setSentryUser(user: { id: string; email?: string; role?: string } | null): void {
+export function setSentryUser(
+  user: { id: string; email?: string; role?: string; tenant?: string } | null,
+): void {
   if (!sentryEnabled) return
-  SentrySDK.setUser(user)
+  try {
+    if (!user) {
+      SentrySDK.setUser(null)
+      return
+    }
+    SentrySDK.setUser({
+      id: user.id,
+      ...(user.email ? { email: user.email } : {}),
+      ...(user.role ? { role: user.role } : {}),
+      ...(user.tenant ? { tenant: user.tenant } : {}),
+    })
+  } catch {
+    // Never throw from telemetry helpers
+  }
+}
+
+/**
+ * P4.6.1 — Remove user context from Sentry (call on logout).
+ * Safe no-op when DSN is not configured.
+ */
+export function clearSentryUser(): void {
+  if (!sentryEnabled) return
+  try {
+    SentrySDK.setUser(null)
+  } catch {
+    // Never throw from telemetry helpers
+  }
+}
+
+/**
+ * P4.6.3 — Tag Sentry events with the active tenant slug.
+ *
+ * Updates automatically when tenant changes. Safe no-op without DSN.
+ */
+export function setSentryTenant(tenantSlug: string): void {
+  if (!sentryEnabled) return
+  try {
+    SentrySDK.setTag('tenant.slug', tenantSlug)
+  } catch {
+    // Never throw from telemetry helpers
+  }
+}
+
+/**
+ * P4.6.4 — Apply environment and release tags to all Sentry events.
+ *
+ * Reuses the VERSION constant (P4.3.4) — no second version source.
+ * Safe no-op without DSN.
+ */
+export function setEnvironmentTags(): void {
+  if (!sentryEnabled) return
+  try {
+    const env = process.env.NODE_ENV ?? 'development'
+    SentrySDK.setTag('environment', env)
+    SentrySDK.setTag('release', VERSION)
+  } catch {
+    // Never throw from telemetry helpers
+  }
 }
