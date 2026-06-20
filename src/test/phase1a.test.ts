@@ -7,7 +7,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { Branch, Location, Module, Tenant, TenantLifecycle } from '@/types'
 import { DEFAULT_TENANT } from '@/constants'
 import { useTenantStore } from '@/stores'
-import { useTenantState } from '@/hooks'
+import { useTenantState, useSystemReady } from '@/hooks'
+import type { SystemReadiness } from '@/types'
 // Imported at module level so all spies target the same instance the store holds.
 // Dynamic `await import(...)` inside tests returns a fresh instance after vi.resetModules(),
 // which would not match the reference already captured by useTenantStore at init time.
@@ -641,5 +642,163 @@ describe('useTenantState() hook contract', () => {
 
   it('useTenantState is exported from hooks and is a function', () => {
     expect(typeof useTenantState).toBe('function')
+  })
+})
+
+// ── Phase 1B System Ready Layer ───────────────────────────────────────────────
+// useSystemReady() is a React hook; tests verify the derived booleans via the
+// underlying store state (same pattern as useTenantState() tests above).
+
+function getSystemReady(): SystemReadiness {
+  const tenantState = useTenantStore.getState().tenantState
+  const isLoading  = tenantState === 'loading'
+  const isReady    = tenantState === 'ready'
+  const isFallback = tenantState === 'fallback'
+  return { isLoading, isReady, isFallback, canExecutePhase1B: !isLoading }
+}
+
+describe("useSystemReady() — 'loading' state", () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset() // reset() → tenantState = 'loading'
+  })
+
+  it('isLoading is true when tenantState is loading', () => {
+    expect(getSystemReady().isLoading).toBe(true)
+  })
+
+  it('isReady is false when tenantState is loading', () => {
+    expect(getSystemReady().isReady).toBe(false)
+  })
+
+  it('isFallback is false when tenantState is loading', () => {
+    expect(getSystemReady().isFallback).toBe(false)
+  })
+
+  it('canExecutePhase1B is false when tenantState is loading', () => {
+    expect(getSystemReady().canExecutePhase1B).toBe(false)
+  })
+
+  it('all four flags are consistent — exactly one is true', () => {
+    const { isLoading, isReady, isFallback } = getSystemReady()
+    const trueCount = [isLoading, isReady, isFallback].filter(Boolean).length
+    expect(trueCount).toBe(1)
+  })
+})
+
+describe("useSystemReady() — 'ready' state", () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('isReady is true after successful loadTenant', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    expect(getSystemReady().isReady).toBe(true)
+  })
+
+  it('isLoading is false when ready', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    expect(getSystemReady().isLoading).toBe(false)
+  })
+
+  it('isFallback is false when ready', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    expect(getSystemReady().isFallback).toBe(false)
+  })
+
+  it('canExecutePhase1B is true when ready', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    expect(getSystemReady().canExecutePhase1B).toBe(true)
+  })
+
+  it('all four flags are consistent — exactly one of isLoading/isReady/isFallback is true', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    const { isLoading, isReady, isFallback } = getSystemReady()
+    const trueCount = [isLoading, isReady, isFallback].filter(Boolean).length
+    expect(trueCount).toBe(1)
+  })
+})
+
+describe("useSystemReady() — 'fallback' state", () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('isFallback is true after loadTenant failure', async () => {
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+    await useTenantStore.getState().loadTenant()
+    expect(getSystemReady().isFallback).toBe(true)
+    spy.mockRestore()
+  })
+
+  it('isLoading is false in fallback state', async () => {
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+    await useTenantStore.getState().loadTenant()
+    expect(getSystemReady().isLoading).toBe(false)
+    spy.mockRestore()
+  })
+
+  it('isReady is false in fallback state', async () => {
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+    await useTenantStore.getState().loadTenant()
+    expect(getSystemReady().isReady).toBe(false)
+    spy.mockRestore()
+  })
+
+  it('canExecutePhase1B is true in fallback state — fallback is safe execution mode', async () => {
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+    await useTenantStore.getState().loadTenant()
+    expect(getSystemReady().canExecutePhase1B).toBe(true)
+    spy.mockRestore()
+  })
+
+  it('all four flags consistent — exactly one of isLoading/isReady/isFallback is true', async () => {
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+    await useTenantStore.getState().loadTenant()
+    const { isLoading, isReady, isFallback } = getSystemReady()
+    expect([isLoading, isReady, isFallback].filter(Boolean).length).toBe(1)
+    spy.mockRestore()
+  })
+})
+
+describe('useSystemReady() — derivation and hook contract', () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('canExecutePhase1B is false ONLY when loading — ready and fallback both permit execution', async () => {
+    // loading
+    expect(getSystemReady().canExecutePhase1B).toBe(false)
+
+    // ready
+    await useTenantStore.getState().loadTenant('default')
+    expect(getSystemReady().canExecutePhase1B).toBe(true)
+
+    // reset to loading, then force fallback
+    useTenantStore.getState().reset()
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+    await useTenantStore.getState().loadTenant()
+    expect(getSystemReady().canExecutePhase1B).toBe(true)
+    spy.mockRestore()
+  })
+
+  it('is fully derived — SystemReadiness introduces no new store fields', () => {
+    const storeKeys = Object.keys(useTenantStore.getState())
+    expect(storeKeys).not.toContain('isReady')
+    expect(storeKeys).not.toContain('isFallback')
+    expect(storeKeys).not.toContain('canExecutePhase1B')
+    expect(storeKeys).not.toContain('isSystemReady')
+  })
+
+  it('useSystemReady is exported from hooks and is a function', () => {
+    expect(typeof useSystemReady).toBe('function')
+  })
+
+  it('reset() returns system to non-executable state (isLoading true, canExecutePhase1B false)', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    expect(getSystemReady().canExecutePhase1B).toBe(true)
+
+    useTenantStore.getState().reset()
+    expect(getSystemReady().canExecutePhase1B).toBe(false)
+    expect(getSystemReady().isLoading).toBe(true)
   })
 })

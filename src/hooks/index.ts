@@ -13,24 +13,43 @@ import { CACHE_TIME, STALE_TIME } from '@/constants'
 import type { MenuFilters } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreateReservationPayload } from '@/services/combined.service'
-import type { LoginCredentials, RegisterData, TenantLifecycle } from '@/types'
+import type { LoginCredentials, RegisterData, SystemReadiness, TenantLifecycle } from '@/types'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
- * Returns the deterministic tenant lifecycle state for the current session.
- *
- *   'loading'  → bootstrap not yet complete; no Phase 1B logic should run
- *   'ready'    → tenant loaded from a live source; full system behaviour applies
- *   'fallback' → service failed; tenant is DEFAULT_TENANT; single-tenant rules apply
- *
- * All Phase 1B systems (RBAC, feature flags, route guards) MUST branch on this.
- * Safe behaviour per state:
- *   loading  → deny RBAC, use module-default flags only, skip route validation
- *   fallback → DEFAULT_TENANT permissions, module-default flags, allow navigation
- *   ready    → full tenant-specific overrides
+ * Returns the raw tenant lifecycle state.
+ * Prefer useSystemReady() in Phase 1B consumers — it provides the full
+ * execution gate contract without requiring callers to re-derive booleans.
  */
 export function useTenantState(): TenantLifecycle {
   return useTenantStore((s) => s.tenantState)
+}
+
+// ── System Ready Hook (Phase 1B execution gate) ───────────────────────────────
+/**
+ * Returns the authoritative readiness signal for all Phase 1B systems.
+ * Fully derived from tenantState — introduces no new state.
+ *
+ * Canonical usage pattern for every Phase 1B consumer:
+ *
+ *   const { canExecutePhase1B, isFallback } = useSystemReady()
+ *   if (!canExecutePhase1B) return <safe-default>
+ *   // proceed — tenant is either 'ready' or 'fallback'
+ *   // use isFallback to apply DEFAULT_TENANT rules vs. full tenant rules
+ *
+ * See SystemReadiness in types/index.ts for the full field contract.
+ */
+export function useSystemReady(): SystemReadiness {
+  const tenantState = useTenantStore((s) => s.tenantState)
+  const isLoading   = tenantState === 'loading'
+  const isReady     = tenantState === 'ready'
+  const isFallback  = tenantState === 'fallback'
+  return {
+    isLoading,
+    isReady,
+    isFallback,
+    canExecutePhase1B: !isLoading,   // ready OR fallback are both safe to execute
+  }
 }
 
 // ── Auth Hooks ────────────────────────────────────────────────────────────────

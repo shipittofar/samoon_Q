@@ -229,6 +229,36 @@ export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned'
  */
 export type TenantLifecycle = 'loading' | 'ready' | 'fallback'
 
+/**
+ * Authoritative execution gate for all Phase 1B systems.
+ * Returned by useSystemReady() — fully derived from TenantLifecycle,
+ * no additional state.
+ *
+ * canExecutePhase1B is the single field all consumers should check first:
+ *   false (loading)         → block; return safe defaults
+ *   true  (ready/fallback)  → proceed with the appropriate rule set
+ *
+ * isReady and isFallback allow consumers that need finer-grained branching
+ * (e.g. "show a degraded-mode banner when isFallback") without re-deriving
+ * the same logic from tenantState in every callsite.
+ */
+export interface SystemReadiness {
+  /** tenantState === 'loading' */
+  isLoading: boolean
+  /** tenantState === 'ready' — live source, full overrides apply */
+  isReady: boolean
+  /** tenantState === 'fallback' — DEFAULT_TENANT in use, single-tenant rules apply */
+  isFallback: boolean
+  /**
+   * true when tenantState is 'ready' OR 'fallback'.
+   * The single gate all Phase 1B systems check before executing:
+   *   RBAC        → if (!canExecutePhase1B) return safe default (deny)
+   *   Feature flags → if (!canExecutePhase1B) return module defaults only
+   *   Routing     → if (!canExecutePhase1B) skip access validation
+   */
+  canExecutePhase1B: boolean
+}
+
 export interface Tenant {
   id: string
   name: string
