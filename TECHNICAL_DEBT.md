@@ -8,15 +8,31 @@
 
 | Priority | Count |
 |----------|-------|
-| Critical | 5 |
-| High | 11 |
+| Critical | 6 |
+| High | 13 |
 | Medium | 9 |
 | Low | 8 |
-| **Total** | **33** |
+| **Total** | **36** |
 
 ---
 
 ## Critical Issues
+
+### C-00 — No Tenant / Location / Module Abstraction
+
+**Description:** The codebase has no concept of `Tenant`, `Location` (as distinct from `Branch`), or `Module`. Every model, route, service, and store assumes exactly one restaurant business. There is no frontend module registry, no tenant context store, and no mechanism to scope data or navigation to a tenant or business type.
+
+**Evidence:** `src/types/index.ts` — no `Tenant`, `Location`, or `Module` type. `src/stores/index.ts` — no `useTenantStore`. `src/services/` — all service methods operate against a single implicit restaurant with no `tenantId` or `locationId` parameter. `src/app/` routing — no tenant-resolution middleware, no module-aware navigation.
+
+**Impact:** Adding a second tenant or a second business type (cafe, bar, hotel) today requires forking the entire codebase rather than configuring a new tenant and registering a new module. Every subsequent phase of the roadmap (Admin Platform, Hospitality Modules, Hotel Operations, SaaS features) is blocked or will produce throw-away code without this layer.
+
+**Recommendation:** Implement Phase 1A: define `Tenant`, `Location`, and `Module` TypeScript interfaces with backward-compatible defaults; introduce `useTenantStore` (Zustand); generalize `Branch` to `Location`; and register the existing restaurant feature set as the first module in a `src/modules/registry.ts`. Existing behavior must remain unchanged — this is a structural addition, not a rewrite. Follow with Phase 1B (RBAC, feature flags, tenant-aware routing, migration planning) before building on top of the new layer.
+
+**Roadmap reference:** Phase 1A (P1A.1–P1A.4), Phase 1B (P1B.1–P1B.5) — all P0.
+
+**Estimated Effort:** 15–23 days (Phase 1A) + 15–23 days (Phase 1B)
+
+---
 
 ### C-01 — No Route Authentication Middleware
 
@@ -332,6 +348,38 @@ if (USE_MOCK) {
 
 ---
 
+### H-12 — No Design Token System or UI Platform Foundation
+
+**Description:** The theming approach uses ad-hoc CSS custom properties defined directly in `globals.css` (`--bg`, `--fg`, `--card`, `--border`, etc.). There is no structured token set (semantic color tokens, type scale, spacing scale, radius, elevation), no tenant-overridable theming layer, and no formalized shared component library. Navigation is hardcoded to the restaurant feature set with no module-awareness or permission-awareness.
+
+**Evidence:** `src/app/globals.css` — all CSS custom properties defined inline with no token taxonomy. `src/components/ui/` — primitives exist (Button, Input, Modal, Badge, Card) but are not driven by a documented token system. `components/layout/Header.tsx` and dashboard sidebar — navigation is hardcoded to the restaurant module; no mechanism for a second module to contribute nav items.
+
+**Impact:** Every future module (Phase 6 Hospitality Modules, Phase 8 Hotel Operations) and every future tenant's branding must be hand-built per feature, multiplying UI cost. Phase 9 white-labeling cannot be layered on top of an ad-hoc styling approach without a large-scale refactor. The current `useThemeStore` light/dark switching is also not extensible to per-tenant brand colors.
+
+**Recommendation:** Implement Phase 2: formalize the existing CSS variables into a structured, documented design token set; build a tenant-overridable theme engine on top; formalize `components/ui/` primitives as a token-driven shared library; and introduce a permission-aware, module-aware navigation shell. This phase is additive — existing screens are not required to change. See ROADMAP.md Phase 2 (P2.1–P2.4) for the full scope.
+
+**Roadmap reference:** Phase 2 (P2.1–P2.4) — P0/P1, sequenced after Phase 1A/1B.
+
+**Estimated Effort:** 18–28 days
+
+---
+
+### H-13 — No CI Pipeline
+
+**Description:** There is no CI/CD pipeline. No automated lint, type-check, test, or build runs on pull requests or merges. The single test file (`src/test/index.test.ts`) is never executed automatically, making the Vitest setup effectively optional.
+
+**Evidence:** `ROADMAP.md` — "Stand up CI quality gates (lint + type-check + test + build) gating merges to the main branch — none currently exists." `package.json` — `lint`, `type-check`, `test`, and `build` scripts all exist and work locally but are not wired to any automated gate.
+
+**Impact:** Every roadmap item that follows — especially the foundation layer (Phase 1A/1B) and module work (Phase 6/8) — ships without automated regression detection. The surface area of the codebase is growing (multi-tenant models, module registry, RBAC) at exactly the moment that manual testing becomes insufficient to catch regressions across tenants and modules.
+
+**Recommendation:** Stand up a CI pipeline (GitHub Actions or equivalent) running `lint → type-check → test → build` in sequence, gating all merges to the main branch. The commands already exist in `package.json`; this is a pipeline configuration task, not a code change. Pair with expanded Vitest coverage for the highest-risk logic (cart store, service mock/real switching, auth flow). See ROADMAP.md P3.10.
+
+**Roadmap reference:** P3.10 — P0, recommended to run alongside Phase 1A/1B so new foundation code ships with tests from day one.
+
+**Estimated Effort:** 4–6 days (pipeline + baseline coverage expansion)
+
+---
+
 ## Medium Priority Issues
 
 ### M-01 — `combined.service.ts` Violates Single Responsibility
@@ -424,17 +472,19 @@ If the initial state was `favorited=true`, optimistic update sets `false`. On er
 
 ---
 
-### M-07 — Missing Sentry and Analytics Initialization
+### M-07 — Missing Sentry Initialization (Error Tracking)
 
-**Description:** `SENTRY_DSN` and `NEXT_PUBLIC_GA_MEASUREMENT_ID` are documented in `.env.example` but neither `@sentry/nextjs` nor any analytics package is installed or initialized.
+**Description:** `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` are documented in `.env.example` but `@sentry/nextjs` is not installed and no initialization code exists. Note: `NEXT_PUBLIC_GA_MEASUREMENT_ID` is also documented but Google Analytics is a lower-priority concern — product analytics are planned for Phase 9 (P9.5), whereas Sentry error tracking has been pulled up to Phase 3 (P3.11) as a pre-production requirement.
 
-**Evidence:** `package.json` — no Sentry or GA packages. `.env.example` — both DSN vars present.
+**Evidence:** `package.json` — no `@sentry/nextjs` package. `.env.example` — `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` vars present. No `sentry.client.config.ts` or `sentry.server.config.ts` found.
 
-**Impact:** No error tracking in production. No analytics data.
+**Impact:** No error visibility in production. Client-side runtime errors, API failures, and unhandled rejections go undetected until a user reports them.
 
-**Recommendation:** Add `@sentry/nextjs` and run `npx @sentry/wizard@latest -i nextjs`. For analytics, use `@next/third-parties/google` (official Next.js package).
+**Recommendation:** Install `@sentry/nextjs` and initialize it with `NEXT_PUBLIC_SENTRY_DSN`. Wire Core Web Vitals to Sentry Performance. Scope this to error tracking only — GA4 analytics remain a Phase 9 item. See ROADMAP.md P3.11.
 
-**Estimated Effort:** 1 day
+**Roadmap reference:** P3.11 — P0, moved up from Phase 9 to be established before production launch.
+
+**Estimated Effort:** 1–2 days
 
 ---
 

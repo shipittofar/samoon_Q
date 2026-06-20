@@ -28,7 +28,9 @@
 
 ## System Overview
 
-Savor is a **Next.js 15 App Router** single-tenant restaurant web application. It acts as the customer-facing and admin-facing frontend for a restaurant chain operating from multiple branches. The frontend communicates with a Django REST Framework + Django Channels backend over HTTPS (REST) and WSS (WebSocket). A built-in **mock mode** allows the entire application to run without a backend by returning simulated data with artificial delays.
+Savor is a **Next.js 15 App Router** frontend for a hospitality SaaS platform. The current codebase is deployed as a single-tenant restaurant application; the roadmap direction is toward a multi-tenant platform supporting multiple hospitality business types (restaurant, cafe, bar, hotel, and others) through a configurable Tenant / Location / Module architecture. See [ROADMAP.md](./ROADMAP.md) for the full platform direction and completion status.
+
+The frontend communicates with a Django REST Framework + Django Channels backend over HTTPS (REST) and WSS (WebSocket). A built-in **mock mode** allows the entire application to run without a backend by returning simulated data with artificial delays.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -600,8 +602,11 @@ Despite `socket.io-client` being installed, all WebSocket code uses the native `
 
 | Weakness | Description | Severity |
 |----------|-------------|----------|
+| No Tenant / Location / Module abstraction | No concept of `Tenant`, `Location`, or `Module` exists; every model, route, and service assumes exactly one restaurant business — adding a second tenant or business type today requires forking, not configuring | Critical |
 | No route authentication | Missing `src/middleware.ts` means all routes are public | Critical |
 | Admin has no real backend | All admin pages use hardcoded fixtures | Critical |
+| No design token system | CSS custom properties in `globals.css` are ad-hoc and not tenant-aware; there is no structured token set, white-label theming layer, or permission-aware navigation shell | High |
+| No CI pipeline | No quality gates (lint, type-check, test, build) — regressions are not caught before merge | High |
 | WebSocket hooks never mounted | Real-time infrastructure built but not activated | High |
 | No Firebase initialization | Firebase SDK installed but `initializeApp()` never called | High |
 | Incomplete Arabic locale | `ar.json` has 14/187 keys | High |
@@ -617,6 +622,8 @@ Despite `socket.io-client` being installed, all WebSocket code uses the native `
 
 | Limitation | Impact | Mitigation Path |
 |------------|--------|-----------------|
+| Single-tenant data model | All services and types assume one restaurant; adding a second tenant requires invasive changes across every service, type, and API call | Introduce `Tenant` and `Location` models per Phase 1A |
+| No module registry | Business-type capabilities (cafe, bar, hotel) cannot be added without modifying core routing, navigation, and shared components | Introduce Module Registry per Phase 1A |
 | Single Django backend in Nginx config | No horizontal scaling for API | Add upstream load balancing in Nginx |
 | No CDN for static assets | Cold Nginx cache = slow first load | Add CloudFront/Cloudflare in front |
 | Cart in localStorage | Multi-device cart sync unsupported | Sync cart to backend on auth |

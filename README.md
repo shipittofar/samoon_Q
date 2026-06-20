@@ -27,9 +27,13 @@
 
 ## Project Overview
 
-**Savor** is a restaurant-facing progressive web application (PWA) that provides customers with a premium digital dining experience. The application enables end-to-end food ordering (delivery, pickup, dine-in), table reservations, real-time order tracking, and multi-branch management — all with support for English, Persian (Farsi), and Arabic with automatic RTL layout switching.
+**Savor** is the frontend for a hospitality SaaS platform. The current codebase is a single-tenant restaurant progressive web application (PWA); the platform direction is toward multi-tenant operation supporting multiple hospitality business types (restaurant, cafe, bar, hotel, and others) via a configurable Tenant / Location / Module architecture.
 
-The frontend is designed to integrate with a Django REST Framework + Django Channels backend (WebSocket for real-time updates). A built-in **mock mode** (`NEXT_PUBLIC_USE_MOCK=true`) allows the application to run entirely standalone with simulated data and simulated WebSocket events, making local development possible without a running backend.
+In its current state, the application enables end-to-end food ordering (delivery, pickup, dine-in), table reservations, real-time order tracking, and multi-branch management — with support for English, Persian (Farsi), and Arabic with automatic RTL layout switching.
+
+**Current status: Beta — not production ready, single-tenant only.** The codebase has no Tenant/Location/Module abstraction, no route authentication middleware, and no CI pipeline. The foundation layers (Phases 1A, 1B, and 2 in the roadmap) are 0% complete. The existing restaurant feature set is approximately 65% complete. See [ROADMAP.md](./ROADMAP.md) for the full production readiness assessment and sequenced plan.
+
+The frontend integrates with a Django REST Framework + Django Channels backend (WebSocket for real-time updates). A built-in **mock mode** (`NEXT_PUBLIC_USE_MOCK=true`) allows the application to run entirely standalone with simulated data and simulated WebSocket events, making local development possible without a running backend.
 
 **Application Name:** Savor  
 **Version:** 1.0.0  
@@ -338,6 +342,8 @@ docker build -t savor-frontend .
 
 ### Deployment Checklist
 
+**Required before any production deployment (existing restaurant tenant):**
+
 - [ ] Set `NEXT_PUBLIC_USE_MOCK=false`
 - [ ] Set correct `NEXT_PUBLIC_API_BASE_URL` and `NEXT_PUBLIC_WS_BASE_URL`
 - [ ] Set `NEXT_PUBLIC_APP_URL` to production domain
@@ -348,6 +354,16 @@ docker build -t savor-frontend .
 - [ ] Configure SSL termination (Nginx or upstream load balancer)
 - [ ] Implement authentication middleware (`src/middleware.ts`)
 - [ ] Fill in Arabic translations (`src/i18n/locales/ar.json`)
+- [ ] Wire WebSocket hooks to the UI (order tracking and notifications)
+- [ ] Integrate a real payment gateway
+- [ ] Stand up CI quality gates (lint, type-check, test, build)
+- [ ] Initialize Sentry error tracking
+
+**Required before onboarding a second tenant or business type:**
+
+- [ ] Tenant, Location, and Module models exist and are wired through the API and frontend (Phase 1A)
+- [ ] RBAC foundation, feature flag system, and tenant-aware routing are in place (Phase 1B)
+- [ ] A shared, tokenized, theme-aware component library and permission-aware navigation shell exist (Phase 2)
 
 ---
 
