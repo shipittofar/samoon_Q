@@ -1,9 +1,10 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
+import toast from 'react-hot-toast'
 import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenantStore } from '@/stores'
 import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
@@ -13,6 +14,24 @@ import type { TenantTheme } from '@/types'
 
 function makeQueryClient() {
   return new QueryClient({
+    queryCache: new QueryCache({
+      // P4.3.3 — Route query failures to the toast system.
+      // Ignored: cancelled requests (name === 'CancelledError' or status === 0)
+      // and 401s (handled by auth flow). Deduplication is handled by react-hot-toast's
+      // id-based deduplication: one toast per error message per window.
+      onError(error: unknown) {
+        const err = error as any
+        if (err?.name === 'CancelledError') return
+        if (err?.response?.status === 401) return
+        if (err?.response?.status === 0) return
+        const message =
+          err?.response?.data?.detail ??
+          err?.response?.data?.message ??
+          err?.message ??
+          'Something went wrong'
+        toast.error(message, { id: `query-error-${message}` })
+      },
+    }),
     defaultOptions: {
       queries: {
         staleTime: 1000 * 60 * 5,
