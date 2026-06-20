@@ -22,11 +22,17 @@ export function getRefreshToken(): string | null {
 export function setTokens(access: string, refresh: string) {
   localStorage.setItem(JWT_ACCESS_KEY, access)
   localStorage.setItem(JWT_REFRESH_KEY, refresh)
+  // Mirror access token to a cookie so Next.js middleware (Edge runtime) can read it.
+  // Not HttpOnly — deliberately set from JS to enable middleware auth checks.
+  const maxAge = 60 * 60 * 24 * 7 // 7 days
+  document.cookie = `${JWT_ACCESS_KEY}=${encodeURIComponent(access)}; path=/; max-age=${maxAge}; SameSite=Strict`
 }
 
 export function clearTokens() {
   localStorage.removeItem(JWT_ACCESS_KEY)
   localStorage.removeItem(JWT_REFRESH_KEY)
+  // Expire the auth cookie so middleware immediately treats the session as unauthenticated.
+  document.cookie = `${JWT_ACCESS_KEY}=; path=/; max-age=0; SameSite=Strict`
 }
 
 // ── Axios instance ───────────────────────────────────────────────────────────
