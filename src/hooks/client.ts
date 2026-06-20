@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { orderWebSocket, notificationWebSocket } from '@/services/websocket.service'
+import { orderWebSocket, notificationWebSocket, type ConnectionStatus } from '@/services/websocket.service'
 import { useNotificationStore } from '@/stores'
 import { useAuthStore } from '@/stores'
 import type { Notification, OrderStatus } from '@/types'
@@ -12,6 +12,7 @@ export function useOrderWebSocket(orderId: string | null) {
   const [status, setStatus] = useState<OrderStatus | null>(null)
   const [estimatedTime, setEstimatedTime] = useState<number | null>(null)
   const [connected, setConnected] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected')
 
   useEffect(() => {
     if (!orderId) return
@@ -21,6 +22,7 @@ export function useOrderWebSocket(orderId: string | null) {
     const unsubs = [
       orderWebSocket.on('connected', () => setConnected(true)),
       orderWebSocket.on('disconnected', () => setConnected(false)),
+      orderWebSocket.on('status', (s) => setConnectionStatus(s as ConnectionStatus)),
       orderWebSocket.on('order.status_update', (data: unknown) => {
         const d = data as { status: OrderStatus; estimated_time?: number }
         setStatus(d.status)
@@ -34,7 +36,7 @@ export function useOrderWebSocket(orderId: string | null) {
     }
   }, [orderId])
 
-  return { status, estimatedTime, connected }
+  return { status, estimatedTime, connected, connectionStatus }
 }
 
 // ── useNotificationWebSocket ──────────────────────────────────────────────────
@@ -42,6 +44,7 @@ export function useNotificationWebSocket() {
   const { isAuthenticated } = useAuthStore()
   const { addNotification } = useNotificationStore()
   const [connected, setConnected] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected')
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -51,6 +54,7 @@ export function useNotificationWebSocket() {
     const unsubs = [
       notificationWebSocket.on('connected', () => setConnected(true)),
       notificationWebSocket.on('disconnected', () => setConnected(false)),
+      notificationWebSocket.on('status', (s) => setConnectionStatus(s as ConnectionStatus)),
       notificationWebSocket.on('notification.new', (data: unknown) => {
         const notification = data as Notification
         addNotification(notification)
@@ -69,7 +73,7 @@ export function useNotificationWebSocket() {
     }
   }, [isAuthenticated, addNotification])
 
-  return { connected }
+  return { connected, connectionStatus }
 }
 
 // ── useDebounce ───────────────────────────────────────────────────────────────

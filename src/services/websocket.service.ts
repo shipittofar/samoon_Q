@@ -1,3 +1,18 @@
+/**
+ * WebSocket Service — Phase 4 (P4.5)
+ *
+ * Enhancements over the Phase 3 implementation:
+ *   P4.5.2 — Exponential backoff with jitter + 30 s cap
+ *   P4.5.3 — Tab-visibility pause/resume of reconnect loop
+ *   P4.5.4 — navigator.onLine / online / offline handling
+ *   P4.5.5 — BroadcastChannel for multi-tab status sync (graceful degradation)
+ *   P4.5.6 — Typed ConnectionStatus ('connecting'|'connected'|'reconnecting'|
+ *             'offline'|'disconnected') exposed via getStatus()
+ *
+ * Public API is backward-compatible: connect, disconnect, send, on, off,
+ * isConnected are unchanged. getStatus() is additive.
+ */
+
 import { WS_BASE_URL } from '@/constants'
 import { getAccessToken } from './axios.instance'
 
@@ -8,37 +23,92 @@ interface WebSocketMessage {
   data: unknown
 }
 
-class DjangoChannelsWebSocket {
+/** P4.5.6 — Stable connection status values. */
+export type ConnectionStatus =
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'offline'
+  | 'disconnected'
+
+/** Broadcast message shape for multi-tab coordination (P4.5.5). */
+interface BroadcastPayload {
+  type: 'ws:status'
+  status: ConnectionStatus
+  channel: string
+}
+
+// ── Backoff constants ─────────────────────────────────────────────────────────
+
+const BASE_DELAY_MS = 1_000
+const MAX_DELAY_MS = 30_000
+const JITTER_FACTOR = 0.3   // up to 30 % of the base delay as random jitter
+const MAX_RECONNECT_ATTEMPTS = 10
+
+// ── DjangoChannelsWebSocket ───────────────────────────────────────────────────
+
+export interface WebSocketServiceOptions {
+  /**
+   * BroadcastChannel name for multi-tab coordination (P4.5.5).
+   * Pass a unique name per logical socket to keep channels isolated.
+   */
+  channelName?: string
+  /**
+   * Injectable WebSocket factory — lets tests supply a mock implementation
+   * without patching globals. Defaults to the browser's native WebSocket.
+   */
+  wsFactory?: (url: string) => WebSocket
+}
+
+export class DjangoChannelsWebSocket {
+  // ── State ───────────────────────────────────────────────────────────────────
   private socket: WebSocket | null = null
   private handlers = new Map<string, Set<MessageHandler>>()
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
-  private reconnectDelay = 1000
-  private url = ''
   private shouldReconnect = true
+  private _status: ConnectionStatus = 'disconnected'
+  private _isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true
+  private _isHidden = typeof document !== 'undefined' ? document.hidden : false
+  private url = ''
+
+  // ── Dependencies ────────────────────────────────────────────────────────────
+  private readonly channelName: string
+  private readonly wsFactory: (url: string) => WebSocket
+  private broadcastChannel: BroadcastChannel | null = null
+
+  // ── Browser event handlers (stored so they can be removed) ──────────────────
+  private readonly _onVisibilityChange: () => void
+  private readonly _onOnline: () => void
+  private readonly _onOffline: () => void
+
+  constructor(options: WebSocketServiceOptions = {}) {
+    this.channelName = options.channelName ?? 'savor-websocket'
+    this.wsFactory = options.wsFactory ?? ((url) => new WebSocket(url))
+
+    this._onVisibilityChange = this.handleVisibilityChange.bind(this)
+    this._onOnline = this.handleOnline.bind(this)
+    this._onOffline = this.handleOffline.bind(this)
+  }
+
+  // ── Public API (unchanged signatures) ──────────────────────────────────────
 
   connect(path: string): void {
     this.url = `${WS_BASE_URL}${path}`
-    const token = getAccessToken()
-    const wsUrl = token ? `${this.url}?token=${token}` : this.url
-
-    try {
-      this.socket = new WebSocket(wsUrl)
-      this.socket.onopen = this.handleOpen.bind(this)
-      this.socket.onmessage = this.handleMessage.bind(this)
-      this.socket.onclose = this.handleClose.bind(this)
-      this.socket.onerror = this.handleError.bind(this)
-    } catch (err) {
-      console.error('[WS] Connection error:', err)
-    }
+    this.shouldReconnect = true
+    this.setupEnvironmentListeners()
+    this.initBroadcastChannel()
+    this.openSocket()
   }
 
   disconnect(): void {
     this.shouldReconnect = false
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer)
+    this.clearReconnectTimer()
+    this.teardownEnvironmentListeners()
+    this.teardownBroadcastChannel()
     this.socket?.close()
     this.socket = null
+    this.updateStatus('disconnected')
   }
 
   send(type: string, data: unknown): void {
@@ -58,17 +128,53 @@ class DjangoChannelsWebSocket {
   }
 
   get isConnected(): boolean {
-    return this.socket?.readyState === WebSocket.OPEN
+    return this._status === 'connected'
+  }
+
+  /** P4.5.6 — Typed connection status. */
+  getStatus(): ConnectionStatus {
+    return this._status
+  }
+
+  // ── Internal: socket lifecycle ──────────────────────────────────────────────
+
+  private openSocket(): void {
+    if (this.socket) {
+      // Close stale socket before re-opening
+      this.socket.onopen = null
+      this.socket.onmessage = null
+      this.socket.onclose = null
+      this.socket.onerror = null
+      this.socket.close()
+      this.socket = null
+    }
+
+    this.updateStatus('connecting')
+    const token = getAccessToken()
+    const wsUrl = token ? `${this.url}?token=${encodeURIComponent(token)}` : this.url
+
+    try {
+      this.socket = this.wsFactory(wsUrl)
+      this.socket.onopen = this.handleOpen.bind(this)
+      this.socket.onmessage = this.handleMessage.bind(this)
+      this.socket.onclose = this.handleClose.bind(this)
+      this.socket.onerror = this.handleError.bind(this)
+    } catch (err) {
+      console.error('[WS] Failed to construct WebSocket:', err)
+      this.updateStatus('disconnected')
+    }
   }
 
   private handleOpen(): void {
     this.reconnectAttempts = 0
+    this.updateStatus('connected')
     this.emit('connected', null)
+    this.broadcastStatus('connected')
   }
 
   private handleMessage(event: MessageEvent): void {
     try {
-      const msg: WebSocketMessage = JSON.parse(event.data)
+      const msg: WebSocketMessage = JSON.parse(event.data as string)
       this.emit(msg.type, msg.data)
       this.emit('*', msg)
     } catch {
@@ -77,19 +183,170 @@ class DjangoChannelsWebSocket {
   }
 
   private handleClose(event: CloseEvent): void {
+    this.socket = null
     this.emit('disconnected', { code: event.code, reason: event.reason })
-    if (this.shouldReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
-      const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts)
-      this.reconnectTimer = setTimeout(() => {
-        this.reconnectAttempts++
-        this.connect(this.url.replace(WS_BASE_URL, ''))
-      }, delay)
+
+    if (!this.shouldReconnect) return
+
+    // Don't reconnect if offline or tab is hidden
+    if (!this._isOnline) {
+      this.updateStatus('offline')
+      return
     }
+    if (this._isHidden) {
+      this.updateStatus('disconnected')
+      return
+    }
+
+    this.scheduleReconnect()
   }
 
   private handleError(event: Event): void {
     console.error('[WS] Error:', event)
     this.emit('error', event)
+  }
+
+  // ── Internal: reconnect scheduling (P4.5.2) ─────────────────────────────────
+
+  /**
+   * Exponential backoff with full jitter and a 30 s hard cap.
+   * Formula: min(BASE * 2^attempt, MAX) * (1 + jitter * rand)
+   */
+  private getReconnectDelay(): number {
+    const exponential = Math.min(
+      BASE_DELAY_MS * Math.pow(2, this.reconnectAttempts),
+      MAX_DELAY_MS,
+    )
+    const jitter = exponential * JITTER_FACTOR * Math.random()
+    return Math.round(exponential + jitter)
+  }
+
+  private scheduleReconnect(overrideDelay?: number): void {
+    if (!this.shouldReconnect) return
+    if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      this.updateStatus('disconnected')
+      return
+    }
+
+    this.clearReconnectTimer()
+    this.updateStatus('reconnecting')
+
+    const delay = overrideDelay ?? this.getReconnectDelay()
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectAttempts++
+      this.openSocket()
+    }, delay)
+  }
+
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = null
+    }
+  }
+
+  // ── Internal: tab visibility (P4.5.3) ────────────────────────────────────────
+
+  private handleVisibilityChange(): void {
+    this._isHidden = typeof document !== 'undefined' && document.hidden
+
+    if (this._isHidden) {
+      // Pause reconnect attempts while tab is backgrounded
+      this.clearReconnectTimer()
+    } else {
+      // Tab foregrounded — reconnect if needed
+      if (this.shouldReconnect && !this.isConnected && this._isOnline) {
+        this.reconnectAttempts = 0
+        this.scheduleReconnect(0)
+      }
+    }
+  }
+
+  // ── Internal: online/offline (P4.5.4) ────────────────────────────────────────
+
+  private handleOnline(): void {
+    this._isOnline = true
+    if (this.shouldReconnect && !this.isConnected) {
+      this.reconnectAttempts = 0
+      this.scheduleReconnect(0) // immediate reconnect
+    }
+  }
+
+  private handleOffline(): void {
+    this._isOnline = false
+    this.clearReconnectTimer()
+    this.updateStatus('offline')
+    this.emit('offline', null)
+  }
+
+  // ── Internal: environment listener lifecycle ──────────────────────────────────
+
+  private setupEnvironmentListeners(): void {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this._onVisibilityChange)
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this._onOnline)
+      window.addEventListener('offline', this._onOffline)
+    }
+  }
+
+  private teardownEnvironmentListeners(): void {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this._onVisibilityChange)
+    }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this._onOnline)
+      window.removeEventListener('offline', this._onOffline)
+    }
+  }
+
+  // ── Internal: BroadcastChannel (P4.5.5) ──────────────────────────────────────
+
+  private initBroadcastChannel(): void {
+    if (this.broadcastChannel) return
+    if (typeof BroadcastChannel === 'undefined') return // graceful degradation
+
+    try {
+      this.broadcastChannel = new BroadcastChannel(this.channelName)
+      this.broadcastChannel.onmessage = (e: MessageEvent<BroadcastPayload>) => {
+        if (e.data?.type === 'ws:status' && e.data.channel === this.channelName) {
+          this.emit('tab:status', e.data.status)
+        }
+      }
+    } catch {
+      // BroadcastChannel construction failure (e.g. private browsing limits)
+      this.broadcastChannel = null
+    }
+  }
+
+  private teardownBroadcastChannel(): void {
+    this.broadcastChannel?.close()
+    this.broadcastChannel = null
+  }
+
+  private broadcastStatus(status: ConnectionStatus): void {
+    if (!this.broadcastChannel) return
+    try {
+      const payload: BroadcastPayload = {
+        type: 'ws:status',
+        status,
+        channel: this.channelName,
+      }
+      this.broadcastChannel.postMessage(payload)
+    } catch {
+      // postMessage can throw if channel closed — ignore
+    }
+  }
+
+  // ── Internal: status + emit ───────────────────────────────────────────────────
+
+  private updateStatus(status: ConnectionStatus): void {
+    if (this._status === status) return
+    this._status = status
+    this.emit('status', status)
+    this.broadcastStatus(status)
   }
 
   private emit(type: string, data: unknown): void {
@@ -98,8 +355,12 @@ class DjangoChannelsWebSocket {
 }
 
 // ── Singleton instances ───────────────────────────────────────────────────────
-export const orderWebSocket = new DjangoChannelsWebSocket()
-export const notificationWebSocket = new DjangoChannelsWebSocket()
+export const orderWebSocket = new DjangoChannelsWebSocket({
+  channelName: 'savor-orders',
+})
+export const notificationWebSocket = new DjangoChannelsWebSocket({
+  channelName: 'savor-notifications',
+})
 
 // ── Mock real-time simulation ─────────────────────────────────────────────────
 const ORDER_STATUS_SEQUENCE = ['pending', 'accepted', 'preparing', 'ready', 'delivered'] as const
@@ -110,7 +371,6 @@ export function simulateOrderUpdates(
 ): () => void {
   let step = 0
   const intervals = [3000, 5000, 8000, 5000, 3000]
-
   let timer: ReturnType<typeof setTimeout>
 
   function next() {
