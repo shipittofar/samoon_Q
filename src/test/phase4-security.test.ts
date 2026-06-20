@@ -105,9 +105,7 @@ describe('P4.1.1 — env.ts zod schema', () => {
 // ── P4.1.2 — Content Security Policy ─────────────────────────────────────────
 
 describe('P4.1.2 — CSP header in next.config.ts', () => {
-  let configSource: string
-
-  configSource = readFileSync(join(ROOT, 'next.config.ts'), 'utf-8')
+  const configSource = readFileSync(join(ROOT, 'next.config.ts'), 'utf-8')
 
   it('defines a buildCspHeader function', () => {
     expect(configSource).toContain('buildCspHeader')
