@@ -1,0 +1,356 @@
+/**
+ * Phase 4.4 — SSR Hydration & SEO tests (P4.4.1–P4.4.6)
+ *
+ * Covers:
+ *   P4.4.1 — React Query hydration utilities (createServerQueryClient, dehydrateClient)
+ *   P4.4.2 — Menu page SSR prefetch structure
+ *   P4.4.3 — Homepage static data (no client fetches — confirmed static)
+ *   P4.4.4 — SEO metadata exports
+ *   P4.4.5 — Sitemap generation
+ *   P4.4.6 — JSON-LD structured data generation
+ */
+
+import { describe, it, expect } from 'vitest'
+import { existsSync, readFileSync } from 'fs'
+import { join } from 'path'
+
+const ROOT = join(__dirname, '..', '..')
+const SRC = join(ROOT, 'src')
+
+// ── P4.4.1 — React Query hydration utilities ──────────────────────────────────
+
+describe('P4.4.1 — createServerQueryClient', () => {
+  it('createServerQueryClient returns a QueryClient', async () => {
+    const { createServerQueryClient } = await import('@/lib/react-query/queryClient')
+    const qc = createServerQueryClient()
+    expect(qc).toBeDefined()
+    expect(typeof qc.prefetchQuery).toBe('function')
+    expect(typeof qc.getQueryData).toBe('function')
+  })
+
+  it('each call returns a fresh independent instance', async () => {
+    const { createServerQueryClient } = await import('@/lib/react-query/queryClient')
+    const a = createServerQueryClient()
+    const b = createServerQueryClient()
+    expect(a).not.toBe(b)
+  })
+
+  it('server QueryClient has retry: false', async () => {
+    const { createServerQueryClient } = await import('@/lib/react-query/queryClient')
+    const qc = createServerQueryClient()
+    const opts = qc.getDefaultOptions()
+    expect(opts.queries?.retry).toBe(false)
+  })
+
+  it('server QueryClient has staleTime set', async () => {
+    const { createServerQueryClient } = await import('@/lib/react-query/queryClient')
+    const qc = createServerQueryClient()
+    const opts = qc.getDefaultOptions()
+    expect(typeof opts.queries?.staleTime).toBe('number')
+    expect((opts.queries?.staleTime as number)).toBeGreaterThan(0)
+  })
+})
+
+describe('P4.4.1 — dehydrateClient', () => {
+  it('dehydrateClient returns a DehydratedState object', async () => {
+    const { createServerQueryClient } = await import('@/lib/react-query/queryClient')
+    const { dehydrateClient } = await import('@/lib/react-query/hydration')
+    const qc = createServerQueryClient()
+    const state = dehydrateClient(qc)
+    expect(state).toBeDefined()
+    expect(Array.isArray(state.queries)).toBe(true)
+  })
+
+  it('dehydrated state is empty when no queries have been prefetched', async () => {
+    const { createServerQueryClient } = await import('@/lib/react-query/queryClient')
+    const { dehydrateClient } = await import('@/lib/react-query/hydration')
+    const qc = createServerQueryClient()
+    const state = dehydrateClient(qc)
+    expect(state.queries).toHaveLength(0)
+  })
+
+  it('dehydrated state contains queries after setQueryData', async () => {
+    const { createServerQueryClient } = await import('@/lib/react-query/queryClient')
+    const { dehydrateClient } = await import('@/lib/react-query/hydration')
+    const qc = createServerQueryClient()
+    qc.setQueryData(['test-key'], { value: 42 })
+    const state = dehydrateClient(qc)
+    expect(state.queries.length).toBeGreaterThan(0)
+    const q = state.queries.find((q) => JSON.stringify(q.queryKey) === JSON.stringify(['test-key']))
+    expect(q).toBeDefined()
+  })
+
+  it('dehydrated state is JSON-serialisable', async () => {
+    const { createServerQueryClient } = await import('@/lib/react-query/queryClient')
+    const { dehydrateClient } = await import('@/lib/react-query/hydration')
+    const qc = createServerQueryClient()
+    qc.setQueryData(['serialize-test'], { hello: 'world' })
+    const state = dehydrateClient(qc)
+    expect(() => JSON.stringify(state)).not.toThrow()
+  })
+})
+
+describe('P4.4.1 — hydration module barrel exports', () => {
+  it('exports HydrationBoundary', async () => {
+    const mod = await import('@/lib/react-query/hydration')
+    expect(mod.HydrationBoundary).toBeDefined()
+  })
+
+  it('index re-exports createServerQueryClient', async () => {
+    const mod = await import('@/lib/react-query')
+    expect(typeof mod.createServerQueryClient).toBe('function')
+  })
+
+  it('index re-exports dehydrateClient', async () => {
+    const mod = await import('@/lib/react-query')
+    expect(typeof mod.dehydrateClient).toBe('function')
+  })
+
+  it('index re-exports HydrationBoundary', async () => {
+    const mod = await import('@/lib/react-query')
+    expect(mod.HydrationBoundary).toBeDefined()
+  })
+})
+
+// ── P4.4.2 — Menu Page SSR structure ─────────────────────────────────────────
+
+describe('P4.4.2 — Menu page SSR prefetch', () => {
+  it('menu/page.tsx is a server component (no "use client" directive)', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src.trimStart()).not.toMatch(/^['"]use client['"]/)
+  })
+
+  it('menu/page.tsx imports createServerQueryClient', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src).toContain('createServerQueryClient')
+  })
+
+  it('menu/page.tsx uses prefetchQuery', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src).toContain('prefetchQuery')
+  })
+
+  it('menu/page.tsx uses dehydrateClient', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src).toContain('dehydrateClient')
+  })
+
+  it('menu/page.tsx wraps output in HydrationBoundary', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src).toContain('HydrationBoundary')
+  })
+
+  it('MenuContent client component exists', () => {
+    expect(existsSync(join(SRC, 'components', 'menu', 'MenuContent.tsx'))).toBe(true)
+  })
+
+  it('MenuContent is a client component', () => {
+    const src = readFileSync(join(SRC, 'components', 'menu', 'MenuContent.tsx'), 'utf-8')
+    expect(src.trimStart()).toMatch(/^['"]use client['"]/)
+  })
+
+  it('MenuContent preserves useCategories and useMenuItems hooks', () => {
+    const src = readFileSync(join(SRC, 'components', 'menu', 'MenuContent.tsx'), 'utf-8')
+    expect(src).toContain('useCategories')
+    expect(src).toContain('useMenuItems')
+  })
+
+  it('prefetch uses Promise.allSettled for graceful failure', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src).toContain('Promise.allSettled')
+  })
+})
+
+// ── P4.4.3 — Homepage (static — no client fetches) ───────────────────────────
+
+describe('P4.4.3 — Homepage static data audit', () => {
+  it('homepage page.tsx does not import useQuery or useMenuItems', () => {
+    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+    expect(src).not.toContain('useQuery')
+    expect(src).not.toContain('useMenuItems')
+  })
+
+  it('homepage featured items are hardcoded constants (no server fetch needed)', () => {
+    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+    expect(src).toContain('FEATURED')
+    expect(src).not.toContain('prefetchQuery')
+  })
+})
+
+// ── P4.4.4 — SEO Metadata ─────────────────────────────────────────────────────
+
+describe('P4.4.4 — SEO metadata exports', () => {
+  it('homepage exports metadata with title', () => {
+    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+    expect(src).toContain('export const metadata')
+    expect(src).toContain('title:')
+  })
+
+  it('homepage metadata includes openGraph', () => {
+    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+    expect(src).toContain('openGraph')
+  })
+
+  it('homepage metadata includes twitter card', () => {
+    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+    expect(src).toContain('twitter')
+    expect(src).toContain('summary_large_image')
+  })
+
+  it('homepage metadata includes canonical URL', () => {
+    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+    expect(src).toContain('alternates')
+    expect(src).toContain('canonical')
+  })
+
+  it('menu page exports metadata with title', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src).toContain('export const metadata')
+    expect(src).toContain('title:')
+  })
+
+  it('menu metadata includes openGraph and twitter', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src).toContain('openGraph')
+    expect(src).toContain('twitter')
+  })
+})
+
+// ── P4.4.5 — Sitemap ──────────────────────────────────────────────────────────
+
+describe('P4.4.5 — Sitemap generation', () => {
+  it('sitemap.ts exports a default function', async () => {
+    const mod = await import('@/app/sitemap')
+    expect(typeof mod.default).toBe('function')
+  })
+
+  it('sitemap returns an array', async () => {
+    const mod = await import('@/app/sitemap')
+    const result = mod.default()
+    expect(Array.isArray(result)).toBe(true)
+  })
+
+  it('sitemap includes homepage', async () => {
+    const mod = await import('@/app/sitemap')
+    const result = mod.default()
+    expect(result.some((r) => r.url.endsWith('.com') || r.url.endsWith('/'))).toBe(true)
+  })
+
+  it('sitemap includes /menu route', async () => {
+    const mod = await import('@/app/sitemap')
+    const result = mod.default()
+    expect(result.some((r) => r.url.includes('/menu'))).toBe(true)
+  })
+
+  it('sitemap includes /reservation route', async () => {
+    const mod = await import('@/app/sitemap')
+    const result = mod.default()
+    expect(result.some((r) => r.url.includes('/reservation'))).toBe(true)
+  })
+
+  it('sitemap entries have priority values', async () => {
+    const mod = await import('@/app/sitemap')
+    const result = mod.default()
+    expect(result.every((r) => typeof r.priority === 'number')).toBe(true)
+  })
+
+  it('sitemap entries have lastModified dates', async () => {
+    const mod = await import('@/app/sitemap')
+    const result = mod.default()
+    expect(result.every((r) => r.lastModified instanceof Date)).toBe(true)
+  })
+
+  it('sitemap does not include /dashboard (auth-gated)', async () => {
+    const mod = await import('@/app/sitemap')
+    const result = mod.default()
+    expect(result.every((r) => !r.url.includes('/dashboard'))).toBe(true)
+  })
+
+  it('sitemap has more than 5 entries', async () => {
+    const mod = await import('@/app/sitemap')
+    const result = mod.default()
+    expect(result.length).toBeGreaterThan(5)
+  })
+})
+
+// ── P4.4.6 — JSON-LD Structured Data ─────────────────────────────────────────
+
+describe('P4.4.6 — JSON-LD generation', () => {
+  it('buildRestaurantJsonLd returns a schema.org Restaurant object', async () => {
+    const { buildRestaurantJsonLd } = await import('@/lib/json-ld')
+    const ld = buildRestaurantJsonLd({ name: 'Test', url: 'https://test.com' })
+    expect(ld['@context']).toBe('https://schema.org')
+    expect(ld['@type']).toContain('Restaurant')
+    expect(ld['name']).toBe('Test')
+    expect(ld['url']).toBe('https://test.com')
+  })
+
+  it('buildRestaurantJsonLd includes address when provided', async () => {
+    const { buildRestaurantJsonLd } = await import('@/lib/json-ld')
+    const ld = buildRestaurantJsonLd({
+      name: 'Test',
+      url: 'https://test.com',
+      address: { streetAddress: '123 Main St', addressLocality: 'New York' },
+    })
+    const addr = ld['address'] as Record<string, string>
+    expect(addr['@type']).toBe('PostalAddress')
+    expect(addr['streetAddress']).toBe('123 Main St')
+  })
+
+  it('buildMenuJsonLd returns a schema.org Menu object', async () => {
+    const { buildMenuJsonLd } = await import('@/lib/json-ld')
+    const ld = buildMenuJsonLd({ name: 'Test Menu', url: 'https://test.com/menu', restaurantName: 'Test' })
+    expect(ld['@context']).toBe('https://schema.org')
+    expect(ld['@type']).toBe('Menu')
+    expect(ld['name']).toBe('Test Menu')
+  })
+
+  it('buildMenuItemJsonLd returns a schema.org MenuItem', async () => {
+    const { buildMenuItemJsonLd } = await import('@/lib/json-ld')
+    const ld = buildMenuItemJsonLd({ name: 'Burger', price: 12.99 })
+    expect(ld['@context']).toBe('https://schema.org')
+    expect(ld['@type']).toBe('MenuItem')
+    const offers = ld['offers'] as Record<string, string>
+    expect(offers['price']).toBe('12.99')
+    expect(offers['priceCurrency']).toBe('USD')
+  })
+
+  it('serializeJsonLd produces valid JSON', async () => {
+    const { buildRestaurantJsonLd, serializeJsonLd } = await import('@/lib/json-ld')
+    const ld = buildRestaurantJsonLd({ name: 'Test', url: 'https://test.com' })
+    const serialized = serializeJsonLd(ld)
+    expect(() => JSON.parse(serialized)).not.toThrow()
+  })
+
+  it('serializeJsonLd escapes </script> sequences', async () => {
+    const { serializeJsonLd } = await import('@/lib/json-ld')
+    const ld = { '@context': 'https://schema.org', value: '</script>' }
+    const serialized = serializeJsonLd(ld)
+    expect(serialized).not.toContain('</script>')
+    expect(serialized).toContain('<\\/script>')
+  })
+
+  it('DEFAULT_RESTAURANT_JSON_LD is exported and has correct type', async () => {
+    const { DEFAULT_RESTAURANT_JSON_LD } = await import('@/lib/json-ld')
+    expect(DEFAULT_RESTAURANT_JSON_LD['@type']).toContain('Restaurant')
+    expect(DEFAULT_RESTAURANT_JSON_LD['name']).toBe('Savor')
+  })
+
+  it('DEFAULT_MENU_JSON_LD is exported and references /menu', async () => {
+    const { DEFAULT_MENU_JSON_LD } = await import('@/lib/json-ld')
+    expect(DEFAULT_MENU_JSON_LD['@type']).toBe('Menu')
+    expect((DEFAULT_MENU_JSON_LD['url'] as string)).toContain('/menu')
+  })
+
+  it('homepage includes JSON-LD script tag', () => {
+    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+    expect(src).toContain('application/ld+json')
+    expect(src).toContain('DEFAULT_RESTAURANT_JSON_LD')
+  })
+
+  it('menu page includes JSON-LD script tag', () => {
+    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
+    expect(src).toContain('application/ld+json')
+    expect(src).toContain('DEFAULT_MENU_JSON_LD')
+  })
+})

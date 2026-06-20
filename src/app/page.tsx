@@ -1,14 +1,33 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { DEFAULT_RESTAURANT_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
 import Image from 'next/image'
 import { ArrowRight, Star, Clock, MapPin, ChevronRight, Flame } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+
 export const metadata: Metadata = {
   title: 'Savor — Fine Dining & Delivery',
-  description: 'Experience extraordinary cuisine crafted with passion.',
+  description:
+    'Experience extraordinary cuisine crafted with passion. Order online, reserve a table, or track your delivery in real time.',
+  openGraph: {
+    title: 'Savor — Fine Dining & Delivery',
+    description: 'Experience extraordinary cuisine crafted with passion.',
+    url: BASE_URL,
+    siteName: 'Savor',
+    type: 'website',
+    images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor Restaurant' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Savor — Fine Dining & Delivery',
+    description: 'Experience extraordinary cuisine crafted with passion.',
+    images: [`${BASE_URL}/og-image.jpg`],
+  },
+  alternates: { canonical: BASE_URL },
 }
 
 const STATS = [
@@ -36,6 +55,10 @@ const CATEGORIES = [
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(DEFAULT_RESTAURANT_JSON_LD) }}
+      />
       <Header />
       <CartDrawer />
       <FloatingCart />
