@@ -53,8 +53,8 @@ export function useSystemReady(): SystemReadiness {
   const isFallback = tenantState === 'fallback'
 
   // Dev-only: warn when tenant has settled but a subsystem initializer has not fired.
-  // In production this never fires because BOOTSTRAP_STUBS sets both flags synchronously
-  // after loadTenant(). In development it surfaces a missing real initializer immediately.
+  // TenantBootstrapper sets both flags synchronously after loadTenant() in production.
+  // In development this surfaces a missing or broken initializer immediately.
   if (process.env.NODE_ENV !== 'production' && !isLoading && (!rbacInitialized || !featureFlagsInitialized)) {
     console.warn('[SystemReadiness] System partially initialized: execution gate may be unstable')
   }

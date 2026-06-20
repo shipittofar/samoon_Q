@@ -191,8 +191,8 @@ interface TenantState {
   tenantState: TenantLifecycle
   /**
    * True once the RBAC system has completed its initialization sequence (P1B.1).
-   * Set by the RBAC initializer; default false so canExecute blocks until RBAC is ready.
-   * STUB: TenantBootstrapper sets this to true until P1B.1 ships its own initializer.
+   * Set by TenantBootstrapper via rbac.service after loadTenant() resolves.
+   * Default false — canExecute blocks until RBAC is ready.
    *
    * PHASE 1B INITIALIZATION CONTRACT — P1B.1 (RBAC):
    *   The RBAC initializer MUST call useTenantStore.getState().setRbacInitialized(true)
@@ -202,8 +202,8 @@ interface TenantState {
   rbacInitialized: boolean
   /**
    * True once the feature flag system has completed its initialization sequence (P1B.2).
-   * Set by the feature flag initializer; default false so canExecute blocks until ready.
-   * STUB: TenantBootstrapper sets this to true until P1B.2 ships its own initializer.
+   * Set by TenantBootstrapper via featureFlagsService.resolve() after loadTenant() resolves.
+   * Default false — canExecute blocks until feature flags are ready.
    *
    * PHASE 1B INITIALIZATION CONTRACT — P1B.2 (Feature Flags):
    *   The feature flag initializer MUST call useTenantStore.getState().setFeatureFlagsInitialized(true)
