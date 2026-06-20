@@ -2,7 +2,7 @@
 
 > Strategic roadmap derived from the current state of the codebase. All items are grounded in the actual source code audit. Priorities reflect production readiness, business impact, and technical dependency ordering.
 >
-> **Revision note (this version):** The previous revision introduced a single, large "Phase 1 — Foundation Architecture Migration" covering everything from the Tenant model to subscription gating to migration planning. That phase has grown to mix three distinct concerns — **core platform abstractions**, **governance/enablement**, and **commercial/billing concerns** — which makes it hard to sequence and hard to reason about independently. This revision splits Phase 1 into **Phase 1A (SaaS Foundation Core)** and **Phase 1B (Platform Governance & Enablement)**, pulls the Subscription Model out of the foundation entirely and relocates it to **Phase 7 — SaaS & Enterprise Features** as a commercialization concern, inserts a new **Phase 2 — Platform UI Foundation**, and separates the former "Hospitality Modules" phase into **business-type modules** (Phase 6) and **Multi-Location Operations** (Phase 7 in the prior revision, now its own phase). Hotel Operations is preserved in full and repositioned narratively as a later vertical specialization rather than a core hospitality module, for reasons explained in that phase's introduction. **No existing roadmap item, completed work, feature, effort estimate, dependency, rationale, migration note, risk, benefit, or backward-compatibility guarantee has been removed or reduced in scope** — everything is preserved below, renumbered and reorganized into its new phase. See the [Roadmap Migration Summary](#roadmap-migration-summary) at the end for a full diff of what changed and why, covering both this revision and the prior one.
+> **Structure:** Foundation work is split into **Phase 1A (SaaS Foundation Core: Tenant/Location/Module)** and **Phase 1B (Platform Governance & Enablement: RBAC/Flags/Routing/Migration & Contract Governance)**, sequenced before a dedicated **Phase 2 (Platform UI Foundation)**. Subscription & billing live in **Phase 9** as a commercial concern, decoupled from the structural foundation. Hospitality business-type modules (Phase 6) are separated from cross-cutting Multi-Location Operations (Phase 7). Hotel Operations (Phase 8) is a distinct vertical with its own domain model (rooms/bookings vs. catalog/cart). See [Roadmap Migration Summary](#roadmap-migration-summary) for the full rationale behind this structure.
 
 ---
 
@@ -27,7 +27,7 @@ The Savor frontend has a well-architected foundation with polished UI, working m
 | Scalability | 6/10 | React Query caching is solid; admin not scalable; data model not yet tenant-aware |
 | Maintainability | 7/10 | TypeScript strict, good types, but combined.service.ts and dead code |
 | Developer Experience | 8/10 | Mock mode, good tooling, Turbopack, Vitest |
-| Testing | 2/10 | One test file, no component or integration tests |
+| Testing | 2/10 | One test file, no component or integration tests, no CI pipeline — addressed in P3.10 |
 | Documentation | 9/10 | Now comprehensive (this document set) |
 | Platform Extensibility | 2/10 | No tenant/module/RBAC model; adding a new business type today means forking, not configuring |
 | UI Platform Maturity | 3/10 *(new dimension)* | Components exist but are not tokenized, not theme-aware, and navigation is hardcoded to the restaurant feature set |
@@ -53,7 +53,7 @@ The Savor frontend has a well-architected foundation with polished UI, working m
 | Hospitality modules (cafe/bar/food truck/etc.) | 0% (not started — gated on foundation + UI platform layers) |
 | Multi-location operations | 0% (not started — carried over from prior "Multi-Branch" scope) |
 | Hotel operations | 0% (not started — distinct domain, gated on foundation layer only, not on other hospitality modules) |
-| Subscription & billing platform | 0% (not started — relocated to Phase 7, commercial concern) |
+| Subscription & billing platform | 0% (not started — relocated to Phase 9, commercial concern) |
 | **Overall (restaurant scope)** | **~65%** |
 | **Overall (platform scope, incl. foundation + UI platform + hospitality modules)** | **~33%** *(adjusted from the prior revision's ~38% to reflect the newly identified UI Platform Foundation layer)* |
 
@@ -71,6 +71,8 @@ The Savor frontend has a well-architected foundation with polished UI, working m
 8. Add role-based admin authorization
 9. Fix mock login logic (H-05)
 10. Test full ordering flow against real Django backend
+11. Stand up CI quality gates (lint, type-check, test, build) and a baseline test suite (P3.10)
+12. Initialize baseline error tracking (P3.11)
 
 ### Required Before Onboarding a Second Tenant / Business Type
 
@@ -79,7 +81,7 @@ The Savor frontend has a well-architected foundation with polished UI, working m
 1. **Phase 1A:** Tenant, Location, and Module models exist and are wired through the API and frontend; existing restaurant data is migrated into "Restaurant" as the first tenant/module without behavior change
 2. **Phase 1B:** RBAC foundation, feature flag system, tenant-aware routing, and a migration plan are in place
 3. **Phase 2:** A shared, tokenized, theme-aware component library and module-aware navigation shell exist, so a second tenant or business type doesn't require hand-building UI from scratch
-4. Subscription/billing gating is **not** a hard requirement to onboard a second tenant manually (e.g., via admin-configured module activation) — full self-service commercialization is a Phase 7 concern. See [Subscription Model Change](#subscription-model-change-rationale) below.
+4. Subscription/billing gating is **not** a hard requirement to onboard a second tenant manually (e.g., via admin-configured module activation) — full self-service commercialization is a Phase 9 concern. See [Subscription Model Change](#subscription-model-change-rationale) below.
 
 ---
 
@@ -99,7 +101,7 @@ The Savor frontend has a well-architected foundation with polished UI, working m
 **Estimated Effort:** 5–8 days
 
 Introduce a `Tenant` entity representing a single hospitality business (e.g., "Savor Downtown", "Java Truck Co."). Define:
-- `Tenant { id, name, slug, businessTypes: Module[], status, createdAt }` *(note: the `subscriptionTier` field originally proposed here has been removed from the core `Tenant` shape and relocated to a separate `Subscription` entity owned by Phase 7 — see [Subscription Model Change](#subscription-model-change-rationale). The `Tenant` model itself does not need to know about billing to function.)*
+- `Tenant { id, name, slug, businessTypes: Module[], status, createdAt }` *(note: the `subscriptionTier` field originally proposed here has been removed from the core `Tenant` shape and relocated to a separate `Subscription` entity owned by Phase 9 — see [Subscription Model Change](#subscription-model-change-rationale). The `Tenant` model itself does not need to know about billing to function.)*
 - Tenant resolution strategy for the frontend: subdomain-based (`{tenant}.savor.app`) vs. path-based (`/t/{tenant}/...`) vs. header-based for API calls. **Recommendation:** subdomain for production multi-tenant routing, with a path-based fallback for local/dev/mock mode to avoid DNS overhead during development. *(The full implementation of this strategy, as routing/middleware code, is Phase 1B's responsibility — P1A.1 defines the model and the decision; P1B.3 implements the routing.)*
 - A `useTenantStore` (Zustand, hydrated server-side via middleware/headers) holding the active tenant context for the session.
 - Backward-compatible default: when no tenant is resolvable (e.g., today's single-deployment setup), the frontend falls back to a single implicit "default" tenant so existing behavior is unchanged.
@@ -129,7 +131,7 @@ Generalize the existing `Branch` concept (already present in `useBranchStore` an
 **Estimated Effort:** 5–7 days
 
 A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, Hotel, Food Court, Mobile Truck). Build:
-- `Module { key, name, routes: string[], navItems, defaultFeatureFlags }` *(note: the `requiredSubscriptionTier` field originally proposed here is removed from the core `Module` shape in this revision — module *registration* is a foundation concern; module *gating by paid tier* is a Phase 7 commercial concern, applied on top. A tenant's `activeModules` list, in the absence of Phase 7, is simply admin-configured directly.)*
+- `Module { key, name, routes: string[], navItems, defaultFeatureFlags }` *(note: the `requiredSubscriptionTier` field originally proposed here is removed from the core `Module` shape in this revision — module *registration* is a foundation concern; module *gating by paid tier* is a Phase 9 commercial concern, applied on top. A tenant's `activeModules` list, in the absence of Phase 9, is simply admin-configured directly.)*
 - A frontend **module registry** (`src/modules/registry.ts`) that the app shell reads to determine which routes, nav items, and dashboard widgets are active for the current tenant.
 - The existing restaurant feature set (menu, cart, checkout, reservations, order tracking) is registered as the **first module: `restaurant`**, with zero behavior change — it is simply declared as a module rather than assumed as the only possible application.
 - Module boundaries are designed so Phase 6 (Hospitality Modules) and Phase 8 (Hotel Operations) can register new modules without modifying core routing or shared components.
@@ -150,7 +152,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 
 ---
 
-**Phase 1A exit criteria:** Tenant, Location, and Module models exist in the frontend type system and are wired to (at minimum mocked, ideally real) backend endpoints; the existing restaurant application runs unchanged on top of them as the `restaurant` module under a default tenant; CI guardrails for backward compatibility are in place. **Subscription, RBAC, feature flags, and full tenant-aware routing are explicitly not required to exit this phase** — they are addressed in Phase 1B and Phase 7.
+**Phase 1A exit criteria:** Tenant, Location, and Module models exist in the frontend type system and are wired to (at minimum mocked, ideally real) backend endpoints; the existing restaurant application runs unchanged on top of them as the `restaurant` module under a default tenant; CI guardrails for backward compatibility are in place. **Subscription, RBAC, feature flags, and full tenant-aware routing are explicitly not required to exit this phase** — they are addressed in Phase 1B and Phase 9.
 
 ---
 
@@ -168,7 +170,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 **Estimated Effort:** 5–8 days
 
 - Generalize the existing `customer | staff | admin` role enum into a **tenant-scoped, permission-based** model: `Role { key, tenantId | null (global), permissions: Permission[] }`, with `Permission` strings like `menu.edit`, `order.manage`, `branch.manage`, `room.manage` (future), `tenant.manage` (platform-level).
-- This is the **foundation** consumed by Phase 5 (Admin Platform) for admin authorization and by Phase 7 (SaaS & Enterprise) for Advanced RBAC — it is not duplicated work, it is built once here and extended later.
+- This is the **foundation** consumed by Phase 5 (Admin Platform) for admin authorization and by Phase 9 (SaaS & Enterprise) for Advanced RBAC — it is not duplicated work, it is built once here and extended later.
 - Existing `customer/staff/admin` values continue to work unchanged as a default role set for the `restaurant` module; no existing authorization behavior changes in this phase.
 
 ---
@@ -181,8 +183,8 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 **Estimated Effort:** 3–4 days
 
 - Lightweight feature flag service (`src/lib/feature-flags.ts`) resolving flags by `tenantId + flag key`.
-- **Important — updated this revision:** because the Subscription model has been relocated to Phase 7, feature flags **must function fully without a subscription system**. In this phase, flags resolve from three sources only: (1) static tenant configuration, (2) the tenant's `activeModules` list (from P1A.3, admin-configured in the absence of billing), and (3) simple per-tenant overrides. There is no dependency on `Subscription.activeModules` as previously drafted.
-- Designed so that Phase 7's Subscription & Plan Management can later become a **fourth** resolution source (plan-tier-based flag defaults) without changing the flag service's public API or any existing call site (`useFeatureFlag('module:bar')` continues to work identically once Phase 7 ships).
+- **Important — updated this revision:** because the Subscription model has been relocated to Phase 9, feature flags **must function fully without a subscription system**. In this phase, flags resolve from three sources only: (1) static tenant configuration, (2) the tenant's `activeModules` list (from P1A.3, admin-configured in the absence of billing), and (3) simple per-tenant overrides. There is no dependency on `Subscription.activeModules` as previously drafted.
+- Designed so that Phase 9's Subscription & Plan Management can later become a **fourth** resolution source (plan-tier-based flag defaults) without changing the flag service's public API or any existing call site (`useFeatureFlag('module:bar')` continues to work identically once Phase 9 ships).
 - Used to progressively roll out Phase 6/8 modules per tenant without code branching in components.
 
 ---
@@ -200,20 +202,35 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 
 ---
 
-### P1B.4 — Database & API Migration Planning (Critical / Planning Effort)
+### P1B.4 — Database & API Migration Planning, Versioning & Contract Governance (Critical / Planning Effort)
 
 **Priority:** P0
 **Complexity:** Planning-only in this phase (execution spans Phase 1B–5)
 **Dependencies:** P1A.1, P1A.2; coordinated with the Django backend team
-**Estimated Effort:** 3–5 days planning, execution effort tracked per backend sprint
+**Estimated Effort:** 4–6 days *(+1 day versus the original 3–5 day planning estimate to cover the contract-governance scope added below — this is a planning-effort increase only, not new execution work)*
 
 - Produce a migration plan (not migration code, which is backend-owned) covering: adding `tenant_id`/`location_id` foreign keys to existing restaurant tables without downtime, backfilling a single default tenant/location for all existing rows, and an API versioning strategy (`/api/v1/` unchanged, `/api/v2/` or header-based tenant context for new endpoints) so existing frontend API calls do not break mid-migration.
 - Explicitly call out which existing endpoints (menu, orders, reservations, branches) need additive (not breaking) changes to accept an optional tenant/location context.
-- *(No longer references subscription/billing tables — that planning work is scoped within Phase 7 alongside the Subscription & Plan Management item itself.)*
+- **Contract governance (added this revision):** define a lightweight, enforceable contract between frontend and backend so that as more tenants and modules consume the same API surface, breaking changes are caught before release rather than in production. Concretely: generate or hand-maintain a single source of truth for request/response shapes (OpenAPI spec or shared TypeScript types), validate it against the existing Zod schemas already used for form validation (`react-hook-form` + `zod`, per the current stack), and add a CI check that fails the build if a service call's expected shape drifts from the contract. This does not introduce a new tool chain beyond what's already in use — it formalizes a practice using the validation library already in `package.json`.
+- *(No longer references subscription/billing tables — that planning work is scoped within Phase 9 alongside the Subscription & Plan Management item itself.)*
 
 ---
 
-**Phase 1B exit criteria:** RBAC permission model, feature flag service, tenant-aware routing/middleware, and a reviewed migration plan are all in place, operating on top of the Phase 1A abstractions. Existing restaurant authorization and routing behavior remain unchanged for the default tenant.
+### P1B.5 — Domain Event Contract Readiness (Medium / Low Effort)
+
+**Priority:** P1
+**Complexity:** Low
+**Dependencies:** P1A.3 (Module Registry); informs but does not block P3.6 (WebSocket wiring)
+**Estimated Effort:** 1–2 days
+
+- Define a standard naming and payload convention for domain events (e.g., `order.created`, `reservation.created`, `order.status_changed`) emitted across the platform, so every module that produces or consumes events — the existing WebSocket service (`DjangoChannelsWebSocket`), the notification system, and later the audit log (P5.8) — uses one consistent event shape instead of each feature inventing its own.
+- This is explicitly **not** a request to introduce a message broker, event bus, or new backend infrastructure. It is a frontend/backend-shared naming and payload contract layered on top of the WebSocket and REST infrastructure that already exists, so that as Phase 6 modules and Phase 8 hotel operations add their own events (e.g., `booking.checked_in`), they extend the same convention instead of fragmenting it.
+- Directly reduces rework risk in P3.6 (Wire WebSocket Hooks to UI), P5.8 (Baseline Audit Logging), and any future module that emits real-time events.
+- The convention also covers funnel-relevant client events (e.g., `checkout.step_viewed`, `checkout.step_completed`, `reservation.step_viewed`, `reservation.confirmed`), so the product analytics work in P9.5 can attach to existing event names instead of re-instrumenting checkout and reservation flows from scratch.
+
+---
+
+**Phase 1B exit criteria:** RBAC permission model, feature flag service, tenant-aware routing/middleware, a reviewed migration plan with contract governance in place, and a documented domain event naming/payload convention are all in place, operating on top of the Phase 1A abstractions. Existing restaurant authorization and routing behavior remain unchanged for the default tenant.
 
 ---
 
@@ -221,7 +238,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 
 > **Goal:** Create a reusable UI platform — design tokens, a white-label theme engine foundation, a shared component library, and permission-aware navigation — that supports multi-tenant branding, future white-labeling, module-based navigation, and admin extensibility. *(New phase, inserted this revision between the foundation phases and Production Hardening.)*
 >
-> **Why this phase exists and why it's positioned here:** Every phase from here forward touches UI: Production Hardening polishes existing screens, Feature Completion adds new ones, Admin Platform builds an entire new surface, Hospitality Modules and Hotel Operations each need their own screens, and Phase 7's white-label work needs tenant branding to already be themeable. Building all of that UI against ad-hoc, hardcoded styling — as the current codebase does (see `TECHNICAL_DEBT.md` on `globals.css` CSS-variable theming with no tenant awareness) — means every later phase pays a styling/theming tax individually. Building the token system, theme engine foundation, and shared component library once, immediately after the data-model foundation exists, means every later phase consumes it instead of re-deriving it. This is explicitly a **force multiplier**: its cost is paid once, and it reduces implementation cost in Phases 3–8.
+> **Why this phase exists and why it's positioned here:** Every phase from here forward touches UI: Production Hardening polishes existing screens, Feature Completion adds new ones, Admin Platform builds an entire new surface, Hospitality Modules and Hotel Operations each need their own screens, and Phase 9's white-label work needs tenant branding to already be themeable. Building all of that UI against ad-hoc, hardcoded styling — as the current codebase does (see `TECHNICAL_DEBT.md` on `globals.css` CSS-variable theming with no tenant awareness) — means every later phase pays a styling/theming tax individually. Building the token system, theme engine foundation, and shared component library once, immediately after the data-model foundation exists, means every later phase consumes it instead of re-deriving it. This is explicitly a **force multiplier**: its cost is paid once, and it reduces implementation cost in Phases 3–8.
 >
 > This phase is additive: it does not require rewriting any existing screen. Existing components continue to render exactly as they do today; new and refactored screens from Phase 3 onward are expected to adopt the token system and shared library going forward.
 
@@ -250,8 +267,9 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 **Estimated Effort:** 5–8 days
 
 - Extend the token system from P2.1 so token *values* (not just token *names*) can be overridden per tenant: tenant brand colors, logo, and font configuration.
-- This is explicitly a **foundation** for white-labeling, not the full white-label feature — full custom-domain white-labeling remains in Phase 7 (P7.1), which now consumes this engine rather than building theming from scratch.
+- This is explicitly a **foundation** for white-labeling, not the full white-label feature — full custom-domain white-labeling remains in Phase 9 (P9.1), which now consumes this engine rather than building theming from scratch.
 - Default behavior: with no tenant-specific overrides set, every tenant (including today's single default tenant) renders with the existing Savor brand tokens — **zero visual change** to the current application.
+- *(Forward reference: the static PWA manifest shipped in P3.4 — app name, icons, theme color — is intentionally single-tenant for now. Once this theme engine exists, P9.1 extends it to generate a tenant-specific manifest, so PWA branding doesn't need to be rebuilt when white-labeling ships.)*
 
 ---
 
@@ -339,6 +357,7 @@ Change `.env.example` default to `NEXT_PUBLIC_USE_MOCK=false`. Add CI step to re
 **Estimated Effort:** 4 hours
 
 Generate icon files for all 8 sizes declared in `manifest.json`. Create `public/og-image.jpg`. Create `public/screenshots/menu.png` (referenced in manifest). Verify PWA install flow end-to-end.
+- Verify install/usability on a tablet/phone form factor specifically for `/admin/*` routes, not just customer-facing pages — admin and staff users are expected to install and run this PWA on point-of-service hardware (P7.3 builds on this). Native iOS/Android apps are explicitly out of scope for this roadmap; PWA is the sole mobile strategy unless a future revision states otherwise.
 
 ---
 
@@ -357,7 +376,7 @@ Fix the credential check in `authService.login()` mock mode so invalid credentia
 
 **Priority:** P1
 **Complexity:** Medium
-**Dependencies:** Requires working Django Channels backend
+**Dependencies:** Requires working Django Channels backend; events should follow the naming/payload convention from P1B.5 once available, to avoid reshaping payloads later
 **Estimated Effort:** 2–3 days
 
 1. In `OrderTracker.tsx`: When `useMockSimulation=false`, use `useOrderWebSocket(orderId)` for status updates
@@ -399,6 +418,46 @@ Remove `socket.io-client` and `next-pwa` from `package.json`. These are installe
 
 ---
 
+### P3.10 — Testing Strategy & CI Quality Gates (Critical / Medium Effort)
+
+**Priority:** P0
+**Complexity:** Medium
+**Dependencies:** None; benefits from running alongside P1A/P1B since new foundation code should ship with tests from day one rather than added retroactively
+**Estimated Effort:** 4–6 days
+
+The codebase currently has a single test file (`src/test/index.test.ts`) and no CI pipeline. Shipping the foundation, UI platform, and module work that follows without a testing baseline materially increases regression risk as the surface area multiplies across tenants and modules. This item establishes the baseline before that surface area grows further:
+- Expand Vitest coverage for the highest-risk existing logic: cart store calculations, the mock/real service-switching branch in each service file, and checkout form validation.
+- Add component tests for the components most central to revenue (`CartDrawer`, `FoodCard`, `OrderTracker`) using the existing Testing Library setup.
+- Add an integration test for the full auth flow (login → token refresh → logout), since this is the area most likely to break silently when JWT/cookie strategy changes in P3.1.
+- Stand up a CI pipeline (lint + type-check + test + build) gating merges to the main branch — none currently exists. This is the single highest-leverage addition in this item: it turns every other roadmap item's "definition of done" into something enforced rather than assumed.
+
+---
+
+### P3.11 — Baseline Observability: Error Tracking (Critical / Low-Medium Effort)
+
+**Priority:** P0
+**Complexity:** Low-Medium
+**Dependencies:** None
+**Estimated Effort:** 1–2 days
+
+Frontend error tracking is currently planned only as part of Phase 9 (Observability & Monitoring), which would mean shipping to production with no visibility into client-side errors for several phases. That sequencing is moved up: this item ships the minimum viable observability baseline now, with the fuller enterprise-grade observability work (latency dashboards, cross-tenant rollups) remaining in Phase 9 where it belongs.
+- Initialize `@sentry/nextjs` for frontend error tracking, using the `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` variables already documented in `.env.example`.
+- Wire Core Web Vitals reporting to Sentry Performance.
+- This is intentionally scoped to error tracking only — product analytics (GA4) and advanced dashboards remain in Phase 9 (P9.5), since they are not required for safe production operation the way error visibility is.
+
+---
+
+### P3.12 — Feature-Level Error Boundaries (Medium / Low Effort)
+
+**Priority:** P1
+**Complexity:** Low
+**Dependencies:** None
+**Estimated Effort:** 1 day
+
+Only a top-level `src/app/error.tsx` exists today; a runtime error in any single feature section (cart, notifications, menu) currently crashes the entire page rather than just that section. Add React Error Boundaries around key feature sections (`CartDrawer`, `NotificationCenter`, menu listing). This is low effort and directly reduces blast radius as more modules (Phase 6) render concurrently within the same shell, where an error in one module's UI should not take down the rest of the page.
+
+---
+
 ## Phase 4 — Feature Completion (Sprint 9–11)
 
 > **Goal:** Complete partially-implemented features and fill in missing integrations. *(Content identical to the prior revision's Phase 3 — renumbered only.)*
@@ -418,7 +477,7 @@ Integrate Stripe Elements for card payment. Flow:
 
 Cash and dine-in orders can bypass the gateway.
 
-*(Note: this is order-payment processing, distinct from the recurring billing/plan-payment work in Phase 7's Subscription & Plan Management — the two share the Stripe vendor relationship but are functionally separate integrations.)*
+*(Note: this is order-payment processing, distinct from the recurring billing/plan-payment work in Phase 9's Subscription & Plan Management — the two share the Stripe vendor relationship but are functionally separate integrations.)*
 
 ---
 
@@ -518,7 +577,7 @@ After `useLangStore.setLocale()` sets the `NEXT_LOCALE` cookie, call `router.ref
 **Priority:** P0
 **Complexity:** High
 **Dependencies:** Django admin API endpoints, **P1A.1 Tenant model, P1A.2 Location model**
-**Estimated Effort:** 6–9 days *(unchanged from prior revision; +1 day versus the original single-tenant estimate to thread tenant/location scoping through every method — see migration analysis)*
+**Estimated Effort:** 6–9 days *(+1 day versus a single-tenant baseline estimate, to thread tenant/location scoping through every method)*
 
 Create `admin.service.ts` with methods for:
 - `getStats(tenantId, locationId?, period)` — revenue, orders, customers, reservations, **scoped to the current tenant and optionally a single location**
@@ -529,6 +588,7 @@ Create `admin.service.ts` with methods for:
 - `getReservations(tenantId, locationId?, date, status)` — reservation management
 
 All methods accept tenant/location context from the new `useTenantStore` (P1A.1) rather than assuming a single global restaurant.
+- `getCustomers(tenantId, filters)` and order/reservation filtering are expected to consume the same `searchService` abstraction defined in P6.5 once it exists, rather than each admin list view hand-rolling its own filter/search logic — see P6.5's search architecture note for the shared interface.
 
 ---
 
@@ -577,7 +637,7 @@ Extend `admin/menu/page.tsx` to:
 **Dependencies:** P5.1
 **Estimated Effort:** 3–4 days
 
-Replace local state with API data. Add calendar grid view showing reservations by time slot. Implement approve/reject/seat actions backed by API.
+Replace local state with API data. Add calendar grid view showing reservations by time slot. Implement approve/reject/seat actions backed by API. Reservation lookup/filtering (by guest name, date, status) uses the same `searchService` abstraction referenced in P5.1/P6.5 rather than a one-off filter implementation.
 
 ---
 
@@ -603,9 +663,23 @@ Wire the admin sidebar/navigation to the Phase 2 navigation foundation: render s
 
 ---
 
+### P5.8 — Baseline Audit Logging (Medium / Medium Effort)
+
+**Priority:** P1
+**Complexity:** Medium
+**Dependencies:** P5.1 (real API-backed admin mutations), P1B.5 (event naming/payload convention)
+**Estimated Effort:** 2–3 days
+
+Audit logging is moved earlier from its prior position as a Phase 9-only item, because P5.1 is the point where admin actions stop being local-only state and start being real API mutations — exactly the moment auditable events first exist. Capturing them from the start avoids retroactively instrumenting every admin action shipped between Phase 5 and Phase 9.
+- At the service layer (`admin.service.ts`), emit a minimal audit record — actor, tenant/location, action, timestamp — for each mutating admin call, using the event naming convention from P1B.5.
+- No dedicated audit UI ships in this item; records are captured and persisted (backend-owned table) but only minimally surfaced, if at all, in the admin panel.
+- Phase 9's Audit Log item (P9.3) becomes the **advanced** layer on top of this baseline — filterable UI, retention policy, and compliance export — rather than building audit capture from zero at that point.
+
+---
+
 ## Phase 6 — Hospitality Modules (Sprint 17–21)
 
-> **Goal:** Implement additional hospitality **business-type** modules — cafe, bar, smoke/lounge, event, venue, and mobile food/coffee truck — as modules on top of the Phase 1A/1B foundation and the Phase 2 UI platform. *(This phase is narrowed this revision: it now contains only business-type modules. The operational-scaling items that were previously bundled into this phase — location-aware ordering, maps integration, staff roles, location management, order search/export — have been split out into their own **Phase 7 — Multi-Location Operations**, per this revision's restructuring request, since those are operational-scaling concerns orthogonal to *which* business type a tenant runs.)*
+> **Goal:** Implement additional hospitality **business-type** modules — cafe, bar, smoke/lounge, event, venue, and mobile food/coffee truck — as modules on top of the Phase 1A/1B foundation and the Phase 2 UI platform. *(This phase is narrowed this revision: it now contains only business-type modules. The operational-scaling items that were previously bundled into this phase — location-aware ordering, maps integration, staff roles, location management, order search/export — have been split out into their own **Phase 7 — Multi-Location Operations**, per this revision's restructuring request, since those are operational-scaling concerns orthogonal to *which* business type a tenant runs.)* Every module below registers through the Module Registry (P1A.3), is covered by the CI gates established in P3.10, and follows the API contract governance practice from P1B.4 — these are not restated per module below.
 
 ### P6.1 — Cafe Module
 
@@ -641,6 +715,7 @@ Wire the admin sidebar/navigation to the Phase 2 navigation foundation: render s
 **Effort:** 6–10 days
 
 - Register `venue` module: multi-vendor food court support — a single `Location` of type `food_court_stall` aggregates multiple tenant menus under one checkout/delivery experience (depends on P1A.1 Tenant and P1A.2 Location supporting parent/child relationships)
+- **Search architecture note:** the existing menu search (`menuService.search()`, debounced client-side filtering against a single tenant's catalog) does not scale cleanly to searching across multiple vendors' menus at once. Before this module ships, introduce a `searchService` abstraction with the same call signature the existing debounced search already uses, so the venue module can start on simple multi-tenant API filtering and later swap the implementation for a dedicated search index (e.g., Elasticsearch/Algolia) without changing call sites. This is scoped as an interface decision now, not a new search infrastructure requirement — the index swap itself is deferred until/unless catalog scale actually requires it. The same abstraction is the intended foundation for **every other searchable entity on the platform** — menu items, orders (P7.5), customers (P5.1), reservations (P5.5), and future hotel rooms/bookings (P8.1) — so each of those does not need its own search implementation; they consume one interface that started here.
 
 ### P6.6 — Mobile Food Truck / Mobile Coffee Truck Support
 
@@ -681,6 +756,7 @@ Wire the admin sidebar/navigation to the Phase 2 navigation foundation: render s
 - Add `staff` role handling in middleware (access to `/admin/orders` only)
 - Staff dashboard: simplified view of incoming orders for their location
 - Table management view for front-of-house staff
+- Staff dashboard is installable as a PWA on handheld/tablet hardware using the existing manifest/service worker from P3.4 — no separate mobile build; this is the primary operational use case the PWA strategy is expected to serve on the floor.
 
 ### P7.4 — Location Management Admin Page *(was: Branch Management Admin Page)*
 
@@ -716,6 +792,7 @@ Wire the admin sidebar/navigation to the Phase 2 navigation foundation: render s
 - Register `hotel` module on a `Location` of type `hotel_property`
 - `Room { id, locationId, type, capacity, baseRate, amenities, status }`
 - Room availability calendar, distinct from the existing menu/item availability model
+- Room and booking lookup (by guest name, room number, date range) is expected to consume the `searchService` abstraction from P6.5 rather than introducing a hotel-specific search implementation, even though availability-calendar logic itself remains domain-specific.
 
 ### P8.2 — Hotel Bookings
 
@@ -747,7 +824,7 @@ Wire the admin sidebar/navigation to the Phase 2 navigation foundation: render s
 
 ## Phase 9 — SaaS & Enterprise Features (Sprint 32+)
 
-> **Goal:** White-label, advanced governance, commercialization, and enterprise-grade operational tooling for the platform. *(This phase replaces the prior revision's Phase 7 — SaaS & Enterprise Features. All original items are preserved. This revision adds one new item — **Subscription & Plan Management** — relocated here from the foundation phase per the restructuring request below.)*
+> **Goal:** White-label, advanced governance, commercialization, and enterprise-grade operational tooling for the platform, including **Subscription & Plan Management** (relocated from the foundation phase — see [Subscription Model Change Rationale](#subscription-model-change-rationale) below).
 
 ### Subscription Model Change Rationale
 
@@ -760,7 +837,7 @@ Wire the admin sidebar/navigation to the Phase 2 navigation foundation: render s
 
 ### P9.1 — White-Label & Custom Domains
 
-**Effort:** 8–12 days *(unchanged from the prior revision; reduced from the original "Multi-Tenancy Architecture" line item's 15–25 days, since core tenant data isolation and routing already exist from Phase 1A/1B, and the visual theming substrate now exists from Phase 2 — see migration analysis)*
+**Effort:** 8–12 days *(reduced from a from-scratch "Multi-Tenancy Architecture" estimate of 15–25 days, since core tenant data isolation and routing already exist from Phase 1A/1B, and the visual theming substrate now exists from Phase 2)*
 
 - Per-tenant theming (primary color, logo, fonts) — **now consumes the Phase 2 White-Label Theme Engine Foundation (P2.2) directly**, rather than building tenant theming from scratch as implied in the prior revision. This further de-risks this item versus the original estimate, though the estimate is held constant to absorb custom-domain-specific work below.
 - Custom domain mapping (CNAME → tenant resolution) building on the routing strategy from P1B.3
@@ -777,11 +854,11 @@ Fine-grained permissions beyond `customer/staff/admin`, layered on the Phase 1B 
 - `analytics_viewer` — read-only stats access
 - `front_desk` *(hotel)* — check-in/check-out and room status only
 
-### P9.3 — Audit Log
+### P9.3 — Advanced Audit Log & Compliance Reporting *(was: Audit Log)*
 
-**Effort:** 5–8 days
+**Effort:** 3–5 days *(reduced from the original 5–8 days, since baseline audit event capture now ships earlier in P5.8 — this item adds the UI, retention policy, and export, not raw capture from scratch)*
 
-Track all admin mutations (who changed what, when). Display in admin UI. Requires backend audit model. Naturally tenant-scoped since every admin mutation already carries tenant/location context from Phase 5.
+Build the admin-facing audit log UI on top of the event capture already established in P5.8: filterable view (who changed what, when), retention policy, and compliance export. Naturally tenant-scoped since every admin mutation already carries tenant/location context from Phase 5.
 
 ### P9.4 — Advanced Analytics Dashboard
 
@@ -794,14 +871,16 @@ Track all admin mutations (who changed what, when). Display in admin UI. Require
 - Export to PDF
 - Cross-module and cross-location rollups (e.g., a tenant running both a restaurant and a hotel can see combined revenue), enabled by the Phase 1A Tenant/Location model
 
-### P9.5 — Observability & Monitoring
+### P9.5 — Advanced Observability & Product Analytics *(was: Observability & Monitoring)*
 
-**Effort:** 3–5 days
+**Effort:** 3–5 days *(+1 day versus the prior 2–4 day estimate to cover the funnel/conversion event wiring below, which attaches to event names already defined in P1B.5 rather than being designed from scratch)*
 
-- Sentry for frontend error tracking (`@sentry/nextjs`)
-- Core Web Vitals reporting to Sentry Performance
-- Google Analytics 4 via `@next/third-parties/google`
+- Google Analytics 4 via `@next/third-parties/google` for product/usage analytics
+- Checkout funnel conversion and drop-off tracking (cart → checkout started → payment → confirmation), instrumented against the `checkout.*` event names already defined in P1B.5
+- Reservation funnel conversion and drop-off tracking (browse slots → slot selected → confirmed), instrumented against the `reservation.*` event names already defined in P1B.5
+- Popular item tracking surfaced as a GA4/analytics view, distinct from and complementary to `menuService.getPopular()` (which ranks by order volume) — this tracks views/adds-to-cart, not just completed orders
 - API latency tracking in React Query onError callbacks
+- Cross-tenant and cross-module observability rollups in Sentry, building on the baseline initialized in P3.11
 
 ### P9.6 — Subscription & Plan Management *(new this revision; relocated from the foundation phase, originally "Subscription Model")*
 
@@ -845,7 +924,7 @@ Track all admin mutations (who changed what, when). Display in admin UI. Require
 
 ## Recommended Next Sprint
 
-The highest-impact engineering tasks for immediate action. *(Updated this revision: foundation items are now split across Phase 1A/1B, and a Phase 2 UI-foundation item is included since it can begin in parallel once design tokens don't block on the data model.)*
+The highest-impact engineering tasks for immediate action. *(Updated this revision: includes the CI pipeline and baseline error tracking tasks, since both are cheap and de-risk every subsequent sprint.)*
 
 | # | Task | Phase | Effort | Impact |
 |---|------|-------|--------|--------|
@@ -856,85 +935,32 @@ The highest-impact engineering tasks for immediate action. *(Updated this revisi
 | 5 | Implement `src/middleware.ts` (client-side auth redirect + tenant resolution stub) | P3.1 / P1B.3 | 1–2 days | Security + foundation |
 | 6 | Define `Tenant`, `Location`, `Module` TypeScript interfaces and default/fallback values | P1A.1–P1A.3 | 2–3 days | Unblocks all later phases |
 | 7 | Draft initial design token set (colors, type scale, spacing) from existing `globals.css` variables | P2.1 | 1–2 days | Unblocks Phase 2 without waiting on full foundation |
-| 8 | Mount `useNotificationWebSocket` in Providers | P3.6 | 2 hrs | Live notifications |
-| 9 | Wire `useOrderWebSocket` to `OrderTracker` | P3.6 | 1 day | Real-time tracking |
-| 10 | Complete `src/i18n/locales/ar.json` | P3.7 | 2 days | Arabic market |
-| 11 | Draft database/API migration plan for `tenant_id`/`location_id` backfill | P1B.4 | 3–5 days (planning) | De-risks all future migration work |
-| 12 | Remove `socket.io-client` and `next-pwa` from deps | P3.9 | 15 min | Bundle size |
-| 13 | Guard `<ReactQueryDevtools>` behind dev check | P3.8 | 5 min | Bundle size |
+| 8 | Stand up CI pipeline (lint + type-check + test + build) | P3.10 | 1 day | Catches regressions before merge |
+| 9 | Initialize Sentry error tracking | P3.11 | 1 day | Production error visibility |
+| 10 | Mount `useNotificationWebSocket` in Providers | P3.6 | 2 hrs | Live notifications |
+| 11 | Wire `useOrderWebSocket` to `OrderTracker` | P3.6 | 1 day | Real-time tracking |
+| 12 | Complete `src/i18n/locales/ar.json` | P3.7 | 2 days | Arabic market |
+| 13 | Draft database/API migration plan + contract governance approach for `tenant_id`/`location_id` backfill | P1B.4 | 4–6 days (planning) | De-risks all future migration work |
+| 14 | Remove `socket.io-client` and `next-pwa` from deps | P3.9 | 15 min | Bundle size |
+| 15 | Guard `<ReactQueryDevtools>` behind dev check | P3.8 | 5 min | Bundle size |
 
-**Total estimated effort for next sprint: ~11–16 days** *(adjusted from the prior revision's ~10–14 days to include the new design-token kickoff item, which can run in parallel with both the production-hardening and foundation-core workstreams without blocking either.)*
+**Total estimated effort for next sprint: ~13–19 days** *(adjusted to include the CI pipeline and baseline error tracking tasks, which are deliberately front-loaded since they are cheap and reduce risk for every sprint that follows.)*
 
 ---
 
 ## Roadmap Migration Summary
 
-> This summary covers changes made **in this revision** (the Phase 1A/1B split, Platform UI Foundation insertion, Subscription relocation, Hotel repositioning, and Multi-Location split). For the prior revision's changes (the original pivot from a single-tenant restaurant roadmap to a Hospitality SaaS Platform roadmap), see the historical summary preserved at the very end of this section.
+**Current structure, in order:** Phase 1A (SaaS Foundation Core: Tenant, Location, Module, Backward Compatibility) → Phase 1B (Platform Governance & Enablement: RBAC, Feature Flags, Tenant-Aware Routing, Migration & Contract Governance, Domain Event Contract Readiness) → Phase 2 (Platform UI Foundation: Design Tokens, White-Label Theme Engine, Shared Component Library, Permission-Aware Navigation) → Phase 3 (Production Hardening, now including Testing/CI Quality Gates and Baseline Observability) → Phase 4 (Feature Completion) → Phase 5 (Admin Platform, including Baseline Audit Logging) → Phase 6 (Hospitality Modules — business types only) → Phase 7 (Multi-Location Operations) → Phase 8 (Hotel Operations — distinct vertical) → Phase 9 (SaaS & Enterprise, including Subscription & Plan Management and the advanced layers of RBAC/Audit/Observability).
 
-### What changed (this revision)
+**What's preserved:** Every item from every prior iteration of this roadmap remains in scope, with original effort estimates unless a dependency genuinely changed (noted inline at the relevant item — e.g., P5.7 and P9.1–P9.3/P9.5 reflect reduced effort because they now build on earlier-shipped foundations rather than starting from zero). No routes, components, services, or stores break for the existing single-tenant restaurant deployment at any phase boundary.
 
-- **Phase 1 split into Phase 1A and Phase 1B.** The prior single "Foundation Architecture Migration" phase is now two phases: **Phase 1A — SaaS Foundation Core** (Tenant, Location, Module, Backward Compatibility Strategy) and **Phase 1B — Platform Governance & Enablement** (RBAC, Feature Flags, Tenant-Aware Routing, Migration Planning). All eight original items are preserved with their original scope and (except where noted below) original effort estimates — only their phase grouping and numbering changed (old P1.1–P1.3, P1.8 → new P1A.1–P1A.4; old P1.5–P1.7, P1.9 → new P1B.1–P1B.4).
-- **Subscription Model relocated out of the foundation entirely.** The item originally specified as P1.4 ("Subscription Model") is removed from Phase 1A/1B and now lives in **Phase 9 (P9.6, "Subscription & Plan Management")** as a SaaS commercialization concern. Its full original scope — the `Subscription` shape, tier-based module gating, and feature-flag integration — is preserved verbatim in P9.6; only its position and framing changed. See the dedicated [Subscription Model Change Rationale](#subscription-model-change-rationale) section for the full explanation. Downstream references updated: `Tenant.subscriptionTier` and `Module.requiredSubscriptionTier` (both originally part of P1.1/P1.3) are explicitly removed from the core model shapes and noted as relocated; the Feature Flag System (P1B.2) is explicitly redefined to resolve from tenant config/module activation/overrides only, with Subscription as a later, optional fourth source.
-- **New Phase 2 — Platform UI Foundation inserted.** Contains four new items: Design Tokens (P2.1), White-Label Theme Engine Foundation (P2.2), Shared Component Library (P2.3), and Permission-Aware Navigation Foundation (P2.4). This phase did not exist in any prior revision. All subsequent phases (formerly Phase 2–7, now Phase 3–9) are renumbered up by one to accommodate it.
-- **Hospitality Modules phase narrowed; Multi-Location Operations split out as its own phase.** The former combined phase (prior revision's Phase 5) mixed business-type modules (Cafe, Bar, Smoke, Event, Venue, Mobile Truck) with operational-scaling concerns (location-aware ordering, maps, staff roles, location management, order search/export). These are now **Phase 6 — Hospitality Modules** (business-type modules only) and **Phase 7 — Multi-Location Operations** (scaling concerns only), in that order. All eleven original items (six modules + five operational items) are preserved with identical scope and effort estimates; only their phase grouping changed.
-- **Hotel Operations repositioned narratively, not functionally.** Hotel Operations remains a full phase (now **Phase 8**, was Phase 6) with all five original items (P8.1–P8.5, was P6.1–P6.5) preserved verbatim, including effort estimates. The phase introduction is rewritten to explicitly position Hotel as a **later vertical specialization** with a fundamentally different domain model (room/booking/availability vs. catalog/cart/order), rather than as a sibling "module" to Cafe/Bar/Venue in the same sense. No hotel feature, scope, or estimate was reduced.
-- **Cross-references updated throughout.** Every dependency line that referenced old phase/item numbers (e.g., "P1.5 RBAC Foundation," "P1.4 Subscription," "old Phase 5 Hospitality Modules") has been updated to the new numbering (P1B.1, P9.6, Phase 6/7 respectively). The "Recommended Next Sprint" table, Executive Summary, and "Required Before Onboarding a Second Tenant" checklist are all updated to reflect the new phase structure.
+**Why this structure:** Tenant/Location/Module (1A) are structural prerequisites for everything else. RBAC/Flags/Routing/Contract-Governance (1B) make that structure safe and operable but are not needed to validate the structure itself. A shared UI/token/navigation layer (Phase 2) is built once before five-plus future phases would otherwise each re-derive it. Subscription billing (Phase 9) is a commercial decision, not an architectural one, so it doesn't block tenant onboarding. Hotel is split from Hospitality Modules because rooms/bookings/availability is a fundamentally different domain model than catalog/cart/order — forcing it into the shared model would have produced an awkward fit for both.
 
-### What stayed the same (this revision)
+**Key risks:** more phase boundaries mean more places a future team could skip a real prerequisite (mitigated by the dependency notes on each item); module activation is admin-configured rather than subscription-gated until Phase 9 ships, so there's no enforced commercial gating until then; Phase 1A/1B/2 effort estimates are unaudited (no prior implementation to measure against), so they carry more uncertainty than phases grounded directly in the existing codebase.
 
-- **Every item from the prior revision is preserved** — nothing was deleted. The only items that moved phases are the four now in Phase 1A, the four now in Phase 1B, the Subscription item now in Phase 9, and the eleven items split between the new Phase 6 and Phase 7. Every other phase (Production Hardening, Feature Completion, Admin Platform's five core items, Hotel Operations' five items, the remainder of SaaS & Enterprise) is unchanged in content.
-- **All effort estimates are unchanged** except: P9.1 (White-Label & Custom Domains, already reduced in the prior revision, now further de-risked in narrative by Phase 2's theme engine but estimate held constant), P5.7 (Admin Shell Becomes Module-Aware, reduced from 2–3 days to 1–2 days since it now consumes Phase 2's navigation foundation instead of building it), and the "Recommended Next Sprint" total (increased to absorb the new design-token kickoff task).
-- **No breaking changes to existing routes, components, services, or stores.** `useBranchStore`, `branchService`, the `customer/staff/admin` role enum, all current API call signatures, and all current `components/ui/*` usage continue to work exactly as documented in `ARCHITECTURE.md` and `TECHNICAL_DEBT.md`. The new Phase 2 component library is additive/refactor-in-place, not a breaking rewrite.
-- **The AI & Automation Opportunities table and "Required Before Production Launch" checklist** are unchanged from the prior revision.
-
-### Risks
-
-- **Increased phase count raises sequencing-discipline risk.** Splitting Phase 1 into 1A/1B and inserting Phase 2 means there are now more handoff points where a future revision could be tempted to skip ahead (e.g., starting Phase 6 module work before Phase 2's shared component library exists). The phase dependency notes throughout this document are the mitigation, but they require active enforcement, not just documentation.
-- **Subscription relocation introduces a "free until Phase 9" risk.** Because module activation is admin-configured (not subscription-gated) until Phase 9 ships, there is a window where the platform has no enforced commercial gating. This is an explicit, accepted tradeoff for this revision (structural correctness before commercial gating), but it means Phase 9 should not be indefinitely deprioritized if monetization is a near-term business goal.
-- **Phase 2 is a new, unaudited estimate, like Phase 1A/1B were in the prior revision.** Design Tokens, Theme Engine, Shared Component Library, and Navigation Foundation are new work with no prior implementation to audit (the current `components/ui/*` exists but isn't tokenized or tenant-aware), so these estimates (3–9 days per item) carry the same higher uncertainty flagged for Phase 1 in the prior revision.
-- **Hotel's "could be resequenced earlier" framing is a double-edged risk.** Explicitly noting that Hotel Operations only depends on Phase 1A/1B/2 (not Phase 6/7) makes it tempting to fast-track if hotel demand emerges early — which is fine architecturally, but stakeholders should be aware this roadmap's phase *numbering* (8) does not imply Hotel must wait for Phases 3–7 to complete; it implies only that Phases 1A/1B/2 are real prerequisites.
-- **All risks identified in the prior revision remain valid** (backend coordination risk for Phase 1A/1B, scope-creep risk in foundation phases, "foundation that's never used" risk if Phase 6/7/8 are deprioritized after Phase 1A/1B/2 ship) — see the historical summary below.
-
-### Benefits
-
-- **Clearer sequencing reduces foundation-phase risk.** Splitting structural (1A), governance (1B), commercial (Phase 9), and UI-platform (Phase 2) concerns into distinct phases means each can be reviewed, staffed, and exited independently, rather than requiring agreement across data modeling, permissions, billing, and design systems simultaneously before anything can ship.
-- **Phase 2 compounds savings across every later phase.** Design tokens, a theme engine, a shared component library, and a permission-aware navigation shell built once are reused by Production Hardening polish, every Feature Completion screen, the entire Admin Platform, every Hospitality Module, Multi-Location Operations admin screens, and Hotel Operations — and directly reduce the cost of Phase 9's White-Label & Custom Domains item, which now consumes rather than rebuilds tenant theming.
-- **Decoupling Subscription from the foundation unblocks earlier multi-tenant validation.** Tenants can be onboarded and modules activated (manually, via admin) as soon as Phase 1A/1B ship, without waiting on billing-tier decisions — useful for early pilot tenants (e.g., a second restaurant or a first cafe) well before a self-service commercial product exists.
-- **Splitting Hospitality Modules from Multi-Location Operations clarifies parallel-team work.** A team building the Bar module (Phase 6) and a team building maps/delivery infrastructure (Phase 7) are now working on clearly separated phases with their own dependency chains, rather than a single phase that implicitly required sequencing module-specific and operational-scaling work together.
-- **Hotel's repositioning sets correct expectations.** Framing Hotel as a distinct vertical (not a catalog-model sibling) up front avoids a likely future mistake: attempting to force room/booking entities into the `MenuItem`/`Cart` shape that Phase 6 modules share, which would have produced an awkward data model for both.
-
-### Estimated impact on future development (this revision)
-
-- **Near-term (Phase 1A/1B + Phase 2):** Total timeline to "platform foundation + UI platform ready" grows modestly versus the prior revision's single Phase 1 (roughly +6–9 days for the new Phase 2 work), but this is explicitly an investment phase — the prior revision already accepted a comparable tradeoff for Phase 1, and this revision extends the same logic to UI.
-- **Medium-term (Phase 3–5):** No estimate change versus the prior revision, except P5.7's reduction (−1 day), since these phases' content is otherwise untouched.
-- **Long-term (Phase 6–9):** Net effort reduction versus what the prior revision's combined Hospitality Modules phase would have cost if built without Phase 2 — every module's UI work (branding, navigation, shared components) is now inherited rather than hand-built, and Phase 9's White-Label item is more clearly scoped (and already reflected at a reduced estimate) because it builds on Phase 2 rather than starting from zero. The Subscription relocation has a neutral net effort impact (3–4 days, same as originally estimated) but removes it from the critical path of every other phase, which is a scheduling benefit even though the total work is unchanged.
+**Key benefits:** Production Hardening, Feature Completion, and Admin Platform are built once directly on tenant/location/module/RBAC-aware foundations instead of being retrofitted later; the Phase 2 UI platform is reused by every module and by Phase 9's white-labeling, instead of being rebuilt per phase; testing, observability, and audit logging baselines are established at the point each becomes possible (CI/Sentry in Phase 3, audit capture in Phase 5) rather than deferred to the end, which avoids retroactive instrumentation of already-shipped work.
 
 ---
 
-### Historical Migration Summary (prior revision — restaurant-to-platform pivot)
-
-> Preserved in full from the prior revision for continuity. This describes the original pivot from a single-tenant restaurant roadmap to a Hospitality SaaS Platform roadmap, before this revision's Phase 1A/1B split, Phase 2 insertion, Subscription relocation, Hotel repositioning, and Multi-Location split were applied on top of it.
-
-**What changed:**
-
-- **Phase ordering.** Multi-tenancy was no longer a Phase 5 capstone; it became the (then-single) Phase 1 — Foundation Architecture Migration, executed before further restaurant feature work compounded single-tenant assumptions.
-- **New phase: Hotel Operations.** Hotel-specific domain complexity (rooms, multi-night bookings, check-in/check-out, room service, hotel reservations) did not exist in the original roadmap and became a dedicated phase, distinct from the generic "Hospitality Modules" phase because its data model (room inventory, date-range bookings) is meaningfully different from a menu/order model.
-- **New phase content: Hospitality Modules.** Cafe, Bar, Smoke/Lounge, Event, and Venue modules were new additions, built explicitly on a (then-proposed) Module Registry.
-- **Original "Multi-Branch & Operations Scale" phase folded into Hospitality Modules.** Branch-aware ordering, delivery address/map integration, staff roles, branch management admin page, and order history search/export were preserved verbatim in scope but renamed from "Branch" to the more general "Location" terminology.
-- **Original "Multi-Tenancy Architecture" item retired and absorbed into the foundation phase.** Its scope — tenant routing, per-tenant theming, tenant-scoped data isolation — was delivered incrementally as the first phase rather than the last. Only the narrower "white-label / custom domains" slice remained in SaaS & Enterprise, at a reduced estimate.
-- **Original "Role-Based Access Control (RBAC)" item split.** The foundational permission model moved to the foundation phase because the Admin Platform and hospitality modules needed it immediately, not at the end. What remained in SaaS & Enterprise was the advanced/fine-grained layer on top, at a reduced estimate.
-- **Admin Platform requirements updated.** Admin services, stats, and the admin shell itself became explicitly tenant- and location-aware and module-driven, rather than hardcoded to a single restaurant.
-- **Numbering.** Every task ID was renumbered to its new phase.
-
-**What stayed the same:** every existing roadmap item was preserved, with its original scope, evidence, and (unless explicitly noted) its original effort estimate; all Production Hardening, Feature Completion, and Admin Panel items retained their original scope and UI targets; the AI & Automation Opportunities table and "Required Before Production Launch" checklist were unchanged; no breaking changes to existing routes, components, services, or stores.
-
-**Risks identified:** coordination risk with the Django backend; scope-creep risk in the foundation phase; effort estimation uncertainty for new foundation work; risk of building foundation infrastructure that goes unused if hospitality-module/hotel phases were deprioritized after the foundation shipped (mitigated by the backward-compatibility constraint).
-
-**Benefits identified:** no second rewrite of Production Hardening/Feature Completion/Admin Platform against a later-arriving foundation; admin platform reusability across future modules; RBAC built once and extended, not rebuilt; faster hospitality-module delivery once the foundation existed; a clear backward-compatibility guarantee with no forced migration deadline for the existing tenant.
-
-**Estimated impact:** near-term timeline to a production-ready single restaurant tenant was effectively unchanged; medium-term Admin Platform effort increased modestly (~5–10%) to add tenant/location awareness; long-term effort was estimated to net *decrease* versus the original roadmap's implied cost of bolting on multi-tenancy at the end, since building it first avoided rework across every already-built restaurant-only feature.
-
----
-
-*Last updated: Phase 1A/1B split, Platform UI Foundation insertion, Subscription relocation, Hotel repositioning, and Multi-Location Operations split, applied on top of the architecture-first Hospitality SaaS Platform reorganization, based on the original source code audit of commit at project initialization.*
+*Last updated: Architecture, dependency, and execution-quality pass over the Hospitality SaaS Platform roadmap, based on the original source code audit of commit at project initialization.*
 *See also: [README.md](./README.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [TECHNICAL_DEBT.md](./TECHNICAL_DEBT.md)*
