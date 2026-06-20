@@ -1,0 +1,87 @@
+export const ENDPOINTS = {
+  // Auth
+  AUTH: {
+    LOGIN: '/auth/login/',
+    REGISTER: '/auth/register/',
+    LOGOUT: '/auth/logout/',
+    REFRESH: '/auth/token/refresh/',
+    ME: '/auth/me/',
+    FORGOT_PASSWORD: '/auth/forgot-password/',
+    RESET_PASSWORD: '/auth/reset-password/',
+    VERIFY_OTP: '/auth/verify-otp/',
+    SEND_OTP: '/auth/send-otp/',
+    CHANGE_PASSWORD: '/auth/change-password/',
+  },
+
+  // Menu
+  MENU: {
+    CATEGORIES: '/menu/categories/',
+    CATEGORY: (id: string) => `/menu/categories/${id}/`,
+    ITEMS: '/menu/items/',
+    ITEM: (id: string) => `/menu/items/${id}/`,
+    ITEM_BY_SLUG: (slug: string) => `/menu/items/${slug}/`,
+    FEATURED: '/menu/items/featured/',
+    POPULAR: '/menu/items/popular/',
+    SEARCH: '/menu/items/search/',
+    RELATED: (id: string) => `/menu/items/${id}/related/`,
+  },
+
+  // Orders
+  ORDERS: {
+    LIST: '/orders/',
+    CREATE: '/orders/',
+    DETAIL: (id: string) => `/orders/${id}/`,
+    CANCEL: (id: string) => `/orders/${id}/cancel/`,
+    REORDER: (id: string) => `/orders/${id}/reorder/`,
+    TRACK: (id: string) => `/orders/${id}/track/`,
+    VALIDATE_DISCOUNT: '/orders/validate-discount/',
+  },
+
+  // Reservations
+  RESERVATIONS: {
+    LIST: '/reservations/',
+    CREATE: '/reservations/',
+    DETAIL: (id: string) => `/reservations/${id}/`,
+    CANCEL: (id: string) => `/reservations/${id}/cancel/`,
+    AVAILABLE_SLOTS: '/reservations/available-slots/',
+  },
+
+  // Branches
+  BRANCHES: {
+    LIST: '/branches/',
+    DETAIL: (id: string) => `/branches/${id}/`,
+    NEARBY: '/branches/nearby/',
+  },
+
+  // Notifications
+  NOTIFICATIONS: {
+    LIST: '/notifications/',
+    MARK_READ: (id: string) => `/notifications/${id}/read/`,
+    MARK_ALL_READ: '/notifications/read-all/',
+    DELETE: (id: string) => `/notifications/${id}/`,
+    REGISTER_DEVICE: '/notifications/register-device/',
+  },
+
+  // Users
+  USERS: {
+    PROFILE: '/users/profile/',
+    UPDATE_PROFILE: '/users/profile/',
+    ADDRESSES: '/users/addresses/',
+    ADDRESS: (id: string) => `/users/addresses/${id}/`,
+    FAVORITES: '/users/favorites/',
+    TOGGLE_FAVORITE: (itemId: string) => `/users/favorites/${itemId}/`,
+  },
+
+  // Reviews
+  REVIEWS: {
+    CREATE: '/reviews/',
+    LIST: '/reviews/',
+    ITEM_REVIEWS: (itemId: string) => `/menu/items/${itemId}/reviews/`,
+  },
+
+  // Table
+  TABLE: {
+    INFO: (tableId: string) => `/tables/${tableId}/`,
+    ORDER: (tableId: string) => `/tables/${tableId}/order/`,
+  },
+} as const

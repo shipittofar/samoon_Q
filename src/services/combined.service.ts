@@ -1,0 +1,172 @@
+// ─── reservation.service.ts ──────────────────────────────────────────────────
+import api from './axios.instance'
+import { ENDPOINTS } from './endpoints'
+import { MOCK_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
+import type { Address, Branch, Notification, PaginatedResponse, Reservation, User } from '@/types'
+
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms))
+
+export interface CreateReservationPayload {
+  branch_id: string
+  date: string
+  time: string
+  guests: number
+  name: string
+  phone: string
+  email?: string
+  notes?: string
+}
+
+export const reservationService = {
+  async create(payload: CreateReservationPayload): Promise<Reservation> {
+    if (USE_MOCK) {
+      await delay(1000)
+      return {
+        id: `res-${Date.now()}`,
+        ...payload,
+        status: 'confirmed',
+        confirmation_code: `SAV-${Math.floor(Math.random() * 9000) + 1000}`,
+        created_at: new Date().toISOString(),
+      }
+    }
+    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CREATE, payload)
+    return data
+  },
+
+  async getReservations(): Promise<PaginatedResponse<Reservation>> {
+    if (USE_MOCK) {
+      await delay(600)
+      return { count: MOCK_RESERVATIONS.length, next: null, previous: null, results: MOCK_RESERVATIONS }
+    }
+    const { data } = await api.get<PaginatedResponse<Reservation>>(ENDPOINTS.RESERVATIONS.LIST)
+    return data
+  },
+
+  async cancelReservation(id: string): Promise<Reservation> {
+    if (USE_MOCK) {
+      await delay(600)
+      const res = MOCK_RESERVATIONS.find((r) => r.id === id)
+      return { ...res!, status: 'cancelled' }
+    }
+    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CANCEL(id))
+    return data
+  },
+
+  async getAvailableSlots(date: string, branchId: string): Promise<string[]> {
+    if (USE_MOCK) {
+      await delay(500)
+      return ['12:00', '12:30', '13:00', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00']
+    }
+    const { data } = await api.get<string[]>(ENDPOINTS.RESERVATIONS.AVAILABLE_SLOTS, {
+      params: { date, branch_id: branchId },
+    })
+    return data
+  },
+}
+
+// ─── branch.service.ts ────────────────────────────────────────────────────────
+export const branchService = {
+  async getBranches(): Promise<Branch[]> {
+    if (USE_MOCK) {
+      await delay(400)
+      return MOCK_BRANCHES
+    }
+    const { data } = await api.get<Branch[]>(ENDPOINTS.BRANCHES.LIST)
+    return data
+  },
+
+  async getBranch(id: string): Promise<Branch> {
+    if (USE_MOCK) {
+      await delay(300)
+      const branch = MOCK_BRANCHES.find((b) => b.id === id || b.slug === id)
+      if (!branch) throw new Error('Branch not found')
+      return branch
+    }
+    const { data } = await api.get<Branch>(ENDPOINTS.BRANCHES.DETAIL(id))
+    return data
+  },
+}
+
+// ─── notification.service.ts ──────────────────────────────────────────────────
+export const notificationService = {
+  async getNotifications(): Promise<PaginatedResponse<Notification>> {
+    if (USE_MOCK) {
+      await delay(400)
+      return { count: MOCK_NOTIFICATIONS.length, next: null, previous: null, results: MOCK_NOTIFICATIONS }
+    }
+    const { data } = await api.get<PaginatedResponse<Notification>>(ENDPOINTS.NOTIFICATIONS.LIST)
+    return data
+  },
+
+  async markRead(id: string): Promise<void> {
+    if (USE_MOCK) { await delay(200); return }
+    await api.post(ENDPOINTS.NOTIFICATIONS.MARK_READ(id))
+  },
+
+  async markAllRead(): Promise<void> {
+    if (USE_MOCK) { await delay(300); return }
+    await api.post(ENDPOINTS.NOTIFICATIONS.MARK_ALL_READ)
+  },
+
+  async registerDevice(token: string, platform: 'web' | 'ios' | 'android'): Promise<void> {
+    if (USE_MOCK) { return }
+    await api.post(ENDPOINTS.NOTIFICATIONS.REGISTER_DEVICE, { token, platform })
+  },
+}
+
+// ─── user.service.ts ──────────────────────────────────────────────────────────
+export const userService = {
+  async updateProfile(data: Partial<User>): Promise<User> {
+    if (USE_MOCK) {
+      await delay(800)
+      return data as User
+    }
+    const { data: res } = await api.patch<User>(ENDPOINTS.USERS.UPDATE_PROFILE, data)
+    return res
+  },
+
+  async getAddresses(): Promise<Address[]> {
+    if (USE_MOCK) {
+      await delay(400)
+      return [
+        { id: '1', label: 'Home', street: '123 Main St', city: 'New York', is_default: true },
+        { id: '2', label: 'Work', street: '456 Office Ave', city: 'New York', is_default: false },
+      ]
+    }
+    const { data } = await api.get<Address[]>(ENDPOINTS.USERS.ADDRESSES)
+    return data
+  },
+
+  async createAddress(address: Omit<Address, 'id'>): Promise<Address> {
+    if (USE_MOCK) {
+      await delay(600)
+      return { ...address, id: Date.now().toString() }
+    }
+    const { data } = await api.post<Address>(ENDPOINTS.USERS.ADDRESSES, address)
+    return data
+  },
+
+  async deleteAddress(id: string): Promise<void> {
+    if (USE_MOCK) { await delay(400); return }
+    await api.delete(ENDPOINTS.USERS.ADDRESS(id))
+  },
+
+  async getFavorites(): Promise<string[]> {
+    if (USE_MOCK) {
+      await delay(300)
+      return ['1', '8', '12']
+    }
+    const { data } = await api.get<string[]>(ENDPOINTS.USERS.FAVORITES)
+    return data
+  },
+
+  async toggleFavorite(itemId: string): Promise<{ favorited: boolean }> {
+    if (USE_MOCK) {
+      await delay(300)
+      return { favorited: Math.random() > 0.5 }
+    }
+    const { data } = await api.post<{ favorited: boolean }>(ENDPOINTS.USERS.TOGGLE_FAVORITE(itemId))
+    return data
+  },
+}

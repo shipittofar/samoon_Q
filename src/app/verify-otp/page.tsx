@@ -1,0 +1,206 @@
+'use client'
+
+import { useState, useRef, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { ArrowLeft, RefreshCw, Shield } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { authService } from '@/services/auth.service'
+import { useAuthStore } from '@/stores'
+import toast from 'react-hot-toast'
+
+function OTPContent() {
+  const router = useRouter()
+  const params = useSearchParams()
+  const phone = params.get('phone') || ''
+  const { setUser } = useAuthStore()
+
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [countdown, setCountdown] = useState(60)
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus()
+  }, [])
+
+  useEffect(() => {
+    if (countdown <= 0) return
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [countdown])
+
+  const handleChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1)
+    const next = [...otp]
+    next[index] = digit
+    setOtp(next)
+    if (digit && index < 5) inputRefs.current[index + 1]?.focus()
+    if (next.every((d) => d !== '') && next.join('').length === 6) {
+      handleVerify(next.join(''))
+    }
+  }
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus()
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    if (pasted.length === 6) {
+      setOtp(pasted.split(''))
+      handleVerify(pasted)
+    }
+  }
+
+  const handleVerify = async (code: string) => {
+    if (code.length < 6) return
+    setLoading(true)
+    try {
+      const { user } = await authService.verifyOTP({ phone, otp: code })
+      setUser(user)
+      toast.success('Phone verified! Welcome 🎉')
+      router.push('/')
+    } catch {
+      toast.error('Invalid OTP. Please try again.')
+      setOtp(['', '', '', '', '', ''])
+      inputRefs.current[0]?.focus()
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    setResending(true)
+    try {
+      await authService.sendOTP(phone)
+      setCountdown(60)
+      toast.success('New OTP sent!')
+    } catch {
+      toast.error('Failed to resend OTP.')
+    } finally {
+      setResending(false)
+    }
+  }
+
+  const filled = otp.filter(Boolean).length
+
+  return (
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-sm"
+      >
+        <Link href="/" className="flex items-center gap-2 mb-10 justify-center">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold">S</span>
+          </div>
+          <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
+        </Link>
+
+        <div className="bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-xl p-8 text-center">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+            className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-orange-50 dark:bg-orange-950/30 mb-5"
+          >
+            <Shield className="h-8 w-8 text-orange-500" />
+          </motion.div>
+
+          <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
+            Verify your number
+          </h1>
+          <p className="text-[var(--fg-muted)] text-sm mb-1">
+            We sent a 6-digit code to
+          </p>
+          <p className="font-semibold text-[var(--fg)] mb-8">
+            {phone || '+1 *** *** **00'}
+          </p>
+
+          {/* OTP Input */}
+          <div className="flex gap-2 justify-center mb-8" onPaste={handlePaste}>
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                ref={(el) => { inputRefs.current[index] = el }}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                className={`
+                  h-12 w-10 rounded-xl border-2 text-center text-lg font-bold transition-all
+                  focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20
+                  ${digit
+                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-[var(--fg)]'
+                    : 'border-[var(--border)] bg-[var(--input-bg)] text-[var(--fg)]'
+                  }
+                `}
+                aria-label={`Digit ${index + 1}`}
+                disabled={loading}
+              />
+            ))}
+          </div>
+
+          {/* Progress indicator */}
+          <div className="flex gap-1 justify-center mb-6">
+            {otp.map((_, i) => (
+              <div
+                key={i}
+                className={`h-1 flex-1 rounded-full transition-colors duration-200 ${
+                  i < filled ? 'bg-orange-500' : 'bg-[var(--border)]'
+                }`}
+              />
+            ))}
+          </div>
+
+          <Button
+            className="w-full mb-4"
+            size="lg"
+            loading={loading}
+            disabled={filled < 6}
+            onClick={() => handleVerify(otp.join(''))}
+          >
+            {loading ? 'Verifying…' : 'Verify Code'}
+          </Button>
+
+          {/* Resend */}
+          <div className="text-sm text-[var(--fg-muted)]">
+            {countdown > 0 ? (
+              <p>Resend code in <span className="font-semibold text-orange-500">{countdown}s</span></p>
+            ) : (
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                className="text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1.5 mx-auto transition-colors"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${resending ? 'animate-spin' : ''}`} />
+                {resending ? 'Sending…' : 'Resend Code'}
+              </button>
+            )}
+          </div>
+
+          <Link
+            href="/login"
+            className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors mt-6"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to sign in
+          </Link>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+export default function VerifyOTPPage() {
+  return <Suspense><OTPContent /></Suspense>
+}
