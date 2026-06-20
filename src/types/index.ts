@@ -214,6 +214,21 @@ export type BusinessType = 'restaurant' | 'cafe' | 'bar' | 'hotel' | 'other'
 
 export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned'
 
+/**
+ * Runtime-only lifecycle state for the tenant bootstrap sequence.
+ * Never persisted to localStorage — always starts as 'loading' on each page load.
+ *
+ *   loading  → TenantBootstrapper has not yet completed loadTenant()
+ *   ready    → loadTenant() succeeded; tenant is from a live source
+ *   fallback → loadTenant() failed; tenant is DEFAULT_TENANT
+ *
+ * Phase 1B systems must branch on all three states:
+ *   loading  → block or apply safe defaults (deny RBAC, module-only flags, skip routing)
+ *   fallback → apply DEFAULT_TENANT rules (single-tenant behaviour)
+ *   ready    → full system behaviour with tenant-specific overrides
+ */
+export type TenantLifecycle = 'loading' | 'ready' | 'fallback'
+
 export interface Tenant {
   id: string
   name: string

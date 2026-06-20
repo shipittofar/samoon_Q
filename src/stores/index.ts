@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, User } from '@/types'
+import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
 
@@ -164,32 +164,33 @@ export const useLangStore = create<LangState>()(
  * Holds the active tenant context for the session.
  * Initialises from DEFAULT_TENANT (single-tenant backward compatibility, P1A.4).
  *
- * Readiness model (Phase 1B):
- *   isTenantReady starts false. TenantBootstrapper calls loadTenant() at startup.
- *   loadTenant() sets isTenantReady = true exactly once, whether the load
- *   succeeds or falls back to DEFAULT_TENANT. After that point all Phase 1B
- *   systems (RBAC, feature flags, routing) may safely read tenant state.
- *   isTenantReady is NOT persisted — it is a runtime signal reset on every page
- *   load so the bootstrap sequence always runs.
+ * Lifecycle state machine (Phase 1B):
+ *   tenantState drives all Phase 1B system decisions. Transitions:
+ *
+ *     'loading'  → initial state; TenantBootstrapper has not yet completed
+ *     'ready'    → loadTenant() succeeded; tenant is from a verified source
+ *     'fallback' → loadTenant() failed; tenant is DEFAULT_TENANT
+ *
+ *   tenantState is NOT persisted — it is a runtime-only value, always 'loading'
+ *   at page load so the bootstrap sequence runs on every visit.
  *
  * Hydration flow:
  *   Phase 1A/1B: TenantBootstrapper calls loadTenant() in Providers.
  *   Phase 1B (P1B.3): middleware will inject X-Tenant-Slug from the subdomain;
  *   loadTenant(slug) will be updated to pass that slug at that point.
  *
- * Persist version 1 — any cached v0 state (old Tenant shape) is discarded and
- * replaced with DEFAULT_TENANT on first load to avoid shape mismatches.
- * isTenantReady is excluded from persist via partialize.
+ * Persist version 1 — any cached v0 state is discarded on first load.
+ * tenantState is excluded from persist via partialize.
  */
 interface TenantState {
   tenant: Tenant
   isLoading: boolean
   /**
-   * True after the first loadTenant() call completes — success or failure.
-   * All Phase 1B systems must check this before reading tenant state.
-   * Safe fallbacks before ready: deny RBAC, use module default flags, skip routing checks.
+   * Deterministic lifecycle state for the tenant bootstrap sequence.
+   * See TenantLifecycle in types/index.ts for the full state contract.
+   * All Phase 1B systems (RBAC, feature flags, routing) must branch on this.
    */
-  isTenantReady: boolean
+  tenantState: TenantLifecycle
   setTenant: (tenant: Tenant) => void
   loadTenant: (slug?: string) => Promise<void>
   reset: () => void
@@ -200,28 +201,28 @@ export const useTenantStore = create<TenantState>()(
     (set) => ({
       tenant: DEFAULT_TENANT,
       isLoading: false,
-      isTenantReady: false,
+      tenantState: 'loading' as TenantLifecycle,
       setTenant: (tenant) => set({ tenant }),
       loadTenant: async (slug?: string) => {
-        set({ isLoading: true })
+        set({ isLoading: true, tenantState: 'loading' })
         try {
           const tenant = await tenantService.getTenant(slug)
-          set({ tenant, isLoading: false, isTenantReady: true })
+          set({ tenant, isLoading: false, tenantState: 'ready' })
         } catch {
           // Network or service failure — discard any stale persisted tenant,
-          // degrade to DEFAULT_TENANT, and still mark ready so downstream
+          // degrade to DEFAULT_TENANT, and advance to 'fallback' so downstream
           // systems are not blocked indefinitely on an unresolvable load.
-          set({ tenant: DEFAULT_TENANT, isLoading: false, isTenantReady: true })
+          set({ tenant: DEFAULT_TENANT, isLoading: false, tenantState: 'fallback' })
         }
       },
-      reset: () => set({ tenant: DEFAULT_TENANT, isLoading: false, isTenantReady: false }),
+      reset: () => set({ tenant: DEFAULT_TENANT, isLoading: false, tenantState: 'loading' }),
     }),
     {
       name: TENANT_KEY,
       version: 1,
-      migrate: () => ({ tenant: DEFAULT_TENANT, isLoading: false, isTenantReady: false }),
-      // isTenantReady is a runtime signal — exclude it from localStorage so the
-      // bootstrap sequence always runs fresh on every page load.
+      migrate: () => ({ tenant: DEFAULT_TENANT, isLoading: false, tenantState: 'loading' as TenantLifecycle }),
+      // tenantState and isLoading are runtime-only — exclude from localStorage
+      // so the bootstrap sequence always runs fresh on every page load.
       partialize: (state) => ({ tenant: state.tenant }),
     },
   ),

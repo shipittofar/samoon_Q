@@ -13,21 +13,24 @@ import { CACHE_TIME, STALE_TIME } from '@/constants'
 import type { MenuFilters } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreateReservationPayload } from '@/services/combined.service'
-import type { LoginCredentials, RegisterData } from '@/types'
+import type { LoginCredentials, RegisterData, TenantLifecycle } from '@/types'
 
-// ── Tenant Readiness Hook (Phase 1B stabilization) ────────────────────────────
+// ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
- * Returns true once TenantBootstrapper has completed the initial loadTenant()
- * call — whether it succeeded or fell back to DEFAULT_TENANT.
+ * Returns the deterministic tenant lifecycle state for the current session.
  *
- * All Phase 1B systems (RBAC, feature flags, route guards) MUST check this
- * before reading tenant state. Safe fallbacks while false:
- *   RBAC        → deny-by-default (no permissions granted)
- *   Feature flags → module defaults only (no tenant overrides)
- *   Routing     → skip access validation; allow navigation
+ *   'loading'  → bootstrap not yet complete; no Phase 1B logic should run
+ *   'ready'    → tenant loaded from a live source; full system behaviour applies
+ *   'fallback' → service failed; tenant is DEFAULT_TENANT; single-tenant rules apply
+ *
+ * All Phase 1B systems (RBAC, feature flags, route guards) MUST branch on this.
+ * Safe behaviour per state:
+ *   loading  → deny RBAC, use module-default flags only, skip route validation
+ *   fallback → DEFAULT_TENANT permissions, module-default flags, allow navigation
+ *   ready    → full tenant-specific overrides
  */
-export function useTenantReady(): boolean {
-  return useTenantStore((s) => s.isTenantReady)
+export function useTenantState(): TenantLifecycle {
+  return useTenantStore((s) => s.tenantState)
 }
 
 // ── Auth Hooks ────────────────────────────────────────────────────────────────

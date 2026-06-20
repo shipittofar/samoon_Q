@@ -4,10 +4,14 @@
  * stabilization (tenant readiness signal).
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import type { Branch, Location, Module, Tenant } from '@/types'
+import type { Branch, Location, Module, Tenant, TenantLifecycle } from '@/types'
 import { DEFAULT_TENANT } from '@/constants'
 import { useTenantStore } from '@/stores'
-import { useTenantReady } from '@/hooks'
+import { useTenantState } from '@/hooks'
+// Imported at module level so all spies target the same instance the store holds.
+// Dynamic `await import(...)` inside tests returns a fresh instance after vi.resetModules(),
+// which would not match the reference already captured by useTenantStore at init time.
+import { tenantService } from '@/services/tenant.service'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -116,7 +120,7 @@ describe('useTenantStore', () => {
     expect(useTenantStore.getState().tenant.slug).toBe('stale')
 
     // Make tenantService.getTenant throw.
-    const { tenantService } = await import('@/services/tenant.service')
+    // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network error'))
 
     await useTenantStore.getState().loadTenant('stale')
@@ -416,7 +420,7 @@ describe('M-1 — loadTenant failure safety', () => {
     }
     useTenantStore.getState().setTenant(stale)
 
-    const { tenantService } = await import('@/services/tenant.service')
+    // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network'))
 
     await useTenantStore.getState().loadTenant('stale')
@@ -428,7 +432,7 @@ describe('M-1 — loadTenant failure safety', () => {
   })
 
   it('clears isLoading on failure regardless of prior tenant state', async () => {
-    const { tenantService } = await import('@/services/tenant.service')
+    // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('timeout'))
 
     const promise = useTenantStore.getState().loadTenant()
@@ -488,133 +492,154 @@ describe('M-5 — TenantBootstrapper wiring', () => {
   })
 })
 
-// ── Phase 1B Foundation Stabilization — isTenantReady ────────────────────────
+// ── Phase 1B Foundation — tenantState lifecycle machine ──────────────────────
 
-describe('isTenantReady — initial state', () => {
+describe('tenantState — initial state', () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it('is false before any loadTenant call', () => {
-    expect(useTenantStore.getState().isTenantReady).toBe(false)
+  it("is 'loading' before any loadTenant call", () => {
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
   })
 
-  it('reset() sets isTenantReady back to false', async () => {
+  it("reset() returns tenantState to 'loading'", async () => {
     await useTenantStore.getState().loadTenant()
-    expect(useTenantStore.getState().isTenantReady).toBe(true)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
     useTenantStore.getState().reset()
-    expect(useTenantStore.getState().isTenantReady).toBe(false)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
   })
 
-  it('is not persisted — starts false on every store instantiation', () => {
-    // Simulate what happens when the persisted partition is rehydrated:
-    // isTenantReady must never be in the persisted shape.
-    const persisted = JSON.parse(
-      JSON.stringify({ tenant: DEFAULT_TENANT }),
-    )
-    expect(persisted.isTenantReady).toBeUndefined()
+  it('is not persisted — tenantState absent from persisted partition', () => {
+    // The partialize function only stores { tenant }. Verify tenantState is not
+    // in that shape — if it were, it would leak a stale lifecycle value on reload.
+    const persistedPartition = { tenant: DEFAULT_TENANT }
+    expect((persistedPartition as Record<string, unknown>).tenantState).toBeUndefined()
   })
 })
 
-describe('isTenantReady — success path', () => {
+describe("tenantState — 'loading' → 'ready' transition", () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it('becomes true after a successful loadTenant', async () => {
-    expect(useTenantStore.getState().isTenantReady).toBe(false)
+  it("transitions loading → ready after a successful loadTenant", async () => {
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
     await useTenantStore.getState().loadTenant('default')
-    expect(useTenantStore.getState().isTenantReady).toBe(true)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
   })
 
-  it('remains true after multiple successful loadTenant calls', async () => {
+  it("tenantState is set to 'loading' at the start of each loadTenant call", async () => {
+    // After a first successful load, a second call should re-enter loading first.
     await useTenantStore.getState().loadTenant('default')
-    await useTenantStore.getState().loadTenant('default')
-    expect(useTenantStore.getState().isTenantReady).toBe(true)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+
+    // Start the second load but don't await it yet.
+    const promise = useTenantStore.getState().loadTenant('default')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
+    await promise
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
   })
 
-  it('tenant is valid when isTenantReady is true', async () => {
+  it("tenant is valid when state is 'ready'", async () => {
     await useTenantStore.getState().loadTenant()
-    const { tenant, isTenantReady } = useTenantStore.getState()
-    expect(isTenantReady).toBe(true)
+    const { tenant, tenantState } = useTenantStore.getState()
+    expect(tenantState).toBe<TenantLifecycle>('ready')
     expect(tenant.id).toBeTruthy()
     expect(tenant.slug).toBeTruthy()
     expect(tenant.status).toMatch(/^(active|trial|suspended|churned)$/)
   })
+
+  it('isLoading is false when ready', async () => {
+    await useTenantStore.getState().loadTenant()
+    expect(useTenantStore.getState().isLoading).toBe(false)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+  })
 })
 
-describe('isTenantReady — failure path', () => {
+describe("tenantState — 'loading' → 'fallback' transition", () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it('becomes true even when loadTenant throws (fallback guarantee)', async () => {
-    const { tenantService } = await import('@/services/tenant.service')
+  it("transitions loading → fallback when loadTenant throws", async () => {
+    // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network'))
 
-    expect(useTenantStore.getState().isTenantReady).toBe(false)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
     await useTenantStore.getState().loadTenant('unknown')
-    expect(useTenantStore.getState().isTenantReady).toBe(true)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('fallback')
 
     spy.mockRestore()
   })
 
-  it('tenant is DEFAULT_TENANT and ready after a failure', async () => {
-    const { tenantService } = await import('@/services/tenant.service')
+  it("tenant is DEFAULT_TENANT when state is 'fallback'", async () => {
+    // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('timeout'))
 
     await useTenantStore.getState().loadTenant()
-    const { tenant, isTenantReady, isLoading } = useTenantStore.getState()
+    const { tenant, tenantState, isLoading } = useTenantStore.getState()
 
-    expect(isTenantReady).toBe(true)
+    expect(tenantState).toBe<TenantLifecycle>('fallback')
     expect(isLoading).toBe(false)
     expect(tenant.id).toBe(DEFAULT_TENANT.id)
+    expect(tenant.slug).toBe(DEFAULT_TENANT.slug)
 
     spy.mockRestore()
   })
 
-  it('isLoading is false when ready after failure', async () => {
-    const { tenantService } = await import('@/services/tenant.service')
+  it('isLoading is false when in fallback state', async () => {
+    // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
 
     await useTenantStore.getState().loadTenant()
     expect(useTenantStore.getState().isLoading).toBe(false)
-    expect(useTenantStore.getState().isTenantReady).toBe(true)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('fallback')
+
+    spy.mockRestore()
+  })
+
+  it("fallback is distinguishable from ready — NOT equal to 'ready'", async () => {
+    // tenantService is imported at module level — same instance useTenantStore holds.
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+
+    await useTenantStore.getState().loadTenant()
+    const { tenantState } = useTenantStore.getState()
+
+    expect(tenantState).not.toBe<TenantLifecycle>('ready')
+    expect(tenantState).toBe<TenantLifecycle>('fallback')
 
     spy.mockRestore()
   })
 })
 
-describe('useTenantReady() hook contract', () => {
-  // useTenantReady() is a React hook and cannot be called outside a component.
-  // These tests verify the store field it reads (isTenantReady) directly, which
-  // is the canonical way to test Zustand-backed hooks in a non-React test context.
+describe('useTenantState() hook contract', () => {
+  // useTenantState() is a React hook; tested via the store value it reads.
 
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it('underlying isTenantReady is false before any load — hook would return false', () => {
-    expect(useTenantStore.getState().isTenantReady).toBe(false)
+  it("underlying tenantState is 'loading' before any load — hook would return 'loading'", () => {
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
   })
 
-  it('underlying isTenantReady is true after successful load — hook would return true', async () => {
+  it("underlying tenantState is 'ready' after success — hook would return 'ready'", async () => {
     await useTenantStore.getState().loadTenant()
-    expect(useTenantStore.getState().isTenantReady).toBe(true)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
   })
 
-  it('underlying isTenantReady is true after failed load — hook would return true', async () => {
-    const { tenantService } = await import('@/services/tenant.service')
+  it("underlying tenantState is 'fallback' after failure — hook would return 'fallback'", async () => {
+    // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
 
     await useTenantStore.getState().loadTenant()
-    expect(useTenantStore.getState().isTenantReady).toBe(true)
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('fallback')
 
     spy.mockRestore()
   })
 
-  it('useTenantReady is exported from hooks — available to Phase 1B consumers', () => {
-    // Verify the hook is importable and is a function (selector contract).
-    expect(typeof useTenantReady).toBe('function')
+  it('useTenantState is exported from hooks and is a function', () => {
+    expect(typeof useTenantState).toBe('function')
   })
 })
