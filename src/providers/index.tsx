@@ -8,6 +8,7 @@ import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenant
 import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
+import type { TenantTheme } from '@/types'
 
 function makeQueryClient() {
   return new QueryClient({
@@ -88,6 +89,38 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * Applies per-tenant CSS variable overrides at runtime (Phase 2 — P2.2).
+ * Reads Tenant.settings.theme and mutates document root CSS vars.
+ * Isolated from the bootstrap sequence: reacts to tenant changes reactively.
+ * Cleans up overrides on unmount or when tenant changes back to no theme.
+ *
+ * Permitted override targets: --accent, --accent-hover, --font-body.
+ * See TENANT_OVERRIDABLE_VARS in src/lib/tokens.ts.
+ */
+function TenantThemeProvider({ children }: { children: ReactNode }) {
+  const tenant = useTenantStore((s) => s.tenant)
+  useEffect(() => {
+    const theme = tenant.settings?.theme as TenantTheme | undefined
+    const root = document.documentElement
+    if (theme?.primaryColor) {
+      root.style.setProperty('--accent', theme.primaryColor)
+      root.style.setProperty('--accent-hover', theme.accentHoverColor ?? theme.primaryColor)
+    }
+    if (theme?.fontBody) {
+      root.style.setProperty('--font-body', theme.fontBody)
+    }
+    return () => {
+      if (theme?.primaryColor) {
+        root.style.removeProperty('--accent')
+        root.style.removeProperty('--accent-hover')
+      }
+      if (theme?.fontBody) root.style.removeProperty('--font-body')
+    }
+  }, [tenant])
+  return <>{children}</>
+}
+
 function AuthBootstrapper({ children }: { children: ReactNode }) {
   const { setUser, setLoading } = useAuthStore()
   const setFavorites = useFavoritesStore((s) => s.setFavorites)
@@ -115,10 +148,12 @@ export function Providers({ children }: { children: ReactNode }) {
       <ThemeProvider>
         <RTLProvider>
           <TenantBootstrapper>
-            <AuthBootstrapper>
-              {children}
-              <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
-            </AuthBootstrapper>
+            <TenantThemeProvider>
+              <AuthBootstrapper>
+                {children}
+                <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
+              </AuthBootstrapper>
+            </TenantThemeProvider>
           </TenantBootstrapper>
         </RTLProvider>
       </ThemeProvider>

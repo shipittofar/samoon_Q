@@ -355,6 +355,12 @@ export interface NavItem {
   /** Icon name — maps to lucide-react component via ICON_MAP in consumers. */
   icon?: string
   exact?: boolean
+  /**
+   * Optional feature flag key (Phase 2 — P2.4).
+   * When set, useModuleNav() hides the item if the flag resolves to false.
+   * Items without this field are always shown (backward compatible).
+   */
+  featureFlagKey?: string
 }
 
 /**
@@ -469,3 +475,31 @@ export type Permission =
   | 'branches:read'
   | 'branches:manage'
   | 'notifications:read'
+
+// ============================================================
+// TENANT THEME TYPES  (Phase 2 — P2.2)
+// ============================================================
+
+/**
+ * Per-tenant visual overrides applied as CSS variable mutations at runtime.
+ * Stored in Tenant.settings.theme — consumed by TenantThemeProvider in providers.
+ *
+ * All fields are optional: absent fields fall back to the default Savor theme.
+ * Overrides are applied to CSS vars only — no style injection, no runtime deps.
+ *
+ * Supported override targets: --accent, --accent-hover, --font-body.
+ * See TENANT_OVERRIDABLE_VARS in src/lib/tokens.ts for the full allowed set.
+ */
+export interface TenantTheme {
+  /** Overrides --accent (primary action colour). CSS color value, e.g. '#3b82f6'. */
+  primaryColor?: string
+  /**
+   * Overrides --accent-hover. Defaults to primaryColor if omitted.
+   * Provide a slightly darker/lighter variant for accessible hover states.
+   */
+  accentHoverColor?: string
+  /** URL to the tenant's logo image. Rendered in the Header instead of the default wordmark. */
+  logoUrl?: string
+  /** CSS font-family string overriding --font-body, e.g. '"Inter", sans-serif'. */
+  fontBody?: string
+}

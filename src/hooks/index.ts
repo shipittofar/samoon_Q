@@ -10,11 +10,12 @@ import {
 import { authService } from '@/services/auth.service'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore } from '@/stores'
 import { rbacService } from '@/services/rbac.service'
+import { getHeaderNav, getDashboardNav } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import type { MenuFilters } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreateReservationPayload } from '@/services/combined.service'
-import type { LoginCredentials, Permission, RegisterData, SystemReadiness, TenantLifecycle } from '@/types'
+import type { LoginCredentials, NavItem, Permission, RegisterData, SystemReadiness, TenantLifecycle } from '@/types'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -91,6 +92,43 @@ export function useHasPermission(permission: Permission): boolean {
  */
 export function useFeatureFlag(key: string): boolean {
   return useTenantStore((s) => s.featureFlags[key] ?? false)
+}
+
+// ── Navigation Hooks — Phase 2 (P2.4) ────────────────────────────────────────
+
+/**
+ * Returns header nav items for the active tenant's modules, filtered by feature flags.
+ *
+ * Filtering rules:
+ *   - Items without `featureFlagKey` are always shown (backward compatible).
+ *   - Items with `featureFlagKey` are hidden when the flag resolves to false.
+ *   - When system is not yet ready (canExecute=false), all nav items are returned
+ *     so the header is never empty during bootstrap.
+ *
+ * Canonical replacement for calling getHeaderNav() directly in UI components.
+ */
+export function useModuleNav(): NavItem[] {
+  const { canExecute } = useSystemReady()
+  const tenant = useTenantStore((s) => s.tenant)
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const allNav = getHeaderNav(tenant.businessTypes)
+  if (!canExecute) return allNav
+  return allNav.filter(
+    (item) => !item.featureFlagKey || featureFlags[item.featureFlagKey] !== false,
+  )
+}
+
+/**
+ * Returns dashboard sidebar nav items, filtered by RBAC.
+ *
+ * - Returns empty array when user lacks `dashboard:access` permission.
+ * - Returns full dashboard nav for staff and admin.
+ * - Safe for unauthenticated users (null role → no access → empty array).
+ */
+export function useDashboardNav(): NavItem[] {
+  const role = useAuthStore((s) => s.user?.role ?? null)
+  if (!rbacService.hasPermission(role, 'dashboard:access')) return []
+  return getDashboardNav()
 }
 
 // ── Auth Hooks ────────────────────────────────────────────────────────────────
