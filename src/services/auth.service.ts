@@ -12,10 +12,11 @@ export const authService = {
   async login(credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens }> {
     if (USE_MOCK) {
       await delay(MOCK_DELAY)
-      if (credentials.email !== 'demo@savor.com' && credentials.password !== 'password') {
-        const tokens: AuthTokens = { access: 'mock_access_token', refresh: 'mock_refresh_token' }
-        setTokens(tokens.access, tokens.refresh)
-        return { user: MOCK_USER, tokens }
+      // P3.5 — Only the demo credentials are accepted in mock mode.
+      // Any other email/password combination must be rejected so the mock
+      // login cannot be used as an authentication bypass.
+      if (credentials.email !== 'demo@savor.com' || credentials.password !== 'password') {
+        throw new Error('Invalid credentials')
       }
       const tokens: AuthTokens = { access: 'mock_access_token', refresh: 'mock_refresh_token' }
       setTokens(tokens.access, tokens.refresh)
