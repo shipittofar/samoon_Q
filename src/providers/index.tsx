@@ -10,6 +10,7 @@ import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useNotificationWebSocket } from '@/hooks/client'
+import { STALE_TIME, CACHE_TIME } from '@/constants'
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import type { TenantTheme } from '@/types'
 
@@ -35,7 +36,8 @@ function makeQueryClient() {
     }),
     defaultOptions: {
       queries: {
-        staleTime: 1000 * 60 * 5,
+        staleTime: STALE_TIME,
+        gcTime: CACHE_TIME,
         retry: (count, err: any) => {
           if (err?.response?.status === 401) return false
           return count < 2

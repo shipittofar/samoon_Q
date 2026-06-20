@@ -9,7 +9,7 @@ import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FoodCard } from '@/components/menu/FoodCard'
-import { FoodDetailModal } from '@/components/menu/FoodDetailModal'
+import { LazyFoodDetailModal } from '@/components/menu/LazyFoodDetailModal'
 import { FoodCardSkeleton, Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useCategories, useMenuItems } from '@/hooks'
@@ -393,7 +393,7 @@ export function MenuContent() {
       <Footer />
 
       {/* Detail Modal */}
-      <FoodDetailModal
+      <LazyFoodDetailModal
         item={selectedItem}
         open={modalOpen}
         onClose={() => { setModalOpen(false); setTimeout(() => setSelectedItem(null), 300) }}

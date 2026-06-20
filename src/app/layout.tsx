@@ -32,6 +32,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} dir={isRTL ? 'rtl' : 'ltr'} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/* P4.7.4 — Preconnect to external origins actually used by the app */}
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         <script dangerouslySetInnerHTML={{ __html: `try{const t=localStorage.getItem('savor-theme');const th=t?JSON.parse(t).state?.theme:'system';if(th==='dark'||(th==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}` }} />
       </head>

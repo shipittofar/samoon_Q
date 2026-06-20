@@ -1,5 +1,34 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, type PersistStorage } from 'zustand/middleware'
+
+// ── P4.7.5 — Debounced localStorage writes for high-frequency stores ──────────
+// Cart items can change rapidly (add/update quantity). Debouncing avoids
+// blocking the main thread on every keystroke or click. 50 ms is short enough
+// to avoid data loss while eliminating redundant synchronous writes.
+function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null
+  return {
+    getItem: (name) => {
+      if (typeof localStorage === 'undefined') return null
+      const raw = localStorage.getItem(name)
+      if (!raw) return null
+      return JSON.parse(raw) as import('zustand/middleware').StorageValue<T>
+    },
+    setItem: (name, value) => {
+      if (typeof localStorage === 'undefined') return
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        timer = null
+        localStorage.setItem(name, JSON.stringify(value))
+      }, delayMs)
+    },
+    removeItem: (name) => {
+      if (timer) { clearTimeout(timer); timer = null }
+      if (typeof localStorage === 'undefined') return
+      localStorage.removeItem(name)
+    },
+  }
+}
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
@@ -113,7 +142,7 @@ export const useCartStore = create<CartState>()(
       },
       getItemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
     }),
-    { name: CART_KEY },
+    { name: CART_KEY, storage: createDebouncedStorage(50) },
   ),
 )
 
