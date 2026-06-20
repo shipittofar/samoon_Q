@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Branch, CartItem, Extra, MenuItem, Notification, User } from '@/types'
-import { BRANCH_KEY, CART_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, THEME_KEY } from '@/constants'
+import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, User } from '@/types'
+import { BRANCH_KEY, CART_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
 interface AuthState {
@@ -155,6 +155,34 @@ export const useLangStore = create<LangState>()(
       },
     }),
     { name: LANG_KEY },
+  ),
+)
+
+// ── Tenant Store  (Phase 1A — P1A.1) ─────────────────────────────────────────
+/** Resolves the active tenant. Falls back to DEFAULT_TENANT so the app works
+ *  in single-tenant mode without any backend change. */
+export const DEFAULT_TENANT: Tenant = {
+  id: 'default',
+  name: process.env.NEXT_PUBLIC_APP_NAME ?? 'Savor',
+  slug: 'default',
+  business_type: 'restaurant',
+  is_active: true,
+}
+
+interface TenantState {
+  tenant: Tenant
+  setTenant: (tenant: Tenant) => void
+  reset: () => void
+}
+
+export const useTenantStore = create<TenantState>()(
+  persist(
+    (set) => ({
+      tenant: DEFAULT_TENANT,
+      setTenant: (tenant) => set({ tenant }),
+      reset: () => set({ tenant: DEFAULT_TENANT }),
+    }),
+    { name: TENANT_KEY },
   ),
 )
 

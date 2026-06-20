@@ -5,19 +5,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin } from 'lucide-react'
-import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore } from '@/stores'
+import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
 import { useLogout } from '@/hooks'
 import { cn, formatCurrency } from '@/utils'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
+import { getHeaderNav } from '@/modules/registry'
 import toast from 'react-hot-toast'
-
-const NAV_LINKS = [
-  { href: '/menu', label: 'Menu' },
-  { href: '/reservation', label: 'Reservation' },
-  { href: '/restaurant', label: 'Restaurant' },
-]
 
 const LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇺🇸' },
@@ -32,7 +27,9 @@ export function Header() {
   const { unreadCount } = useNotificationStore()
   const { locale, setLocale } = useLangStore()
   const { theme, setTheme } = useThemeStore()
+  const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()
+  const navLinks = getHeaderNav(tenant.business_type)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
@@ -79,7 +76,7 @@ export function Header() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -270,7 +267,7 @@ export function Header() {
             className="md:hidden bg-[var(--card)] border-b border-[var(--border)] overflow-hidden"
           >
             <nav className="px-4 py-3 flex flex-col gap-1">
-              {NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}

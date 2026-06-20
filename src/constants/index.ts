@@ -16,6 +16,7 @@ export const THEME_KEY = 'savor-theme'
 export const CART_KEY = 'savor-cart'
 export const BRANCH_KEY = 'savor-branch'
 export const LANG_KEY = 'savor-lang'
+export const TENANT_KEY = 'savor-tenant'
 
 export const STALE_TIME = 1000 * 60 * 5       // 5 minutes
 export const CACHE_TIME = 1000 * 60 * 30      // 30 minutes

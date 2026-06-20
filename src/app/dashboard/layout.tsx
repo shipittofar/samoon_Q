@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Package, Heart, MapPin, Calendar, Settings,
-  User, LogOut, ChevronRight
+  User, LogOut, ChevronRight, type LucideIcon
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Avatar } from '@/components/ui'
@@ -14,16 +14,17 @@ import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/stores'
 import { useLogout } from '@/hooks'
 import { cn } from '@/utils'
+import { getDashboardNav } from '@/modules/registry'
 import toast from 'react-hot-toast'
 
-const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { href: '/dashboard/orders', label: 'My Orders', icon: Package },
-  { href: '/dashboard/favorites', label: 'Favorites', icon: Heart },
-  { href: '/dashboard/addresses', label: 'Addresses', icon: MapPin },
-  { href: '/dashboard/reservations', label: 'Reservations', icon: Calendar },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-]
+const ICON_MAP: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  Package,
+  Heart,
+  MapPin,
+  Calendar,
+  Settings,
+}
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuthStore()
@@ -69,8 +70,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
               {/* Nav */}
               <nav className="bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden">
-                {NAV_ITEMS.map((item) => {
+                {getDashboardNav().map((item) => {
                   const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
+                  const IconComponent = item.icon ? (ICON_MAP[item.icon] ?? null) : null
                   return (
                     <Link
                       key={item.href}
@@ -83,7 +85,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       )}
                     >
                       <span className="flex items-center gap-3">
-                        <item.icon className={cn('h-4 w-4', active ? 'text-orange-500' : 'text-[var(--fg-subtle)]')} />
+                        {IconComponent && <IconComponent className={cn('h-4 w-4', active ? 'text-orange-500' : 'text-[var(--fg-subtle)]')} />}
                         {item.label}
                       </span>
                       {active && <ChevronRight className="h-3.5 w-3.5 text-orange-500" />}

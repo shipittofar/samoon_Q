@@ -208,7 +208,21 @@ export interface Reservation {
 }
 
 // ============================================================
-// BRANCH TYPES
+// TENANT TYPES  (Phase 1A — P1A.1)
+// ============================================================
+export type BusinessType = 'restaurant' | 'cafe' | 'bar' | 'hotel' | 'other'
+
+export interface Tenant {
+  id: string
+  name: string
+  slug: string
+  business_type: BusinessType
+  is_active: boolean
+  settings?: Record<string, unknown>
+}
+
+// ============================================================
+// BRANCH / LOCATION TYPES  (Phase 1A — P1A.2)
 // ============================================================
 export interface WorkingHours {
   day: string
@@ -217,10 +231,15 @@ export interface WorkingHours {
   is_closed: boolean
 }
 
-export interface Branch {
+export type LocationType = 'physical' | 'mobile' | 'virtual'
+
+/** Location generalises Branch for multi-tenant use. */
+export interface Location {
   id: string
+  tenant_id?: string
   name: string
   slug: string
+  type?: LocationType
   address: string
   city: string
   phone: string
@@ -231,6 +250,32 @@ export interface Branch {
   is_active: boolean
   delivery_radius?: number
   images?: string[]
+  /** Mobile-unit fields — only present when type === 'mobile' */
+  is_mobile?: boolean
+  mobile_schedule?: string
+}
+
+/** Backward-compatible alias — existing code referencing Branch continues to compile. */
+export type Branch = Location
+
+// ============================================================
+// MODULE TYPES  (Phase 1A — P1A.3)
+// ============================================================
+export interface NavItem {
+  href: string
+  label: string
+  /** Optional icon component name (maps to lucide-react) */
+  icon?: string
+  exact?: boolean
+}
+
+export interface Module {
+  id: string
+  label: string
+  /** Business types this module applies to; empty = all */
+  business_types: BusinessType[]
+  nav: NavItem[]
+  enabled: boolean
 }
 
 // ============================================================
