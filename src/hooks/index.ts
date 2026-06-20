@@ -8,12 +8,27 @@ import {
   userService,
 } from '@/services/combined.service'
 import { authService } from '@/services/auth.service'
-import { useAuthStore, useFavoritesStore, useNotificationStore } from '@/stores'
+import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore } from '@/stores'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import type { MenuFilters } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreateReservationPayload } from '@/services/combined.service'
 import type { LoginCredentials, RegisterData } from '@/types'
+
+// ── Tenant Readiness Hook (Phase 1B stabilization) ────────────────────────────
+/**
+ * Returns true once TenantBootstrapper has completed the initial loadTenant()
+ * call — whether it succeeded or fell back to DEFAULT_TENANT.
+ *
+ * All Phase 1B systems (RBAC, feature flags, route guards) MUST check this
+ * before reading tenant state. Safe fallbacks while false:
+ *   RBAC        → deny-by-default (no permissions granted)
+ *   Feature flags → module defaults only (no tenant overrides)
+ *   Routing     → skip access validation; allow navigation
+ */
+export function useTenantReady(): boolean {
+  return useTenantStore((s) => s.isTenantReady)
+}
 
 // ── Auth Hooks ────────────────────────────────────────────────────────────────
 export function useLogin() {

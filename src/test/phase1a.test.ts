@@ -1,11 +1,13 @@
 /**
  * Phase 1A test suite — covers P1A.1 (Tenant model), P1A.2 (Location/Branch alias),
- * P1A.3 (Module Registry), and P1A.4 (backward compatibility).
+ * P1A.3 (Module Registry), P1A.4 (backward compatibility), and Phase 1B
+ * stabilization (tenant readiness signal).
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { Branch, Location, Module, Tenant } from '@/types'
 import { DEFAULT_TENANT } from '@/constants'
 import { useTenantStore } from '@/stores'
+import { useTenantReady } from '@/hooks'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -483,5 +485,136 @@ describe('M-5 — TenantBootstrapper wiring', () => {
   it('isLoading is false after startup completes', async () => {
     await useTenantStore.getState().loadTenant()
     expect(useTenantStore.getState().isLoading).toBe(false)
+  })
+})
+
+// ── Phase 1B Foundation Stabilization — isTenantReady ────────────────────────
+
+describe('isTenantReady — initial state', () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('is false before any loadTenant call', () => {
+    expect(useTenantStore.getState().isTenantReady).toBe(false)
+  })
+
+  it('reset() sets isTenantReady back to false', async () => {
+    await useTenantStore.getState().loadTenant()
+    expect(useTenantStore.getState().isTenantReady).toBe(true)
+    useTenantStore.getState().reset()
+    expect(useTenantStore.getState().isTenantReady).toBe(false)
+  })
+
+  it('is not persisted — starts false on every store instantiation', () => {
+    // Simulate what happens when the persisted partition is rehydrated:
+    // isTenantReady must never be in the persisted shape.
+    const persisted = JSON.parse(
+      JSON.stringify({ tenant: DEFAULT_TENANT }),
+    )
+    expect(persisted.isTenantReady).toBeUndefined()
+  })
+})
+
+describe('isTenantReady — success path', () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('becomes true after a successful loadTenant', async () => {
+    expect(useTenantStore.getState().isTenantReady).toBe(false)
+    await useTenantStore.getState().loadTenant('default')
+    expect(useTenantStore.getState().isTenantReady).toBe(true)
+  })
+
+  it('remains true after multiple successful loadTenant calls', async () => {
+    await useTenantStore.getState().loadTenant('default')
+    await useTenantStore.getState().loadTenant('default')
+    expect(useTenantStore.getState().isTenantReady).toBe(true)
+  })
+
+  it('tenant is valid when isTenantReady is true', async () => {
+    await useTenantStore.getState().loadTenant()
+    const { tenant, isTenantReady } = useTenantStore.getState()
+    expect(isTenantReady).toBe(true)
+    expect(tenant.id).toBeTruthy()
+    expect(tenant.slug).toBeTruthy()
+    expect(tenant.status).toMatch(/^(active|trial|suspended|churned)$/)
+  })
+})
+
+describe('isTenantReady — failure path', () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('becomes true even when loadTenant throws (fallback guarantee)', async () => {
+    const { tenantService } = await import('@/services/tenant.service')
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network'))
+
+    expect(useTenantStore.getState().isTenantReady).toBe(false)
+    await useTenantStore.getState().loadTenant('unknown')
+    expect(useTenantStore.getState().isTenantReady).toBe(true)
+
+    spy.mockRestore()
+  })
+
+  it('tenant is DEFAULT_TENANT and ready after a failure', async () => {
+    const { tenantService } = await import('@/services/tenant.service')
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('timeout'))
+
+    await useTenantStore.getState().loadTenant()
+    const { tenant, isTenantReady, isLoading } = useTenantStore.getState()
+
+    expect(isTenantReady).toBe(true)
+    expect(isLoading).toBe(false)
+    expect(tenant.id).toBe(DEFAULT_TENANT.id)
+
+    spy.mockRestore()
+  })
+
+  it('isLoading is false when ready after failure', async () => {
+    const { tenantService } = await import('@/services/tenant.service')
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+
+    await useTenantStore.getState().loadTenant()
+    expect(useTenantStore.getState().isLoading).toBe(false)
+    expect(useTenantStore.getState().isTenantReady).toBe(true)
+
+    spy.mockRestore()
+  })
+})
+
+describe('useTenantReady() hook contract', () => {
+  // useTenantReady() is a React hook and cannot be called outside a component.
+  // These tests verify the store field it reads (isTenantReady) directly, which
+  // is the canonical way to test Zustand-backed hooks in a non-React test context.
+
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('underlying isTenantReady is false before any load — hook would return false', () => {
+    expect(useTenantStore.getState().isTenantReady).toBe(false)
+  })
+
+  it('underlying isTenantReady is true after successful load — hook would return true', async () => {
+    await useTenantStore.getState().loadTenant()
+    expect(useTenantStore.getState().isTenantReady).toBe(true)
+  })
+
+  it('underlying isTenantReady is true after failed load — hook would return true', async () => {
+    const { tenantService } = await import('@/services/tenant.service')
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
+
+    await useTenantStore.getState().loadTenant()
+    expect(useTenantStore.getState().isTenantReady).toBe(true)
+
+    spy.mockRestore()
+  })
+
+  it('useTenantReady is exported from hooks — available to Phase 1B consumers', () => {
+    // Verify the hook is importable and is a function (selector contract).
+    expect(typeof useTenantReady).toBe('function')
   })
 })

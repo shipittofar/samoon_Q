@@ -159,24 +159,37 @@ export const useLangStore = create<LangState>()(
   ),
 )
 
-// ── Tenant Store  (Phase 1A — P1A.1) ─────────────────────────────────────────
+// ── Tenant Store  (Phase 1A — P1A.1 / Phase 1B stabilization) ───────────────
 /**
  * Holds the active tenant context for the session.
  * Initialises from DEFAULT_TENANT (single-tenant backward compatibility, P1A.4).
  *
+ * Readiness model (Phase 1B):
+ *   isTenantReady starts false. TenantBootstrapper calls loadTenant() at startup.
+ *   loadTenant() sets isTenantReady = true exactly once, whether the load
+ *   succeeds or falls back to DEFAULT_TENANT. After that point all Phase 1B
+ *   systems (RBAC, feature flags, routing) may safely read tenant state.
+ *   isTenantReady is NOT persisted — it is a runtime signal reset on every page
+ *   load so the bootstrap sequence always runs.
+ *
  * Hydration flow:
- *   Phase 1A: call loadTenant(slug?) at app startup (e.g., in the root layout
- *             or a bootstrap component) to fetch the real tenant from the service.
- *   Phase 1B: P1B.3 middleware will extract the slug from the subdomain and
- *             inject it as a request header; the store will be hydrated
- *             server-side before the first render.
+ *   Phase 1A/1B: TenantBootstrapper calls loadTenant() in Providers.
+ *   Phase 1B (P1B.3): middleware will inject X-Tenant-Slug from the subdomain;
+ *   loadTenant(slug) will be updated to pass that slug at that point.
  *
  * Persist version 1 — any cached v0 state (old Tenant shape) is discarded and
  * replaced with DEFAULT_TENANT on first load to avoid shape mismatches.
+ * isTenantReady is excluded from persist via partialize.
  */
 interface TenantState {
   tenant: Tenant
   isLoading: boolean
+  /**
+   * True after the first loadTenant() call completes — success or failure.
+   * All Phase 1B systems must check this before reading tenant state.
+   * Safe fallbacks before ready: deny RBAC, use module default flags, skip routing checks.
+   */
+  isTenantReady: boolean
   setTenant: (tenant: Tenant) => void
   loadTenant: (slug?: string) => Promise<void>
   reset: () => void
@@ -187,24 +200,29 @@ export const useTenantStore = create<TenantState>()(
     (set) => ({
       tenant: DEFAULT_TENANT,
       isLoading: false,
+      isTenantReady: false,
       setTenant: (tenant) => set({ tenant }),
       loadTenant: async (slug?: string) => {
         set({ isLoading: true })
         try {
           const tenant = await tenantService.getTenant(slug)
-          set({ tenant, isLoading: false })
+          set({ tenant, isLoading: false, isTenantReady: true })
         } catch {
-          // Network or service failure — discard any stale persisted tenant and
-          // degrade to DEFAULT_TENANT so the app remains in a known-good state.
-          set({ tenant: DEFAULT_TENANT, isLoading: false })
+          // Network or service failure — discard any stale persisted tenant,
+          // degrade to DEFAULT_TENANT, and still mark ready so downstream
+          // systems are not blocked indefinitely on an unresolvable load.
+          set({ tenant: DEFAULT_TENANT, isLoading: false, isTenantReady: true })
         }
       },
-      reset: () => set({ tenant: DEFAULT_TENANT, isLoading: false }),
+      reset: () => set({ tenant: DEFAULT_TENANT, isLoading: false, isTenantReady: false }),
     }),
     {
       name: TENANT_KEY,
       version: 1,
-      migrate: () => ({ tenant: DEFAULT_TENANT, isLoading: false }),
+      migrate: () => ({ tenant: DEFAULT_TENANT, isLoading: false, isTenantReady: false }),
+      // isTenantReady is a runtime signal — exclude it from localStorage so the
+      // bootstrap sequence always runs fresh on every page load.
+      partialize: (state) => ({ tenant: state.tenant }),
     },
   ),
 )
