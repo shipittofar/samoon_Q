@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, User } from '@/types'
-import { BRANCH_KEY, CART_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
+import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
+import { tenantService } from '@/services/tenant.service'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
 interface AuthState {
@@ -159,19 +160,25 @@ export const useLangStore = create<LangState>()(
 )
 
 // ── Tenant Store  (Phase 1A — P1A.1) ─────────────────────────────────────────
-/** Resolves the active tenant. Falls back to DEFAULT_TENANT so the app works
- *  in single-tenant mode without any backend change. */
-export const DEFAULT_TENANT: Tenant = {
-  id: 'default',
-  name: process.env.NEXT_PUBLIC_APP_NAME ?? 'Savor',
-  slug: 'default',
-  business_type: 'restaurant',
-  is_active: true,
-}
-
+/**
+ * Holds the active tenant context for the session.
+ * Initialises from DEFAULT_TENANT (single-tenant backward compatibility, P1A.4).
+ *
+ * Hydration flow:
+ *   Phase 1A: call loadTenant(slug?) at app startup (e.g., in the root layout
+ *             or a bootstrap component) to fetch the real tenant from the service.
+ *   Phase 1B: P1B.3 middleware will extract the slug from the subdomain and
+ *             inject it as a request header; the store will be hydrated
+ *             server-side before the first render.
+ *
+ * Persist version 1 — any cached v0 state (old Tenant shape) is discarded and
+ * replaced with DEFAULT_TENANT on first load to avoid shape mismatches.
+ */
 interface TenantState {
   tenant: Tenant
+  isLoading: boolean
   setTenant: (tenant: Tenant) => void
+  loadTenant: (slug?: string) => Promise<void>
   reset: () => void
 }
 
@@ -179,10 +186,24 @@ export const useTenantStore = create<TenantState>()(
   persist(
     (set) => ({
       tenant: DEFAULT_TENANT,
+      isLoading: false,
       setTenant: (tenant) => set({ tenant }),
-      reset: () => set({ tenant: DEFAULT_TENANT }),
+      loadTenant: async (slug?: string) => {
+        set({ isLoading: true })
+        try {
+          const tenant = await tenantService.getTenant(slug)
+          set({ tenant, isLoading: false })
+        } catch {
+          set({ isLoading: false })
+        }
+      },
+      reset: () => set({ tenant: DEFAULT_TENANT, isLoading: false }),
     }),
-    { name: TENANT_KEY },
+    {
+      name: TENANT_KEY,
+      version: 1,
+      migrate: () => ({ tenant: DEFAULT_TENANT, isLoading: false }),
+    },
   ),
 )
 

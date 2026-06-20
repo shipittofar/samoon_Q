@@ -72,6 +72,12 @@ export const ENDPOINTS = {
     TOGGLE_FAVORITE: (itemId: string) => `/users/favorites/${itemId}/`,
   },
 
+  // Tenants (Phase 1A — P1A.1)
+  TENANTS: {
+    DETAIL: (slug: string) => `/tenants/${slug}/`,
+    CURRENT: '/tenants/current/',
+  },
+
   // Reviews
   REVIEWS: {
     CREATE: '/reviews/',

@@ -212,12 +212,20 @@ export interface Reservation {
 // ============================================================
 export type BusinessType = 'restaurant' | 'cafe' | 'bar' | 'hotel' | 'other'
 
+export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned'
+
 export interface Tenant {
   id: string
   name: string
   slug: string
-  business_type: BusinessType
-  is_active: boolean
+  /**
+   * Keys of the modules active for this tenant (e.g. ['restaurant']).
+   * Resolved to full Module objects via the module registry at runtime.
+   * Roadmap: Tenant.businessTypes — P1A.1.
+   */
+  businessTypes: string[]
+  status: TenantStatus
+  createdAt: string
   settings?: Record<string, unknown>
 }
 
@@ -231,9 +239,19 @@ export interface WorkingHours {
   is_closed: boolean
 }
 
-export type LocationType = 'physical' | 'mobile' | 'virtual'
+/**
+ * Discriminates location kinds for business-type-specific logic.
+ * Matches the roadmap P1A.2 type enum exactly.
+ */
+export type LocationType =
+  | 'restaurant_branch'
+  | 'cafe'
+  | 'bar'
+  | 'hotel_property'
+  | 'food_court_stall'
+  | 'mobile_truck'
 
-/** Location generalises Branch for multi-tenant use. */
+/** Location generalises Branch for multi-tenant use. Roadmap: P1A.2. */
 export interface Location {
   id: string
   tenant_id?: string
@@ -250,7 +268,7 @@ export interface Location {
   is_active: boolean
   delivery_radius?: number
   images?: string[]
-  /** Mobile-unit fields — only present when type === 'mobile' */
+  /** Mobile-unit fields — only present when type === 'mobile_truck' */
   is_mobile?: boolean
   mobile_schedule?: string
 }
@@ -264,17 +282,29 @@ export type Branch = Location
 export interface NavItem {
   href: string
   label: string
-  /** Optional icon component name (maps to lucide-react) */
+  /** Icon name — maps to lucide-react component via ICON_MAP in consumers. */
   icon?: string
   exact?: boolean
 }
 
+/**
+ * A Module is a self-contained business-type capability.
+ * Shape aligned with roadmap P1A.3: Module { key, name, routes, navItems, defaultFeatureFlags }.
+ */
 export interface Module {
-  id: string
-  label: string
-  /** Business types this module applies to; empty = all */
-  business_types: BusinessType[]
-  nav: NavItem[]
+  /** Unique module identifier used as the lookup key. */
+  key: string
+  name: string
+  /** Business types this module is applicable to. Empty array means all types. */
+  businessTypes: BusinessType[]
+  /** Client-side route prefixes owned by this module (e.g. ['/menu', '/checkout']). */
+  routes: string[]
+  navItems: NavItem[]
+  /**
+   * Feature flags that default on/off for this module.
+   * Resolved by the feature flag service in Phase 1B before per-tenant overrides are applied.
+   */
+  defaultFeatureFlags: Record<string, boolean>
   enabled: boolean
 }
 

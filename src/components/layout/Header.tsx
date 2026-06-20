@@ -29,7 +29,7 @@ export function Header() {
   const { theme, setTheme } = useThemeStore()
   const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()
-  const navLinks = getHeaderNav(tenant.business_type)
+  const navLinks = getHeaderNav(tenant.businessTypes)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
