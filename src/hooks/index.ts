@@ -317,6 +317,38 @@ export function useNotifications() {
   })
 }
 
+// ── Health Check Hook — P4.9.6 ────────────────────────────────────────────────
+
+export interface HealthPayload {
+  status: 'ok' | string
+  version?: string
+  environment?: string
+  timestamp?: string
+  uptime?: number
+  memory?: { rss: number; heapUsed: number; heapTotal: number }
+}
+
+/**
+ * Lightweight hook that fetches /api/health for optional dashboard indicators.
+ * Caches for 30 s; retries disabled; background refetch disabled.
+ * Safe to mount in non-critical paths — never blocks rendering.
+ */
+export function useHealthCheck() {
+  return useQuery<HealthPayload>({
+    queryKey: ['health'],
+    queryFn: async () => {
+      const res = await fetch('/api/health')
+      if (!res.ok) throw new Error(`Health check failed: ${res.status}`)
+      return res.json() as Promise<HealthPayload>
+    },
+    staleTime: 30_000,
+    gcTime: 60_000,
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
+}
+
 // ── User Hooks ────────────────────────────────────────────────────────────────
 export function useAddresses() {
   return useQuery({

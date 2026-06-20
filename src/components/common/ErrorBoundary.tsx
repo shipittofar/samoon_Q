@@ -19,6 +19,8 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react'
 import { captureException } from '@/lib/sentry'
 import { VERSION } from '@/lib/version'
+import { useTenantStore } from '@/stores'
+// useTenantStore.getState() is used in componentDidCatch (class component — no hooks allowed)
 
 export interface ErrorBoundaryProps {
   children: ReactNode
@@ -52,11 +54,19 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const pathname =
       typeof window !== 'undefined' ? window.location.pathname : undefined
 
+    // P4.9.4 — Enrich error context with tenant slug and environment.
+    // Uses getState() since class components cannot call hooks.
+    const tenantSlug = useTenantStore.getState().tenant?.slug
+    const environment = process.env.NODE_ENV ?? 'unknown'
+
     captureException(error, {
       feature,
       componentStack: info.componentStack ?? undefined,
       // Route context
       pathname,
+      // Tenant / env context (P4.9.4)
+      tenantSlug,
+      environment,
       // Build context
       release: VERSION,
     })
