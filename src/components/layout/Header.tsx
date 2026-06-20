@@ -29,6 +29,8 @@ export function Header() {
   const { theme, setTheme } = useThemeStore()
   const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()
+  // tenant.businessTypes values must be module key strings (e.g. 'restaurant'),
+  // not LocationType values — see Tenant.businessTypes JSDoc in types/index.ts.
   const navLinks = getHeaderNav(tenant.businessTypes)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)

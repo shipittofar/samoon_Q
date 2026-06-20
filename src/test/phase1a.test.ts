@@ -99,6 +99,32 @@ describe('useTenantStore', () => {
       status: 'active',
     })
   })
+
+  it('loadTenant resets to DEFAULT_TENANT and clears isLoading on service failure (M-1)', async () => {
+    // Place a non-default tenant in state to simulate a stale persisted value.
+    const stale: Tenant = {
+      id: 'stale-id',
+      name: 'Stale Corp',
+      slug: 'stale',
+      businessTypes: ['restaurant'],
+      status: 'active',
+      createdAt: '2025-01-01T00:00:00.000Z',
+    }
+    useTenantStore.getState().setTenant(stale)
+    expect(useTenantStore.getState().tenant.slug).toBe('stale')
+
+    // Make tenantService.getTenant throw.
+    const { tenantService } = await import('@/services/tenant.service')
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network error'))
+
+    await useTenantStore.getState().loadTenant('stale')
+
+    expect(useTenantStore.getState().isLoading).toBe(false)
+    expect(useTenantStore.getState().tenant.id).toBe(DEFAULT_TENANT.id)
+    expect(useTenantStore.getState().tenant.slug).toBe(DEFAULT_TENANT.slug)
+
+    spy.mockRestore()
+  })
 })
 
 // ── P1A.2 — Location / Branch alias ──────────────────────────────────────────
@@ -367,5 +393,95 @@ describe('Backward compatibility', () => {
     const { getHeaderNav } = await freshRegistry()
     const links = getHeaderNav(DEFAULT_TENANT.businessTypes)
     expect(links.length).toBeGreaterThan(0)
+  })
+})
+
+// ── Phase 1B Entry Cleanup ────────────────────────────────────────────────────
+
+describe('M-1 — loadTenant failure safety', () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('resets to DEFAULT_TENANT when service throws (no stale state left behind)', async () => {
+    const stale: Tenant = {
+      id: 'stale-tenant',
+      name: 'Stale',
+      slug: 'stale',
+      businessTypes: ['restaurant'],
+      status: 'active',
+      createdAt: '2025-01-01T00:00:00.000Z',
+    }
+    useTenantStore.getState().setTenant(stale)
+
+    const { tenantService } = await import('@/services/tenant.service')
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network'))
+
+    await useTenantStore.getState().loadTenant('stale')
+
+    expect(useTenantStore.getState().tenant.id).toBe(DEFAULT_TENANT.id)
+    expect(useTenantStore.getState().isLoading).toBe(false)
+
+    spy.mockRestore()
+  })
+
+  it('clears isLoading on failure regardless of prior tenant state', async () => {
+    const { tenantService } = await import('@/services/tenant.service')
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('timeout'))
+
+    const promise = useTenantStore.getState().loadTenant()
+    expect(useTenantStore.getState().isLoading).toBe(true)
+    await promise
+    expect(useTenantStore.getState().isLoading).toBe(false)
+
+    spy.mockRestore()
+  })
+})
+
+describe('L-3 — RESTAURANT_MODULE route registration', () => {
+  it('/restaurant is registered in RESTAURANT_MODULE routes', async () => {
+    const { RESTAURANT_MODULE } = await freshRegistry()
+    expect(RESTAURANT_MODULE.routes).toContain('/restaurant')
+  })
+
+  it('getModuleRoutes returns /restaurant for restaurant module key', async () => {
+    const { getModuleRoutes } = await freshRegistry()
+    const routes = getModuleRoutes(['restaurant'])
+    expect(routes).toContain('/restaurant')
+  })
+
+  it('all RESTAURANT_MODULE navItem hrefs are present in routes', async () => {
+    const { RESTAURANT_MODULE } = await freshRegistry()
+    RESTAURANT_MODULE.navItems.forEach((item) => {
+      expect(RESTAURANT_MODULE.routes).toContain(item.href)
+    })
+  })
+})
+
+describe('M-5 — TenantBootstrapper wiring', () => {
+  beforeEach(() => {
+    useTenantStore.getState().reset()
+  })
+
+  it('loadTenant() with no slug argument resolves to a valid tenant', async () => {
+    await useTenantStore.getState().loadTenant()
+    const { tenant } = useTenantStore.getState()
+    expect(tenant.id).toBeDefined()
+    expect(tenant.slug).toBeDefined()
+    expect(tenant.status).toMatch(/^(active|trial|suspended|churned)$/)
+  })
+
+  it('tenant store holds a known-good state after startup (no undefined fields)', async () => {
+    await useTenantStore.getState().loadTenant()
+    const { tenant } = useTenantStore.getState()
+    expect(tenant.id).toBeTruthy()
+    expect(tenant.name).toBeTruthy()
+    expect(tenant.slug).toBeTruthy()
+    expect(Array.isArray(tenant.businessTypes)).toBe(true)
+  })
+
+  it('isLoading is false after startup completes', async () => {
+    await useTenantStore.getState().loadTenant()
+    expect(useTenantStore.getState().isLoading).toBe(false)
   })
 })

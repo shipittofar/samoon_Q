@@ -29,7 +29,7 @@ export const RESTAURANT_MODULE: Module = {
   key: 'restaurant',
   name: 'Restaurant',
   businessTypes: ['restaurant', 'cafe', 'bar'],
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation'],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant'],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
-import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore } from '@/stores'
+import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenantStore } from '@/stores'
 import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
 
@@ -52,6 +52,28 @@ function RTLProvider({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * Loads the active tenant once at app startup.
+ *
+ * Phase 1A/1B: calls loadTenant() with no slug argument so the service resolves
+ * the default tenant (mock mode) or the current tenant from the API.
+ * Falls back to DEFAULT_TENANT automatically if the service call fails (M-1 fix).
+ *
+ * Phase 1B (P1B.3): middleware will inject X-Tenant-Slug from the subdomain;
+ * this bootstrapper will be updated at that point to pass the slug from the header.
+ * No environment-based multi-tenant switching is introduced here.
+ */
+function TenantBootstrapper({ children }: { children: ReactNode }) {
+  const { loadTenant } = useTenantStore()
+  const booted = useRef(false)
+  useEffect(() => {
+    if (booted.current) return
+    booted.current = true
+    loadTenant()
+  }, [loadTenant])
+  return <>{children}</>
+}
+
 function AuthBootstrapper({ children }: { children: ReactNode }) {
   const { setUser, setLoading } = useAuthStore()
   const setFavorites = useFavoritesStore((s) => s.setFavorites)
@@ -78,10 +100,12 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <RTLProvider>
-          <AuthBootstrapper>
-            {children}
-            <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
-          </AuthBootstrapper>
+          <TenantBootstrapper>
+            <AuthBootstrapper>
+              {children}
+              <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
+            </AuthBootstrapper>
+          </TenantBootstrapper>
         </RTLProvider>
       </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />

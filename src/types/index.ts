@@ -219,9 +219,19 @@ export interface Tenant {
   name: string
   slug: string
   /**
-   * Keys of the modules active for this tenant (e.g. ['restaurant']).
-   * Resolved to full Module objects via the module registry at runtime.
+   * Active module keys for this tenant (e.g. ['restaurant']).
+   *
+   * INVARIANT: every value in this array must match a Module.key registered in
+   * the module registry (src/modules/registry.ts). These are module identifiers,
+   * NOT LocationType values ('restaurant_branch', 'cafe', etc.) and NOT arbitrary
+   * business-type strings. Passing a LocationType value will cause getHeaderNav()
+   * and getModuleRoutes() to silently return empty results.
+   *
+   * Valid values in Phase 1: ['restaurant']
+   * Future values (Phase 6/8): ['hotel', 'bar', 'food_court', ...]
+   *
    * Roadmap: Tenant.businessTypes — P1A.1.
+   * Rename to moduleKeys in a future breaking-change release (tracked: M-2).
    */
   businessTypes: string[]
   status: TenantStatus

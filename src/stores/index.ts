@@ -194,7 +194,9 @@ export const useTenantStore = create<TenantState>()(
           const tenant = await tenantService.getTenant(slug)
           set({ tenant, isLoading: false })
         } catch {
-          set({ isLoading: false })
+          // Network or service failure — discard any stale persisted tenant and
+          // degrade to DEFAULT_TENANT so the app remains in a known-good state.
+          set({ tenant: DEFAULT_TENANT, isLoading: false })
         }
       },
       reset: () => set({ tenant: DEFAULT_TENANT, isLoading: false }),
