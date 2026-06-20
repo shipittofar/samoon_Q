@@ -6,6 +6,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
+    // Exclude Playwright E2E specs from the unit/integration suite.
+    // Those run via `npm run test:e2e` (playwright test).
+    exclude: ['tests/**', 'node_modules/**'],
   },
   resolve: {
     alias: {
