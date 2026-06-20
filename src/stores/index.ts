@@ -211,10 +211,18 @@ interface TenantState {
    *   Until this call is made, canExecute remains false and all Phase 1B consumers are blocked.
    */
   featureFlagsInitialized: boolean
+  /**
+   * Resolved feature flag map for the active tenant (P1B.2).
+   * Populated by TenantBootstrapper after loadTenant() via featureFlagsService.resolve().
+   * Empty object before initialization — missing keys default to false via useFeatureFlag().
+   * NOT persisted: always recomputed from the live tenant on each page load.
+   */
+  featureFlags: Record<string, boolean>
   setTenant: (tenant: Tenant) => void
   loadTenant: (slug?: string) => Promise<void>
   setRbacInitialized: (v: boolean) => void
   setFeatureFlagsInitialized: (v: boolean) => void
+  setFeatureFlags: (flags: Record<string, boolean>) => void
   reset: () => void
 }
 
@@ -226,6 +234,7 @@ export const useTenantStore = create<TenantState>()(
       tenantState: 'loading' as TenantLifecycle,
       rbacInitialized: false,
       featureFlagsInitialized: false,
+      featureFlags: {},
       setTenant: (tenant) => set({ tenant }),
       loadTenant: async (slug?: string) => {
         set({ isLoading: true, tenantState: 'loading' })
@@ -241,6 +250,7 @@ export const useTenantStore = create<TenantState>()(
       },
       setRbacInitialized: (v) => set({ rbacInitialized: v }),
       setFeatureFlagsInitialized: (v) => set({ featureFlagsInitialized: v }),
+      setFeatureFlags: (flags) => set({ featureFlags: flags }),
       // reset() returns ALL runtime signals to their pre-bootstrap state.
       reset: () => set({
         tenant: DEFAULT_TENANT,
@@ -248,6 +258,7 @@ export const useTenantStore = create<TenantState>()(
         tenantState: 'loading',
         rbacInitialized: false,
         featureFlagsInitialized: false,
+        featureFlags: {},
       }),
     }),
     {

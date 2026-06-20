@@ -1,6 +1,10 @@
 // ============================================================
 // AUTH TYPES
 // ============================================================
+
+/** Role assigned to an authenticated user. Matches the backend auth model. */
+export type UserRole = 'customer' | 'staff' | 'admin'
+
 export interface User {
   id: string
   email: string
@@ -8,7 +12,7 @@ export interface User {
   first_name: string
   last_name: string
   avatar?: string
-  role: 'customer' | 'staff' | 'admin'
+  role: UserRole
   is_verified: boolean
   created_at: string
 }
@@ -436,3 +440,32 @@ export interface Address {
   lng?: number
   is_default: boolean
 }
+
+// ============================================================
+// RBAC TYPES  (Phase 1B — P1B.1)
+// ============================================================
+
+/**
+ * Atomic permission strings for the RBAC system.
+ * Format: resource:action
+ *
+ * Consumers check a single permission via rbacService.hasPermission(role, permission)
+ * or the useHasPermission(permission) hook — never enumerate this list directly.
+ */
+export type Permission =
+  | 'orders:read'
+  | 'orders:write'
+  | 'orders:cancel'
+  | 'orders:manage'
+  | 'menu:read'
+  | 'menu:write'
+  | 'menu:manage'
+  | 'reservations:read'
+  | 'reservations:write'
+  | 'reservations:manage'
+  | 'users:read'
+  | 'users:manage'
+  | 'dashboard:access'
+  | 'branches:read'
+  | 'branches:manage'
+  | 'notifications:read'

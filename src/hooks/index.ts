@@ -9,11 +9,12 @@ import {
 } from '@/services/combined.service'
 import { authService } from '@/services/auth.service'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore } from '@/stores'
+import { rbacService } from '@/services/rbac.service'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import type { MenuFilters } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreateReservationPayload } from '@/services/combined.service'
-import type { LoginCredentials, RegisterData, SystemReadiness, TenantLifecycle } from '@/types'
+import type { LoginCredentials, Permission, RegisterData, SystemReadiness, TenantLifecycle } from '@/types'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -64,6 +65,32 @@ export function useSystemReady(): SystemReadiness {
     isFallback,
     canExecute: !isLoading && rbacInitialized && featureFlagsInitialized,
   }
+}
+
+// ── RBAC Hook — P1B.1 ────────────────────────────────────────────────────────
+/**
+ * Returns true if the currently authenticated user holds the given permission.
+ * Returns false for unauthenticated users (safe default deny).
+ *
+ * Canonical usage:
+ *   const canManageMenu = useHasPermission('menu:manage')
+ *   if (!canManageMenu) return null
+ */
+export function useHasPermission(permission: Permission): boolean {
+  const role = useAuthStore((s) => s.user?.role ?? null)
+  return rbacService.hasPermission(role, permission)
+}
+
+// ── Feature Flag Hook — P1B.2 ─────────────────────────────────────────────────
+/**
+ * Returns the resolved boolean value of a feature flag for the active tenant.
+ * Returns false for any key not present in the resolved flag map (safe default off).
+ *
+ * Canonical usage:
+ *   const deliveryEnabled = useFeatureFlag('delivery.enabled')
+ */
+export function useFeatureFlag(key: string): boolean {
+  return useTenantStore((s) => s.featureFlags[key] ?? false)
 }
 
 // ── Auth Hooks ────────────────────────────────────────────────────────────────

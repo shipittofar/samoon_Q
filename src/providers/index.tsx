@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast'
 import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenantStore } from '@/stores'
 import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
+import { featureFlagsService } from '@/services/feature-flags.service'
 
 function makeQueryClient() {
   return new QueryClient({
@@ -52,23 +53,15 @@ function RTLProvider({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
-// ── Bootstrap stubs — TEMPORARY (Phase 1B.1 / 1B.2 pending) ─────────────────
-// Replace each stub with a real initializer call when its phase ships:
-//   P1B.1 → RBAC initializer calls useTenantStore.getState().setRbacInitialized(true)
-//   P1B.2 → Feature flag initializer calls useTenantStore.getState().setFeatureFlagsInitialized(true)
-// When a real initializer is in place, remove the corresponding line from BOOTSTRAP_STUBS.
-const BOOTSTRAP_STUBS = {
-  rbacInitialized: true,         // TEMPORARY STUB — remove when P1B.1 RBAC initializer ships
-  featureFlagsInitialized: true, // TEMPORARY STUB — remove when P1B.2 feature flag initializer ships
-} as const
-
 /**
  * Coordinates the full app bootstrap sequence at startup (P1B.6).
  *
  * Sequence:
- *   1. loadTenant() — resolves tenant; sets tenantState to 'ready' or 'fallback'
- *   2. setRbacInitialized — sourced from BOOTSTRAP_STUBS until P1B.1 ships its real initializer
- *   3. setFeatureFlagsInitialized — sourced from BOOTSTRAP_STUBS until P1B.2 ships
+ *   1. loadTenant()            — resolves tenant; sets tenantState to 'ready' or 'fallback'
+ *   2. setRbacInitialized(true) — P1B.1: RBAC permission map is static; mark ready immediately.
+ *                                  Phase 2+: replace with async role fetch if needed.
+ *   3. setFeatureFlags(flags)  — P1B.2: resolve module defaults + tenant overrides
+ *   4. setFeatureFlagsInitialized(true)
  *
  * After this sequence, useSystemReady().canExecute becomes true and all
  * Phase 1B systems (RBAC, feature flags, routing) are permitted to execute.
@@ -77,16 +70,21 @@ const BOOTSTRAP_STUBS = {
  * this bootstrapper will pass the slug to loadTenant() at that point.
  */
 function TenantBootstrapper({ children }: { children: ReactNode }) {
-  const { loadTenant, setRbacInitialized, setFeatureFlagsInitialized } = useTenantStore()
+  const { loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags } = useTenantStore()
   const booted = useRef(false)
   useEffect(() => {
     if (booted.current) return
     booted.current = true
     loadTenant().then(() => {
-      setRbacInitialized(BOOTSTRAP_STUBS.rbacInitialized)
-      setFeatureFlagsInitialized(BOOTSTRAP_STUBS.featureFlagsInitialized)
+      // P1B.1 — RBAC: static permission map; initialization is synchronous
+      setRbacInitialized(true)
+
+      // P1B.2 — Feature flags: resolve from module defaults + tenant setting overrides
+      const { tenant } = useTenantStore.getState()
+      setFeatureFlags(featureFlagsService.resolve(tenant))
+      setFeatureFlagsInitialized(true)
     })
-  }, [loadTenant, setRbacInitialized, setFeatureFlagsInitialized])
+  }, [loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags])
   return <>{children}</>
 }
 
