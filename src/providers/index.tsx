@@ -11,6 +11,8 @@ import { userService } from '@/services/combined.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useNotificationWebSocket } from '@/hooks/client'
 import { STALE_TIME, CACHE_TIME } from '@/constants'
+import { ServiceWorkerUpdateBanner } from '@/components/pwa/ServiceWorkerUpdateBanner'
+import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import type { TenantTheme } from '@/types'
 
@@ -190,6 +192,10 @@ export function Providers({ children }: { children: ReactNode }) {
               <AuthBootstrapper>
                 <NotificationWebSocketProvider>
                   {children}
+                  {/* P4.8.5 — SW update banner (non-blocking) */}
+                  <ServiceWorkerUpdateBanner />
+                  {/* P4.8.6 — Offline status indicator */}
+                  <OfflineIndicator />
                   <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
                 </NotificationWebSocketProvider>
               </AuthBootstrapper>
