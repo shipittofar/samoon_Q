@@ -13,7 +13,7 @@ import {
 import { authService } from '@/services/auth.service'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore } from '@/stores'
 import { rbacService } from '@/services/rbac.service'
-import { getHeaderNav, getDashboardNav } from '@/modules/registry'
+import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
 import { reviewService } from '@/services/review.service'
@@ -26,6 +26,7 @@ import type {
   AdminCustomerFilters,
   AdminOrderFilters,
   AdminReservationFilters,
+  Capability,
   LoginCredentials,
   MenuItem,
   NavItem,
@@ -152,6 +153,62 @@ export function useDashboardNav(): NavItem[] {
   const role = useAuthStore((s) => s.user?.role ?? null)
   if (!rbacService.hasPermission(role, 'dashboard:access')) return []
   return getDashboardNav()
+}
+
+// ── Capability Hooks — P6.8 ───────────────────────────────────────────────────
+
+/**
+ * Returns true when the active tenant's modules support the given capability
+ * at the module-default level (required or defaultEnabled).
+ *
+ * This reflects the module-level default, NOT a tenant override. For the
+ * tenant-overridden value use useFeatureFlag(CAPABILITY_FLAG_MAP[cap]) or
+ * useCapabilityFlag() instead.
+ *
+ * Canonical usage:
+ *   const hasLoyalty = useCapability('loyalty')
+ *   if (!hasLoyalty) return null
+ */
+export function useCapability(cap: Capability): boolean {
+  const tenant = useTenantStore((s) => s.tenant)
+  return hasCapability(tenant.businessTypes, cap)
+}
+
+/**
+ * Returns the resolved boolean value of the feature flag that corresponds to
+ * the given capability, after applying tenant overrides (layer 3).
+ *
+ * This is the tenant-override-aware counterpart to useCapability(). Prefer
+ * this when the tenant may have explicitly enabled or disabled a capability.
+ *
+ * Canonical usage:
+ *   const loyaltyOn = useCapabilityFlag('loyalty')  // reads 'loyalty.enabled'
+ */
+export function useCapabilityFlag(cap: Capability): boolean {
+  const flagKey = CAPABILITY_FLAG_MAP[cap]
+  return useTenantStore((s) => s.featureFlags[flagKey] ?? false)
+}
+
+/**
+ * Returns admin nav items for the active tenant's modules, filtered by feature flags.
+ *
+ * Filtering rules:
+ *   - Items without `featureFlagKey` are always shown.
+ *   - Items with `featureFlagKey` are hidden when the flag resolves to false.
+ *   - When system is not yet ready, all admin nav items are returned.
+ *
+ * Canonical usage in admin layouts:
+ *   const adminNav = useAdminModuleNav()
+ */
+export function useAdminModuleNav(): NavItem[] {
+  const { canExecute } = useSystemReady()
+  const tenant = useTenantStore((s) => s.tenant)
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const allAdminNav = getAdminNav(tenant.businessTypes)
+  if (!canExecute) return allAdminNav
+  return allAdminNav.filter(
+    (item) => !item.featureFlagKey || featureFlags[item.featureFlagKey] !== false,
+  )
 }
 
 // ── Auth Hooks ────────────────────────────────────────────────────────────────

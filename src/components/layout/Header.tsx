@@ -7,14 +7,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin } from 'lucide-react'
 import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
 import type { TenantTheme } from '@/types'
-import { useLogout, useSetLocale } from '@/hooks'
+import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 import { cn, formatCurrency } from '@/utils'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { NotificationCenter } from '@/components/notification/NotificationCenter'
-import { getHeaderNav } from '@/modules/registry'
 import toast from 'react-hot-toast'
 
 const LANGUAGES = [
@@ -33,9 +32,10 @@ export function Header() {
   const { theme, setTheme } = useThemeStore()
   const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()
-  // tenant.businessTypes values must be module key strings (e.g. 'restaurant'),
-  // not LocationType values — see Tenant.businessTypes JSDoc in types/index.ts.
-  const navLinks = getHeaderNav(tenant.businessTypes)
+  // useModuleNav() returns header nav filtered by resolved feature flags (P6.8).
+  // Items with featureFlagKey are hidden when the flag is false (e.g. reservations
+  // disabled for food_truck, loyalty disabled for bar).
+  const navLinks = useModuleNav()
   const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
