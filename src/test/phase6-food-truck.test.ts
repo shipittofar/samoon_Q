@@ -614,9 +614,9 @@ describe('M. cafe regression', () => {
     expect(CAFE_MODULE.businessTypes).toContain('cafe')
   })
 
-  it('cafe admin nav still returns 2 items', async () => {
+  it('cafe admin nav still returns 3 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(2)
+    expect(getAdminNav(['cafe'])).toHaveLength(3)
   })
 
   it('getHeaderNav(["cafe"]) does not include Live Location', async () => {
@@ -636,9 +636,9 @@ describe('N. bar regression', () => {
     expect(BAR_MODULE.businessTypes).toContain('bar')
   })
 
-  it('bar admin nav still returns 2 items', async () => {
+  it('bar admin nav still returns 3 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['bar'])).toHaveLength(2)
+    expect(getAdminNav(['bar'])).toHaveLength(3)
   })
 
   it('getHeaderNav(["bar"]) does not include Live Location or Stop Management', async () => {

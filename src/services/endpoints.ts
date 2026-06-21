@@ -111,6 +111,14 @@ export const ENDPOINTS = {
     ADMIN_REWARD: (id: string) => `/admin/loyalty/rewards/${id}/`,
   },
 
+  // Promotions (P6.10)
+  PROMOTIONS: {
+    LIST: '/promotions/',
+    ACTIVE: '/promotions/active/',
+    DETAIL: (id: string) => `/promotions/${id}/`,
+    ACTIVATE: (id: string) => `/promotions/${id}/activate/`,
+  },
+
   // Admin (P5.1) — backend-gated endpoints; mocked until API is deployed
   ADMIN: {
     STATS: '/admin/stats/',

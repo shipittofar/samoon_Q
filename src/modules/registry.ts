@@ -97,12 +97,14 @@ export const CAFE_MODULE: Module = {
     '/reservation',
     '/reviews',
     '/loyalty',
+    '/promotions',
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservations', featureFlagKey: 'reservations.enabled' },
     { href: '/reviews', label: 'Reviews', featureFlagKey: 'reviews.enabled' },
     { href: '/loyalty', label: 'Loyalty', featureFlagKey: 'cafe.loyalty.enabled' },
+    { href: '/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
   ],
   defaultFeatureFlags: {
     'menu.enabled': true,
@@ -115,10 +117,12 @@ export const CAFE_MODULE: Module = {
     'loyalty.tiers.enabled': true,
     'cafe.happy_hour.enabled': false,
     'cafe.featured_coffee.enabled': false,
+    'promotions.enabled': true,
   },
   adminNavItems: [
     { href: '/admin/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled' },
     { href: '/admin/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled' },
+    { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
   ],
   enabled: true,
 }
@@ -141,12 +145,14 @@ export const BAR_MODULE: Module = {
     '/reservation',
     '/reviews',
     '/events',
+    '/promotions',
   ],
   navItems: [
     { href: '/menu', label: 'Drinks' },
     { href: '/reservation', label: 'Reservations', featureFlagKey: 'reservations.enabled' },
     { href: '/reviews', label: 'Reviews', featureFlagKey: 'reviews.enabled' },
     { href: '/events', label: 'Events', featureFlagKey: 'bar.events.enabled' },
+    { href: '/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
   ],
   defaultFeatureFlags: {
     'menu.enabled': true,
@@ -157,10 +163,12 @@ export const BAR_MODULE: Module = {
     'bar.happy_hour.enabled': false,
     'bar.events.enabled': false,
     'bar.featured_cocktails.enabled': false,
+    'promotions.enabled': true,
   },
   adminNavItems: [
     { href: '/admin/bar/events', label: 'Event Management', featureFlagKey: 'bar.events.enabled' },
     { href: '/admin/bar/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'bar.happy_hour.enabled' },
+    { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
   ],
   enabled: true,
 }

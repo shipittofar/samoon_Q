@@ -5,6 +5,8 @@ import { orderService } from '@/services/order.service'
 import { adminService } from '@/services/admin.service'
 import { loyaltyService } from '@/services/loyalty.service'
 import type { EarnPointsPayload } from '@/services/loyalty.service'
+import { promotionService } from '@/services/promotion.service'
+import type { CreatePromotionPayload, UpdatePromotionPayload } from '@/services/promotion.service'
 import {
   branchService,
   notificationService,
@@ -665,6 +667,70 @@ export function useUpdateMenuItem() {
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ['menu-items'] })
       qc.invalidateQueries({ queryKey: ['menu-item', id] })
+    },
+  })
+}
+
+// ── Promotion Hooks (P6.10) ───────────────────────────────────────────────────
+
+export function usePromotions() {
+  return useQuery({
+    queryKey: ['promotions'],
+    queryFn: () => promotionService.getPromotions(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useActivePromotions() {
+  return useQuery({
+    queryKey: ['active-promotions'],
+    queryFn: () => promotionService.getActivePromotions(),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useCreatePromotion() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreatePromotionPayload) => promotionService.createPromotion(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['promotions'] })
+      qc.invalidateQueries({ queryKey: ['active-promotions'] })
+    },
+  })
+}
+
+export function useUpdatePromotion() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdatePromotionPayload }) =>
+      promotionService.updatePromotion(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['promotions'] })
+      qc.invalidateQueries({ queryKey: ['active-promotions'] })
+    },
+  })
+}
+
+export function useDisablePromotion() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => promotionService.disablePromotion(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['promotions'] })
+      qc.invalidateQueries({ queryKey: ['active-promotions'] })
+    },
+  })
+}
+
+export function useActivatePromotion() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => promotionService.activatePromotion(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['promotions'] })
+      qc.invalidateQueries({ queryKey: ['active-promotions'] })
     },
   })
 }

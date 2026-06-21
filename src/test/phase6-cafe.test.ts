@@ -234,9 +234,9 @@ describe('CAFE_MODULE — navigation items (P6.3)', () => {
     expect(getHeaderNav(['cafe']).some((n) => n.label === 'Loyalty')).toBe(true)
   })
 
-  it('getHeaderNav([cafe]) returns exactly 4 items', async () => {
+  it('getHeaderNav([cafe]) returns exactly 5 items', async () => {
     const { getHeaderNav } = await freshRegistry()
-    expect(getHeaderNav(['cafe'])).toHaveLength(4)
+    expect(getHeaderNav(['cafe'])).toHaveLength(5)
   })
 })
 

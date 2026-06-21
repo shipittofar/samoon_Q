@@ -554,6 +554,61 @@ export const LOYALTY_TIER_THRESHOLDS: Record<LoyaltyTier, number> = {
   platinum: 15_000,
 }
 
+// ── Promotion & Happy Hour Domain Types (P6.10) ───────────────────────────────
+
+export type PromotionType =
+  | 'percentage_discount'
+  | 'fixed_discount'
+  | 'buy_one_get_one'
+  | 'happy_hour'
+
+/** Days of the week using ISO numeric convention (1=Mon … 7=Sun). */
+export type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7
+
+export interface PromotionSchedule {
+  /** ISO date-time for when the promotion becomes active. */
+  startAt: string
+  /** ISO date-time for when the promotion expires. Omit for open-ended. */
+  endAt?: string
+  /** Restrict to specific weekdays. Omit to apply every day. */
+  weekdays?: Weekday[]
+  /** Wall-clock start of the daily time window, e.g. "16:00". */
+  timeWindowStart?: string
+  /** Wall-clock end of the daily time window, e.g. "19:00". */
+  timeWindowEnd?: string
+}
+
+export interface HappyHourRule {
+  /** Unique identifier. */
+  id: string
+  /** Display name. */
+  name: string
+  /** Discount percentage applied during happy-hour window (0–100). */
+  discountPercent: number
+  /** Applies to specific menu item IDs; empty means all items. */
+  applicableItemIds: string[]
+  schedule: PromotionSchedule
+  active: boolean
+  createdAt: string
+}
+
+export interface PromotionRule {
+  id: string
+  name: string
+  description: string
+  type: PromotionType
+  /** Percentage off (0–100) for percentage_discount / happy_hour. */
+  discountPercent?: number
+  /** Fixed currency amount off for fixed_discount. */
+  discountAmount?: number
+  /** Applies to specific menu item IDs; empty means all items. */
+  applicableItemIds: string[]
+  schedule: PromotionSchedule
+  active: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface FoodTruckSettings {
   /** Enable route tracking for the food truck. Corresponds to food_truck.route_tracking.enabled flag. */
   routeTrackingEnabled: boolean

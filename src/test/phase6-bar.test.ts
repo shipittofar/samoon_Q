@@ -280,9 +280,9 @@ describe('G. feature flags', () => {
 describe('H. header navigation', () => {
   afterEach(() => vi.resetModules())
 
-  it('BAR_MODULE.navItems has 4 items', async () => {
+  it('BAR_MODULE.navItems has 5 items', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
-    expect(BAR_MODULE.navItems).toHaveLength(4)
+    expect(BAR_MODULE.navItems).toHaveLength(5)
   })
 
   it('first nav item is Menu linking to /menu', async () => {
@@ -340,9 +340,9 @@ describe('I. admin navigation', () => {
     expect(BAR_MODULE.adminNavItems).toBeDefined()
   })
 
-  it('BAR_MODULE.adminNavItems has 2 items', async () => {
+  it('BAR_MODULE.adminNavItems has 3 items', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
-    expect(BAR_MODULE.adminNavItems).toHaveLength(2)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(3)
   })
 
   it('Event Management admin item links to /admin/bar/events', async () => {
@@ -377,9 +377,9 @@ describe('I. admin navigation', () => {
 describe('J. getHeaderNav behavior', () => {
   afterEach(() => vi.resetModules())
 
-  it('getHeaderNav(["bar"]) returns 4 items', async () => {
+  it('getHeaderNav(["bar"]) returns 5 items', async () => {
     const { getHeaderNav } = await freshRegistry()
-    expect(getHeaderNav(['bar'])).toHaveLength(4)
+    expect(getHeaderNav(["bar"])).toHaveLength(5)
   })
 
   it('getHeaderNav(["bar"]) includes Drinks', async () => {
@@ -425,9 +425,9 @@ describe('J. getHeaderNav behavior', () => {
 describe('K. getAdminNav behavior', () => {
   afterEach(() => vi.resetModules())
 
-  it('getAdminNav(["bar"]) returns 2 items', async () => {
+  it('getAdminNav(["bar"]) returns 3 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['bar'])).toHaveLength(2)
+    expect(getAdminNav(["bar"])).toHaveLength(3)
   })
 
   it('getAdminNav(["bar"]) includes Event Management', async () => {
@@ -602,9 +602,9 @@ describe('N. cafe regression', () => {
     expect(labels).toContain('Happy Hour Settings')
   })
 
-  it('getAdminNav(["cafe"]) still returns 2 cafe-only admin items', async () => {
+  it('getAdminNav(["cafe"]) still returns 3 cafe admin items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(2)
+    expect(getAdminNav(['cafe'])).toHaveLength(3)
   })
 })
 
