@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin } from 'lucide-react'
 import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
+import type { TenantTheme } from '@/types'
 import { useLogout, useSetLocale } from '@/hooks'
 import { cn, formatCurrency } from '@/utils'
 import { Avatar } from '@/components/ui'
@@ -35,6 +36,7 @@ export function Header() {
   // tenant.businessTypes values must be module key strings (e.g. 'restaurant'),
   // not LocationType values — see Tenant.businessTypes JSDoc in types/index.ts.
   const navLinks = getHeaderNav(tenant.businessTypes)
+  const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
@@ -71,12 +73,25 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <span className="text-white text-sm font-bold">S</span>
-            </div>
-            <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors">
-              Savor
-            </span>
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt={`${tenant.name} logo`}
+                width={120}
+                height={32}
+                className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+              />
+            ) : (
+              <>
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                  <span className="text-white text-sm font-bold">S</span>
+                </div>
+                <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors">
+                  Savor
+                </span>
+              </>
+            )}
           </Link>
 
           {/* Desktop Nav */}
