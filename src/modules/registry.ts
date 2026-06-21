@@ -258,12 +258,26 @@ export const MOBILE_CAFE_MODULE: Module = {
   businessTypes: ['mobile_cafe'],
   capabilities: {
     required: ['menu', 'ordering', 'qr_table', 'notifications'],
-    optional: ['reviews', 'loyalty'],
+    optional: ['reservations', 'reviews', 'loyalty'],
     defaultEnabled: ['reviews', 'loyalty'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  routes: [
+    '/menu',
+    '/checkout',
+    '/checkout/success',
+    '/checkout/failure',
+    '/order',
+    '/reviews',
+    '/loyalty',
+    '/reservation',
+    '/location',
+  ],
   navItems: [
     { href: '/menu', label: 'Menu' },
+    { href: '/reviews', label: 'Reviews', featureFlagKey: 'reviews.enabled' },
+    { href: '/loyalty', label: 'Loyalty', featureFlagKey: 'mobile_cafe.loyalty.enabled' },
+    { href: '/reservation', label: 'Reservations', featureFlagKey: 'reservations.enabled' },
+    { href: '/location', label: 'Live Location', featureFlagKey: 'mobile_cafe.live_location.enabled' },
   ],
   defaultFeatureFlags: {
     'menu.enabled': true,
@@ -272,7 +286,16 @@ export const MOBILE_CAFE_MODULE: Module = {
     'order_tracking.enabled': true,
     'pickup.enabled': true,
     'reservations.enabled': false,
+    'mobile_cafe.route_tracking.enabled': true,
+    'mobile_cafe.live_location.enabled': true,
+    'mobile_cafe.loyalty.enabled': true,
+    'mobile_cafe.featured_coffee.enabled': false,
+    'mobile_cafe.daily_specials.enabled': false,
   },
+  adminNavItems: [
+    { href: '/admin/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled' },
+    { href: '/admin/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled' },
+  ],
   enabled: true,
 }
 

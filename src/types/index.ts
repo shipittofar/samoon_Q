@@ -514,6 +514,19 @@ export interface FoodTruckSettings {
   featuredRouteEnabled: boolean
 }
 
+export interface MobileCafeSettings {
+  /** Enable route tracking for the mobile cafe. Corresponds to mobile_cafe.route_tracking.enabled flag. */
+  routeTrackingEnabled: boolean
+  /** Broadcast live GPS location to customers. Corresponds to mobile_cafe.live_location.enabled flag. */
+  liveLocationEnabled: boolean
+  /** Enable stamp-card / points loyalty program. Corresponds to mobile_cafe.loyalty.enabled flag. */
+  loyaltyEnabled: boolean
+  /** Surface a curated featured-coffee section on the menu. Corresponds to mobile_cafe.featured_coffee.enabled flag. */
+  featuredCoffeeEnabled: boolean
+  /** Highlight daily specials on the menu/home page. Corresponds to mobile_cafe.daily_specials.enabled flag. */
+  dailySpecialsEnabled: boolean
+}
+
 // ============================================================
 // NOTIFICATION TYPES
 // ============================================================
