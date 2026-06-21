@@ -29,7 +29,9 @@ import type {
   LoginCredentials,
   MenuItem,
   NavItem,
+  Order,
   OrderStatus,
+  PaginatedResponse,
   Permission,
   RegisterData,
   SystemReadiness,
@@ -470,6 +472,20 @@ export function useUpdateOrderStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
       adminService.updateOrderStatus(id, status),
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: ['admin-orders'] })
+      const snapshots = qc.getQueriesData<PaginatedResponse<Order>>({ queryKey: ['admin-orders'] })
+      qc.setQueriesData<PaginatedResponse<Order>>(
+        { queryKey: ['admin-orders'] },
+        (old) => old
+          ? { ...old, results: old.results.map((o) => o.id === id ? { ...o, status } : o) }
+          : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })

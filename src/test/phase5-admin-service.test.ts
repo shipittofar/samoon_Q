@@ -445,7 +445,7 @@ describe('hooks/index.ts — P5.1 admin hooks source', () => {
 
   it('useUpdateOrderStatus invalidates orders', () => {
     const block = src().slice(src().indexOf('useUpdateOrderStatus'))
-    expect(block.slice(0, 400)).toContain("'orders'")
+    expect(block.slice(0, 1100)).toContain("'orders'")
   })
 
   it('useConfirmReservation invalidates admin-reservations', () => {
