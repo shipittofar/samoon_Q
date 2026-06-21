@@ -9,7 +9,7 @@ import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenant
 import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
-import { useNotificationWebSocket } from '@/hooks/client'
+import { useNotificationWebSocket, useFcmRegistration } from '@/hooks/client'
 import { STALE_TIME, CACHE_TIME } from '@/constants'
 import { ServiceWorkerUpdateBanner } from '@/components/pwa/ServiceWorkerUpdateBanner'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
@@ -160,6 +160,16 @@ function NotificationWebSocketProvider({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/**
+ * Requests FCM permission + token after login and registers the device
+ * with the backend (P4.2). Placed inside AuthBootstrapper so it only
+ * runs when an authenticated session is present.
+ */
+function FcmRegistrationProvider({ children }: { children: ReactNode }) {
+  useFcmRegistration()
+  return <>{children}</>
+}
+
 function AuthBootstrapper({ children }: { children: ReactNode }) {
   const { setUser, setLoading } = useAuthStore()
   const setFavorites = useFavoritesStore((s) => s.setFavorites)
@@ -190,6 +200,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <TenantBootstrapper>
             <TenantThemeProvider>
               <AuthBootstrapper>
+                <FcmRegistrationProvider>
                 <NotificationWebSocketProvider>
                   {children}
                   {/* P4.8.5 — SW update banner (non-blocking) */}
@@ -198,6 +209,7 @@ export function Providers({ children }: { children: ReactNode }) {
                   <OfflineIndicator />
                   <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
                 </NotificationWebSocketProvider>
+                </FcmRegistrationProvider>
               </AuthBootstrapper>
             </TenantThemeProvider>
           </TenantBootstrapper>

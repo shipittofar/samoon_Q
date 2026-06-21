@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { orderWebSocket, notificationWebSocket, type ConnectionStatus } from '@/services/websocket.service'
 import { useNotificationStore } from '@/stores'
 import { useAuthStore } from '@/stores'
+import { requestNotificationToken, onForegroundMessage } from '@/lib/firebase'
+import { notificationService } from '@/services/combined.service'
 import type { Notification, OrderStatus } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -161,4 +163,63 @@ export function useMediaQuery(query: string): boolean {
   }, [query])
 
   return matches
+}
+
+// ── useFcmRegistration — P4.2 ─────────────────────────────────────────────────
+/**
+ * Requests FCM permission + token after login and registers the device with
+ * the backend. Subscribes to foreground messages and surfaces them via the
+ * existing notification store + toast system.
+ *
+ * Idempotent: once a token is registered in this session it is not re-sent.
+ * Gracefully handles: unsupported browser, denied permission, missing Firebase
+ * config, token fetch failure, backend registration failure.
+ */
+export function useFcmRegistration() {
+  const { isAuthenticated } = useAuthStore()
+  const { addNotification } = useNotificationStore()
+  const registered = useRef(false)
+
+  useEffect(() => {
+    if (!isAuthenticated || registered.current) return
+
+    let unsubForeground: (() => void) | null = null
+
+    const register = async () => {
+      const token = await requestNotificationToken()
+      if (!token) return
+
+      registered.current = true
+
+      // Register token with backend — fire-and-forget; failure is non-fatal
+      notificationService.registerDevice(token, 'web').catch(() => {})
+
+      // Handle foreground messages (app is open and focused)
+      unsubForeground = onForegroundMessage((payload) => {
+        const { title = 'Savor', body = '' } = payload.notification ?? {}
+        const notification: Notification = {
+          id: `fcm-${Date.now()}`,
+          type: (payload.data?.type as Notification['type']) ?? 'system',
+          title,
+          message: body,
+          data: payload.data as Record<string, unknown> | undefined,
+          is_read: false,
+          created_at: new Date().toISOString(),
+        }
+        addNotification(notification)
+        toast(body || title, {
+          icon: notification.type === 'order_update' ? '📦'
+            : notification.type === 'promotion' ? '🎉'
+            : notification.type === 'reservation_update' ? '📅'
+            : '🔔',
+        })
+      })
+    }
+
+    register()
+
+    return () => {
+      unsubForeground?.()
+    }
+  }, [isAuthenticated, addNotification])
 }
