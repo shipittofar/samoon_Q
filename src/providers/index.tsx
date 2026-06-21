@@ -80,10 +80,30 @@ function RTLProvider({ children }: { children: ReactNode }) {
 }
 
 /**
+ * Reads the tenant slug injected by the middleware (P1B.3).
+ *
+ * The middleware sets the X-Tenant-Slug request header. Next.js 15 App Router
+ * exposes custom request headers to client components via a meta tag injected
+ * by the server; we read it via the `headers()` API on the server. On the
+ * client side we fall back to NEXT_PUBLIC_TENANT_SLUG for dev environments.
+ *
+ * This function is called once per bootstrap, so it reads directly from the
+ * DOM meta tag written by the root layout (if present) or falls back to env.
+ */
+function readTenantSlug(): string | undefined {
+  if (typeof document === 'undefined') return undefined
+  // Check meta tag written by root layout: <meta name="x-tenant-slug" content="..." />
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="x-tenant-slug"]')
+  if (meta?.content) return meta.content
+  // Dev fallback via env var (available in browser builds)
+  return process.env.NEXT_PUBLIC_TENANT_SLUG || undefined
+}
+
+/**
  * Coordinates the full app bootstrap sequence at startup (P1B.6).
  *
  * Sequence:
- *   1. loadTenant()            — resolves tenant; sets tenantState to 'ready' or 'fallback'
+ *   1. loadTenant(slug)        — resolves tenant by slug (P1B.3); falls back to DEFAULT_TENANT
  *   2. setRbacInitialized(true) — P1B.1: RBAC permission map is static; mark ready immediately.
  *                                  Phase 2+: replace with async role fetch if needed.
  *   3. setFeatureFlags(flags)  — P1B.2: resolve module defaults + tenant overrides
@@ -91,9 +111,6 @@ function RTLProvider({ children }: { children: ReactNode }) {
  *
  * After this sequence, useSystemReady().canExecute becomes true and all
  * Phase 1B systems (RBAC, feature flags, routing) are permitted to execute.
- *
- * Phase 1B (P1B.3): middleware will inject X-Tenant-Slug from the subdomain;
- * this bootstrapper will pass the slug to loadTenant() at that point.
  */
 function TenantBootstrapper({ children }: { children: ReactNode }) {
   const { loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags } = useTenantStore()
@@ -102,7 +119,8 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
     if (booted.current) return
     booted.current = true
     setEnvironmentTags()
-    loadTenant().then(() => {
+    const slug = readTenantSlug()
+    loadTenant(slug).then(() => {
       // P1B.1 — RBAC: static permission map; initialization is synchronous
       setRbacInitialized(true)
 

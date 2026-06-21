@@ -15,24 +15,63 @@ function isProtectedRoute(pathname: string): boolean {
 }
 
 /**
- * Authentication middleware — Phase 3 (P3.1).
+ * Resolves the tenant slug from the incoming request (P1B.3).
  *
- * Runs on the Edge runtime before every request matching the `config.matcher`.
- * Reads the `access_token` cookie (mirrored from localStorage by setTokens())
- * and redirects unauthenticated users to /login.
+ * Priority:
+ *   1. Subdomain of the host (production): restaurant-a.example.com → 'restaurant-a'
+ *      Skips 'www' — treat www.example.com as no-tenant (DEFAULT_TENANT).
+ *   2. NEXT_PUBLIC_TENANT_SLUG env var (development / local override).
+ *   3. Returns undefined — caller falls back to DEFAULT_TENANT.
+ */
+function resolveTenantSlug(request: NextRequest): string | undefined {
+  const host = request.headers.get('host') ?? ''
+  // Strip port for local dev (e.g. localhost:3000 → localhost)
+  const hostname = host.split(':')[0]
+  const parts = hostname.split('.')
+
+  // Subdomain present and not 'www' → use as slug
+  if (parts.length >= 3 && parts[0] !== 'www') {
+    return parts[0]
+  }
+
+  // Dev fallback: env var (set at build time, available in Edge runtime via process.env)
+  const envSlug = process.env.NEXT_PUBLIC_TENANT_SLUG
+  if (envSlug) return envSlug
+
+  return undefined
+}
+
+/**
+ * Middleware — authentication (P3.1) + tenant resolution (P1B.3).
  *
- * Does NOT validate the JWT signature — signature validation happens at the
- * API layer. The cookie presence check is sufficient to gate the UI: even if
- * an attacker forges the cookie they receive no real data because the API will
- * reject their requests with 401 and the frontend will clear tokens.
+ * Runs on the Edge runtime before every matched request.
+ *
+ * Tenant resolution: extracts slug from subdomain or env var, then injects
+ * it as the X-Tenant-Slug request header so server components and API routes
+ * can read it without re-parsing the host.
+ *
+ * Auth: reads the `access_token` cookie and redirects unauthenticated users
+ * to /login for protected routes.
  */
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl
 
-  if (!isProtectedRoute(pathname)) return NextResponse.next()
+  // ── Tenant resolution (P1B.3) ──────────────────────────────────────────────
+  const slug = resolveTenantSlug(request)
+  const requestHeaders = new Headers(request.headers)
+  if (slug) {
+    requestHeaders.set('x-tenant-slug', slug)
+  }
+
+  // ── Auth guard (P3.1) ──────────────────────────────────────────────────────
+  if (!isProtectedRoute(pathname)) {
+    return NextResponse.next({ request: { headers: requestHeaders } })
+  }
 
   const token = request.cookies.get(JWT_ACCESS_KEY)?.value
-  if (token) return NextResponse.next()
+  if (token) {
+    return NextResponse.next({ request: { headers: requestHeaders } })
+  }
 
   const loginUrl = new URL('/login', request.url)
   loginUrl.searchParams.set('redirect', pathname)
@@ -40,5 +79,11 @@ export function middleware(request: NextRequest): NextResponse {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/checkout/:path*', '/admin/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/checkout/:path*',
+    '/admin/:path*',
+    // Also run on public routes so tenant header is injected for all page loads
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }

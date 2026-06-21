@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
+import { headers } from 'next/headers'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
 import { Providers } from '@/providers'
 import './globals.css'
@@ -28,9 +29,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale()
   const messages = await getMessages()
   const isRTL = ['fa', 'ar'].includes(locale)
+  // P1B.3 — Read tenant slug injected by middleware and expose it to the client
+  // bootstrapper via a <meta> tag. The bootstrapper calls readTenantSlug() which
+  // queries this tag, so it knows which tenant to load without re-parsing the host.
+  const headersList = await headers()
+  const tenantSlug = headersList.get('x-tenant-slug') ?? ''
   return (
     <html lang={locale} dir={isRTL ? 'rtl' : 'ltr'} suppressHydrationWarning>
       <head>
+        {tenantSlug && <meta name="x-tenant-slug" content={tenantSlug} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         {/* P4.7.4 — Preconnect to external origins actually used by the app */}
         <link rel="preconnect" href="https://images.unsplash.com" />
