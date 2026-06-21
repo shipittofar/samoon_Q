@@ -1,0 +1,849 @@
+{
+  "meta": {
+    "project": "Savor Restaurant SaaS",
+    "generated": "2026-06-21",
+    "source": "src/types/index.ts, src/services/**, src/hooks/index.ts",
+    "rest_base_url": "${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api}",
+    "ws_base_url": "${NEXT_PUBLIC_WS_BASE_URL:-ws://localhost:8000/ws}"
+  },
+
+  "pagination": {
+    "envelope": {
+      "count": "number",
+      "next": "string | null",
+      "previous": "string | null",
+      "results": "T[]"
+    },
+    "query_params": {
+      "page": { "type": "number", "default": 1 },
+      "page_size": { "type": "number", "default": 20 }
+    }
+  },
+
+  "error_response": {
+    "schema": {
+      "message": "string",
+      "code": "string (optional)",
+      "errors": "Record<string, string[]> (optional)"
+    },
+    "status_codes": {
+      "200": "OK",
+      "201": "Created",
+      "204": "No Content",
+      "400": "Bad Request / Validation Error",
+      "401": "Unauthenticated",
+      "403": "Forbidden",
+      "404": "Not Found",
+      "500": "Internal Server Error"
+    }
+  },
+
+  "headers": {
+    "request": {
+      "Authorization": "Bearer {access_token}",
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "X-CSRFToken": "{csrftoken cookie value}",
+      "X-Tenant-Slug": "{tenant slug from middleware}"
+    },
+    "cors": {
+      "Access-Control-Allow-Origin": "http://localhost:3000",
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRFToken, X-Tenant-Slug"
+    }
+  },
+
+  "endpoints": [
+    {
+      "id": "auth.login",
+      "method": "POST",
+      "path": "/auth/login/",
+      "auth": "public",
+      "status": "READY",
+      "request_body": { "email": "string", "password": "string" },
+      "response_200": { "user": "User", "tokens": { "access": "string", "refresh": "string" } },
+      "frontend_types": ["User", "AuthTokens", "LoginCredentials"],
+      "type_source": "src/types/index.ts:8,23,26"
+    },
+    {
+      "id": "auth.register",
+      "method": "POST",
+      "path": "/auth/register/",
+      "auth": "public",
+      "status": "READY",
+      "request_body": {
+        "email": "string",
+        "phone": "string (optional)",
+        "password": "string",
+        "confirm_password": "string",
+        "first_name": "string",
+        "last_name": "string"
+      },
+      "response_201": { "user": "User", "tokens": { "access": "string", "refresh": "string" } },
+      "frontend_types": ["RegisterData"],
+      "type_source": "src/types/index.ts:30"
+    },
+    {
+      "id": "auth.logout",
+      "method": "POST",
+      "path": "/auth/logout/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": null,
+      "response_200": null
+    },
+    {
+      "id": "auth.me",
+      "method": "GET",
+      "path": "/auth/me/",
+      "auth": "customer",
+      "status": "READY",
+      "response_200": "User"
+    },
+    {
+      "id": "auth.token_refresh",
+      "method": "POST",
+      "path": "/auth/token/refresh/",
+      "auth": "public",
+      "status": "READY",
+      "request_body": { "refresh": "string" },
+      "response_200": { "access": "string", "refresh": "string" },
+      "notes": "Implement refresh token rotation"
+    },
+    {
+      "id": "auth.forgot_password",
+      "method": "POST",
+      "path": "/auth/forgot-password/",
+      "auth": "public",
+      "status": "READY",
+      "request_body": { "email": "string" },
+      "response_200": { "message": "string" }
+    },
+    {
+      "id": "auth.reset_password",
+      "method": "POST",
+      "path": "/auth/reset-password/",
+      "auth": "public",
+      "status": "READY",
+      "request_body": { "token": "string", "password": "string" },
+      "response_200": { "message": "string" }
+    },
+    {
+      "id": "auth.send_otp",
+      "method": "POST",
+      "path": "/auth/send-otp/",
+      "auth": "public",
+      "status": "READY",
+      "request_body": { "phone": "string" },
+      "response_200": { "message": "string" }
+    },
+    {
+      "id": "auth.verify_otp",
+      "method": "POST",
+      "path": "/auth/verify-otp/",
+      "auth": "public",
+      "status": "READY",
+      "request_body": { "phone": "string", "otp": "string" },
+      "response_200": { "user": "User", "tokens": "AuthTokens" },
+      "frontend_types": ["OTPVerifyData"],
+      "type_source": "src/types/index.ts:39"
+    },
+    {
+      "id": "auth.change_password",
+      "method": "POST",
+      "path": "/auth/change-password/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": { "old_password": "string", "new_password": "string" },
+      "response_200": { "message": "string" }
+    },
+
+    {
+      "id": "menu.categories",
+      "method": "GET",
+      "path": "/menu/categories/",
+      "auth": "public",
+      "tenant_aware": true,
+      "status": "READY",
+      "response_200": "Category[]",
+      "frontend_types": ["Category"],
+      "type_source": "src/types/index.ts:47"
+    },
+    {
+      "id": "menu.category",
+      "method": "GET",
+      "path": "/menu/categories/{id}/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_200": "Category"
+    },
+    {
+      "id": "menu.items",
+      "method": "GET",
+      "path": "/menu/items/",
+      "auth": "public",
+      "tenant_aware": true,
+      "status": "READY",
+      "query_params": {
+        "category": "string (optional)",
+        "search": "string (optional)",
+        "min_price": "number (optional)",
+        "max_price": "number (optional)",
+        "min_rating": "number (optional)",
+        "available": "boolean (optional)",
+        "sort": "string (optional)",
+        "page": "number (optional, default 1)",
+        "page_size": "number (optional, default 20)"
+      },
+      "response_200": "PaginatedResponse<MenuItem>",
+      "frontend_types": ["MenuItem", "MenuFilters"],
+      "type_source": "src/types/index.ts:65, src/services/menu.service.ts"
+    },
+    {
+      "id": "menu.item_create",
+      "method": "POST",
+      "path": "/menu/items/",
+      "auth": "admin",
+      "required_permission": "menu:manage",
+      "status": "READY",
+      "request_body": "Partial<MenuItem> (excluding id, slug, rating, rating_count)",
+      "response_201": "MenuItem"
+    },
+    {
+      "id": "menu.item_detail",
+      "method": "GET",
+      "path": "/menu/items/{id}/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_200": "MenuItem"
+    },
+    {
+      "id": "menu.item_update",
+      "method": "PATCH",
+      "path": "/menu/items/{id}/",
+      "auth": "admin",
+      "required_permission": "menu:manage",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "request_body": "Partial<MenuItem>",
+      "response_200": "MenuItem"
+    },
+    {
+      "id": "menu.item_delete",
+      "method": "DELETE",
+      "path": "/menu/items/{id}/",
+      "auth": "admin",
+      "required_permission": "menu:manage",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_204": null
+    },
+    {
+      "id": "menu.item_slug",
+      "method": "GET",
+      "path": "/menu/items/{slug}/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "slug": "string" },
+      "response_200": "MenuItem"
+    },
+    {
+      "id": "menu.featured",
+      "method": "GET",
+      "path": "/menu/items/featured/",
+      "auth": "public",
+      "status": "READY",
+      "response_200": "MenuItem[]"
+    },
+    {
+      "id": "menu.popular",
+      "method": "GET",
+      "path": "/menu/items/popular/",
+      "auth": "public",
+      "status": "READY",
+      "response_200": "MenuItem[]"
+    },
+    {
+      "id": "menu.search",
+      "method": "GET",
+      "path": "/menu/items/search/",
+      "auth": "public",
+      "status": "READY",
+      "query_params": { "q": "string (required)" },
+      "response_200": "MenuItem[]"
+    },
+    {
+      "id": "menu.related",
+      "method": "GET",
+      "path": "/menu/items/{id}/related/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_200": "MenuItem[]"
+    },
+    {
+      "id": "menu.item_reviews",
+      "method": "GET",
+      "path": "/menu/items/{itemId}/reviews/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "itemId": "string" },
+      "response_200": { "results": "Review[]", "count": "number", "average_rating": "number" }
+    },
+
+    {
+      "id": "orders.list",
+      "method": "GET",
+      "path": "/orders/",
+      "auth": "customer",
+      "status": "READY",
+      "query_params": { "page": "number", "page_size": "number" },
+      "response_200": "PaginatedResponse<Order>",
+      "frontend_types": ["Order"],
+      "type_source": "src/types/index.ts:169"
+    },
+    {
+      "id": "orders.create",
+      "method": "POST",
+      "path": "/orders/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": {
+        "branch_id": "string",
+        "items": [{ "menu_item_id": "string", "quantity": "number", "notes": "string?", "extras": "string[]" }],
+        "order_type": "delivery | pickup | dine_in",
+        "payment_method": "card | cash | online | wallet",
+        "delivery_address": "DeliveryAddress (required when order_type=delivery)",
+        "table_number": "number (required when order_type=dine_in)",
+        "discount_code": "string (optional)",
+        "notes": "string (optional)"
+      },
+      "response_201": "Order",
+      "frontend_types": ["CreateOrderPayload"],
+      "type_source": "src/services/order.service.ts"
+    },
+    {
+      "id": "orders.detail",
+      "method": "GET",
+      "path": "/orders/{id}/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_200": "Order"
+    },
+    {
+      "id": "orders.cancel",
+      "method": "POST",
+      "path": "/orders/{id}/cancel/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "request_body": null,
+      "response_200": "Order",
+      "business_rules": ["Only pending orders can be cancelled by customer"]
+    },
+    {
+      "id": "orders.reorder",
+      "method": "POST",
+      "path": "/orders/{id}/reorder/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_201": "Order"
+    },
+    {
+      "id": "orders.track",
+      "method": "GET",
+      "path": "/orders/{id}/track/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_200": "Order"
+    },
+    {
+      "id": "orders.validate_discount",
+      "method": "POST",
+      "path": "/orders/validate-discount/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": { "code": "string", "subtotal": "number" },
+      "response_200": {
+        "valid": "boolean",
+        "discount_type": "percent | fixed",
+        "discount_value": "number",
+        "discount_amount": "number",
+        "message": "string (optional, present when valid=false)"
+      }
+    },
+    {
+      "id": "orders.update_status",
+      "method": "PATCH",
+      "path": "/orders/{id}/status/",
+      "auth": "admin",
+      "required_permission": "orders:manage",
+      "status": "BLOCKED",
+      "path_params": { "id": "string" },
+      "request_body": { "status": "pending | accepted | preparing | ready | delivered | cancelled" },
+      "response_200": "Order",
+      "call_sites": ["src/services/admin.service.ts:184", "src/hooks/index.ts:useUpdateOrderStatus"],
+      "notes": "Backend must append to status_history and broadcast on ws/orders/{id}/"
+    },
+
+    {
+      "id": "payments.create_intent",
+      "method": "POST",
+      "path": "/payments/create-intent/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": { "amount": "number (cents)", "currency": "string (optional, default usd)", "order_description": "string (optional)", "branch_id": "string (optional)" },
+      "response_200": { "client_secret": "string", "payment_intent_id": "string", "amount": "number", "currency": "string" }
+    },
+    {
+      "id": "payments.confirm",
+      "method": "POST",
+      "path": "/payments/confirm/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": { "payment_intent_id": "string" },
+      "response_200": { "status": "string", "payment_intent_id": "string", "error": "string | null" }
+    },
+
+    {
+      "id": "reservations.list",
+      "method": "GET",
+      "path": "/reservations/",
+      "auth": "customer",
+      "status": "READY",
+      "query_params": { "page": "number", "page_size": "number" },
+      "response_200": "PaginatedResponse<Reservation>",
+      "frontend_types": ["Reservation"],
+      "type_source": "src/types/index.ts:206"
+    },
+    {
+      "id": "reservations.create",
+      "method": "POST",
+      "path": "/reservations/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": {
+        "branch_id": "string",
+        "date": "string (YYYY-MM-DD)",
+        "time": "string (HH:MM)",
+        "guests": "number",
+        "name": "string",
+        "phone": "string",
+        "email": "string (optional)",
+        "notes": "string (optional)"
+      },
+      "response_201": "Reservation",
+      "frontend_types": ["CreateReservationPayload"],
+      "type_source": "src/services/combined.service.ts"
+    },
+    {
+      "id": "reservations.detail",
+      "method": "GET",
+      "path": "/reservations/{id}/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_200": "Reservation"
+    },
+    {
+      "id": "reservations.cancel",
+      "method": "POST",
+      "path": "/reservations/{id}/cancel/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "request_body": null,
+      "response_200": "Reservation with status=cancelled"
+    },
+    {
+      "id": "reservations.confirm",
+      "method": "POST",
+      "path": "/reservations/{id}/confirm/",
+      "auth": "admin",
+      "required_permission": "reservations:manage",
+      "status": "BLOCKED",
+      "path_params": { "id": "string" },
+      "request_body": null,
+      "response_200": "Reservation with status=confirmed and confirmation_code set",
+      "call_sites": ["src/services/admin.service.ts:208", "src/hooks/index.ts:useConfirmReservation"],
+      "notes": "confirmation_code format: SAV-{4-digit number}. Only pending reservations can be confirmed."
+    },
+    {
+      "id": "reservations.available_slots",
+      "method": "GET",
+      "path": "/reservations/available-slots/",
+      "auth": "public",
+      "status": "READY",
+      "query_params": { "date": "string (YYYY-MM-DD)", "branch_id": "string" },
+      "response_200": "string[] (HH:MM time strings)"
+    },
+
+    {
+      "id": "branches.list",
+      "method": "GET",
+      "path": "/branches/",
+      "auth": "public",
+      "tenant_aware": true,
+      "status": "READY",
+      "response_200": "Branch[]",
+      "frontend_types": ["Branch", "Location"],
+      "type_source": "src/types/index.ts:334,356"
+    },
+    {
+      "id": "branches.detail",
+      "method": "GET",
+      "path": "/branches/{id}/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_200": "Branch"
+    },
+    {
+      "id": "branches.nearby",
+      "method": "GET",
+      "path": "/branches/nearby/",
+      "auth": "public",
+      "status": "READY",
+      "query_params": { "lat": "number", "lng": "number", "radius": "number (optional, km, default 10)" },
+      "response_200": "Branch[] (sorted by distance)"
+    },
+
+    {
+      "id": "users.profile",
+      "method": "GET",
+      "path": "/users/profile/",
+      "auth": "customer",
+      "status": "READY",
+      "response_200": "User"
+    },
+    {
+      "id": "users.update_profile",
+      "method": "PATCH",
+      "path": "/users/profile/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": "Partial<User> (excluding id, role, created_at, is_verified)",
+      "response_200": "User"
+    },
+    {
+      "id": "users.avatar",
+      "method": "POST",
+      "path": "/users/avatar/",
+      "auth": "customer",
+      "status": "READY",
+      "content_type": "multipart/form-data",
+      "request_body": { "avatar": "File (JPEG|PNG|WebP|GIF, max 5MB)" },
+      "response_200": { "avatar_url": "string" }
+    },
+    {
+      "id": "users.addresses",
+      "method": "GET",
+      "path": "/users/addresses/",
+      "auth": "customer",
+      "status": "READY",
+      "response_200": "Address[]",
+      "frontend_types": ["Address"],
+      "type_source": "src/types/index.ts:447"
+    },
+    {
+      "id": "users.address_create",
+      "method": "POST",
+      "path": "/users/addresses/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": "Address (excluding id)",
+      "response_201": "Address"
+    },
+    {
+      "id": "users.address_delete",
+      "method": "DELETE",
+      "path": "/users/addresses/{id}/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_204": null
+    },
+    {
+      "id": "users.favorites",
+      "method": "GET",
+      "path": "/users/favorites/",
+      "auth": "customer",
+      "status": "READY",
+      "response_200": "string[] (MenuItem IDs)"
+    },
+    {
+      "id": "users.toggle_favorite",
+      "method": "POST",
+      "path": "/users/favorites/{itemId}/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "itemId": "string" },
+      "request_body": null,
+      "response_200": { "favorited": "boolean" }
+    },
+
+    {
+      "id": "notifications.list",
+      "method": "GET",
+      "path": "/notifications/",
+      "auth": "customer",
+      "status": "READY",
+      "query_params": { "page": "number", "page_size": "number" },
+      "response_200": "PaginatedResponse<Notification>",
+      "frontend_types": ["Notification"],
+      "type_source": "src/types/index.ts:405"
+    },
+    {
+      "id": "notifications.mark_read",
+      "method": "POST",
+      "path": "/notifications/{id}/read/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_200": null
+    },
+    {
+      "id": "notifications.mark_all_read",
+      "method": "POST",
+      "path": "/notifications/read-all/",
+      "auth": "customer",
+      "status": "READY",
+      "response_200": null
+    },
+    {
+      "id": "notifications.delete",
+      "method": "DELETE",
+      "path": "/notifications/{id}/",
+      "auth": "customer",
+      "status": "READY",
+      "path_params": { "id": "string" },
+      "response_204": null
+    },
+    {
+      "id": "notifications.register_device",
+      "method": "POST",
+      "path": "/notifications/register-device/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": { "token": "string", "platform": "web | ios | android" },
+      "response_200": null
+    },
+
+    {
+      "id": "tenants.by_slug",
+      "method": "GET",
+      "path": "/tenants/{slug}/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "slug": "string" },
+      "response_200": "Tenant",
+      "frontend_types": ["Tenant"],
+      "type_source": "src/types/index.ts:286",
+      "notes": "createdAt field must be camelCase (not created_at)"
+    },
+    {
+      "id": "tenants.current",
+      "method": "GET",
+      "path": "/tenants/current/",
+      "auth": "public",
+      "status": "READY",
+      "notes": "Resolved from Host header or X-Tenant-Slug header",
+      "response_200": "Tenant"
+    },
+
+    {
+      "id": "reviews.create",
+      "method": "POST",
+      "path": "/reviews/",
+      "auth": "customer",
+      "status": "READY",
+      "request_body": { "menu_item_id": "string", "rating": "number (1-5)", "comment": "string (optional)", "order_id": "string (optional)" },
+      "response_201": "Review",
+      "frontend_types": ["Review", "CreateReviewPayload"],
+      "type_source": "src/types/index.ts:434, src/services/review.service.ts"
+    },
+    {
+      "id": "reviews.list",
+      "method": "GET",
+      "path": "/reviews/",
+      "auth": "customer",
+      "status": "READY",
+      "query_params": { "page": "number", "page_size": "number" },
+      "response_200": "PaginatedResponse<Review>"
+    },
+
+    {
+      "id": "tables.info",
+      "method": "GET",
+      "path": "/tables/{tableId}/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "tableId": "string" },
+      "response_200": "TableInfo",
+      "frontend_types": ["TableInfo"],
+      "type_source": "src/types/index.ts:99"
+    },
+    {
+      "id": "tables.order",
+      "method": "POST",
+      "path": "/tables/{tableId}/order/",
+      "auth": "public",
+      "status": "READY",
+      "path_params": { "tableId": "string" },
+      "request_body": "CreateOrderPayload with order_type=dine_in",
+      "response_201": "Order"
+    },
+
+    {
+      "id": "admin.stats",
+      "method": "GET",
+      "path": "/admin/stats/",
+      "auth": "admin",
+      "required_permission": "dashboard:access",
+      "status": "BLOCKED",
+      "query_params": { "period_days": "number (optional, default 30)" },
+      "response_200": "AdminStats",
+      "frontend_types": ["AdminStats", "AdminTopItem"],
+      "type_source": "src/types/index.ts:539,546",
+      "call_sites": ["src/services/admin.service.ts:162", "src/hooks/index.ts:useAdminStats"]
+    },
+    {
+      "id": "admin.orders",
+      "method": "GET",
+      "path": "/admin/orders/",
+      "auth": "admin",
+      "required_permission": "orders:manage",
+      "status": "PARTIAL",
+      "current_fallback": "GET /orders/?admin=true",
+      "query_params": {
+        "status": "OrderStatus (optional)",
+        "order_type": "OrderType (optional)",
+        "search": "string (optional, matches order_number or user first_name)",
+        "page": "number",
+        "page_size": "number"
+      },
+      "response_200": "PaginatedResponse<Order>",
+      "frontend_types": ["AdminOrderFilters"],
+      "type_source": "src/types/index.ts:567",
+      "call_sites": ["src/services/admin.service.ts:171", "src/hooks/index.ts:useAdminOrders"]
+    },
+    {
+      "id": "admin.reservations",
+      "method": "GET",
+      "path": "/admin/reservations/",
+      "auth": "admin",
+      "required_permission": "reservations:manage",
+      "status": "PARTIAL",
+      "current_fallback": "GET /reservations/?admin=true",
+      "query_params": {
+        "status": "ReservationStatus (optional)",
+        "branch_id": "string (optional)",
+        "date": "string YYYY-MM-DD (optional)",
+        "search": "string (optional, matches name or phone)",
+        "page": "number",
+        "page_size": "number"
+      },
+      "response_200": "PaginatedResponse<Reservation>",
+      "frontend_types": ["AdminReservationFilters"],
+      "type_source": "src/types/index.ts:574",
+      "call_sites": ["src/services/admin.service.ts:195", "src/hooks/index.ts:useAdminReservations"]
+    },
+    {
+      "id": "admin.customers",
+      "method": "GET",
+      "path": "/admin/customers/",
+      "auth": "admin",
+      "required_permission": "users:manage",
+      "status": "BLOCKED",
+      "query_params": {
+        "tier": "new | regular | vip (optional)",
+        "search": "string (optional, case-insensitive, matches first_name+last_name or email)",
+        "page": "number",
+        "page_size": "number"
+      },
+      "response_200": "PaginatedResponse<AdminCustomer>",
+      "frontend_types": ["AdminCustomer", "AdminCustomerFilters"],
+      "type_source": "src/types/index.ts:521,586",
+      "call_sites": ["src/services/admin.service.ts:222", "src/hooks/index.ts:useAdminCustomers"],
+      "tier_computation": {
+        "new": "order_count < 5",
+        "regular": "5 <= order_count < 15",
+        "vip": "order_count >= 15"
+      }
+    },
+    {
+      "id": "admin.customer_stats",
+      "method": "GET",
+      "path": "/admin/customers/{id}/stats/",
+      "auth": "admin",
+      "required_permission": "users:manage",
+      "status": "BLOCKED",
+      "path_params": { "id": "string" },
+      "response_200": "AdminCustomerStats",
+      "frontend_types": ["AdminCustomerStats"],
+      "type_source": "src/types/index.ts:530",
+      "call_sites": ["src/services/admin.service.ts:236", "src/hooks/index.ts:useAdminCustomerStats"]
+    }
+  ],
+
+  "websocket_channels": [
+    {
+      "id": "ws.orders",
+      "url": "ws://{WS_BASE_URL}/orders/{orderId}/?token={accessToken}",
+      "auth": "customer (must own the order)",
+      "status": "READY",
+      "server_to_client_messages": [
+        { "type": "order.status_update", "data": { "status": "OrderStatus", "estimated_time": "number (optional, minutes)" } },
+        { "type": "connected", "data": null },
+        { "type": "disconnected", "data": null }
+      ],
+      "frontend_call_site": "src/hooks/client.ts:useOrderWebSocket"
+    },
+    {
+      "id": "ws.notifications",
+      "url": "ws://{WS_BASE_URL}/notifications/?token={accessToken}",
+      "auth": "customer",
+      "status": "READY",
+      "server_to_client_messages": [
+        { "type": "notification.new", "data": "Notification" }
+      ],
+      "frontend_call_site": "src/hooks/client.ts:useNotificationWebSocket"
+    }
+  ],
+
+  "rbac": {
+    "roles": ["customer", "staff", "admin"],
+    "permissions": {
+      "customer": ["orders:read", "orders:write", "orders:cancel", "menu:read", "reservations:read", "reservations:write", "users:read", "branches:read", "notifications:read"],
+      "staff": ["orders:read", "orders:write", "orders:cancel", "orders:manage", "menu:read", "menu:write", "reservations:read", "reservations:write", "reservations:manage", "users:read", "dashboard:access", "branches:read", "notifications:read"],
+      "admin": ["orders:read", "orders:write", "orders:cancel", "orders:manage", "menu:read", "menu:write", "menu:manage", "reservations:read", "reservations:write", "reservations:manage", "users:read", "users:manage", "dashboard:access", "branches:read", "branches:manage", "notifications:read"]
+    }
+  },
+
+  "business_rules": {
+    "order_status_transitions": {
+      "forward": "pending → accepted → preparing → ready → delivered",
+      "cancel": "any status → cancelled (admin only)"
+    },
+    "cart_calculations": {
+      "tax_rate": 0.09,
+      "service_charge_rate": 0.05,
+      "formula": "total = subtotal - discount_amount + (subtotal * 0.09) + (subtotal * 0.05)"
+    },
+    "customer_tiers": {
+      "new": "order_count < 5",
+      "regular": "5 <= order_count < 15",
+      "vip": "order_count >= 15"
+    },
+    "confirmation_code_format": "SAV-{4-digit number}",
+    "avatar_constraints": { "max_size_mb": 5, "allowed_types": ["image/jpeg", "image/png", "image/webp", "image/gif"] },
+    "tenant_resolution_order": ["X-Tenant-Slug header", "Host subdomain", "NEXT_PUBLIC_TENANT_SLUG env", "default"],
+    "token_refresh": "rotation — each refresh issues new access+refresh pair and invalidates old refresh token"
+  }
+}
