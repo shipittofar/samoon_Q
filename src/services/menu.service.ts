@@ -128,4 +128,51 @@ export const menuService = {
     const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.SEARCH, { params: { q: query } })
     return data
   },
+
+  // ── Admin CRUD (P5.1) ──────────────────────────────────────────────────────
+
+  async createItem(payload: Partial<MenuItem>): Promise<MenuItem> {
+    if (USE_MOCK) {
+      await delay(800)
+      const newItem: MenuItem = {
+        id: `item-${Date.now()}`,
+        name: payload.name ?? 'New Item',
+        slug: payload.slug ?? `new-item-${Date.now()}`,
+        description: payload.description ?? '',
+        price: payload.price ?? 0,
+        image: payload.image ?? '',
+        category_id: payload.category_id ?? '',
+        available: payload.available ?? true,
+        rating: 0,
+        rating_count: 0,
+        preparation_time: payload.preparation_time ?? 15,
+        is_featured: payload.is_featured ?? false,
+        is_popular: payload.is_popular ?? false,
+        tags: payload.tags ?? [],
+        extras: payload.extras ?? [],
+        ...payload,
+      }
+      return newItem
+    }
+    const { data } = await api.post<MenuItem>(ENDPOINTS.MENU.ITEMS, payload)
+    return data
+  },
+
+  async updateItem(id: string, payload: Partial<MenuItem>): Promise<MenuItem> {
+    if (USE_MOCK) {
+      await delay(600)
+      const existing = MOCK_MENU_ITEMS.find((i) => i.id === id)
+      return { ...(existing as MenuItem), ...payload, id }
+    }
+    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(id), payload)
+    return data
+  },
+
+  async deleteItem(id: string): Promise<void> {
+    if (USE_MOCK) {
+      await delay(400)
+      return
+    }
+    await api.delete(ENDPOINTS.MENU.ITEM(id))
+  },
 }

@@ -512,3 +512,80 @@ export interface TenantTheme {
   /** CSS font-family string overriding --font-body, e.g. '"Inter", sans-serif'. */
   fontBody?: string
 }
+
+// ── Admin Types (P5.1) ────────────────────────────────────────────────────────
+
+export type AdminCustomerTier = 'new' | 'regular' | 'vip'
+
+/** Admin-extended user view — reuses User; adds aggregated commerce metrics. */
+export interface AdminCustomer extends User {
+  order_count: number
+  total_spent: number
+  avg_order_value: number
+  tier: AdminCustomerTier
+  last_order_at?: string
+}
+
+/** Per-customer aggregated stats returned by /admin/customers/{id}/stats/ */
+export interface AdminCustomerStats {
+  customer_id: string
+  order_count: number
+  total_spent: number
+  avg_order_value: number
+  favorite_item?: string
+  last_order_at?: string
+}
+
+/** Top-selling item entry inside AdminStats */
+export interface AdminTopItem {
+  menu_item_id: string
+  name: string
+  order_count: number
+  revenue: number
+  trend_pct: number
+}
+
+/** Dashboard KPI snapshot returned by /admin/stats/ */
+export interface AdminStats {
+  period_days: number
+  total_revenue: number
+  revenue_change_pct: number
+  total_orders: number
+  orders_change_pct: number
+  new_customers: number
+  customers_change_pct: number
+  total_reservations: number
+  reservations_change_pct: number
+  top_items: AdminTopItem[]
+  orders_in_queue: number
+  avg_prep_time_minutes: number
+  tables_reserved: number
+  tables_total: number
+}
+
+/** Filter params accepted by getAdminOrders() */
+export interface AdminOrderFilters {
+  status?: OrderStatus
+  order_type?: OrderType
+  search?: string
+  page?: number
+  page_size?: number
+}
+
+/** Filter params accepted by getAdminReservations() */
+export interface AdminReservationFilters {
+  status?: ReservationStatus
+  branch_id?: string
+  date?: string
+  search?: string
+  page?: number
+  page_size?: number
+}
+
+/** Filter params accepted by getCustomers() */
+export interface AdminCustomerFilters {
+  tier?: AdminCustomerTier
+  search?: string
+  page?: number
+  page_size?: number
+}

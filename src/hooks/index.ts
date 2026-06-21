@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { menuService } from '@/services/menu.service'
 import { orderService } from '@/services/order.service'
+import { adminService } from '@/services/admin.service'
 import {
   branchService,
   notificationService,
@@ -21,7 +22,19 @@ import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreatePaymentIntentPayload } from '@/services/payment.service'
 import type { CreateReviewPayload } from '@/services/review.service'
 import type { CreateReservationPayload } from '@/services/combined.service'
-import type { LoginCredentials, NavItem, Permission, RegisterData, SystemReadiness, TenantLifecycle } from '@/types'
+import type {
+  AdminCustomerFilters,
+  AdminOrderFilters,
+  AdminReservationFilters,
+  LoginCredentials,
+  MenuItem,
+  NavItem,
+  OrderStatus,
+  Permission,
+  RegisterData,
+  SystemReadiness,
+  TenantLifecycle,
+} from '@/types'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -431,5 +444,106 @@ export function useTableInfo(tableId: string | null) {
     queryFn: () => tableService.getTableInfo(tableId!),
     enabled: !!tableId,
     staleTime: STALE_TIME,
+  })
+}
+
+// ── Admin Hooks (P5.1) ────────────────────────────────────────────────────────
+
+export function useAdminStats() {
+  return useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: () => adminService.getStats(),
+    staleTime: 60_000,
+  })
+}
+
+export function useAdminOrders(filters: AdminOrderFilters = {}) {
+  return useQuery({
+    queryKey: ['admin-orders', filters],
+    queryFn: () => adminService.getAdminOrders(filters),
+    staleTime: 30_000,
+  })
+}
+
+export function useUpdateOrderStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
+      adminService.updateOrderStatus(id, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-orders'] })
+      qc.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+}
+
+export function useAdminReservations(filters: AdminReservationFilters = {}) {
+  return useQuery({
+    queryKey: ['admin-reservations', filters],
+    queryFn: () => adminService.getAdminReservations(filters),
+    staleTime: 30_000,
+  })
+}
+
+export function useConfirmReservation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => adminService.confirmReservation(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-reservations'] })
+      qc.invalidateQueries({ queryKey: ['reservations'] })
+    },
+  })
+}
+
+export function useAdminCustomers(filters: AdminCustomerFilters = {}) {
+  return useQuery({
+    queryKey: ['admin-customers', filters],
+    queryFn: () => adminService.getCustomers(filters),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useAdminCustomerStats(id: string) {
+  return useQuery({
+    queryKey: ['admin-customer-stats', id],
+    queryFn: () => adminService.getCustomerStats(id),
+    enabled: !!id,
+    staleTime: STALE_TIME,
+  })
+}
+
+// ── Menu Admin Hooks (P5.1) ───────────────────────────────────────────────────
+
+export function useCreateMenuItem() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Partial<MenuItem>) => menuService.createItem(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['menu-items'] })
+      qc.invalidateQueries({ queryKey: ['categories'] })
+    },
+  })
+}
+
+export function useUpdateMenuItem() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<MenuItem> }) =>
+      menuService.updateItem(id, payload),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ['menu-items'] })
+      qc.invalidateQueries({ queryKey: ['menu-item', id] })
+    },
+  })
+}
+
+export function useDeleteMenuItem() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => menuService.deleteItem(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['menu-items'] })
+    },
   })
 }

@@ -35,6 +35,7 @@ export const ENDPOINTS = {
     REORDER: (id: string) => `/orders/${id}/reorder/`,
     TRACK: (id: string) => `/orders/${id}/track/`,
     VALIDATE_DISCOUNT: '/orders/validate-discount/',
+    STATUS: (id: string) => `/orders/${id}/status/`,
   },
 
   // Payments (P4.1 — Stripe PaymentIntent)
@@ -49,6 +50,7 @@ export const ENDPOINTS = {
     CREATE: '/reservations/',
     DETAIL: (id: string) => `/reservations/${id}/`,
     CANCEL: (id: string) => `/reservations/${id}/cancel/`,
+    CONFIRM: (id: string) => `/reservations/${id}/confirm/`,
     AVAILABLE_SLOTS: '/reservations/available-slots/',
   },
 
@@ -96,5 +98,14 @@ export const ENDPOINTS = {
   TABLE: {
     INFO: (tableId: string) => `/tables/${tableId}/`,
     ORDER: (tableId: string) => `/tables/${tableId}/order/`,
+  },
+
+  // Admin (P5.1) — backend-gated endpoints; mocked until API is deployed
+  ADMIN: {
+    STATS: '/admin/stats/',
+    ORDERS: '/admin/orders/',
+    RESERVATIONS: '/admin/reservations/',
+    CUSTOMERS: '/admin/customers/',
+    CUSTOMER_STATS: (id: string) => `/admin/customers/${id}/stats/`,
   },
 } as const
