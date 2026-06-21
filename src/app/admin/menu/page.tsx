@@ -394,8 +394,9 @@ function MenuItemFormFields({
           <Input label="Item Name" value={form.name} onChange={set('name')} />
         </div>
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-[var(--fg)] mb-1">Category</label>
+          <label htmlFor="menu-category" className="block text-sm font-medium text-[var(--fg)] mb-1">Category</label>
           <select
+            id="menu-category"
             value={form.category_id}
             onChange={set('category_id')}
             className="w-full h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"

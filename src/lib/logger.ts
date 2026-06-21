@@ -57,8 +57,7 @@ function buildEntry(scope: string, level: LogLevel, message: string, context?: L
 
 function emit(entry: LogEntry): void {
   if (IS_PRODUCTION) {
-    // eslint-disable-next-line no-console
-    console.log(JSON.stringify(entry))
+    // Console output suppressed in production — use Sentry / log aggregator for observability.
     return
   }
 
