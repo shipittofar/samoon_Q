@@ -213,12 +213,24 @@ export const FOOD_TRUCK_MODULE: Module = {
   businessTypes: ['food_truck'],
   capabilities: {
     required: ['menu', 'ordering', 'qr_table', 'notifications'],
-    optional: ['reviews', 'loyalty'],
+    optional: ['reservations', 'reviews', 'loyalty'],
     defaultEnabled: ['reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  routes: [
+    '/menu',
+    '/checkout',
+    '/checkout/success',
+    '/checkout/failure',
+    '/order',
+    '/reviews',
+    '/reservation',
+    '/location',
+  ],
   navItems: [
     { href: '/menu', label: 'Menu' },
+    { href: '/reviews', label: 'Reviews', featureFlagKey: 'reviews.enabled' },
+    { href: '/reservation', label: 'Reservations', featureFlagKey: 'reservations.enabled' },
+    { href: '/location', label: 'Live Location', featureFlagKey: 'food_truck.live_location.enabled' },
   ],
   defaultFeatureFlags: {
     'menu.enabled': true,
@@ -227,7 +239,16 @@ export const FOOD_TRUCK_MODULE: Module = {
     'order_tracking.enabled': true,
     'pickup.enabled': true,
     'reservations.enabled': false,
+    'food_truck.route_tracking.enabled': true,
+    'food_truck.live_location.enabled': true,
+    'food_truck.scheduled_stops.enabled': false,
+    'food_truck.pre_order.enabled': false,
+    'food_truck.featured_route.enabled': false,
   },
+  adminNavItems: [
+    { href: '/admin/food-truck/routes', label: 'Route Management', featureFlagKey: 'food_truck.route_tracking.enabled' },
+    { href: '/admin/food-truck/stops', label: 'Stop Management', featureFlagKey: 'food_truck.scheduled_stops.enabled' },
+  ],
   enabled: true,
 }
 

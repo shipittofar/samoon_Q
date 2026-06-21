@@ -501,6 +501,19 @@ export interface FoodCourtSettings {
   featuredVendorEnabled: boolean
 }
 
+export interface FoodTruckSettings {
+  /** Enable route tracking for the food truck. Corresponds to food_truck.route_tracking.enabled flag. */
+  routeTrackingEnabled: boolean
+  /** Broadcast live GPS location to customers. Corresponds to food_truck.live_location.enabled flag. */
+  liveLocationEnabled: boolean
+  /** Enable scheduled stop listings. Corresponds to food_truck.scheduled_stops.enabled flag. */
+  scheduledStopsEnabled: boolean
+  /** Allow customers to place orders ahead of arrival. Corresponds to food_truck.pre_order.enabled flag. */
+  preOrderEnabled: boolean
+  /** Surface a featured route on the menu/home page. Corresponds to food_truck.featured_route.enabled flag. */
+  featuredRouteEnabled: boolean
+}
+
 // ============================================================
 // NOTIFICATION TYPES
 // ============================================================
