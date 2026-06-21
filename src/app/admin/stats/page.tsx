@@ -8,6 +8,7 @@ import {
 import { Header } from '@/components/layout/Header'
 import { Card, Badge } from '@/components/ui'
 import { formatCurrency } from '@/utils'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const STATS = [
   { label: 'Total Revenue', value: '$48,295', change: +12.5, icon: DollarSign, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
@@ -38,6 +39,7 @@ const TOP_ITEMS = [
 
 export default function AdminStatsPage() {
   return (
+    <ErrorBoundary feature="AdminDashboard">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
       <div className="pt-20 pb-16">
@@ -149,5 +151,6 @@ export default function AdminStatsPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   )
 }

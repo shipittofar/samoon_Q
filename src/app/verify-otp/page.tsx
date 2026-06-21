@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { authService } from '@/services/auth.service'
 import { useAuthStore } from '@/stores'
 import toast from 'react-hot-toast'
+import { OTP_LIMIT } from '@/lib/rate-limit'
 
 function OTPContent() {
   const router = useRouter()
@@ -60,9 +61,15 @@ function OTPContent() {
 
   const handleVerify = async (code: string) => {
     if (code.length < 6) return
+    const rateCheck = OTP_LIMIT.check(phone)
+    if (!rateCheck.allowed) {
+      toast.error('Too many OTP attempts. Please request a new code.')
+      return
+    }
     setLoading(true)
     try {
       const { user } = await authService.verifyOTP({ phone, otp: code })
+      OTP_LIMIT.reset(phone)
       setUser(user)
       toast.success('Phone verified! Welcome 🎉')
       router.push('/')

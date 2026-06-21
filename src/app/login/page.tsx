@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { Divider } from '@/components/ui'
 import { useLogin } from '@/hooks'
 import toast from 'react-hot-toast'
+import { LOGIN_LIMIT } from '@/lib/rate-limit'
 
 const loginSchema = z.object({
   email: z.string().email('Valid email required'),
@@ -30,8 +31,14 @@ export default function LoginPage() {
   })
 
   const onSubmit = (data: LoginFormData) => {
+    const rateCheck = LOGIN_LIMIT.check(data.email)
+    if (!rateCheck.allowed) {
+      toast.error(`Too many login attempts. Please try again later.`)
+      return
+    }
     login(data, {
       onSuccess: () => {
+        LOGIN_LIMIT.reset(data.email)
         toast.success('Welcome back!!! 👋')
         router.push('/')
       },

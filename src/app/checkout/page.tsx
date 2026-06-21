@@ -23,6 +23,7 @@ import { orderService } from '@/services/order.service'
 import { StripePaymentForm } from '@/components/checkout/StripePaymentForm'
 import toast from 'react-hot-toast'
 import type { OrderType, PaymentMethod } from '@/types'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const checkoutSchema = z.object({
   first_name: z.string().min(2, 'First name is required'),
@@ -461,8 +462,10 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense>
-      <CheckoutContent />
-    </Suspense>
+    <ErrorBoundary feature="Checkout">
+      <Suspense>
+        <CheckoutContent />
+      </Suspense>
+    </ErrorBoundary>
   )
 }

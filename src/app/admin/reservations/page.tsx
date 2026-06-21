@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/utils'
 import { useAdminReservations, useConfirmReservation, useCancelReservation, useBranches } from '@/hooks'
 import type { AdminReservationFilters, ReservationStatus } from '@/types'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 // POST /reservations/{id}/confirm/ is not yet deployed on the backend.
 // useConfirmReservation() stubs the call and has a typed mock implementation.
@@ -52,6 +53,7 @@ export default function AdminReservationsPage() {
     (branches ?? []).find((b) => b.id === branchId)?.name ?? '—'
 
   return (
+    <ErrorBoundary feature="AdminReservations">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
       <div className="pt-20 pb-16">
@@ -248,5 +250,6 @@ export default function AdminReservationsPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   )
 }

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { authService } from '@/services/auth.service'
 import toast from 'react-hot-toast'
+import { PASSWORD_RESET_LIMIT } from '@/lib/rate-limit'
 
 const forgotSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -27,6 +28,11 @@ export default function ForgotPasswordPage() {
   })
 
   const onSubmit = async (data: ForgotFormData) => {
+    const rateCheck = PASSWORD_RESET_LIMIT.check(data.email)
+    if (!rateCheck.allowed) {
+      toast.error('Too many reset attempts. Please try again later.')
+      return
+    }
     setLoading(true)
     try {
       await authService.forgotPassword(data.email)

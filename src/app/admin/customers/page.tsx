@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatDate } from '@/utils'
 import { useAdminCustomers } from '@/hooks'
 import type { AdminCustomerFilters, AdminCustomerTier } from '@/types'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 // GET /admin/customers/ and GET /admin/customers/{id}/stats/ are not yet
 // deployed on the backend. useAdminCustomers() falls back to mock data.
@@ -46,6 +47,7 @@ export default function AdminCustomersPage() {
   }, [customers, data?.count])
 
   return (
+    <ErrorBoundary feature="AdminCustomers">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
       <div className="pt-20 pb-16">
@@ -170,5 +172,6 @@ export default function AdminCustomersPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   )
 }

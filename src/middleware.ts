@@ -42,6 +42,28 @@ function resolveTenantSlug(request: NextRequest): string | undefined {
 }
 
 /**
+ * Lightweight JWT validation — Edge-runtime compatible (no Node.js crypto).
+ * Checks structure (3 segments) and decodes the payload to verify `exp`.
+ * Full signature verification is delegated to the backend on every API call.
+ */
+function isValidJWT(token: string): boolean {
+  const parts = token.split('.')
+  if (parts.length !== 3) return false
+  try {
+    // base64url → base64 → decode
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
+    const payload = JSON.parse(atob(padded)) as Record<string, unknown>
+    const exp = payload['exp']
+    if (typeof exp !== 'number') return false
+    // exp is seconds; Date.now() is ms
+    return exp * 1000 > Date.now()
+  } catch {
+    return false
+  }
+}
+
+/**
  * Middleware — authentication (P3.1) + tenant resolution (P1B.3).
  *
  * Runs on the Edge runtime before every matched request.
@@ -69,13 +91,19 @@ export function middleware(request: NextRequest): NextResponse {
   }
 
   const token = request.cookies.get(JWT_ACCESS_KEY)?.value
-  if (token) {
+
+  if (token && isValidJWT(token)) {
     return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
   const loginUrl = new URL('/login', request.url)
   loginUrl.searchParams.set('redirect', pathname)
-  return NextResponse.redirect(loginUrl)
+  const redirectResponse = NextResponse.redirect(loginUrl)
+  // Clear a stale / expired token so the login page starts fresh
+  if (token) {
+    redirectResponse.cookies.delete(JWT_ACCESS_KEY)
+  }
+  return redirectResponse
 }
 
 export const config = {

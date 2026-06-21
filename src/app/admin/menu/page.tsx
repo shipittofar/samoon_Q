@@ -15,6 +15,7 @@ import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
 import { useMenuItems, useCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem } from '@/hooks'
 import type { MenuItem } from '@/types'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
 
@@ -146,6 +147,7 @@ export default function AdminMenuPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
+    <ErrorBoundary feature="AdminMenu">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
       <div className="pt-20 pb-16">
@@ -365,6 +367,7 @@ export default function AdminMenuPage() {
         )}
       </Modal>
     </div>
+    </ErrorBoundary>
   )
 }
 

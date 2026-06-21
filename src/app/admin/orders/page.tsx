@@ -10,6 +10,7 @@ import { formatCurrency, formatRelativeTime } from '@/utils'
 import { cn } from '@/utils'
 import { useAdminOrders, useUpdateOrderStatus } from '@/hooks'
 import type { Order, OrderStatus } from '@/types'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 // useOrderWebSocket tracks a single customer order via /orders/{id}/.
 // No admin-wide broadcast channel exists on the backend yet.
@@ -72,6 +73,7 @@ export default function AdminOrdersPage() {
   }
 
   return (
+    <ErrorBoundary feature="AdminOrders">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
       <div className="pt-20 pb-16">
@@ -225,5 +227,6 @@ export default function AdminOrdersPage() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   )
 }
