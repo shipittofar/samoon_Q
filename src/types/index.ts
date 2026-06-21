@@ -488,6 +488,19 @@ export interface BarSettings {
   featuredCocktailsEnabled: boolean
 }
 
+export interface FoodCourtSettings {
+  /** Enable multi-vendor ordering under one tenant. Corresponds to food_court.multi_vendor.enabled flag. */
+  multiVendorEnabled: boolean
+  /** Enable vendor onboarding and management tools. Corresponds to food_court.vendor_management.enabled flag. */
+  vendorManagementEnabled: boolean
+  /** Enable shared seating area management. Corresponds to food_court.shared_seating.enabled flag. */
+  sharedSeatingEnabled: boolean
+  /** Allow a single order to span multiple vendors. Corresponds to food_court.cross_vendor_ordering.enabled flag. */
+  crossVendorOrderingEnabled: boolean
+  /** Surface a featured vendor section on the menu. Corresponds to food_court.featured_vendor.enabled flag. */
+  featuredVendorEnabled: boolean
+}
+
 // ============================================================
 // NOTIFICATION TYPES
 // ============================================================
