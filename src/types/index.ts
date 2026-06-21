@@ -223,7 +223,15 @@ export interface Reservation {
 // ============================================================
 // TENANT TYPES  (Phase 1A — P1A.1)
 // ============================================================
-export type BusinessType = 'restaurant' | 'cafe' | 'bar' | 'hotel' | 'other'
+export type BusinessType =
+  | 'restaurant'
+  | 'cafe'
+  | 'bar'
+  | 'food_court'
+  | 'food_truck'
+  | 'mobile_cafe'
+  | 'hotel'
+  | 'other'
 
 export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned'
 
@@ -329,6 +337,7 @@ export type LocationType =
   | 'hotel_property'
   | 'food_court_stall'
   | 'mobile_truck'
+  | 'mobile_cafe'
 
 /** Location generalises Branch for multi-tenant use. Roadmap: P1A.2. */
 export interface Location {
@@ -356,8 +365,43 @@ export interface Location {
 export type Branch = Location
 
 // ============================================================
-// MODULE TYPES  (Phase 1A — P1A.3)
+// MODULE TYPES  (Phase 1A — P1A.3 / Phase 6 — P6.2)
 // ============================================================
+
+/**
+ * Atomic business capability that a module can declare.
+ * Each capability maps to a feature flag key via CAPABILITY_FLAG_MAP in the registry.
+ *
+ * Capabilities are declared on Module.capabilities; the feature flag service
+ * derives boolean flags from them so tenants can override individual capabilities
+ * without coupling to internal module flag naming.
+ *
+ * P6.2 — Multi-Business Foundation
+ */
+export type Capability =
+  | 'menu'
+  | 'ordering'
+  | 'qr_table'
+  | 'reservations'
+  | 'reviews'
+  | 'loyalty'
+  | 'notifications'
+
+/**
+ * Declares the capability contract for a business-type module.
+ *
+ * required     — always active for this business type; cannot be disabled by tenant
+ * optional     — may be enabled or disabled per tenant; off by default unless in defaultEnabled
+ * defaultEnabled — subset of optional that is on by default (before tenant overrides)
+ *
+ * P6.2 — Multi-Business Foundation
+ */
+export interface ModuleCapabilitySet {
+  readonly required: readonly Capability[]
+  readonly optional: readonly Capability[]
+  readonly defaultEnabled: readonly Capability[]
+}
+
 export interface NavItem {
   href: string
   label: string
@@ -391,6 +435,12 @@ export interface Module {
    */
   defaultFeatureFlags: Record<string, boolean>
   enabled: boolean
+  /**
+   * Capability contract for this module (P6.2 — Multi-Business Foundation).
+   * Optional for backward compatibility — modules without this field produce no
+   * capability-derived flags; their defaultFeatureFlags are still honoured.
+   */
+  capabilities?: ModuleCapabilitySet
 }
 
 // ============================================================

@@ -1,10 +1,16 @@
 /**
- * Module Registry — Phase 1A (P1A.3)
+ * Module Registry — Phase 1A (P1A.3) / Phase 6 (P6.2)
  *
  * A Module is a self-contained business-type capability (Restaurant, Cafe, Bar,
- * Hotel, Food Court, Mobile Truck). This registry is the single source of truth
- * the app shell reads to determine which routes, nav items, and dashboard widgets
- * are active for the current tenant.
+ * Food Court, Food Truck, Mobile Cafe). This registry is the single source of
+ * truth the app shell reads to determine which routes, nav items, dashboard
+ * widgets, and capability-derived feature flags are active for the current tenant.
+ *
+ * P6.2 — Capability-driven architecture:
+ *   Each module declares a ModuleCapabilitySet (required / optional / defaultEnabled).
+ *   The registry derives feature flags from capabilities so tenants can override
+ *   individual capabilities without coupling to internal flag names.
+ *   CAPABILITY_FLAG_MAP is the authoritative mapping from Capability → flag key.
  *
  * SAFETY (C-4 fix): Next.js App Router shares module-level state across all
  * concurrent requests on the same server instance. This registry is therefore
@@ -21,14 +27,36 @@
  * See src/modules/TENANT_RESOLUTION_STRATEGY.md for the tenant resolution decision.
  */
 
-import type { BusinessType, Module, NavItem } from '@/types'
+import type { BusinessType, Capability, Module, NavItem } from '@/types'
+
+// ── Capability → Feature Flag mapping (P6.2) ─────────────────────────────────
+
+/**
+ * Authoritative map from each Capability to its feature flag key.
+ * Consumed by getCapabilityFeatureFlags() and hasCapability() to translate
+ * module capability declarations into the boolean flag map that tenants can override.
+ */
+export const CAPABILITY_FLAG_MAP: Readonly<Record<Capability, string>> = {
+  menu:          'menu.enabled',
+  ordering:      'ordering.enabled',
+  qr_table:      'qr_table.enabled',
+  reservations:  'reservations.enabled',
+  reviews:       'reviews.enabled',
+  loyalty:       'loyalty.enabled',
+  notifications: 'notifications.enabled',
+}
 
 // ── Built-in module definitions ───────────────────────────────────────────────
 
 export const RESTAURANT_MODULE: Module = {
   key: 'restaurant',
   name: 'Restaurant',
-  businessTypes: ['restaurant', 'cafe', 'bar'],
+  businessTypes: ['restaurant'],
+  capabilities: {
+    required: ['menu', 'ordering', 'notifications'],
+    optional: ['qr_table', 'reservations', 'reviews'],
+    defaultEnabled: ['qr_table', 'reservations', 'reviews'],
+  },
   routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant'],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -41,6 +69,128 @@ export const RESTAURANT_MODULE: Module = {
     'delivery.enabled': true,
     'table_ordering.enabled': true,
     'order_tracking.enabled': true,
+  },
+  enabled: true,
+}
+
+// ── Phase 6 Business-Type Stubs (P6.2 — foundation only) ─────────────────────
+// These modules declare their capability contracts and register in the module
+// registry. Route pages, nav extensions, and custom service logic are
+// implemented in P6.3+ tasks for each respective business type.
+
+export const CAFE_MODULE: Module = {
+  key: 'cafe',
+  name: 'Cafe',
+  businessTypes: ['cafe'],
+  capabilities: {
+    required: ['menu', 'ordering', 'notifications'],
+    optional: ['qr_table', 'reservations', 'reviews', 'loyalty'],
+    defaultEnabled: ['qr_table', 'reviews'],
+  },
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  navItems: [
+    { href: '/menu', label: 'Menu' },
+  ],
+  defaultFeatureFlags: {
+    'menu.enabled': true,
+    'delivery.enabled': true,
+    'table_ordering.enabled': true,
+    'order_tracking.enabled': true,
+    'reservations.enabled': false,
+  },
+  enabled: true,
+}
+
+export const BAR_MODULE: Module = {
+  key: 'bar',
+  name: 'Bar',
+  businessTypes: ['bar'],
+  capabilities: {
+    required: ['menu', 'ordering', 'notifications'],
+    optional: ['qr_table', 'reservations', 'reviews', 'loyalty'],
+    defaultEnabled: ['qr_table'],
+  },
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  navItems: [
+    { href: '/menu', label: 'Drinks' },
+  ],
+  defaultFeatureFlags: {
+    'menu.enabled': true,
+    'delivery.enabled': false,
+    'table_ordering.enabled': true,
+    'order_tracking.enabled': true,
+    'reservations.enabled': false,
+  },
+  enabled: true,
+}
+
+export const FOOD_COURT_MODULE: Module = {
+  key: 'food_court',
+  name: 'Food Court',
+  businessTypes: ['food_court'],
+  capabilities: {
+    required: ['menu', 'ordering', 'notifications', 'qr_table'],
+    optional: ['reviews', 'loyalty'],
+    defaultEnabled: ['reviews'],
+  },
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  navItems: [
+    { href: '/menu', label: 'Order' },
+  ],
+  defaultFeatureFlags: {
+    'menu.enabled': true,
+    'delivery.enabled': false,
+    'table_ordering.enabled': true,
+    'order_tracking.enabled': true,
+    'reservations.enabled': false,
+  },
+  enabled: true,
+}
+
+export const FOOD_TRUCK_MODULE: Module = {
+  key: 'food_truck',
+  name: 'Food Truck',
+  businessTypes: ['food_truck'],
+  capabilities: {
+    required: ['menu', 'ordering', 'notifications'],
+    optional: ['qr_table', 'reviews', 'loyalty'],
+    defaultEnabled: ['qr_table', 'reviews'],
+  },
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  navItems: [
+    { href: '/menu', label: 'Menu' },
+  ],
+  defaultFeatureFlags: {
+    'menu.enabled': true,
+    'delivery.enabled': false,
+    'table_ordering.enabled': true,
+    'order_tracking.enabled': true,
+    'pickup.enabled': true,
+    'reservations.enabled': false,
+  },
+  enabled: true,
+}
+
+export const MOBILE_CAFE_MODULE: Module = {
+  key: 'mobile_cafe',
+  name: 'Mobile Cafe',
+  businessTypes: ['mobile_cafe'],
+  capabilities: {
+    required: ['menu', 'ordering', 'notifications'],
+    optional: ['qr_table', 'reviews', 'loyalty'],
+    defaultEnabled: ['qr_table', 'reviews', 'loyalty'],
+  },
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  navItems: [
+    { href: '/menu', label: 'Menu' },
+  ],
+  defaultFeatureFlags: {
+    'menu.enabled': true,
+    'delivery.enabled': false,
+    'table_ordering.enabled': true,
+    'order_tracking.enabled': true,
+    'pickup.enabled': true,
+    'reservations.enabled': false,
   },
   enabled: true,
 }
@@ -70,7 +220,14 @@ export const DASHBOARD_MODULE: Module = {
 // ── Registry state ────────────────────────────────────────────────────────────
 
 /** Add Phase 6 / Phase 8 modules to this list during their respective startup files. */
-const INITIAL_MODULES: ReadonlyArray<Module> = Object.freeze([RESTAURANT_MODULE])
+const INITIAL_MODULES: ReadonlyArray<Module> = Object.freeze([
+  RESTAURANT_MODULE,
+  CAFE_MODULE,
+  BAR_MODULE,
+  FOOD_COURT_MODULE,
+  FOOD_TRUCK_MODULE,
+  MOBILE_CAFE_MODULE,
+])
 
 let _modules: ReadonlyArray<Module> = INITIAL_MODULES
 let _sealed = false
@@ -196,4 +353,81 @@ export function resolveBusinessTypes(activeModuleKeys: string[]): BusinessType[]
     if (mod) mod.businessTypes.forEach((t) => types.add(t))
   }
   return Array.from(types)
+}
+
+// ── Capability API (P6.2 — Multi-Business Foundation) ────────────────────────
+
+/**
+ * Returns all capabilities (required ∪ optional) declared by the given module.
+ * Returns an empty array for unknown modules or modules without capabilities.
+ */
+export function getModuleCapabilities(moduleKey: string): Capability[] {
+  seal()
+  const mod = _modules.find((m) => m.key === moduleKey)
+  if (!mod?.capabilities) return []
+  const { required, optional } = mod.capabilities
+  return Array.from(new Set([...required, ...optional]))
+}
+
+/**
+ * Returns true if any of the active modules has the given capability
+ * in its required set OR in its defaultEnabled set.
+ *
+ * This reflects the module-level default, not a tenant-overridden value.
+ * For tenant-overridden capability state, read the resolved feature flags
+ * via useFeatureFlag(CAPABILITY_FLAG_MAP[cap]) instead.
+ */
+export function hasCapability(activeModuleKeys: string[], cap: Capability): boolean {
+  seal()
+  const active = _modules.filter((m) => m.enabled && activeModuleKeys.includes(m.key))
+  return active.some((m) => {
+    if (!m.capabilities) return false
+    return (
+      m.capabilities.required.includes(cap) ||
+      m.capabilities.defaultEnabled.includes(cap)
+    )
+  })
+}
+
+/**
+ * Derives a feature flag map from the capability declarations of the given modules.
+ *
+ * Resolution rules (per flag key, across all active modules):
+ *   - A capability in `required`      → flag = true  (always)
+ *   - A capability in `defaultEnabled` → flag = true  (unless another module sets it false first)
+ *   - A capability in `optional` only → flag = false  (opt-in; tenant must override to enable)
+ *   - Union semantics: if ANY active module enables a cap by default, the flag is true.
+ *
+ * This is layer 2 in featureFlagsService.resolve(); tenant overrides (layer 3) take precedence.
+ *
+ * P6.2 — Multi-Business Foundation
+ */
+export function getCapabilityFeatureFlags(activeModuleKeys?: string[]): Record<string, boolean> {
+  seal()
+  const modules = _modules.filter((m) => m.enabled)
+  const source = activeModuleKeys?.length
+    ? modules.filter((m) => activeModuleKeys.includes(m.key))
+    : modules
+
+  const flags: Record<string, boolean> = {}
+
+  for (const mod of source) {
+    if (!mod.capabilities) continue
+    const { required, optional, defaultEnabled } = mod.capabilities
+
+    for (const cap of required) {
+      flags[CAPABILITY_FLAG_MAP[cap]] = true
+    }
+
+    for (const cap of optional) {
+      const flagKey = CAPABILITY_FLAG_MAP[cap]
+      if (defaultEnabled.includes(cap)) {
+        flags[flagKey] = true
+      } else if (!(flagKey in flags)) {
+        flags[flagKey] = false
+      }
+    }
+  }
+
+  return flags
 }
