@@ -182,6 +182,9 @@ export const useLangStore = create<LangState>()(
         set({ locale })
         document.documentElement.lang = locale
         document.documentElement.dir = ['fa', 'ar'].includes(locale) ? 'rtl' : 'ltr'
+        // Write NEXT_LOCALE cookie so server re-renders pick up the new locale.
+        // SameSite=Lax; path=/ — readable by the next-intl request config on the server.
+        document.cookie = `NEXT_LOCALE=${locale};path=/;SameSite=Lax`
       },
     }),
     { name: LANG_KEY },

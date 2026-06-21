@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import { menuService } from '@/services/menu.service'
 import { orderService } from '@/services/order.service'
 import {
@@ -8,7 +9,7 @@ import {
   userService,
 } from '@/services/combined.service'
 import { authService } from '@/services/auth.service'
-import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore } from '@/stores'
+import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore } from '@/stores'
 import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
@@ -410,4 +411,14 @@ export function useToggleFavorite() {
     onMutate: (itemId) => toggleFavorite(itemId), // optimistic
     onError: (_err, itemId) => toggleFavorite(itemId), // rollback
   })
+}
+
+// P4.8 — Locale switching with server-side re-render trigger
+export function useSetLocale() {
+  const { setLocale } = useLangStore()
+  const router = useRouter()
+  return (locale: string) => {
+    setLocale(locale)
+    router.refresh()
+  }
 }

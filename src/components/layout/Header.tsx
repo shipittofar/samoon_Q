@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin } from 'lucide-react'
 import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
-import { useLogout } from '@/hooks'
+import { useLogout, useSetLocale } from '@/hooks'
 import { cn, formatCurrency } from '@/utils'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -26,7 +26,8 @@ export function Header() {
   const { isAuthenticated, user } = useAuthStore()
   const { getItemCount, setOpen: setCartOpen, getTotal } = useCartStore()
   const { unreadCount } = useNotificationStore()
-  const { locale, setLocale } = useLangStore()
+  const { locale } = useLangStore()
+  const setLocale = useSetLocale()
   const { theme, setTheme } = useThemeStore()
   const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()

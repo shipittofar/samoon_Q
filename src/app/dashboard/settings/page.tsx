@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui'
 import { Avatar } from '@/components/ui'
 import { useAuthStore, useThemeStore, useLangStore } from '@/stores'
+import { useSetLocale } from '@/hooks'
 import { userService } from '@/services/combined.service'
 import { cn } from '@/utils'
 import toast from 'react-hot-toast'
@@ -44,7 +45,8 @@ const NOTIFICATION_PREFS = [
 export default function SettingsPage() {
   const { user, setUser } = useAuthStore()
   const { theme, setTheme } = useThemeStore()
-  const { locale, setLocale } = useLangStore()
+  const { locale } = useLangStore()
+  const setLocale = useSetLocale()
   const [saving, setSaving] = useState(false)
   const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({
     order_updates: true, promotions: true, reservation_reminders: true, system: true,
