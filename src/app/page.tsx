@@ -6,6 +6,7 @@ import { ArrowRight, MapPin, ChevronRight, Flame } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FeaturedSection } from '@/components/home/FeaturedSection'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
@@ -54,8 +55,8 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(DEFAULT_RESTAURANT_JSON_LD) }}
       />
       <Header />
-      <CartDrawer />
-      <FloatingCart />
+      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
+      <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Hero */}
       <section className="relative min-h-screen flex items-center overflow-hidden">

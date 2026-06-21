@@ -4,6 +4,7 @@ import { MapPin, Phone, Mail, Clock, Instagram, Twitter, Facebook, Globe } from 
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Badge } from '@/components/ui'
 
 export const metadata: Metadata = {
@@ -30,8 +31,8 @@ export default function RestaurantPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
-      <CartDrawer />
-      <FloatingCart />
+      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
+      <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Hero */}
       <div className="relative h-[60vh] overflow-hidden">

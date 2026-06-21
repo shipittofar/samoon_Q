@@ -6,6 +6,7 @@ import { UtensilsCrossed, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { Header } from '@/components/layout/Header'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Footer } from '@/components/layout/Footer'
 import { Button } from '@/components/ui/Button'
 import { useCartStore } from '@/stores'
@@ -30,8 +31,8 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
-      <CartDrawer />
-      <FloatingCart />
+      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
+      <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Welcome banner */}
       <div className="pt-20">

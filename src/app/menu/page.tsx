@@ -16,6 +16,7 @@ import type { Metadata } from 'next'
 import { menuService } from '@/services/menu.service'
 import { createServerQueryClient, dehydrateClient, HydrationBoundary } from '@/lib/react-query'
 import { MenuContent } from '@/components/menu/MenuContent'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { DEFAULT_MENU_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
 import MenuLoading from './loading'
 
@@ -67,9 +68,11 @@ export default async function MenuPage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(DEFAULT_MENU_JSON_LD) }}
       />
       <HydrationBoundary state={dehydrated}>
-        <Suspense fallback={<MenuLoading />}>
-          <MenuContent />
-        </Suspense>
+        <ErrorBoundary feature="MenuContent">
+          <Suspense fallback={<MenuLoading />}>
+            <MenuContent />
+          </Suspense>
+        </ErrorBoundary>
       </HydrationBoundary>
     </>
   )

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { FoodCard } from '@/components/menu/FoodCard'
 import { FoodDetailModal } from '@/components/menu/FoodDetailModal'
 import { CartDrawer } from '@/components/cart/CartDrawer'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FoodCardSkeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useFavoritesStore } from '@/stores'
@@ -22,7 +23,7 @@ export default function FavoritesPage() {
 
   return (
     <div className="space-y-6">
-      <CartDrawer />
+      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 rounded-xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
           <Heart className="h-5 w-5 text-red-500 fill-red-500" />
