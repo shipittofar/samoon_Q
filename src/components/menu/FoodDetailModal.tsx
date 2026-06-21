@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Minus, Plus, X, Star, Clock, Flame, Heart, ChevronDown, ChevronUp } from 'lucide-react'
+import { Minus, Plus, X, Star, Clock, Flame, Heart, ChevronDown, ChevronUp, Send } from 'lucide-react'
 import { useCartStore, useFavoritesStore } from '@/stores'
-import { useToggleFavorite, useRelatedItems } from '@/hooks'
+import { useToggleFavorite, useRelatedItems, useItemReviews, useCreateReview } from '@/hooks'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Input'
@@ -29,7 +29,12 @@ export function FoodDetailModal({ item, open, onClose }: FoodDetailModalProps) {
   const [selectedExtras, setSelectedExtras] = useState<Extra[]>([])
   const [notes, setNotes] = useState('')
   const [showNutrition, setShowNutrition] = useState(false)
+  const [showReviews, setShowReviews] = useState(false)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewComment, setReviewComment] = useState('')
   const { data: related } = useRelatedItems(item?.id || '')
+  const { data: reviewsData } = useItemReviews(item?.id || '')
+  const { mutate: submitReview, isPending: submittingReview } = useCreateReview(item?.id || '')
 
   if (!item) return null
 
@@ -57,6 +62,21 @@ export function FoodDetailModal({ item, open, onClose }: FoodDetailModalProps) {
   const handleFavorite = () => {
     toggleFavorite(item.id)
     toggleFav(item.id)
+  }
+
+  const handleSubmitReview = () => {
+    if (reviewRating < 1) return
+    submitReview(
+      { rating: reviewRating, comment: reviewComment || undefined },
+      {
+        onSuccess: () => {
+          toast.success('Review submitted!')
+          setReviewComment('')
+          setReviewRating(5)
+        },
+        onError: () => toast.error('Failed to submit review. Please try again.'),
+      },
+    )
   }
 
   return (
@@ -210,6 +230,88 @@ export function FoodDetailModal({ item, open, onClose }: FoodDetailModalProps) {
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
               />
+            </div>
+
+            <Divider className="my-4" />
+
+            {/* Reviews */}
+            <div className="mb-2">
+              <button
+                onClick={() => setShowReviews((v) => !v)}
+                className="flex items-center gap-2 text-sm font-medium text-[var(--fg)] hover:text-orange-500 transition-colors w-full"
+              >
+                <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+                Reviews
+                {reviewsData && (
+                  <span className="text-[var(--fg-muted)] font-normal">
+                    · {reviewsData.average_rating.toFixed(1)} ({reviewsData.count})
+                  </span>
+                )}
+                <span className="ms-auto">
+                  {showReviews ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </span>
+              </button>
+
+              {showReviews && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-4 space-y-4"
+                >
+                  {/* Submit a review */}
+                  <div className="bg-[var(--card-hover)] rounded-xl p-4 space-y-3">
+                    <p className="text-xs font-semibold text-[var(--fg)]">Write a review</p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setReviewRating(s)}
+                          className={cn('text-xl transition-colors', s <= reviewRating ? 'text-amber-400' : 'text-[var(--border-strong)]')}
+                          aria-label={`Rate ${s} star${s > 1 ? 's' : ''}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                    <Textarea
+                      placeholder="Share your experience…"
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      rows={2}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleSubmitReview}
+                      disabled={submittingReview}
+                      leftIcon={<Send className="h-3.5 w-3.5" />}
+                    >
+                      {submittingReview ? 'Submitting…' : 'Submit'}
+                    </Button>
+                  </div>
+
+                  {/* Existing reviews */}
+                  {reviewsData && reviewsData.results.length > 0 ? (
+                    <div className="space-y-3">
+                      {reviewsData.results.map((review) => (
+                        <div key={review.id} className="border border-[var(--border)] rounded-xl p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-semibold text-[var(--fg)]">{review.user.first_name} {review.user.last_name}</span>
+                            <RatingStars rating={review.rating} size="sm" />
+                            <span className="text-[10px] text-[var(--fg-muted)] ms-auto">
+                              {new Date(review.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {review.comment && (
+                            <p className="text-xs text-[var(--fg-muted)] leading-relaxed">{review.comment}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[var(--fg-muted)] text-center py-2">No reviews yet. Be the first!</p>
+                  )}
+                </motion.div>
+              )}
             </div>
           </div>
 

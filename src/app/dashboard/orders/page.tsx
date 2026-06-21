@@ -2,16 +2,68 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Package, ArrowRight, RefreshCw, Search } from 'lucide-react'
+import { Package, ArrowRight, RefreshCw, Search, Star } from 'lucide-react'
 import { useState } from 'react'
 import { Badge, Skeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
-import { useOrders } from '@/hooks'
-import { formatCurrency, formatDate, formatRelativeTime } from '@/utils'
+import { useOrders, useCreateReview } from '@/hooks'
+import { formatCurrency, formatDate } from '@/utils'
 
 const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple' | 'danger' | 'secondary'> = {
   delivered: 'success', pending: 'warning', accepted: 'info',
   preparing: 'purple', ready: 'success', cancelled: 'danger',
+}
+
+function WriteReviewButton({ orderId, itemId }: { orderId: string; itemId: string }) {
+  const [open, setOpen] = useState(false)
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const { mutate, isPending, isSuccess } = useCreateReview(itemId)
+
+  if (isSuccess) {
+    return <span className="text-xs text-emerald-600 font-medium">Review submitted ✓</span>
+  }
+
+  return (
+    <div className="mt-2">
+      {!open ? (
+        <button
+          onClick={(e) => { e.preventDefault(); setOpen(true) }}
+          className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 font-medium transition-colors"
+        >
+          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+          Write a Review
+        </button>
+      ) : (
+        <div className="mt-2 p-3 rounded-xl border border-[var(--border)] bg-[var(--card-hover)] space-y-2" onClick={(e) => e.preventDefault()}>
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <button key={s} onClick={() => setRating(s)} className={`text-lg ${s <= rating ? 'text-amber-400' : 'text-[var(--border-strong)]'}`}>★</button>
+            ))}
+          </div>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Share your experience…"
+            rows={2}
+            className="w-full text-xs px-2 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-1 focus:ring-orange-500/40 resize-none"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => mutate({ rating, comment: comment || undefined, order_id: orderId })}
+              disabled={isPending}
+              className="text-xs px-3 py-1 rounded-lg bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 transition-colors font-medium"
+            >
+              {isPending ? 'Submitting…' : 'Submit'}
+            </button>
+            <button onClick={() => setOpen(false)} className="text-xs px-3 py-1 rounded-lg border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card)] transition-colors">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function OrdersPage() {
@@ -67,25 +119,30 @@ export default function OrdersPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
             >
-              <Link href={`/order/${order.id}`} className="block bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-md transition-all group">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center shrink-0">
-                    <Package className="h-6 w-6 text-orange-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-[var(--fg)]">{order.order_number}</p>
-                      <Badge variant={STATUS_BADGE_MAP[order.status] || 'secondary'} className="capitalize text-xs">
-                        {order.status?.replace('_', ' ')}
-                      </Badge>
+              <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-md transition-all group">
+                <Link href={`/order/${order.id}`} className="block">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center shrink-0">
+                      <Package className="h-6 w-6 text-orange-500" />
                     </div>
-                    <p className="text-sm text-[var(--fg-muted)]">
-                      {formatDate(order.created_at)} · {order.order_type?.replace('_', ' ')} · {formatCurrency(order.total)}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-[var(--fg)]">{order.order_number}</p>
+                        <Badge variant={STATUS_BADGE_MAP[order.status] || 'secondary'} className="capitalize text-xs">
+                          {order.status?.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-[var(--fg-muted)]">
+                        {formatDate(order.created_at)} · {order.order_type?.replace('_', ' ')} · {formatCurrency(order.total)}
+                      </p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-[var(--fg-subtle)] group-hover:text-orange-500 transition-colors shrink-0" />
                   </div>
-                  <ArrowRight className="h-4 w-4 text-[var(--fg-subtle)] group-hover:text-orange-500 transition-colors shrink-0" />
-                </div>
-              </Link>
+                </Link>
+                {order.status === 'delivered' && order.items?.[0]?.menu_item?.id && (
+                  <WriteReviewButton orderId={order.id} itemId={order.items[0].menu_item.id} />
+                )}
+              </div>
             </motion.div>
           ))}
         </div>

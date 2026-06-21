@@ -13,9 +13,11 @@ import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
+import { reviewService } from '@/services/review.service'
 import type { MenuFilters } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreatePaymentIntentPayload } from '@/services/payment.service'
+import type { CreateReviewPayload } from '@/services/review.service'
 import type { CreateReservationPayload } from '@/services/combined.service'
 import type { LoginCredentials, NavItem, Permission, RegisterData, SystemReadiness, TenantLifecycle } from '@/types'
 
@@ -257,6 +259,26 @@ export function useValidateDiscount() {
   return useMutation({
     mutationFn: ({ code, subtotal }: { code: string; subtotal: number }) =>
       orderService.validateDiscountCode(code, subtotal),
+  })
+}
+
+// P4.3 — Review hooks
+export function useItemReviews(itemId: string) {
+  return useQuery({
+    queryKey: ['reviews', itemId],
+    queryFn: () => reviewService.getItemReviews(itemId),
+    enabled: Boolean(itemId),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCreateReview(itemId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateReviewPayload) => reviewService.createReview(itemId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviews', itemId] })
+    },
   })
 }
 

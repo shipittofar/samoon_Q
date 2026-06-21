@@ -158,6 +158,9 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
           <span className="flex items-center gap-1">
             <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
             {item.rating.toFixed(1)}
+            {item.rating_count > 0 && (
+              <span className="text-[var(--fg-subtle)]">({item.rating_count})</span>
+            )}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
