@@ -17,9 +17,10 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Divider } from '@/components/ui'
 import { useCartStore, useBranchStore, useAuthStore } from '@/stores'
-import { useCreateOrder } from '@/hooks'
+import { useCreateOrder, useCreatePaymentIntent } from '@/hooks'
 import { formatCurrency, cn } from '@/utils'
 import { orderService } from '@/services/order.service'
+import { StripePaymentForm } from '@/components/checkout/StripePaymentForm'
 import toast from 'react-hot-toast'
 import type { OrderType, PaymentMethod } from '@/types'
 
@@ -55,11 +56,18 @@ export default function CheckoutPage() {
   const { activeBranch } = useBranchStore()
   const { user } = useAuthStore()
   const { mutate: createOrder, isPending } = useCreateOrder()
+  const { mutateAsync: createPaymentIntent, isPending: isCreatingIntent } = useCreatePaymentIntent()
+
   const [orderType, setOrderType] = useState<OrderType>('delivery')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card')
   const [step, setStep] = useState<'details' | 'payment'>('details')
 
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<CheckoutFormData>({
+  // Card-payment state — populated after PaymentIntent creation
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [pendingFormData, setPendingFormData] = useState<CheckoutFormData | null>(null)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
+
+  const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       first_name: user?.first_name || '',
@@ -90,7 +98,12 @@ export default function CheckoutPage() {
     )
   }
 
-  const onSubmit = (data: CheckoutFormData) => {
+  /**
+   * Finalises the order after payment is confirmed (or for non-card methods).
+   * Called either directly from onSubmit (cash/wallet/online) or from the
+   * Stripe success callback (card).
+   */
+  const finaliseOrder = (data: CheckoutFormData, paymentIntentId?: string) => {
     const branchId = activeBranch?.id || '1'
     const payload = {
       branch_id: branchId,
@@ -104,9 +117,10 @@ export default function CheckoutPage() {
         city: data.city || '',
       } : undefined,
       discount_code: discountCode || undefined,
+      ...(paymentIntentId ? { payment_intent_id: paymentIntentId } : {}),
     }
 
-    createOrder(payload, {
+    createOrder(payload as Parameters<typeof createOrder>[0], {
       onSuccess: (order) => {
         clearCart()
         toast.success('Order placed successfully! 🎉')
@@ -118,6 +132,47 @@ export default function CheckoutPage() {
       },
     })
   }
+
+  /**
+   * Form submit handler.
+   * — card: creates PaymentIntent → transitions to Stripe form render
+   * — non-card: calls createOrder directly (unchanged behaviour)
+   */
+  const onSubmit = async (data: CheckoutFormData) => {
+    if (paymentMethod === 'card') {
+      setPendingFormData(data)
+      setPaymentError(null)
+      try {
+        const intent = await createPaymentIntent({
+          amount: total,
+          currency: 'usd',
+          order_description: `Order for ${data.first_name} ${data.last_name}`,
+          branch_id: activeBranch?.id || '1',
+        })
+        setClientSecret(intent.client_secret)
+      } catch {
+        toast.error('Could not initialise payment. Please try again.')
+        setPaymentError('Failed to initialise payment session.')
+      }
+    } else {
+      finaliseOrder(data)
+    }
+  }
+
+  /** Called by StripePaymentForm on success */
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    if (!pendingFormData) return
+    finaliseOrder(pendingFormData, paymentIntentId)
+  }
+
+  /** Called by StripePaymentForm on error */
+  const handlePaymentError = (message: string) => {
+    setPaymentError(message)
+    toast.error(message)
+  }
+
+  // After PaymentIntent is created, show the Stripe payment form
+  const showStripeForm = paymentMethod === 'card' && clientSecret !== null
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -150,88 +205,94 @@ export default function CheckoutPage() {
             ))}
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left: Form */}
-              <div className="lg:col-span-2 space-y-6">
-                <AnimatePresence mode="wait">
-                  {step === 'details' ? (
-                    <motion.div key="details" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
-                      {/* Order Type */}
-                      <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                        <h2 className="font-semibold text-[var(--fg)] mb-4">Order Type</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          {ORDER_TYPES.map((type) => (
-                            <button
-                              key={type.value}
-                              type="button"
-                              onClick={() => setOrderType(type.value)}
-                              className={cn(
-                                'flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all',
-                                orderType === type.value
-                                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
-                                  : 'border-[var(--border)] hover:border-orange-200',
-                              )}
-                            >
-                              <type.icon className={cn('h-5 w-5', orderType === type.value ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
-                              <span className={cn('text-sm font-medium', orderType === type.value ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{type.label}</span>
-                              <span className="text-xs text-[var(--fg-muted)]">{type.desc}</span>
-                            </button>
-                          ))}
-                        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left: Form */}
+            <div className="lg:col-span-2 space-y-6">
+              <AnimatePresence mode="wait">
+                {/* ── Step 1: Details ── */}
+                {step === 'details' && (
+                  <motion.div key="details" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
+                    {/* Order Type */}
+                    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
+                      <h2 className="font-semibold text-[var(--fg)] mb-4">Order Type</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {ORDER_TYPES.map((type) => (
+                          <button
+                            key={type.value}
+                            type="button"
+                            onClick={() => setOrderType(type.value)}
+                            className={cn(
+                              'flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all',
+                              orderType === type.value
+                                ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
+                                : 'border-[var(--border)] hover:border-orange-200',
+                            )}
+                          >
+                            <type.icon className={cn('h-5 w-5', orderType === type.value ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
+                            <span className={cn('text-sm font-medium', orderType === type.value ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{type.label}</span>
+                            <span className="text-xs text-[var(--fg-muted)]">{type.desc}</span>
+                          </button>
+                        ))}
                       </div>
+                    </div>
 
-                      {/* Customer Info */}
-                      <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                        <h2 className="font-semibold text-[var(--fg)] mb-4">Contact Information</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <Input label="First Name" required {...register('first_name')} error={errors.first_name?.message} />
-                          <Input label="Last Name" required {...register('last_name')} error={errors.last_name?.message} />
-                          <Input label="Email" type="email" required {...register('email')} error={errors.email?.message} />
-                          <Input label="Phone" type="tel" required {...register('phone')} error={errors.phone?.message} />
-                        </div>
+                    {/* Customer Info */}
+                    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
+                      <h2 className="font-semibold text-[var(--fg)] mb-4">Contact Information</h2>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Input label="First Name" required {...register('first_name')} error={errors.first_name?.message} />
+                        <Input label="Last Name" required {...register('last_name')} error={errors.last_name?.message} />
+                        <Input label="Email" type="email" required {...register('email')} error={errors.email?.message} />
+                        <Input label="Phone" type="tel" required {...register('phone')} error={errors.phone?.message} />
                       </div>
+                    </div>
 
-                      {/* Delivery Address */}
-                      <AnimatePresence>
-                        {orderType === 'delivery' && (
-                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                            <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-orange-500" /> Delivery Address
-                            </h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div className="sm:col-span-2">
-                                <Input label="Street Address" required={orderType === 'delivery'} {...register('street')} error={errors.street?.message} placeholder="123 Main St, Apt 4B" />
-                              </div>
-                              <Input label="City" required={orderType === 'delivery'} {...register('city')} error={errors.city?.message} />
+                    {/* Delivery Address */}
+                    <AnimatePresence>
+                      {orderType === 'delivery' && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
+                          <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-orange-500" /> Delivery Address
+                          </h2>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="sm:col-span-2">
+                              <Input label="Street Address" required={orderType === 'delivery'} {...register('street')} error={errors.street?.message} placeholder="123 Main St, Apt 4B" />
                             </div>
-                          </motion.div>
-                        )}
-                        {orderType === 'dine_in' && (
-                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                            <h2 className="font-semibold text-[var(--fg)] mb-4">Table Number</h2>
-                            <Input label="Table Number" type="number" {...register('table_number')} placeholder="e.g. 5" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                            <Input label="City" required={orderType === 'delivery'} {...register('city')} error={errors.city?.message} />
+                          </div>
+                        </motion.div>
+                      )}
+                      {orderType === 'dine_in' && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
+                          <h2 className="font-semibold text-[var(--fg)] mb-4">Table Number</h2>
+                          <Input label="Table Number" type="number" {...register('table_number')} placeholder="e.g. 5" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-                      {/* Notes */}
-                      <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                        <h2 className="font-semibold text-[var(--fg)] mb-4">Order Notes</h2>
-                        <textarea
-                          {...register('notes')}
-                          rows={3}
-                          placeholder="Any special instructions for your order?"
-                          className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all"
-                        />
-                      </div>
+                    {/* Notes */}
+                    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
+                      <h2 className="font-semibold text-[var(--fg)] mb-4">Order Notes</h2>
+                      <textarea
+                        {...register('notes')}
+                        rows={3}
+                        placeholder="Any special instructions for your order?"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all"
+                      />
+                    </div>
 
-                      <Button type="button" className="w-full" size="lg" rightIcon={<ChevronRight className="h-4 w-4" />} onClick={() => setStep('payment')}>
-                        Continue to Payment
-                      </Button>
-                    </motion.div>
-                  ) : (
-                    <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <Button type="button" className="w-full" size="lg" rightIcon={<ChevronRight className="h-4 w-4" />} onClick={() => setStep('payment')}>
+                      Continue to Payment
+                    </Button>
+                  </motion.div>
+                )}
+
+                {/* ── Step 2: Payment ── */}
+                {step === 'payment' && (
+                  <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+
+                    {/* Payment method selector — hidden once Stripe form is showing */}
+                    {!showStripeForm && (
                       <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
                         <h2 className="font-semibold text-[var(--fg)] mb-4">Payment Method</h2>
                         <div className="space-y-3">
@@ -239,7 +300,11 @@ export default function CheckoutPage() {
                             <button
                               key={method.value}
                               type="button"
-                              onClick={() => setPaymentMethod(method.value)}
+                              onClick={() => {
+                                setPaymentMethod(method.value)
+                                setClientSecret(null)
+                                setPaymentError(null)
+                              }}
                               className={cn(
                                 'flex items-center gap-4 w-full p-4 rounded-xl border-2 text-start transition-all',
                                 paymentMethod === method.value
@@ -261,62 +326,111 @@ export default function CheckoutPage() {
                           ))}
                         </div>
                       </div>
+                    )}
 
-                      <div className="flex gap-3">
-                        <Button type="button" variant="secondary" onClick={() => setStep('details')} leftIcon={<ArrowLeft className="h-4 w-4" />}>
-                          Back
-                        </Button>
-                        <Button type="submit" className="flex-1" size="lg" loading={isPending} leftIcon={<Lock className="h-4 w-4" />}>
-                          {isPending ? 'Placing Order…' : `Place Order · ${formatCurrency(total)}`}
-                        </Button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Right: Summary */}
-              <div className="space-y-4">
-                <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 sticky top-24">
-                  <h2 className="font-semibold text-[var(--fg)] mb-4">Order Summary</h2>
-
-                  <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
-                    {items.map((item) => (
-                      <div key={item.id} className="flex gap-3 items-start">
-                        <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[var(--card-hover)]">
-                          <Image src={item.menu_item.image} alt={item.menu_item.name} fill className="object-cover" sizes="48px" />
+                    {/* Stripe card form — renders after PaymentIntent is created */}
+                    {showStripeForm && (
+                      <motion.div
+                        key="stripe-form"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6"
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="font-semibold text-[var(--fg)] flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-orange-500" /> Card Payment
+                          </h2>
+                          <button
+                            type="button"
+                            onClick={() => { setClientSecret(null); setPaymentError(null) }}
+                            className="text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] underline"
+                          >
+                            Change method
+                          </button>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[var(--fg)] truncate">{item.menu_item.name}</p>
-                          {item.extras.length > 0 && <p className="text-xs text-[var(--fg-muted)]">+{item.extras.map(e => e.name).join(', ')}</p>}
-                          <p className="text-xs text-[var(--fg-muted)]">×{item.quantity}</p>
-                        </div>
-                        <span className="text-sm font-medium text-[var(--fg)] shrink-0">{formatCurrency(item.total_price)}</span>
+                        <StripePaymentForm
+                          clientSecret={clientSecret}
+                          total={total}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                        />
+                      </motion.div>
+                    )}
+
+                    {/* Error banner */}
+                    {paymentError && !showStripeForm && (
+                      <div className="text-sm text-red-600 bg-red-50 dark:bg-red-950/20 rounded-xl p-3">
+                        {paymentError}
                       </div>
-                    ))}
-                  </div>
+                    )}
 
-                  <Divider className="my-4" />
+                    {/* Action buttons — only shown when Stripe form is NOT displayed */}
+                    {!showStripeForm && (
+                      <form onSubmit={handleSubmit(onSubmit)}>
+                        <div className="flex gap-3">
+                          <Button type="button" variant="secondary" onClick={() => setStep('details')} leftIcon={<ArrowLeft className="h-4 w-4" />}>
+                            Back
+                          </Button>
+                          <Button
+                            type="submit"
+                            className="flex-1"
+                            size="lg"
+                            loading={isPending || isCreatingIntent}
+                            leftIcon={<Lock className="h-4 w-4" />}
+                          >
+                            {paymentMethod === 'card'
+                              ? isCreatingIntent ? 'Preparing payment…' : `Pay with Card · ${formatCurrency(total)}`
+                              : isPending ? 'Placing Order…' : `Place Order · ${formatCurrency(total)}`}
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-                  <div className="space-y-2.5 text-sm">
-                    <div className="flex justify-between text-[var(--fg-muted)]"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-                    {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>Discount</span><span>−{formatCurrency(discountAmount)}</span></div>}
-                    <div className="flex justify-between text-[var(--fg-muted)]"><span>Tax (9%)</span><span>{formatCurrency(tax)}</span></div>
-                    <div className="flex justify-between text-[var(--fg-muted)]"><span>Service (5%)</span><span>{formatCurrency(serviceCharge)}</span></div>
-                    <Divider />
-                    <div className="flex justify-between font-bold text-[var(--fg)] text-base">
-                      <span>Total</span><span>{formatCurrency(total)}</span>
+            {/* Right: Order Summary */}
+            <div className="space-y-4">
+              <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 sticky top-24">
+                <h2 className="font-semibold text-[var(--fg)] mb-4">Order Summary</h2>
+
+                <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex gap-3 items-start">
+                      <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[var(--card-hover)]">
+                        <Image src={item.menu_item.image} alt={item.menu_item.name} fill className="object-cover" sizes="48px" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[var(--fg)] truncate">{item.menu_item.name}</p>
+                        {item.extras.length > 0 && <p className="text-xs text-[var(--fg-muted)]">+{item.extras.map(e => e.name).join(', ')}</p>}
+                        <p className="text-xs text-[var(--fg-muted)]">×{item.quantity}</p>
+                      </div>
+                      <span className="text-sm font-medium text-[var(--fg)] shrink-0">{formatCurrency(item.total_price)}</span>
                     </div>
-                  </div>
+                  ))}
+                </div>
 
-                  <div className="mt-4 flex items-center gap-2 text-xs text-[var(--fg-muted)] bg-[var(--card-hover)] rounded-xl p-3">
-                    <Lock className="h-3.5 w-3.5 shrink-0" />
-                    <span>Your payment information is encrypted and secure.</span>
+                <Divider className="my-4" />
+
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
+                  {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>Discount</span><span>−{formatCurrency(discountAmount)}</span></div>}
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Tax (9%)</span><span>{formatCurrency(tax)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Service (5%)</span><span>{formatCurrency(serviceCharge)}</span></div>
+                  <Divider />
+                  <div className="flex justify-between font-bold text-[var(--fg)] text-base">
+                    <span>Total</span><span>{formatCurrency(total)}</span>
                   </div>
+                </div>
+
+                <div className="mt-4 flex items-center gap-2 text-xs text-[var(--fg-muted)] bg-[var(--card-hover)] rounded-xl p-3">
+                  <Lock className="h-3.5 w-3.5 shrink-0" />
+                  <span>Your payment information is encrypted and secure.</span>
                 </div>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>

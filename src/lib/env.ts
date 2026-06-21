@@ -23,6 +23,8 @@ const optionalEnvSchema = z.object({
   // P4.9.3: Optional observability / deployment fields
   NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+  // P4.1: Stripe publishable key — required only when USE_MOCK=false and card payments are used
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith('pk_').optional(),
 })
 
 function parseEnv() {
@@ -41,6 +43,7 @@ function parseEnv() {
   const optResult = optionalEnvSchema.safeParse({
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   })
   if (!optResult.success) {
     const issues = optResult.error.issues.map((i) => `  • ${i.path.join('.')}: ${i.message}`).join('\n')
@@ -59,4 +62,5 @@ export type Env = typeof env
 export const optionalEnv = {
   sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   appUrl: process.env.NEXT_PUBLIC_APP_URL,
+  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 } as const

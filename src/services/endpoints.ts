@@ -37,6 +37,12 @@ export const ENDPOINTS = {
     VALIDATE_DISCOUNT: '/orders/validate-discount/',
   },
 
+  // Payments (P4.1 — Stripe PaymentIntent)
+  PAYMENTS: {
+    CREATE_INTENT: '/payments/create-intent/',
+    CONFIRM: '/payments/confirm/',
+  },
+
   // Reservations
   RESERVATIONS: {
     LIST: '/reservations/',

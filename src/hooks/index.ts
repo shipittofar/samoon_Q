@@ -12,8 +12,10 @@ import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore }
 import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
+import { paymentService } from '@/services/payment.service'
 import type { MenuFilters } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
+import type { CreatePaymentIntentPayload } from '@/services/payment.service'
 import type { CreateReservationPayload } from '@/services/combined.service'
 import type { LoginCredentials, NavItem, Permission, RegisterData, SystemReadiness, TenantLifecycle } from '@/types'
 
@@ -255,6 +257,14 @@ export function useValidateDiscount() {
   return useMutation({
     mutationFn: ({ code, subtotal }: { code: string; subtotal: number }) =>
       orderService.validateDiscountCode(code, subtotal),
+  })
+}
+
+// P4.1 — Payment hooks
+export function useCreatePaymentIntent() {
+  return useMutation({
+    mutationFn: (payload: CreatePaymentIntentPayload) =>
+      paymentService.createPaymentIntent(payload),
   })
 }
 
