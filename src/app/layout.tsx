@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image', title: 'Savor — Fine Dining & Delivery', images: ['/og-image.jpg'] },
   robots: { index: true, follow: true },
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+  },
 }
 
 export const viewport: Viewport = {

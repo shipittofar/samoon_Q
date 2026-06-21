@@ -10,5 +10,5 @@
   "dashboard": { "title": "حسابي", "orders": "الطلبات", "favorites": "المفضلة", "addresses": "العناوين", "reservations": "الحجوزات", "settings": "الإعدادات", "profile": "الملف الشخصي", "editProfile": "تعديل الملف", "notifications": "الإشعارات", "language": "اللغة", "theme": "المظهر" },
   "restaurant": { "title": "من نحن", "hours": "ساعات العمل", "contact": "التواصل", "gallery": "المعرض", "branches": "فروعنا", "closed": "مغلق", "open": "مفتوح الآن" },
   "notifications": { "title": "الإشعارات", "empty": "لا توجد إشعارات", "markAllRead": "تحديد الكل كمقروء", "orderUpdate": "تحديث الطلب", "promotion": "عرض", "reservation": "حجز", "system": "النظام" },
-  "errors": { "notFound": "الصفحة غير موجودة", "notFoundDesc": "الصفحة غير موجودة.", "serverError": "خطأ في الخادم", "serverErrorDesc": "حدث خطأ. يرجى المحاولة.", "offline": "أنت غير متصل", "offlineDesc": "تحقق من اتصالك." }
+  "errors": { "notFound": "الصفحة غير موجودة", "notFoundDesc": "الصفحة التي تبحث عنها غير موجودة.", "serverError": "خطأ في الخادم", "serverErrorDesc": "حدث خطأ. يرجى المحاولة.", "offline": "أنت غير متصل", "offlineDesc": "تحقق من اتصالك." }
 }
