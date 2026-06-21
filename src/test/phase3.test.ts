@@ -148,6 +148,13 @@ describe('P3.3 — Mock mode safety (production build guard)', () => {
     }
     expect(check).not.toThrow()
   })
+
+  it('.env.example defaults NEXT_PUBLIC_USE_MOCK to false (P3.3)', () => {
+    const envExample = readFileSync(join(process.cwd(), '.env.example'), 'utf8')
+    // The default must be "false" — "true" is only for explicit local dev opt-in.
+    expect(envExample).toContain('NEXT_PUBLIC_USE_MOCK=false')
+    expect(envExample).not.toContain('NEXT_PUBLIC_USE_MOCK=true')
+  })
 })
 
 // ── P3.4 PWA Asset Validation ─────────────────────────────────────────────────
