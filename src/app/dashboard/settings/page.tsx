@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Sun, Moon, Monitor, Globe, Bell, Shield, User, ChevronRight } from 'lucide-react'
+import { Sun, Moon, Monitor, Globe, Bell, Shield, User, ChevronRight, Camera, Upload, X } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui'
@@ -50,6 +50,58 @@ export default function SettingsPage() {
     order_updates: true, promotions: true, reservation_reminders: true, system: true,
   })
 
+  // Avatar upload state
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
+  const [uploadError, setUploadError] = useState<string | null>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    if (!ALLOWED.includes(file.type)) {
+      setUploadError('Unsupported file type. Use JPEG, PNG, WebP, or GIF.')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError('File too large. Maximum 5 MB.')
+      return
+    }
+    setUploadError(null)
+    setUploadState('idle')
+    setPendingFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+  }
+
+  const handleCancelPreview = () => {
+    setPendingFile(null)
+    setPreviewUrl(null)
+    setUploadState('idle')
+    setUploadError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleUploadAvatar = async () => {
+    if (!pendingFile) return
+    setUploadState('uploading')
+    setUploadError(null)
+    try {
+      const { avatar_url } = await userService.uploadAvatar(pendingFile)
+      setUser({ ...user!, avatar: avatar_url })
+      toast.success('Avatar updated!')
+      setUploadState('success')
+      setPendingFile(null)
+      setPreviewUrl(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Upload failed. Please try again.'
+      setUploadError(msg)
+      setUploadState('error')
+    }
+  }
+
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: { first_name: user?.first_name || '', last_name: user?.last_name || '', email: user?.email || '', phone: user?.phone || '' },
@@ -85,12 +137,76 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex items-center gap-4 mb-6 p-4 bg-[var(--card-hover)] rounded-xl">
-          <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="lg" />
-          <div>
+          {/* Avatar preview / current avatar */}
+          <div className="relative shrink-0">
+            <Avatar
+              src={previewUrl ?? user?.avatar}
+              firstName={user?.first_name}
+              lastName={user?.last_name}
+              size="lg"
+            />
+            {!pendingFile && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Change profile photo"
+                className="absolute -bottom-1 -end-1 h-6 w-6 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-md hover:bg-orange-600 transition-colors"
+              >
+                <Camera className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
             <p className="font-semibold text-[var(--fg)]">{user?.first_name} {user?.last_name}</p>
             <p className="text-sm text-[var(--fg-muted)]">{user?.email}</p>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="sr-only"
+              aria-label="Select profile photo"
+              onChange={handleFileChange}
+              data-testid="avatar-file-input"
+            />
+
+            {/* Upload controls — shown when a file is staged */}
+            {pendingFile && (
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  onClick={handleUploadAvatar}
+                  loading={uploadState === 'uploading'}
+                  disabled={uploadState === 'uploading'}
+                  leftIcon={<Upload className="h-3.5 w-3.5" />}
+                >
+                  {uploadState === 'uploading' ? 'Uploading…' : 'Upload'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleCancelPreview}
+                  disabled={uploadState === 'uploading'}
+                  leftIcon={<X className="h-3.5 w-3.5" />}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+
+            {/* Feedback messages */}
+            {uploadState === 'success' && (
+              <p className="mt-1 text-xs text-emerald-600 font-medium">Avatar updated successfully.</p>
+            )}
+            {uploadState === 'error' && uploadError && (
+              <p className="mt-1 text-xs text-red-500" role="alert">{uploadError}</p>
+            )}
+            {!pendingFile && !uploadError && uploadState !== 'success' && (
+              <p className="mt-1 text-xs text-[var(--fg-muted)]">JPEG, PNG, WebP or GIF · max 5 MB</p>
+            )}
           </div>
-          <Button variant="secondary" size="sm" className="ms-auto">Change Photo</Button>
         </div>
 
         <form onSubmit={handleSubmit(onSaveProfile)} className="space-y-4">

@@ -169,4 +169,32 @@ export const userService = {
     const { data } = await api.post<{ favorited: boolean }>(ENDPOINTS.USERS.TOGGLE_FAVORITE(itemId))
     return data
   },
+
+  async uploadAvatar(file: File): Promise<{ avatar_url: string }> {
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    const MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      throw new Error('Unsupported file type. Please upload a JPEG, PNG, WebP, or GIF image.')
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      throw new Error('File is too large. Maximum allowed size is 5 MB.')
+    }
+
+    if (USE_MOCK) {
+      await delay(900)
+      const objectUrl = URL.createObjectURL(file)
+      return { avatar_url: objectUrl }
+    }
+
+    const form = new FormData()
+    form.append('avatar', file)
+    const { data } = await api.post<{ avatar_url: string }>(
+      ENDPOINTS.USERS.AVATAR_UPLOAD,
+      form,
+      { headers: { 'Content-Type': 'multipart/form-data' } },
+    )
+    if (!data?.avatar_url) throw new Error('Server did not return an avatar URL.')
+    return data
+  },
 }

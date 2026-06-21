@@ -72,6 +72,7 @@ export const ENDPOINTS = {
   USERS: {
     PROFILE: '/users/profile/',
     UPDATE_PROFILE: '/users/profile/',
+    AVATAR_UPLOAD: '/users/avatar/',
     ADDRESSES: '/users/addresses/',
     ADDRESS: (id: string) => `/users/addresses/${id}/`,
     FAVORITES: '/users/favorites/',
