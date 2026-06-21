@@ -6,6 +6,7 @@ import {
   branchService,
   notificationService,
   reservationService,
+  tableService,
   userService,
 } from '@/services/combined.service'
 import { authService } from '@/services/auth.service'
@@ -421,4 +422,14 @@ export function useSetLocale() {
     setLocale(locale)
     router.refresh()
   }
+}
+
+// P4.4 — Table metadata hook
+export function useTableInfo(tableId: string | null) {
+  return useQuery({
+    queryKey: ['table-info', tableId],
+    queryFn: () => tableService.getTableInfo(tableId!),
+    enabled: !!tableId,
+    staleTime: STALE_TIME,
+  })
 }

@@ -2,7 +2,7 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { MOCK_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
-import type { Address, Branch, Notification, PaginatedResponse, Reservation, User } from '@/types'
+import type { Address, Branch, Notification, PaginatedResponse, Reservation, TableInfo, User } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms))
@@ -195,6 +195,26 @@ export const userService = {
       { headers: { 'Content-Type': 'multipart/form-data' } },
     )
     if (!data?.avatar_url) throw new Error('Server did not return an avatar URL.')
+    return data
+  },
+}
+
+// ─── tableService ─────────────────────────────────────────────────────────────
+const MOCK_TABLE_INFO: Record<string, TableInfo> = {
+  '1': { id: 'table-1', number: 1, capacity: 4, section: 'Main Hall', server_name: 'Alex', status: 'occupied' },
+  '2': { id: 'table-2', number: 2, capacity: 2, section: 'Window', server_name: 'Maria', status: 'occupied' },
+  '3': { id: 'table-3', number: 3, capacity: 6, section: 'Patio', server_name: 'Jordan', status: 'occupied' },
+}
+
+export const tableService = {
+  async getTableInfo(tableId: string): Promise<TableInfo> {
+    if (USE_MOCK) {
+      await delay(500)
+      const info = MOCK_TABLE_INFO[tableId]
+      if (info) return info
+      return { id: `table-${tableId}`, number: parseInt(tableId, 10), status: 'occupied' }
+    }
+    const { data } = await api.get<TableInfo>(ENDPOINTS.TABLE.INFO(tableId))
     return data
   },
 }

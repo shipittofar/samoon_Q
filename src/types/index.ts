@@ -96,6 +96,15 @@ export interface NutritionalInfo {
   fiber?: number
 }
 
+export interface TableInfo {
+  id: string
+  number: number
+  capacity?: number
+  section?: string
+  server_name?: string
+  status?: 'available' | 'occupied' | 'reserved'
+}
+
 // ============================================================
 // CART TYPES
 // ============================================================
