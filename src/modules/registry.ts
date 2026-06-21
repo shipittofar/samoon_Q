@@ -53,9 +53,9 @@ export const RESTAURANT_MODULE: Module = {
   name: 'Restaurant',
   businessTypes: ['restaurant'],
   capabilities: {
-    required: ['menu', 'ordering', 'notifications'],
-    optional: ['qr_table', 'reservations', 'reviews'],
-    defaultEnabled: ['qr_table', 'reservations', 'reviews'],
+    required: ['menu', 'ordering', 'qr_table', 'notifications'],
+    optional: ['reservations', 'reviews'],
+    defaultEnabled: ['reservations', 'reviews'],
   },
   routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant'],
   navItems: [
@@ -78,26 +78,46 @@ export const RESTAURANT_MODULE: Module = {
 // registry. Route pages, nav extensions, and custom service logic are
 // implemented in P6.3+ tasks for each respective business type.
 
+// ── P6.3 — Cafe Module (full implementation) ─────────────────────────────────
 export const CAFE_MODULE: Module = {
   key: 'cafe',
   name: 'Cafe',
   businessTypes: ['cafe'],
   capabilities: {
-    required: ['menu', 'ordering', 'notifications'],
-    optional: ['qr_table', 'reservations', 'reviews', 'loyalty'],
-    defaultEnabled: ['qr_table', 'reviews'],
+    required: ['menu', 'ordering', 'qr_table', 'notifications'],
+    optional: ['reservations', 'reviews', 'loyalty'],
+    defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  routes: [
+    '/menu',
+    '/checkout',
+    '/checkout/success',
+    '/checkout/failure',
+    '/order',
+    '/reservation',
+    '/reviews',
+    '/loyalty',
+  ],
   navItems: [
     { href: '/menu', label: 'Menu' },
+    { href: '/reservation', label: 'Reservations', featureFlagKey: 'reservations.enabled' },
+    { href: '/reviews', label: 'Reviews', featureFlagKey: 'reviews.enabled' },
+    { href: '/loyalty', label: 'Loyalty', featureFlagKey: 'cafe.loyalty.enabled' },
   ],
   defaultFeatureFlags: {
     'menu.enabled': true,
     'delivery.enabled': true,
     'table_ordering.enabled': true,
     'order_tracking.enabled': true,
-    'reservations.enabled': false,
+    'reservations.enabled': true,
+    'cafe.loyalty.enabled': false,
+    'cafe.happy_hour.enabled': false,
+    'cafe.featured_coffee.enabled': false,
   },
+  adminNavItems: [
+    { href: '/admin/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled' },
+    { href: '/admin/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled' },
+  ],
   enabled: true,
 }
 
@@ -106,9 +126,9 @@ export const BAR_MODULE: Module = {
   name: 'Bar',
   businessTypes: ['bar'],
   capabilities: {
-    required: ['menu', 'ordering', 'notifications'],
-    optional: ['qr_table', 'reservations', 'reviews', 'loyalty'],
-    defaultEnabled: ['qr_table'],
+    required: ['menu', 'ordering', 'qr_table', 'notifications'],
+    optional: ['reservations', 'reviews', 'loyalty'],
+    defaultEnabled: [],
   },
   routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
   navItems: [
@@ -152,9 +172,9 @@ export const FOOD_TRUCK_MODULE: Module = {
   name: 'Food Truck',
   businessTypes: ['food_truck'],
   capabilities: {
-    required: ['menu', 'ordering', 'notifications'],
-    optional: ['qr_table', 'reviews', 'loyalty'],
-    defaultEnabled: ['qr_table', 'reviews'],
+    required: ['menu', 'ordering', 'qr_table', 'notifications'],
+    optional: ['reviews', 'loyalty'],
+    defaultEnabled: ['reviews'],
   },
   routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
   navItems: [
@@ -176,9 +196,9 @@ export const MOBILE_CAFE_MODULE: Module = {
   name: 'Mobile Cafe',
   businessTypes: ['mobile_cafe'],
   capabilities: {
-    required: ['menu', 'ordering', 'notifications'],
-    optional: ['qr_table', 'reviews', 'loyalty'],
-    defaultEnabled: ['qr_table', 'reviews', 'loyalty'],
+    required: ['menu', 'ordering', 'qr_table', 'notifications'],
+    optional: ['reviews', 'loyalty'],
+    defaultEnabled: ['reviews', 'loyalty'],
   },
   routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
   navItems: [
@@ -353,6 +373,26 @@ export function resolveBusinessTypes(activeModuleKeys: string[]): BusinessType[]
     if (mod) mod.businessTypes.forEach((t) => types.add(t))
   }
   return Array.from(types)
+}
+
+/**
+ * Returns admin nav items declared by the given module keys.
+ * Items carry a featureFlagKey that consumers use to gate visibility.
+ *
+ * When activeModuleKeys is empty or undefined, returns admin nav from all
+ * enabled modules (single-tenant / admin shell fallback).
+ *
+ * P6.3 — Cafe Module (admin capability awareness)
+ */
+export function getAdminNav(activeModuleKeys?: string[]): NavItem[] {
+  seal()
+  const modules = _modules.filter((m) => m.enabled)
+  if (activeModuleKeys !== undefined) {
+    return modules
+      .filter((m) => activeModuleKeys.includes(m.key))
+      .flatMap((m) => m.adminNavItems ?? [])
+  }
+  return modules.flatMap((m) => m.adminNavItems ?? [])
 }
 
 // ── Capability API (P6.2 — Multi-Business Foundation) ────────────────────────

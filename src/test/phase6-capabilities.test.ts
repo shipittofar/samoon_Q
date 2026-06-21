@@ -155,19 +155,19 @@ describe('RESTAURANT_MODULE — capability contract', () => {
     expect(RESTAURANT_MODULE.capabilities!.required).toContain('notifications')
   })
 
-  it('qr_table is in optional', async () => {
+  it('qr_table is required (P6.3: QR required for all business types)', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect(RESTAURANT_MODULE.capabilities!.optional).toContain('qr_table')
+    expect(RESTAURANT_MODULE.capabilities!.required).toContain('qr_table')
+  })
+
+  it('qr_table is NOT in optional (moved to required in P6.3)', async () => {
+    const { RESTAURANT_MODULE } = await import('@/modules/registry')
+    expect(RESTAURANT_MODULE.capabilities!.optional).not.toContain('qr_table')
   })
 
   it('reservations is in optional', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
     expect(RESTAURANT_MODULE.capabilities!.optional).toContain('reservations')
-  })
-
-  it('qr_table is defaultEnabled', async () => {
-    const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect(RESTAURANT_MODULE.capabilities!.defaultEnabled).toContain('qr_table')
   })
 
   it('reservations is defaultEnabled', async () => {
@@ -235,9 +235,9 @@ describe('BAR_MODULE — capability contract', () => {
     expect(BAR_MODULE.defaultFeatureFlags['delivery.enabled']).toBe(false)
   })
 
-  it('qr_table is in defaultEnabled', async () => {
+  it('qr_table is required (P6.3: QR required for all business types)', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
-    expect(BAR_MODULE.capabilities!.defaultEnabled).toContain('qr_table')
+    expect(BAR_MODULE.capabilities!.required).toContain('qr_table')
   })
 })
 
@@ -329,7 +329,7 @@ describe('hasCapability()', () => {
     expect(hasCapability(['restaurant'], 'menu')).toBe(true)
   })
 
-  it('returns true for a defaultEnabled capability', async () => {
+  it('returns true for a required capability (qr_table — required for all)', async () => {
     const { hasCapability } = await freshRegistry()
     expect(hasCapability(['restaurant'], 'qr_table')).toBe(true)
   })

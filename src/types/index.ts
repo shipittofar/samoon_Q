@@ -441,6 +441,36 @@ export interface Module {
    * capability-derived flags; their defaultFeatureFlags are still honoured.
    */
   capabilities?: ModuleCapabilitySet
+  /**
+   * Admin-shell nav items surfaced when this module is active (P6.3+).
+   * Each item carries a featureFlagKey so the admin shell can gate visibility
+   * without knowing which business type is active — the module self-describes.
+   */
+  adminNavItems?: NavItem[]
+}
+
+// ============================================================
+// CAFE TYPES  (Phase 6 — P6.3)
+// ============================================================
+
+/**
+ * Per-tenant cafe configuration stored in Tenant.settings.cafeSettings.
+ * Fields are additive — absent fields fall back to disabled/off.
+ *
+ * Do NOT add UI until P6.3 screens are implemented.
+ * Types only — consumed by CafeModule feature flag resolution and admin forms.
+ */
+export interface CafeSettings {
+  /** Enable happy-hour pricing rules. Corresponds to cafe.happy_hour.enabled flag. */
+  happyHourEnabled: boolean
+  /** ISO time string, e.g. "15:00". Ignored when happyHourEnabled is false. */
+  happyHourStart?: string
+  /** ISO time string, e.g. "18:00". Ignored when happyHourEnabled is false. */
+  happyHourEnd?: string
+  /** Enable stamp-card / points loyalty program. Corresponds to cafe.loyalty.enabled flag. */
+  loyaltyEnabled: boolean
+  /** Surface a curated featured-coffee section on the menu. Corresponds to cafe.featured_coffee.enabled. */
+  featuredCoffeeEnabled: boolean
 }
 
 // ============================================================
