@@ -831,3 +831,77 @@ export interface AdminCustomerFilters {
   page?: number
   page_size?: number
 }
+
+// ── Vendor Management Domain Types (P6.11) ────────────────────────────────────
+
+export type VendorStatus = 'active' | 'inactive' | 'pending' | 'suspended'
+
+export type VendorCategory =
+  | 'asian'
+  | 'western'
+  | 'mediterranean'
+  | 'mexican'
+  | 'indian'
+  | 'desserts'
+  | 'beverages'
+  | 'fast_food'
+  | 'healthy'
+  | 'other'
+
+export interface Vendor {
+  id: string
+  name: string
+  description: string
+  category: VendorCategory
+  status: VendorStatus
+  /** Star rating 0–5, one decimal place. */
+  rating: number
+  /** Number of ratings contributing to rating average. */
+  ratingCount: number
+  featured: boolean
+  logoUrl?: string
+  /** Stall / booth identifier in the food court. */
+  stallNumber?: string
+  /** Commission percentage taken from vendor revenue (0–100). */
+  commissionRate: number
+  contactEmail: string
+  contactPhone?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface VendorStats {
+  vendorId: string
+  ordersCount: number
+  revenue: number
+  commissionPaid: number
+  avgRating: number
+  activeProducts: number
+  /** ISO month string e.g. "2025-06". */
+  period: string
+}
+
+export type SettlementStatus = 'pending' | 'paid' | 'failed'
+
+export interface VendorCommission {
+  vendorId: string
+  /** Gross revenue for the settlement period. */
+  grossRevenue: number
+  commissionRate: number
+  commissionAmount: number
+  netPayout: number
+}
+
+export interface VendorSettlement {
+  id: string
+  vendorId: string
+  amount: number
+  status: SettlementStatus
+  /** ISO date string for when the settlement was created. */
+  settlementDate: string
+  /** External payout reference (e.g. bank transfer ID). */
+  payoutReference?: string
+  commission: VendorCommission
+  createdAt: string
+  updatedAt: string
+}

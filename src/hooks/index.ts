@@ -7,6 +7,8 @@ import { loyaltyService } from '@/services/loyalty.service'
 import type { EarnPointsPayload } from '@/services/loyalty.service'
 import { promotionService } from '@/services/promotion.service'
 import type { CreatePromotionPayload, UpdatePromotionPayload } from '@/services/promotion.service'
+import { vendorService } from '@/services/vendor.service'
+import type { CreateVendorPayload, UpdateVendorPayload, CreateSettlementPayload } from '@/services/vendor.service'
 import {
   branchService,
   notificationService,
@@ -667,6 +669,82 @@ export function useUpdateMenuItem() {
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ['menu-items'] })
       qc.invalidateQueries({ queryKey: ['menu-item', id] })
+    },
+  })
+}
+
+// ── Vendor Hooks (P6.11) ─────────────────────────────────────────────────────
+
+export function useVendors() {
+  return useQuery({
+    queryKey: ['vendors'],
+    queryFn: () => vendorService.getVendors(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useVendor(id: string) {
+  return useQuery({
+    queryKey: ['vendor', id],
+    queryFn: () => vendorService.getVendor(id),
+    enabled: !!id,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCreateVendor() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateVendorPayload) => vendorService.createVendor(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['vendors'] }),
+  })
+}
+
+export function useUpdateVendor() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateVendorPayload }) =>
+      vendorService.updateVendor(id, payload),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ['vendors'] })
+      qc.invalidateQueries({ queryKey: ['vendor', id] })
+    },
+  })
+}
+
+export function useDisableVendor() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => vendorService.disableVendor(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['vendors'] }),
+  })
+}
+
+export function useVendorStats(id: string) {
+  return useQuery({
+    queryKey: ['vendor-stats', id],
+    queryFn: () => vendorService.getVendorStats(id),
+    enabled: !!id,
+    staleTime: 60_000,
+  })
+}
+
+export function useVendorSettlements(id: string) {
+  return useQuery({
+    queryKey: ['vendor-settlements', id],
+    queryFn: () => vendorService.getVendorSettlements(id),
+    enabled: !!id,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCreateSettlement() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateSettlementPayload) => vendorService.createSettlement(payload),
+    onSuccess: (_data, { vendorId }) => {
+      qc.invalidateQueries({ queryKey: ['vendor-settlements', vendorId] })
+      qc.invalidateQueries({ queryKey: ['vendor-stats', vendorId] })
     },
   })
 }

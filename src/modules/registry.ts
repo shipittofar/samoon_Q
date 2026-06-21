@@ -205,7 +205,7 @@ export const FOOD_COURT_MODULE: Module = {
     'order_tracking.enabled': true,
     'reservations.enabled': true,
     'food_court.multi_vendor.enabled': true,
-    'food_court.vendor_management.enabled': false,
+    'food_court.vendor_management.enabled': true,
     'food_court.shared_seating.enabled': true,
     'food_court.cross_vendor_ordering.enabled': false,
     'food_court.featured_vendor.enabled': false,

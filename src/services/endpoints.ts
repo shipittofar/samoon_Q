@@ -111,6 +111,17 @@ export const ENDPOINTS = {
     ADMIN_REWARD: (id: string) => `/admin/loyalty/rewards/${id}/`,
   },
 
+  // Vendor Management (P6.11) — food_court only
+  VENDORS: {
+    LIST: '/vendors/',
+    DETAIL: (id: string) => `/vendors/${id}/`,
+    STATS: (id: string) => `/vendors/${id}/stats/`,
+    SETTLEMENTS: (id: string) => `/vendors/${id}/settlements/`,
+    ADMIN_LIST: '/admin/vendors/',
+    ADMIN_DETAIL: (id: string) => `/admin/vendors/${id}/`,
+    ADMIN_SETTLEMENTS: '/admin/settlements/',
+  },
+
   // Promotions (P6.10)
   PROMOTIONS: {
     LIST: '/promotions/',

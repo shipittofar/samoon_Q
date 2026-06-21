@@ -243,9 +243,9 @@ describe('G. feature flags', () => {
     expect(FOOD_COURT_MODULE.defaultFeatureFlags['food_court.shared_seating.enabled']).toBe(true)
   })
 
-  it('food_court.vendor_management.enabled defaults to false', async () => {
+  it('food_court.vendor_management.enabled defaults to true', async () => {
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
-    expect(FOOD_COURT_MODULE.defaultFeatureFlags['food_court.vendor_management.enabled']).toBe(false)
+    expect(FOOD_COURT_MODULE.defaultFeatureFlags['food_court.vendor_management.enabled']).toBe(true)
   })
 
   it('food_court.cross_vendor_ordering.enabled defaults to false', async () => {
