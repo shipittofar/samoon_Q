@@ -547,6 +547,20 @@ export function useUpdateMenuItem() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<MenuItem> }) =>
       menuService.updateItem(id, payload),
+    onMutate: async ({ id, payload }) => {
+      await qc.cancelQueries({ queryKey: ['menu-items'] })
+      const snapshots = qc.getQueriesData<PaginatedResponse<MenuItem>>({ queryKey: ['menu-items'] })
+      qc.setQueriesData<PaginatedResponse<MenuItem>>(
+        { queryKey: ['menu-items'] },
+        (old) => old
+          ? { ...old, results: old.results.map((i) => i.id === id ? { ...i, ...payload } : i) }
+          : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ['menu-items'] })
       qc.invalidateQueries({ queryKey: ['menu-item', id] })
@@ -558,6 +572,20 @@ export function useDeleteMenuItem() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => menuService.deleteItem(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['menu-items'] })
+      const snapshots = qc.getQueriesData<PaginatedResponse<MenuItem>>({ queryKey: ['menu-items'] })
+      qc.setQueriesData<PaginatedResponse<MenuItem>>(
+        { queryKey: ['menu-items'] },
+        (old) => old
+          ? { ...old, results: old.results.filter((i) => i.id !== id), count: old.count - 1 }
+          : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['menu-items'] })
     },

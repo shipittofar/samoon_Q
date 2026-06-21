@@ -470,7 +470,7 @@ describe('hooks/index.ts — P5.1 admin hooks source', () => {
 
   it('useUpdateMenuItem invalidates specific menu-item query', () => {
     const block = src().slice(src().indexOf('useUpdateMenuItem'))
-    expect(block.slice(0, 500)).toContain("'menu-item'")
+    expect(block.slice(0, 1200)).toContain("'menu-item'")
   })
 })
 
