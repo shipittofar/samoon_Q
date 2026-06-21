@@ -450,12 +450,12 @@ describe('hooks/index.ts — P5.1 admin hooks source', () => {
 
   it('useConfirmReservation invalidates admin-reservations', () => {
     const block = src().slice(src().indexOf('useConfirmReservation'))
-    expect(block.slice(0, 400)).toContain("'admin-reservations'")
+    expect(block.slice(0, 1100)).toContain("'admin-reservations'")
   })
 
   it('useConfirmReservation invalidates reservations', () => {
     const block = src().slice(src().indexOf('useConfirmReservation'))
-    expect(block.slice(0, 400)).toContain("'reservations'")
+    expect(block.slice(0, 1200)).toContain("'reservations'")
   })
 
   it('useCreateMenuItem invalidates menu-items', () => {

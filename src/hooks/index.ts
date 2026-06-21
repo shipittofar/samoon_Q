@@ -34,6 +34,8 @@ import type {
   PaginatedResponse,
   Permission,
   RegisterData,
+  Reservation,
+  ReservationStatus,
   SystemReadiness,
   TenantLifecycle,
 } from '@/types'
@@ -505,6 +507,45 @@ export function useConfirmReservation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => adminService.confirmReservation(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['admin-reservations'] })
+      const snapshots = qc.getQueriesData<PaginatedResponse<Reservation>>({ queryKey: ['admin-reservations'] })
+      qc.setQueriesData<PaginatedResponse<Reservation>>(
+        { queryKey: ['admin-reservations'] },
+        (old) => old
+          ? { ...old, results: old.results.map((r) => r.id === id ? { ...r, status: 'confirmed' as ReservationStatus } : r) }
+          : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-reservations'] })
+      qc.invalidateQueries({ queryKey: ['reservations'] })
+    },
+  })
+}
+
+export function useCancelReservation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => reservationService.cancelReservation(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['admin-reservations'] })
+      const snapshots = qc.getQueriesData<PaginatedResponse<Reservation>>({ queryKey: ['admin-reservations'] })
+      qc.setQueriesData<PaginatedResponse<Reservation>>(
+        { queryKey: ['admin-reservations'] },
+        (old) => old
+          ? { ...old, results: old.results.map((r) => r.id === id ? { ...r, status: 'cancelled' as ReservationStatus } : r) }
+          : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
