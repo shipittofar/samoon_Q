@@ -473,6 +473,21 @@ export interface CafeSettings {
   featuredCoffeeEnabled: boolean
 }
 
+export interface BarSettings {
+  /** Enable happy-hour pricing rules. Corresponds to bar.happy_hour.enabled flag. */
+  happyHourEnabled: boolean
+  /** ISO time string, e.g. "17:00". Ignored when happyHourEnabled is false. */
+  happyHourStart?: string
+  /** ISO time string, e.g. "20:00". Ignored when happyHourEnabled is false. */
+  happyHourEnd?: string
+  /** Enable event listings and event-based reservations. Corresponds to bar.events.enabled flag. */
+  eventsEnabled: boolean
+  /** When true, reservations are required to attend events. */
+  reservationsRequiredForEvents: boolean
+  /** Surface a curated featured-cocktails section on the menu. Corresponds to bar.featured_cocktails.enabled. */
+  featuredCocktailsEnabled: boolean
+}
+
 // ============================================================
 // NOTIFICATION TYPES
 // ============================================================

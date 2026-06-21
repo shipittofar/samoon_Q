@@ -128,19 +128,38 @@ export const BAR_MODULE: Module = {
   capabilities: {
     required: ['menu', 'ordering', 'qr_table', 'notifications'],
     optional: ['reservations', 'reviews', 'loyalty'],
-    defaultEnabled: [],
+    defaultEnabled: ['reservations'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order'],
+  routes: [
+    '/menu',
+    '/checkout',
+    '/checkout/success',
+    '/checkout/failure',
+    '/order',
+    '/reservation',
+    '/reviews',
+    '/events',
+  ],
   navItems: [
     { href: '/menu', label: 'Drinks' },
+    { href: '/reservation', label: 'Reservations', featureFlagKey: 'reservations.enabled' },
+    { href: '/reviews', label: 'Reviews', featureFlagKey: 'reviews.enabled' },
+    { href: '/events', label: 'Events', featureFlagKey: 'bar.events.enabled' },
   ],
   defaultFeatureFlags: {
     'menu.enabled': true,
     'delivery.enabled': false,
     'table_ordering.enabled': true,
     'order_tracking.enabled': true,
-    'reservations.enabled': false,
+    'reservations.enabled': true,
+    'bar.happy_hour.enabled': false,
+    'bar.events.enabled': false,
+    'bar.featured_cocktails.enabled': false,
   },
+  adminNavItems: [
+    { href: '/admin/bar/events', label: 'Event Management', featureFlagKey: 'bar.events.enabled' },
+    { href: '/admin/bar/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'bar.happy_hour.enabled' },
+  ],
   enabled: true,
 }
 
