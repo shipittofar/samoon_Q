@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, Clock, ChefHat, Bell, Bike, X } from 'lucide-react'
 import { simulateOrderUpdates } from '@/services/websocket.service'
+import { useOrderWebSocket } from '@/hooks/client'
 import { cn } from '@/utils'
 import type { OrderStatus } from '@/types'
 
@@ -28,16 +29,35 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
   const [estimatedTime, setEstimatedTime] = useState<number | null>(null)
   const [isCancelled, setIsCancelled] = useState(initialStatus === 'cancelled')
 
-  const currentIdx = STATUS_ORDER.indexOf(currentStatus)
+  const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+
+  // Connect to real WebSocket only when not in mock mode and tracking is active.
+  // Passing null disables the connection without violating the rules of hooks.
+  const shouldConnectWs = !isMockMode && useMockSimulation && !isCancelled
+  const { status: wsStatus, estimatedTime: wsEta } = useOrderWebSocket(shouldConnectWs ? orderId : null)
+
+  // Sync real WebSocket updates into local state (real mode only)
+  useEffect(() => {
+    if (isMockMode || !wsStatus) return
+    setCurrentStatus(wsStatus)
+  }, [isMockMode, wsStatus])
 
   useEffect(() => {
-    if (!useMockSimulation || isCancelled) return
+    if (isMockMode || wsEta === null) return
+    setEstimatedTime(wsEta)
+  }, [isMockMode, wsEta])
+
+  const currentIdx = STATUS_ORDER.indexOf(currentStatus)
+
+  // Mock simulation (only when USE_MOCK=true)
+  useEffect(() => {
+    if (!isMockMode || !useMockSimulation || isCancelled) return
     const cleanup = simulateOrderUpdates(orderId, (status, eta) => {
       setCurrentStatus(status as OrderStatus)
       setEstimatedTime(eta)
     })
     return cleanup
-  }, [orderId, useMockSimulation, isCancelled])
+  }, [orderId, isMockMode, useMockSimulation, isCancelled])
 
   if (isCancelled) {
     return (
