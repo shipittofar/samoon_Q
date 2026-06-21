@@ -100,7 +100,7 @@ describe('P4.7.1 — Image optimization: all Image usages have sizes prop', () =
   })
 
   it('homepage featured dish Images have responsive sizes', () => {
-    const content = src('app/page.tsx')
+    const content = src('components/home/FeaturedSection.tsx')
     expect(content).toContain('sizes="(max-width: 768px) 100vw, 25vw"')
   })
 

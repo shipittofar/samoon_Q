@@ -170,9 +170,9 @@ describe('P4.4.3 — Homepage static data audit', () => {
     expect(src).not.toContain('useMenuItems')
   })
 
-  it('homepage featured items are hardcoded constants (no server fetch needed)', () => {
+  it('homepage featured items are rendered via FeaturedSection component (P4.5)', () => {
     const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
-    expect(src).toContain('FEATURED')
+    expect(src).toContain('FeaturedSection')
     expect(src).not.toContain('prefetchQuery')
   })
 })

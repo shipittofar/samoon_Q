@@ -2,10 +2,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { DEFAULT_RESTAURANT_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
 import Image from 'next/image'
-import { ArrowRight, Star, Clock, MapPin, ChevronRight, Flame } from 'lucide-react'
+import { ArrowRight, MapPin, ChevronRight, Flame } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
+import { FeaturedSection } from '@/components/home/FeaturedSection'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
@@ -35,13 +36,6 @@ const STATS = [
   { value: '50k+', label: 'Happy Customers' },
   { value: '4.9★', label: 'Average Rating' },
   { value: '30min', label: 'Avg. Delivery' },
-]
-
-const FEATURED = [
-  { name: 'Wagyu Smash Burger', category: 'Burger', price: '$24.99', rating: 4.9, time: 15, image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400', badge: 'Popular' },
-  { name: 'Truffle Mushroom Pizza', category: 'Pizza', price: '$28.99', rating: 4.9, time: 25, image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400', badge: 'Featured' },
-  { name: 'Carbonara Autentica', category: 'Pasta', price: '$21.99', rating: 4.9, time: 20, image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=400', badge: 'Chef\'s Pick' },
-  { name: 'Crème Brûlée', category: 'Dessert', price: '$11.99', rating: 4.9, time: 10, image: 'https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=400', badge: 'Must Try' },
 ]
 
 const CATEGORIES = [
@@ -181,46 +175,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured */}
-      <section className="py-20 bg-[var(--bg-secondary)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Handpicked</p>
-              <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">Featured Dishes</h2>
-            </div>
-            <Link href="/menu?featured=true" className="flex items-center gap-1 text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors">
-              See all <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURED.map((dish) => (
-              <div key={dish.name} className="group bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="relative h-48 overflow-hidden">
-                  <Image src={dish.image} alt={dish.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 100vw, 25vw" />
-                  <div className="absolute top-3 start-3">
-                    <span className="bg-orange-500 text-white text-xs font-medium px-2.5 py-1 rounded-full shadow">{dish.badge}</span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <span className="text-xs text-orange-500 font-medium">{dish.category}</span>
-                  <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] mt-1 mb-3 line-clamp-1">{dish.name}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[var(--fg)]">{dish.price}</span>
-                    <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)]">
-                      <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-amber-400 fill-amber-400" />{dish.rating}</span>
-                      <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" />{dish.time}m</span>
-                    </div>
-                  </div>
-                  <Link href="/menu" className="mt-3 flex items-center justify-center gap-1.5 bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100 dark:hover:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-sm font-medium py-2.5 rounded-xl transition-colors">
-                    Order Now <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FeaturedSection />
 
       {/* CTA */}
       <section className="py-20">
