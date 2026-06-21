@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -36,6 +37,7 @@ tomorrow.setDate(tomorrow.getDate() + 1)
 const minDate = tomorrow.toISOString().split('T')[0]
 
 export default function ReservationPage() {
+  const router = useRouter()
   const [confirmed, setConfirmed] = useState<Reservation | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedBranch, setSelectedBranch] = useState('1')
@@ -54,8 +56,20 @@ export default function ReservationPage() {
   const onSubmit = (data: ReservationFormData) => {
     createReservation(data, {
       onSuccess: (res) => {
-        setConfirmed(res)
         toast.success('Reservation confirmed! 🎉')
+        const branchName = branches?.find((b) => b.id === data.branch_id)?.name || ''
+        const params = new URLSearchParams({
+          code: res.confirmation_code ?? '',
+          date: res.date,
+          time: res.time,
+          guests: String(res.guests),
+          name: res.name,
+          branch: branchName,
+          status: res.status,
+          id: res.id,
+        })
+        router.push(`/reservation/confirm?${params.toString()}`)
+        setConfirmed(res)
       },
       onError: () => toast.error('Failed to make reservation. Please try again.'),
     })
