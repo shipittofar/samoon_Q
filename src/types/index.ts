@@ -501,6 +501,59 @@ export interface FoodCourtSettings {
   featuredVendorEnabled: boolean
 }
 
+// ── Loyalty Domain Types (P6.9) ───────────────────────────────────────────────
+
+export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum'
+
+export interface LoyaltyAccount {
+  id: string
+  userId: string
+  points: number
+  lifetimePoints: number
+  tier: LoyaltyTier
+  tierExpiresAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type LoyaltyTransactionType = 'earn' | 'redeem' | 'expire' | 'adjustment'
+
+export interface LoyaltyTransaction {
+  id: string
+  accountId: string
+  type: LoyaltyTransactionType
+  points: number
+  /** Human-readable description (e.g. "Order #1234 — earned 120 pts"). */
+  description: string
+  /** ISO timestamp of when the transaction occurred. */
+  createdAt: string
+  /** Optional reference to an order or reward that triggered the transaction. */
+  referenceId?: string
+}
+
+export interface LoyaltyReward {
+  id: string
+  name: string
+  description: string
+  /** Points required to redeem this reward. */
+  pointsCost: number
+  /** Whether the reward is currently available for redemption. */
+  active: boolean
+  /** Minimum tier required (null means no restriction). */
+  minimumTier?: LoyaltyTier
+  /** ISO expiry date for time-limited rewards. */
+  expiresAt?: string
+  createdAt: string
+}
+
+/** Tier thresholds — lifetime points needed to reach each tier. */
+export const LOYALTY_TIER_THRESHOLDS: Record<LoyaltyTier, number> = {
+  bronze:   0,
+  silver:   1_000,
+  gold:     5_000,
+  platinum: 15_000,
+}
+
 export interface FoodTruckSettings {
   /** Enable route tracking for the food truck. Corresponds to food_truck.route_tracking.enabled flag. */
   routeTrackingEnabled: boolean

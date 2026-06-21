@@ -100,6 +100,17 @@ export const ENDPOINTS = {
     ORDER: (tableId: string) => `/tables/${tableId}/order/`,
   },
 
+  // Loyalty (P6.9)
+  LOYALTY: {
+    ACCOUNT: '/loyalty/account/',
+    TRANSACTIONS: '/loyalty/transactions/',
+    REWARDS: '/loyalty/rewards/',
+    REDEEM: (rewardId: string) => `/loyalty/rewards/${rewardId}/redeem/`,
+    EARN: '/loyalty/earn/',
+    ADMIN_REWARDS: '/admin/loyalty/rewards/',
+    ADMIN_REWARD: (id: string) => `/admin/loyalty/rewards/${id}/`,
+  },
+
   // Admin (P5.1) — backend-gated endpoints; mocked until API is deployed
   ADMIN: {
     STATS: '/admin/stats/',

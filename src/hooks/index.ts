@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation'
 import { menuService } from '@/services/menu.service'
 import { orderService } from '@/services/order.service'
 import { adminService } from '@/services/admin.service'
+import { loyaltyService } from '@/services/loyalty.service'
+import type { EarnPointsPayload } from '@/services/loyalty.service'
 import {
   branchService,
   notificationService,
@@ -28,6 +30,7 @@ import type {
   AdminReservationFilters,
   Capability,
   LoginCredentials,
+  LoyaltyReward,
   MenuItem,
   NavItem,
   Order,
@@ -665,6 +668,90 @@ export function useUpdateMenuItem() {
     },
   })
 }
+
+// ── Loyalty Hooks (P6.9) ──────────────────────────────────────────────────────
+
+export function useLoyaltyAccount() {
+  return useQuery({
+    queryKey: ['loyalty-account'],
+    queryFn: () => loyaltyService.getAccount(),
+    staleTime: 30_000,
+  })
+}
+
+export function useLoyaltyTransactions() {
+  return useQuery({
+    queryKey: ['loyalty-transactions'],
+    queryFn: () => loyaltyService.getTransactions(),
+    staleTime: 30_000,
+  })
+}
+
+export function useLoyaltyRewards() {
+  return useQuery({
+    queryKey: ['loyalty-rewards'],
+    queryFn: () => loyaltyService.getRewards(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useRedeemReward() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (rewardId: string) => loyaltyService.redeemReward(rewardId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['loyalty-account'] })
+      qc.invalidateQueries({ queryKey: ['loyalty-transactions'] })
+    },
+  })
+}
+
+export function useEarnPoints() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: EarnPointsPayload) => loyaltyService.earnPoints(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['loyalty-account'] })
+      qc.invalidateQueries({ queryKey: ['loyalty-transactions'] })
+    },
+  })
+}
+
+export function useAdminLoyaltyRewards() {
+  return useQuery({
+    queryKey: ['admin-loyalty-rewards'],
+    queryFn: () => loyaltyService.adminGetRewards(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useAdminCreateReward() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Omit<LoyaltyReward, 'id' | 'createdAt'>) =>
+      loyaltyService.adminCreateReward(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-loyalty-rewards'] }),
+  })
+}
+
+export function useAdminUpdateReward() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<Omit<LoyaltyReward, 'id' | 'createdAt'>> }) =>
+      loyaltyService.adminUpdateReward(id, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-loyalty-rewards'] }),
+  })
+}
+
+export function useAdminDisableReward() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => loyaltyService.adminDisableReward(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-loyalty-rewards'] }),
+  })
+}
+
+// ── Menu Admin Hooks (P5.1) ───────────────────────────────────────────────────
 
 export function useDeleteMenuItem() {
   const qc = useQueryClient()
