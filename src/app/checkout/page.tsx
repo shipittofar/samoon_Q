@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -50,15 +50,26 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.Elemen
   { value: 'wallet', label: 'Wallet Balance', icon: Wallet, desc: 'Use your Savor credits' },
 ]
 
-export default function CheckoutPage() {
+const VALID_ORDER_TYPES = new Set<OrderType>(['delivery', 'pickup', 'dine_in'])
+
+function CheckoutContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // P4.4 — Read QR / deep-link params and use as initial state
+  const paramOrderType = searchParams.get('orderType') as OrderType | null
+  const paramTable = searchParams.get('table') ?? ''
+  const initialOrderType: OrderType =
+    paramOrderType && VALID_ORDER_TYPES.has(paramOrderType) ? paramOrderType : 'delivery'
+  const initialTableNumber = paramTable && /^\d+$/.test(paramTable) ? paramTable : ''
+
   const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart } = useCartStore()
   const { activeBranch } = useBranchStore()
   const { user } = useAuthStore()
   const { mutate: createOrder, isPending } = useCreateOrder()
   const { mutateAsync: createPaymentIntent, isPending: isCreatingIntent } = useCreatePaymentIntent()
 
-  const [orderType, setOrderType] = useState<OrderType>('delivery')
+  const [orderType, setOrderType] = useState<OrderType>(initialOrderType)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card')
   const [step, setStep] = useState<'details' | 'payment'>('details')
 
@@ -74,6 +85,8 @@ export default function CheckoutPage() {
       last_name: user?.last_name || '',
       email: user?.email || '',
       phone: user?.phone || '',
+      // P4.4 — Pre-populate table number from QR URL param
+      table_number: initialTableNumber,
     },
   })
 
@@ -159,19 +172,16 @@ export default function CheckoutPage() {
     }
   }
 
-  /** Called by StripePaymentForm on success */
   const handlePaymentSuccess = (paymentIntentId: string) => {
     if (!pendingFormData) return
     finaliseOrder(pendingFormData, paymentIntentId)
   }
 
-  /** Called by StripePaymentForm on error */
   const handlePaymentError = (message: string) => {
     setPaymentError(message)
     toast.error(message)
   }
 
-  // After PaymentIntent is created, show the Stripe payment form
   const showStripeForm = paymentMethod === 'card' && clientSecret !== null
 
   return (
@@ -204,6 +214,14 @@ export default function CheckoutPage() {
               </div>
             ))}
           </div>
+
+          {/* P4.4 — Dine-in context banner when arriving from QR scan */}
+          {initialOrderType === 'dine_in' && initialTableNumber && (
+            <div className="mb-6 flex items-center gap-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl px-5 py-3 text-sm text-orange-700 dark:text-orange-300">
+              <UtensilsCrossed className="h-4 w-4 shrink-0" />
+              <span>Ordering for <strong>Table {initialTableNumber}</strong> — dine-in order</span>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left: Form */}
@@ -291,7 +309,6 @@ export default function CheckoutPage() {
                 {step === 'payment' && (
                   <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
 
-                    {/* Payment method selector — hidden once Stripe form is showing */}
                     {!showStripeForm && (
                       <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
                         <h2 className="font-semibold text-[var(--fg)] mb-4">Payment Method</h2>
@@ -328,7 +345,6 @@ export default function CheckoutPage() {
                       </div>
                     )}
 
-                    {/* Stripe card form — renders after PaymentIntent is created */}
                     {showStripeForm && (
                       <motion.div
                         key="stripe-form"
@@ -357,14 +373,12 @@ export default function CheckoutPage() {
                       </motion.div>
                     )}
 
-                    {/* Error banner */}
                     {paymentError && !showStripeForm && (
                       <div className="text-sm text-red-600 bg-red-50 dark:bg-red-950/20 rounded-xl p-3">
                         {paymentError}
                       </div>
                     )}
 
-                    {/* Action buttons — only shown when Stripe form is NOT displayed */}
                     {!showStripeForm && (
                       <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="flex gap-3">
@@ -434,5 +448,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense>
+      <CheckoutContent />
+    </Suspense>
   )
 }
