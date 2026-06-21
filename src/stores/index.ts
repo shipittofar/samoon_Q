@@ -30,7 +30,7 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
   }
 }
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
-import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
+import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
@@ -413,5 +413,25 @@ export const useRecentlyViewedStore = create<RecentlyViewedState>()(
       clear: () => set({ items: [] }),
     }),
     { name: 'savor-recently-viewed' },
+  ),
+)
+
+// ── Dine-In Store (P4.4) ──────────────────────────────────────────────────────
+// Persists the active table number so it survives navigation from /table/[tableId]
+// → /menu → /checkout without requiring the ?table= URL param to be carried through.
+interface DineInState {
+  tableNumber: number | null
+  setTableNumber: (n: number | null) => void
+  clearTable: () => void
+}
+
+export const useDineInStore = create<DineInState>()(
+  persist(
+    (set) => ({
+      tableNumber: null,
+      setTableNumber: (tableNumber) => set({ tableNumber }),
+      clearTable: () => set({ tableNumber: null }),
+    }),
+    { name: DINE_IN_KEY },
   ),
 )

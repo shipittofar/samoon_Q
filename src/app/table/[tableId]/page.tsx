@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { UtensilsCrossed, ArrowRight, Users, MapPin, User, Loader2 } from 'lucide-react'
 import Link from 'next/link'
@@ -10,6 +10,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Footer } from '@/components/layout/Footer'
 import { Button } from '@/components/ui/Button'
 import { useTableInfo } from '@/hooks'
+import { useDineInStore } from '@/stores'
 
 export default function TablePage({ params }: { params: Promise<{ tableId: string }> }) {
   const { tableId } = use(params)
@@ -17,6 +18,16 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
   const isValid = !(tableNumber < 1 || tableNumber > 100)
 
   const { data: tableInfo, isLoading: tableLoading } = useTableInfo(isValid ? tableId : null)
+  const { setTableNumber, clearTable } = useDineInStore()
+
+  // Persist table number so checkout can read it even after navigating away
+  useEffect(() => {
+    if (isValid) {
+      setTableNumber(tableNumber)
+    } else {
+      clearTable()
+    }
+  }, [isValid, tableNumber, setTableNumber, clearTable])
 
   if (!isValid) {
     return (

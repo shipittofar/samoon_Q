@@ -19,6 +19,7 @@ export const CART_KEY = 'savor-cart'
 export const BRANCH_KEY = 'savor-branch'
 export const LANG_KEY = 'savor-lang'
 export const TENANT_KEY = 'savor-tenant'
+export const DINE_IN_KEY = 'savor-dine-in'
 
 /**
  * Fallback tenant used when no tenant can be resolved from the network or URL.

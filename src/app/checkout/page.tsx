@@ -16,7 +16,7 @@ import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Divider } from '@/components/ui'
-import { useCartStore, useBranchStore, useAuthStore } from '@/stores'
+import { useCartStore, useBranchStore, useAuthStore, useDineInStore } from '@/stores'
 import { useCreateOrder, useCreatePaymentIntent } from '@/hooks'
 import { formatCurrency, cn } from '@/utils'
 import { orderService } from '@/services/order.service'
@@ -61,7 +61,15 @@ function CheckoutContent() {
   const paramTable = searchParams.get('table') ?? ''
   const initialOrderType: OrderType =
     paramOrderType && VALID_ORDER_TYPES.has(paramOrderType) ? paramOrderType : 'delivery'
-  const initialTableNumber = paramTable && /^\d+$/.test(paramTable) ? paramTable : ''
+
+  // P4.4 — Fallback: persisted table number from dine-in store when URL param absent
+  // Must be called before any conditional returns (rules of hooks).
+  const persistedTableNumber = useDineInStore((s) => s.tableNumber)
+
+  // Priority: A) URL param, B) persisted store value, C) empty string
+  const initialTableNumber = paramTable && /^\d+$/.test(paramTable)
+    ? paramTable
+    : persistedTableNumber !== null ? String(persistedTableNumber) : ''
 
   const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart } = useCartStore()
   const { activeBranch } = useBranchStore()
