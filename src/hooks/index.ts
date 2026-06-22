@@ -45,6 +45,15 @@ import type {
 } from '@/types/analytics'
 import { auditLogService } from '@/services/audit-log.service'
 import type { AuditFilter, AuditExportRequest } from '@/types/audit-log'
+import { notificationRichService } from '@/services/notification.service'
+import { notificationPreferencesService } from '@/services/notification-preferences.service'
+import type {
+  NotificationFilter,
+  NotificationCategory,
+  NotificationPreference,
+  ChannelPreference,
+  NotificationPriority,
+} from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore } from '@/stores'
 import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
@@ -674,11 +683,11 @@ export function useAvailableSlots(date: string, branchId: string) {
   })
 }
 
-// ── Notification Hooks ────────────────────────────────────────────────────────
-export function useNotifications() {
+// ── Notification Hooks (legacy — see P7.6 hooks below) ───────────────────────
+export function useLegacyNotifications() {
   const setNotifications = useNotificationStore((s) => s.setNotifications)
   return useQuery({
-    queryKey: ['notifications'],
+    queryKey: ['notifications-legacy'],
     queryFn: async () => {
       const res = await notificationService.getNotifications()
       setNotifications(res.results)
@@ -1671,5 +1680,159 @@ export function useAuditStatistics(filter: AuditFilter = {}) {
 export function useExportAuditLogs() {
   return useMutation({
     mutationFn: (request: AuditExportRequest) => auditLogService.exportAuditLogs(request),
+  })
+}
+
+// ── Notification Hooks (P7.6) ─────────────────────────────────────────────────
+
+/** Fetches a paginated, filtered list of rich notifications. */
+export function useNotifications(filter: NotificationFilter = {}) {
+  return useQuery({
+    enabled: true,
+    staleTime: 10_000,
+    queryKey: ['rich-notifications', filter],
+    queryFn: () => notificationRichService.getNotifications(filter),
+  })
+}
+
+/** Fetches unread notifications only. */
+export function useUnreadNotifications(filter: Omit<NotificationFilter, 'status'> = {}) {
+  return useQuery({
+    enabled: true,
+    staleTime: 10_000,
+    queryKey: ['rich-notifications-unread', filter],
+    queryFn: () => notificationRichService.getNotifications({ ...filter, status: 'unread' }),
+  })
+}
+
+/** Fetches a single rich notification by ID. */
+export function useNotification(id: string) {
+  return useQuery({
+    enabled: !!id,
+    staleTime: STALE_TIME,
+    queryKey: ['rich-notification', id],
+    queryFn: () => notificationRichService.getNotification(id),
+  })
+}
+
+/** Fetches real-time unread notification count. */
+export function useUnreadNotificationCount(filter: NotificationFilter = {}) {
+  return useQuery({
+    enabled: true,
+    staleTime: 10_000,
+    queryKey: ['notification-unread-count', filter],
+    queryFn: () => notificationRichService.getUnreadCount(filter),
+    refetchInterval: 30_000,
+  })
+}
+
+/** Fetches notification statistics for analytics. */
+export function useNotificationStatistics(filter: NotificationFilter = {}) {
+  return useQuery({
+    enabled: true,
+    staleTime: 30_000,
+    queryKey: ['notification-statistics', filter],
+    queryFn: () => notificationRichService.getNotificationStatistics(filter),
+  })
+}
+
+/** Fetches notification summary (unread count, urgent count, latest). */
+export function useNotificationSummary(tenantId?: string, branchId?: string) {
+  return useQuery({
+    enabled: true,
+    staleTime: 10_000,
+    queryKey: ['notification-summary', tenantId, branchId],
+    queryFn: () => notificationRichService.getSummary({ tenantId, branchId }),
+    refetchInterval: 30_000,
+  })
+}
+
+/** Fetches notification preferences for a user. */
+export function useNotificationPreferences(userId: string, tenantId: string, branchId?: string) {
+  return useQuery({
+    enabled: !!userId && !!tenantId,
+    staleTime: 60_000,
+    queryKey: ['notification-preferences', userId, tenantId, branchId],
+    queryFn: () => notificationPreferencesService.getPreferences(userId, tenantId, branchId),
+  })
+}
+
+/** Mutation to update a notification preference for a category. */
+export function useUpdateNotificationPreference() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      userId, tenantId, category, update, branchId,
+    }: {
+      userId: string
+      tenantId: string
+      category: NotificationCategory
+      update: Partial<Pick<NotificationPreference, 'enabled' | 'channels' | 'minPriority'>>
+      branchId?: string
+    }) => notificationPreferencesService.updatePreference(userId, tenantId, category, update, branchId),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['notification-preferences', vars.userId, vars.tenantId] })
+    },
+  })
+}
+
+/** Mutation to mark a notification as read. */
+export function useMarkNotificationRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => notificationRichService.markAsRead(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['rich-notifications'] })
+      qc.invalidateQueries({ queryKey: ['notification-unread-count'] })
+      qc.invalidateQueries({ queryKey: ['notification-summary'] })
+    },
+  })
+}
+
+/** Mutation to mark all notifications as read. */
+export function useMarkAllNotificationsRead() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (filter: NotificationFilter = {}) => notificationRichService.markAllAsRead(filter),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['rich-notifications'] })
+      qc.invalidateQueries({ queryKey: ['notification-unread-count'] })
+      qc.invalidateQueries({ queryKey: ['notification-summary'] })
+    },
+  })
+}
+
+/** Mutation to archive a notification. */
+export function useArchiveNotification() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => notificationRichService.archiveNotification(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['rich-notifications'] })
+    },
+  })
+}
+
+/** Mutation to delete a notification. */
+export function useDeleteNotification() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => notificationRichService.deleteNotification(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['rich-notifications'] })
+      qc.invalidateQueries({ queryKey: ['notification-unread-count'] })
+    },
+  })
+}
+
+/** Mutation to reset notification preferences to defaults. */
+export function useResetNotificationPreferences() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId, tenantId }: { userId: string; tenantId: string }) =>
+      notificationPreferencesService.resetPreferences(userId, tenantId),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['notification-preferences', vars.userId, vars.tenantId] })
+    },
   })
 }

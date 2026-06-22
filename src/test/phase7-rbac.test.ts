@@ -139,9 +139,9 @@ describe('C — ROLE_PERMISSION_MAP completeness', () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
     expect(Object.keys(ROLE_PERMISSION_MAP)).toHaveLength(8)
   })
-  it('ALL_PERMISSIONS has 26 entries', async () => {
+  it('ALL_PERMISSIONS has 29 entries', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(26)
+    expect(ALL_PERMISSIONS).toHaveLength(29)
   })
 })
 
@@ -317,9 +317,9 @@ describe('I — Kitchen permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('kitchen', 'analytics.view')).toBe(false)
   })
-  it('kitchen has exactly 3 permissions', async () => {
+  it('kitchen has exactly 5 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.kitchen).toHaveLength(3)
+    expect(ROLE_PERMISSION_MAP.kitchen).toHaveLength(5)
   })
 })
 
@@ -392,9 +392,9 @@ describe('L — getPermissionsForRole — single role', () => {
     const { getPermissionsForRole } = await import('@/services/permission.service')
     expect(getPermissionsForRole(undefined)).toHaveLength(0)
   })
-  it('kitchen → 3 permissions', async () => {
+  it('kitchen → 5 permissions', async () => {
     const { getPermissionsForRole } = await import('@/services/permission.service')
-    expect(getPermissionsForRole('kitchen')).toHaveLength(3)
+    expect(getPermissionsForRole('kitchen')).toHaveLength(5)
   })
   it('owner → 24 permissions', async () => {
     const { getPermissionsForRole, ALL_PERMISSIONS } = await import('@/services/permission.service')

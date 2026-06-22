@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { NotificationCenter } from '@/components/notification/NotificationCenter'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 import toast from 'react-hot-toast'
 
 const LANGUAGES = [
@@ -178,6 +179,11 @@ export function Header() {
             {isAuthenticated && (
               <ErrorBoundary feature="NotificationCenter">
                 <NotificationCenter />
+              </ErrorBoundary>
+            )}
+            {isAuthenticated && pathname.startsWith('/admin') && (
+              <ErrorBoundary feature="NotificationBell">
+                <NotificationBell />
               </ErrorBoundary>
             )}
 

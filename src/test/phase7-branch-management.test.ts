@@ -587,32 +587,32 @@ describe('Q — Navigation', () => {
 
   it('Q7: RESTAURANT_MODULE has 5 adminNavItems', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(6)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(7)
   })
 
   it('Q8: CAFE_MODULE has 8 adminNavItems', async () => {
     const { CAFE_MODULE } = await import('@/modules/registry')
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(9)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(10)
   })
 
   it('Q9: BAR_MODULE has 8 adminNavItems', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
-    expect(BAR_MODULE.adminNavItems).toHaveLength(9)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(10)
   })
 
   it('Q10: FOOD_COURT_MODULE has 7 adminNavItems', async () => {
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(8)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(9)
   })
 
   it('Q11: FOOD_TRUCK_MODULE has 7 adminNavItems', async () => {
     const { FOOD_TRUCK_MODULE } = await import('@/modules/registry')
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(8)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(9)
   })
 
   it('Q12: MOBILE_CAFE_MODULE has 7 adminNavItems', async () => {
     const { MOBILE_CAFE_MODULE } = await import('@/modules/registry')
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(8)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(9)
   })
 })
 

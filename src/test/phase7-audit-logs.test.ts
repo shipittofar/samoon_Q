@@ -1028,27 +1028,27 @@ describe('P7.5 Navigation — AUDIT_LOGS_NAV_ITEM in all modules', () => {
   })
 
   it('RESTAURANT_MODULE.adminNavItems has 6 items', () => {
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(6)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(7)
   })
 
   it('CAFE_MODULE.adminNavItems has 9 items', () => {
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(9)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(10)
   })
 
   it('BAR_MODULE.adminNavItems has 9 items', () => {
-    expect(BAR_MODULE.adminNavItems).toHaveLength(9)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(10)
   })
 
   it('FOOD_COURT_MODULE.adminNavItems has 8 items', () => {
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(8)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(9)
   })
 
   it('FOOD_TRUCK_MODULE.adminNavItems has 8 items', () => {
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(8)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(9)
   })
 
   it('MOBILE_CAFE_MODULE.adminNavItems has 8 items', () => {
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(8)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(9)
   })
 })
 

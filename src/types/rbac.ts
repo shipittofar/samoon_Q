@@ -48,6 +48,9 @@ export type P7Permission =
   | 'audit.view'
   | 'audit.export'
   | 'audit.manage'
+  | 'notifications.view'
+  | 'notifications.manage'
+  | 'notifications.preferences'
 
 /** A user's role assignment scoped to a specific tenant. */
 export interface UserTenantRole {
