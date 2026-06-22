@@ -154,4 +154,19 @@ export const ENDPOINTS = {
     PROMOTIONS: '/admin/analytics/promotions/',
     VENDORS: '/admin/analytics/vendors/',
   },
+  // Staff Management (P7.2)
+  STAFF: {
+    LIST: (tenantId: string) => `/tenants/${tenantId}/staff/`,
+    DETAIL: (id: string) => `/staff/${id}/`,
+    INVITE: (tenantId: string) => `/tenants/${tenantId}/staff/invite/`,
+    UPDATE_ROLES: (id: string) => `/staff/${id}/roles/`,
+    ACTIVATE: (id: string) => `/staff/${id}/activate/`,
+    SUSPEND: (id: string) => `/staff/${id}/suspend/`,
+    REMOVE: (id: string) => `/staff/${id}/remove/`,
+    INVITES: (tenantId: string) => `/tenants/${tenantId}/invites/`,
+    CANCEL_INVITE: (id: string) => `/invites/${id}/cancel/`,
+    RESEND_INVITE: (id: string) => `/invites/${id}/resend/`,
+    ACCEPT_INVITE: (id: string) => `/invites/${id}/accept/`,
+    TRANSFER_OWNERSHIP: (tenantId: string) => `/tenants/${tenantId}/transfer-ownership/`,
+  },
 } as const

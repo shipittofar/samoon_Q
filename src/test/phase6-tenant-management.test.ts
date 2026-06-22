@@ -787,34 +787,34 @@ describe('U — copy semantics', () => {
 describe('V — adminNavItems counts after P6.15 (all modules +1 Tenants item)', () => {
   afterEach(() => vi.resetModules())
 
-  it('restaurant has 2 adminNavItems', async () => {
+  it('restaurant has 3 adminNavItems', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(2)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(3)
   })
 
-  it('cafe has 5 adminNavItems', async () => {
+  it('cafe has 6 adminNavItems', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(5)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(6)
   })
 
-  it('bar has 5 adminNavItems', async () => {
+  it('bar has 6 adminNavItems', async () => {
     const { BAR_MODULE } = await freshRegistry()
-    expect(BAR_MODULE.adminNavItems).toHaveLength(5)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(6)
   })
 
-  it('food_court has 4 adminNavItems', async () => {
+  it('food_court has 5 adminNavItems', async () => {
     const { FOOD_COURT_MODULE } = await freshRegistry()
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(4)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(5)
   })
 
-  it('food_truck has 4 adminNavItems', async () => {
+  it('food_truck has 5 adminNavItems', async () => {
     const { FOOD_TRUCK_MODULE } = await freshRegistry()
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(4)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(5)
   })
 
-  it('mobile_cafe has 4 adminNavItems', async () => {
+  it('mobile_cafe has 5 adminNavItems', async () => {
     const { MOBILE_CAFE_MODULE } = await freshRegistry()
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(4)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(5)
   })
 
   it('all modules have Tenants nav item', async () => {

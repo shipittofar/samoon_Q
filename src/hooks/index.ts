@@ -22,6 +22,12 @@ import { qrExperienceService } from '@/services/qr-experience.service'
 import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import { tenantService } from '@/services/tenant.service'
+import { staffService } from '@/services/staff.service'
+import type {
+  InviteStaffPayload,
+  UpdateStaffRolesPayload,
+  TransferOwnershipPayload,
+} from '@/types/staff'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore } from '@/stores'
 import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
@@ -276,11 +282,17 @@ export function useAdminModuleNav(): NavItem[] {
   const { canExecute } = useSystemReady()
   const tenant = useTenantStore((s) => s.tenant)
   const featureFlags = useTenantStore((s) => s.featureFlags)
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantRoles = useRbacStore((s) => s.tenantRoles)
   const allAdminNav = getAdminNav(tenant.businessTypes)
   if (!canExecute) return allAdminNav
-  return allAdminNav.filter(
-    (item) => !item.featureFlagKey || featureFlags[item.featureFlagKey] !== false,
-  )
+  const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
+  const permissions = getPermissionsForRole(roles)
+  return allAdminNav.filter((item) => {
+    if (item.featureFlagKey && featureFlags[item.featureFlagKey] === false) return false
+    if (item.permissionKey && !permissions.includes(item.permissionKey)) return false
+    return true
+  })
 }
 
 // ── Auth Hooks ────────────────────────────────────────────────────────────────
@@ -1110,5 +1122,164 @@ export function useArchiveTenant() {
   return useMutation({
     mutationFn: (slugOrId: string) => tenantService.archiveTenant(slugOrId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tenants'] }),
+  })
+}
+
+// ── Staff Management Hooks (P7.2) ─────────────────────────────────────────────
+
+export function useStaff(tenantId: string) {
+  return useQuery({
+    queryKey: ['staff', tenantId],
+    queryFn: () => staffService.getStaff(tenantId),
+    staleTime: STALE_TIME,
+    enabled: !!tenantId,
+  })
+}
+
+export function useStaffMember(id: string) {
+  return useQuery({
+    queryKey: ['staff-member', id],
+    queryFn: () => staffService.getStaffMember(id),
+    staleTime: STALE_TIME,
+    enabled: !!id,
+  })
+}
+
+export function useInvites(tenantId: string) {
+  return useQuery({
+    queryKey: ['staff-invites', tenantId],
+    queryFn: () => staffService.getInvites(tenantId),
+    staleTime: STALE_TIME,
+    enabled: !!tenantId,
+  })
+}
+
+export function useInviteStaff(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: InviteStaffPayload) => staffService.inviteStaff(tenantId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] })
+    },
+  })
+}
+
+export function useUpdateStaffRoles() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateStaffRolesPayload }) =>
+      staffService.updateStaffRoles(id, payload),
+    onSuccess: (_data, { id }) => {
+      const member = qc.getQueryData<Awaited<ReturnType<typeof staffService.getStaffMember>>>(['staff-member', id])
+      if (member) {
+        qc.invalidateQueries({ queryKey: ['staff', member.tenantId] })
+      }
+      qc.invalidateQueries({ queryKey: ['staff-member', id] })
+    },
+  })
+}
+
+export function useSuspendStaff() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => staffService.suspendStaff(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['staff-member', id] })
+      const snapshot = qc.getQueryData(['staff-member', id])
+      qc.setQueryData(['staff-member', id], (old: { status: string } | undefined) =>
+        old ? { ...old, status: 'suspended' } : old,
+      )
+      return { snapshot }
+    },
+    onError: (_err, id, ctx) => {
+      if (ctx?.snapshot) qc.setQueryData(['staff-member', id], ctx.snapshot)
+    },
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['staff-member', id] })
+    },
+  })
+}
+
+export function useActivateStaff() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => staffService.activateStaff(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['staff-member', id] })
+      const snapshot = qc.getQueryData(['staff-member', id])
+      qc.setQueryData(['staff-member', id], (old: { status: string } | undefined) =>
+        old ? { ...old, status: 'active' } : old,
+      )
+      return { snapshot }
+    },
+    onError: (_err, id, ctx) => {
+      if (ctx?.snapshot) qc.setQueryData(['staff-member', id], ctx.snapshot)
+    },
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['staff-member', id] })
+    },
+  })
+}
+
+export function useRemoveStaff() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => staffService.removeStaff(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['staff-member', id] })
+      const snapshot = qc.getQueryData(['staff-member', id])
+      qc.setQueryData(['staff-member', id], (old: { status: string } | undefined) =>
+        old ? { ...old, status: 'removed' } : old,
+      )
+      return { snapshot }
+    },
+    onError: (_err, id, ctx) => {
+      if (ctx?.snapshot) qc.setQueryData(['staff-member', id], ctx.snapshot)
+    },
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['staff-member', id] })
+    },
+  })
+}
+
+export function useTransferOwnership(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      currentOwnerId,
+      payload,
+    }: {
+      currentOwnerId: string
+      payload: TransferOwnershipPayload
+    }) => staffService.transferOwnership(currentOwnerId, payload.targetMemberId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['staff', tenantId] })
+    },
+  })
+}
+
+export function useCancelInvite(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => staffService.cancelInvite(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] }),
+  })
+}
+
+export function useResendInvite(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => staffService.resendInvite(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] }),
+  })
+}
+
+export function useAcceptInvite() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => staffService.acceptInvite(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['staff-invites'] })
+    },
   })
 }

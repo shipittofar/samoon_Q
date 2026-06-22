@@ -414,6 +414,12 @@ export interface NavItem {
    * Items without this field are always shown (backward compatible).
    */
   featureFlagKey?: string
+  /**
+   * Optional P7 permission key (P7.2).
+   * When set, useAdminModuleNav() hides the item if the current user lacks the permission.
+   * Items without this field are always shown.
+   */
+  permissionKey?: import('./rbac').P7Permission
 }
 
 /**
