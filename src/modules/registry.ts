@@ -58,7 +58,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics'],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', '/admin/tenants'],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },

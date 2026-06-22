@@ -19,6 +19,7 @@ import {
 import { authService } from '@/services/auth.service'
 import { qrExperienceService } from '@/services/qr-experience.service'
 import { analyticsService } from '@/services/analytics.service'
+import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore } from '@/stores'
 import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
@@ -978,5 +979,40 @@ export function useDeleteMenuItem() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['menu-items'] })
     },
+  })
+}
+
+// ── Tenant Provisioning Hooks (P6.14) ────────────────────────────────────────
+
+export function useTenantTemplates() {
+  return useQuery({
+    queryKey: ['tenant-templates'],
+    queryFn: () => Promise.resolve(tenantProvisioningService.getTemplates()),
+    staleTime: Infinity,
+  })
+}
+
+export function useProvisionTenant() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (req: Parameters<typeof tenantProvisioningService.provisionTenant>[0]) =>
+      tenantProvisioningService.provisionTenant(req),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenant-templates'] }),
+  })
+}
+
+export function useCloneTenant() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      sourceTenantId,
+      newSlug,
+      newName,
+    }: {
+      sourceTenantId: string
+      newSlug: string
+      newName: string
+    }) => tenantProvisioningService.cloneTenant(sourceTenantId, newSlug, newName),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenant-templates'] }),
   })
 }

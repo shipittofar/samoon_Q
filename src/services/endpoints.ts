@@ -81,10 +81,13 @@ export const ENDPOINTS = {
     TOGGLE_FAVORITE: (itemId: string) => `/users/favorites/${itemId}/`,
   },
 
-  // Tenants (Phase 1A — P1A.1)
+  // Tenants (Phase 1A — P1A.1 / P6.14 — Provisioning)
   TENANTS: {
     DETAIL: (slug: string) => `/tenants/${slug}/`,
     CURRENT: '/tenants/current/',
+    LIST: '/tenants/',
+    PROVISION: '/tenants/provision/',
+    CLONE: '/tenants/clone/',
   },
 
   // Reviews
