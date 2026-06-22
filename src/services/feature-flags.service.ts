@@ -15,6 +15,13 @@
 import { getDefaultFeatureFlags, getCapabilityFeatureFlags } from '@/modules/registry'
 import type { Tenant } from '@/types'
 
+export interface FeatureFlagEntry {
+  key: string
+  value: boolean
+  source: 'module_default' | 'capability' | 'tenant_override'
+  description?: string
+}
+
 export const featureFlagsService = {
   /**
    * Resolves the full feature flag map for a tenant.
@@ -39,5 +46,40 @@ export const featureFlagsService = {
       (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
 
     return { ...moduleDefaults, ...capabilityFlags, ...overrides }
+  },
+
+  listFlags(tenant: Tenant): FeatureFlagEntry[] {
+    const moduleDefaults = getDefaultFeatureFlags(tenant.businessTypes)
+    const capabilityFlags = getCapabilityFeatureFlags(tenant.businessTypes)
+    const overrides =
+      (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+
+    const allKeys = new Set([
+      ...Object.keys(moduleDefaults),
+      ...Object.keys(capabilityFlags),
+      ...Object.keys(overrides),
+    ])
+
+    return Array.from(allKeys).sort().map((key) => {
+      const source: FeatureFlagEntry['source'] =
+        key in overrides ? 'tenant_override' :
+        key in capabilityFlags ? 'capability' :
+        'module_default'
+
+      const effective = { ...moduleDefaults, ...capabilityFlags, ...overrides }
+      return { key, value: effective[key] ?? false, source }
+    })
+  },
+
+  updateFlag(tenant: Tenant, key: string, value: boolean): Record<string, boolean> {
+    const current =
+      (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+    return { ...current, [key]: value }
+  },
+
+  bulkUpdateFlags(tenant: Tenant, updates: Record<string, boolean>): Record<string, boolean> {
+    const current =
+      (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+    return { ...current, ...updates }
   },
 }

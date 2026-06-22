@@ -18,6 +18,7 @@ import {
   BranchContextIndicator,
 } from '@/components/admin/RealtimeDashboardWidgets'
 import { useRealtimeStatistics } from '@/hooks'
+import { useBranchStore } from '@/stores'
 import type { OperationsScope } from '@/types/realtime-operations'
 
 const MOCK_TENANT_ID = 'tenant-savor-01'
@@ -55,7 +56,8 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 
 function OperationsContent() {
   const [activeSection, setActiveSection] = useState<Section>('orders')
-  const [branchFilter, setBranchFilter] = useState<string | undefined>(undefined)
+  const activeBranch = useBranchStore((s) => s.activeBranch)
+  const branchFilter = activeBranch?.id
 
   const scope: OperationsScope = {
     tenantId: MOCK_TENANT_ID,
@@ -97,26 +99,6 @@ function OperationsContent() {
             <StatCard label="Events Today" value={stats.totalEventsToday} />
           </div>
         )}
-
-        {/* Branch filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Branch:</span>
-          <button
-            onClick={() => setBranchFilter(undefined)}
-            className={`text-xs px-3 py-1 rounded-full border transition-colors ${!branchFilter ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'}`}
-          >
-            All
-          </button>
-          {['branch-rest-01', 'branch-rest-02'].map((id) => (
-            <button
-              key={id}
-              onClick={() => setBranchFilter(id)}
-              className={`text-xs px-3 py-1 rounded-full border transition-colors ${branchFilter === id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'}`}
-            >
-              {id}
-            </button>
-          ))}
-        </div>
 
         {/* Section tabs */}
         <div className="flex gap-1 border-b overflow-x-auto">

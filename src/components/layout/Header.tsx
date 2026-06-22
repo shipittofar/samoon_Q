@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { NotificationCenter } from '@/components/notification/NotificationCenter'
 import { NotificationBell } from '@/components/layout/NotificationBell'
+import { BranchSelector } from '@/components/common/BranchSelector'
 import toast from 'react-hot-toast'
 
 const LANGUAGES = [
@@ -179,6 +180,11 @@ export function Header() {
             {isAuthenticated && (
               <ErrorBoundary feature="NotificationCenter">
                 <NotificationCenter />
+              </ErrorBoundary>
+            )}
+            {isAuthenticated && pathname.startsWith('/admin') && (
+              <ErrorBoundary feature="BranchSelector">
+                <BranchSelector className="hidden sm:block" />
               </ErrorBoundary>
             )}
             {isAuthenticated && pathname.startsWith('/admin') && (

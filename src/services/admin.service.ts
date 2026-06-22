@@ -191,6 +191,17 @@ export const adminService = {
     return data
   },
 
+  async getAdminReservation(id: string): Promise<Reservation> {
+    if (USE_MOCK) {
+      await delay(400)
+      const res = MOCK_RESERVATIONS.find((r) => r.id === id)
+      if (!res) throw new Error(`Reservation ${id} not found`)
+      return res
+    }
+    const { data } = await api.get<Reservation>(ENDPOINTS.RESERVATIONS.DETAIL(id))
+    return data
+  },
+
   // Falls back to GET /reservations/ in real mode; swap to ENDPOINTS.ADMIN.RESERVATIONS when deployed
   async getAdminReservations(filters: AdminReservationFilters = {}): Promise<PaginatedResponse<Reservation>> {
     if (USE_MOCK) {

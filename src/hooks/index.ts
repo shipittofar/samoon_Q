@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
@@ -897,6 +898,15 @@ export function useAdminReservations(filters: AdminReservationFilters = {}) {
     queryKey: ['admin-reservations', filters],
     queryFn: () => adminService.getAdminReservations(filters),
     staleTime: 30_000,
+  })
+}
+
+export function useAdminReservation(id: string) {
+  return useQuery({
+    queryKey: ['admin-reservation', id],
+    queryFn: () => adminService.getAdminReservation(id),
+    enabled: !!id,
+    staleTime: 10_000,
   })
 }
 
@@ -1935,4 +1945,180 @@ export function useOperationsStream(scope: OperationsScope, limit = 50) {
     },
     refetchInterval: 10_000,
   })
+}
+
+// ── P7.8 Phase D — Feature Flag hooks ────────────────────────────────────────
+import { featureFlagsService } from '@/services/feature-flags.service'
+
+export function useFeatureFlags() {
+  const tenant = useTenantStore((s) => s.tenant)
+  return useQuery({
+    queryKey: ['feature-flags', tenant?.id],
+    queryFn: () => {
+      if (!tenant) return []
+      return featureFlagsService.listFlags(tenant)
+    },
+    enabled: !!tenant,
+    staleTime: 60_000,
+  })
+}
+
+export function useUpdateFeatureFlag() {
+  const qc = useQueryClient()
+  const tenant = useTenantStore((s) => s.tenant)
+  return useMutation({
+    mutationFn: ({ key, value }: { key: string; value: boolean }) => {
+      if (!tenant) throw new Error('No tenant')
+      featureFlagsService.updateFlag(tenant, key, value)
+      return Promise.resolve({ key, value })
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['feature-flags'] })
+    },
+  })
+}
+
+// ── P7.8 Phase H — WebSocket integration ─────────────────────────────────────
+import {
+  adminOperationsSocket,
+  ordersBroadcastSocket,
+  reservationsBroadcastSocket,
+  staffBroadcastSocket,
+  notificationsBroadcastSocket,
+  auditBroadcastSocket,
+} from '@/services/websocket.service'
+
+/** Returns the live connection status of the admin operations WebSocket. */
+export function useWebSocketStatus() {
+  const [status, setStatus] = React.useState(() => adminOperationsSocket.getStatus())
+
+  React.useEffect(() => {
+    const off = adminOperationsSocket.on('status', (s: unknown) => {
+      setStatus(s as ReturnType<typeof adminOperationsSocket.getStatus>)
+    })
+    return off
+  }, [])
+
+  return status
+}
+
+/** Wires a broadcast socket to invalidate a query key on any message. */
+function useBroadcastInvalidation(
+  socket: typeof adminOperationsSocket,
+  queryKey: readonly unknown[],
+) {
+  const qc = useQueryClient()
+  React.useEffect(() => {
+    const off = socket.on('message', () => {
+      qc.invalidateQueries({ queryKey: [...queryKey] })
+    })
+    return off
+  }, [qc, socket, ...queryKey]) // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+/** Subscribe orders broadcast socket to invalidate live-orders queries. */
+export function useOrdersBroadcastSync(scope: OperationsScope) {
+  useBroadcastInvalidation(ordersBroadcastSocket, ['live-orders', scope.tenantId, scope.branchId])
+}
+
+/** Subscribe reservations broadcast socket to invalidate live-reservations queries. */
+export function useReservationsBroadcastSync(scope: OperationsScope) {
+  useBroadcastInvalidation(reservationsBroadcastSocket, ['live-reservations', scope.tenantId, scope.branchId])
+}
+
+/** Subscribe staff broadcast socket to invalidate staff-presence queries. */
+export function useStaffBroadcastSync(scope: OperationsScope) {
+  useBroadcastInvalidation(staffBroadcastSocket, ['staff-presence', scope.tenantId, scope.branchId])
+}
+
+/** Subscribe notifications broadcast to invalidate notification queries. */
+export function useNotificationsBroadcastSync() {
+  useBroadcastInvalidation(notificationsBroadcastSocket, ['notifications'])
+}
+
+/** Subscribe audit broadcast to invalidate audit-log queries. */
+export function useAuditBroadcastSync() {
+  useBroadcastInvalidation(auditBroadcastSocket, ['audit-logs'])
+}
+
+// ── P7.8 Phase I — Analytics Export hook ─────────────────────────────────────
+type ExportFormat = 'csv' | 'json'
+type ExportDomain = 'summary' | 'revenue' | 'reservations' | 'loyalty' | 'promotions' | 'vendors'
+
+function toCSV(data: unknown): string {
+  if (!data || typeof data !== 'object') return ''
+  const flat = Object.entries(data as Record<string, unknown>).map(([k, v]) => ({
+    key: k,
+    value: typeof v === 'object' ? JSON.stringify(v) : String(v ?? ''),
+  }))
+  const header = 'key,value'
+  const rows = flat.map(({ key, value }) => `${key},"${String(value).replace(/"/g, '""')}"`)
+  return [header, ...rows].join('\n')
+}
+
+function downloadBlob(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+export function useExportAnalytics() {
+  return useMutation({
+    mutationFn: async ({ domain, format }: { domain: ExportDomain; format: ExportFormat }) => {
+      const fetchMap: Record<ExportDomain, () => Promise<unknown>> = {
+        summary:      () => analyticsService.getAnalyticsSummary(),
+        revenue:      () => analyticsService.getRevenueAnalytics(),
+        reservations: () => analyticsService.getReservationAnalytics(),
+        loyalty:      () => analyticsService.getLoyaltyAnalytics(),
+        promotions:   () => analyticsService.getPromotionAnalytics(),
+        vendors:      () => analyticsService.getVendorAnalytics(),
+      }
+      const data = await fetchMap[domain]()
+      const timestamp = new Date().toISOString().split('T')[0]
+      if (format === 'json') {
+        downloadBlob(JSON.stringify(data, null, 2), `${domain}-${timestamp}.json`, 'application/json')
+      } else {
+        downloadBlob(toCSV(data), `${domain}-${timestamp}.csv`, 'text/csv')
+      }
+      return { domain, format }
+    },
+  })
+}
+
+// ── P7.8 Phase J — Analytics Comparison hook ─────────────────────────────────
+type ComparisonPeriod = 'week' | 'month' | 'custom'
+
+interface ComparisonResult<T> {
+  current: T | undefined
+  previous: T | undefined
+  isLoading: boolean
+  isError: boolean
+}
+
+export function useAnalyticsComparison(period: ComparisonPeriod = 'week'): ComparisonResult<AnalyticsSummaryPair> {
+  const currentQ = useQuery({
+    queryKey: ['analytics-summary', 'current', period],
+    queryFn: () => analyticsService.getAnalyticsSummary(),
+    staleTime: 60_000,
+  })
+  const previousQ = useQuery({
+    queryKey: ['analytics-summary', 'previous', period],
+    queryFn: () => analyticsService.getAnalyticsSummary(),
+    staleTime: 60_000,
+  })
+  return {
+    current: currentQ.data ? { ...currentQ.data, _period: 'current' as const } : undefined,
+    previous: previousQ.data ? { ...previousQ.data, _period: 'previous' as const } : undefined,
+    isLoading: currentQ.isLoading || previousQ.isLoading,
+    isError: currentQ.isError || previousQ.isError,
+  }
+}
+
+interface AnalyticsSummaryPair {
+  _period: 'current' | 'previous'
+  [key: string]: unknown
 }

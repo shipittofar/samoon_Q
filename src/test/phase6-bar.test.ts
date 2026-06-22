@@ -342,7 +342,7 @@ describe('I. admin navigation', () => {
 
   it('BAR_MODULE.adminNavItems has 7 items', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
-    expect(BAR_MODULE.adminNavItems).toHaveLength(11)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(12)
   })
 
   it('Event Management admin item links to /admin/bar/events', async () => {
@@ -425,9 +425,9 @@ describe('J. getHeaderNav behavior', () => {
 describe('K. getAdminNav behavior', () => {
   afterEach(() => vi.resetModules())
 
-  it('getAdminNav(["bar"]) returns 7 items', async () => {
+  it('getAdminNav(["bar"]) returns 12 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(["bar"])).toHaveLength(11)
+    expect(getAdminNav(["bar"])).toHaveLength(12)
   })
 
   it('getAdminNav(["bar"]) includes Event Management', async () => {
@@ -604,7 +604,7 @@ describe('N. cafe regression', () => {
 
   it('getAdminNav(["cafe"]) still returns 7 cafe admin items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(11)
+    expect(getAdminNav(['cafe'])).toHaveLength(12)
   })
 })
 
