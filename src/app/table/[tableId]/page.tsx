@@ -2,15 +2,57 @@
 
 import { use, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { UtensilsCrossed, ArrowRight, Users, MapPin, User, Loader2 } from 'lucide-react'
+import {
+  UtensilsCrossed, ArrowRight, Users, MapPin, User, Loader2,
+  CalendarDays, Star, Heart, Music, Store, Tag, Navigation,
+} from 'lucide-react'
 import Link from 'next/link'
 import { Header } from '@/components/layout/Header'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Footer } from '@/components/layout/Footer'
 import { Button } from '@/components/ui/Button'
-import { useTableInfo } from '@/hooks'
-import { useDineInStore } from '@/stores'
+import { useTableInfo, useQRExperience } from '@/hooks'
+import { useDineInStore, useTenantStore } from '@/stores'
+import type { QRExperience } from '@/types/qr-experience'
+
+interface QuickLink {
+  href: string
+  label: string
+  icon: React.ReactNode
+}
+
+function buildQuickLinks(exp: QRExperience): QuickLink[] {
+  const links: QuickLink[] = []
+  if (exp.showMenu)         links.push({ href: '/menu',         label: 'Browse Menu',     icon: <UtensilsCrossed className="h-5 w-5" /> })
+  if (exp.showReservations) links.push({ href: '/reservation',  label: 'Reservations',    icon: <CalendarDays className="h-5 w-5" /> })
+  if (exp.showReviews)      links.push({ href: '/reviews',      label: 'Reviews',         icon: <Star className="h-5 w-5" /> })
+  if (exp.showLoyalty)      links.push({ href: '/loyalty',      label: 'Loyalty Rewards', icon: <Heart className="h-5 w-5" /> })
+  if (exp.showEvents)       links.push({ href: '/events',       label: 'Events',          icon: <Music className="h-5 w-5" /> })
+  if (exp.showVendors)      links.push({ href: '/vendors',      label: 'Vendors',         icon: <Store className="h-5 w-5" /> })
+  if (exp.showLocation)     links.push({ href: '/location',     label: 'Live Location',   icon: <Navigation className="h-5 w-5" /> })
+  if (exp.showPromotions)   links.push({ href: '/promotions',   label: 'Promotions',      icon: <Tag className="h-5 w-5" /> })
+  return links
+}
+
+function QRExperienceQuickLinks({ experience }: { experience: QRExperience }) {
+  const links = buildQuickLinks(experience)
+  if (links.length === 0) return null
+  return (
+    <div className="mt-6">
+      <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Explore</p>
+      <div className="grid grid-cols-2 gap-2">
+        {links.map((link) => (
+          <Link key={link.href} href={link.href}
+            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 text-sm text-[var(--fg)] hover:border-[var(--primary)] transition-colors">
+            <span className="text-[var(--primary)]">{link.icon}</span>
+            <span>{link.label}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function TablePage({ params }: { params: Promise<{ tableId: string }> }) {
   const { tableId } = use(params)
@@ -19,6 +61,10 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
 
   const { data: tableInfo, isLoading: tableLoading } = useTableInfo(isValid ? tableId : null)
   const { setTableNumber, clearTable } = useDineInStore()
+
+  const tenant = useTenantStore((s) => s.tenant)
+  const primaryBusinessType = tenant?.businessTypes?.[0]
+  const { data: experience } = useQRExperience(primaryBusinessType)
 
   // Persist table number so checkout can read it even after navigating away
   useEffect(() => {
@@ -112,11 +158,14 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
               </div>
             )}
 
-            <Link href={`/menu`} className="block">
+            <Link href="/menu" className="block">
               <Button className="w-full" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
                 Browse Menu
               </Button>
             </Link>
+
+            {/* Business-specific quick links — driven by QRExperience, no business-type checks */}
+            {experience && <QRExperienceQuickLinks experience={experience} />}
           </motion.div>
         </div>
       </div>

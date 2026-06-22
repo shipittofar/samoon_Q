@@ -184,9 +184,10 @@ describe('table/[tableId]/page.tsx — P4.4 source structure', () => {
 
   it('calls useTableInfo before early return', () => {
     const content = src()
-    const hookIdx = content.indexOf('useTableInfo(')
-    const earlyReturnIdx = content.indexOf('return (')
-    expect(hookIdx).toBeGreaterThan(0)
+    const componentIdx = content.indexOf('function TablePage(')
+    const hookIdx = content.indexOf('useTableInfo(', componentIdx)
+    const earlyReturnIdx = content.indexOf('Invalid Table', componentIdx)
+    expect(hookIdx).toBeGreaterThan(componentIdx)
     expect(hookIdx).toBeLessThan(earlyReturnIdx)
   })
 

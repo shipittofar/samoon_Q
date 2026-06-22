@@ -447,6 +447,12 @@ export interface Module {
    * without knowing which business type is active — the module self-describes.
    */
   adminNavItems?: NavItem[]
+  /**
+   * QR experience type for this module (P6.12).
+   * Drives business-specific QR landing page sections without hardcoding
+   * business-type checks in page components.
+   */
+  qrExperienceType?: 'restaurant' | 'cafe' | 'bar' | 'food_court' | 'food_truck' | 'mobile_cafe'
 }
 
 // ============================================================

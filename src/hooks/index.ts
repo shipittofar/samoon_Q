@@ -17,6 +17,7 @@ import {
   userService,
 } from '@/services/combined.service'
 import { authService } from '@/services/auth.service'
+import { qrExperienceService } from '@/services/qr-experience.service'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore } from '@/stores'
 import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
@@ -503,6 +504,15 @@ export function useSetLocale() {
     setLocale(locale)
     router.refresh()
   }
+}
+
+// P6.12 — QR Experience hook
+export function useQRExperience(businessType?: string) {
+  return useQuery({
+    queryKey: ['qr-experience', businessType ?? 'default'],
+    queryFn: () => qrExperienceService.getQRExperience(businessType),
+    staleTime: STALE_TIME,
+  })
 }
 
 // P4.4 — Table metadata hook

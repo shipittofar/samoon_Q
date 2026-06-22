@@ -52,6 +52,7 @@ export const RESTAURANT_MODULE: Module = {
   key: 'restaurant',
   name: 'Restaurant',
   businessTypes: ['restaurant'],
+  qrExperienceType: 'restaurant',
   capabilities: {
     required: ['menu', 'ordering', 'qr_table', 'notifications'],
     optional: ['reservations', 'reviews'],
@@ -83,6 +84,7 @@ export const CAFE_MODULE: Module = {
   key: 'cafe',
   name: 'Cafe',
   businessTypes: ['cafe'],
+  qrExperienceType: 'cafe',
   capabilities: {
     required: ['menu', 'ordering', 'qr_table', 'notifications'],
     optional: ['reservations', 'reviews', 'loyalty'],
@@ -131,6 +133,7 @@ export const BAR_MODULE: Module = {
   key: 'bar',
   name: 'Bar',
   businessTypes: ['bar'],
+  qrExperienceType: 'bar',
   capabilities: {
     required: ['menu', 'ordering', 'qr_table', 'notifications'],
     optional: ['reservations', 'reviews', 'loyalty'],
@@ -177,6 +180,7 @@ export const FOOD_COURT_MODULE: Module = {
   key: 'food_court',
   name: 'Food Court',
   businessTypes: ['food_court'],
+  qrExperienceType: 'food_court',
   capabilities: {
     required: ['menu', 'ordering', 'notifications', 'qr_table', 'reservations'],
     optional: ['reviews', 'loyalty'],
@@ -221,6 +225,7 @@ export const FOOD_TRUCK_MODULE: Module = {
   key: 'food_truck',
   name: 'Food Truck',
   businessTypes: ['food_truck'],
+  qrExperienceType: 'food_truck',
   capabilities: {
     required: ['menu', 'ordering', 'qr_table', 'notifications'],
     optional: ['reservations', 'reviews', 'loyalty'],
@@ -266,6 +271,7 @@ export const MOBILE_CAFE_MODULE: Module = {
   key: 'mobile_cafe',
   name: 'Mobile Cafe',
   businessTypes: ['mobile_cafe'],
+  qrExperienceType: 'mobile_cafe',
   capabilities: {
     required: ['menu', 'ordering', 'qr_table', 'notifications'],
     optional: ['reservations', 'reviews', 'loyalty'],
@@ -523,6 +529,25 @@ export function hasCapability(activeModuleKeys: string[], cap: Capability): bool
       m.capabilities.defaultEnabled.includes(cap)
     )
   })
+}
+
+/**
+ * Returns the qrExperienceType for the first active module that declares one.
+ * Falls back to 'restaurant' if no active module declares a qrExperienceType.
+ * P6.12 — QR Experience Layer
+ */
+export function getQRExperienceType(
+  activeModuleKeys?: string[],
+): 'restaurant' | 'cafe' | 'bar' | 'food_court' | 'food_truck' | 'mobile_cafe' {
+  seal()
+  const modules = _modules.filter((m) => m.enabled)
+  const source = activeModuleKeys?.length
+    ? modules.filter((m) => activeModuleKeys.includes(m.key))
+    : modules
+  for (const mod of source) {
+    if (mod.qrExperienceType) return mod.qrExperienceType
+  }
+  return 'restaurant'
 }
 
 /**
