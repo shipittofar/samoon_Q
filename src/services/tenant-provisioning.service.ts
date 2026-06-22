@@ -13,6 +13,23 @@ import type { Tenant } from '@/types'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 200) => new Promise<void>((r) => setTimeout(r, ms))
 
+// ── Seed data for clone source lookup in mock mode ────────────────────────────
+// Mirrors the slugs/IDs registered in tenant.service.ts MOCK_TENANTS.
+// Kept here so the provisioning service is self-contained for tests.
+const SEED_MOCK_TENANTS: ReadonlyArray<Pick<Tenant, 'id' | 'slug' | 'businessTypes' | 'settings'>> = [
+  { id: 'default', slug: 'default', businessTypes: ['restaurant'], settings: undefined },
+  { id: 'tenant-savor-01', slug: 'savor', businessTypes: ['restaurant'], settings: { featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#e85d04' } } },
+  { id: 'tenant-brew-cafe-01', slug: 'brew-cafe', businessTypes: ['cafe'], settings: { featureFlags: { 'menu.enabled': true, 'cafe.loyalty.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#6f4e37' } } },
+  { id: 'tenant-oak-bar-01', slug: 'the-oak-bar', businessTypes: ['bar'], settings: { featureFlags: { 'menu.enabled': true, 'promotions.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#1a1a2e' } } },
+  { id: 'tenant-central-fc-01', slug: 'central-food-court', businessTypes: ['food_court'], settings: { featureFlags: { 'menu.enabled': true, 'food_court.vendor_management.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#2d6a4f' } } },
+  { id: 'tenant-road-bites-01', slug: 'road-bites', businessTypes: ['food_truck'], settings: { featureFlags: { 'menu.enabled': true, 'food_truck.live_location.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#f4a261' } } },
+  { id: 'tenant-wheels-brews-01', slug: 'wheels-and-brews', businessTypes: ['mobile_cafe'], settings: { featureFlags: { 'menu.enabled': true, 'mobile_cafe.loyalty.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#457b9d' } } },
+]
+
+function findSeedTenant(idOrSlug: string) {
+  return SEED_MOCK_TENANTS.find((t) => t.id === idOrSlug || t.slug === idOrSlug)
+}
+
 // ── Slug validation ───────────────────────────────────────────────────────────
 
 const SLUG_RE = /^[a-z0-9-]{2,63}$/
@@ -420,14 +437,20 @@ export const tenantProvisioningService = {
 
     if (USE_MOCK) {
       await delay()
+      const source = findSeedTenant(sourceTenantId)
       const tenantId = `tenant-${newSlug}-${Date.now()}`
       const tenant: Tenant = {
         id: tenantId,
         name: newName,
         slug: newSlug,
-        businessTypes: ['restaurant'],
+        // Preserve source business type; fall back to restaurant when source unknown
+        businessTypes: source?.businessTypes ? [...source.businessTypes] : ['restaurant'],
         status: 'active',
         createdAt: new Date().toISOString(),
+        // Preserve source settings (feature flags + branding), override name
+        settings: source?.settings
+          ? { ...(source.settings as Record<string, unknown>) }
+          : undefined,
       }
       MOCK_EXISTING_SLUGS.add(newSlug)
       return { success: true, tenantId, slug: newSlug, tenant }

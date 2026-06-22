@@ -784,12 +784,12 @@ describe('O — admin tenants page source', () => {
     expect(src()).toContain('/admin/tenants/new')
   })
 
-  it('uses useTenantTemplates hook', () => {
-    expect(src()).toContain('useTenantTemplates')
+  it('uses useTenants hook', () => {
+    expect(src()).toContain('useTenants')
   })
 
-  it('renders templates grid', () => {
-    expect(src()).toContain('templates')
+  it('renders tenant list', () => {
+    expect(src()).toContain('Tenant List')
   })
 
   it('has New Tenant button/link', () => {

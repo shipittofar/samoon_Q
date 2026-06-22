@@ -389,9 +389,9 @@ describe('I. admin navigation', () => {
     expect(MOBILE_CAFE_MODULE.adminNavItems).toBeDefined()
   })
 
-  it('adminNavItems has 3 items', async () => {
+  it('adminNavItems has 4 items', async () => {
     const { MOBILE_CAFE_MODULE } = await import('@/modules/registry')
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(3)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(4)
   })
 
   it('Route Management links to /admin/mobile-cafe/routes', async () => {
@@ -420,9 +420,9 @@ describe('I. admin navigation', () => {
     expect(item!.featureFlagKey).toBe('mobile_cafe.loyalty.enabled')
   })
 
-  it('getAdminNav(["mobile_cafe"]) returns 3 items', async () => {
+  it('getAdminNav(["mobile_cafe"]) returns 4 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(["mobile_cafe"])).toHaveLength(3)
+    expect(getAdminNav(["mobile_cafe"])).toHaveLength(4)
   })
 
   it('getAdminNav(["mobile_cafe"]) includes Route Management', async () => {
@@ -629,9 +629,9 @@ describe('M. cafe regression', () => {
     expect(CAFE_MODULE.businessTypes).toContain('cafe')
   })
 
-  it('cafe admin nav still returns 4 items', async () => {
+  it('cafe admin nav still returns 5 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(4)
+    expect(getAdminNav(['cafe'])).toHaveLength(5)
   })
 
   it('getHeaderNav(["cafe"]) does not include Live Location', async () => {
@@ -657,9 +657,9 @@ describe('N. bar regression', () => {
     expect(BAR_MODULE.businessTypes).toContain('bar')
   })
 
-  it('bar admin nav still returns 4 items', async () => {
+  it('bar admin nav still returns 5 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['bar'])).toHaveLength(4)
+    expect(getAdminNav(['bar'])).toHaveLength(5)
   })
 
   it('getHeaderNav(["bar"]) does not include Live Location or Loyalty (mobile)', async () => {
@@ -681,9 +681,9 @@ describe('O. food court regression', () => {
     expect(FOOD_COURT_MODULE.businessTypes).toContain('food_court')
   })
 
-  it('food court admin nav still returns 3 items', async () => {
+  it('food court admin nav still returns 4 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['food_court'])).toHaveLength(3)
+    expect(getAdminNav(['food_court'])).toHaveLength(4)
   })
 
   it('getAdminNav(["food_court"]) does not include mobile cafe admin items', async () => {
@@ -704,9 +704,9 @@ describe('P. food truck regression', () => {
     expect(FOOD_TRUCK_MODULE.businessTypes).toContain('food_truck')
   })
 
-  it('food truck admin nav still returns 3 items', async () => {
+  it('food truck admin nav still returns 4 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['food_truck'])).toHaveLength(3)
+    expect(getAdminNav(['food_truck'])).toHaveLength(4)
   })
 
   it('getHeaderNav(["food_truck"]) does not have Loyalty nav (mobile_cafe gated)', async () => {
@@ -751,10 +751,10 @@ describe('Q. empty-module edge cases', () => {
     expect(getCapabilityFeatureFlags([])['menu.enabled']).toBe(true)
   })
 
-  it('getAdminNav(["mobile_cafe", "bar", "cafe"]) aggregates all 11 admin items', async () => {
+  it('getAdminNav(["mobile_cafe", "bar", "cafe"]) aggregates all 14 admin items', async () => {
     const { getAdminNav } = await freshRegistry()
     const items = getAdminNav(['mobile_cafe', 'bar', 'cafe'])
-    expect(items).toHaveLength(11)
+    expect(items).toHaveLength(14)
   })
 })
 

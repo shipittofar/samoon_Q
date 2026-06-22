@@ -233,7 +233,7 @@ export type BusinessType =
   | 'hotel'
   | 'other'
 
-export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned'
+export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned' | 'archived'
 
 /**
  * Runtime-only lifecycle state for the tenant bootstrap sequence.

@@ -46,6 +46,26 @@ export const CAPABILITY_FLAG_MAP: Readonly<Record<Capability, string>> = {
   notifications: 'notifications.enabled',
 }
 
+// ── Shared admin routes (P6.15) ───────────────────────────────────────────────
+
+/**
+ * Admin routes shared across all business-type modules.
+ * Spread into each module's routes array so the route is registered once per source.
+ * P6.15 — eliminates per-module duplication of /admin/tenants routes.
+ */
+export const ADMIN_TENANT_ROUTES: readonly string[] = [
+  '/admin/tenants',
+  '/admin/tenants/new',
+]
+
+// ── Shared Tenants admin nav item ─────────────────────────────────────────────
+
+const TENANTS_NAV_ITEM = {
+  href: '/admin/tenants',
+  label: 'Tenants',
+  featureFlagKey: 'admin.tenants.enabled',
+} as const
+
 // ── Built-in module definitions ───────────────────────────────────────────────
 
 export const RESTAURANT_MODULE: Module = {
@@ -58,7 +78,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', '/admin/tenants'],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -74,6 +94,7 @@ export const RESTAURANT_MODULE: Module = {
   },
   adminNavItems: [
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
+    TENANTS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -105,6 +126,7 @@ export const CAFE_MODULE: Module = {
     '/loyalty',
     '/promotions',
     '/admin/analytics',
+    ...ADMIN_TENANT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -132,6 +154,7 @@ export const CAFE_MODULE: Module = {
     { href: '/admin/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled' },
     { href: '/admin/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled' },
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
+    TENANTS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -157,6 +180,7 @@ export const BAR_MODULE: Module = {
     '/events',
     '/promotions',
     '/admin/analytics',
+    ...ADMIN_TENANT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Drinks' },
@@ -182,6 +206,7 @@ export const BAR_MODULE: Module = {
     { href: '/admin/bar/events', label: 'Event Management', featureFlagKey: 'bar.events.enabled' },
     { href: '/admin/bar/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'bar.happy_hour.enabled' },
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
+    TENANTS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -206,6 +231,7 @@ export const FOOD_COURT_MODULE: Module = {
     '/reviews',
     '/vendors',
     '/admin/analytics',
+    ...ADMIN_TENANT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -230,6 +256,7 @@ export const FOOD_COURT_MODULE: Module = {
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     { href: '/admin/food-court/vendors', label: 'Vendor Management', featureFlagKey: 'food_court.vendor_management.enabled' },
     { href: '/admin/food-court/seating', label: 'Seating Management', featureFlagKey: 'food_court.shared_seating.enabled' },
+    TENANTS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -254,6 +281,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     '/reservation',
     '/location',
     '/admin/analytics',
+    ...ADMIN_TENANT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -279,6 +307,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     { href: '/admin/food-truck/routes', label: 'Route Management', featureFlagKey: 'food_truck.route_tracking.enabled' },
     { href: '/admin/food-truck/stops', label: 'Stop Management', featureFlagKey: 'food_truck.scheduled_stops.enabled' },
+    TENANTS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -304,6 +333,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     '/reservation',
     '/location',
     '/admin/analytics',
+    ...ADMIN_TENANT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -332,6 +362,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     { href: '/admin/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled' },
     { href: '/admin/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled' },
+    TENANTS_NAV_ITEM,
   ],
   enabled: true,
 }

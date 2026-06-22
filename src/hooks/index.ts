@@ -20,6 +20,7 @@ import { authService } from '@/services/auth.service'
 import { qrExperienceService } from '@/services/qr-experience.service'
 import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
+import { tenantService } from '@/services/tenant.service'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore } from '@/stores'
 import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
@@ -1014,5 +1015,39 @@ export function useCloneTenant() {
       newName: string
     }) => tenantProvisioningService.cloneTenant(sourceTenantId, newSlug, newName),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tenant-templates'] }),
+  })
+}
+
+// ── Tenant Management Hooks (P6.15) ──────────────────────────────────────────
+
+export function useTenants() {
+  return useQuery({
+    queryKey: ['tenants'],
+    queryFn: () => tenantService.getTenants(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useActivateTenant() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (slugOrId: string) => tenantService.activateTenant(slugOrId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenants'] }),
+  })
+}
+
+export function useSuspendTenant() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (slugOrId: string) => tenantService.suspendTenant(slugOrId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenants'] }),
+  })
+}
+
+export function useArchiveTenant() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (slugOrId: string) => tenantService.archiveTenant(slugOrId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenants'] }),
   })
 }

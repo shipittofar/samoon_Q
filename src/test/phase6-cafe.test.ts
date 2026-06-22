@@ -423,9 +423,9 @@ describe('getAdminNav() — cafe module admin visibility (P6.3)', () => {
     expect(item?.featureFlagKey).toBe('cafe.happy_hour.enabled')
   })
 
-  it('getAdminNav([restaurant]) returns 1 item (analytics)', async () => {
+  it('getAdminNav([restaurant]) returns 2 items (analytics + tenants)', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['restaurant'])).toHaveLength(1)
+    expect(getAdminNav(['restaurant'])).toHaveLength(2)
   })
 
   it('getAdminNav([]) returns empty array (no active modules)', async () => {
