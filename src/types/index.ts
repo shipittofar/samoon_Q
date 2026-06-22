@@ -705,17 +705,15 @@ export interface Address {
 }
 
 // ============================================================
-// RBAC TYPES  (Phase 1B — P1B.1)
+// RBAC TYPES  (Phase 1B — P1B.1 / P7.1)
 // ============================================================
 
 /**
- * Atomic permission strings for the RBAC system.
- * Format: resource:action
- *
- * Consumers check a single permission via rbacService.hasPermission(role, permission)
- * or the useHasPermission(permission) hook — never enumerate this list directly.
+ * Legacy permission strings (P1B.1 — colon-notation).
+ * Used by the old rbacService and AuthGuard.
+ * @deprecated Use P7Permission from @/types/rbac for new code.
  */
-export type Permission =
+export type LegacyPermission =
   | 'orders:read'
   | 'orders:write'
   | 'orders:cancel'
@@ -732,6 +730,61 @@ export type Permission =
   | 'branches:read'
   | 'branches:manage'
   | 'notifications:read'
+
+/**
+ * P7 permission strings (P7.1 — dot-notation).
+ * Authorization formula: Permission AND Capability AND FeatureFlag.
+ * This is the canonical Permission type going forward.
+ */
+export type Permission =
+  | 'orders.view'
+  | 'orders.manage'
+  | 'menu.view'
+  | 'menu.manage'
+  | 'reservations.view'
+  | 'reservations.manage'
+  | 'customers.view'
+  | 'customers.manage'
+  | 'vendors.view'
+  | 'vendors.manage'
+  | 'promotions.view'
+  | 'promotions.manage'
+  | 'loyalty.view'
+  | 'loyalty.manage'
+  | 'analytics.view'
+  | 'staff.view'
+  | 'staff.manage'
+  | 'branches.view'
+  | 'branches.manage'
+  | 'settings.view'
+  | 'settings.manage'
+  | 'tenant.view'
+  | 'tenant.manage'
+  | 'audit.view'
+
+/**
+ * P7 enterprise roles — always tenant-scoped.
+ * Never use legacy UserRole for staff authorization; use Role instead.
+ */
+export type Role =
+  | 'owner'
+  | 'admin'
+  | 'manager'
+  | 'cashier'
+  | 'waiter'
+  | 'kitchen'
+  | 'marketing'
+  | 'support'
+
+// Re-export P7 types from rbac module for consumers that import from '@/types'
+export type {
+  P7Permission,
+  UserTenantRole,
+  TenantRoleAssignment,
+  PermissionCheckOptions,
+  AuditEvent,
+  MockRbacUser,
+} from './rbac'
 
 // ============================================================
 // TENANT THEME TYPES  (Phase 2 — P2.2)

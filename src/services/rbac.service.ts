@@ -1,17 +1,20 @@
 /**
- * RBAC Service — Phase 1B (P1B.1)
+ * RBAC Service — P1B.1 (legacy API) + P7.1 delegation
  *
- * Provides a static, deterministic permission map for the three user roles.
- * All permission checks are pure functions with no side effects.
+ * This module provides backward-compatible wrappers around the new
+ * permission.service.ts (P7.1). All new code should import directly
+ * from permission.service or use the React hooks.
  *
- * Extension path (Phase 2+): swap ROLE_PERMISSIONS values for server-fetched
- * permission sets without changing the hasPermission() call sites.
+ * Legacy API (colon-notation): kept for AuthGuard backward compat.
+ * New API (dot-notation):      re-exported from permissionService.
  */
-import type { Permission, UserRole } from '@/types'
+import type { UserRole } from '@/types'
+import type { LegacyPermission } from '@/types'
+import { permissionService } from './permission.service'
 
-// ── Permission sets per role ──────────────────────────────────────────────────
+// ── Legacy permission sets (P1B.1 — unchanged for backward compat) ────────────
 
-const CUSTOMER_PERMISSIONS: readonly Permission[] = [
+const CUSTOMER_PERMISSIONS: readonly LegacyPermission[] = [
   'menu:read',
   'orders:read',
   'orders:write',
@@ -22,7 +25,7 @@ const CUSTOMER_PERMISSIONS: readonly Permission[] = [
   'branches:read',
 ]
 
-const STAFF_PERMISSIONS: readonly Permission[] = [
+const STAFF_PERMISSIONS: readonly LegacyPermission[] = [
   ...CUSTOMER_PERMISSIONS,
   'orders:manage',
   'menu:write',
@@ -31,37 +34,40 @@ const STAFF_PERMISSIONS: readonly Permission[] = [
   'dashboard:access',
 ]
 
-const ADMIN_PERMISSIONS: readonly Permission[] = [
+const ADMIN_PERMISSIONS: readonly LegacyPermission[] = [
   ...STAFF_PERMISSIONS,
   'menu:manage',
   'users:manage',
   'branches:manage',
 ]
 
-const ROLE_PERMISSIONS: Readonly<Record<UserRole, readonly Permission[]>> = {
+const ROLE_PERMISSIONS: Readonly<Record<UserRole, readonly LegacyPermission[]>> = {
   customer: CUSTOMER_PERMISSIONS,
-  staff:    STAFF_PERMISSIONS,
-  admin:    ADMIN_PERMISSIONS,
+  staff: STAFF_PERMISSIONS,
+  admin: ADMIN_PERMISSIONS,
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export const rbacService = {
   /**
-   * Returns true if the role holds the requested permission.
-   * Null / undefined role → false (safe default deny).
+   * Legacy check — uses colon-notation permissions and UserRole.
+   * @deprecated Use permissionService.hasPermission() with P7 roles and dot-notation permissions.
    */
-  hasPermission(role: UserRole | null | undefined, permission: Permission): boolean {
+  hasPermission(role: UserRole | null | undefined, permission: LegacyPermission): boolean {
     if (!role) return false
     return (ROLE_PERMISSIONS[role] ?? []).includes(permission)
   },
 
   /**
-   * Returns all permissions held by the given role.
-   * Null / undefined role → empty array.
+   * Legacy getter — returns all colon-notation permissions for a UserRole.
+   * @deprecated Use permissionService.getPermissionsForRole() with P7 roles.
    */
-  getPermissions(role: UserRole | null | undefined): readonly Permission[] {
+  getPermissions(role: UserRole | null | undefined): readonly LegacyPermission[] {
     if (!role) return []
     return ROLE_PERMISSIONS[role] ?? []
   },
+
+  // Convenience re-exports for the P7 API
+  p7: permissionService,
 }

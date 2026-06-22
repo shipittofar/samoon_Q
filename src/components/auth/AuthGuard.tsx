@@ -24,12 +24,12 @@ import { useEffect, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores'
 import { rbacService } from '@/services/rbac.service'
-import type { Permission } from '@/types'
+import type { LegacyPermission } from '@/types'
 
 export interface AuthGuardProps {
   children: ReactNode
   /** When provided, the user must hold this permission. */
-  requiredPermission?: Permission
+  requiredPermission?: LegacyPermission
   /** Where to redirect unauthenticated users (default: /login). */
   loginPath?: string
   /** Where to redirect users who are authenticated but lack permission. */

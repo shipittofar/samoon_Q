@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { menuService } from '@/services/menu.service'
@@ -21,7 +22,9 @@ import { qrExperienceService } from '@/services/qr-experience.service'
 import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import { tenantService } from '@/services/tenant.service'
-import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore } from '@/stores'
+import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore } from '@/stores'
+import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions } from '@/services/permission.service'
+import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
 import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
@@ -44,7 +47,7 @@ import type {
   Order,
   OrderStatus,
   PaginatedResponse,
-  Permission,
+  LegacyPermission,
   RegisterData,
   Reservation,
   ReservationStatus,
@@ -112,9 +115,67 @@ export function useSystemReady(): SystemReadiness {
  *   const canManageMenu = useHasPermission('menu:manage')
  *   if (!canManageMenu) return null
  */
-export function useHasPermission(permission: Permission): boolean {
+export function useHasPermission(permission: LegacyPermission): boolean {
   const role = useAuthStore((s) => s.user?.role ?? null)
   return rbacService.hasPermission(role, permission)
+}
+
+// ── P7.1 Permission Hooks ─────────────────────────────────────────────────────
+/**
+ * Returns all P7 permissions granted to the current user for the active tenant.
+ * Memoized by role list string to avoid excessive re-renders.
+ */
+export function usePermissions(): readonly P7Permission[] {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  return useMemo(() => {
+    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
+    return getPermissionsForRole(roles)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId, tenantRoles])
+}
+
+/**
+ * Returns true if the current user holds the given P7 permission for the active tenant.
+ * Respects the full authorization formula: Permission AND Capability AND FeatureFlag.
+ */
+export function usePermission(permission: P7Permission, opts?: PermissionCheckOptions): boolean {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  return useMemo(() => {
+    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
+    return hasPermission(roles, permission, { featureFlags, ...opts })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId, tenantRoles, permission, featureFlags])
+}
+
+/**
+ * Returns true if the current user holds AT LEAST ONE of the given permissions.
+ */
+export function useAnyPermission(permissions: P7Permission[], opts?: PermissionCheckOptions): boolean {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  return useMemo(() => {
+    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
+    return hasAnyPermission(roles, permissions, { featureFlags, ...opts })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId, tenantRoles, permissions.join(','), featureFlags])
+}
+
+/**
+ * Returns true if the current user holds ALL of the given permissions.
+ */
+export function useAllPermissions(permissions: P7Permission[], opts?: PermissionCheckOptions): boolean {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  return useMemo(() => {
+    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
+    return hasAllPermissions(roles, permissions, { featureFlags, ...opts })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId, tenantRoles, permissions.join(','), featureFlags])
 }
 
 // ── Feature Flag Hook — P1B.2 ─────────────────────────────────────────────────

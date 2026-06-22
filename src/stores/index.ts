@@ -29,7 +29,8 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
     },
   }
 }
-import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
+import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User, Role } from '@/types'
+import type { TenantRoleAssignment } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
 
@@ -415,6 +416,66 @@ export const useRecentlyViewedStore = create<RecentlyViewedState>()(
     { name: 'savor-recently-viewed' },
   ),
 )
+
+// ── RBAC Store (P7.1) ─────────────────────────────────────────────────────────
+/**
+ * Tracks tenant-scoped role assignments for the current session.
+ * Role assignments are per-tenant — a user may have different roles across tenants.
+ *
+ * Write path: call setTenantRoles(tenantId, roles) during auth initialization
+ * or after the backend confirms a role assignment change.
+ *
+ * Read path: hooks read tenantRoles + current tenant ID from useTenantStore
+ * to derive effective roles for permission checks.
+ */
+interface RbacStoreState {
+  tenantRoles: TenantRoleAssignment[]
+  setTenantRoles: (tenantId: string, roles: Role[]) => void
+  addRole: (tenantId: string, role: Role) => void
+  removeRole: (tenantId: string, role: Role) => void
+  clearRoles: () => void
+  getRolesForTenant: (tenantId: string) => Role[]
+  _resetStore: () => void
+}
+
+export const useRbacStore = create<RbacStoreState>()((set, get) => ({
+  tenantRoles: [],
+
+  setTenantRoles: (tenantId, roles) =>
+    set((s) => {
+      const filtered = s.tenantRoles.filter((t) => t.tenantId !== tenantId)
+      return { tenantRoles: [...filtered, { tenantId, roles: [...new Set(roles)] }] }
+    }),
+
+  addRole: (tenantId, role) =>
+    set((s) => {
+      const existing = s.tenantRoles.find((t) => t.tenantId === tenantId)
+      if (existing) {
+        if (existing.roles.includes(role)) return s
+        return {
+          tenantRoles: s.tenantRoles.map((t) =>
+            t.tenantId === tenantId ? { ...t, roles: [...t.roles, role] } : t,
+          ),
+        }
+      }
+      return { tenantRoles: [...s.tenantRoles, { tenantId, roles: [role] }] }
+    }),
+
+  removeRole: (tenantId, role) =>
+    set((s) => ({
+      tenantRoles: s.tenantRoles.map((t) =>
+        t.tenantId === tenantId ? { ...t, roles: t.roles.filter((r) => r !== role) } : t,
+      ),
+    })),
+
+  clearRoles: () => set({ tenantRoles: [] }),
+
+  getRolesForTenant: (tenantId) => {
+    return get().tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
+  },
+
+  _resetStore: () => set({ tenantRoles: [] }),
+}))
 
 // ── Dine-In Store (P4.4) ──────────────────────────────────────────────────────
 // Persists the active table number so it survives navigation from /table/[tableId]
