@@ -354,6 +354,150 @@ export class DjangoChannelsWebSocket {
   }
 }
 
+// ── Heartbeat support ─────────────────────────────────────────────────────────
+
+export interface HeartbeatOptions {
+  intervalMs?: number
+  timeoutMs?: number
+}
+
+/**
+ * Attaches a heartbeat (ping/pong) loop to a DjangoChannelsWebSocket.
+ * Sends a 'ping' message at the given interval and marks the connection
+ * as unhealthy if no 'pong' arrives within timeoutMs.
+ * Returns a cleanup function.
+ */
+export function attachHeartbeat(
+  ws: DjangoChannelsWebSocket,
+  opts: HeartbeatOptions = {},
+): () => void {
+  const intervalMs = opts.intervalMs ?? 30_000
+  const timeoutMs = opts.timeoutMs ?? 10_000
+  let pingTimer: ReturnType<typeof setInterval> | null = null
+  let pongTimer: ReturnType<typeof setTimeout> | null = null
+  let healthy = true
+
+  const offPong = ws.on('pong', () => {
+    if (pongTimer) { clearTimeout(pongTimer); pongTimer = null }
+    healthy = true
+  })
+
+  const offConnected = ws.on('connected', () => {
+    if (pingTimer) clearInterval(pingTimer)
+    pingTimer = setInterval(() => {
+      if (!ws.isConnected) return
+      ws.send('ping', { ts: Date.now() })
+      pongTimer = setTimeout(() => {
+        healthy = false
+      }, timeoutMs)
+    }, intervalMs)
+  })
+
+  const offDisconnected = ws.on('disconnected', () => {
+    if (pingTimer) { clearInterval(pingTimer); pingTimer = null }
+    if (pongTimer) { clearTimeout(pongTimer); pongTimer = null }
+    healthy = false
+  })
+
+  return () => {
+    if (pingTimer) clearInterval(pingTimer)
+    if (pongTimer) clearTimeout(pongTimer)
+    offPong()
+    offConnected()
+    offDisconnected()
+    healthy = false
+  }
+}
+
+// ── Connection health tracker ─────────────────────────────────────────────────
+
+export interface ConnectionHealth {
+  status: ConnectionStatus
+  reconnectCount: number
+  lastConnectedAt?: string
+  lastDisconnectedAt?: string
+  pingLatencyMs?: number
+  isHealthy: boolean
+}
+
+export class OperationsChannelManager {
+  private channels = new Map<string, DjangoChannelsWebSocket>()
+  private heartbeats = new Map<string, () => void>()
+  private health = new Map<string, ConnectionHealth>()
+
+  /**
+   * Create or return an existing channel socket by name.
+   * Automatically attaches heartbeat and tracks connection health.
+   */
+  getOrCreate(channelName: string, heartbeatOpts?: HeartbeatOptions): DjangoChannelsWebSocket {
+    if (this.channels.has(channelName)) return this.channels.get(channelName)!
+
+    const ws = new DjangoChannelsWebSocket({ channelName })
+    const initialHealth: ConnectionHealth = {
+      status: 'disconnected',
+      reconnectCount: 0,
+      isHealthy: false,
+    }
+    this.health.set(channelName, initialHealth)
+
+    ws.on('status', (status) => {
+      const h = this.health.get(channelName)!
+      h.status = status as ConnectionStatus
+      h.isHealthy = status === 'connected'
+    })
+    ws.on('connected', () => {
+      const h = this.health.get(channelName)!
+      h.lastConnectedAt = new Date().toISOString()
+      h.isHealthy = true
+    })
+    ws.on('disconnected', () => {
+      const h = this.health.get(channelName)!
+      h.lastDisconnectedAt = new Date().toISOString()
+      h.reconnectCount += 1
+      h.isHealthy = false
+    })
+
+    const pingTimestamps = new Map<number, number>()
+    ws.on('connected', () => {
+      ws.send('ping', { ts: Date.now() })
+    })
+    ws.on('pong', (data) => {
+      const payload = data as { ts?: number }
+      if (payload?.ts) {
+        const latency = Date.now() - payload.ts
+        const h = this.health.get(channelName)!
+        h.pingLatencyMs = latency
+        pingTimestamps.delete(payload.ts)
+      }
+    })
+
+    const cleanup = attachHeartbeat(ws, heartbeatOpts)
+    this.heartbeats.set(channelName, cleanup)
+    this.channels.set(channelName, ws)
+    return ws
+  }
+
+  getHealth(channelName: string): ConnectionHealth | undefined {
+    return this.health.get(channelName)
+  }
+
+  getAllHealth(): Record<string, ConnectionHealth> {
+    const result: Record<string, ConnectionHealth> = {}
+    this.health.forEach((h, name) => { result[name] = { ...h } })
+    return result
+  }
+
+  disconnectAll(): void {
+    this.channels.forEach((ws, name) => {
+      this.heartbeats.get(name)?.()
+      ws.disconnect()
+    })
+    this.channels.clear()
+    this.heartbeats.clear()
+    this.health.clear()
+  }
+}
+
 // ── Singleton instances ───────────────────────────────────────────────────────
 export const orderWebSocket = new DjangoChannelsWebSocket({
   channelName: 'savor-orders',
@@ -361,6 +505,17 @@ export const orderWebSocket = new DjangoChannelsWebSocket({
 export const notificationWebSocket = new DjangoChannelsWebSocket({
   channelName: 'savor-notifications',
 })
+
+// ── Admin broadcast channel singletons (P7.7 Step 5) ─────────────────────────
+export const operationsChannelManager = new OperationsChannelManager()
+
+export const adminOperationsSocket = operationsChannelManager.getOrCreate('admin.operations')
+export const branchOperationsSocket = operationsChannelManager.getOrCreate('branch.operations')
+export const ordersBroadcastSocket = operationsChannelManager.getOrCreate('orders.broadcast')
+export const reservationsBroadcastSocket = operationsChannelManager.getOrCreate('reservations.broadcast')
+export const staffBroadcastSocket = operationsChannelManager.getOrCreate('staff.broadcast')
+export const notificationsBroadcastSocket = operationsChannelManager.getOrCreate('notifications.broadcast')
+export const auditBroadcastSocket = operationsChannelManager.getOrCreate('audit.broadcast')
 
 // ── Mock real-time simulation ─────────────────────────────────────────────────
 const ORDER_STATUS_SEQUENCE = ['pending', 'accepted', 'preparing', 'ready', 'delivered'] as const

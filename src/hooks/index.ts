@@ -1836,3 +1836,103 @@ export function useResetNotificationPreferences() {
     },
   })
 }
+
+// ── P7.7 Realtime Operations Hooks ───────────────────────────────────────────
+
+import { realtimeOperationsService } from '@/services/realtime-operations.service'
+import type {
+  OperationsScope,
+  LiveOrder,
+  LiveReservation,
+  StaffPresence,
+  BranchStatus,
+  KitchenStatus,
+  SLAAlert,
+  RealtimeStatistics,
+  OperationsEvent,
+  OperationsDashboard,
+} from '@/types/realtime-operations'
+
+/** Full operations dashboard snapshot — polls every 15 s for freshness. */
+export function useOperationsDashboard(scope: OperationsScope) {
+  return useQuery({
+    queryKey: ['operations-dashboard', scope.tenantId, scope.branchId],
+    queryFn: () => realtimeOperationsService.getOperationsSnapshot(scope),
+    refetchInterval: 15_000,
+  })
+}
+
+/** Live orders — polls every 10 s; real-time updates supplement via websocket. */
+export function useLiveOrders(scope: OperationsScope) {
+  return useQuery({
+    queryKey: ['live-orders', scope.tenantId, scope.branchId],
+    queryFn: () => realtimeOperationsService.getLiveOrders(scope),
+    refetchInterval: 10_000,
+  })
+}
+
+/** Live reservations — polls every 10 s. */
+export function useLiveReservations(scope: OperationsScope) {
+  return useQuery({
+    queryKey: ['live-reservations', scope.tenantId, scope.branchId],
+    queryFn: () => realtimeOperationsService.getLiveReservations(scope),
+    refetchInterval: 10_000,
+  })
+}
+
+/** Branch status summary — polls every 20 s. */
+export function useBranchStatus(scope: OperationsScope) {
+  return useQuery({
+    queryKey: ['branch-status', scope.tenantId, scope.branchId],
+    queryFn: () => realtimeOperationsService.getBranchStatuses(scope),
+    refetchInterval: 20_000,
+  })
+}
+
+/** Kitchen queue per branch — polls every 8 s. */
+export function useKitchenStatus(branchId: string, tenantId: string) {
+  return useQuery({
+    queryKey: ['kitchen-status', tenantId, branchId],
+    queryFn: () => realtimeOperationsService.getKitchenStatus(branchId),
+    refetchInterval: 8_000,
+  })
+}
+
+/** Staff presence board — polls every 30 s. */
+export function useStaffPresence(scope: OperationsScope) {
+  return useQuery({
+    queryKey: ['staff-presence', scope.tenantId, scope.branchId],
+    queryFn: () => realtimeOperationsService.getStaffPresence(scope),
+    refetchInterval: 30_000,
+  })
+}
+
+/** Active SLA alerts — polls every 15 s. */
+export function useSLAAlerts(scope: OperationsScope) {
+  return useQuery({
+    queryKey: ['sla-alerts', scope.tenantId, scope.branchId],
+    queryFn: () => realtimeOperationsService.getSLAAlerts(scope),
+    refetchInterval: 15_000,
+  })
+}
+
+/** Realtime statistics — polls every 30 s. */
+export function useRealtimeStatistics(scope: OperationsScope) {
+  return useQuery({
+    queryKey: ['realtime-statistics', scope.tenantId, scope.branchId],
+    queryFn: () => realtimeOperationsService.getRealtimeStatistics(scope),
+    refetchInterval: 30_000,
+  })
+}
+
+/** Recent operations events — polls every 10 s. */
+export function useOperationsStream(scope: OperationsScope, limit = 50) {
+  return useQuery({
+    queryKey: ['operations-stream', scope.tenantId, scope.branchId, limit],
+    queryFn: async () => {
+      const snapshot = await realtimeOperationsService.getOperationsSnapshot(scope)
+      return snapshot.recentEvents.slice(0, limit)
+    },
+    refetchInterval: 10_000,
+  })
+}

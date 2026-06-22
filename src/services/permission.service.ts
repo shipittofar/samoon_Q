@@ -50,6 +50,8 @@ export const ALL_PERMISSIONS: readonly P7Permission[] = [
   'notifications.view',
   'notifications.manage',
   'notifications.preferences',
+  'operations.view',
+  'operations.manage',
 ]
 
 // ── Role → Permission matrix (single source of truth) ────────────────────────
@@ -85,6 +87,8 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'audit.view',
     'notifications.view',
     'notifications.preferences',
+    'operations.view',
+    'operations.manage',
   ],
 
   /** Orders and payments only. */
@@ -96,6 +100,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'reservations.view',
     'notifications.view',
     'notifications.preferences',
+    'operations.view',
   ],
 
   /** Tables and orders. */
@@ -108,10 +113,11 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'customers.view',
     'notifications.view',
     'notifications.preferences',
+    'operations.view',
   ],
 
   /** Kitchen display + order status updates only. */
-  kitchen: ['orders.view', 'orders.manage', 'menu.view', 'notifications.view', 'notifications.preferences'],
+  kitchen: ['orders.view', 'orders.manage', 'menu.view', 'notifications.view', 'notifications.preferences', 'operations.view'],
 
   /** Promotions, loyalty, analytics. */
   marketing: [
@@ -124,6 +130,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'analytics.view',
     'notifications.view',
     'notifications.preferences',
+    'operations.view',
   ],
 
   /** Read-only operational access. */
@@ -139,6 +146,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'audit.view',
     'notifications.view',
     'notifications.preferences',
+    'operations.view',
   ],
 }
 

@@ -51,6 +51,8 @@ export type P7Permission =
   | 'notifications.view'
   | 'notifications.manage'
   | 'notifications.preferences'
+  | 'operations.view'
+  | 'operations.manage'
 
 /** A user's role assignment scoped to a specific tenant. */
 export interface UserTenantRole {
