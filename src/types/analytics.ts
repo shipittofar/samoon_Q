@@ -96,3 +96,31 @@ export interface VendorAnalytics {
     avgRating: number
   }>
 }
+
+// ── P7.4 Branch-scoped analytics ─────────────────────────────────────────────
+
+export interface BranchRevenueAnalytics {
+  branchId: string
+  totalRevenue: number
+  revenueChangePct: number
+  averageOrderValue: number
+  totalOrders: number
+  period: string
+}
+
+export interface BranchOrderAnalytics {
+  branchId: string
+  totalOrders: number
+  ordersByStatus: Record<string, number>
+  averageOrderValue: number
+  period: string
+}
+
+export interface BranchReservationAnalytics {
+  branchId: string
+  totalReservations: number
+  upcomingReservations: number
+  cancelledReservations: number
+  occupancyRate: number
+  period: string
+}

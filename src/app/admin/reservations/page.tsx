@@ -10,7 +10,8 @@ import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/utils'
-import { useAdminReservations, useConfirmReservation, useCancelReservation, useBranches } from '@/hooks'
+import { useAdminReservations, useConfirmReservation, useCancelReservation, useBranches, useAdminBranches } from '@/hooks'
+import { useTenantStore } from '@/stores'
 import type { AdminReservationFilters, ReservationStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
@@ -25,15 +26,19 @@ const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary
 export default function AdminReservationsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<ReservationStatus | 'all'>('all')
+  const [branchFilter, setBranchFilter] = useState<string>('all')
   const [currentDate, setCurrentDate] = useState(new Date())
+  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const { data: adminBranches = [] } = useAdminBranches(tenantId)
 
   const todayStr = currentDate.toISOString().split('T')[0]
 
   const filters = useMemo<AdminReservationFilters>(() => ({
     ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+    ...(branchFilter !== 'all' ? { branch_id: branchFilter } : {}),
     ...(search ? { search } : {}),
     date: todayStr,
-  }), [statusFilter, search, todayStr])
+  }), [statusFilter, branchFilter, search, todayStr])
 
   const { data, isLoading, isError, refetch } = useAdminReservations(filters)
   const { data: branches } = useBranches()
@@ -111,6 +116,19 @@ export default function AdminReservationsPage() {
                 className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
               />
             </div>
+            {adminBranches.length > 0 && (
+              <select
+                value={branchFilter}
+                onChange={(e) => setBranchFilter(e.target.value)}
+                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                aria-label="Filter by branch"
+              >
+                <option value="all">All Branches</option>
+                {adminBranches.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            )}
             <div className="flex gap-2">
               {(['all', 'pending', 'confirmed', 'cancelled'] as const).map((s) => (
                 <button

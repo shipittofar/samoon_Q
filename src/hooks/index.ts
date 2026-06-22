@@ -35,6 +35,14 @@ import type {
   UpdateBranchPayload,
   AssignManagerPayload,
 } from '@/types/branch'
+import { branchAccessService } from '@/services/branch-access.service'
+import { branchAnalyticsService } from '@/services/branch-analytics.service'
+import type { BranchAccessContext } from '@/types/branch-routing'
+import type {
+  BranchRevenueAnalytics,
+  BranchOrderAnalytics,
+  BranchReservationAnalytics,
+} from '@/types/analytics'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore } from '@/stores'
 import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
@@ -1450,6 +1458,56 @@ export function useAcceptInvite() {
     mutationFn: (id: string) => staffService.acceptInvite(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['staff-invites'] })
+    },
+  })
+}
+
+// ── Branch Routing & Isolation Hooks (P7.4) ──────────────────────────────────
+
+/** Returns the branches visible to the given access context, filtered through the branch access engine. */
+export function useAccessibleBranches(
+  context: BranchAccessContext,
+  allBranches: BranchEntity[],
+) {
+  return useQuery({
+    enabled: !!context.tenantId && !!context.staffId,
+    staleTime: STALE_TIME,
+    queryKey: ['accessible-branches', context.tenantId, context.staffId, context.roles, context.branchIds],
+    queryFn: () => Promise.resolve(branchAccessService.getAccessibleBranches(context, allBranches)),
+  })
+}
+
+/** Fetches orders for a specific branch. */
+export function useBranchOrders(branchId: string) {
+  return useQuery({
+    queryKey: ['branch-orders', branchId],
+    queryFn: () => adminService.getAdminOrders({ branch_id: branchId }),
+    enabled: !!branchId,
+  })
+}
+
+/** Fetches reservations for a specific branch. */
+export function useBranchReservations(branchId: string) {
+  return useQuery({
+    queryKey: ['branch-reservations', branchId],
+    queryFn: () => adminService.getAdminReservations({ branch_id: branchId }),
+    enabled: !!branchId,
+  })
+}
+
+/** Fetches branch-scoped analytics (revenue, orders, reservations). */
+export function useBranchAnalytics(branchId: string) {
+  return useQuery({
+    enabled: !!branchId,
+    staleTime: 30_000,
+    queryKey: ['branch-analytics', branchId],
+    queryFn: async () => {
+      const [revenue, orders, reservations] = await Promise.all([
+        branchAnalyticsService.getBranchRevenueAnalytics(branchId),
+        branchAnalyticsService.getBranchOrderAnalytics(branchId),
+        branchAnalyticsService.getBranchReservationAnalytics(branchId),
+      ])
+      return { revenue, orders, reservations }
     },
   })
 }

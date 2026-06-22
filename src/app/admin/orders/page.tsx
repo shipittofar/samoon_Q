@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatRelativeTime } from '@/utils'
 import { cn } from '@/utils'
-import { useAdminOrders, useUpdateOrderStatus } from '@/hooks'
+import { useAdminOrders, useUpdateOrderStatus, useAdminBranches } from '@/hooks'
+import { useTenantStore } from '@/stores'
 import type { Order, OrderStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
@@ -47,11 +48,15 @@ function orderItemNames(order: Order): string[] {
 export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [search, setSearch] = useState('')
+  const [branchFilter, setBranchFilter] = useState<string>('all')
+  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const { data: branches = [] } = useAdminBranches(tenantId)
 
   const filters = useMemo<Parameters<typeof useAdminOrders>[0]>(() => ({
     ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+    ...(branchFilter !== 'all' ? { branch_id: branchFilter } : {}),
     ...(search ? { search } : {}),
-  }), [statusFilter, search])
+  }), [statusFilter, branchFilter, search])
 
   const { data, isLoading, isError, refetch } = useAdminOrders(filters)
   const updateStatus = useUpdateOrderStatus()
@@ -116,15 +121,30 @@ export default function AdminOrdersPage() {
             ))}
           </div>
 
-          {/* Search */}
-          <div className="relative mb-6">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by order # or customer name…"
-              className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
-            />
+          {/* Search & Branch Filter */}
+          <div className="flex gap-3 mb-6 flex-wrap">
+            <div className="relative flex-1 min-w-48">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by order # or customer name…"
+                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+              />
+            </div>
+            {branches.length > 0 && (
+              <select
+                value={branchFilter}
+                onChange={(e) => setBranchFilter(e.target.value)}
+                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                aria-label="Filter by branch"
+              >
+                <option value="all">All Branches</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Loading */}

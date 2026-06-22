@@ -64,6 +64,12 @@ export const ADMIN_STAFF_ROUTES: readonly string[] = ['/admin/staff']
 /** Branch management routes — spread into each module's routes array. */
 export const ADMIN_BRANCHES_ROUTES: readonly string[] = ['/admin/branches', '/admin/branches/[id]']
 
+/** Branch analytics routes (P7.4) — spread into each module's routes array. */
+export const ADMIN_BRANCH_ANALYTICS_ROUTES: readonly string[] = [
+  '/admin/branches/analytics',
+  '/admin/branches/[id]/analytics',
+]
+
 // ── Shared admin nav items ────────────────────────────────────────────────────
 
 const TENANTS_NAV_ITEM = {
@@ -86,6 +92,13 @@ const BRANCHES_NAV_ITEM = {
   permissionKey: 'branches.view',
 } as const
 
+const BRANCH_ANALYTICS_NAV_ITEM = {
+  href: '/admin/branches/analytics',
+  label: 'Branch Analytics',
+  featureFlagKey: 'admin.branches.enabled',
+  permissionKey: 'branches.view',
+} as const
+
 // ── Built-in module definitions ───────────────────────────────────────────────
 
 export const RESTAURANT_MODULE: Module = {
@@ -98,7 +111,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -117,6 +130,7 @@ export const RESTAURANT_MODULE: Module = {
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
+    BRANCH_ANALYTICS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -151,6 +165,7 @@ export const CAFE_MODULE: Module = {
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
+    ...ADMIN_BRANCH_ANALYTICS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -181,6 +196,7 @@ export const CAFE_MODULE: Module = {
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
+    BRANCH_ANALYTICS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -209,6 +225,7 @@ export const BAR_MODULE: Module = {
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
+    ...ADMIN_BRANCH_ANALYTICS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Drinks' },
@@ -237,6 +254,7 @@ export const BAR_MODULE: Module = {
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
+    BRANCH_ANALYTICS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -264,6 +282,7 @@ export const FOOD_COURT_MODULE: Module = {
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
+    ...ADMIN_BRANCH_ANALYTICS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -291,6 +310,7 @@ export const FOOD_COURT_MODULE: Module = {
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
+    BRANCH_ANALYTICS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -318,6 +338,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
+    ...ADMIN_BRANCH_ANALYTICS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -346,6 +367,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
+    BRANCH_ANALYTICS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -374,6 +396,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
+    ...ADMIN_BRANCH_ANALYTICS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -405,6 +428,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
+    BRANCH_ANALYTICS_NAV_ITEM,
   ],
   enabled: true,
 }

@@ -874,6 +874,7 @@ export interface AdminStats {
 export interface AdminOrderFilters {
   status?: OrderStatus
   order_type?: OrderType
+  branch_id?: string
   search?: string
   page?: number
   page_size?: number
@@ -917,6 +918,8 @@ export interface Vendor {
   id: string
   name: string
   description: string
+  /** Branch(es) this vendor operates in. Food-court vendors may span multiple branches. */
+  branchIds?: string[]
   category: VendorCategory
   status: VendorStatus
   /** Star rating 0–5, one decimal place. */
@@ -986,3 +989,19 @@ export type {
   UpdateBranchPayload,
   AssignManagerPayload,
 } from '@/types/branch'
+
+// ── P7.4 Branch Routing types (re-exported for convenience) ──────────────────
+export type {
+  BranchScope,
+  BranchFilter,
+  BranchAccessContext,
+  BranchIsolationResult,
+  BranchAssignmentRule,
+} from '@/types/branch-routing'
+
+// ── P7.4 Branch Analytics types (re-exported for convenience) ────────────────
+export type {
+  BranchRevenueAnalytics,
+  BranchOrderAnalytics,
+  BranchReservationAnalytics,
+} from '@/types/analytics'

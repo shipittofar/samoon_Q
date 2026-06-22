@@ -1,7 +1,7 @@
 'use client'
 
 import { use } from 'react'
-import { useStaffMember, useAdminBranch } from '@/hooks'
+import { useStaffMember, useAdminBranch, useAdminBranches } from '@/hooks'
 import { getPermissionsForRole } from '@/services/permission.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import Link from 'next/link'
@@ -28,6 +28,30 @@ export default function StaffDetailPage({ params }: PageProps) {
     <PermissionGuard permission="staff.view" fallback={<p>Access denied.</p>}>
       <StaffDetailContent id={id} />
     </PermissionGuard>
+  )
+}
+
+function BranchAccessMatrix({ tenantId, assignedBranchIds }: { tenantId: string; assignedBranchIds: string[] }) {
+  const { data: allBranches = [] } = useAdminBranches(tenantId)
+  const assigned = new Set(assignedBranchIds)
+  return (
+    <section>
+      <h2 className="text-lg font-semibold mb-2">Branch Access Matrix</h2>
+      <ul className="space-y-1 text-sm">
+        {allBranches.map((b) => (
+          <li key={b.id} className="flex items-center gap-2">
+            <span className={assigned.has(b.id) ? 'text-green-600' : 'text-gray-400'}>
+              {assigned.has(b.id) ? '✓' : '✗'}
+            </span>
+            <Link href={`/admin/branches/${b.id}`} className="hover:underline">
+              {b.name}
+            </Link>
+            <span className="text-xs text-gray-400">{b.location.city}</span>
+          </li>
+        ))}
+        {allBranches.length === 0 && <li className="text-gray-500">No branches configured.</li>}
+      </ul>
+    </section>
   )
 }
 
@@ -124,6 +148,8 @@ function StaffDetailContent({ id }: { id: string }) {
           </div>
         </section>
       )}
+
+      <BranchAccessMatrix tenantId={member.tenantId} assignedBranchIds={member.branchIds ?? []} />
     </div>
   )
 }
