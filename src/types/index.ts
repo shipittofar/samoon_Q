@@ -970,3 +970,19 @@ export interface VendorSettlement {
   createdAt: string
   updatedAt: string
 }
+
+// ── P7.3 Branch Management types (re-exported for convenience) ────────────────
+export type {
+  BranchStatus,
+  BranchType,
+  BranchLocation,
+  BranchBusinessHours,
+  BranchContact,
+  BranchSettings,
+  BranchMetrics,
+  Branch as BranchEntity,
+  BranchAnalyticsSummary,
+  CreateBranchPayload,
+  UpdateBranchPayload,
+  AssignManagerPayload,
+} from '@/types/branch'

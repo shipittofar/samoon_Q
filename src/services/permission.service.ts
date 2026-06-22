@@ -76,7 +76,6 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'staff.view',
     'staff.manage',
     'branches.view',
-    'branches.manage',
     'settings.view',
   ],
 

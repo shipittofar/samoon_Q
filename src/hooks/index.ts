@@ -28,6 +28,13 @@ import type {
   UpdateStaffRolesPayload,
   TransferOwnershipPayload,
 } from '@/types/staff'
+import { branchManagementService } from '@/services/branch.service'
+import type {
+  Branch as BranchEntity,
+  CreateBranchPayload,
+  UpdateBranchPayload,
+  AssignManagerPayload,
+} from '@/types/branch'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore } from '@/stores'
 import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
@@ -450,7 +457,7 @@ export function useCreatePaymentIntent() {
   })
 }
 
-// ── Branch Hooks ──────────────────────────────────────────────────────────────
+// ── Branch Hooks (public) ─────────────────────────────────────────────────────
 export function useBranches() {
   return useQuery({
     queryKey: ['branches'],
@@ -465,6 +472,169 @@ export function useBranch(id: string) {
     queryFn: () => branchService.getBranch(id),
     enabled: !!id,
     staleTime: CACHE_TIME,
+  })
+}
+
+// ── Branch Management Hooks (P7.3) ────────────────────────────────────────────
+
+export function useAdminBranches(tenantId: string) {
+  return useQuery({
+    queryKey: ['admin-branches', tenantId],
+    queryFn: () => branchManagementService.getBranches(tenantId),
+    staleTime: STALE_TIME,
+    enabled: !!tenantId,
+  })
+}
+
+export function useAdminBranch(id: string) {
+  return useQuery({
+    queryKey: ['admin-branch', id],
+    queryFn: () => branchManagementService.getBranch(id),
+    enabled: !!id,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useAdminBranchMetrics(id: string) {
+  return useQuery({
+    queryKey: ['admin-branch-metrics', id],
+    queryFn: () => branchManagementService.getBranchMetrics(id),
+    enabled: !!id,
+    staleTime: 30_000,
+  })
+}
+
+export function useCreateBranch(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateBranchPayload) =>
+      branchManagementService.createBranch(tenantId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-branches', tenantId] })
+    },
+  })
+}
+
+export function useUpdateBranch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateBranchPayload }) =>
+      branchManagementService.updateBranch(id, payload),
+    onMutate: async ({ id, payload }) => {
+      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      if (snapshot) {
+        qc.setQueryData<BranchEntity>(['admin-branch', id], {
+          ...snapshot,
+          ...(payload.name !== undefined && { name: payload.name }),
+          ...(payload.location && { location: { ...snapshot.location, ...payload.location } }),
+          ...(payload.contact && { contact: { ...snapshot.contact, ...payload.contact } }),
+          ...(payload.managerId !== undefined && { managerId: payload.managerId }),
+          ...(payload.businessHours && { businessHours: payload.businessHours }),
+          ...(payload.settings && { settings: { ...snapshot.settings, ...payload.settings } }),
+        })
+      }
+      return { snapshot }
+    },
+    onError: (_err, { id }, ctx) => {
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+    },
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    },
+  })
+}
+
+export function useActivateBranch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => branchManagementService.activateBranch(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      if (snapshot) {
+        qc.setQueryData<BranchEntity>(['admin-branch', id], { ...snapshot, status: 'active' })
+      }
+      return { snapshot }
+    },
+    onError: (_err, id, ctx) => {
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+    },
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    },
+  })
+}
+
+export function useDeactivateBranch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => branchManagementService.deactivateBranch(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      if (snapshot) {
+        qc.setQueryData<BranchEntity>(['admin-branch', id], { ...snapshot, status: 'inactive' })
+      }
+      return { snapshot }
+    },
+    onError: (_err, id, ctx) => {
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+    },
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    },
+  })
+}
+
+export function useMaintenanceBranch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => branchManagementService.setMaintenanceMode(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      if (snapshot) {
+        qc.setQueryData<BranchEntity>(['admin-branch', id], { ...snapshot, status: 'maintenance' })
+      }
+      return { snapshot }
+    },
+    onError: (_err, id, ctx) => {
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+    },
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    },
+  })
+}
+
+export function useAssignBranchManager() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: AssignManagerPayload }) =>
+      branchManagementService.assignManager(id, payload),
+    onMutate: async ({ id, payload }) => {
+      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      if (snapshot) {
+        qc.setQueryData<BranchEntity>(['admin-branch', id], {
+          ...snapshot,
+          managerId: payload.managerId,
+        })
+      }
+      return { snapshot }
+    },
+    onError: (_err, { id }, ctx) => {
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+    },
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    },
   })
 }
 

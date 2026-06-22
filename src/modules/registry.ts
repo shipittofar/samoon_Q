@@ -61,6 +61,9 @@ export const ADMIN_TENANT_ROUTES: readonly string[] = [
 /** Staff management routes — spread into each module's routes array. */
 export const ADMIN_STAFF_ROUTES: readonly string[] = ['/admin/staff']
 
+/** Branch management routes — spread into each module's routes array. */
+export const ADMIN_BRANCHES_ROUTES: readonly string[] = ['/admin/branches', '/admin/branches/[id]']
+
 // ── Shared admin nav items ────────────────────────────────────────────────────
 
 const TENANTS_NAV_ITEM = {
@@ -76,6 +79,13 @@ const STAFF_NAV_ITEM = {
   permissionKey: 'staff.view',
 } as const
 
+const BRANCHES_NAV_ITEM = {
+  href: '/admin/branches',
+  label: 'Branches',
+  featureFlagKey: 'admin.branches.enabled',
+  permissionKey: 'branches.view',
+} as const
+
 // ── Built-in module definitions ───────────────────────────────────────────────
 
 export const RESTAURANT_MODULE: Module = {
@@ -88,7 +98,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -106,6 +116,7 @@ export const RESTAURANT_MODULE: Module = {
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
+    BRANCHES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -139,6 +150,7 @@ export const CAFE_MODULE: Module = {
     '/admin/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
+    ...ADMIN_BRANCHES_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -168,6 +180,7 @@ export const CAFE_MODULE: Module = {
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
+    BRANCHES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -195,6 +208,7 @@ export const BAR_MODULE: Module = {
     '/admin/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
+    ...ADMIN_BRANCHES_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Drinks' },
@@ -222,6 +236,7 @@ export const BAR_MODULE: Module = {
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
+    BRANCHES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -248,6 +263,7 @@ export const FOOD_COURT_MODULE: Module = {
     '/admin/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
+    ...ADMIN_BRANCHES_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -274,6 +290,7 @@ export const FOOD_COURT_MODULE: Module = {
     { href: '/admin/food-court/seating', label: 'Seating Management', featureFlagKey: 'food_court.shared_seating.enabled' },
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
+    BRANCHES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -300,6 +317,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     '/admin/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
+    ...ADMIN_BRANCHES_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -327,6 +345,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     { href: '/admin/food-truck/stops', label: 'Stop Management', featureFlagKey: 'food_truck.scheduled_stops.enabled' },
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
+    BRANCHES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -354,6 +373,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     '/admin/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
+    ...ADMIN_BRANCHES_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -384,6 +404,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     { href: '/admin/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled' },
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
+    BRANCHES_NAV_ITEM,
   ],
   enabled: true,
 }

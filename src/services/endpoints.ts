@@ -59,6 +59,15 @@ export const ENDPOINTS = {
     LIST: '/branches/',
     DETAIL: (id: string) => `/branches/${id}/`,
     NEARBY: '/branches/nearby/',
+    // P7.3 — Branch Management
+    GET: (id: string) => `/branches/${id}/`,
+    CREATE: '/branches/',
+    UPDATE: (id: string) => `/branches/${id}/`,
+    ACTIVATE: (id: string) => `/branches/${id}/activate/`,
+    DEACTIVATE: (id: string) => `/branches/${id}/deactivate/`,
+    MAINTENANCE: (id: string) => `/branches/${id}/maintenance/`,
+    ASSIGN_MANAGER: (id: string) => `/branches/${id}/manager/`,
+    METRICS: (id: string) => `/branches/${id}/metrics/`,
   },
 
   // Notifications

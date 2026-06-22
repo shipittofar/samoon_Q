@@ -1,9 +1,22 @@
 'use client'
 
 import { use } from 'react'
-import { useStaffMember } from '@/hooks'
+import { useStaffMember, useAdminBranch } from '@/hooks'
 import { getPermissionsForRole } from '@/services/permission.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import Link from 'next/link'
+
+function BranchBadge({ branchId }: { branchId: string }) {
+  const { data: branch } = useAdminBranch(branchId)
+  return (
+    <Link
+      href={`/admin/branches/${branchId}`}
+      className="rounded bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700 hover:underline"
+    >
+      {branch?.name ?? branchId}
+    </Link>
+  )
+}
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -98,14 +111,19 @@ function StaffDetailContent({ id }: { id: string }) {
               <dd>{new Date(member.lastSeenAt).toLocaleDateString()}</dd>
             </>
           )}
-          {member.branchIds && member.branchIds.length > 0 && (
-            <>
-              <dt className="text-gray-500">Branches</dt>
-              <dd>{member.branchIds.join(', ')}</dd>
-            </>
-          )}
         </dl>
       </section>
+
+      {member.branchIds && member.branchIds.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold mb-2">Assigned Branches</h2>
+          <div className="flex flex-wrap gap-2">
+            {member.branchIds.map((bid) => (
+              <BranchBadge key={bid} branchId={bid} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }
