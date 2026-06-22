@@ -43,6 +43,8 @@ import type {
   BranchOrderAnalytics,
   BranchReservationAnalytics,
 } from '@/types/analytics'
+import { auditLogService } from '@/services/audit-log.service'
+import type { AuditFilter, AuditExportRequest } from '@/types/audit-log'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore } from '@/stores'
 import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
@@ -848,6 +850,8 @@ export function useAdminOrders(filters: AdminOrderFilters = {}) {
 
 export function useUpdateOrderStatus() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
       adminService.updateOrderStatus(id, status),
@@ -865,9 +869,16 @@ export function useUpdateOrderStatus() {
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
-    onSuccess: () => {
+    onSuccess: (_data, { id, status }) => {
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })
+      auditLogService.record(
+        'ORDER_STATUS_CHANGED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'order', id, displayName: `Order ${id}` },
+        { tenantId: tenant?.id ?? '' },
+        { before: null, after: { status }, changedFields: ['status'] },
+      )
     },
   })
 }
@@ -882,6 +893,8 @@ export function useAdminReservations(filters: AdminReservationFilters = {}) {
 
 export function useConfirmReservation() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: (id: string) => adminService.confirmReservation(id),
     onMutate: async (id) => {
@@ -898,15 +911,24 @@ export function useConfirmReservation() {
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
+      auditLogService.record(
+        'RESERVATION_CONFIRMED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'reservation', id, displayName: `Reservation ${id}` },
+        { tenantId: tenant?.id ?? '' },
+        { before: { status: 'pending' }, after: { status: 'confirmed' }, changedFields: ['status'] },
+      )
     },
   })
 }
 
 export function useCancelReservation() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: (id: string) => reservationService.cancelReservation(id),
     onMutate: async (id) => {
@@ -923,9 +945,16 @@ export function useCancelReservation() {
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
+      auditLogService.record(
+        'RESERVATION_CANCELLED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'reservation', id, displayName: `Reservation ${id}` },
+        { tenantId: tenant?.id ?? '' },
+        { before: { status: 'confirmed' }, after: { status: 'cancelled' }, changedFields: ['status'] },
+      )
     },
   })
 }
@@ -1281,25 +1310,55 @@ export function useTenants() {
 
 export function useActivateTenant() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
   return useMutation({
     mutationFn: (slugOrId: string) => tenantService.activateTenant(slugOrId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenants'] }),
+    onSuccess: (_data, slugOrId) => {
+      qc.invalidateQueries({ queryKey: ['tenants'] })
+      auditLogService.record(
+        'TENANT_ACTIVATED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'tenant', id: slugOrId, displayName: slugOrId },
+        { tenantId: slugOrId },
+        { before: { status: 'suspended' }, after: { status: 'active' }, changedFields: ['status'] },
+      )
+    },
   })
 }
 
 export function useSuspendTenant() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
   return useMutation({
     mutationFn: (slugOrId: string) => tenantService.suspendTenant(slugOrId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenants'] }),
+    onSuccess: (_data, slugOrId) => {
+      qc.invalidateQueries({ queryKey: ['tenants'] })
+      auditLogService.record(
+        'TENANT_SUSPENDED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'tenant', id: slugOrId, displayName: slugOrId },
+        { tenantId: slugOrId },
+        { before: { status: 'active' }, after: { status: 'suspended' }, changedFields: ['status'] },
+      )
+    },
   })
 }
 
 export function useArchiveTenant() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
   return useMutation({
     mutationFn: (slugOrId: string) => tenantService.archiveTenant(slugOrId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenants'] }),
+    onSuccess: (_data, slugOrId) => {
+      qc.invalidateQueries({ queryKey: ['tenants'] })
+      auditLogService.record(
+        'TENANT_ARCHIVED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'tenant', id: slugOrId, displayName: slugOrId },
+        { tenantId: slugOrId },
+        { before: { status: 'active' }, after: { status: 'archived' }, changedFields: ['status'] },
+      )
+    },
   })
 }
 
@@ -1334,31 +1393,51 @@ export function useInvites(tenantId: string) {
 
 export function useInviteStaff(tenantId: string) {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: (payload: InviteStaffPayload) => staffService.inviteStaff(tenantId, payload),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] })
+      auditLogService.record(
+        'STAFF_CREATED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'staff', id: variables.email, displayName: variables.email },
+        { tenantId: tenant?.id ?? tenantId },
+        { before: null, after: { email: variables.email, roles: variables.roles } },
+      )
     },
   })
 }
 
 export function useUpdateStaffRoles() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateStaffRolesPayload }) =>
       staffService.updateStaffRoles(id, payload),
-    onSuccess: (_data, { id }) => {
+    onSuccess: (_data, { id, payload }) => {
       const member = qc.getQueryData<Awaited<ReturnType<typeof staffService.getStaffMember>>>(['staff-member', id])
       if (member) {
         qc.invalidateQueries({ queryKey: ['staff', member.tenantId] })
       }
       qc.invalidateQueries({ queryKey: ['staff-member', id] })
+      auditLogService.record(
+        'STAFF_UPDATED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'staff', id, displayName: id },
+        { tenantId: tenant?.id ?? '' },
+        { before: null, after: { roles: payload.roles }, changedFields: ['roles'] },
+      )
     },
   })
 }
 
 export function useSuspendStaff() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: (id: string) => staffService.suspendStaff(id),
     onMutate: async (id) => {
@@ -1374,12 +1453,21 @@ export function useSuspendStaff() {
     },
     onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ['staff-member', id] })
+      auditLogService.record(
+        'STAFF_SUSPENDED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'staff', id, displayName: id },
+        { tenantId: tenant?.id ?? '' },
+        { before: { status: 'active' }, after: { status: 'suspended' }, changedFields: ['status'] },
+      )
     },
   })
 }
 
 export function useActivateStaff() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: (id: string) => staffService.activateStaff(id),
     onMutate: async (id) => {
@@ -1395,12 +1483,21 @@ export function useActivateStaff() {
     },
     onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ['staff-member', id] })
+      auditLogService.record(
+        'STAFF_REACTIVATED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'staff', id, displayName: id },
+        { tenantId: tenant?.id ?? '' },
+        { before: { status: 'suspended' }, after: { status: 'active' }, changedFields: ['status'] },
+      )
     },
   })
 }
 
 export function useRemoveStaff() {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: (id: string) => staffService.removeStaff(id),
     onMutate: async (id) => {
@@ -1416,12 +1513,21 @@ export function useRemoveStaff() {
     },
     onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ['staff-member', id] })
+      auditLogService.record(
+        'STAFF_REMOVED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
+        { type: 'staff', id, displayName: id },
+        { tenantId: tenant?.id ?? '' },
+        { before: { status: 'active' }, after: { status: 'removed' }, changedFields: ['status'] },
+      )
     },
   })
 }
 
 export function useTransferOwnership(tenantId: string) {
   const qc = useQueryClient()
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
     mutationFn: ({
       currentOwnerId,
@@ -1430,8 +1536,15 @@ export function useTransferOwnership(tenantId: string) {
       currentOwnerId: string
       payload: TransferOwnershipPayload
     }) => staffService.transferOwnership(currentOwnerId, payload.targetMemberId),
-    onSuccess: () => {
+    onSuccess: (_data, { payload }) => {
       qc.invalidateQueries({ queryKey: ['staff', tenantId] })
+      auditLogService.record(
+        'OWNERSHIP_TRANSFERRED',
+        { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: ['owner'] },
+        { type: 'staff', id: payload.targetMemberId, displayName: payload.targetMemberId },
+        { tenantId: tenant?.id ?? tenantId },
+        { before: null, after: { newOwnerId: payload.targetMemberId } },
+      )
     },
   })
 }
@@ -1509,5 +1622,54 @@ export function useBranchAnalytics(branchId: string) {
       ])
       return { revenue, orders, reservations }
     },
+  })
+}
+
+// ── Audit Log Hooks (P7.5) ────────────────────────────────────────────────────
+
+/** Fetches a paginated, filtered list of audit logs. */
+export function useAuditLogs(filter: AuditFilter = {}) {
+  return useQuery({
+    enabled: true,
+    staleTime: 15_000,
+    queryKey: ['audit-logs', filter],
+    queryFn: () => auditLogService.getAuditLogs(filter),
+  })
+}
+
+/** Fetches a single audit log entry by ID. */
+export function useAuditLog(id: string) {
+  return useQuery({
+    enabled: !!id,
+    staleTime: STALE_TIME,
+    queryKey: ['audit-log', id],
+    queryFn: () => auditLogService.getAuditLog(id),
+  })
+}
+
+/** Fetches audit logs grouped into a timeline by date. */
+export function useAuditTimeline(filter: AuditFilter = {}) {
+  return useQuery({
+    enabled: true,
+    staleTime: 15_000,
+    queryKey: ['audit-timeline', filter],
+    queryFn: () => auditLogService.getAuditTimeline(filter),
+  })
+}
+
+/** Fetches aggregate audit statistics for the given filter. */
+export function useAuditStatistics(filter: AuditFilter = {}) {
+  return useQuery({
+    enabled: true,
+    staleTime: 30_000,
+    queryKey: ['audit-statistics', filter],
+    queryFn: () => auditLogService.getAuditStatistics(filter),
+  })
+}
+
+/** Mutation to export audit logs as CSV or Excel. Returns the file content string. */
+export function useExportAuditLogs() {
+  return useMutation({
+    mutationFn: (request: AuditExportRequest) => auditLogService.exportAuditLogs(request),
   })
 }

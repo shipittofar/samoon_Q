@@ -70,6 +70,9 @@ export const ADMIN_BRANCH_ANALYTICS_ROUTES: readonly string[] = [
   '/admin/branches/[id]/analytics',
 ]
 
+/** Audit log routes (P7.5) — spread into each module's routes array. */
+export const ADMIN_AUDIT_ROUTES: readonly string[] = ['/admin/audit-logs']
+
 // ── Shared admin nav items ────────────────────────────────────────────────────
 
 const TENANTS_NAV_ITEM = {
@@ -99,6 +102,13 @@ const BRANCH_ANALYTICS_NAV_ITEM = {
   permissionKey: 'branches.view',
 } as const
 
+const AUDIT_LOGS_NAV_ITEM = {
+  href: '/admin/audit-logs',
+  label: 'Audit Logs',
+  featureFlagKey: 'admin.audit.enabled',
+  permissionKey: 'audit.view',
+} as const
+
 // ── Built-in module definitions ───────────────────────────────────────────────
 
 export const RESTAURANT_MODULE: Module = {
@@ -111,7 +121,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -131,6 +141,7 @@ export const RESTAURANT_MODULE: Module = {
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
+    AUDIT_LOGS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -166,6 +177,7 @@ export const CAFE_MODULE: Module = {
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
     ...ADMIN_BRANCH_ANALYTICS_ROUTES,
+    ...ADMIN_AUDIT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -197,6 +209,7 @@ export const CAFE_MODULE: Module = {
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
+    AUDIT_LOGS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -226,6 +239,7 @@ export const BAR_MODULE: Module = {
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
     ...ADMIN_BRANCH_ANALYTICS_ROUTES,
+    ...ADMIN_AUDIT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Drinks' },
@@ -255,6 +269,7 @@ export const BAR_MODULE: Module = {
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
+    AUDIT_LOGS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -283,6 +298,7 @@ export const FOOD_COURT_MODULE: Module = {
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
     ...ADMIN_BRANCH_ANALYTICS_ROUTES,
+    ...ADMIN_AUDIT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -311,6 +327,7 @@ export const FOOD_COURT_MODULE: Module = {
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
+    AUDIT_LOGS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -339,6 +356,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
     ...ADMIN_BRANCH_ANALYTICS_ROUTES,
+    ...ADMIN_AUDIT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -368,6 +386,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
+    AUDIT_LOGS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -397,6 +416,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
     ...ADMIN_BRANCH_ANALYTICS_ROUTES,
+    ...ADMIN_AUDIT_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -429,6 +449,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
+    AUDIT_LOGS_NAV_ITEM,
   ],
   enabled: true,
 }

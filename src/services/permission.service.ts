@@ -45,6 +45,8 @@ export const ALL_PERMISSIONS: readonly P7Permission[] = [
   'tenant.view',
   'tenant.manage',
   'audit.view',
+  'audit.export',
+  'audit.manage',
 ]
 
 // ── Role → Permission matrix (single source of truth) ────────────────────────
@@ -77,6 +79,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'staff.manage',
     'branches.view',
     'settings.view',
+    'audit.view',
   ],
 
   /** Orders and payments only. */
@@ -122,6 +125,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'analytics.view',
     'branches.view',
     'settings.view',
+    'audit.view',
   ],
 }
 

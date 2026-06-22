@@ -1005,3 +1005,21 @@ export type {
   BranchOrderAnalytics,
   BranchReservationAnalytics,
 } from '@/types/analytics'
+
+// ── P7.5 Audit Log types (re-exported for convenience) ───────────────────────
+export type {
+  AuditLog,
+  AuditAction,
+  AuditActor,
+  AuditTarget,
+  AuditScope,
+  AuditMetadata,
+  AuditChangeSet,
+  AuditSeverity,
+  AuditFilter,
+  AuditExportRequest,
+  AuditTimelineItem,
+  AuditStatistics,
+  PaginatedAuditLogs,
+  AuditTargetType,
+} from '@/types/audit-log'

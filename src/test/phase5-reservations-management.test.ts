@@ -152,19 +152,19 @@ describe('Admin reservations page — filter state → query params', () => {
 
 describe('Hooks — query invalidation', () => {
   it('H: useConfirmReservation invalidates admin-reservations', () => {
-    expect(hooks).toMatch(/useConfirmReservation[\s\S]{0,800}invalidateQueries.*admin-reservations/)
+    expect(hooks).toMatch(/useConfirmReservation[\s\S]{0,1100}invalidateQueries.*admin-reservations/)
   })
 
   it('H: useConfirmReservation invalidates reservations', () => {
-    expect(hooks).toMatch(/useConfirmReservation[\s\S]{0,900}invalidateQueries.*['"]reservations['"]/)
+    expect(hooks).toMatch(/useConfirmReservation[\s\S]{0,1100}invalidateQueries.*['"]reservations['"]/)
   })
 
   it('H: useCancelReservation invalidates admin-reservations', () => {
-    expect(hooks).toMatch(/useCancelReservation[\s\S]{0,800}invalidateQueries.*admin-reservations/)
+    expect(hooks).toMatch(/useCancelReservation[\s\S]{0,1100}invalidateQueries.*admin-reservations/)
   })
 
   it('H: useCancelReservation invalidates reservations', () => {
-    expect(hooks).toMatch(/useCancelReservation[\s\S]{0,900}invalidateQueries.*['"]reservations['"]/)
+    expect(hooks).toMatch(/useCancelReservation[\s\S]{0,1100}invalidateQueries.*['"]reservations['"]/)
   })
 })
 
