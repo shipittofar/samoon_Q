@@ -423,9 +423,9 @@ describe('getAdminNav() — cafe module admin visibility (P6.3)', () => {
     expect(item?.featureFlagKey).toBe('cafe.happy_hour.enabled')
   })
 
-  it('getAdminNav([restaurant]) returns no items (restaurant has no adminNavItems)', async () => {
+  it('getAdminNav([restaurant]) returns 1 item (analytics)', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['restaurant'])).toHaveLength(0)
+    expect(getAdminNav(['restaurant'])).toHaveLength(1)
   })
 
   it('getAdminNav([]) returns empty array (no active modules)', async () => {
@@ -505,9 +505,9 @@ describe('Backward compatibility — restaurant unchanged (P6.3)', () => {
     expect(RESTAURANT_MODULE.navItems.some((n) => n.href === '/reservation')).toBe(true)
   })
 
-  it('RESTAURANT_MODULE has no adminNavItems (restaurant uses shared admin)', async () => {
+  it('RESTAURANT_MODULE has adminNavItems with analytics entry', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect(RESTAURANT_MODULE.adminNavItems).toBeUndefined()
+    expect(RESTAURANT_MODULE.adminNavItems?.some((n) => n.href === '/admin/analytics')).toBe(true)
   })
 
   it('restaurant defaultFeatureFlags unchanged', async () => {

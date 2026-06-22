@@ -18,6 +18,7 @@ import {
 } from '@/services/combined.service'
 import { authService } from '@/services/auth.service'
 import { qrExperienceService } from '@/services/qr-experience.service'
+import { analyticsService } from '@/services/analytics.service'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore } from '@/stores'
 import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
@@ -504,6 +505,55 @@ export function useSetLocale() {
     setLocale(locale)
     router.refresh()
   }
+}
+
+// P6.13 — Analytics hooks
+export function useAnalyticsSummary() {
+  return useQuery({
+    queryKey: ['analytics-summary'],
+    queryFn: () => analyticsService.getAnalyticsSummary(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useRevenueAnalytics() {
+  return useQuery({
+    queryKey: ['analytics-revenue'],
+    queryFn: () => analyticsService.getRevenueAnalytics(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useReservationAnalytics() {
+  return useQuery({
+    queryKey: ['analytics-reservations'],
+    queryFn: () => analyticsService.getReservationAnalytics(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useLoyaltyAnalytics() {
+  return useQuery({
+    queryKey: ['analytics-loyalty'],
+    queryFn: () => analyticsService.getLoyaltyAnalytics(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function usePromotionAnalytics() {
+  return useQuery({
+    queryKey: ['analytics-promotions'],
+    queryFn: () => analyticsService.getPromotionAnalytics(),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useVendorAnalytics() {
+  return useQuery({
+    queryKey: ['analytics-vendors'],
+    queryFn: () => analyticsService.getVendorAnalytics(),
+    staleTime: STALE_TIME,
+  })
 }
 
 // P6.12 — QR Experience hook

@@ -138,4 +138,14 @@ export const ENDPOINTS = {
     CUSTOMERS: '/admin/customers/',
     CUSTOMER_STATS: (id: string) => `/admin/customers/${id}/stats/`,
   },
+
+  // Analytics (P6.13) — cross-module analytics dashboard
+  ANALYTICS: {
+    SUMMARY: '/admin/analytics/summary/',
+    REVENUE: '/admin/analytics/revenue/',
+    RESERVATIONS: '/admin/analytics/reservations/',
+    LOYALTY: '/admin/analytics/loyalty/',
+    PROMOTIONS: '/admin/analytics/promotions/',
+    VENDORS: '/admin/analytics/vendors/',
+  },
 } as const

@@ -58,7 +58,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant'],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics'],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -70,7 +70,11 @@ export const RESTAURANT_MODULE: Module = {
     'delivery.enabled': true,
     'table_ordering.enabled': true,
     'order_tracking.enabled': true,
+    'analytics.enabled': true,
   },
+  adminNavItems: [
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
+  ],
   enabled: true,
 }
 
@@ -100,6 +104,7 @@ export const CAFE_MODULE: Module = {
     '/reviews',
     '/loyalty',
     '/promotions',
+    '/admin/analytics',
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -120,8 +125,10 @@ export const CAFE_MODULE: Module = {
     'cafe.happy_hour.enabled': false,
     'cafe.featured_coffee.enabled': false,
     'promotions.enabled': true,
+    'analytics.enabled': true,
   },
   adminNavItems: [
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     { href: '/admin/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled' },
     { href: '/admin/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled' },
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
@@ -149,6 +156,7 @@ export const BAR_MODULE: Module = {
     '/reviews',
     '/events',
     '/promotions',
+    '/admin/analytics',
   ],
   navItems: [
     { href: '/menu', label: 'Drinks' },
@@ -167,8 +175,10 @@ export const BAR_MODULE: Module = {
     'bar.events.enabled': false,
     'bar.featured_cocktails.enabled': false,
     'promotions.enabled': true,
+    'analytics.enabled': true,
   },
   adminNavItems: [
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     { href: '/admin/bar/events', label: 'Event Management', featureFlagKey: 'bar.events.enabled' },
     { href: '/admin/bar/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'bar.happy_hour.enabled' },
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
@@ -195,6 +205,7 @@ export const FOOD_COURT_MODULE: Module = {
     '/reservation',
     '/reviews',
     '/vendors',
+    '/admin/analytics',
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -213,8 +224,10 @@ export const FOOD_COURT_MODULE: Module = {
     'food_court.shared_seating.enabled': true,
     'food_court.cross_vendor_ordering.enabled': false,
     'food_court.featured_vendor.enabled': false,
+    'analytics.enabled': true,
   },
   adminNavItems: [
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     { href: '/admin/food-court/vendors', label: 'Vendor Management', featureFlagKey: 'food_court.vendor_management.enabled' },
     { href: '/admin/food-court/seating', label: 'Seating Management', featureFlagKey: 'food_court.shared_seating.enabled' },
   ],
@@ -240,6 +253,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     '/reviews',
     '/reservation',
     '/location',
+    '/admin/analytics',
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -259,8 +273,10 @@ export const FOOD_TRUCK_MODULE: Module = {
     'food_truck.scheduled_stops.enabled': false,
     'food_truck.pre_order.enabled': false,
     'food_truck.featured_route.enabled': false,
+    'analytics.enabled': true,
   },
   adminNavItems: [
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     { href: '/admin/food-truck/routes', label: 'Route Management', featureFlagKey: 'food_truck.route_tracking.enabled' },
     { href: '/admin/food-truck/stops', label: 'Stop Management', featureFlagKey: 'food_truck.scheduled_stops.enabled' },
   ],
@@ -287,6 +303,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     '/loyalty',
     '/reservation',
     '/location',
+    '/admin/analytics',
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -309,8 +326,10 @@ export const MOBILE_CAFE_MODULE: Module = {
     'loyalty.tiers.enabled': true,
     'mobile_cafe.featured_coffee.enabled': false,
     'mobile_cafe.daily_specials.enabled': false,
+    'analytics.enabled': true,
   },
   adminNavItems: [
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     { href: '/admin/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled' },
     { href: '/admin/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled' },
   ],
