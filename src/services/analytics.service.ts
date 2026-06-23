@@ -99,12 +99,21 @@ const MOCK_VENDORS_LIST = [
 ]
 
 export const analyticsService = {
-  async getAnalyticsSummary(): Promise<AnalyticsSummary> {
+  async getAnalyticsSummary(params?: { dateFrom?: string; dateTo?: string }): Promise<AnalyticsSummary> {
     if (USE_MOCK) {
       await delay(200)
+      if (params?.dateTo) {
+        return {
+          ...MOCK_SUMMARY,
+          totalRevenue: Math.round(MOCK_SUMMARY.totalRevenue * 0.87),
+          totalOrders: Math.round(MOCK_SUMMARY.totalOrders * 0.91),
+          totalReservations: Math.round(MOCK_SUMMARY.totalReservations * 1.04),
+          newCustomers: Math.round(MOCK_SUMMARY.newCustomers * 0.82),
+        }
+      }
       return { ...MOCK_SUMMARY }
     }
-    const { data } = await api.get<AnalyticsSummary>(ENDPOINTS.ANALYTICS.SUMMARY)
+    const { data } = await api.get<AnalyticsSummary>(ENDPOINTS.ANALYTICS.SUMMARY, { params })
     return data
   },
 

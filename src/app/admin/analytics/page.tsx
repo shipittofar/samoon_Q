@@ -10,6 +10,7 @@ import {
 } from '@/hooks'
 import { MiniBarChart } from '@/components/charts/MiniBarChart'
 import { Sparkline } from '@/components/charts/Sparkline'
+import { AnalyticsExport } from '@/components/admin/AnalyticsExport'
 
 function KpiCard({
   label,
@@ -267,7 +268,10 @@ export default function AdminAnalyticsPage() {
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-[var(--fg)] mb-6">Analytics</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-[var(--fg)]">Analytics</h1>
+        <AnalyticsExport />
+      </div>
 
       {/* Summary KPIs */}
       {summaryLoading ? (

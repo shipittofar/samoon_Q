@@ -18,10 +18,8 @@ import {
   BranchContextIndicator,
 } from '@/components/admin/RealtimeDashboardWidgets'
 import { useRealtimeStatistics } from '@/hooks'
-import { useBranchStore } from '@/stores'
+import { useBranchStore, useTenantStore } from '@/stores'
 import type { OperationsScope } from '@/types/realtime-operations'
-
-const MOCK_TENANT_ID = 'tenant-savor-01'
 
 const SECTIONS = [
   'orders',
@@ -57,10 +55,11 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 function OperationsContent() {
   const [activeSection, setActiveSection] = useState<Section>('orders')
   const activeBranch = useBranchStore((s) => s.activeBranch)
+  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const branchFilter = activeBranch?.id
 
   const scope: OperationsScope = {
-    tenantId: MOCK_TENANT_ID,
+    tenantId,
     branchId: branchFilter,
   }
 
@@ -129,7 +128,7 @@ function OperationsContent() {
             {activeSection === 'kitchen' && (
               <KitchenDisplay
                 branchId={branchFilter ?? 'branch-rest-01'}
-                tenantId={MOCK_TENANT_ID}
+                tenantId={tenantId}
               />
             )}
             {activeSection === 'sla' && <SLAMonitor scope={scope} />}

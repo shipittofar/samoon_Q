@@ -2090,7 +2090,7 @@ export function useExportAnalytics() {
 }
 
 // ── P7.8 Phase J — Analytics Comparison hook ─────────────────────────────────
-type ComparisonPeriod = 'week' | 'month' | 'custom'
+type ComparisonPeriod = 'day' | 'week' | 'month' | 'custom'
 
 interface ComparisonResult<T> {
   current: T | undefined
@@ -2100,14 +2100,20 @@ interface ComparisonResult<T> {
 }
 
 export function useAnalyticsComparison(period: ComparisonPeriod = 'week'): ComparisonResult<AnalyticsSummaryPair> {
+  const now = new Date()
+  const periodDays = period === 'day' ? 1 : period === 'month' ? 30 : 7
+  const currentStart = new Date(now.getTime() - periodDays * 86_400_000).toISOString()
+  const previousStart = new Date(now.getTime() - periodDays * 2 * 86_400_000).toISOString()
+  const previousEnd = currentStart
+
   const currentQ = useQuery({
-    queryKey: ['analytics-summary', 'current', period],
-    queryFn: () => analyticsService.getAnalyticsSummary(),
+    queryKey: ['analytics-summary', 'current', period, currentStart],
+    queryFn: () => analyticsService.getAnalyticsSummary({ dateFrom: currentStart }),
     staleTime: 60_000,
   })
   const previousQ = useQuery({
-    queryKey: ['analytics-summary', 'previous', period],
-    queryFn: () => analyticsService.getAnalyticsSummary(),
+    queryKey: ['analytics-summary', 'previous', period, previousStart],
+    queryFn: () => analyticsService.getAnalyticsSummary({ dateFrom: previousStart, dateTo: previousEnd }),
     staleTime: 60_000,
   })
   return {
