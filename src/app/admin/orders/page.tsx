@@ -8,11 +8,12 @@ import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatRelativeTime } from '@/utils'
 import { cn } from '@/utils'
-import { useAdminOrders, useUpdateOrderStatus, useAdminBranches } from '@/hooks'
+import { useAdminOrders, useUpdateOrderStatus, useAdminBranches, useBulkUpdateOrderStatus, useBulkCancelOrders } from '@/hooks'
 import { useTenantStore } from '@/stores'
 import type { Order, OrderStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { BulkActionBar } from '@/components/admin/BulkActionBar'
 
 
 const STATUS_CONFIG: Record<OrderStatus, {
@@ -47,6 +48,7 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [search, setSearch] = useState('')
   const [branchFilter, setBranchFilter] = useState<string>('all')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const { data: branches = [] } = useAdminBranches(tenantId)
 
@@ -58,6 +60,8 @@ export default function AdminOrdersPage() {
 
   const { data, isLoading, isError, refetch } = useAdminOrders(filters)
   const updateStatus = useUpdateOrderStatus()
+  const bulkUpdateStatus = useBulkUpdateOrderStatus()
+  const bulkCancel = useBulkCancelOrders()
 
   const orders: Order[] = data?.results ?? []
 
@@ -74,6 +78,20 @@ export default function AdminOrdersPage() {
     if (!next) return
     updateStatus.mutate({ id: order.id, status: next })
   }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => prev.size === orders.length ? new Set() : new Set(orders.map((o) => o.id)))
+  }
+
+  const selectedArr = Array.from(selectedIds)
 
   return (
     <PermissionGuard permission="orders.view">
@@ -170,6 +188,15 @@ export default function AdminOrdersPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[var(--border)] bg-[var(--card-hover)]">
+                      <th className="px-4 py-3 w-10">
+                        <input
+                          type="checkbox"
+                          aria-label="Select all orders"
+                          checked={orders.length > 0 && selectedIds.size === orders.length}
+                          onChange={toggleSelectAll}
+                          className="rounded border-[var(--border)]"
+                        />
+                      </th>
                       {['Order', 'Customer', 'Items', 'Type', 'Total', 'Status', 'Time', 'Actions'].map((h) => (
                         <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{h}</th>
                       ))}
@@ -186,8 +213,17 @@ export default function AdminOrdersPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: i * 0.04 }}
-                          className="hover:bg-[var(--card-hover)] transition-colors"
+                          className={`hover:bg-[var(--card-hover)] transition-colors ${selectedIds.has(order.id) ? 'bg-orange-50/40 dark:bg-orange-950/10' : ''}`}
                         >
+                          <td className="px-4 py-3.5">
+                            <input
+                              type="checkbox"
+                              aria-label={`Select order ${order.order_number}`}
+                              checked={selectedIds.has(order.id)}
+                              onChange={() => toggleSelect(order.id)}
+                              className="rounded border-[var(--border)]"
+                            />
+                          </td>
                           <td className="px-4 py-3.5 font-mono font-semibold text-[var(--fg)]">{order.order_number}</td>
                           <td className="px-4 py-3.5">
                             <span className="font-medium text-[var(--fg)]">{orderCustomerName(order)}</span>
@@ -246,6 +282,24 @@ export default function AdminOrdersPage() {
         </div>
       </div>
     </div>
+      <BulkActionBar
+        selectedCount={selectedIds.size}
+        onClearSelection={() => setSelectedIds(new Set())}
+        actions={[
+          {
+            label: 'Accept Selected',
+            onClick: () => { bulkUpdateStatus.mutate({ ids: selectedArr, status: 'accepted' }); setSelectedIds(new Set()) },
+            variant: 'primary',
+            disabled: bulkUpdateStatus.isPending,
+          },
+          {
+            label: 'Cancel Selected',
+            onClick: () => { bulkCancel.mutate(selectedArr); setSelectedIds(new Set()) },
+            variant: 'danger',
+            disabled: bulkCancel.isPending,
+          },
+        ]}
+      />
     </ErrorBoundary>
     </PermissionGuard>
   )

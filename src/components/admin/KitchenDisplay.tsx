@@ -44,10 +44,14 @@ function KitchenCard({ order }: KitchenCardProps) {
     : null
 
   return (
-    <div className={`bg-white rounded shadow p-3 mb-2 text-sm ${order.slaBreached ? 'border-l-4 border-red-500' : ''}`}>
+    <article
+      role="article"
+      aria-label={`Order ${order.orderNumber}${order.slaBreached ? ', SLA breached' : ''}`}
+      className={`bg-white rounded shadow p-3 mb-2 text-sm ${order.slaBreached ? 'border-l-4 border-red-500' : ''}`}
+    >
       <div className="flex justify-between font-bold text-base">
         <span>#{order.orderNumber}</span>
-        {order.tableNumber && <span className="text-gray-500">T{order.tableNumber}</span>}
+        {order.tableNumber && <span className="text-gray-500" aria-label={`Table ${order.tableNumber}`}>T{order.tableNumber}</span>}
       </div>
       <div className="mt-1 space-y-0.5">
         {order.items.map((it, i) => (
@@ -69,9 +73,9 @@ function KitchenCard({ order }: KitchenCardProps) {
         <span>~{order.estimatedPrepMinutes}m target</span>
       </div>
       {order.slaBreached && (
-        <div className="text-xs font-bold text-red-600 mt-1">SLA BREACHED</div>
+        <div role="alert" className="text-xs font-bold text-red-600 mt-1">SLA BREACHED</div>
       )}
-    </div>
+    </article>
   )
 }
 
@@ -100,18 +104,23 @@ export function KitchenDisplay({ branchId, tenantId }: KitchenDisplayProps) {
           Capacity: <strong>{data?.capacityPercent ?? 0}%</strong>
         </span>
       </div>
-      <div className="overflow-x-auto">
-        <div className="flex gap-3 min-w-max">
+      <div className="overflow-x-auto" role="region" aria-label="Kitchen order columns">
+        <div className="flex gap-3 min-w-max" role="list">
           {COLUMNS.map(({ key, label }) => {
             const orders = cols[key] as LiveOrder[]
             return (
-              <div key={key} className={`w-52 flex-shrink-0 border-t-4 ${COLUMN_COLOR[key]} bg-gray-50 rounded p-2`}>
+              <div
+                key={key}
+                role="listitem"
+                aria-label={`${label} column, ${orders.length} order${orders.length !== 1 ? 's' : ''}`}
+                className={`w-52 flex-shrink-0 border-t-4 ${COLUMN_COLOR[key]} bg-gray-50 rounded p-2`}
+              >
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs font-bold uppercase tracking-wide">{label}</span>
-                  <span className="text-xs bg-white border rounded-full px-2">{orders.length}</span>
+                  <span className="text-xs bg-white border rounded-full px-2" aria-hidden="true">{orders.length}</span>
                 </div>
                 {orders.length === 0 ? (
-                  <div className="text-xs text-gray-400 italic">Empty</div>
+                  <div className="text-xs text-gray-400 italic" aria-label="No orders">Empty</div>
                 ) : (
                   orders.map((o) => <KitchenCard key={o.id} order={o} />)
                 )}

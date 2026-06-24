@@ -10,11 +10,12 @@ import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/utils'
-import { useAdminReservations, useConfirmReservation, useCancelReservation, useBranches, useAdminBranches } from '@/hooks'
+import { useAdminReservations, useConfirmReservation, useCancelReservation, useBranches, useAdminBranches, useBulkConfirmReservations, useBulkCancelReservations } from '@/hooks'
 import { useTenantStore } from '@/stores'
 import type { AdminReservationFilters, ReservationStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { BulkActionBar } from '@/components/admin/BulkActionBar'
 
 
 const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary'> = {
@@ -38,12 +39,29 @@ export default function AdminReservationsPage() {
     date: todayStr,
   }), [statusFilter, branchFilter, search, todayStr])
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const { data, isLoading, isError, refetch } = useAdminReservations(filters)
   const { data: branches } = useBranches()
   const confirmMutation = useConfirmReservation()
   const cancelMutation = useCancelReservation()
+  const bulkConfirm = useBulkConfirmReservations()
+  const bulkCancelRes = useBulkCancelReservations()
 
   const reservations = data?.results ?? []
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => prev.size === reservations.length ? new Set() : new Set(reservations.map((r) => r.id)))
+  }
+
+  const selectedArr = Array.from(selectedIds)
 
   const counts = useMemo(() => ({
     all: data?.count ?? 0,
@@ -166,6 +184,15 @@ export default function AdminReservationsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[var(--border)] bg-[var(--card-hover)]">
+                      <th className="px-4 py-3 w-10">
+                        <input
+                          type="checkbox"
+                          aria-label="Select all reservations"
+                          checked={reservations.length > 0 && selectedIds.size === reservations.length}
+                          onChange={toggleSelectAll}
+                          className="rounded border-[var(--border)]"
+                        />
+                      </th>
                       {['Guest', 'Date & Time', 'Guests', 'Branch', 'Contact', 'Notes', 'Status', 'Actions'].map((h) => (
                         <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{h}</th>
                       ))}
@@ -181,8 +208,17 @@ export default function AdminReservationsPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: i * 0.04 }}
-                          className="hover:bg-[var(--card-hover)] transition-colors"
+                          className={`hover:bg-[var(--card-hover)] transition-colors ${selectedIds.has(res.id) ? 'bg-orange-50/40 dark:bg-orange-950/10' : ''}`}
                         >
+                          <td className="px-4 py-3.5">
+                            <input
+                              type="checkbox"
+                              aria-label={`Select reservation for ${res.name}`}
+                              checked={selectedIds.has(res.id)}
+                              onChange={() => toggleSelect(res.id)}
+                              className="rounded border-[var(--border)]"
+                            />
+                          </td>
                           <td className="px-4 py-3.5">
                             <p className="font-medium text-[var(--fg)]">{res.name}</p>
                             {res.confirmation_code && <p className="text-xs text-orange-500 font-mono">{res.confirmation_code}</p>}
@@ -268,8 +304,26 @@ export default function AdminReservationsPage() {
         </div>
       </div>
     </div>
+      <BulkActionBar
+        selectedCount={selectedIds.size}
+        onClearSelection={() => setSelectedIds(new Set())}
+        actions={[
+          {
+            label: 'Confirm Selected',
+            onClick: () => { bulkConfirm.mutate(selectedArr); setSelectedIds(new Set()) },
+            variant: 'primary',
+            disabled: bulkConfirm.isPending,
+          },
+          {
+            label: 'Cancel Selected',
+            onClick: () => { bulkCancelRes.mutate(selectedArr); setSelectedIds(new Set()) },
+            variant: 'danger',
+            disabled: bulkCancelRes.isPending,
+          },
+        ]}
+      />
     </ErrorBoundary>
-  
+
     </PermissionGuard>
 
   )

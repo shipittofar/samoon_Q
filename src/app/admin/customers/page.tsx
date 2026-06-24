@@ -9,10 +9,11 @@ import { Badge } from '@/components/ui'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatDate } from '@/utils'
-import { useAdminCustomers } from '@/hooks'
+import { useAdminCustomers, useBulkExportCustomers } from '@/hooks'
 import type { AdminCustomerFilters, AdminCustomerTier } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { BulkActionBar } from '@/components/admin/BulkActionBar'
 
 
 const TIER_BADGE: Record<AdminCustomerTier, 'default' | 'success' | 'info' | 'secondary'> = {
@@ -30,9 +31,25 @@ export default function AdminCustomersPage() {
     ...(search ? { search } : {}),
   }), [tierFilter, search])
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const { data, isLoading, isError, refetch } = useAdminCustomers(filters)
+  const bulkExport = useBulkExportCustomers()
 
   const customers = data?.results ?? []
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    setSelectedIds((prev) => prev.size === customers.length ? new Set() : new Set(customers.map((c) => c.id)))
+  }
+
+  const selectedArr = Array.from(selectedIds)
 
   const stats = useMemo(() => {
     const totalRevenue = customers.reduce((s, c) => s + c.total_spent, 0)
@@ -124,6 +141,15 @@ export default function AdminCustomersPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[var(--border)] bg-[var(--card-hover)]">
+                      <th className="px-4 py-3 w-10">
+                        <input
+                          type="checkbox"
+                          aria-label="Select all customers"
+                          checked={customers.length > 0 && selectedIds.size === customers.length}
+                          onChange={toggleSelectAll}
+                          className="rounded border-[var(--border)]"
+                        />
+                      </th>
                       {['Customer', 'Contact', 'Orders', 'Total Spent', 'Avg Order', 'Joined', 'Tier'].map((h) => (
                         <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{h}</th>
                       ))}
@@ -136,8 +162,17 @@ export default function AdminCustomersPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: i * 0.05 }}
-                        className="hover:bg-[var(--card-hover)] transition-colors"
+                        className={`hover:bg-[var(--card-hover)] transition-colors ${selectedIds.has(c.id) ? 'bg-orange-50/40 dark:bg-orange-950/10' : ''}`}
                       >
+                        <td className="px-4 py-3.5">
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${c.first_name} ${c.last_name}`}
+                            checked={selectedIds.has(c.id)}
+                            onChange={() => toggleSelect(c.id)}
+                            className="rounded border-[var(--border)]"
+                          />
+                        </td>
                         <td className="px-4 py-3.5">
                           <Link href={`/admin/customers/${c.id}`} className="flex items-center gap-3 group">
                             <Avatar firstName={c.first_name} lastName={c.last_name} size="sm" />
@@ -173,8 +208,20 @@ export default function AdminCustomersPage() {
         </div>
       </div>
     </div>
+      <BulkActionBar
+        selectedCount={selectedIds.size}
+        onClearSelection={() => setSelectedIds(new Set())}
+        actions={[
+          {
+            label: 'Export Selected',
+            onClick: () => { bulkExport.mutate(selectedArr); setSelectedIds(new Set()) },
+            variant: 'primary',
+            disabled: bulkExport.isPending,
+          },
+        ]}
+      />
     </ErrorBoundary>
-  
+
     </PermissionGuard>
 
   )

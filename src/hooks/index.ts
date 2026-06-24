@@ -1005,6 +1005,90 @@ export function useAdminCustomerReviews(id: string) {
   })
 }
 
+// ── Bulk Operation Hooks (P7.14) ──────────────────────────────────────────────
+
+export function useBulkUpdateOrderStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ ids, status }: { ids: string[]; status: OrderStatus }) =>
+      Promise.all(ids.map((id) => adminService.updateOrderStatus(id, status))),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-orders'] })
+      qc.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+}
+
+export function useBulkCancelOrders() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      Promise.all(ids.map((id) => adminService.updateOrderStatus(id, 'cancelled'))),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-orders'] })
+      qc.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+}
+
+export function useBulkConfirmReservations() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      Promise.all(ids.map((id) => adminService.confirmReservation(id))),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-reservations'] })
+      qc.invalidateQueries({ queryKey: ['reservations'] })
+    },
+  })
+}
+
+export function useBulkCancelReservations() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      Promise.all(ids.map((id) => reservationService.cancelReservation(id))),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-reservations'] })
+      qc.invalidateQueries({ queryKey: ['reservations'] })
+    },
+  })
+}
+
+export function useBulkExportCustomers() {
+  return useMutation({
+    mutationFn: (ids: string[]) => {
+      const rows = [
+        'id,name,email',
+        ...ids.map((id) => `${id},,`),
+      ].join('\n')
+      const blob = new Blob([rows], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `customers-export-${Date.now()}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+      return Promise.resolve()
+    },
+  })
+}
+
+export function useNotificationPermission() {
+  const [permission, setPermission] = React.useState<NotificationPermission>(
+    typeof Notification !== 'undefined' ? Notification.permission : 'default',
+  )
+
+  const request = React.useCallback(async () => {
+    if (typeof Notification === 'undefined') return 'denied' as NotificationPermission
+    const result = await Notification.requestPermission()
+    setPermission(result)
+    return result
+  }, [])
+
+  return { permission, request }
+}
+
 // ── Menu Admin Hooks (P5.1) ───────────────────────────────────────────────────
 
 export function useCreateMenuItem() {
