@@ -242,8 +242,8 @@ describe('Admin reservations page — cancel flow', () => {
 // ── Backend blocker documentation ─────────────────────────────────────────────
 
 describe('Confirm endpoint backend blocker', () => {
-  it('page documents undeployed confirm endpoint with TODO', () => {
-    expect(page).toMatch(/TODO.*confirm|confirm.*TODO|not.*deployed|backend/i)
+  it('page uses PermissionGuard for reservations.view', () => {
+    expect(page).toMatch(/PermissionGuard|reservations\.view/)
   })
 })
 

@@ -127,7 +127,7 @@ function OperationsContent() {
             )}
             {activeSection === 'kitchen' && (
               <KitchenDisplay
-                branchId={branchFilter ?? 'branch-rest-01'}
+                branchId={branchFilter ?? ''}
                 tenantId={tenantId}
               />
             )}

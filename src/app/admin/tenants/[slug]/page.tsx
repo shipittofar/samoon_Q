@@ -4,6 +4,8 @@ import { use } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { tenantService } from '@/services/tenant.service'
 import type { Tenant } from '@/types'
 
@@ -194,9 +196,7 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
   )
 }
 
-export default function TenantDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params)
-
+function TenantDetailContent({ slug }: { slug: string }) {
   const { data: tenant, isLoading, isError } = useQuery<Tenant>({
     queryKey: ['tenant', slug],
     queryFn: () => tenantService.getTenant(slug),
@@ -236,5 +236,16 @@ export default function TenantDetailPage({ params }: { params: Promise<{ slug: s
       <CapabilitiesSection tenant={tenant} />
       <StatusActionsSection tenant={tenant} />
     </main>
+  )
+}
+
+export default function TenantDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params)
+  return (
+    <ErrorBoundary feature="Tenant Detail">
+      <PermissionGuard permission="tenant.view">
+        <TenantDetailContent slug={slug} />
+      </PermissionGuard>
+    </ErrorBoundary>
   )
 }

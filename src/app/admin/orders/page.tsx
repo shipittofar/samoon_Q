@@ -12,10 +12,8 @@ import { useAdminOrders, useUpdateOrderStatus, useAdminBranches } from '@/hooks'
 import { useTenantStore } from '@/stores'
 import type { Order, OrderStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
 
-// useOrderWebSocket tracks a single customer order via /orders/{id}/.
-// No admin-wide broadcast channel exists on the backend yet.
-// TODO: integrate when backend exposes ws://admin/orders/ broadcast channel.
 
 const STATUS_CONFIG: Record<OrderStatus, {
   label: string
@@ -78,6 +76,7 @@ export default function AdminOrdersPage() {
   }
 
   return (
+    <PermissionGuard permission="orders.view">
     <ErrorBoundary feature="AdminOrders">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
@@ -248,5 +247,6 @@ export default function AdminOrdersPage() {
       </div>
     </div>
     </ErrorBoundary>
+    </PermissionGuard>
   )
 }

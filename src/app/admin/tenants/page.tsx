@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useTenants, useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
 import type { Tenant } from '@/types'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'text-green-700 bg-green-50',
@@ -120,6 +121,8 @@ export default function AdminTenantsPage() {
   const { data: tenants = [], isLoading } = useTenants()
 
   return (
+
+    <PermissionGuard permission="tenant.view">
     <main aria-label="Tenant Management" className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -165,5 +168,8 @@ export default function AdminTenantsPage() {
         </>
       )}
     </main>
+  
+    </PermissionGuard>
+
   )
 }

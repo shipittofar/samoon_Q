@@ -238,8 +238,8 @@ describe('Real-time layer audit — no admin WebSocket', () => {
     expect(page).not.toMatch(/import.*useOrderWebSocket/)
   })
 
-  it('admin page contains TODO comment for future admin WebSocket', () => {
-    expect(page).toMatch(/TODO.*admin.*orders.*channel|TODO.*ws.*admin/i)
+  it('admin page uses PermissionGuard for orders.view', () => {
+    expect(page).toMatch(/PermissionGuard|orders\.view/)
   })
 })
 

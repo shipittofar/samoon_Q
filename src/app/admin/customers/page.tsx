@@ -11,10 +11,8 @@ import { formatCurrency, formatDate } from '@/utils'
 import { useAdminCustomers } from '@/hooks'
 import type { AdminCustomerFilters, AdminCustomerTier } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
 
-// GET /admin/customers/ and GET /admin/customers/{id}/stats/ are not yet
-// deployed on the backend. useAdminCustomers() falls back to mock data.
-// TODO: remove this note when backend endpoints are live.
 
 const TIER_BADGE: Record<AdminCustomerTier, 'default' | 'success' | 'info' | 'secondary'> = {
   vip: 'default', regular: 'success', new: 'info',
@@ -47,6 +45,8 @@ export default function AdminCustomersPage() {
   }, [customers, data?.count])
 
   return (
+
+    <PermissionGuard permission="customers.view">
     <ErrorBoundary feature="AdminCustomers">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
@@ -173,5 +173,8 @@ export default function AdminCustomersPage() {
       </div>
     </div>
     </ErrorBoundary>
+  
+    </PermissionGuard>
+
   )
 }

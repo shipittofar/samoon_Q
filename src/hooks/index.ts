@@ -13,7 +13,6 @@ import { vendorService } from '@/services/vendor.service'
 import type { CreateVendorPayload, UpdateVendorPayload, CreateSettlementPayload } from '@/services/vendor.service'
 import {
   branchService,
-  notificationService,
   reservationService,
   tableService,
   userService,
@@ -681,21 +680,6 @@ export function useAvailableSlots(date: string, branchId: string) {
     queryFn: () => reservationService.getAvailableSlots(date, branchId),
     enabled: !!date && !!branchId,
     staleTime: 60_000,
-  })
-}
-
-// ── Notification Hooks (legacy — see P7.6 hooks below) ───────────────────────
-export function useLegacyNotifications() {
-  const setNotifications = useNotificationStore((s) => s.setNotifications)
-  return useQuery({
-    queryKey: ['notifications-legacy'],
-    queryFn: async () => {
-      const res = await notificationService.getNotifications()
-      setNotifications(res.results)
-      return res
-    },
-    staleTime: 30_000,
-    refetchInterval: 60_000,
   })
 }
 

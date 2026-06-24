@@ -280,8 +280,8 @@ describe('Mock mode compatibility', () => {
 // ── Backend blockers documentation ────────────────────────────────────────────
 
 describe('Backend blockers — documented in page', () => {
-  it('page documents undeployed endpoints with TODO comment', () => {
-    expect(page).toMatch(/TODO|not yet deployed|backend/i)
+  it('page uses PermissionGuard for customers.view', () => {
+    expect(page).toMatch(/PermissionGuard|customers\.view/)
   })
 })
 

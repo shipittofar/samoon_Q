@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useProvisionTenant } from '@/hooks'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import type { ProvisionableBusinessType, TenantBrandingConfig } from '@/types/provisioning'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
 
 const BUSINESS_TYPES: ProvisionableBusinessType[] = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
@@ -111,6 +112,8 @@ export default function NewTenantPage() {
   }
 
   return (
+
+    <PermissionGuard permission="tenant.manage">
     <main aria-label="New Tenant Wizard" className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Create New Tenant</h1>
       <StepIndicator current={stepIndex + 1} total={TOTAL_STEPS} />
@@ -392,5 +395,8 @@ export default function NewTenantPage() {
         ) : null}
       </div>
     </main>
+  
+    </PermissionGuard>
+
   )
 }

@@ -14,10 +14,8 @@ import { useAdminReservations, useConfirmReservation, useCancelReservation, useB
 import { useTenantStore } from '@/stores'
 import type { AdminReservationFilters, ReservationStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
 
-// POST /reservations/{id}/confirm/ is not yet deployed on the backend.
-// useConfirmReservation() stubs the call and has a typed mock implementation.
-// TODO: remove this note when backend deploys the confirm endpoint.
 
 const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary'> = {
   confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'secondary',
@@ -58,6 +56,8 @@ export default function AdminReservationsPage() {
     (branches ?? []).find((b) => b.id === branchId)?.name ?? '—'
 
   return (
+
+    <PermissionGuard permission="reservations.view">
     <ErrorBoundary feature="AdminReservations">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
@@ -269,5 +269,8 @@ export default function AdminReservationsPage() {
       </div>
     </div>
     </ErrorBoundary>
+  
+    </PermissionGuard>
+
   )
 }

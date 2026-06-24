@@ -12,6 +12,7 @@ import {
 } from '@/hooks'
 import type { Vendor, VendorCategory, VendorStatus } from '@/types'
 import type { CreateVendorPayload } from '@/services/vendor.service'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
 
 const CATEGORIES: VendorCategory[] = [
   'asian', 'western', 'mediterranean', 'mexican', 'indian',
@@ -225,6 +226,8 @@ export default function AdminVendorsPage() {
   const [editForm, setEditForm] = useState<VendorFormState>(DEFAULT_FORM)
 
   return (
+
+    <PermissionGuard permission="vendors.view">
     <main className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">Vendor Management</h1>
@@ -328,5 +331,8 @@ export default function AdminVendorsPage() {
         <VendorStatsPanel vendorId={statsVendorId} onClose={() => setStatsVendorId(null)} />
       )}
     </main>
+  
+    </PermissionGuard>
+
   )
 }

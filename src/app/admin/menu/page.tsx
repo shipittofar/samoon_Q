@@ -147,6 +147,8 @@ export default function AdminMenuPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
+
+    <PermissionGuard permission="menu.view">
     <ErrorBoundary feature="AdminMenu">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
@@ -368,12 +370,16 @@ export default function AdminMenuPage() {
       </Modal>
     </div>
     </ErrorBoundary>
+  
+    </PermissionGuard>
+
   )
 }
 
 // ── Shared form fields component ──────────────────────────────────────────────
 
 import type { Category } from '@/types'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
 
 function MenuItemFormFields({
   form,

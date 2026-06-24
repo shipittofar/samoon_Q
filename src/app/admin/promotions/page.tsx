@@ -10,6 +10,7 @@ import {
 } from '@/hooks'
 import type { PromotionRule, PromotionType, Weekday } from '@/types'
 import type { CreatePromotionPayload } from '@/services/promotion.service'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
 
 const PROMOTION_TYPES: { value: PromotionType; label: string }[] = [
   { value: 'percentage_discount', label: '% Discount' },
@@ -306,6 +307,8 @@ export default function AdminPromotionsPage() {
   }
 
   return (
+
+    <PermissionGuard permission="promotions.view">
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">Promotion Management</h1>
@@ -400,5 +403,8 @@ export default function AdminPromotionsPage() {
         />
       )}
     </main>
+  
+    </PermissionGuard>
+
   )
 }
