@@ -1968,6 +1968,7 @@ export function useUpdateFeatureFlag() {
         settings: { ...tenant.settings, featureFlags: newOverrides },
       }
       useTenantStore.getState().setTenant(updatedTenant)
+      useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(updatedTenant))
       return Promise.resolve({ key, value })
     },
     onSuccess: () => {
