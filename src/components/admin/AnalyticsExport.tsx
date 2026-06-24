@@ -3,9 +3,7 @@
 import { useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
 import { useExportAnalytics } from '@/hooks'
-
-type ExportDomain = 'summary' | 'revenue' | 'reservations' | 'loyalty' | 'promotions' | 'vendors'
-type ExportFormat = 'csv' | 'json'
+import type { ExportDomain, ExportFormat } from '@/hooks'
 
 const DOMAIN_LABELS: Record<ExportDomain, string> = {
   summary:      'Analytics Summary',
@@ -14,9 +12,10 @@ const DOMAIN_LABELS: Record<ExportDomain, string> = {
   loyalty:      'Loyalty',
   promotions:   'Promotions',
   vendors:      'Vendors',
+  menu:         'Menu Performance',
 }
 
-const DOMAINS: ExportDomain[] = ['summary', 'revenue', 'reservations', 'loyalty', 'promotions', 'vendors']
+const DOMAINS: ExportDomain[] = ['summary', 'revenue', 'reservations', 'loyalty', 'promotions', 'vendors', 'menu']
 
 interface AnalyticsExportProps {
   className?: string
@@ -46,6 +45,7 @@ export function AnalyticsExport({ className }: AnalyticsExportProps) {
       >
         <option value="csv">CSV</option>
         <option value="json">JSON</option>
+        <option value="pdf">PDF (Print)</option>
       </select>
 
       <button

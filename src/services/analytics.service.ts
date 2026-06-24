@@ -7,6 +7,7 @@ import type {
   LoyaltyAnalytics,
   PromotionAnalytics,
   VendorAnalytics,
+  MenuAnalytics,
   TimeSeries,
 } from '@/types/analytics'
 
@@ -90,6 +91,30 @@ const MOCK_TOP_PROMOTIONS = [
   { name: '10% Weekend Off',    usageCount: 412, discountGiven: 1148 },
   { name: 'BOGO Latte',         usageCount: 94,  discountGiven: 782  },
 ]
+
+const MOCK_MENU_ANALYTICS_DATA: MenuAnalytics = {
+  topSellers: [
+    { itemId: 'item-001', name: 'Signature Burger',  category: 'Mains',   orderCount: 284, revenue: 7098, trendPct: 18,  avgOrderValue: 24.99 },
+    { itemId: 'item-002', name: 'Truffle Fries',     category: 'Sides',   orderCount: 421, revenue: 4210, trendPct: 12,  avgOrderValue: 9.99  },
+    { itemId: 'item-003', name: 'Classic Latte',     category: 'Drinks',  orderCount: 630, revenue: 3150, trendPct: 5,   avgOrderValue: 5.00  },
+    { itemId: 'item-004', name: 'Avocado Toast',     category: 'Starters',orderCount: 176, revenue: 2640, trendPct: -4,  avgOrderValue: 15.00 },
+    { itemId: 'item-005', name: 'Chocolate Fondant', category: 'Desserts',orderCount: 175, revenue: 2100, trendPct: 22,  avgOrderValue: 12.00 },
+  ],
+  slowMovers: [
+    { itemId: 'item-010', name: 'Seasonal Salad',   category: 'Starters', orderCount: 12, revenue: 180,  trendPct: -15, avgOrderValue: 15.00 },
+    { itemId: 'item-011', name: 'Herbal Tea',        category: 'Drinks',   orderCount: 18, revenue: 90,   trendPct: -8,  avgOrderValue: 5.00  },
+    { itemId: 'item-012', name: 'Fruit Platter',     category: 'Desserts', orderCount: 9,  revenue: 135,  trendPct: -22, avgOrderValue: 15.00 },
+  ],
+  categoryPerformance: [
+    { category: 'Mains',    orderCount: 412, revenue: 11298, itemCount: 6  },
+    { category: 'Sides',    orderCount: 621, revenue: 6210,  itemCount: 4  },
+    { category: 'Drinks',   orderCount: 890, revenue: 4940,  itemCount: 8  },
+    { category: 'Starters', orderCount: 298, revenue: 4472,  itemCount: 5  },
+    { category: 'Desserts', orderCount: 241, revenue: 2892,  itemCount: 4  },
+  ],
+  totalItemsSold: 2462,
+  totalMenuRevenue: 29812,
+}
 
 const MOCK_VENDORS_LIST = [
   { vendorId: 'vendor-1', name: 'Golden Dragon',    revenue: 54320, commissionPaid: 8148, ordersCount: 1842, avgRating: 4.7 },
@@ -197,6 +222,20 @@ export const analyticsService = {
       }
     }
     const { data } = await api.get<VendorAnalytics>(ENDPOINTS.ANALYTICS.VENDORS)
+    return data
+  },
+
+  async getMenuAnalytics(): Promise<MenuAnalytics> {
+    if (USE_MOCK) {
+      await delay(200)
+      return {
+        ...MOCK_MENU_ANALYTICS_DATA,
+        topSellers: MOCK_MENU_ANALYTICS_DATA.topSellers.map((i) => ({ ...i })),
+        slowMovers: MOCK_MENU_ANALYTICS_DATA.slowMovers.map((i) => ({ ...i })),
+        categoryPerformance: MOCK_MENU_ANALYTICS_DATA.categoryPerformance.map((c) => ({ ...c })),
+      }
+    }
+    const { data } = await api.get<MenuAnalytics>(ENDPOINTS.ANALYTICS.MENU)
     return data
   },
 }

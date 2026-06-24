@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown } from 'lucide-react'
 import { useBranchStore } from '@/stores'
 import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
@@ -11,6 +12,7 @@ import {
   useLoyaltyAnalytics,
   usePromotionAnalytics,
   useVendorAnalytics,
+  useMenuAnalytics,
   useAnalyticsComparison,
 } from '@/hooks'
 import { MiniBarChart } from '@/components/charts/MiniBarChart'
@@ -20,27 +22,49 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { AnalyticsSummary } from '@/types/analytics'
 
+// ── Shared primitives ─────────────────────────────────────────────────────────
+
+function Delta({ pct }: { pct: number }) {
+  const up = pct >= 0
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${up ? 'text-green-600' : 'text-red-500'}`}>
+      {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+      {Math.abs(pct).toFixed(1)}%
+    </span>
+  )
+}
+
 function KpiCard({
   label,
   value,
   changePct,
+  expandable,
+  expanded,
+  onToggle,
 }: {
   label: string
   value: string
   changePct?: number
+  expandable?: boolean
+  expanded?: boolean
+  onToggle?: () => void
 }) {
-  const isPositive = changePct !== undefined && changePct >= 0
-  return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-      <p className="text-sm text-[var(--fg-muted)]">{label}</p>
+  const inner = (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:bg-[var(--card-hover)]">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-sm text-[var(--fg-muted)]">{label}</p>
+        {expandable && (
+          expanded
+            ? <ChevronUp className="h-4 w-4 text-[var(--fg-muted)] shrink-0" />
+            : <ChevronDown className="h-4 w-4 text-[var(--fg-muted)] shrink-0" />
+        )}
+      </div>
       <p className="text-2xl font-bold text-[var(--fg)] mt-1">{value}</p>
-      {changePct !== undefined && (
-        <p className={`text-xs mt-1 ${isPositive ? 'text-green-600' : 'text-red-500'}`}>
-          {isPositive ? '▲' : '▼'} {Math.abs(changePct).toFixed(1)}% vs prev period
-        </p>
-      )}
+      {changePct !== undefined && <Delta pct={changePct} />}
     </div>
   )
+  if (!expandable) return inner
+  return <button className="text-left w-full" onClick={onToggle}>{inner}</button>
 }
 
 function SectionHeader({ title }: { title: string }) {
@@ -51,44 +75,63 @@ function LoadingPlaceholder() {
   return <p className="text-sm text-[var(--fg-muted)]">Loading…</p>
 }
 
+function DrillDownPanel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 mt-3">
+      {children}
+    </div>
+  )
+}
+
 // ── Revenue Section ───────────────────────────────────────────────────────────
 
 function RevenueSection() {
   const { data, isLoading } = useRevenueAnalytics()
+  const [expanded, setExpanded] = useState<'revenue' | 'orders' | null>(null)
 
   if (isLoading) return <LoadingPlaceholder />
   if (!data) return null
 
   return (
-    <div className="space-y-4" aria-label="Revenue analytics">
+    <div className="space-y-3" aria-label="Revenue analytics">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard label="Total Revenue" value={`$${data.totalRevenue.toLocaleString()}`} changePct={data.revenueChangePct} />
-        <KpiCard label="Total Orders" value={data.totalOrders.toLocaleString()} />
+        <KpiCard
+          label="Total Revenue" value={`$${data.totalRevenue.toLocaleString()}`}
+          changePct={data.revenueChangePct} expandable expanded={expanded === 'revenue'}
+          onToggle={() => setExpanded(expanded === 'revenue' ? null : 'revenue')}
+        />
+        <KpiCard
+          label="Total Orders" value={data.totalOrders.toLocaleString()}
+          expandable expanded={expanded === 'orders'}
+          onToggle={() => setExpanded(expanded === 'orders' ? null : 'orders')}
+        />
         <KpiCard label="Avg Order Value" value={`$${data.averageOrderValue.toFixed(2)}`} />
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Daily Revenue (30 days)</p>
-        <MiniBarChart data={data.dailyRevenue} height={56} aria-label="Daily revenue bar chart" />
-      </div>
+      {expanded === 'revenue' && (
+        <DrillDownPanel>
+          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Daily Revenue (30 days)</p>
+          <MiniBarChart data={data.dailyRevenue} height={56} aria-label="Daily revenue bar chart" />
+        </DrillDownPanel>
+      )}
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Items</p>
-        <ul className="space-y-2">
-          {data.topItems.map((item) => (
-            <li key={item.name} className="flex items-center justify-between text-sm">
-              <span className="text-[var(--fg)]">{item.name}</span>
-              <div className="flex items-center gap-4">
-                <span className="text-[var(--fg-muted)]">{item.orderCount} orders</span>
-                <span className="font-medium text-[var(--fg)]">${item.revenue.toLocaleString()}</span>
-                <span className={`text-xs ${item.trendPct >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                  {item.trendPct >= 0 ? '▲' : '▼'}{Math.abs(item.trendPct)}%
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {expanded === 'orders' && (
+        <DrillDownPanel>
+          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Items by Orders</p>
+          <ul className="space-y-2">
+            {data.topItems.map((item) => (
+              <li key={item.name} className="flex items-center justify-between text-sm">
+                <span className="text-[var(--fg)]">{item.name}</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-[var(--fg-muted)]">{item.orderCount} orders</span>
+                  <span className="font-medium text-[var(--fg)]">${item.revenue.toLocaleString()}</span>
+                  <Delta pct={item.trendPct} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </DrillDownPanel>
+      )}
     </div>
   )
 }
@@ -97,34 +140,52 @@ function RevenueSection() {
 
 function ReservationsSection() {
   const { data, isLoading } = useReservationAnalytics()
+  const [expanded, setExpanded] = useState(false)
 
   if (isLoading) return <LoadingPlaceholder />
   if (!data) return null
 
+  const statusBreakdown = [
+    { label: 'Upcoming',  count: data.upcomingReservations,  color: 'bg-blue-400' },
+    { label: 'Cancelled', count: data.cancelledReservations, color: 'bg-red-400'  },
+    { label: 'Completed', count: data.totalReservations - data.upcomingReservations - data.cancelledReservations, color: 'bg-green-400' },
+  ]
+
   return (
-    <div className="space-y-4" aria-label="Reservation analytics">
+    <div className="space-y-3" aria-label="Reservation analytics">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard label="Total Reservations" value={data.totalReservations.toLocaleString()} changePct={data.reservationsChangePct} />
+        <KpiCard
+          label="Total Reservations" value={data.totalReservations.toLocaleString()}
+          changePct={data.reservationsChangePct} expandable expanded={expanded}
+          onToggle={() => setExpanded((v) => !v)}
+        />
         <KpiCard label="Upcoming" value={data.upcomingReservations.toLocaleString()} />
         <KpiCard label="Cancelled" value={data.cancelledReservations.toLocaleString()} />
         <KpiCard label="Occupancy Rate" value={`${data.occupancyRate}%`} />
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <p className="text-sm font-medium text-[var(--fg-muted)] mb-1">Table Occupancy</p>
-        <p className="text-sm text-[var(--fg)]">{data.tablesOccupied} / {data.tablesTotal} tables occupied</p>
-        <div className="mt-2 h-2 rounded-full bg-[var(--border)] overflow-hidden">
-          <div
-            className="h-full bg-[var(--primary)] rounded-full"
-            style={{ width: `${data.occupancyRate}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-        <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Daily Reservations (30 days)</p>
-        <Sparkline data={data.dailyReservations} height={40} aria-label="Daily reservations sparkline" />
-      </div>
+      {expanded && (
+        <DrillDownPanel>
+          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Status Breakdown</p>
+          <div className="space-y-2 mb-4">
+            {statusBreakdown.map(({ label, count, color }) => (
+              <div key={label} className="flex items-center gap-3 text-sm">
+                <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${color}`} />
+                <span className="flex-1 text-[var(--fg)]">{label}</span>
+                <span className="font-medium text-[var(--fg)]">{count}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-[var(--fg-muted)] mb-1">
+            Table Occupancy: {data.tablesOccupied}/{data.tablesTotal}
+          </p>
+          <div className="h-2 rounded-full bg-[var(--border)] overflow-hidden mb-4">
+            <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${data.occupancyRate}%` }} />
+          </div>
+          <p className="text-xs text-[var(--fg-muted)] mb-2">Daily Reservations (30 days)</p>
+          <Sparkline data={data.dailyReservations} height={40} aria-label="Daily reservations sparkline" />
+        </DrillDownPanel>
+      )}
     </div>
   )
 }
@@ -133,46 +194,51 @@ function ReservationsSection() {
 
 function LoyaltySection() {
   const { data, isLoading } = useLoyaltyAnalytics()
+  const [expanded, setExpanded] = useState(false)
 
   if (isLoading) return <LoadingPlaceholder />
   if (!data) return null
 
-  const tierEntries = Object.entries(data.tierDistribution) as [string, number][]
-
   return (
-    <div className="space-y-4" aria-label="Loyalty analytics">
+    <div className="space-y-3" aria-label="Loyalty analytics">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard label="Total Members" value={data.totalMembers.toLocaleString()} />
-        <KpiCard label="Active This Month" value={data.activeMembersThisMonth.toLocaleString()} />
+        <KpiCard
+          label="Active This Month" value={data.activeMembersThisMonth.toLocaleString()}
+          expandable expanded={expanded} onToggle={() => setExpanded((v) => !v)}
+        />
         <KpiCard label="Points Issued" value={data.pointsIssued.toLocaleString()} />
         <KpiCard label="Redemption Rate" value={`${data.redemptionRate.toFixed(1)}%`} />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Tier Distribution</p>
-          <ul className="space-y-2">
-            {tierEntries.map(([tier, count]) => (
-              <li key={tier} className="flex justify-between text-sm capitalize">
-                <span className="text-[var(--fg)]">{tier}</span>
-                <span className="font-medium text-[var(--fg)]">{count}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Rewards</p>
-          <ul className="space-y-2">
-            {data.topRewards.map((r) => (
-              <li key={r.name} className="flex justify-between text-sm">
-                <span className="text-[var(--fg)]">{r.name}</span>
-                <span className="font-medium text-[var(--fg)]">{r.redemptions} redemptions</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      {expanded && (
+        <DrillDownPanel>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Tier Distribution</p>
+              <ul className="space-y-2">
+                {(Object.entries(data.tierDistribution) as [string, number][]).map(([tier, count]) => (
+                  <li key={tier} className="flex justify-between text-sm capitalize">
+                    <span className="text-[var(--fg)]">{tier}</span>
+                    <span className="font-medium text-[var(--fg)]">{count}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Rewards</p>
+              <ul className="space-y-2">
+                {data.topRewards.map((r) => (
+                  <li key={r.name} className="flex justify-between text-sm">
+                    <span className="text-[var(--fg)]">{r.name}</span>
+                    <span className="font-medium text-[var(--fg)]">{r.redemptions} redemptions</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </DrillDownPanel>
+      )}
     </div>
   )
 }
@@ -181,45 +247,51 @@ function LoyaltySection() {
 
 function PromotionsSection() {
   const { data, isLoading } = usePromotionAnalytics()
+  const [expanded, setExpanded] = useState(false)
 
   if (isLoading) return <LoadingPlaceholder />
   if (!data) return null
 
-  const typeEntries = Object.entries(data.usageByType) as [string, number][]
-
   return (
-    <div className="space-y-4" aria-label="Promotion analytics">
+    <div className="space-y-3" aria-label="Promotion analytics">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard label="Total Promotions" value={data.totalPromotions.toString()} />
         <KpiCard label="Active Promotions" value={data.activePromotions.toString()} />
-        <KpiCard label="Total Discount Given" value={`$${data.totalDiscountGiven.toLocaleString()}`} changePct={data.discountChangePct} />
+        <KpiCard
+          label="Total Discount Given" value={`$${data.totalDiscountGiven.toLocaleString()}`}
+          changePct={data.discountChangePct} expandable expanded={expanded}
+          onToggle={() => setExpanded((v) => !v)}
+        />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Usage by Type</p>
-          <ul className="space-y-2">
-            {typeEntries.map(([type, count]) => (
-              <li key={type} className="flex justify-between text-sm">
-                <span className="text-[var(--fg)] capitalize">{type.replace(/_/g, ' ')}</span>
-                <span className="font-medium text-[var(--fg)]">{count}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Promotions</p>
-          <ul className="space-y-2">
-            {data.topPromotions.map((p) => (
-              <li key={p.name} className="flex justify-between text-sm">
-                <span className="text-[var(--fg)]">{p.name}</span>
-                <span className="font-medium text-[var(--fg)]">${p.discountGiven.toLocaleString()}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      {expanded && (
+        <DrillDownPanel>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Usage by Type</p>
+              <ul className="space-y-2">
+                {(Object.entries(data.usageByType) as [string, number][]).map(([type, count]) => (
+                  <li key={type} className="flex justify-between text-sm">
+                    <span className="text-[var(--fg)] capitalize">{type.replace(/_/g, ' ')}</span>
+                    <span className="font-medium text-[var(--fg)]">{count}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Promotions</p>
+              <ul className="space-y-2">
+                {data.topPromotions.map((p) => (
+                  <li key={p.name} className="flex justify-between text-sm">
+                    <span className="text-[var(--fg)]">{p.name}</span>
+                    <span className="font-medium text-[var(--fg)]">${p.discountGiven.toLocaleString()}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </DrillDownPanel>
+      )}
     </div>
   )
 }
@@ -269,14 +341,114 @@ function VendorsSection() {
   )
 }
 
+// ── Menu Performance Section ──────────────────────────────────────────────────
+
+function MenuSection() {
+  const { data, isLoading } = useMenuAnalytics()
+  const [tab, setTab] = useState<'top' | 'slow' | 'category'>('top')
+
+  if (isLoading) return <LoadingPlaceholder />
+  if (!data) return null
+
+  return (
+    <div className="space-y-4" aria-label="Menu performance analytics">
+      <div className="grid grid-cols-2 gap-3">
+        <KpiCard label="Total Items Sold" value={data.totalItemsSold.toLocaleString()} />
+        <KpiCard label="Menu Revenue" value={`$${data.totalMenuRevenue.toLocaleString()}`} />
+      </div>
+
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+        <div className="flex border-b border-[var(--border)]">
+          {(['top', 'slow', 'category'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+                tab === t
+                  ? 'border-b-2 border-[var(--primary)] text-[var(--primary)]'
+                  : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'
+              }`}
+            >
+              {t === 'top' ? 'Top Sellers' : t === 'slow' ? 'Slow Movers' : 'By Category'}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-4">
+          {tab === 'top' && (
+            <ul className="space-y-2">
+              {data.topSellers.map((item) => (
+                <li key={item.itemId} className="flex items-center justify-between text-sm">
+                  <div>
+                    <span className="text-[var(--fg)] font-medium">{item.name}</span>
+                    <span className="ml-2 text-xs text-[var(--fg-muted)]">{item.category}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[var(--fg-muted)]">{item.orderCount} orders</span>
+                    <span className="font-medium text-[var(--fg)]">${item.revenue.toLocaleString()}</span>
+                    <Delta pct={item.trendPct} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {tab === 'slow' && (
+            <ul className="space-y-2">
+              {data.slowMovers.map((item) => (
+                <li key={item.itemId} className="flex items-center justify-between text-sm">
+                  <div>
+                    <span className="text-[var(--fg)] font-medium">{item.name}</span>
+                    <span className="ml-2 text-xs text-[var(--fg-muted)]">{item.category}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[var(--fg-muted)]">{item.orderCount} orders</span>
+                    <span className="font-medium text-[var(--fg)]">${item.revenue.toLocaleString()}</span>
+                    <Delta pct={item.trendPct} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {tab === 'category' && (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--border)]">
+                  <th className="text-left py-2 text-[var(--fg-muted)] font-medium">Category</th>
+                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">Items</th>
+                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">Orders</th>
+                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.categoryPerformance.map((cat) => (
+                  <tr key={cat.category} className="border-b border-[var(--border)] last:border-0">
+                    <td className="py-2 text-[var(--fg)]">{cat.category}</td>
+                    <td className="py-2 text-right text-[var(--fg)]">{cat.itemCount}</td>
+                    <td className="py-2 text-right text-[var(--fg)]">{cat.orderCount.toLocaleString()}</td>
+                    <td className="py-2 text-right font-medium text-[var(--fg)]">${cat.revenue.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Comparison Section ────────────────────────────────────────────────────────
 
-type ComparisonPeriodLabel = 'day' | 'week' | 'month'
+type ComparisonPeriodLabel = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 const PERIOD_LABELS: Record<ComparisonPeriodLabel, string> = {
-  day: 'Today vs Yesterday',
-  week: 'This Week vs Last Week',
-  month: 'This Month vs Last Month',
+  day:     'Today vs Yesterday',
+  week:    'This Week vs Last Week',
+  month:   'This Month vs Last Month',
+  quarter: 'This Quarter vs Last Quarter',
+  year:    'This Year vs Last Year',
 }
 
 const COMPARISON_FIELDS: Array<{ key: keyof AnalyticsSummary; label: string; format: (v: number) => string }> = [
@@ -294,7 +466,7 @@ function ComparisonSection() {
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5" aria-label="Period comparison">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
         <h3 className="text-sm font-semibold text-[var(--fg)]">Period Comparison</h3>
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-wrap">
           {(Object.keys(PERIOD_LABELS) as ComparisonPeriodLabel[]).map((p) => (
             <button
               key={p}
@@ -355,16 +527,15 @@ export default function AdminAnalyticsPage() {
   const activeBranch = useBranchStore((s) => s.activeBranch)
 
   return (
-
     <ErrorBoundary feature="Analytics">
     <PermissionGuard permission="analytics.view">
     <main className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-[var(--fg)]">Analytics</h1>
           <BranchContextIndicator branchId={activeBranch?.id} branchName={activeBranch?.name} />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {activeBranch && (
             <Link
               href={`/admin/branches/${activeBranch.id}/analytics`}
@@ -394,11 +565,14 @@ export default function AdminAnalyticsPage() {
       <SectionHeader title="Period Comparison" />
       <ComparisonSection />
 
-      <SectionHeader title="Revenue" />
+      <SectionHeader title="Revenue & Orders" />
       <RevenueSection />
 
       <SectionHeader title="Reservations" />
       <ReservationsSection />
+
+      <SectionHeader title="Menu Performance" />
+      <MenuSection />
 
       <SectionHeader title="Loyalty" />
       <LoyaltySection />
@@ -409,9 +583,7 @@ export default function AdminAnalyticsPage() {
       <SectionHeader title="Vendors" />
       <VendorsSection />
     </main>
-  
     </PermissionGuard>
     </ErrorBoundary>
-
   )
 }

@@ -164,6 +164,7 @@ export const ENDPOINTS = {
     LOYALTY: '/admin/analytics/loyalty/',
     PROMOTIONS: '/admin/analytics/promotions/',
     VENDORS: '/admin/analytics/vendors/',
+    MENU: '/admin/analytics/menu/',
   },
   // Staff Management (P7.2)
   STAFF: {

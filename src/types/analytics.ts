@@ -97,6 +97,33 @@ export interface VendorAnalytics {
   }>
 }
 
+// ── P7.13 Menu Performance Analytics ─────────────────────────────────────────
+
+export interface MenuItemPerformance {
+  itemId: string
+  name: string
+  category: string
+  orderCount: number
+  revenue: number
+  trendPct: number
+  avgOrderValue: number
+}
+
+export interface MenuCategoryPerformance {
+  category: string
+  orderCount: number
+  revenue: number
+  itemCount: number
+}
+
+export interface MenuAnalytics {
+  topSellers: MenuItemPerformance[]
+  slowMovers: MenuItemPerformance[]
+  categoryPerformance: MenuCategoryPerformance[]
+  totalItemsSold: number
+  totalMenuRevenue: number
+}
+
 // ── P7.4 Branch-scoped analytics ─────────────────────────────────────────────
 
 export interface BranchRevenueAnalytics {

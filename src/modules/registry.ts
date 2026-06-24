@@ -155,7 +155,7 @@ const RESERVATIONS_NAV_ITEM = {
 } as const
 
 /** Operations dashboard routes (P7.7) — spread into each module's routes array. */
-export const ADMIN_OPERATIONS_ROUTES: readonly string[] = ['/admin/operations']
+export const ADMIN_OPERATIONS_ROUTES: readonly string[] = ['/admin/operations', '/admin/kitchen']
 
 /** Settings routes (P7.8) — spread into each module's routes array. */
 export const ADMIN_SETTINGS_ROUTES: readonly string[] = ['/admin/settings', '/admin/settings/feature-flags']

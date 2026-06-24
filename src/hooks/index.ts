@@ -805,6 +805,14 @@ export function useVendorAnalytics() {
   })
 }
 
+export function useMenuAnalytics() {
+  return useQuery({
+    queryKey: ['analytics-menu'],
+    queryFn: () => analyticsService.getMenuAnalytics(),
+    staleTime: STALE_TIME,
+  })
+}
+
 // P6.12 — QR Experience hook
 export function useQRExperience(businessType?: string) {
   return useQuery({
@@ -2065,8 +2073,8 @@ export function useAuditBroadcastSync() {
 }
 
 // ── P7.8 Phase I — Analytics Export hook ─────────────────────────────────────
-type ExportFormat = 'csv' | 'json'
-type ExportDomain = 'summary' | 'revenue' | 'reservations' | 'loyalty' | 'promotions' | 'vendors'
+export type ExportFormat = 'csv' | 'json' | 'pdf'
+export type ExportDomain = 'summary' | 'revenue' | 'reservations' | 'loyalty' | 'promotions' | 'vendors' | 'menu'
 
 function toCSV(data: unknown): string {
   if (!data || typeof data !== 'object') return ''
@@ -2089,6 +2097,16 @@ function downloadBlob(content: string, filename: string, mime: string) {
   URL.revokeObjectURL(url)
 }
 
+function toPDF(data: unknown, domain: string, timestamp: string): string {
+  const entries = data && typeof data === 'object'
+    ? Object.entries(data as Record<string, unknown>).map(([k, v]) => {
+        const val = typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')
+        return `<tr><td style="padding:4px 8px;border:1px solid #ddd;font-weight:600">${k}</td><td style="padding:4px 8px;border:1px solid #ddd">${val}</td></tr>`
+      }).join('')
+    : '<tr><td colspan="2">No data</td></tr>'
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${domain} Analytics — ${timestamp}</title><style>body{font-family:sans-serif;padding:24px}table{border-collapse:collapse;width:100%}h1{font-size:18px}</style></head><body><h1>${domain.charAt(0).toUpperCase() + domain.slice(1)} Analytics Report</h1><p>Generated: ${timestamp}</p><table><thead><tr><th style="text-align:left;padding:4px 8px;border:1px solid #ddd;background:#f5f5f5">Field</th><th style="text-align:left;padding:4px 8px;border:1px solid #ddd;background:#f5f5f5">Value</th></tr></thead><tbody>${entries}</tbody></table></body></html>`
+}
+
 export function useExportAnalytics() {
   return useMutation({
     mutationFn: async ({ domain, format }: { domain: ExportDomain; format: ExportFormat }) => {
@@ -2099,11 +2117,20 @@ export function useExportAnalytics() {
         loyalty:      () => analyticsService.getLoyaltyAnalytics(),
         promotions:   () => analyticsService.getPromotionAnalytics(),
         vendors:      () => analyticsService.getVendorAnalytics(),
+        menu:         () => analyticsService.getMenuAnalytics(),
       }
       const data = await fetchMap[domain]()
       const timestamp = new Date().toISOString().split('T')[0]
       if (format === 'json') {
         downloadBlob(JSON.stringify(data, null, 2), `${domain}-${timestamp}.json`, 'application/json')
+      } else if (format === 'pdf') {
+        const html = toPDF(data, domain, timestamp)
+        const win = window.open('', '_blank')
+        if (win) {
+          win.document.write(html)
+          win.document.close()
+          win.print()
+        }
       } else {
         downloadBlob(toCSV(data), `${domain}-${timestamp}.csv`, 'text/csv')
       }
@@ -2113,7 +2140,7 @@ export function useExportAnalytics() {
 }
 
 // ── P7.8 Phase J — Analytics Comparison hook ─────────────────────────────────
-type ComparisonPeriod = 'day' | 'week' | 'month' | 'custom'
+type ComparisonPeriod = 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
 
 interface ComparisonResult<T> {
   current: T | undefined
@@ -2124,7 +2151,7 @@ interface ComparisonResult<T> {
 
 export function useAnalyticsComparison(period: ComparisonPeriod = 'week'): ComparisonResult<AnalyticsSummaryPair> {
   const now = new Date()
-  const periodDays = period === 'day' ? 1 : period === 'month' ? 30 : 7
+  const periodDays = period === 'day' ? 1 : period === 'month' ? 30 : period === 'quarter' ? 90 : period === 'year' ? 365 : 7
   const currentStart = new Date(now.getTime() - periodDays * 86_400_000).toISOString()
   const previousStart = new Date(now.getTime() - periodDays * 2 * 86_400_000).toISOString()
   const previousEnd = currentStart
