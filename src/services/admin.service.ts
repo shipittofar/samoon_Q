@@ -33,6 +33,7 @@ import type {
   OrderStatus,
   PaginatedResponse,
   Reservation,
+  Review,
   UserRole,
 } from '@/types'
 
@@ -268,6 +269,35 @@ export const adminService = {
       }
     }
     const { data } = await api.get<AdminCustomerStats>(ENDPOINTS.ADMIN.CUSTOMER_STATS(id))
+    return data
+  },
+
+  async getCustomerReviews(customerId: string): Promise<Review[]> {
+    if (USE_MOCK) {
+      await delay(300)
+      const customer = MOCK_CUSTOMERS.find((c) => c.id === customerId)
+      if (!customer) return []
+      return [
+        {
+          id: `review-${customerId}-1`,
+          user: { id: customerId, first_name: customer.first_name, last_name: customer.last_name, email: customer.email, role: 'customer', is_verified: customer.is_verified, created_at: customer.created_at },
+          menu_item_id: 'item-001',
+          rating: 5,
+          comment: 'Excellent food and service! Will definitely come back.',
+          created_at: new Date(Date.now() - 7 * 86_400_000).toISOString(),
+        },
+        {
+          id: `review-${customerId}-2`,
+          user: { id: customerId, first_name: customer.first_name, last_name: customer.last_name, email: customer.email, role: 'customer', is_verified: customer.is_verified, created_at: customer.created_at },
+          menu_item_id: 'item-003',
+          order_id: `order-${customerId}-1`,
+          rating: 4,
+          comment: 'Great atmosphere, slightly long wait but worth it.',
+          created_at: new Date(Date.now() - 21 * 86_400_000).toISOString(),
+        },
+      ]
+    }
+    const { data } = await api.get<Review[]>(`/admin/customers/${customerId}/reviews/`)
     return data
   },
 }

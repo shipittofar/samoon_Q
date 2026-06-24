@@ -988,6 +988,15 @@ export function useAdminCustomerStats(id: string) {
   })
 }
 
+export function useAdminCustomerReviews(id: string) {
+  return useQuery({
+    queryKey: ['admin-customer-reviews', id],
+    queryFn: () => adminService.getCustomerReviews(id),
+    enabled: !!id,
+    staleTime: STALE_TIME,
+  })
+}
+
 // ── Menu Admin Hooks (P5.1) ───────────────────────────────────────────────────
 
 export function useCreateMenuItem() {
@@ -1307,6 +1316,21 @@ export function useCloneTenant() {
       newName: string
     }) => tenantProvisioningService.cloneTenant(sourceTenantId, newSlug, newName),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tenant-templates'] }),
+  })
+}
+
+export function useUpdateTenantSettings() {
+  const qc = useQueryClient()
+  const tenant = useTenantStore((s) => s.tenant)
+  return useMutation({
+    mutationFn: (patch: Record<string, unknown>) => {
+      if (!tenant) throw new Error('No tenant')
+      return tenantService.updateTenantSettings(tenant.slug, patch)
+    },
+    onSuccess: (updated) => {
+      useTenantStore.getState().setTenant(updated)
+      qc.invalidateQueries({ queryKey: ['tenant'] })
+    },
   })
 }
 

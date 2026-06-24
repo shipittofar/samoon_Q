@@ -1,6 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { useBranchStore } from '@/stores'
+import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
   useAnalyticsSummary,
   useRevenueAnalytics,
@@ -349,6 +352,7 @@ function ComparisonSection() {
 
 export default function AdminAnalyticsPage() {
   const { data: summary, isLoading: summaryLoading } = useAnalyticsSummary()
+  const activeBranch = useBranchStore((s) => s.activeBranch)
 
   return (
 
@@ -356,8 +360,21 @@ export default function AdminAnalyticsPage() {
     <PermissionGuard permission="analytics.view">
     <main className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[var(--fg)]">Analytics</h1>
-        <AnalyticsExport />
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-[var(--fg)]">Analytics</h1>
+          <BranchContextIndicator branchId={activeBranch?.id} branchName={activeBranch?.name} />
+        </div>
+        <div className="flex items-center gap-3">
+          {activeBranch && (
+            <Link
+              href={`/admin/branches/${activeBranch.id}/analytics`}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              View branch analytics →
+            </Link>
+          )}
+          <AnalyticsExport />
+        </div>
       </div>
 
       {/* Summary KPIs */}

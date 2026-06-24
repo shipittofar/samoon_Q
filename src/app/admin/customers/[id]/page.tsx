@@ -4,7 +4,7 @@ import { use } from 'react'
 import Link from 'next/link'
 import {
   ArrowLeft, Mail, Phone, ShoppingBag, Star, TrendingUp,
-  Calendar, Clock, Award, Loader2, AlertCircle, User,
+  Calendar, Clock, Award, Loader2, AlertCircle, User, MessageSquare,
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
@@ -195,6 +195,13 @@ function CustomerDetailContent({ id }: { id: string }) {
           >
             <Clock className="h-3.5 w-3.5" />
             View Reservations
+          </Link>
+          <Link
+            href={`/admin/customers/${customer.id}/reviews`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+          >
+            <MessageSquare className="h-3.5 w-3.5" />
+            View Reviews
           </Link>
         </div>
       </div>

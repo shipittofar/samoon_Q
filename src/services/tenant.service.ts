@@ -184,6 +184,31 @@ export const tenantService = {
     return data
   },
 
+  /**
+   * Persist tenant settings (general, branding, hours, integrations, notifications).
+   * In mock mode: patches the in-memory tenant record and returns the updated object.
+   */
+  async updateTenantSettings(slug: string, patch: Record<string, unknown>): Promise<Tenant> {
+    if (USE_MOCK) {
+      await delay(250)
+      const existing = findInList(slug)
+      if (!existing) throw new Error(`Tenant not found: ${slug}`)
+      const updated: Tenant = {
+        ...existing,
+        settings: { ...(existing.settings ?? {}), ...patch },
+      }
+      const idx = MOCK_TENANT_LIST.findIndex((t) => t.slug === slug || t.id === slug)
+      if (idx !== -1) MOCK_TENANT_LIST[idx] = updated
+      const mockKey = Object.keys(MOCK_TENANTS).find(
+        (k) => MOCK_TENANTS[k].slug === slug || MOCK_TENANTS[k].id === slug,
+      )
+      if (mockKey) MOCK_TENANTS[mockKey] = updated
+      return updated
+    }
+    const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.SETTINGS(slug), patch)
+    return data
+  },
+
   /** Exposes mock lookup by ID/slug for use by provisioning service. */
   _findMockById: findInList,
 

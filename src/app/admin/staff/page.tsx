@@ -1,6 +1,7 @@
 'use client'
 
-import { useTenantStore } from '@/stores'
+import { useTenantStore, useBranchStore } from '@/stores'
+import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
   useStaff,
   useInvites,
@@ -29,6 +30,7 @@ export default function StaffManagementPage() {
 function StaffManagementContent() {
   const tenant = useTenantStore((s) => s.tenant)
   const tenantId = tenant?.id ?? ''
+  const activeBranch = useBranchStore((s) => s.activeBranch)
 
   const { data: staff = [], isLoading: staffLoading } = useStaff(tenantId)
   const { data: invites = [], isLoading: invitesLoading } = useInvites(tenantId)
@@ -40,10 +42,14 @@ function StaffManagementContent() {
   const resendInvite = useResendInvite(tenantId)
   const transferOwnership = useTransferOwnership(tenantId)
 
-  const analytics = staffService.computeAnalytics(staff, invites)
+  const filteredStaff = activeBranch
+    ? staff.filter((m) => !m.branchIds || m.branchIds.includes(activeBranch.id))
+    : staff
 
-  const activeStaff = staff.filter((s) => s.status === 'active')
-  const suspendedStaff = staff.filter((s) => s.status === 'suspended')
+  const analytics = staffService.computeAnalytics(filteredStaff, invites)
+
+  const activeStaff = filteredStaff.filter((s) => s.status === 'active')
+  const suspendedStaff = filteredStaff.filter((s) => s.status === 'suspended')
   const pendingInvites = invites.filter((i) => i.status === 'pending')
 
   if (staffLoading || invitesLoading) {
@@ -53,7 +59,10 @@ function StaffManagementContent() {
   return (
     <div className="p-6 space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Staff Management</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">Staff Management</h1>
+          <BranchContextIndicator branchId={activeBranch?.id} branchName={activeBranch?.name} />
+        </div>
         <PermissionGuard permission="staff.manage">
           <button
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
