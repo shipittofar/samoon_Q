@@ -11,6 +11,7 @@ import {
 import type { PromotionRule, PromotionType, Weekday } from '@/types'
 import type { CreatePromotionPayload } from '@/services/promotion.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const PROMOTION_TYPES: { value: PromotionType; label: string }[] = [
   { value: 'percentage_discount', label: '% Discount' },
@@ -307,7 +308,7 @@ export default function AdminPromotionsPage() {
   }
 
   return (
-
+    <ErrorBoundary feature="Promotion Management">
     <PermissionGuard permission="promotions.view">
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -403,8 +404,9 @@ export default function AdminPromotionsPage() {
         />
       )}
     </main>
-  
+
     </PermissionGuard>
+    </ErrorBoundary>
 
   )
 }

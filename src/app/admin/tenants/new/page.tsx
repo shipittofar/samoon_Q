@@ -6,6 +6,7 @@ import { useProvisionTenant } from '@/hooks'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import type { ProvisionableBusinessType, TenantBrandingConfig } from '@/types/provisioning'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const BUSINESS_TYPES: ProvisionableBusinessType[] = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
@@ -112,7 +113,7 @@ export default function NewTenantPage() {
   }
 
   return (
-
+    <ErrorBoundary feature="New Tenant">
     <PermissionGuard permission="tenant.manage">
     <main aria-label="New Tenant Wizard" className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Create New Tenant</h1>
@@ -397,6 +398,6 @@ export default function NewTenantPage() {
     </main>
   
     </PermissionGuard>
-
+    </ErrorBoundary>
   )
 }

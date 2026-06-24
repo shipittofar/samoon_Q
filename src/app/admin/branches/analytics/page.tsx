@@ -3,6 +3,7 @@
 import { useTenantStore } from '@/stores'
 import { useAdminBranches } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Link from 'next/link'
 
 function BranchAnalyticsRow({ id, name, city, status }: { id: string; name: string; city: string; status: string }) {
@@ -108,8 +109,10 @@ function BranchAnalyticsOverviewContent() {
 
 export default function BranchAnalyticsOverviewPage() {
   return (
-    <PermissionGuard permission="branches.view">
-      <BranchAnalyticsOverviewContent />
-    </PermissionGuard>
+    <ErrorBoundary feature="Branch Analytics">
+      <PermissionGuard permission="branches.view">
+        <BranchAnalyticsOverviewContent />
+      </PermissionGuard>
+    </ErrorBoundary>
   )
 }

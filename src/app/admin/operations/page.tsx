@@ -17,7 +17,14 @@ import {
   SystemHealthBadge,
   BranchContextIndicator,
 } from '@/components/admin/RealtimeDashboardWidgets'
-import { useRealtimeStatistics } from '@/hooks'
+import {
+  useRealtimeStatistics,
+  useOrdersBroadcastSync,
+  useReservationsBroadcastSync,
+  useStaffBroadcastSync,
+  useNotificationsBroadcastSync,
+  useAuditBroadcastSync,
+} from '@/hooks'
 import { useBranchStore, useTenantStore } from '@/stores'
 import type { OperationsScope } from '@/types/realtime-operations'
 
@@ -64,6 +71,12 @@ function OperationsContent() {
   }
 
   const { data: stats } = useRealtimeStatistics(scope)
+
+  useOrdersBroadcastSync(scope)
+  useReservationsBroadcastSync(scope)
+  useStaffBroadcastSync(scope)
+  useNotificationsBroadcastSync()
+  useAuditBroadcastSync()
 
   return (
     <div className="min-h-screen bg-gray-50">

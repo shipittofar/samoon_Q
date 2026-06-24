@@ -3,6 +3,7 @@
 import { use } from 'react'
 import { useAdminBranch, useBranchAnalytics } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Link from 'next/link'
 
 function MetricCard({ label, value }: { label: string; value: string | number }) {
@@ -85,8 +86,10 @@ function BranchAnalyticsContent({ id }: { id: string }) {
 export default function BranchAnalyticsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   return (
-    <PermissionGuard permission="branches.view">
-      <BranchAnalyticsContent id={id} />
-    </PermissionGuard>
+    <ErrorBoundary feature="Branch Analytics">
+      <PermissionGuard permission="branches.view">
+        <BranchAnalyticsContent id={id} />
+      </PermissionGuard>
+    </ErrorBoundary>
   )
 }

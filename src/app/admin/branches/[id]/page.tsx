@@ -3,6 +3,7 @@
 import { use } from 'react'
 import { useAdminBranch, useAdminBranchMetrics, useActivateBranch, useDeactivateBranch, useMaintenanceBranch } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { BranchStatus } from '@/types/branch'
 
 const STATUS_COLORS: Record<BranchStatus, string> = {
@@ -137,8 +138,10 @@ function BranchDetailContent({ id }: { id: string }) {
 export default function BranchDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   return (
-    <PermissionGuard permission="branches.view">
-      <BranchDetailContent id={id} />
-    </PermissionGuard>
+    <ErrorBoundary feature="Branch Detail">
+      <PermissionGuard permission="branches.view">
+        <BranchDetailContent id={id} />
+      </PermissionGuard>
+    </ErrorBoundary>
   )
 }

@@ -25,6 +25,27 @@ const SEVERITY_BADGE: Record<AuditSeverity, 'info' | 'warning' | 'danger'> = {
   critical: 'danger',
 }
 
+const TARGET_HREF: Record<string, (id: string) => string> = {
+  order:     (id) => `/admin/orders/${id}`,
+  customer:  (id) => `/admin/customers/${id}`,
+  staff:     (id) => `/admin/staff/${id}`,
+  tenant:    (id) => `/admin/tenants/${id}`,
+  branch:    (id) => `/admin/branches/${id}`,
+  vendor:    (id) => `/admin/vendors/${id}`,
+  promotion: (id) => `/admin/promotions/${id}`,
+  reservation: (id) => `/admin/reservations/${id}`,
+}
+
+function TargetLink({ type, id }: { type: string; id: string }) {
+  const hrefFn = TARGET_HREF[type]
+  if (!hrefFn) return <p className="text-xs text-gray-400 font-mono">{id}</p>
+  return (
+    <Link href={hrefFn(id)} className="text-xs text-blue-600 font-mono hover:underline">
+      {id}
+    </Link>
+  )
+}
+
 function AuditLogDetailContent({ id }: { id: string }) {
   const { data: log, isLoading, isError } = useAuditLog(id)
   const { data: timelineItems } = useAuditTimeline({ actorId: id, pageSize: 10 })
@@ -96,7 +117,9 @@ function AuditLogDetailContent({ id }: { id: string }) {
             <div>
               <p className="text-gray-400 text-xs">Target</p>
               <p className="font-medium text-gray-800 capitalize">{log.target?.type ?? '—'}</p>
-              <p className="text-xs text-gray-400 font-mono">{log.target?.id ?? ''}</p>
+              {log.target?.id && (
+                <TargetLink type={log.target.type} id={log.target.id} />
+              )}
             </div>
           </div>
           <div className="flex items-start gap-2">

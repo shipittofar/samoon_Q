@@ -4,6 +4,7 @@ import { useTenantStore } from '@/stores'
 import { useAdminBranches } from '@/hooks'
 import { branchManagementService } from '@/services/branch.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Link from 'next/link'
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
@@ -168,8 +169,10 @@ function BranchManagementContent() {
 
 export default function BranchManagementPage() {
   return (
-    <PermissionGuard permission="branches.view">
-      <BranchManagementContent />
-    </PermissionGuard>
+    <ErrorBoundary feature="Branch Management">
+      <PermissionGuard permission="branches.view">
+        <BranchManagementContent />
+      </PermissionGuard>
+    </ErrorBoundary>
   )
 }

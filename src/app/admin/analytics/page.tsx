@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   useAnalyticsSummary,
   useRevenueAnalytics,
@@ -7,11 +8,14 @@ import {
   useLoyaltyAnalytics,
   usePromotionAnalytics,
   useVendorAnalytics,
+  useAnalyticsComparison,
 } from '@/hooks'
 import { MiniBarChart } from '@/components/charts/MiniBarChart'
 import { Sparkline } from '@/components/charts/Sparkline'
 import { AnalyticsExport } from '@/components/admin/AnalyticsExport'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import type { AnalyticsSummary } from '@/types/analytics'
 
 function KpiCard({
   label,
@@ -262,6 +266,85 @@ function VendorsSection() {
   )
 }
 
+// ── Comparison Section ────────────────────────────────────────────────────────
+
+type ComparisonPeriodLabel = 'day' | 'week' | 'month'
+
+const PERIOD_LABELS: Record<ComparisonPeriodLabel, string> = {
+  day: 'Today vs Yesterday',
+  week: 'This Week vs Last Week',
+  month: 'This Month vs Last Month',
+}
+
+const COMPARISON_FIELDS: Array<{ key: keyof AnalyticsSummary; label: string; format: (v: number) => string }> = [
+  { key: 'totalRevenue',      label: 'Revenue',        format: (v) => `$${v.toLocaleString()}` },
+  { key: 'totalOrders',       label: 'Orders',         format: (v) => v.toLocaleString() },
+  { key: 'totalReservations', label: 'Reservations',   format: (v) => v.toLocaleString() },
+  { key: 'newCustomers',      label: 'New Customers',  format: (v) => v.toLocaleString() },
+]
+
+function ComparisonSection() {
+  const [period, setPeriod] = useState<ComparisonPeriodLabel>('week')
+  const { current, previous, isLoading } = useAnalyticsComparison(period)
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5" aria-label="Period comparison">
+      <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
+        <h3 className="text-sm font-semibold text-[var(--fg)]">Period Comparison</h3>
+        <div className="flex gap-1">
+          {(Object.keys(PERIOD_LABELS) as ComparisonPeriodLabel[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                period === p
+                  ? 'bg-[var(--primary)] text-white'
+                  : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'
+              }`}
+            >
+              {p.charAt(0).toUpperCase() + p.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isLoading ? (
+        <LoadingPlaceholder />
+      ) : (
+        <>
+          <p className="text-xs text-[var(--fg-muted)] mb-3">{PERIOD_LABELS[period]}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {COMPARISON_FIELDS.map(({ key, label, format }) => {
+              const curr = current ? (current[key] as number | undefined) ?? 0 : null
+              const prev = previous ? (previous[key] as number | undefined) ?? 0 : null
+              const delta = curr !== null && prev !== null && prev !== 0
+                ? ((curr - prev) / prev) * 100
+                : null
+              const isUp = delta !== null && delta >= 0
+              return (
+                <div key={String(key)} className="bg-[var(--bg)] rounded-lg p-3">
+                  <p className="text-xs text-[var(--fg-muted)] mb-1">{label}</p>
+                  <p className="text-lg font-bold text-[var(--fg)]">
+                    {curr !== null ? format(curr) : '—'}
+                  </p>
+                  <p className="text-xs text-[var(--fg-muted)] mt-0.5">
+                    prev: {prev !== null ? format(prev) : '—'}
+                  </p>
+                  {delta !== null && (
+                    <p className={`text-xs font-medium mt-1 ${isUp ? 'text-green-600' : 'text-red-500'}`}>
+                      {isUp ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function AdminAnalyticsPage() {
@@ -269,6 +352,7 @@ export default function AdminAnalyticsPage() {
 
   return (
 
+    <ErrorBoundary feature="Analytics">
     <PermissionGuard permission="analytics.view">
     <main className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -290,6 +374,9 @@ export default function AdminAnalyticsPage() {
         </div>
       )}
 
+      <SectionHeader title="Period Comparison" />
+      <ComparisonSection />
+
       <SectionHeader title="Revenue" />
       <RevenueSection />
 
@@ -307,6 +394,7 @@ export default function AdminAnalyticsPage() {
     </main>
   
     </PermissionGuard>
+    </ErrorBoundary>
 
   )
 }

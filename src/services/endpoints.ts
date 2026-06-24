@@ -151,6 +151,7 @@ export const ENDPOINTS = {
     ORDERS: '/admin/orders/',
     RESERVATIONS: '/admin/reservations/',
     CUSTOMERS: '/admin/customers/',
+    CUSTOMER_DETAIL: (id: string) => `/admin/customers/${id}/`,
     CUSTOMER_STATS: (id: string) => `/admin/customers/${id}/stats/`,
   },
 

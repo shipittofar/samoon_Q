@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Search, Users, Mail, Phone, ShoppingBag, Star, TrendingUp, Loader2, AlertCircle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
@@ -138,10 +139,10 @@ export default function AdminCustomersPage() {
                         className="hover:bg-[var(--card-hover)] transition-colors"
                       >
                         <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-3">
+                          <Link href={`/admin/customers/${c.id}`} className="flex items-center gap-3 group">
                             <Avatar firstName={c.first_name} lastName={c.last_name} size="sm" />
-                            <span className="font-medium text-[var(--fg)]">{c.first_name} {c.last_name}</span>
-                          </div>
+                            <span className="font-medium text-[var(--fg)] group-hover:text-blue-600 transition-colors">{c.first_name} {c.last_name}</span>
+                          </Link>
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)]"><Mail className="h-3 w-3" />{c.email}</div>

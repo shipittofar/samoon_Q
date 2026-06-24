@@ -970,6 +970,15 @@ export function useAdminCustomers(filters: AdminCustomerFilters = {}) {
   })
 }
 
+export function useAdminCustomer(id: string) {
+  return useQuery({
+    queryKey: ['admin-customer', id],
+    queryFn: () => adminService.getCustomer(id),
+    enabled: !!id,
+    staleTime: STALE_TIME,
+  })
+}
+
 export function useAdminCustomerStats(id: string) {
   return useQuery({
     queryKey: ['admin-customer-stats', id],
@@ -1953,7 +1962,12 @@ export function useUpdateFeatureFlag() {
   return useMutation({
     mutationFn: ({ key, value }: { key: string; value: boolean }) => {
       if (!tenant) throw new Error('No tenant')
-      featureFlagsService.updateFlag(tenant, key, value)
+      const newOverrides = featureFlagsService.updateFlag(tenant, key, value)
+      const updatedTenant = {
+        ...tenant,
+        settings: { ...tenant.settings, featureFlags: newOverrides },
+      }
+      useTenantStore.getState().setTenant(updatedTenant)
       return Promise.resolve({ key, value })
     },
     onSuccess: () => {

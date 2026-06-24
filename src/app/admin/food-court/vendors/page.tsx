@@ -13,6 +13,7 @@ import {
 import type { Vendor, VendorCategory, VendorStatus } from '@/types'
 import type { CreateVendorPayload } from '@/services/vendor.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const CATEGORIES: VendorCategory[] = [
   'asian', 'western', 'mediterranean', 'mexican', 'indian',
@@ -226,7 +227,7 @@ export default function AdminVendorsPage() {
   const [editForm, setEditForm] = useState<VendorFormState>(DEFAULT_FORM)
 
   return (
-
+    <ErrorBoundary feature="Vendor Management">
     <PermissionGuard permission="vendors.view">
     <main className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -331,8 +332,9 @@ export default function AdminVendorsPage() {
         <VendorStatsPanel vendorId={statsVendorId} onClose={() => setStatsVendorId(null)} />
       )}
     </main>
-  
+
     </PermissionGuard>
+    </ErrorBoundary>
 
   )
 }

@@ -243,6 +243,17 @@ export const adminService = {
     return data
   },
 
+  async getCustomer(id: string): Promise<AdminCustomer> {
+    if (USE_MOCK) {
+      await delay(300)
+      const customer = MOCK_CUSTOMERS.find((c) => c.id === id)
+      if (!customer) throw new Error(`Customer not found: ${id}`)
+      return { ...customer }
+    }
+    const { data } = await api.get<AdminCustomer>(ENDPOINTS.ADMIN.CUSTOMER_DETAIL(id))
+    return data
+  },
+
   // ⚠️ Backend blocker: GET /admin/customers/{id}/stats/ not yet deployed
   async getCustomerStats(id: string): Promise<AdminCustomerStats> {
     if (USE_MOCK) {
