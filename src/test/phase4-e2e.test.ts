@@ -48,8 +48,9 @@ describe('E2E: Auth Flow', () => {
     await vi.runAllTimersAsync()
     const result = await promise
     expect(result.user.email).toBe('john@example.com')
-    expect(result.tokens.access).toBe('mock_access_token')
-    expect(result.tokens.refresh).toBe('mock_refresh_token')
+    const { MOCK_ACCESS_TOKEN, MOCK_REFRESH_TOKEN } = await import('@/services/auth.service')
+    expect(result.tokens.access).toBe(MOCK_ACCESS_TOKEN)
+    expect(result.tokens.refresh).toBe(MOCK_REFRESH_TOKEN)
   })
 
   it('login with wrong credentials rejects with Invalid credentials', async () => {
@@ -108,7 +109,8 @@ describe('E2E: Auth Flow', () => {
     const result = await promise
     expect(result.user.email).toBe('new@test.com')
     expect(result.user.first_name).toBe('New')
-    expect(result.tokens.access).toBe('mock_access_token')
+    const { MOCK_ACCESS_TOKEN } = await import('@/services/auth.service')
+    expect(result.tokens.access).toBe(MOCK_ACCESS_TOKEN)
   })
 })
 

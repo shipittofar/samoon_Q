@@ -8,6 +8,14 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+// Structurally valid JWTs (header.payload.signature) with exp=9999999999 (year 2286).
+// Required so middleware's isValidJWT() check passes in mock/demo mode.
+// The signature segment is intentionally fake — mock mode never contacts the backend.
+export const MOCK_ACCESS_TOKEN =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb2NrIiwiZXhwIjo5OTk5OTk5OTk5fQ.mock_signature'
+export const MOCK_REFRESH_TOKEN =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb2NrLXJlZnJlc2giLCJleHAiOjk5OTk5OTk5OTl9.mock_signature'
+
 export const authService = {
   async login(credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens }> {
     if (USE_MOCK) {
@@ -18,7 +26,7 @@ export const authService = {
       if (credentials.email !== 'demo@savor.com' || credentials.password !== 'password') {
         throw new Error('Invalid credentials')
       }
-      const tokens: AuthTokens = { access: 'mock_access_token', refresh: 'mock_refresh_token' }
+      const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
       return { user: MOCK_USER, tokens }
     }
@@ -34,7 +42,7 @@ export const authService = {
   async register(data: RegisterData): Promise<{ user: User; tokens: AuthTokens }> {
     if (USE_MOCK) {
       await delay(MOCK_DELAY)
-      const tokens: AuthTokens = { access: 'mock_access_token', refresh: 'mock_refresh_token' }
+      const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
       return { user: { ...MOCK_USER, email: data.email, first_name: data.first_name, last_name: data.last_name }, tokens }
     }
@@ -97,7 +105,7 @@ export const authService = {
   async verifyOTP(payload: OTPVerifyData): Promise<{ user: User; tokens: AuthTokens }> {
     if (USE_MOCK) {
       await delay(MOCK_DELAY)
-      const tokens: AuthTokens = { access: 'mock_access_token', refresh: 'mock_refresh_token' }
+      const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
       return { user: MOCK_USER, tokens }
     }
