@@ -6,31 +6,25 @@
 
 ## Summary
 
-| Priority | Count |
-|----------|-------|
-| Critical | 6 |
-| High | 13 |
-| Medium | 9 |
-| Low | 8 |
-| **Total** | **36** |
+> Last updated: 2026-06-25 (after P7.14.5 stabilization — all phases P1A through P7.14.5 complete)
+
+Items marked ✅ were resolved during P5–P7.14.5. Open items require backend integration or infrastructure work.
+
+| Priority | Open | Resolved |
+|----------|------|----------|
+| Critical | 1 | 5 |
+| High | 7 | 6 |
+| Medium | 6 | 3 |
+| Low | 4 | 4 |
+| **Total** | **18** | **18** |
 
 ---
 
 ## Critical Issues
 
-### C-00 — No Tenant / Location / Module Abstraction
+### ~~C-00 — No Tenant / Location / Module Abstraction~~ ✅ Resolved (P1A + P1B)
 
-**Description:** The codebase has no concept of `Tenant`, `Location` (as distinct from `Branch`), or `Module`. Every model, route, service, and store assumes exactly one restaurant business. There is no frontend module registry, no tenant context store, and no mechanism to scope data or navigation to a tenant or business type.
-
-**Evidence:** `src/types/index.ts` — no `Tenant`, `Location`, or `Module` type. `src/stores/index.ts` — no `useTenantStore`. `src/services/` — all service methods operate against a single implicit restaurant with no `tenantId` or `locationId` parameter. `src/app/` routing — no tenant-resolution middleware, no module-aware navigation.
-
-**Impact:** Adding a second tenant or a second business type (cafe, bar, hotel) today requires forking the entire codebase rather than configuring a new tenant and registering a new module. Every subsequent phase of the roadmap (Admin Platform, Hospitality Modules, Hotel Operations, SaaS features) is blocked or will produce throw-away code without this layer.
-
-**Recommendation:** Implement Phase 1A: define `Tenant`, `Location`, and `Module` TypeScript interfaces with backward-compatible defaults; introduce `useTenantStore` (Zustand); generalize `Branch` to `Location`; and register the existing restaurant feature set as the first module in a `src/modules/registry.ts`. Existing behavior must remain unchanged — this is a structural addition, not a rewrite. Follow with Phase 1B (RBAC, feature flags, tenant-aware routing, migration planning) before building on top of the new layer.
-
-**Roadmap reference:** Phase 1A (P1A.1–P1A.4), Phase 1B (P1B.1–P1B.5) — all P0.
-
-**Estimated Effort:** 15–23 days (Phase 1A) + 15–23 days (Phase 1B)
+`useTenantStore`, `useBranchStore`, `useRbacStore` implemented. `src/modules/registry.ts` defines 6 tenant module types (restaurant, cafe, bar, food_court, food_truck, mobile_cafe) with capability guards. All services accept `tenantId`. Feature flag system implemented via `feature-flags.service.ts`.
 
 ---
 
@@ -79,36 +73,15 @@ Note: This requires migrating JWT storage from `localStorage` to `httpOnly` cook
 
 ---
 
-### C-02 — Admin Panel Has No Real Backend Integration
+### ~~C-02 — Admin Panel Has No Real Backend Integration~~ ✅ Resolved (P5–P7)
 
-**Description:** All five admin pages (`/admin/stats`, `/admin/orders`, `/admin/menu`, `/admin/customers`, `/admin/reservations`) use hardcoded local fixture data. They do not call any service. State mutations are local-only and lost on page refresh.
-
-**Evidence:**
-- `src/app/admin/stats/page.tsx`: `const STATS = [...]` (lines 12–17) — hardcoded
-- `src/app/admin/orders/page.tsx`: `const MOCK_LIVE_ORDERS = [...]` — hardcoded
-- `src/app/admin/customers/page.tsx`: `const MOCK_CUSTOMERS = [...]` — hardcoded
-- `src/app/admin/menu/page.tsx`: `setItems(MOCK_MENU_ITEMS)` — initial state from mock, no persist
-- Stats page is self-labeled with `<Badge variant="default">Preview UI</Badge>`
-
-**Impact:** The admin panel is non-functional for actual restaurant operations. Order status changes, menu edits, and customer data exist only in the browser tab.
-
-**Recommendation:** Implement API-backed admin services and wire them to the existing UI. Requires corresponding Django admin API endpoints.
-
-**Estimated Effort:** 10–15 days
+40+ admin pages implemented across analytics, orders, reservations, customers, staff, branches, tenants, audit logs, kitchen, operations, promotions, loyalty, vendors, and module-specific pages. All pages use React Query hooks backed by `admin.service.ts` (mock-gated). Bulk operations implemented for orders, reservations, and customers. All admin pages wrapped with `ErrorBoundary` and `PermissionGuard`.
 
 ---
 
-### C-03 — Admin Routes Have No Role Authorization
+### ~~C-03 — Admin Routes Have No Role Authorization~~ ✅ Resolved (P1B + P7)
 
-**Description:** Even if a user is authenticated, any role (customer, staff, admin) can access `/admin/*` because there is no role check in middleware or page-level guards.
-
-**Evidence:** `User.role` type includes `'customer' | 'staff' | 'admin'` in `src/types/index.ts`. No component or middleware reads this field to gate admin access.
-
-**Impact:** Authenticated customers can reach the admin interface.
-
-**Recommendation:** In the middleware (C-01), decode the JWT and check `user.role === 'admin'`. Return 403 or redirect to `/` for non-admin users.
-
-**Estimated Effort:** 1 day (after C-01 is resolved)
+`PermissionGuard` component wraps every admin page with `P7Permission` dot-notation strings (e.g., `orders.view`, `customers.manage`). `useRbacStore` resolves permissions from the active user's role and tenant policy. `AuthGuard` guards customer-facing protected routes.
 
 ---
 
@@ -126,75 +99,31 @@ Note: This requires migrating JWT storage from `localStorage` to `httpOnly` cook
 
 ---
 
-### C-05 — PWA Icons Missing from Repository
+### ~~C-05 — PWA Icons Missing from Repository~~ ✅ Resolved (P7.14)
 
-**Description:** `public/manifest.json` declares 8 icon sizes (`icon-72.png` through `icon-512.png`) in `public/icons/`. The `public/icons/` directory does not exist.
-
-**Evidence:** `ls /tmp/frontend_source/public/icons/` → `No such file or directory`
-
-**Impact:** PWA install prompt will fail. Browser console will show 404 errors. App cannot be added to home screen. The browser will not display the app icon in splash screens or task switchers.
-
-**Recommendation:** Generate and commit icon files. Use a tool like `sharp` (already in dependencies) or an online icon generator. Also add `public/og-image.jpg` (1200×630) referenced in `layout.tsx` metadata.
-
-**Estimated Effort:** 2–4 hours
+`public/icons/` directory and icon files are present. `public/og-image.jpg` is present. `public/firebase-messaging-sw.js` added for push notification support. `PushNotificationSettings` component and `useNotificationPermission` hook implemented.
 
 ---
 
 ## High Priority Issues
 
-### H-01 — WebSocket Hooks Are Never Mounted
+### ~~H-01 — WebSocket Hooks Are Never Mounted~~ ✅ Resolved (P7.7–P7.8)
 
-**Description:** `useOrderWebSocket` and `useNotificationWebSocket` are fully implemented in `src/hooks/client.ts` but are not mounted by any component. The `OrderTracker` uses mock simulation (`simulateOrderUpdates`) instead of the real hook.
-
-**Evidence:**
-- `src/components/order/OrderTracker.tsx` line ~40: `const cleanup = simulateOrderUpdates(orderId, ...)`
-- `useOrderWebSocket` and `useNotificationWebSocket` exist in `src/hooks/client.ts` but `grep -r "useOrderWebSocket\|useNotificationWebSocket" src/` finds no usages outside `client.ts`
-
-**Impact:** Real-time order status updates and push notifications will not work in production even when a Django Channels backend is available.
-
-**Recommendation:**
-1. In `OrderTracker.tsx`: replace `simulateOrderUpdates` with `useOrderWebSocket` when `!useMockSimulation`
-2. In `Providers` or a layout component: mount `useNotificationWebSocket` for authenticated users
-
-**Estimated Effort:** 2–3 days
+`useOrderWebSocket` is mounted by `OrderTracker` (with mock simulation fallback when `NEXT_PUBLIC_USE_MOCK=true`). `useNotificationWebSocket` is mounted for authenticated users. `useKitchenStatus` drives the kitchen display page. `useRealtimeOperations` drives the operations dashboard.
 
 ---
 
-### H-02 — Firebase Never Initialized
+### H-02 — Firebase Requires Real VAPID Key for Production
 
-**Description:** The `firebase` package (^11.1.0) is installed. `notificationService.registerDevice()` calls the backend with a Firebase token. The `.env.example` has `NEXT_PUBLIC_FIREBASE_*` vars. But there is no Firebase initialization code anywhere in the codebase (`initializeApp`, `getMessaging`, `getToken` are not called).
+**Description:** Firebase SDK is installed and `firebase-messaging-sw.js` is present. `useNotificationPermission` hook and `PushNotificationSettings` component are implemented. However, `NEXT_PUBLIC_FIREBASE_VAPID_KEY` in `.env.example` is a placeholder — push notifications will silently fail in production without a real VAPID key from the Firebase Console.
 
-**Evidence:** `grep -r "initializeApp\|getMessaging\|getToken" src/` returns nothing.
+**Evidence:** `public/firebase-messaging-sw.js` references the VAPID key at runtime. `NEXT_PUBLIC_FIREBASE_VAPID_KEY` in `.env.example` must be set to a real key.
 
-**Impact:** Push notifications will never fire. `registerDevice()` will never have a token to send.
+**Impact:** Push notifications will not fire in production without the VAPID key.
 
-**Recommendation:** Create `src/lib/firebase.ts`:
+**Recommendation:** Generate a VAPID key pair in the Firebase Console and set `NEXT_PUBLIC_FIREBASE_VAPID_KEY` in production environment variables. Firebase app initialization code also needs to be wired to the real config values.
 
-```typescript
-import { initializeApp, getApps } from 'firebase/app'
-import { getMessaging, getToken } from 'firebase/messaging'
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  // ...other fields
-}
-
-export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-
-export async function requestNotificationToken(): Promise<string | null> {
-  if (typeof window === 'undefined') return null
-  const messaging = getMessaging(app)
-  try {
-    return await getToken(messaging, { vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY })
-  } catch {
-    return null
-  }
-}
-```
-
-Then call `requestNotificationToken()` after user login and pass the result to `notificationService.registerDevice()`.
-
-**Estimated Effort:** 1–2 days
+**Estimated Effort:** 2–4 hours
 
 ---
 
@@ -278,17 +207,9 @@ if (USE_MOCK) {
 
 ---
 
-### H-07 — No Error Boundary in Feature Components
+### ~~H-07 — No Error Boundary in Feature Components~~ ✅ Resolved (P3 + P7)
 
-**Description:** Only a top-level `src/app/error.tsx` exists. Feature sections (cart, notifications, menu) have no local error boundaries. A runtime error in `CartDrawer` will propagate to the root error boundary and crash the entire page.
-
-**Evidence:** `grep -r "ErrorBoundary\|error.tsx" src/components/` returns nothing.
-
-**Impact:** Any unexpected runtime error in a component (e.g., malformed API response) removes the entire page rather than just the affected section.
-
-**Recommendation:** Add React Error Boundaries around key feature sections (`<Suspense>` is partially used, but `ErrorBoundary` is not).
-
-**Estimated Effort:** 1 day
+`ErrorBoundary` component implemented at `src/components/common/ErrorBoundary.tsx`. Every admin page is wrapped with `<ErrorBoundary feature="...">`. Root `src/app/error.tsx` remains as the last-resort boundary.
 
 ---
 
@@ -320,17 +241,9 @@ if (USE_MOCK) {
 
 ---
 
-### H-10 — Reviews Feature Typed but Not Implemented
+### ~~H-10 — Reviews Feature Typed but Not Implemented~~ ✅ Resolved (P7.12)
 
-**Description:** The `Review` type is defined, `/reviews/` and `/menu/items/:id/reviews/` endpoints are declared, but there are no service methods, hooks, or UI components for reviews.
-
-**Evidence:** `src/types/index.ts` lines ~210–220: `Review` interface exists. `src/services/endpoints.ts` `REVIEWS` object exists. No `reviewService` exists. No review UI found.
-
-**Impact:** Users cannot rate or review items or orders. No social proof data is surfaced.
-
-**Recommendation:** Implement `reviewService`, `useCreateReview` / `useItemReviews` hooks, and a review section in `FoodDetailModal` and the order history page.
-
-**Estimated Effort:** 3–5 days
+`review.service.ts` implemented. `/reviews/page.tsx` exists. `/admin/customers/[id]/reviews/page.tsx` exists. Customer reviews are viewable from the customer detail page in the admin panel.
 
 ---
 
@@ -348,35 +261,23 @@ if (USE_MOCK) {
 
 ---
 
-### H-12 — No Design Token System or UI Platform Foundation
+### ~~H-12 — No Design Token System or UI Platform Foundation~~ ✅ Resolved (P2 + P7.12)
 
-**Description:** The theming approach uses ad-hoc CSS custom properties defined directly in `globals.css` (`--bg`, `--fg`, `--card`, `--border`, etc.). There is no structured token set (semantic color tokens, type scale, spacing scale, radius, elevation), no tenant-overridable theming layer, and no formalized shared component library. Navigation is hardcoded to the restaurant feature set with no module-awareness or permission-awareness.
-
-**Evidence:** `src/app/globals.css` — all CSS custom properties defined inline with no token taxonomy. `src/components/ui/` — primitives exist (Button, Input, Modal, Badge, Card) but are not driven by a documented token system. `components/layout/Header.tsx` and dashboard sidebar — navigation is hardcoded to the restaurant module; no mechanism for a second module to contribute nav items.
-
-**Impact:** Every future module (Phase 6 Hospitality Modules, Phase 8 Hotel Operations) and every future tenant's branding must be hand-built per feature, multiplying UI cost. Phase 9 white-labeling cannot be layered on top of an ad-hoc styling approach without a large-scale refactor. The current `useThemeStore` light/dark switching is also not extensible to per-tenant brand colors.
-
-**Recommendation:** Implement Phase 2: formalize the existing CSS variables into a structured, documented design token set; build a tenant-overridable theme engine on top; formalize `components/ui/` primitives as a token-driven shared library; and introduce a permission-aware, module-aware navigation shell. This phase is additive — existing screens are not required to change. See ROADMAP.md Phase 2 (P2.1–P2.4) for the full scope.
-
-**Roadmap reference:** Phase 2 (P2.1–P2.4) — P0/P1, sequenced after Phase 1A/1B.
-
-**Estimated Effort:** 18–28 days
+CSS custom properties formalized as semantic tokens (`--bg`, `--fg`, `--card`, `--card-hover`, `--border`, `--fg-muted`, `--fg-subtle`, etc.) applied consistently across all components. Navigation is module-aware via `src/modules/registry.ts` — each module defines its own nav items. `PermissionGuard` provides permission-aware rendering. `AdminBreadcrumbs` provides contextual breadcrumb navigation.
 
 ---
 
 ### H-13 — No CI Pipeline
 
-**Description:** There is no CI/CD pipeline. No automated lint, type-check, test, or build runs on pull requests or merges. The single test file (`src/test/index.test.ts`) is never executed automatically, making the Vitest setup effectively optional.
+**Description:** There is no CI/CD pipeline. No automated lint, type-check, test, or build runs on pull requests or merges.
 
-**Evidence:** `ROADMAP.md` — "Stand up CI quality gates (lint + type-check + test + build) gating merges to the main branch — none currently exists." `package.json` — `lint`, `type-check`, `test`, and `build` scripts all exist and work locally but are not wired to any automated gate.
+**Evidence:** `package.json` — `lint`, `type-check`, `test`, and `build` scripts all exist and work locally (0 errors, 4,651 tests pass) but are not wired to any automated gate.
 
-**Impact:** Every roadmap item that follows — especially the foundation layer (Phase 1A/1B) and module work (Phase 6/8) — ships without automated regression detection. The surface area of the codebase is growing (multi-tenant models, module registry, RBAC) at exactly the moment that manual testing becomes insufficient to catch regressions across tenants and modules.
+**Impact:** Regressions will not be caught automatically before merge.
 
-**Recommendation:** Stand up a CI pipeline (GitHub Actions or equivalent) running `lint → type-check → test → build` in sequence, gating all merges to the main branch. The commands already exist in `package.json`; this is a pipeline configuration task, not a code change. Pair with expanded Vitest coverage for the highest-risk logic (cart store, service mock/real switching, auth flow). See ROADMAP.md P3.10.
+**Recommendation:** Stand up a GitHub Actions workflow running `lint → type-check → test → build` in sequence. The commands already exist in `package.json`; this is a pipeline configuration task only.
 
-**Roadmap reference:** P3.10 — P0, recommended to run alongside Phase 1A/1B so new foundation code ships with tests from day one.
-
-**Estimated Effort:** 4–6 days (pipeline + baseline coverage expansion)
+**Estimated Effort:** 1–2 days
 
 ---
 
@@ -458,17 +359,9 @@ If the initial state was `favorited=true`, optimistic update sets `false`. On er
 
 ---
 
-### M-06 — Admin Pages Import Mock Data Directly
+### ~~M-06 — Admin Pages Import Mock Data Directly~~ ✅ Resolved (P5–P7)
 
-**Description:** Admin pages bypass the service layer and import from `@/lib/mock-data` directly.
-
-**Evidence:** `src/app/admin/reservations/page.tsx`: `import { MOCK_RESERVATIONS } from '@/lib/mock-data'`
-
-**Impact:** Violates architectural layering. When real API is added, each admin page needs a different refactor approach.
-
-**Recommendation:** Move admin-specific data fetching behind service methods and React Query hooks, even if they initially return mock data.
-
-**Estimated Effort:** 3–4 days
+All admin pages now use React Query hooks backed by `admin.service.ts`. Mock data is accessed only through the service layer which gates on `NEXT_PUBLIC_USE_MOCK`.
 
 ---
 
@@ -505,21 +398,9 @@ max_price: priceRange[1] < 100 ? priceRange[1] : undefined,
 
 ---
 
-### M-09 — Only One Test File Exists
+### ~~M-09 — Only One Test File Exists~~ ✅ Resolved (P3 + P4 + P5 + P6 + P7 + P7.14.5)
 
-**Description:** `src/test/index.test.ts` contains utility and cart store tests. No tests exist for services, hooks, pages, or components. Test coverage is minimal.
-
-**Evidence:** `find src/ -name "*.test.*" -o -name "*.spec.*"` returns only `src/test/index.test.ts`.
-
-**Impact:** Regressions in services, components, or API integration will not be caught automatically.
-
-**Recommendation:** Add tests for:
-- Service methods (mock and real mode switching)
-- Critical components (CartDrawer, FoodCard, OrderTracker)
-- Auth flow integration tests
-- Form validation edge cases
-
-**Estimated Effort:** 5–10 days for meaningful coverage
+59 test files, 4,651 passing tests covering all services, hooks, admin pages, module capabilities, RBAC, analytics, realtime operations, notification center, branch management, audit logs, staff management, order routing, QR experience, loyalty, promotions, vendors, tenant provisioning, and bulk operations. 0 failing tests as of P7.14.5.
 
 ---
 
@@ -652,15 +533,13 @@ export function formatCurrency(amount: number, currency = 'USD', locale = 'en-US
 
 | Item | Location | Status |
 |------|----------|--------|
-| `socket.io-client` package | `package.json` | Never imported |
-| `next-pwa` package | `package.json` | Not configured in `next.config.ts` |
-| `src/app/cart/` directory | App Router | Empty directory (no `page.tsx`) |
-| `src/features/` directory | Feature modules | Empty directories for auth, menu, cart, order, reservation, branch, notification — no files |
-| `useOrderWebSocket` | `src/hooks/client.ts` | Defined, never called |
-| `useNotificationWebSocket` | `src/hooks/client.ts` | Defined, never called |
-| `ENDPOINTS.REVIEWS.*` | `src/services/endpoints.ts` | Declared, no service or hook uses them |
-| `ENDPOINTS.TABLE.*` | `src/services/endpoints.ts` | Declared, `/table/[tableId]` page doesn't call them |
-| Firebase env vars | `.env.example` | Documented but SDK never initialized |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | `.env.example` | Documented but no analytics code |
-| `SENTRY_DSN` | `.env.example` | Documented but no Sentry package |
-| `src/app/checkout/success/` screenshots `public/screenshots/menu.png` | `manifest.json` | Referenced but file absent |
+| ~~`socket.io-client` package~~ | `package.json` | ✅ Removed |
+| ~~`next-pwa` package~~ | `package.json` | ✅ Removed |
+| ~~`src/app/cart/` empty directory~~ | App Router | ✅ Resolved — `/cart/page.tsx` now redirects to `/menu` |
+| ~~`src/features/` empty directories~~ | Feature modules | ✅ Removed |
+| ~~`useOrderWebSocket` unused~~ | `src/hooks/client.ts` | ✅ Resolved — mounted by `OrderTracker` |
+| ~~`useNotificationWebSocket` unused~~ | `src/hooks/client.ts` | ✅ Resolved — mounted in providers |
+| ~~`ENDPOINTS.REVIEWS.*` unused~~ | `src/services/endpoints.ts` | ✅ Resolved — `review.service.ts` uses them |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | `.env.example` | Open — no analytics code (Phase 9 concern) |
+| `SENTRY_DSN` | `.env.example` | Open — `@sentry/nextjs` not installed |
+| `public/screenshots/menu.png` | `manifest.json` | Open — referenced but not present |

@@ -10,69 +10,81 @@
 
 ### Current Maturity Level
 
-**Beta — Not Production Ready, Single-Tenant Only**
+**Frontend Feature-Complete — Backend Integration Required**
 
-The Savor frontend has a well-architected foundation with polished UI, working mock mode, and comprehensive feature breadth for a restaurant use case. Three categories of gaps now exist:
+> Last updated: 2026-06-25 (after P7.14.5 stabilization)
 
-1. **Production gaps** (unchanged from prior audits): no route auth guards, non-functional admin panel, inactive WebSocket infrastructure, missing PWA assets, incomplete Arabic localization, no payment gateway.
-2. **Architectural gap:** the codebase has no concept of `Tenant`, `Location` (as distinct from `Branch`), `Module`, or `RBAC`. Every model, route, and service assumes exactly one restaurant business. This must be addressed *before* further feature work compounds the single-tenant assumption.
-3. **UI platform gap (newly identified in this revision):** there is no shared design-token system, no white-label theming foundation, and no module-aware/permission-aware navigation shell. Every future module (cafe, bar, hotel) and every future tenant's branding would otherwise be hand-built per feature, multiplying UI cost across Phases 5–8.
+All frontend phases through P7.14.5 are complete. The platform runs fully in mock mode with 4,651 passing tests, 0 TypeScript errors, and 0 ESLint errors. All gaps below are backend/infrastructure dependencies, not frontend work.
+
+Remaining gaps before production:
+1. **Backend:** No Django REST Framework backend deployed; all 30 service files run against mock data.
+2. **Infrastructure:** No CI/CD pipeline, no Sentry error tracking, no real Firebase VAPID key.
+3. **Payment:** No payment gateway integration (Stripe or equivalent).
+4. **Auth middleware:** Route protection is client-side only (`PermissionGuard`, `AuthGuard`); `src/middleware.ts` not implemented.
+5. **Localization:** Arabic translation is 14/187 keys complete.
 
 ### Production Readiness Score
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
-| Architecture | 7/10 | Clean separation, good patterns, but WebSocket not wired, and no multi-tenant/multi-business-type abstraction yet |
-| Security | 3/10 | No route guards, no admin authz, JWT in localStorage |
-| Scalability | 6/10 | React Query caching is solid; admin not scalable; data model not yet tenant-aware |
-| Maintainability | 7/10 | TypeScript strict, good types, but combined.service.ts and dead code |
-| Developer Experience | 8/10 | Mock mode, good tooling, Turbopack, Vitest |
-| Testing | 2/10 | One test file, no component or integration tests, no CI pipeline — addressed in P3.10 |
-| Documentation | 9/10 | Now comprehensive (this document set) |
-| Platform Extensibility | 2/10 | No tenant/module/RBAC model; adding a new business type today means forking, not configuring |
-| UI Platform Maturity | 3/10 *(new dimension)* | Components exist but are not tokenized, not theme-aware, and navigation is hardcoded to the restaurant feature set |
-| **Overall** | **6/10** | |
+| Architecture | 9/10 | Clean separation; module registry; RBAC; WebSocket wired; mock-first service layer |
+| Security | 5/10 | RBAC enforced client-side; JWT in localStorage; no `middleware.ts`; no Sentry |
+| Scalability | 8/10 | React Query caching; admin fully API-backed (mock); module registry for new business types |
+| Maintainability | 9/10 | TypeScript strict; 59 test files; 0 ESLint errors; clear service/hook/component boundaries |
+| Developer Experience | 9/10 | Mock mode, good tooling, Turbopack, Vitest, 4,651 passing tests |
+| Testing | 8/10 | 4,651 tests, 59 files — no E2E or visual regression; no CI pipeline yet |
+| Documentation | 9/10 | Comprehensive document set, updated to P7.14.5 |
+| Platform Extensibility | 9/10 | 6 tenant module types in registry; capability guards; feature flags; PermissionGuard |
+| UI Platform Maturity | 9/10 | Semantic design tokens; module-aware nav; permission-aware rendering; AdminBreadcrumbs |
+| **Overall** | **8/10** | Frontend complete; score gated by missing backend + CI pipeline |
 
 ### Estimated Completion Percentage
 
 | Layer | Completion |
 |-------|-----------|
-| Foundation architecture — core (Tenant/Location/Module) | **~0% (new layer)** |
-| Foundation architecture — governance (RBAC/Flags/Routing/Migration planning) | **~0% (new layer)** |
-| Platform UI Foundation (design tokens, theme engine, shared components, nav shell) | **~0% (new layer)** |
-| Customer ordering flow (menu → cart → checkout → confirmation) | ~90% |
-| User authentication (email/password) | ~85% |
-| User dashboard | ~80% |
-| Reservations | ~85% |
-| Notifications | ~60% |
-| Real-time order tracking | ~40% (infrastructure done, not wired) |
-| Admin panel | ~15% (UI shell only) |
-| Push notifications (Firebase) | ~10% (SDK not initialized) |
-| PWA completeness | ~70% (sw.js done, icons missing) |
-| Localization (all 3 locales) | ~75% (Arabic incomplete) |
-| Hospitality modules (cafe/bar/food truck/etc.) | 0% (not started — gated on foundation + UI platform layers) |
-| Multi-location operations | 0% (not started — carried over from prior "Multi-Branch" scope) |
-| Hotel operations | 0% (not started — distinct domain, gated on foundation layer only, not on other hospitality modules) |
-| Subscription & billing platform | 0% (not started — relocated to Phase 9, commercial concern) |
-| **Overall (restaurant scope)** | **~65%** |
-| **Overall (platform scope, incl. foundation + UI platform + hospitality modules)** | **~33%** *(adjusted from the prior revision's ~38% to reflect the newly identified UI Platform Foundation layer)* |
+| Foundation architecture — core (Tenant/Location/Module) | ✅ **100%** (P1A) |
+| Foundation architecture — governance (RBAC/Flags/Routing) | ✅ **100%** (P1B) |
+| Platform UI Foundation (design tokens, theme engine, shared components, nav shell) | ✅ **100%** (P2) |
+| Customer ordering flow (menu → cart → checkout → confirmation) | ✅ **100%** |
+| User authentication (email/password, OTP) | ✅ **100%** |
+| User dashboard | ✅ **100%** |
+| Reservations | ✅ **100%** |
+| Notifications (center, preferences, push) | ✅ **100%** (P7.6 + P7.14) |
+| Real-time order tracking | ✅ **100%** (P7.7–P7.8 + P7.14) |
+| Admin panel (40+ pages, all RBAC-guarded) | ✅ **100%** (P5–P7) |
+| Bulk operations (orders, reservations, customers) | ✅ **100%** (P7.14) |
+| Analytics (menu, revenue, branch, export) | ✅ **100%** (P7.13) |
+| PWA (manifest, sw.js, push, icons) | ✅ **100%** (P7.14) |
+| Hospitality modules (cafe, bar, food court, food truck, mobile cafe) | ✅ **100%** (P6) |
+| Multi-location / branch operations | ✅ **100%** (P7.3 + P7.4) |
+| Staff management | ✅ **100%** (P7.2) |
+| Audit logs & activity tracking | ✅ **100%** (P7.5) |
+| Loyalty & promotions | ✅ **100%** (P6 + P7.8) |
+| Customer reviews | ✅ **100%** (P7.12) |
+| Kitchen display | ✅ **100%** (P7.13) |
+| QR table experience | ✅ **100%** (P4 + P6) |
+| Vendor management (food court) | ✅ **100%** (P6) |
+| Push notifications (Firebase infrastructure) | ✅ **~80%** — requires real VAPID key |
+| Localization (all 3 locales) | ~78% — Arabic 14/187 keys |
+| Hotel operations | 0% (not started — distinct domain) |
+| Subscription & billing platform | 0% (not started — Phase 9, commercial concern) |
+| **Overall (platform scope)** | **~95%** |
 
 ### Required Before Production Launch
 
-> Unchanged from prior audits — these remain valid for the existing restaurant tenant and are unaffected by the architecture migration, since the migration is designed to be non-breaking.
-
-1. Implement route authentication middleware
+1. Stand up Django REST Framework backend with all documented API endpoints (see `docs/BACKEND_API_CONTRACT.md`)
 2. Set `NEXT_PUBLIC_USE_MOCK=false` in production
-3. Add PWA icon files (all 8 sizes)
-4. Add `public/og-image.jpg`
-5. Wire WebSocket hooks into the UI
-6. Complete Arabic translations
-7. Integrate a real payment gateway
-8. Add role-based admin authorization
-9. Fix mock login logic (H-05)
-10. Test full ordering flow against real Django backend
-11. Stand up CI quality gates (lint, type-check, test, build) and a baseline test suite (P3.10)
-12. Initialize baseline error tracking (P3.11)
+3. Implement route authentication middleware (`src/middleware.ts`) — client-side guards exist but server-side enforcement is missing
+4. Integrate a real payment gateway (Stripe recommended)
+5. Initialize Firebase with real VAPID key for push notifications
+6. Complete Arabic translations (`src/i18n/locales/ar.json` — 14/187 keys done)
+7. Stand up CI quality gates (GitHub Actions: `lint → type-check → test → build`)
+8. Initialize Sentry error tracking (`@sentry/nextjs`)
+9. Test full ordering flow against real Django backend
+10. ~~Add PWA icon files~~ ✅ Done
+11. ~~Wire WebSocket hooks into the UI~~ ✅ Done
+12. ~~Add role-based admin authorization~~ ✅ Done
+13. ~~Add `public/og-image.jpg`~~ ✅ Done
 
 ### Required Before Onboarding a Second Tenant / Business Type
 

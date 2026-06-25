@@ -2,6 +2,8 @@
 
 > Endpoints the frontend is fully wired for but the backend has not yet deployed.
 > Frontend falls back to mock data (`NEXT_PUBLIC_USE_MOCK=true`) for all of these.
+>
+> Last updated: 2026-06-25. Sections 1–5 are pre-existing gaps. Sections 6–12 were added in P7.2–P7.14 and also require backend implementation.
 
 ---
 
@@ -317,3 +319,136 @@ Expected behavior difference from `/reservations/`:
 - Returns full `user` sub-object embedded in each reservation
 
 **Frontend type:** `AdminReservationFilters` — `src/types/index.ts:574`
+
+---
+
+## 6. Analytics Endpoints (added P7.13)
+
+All three analytics endpoints are fully implemented on the frontend and fall back to rich mock data.
+
+### GET /analytics/menu/
+
+**Frontend call site:** `src/services/analytics.service.ts` → `getMenuAnalytics()`
+**Hook:** `useMenuAnalytics()` in `src/hooks/index.ts`
+**Used by:** `src/app/admin/analytics/page.tsx`
+**Query params:** `tenant_id`, `branch_id`, `period` (`7d`|`30d`|`90d`)
+**Response type:** `MenuAnalytics` — `src/types/analytics.ts`
+
+### GET /analytics/revenue/
+
+**Frontend call site:** `src/services/analytics.service.ts` → `getRevenueAnalytics()`
+**Hook:** `useRevenueAnalytics()` in `src/hooks/index.ts`
+**Used by:** `src/app/admin/analytics/page.tsx`
+**Query params:** `tenant_id`, `branch_id`, `period`, `group_by`
+**Response type:** `RevenueAnalytics` — `src/types/analytics.ts`
+
+### GET /analytics/summary/
+
+**Frontend call site:** `src/services/analytics.service.ts` → `getAnalyticsSummary()`
+**Hook:** `useAnalyticsSummary()` in `src/hooks/index.ts`
+**Used by:** `src/app/admin/analytics/page.tsx`
+**Response type:** `AnalyticsSummary` — `src/types/analytics.ts`
+
+---
+
+## 7. Bulk Operation Endpoints (added P7.14)
+
+### POST /admin/orders/bulk-status/
+
+**Frontend call site:** `src/hooks/index.ts` → `useBulkUpdateOrderStatus()`
+**Used by:** `src/app/admin/orders/page.tsx` — "Accept Selected" action
+**Request:** `{ ids: string[], status: OrderStatus }`
+
+### POST /admin/orders/bulk-cancel/
+
+**Frontend call site:** `src/hooks/index.ts` → `useBulkCancelOrders()`
+**Used by:** `src/app/admin/orders/page.tsx` — "Cancel Selected" action
+**Request:** `{ ids: string[] }`
+
+### POST /admin/reservations/bulk-confirm/
+
+**Frontend call site:** `src/hooks/index.ts` → `useBulkConfirmReservations()`
+**Used by:** `src/app/admin/reservations/page.tsx` — "Confirm Selected" action
+**Request:** `{ ids: string[] }`
+
+### POST /admin/reservations/bulk-cancel/
+
+**Frontend call site:** `src/hooks/index.ts` → `useBulkCancelReservations()`
+**Used by:** `src/app/admin/reservations/page.tsx` — "Cancel Selected" action
+**Request:** `{ ids: string[] }`
+
+### POST /admin/customers/bulk-export/
+
+**Frontend call site:** `src/hooks/index.ts` → `useBulkExportCustomers()`
+**Used by:** `src/app/admin/customers/page.tsx` — "Export Selected" action
+**Request:** `{ ids: string[] }`
+**Response:** CSV file download
+
+> **Note:** Frontend currently does client-side CSV generation as a temporary measure. Server-side export via this endpoint is required for large datasets.
+
+---
+
+## 8. Kitchen Display Endpoint (added P7.13)
+
+### GET /admin/kitchen/status/
+
+**Frontend call site:** `src/services/realtime-operations.service.ts` → `getKitchenStatus()`
+**Hook:** `useKitchenStatus(branchId, tenantId)` in `src/hooks/index.ts`
+**Used by:** `src/app/admin/kitchen/page.tsx`, `src/components/admin/KitchenDisplay.tsx`
+**Query params:** `branch_id` (required), `tenant_id`
+**Response type:** `KitchenStatus` — `src/types/realtime-operations.ts`
+
+---
+
+## 9. Staff Management Endpoints (added P7.2)
+
+### GET /admin/staff/
+
+**Frontend call site:** `src/services/staff.service.ts`
+**Hook:** `useAdminStaff()` in `src/hooks/index.ts`
+**Used by:** `src/app/admin/staff/page.tsx`
+**Response type:** `StaffMember[]` — `src/types/staff.ts`
+
+### GET|PATCH /admin/staff/{id}/
+
+**Frontend call site:** `src/services/staff.service.ts`
+**Used by:** `src/app/admin/staff/[id]/page.tsx`
+
+---
+
+## 10. Audit Log Endpoints (added P7.5)
+
+### GET /admin/audit-logs/
+
+**Frontend call site:** `src/services/audit-log.service.ts`
+**Hook:** `useAdminAuditLogs()` in `src/hooks/index.ts`
+**Used by:** `src/app/admin/audit-logs/page.tsx`
+**Response type:** `AuditLog[]` — `src/types/audit-log.ts`
+
+### GET /admin/audit-logs/{id}/
+
+**Used by:** `src/app/admin/audit-logs/[id]/page.tsx`
+
+---
+
+## 11. Realtime Operations Endpoints (added P7.7)
+
+### GET /admin/operations/status/
+
+**Frontend call site:** `src/services/realtime-operations.service.ts`
+**Hook:** `useRealtimeOperations()` in `src/hooks/index.ts`
+**Used by:** `src/app/admin/operations/page.tsx`
+**Response type:** `RealtimeOperationsStatus` — `src/types/realtime-operations.ts`
+
+**WebSocket alternative:** `ws/operations/{branchId}/` — real-time push.
+
+---
+
+## 12. Feature Flag Endpoints (added P1B)
+
+### GET|PATCH /admin/settings/feature-flags/
+
+**Frontend call site:** `src/services/feature-flags.service.ts`
+**Hook:** `useFeatureFlags()`, `useToggleFeatureFlag()` in `src/hooks/index.ts`
+**Used by:** `src/app/admin/settings/feature-flags/page.tsx`
+

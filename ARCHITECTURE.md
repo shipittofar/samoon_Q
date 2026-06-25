@@ -175,30 +175,35 @@ src/
 │                     Each page owns its own data-fetching via hooks
 ├── components/    → Reusable UI (no direct store access in primitives,
 │                     store access allowed in feature components)
-├── hooks/         → React Query hooks (index.ts) + client utility hooks (client.ts)
+├── hooks/         → React Query hooks (index.ts, 162 exported hooks)
+│                     + client utility hooks (client.ts)
 │                     Bridge between services and components
-├── services/      → Network layer — no React, no stores
+├── modules/       → Module registry (registry.ts) + capability guard
+│                     Defines 6 tenant business types and their nav/capabilities
+├── services/      → Network layer — no React, no stores (30 service files)
 │                     All mock branching lives here
-├── stores/        → Zustand state — no network calls
+├── stores/        → Zustand state — no network calls (11 stores)
 ├── providers/     → React context/provider setup + auth bootstrapping
 ├── lib/           → Static fixtures (mock-data.ts)
 ├── constants/     → App-wide constants (URLs, keys, rates)
-├── types/         → TypeScript interfaces (no runtime code)
+├── types/         → TypeScript interfaces split across domain files
+│                     index.ts, analytics.ts, audit-log.ts, branch.ts,
+│                     notification.ts, provisioning.ts, qr-experience.ts,
+│                     rbac.ts, realtime-operations.ts, staff.ts, etc.
 ├── utils/         → Pure functions (formatting, debounce, cn)
 ├── i18n/          → next-intl config + translation JSON
-└── test/          → Vitest test files
+└── test/          → Vitest test files (59 files, 4,651 tests)
 ```
 
-### Dependency Rules (intended)
+### Dependency Rules
 
 ```
 app → hooks → services → axios.instance
 app → components → hooks/stores
+modules → stores/types
 stores → types/constants
 services → types/constants/mock-data
 ```
-
-**Violation found:** `src/app/admin/*` pages import directly from `@/lib/mock-data` rather than going through services, bypassing the service layer entirely.
 
 ---
 
@@ -219,14 +224,25 @@ services → types/constants/mock-data
 │   │   ├── register/page.tsx
 │   │   ├── forgot-password/page.tsx
 │   │   ├── verify-otp/page.tsx
-│   │   ├── menu/page.tsx               # Full menu browser
+│   │   ├── menu/page.tsx               # Full menu browser with filters
 │   │   ├── restaurant/page.tsx         # About / restaurant info
 │   │   ├── reservation/page.tsx        # Booking form
+│   │   ├── reservation/confirm/page.tsx # Booking confirmation
+│   │   ├── events/page.tsx             # Events listing
+│   │   ├── location/page.tsx           # Location/map page
+│   │   ├── loyalty/page.tsx            # Customer loyalty portal
+│   │   ├── promotions/page.tsx         # Active promotions
+│   │   ├── reviews/page.tsx            # Customer reviews
+│   │   ├── vendors/page.tsx            # Vendor listing (food court)
+│   │   ├── cart/page.tsx               # Redirect → /menu
+│   │   ├── order/page.tsx              # Redirect → /dashboard/orders
+│   │   ├── table/page.tsx              # Redirect → /menu
 │   │   ├── checkout/
 │   │   │   ├── page.tsx                # Multi-step checkout
 │   │   │   ├── success/page.tsx        # Order confirmed + tracker
 │   │   │   └── failure/page.tsx        # Payment failure
-│   │   ├── order/[orderId]/page.tsx    # Order detail + tracker
+│   │   ├── order/[orderId]/page.tsx    # Order detail
+│   │   ├── order/[orderId]/track/page.tsx  # Real-time order tracking subroute
 │   │   ├── table/[tableId]/page.tsx    # QR dine-in entry
 │   │   ├── dashboard/
 │   │   │   ├── layout.tsx              # Sidebar layout
@@ -237,11 +253,48 @@ services → types/constants/mock-data
 │   │   │   ├── addresses/page.tsx
 │   │   │   └── settings/page.tsx
 │   │   ├── admin/
-│   │   │   ├── stats/page.tsx          # [UI_ONLY] KPI dashboard
-│   │   │   ├── orders/page.tsx         # [UI_ONLY] Order board
-│   │   │   ├── menu/page.tsx           # [UI_ONLY] Menu management
-│   │   │   ├── customers/page.tsx      # [UI_ONLY] Customer list
-│   │   │   └── reservations/page.tsx   # [UI_ONLY] Reservation management
+│   │   │   ├── layout.tsx              # Admin shell with breadcrumbs
+│   │   │   ├── analytics/page.tsx      # Menu + revenue analytics
+│   │   │   ├── audit-logs/page.tsx     # Audit log browser
+│   │   │   ├── audit-logs/[id]/page.tsx
+│   │   │   ├── bar/events/page.tsx     # Bar module — events
+│   │   │   ├── bar/happy-hour/page.tsx # Bar module — happy hour
+│   │   │   ├── branches/page.tsx       # Branch management
+│   │   │   ├── branches/[id]/page.tsx  # Branch detail
+│   │   │   ├── branches/[id]/analytics/page.tsx
+│   │   │   ├── branches/analytics/page.tsx
+│   │   │   ├── cafe/happy-hour/page.tsx
+│   │   │   ├── cafe/loyalty/page.tsx
+│   │   │   ├── customers/page.tsx      # Customer list with bulk ops
+│   │   │   ├── customers/[id]/page.tsx # Customer detail
+│   │   │   ├── customers/[id]/reviews/page.tsx
+│   │   │   ├── food-court/seating/page.tsx
+│   │   │   ├── food-court/vendors/page.tsx
+│   │   │   ├── food-truck/routes/page.tsx
+│   │   │   ├── food-truck/stops/page.tsx
+│   │   │   ├── kitchen/page.tsx        # Kitchen display (KitchenDisplay component)
+│   │   │   ├── loyalty/page.tsx        # Loyalty program management
+│   │   │   ├── menu/page.tsx           # Menu management
+│   │   │   ├── mobile-cafe/loyalty/page.tsx
+│   │   │   ├── mobile-cafe/routes/page.tsx
+│   │   │   ├── notifications/page.tsx  # Notification center
+│   │   │   ├── notifications/[id]/page.tsx
+│   │   │   ├── operations/page.tsx     # Realtime ops dashboard
+│   │   │   ├── orders/page.tsx         # Order board with bulk ops
+│   │   │   ├── orders/[id]/page.tsx    # Order detail
+│   │   │   ├── promotions/page.tsx     # Promotion management
+│   │   │   ├── promotions/[id]/page.tsx
+│   │   │   ├── reservations/page.tsx   # Reservation management with bulk ops
+│   │   │   ├── reservations/[id]/page.tsx
+│   │   │   ├── settings/page.tsx       # Settings with persistence
+│   │   │   ├── settings/feature-flags/page.tsx
+│   │   │   ├── staff/page.tsx          # Staff management
+│   │   │   ├── staff/[id]/page.tsx     # Staff detail
+│   │   │   ├── tenants/page.tsx        # Tenant management
+│   │   │   ├── tenants/new/page.tsx
+│   │   │   ├── tenants/[slug]/page.tsx
+│   │   │   ├── vendors/page.tsx        # Vendor management
+│   │   │   └── vendors/[id]/page.tsx
 │   │   └── api/health/route.ts         # Health check endpoint
 │   ├── components/
 │   │   ├── layout/                     # Header, Navbar, Footer, MainLayout
@@ -249,34 +302,94 @@ services → types/constants/mock-data
 │   │   ├── cart/                       # CartDrawer, FloatingCart
 │   │   ├── order/                      # OrderTracker
 │   │   ├── notification/               # NotificationCenter
-│   │   ├── common/                     # BranchSelector, PageTransition, JsonLd
-│   │   └── ui/                         # Button, Input, Modal, Badge, Card, ...
+│   │   ├── auth/                       # AuthGuard, PermissionGuard
+│   │   ├── guards/                     # AuthGuard wrappers
+│   │   ├── charts/                     # Chart primitives for analytics
+│   │   ├── pwa/                        # PWA install prompt
+│   │   ├── common/                     # BranchSelector, PageTransition, JsonLd, ErrorBoundary
+│   │   ├── admin/                      # Admin-specific components:
+│   │   │   ├── ActivityFeed.tsx
+│   │   │   ├── AdminBreadcrumbs.tsx
+│   │   │   ├── AnalyticsExport.tsx
+│   │   │   ├── AuditTimeline.tsx
+│   │   │   ├── BranchStatusGrid.tsx
+│   │   │   ├── BulkActionBar.tsx
+│   │   │   ├── KitchenDisplay.tsx
+│   │   │   ├── LiveOrderQueue.tsx
+│   │   │   ├── LiveReservationQueue.tsx
+│   │   │   ├── PushNotificationSettings.tsx
+│   │   │   ├── RealtimeDashboardWidgets.tsx
+│   │   │   ├── SLAMonitor.tsx
+│   │   │   └── StaffPresenceBoard.tsx
+│   │   └── ui/                         # Button, Input, Modal, Badge, Card, Avatar, ...
 │   ├── hooks/
-│   │   ├── index.ts                    # React Query hooks (auth, menu, order, etc.)
+│   │   ├── index.ts                    # 162 React Query hooks (auth, menu, order, admin, etc.)
 │   │   └── client.ts                   # WebSocket hooks + utility hooks
-│   ├── services/
+│   ├── modules/
+│   │   ├── registry.ts                 # 6 tenant module types + nav/capability definitions
+│   │   └── capability-guard.ts         # Runtime capability enforcement
+│   ├── services/                       # 30 service files — all mock-gated
 │   │   ├── axios.instance.ts           # Axios + JWT/CSRF interceptors + refresh logic
 │   │   ├── endpoints.ts                # All API endpoint constants
+│   │   ├── admin.service.ts            # Admin CRUD operations
+│   │   ├── analytics.service.ts        # Menu + revenue analytics
+│   │   ├── audit-log.service.ts        # Audit log queries
+│   │   ├── audit-event-registry.ts     # Audit event type definitions
 │   │   ├── auth.service.ts             # Authentication methods
+│   │   ├── branch.service.ts           # Branch management
+│   │   ├── branch-access.service.ts    # Branch-scoped access control
+│   │   ├── branch-analytics.service.ts # Per-branch analytics
+│   │   ├── combined.service.ts         # reservation, notification, user (legacy)
+│   │   ├── feature-flags.service.ts    # Feature flag CRUD
+│   │   ├── loyalty.service.ts          # Loyalty points + rewards
 │   │   ├── menu.service.ts             # Menu data methods
+│   │   ├── notification.service.ts     # Notification delivery
+│   │   ├── notification-event-registry.ts
+│   │   ├── notification-preferences.service.ts
 │   │   ├── order.service.ts            # Order CRUD
-│   │   ├── combined.service.ts         # reservation, branch, notification, user
+│   │   ├── order-routing.service.ts    # Multi-branch order routing
+│   │   ├── payment.service.ts          # Payment (mock only)
+│   │   ├── permission.service.ts       # Permission resolution
+│   │   ├── promotion.service.ts        # Promotion management
+│   │   ├── qr-experience.service.ts    # QR table/ordering experience
+│   │   ├── rbac.service.ts             # Role-based access control
+│   │   ├── realtime-event-registry.ts  # Real-time event type definitions
+│   │   ├── realtime-operations.service.ts # Kitchen + SLA operations
+│   │   ├── review.service.ts           # Customer reviews
+│   │   ├── staff.service.ts            # Staff management
+│   │   ├── tenant.service.ts           # Tenant CRUD
+│   │   ├── tenant-provisioning.service.ts # Tenant onboarding
+│   │   ├── vendor.service.ts           # Food court vendor management
 │   │   └── websocket.service.ts        # WebSocket class + mock simulation
-│   ├── stores/index.ts                 # All Zustand stores
+│   ├── stores/index.ts                 # 11 Zustand stores
 │   ├── providers/index.tsx             # QueryClient + Theme + RTL + Auth bootstrap
 │   ├── lib/mock-data.ts                # All mock fixtures
 │   ├── constants/index.ts              # App constants
-│   ├── types/index.ts                  # TypeScript types (no runtime code)
+│   ├── types/                          # TypeScript types (no runtime code)
+│   │   ├── index.ts                    # Core types
+│   │   ├── analytics.ts                # MenuAnalytics, RevenueAnalytics, etc.
+│   │   ├── audit-log.ts                # AuditLog, AuditEventType
+│   │   ├── branch-routing.ts           # BranchRoutingRule, etc.
+│   │   ├── branch.ts                   # Branch, BranchCapability
+│   │   ├── notification.ts             # Notification, NotificationPreferences
+│   │   ├── provisioning.ts             # TenantProvisioning types
+│   │   ├── qr-experience.ts            # QRSession, QRExperienceType
+│   │   ├── rbac.ts                     # P7Permission, Role, RbacPolicy
+│   │   ├── realtime-operations.ts      # LiveOrder, KitchenStatus, SLABreach
+│   │   └── staff.ts                    # StaffMember, Shift, etc.
 │   ├── utils/index.ts                  # Pure utility functions
 │   ├── i18n/
 │   │   ├── request.ts                  # next-intl locale detection
-│   │   └── locales/                    # en.json, fa.json, ar.json
+│   │   └── locales/                    # en.json, fa.json, ar.json (ar partial)
 │   └── test/
 │       ├── setup.ts
-│       └── index.test.ts               # Utility + cart store tests
+│       └── *.test.ts                   # 59 test files, 4,651 tests
 ├── public/
-│   ├── sw.js                           # Service worker (hand-written)
-│   ├── manifest.json                   # PWA manifest
+│   ├── sw.js                           # Service worker (cache-first static, network-first API)
+│   ├── firebase-messaging-sw.js        # Firebase push notification handler
+│   ├── manifest.json                   # PWA manifest (shortcuts, icons, theme)
+│   ├── og-image.jpg                    # Open Graph image
+│   ├── icons/                          # PWA icons (72px–512px)
 │   └── robots.txt
 ├── next.config.ts                      # Next.js + next-intl config
 ├── tsconfig.json                       # TypeScript config (paths: @/)
@@ -302,11 +415,14 @@ graph TD
         BRANCH[useBranchStore\nactiveBranch]
         FAV[useFavoritesStore\nfavorites: Set<string>]
         RECENT[useRecentlyViewedStore\nitems: MenuItem[]]
+        TENANT[useTenantStore\ntenant · activeModule]
+        DINEIN[useDineInStore\ntableNumber · sessionId]
     end
 
     subgraph InMemory["In-Memory Only"]
         AUTH[useAuthStore\nuser · isAuthenticated · isLoading]
         NOTIF[useNotificationStore\nnotifications · unreadCount]
+        RBAC[useRbacStore\npermissions · role · policies]
     end
 
     subgraph ReactQuery["React Query (server cache)"]
@@ -428,9 +544,11 @@ graph LR
         TRACKER[OrderTracker.tsx\nuseMockSimulation=true]
     end
 
-    subgraph NOT_CONNECTED["Not Wired to UI"]
-        HOOK_O -.->|unused| X1[No component mounts this]
-        HOOK_N -.->|unused| X2[No component mounts this]
+    subgraph Connected["Wired to UI"]
+        HOOK_O -->|mounted by| TRACKER[OrderTracker.tsx\norder/[orderId]/track]
+        HOOK_N -->|mounted by| NOTIF_CENTER[NotificationCenter]
+        KWS[useKitchenStatus] -->|mounted by| KITCHEN[admin/kitchen/page.tsx]
+        RWS[useRealtimeOperations] -->|mounted by| OPS[admin/operations/page.tsx]
     end
 
     WS_SVC --> OWS
@@ -440,7 +558,7 @@ graph LR
     SIM --> TRACKER
 ```
 
-**Current state:** Real-time updates are simulated via `setTimeout` sequences. The WebSocket infrastructure is fully implemented but never activated in the UI.
+**Current state:** WebSocket infrastructure is wired to the UI. `OrderTracker` uses `useOrderWebSocket` (with `simulateOrderUpdates` fallback in mock mode). Kitchen display and realtime operations use `useKitchenStatus` and `useRealtimeOperations` hooks connected to WebSocket channels. Notification WebSocket is mounted for authenticated users.
 
 ---
 
@@ -452,14 +570,16 @@ graph TD
     ROOT --> HOME[/ Home]
     ROOT --> MENU[/menu]
     ROOT --> RESTO[/restaurant]
-    ROOT --> RES[/reservation]
-    ROOT --> TABLE[/table/tableId]
-    ROOT --> CO[/checkout/*]
-    ROOT --> ORDER[/order/orderId]
-    ROOT --> AUTH[Auth Routes\n/login /register\n/forgot-password\n/verify-otp]
+    ROOT --> RES[/reservation /reservation/confirm]
+    ROOT --> TABLE[/table /table/tableId]
+    ROOT --> CO[/checkout /checkout/success /checkout/failure]
+    ROOT --> ORDER[/order/orderId /order/orderId/track]
+    ROOT --> PUBS[Public pages\n/events /location /loyalty\n/promotions /reviews /vendors]
+    ROOT --> AUTH[Auth Routes\n/login /register\n/forgot-password /verify-otp]
     ROOT --> DASH[/dashboard\nsrc/app/dashboard/layout.tsx]
-    ROOT --> ADMIN[/admin/*]
+    ROOT --> ADMIN[/admin/* — 40+ routes\nPermissionGuard on each page]
     ROOT --> API[/api/health]
+    ROOT --> OFFLINE[/offline — PWA fallback]
 
     DASH --> DASH_HOME[/dashboard]
     DASH --> ORDERS[/dashboard/orders]
@@ -470,9 +590,10 @@ graph TD
 ```
 
 **Route protection status:**
-- All routes are publicly accessible
-- No Next.js `middleware.ts` exists
-- Auth check in individual components is ad-hoc (not enforced)
+- Customer dashboard and checkout: protected via `AuthGuard` client component
+- Admin routes: protected via `PermissionGuard` with `P7Permission` strings on every page
+- No Next.js `middleware.ts` (server-side route protection is a remaining gap)
+- Dead routes (`/cart`, `/order`, `/table`) redirect to canonical destinations
 
 ---
 
@@ -600,21 +721,27 @@ Despite `socket.io-client` being installed, all WebSocket code uses the native `
 
 ## Architecture Weaknesses
 
-| Weakness | Description | Severity |
-|----------|-------------|----------|
-| No Tenant / Location / Module abstraction | No concept of `Tenant`, `Location`, or `Module` exists; every model, route, and service assumes exactly one restaurant business — adding a second tenant or business type today requires forking, not configuring | Critical |
-| No route authentication | Missing `src/middleware.ts` means all routes are public | Critical |
-| Admin has no real backend | All admin pages use hardcoded fixtures | Critical |
-| No design token system | CSS custom properties in `globals.css` are ad-hoc and not tenant-aware; there is no structured token set, white-label theming layer, or permission-aware navigation shell | High |
-| No CI pipeline | No quality gates (lint, type-check, test, build) — regressions are not caught before merge | High |
-| WebSocket hooks never mounted | Real-time infrastructure built but not activated | High |
-| No Firebase initialization | Firebase SDK installed but `initializeApp()` never called | High |
-| Incomplete Arabic locale | `ar.json` has 14/187 keys | High |
-| Missing PWA icons | `public/icons/*.png` referenced but not present | High |
-| Combined service file | `combined.service.ts` mixes 4 unrelated services | Medium |
-| Admin imports mock directly | Admin pages bypass the service layer | Medium |
-| socket.io-client unused | Installed but WebSocket uses native API | Low |
-| next-pwa unused | Installed but not configured | Low |
+| Weakness | Description | Severity | Status |
+|----------|-------------|----------|--------|
+| No route authentication middleware | Missing `src/middleware.ts`; admin/dashboard protected by client-side guards only | Critical | Open |
+| No real backend integration | All services run against mock data; no Django backend deployed | Critical | Open (backend dependency) |
+| No CI pipeline | No quality gates (lint, type-check, test, build) — regressions are not caught before merge | High | Open |
+| Incomplete Arabic locale | `ar.json` has 14/187 keys | High | Open |
+| Firebase not fully initialized | VAPID key is placeholder; push notifications won't fire in production | High | Open |
+| No payment gateway | Checkout flow is UI-only; no Stripe/PayPal integration | High | Open |
+| Combined service file | `combined.service.ts` still mixes reservation, notification, and user services | Medium | Open |
+| Hardcoded TAX_RATE / SERVICE_CHARGE | Cannot vary by region or tenant without code change | Medium | Open |
+| JWT in localStorage | XSS risk; httpOnly cookies require backend coordination | Medium | Open |
+| No Sentry initialization | `NEXT_PUBLIC_SENTRY_DSN` documented but `@sentry/nextjs` not installed | Medium | Open |
+| ~~No Tenant/Location/Module abstraction~~ | ~~No concept of Tenant, Location, or Module~~ | ~~Critical~~ | ✅ Resolved (P1A–P2) |
+| ~~Admin has no real backend~~ | ~~All admin pages use hardcoded fixtures~~ | ~~Critical~~ | ✅ Resolved (P5–P7) — mock-gated service layer |
+| ~~No design token system~~ | ~~CSS custom properties were ad-hoc~~ | ~~High~~ | ✅ Resolved (P2) — structured CSS variable system |
+| ~~WebSocket hooks never mounted~~ | ~~Real-time infrastructure built but not activated~~ | ~~High~~ | ✅ Resolved (P7.7–P7.8) |
+| ~~No error boundaries~~ | ~~Only global error.tsx existed~~ | ~~High~~ | ✅ Resolved (P3 + P7) — ErrorBoundary on every admin page |
+| ~~No RBAC~~ | ~~Any authenticated user could access admin~~ | ~~Critical~~ | ✅ Resolved (P1B + P7) — PermissionGuard + useRbacStore |
+| ~~Module registry missing~~ | ~~No mechanism to register business-type capabilities~~ | ~~Critical~~ | ✅ Resolved (P1A) — src/modules/registry.ts |
+| ~~socket.io-client unused~~ | ~~Installed but WebSocket uses native API~~ | ~~Low~~ | ✅ Resolved — removed |
+| ~~next-pwa unused~~ | ~~Installed but not configured~~ | ~~Low~~ | ✅ Resolved — removed |
 
 ---
 

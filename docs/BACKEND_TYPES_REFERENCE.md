@@ -1,8 +1,10 @@
 # Backend Types Reference
 
 > Complete TypeScript → Backend model mapping.
-> All types sourced from `src/types/index.ts` unless noted.
+> All types sourced from `src/types/index.ts` and domain-specific type files unless noted.
 > Use this to implement Django serializers, Pydantic models, or OpenAPI schemas.
+>
+> Last updated: 2026-06-25 (added P7.x types: analytics, realtime operations, RBAC, staff, audit logs)
 
 ---
 
@@ -822,3 +824,246 @@ type WSLifecycleMessage =
   | { type: 'disconnected'; data: null }
   | { type: 'error'; data: { message: string } }
 ```
+
+---
+
+## Analytics Types
+
+> Source: `src/types/analytics.ts` (added P7.13)
+
+### MenuAnalytics
+
+```typescript
+interface MenuItemPerformance {
+  itemId: string
+  name: string
+  orders: number
+  revenue: number
+  trend: number          // % change vs previous period
+}
+
+interface MenuCategoryPerformance {
+  categoryId: string
+  name: string
+  orders: number
+  revenue: number
+  percentage: number     // % of total revenue
+}
+
+interface MenuAnalytics {
+  period: '7d' | '30d' | '90d'
+  topItems: MenuItemPerformance[]
+  categoryBreakdown: MenuCategoryPerformance[]
+  revenueByDay: Array<{ date: string; revenue: number; orders: number }>
+  totalRevenue: number
+  totalOrders: number
+  averageOrderValue: number
+  comparisonPeriod: {
+    totalRevenue: number
+    totalOrders: number
+    revenueChange: number    // % change (positive = growth)
+    ordersChange: number
+  }
+}
+```
+
+### RevenueAnalytics
+
+```typescript
+interface RevenueAnalytics {
+  period: '7d' | '30d' | '90d'
+  groupBy: 'day' | 'week' | 'month'
+  data: Array<{ date: string; revenue: number; orders: number; averageOrder: number }>
+  total: number
+  averagePerPeriod: number
+  growth: number          // % change vs previous period
+}
+```
+
+### AnalyticsSummary
+
+```typescript
+interface AnalyticsSummary {
+  today: { revenue: number; orders: number; avgOrderValue: number }
+  thisWeek: { revenue: number; orders: number; avgOrderValue: number }
+  thisMonth: { revenue: number; orders: number; avgOrderValue: number }
+  topItemToday: { itemId: string; name: string; orders: number } | null
+}
+```
+
+---
+
+## Realtime Operations Types
+
+> Source: `src/types/realtime-operations.ts` (added P7.7–P7.8)
+
+### LiveOrder
+
+```typescript
+interface LiveOrderItem {
+  id: string
+  name: string
+  quantity: number
+  notes?: string
+}
+
+interface LiveOrder {
+  id: string
+  orderNumber: string
+  tableNumber?: string
+  items: LiveOrderItem[]
+  status: 'pending' | 'accepted' | 'preparing' | 'ready'
+  estimatedPrepMinutes: number
+  preparingAt?: string     // ISO timestamp when status became 'preparing'
+  slaBreached: boolean
+  isPriority: boolean
+}
+```
+
+### KitchenStatus
+
+```typescript
+interface KitchenStatus {
+  pendingOrders: LiveOrder[]
+  preparingOrders: LiveOrder[]
+  readyOrders: LiveOrder[]
+  delayedOrders: LiveOrder[]      // Orders that have breached SLA
+  priorityOrders: LiveOrder[]     // Orders flagged for priority handling
+  averagePrepMinutes: number
+  queueDepth: number
+  capacityPercent: number         // 0–100, > 80 triggers warning UI
+}
+```
+
+---
+
+## RBAC Types
+
+> Source: `src/types/rbac.ts` (added P1B + P7)
+
+### P7Permission
+
+Dot-notation permission strings used by `PermissionGuard` and `useRbacStore`:
+
+```typescript
+type P7Permission =
+  | 'orders.view' | 'orders.manage'
+  | 'reservations.view' | 'reservations.manage'
+  | 'customers.view' | 'customers.manage' | 'customers.export'
+  | 'menu.view' | 'menu.manage'
+  | 'analytics.view'
+  | 'staff.view' | 'staff.manage'
+  | 'branches.view' | 'branches.manage'
+  | 'tenants.view' | 'tenants.manage'
+  | 'audit_logs.view'
+  | 'kitchen.view'
+  | 'operations.view'
+  | 'notifications.view' | 'notifications.manage'
+  | 'settings.view' | 'settings.manage'
+  | 'loyalty.view' | 'loyalty.manage'
+  | 'promotions.view' | 'promotions.manage'
+  | 'vendors.view' | 'vendors.manage'
+```
+
+### RbacPolicy
+
+```typescript
+interface RbacPolicy {
+  role: 'super_admin' | 'tenant_admin' | 'branch_manager' | 'staff' | 'customer'
+  permissions: P7Permission[]
+  tenantId?: string
+  branchId?: string
+}
+```
+
+---
+
+## Staff Types
+
+> Source: `src/types/staff.ts` (added P7.2)
+
+```typescript
+interface StaffMember {
+  id: string
+  userId: string
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  role: 'branch_manager' | 'chef' | 'waiter' | 'cashier' | 'delivery'
+  branchId: string
+  tenantId: string
+  isActive: boolean
+  hiredAt: string
+  avatar?: string
+}
+
+interface Shift {
+  id: string
+  staffId: string
+  branchId: string
+  startTime: string    // ISO datetime
+  endTime: string      // ISO datetime
+  role: StaffMember['role']
+  status: 'scheduled' | 'active' | 'completed' | 'missed'
+}
+```
+
+---
+
+## Audit Log Types
+
+> Source: `src/types/audit-log.ts` (added P7.5)
+
+```typescript
+type AuditEventType =
+  | 'order.created' | 'order.status_changed' | 'order.cancelled'
+  | 'reservation.created' | 'reservation.confirmed' | 'reservation.cancelled'
+  | 'menu.item_created' | 'menu.item_updated' | 'menu.item_deleted'
+  | 'user.login' | 'user.logout' | 'user.role_changed'
+  | 'staff.created' | 'staff.deactivated'
+  | 'settings.feature_flag_toggled'
+  | 'tenant.provisioned'
+
+interface AuditLog {
+  id: string
+  eventType: AuditEventType
+  actorId: string
+  actorEmail: string
+  entityType: 'order' | 'reservation' | 'menu_item' | 'user' | 'staff' | 'tenant' | 'settings'
+  entityId: string
+  changes: Record<string, { before: unknown; after: unknown }>
+  tenantId: string
+  branchId?: string
+  ipAddress?: string
+  createdAt: string
+}
+```
+
+---
+
+## WebSocket Message Types (updated P7.7)
+
+### Kitchen Update
+
+```typescript
+interface KitchenUpdateMessage {
+  type: 'kitchen.status_update'
+  data: KitchenStatus
+}
+```
+
+### SLA Breach Alert
+
+```typescript
+interface SLABreachMessage {
+  type: 'kitchen.sla_breach'
+  data: {
+    orderId: string
+    orderNumber: string
+    breachedAt: string
+    minutesOverdue: number
+  }
+}
+```
+

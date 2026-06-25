@@ -4,7 +4,7 @@
 > Generated from frontend source code. All types, endpoints, and business rules are
 > derived from `src/types/index.ts`, `src/services/`, `src/hooks/`, and runtime service usage.
 >
-> Last updated: 2026-06-21
+> Last updated: 2026-06-25 (updated for P7.8–P7.14.5: analytics, bulk ops, kitchen, staff, audit logs, realtime, branches, tenants, loyalty, promotions, vendors)
 
 ---
 
@@ -23,11 +23,19 @@
 11. [Reviews](#11-review-endpoints)
 12. [Tables](#12-table-endpoints)
 13. [Admin — Dashboard & Stats](#13-admin-endpoints)
-14. [WebSocket Channels](#14-websocket-channels)
-15. [Pagination Contract](#15-pagination-contract)
-16. [Error Response Contract](#16-error-response-contract)
-17. [Security & Headers](#17-security--headers)
-18. [Business Rules](#18-business-rules)
+14. [Analytics](#14-analytics-endpoints) *(added P7.13)*
+15. [Bulk Operations](#15-bulk-operation-endpoints) *(added P7.14)*
+16. [Staff Management](#16-staff-management-endpoints) *(added P7.2)*
+17. [Audit Logs](#17-audit-log-endpoints) *(added P7.5)*
+18. [Kitchen Display](#18-kitchen-display-endpoints) *(added P7.13)*
+19. [Loyalty & Promotions](#19-loyalty--promotion-endpoints) *(added P6)*
+20. [Vendors](#20-vendor-endpoints) *(added P6)*
+21. [Feature Flags](#21-feature-flag-endpoints) *(added P1B)*
+22. [WebSocket Channels](#22-websocket-channels)
+23. [Pagination Contract](#23-pagination-contract)
+24. [Error Response Contract](#24-error-response-contract)
+25. [Security & Headers](#25-security--headers)
+26. [Business Rules](#26-business-rules)
 19. [RBAC Permission Matrix](#19-rbac-permission-matrix)
 20. [Environment Variables](#20-environment-variables)
 21. [Endpoint Classification Summary](#21-endpoint-classification-summary)
@@ -1667,3 +1675,361 @@ NEXT_PUBLIC_TENANT_SLUG=default    # Dev override — bypasses middleware resolu
 | `/admin/customers/{id}/stats/` | GET | 🔴 BLOCKED |
 | `ws/orders/{id}/` | WS | ✅ READY |
 | `ws/notifications/` | WS | ✅ READY |
+
+---
+
+## 14. Analytics Endpoints
+
+> Added in P7.13. All analytics endpoints require `admin` role or `analytics.view` permission.
+
+### 14.1 Menu Analytics
+
+**Method:** `GET`
+**Path:** `/analytics/menu/`
+**Authentication:** Admin
+**Query params:** `tenant_id`, `branch_id` (optional), `period` (`7d` | `30d` | `90d`, default `30d`)
+
+**Success Response `200`:**
+```json
+{
+  "period": "30d",
+  "topItems": [{ "itemId": "i1", "name": "Wagyu Burger", "orders": 142, "revenue": 2556.0, "trend": 12.5 }],
+  "categoryBreakdown": [{ "categoryId": "c1", "name": "Burgers", "orders": 220, "revenue": 3960.0, "percentage": 35.2 }],
+  "revenueByDay": [{ "date": "2026-06-01", "revenue": 1240.0, "orders": 68 }],
+  "totalRevenue": 11250.0,
+  "totalOrders": 620,
+  "averageOrderValue": 18.15,
+  "comparisonPeriod": { "totalRevenue": 9800.0, "totalOrders": 540, "revenueChange": 14.8, "ordersChange": 14.8 }
+}
+```
+
+**Source:** `src/services/analytics.service.ts` → `getMenuAnalytics()`
+**Type:** `MenuAnalytics` in `src/types/analytics.ts`
+
+---
+
+### 14.2 Revenue Analytics
+
+**Method:** `GET`
+**Path:** `/analytics/revenue/`
+**Authentication:** Admin
+**Query params:** `tenant_id`, `branch_id` (optional), `period` (`7d` | `30d` | `90d`, default `30d`), `group_by` (`day` | `week` | `month`)
+
+**Success Response `200`:**
+```json
+{
+  "period": "30d",
+  "groupBy": "day",
+  "data": [{ "date": "2026-06-01", "revenue": 1240.0, "orders": 68, "averageOrder": 18.24 }],
+  "total": 11250.0,
+  "averagePerPeriod": 375.0,
+  "growth": 14.8
+}
+```
+
+**Source:** `src/services/analytics.service.ts` → `getRevenueAnalytics()`
+**Type:** `RevenueAnalytics` in `src/types/analytics.ts`
+
+---
+
+### 14.3 Analytics Summary
+
+**Method:** `GET`
+**Path:** `/analytics/summary/`
+**Authentication:** Admin
+**Query params:** `tenant_id`, `branch_id` (optional)
+
+**Success Response `200`:**
+```json
+{
+  "today": { "revenue": 840.0, "orders": 46, "avgOrderValue": 18.26 },
+  "thisWeek": { "revenue": 5200.0, "orders": 286, "avgOrderValue": 18.18 },
+  "thisMonth": { "revenue": 11250.0, "orders": 620, "avgOrderValue": 18.15 },
+  "topItemToday": { "itemId": "i1", "name": "Wagyu Burger", "orders": 12 }
+}
+```
+
+**Source:** `src/services/analytics.service.ts` → `getAnalyticsSummary()`
+**Type:** `AnalyticsSummary` in `src/types/analytics.ts`
+
+---
+
+### 14.4 Branch Analytics
+
+**Method:** `GET`
+**Path:** `/branches/{id}/analytics/`
+**Authentication:** Admin
+**Query params:** `period`
+
+**Success Response `200`:** Same shape as `MenuAnalytics` scoped to the given branch.
+
+**Source:** `src/services/branch-analytics.service.ts`
+
+---
+
+## 15. Bulk Operation Endpoints
+
+> Added in P7.14. All bulk endpoints require the corresponding `*.manage` permission.
+
+### 15.1 Bulk Update Order Status
+
+**Method:** `POST`
+**Path:** `/admin/orders/bulk-status/`
+**Authentication:** Admin (`orders.manage`)
+
+**Request Body:**
+```json
+{ "ids": ["o1", "o2", "o3"], "status": "accepted" }
+```
+
+**Success Response `200`:**
+```json
+{ "updated": 3, "failed": [] }
+```
+
+**Source:** `src/hooks/index.ts` → `useBulkUpdateOrderStatus()`
+
+---
+
+### 15.2 Bulk Cancel Orders
+
+**Method:** `POST`
+**Path:** `/admin/orders/bulk-cancel/`
+**Authentication:** Admin (`orders.manage`)
+
+**Request Body:**
+```json
+{ "ids": ["o1", "o2"] }
+```
+
+**Success Response `200`:**
+```json
+{ "cancelled": 2, "failed": [] }
+```
+
+**Source:** `src/hooks/index.ts` → `useBulkCancelOrders()`
+
+---
+
+### 15.3 Bulk Confirm Reservations
+
+**Method:** `POST`
+**Path:** `/admin/reservations/bulk-confirm/`
+**Authentication:** Admin (`reservations.manage`)
+
+**Request Body:**
+```json
+{ "ids": ["r1", "r2"] }
+```
+
+**Success Response `200`:**
+```json
+{ "confirmed": 2, "failed": [] }
+```
+
+**Source:** `src/hooks/index.ts` → `useBulkConfirmReservations()`
+
+---
+
+### 15.4 Bulk Cancel Reservations
+
+**Method:** `POST`
+**Path:** `/admin/reservations/bulk-cancel/`
+**Authentication:** Admin (`reservations.manage`)
+
+**Request Body:**
+```json
+{ "ids": ["r1", "r2"] }
+```
+
+**Success Response `200`:**
+```json
+{ "cancelled": 2, "failed": [] }
+```
+
+**Source:** `src/hooks/index.ts` → `useBulkCancelReservations()`
+
+---
+
+### 15.5 Bulk Export Customers
+
+**Method:** `POST`
+**Path:** `/admin/customers/bulk-export/`
+**Authentication:** Admin (`customers.export`)
+
+**Request Body:**
+```json
+{ "ids": ["c1", "c2"] }
+```
+
+**Success Response `200`:** CSV file download (`Content-Type: text/csv`)
+
+> **Note:** Frontend currently performs client-side CSV export. This endpoint enables server-side export for large datasets.
+
+**Source:** `src/hooks/index.ts` → `useBulkExportCustomers()`
+
+---
+
+## 16. Staff Management Endpoints
+
+> Added in P7.2. Requires `staff.view` / `staff.manage` permissions.
+
+### 16.1 List Staff
+
+**Method:** `GET`
+**Path:** `/admin/staff/`
+**Query params:** `branch_id`, `role`, `search`, `page`
+
+**Success Response `200`:** Paginated list of `StaffMember` objects.
+
+**Type:** `StaffMember` in `src/types/staff.ts`
+**Source:** `src/services/staff.service.ts`
+
+### 16.2 Staff Detail
+
+**Method:** `GET` / `PATCH`
+**Path:** `/admin/staff/{id}/`
+
+### 16.3 Staff Shifts
+
+**Method:** `GET`
+**Path:** `/admin/staff/{id}/shifts/`
+
+---
+
+## 17. Audit Log Endpoints
+
+> Added in P7.5. Requires `audit_logs.view` permission.
+
+### 17.1 List Audit Logs
+
+**Method:** `GET`
+**Path:** `/admin/audit-logs/`
+**Query params:** `entity_type`, `entity_id`, `actor_id`, `action`, `from_date`, `to_date`, `page`
+
+**Success Response `200`:** Paginated list of `AuditLog` objects.
+
+**Type:** `AuditLog` in `src/types/audit-log.ts`
+**Source:** `src/services/audit-log.service.ts`
+
+### 17.2 Audit Log Detail
+
+**Method:** `GET`
+**Path:** `/admin/audit-logs/{id}/`
+
+---
+
+## 18. Kitchen Display Endpoints
+
+> Added in P7.13. Used by `KitchenDisplay` component and `useKitchenStatus` hook.
+
+### 18.1 Kitchen Status
+
+**Method:** `GET`
+**Path:** `/admin/kitchen/status/`
+**Authentication:** Admin (`kitchen.view`)
+**Query params:** `branch_id` (required), `tenant_id`
+
+**Success Response `200`:**
+```json
+{
+  "pendingOrders": [],
+  "preparingOrders": [],
+  "readyOrders": [],
+  "delayedOrders": [],
+  "priorityOrders": [],
+  "averagePrepMinutes": 12,
+  "queueDepth": 8,
+  "capacityPercent": 67
+}
+```
+
+**Type:** `KitchenStatus` in `src/types/realtime-operations.ts`
+**Source:** `src/services/realtime-operations.service.ts` → `getKitchenStatus()`
+
+**WebSocket alternative:** `ws/kitchen/{branchId}/` — pushes `KitchenStatus` updates in real time.
+
+---
+
+## 19. Loyalty & Promotion Endpoints
+
+> Added in P6. Requires `loyalty.view` / `promotions.view` permissions for admin endpoints.
+
+### 19.1 Customer Loyalty Points
+
+**Method:** `GET`
+**Path:** `/loyalty/points/`
+**Authentication:** Authenticated customer
+
+### 19.2 Redeem Points
+
+**Method:** `POST`
+**Path:** `/loyalty/redeem/`
+
+### 19.3 Admin — List Promotions
+
+**Method:** `GET`
+**Path:** `/admin/promotions/`
+**Query params:** `active`, `branch_id`, `page`
+
+**Type:** `Promotion` in `src/types/index.ts`
+**Source:** `src/services/promotion.service.ts`
+
+### 19.4 Admin — Create / Update Promotion
+
+**Method:** `POST` / `PATCH`
+**Path:** `/admin/promotions/` / `/admin/promotions/{id}/`
+
+---
+
+## 20. Vendor Endpoints
+
+> Added in P6. Used by food court tenant module.
+
+### 20.1 List Vendors (Admin)
+
+**Method:** `GET`
+**Path:** `/admin/vendors/`
+**Query params:** `branch_id`, `active`, `page`
+
+**Type:** `Vendor` in `src/types/index.ts`
+**Source:** `src/services/vendor.service.ts`
+
+### 20.2 Vendor Detail
+
+**Method:** `GET` / `PATCH`
+**Path:** `/admin/vendors/{id}/`
+
+---
+
+## 21. Feature Flag Endpoints
+
+> Added in P1B. Requires `settings.manage` permission.
+
+### 21.1 List Feature Flags
+
+**Method:** `GET`
+**Path:** `/admin/settings/feature-flags/`
+**Query params:** `tenant_id`, `branch_id`
+
+**Success Response `200`:**
+```json
+{
+  "results": [{ "key": "online_ordering", "enabled": true, "tenantId": "t1", "branchId": null }]
+}
+```
+
+**Source:** `src/services/feature-flags.service.ts`
+
+### 21.2 Toggle Feature Flag
+
+**Method:** `PATCH`
+**Path:** `/admin/settings/feature-flags/{key}/`
+
+**Request Body:**
+```json
+{ "enabled": false }
+```
+
+---
+
