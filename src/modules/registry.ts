@@ -140,6 +140,27 @@ const ORDERS_NAV_ITEM = {
   permissionKey: 'orders.view',
 } as const
 
+const MENU_NAV_ITEM = {
+  href: '/admin/menu',
+  label: 'Menu',
+  featureFlagKey: 'menu.enabled',
+  permissionKey: 'menu.view',
+} as const
+
+const LOYALTY_NAV_ITEM = {
+  href: '/admin/loyalty',
+  label: 'Loyalty',
+  featureFlagKey: 'loyalty.enabled',
+  permissionKey: 'loyalty.view',
+} as const
+
+const KITCHEN_NAV_ITEM = {
+  href: '/admin/kitchen',
+  label: 'Kitchen Display',
+  featureFlagKey: 'ordering.enabled',
+  permissionKey: 'operations.view',
+} as const
+
 const CUSTOMERS_NAV_ITEM = {
   href: '/admin/customers',
   label: 'Customers',
@@ -189,8 +210,11 @@ export const RESTAURANT_MODULE: Module = {
   adminNavItems: [
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     ORDERS_NAV_ITEM,
+    MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
+    LOYALTY_NAV_ITEM,
+    KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
@@ -263,10 +287,12 @@ export const CAFE_MODULE: Module = {
   adminNavItems: [
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     ORDERS_NAV_ITEM,
+    MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     { href: '/admin/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled' },
     { href: '/admin/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled' },
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
+    KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
@@ -331,11 +357,13 @@ export const BAR_MODULE: Module = {
   adminNavItems: [
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     ORDERS_NAV_ITEM,
+    MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
     { href: '/admin/bar/events', label: 'Event Management', featureFlagKey: 'bar.events.enabled' },
     { href: '/admin/bar/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'bar.happy_hour.enabled' },
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled' },
+    KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
@@ -399,10 +427,12 @@ export const FOOD_COURT_MODULE: Module = {
   adminNavItems: [
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     ORDERS_NAV_ITEM,
+    MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
     { href: '/admin/food-court/vendors', label: 'Vendor Management', featureFlagKey: 'food_court.vendor_management.enabled' },
     { href: '/admin/food-court/seating', label: 'Seating Management', featureFlagKey: 'food_court.shared_seating.enabled' },
+    KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
@@ -467,9 +497,11 @@ export const FOOD_TRUCK_MODULE: Module = {
   adminNavItems: [
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     ORDERS_NAV_ITEM,
+    MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     { href: '/admin/food-truck/routes', label: 'Route Management', featureFlagKey: 'food_truck.route_tracking.enabled' },
     { href: '/admin/food-truck/stops', label: 'Stop Management', featureFlagKey: 'food_truck.scheduled_stops.enabled' },
+    KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
@@ -538,9 +570,11 @@ export const MOBILE_CAFE_MODULE: Module = {
   adminNavItems: [
     { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
     ORDERS_NAV_ITEM,
+    MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     { href: '/admin/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled' },
     { href: '/admin/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled' },
+    KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
     BRANCHES_NAV_ITEM,
