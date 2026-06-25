@@ -100,6 +100,19 @@ export const MOCK_SUPPORT_USER: User = {
   created_at: '2024-01-01T00:00:00Z',
 }
 
+// P8.5 — Multi-role demo user: Cashier + Kitchen combined
+export const MOCK_MULTI_ROLE_USER: User = {
+  id: '9',
+  email: 'multirole@savor.com',
+  phone: '+1234567898',
+  first_name: 'Max',
+  last_name: 'MultiRole',
+  avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
+  role: 'staff',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
 // ── Branches ─────────────────────────────────────────────────────────────────
 export const MOCK_BRANCHES: Branch[] = [
   {

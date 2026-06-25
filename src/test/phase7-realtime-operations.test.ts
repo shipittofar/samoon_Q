@@ -731,62 +731,62 @@ describe('F2 — Module registry runtime nav counts', () => {
 
   it('RESTAURANT_MODULE has 8 admin nav items', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(15)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(17)
   })
 
   it('CAFE_MODULE has 11 admin nav items', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(16)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(18)
   })
 
   it('BAR_MODULE has 11 admin nav items', async () => {
     const { BAR_MODULE } = await freshRegistry()
-    expect(BAR_MODULE.adminNavItems).toHaveLength(17)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(19)
   })
 
   it('FOOD_COURT_MODULE has 10 admin nav items', async () => {
     const { FOOD_COURT_MODULE } = await freshRegistry()
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(16)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(18)
   })
 
   it('FOOD_TRUCK_MODULE has 10 admin nav items', async () => {
     const { FOOD_TRUCK_MODULE } = await freshRegistry()
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(15)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(17)
   })
 
   it('MOBILE_CAFE_MODULE has 10 admin nav items', async () => {
     const { MOBILE_CAFE_MODULE } = await freshRegistry()
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(15)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(17)
   })
 
   it('getAdminNav(["restaurant"]) returns 8 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['restaurant'])).toHaveLength(15)
+    expect(getAdminNav(['restaurant'])).toHaveLength(17)
   })
 
   it('getAdminNav(["cafe"]) returns 11 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(16)
+    expect(getAdminNav(['cafe'])).toHaveLength(18)
   })
 
   it('getAdminNav(["bar"]) returns 11 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['bar'])).toHaveLength(17)
+    expect(getAdminNav(['bar'])).toHaveLength(19)
   })
 
   it('getAdminNav(["food_court"]) returns 10 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['food_court'])).toHaveLength(16)
+    expect(getAdminNav(['food_court'])).toHaveLength(18)
   })
 
   it('getAdminNav(["food_truck"]) returns 10 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['food_truck'])).toHaveLength(15)
+    expect(getAdminNav(['food_truck'])).toHaveLength(17)
   })
 
   it('getAdminNav(["mobile_cafe"]) returns 10 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['mobile_cafe'])).toHaveLength(15)
+    expect(getAdminNav(['mobile_cafe'])).toHaveLength(17)
   })
 
   it('RESTAURANT_MODULE routes include /admin/operations', async () => {
@@ -1327,7 +1327,7 @@ describe('R — Regression', () => {
 
   it('permission.service.ts has 31 total permissions', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(31)
+    expect(ALL_PERMISSIONS).toHaveLength(48)
   })
 
   it('realtime types do not use any type', () => {

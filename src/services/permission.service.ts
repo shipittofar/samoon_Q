@@ -16,40 +16,78 @@ import type {
   AuditEvent,
   MockRbacUser,
   UserTenantRole,
+  UserPermissionOverride,
+  EffectivePermissionResult,
+  RoleTemplate,
 } from '@/types/rbac'
 
 // ── All permissions (canonical list) ──────────────────────────────────────────
 
 export const ALL_PERMISSIONS: readonly P7Permission[] = [
+  // Orders
   'orders.view',
   'orders.manage',
+  'orders.create',
+  'orders.edit',
+  'orders.cancel',
+  'orders.delete',
+  // Menu
   'menu.view',
   'menu.manage',
+  // Reservations
   'reservations.view',
   'reservations.manage',
+  // Customers
   'customers.view',
   'customers.manage',
+  'customers.create',
+  'customers.edit',
+  // Payments
+  'payments.process',
+  'payments.refund',
+  // Tables
+  'tables.view',
+  'tables.assign',
+  // Kitchen
+  'kitchen.view',
+  'kitchen.manage',
+  // Vendors
   'vendors.view',
   'vendors.manage',
+  // Promotions
   'promotions.view',
   'promotions.manage',
+  // Loyalty
   'loyalty.view',
   'loyalty.manage',
+  // Analytics
   'analytics.view',
+  'analytics.export',
+  // Staff
   'staff.view',
   'staff.manage',
+  'staff.create',
+  'staff.edit',
+  'staff.delete',
+  // Branches
   'branches.view',
   'branches.manage',
+  // Settings
   'settings.view',
   'settings.manage',
+  'featureflags.manage',
+  // Tenant
   'tenant.view',
   'tenant.manage',
+  // Audit
   'audit.view',
   'audit.export',
   'audit.manage',
+  // Notifications
   'notifications.view',
   'notifications.manage',
   'notifications.preferences',
+  // Operations
   'operations.view',
   'operations.manage',
 ]
@@ -67,47 +105,76 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
   manager: [
     'orders.view',
     'orders.manage',
+    'orders.create',
+    'orders.edit',
+    'orders.cancel',
     'menu.view',
     'menu.manage',
     'reservations.view',
     'reservations.manage',
     'customers.view',
     'customers.manage',
+    'customers.create',
+    'customers.edit',
+    'payments.process',
+    'tables.view',
+    'tables.assign',
     'staff.view',
     'staff.manage',
+    'staff.create',
+    'staff.edit',
+    'staff.delete',
     'branches.view',
     'notifications.view',
     'operations.view',
   ],
 
-  /** Orders and payments only. */
+  /** Orders, payments, and POS operations. */
   cashier: [
     'orders.view',
     'orders.manage',
+    'orders.create',
+    'orders.cancel',
     'customers.view',
+    'payments.process',
+    'payments.refund',
+    'tables.view',
+    'tables.assign',
     'notifications.view',
     'operations.view',
   ],
 
-  /** Tables and orders. */
+  /** Tables, orders, and reservations. */
   waiter: [
     'orders.view',
     'orders.manage',
+    'orders.create',
+    'orders.edit',
     'menu.view',
     'reservations.view',
     'reservations.manage',
     'customers.view',
+    'payments.process',
+    'tables.view',
+    'tables.assign',
     'notifications.view',
     'notifications.preferences',
     'operations.view',
   ],
 
-  /** Kitchen display + order status updates only. */
-  kitchen: ['orders.view', 'operations.view', 'notifications.view'],
+  /** Kitchen display + order status updates + queue management. */
+  kitchen: [
+    'orders.view',
+    'kitchen.view',
+    'kitchen.manage',
+    'operations.view',
+    'notifications.view',
+  ],
 
-  /** Promotions, loyalty, analytics. */
+  /** Promotions, loyalty, analytics, and campaign management. */
   marketing: [
     'analytics.view',
+    'analytics.export',
     'customers.view',
     'promotions.view',
     'promotions.manage',
@@ -116,7 +183,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'notifications.view',
   ],
 
-  /** Read-only customer and reservation access. */
+  /** Read-only customer assistance — no mutations, no financials. */
   support: [
     'customers.view',
     'reservations.view',
@@ -372,16 +439,195 @@ export function getMockRoles(userId: string, tenantId: string): Role[] {
   return user?.tenantAssignments.find((a) => a.tenantId === tenantId)?.roles ?? []
 }
 
+// ── P8.5 — Override-aware permission helpers ──────────────────────────────────
+
+/**
+ * Applies user-level allow/deny overrides on top of role-derived permissions.
+ * Evaluation order: User Deny → User Allow → Role Permissions → Default Deny.
+ */
+export function applyOverrides(
+  rolePermissions: readonly P7Permission[],
+  override?: Pick<UserPermissionOverride, 'allow' | 'deny'>,
+): P7Permission[] {
+  if (!override) return [...rolePermissions]
+  const merged = new Set<P7Permission>([...rolePermissions, ...override.allow])
+  override.deny.forEach((p) => merged.delete(p))
+  return [...merged]
+}
+
+/**
+ * Returns a detailed breakdown of each permission for admin display.
+ * Shows whether each permission is from a role, from an override, or denied.
+ */
+export function resolveEffectivePermissions(
+  roles: Role[],
+  override?: Pick<UserPermissionOverride, 'allow' | 'deny'>,
+): EffectivePermissionResult[] {
+  const rolePerms = new Set(getPermissionsForRole(roles))
+  const allowSet = new Set(override?.allow ?? [])
+  const denySet = new Set(override?.deny ?? [])
+
+  return ALL_PERMISSIONS.map((permission): EffectivePermissionResult => {
+    const fromRole = rolePerms.has(permission)
+    const fromOverride = allowSet.has(permission)
+    const denied = denySet.has(permission)
+    const effective = (fromRole || fromOverride) && !denied
+    return { permission, fromRole, fromOverride, denied, effective }
+  })
+}
+
+// ── P8.5 — Role Templates ────────────────────────────────────────────────────
+
+export const ROLE_TEMPLATES: readonly RoleTemplate[] = [
+  {
+    role: 'owner',
+    label: 'Owner',
+    description: 'Full platform access including tenant ownership and billing operations.',
+    system: true,
+    permissions: ROLE_PERMISSION_MAP.owner,
+  },
+  {
+    role: 'admin',
+    label: 'Admin',
+    description: 'Full operational administration. Cannot perform tenant ownership actions.',
+    system: true,
+    permissions: ROLE_PERMISSION_MAP.admin,
+  },
+  {
+    role: 'manager',
+    label: 'Manager',
+    description: 'Restaurant management — floor, staff, schedules, menus, and orders.',
+    system: true,
+    permissions: ROLE_PERMISSION_MAP.manager,
+  },
+  {
+    role: 'cashier',
+    label: 'Cashier',
+    description: 'Orders, payments, and POS. No kitchen, analytics, or settings access.',
+    system: true,
+    permissions: ROLE_PERMISSION_MAP.cashier,
+  },
+  {
+    role: 'waiter',
+    label: 'Waiter',
+    description: 'Tables, orders, and reservations. No settings, analytics, or kitchen.',
+    system: true,
+    permissions: ROLE_PERMISSION_MAP.waiter,
+  },
+  {
+    role: 'kitchen',
+    label: 'Kitchen',
+    description: 'Kitchen display, order queue, and preparation status only.',
+    system: true,
+    permissions: ROLE_PERMISSION_MAP.kitchen,
+  },
+  {
+    role: 'marketing',
+    label: 'Marketing',
+    description: 'Promotions, loyalty, campaigns, and analytics. No payments or settings.',
+    system: true,
+    permissions: ROLE_PERMISSION_MAP.marketing,
+  },
+  {
+    role: 'support',
+    label: 'Support',
+    description: 'Read-only customer assistance — customers, reservations, and notifications.',
+    system: true,
+    permissions: ROLE_PERMISSION_MAP.support,
+  },
+]
+
+// ── P8.5 — Permission categories for UI grouping ──────────────────────────────
+
+export const PERMISSION_CATEGORIES: Record<string, { label: string; permissions: P7Permission[] }> = {
+  orders: {
+    label: 'Orders',
+    permissions: ['orders.view', 'orders.manage', 'orders.create', 'orders.edit', 'orders.cancel', 'orders.delete'],
+  },
+  payments: {
+    label: 'Payments',
+    permissions: ['payments.process', 'payments.refund'],
+  },
+  tables: {
+    label: 'Tables',
+    permissions: ['tables.view', 'tables.assign'],
+  },
+  kitchen: {
+    label: 'Kitchen',
+    permissions: ['kitchen.view', 'kitchen.manage'],
+  },
+  menu: {
+    label: 'Menu',
+    permissions: ['menu.view', 'menu.manage'],
+  },
+  customers: {
+    label: 'Customers',
+    permissions: ['customers.view', 'customers.manage', 'customers.create', 'customers.edit'],
+  },
+  reservations: {
+    label: 'Reservations',
+    permissions: ['reservations.view', 'reservations.manage'],
+  },
+  staff: {
+    label: 'Staff',
+    permissions: ['staff.view', 'staff.manage', 'staff.create', 'staff.edit', 'staff.delete'],
+  },
+  branches: {
+    label: 'Branches',
+    permissions: ['branches.view', 'branches.manage'],
+  },
+  analytics: {
+    label: 'Analytics',
+    permissions: ['analytics.view', 'analytics.export'],
+  },
+  promotions: {
+    label: 'Promotions',
+    permissions: ['promotions.view', 'promotions.manage'],
+  },
+  loyalty: {
+    label: 'Loyalty',
+    permissions: ['loyalty.view', 'loyalty.manage'],
+  },
+  vendors: {
+    label: 'Vendors',
+    permissions: ['vendors.view', 'vendors.manage'],
+  },
+  notifications: {
+    label: 'Notifications',
+    permissions: ['notifications.view', 'notifications.manage', 'notifications.preferences'],
+  },
+  operations: {
+    label: 'Operations',
+    permissions: ['operations.view', 'operations.manage'],
+  },
+  settings: {
+    label: 'Settings',
+    permissions: ['settings.view', 'settings.manage', 'featureflags.manage'],
+  },
+  tenant: {
+    label: 'Tenant',
+    permissions: ['tenant.view', 'tenant.manage'],
+  },
+  audit: {
+    label: 'Audit',
+    permissions: ['audit.view', 'audit.export', 'audit.manage'],
+  },
+}
+
 // ── Public service object ─────────────────────────────────────────────────────
 
 export const permissionService = {
   ROLE_PERMISSION_MAP,
   ALL_PERMISSIONS,
+  ROLE_TEMPLATES,
+  PERMISSION_CATEGORIES,
   getPermissionsForRole,
   hasPermission,
   hasAnyPermission,
   hasAllPermissions,
   checkPermission,
+  applyOverrides,
+  resolveEffectivePermissions,
   getMockRoles,
   auditHooks,
   MOCK_RBAC_USERS,

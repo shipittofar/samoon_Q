@@ -9,6 +9,7 @@ import {
   MOCK_KITCHEN_USER,
   MOCK_MARKETING_USER,
   MOCK_SUPPORT_USER,
+  MOCK_MULTI_ROLE_USER,
 } from '@/lib/mock-data'
 import { MOCK_DELAY } from '@/constants'
 import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, User } from '@/types'
@@ -40,14 +41,16 @@ export const MOCK_REFRESH_TOKEN =
  * useLogin() on successful mock login. They cover all PermissionGuard checks.
  */
 export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> = {
-  'demo@savor.com':      { user: MOCK_USER,          p7Roles: [] },
-  'staff@savor.com':     { user: MOCK_STAFF_USER,    p7Roles: ['manager'] },
-  'cashier@savor.com':   { user: MOCK_CASHIER_USER,  p7Roles: ['cashier'] },
-  'kitchen@savor.com':   { user: MOCK_KITCHEN_USER,  p7Roles: ['kitchen'] },
+  'demo@savor.com':      { user: MOCK_USER,           p7Roles: [] },
+  'staff@savor.com':     { user: MOCK_STAFF_USER,     p7Roles: ['manager'] },
+  'cashier@savor.com':   { user: MOCK_CASHIER_USER,   p7Roles: ['cashier'] },
+  'kitchen@savor.com':   { user: MOCK_KITCHEN_USER,   p7Roles: ['kitchen'] },
   'marketing@savor.com': { user: MOCK_MARKETING_USER, p7Roles: ['marketing'] },
-  'support@savor.com':   { user: MOCK_SUPPORT_USER,  p7Roles: ['support'] },
-  'admin@savor.com':     { user: MOCK_ADMIN_USER,    p7Roles: ['admin'] },
-  'owner@savor.com':     { user: MOCK_OWNER_USER,    p7Roles: ['owner'] },
+  'support@savor.com':   { user: MOCK_SUPPORT_USER,   p7Roles: ['support'] },
+  'admin@savor.com':     { user: MOCK_ADMIN_USER,     p7Roles: ['admin'] },
+  'owner@savor.com':     { user: MOCK_OWNER_USER,     p7Roles: ['owner'] },
+  // P8.5 — Multi-role demo: Cashier + Kitchen combined (orders + kitchen display + payments)
+  'multirole@savor.com': { user: MOCK_MULTI_ROLE_USER, p7Roles: ['cashier', 'kitchen'] },
 }
 
 export const authService = {

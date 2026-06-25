@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, User, Crown, ChefHat, Megaphone, HeadphonesIcon, CreditCard } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, User, Crown, ChefHat, Megaphone, HeadphonesIcon, CreditCard, Layers } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Divider } from '@/components/ui'
@@ -26,6 +26,7 @@ const DEMO_ACCOUNTS = [
   { label: 'Support',   email: 'support@savor.com',   description: 'Customers + reservations',     icon: HeadphonesIcon,   color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
   { label: 'Admin',     email: 'admin@savor.com',     description: 'Full admin panel',             icon: ShieldCheck,      color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
   { label: 'Owner',     email: 'owner@savor.com',     description: 'Tenant management + all',      icon: Crown,            color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
+  { label: 'Multi-Role', email: 'multirole@savor.com', description: 'Cashier + Kitchen (P8.5)',   icon: Layers,           color: 'text-teal-600 dark:text-teal-400',    bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',    border: 'border-teal-200 dark:border-teal-800' },
 ]
 
 const loginSchema = z.object({

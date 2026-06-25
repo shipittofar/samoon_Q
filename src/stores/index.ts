@@ -30,7 +30,7 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
   }
 }
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User, Role } from '@/types'
-import type { TenantRoleAssignment } from '@/types/rbac'
+import type { TenantRoleAssignment, UserPermissionOverride, BranchRoleAssignment } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
 
@@ -428,13 +428,29 @@ export const useRecentlyViewedStore = create<RecentlyViewedState>()(
  * Read path: hooks read tenantRoles + current tenant ID from useTenantStore
  * to derive effective roles for permission checks.
  */
+// ── P8.5: Extended RBAC store with overrides and branch scope ─────────────────
+
 interface RbacStoreState {
+  // Tenant-scoped role assignments
   tenantRoles: TenantRoleAssignment[]
   setTenantRoles: (tenantId: string, roles: Role[]) => void
   addRole: (tenantId: string, role: Role) => void
   removeRole: (tenantId: string, role: Role) => void
   clearRoles: () => void
   getRolesForTenant: (tenantId: string) => Role[]
+
+  // P8.5: Per-user permission overrides (admin-managed)
+  userOverrides: UserPermissionOverride[]
+  setUserOverride: (userId: string, tenantId: string, allow: import('@/types/rbac').P7Permission[], deny: import('@/types/rbac').P7Permission[]) => void
+  clearUserOverride: (userId: string, tenantId: string) => void
+  getUserOverride: (userId: string, tenantId: string) => UserPermissionOverride | undefined
+
+  // P8.5: Branch-scoped role assignments
+  branchRoles: BranchRoleAssignment[]
+  setBranchRoles: (tenantId: string, branchId: string, roles: Role[]) => void
+  getRolesForBranch: (tenantId: string, branchId: string) => Role[]
+  clearBranchRoles: (tenantId: string, branchId: string) => void
+
   _resetStore: () => void
 }
 
@@ -442,6 +458,8 @@ export const useRbacStore = create<RbacStoreState>()(
   persist(
     (set, get) => ({
       tenantRoles: [],
+      userOverrides: [],
+      branchRoles: [],
 
       setTenantRoles: (tenantId, roles) =>
         set((s) => {
@@ -476,7 +494,45 @@ export const useRbacStore = create<RbacStoreState>()(
         return get().tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
       },
 
-      _resetStore: () => set({ tenantRoles: [] }),
+      // User overrides
+      setUserOverride: (userId, tenantId, allow, deny) =>
+        set((s) => {
+          const filtered = s.userOverrides.filter(
+            (o) => !(o.userId === userId && o.tenantId === tenantId),
+          )
+          return { userOverrides: [...filtered, { userId, tenantId, allow, deny }] }
+        }),
+
+      clearUserOverride: (userId, tenantId) =>
+        set((s) => ({
+          userOverrides: s.userOverrides.filter(
+            (o) => !(o.userId === userId && o.tenantId === tenantId),
+          ),
+        })),
+
+      getUserOverride: (userId, tenantId) =>
+        get().userOverrides.find((o) => o.userId === userId && o.tenantId === tenantId),
+
+      // Branch roles
+      setBranchRoles: (tenantId, branchId, roles) =>
+        set((s) => {
+          const filtered = s.branchRoles.filter(
+            (b) => !(b.tenantId === tenantId && b.branchId === branchId),
+          )
+          return { branchRoles: [...filtered, { tenantId, branchId, roles: [...new Set(roles)] }] }
+        }),
+
+      getRolesForBranch: (tenantId, branchId) =>
+        get().branchRoles.find((b) => b.tenantId === tenantId && b.branchId === branchId)?.roles ?? [],
+
+      clearBranchRoles: (tenantId, branchId) =>
+        set((s) => ({
+          branchRoles: s.branchRoles.filter(
+            (b) => !(b.tenantId === tenantId && b.branchId === branchId),
+          ),
+        })),
+
+      _resetStore: () => set({ tenantRoles: [], userOverrides: [], branchRoles: [] }),
     }),
     { name: 'savor-rbac' },
   ),

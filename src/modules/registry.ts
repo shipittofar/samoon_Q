@@ -134,6 +134,21 @@ const SETTINGS_NAV_ITEM = {
   permissionKey: 'settings.view',
 } as const
 
+// P8.5 — Enterprise RBAC management nav items
+const PERMISSIONS_NAV_ITEM = {
+  href: '/admin/permissions',
+  label: 'Permissions',
+  featureFlagKey: 'admin.staff.enabled',
+  permissionKey: 'staff.manage',
+} as const
+
+const ROLES_NAV_ITEM = {
+  href: '/admin/roles',
+  label: 'Roles',
+  featureFlagKey: 'admin.staff.enabled',
+  permissionKey: 'staff.manage',
+} as const
+
 const ORDERS_NAV_ITEM = {
   href: '/admin/orders',
   label: 'Orders',
@@ -224,6 +239,8 @@ export const RESTAURANT_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PERMISSIONS_NAV_ITEM,
+    ROLES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -302,6 +319,8 @@ export const CAFE_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PERMISSIONS_NAV_ITEM,
+    ROLES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -373,6 +392,8 @@ export const BAR_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PERMISSIONS_NAV_ITEM,
+    ROLES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -442,6 +463,8 @@ export const FOOD_COURT_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PERMISSIONS_NAV_ITEM,
+    ROLES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -511,6 +534,8 @@ export const FOOD_TRUCK_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PERMISSIONS_NAV_ITEM,
+    ROLES_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -584,6 +609,8 @@ export const MOBILE_CAFE_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PERMISSIONS_NAV_ITEM,
+    ROLES_NAV_ITEM,
   ],
   enabled: true,
 }

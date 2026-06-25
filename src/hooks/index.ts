@@ -55,8 +55,8 @@ import type {
   NotificationPriority,
 } from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore } from '@/stores'
-import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions } from '@/services/permission.service'
-import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
+import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions, applyOverrides, resolveEffectivePermissions } from '@/services/permission.service'
+import type { P7Permission, PermissionCheckOptions, EffectivePermissionResult } from '@/types/rbac'
 import { rbacService } from '@/services/rbac.service'
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
@@ -152,62 +152,106 @@ export function useHasPermission(permission: LegacyPermission): boolean {
   return rbacService.hasPermission(role, permission)
 }
 
-// ── P7.1 Permission Hooks ─────────────────────────────────────────────────────
+// ── P7.1 + P8.5 Permission Hooks ─────────────────────────────────────────────
+
 /**
- * Returns all P7 permissions granted to the current user for the active tenant.
- * Memoized by role list string to avoid excessive re-renders.
+ * Returns all P7 permissions effective for the current user in the active tenant.
+ * Applies user-level allow/deny overrides on top of role-derived permissions.
+ * Evaluation order: User Deny → User Allow → Role Permissions → Default Deny.
  */
 export function usePermissions(): readonly P7Permission[] {
+  const user = useAuthStore((s) => s.user)
   const tenantId = useTenantStore((s) => s.tenant?.id)
   const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const userOverrides = useRbacStore((s) => s.userOverrides)
   return useMemo(() => {
     const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
-    return getPermissionsForRole(roles)
+    const base = getPermissionsForRole(roles)
+    const override = userOverrides.find((o) => o.userId === user?.id && o.tenantId === tenantId)
+    return applyOverrides(base, override)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, tenantRoles])
+  }, [user?.id, tenantId, tenantRoles, userOverrides])
 }
 
 /**
  * Returns true if the current user holds the given P7 permission for the active tenant.
- * Respects the full authorization formula: Permission AND Capability AND FeatureFlag.
+ * Respects: Permission AND Capability AND FeatureFlag AND UserOverrides.
  */
 export function usePermission(permission: P7Permission, opts?: PermissionCheckOptions): boolean {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
-  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const permissions = usePermissions()
   const featureFlags = useTenantStore((s) => s.featureFlags)
   return useMemo(() => {
-    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
-    return hasPermission(roles, permission, { featureFlags, ...opts })
+    if (!permissions.includes(permission)) return false
+    const resource = permission.split('.')[0]!
+    if (opts?.capabilities?.[resource] === false) return false
+    // Feature flag gate
+    const FLAG_MAP: Record<string, string> = {
+      orders: 'ordering.enabled',
+      menu: 'menu.enabled',
+      reservations: 'reservations.enabled',
+      loyalty: 'loyalty.enabled',
+      promotions: 'promotions.enabled',
+      vendors: 'food_court.vendor_management.enabled',
+      reviews: 'reviews.enabled',
+    }
+    const flagKey = FLAG_MAP[resource]
+    if (flagKey && featureFlags[flagKey] === false) return false
+    return true
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, tenantRoles, permission, featureFlags])
+  }, [permissions, permission, featureFlags])
 }
 
 /**
  * Returns true if the current user holds AT LEAST ONE of the given permissions.
+ * Respects user overrides and feature flags.
  */
 export function useAnyPermission(permissions: P7Permission[], opts?: PermissionCheckOptions): boolean {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
-  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const effectivePermissions = usePermissions()
   const featureFlags = useTenantStore((s) => s.featureFlags)
   return useMemo(() => {
-    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
-    return hasAnyPermission(roles, permissions, { featureFlags, ...opts })
+    if (permissions.length === 0) return false
+    return permissions.some((p) => {
+      if (!effectivePermissions.includes(p)) return false
+      const resource = p.split('.')[0]!
+      if (opts?.capabilities?.[resource] === false) return false
+      return true
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, tenantRoles, permissions.join(','), featureFlags])
+  }, [effectivePermissions, permissions.join(','), featureFlags])
 }
 
 /**
  * Returns true if the current user holds ALL of the given permissions.
+ * Respects user overrides and feature flags.
  */
 export function useAllPermissions(permissions: P7Permission[], opts?: PermissionCheckOptions): boolean {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
-  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const effectivePermissions = usePermissions()
   const featureFlags = useTenantStore((s) => s.featureFlags)
   return useMemo(() => {
-    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
-    return hasAllPermissions(roles, permissions, { featureFlags, ...opts })
+    if (permissions.length === 0) return false
+    return permissions.every((p) => {
+      if (!effectivePermissions.includes(p)) return false
+      const resource = p.split('.')[0]!
+      if (opts?.capabilities?.[resource] === false) return false
+      return true
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, tenantRoles, permissions.join(','), featureFlags])
+  }, [effectivePermissions, permissions.join(','), featureFlags])
+}
+
+/**
+ * P8.5 — Returns the full effective permission breakdown for the given user+tenant.
+ * Used by the admin Permission Management UI to display per-permission source info.
+ */
+export function useEffectivePermissions(userId: string, tenantId: string): EffectivePermissionResult[] {
+  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const userOverrides = useRbacStore((s) => s.userOverrides)
+  return useMemo(() => {
+    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
+    const override = userOverrides.find((o) => o.userId === userId && o.tenantId === tenantId)
+    return resolveEffectivePermissions(roles, override)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, tenantId, tenantRoles, userOverrides])
 }
 
 // ── Feature Flag Hook — P1B.2 ─────────────────────────────────────────────────
