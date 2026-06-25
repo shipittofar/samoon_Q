@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, User, Crown } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, User, Crown, ChefHat, Megaphone, HeadphonesIcon, CreditCard } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Divider } from '@/components/ui'
@@ -18,11 +18,15 @@ import { LOGIN_LIMIT } from '@/lib/rate-limit'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 const DEMO_ACCOUNTS = [
-  { label: 'Customer',  email: 'demo@savor.com',  description: 'Menu, orders, reservations',  icon: User,        color: 'text-blue-600 dark:text-blue-400',   bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',   border: 'border-blue-200 dark:border-blue-800' },
-  { label: 'Staff',     email: 'staff@savor.com', description: 'Dashboard + operations',      icon: ShieldCheck, color: 'text-green-600 dark:text-green-400', bg: 'hover:bg-green-50 dark:hover:bg-green-950/20', border: 'border-green-200 dark:border-green-800' },
-  { label: 'Admin',     email: 'admin@savor.com', description: 'Full admin panel',            icon: ShieldCheck, color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
-  { label: 'Owner',     email: 'owner@savor.com', description: 'Tenant management + all',     icon: Crown,       color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
-] as const
+  { label: 'Customer',  email: 'demo@savor.com',      description: 'Menu, orders, reservations',   icon: User,             color: 'text-blue-600 dark:text-blue-400',    bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',    border: 'border-blue-200 dark:border-blue-800' },
+  { label: 'Staff',     email: 'staff@savor.com',     description: 'Manager — full ops',           icon: ShieldCheck,      color: 'text-green-600 dark:text-green-400',  bg: 'hover:bg-green-50 dark:hover:bg-green-950/20',  border: 'border-green-200 dark:border-green-800' },
+  { label: 'Cashier',   email: 'cashier@savor.com',   description: 'Orders + customers',           icon: CreditCard,       color: 'text-cyan-600 dark:text-cyan-400',    bg: 'hover:bg-cyan-50 dark:hover:bg-cyan-950/20',    border: 'border-cyan-200 dark:border-cyan-800' },
+  { label: 'Kitchen',   email: 'kitchen@savor.com',   description: 'Order queue + kitchen display', icon: ChefHat,         color: 'text-amber-600 dark:text-amber-400',  bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20',  border: 'border-amber-200 dark:border-amber-800' },
+  { label: 'Marketing', email: 'marketing@savor.com', description: 'Analytics + promotions',       icon: Megaphone,        color: 'text-pink-600 dark:text-pink-400',    bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20',    border: 'border-pink-200 dark:border-pink-800' },
+  { label: 'Support',   email: 'support@savor.com',   description: 'Customers + reservations',     icon: HeadphonesIcon,   color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
+  { label: 'Admin',     email: 'admin@savor.com',     description: 'Full admin panel',             icon: ShieldCheck,      color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
+  { label: 'Owner',     email: 'owner@savor.com',     description: 'Tenant management + all',      icon: Crown,            color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
+]
 
 const loginSchema = z.object({
   email: z.string().email('Valid email required'),

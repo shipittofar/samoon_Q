@@ -52,6 +52,54 @@ export const MOCK_OWNER_USER: User = {
   created_at: '2024-01-01T00:00:00Z',
 }
 
+export const MOCK_CASHIER_USER: User = {
+  id: '5',
+  email: 'cashier@savor.com',
+  phone: '+1234567894',
+  first_name: 'Casey',
+  last_name: 'Cashier',
+  avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
+  role: 'staff',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
+export const MOCK_KITCHEN_USER: User = {
+  id: '6',
+  email: 'kitchen@savor.com',
+  phone: '+1234567895',
+  first_name: 'Kai',
+  last_name: 'Kitchen',
+  avatar: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=100&h=100&fit=crop',
+  role: 'staff',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
+export const MOCK_MARKETING_USER: User = {
+  id: '7',
+  email: 'marketing@savor.com',
+  phone: '+1234567896',
+  first_name: 'Morgan',
+  last_name: 'Marketing',
+  avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop',
+  role: 'staff',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
+export const MOCK_SUPPORT_USER: User = {
+  id: '8',
+  email: 'support@savor.com',
+  phone: '+1234567897',
+  first_name: 'Sam',
+  last_name: 'Support',
+  avatar: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100&fit=crop',
+  role: 'staff',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
 // ── Branches ─────────────────────────────────────────────────────────────────
 export const MOCK_BRANCHES: Branch[] = [
   {
