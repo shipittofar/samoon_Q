@@ -30,7 +30,7 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
   }
 }
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User, Role } from '@/types'
-import type { TenantRoleAssignment, UserPermissionOverride, BranchRoleAssignment } from '@/types/rbac'
+import type { TenantRoleAssignment, UserPermissionOverride, BranchRoleAssignment, RoleAssignment, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
 
@@ -451,6 +451,27 @@ interface RbacStoreState {
   getRolesForBranch: (tenantId: string, branchId: string) => Role[]
   clearBranchRoles: (tenantId: string, branchId: string) => void
 
+  // P8.6: Extended role assignments with metadata
+  roleAssignments: RoleAssignment[]
+  addRoleAssignment: (assignment: RoleAssignment) => void
+  removeRoleAssignment: (assignmentId: string) => void
+  updateRoleAssignment: (assignmentId: string, updates: Partial<Omit<RoleAssignment, 'id'>>) => void
+  getRoleAssignmentsForUser: (userId: string, tenantId: string) => RoleAssignment[]
+  getActiveRoleAssignmentsForUser: (userId: string, tenantId: string) => RoleAssignment[]
+
+  // P8.6: Custom role templates (tenant-admin managed)
+  customRoles: CustomRoleTemplate[]
+  addCustomRole: (role: CustomRoleTemplate) => void
+  updateCustomRole: (roleId: string, updates: Partial<Omit<CustomRoleTemplate, 'id'>>) => void
+  deleteCustomRole: (roleId: string) => void
+  getCustomRoles: (tenantId: string) => CustomRoleTemplate[]
+
+  // P8.6: In-session RBAC audit trail
+  rbacAuditLog: RbacAuditEvent[]
+  addRbacAuditEvent: (event: RbacAuditEvent) => void
+  getRbacAuditLog: (tenantId: string) => RbacAuditEvent[]
+  clearRbacAuditLog: (tenantId: string) => void
+
   _resetStore: () => void
 }
 
@@ -460,6 +481,9 @@ export const useRbacStore = create<RbacStoreState>()(
       tenantRoles: [],
       userOverrides: [],
       branchRoles: [],
+      roleAssignments: [],
+      customRoles: [],
+      rbacAuditLog: [],
 
       setTenantRoles: (tenantId, roles) =>
         set((s) => {
@@ -532,7 +556,64 @@ export const useRbacStore = create<RbacStoreState>()(
           ),
         })),
 
-      _resetStore: () => set({ tenantRoles: [], userOverrides: [], branchRoles: [] }),
+      // P8.6: Extended role assignments
+      addRoleAssignment: (assignment) =>
+        set((s) => ({
+          roleAssignments: [...s.roleAssignments.filter((r) => r.id !== assignment.id), assignment],
+        })),
+      removeRoleAssignment: (assignmentId) =>
+        set((s) => ({ roleAssignments: s.roleAssignments.filter((r) => r.id !== assignmentId) })),
+      updateRoleAssignment: (assignmentId, updates) =>
+        set((s) => ({
+          roleAssignments: s.roleAssignments.map((r) =>
+            r.id === assignmentId ? { ...r, ...updates } : r,
+          ),
+        })),
+      getRoleAssignmentsForUser: (userId, tenantId) =>
+        get().roleAssignments.filter((r) => r.userId === userId && r.tenantId === tenantId),
+      getActiveRoleAssignmentsForUser: (userId, tenantId) => {
+        const now = new Date().toISOString()
+        return get().roleAssignments.filter(
+          (r) =>
+            r.userId === userId &&
+            r.tenantId === tenantId &&
+            r.enabled &&
+            (!r.expiresAt || r.expiresAt > now),
+        )
+      },
+
+      // P8.6: Custom role templates
+      addCustomRole: (role) =>
+        set((s) => ({
+          customRoles: [...s.customRoles.filter((r) => r.id !== role.id), role],
+        })),
+      updateCustomRole: (roleId, updates) =>
+        set((s) => ({
+          customRoles: s.customRoles.map((r) =>
+            r.id === roleId ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r,
+          ),
+        })),
+      deleteCustomRole: (roleId) =>
+        set((s) => ({ customRoles: s.customRoles.filter((r) => r.id !== roleId) })),
+      getCustomRoles: (tenantId) =>
+        get().customRoles.filter((r) => r.tenantId === tenantId),
+
+      // P8.6: RBAC audit trail
+      addRbacAuditEvent: (event) =>
+        set((s) => ({ rbacAuditLog: [event, ...s.rbacAuditLog].slice(0, 500) })),
+      getRbacAuditLog: (tenantId) =>
+        get().rbacAuditLog.filter((e) => e.tenantId === tenantId),
+      clearRbacAuditLog: (tenantId) =>
+        set((s) => ({ rbacAuditLog: s.rbacAuditLog.filter((e) => e.tenantId !== tenantId) })),
+
+      _resetStore: () => set({
+        tenantRoles: [],
+        userOverrides: [],
+        branchRoles: [],
+        roleAssignments: [],
+        customRoles: [],
+        rbacAuditLog: [],
+      }),
     }),
     { name: 'savor-rbac' },
   ),

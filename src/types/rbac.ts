@@ -182,3 +182,117 @@ export interface RoleTemplate {
   system: boolean
   permissions: readonly P7Permission[]
 }
+
+// ── P8.6 Enterprise Extensions ────────────────────────────────────────────────
+
+/**
+ * Extended role assignment with metadata for enterprise RBAC.
+ * Supports branch-scoped assignments, expiry, priority, and audit trail.
+ */
+export interface RoleAssignment {
+  id: string
+  userId: string
+  tenantId: string
+  role: Role
+  /** undefined = all branches (tenant-wide) */
+  branchId?: string
+  enabled: boolean
+  /** Higher number = evaluated first when resolving conflicts */
+  priority: number
+  /** ISO timestamp; undefined = no expiry */
+  expiresAt?: string
+  assignedBy: string
+  assignedAt: string
+}
+
+/**
+ * Custom role template created by a tenant admin.
+ * Unlike system roles (RoleTemplate.system=true), these can be edited/deleted.
+ */
+export interface CustomRoleTemplate {
+  id: string
+  name: string
+  description: string
+  color: string
+  icon?: string
+  permissions: P7Permission[]
+  tenantId: string
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+  enabled: boolean
+  clonedFrom?: Role
+}
+
+/**
+ * Describes dependency relationships between permissions.
+ * Used by the dependency engine to warn and auto-resolve when granting/denying.
+ */
+export interface PermissionDependency {
+  permission: P7Permission
+  /** Granting this permission also requires these to be effective */
+  requires?: P7Permission[]
+  /** Granting this permission automatically implies these (shown as info) */
+  implies?: P7Permission[]
+  /** Granting this permission conflicts with these (shown as warning) */
+  conflicts?: P7Permission[]
+}
+
+/**
+ * Audit event for every RBAC state change — role assignments, overrides, templates.
+ * Stored in the store for in-session audit trail; backend-compatible shape.
+ */
+export interface RbacAuditEvent {
+  id: string
+  type:
+    | 'role_assigned'
+    | 'role_removed'
+    | 'role_disabled'
+    | 'role_enabled'
+    | 'permission_granted'
+    | 'permission_denied'
+    | 'permission_reset'
+    | 'override_cleared'
+    | 'custom_role_created'
+    | 'custom_role_edited'
+    | 'custom_role_deleted'
+    | 'branch_role_set'
+    | 'branch_role_cleared'
+  actorId: string
+  targetUserId: string
+  tenantId: string
+  branchId?: string
+  role?: Role | string
+  permission?: P7Permission
+  oldValue?: unknown
+  newValue?: unknown
+  reason?: string
+  timestamp: string
+}
+
+/**
+ * Result of simulating a user's permissions under a given role or custom config.
+ * Used by the Permission Simulator (Phase 6) — no state changes, preview only.
+ */
+export interface SimulationResult {
+  label: string
+  roles: (Role | string)[]
+  effectivePermissions: P7Permission[]
+  deniedPermissions: P7Permission[]
+  grantedByOverride: P7Permission[]
+  permissionCount: number
+}
+
+/**
+ * Dependency validation result returned by the permission dependency engine.
+ */
+export interface DependencyValidationResult {
+  permission: P7Permission
+  /** Permissions required but missing from the current effective set */
+  missingRequirements: P7Permission[]
+  /** Permissions that would be auto-implied when this is granted */
+  impliedGrants: P7Permission[]
+  /** Permissions that conflict with granting this */
+  conflicts: P7Permission[]
+  hasIssues: boolean
+}

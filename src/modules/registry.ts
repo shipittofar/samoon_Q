@@ -149,6 +149,14 @@ const ROLES_NAV_ITEM = {
   permissionKey: 'staff.manage',
 } as const
 
+// P8.6 — User management nav item
+const USERS_NAV_ITEM = {
+  href: '/admin/users',
+  label: 'Users',
+  featureFlagKey: 'admin.staff.enabled',
+  permissionKey: 'staff.manage',
+} as const
+
 const ORDERS_NAV_ITEM = {
   href: '/admin/orders',
   label: 'Orders',
@@ -197,6 +205,9 @@ export const ADMIN_OPERATIONS_ROUTES: readonly string[] = ['/admin/operations', 
 /** Settings routes (P7.8) — spread into each module's routes array. */
 export const ADMIN_SETTINGS_ROUTES: readonly string[] = ['/admin/settings', '/admin/settings/feature-flags']
 
+/** User management routes (P8.6) — spread into each module's routes array. */
+export const ADMIN_USERS_ROUTES: readonly string[] = ['/admin/users', '/admin/users/[id]']
+
 // ── Built-in module definitions ───────────────────────────────────────────────
 
 export const RESTAURANT_MODULE: Module = {
@@ -209,7 +220,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_USERS_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -241,6 +252,7 @@ export const RESTAURANT_MODULE: Module = {
     SETTINGS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    USERS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -280,6 +292,7 @@ export const CAFE_MODULE: Module = {
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_USERS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -321,6 +334,7 @@ export const CAFE_MODULE: Module = {
     SETTINGS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    USERS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -354,6 +368,7 @@ export const BAR_MODULE: Module = {
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_USERS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Drinks' },
@@ -394,6 +409,7 @@ export const BAR_MODULE: Module = {
     SETTINGS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    USERS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -426,6 +442,7 @@ export const FOOD_COURT_MODULE: Module = {
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_USERS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -465,6 +482,7 @@ export const FOOD_COURT_MODULE: Module = {
     SETTINGS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    USERS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -497,6 +515,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_USERS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -536,6 +555,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     SETTINGS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    USERS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -569,6 +589,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_USERS_ROUTES,
   ],
   navItems: [
     { href: '/menu', label: 'Menu' },
@@ -611,6 +632,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     SETTINGS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    USERS_NAV_ITEM,
   ],
   enabled: true,
 }

@@ -614,6 +614,88 @@ export const PERMISSION_CATEGORIES: Record<string, { label: string; permissions:
   },
 }
 
+// ── P8.6 — Permission Dependency Engine ──────────────────────────────────────
+
+import type { PermissionDependency, DependencyValidationResult } from '@/types/rbac'
+
+/**
+ * Dependency rules for the permission system.
+ * When an admin grants/denies a permission, the engine checks these rules
+ * and returns warnings, implied grants, and missing requirements.
+ */
+export const PERMISSION_DEPENDENCIES: Readonly<Partial<Record<P7Permission, PermissionDependency>>> = {
+  'orders.manage':      { permission: 'orders.manage',      requires: ['orders.view'] },
+  'orders.create':      { permission: 'orders.create',      requires: ['orders.view'] },
+  'orders.edit':        { permission: 'orders.edit',        requires: ['orders.view'] },
+  'orders.cancel':      { permission: 'orders.cancel',      requires: ['orders.view'] },
+  'orders.delete':      { permission: 'orders.delete',      requires: ['orders.view', 'orders.manage'] },
+  'menu.manage':        { permission: 'menu.manage',        requires: ['menu.view'] },
+  'reservations.manage':{ permission: 'reservations.manage',requires: ['reservations.view'] },
+  'customers.manage':   { permission: 'customers.manage',   requires: ['customers.view'] },
+  'customers.create':   { permission: 'customers.create',   requires: ['customers.view'] },
+  'customers.edit':     { permission: 'customers.edit',     requires: ['customers.view'] },
+  'payments.refund':    { permission: 'payments.refund',    requires: ['payments.process'] },
+  'kitchen.manage':     { permission: 'kitchen.manage',     requires: ['kitchen.view'] },
+  'analytics.export':   { permission: 'analytics.export',   requires: ['analytics.view'] },
+  'staff.manage':       { permission: 'staff.manage',       requires: ['staff.view'],  implies: ['staff.view'] },
+  'staff.create':       { permission: 'staff.create',       requires: ['staff.view', 'staff.manage'] },
+  'staff.edit':         { permission: 'staff.edit',         requires: ['staff.view', 'staff.manage'] },
+  'staff.delete':       { permission: 'staff.delete',       requires: ['staff.view', 'staff.manage'] },
+  'branches.manage':    { permission: 'branches.manage',    requires: ['branches.view'] },
+  'settings.manage':    { permission: 'settings.manage',    requires: ['settings.view'] },
+  'featureflags.manage':{ permission: 'featureflags.manage',requires: ['settings.view', 'settings.manage'] },
+  'tenant.manage':      { permission: 'tenant.manage',      requires: ['tenant.view'] },
+  'audit.export':       { permission: 'audit.export',       requires: ['audit.view'] },
+  'audit.manage':       { permission: 'audit.manage',       requires: ['audit.view'] },
+  'notifications.manage':{ permission: 'notifications.manage', requires: ['notifications.view'] },
+  'operations.manage':  { permission: 'operations.manage',  requires: ['operations.view'] },
+  'vendors.manage':     { permission: 'vendors.manage',     requires: ['vendors.view'] },
+  'promotions.manage':  { permission: 'promotions.manage',  requires: ['promotions.view'] },
+  'loyalty.manage':     { permission: 'loyalty.manage',     requires: ['loyalty.view'] },
+  'tables.assign':      { permission: 'tables.assign',      requires: ['tables.view'] },
+}
+
+/**
+ * Validates granting a permission against the dependency rules.
+ * Returns missing requirements, implied grants, and conflicts.
+ */
+export function validatePermissionGrant(
+  permission: P7Permission,
+  currentEffective: readonly P7Permission[],
+): DependencyValidationResult {
+  const dep = PERMISSION_DEPENDENCIES[permission]
+  if (!dep) {
+    return { permission, missingRequirements: [], impliedGrants: [], conflicts: [], hasIssues: false }
+  }
+  const missingRequirements = (dep.requires ?? []).filter((r) => !currentEffective.includes(r))
+  const impliedGrants = dep.implies ?? []
+  const conflicts = (dep.conflicts ?? []).filter((c) => currentEffective.includes(c))
+  return {
+    permission,
+    missingRequirements,
+    impliedGrants,
+    conflicts,
+    hasIssues: missingRequirements.length > 0 || conflicts.length > 0,
+  }
+}
+
+/**
+ * Auto-resolves permission dependencies: when granting P, also grants all implied permissions
+ * and all required permissions that are missing from the current set.
+ */
+export function resolveWithDependencies(
+  toGrant: P7Permission,
+  currentEffective: readonly P7Permission[],
+): P7Permission[] {
+  const toAdd = new Set<P7Permission>([toGrant])
+  const dep = PERMISSION_DEPENDENCIES[toGrant]
+  if (dep) {
+    ;(dep.requires ?? []).forEach((r) => toAdd.add(r))
+    ;(dep.implies ?? []).forEach((i) => toAdd.add(i))
+  }
+  return [...toAdd].filter((p) => !currentEffective.includes(p))
+}
+
 // ── Public service object ─────────────────────────────────────────────────────
 
 export const permissionService = {
@@ -633,4 +715,7 @@ export const permissionService = {
   MOCK_RBAC_USERS,
   MOCK_TENANT_ID,
   MOCK_TENANT_B_ID,
+  PERMISSION_DEPENDENCIES,
+  validatePermissionGrant,
+  resolveWithDependencies,
 }

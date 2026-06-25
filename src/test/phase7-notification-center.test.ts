@@ -923,12 +923,12 @@ describe('P7.6 — Navigation Integration', () => {
 
   it('RESTAURANT_MODULE adminNavItems count is 7', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(17)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(18)
   })
 
   it('CAFE_MODULE adminNavItems count is 10', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(18)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(19)
   })
 })
 

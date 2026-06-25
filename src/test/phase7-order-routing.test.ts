@@ -1348,32 +1348,32 @@ describe('Regression — P7.4 nav count updates', () => {
 
   it('Reg1: RESTAURANT_MODULE has 5 adminNavItems', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(17)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(18)
   })
 
   it('Reg2: CAFE_MODULE has 8 adminNavItems', async () => {
     const { CAFE_MODULE } = await import('@/modules/registry')
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(18)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(19)
   })
 
   it('Reg3: BAR_MODULE has 8 adminNavItems', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
-    expect(BAR_MODULE.adminNavItems).toHaveLength(19)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(20)
   })
 
   it('Reg4: FOOD_COURT_MODULE has 7 adminNavItems', async () => {
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(18)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(19)
   })
 
   it('Reg5: FOOD_TRUCK_MODULE has 7 adminNavItems', async () => {
     const { FOOD_TRUCK_MODULE } = await import('@/modules/registry')
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(17)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(18)
   })
 
   it('Reg6: MOBILE_CAFE_MODULE has 7 adminNavItems', async () => {
     const { MOBILE_CAFE_MODULE } = await import('@/modules/registry')
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(17)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(18)
   })
 
   it('Reg7: branch-access.service.ts exports branchAccessService', () => {
