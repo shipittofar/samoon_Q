@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { tenantService } from '@/services/tenant.service'
 import type { Tenant } from '@/types'
@@ -243,7 +244,7 @@ export default function TenantDetailPage({ params }: { params: Promise<{ slug: s
   const { slug } = use(params)
   return (
     <ErrorBoundary feature="Tenant Detail">
-      <PermissionGuard permission="tenant.view">
+      <PermissionGuard permission="tenant.view" fallback={<AccessDenied />}>
         <TenantDetailContent slug={slug} />
       </PermissionGuard>
     </ErrorBoundary>

@@ -210,9 +210,9 @@ describe('F — Manager permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('manager', 'orders.manage')).toBe(true)
   })
-  it('manager has analytics.view', async () => {
+  it('manager does NOT have analytics.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('manager', 'analytics.view')).toBe(true)
+    expect(hasPermission('manager', 'analytics.view')).toBe(false)
   })
   it('manager has staff.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')
@@ -230,13 +230,13 @@ describe('F — Manager permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('manager', 'tenant.view')).toBe(false)
   })
-  it('manager has promotions.manage', async () => {
+  it('manager does NOT have promotions.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('manager', 'promotions.manage')).toBe(true)
+    expect(hasPermission('manager', 'promotions.manage')).toBe(false)
   })
-  it('manager has loyalty.manage', async () => {
+  it('manager does NOT have loyalty.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('manager', 'loyalty.manage')).toBe(true)
+    expect(hasPermission('manager', 'loyalty.manage')).toBe(false)
   })
 })
 
@@ -251,9 +251,9 @@ describe('G — Cashier permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('cashier', 'orders.manage')).toBe(true)
   })
-  it('cashier has menu.view', async () => {
+  it('cashier does NOT have menu.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('cashier', 'menu.view')).toBe(true)
+    expect(hasPermission('cashier', 'menu.view')).toBe(false)
   })
   it('cashier does NOT have menu.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')
@@ -301,13 +301,13 @@ describe('I — Kitchen permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('kitchen', 'orders.view')).toBe(true)
   })
-  it('kitchen has orders.manage', async () => {
+  it('kitchen does NOT have orders.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('kitchen', 'orders.manage')).toBe(true)
+    expect(hasPermission('kitchen', 'orders.manage')).toBe(false)
   })
-  it('kitchen has menu.view', async () => {
+  it('kitchen does NOT have menu.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('kitchen', 'menu.view')).toBe(true)
+    expect(hasPermission('kitchen', 'menu.view')).toBe(false)
   })
   it('kitchen does NOT have reservations.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
@@ -317,9 +317,9 @@ describe('I — Kitchen permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('kitchen', 'analytics.view')).toBe(false)
   })
-  it('kitchen has exactly 5 permissions', async () => {
+  it('kitchen has exactly 3 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.kitchen).toHaveLength(6)
+    expect(ROLE_PERMISSION_MAP.kitchen).toHaveLength(3)
   })
 })
 
@@ -355,13 +355,13 @@ describe('J — Marketing permissions', () => {
 // ── K — Support permissions ────────────────────────────────────────────────────
 
 describe('K — Support permissions', () => {
-  it('support has orders.view', async () => {
+  it('support does NOT have orders.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('support', 'orders.view')).toBe(true)
+    expect(hasPermission('support', 'orders.view')).toBe(false)
   })
-  it('support has analytics.view', async () => {
+  it('support does NOT have analytics.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('support', 'analytics.view')).toBe(true)
+    expect(hasPermission('support', 'analytics.view')).toBe(false)
   })
   it('support does NOT have orders.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')
@@ -375,9 +375,9 @@ describe('K — Support permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('support', 'promotions.manage')).toBe(false)
   })
-  it('support has settings.view', async () => {
+  it('support does NOT have settings.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('support', 'settings.view')).toBe(true)
+    expect(hasPermission('support', 'settings.view')).toBe(false)
   })
 })
 
@@ -392,9 +392,9 @@ describe('L — getPermissionsForRole — single role', () => {
     const { getPermissionsForRole } = await import('@/services/permission.service')
     expect(getPermissionsForRole(undefined)).toHaveLength(0)
   })
-  it('kitchen → 5 permissions', async () => {
+  it('kitchen → 3 permissions', async () => {
     const { getPermissionsForRole } = await import('@/services/permission.service')
-    expect(getPermissionsForRole('kitchen')).toHaveLength(6)
+    expect(getPermissionsForRole('kitchen')).toHaveLength(3)
   })
   it('owner → 24 permissions', async () => {
     const { getPermissionsForRole, ALL_PERMISSIONS } = await import('@/services/permission.service')
@@ -474,9 +474,9 @@ describe('N — hasPermission — basic checks', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('marketing', 'promotions.view')).toBe(true)
   })
-  it('cashier has reservations.view', async () => {
+  it('cashier does NOT have reservations.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('cashier', 'reservations.view')).toBe(true)
+    expect(hasPermission('cashier', 'reservations.view')).toBe(false)
   })
   it('cashier does NOT have reservations.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')

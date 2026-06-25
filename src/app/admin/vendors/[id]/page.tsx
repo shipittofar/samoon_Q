@@ -6,6 +6,7 @@ import { ArrowLeft, Star, ShoppingBag, DollarSign, Percent, Loader2, AlertCircle
 import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useVendor, useVendorStats } from '@/hooks'
 import { formatCurrency, formatDate } from '@/utils'
@@ -136,7 +137,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Vendor Detail">
-      <PermissionGuard permission="vendors.view">
+      <PermissionGuard permission="vendors.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
           <Header />
           <div className="pt-16">

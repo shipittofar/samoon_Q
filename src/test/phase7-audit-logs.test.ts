@@ -928,12 +928,12 @@ describe('P7.5 Permissions — audit permissions in RBAC', () => {
     expect(ROLE_PERMISSION_MAP.admin).toContain('audit.manage')
   })
 
-  it('manager has audit.view', () => {
-    expect(ROLE_PERMISSION_MAP.manager).toContain('audit.view')
+  it('manager does NOT have audit.view', () => {
+    expect(ROLE_PERMISSION_MAP.manager).not.toContain('audit.view')
   })
 
-  it('support has audit.view', () => {
-    expect(ROLE_PERMISSION_MAP.support).toContain('audit.view')
+  it('support does NOT have audit.view', () => {
+    expect(ROLE_PERMISSION_MAP.support).not.toContain('audit.view')
   })
 
   it('waiter does NOT have audit.view', () => {
@@ -956,16 +956,16 @@ describe('P7.5 Permissions — audit permissions in RBAC', () => {
     expect(hasPermission('admin', 'audit.export')).toBe(true)
   })
 
-  it('hasPermission(manager, audit.view) returns true', () => {
-    expect(hasPermission('manager', 'audit.view')).toBe(true)
+  it('hasPermission(manager, audit.view) returns false', () => {
+    expect(hasPermission('manager', 'audit.view')).toBe(false)
   })
 
   it('hasPermission(manager, audit.export) returns false', () => {
     expect(hasPermission('manager', 'audit.export')).toBe(false)
   })
 
-  it('hasPermission(support, audit.view) returns true', () => {
-    expect(hasPermission('support', 'audit.view')).toBe(true)
+  it('hasPermission(support, audit.view) returns false', () => {
+    expect(hasPermission('support', 'audit.view')).toBe(false)
   })
 
   it('hasPermission(waiter, audit.view) returns false', () => {

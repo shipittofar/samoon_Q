@@ -1,12 +1,13 @@
 'use client'
 
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 export default function CafeHappyHourPage() {
   return (
     <ErrorBoundary feature="Cafe Happy Hour Settings">
-      <PermissionGuard permission="promotions.view">
+      <PermissionGuard permission="promotions.view" fallback={<AccessDenied />}>
         <main className="p-6 max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold mb-2">Happy Hour Settings</h1>
           <p className="text-gray-500 text-sm">Configure happy hour schedules and discounts for cafe tenants.</p>

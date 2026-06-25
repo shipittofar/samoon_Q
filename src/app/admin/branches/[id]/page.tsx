@@ -3,6 +3,7 @@
 import { use } from 'react'
 import { useAdminBranch, useAdminBranchMetrics, useActivateBranch, useDeactivateBranch, useMaintenanceBranch } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { BranchStatus } from '@/types/branch'
 
@@ -97,7 +98,7 @@ function BranchDetailContent({ id }: { id: string }) {
       )}
 
       {/* Status Actions */}
-      <PermissionGuard permission="branches.manage">
+      <PermissionGuard permission="branches.manage" fallback={<AccessDenied />}>
         <section className="rounded-lg border p-4">
           <h2 className="mb-3 font-semibold">Status Actions</h2>
           <div className="flex flex-wrap gap-2">
@@ -139,7 +140,7 @@ export default function BranchDetailPage({ params }: { params: Promise<{ id: str
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Branch Detail">
-      <PermissionGuard permission="branches.view">
+      <PermissionGuard permission="branches.view" fallback={<AccessDenied />}>
         <BranchDetailContent id={id} />
       </PermissionGuard>
     </ErrorBoundary>

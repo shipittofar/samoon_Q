@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { useAdminReservation } from '@/hooks'
 import type { ReservationStatus } from '@/types'
@@ -142,7 +143,7 @@ export default function ReservationDetailPage({ params }: { params: Promise<{ id
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Reservation Detail">
-      <PermissionGuard permission="reservations.view">
+      <PermissionGuard permission="reservations.view" fallback={<AccessDenied />}>
         <ReservationDetailContent id={id} />
       </PermissionGuard>
     </ErrorBoundary>

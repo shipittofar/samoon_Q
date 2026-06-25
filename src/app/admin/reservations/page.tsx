@@ -15,6 +15,7 @@ import { useTenantStore } from '@/stores'
 import type { AdminReservationFilters, ReservationStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
 
 
@@ -75,7 +76,7 @@ export default function AdminReservationsPage() {
 
   return (
 
-    <PermissionGuard permission="reservations.view">
+    <PermissionGuard permission="reservations.view" fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminReservations">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />

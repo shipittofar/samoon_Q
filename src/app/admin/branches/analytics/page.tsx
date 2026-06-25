@@ -3,6 +3,7 @@
 import { useTenantStore } from '@/stores'
 import { useAdminBranches } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Link from 'next/link'
 
@@ -110,7 +111,7 @@ function BranchAnalyticsOverviewContent() {
 export default function BranchAnalyticsOverviewPage() {
   return (
     <ErrorBoundary feature="Branch Analytics">
-      <PermissionGuard permission="branches.view">
+      <PermissionGuard permission="branches.view" fallback={<AccessDenied />}>
         <BranchAnalyticsOverviewContent />
       </PermissionGuard>
     </ErrorBoundary>

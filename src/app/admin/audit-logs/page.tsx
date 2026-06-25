@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { AuditTimeline } from '@/components/admin/AuditTimeline'
 import { useAuditLogs, useAuditTimeline, useAuditStatistics, useExportAuditLogs } from '@/hooks'
@@ -292,7 +293,7 @@ function AuditLogsContent() {
 export default function AuditLogsPage() {
   return (
     <ErrorBoundary feature="AuditLogs">
-      <PermissionGuard permission="audit.view" fallback={<p className="p-8 text-center text-[var(--fg-muted)]">Access denied. Audit log viewing requires audit.view permission.</p>}>
+      <PermissionGuard permission="audit.view" fallback={<AccessDenied />}>
         <AuditLogsContent />
       </PermissionGuard>
     </ErrorBoundary>

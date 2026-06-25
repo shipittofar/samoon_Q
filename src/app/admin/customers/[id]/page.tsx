@@ -10,6 +10,7 @@ import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { Avatar } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useAdminCustomer, useAdminCustomerStats } from '@/hooks'
 import { formatCurrency, formatDate } from '@/utils'
@@ -213,7 +214,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Customer Detail">
-      <PermissionGuard permission="customers.view">
+      <PermissionGuard permission="customers.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-[var(--bg)]">
           <Header />
           <div className="pt-16">

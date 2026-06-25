@@ -19,6 +19,7 @@ import { MiniBarChart } from '@/components/charts/MiniBarChart'
 import { Sparkline } from '@/components/charts/Sparkline'
 import { AnalyticsExport } from '@/components/admin/AnalyticsExport'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import type { AnalyticsSummary } from '@/types/analytics'
 
@@ -528,7 +529,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <ErrorBoundary feature="Analytics">
-    <PermissionGuard permission="analytics.view">
+    <PermissionGuard permission="analytics.view" fallback={<AccessDenied />}>
     <main className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex items-center gap-3">

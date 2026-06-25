@@ -11,6 +11,7 @@ import {
 import type { PromotionRule, PromotionType, Weekday } from '@/types'
 import type { CreatePromotionPayload } from '@/services/promotion.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const PROMOTION_TYPES: { value: PromotionType; label: string }[] = [
@@ -309,7 +310,7 @@ export default function AdminPromotionsPage() {
 
   return (
     <ErrorBoundary feature="Promotion Management">
-    <PermissionGuard permission="promotions.view">
+    <PermissionGuard permission="promotions.view" fallback={<AccessDenied />}>
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">Promotion Management</h1>

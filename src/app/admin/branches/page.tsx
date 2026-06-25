@@ -4,6 +4,7 @@ import { useTenantStore } from '@/stores'
 import { useAdminBranches } from '@/hooks'
 import { branchManagementService } from '@/services/branch.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Link from 'next/link'
 
@@ -152,7 +153,7 @@ function BranchManagementContent() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Branch Management</h1>
-        <PermissionGuard permission="branches.manage">
+        <PermissionGuard permission="branches.manage" fallback={<AccessDenied />}>
           <Link
             href="/admin/branches/new"
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
@@ -170,7 +171,7 @@ function BranchManagementContent() {
 export default function BranchManagementPage() {
   return (
     <ErrorBoundary feature="Branch Management">
-      <PermissionGuard permission="branches.view">
+      <PermissionGuard permission="branches.view" fallback={<AccessDenied />}>
         <BranchManagementContent />
       </PermissionGuard>
     </ErrorBoundary>

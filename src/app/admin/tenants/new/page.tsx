@@ -6,6 +6,7 @@ import { useProvisionTenant } from '@/hooks'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import type { ProvisionableBusinessType, TenantBrandingConfig } from '@/types/provisioning'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const BUSINESS_TYPES: ProvisionableBusinessType[] = [
@@ -114,7 +115,7 @@ export default function NewTenantPage() {
 
   return (
     <ErrorBoundary feature="New Tenant">
-    <PermissionGuard permission="tenant.manage">
+    <PermissionGuard permission="tenant.manage" fallback={<AccessDenied />}>
     <main aria-label="New Tenant Wizard" className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Create New Tenant</h1>
       <StepIndicator current={stepIndex + 1} total={TOTAL_STEPS} />

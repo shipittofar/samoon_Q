@@ -148,7 +148,7 @@ export default function AdminMenuPage() {
 
   return (
 
-    <PermissionGuard permission="menu.view">
+    <PermissionGuard permission="menu.view" fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminMenu">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
@@ -380,6 +380,7 @@ export default function AdminMenuPage() {
 
 import type { Category } from '@/types'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 
 function MenuItemFormFields({
   form,

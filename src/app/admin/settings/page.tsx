@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Settings, Palette, Clock, Plug, Bell, Shield, Save, CheckCircle, Loader2 } from 'lucide-react'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { useTenantStore } from '@/stores'
 import { useUpdateTenantSettings } from '@/hooks'
 import type { TenantTheme } from '@/types'
@@ -379,7 +380,7 @@ function SettingsContent() {
 export default function SettingsPage() {
   return (
     <ErrorBoundary feature="Settings">
-      <PermissionGuard permission="settings.view">
+      <PermissionGuard permission="settings.view" fallback={<AccessDenied />}>
         <SettingsContent />
       </PermissionGuard>
     </ErrorBoundary>

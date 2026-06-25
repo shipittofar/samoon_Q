@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { LiveOrderQueue } from '@/components/admin/LiveOrderQueue'
 import { LiveReservationQueue } from '@/components/admin/LiveReservationQueue'
 import { KitchenDisplay } from '@/components/admin/KitchenDisplay'
@@ -156,7 +157,7 @@ function OperationsContent() {
 export default function OperationsPage() {
   return (
     <ErrorBoundary feature="Operations Dashboard">
-      <PermissionGuard permission="operations.view">
+      <PermissionGuard permission="operations.view" fallback={<AccessDenied />}>
         <OperationsContent />
       </PermissionGuard>
     </ErrorBoundary>

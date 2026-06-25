@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useTenants, useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
 import type { Tenant } from '@/types'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -123,7 +124,7 @@ export default function AdminTenantsPage() {
 
   return (
     <ErrorBoundary feature="Tenant Management">
-    <PermissionGuard permission="tenant.view">
+    <PermissionGuard permission="tenant.view" fallback={<AccessDenied />}>
     <main aria-label="Tenant Management" className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>

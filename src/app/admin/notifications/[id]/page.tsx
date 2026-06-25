@@ -9,6 +9,7 @@ import {
 import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import {
   useNotification,
@@ -195,7 +196,7 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Notification Detail">
-      <PermissionGuard permission="notifications.view">
+      <PermissionGuard permission="notifications.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
           <Header />
           <div className="pt-16">

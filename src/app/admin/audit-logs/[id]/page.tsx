@@ -9,6 +9,7 @@ import {
 import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useAuditLog, useAuditTimeline } from '@/hooks'
 import type { AuditSeverity } from '@/types/audit-log'
@@ -186,7 +187,7 @@ export default function AuditLogDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Audit Log Detail">
-      <PermissionGuard permission="audit.view">
+      <PermissionGuard permission="audit.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
           <Header />
           <div className="pt-16">

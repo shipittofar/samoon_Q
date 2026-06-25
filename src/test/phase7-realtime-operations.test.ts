@@ -519,9 +519,9 @@ describe('D — RBAC operations.view / operations.manage', () => {
     expect(hasPermission('manager', 'operations.view')).toBe(true)
   })
 
-  it('manager has operations.manage', async () => {
+  it('manager does NOT have operations.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('manager', 'operations.manage')).toBe(true)
+    expect(hasPermission('manager', 'operations.manage')).toBe(false)
   })
 
   it('cashier has operations.view', async () => {
@@ -554,9 +554,9 @@ describe('D — RBAC operations.view / operations.manage', () => {
     expect(hasPermission('kitchen', 'operations.manage')).toBe(false)
   })
 
-  it('marketing has operations.view', async () => {
+  it('marketing does NOT have operations.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('marketing', 'operations.view')).toBe(true)
+    expect(hasPermission('marketing', 'operations.view')).toBe(false)
   })
 
   it('marketing does NOT have operations.manage', async () => {
@@ -564,9 +564,9 @@ describe('D — RBAC operations.view / operations.manage', () => {
     expect(hasPermission('marketing', 'operations.manage')).toBe(false)
   })
 
-  it('support has operations.view', async () => {
+  it('support does NOT have operations.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('support', 'operations.view')).toBe(true)
+    expect(hasPermission('support', 'operations.view')).toBe(false)
   })
 
   it('support does NOT have operations.manage', async () => {

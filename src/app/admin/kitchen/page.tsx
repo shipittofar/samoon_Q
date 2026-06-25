@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header'
 import { KitchenDisplay } from '@/components/admin/KitchenDisplay'
 import { BranchSelector } from '@/components/common/BranchSelector'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useTenantStore, useBranchStore } from '@/stores'
 import { Maximize2, Minimize2, RefreshCw, Wifi, WifiOff } from 'lucide-react'
@@ -132,7 +133,7 @@ function KitchenPageContent() {
 export default function KitchenPage() {
   return (
     <ErrorBoundary feature="Kitchen Display">
-      <PermissionGuard permission="operations.view">
+      <PermissionGuard permission="operations.view" fallback={<AccessDenied />}>
         <KitchenPageContent />
       </PermissionGuard>
     </ErrorBoundary>

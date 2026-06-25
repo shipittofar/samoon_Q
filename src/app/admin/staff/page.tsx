@@ -15,12 +15,13 @@ import {
 } from '@/hooks'
 import { staffService } from '@/services/staff.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 export default function StaffManagementPage() {
   return (
     <ErrorBoundary feature="Staff Management">
-      <PermissionGuard permission="staff.view" fallback={<p>Access denied.</p>}>
+      <PermissionGuard permission="staff.view" fallback={<AccessDenied />}>
         <StaffManagementContent />
       </PermissionGuard>
     </ErrorBoundary>

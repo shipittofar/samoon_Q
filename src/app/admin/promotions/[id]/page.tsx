@@ -6,6 +6,7 @@ import { ArrowLeft, Tag, Calendar, Percent, CheckCircle, XCircle, Loader2 } from
 import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { usePromotions } from '@/hooks'
 import { formatDate } from '@/utils'
@@ -141,7 +142,7 @@ export default function PromotionDetailPage({ params }: { params: Promise<{ id: 
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Promotion Detail">
-      <PermissionGuard permission="promotions.view">
+      <PermissionGuard permission="promotions.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
           <Header />
           <div className="pt-16">

@@ -776,9 +776,9 @@ describe('P7.6 — RBAC Notification Permissions', () => {
     expect(hasPermission('manager', 'notifications.view')).toBe(true)
   })
 
-  it('manager has notifications.preferences', async () => {
+  it('manager does NOT have notifications.preferences', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('manager', 'notifications.preferences')).toBe(true)
+    expect(hasPermission('manager', 'notifications.preferences')).toBe(false)
   })
 
   it('cashier has notifications.view', async () => {

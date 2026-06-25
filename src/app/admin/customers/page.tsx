@@ -13,6 +13,7 @@ import { useAdminCustomers, useBulkExportCustomers } from '@/hooks'
 import type { AdminCustomerFilters, AdminCustomerTier } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
 
 
@@ -64,7 +65,7 @@ export default function AdminCustomersPage() {
 
   return (
 
-    <PermissionGuard permission="customers.view">
+    <PermissionGuard permission="customers.view" fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminCustomers">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />

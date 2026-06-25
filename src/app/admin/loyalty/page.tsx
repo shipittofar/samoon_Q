@@ -9,6 +9,7 @@ import {
 } from '@/hooks'
 import type { LoyaltyReward, LoyaltyTier } from '@/types'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const TIERS: LoyaltyTier[] = ['bronze', 'silver', 'gold', 'platinum']
@@ -178,7 +179,7 @@ export default function AdminLoyaltyPage() {
 
   return (
     <ErrorBoundary feature="Loyalty Management">
-    <PermissionGuard permission="loyalty.view">
+    <PermissionGuard permission="loyalty.view" fallback={<AccessDenied />}>
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">Loyalty Management</h1>

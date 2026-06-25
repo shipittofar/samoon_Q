@@ -4,6 +4,7 @@ import { use } from 'react'
 import { useStaffMember, useAdminBranch, useAdminBranches } from '@/hooks'
 import { getPermissionsForRole } from '@/services/permission.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Link from 'next/link'
 
@@ -27,7 +28,7 @@ export default function StaffDetailPage({ params }: PageProps) {
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Staff Detail">
-      <PermissionGuard permission="staff.view" fallback={<p>Access denied.</p>}>
+      <PermissionGuard permission="staff.view" fallback={<AccessDenied />}>
         <StaffDetailContent id={id} />
       </PermissionGuard>
     </ErrorBoundary>

@@ -63,7 +63,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
   /** Everything except tenant ownership (tenant.manage). */
   admin: ALL_PERMISSIONS.filter((p) => p !== 'tenant.manage'),
 
-  /** Operational management — runs the floor, staff, promotions, analytics. */
+  /** Operational management — runs the floor, staff, schedules, branches. */
   manager: [
     'orders.view',
     'orders.manage',
@@ -73,33 +73,19 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'reservations.manage',
     'customers.view',
     'customers.manage',
-    'vendors.view',
-    'vendors.manage',
-    'promotions.view',
-    'promotions.manage',
-    'loyalty.view',
-    'loyalty.manage',
-    'analytics.view',
     'staff.view',
     'staff.manage',
     'branches.view',
-    'settings.view',
-    'audit.view',
     'notifications.view',
-    'notifications.preferences',
     'operations.view',
-    'operations.manage',
   ],
 
   /** Orders and payments only. */
   cashier: [
     'orders.view',
     'orders.manage',
-    'menu.view',
     'customers.view',
-    'reservations.view',
     'notifications.view',
-    'notifications.preferences',
     'operations.view',
   ],
 
@@ -117,36 +103,25 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
   ],
 
   /** Kitchen display + order status updates only. */
-  kitchen: ['orders.view', 'orders.manage', 'menu.view', 'notifications.view', 'notifications.preferences', 'operations.view'],
+  kitchen: ['orders.view', 'operations.view', 'notifications.view'],
 
   /** Promotions, loyalty, analytics. */
   marketing: [
-    'menu.view',
+    'analytics.view',
     'customers.view',
     'promotions.view',
     'promotions.manage',
     'loyalty.view',
     'loyalty.manage',
-    'analytics.view',
     'notifications.view',
-    'notifications.preferences',
-    'operations.view',
   ],
 
-  /** Read-only operational access. */
+  /** Read-only customer and reservation access. */
   support: [
-    'orders.view',
-    'menu.view',
-    'reservations.view',
     'customers.view',
-    'vendors.view',
-    'analytics.view',
+    'reservations.view',
     'branches.view',
-    'settings.view',
-    'audit.view',
     'notifications.view',
-    'notifications.preferences',
-    'operations.view',
   ],
 }
 

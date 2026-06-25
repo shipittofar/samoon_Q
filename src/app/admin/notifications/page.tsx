@@ -11,6 +11,7 @@ import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import {
   useNotifications,
@@ -546,11 +547,7 @@ export default function NotificationsPage() {
     <ErrorBoundary feature="NotificationCenter">
       <PermissionGuard
         permission="notifications.view"
-        fallback={
-          <p className="p-8 text-center text-[var(--fg-muted)]">
-            Access denied. Notification viewing requires notifications.view permission.
-          </p>
-        }
+        fallback={<AccessDenied />}
       >
         <NotificationsContent />
       </PermissionGuard>

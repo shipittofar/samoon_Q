@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Loader2, XCircle, ToggleLeft, ToggleRight } from 'lucide-react'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { useFeatureFlags, useUpdateFeatureFlag } from '@/hooks'
 
@@ -79,7 +80,7 @@ function FeatureFlagsContent() {
 export default function FeatureFlagsPage() {
   return (
     <ErrorBoundary feature="Feature Flags">
-      <PermissionGuard permission="settings.manage">
+      <PermissionGuard permission="settings.manage" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
           <div className="bg-white border-b sticky top-0 z-10">
             <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">

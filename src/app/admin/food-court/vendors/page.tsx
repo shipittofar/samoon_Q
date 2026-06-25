@@ -13,6 +13,7 @@ import {
 import type { Vendor, VendorCategory, VendorStatus } from '@/types'
 import type { CreateVendorPayload } from '@/services/vendor.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 const CATEGORIES: VendorCategory[] = [
@@ -228,7 +229,7 @@ export default function AdminVendorsPage() {
 
   return (
     <ErrorBoundary feature="Vendor Management">
-    <PermissionGuard permission="vendors.view">
+    <PermissionGuard permission="vendors.view" fallback={<AccessDenied />}>
     <main className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">Vendor Management</h1>

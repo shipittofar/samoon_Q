@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { formatCurrency } from '@/utils'
 import { useOrder } from '@/hooks'
@@ -241,7 +242,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Order Detail">
-      <PermissionGuard permission="orders.view">
+      <PermissionGuard permission="orders.view" fallback={<AccessDenied />}>
         <OrderDetailContent id={id} />
       </PermissionGuard>
     </ErrorBoundary>

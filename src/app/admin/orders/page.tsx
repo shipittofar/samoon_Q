@@ -13,6 +13,7 @@ import { useTenantStore } from '@/stores'
 import type { Order, OrderStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
 
 
@@ -94,7 +95,7 @@ export default function AdminOrdersPage() {
   const selectedArr = Array.from(selectedIds)
 
   return (
-    <PermissionGuard permission="orders.view">
+    <PermissionGuard permission="orders.view" fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminOrders">
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
