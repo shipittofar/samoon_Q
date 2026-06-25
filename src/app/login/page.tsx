@@ -7,13 +7,22 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, User, Crown } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Divider } from '@/components/ui'
 import { useLogin } from '@/hooks'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
+
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+
+const DEMO_ACCOUNTS = [
+  { label: 'Customer',  email: 'demo@savor.com',  description: 'Menu, orders, reservations',  icon: User,        color: 'text-blue-600 dark:text-blue-400',   bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',   border: 'border-blue-200 dark:border-blue-800' },
+  { label: 'Staff',     email: 'staff@savor.com', description: 'Dashboard + operations',      icon: ShieldCheck, color: 'text-green-600 dark:text-green-400', bg: 'hover:bg-green-50 dark:hover:bg-green-950/20', border: 'border-green-200 dark:border-green-800' },
+  { label: 'Admin',     email: 'admin@savor.com', description: 'Full admin panel',            icon: ShieldCheck, color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
+  { label: 'Owner',     email: 'owner@savor.com', description: 'Tenant management + all',     icon: Crown,       color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
+] as const
 
 const loginSchema = z.object({
   email: z.string().email('Valid email required'),
@@ -46,9 +55,25 @@ export default function LoginPage() {
     })
   }
 
-  const fillDemo = () => {
-    setValue('email', 'demo@savor.com')
+  const fillDemo = (email = 'demo@savor.com') => {
+    setValue('email', email)
     setValue('password', 'password')
+  }
+
+  const loginAs = (email: string) => {
+    const rateCheck = LOGIN_LIMIT.check(email)
+    if (!rateCheck.allowed) {
+      toast.error('Too many login attempts. Please try again later.')
+      return
+    }
+    login({ email, password: 'password' }, {
+      onSuccess: () => {
+        LOGIN_LIMIT.reset(email)
+        toast.success('Welcome back!')
+        router.push(email === 'demo@savor.com' ? '/' : '/admin')
+      },
+      onError: () => toast.error('Login failed. Please try again.'),
+    })
   }
 
   return (
@@ -73,14 +98,39 @@ export default function LoginPage() {
             <p className="text-[var(--fg-muted)]">Sign in to your account to continue</p>
           </div>
 
-          {/* Demo Button */}
-          <button
-            type="button"
-            onClick={fillDemo}
-            className="w-full mb-6 flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 text-sm hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
-          >
-            <Sparkles className="h-3.5 w-3.5" /> Use Demo Account
-          </button>
+          {/* Demo Accounts */}
+          {USE_MOCK ? (
+            <div className="mb-6 space-y-2">
+              <p className="text-xs font-medium text-[var(--fg-muted)] flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3 text-orange-500" /> Demo accounts (password: <code className="font-mono bg-[var(--card)] px-1 rounded">password</code>)
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {DEMO_ACCOUNTS.map(({ label, email, description, icon: Icon, color, bg, border }) => (
+                  <button
+                    key={email}
+                    type="button"
+                    onClick={() => loginAs(email)}
+                    disabled={isPending}
+                    className={`flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border text-left transition-colors ${border} ${bg} disabled:opacity-50`}
+                  >
+                    <span className={`flex items-center gap-1.5 text-sm font-semibold ${color}`}>
+                      <Icon className="h-3.5 w-3.5" />{label}
+                    </span>
+                    <span className="text-[11px] text-[var(--fg-muted)] leading-tight">{description}</span>
+                    <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{email}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fillDemo()}
+              className="w-full mb-6 flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 text-sm hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Use Demo Account
+            </button>
+          )}
 
           <Divider label="or sign in with email" className="mb-6" />
 

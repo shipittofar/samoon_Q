@@ -326,7 +326,15 @@ export function useLogin() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (creds: LoginCredentials) => authService.login(creds),
-    onSuccess: ({ user }) => setUser(user),
+    onSuccess: ({ user, p7Roles }) => {
+      setUser(user)
+      // P8.4.3 — Seed P7 tenant-scoped roles for mock demo accounts so that
+      // PermissionGuard and usePermission() work in admin routes.
+      if (p7Roles && p7Roles.length > 0) {
+        const tenantId = useTenantStore.getState().tenant.id
+        useRbacStore.getState().setTenantRoles(tenantId, p7Roles)
+      }
+    },
   })
 }
 
@@ -345,6 +353,7 @@ export function useLogout() {
     mutationFn: () => authService.logout(),
     onSettled: () => {
       logout()
+      useRbacStore.getState().clearRoles()
       qc.clear()
     },
   })

@@ -13,6 +13,45 @@ export const MOCK_USER: User = {
   created_at: '2024-01-01T00:00:00Z',
 }
 
+// Mock demo accounts for staff/admin roles (mock mode only).
+// These are separate from MOCK_USER to preserve the security invariant
+// that MOCK_USER.role === 'customer'.
+export const MOCK_STAFF_USER: User = {
+  id: '2',
+  email: 'staff@savor.com',
+  phone: '+1234567891',
+  first_name: 'Sam',
+  last_name: 'Staff',
+  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+  role: 'staff',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
+export const MOCK_ADMIN_USER: User = {
+  id: '3',
+  email: 'admin@savor.com',
+  phone: '+1234567892',
+  first_name: 'Alex',
+  last_name: 'Admin',
+  avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
+  role: 'admin',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
+export const MOCK_OWNER_USER: User = {
+  id: '4',
+  email: 'owner@savor.com',
+  phone: '+1234567893',
+  first_name: 'Olivia',
+  last_name: 'Owner',
+  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
+  role: 'admin',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
 // ── Branches ─────────────────────────────────────────────────────────────────
 export const MOCK_BRANCHES: Branch[] = [
   {

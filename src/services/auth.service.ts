@@ -1,8 +1,9 @@
 import api, { clearTokens, setTokens } from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_USER } from '@/lib/mock-data'
+import { MOCK_USER, MOCK_ADMIN_USER, MOCK_STAFF_USER, MOCK_OWNER_USER } from '@/lib/mock-data'
 import { MOCK_DELAY } from '@/constants'
 import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, User } from '@/types'
+import type { Role } from '@/types/rbac'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -16,19 +17,38 @@ export const MOCK_ACCESS_TOKEN =
 export const MOCK_REFRESH_TOKEN =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb2NrLXJlZnJlc2giLCJleHAiOjk5OTk5OTk5OTl9.mock_signature'
 
+/**
+ * P8.4.3 — Mock demo credential registry.
+ *
+ * Maps accepted email → { user, p7Roles } for mock mode login.
+ * All passwords are 'password'. The demo@savor.com credential is the
+ * original customer demo preserved for backward compat + security tests.
+ * Staff/admin/owner credentials give access to /admin/* routes.
+ *
+ * p7Roles are the P7 tenant-scoped roles seeded into useRbacStore by
+ * useLogin() on successful mock login. They cover all PermissionGuard checks.
+ */
+export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> = {
+  'demo@savor.com':  { user: MOCK_USER,       p7Roles: [] },
+  'staff@savor.com': { user: MOCK_STAFF_USER,  p7Roles: ['manager'] },
+  'admin@savor.com': { user: MOCK_ADMIN_USER,  p7Roles: ['admin'] },
+  'owner@savor.com': { user: MOCK_OWNER_USER,  p7Roles: ['owner'] },
+}
+
 export const authService = {
-  async login(credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens }> {
+  async login(credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[] }> {
     if (USE_MOCK) {
       await delay(MOCK_DELAY)
-      // P3.5 — Only the demo credentials are accepted in mock mode.
+      // P3.5 — Only known demo credentials are accepted in mock mode.
       // Any other email/password combination must be rejected so the mock
       // login cannot be used as an authentication bypass.
-      if (credentials.email !== 'demo@savor.com' || credentials.password !== 'password') {
+      const entry = MOCK_CREDENTIALS[credentials.email]
+      if (!entry || credentials.password !== 'password') {
         throw new Error('Invalid credentials')
       }
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
-      return { user: MOCK_USER, tokens }
+      return { user: entry.user, tokens, p7Roles: entry.p7Roles }
     }
 
     const { data } = await api.post<{ user: User; tokens: AuthTokens }>(

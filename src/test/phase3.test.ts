@@ -244,9 +244,11 @@ describe('P3.5 — Mock login credential enforcement', () => {
       join(process.cwd(), 'src/services/auth.service.ts'),
       'utf8',
     )
-    // The fixed condition uses || so EITHER wrong field rejects
-    expect(authSrc).toContain("credentials.email !== 'demo@savor.com' || credentials.password !== 'password'")
-    // The old broken && must not be present on that line
+    // P8.4.3 — Multi-credential lookup table: unknown email OR wrong password both reject.
+    // The guard is: !entry || credentials.password !== 'password'
+    // which is equivalent to the original OR-based check.
+    expect(authSrc).toContain("!entry || credentials.password !== 'password'")
+    // The old broken && must not be present
     expect(authSrc).not.toContain("credentials.email !== 'demo@savor.com' && credentials.password !== 'password'")
   })
 })
