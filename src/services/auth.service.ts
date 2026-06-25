@@ -9,6 +9,8 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+export const MOCK_SESSION_KEY = 'mock_session_email'
+
 // Structurally valid JWTs (header.payload.signature) with exp=9999999999 (year 2286).
 // Required so middleware's isValidJWT() check passes in mock/demo mode.
 // The signature segment is intentionally fake — mock mode never contacts the backend.
@@ -48,6 +50,7 @@ export const authService = {
       }
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
+      if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_SESSION_KEY, credentials.email)
       return { user: entry.user, tokens, p7Roles: entry.p7Roles }
     }
 
@@ -80,12 +83,17 @@ export const authService = {
       if (!USE_MOCK) await api.post(ENDPOINTS.AUTH.LOGOUT)
     } finally {
       clearTokens()
+      if (typeof localStorage !== 'undefined') localStorage.removeItem(MOCK_SESSION_KEY)
     }
   },
 
   async getMe(): Promise<User> {
     if (USE_MOCK) {
       await delay(300)
+      if (typeof localStorage !== 'undefined') {
+        const email = localStorage.getItem(MOCK_SESSION_KEY)
+        if (email && MOCK_CREDENTIALS[email]) return MOCK_CREDENTIALS[email].user
+      }
       return MOCK_USER
     }
     const { data } = await api.get<User>(ENDPOINTS.AUTH.ME)

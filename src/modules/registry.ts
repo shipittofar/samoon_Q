@@ -82,6 +82,7 @@ const TENANTS_NAV_ITEM = {
   href: '/admin/tenants',
   label: 'Tenants',
   featureFlagKey: 'admin.tenants.enabled',
+  permissionKey: 'tenant.view',
 } as const
 
 const STAFF_NAV_ITEM = {
@@ -208,7 +209,7 @@ export const RESTAURANT_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -285,7 +286,7 @@ export const CAFE_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -355,7 +356,7 @@ export const BAR_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -425,7 +426,7 @@ export const FOOD_COURT_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -495,7 +496,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -568,7 +569,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled' },
+    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,

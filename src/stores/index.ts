@@ -438,44 +438,49 @@ interface RbacStoreState {
   _resetStore: () => void
 }
 
-export const useRbacStore = create<RbacStoreState>()((set, get) => ({
-  tenantRoles: [],
+export const useRbacStore = create<RbacStoreState>()(
+  persist(
+    (set, get) => ({
+      tenantRoles: [],
 
-  setTenantRoles: (tenantId, roles) =>
-    set((s) => {
-      const filtered = s.tenantRoles.filter((t) => t.tenantId !== tenantId)
-      return { tenantRoles: [...filtered, { tenantId, roles: [...new Set(roles)] }] }
-    }),
+      setTenantRoles: (tenantId, roles) =>
+        set((s) => {
+          const filtered = s.tenantRoles.filter((t) => t.tenantId !== tenantId)
+          return { tenantRoles: [...filtered, { tenantId, roles: [...new Set(roles)] }] }
+        }),
 
-  addRole: (tenantId, role) =>
-    set((s) => {
-      const existing = s.tenantRoles.find((t) => t.tenantId === tenantId)
-      if (existing) {
-        if (existing.roles.includes(role)) return s
-        return {
+      addRole: (tenantId, role) =>
+        set((s) => {
+          const existing = s.tenantRoles.find((t) => t.tenantId === tenantId)
+          if (existing) {
+            if (existing.roles.includes(role)) return s
+            return {
+              tenantRoles: s.tenantRoles.map((t) =>
+                t.tenantId === tenantId ? { ...t, roles: [...t.roles, role] } : t,
+              ),
+            }
+          }
+          return { tenantRoles: [...s.tenantRoles, { tenantId, roles: [role] }] }
+        }),
+
+      removeRole: (tenantId, role) =>
+        set((s) => ({
           tenantRoles: s.tenantRoles.map((t) =>
-            t.tenantId === tenantId ? { ...t, roles: [...t.roles, role] } : t,
+            t.tenantId === tenantId ? { ...t, roles: t.roles.filter((r) => r !== role) } : t,
           ),
-        }
-      }
-      return { tenantRoles: [...s.tenantRoles, { tenantId, roles: [role] }] }
+        })),
+
+      clearRoles: () => set({ tenantRoles: [] }),
+
+      getRolesForTenant: (tenantId) => {
+        return get().tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
+      },
+
+      _resetStore: () => set({ tenantRoles: [] }),
     }),
-
-  removeRole: (tenantId, role) =>
-    set((s) => ({
-      tenantRoles: s.tenantRoles.map((t) =>
-        t.tenantId === tenantId ? { ...t, roles: t.roles.filter((r) => r !== role) } : t,
-      ),
-    })),
-
-  clearRoles: () => set({ tenantRoles: [] }),
-
-  getRolesForTenant: (tenantId) => {
-    return get().tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
-  },
-
-  _resetStore: () => set({ tenantRoles: [] }),
-}))
+    { name: 'savor-rbac' },
+  ),
+)
 
 // ── Dine-In Store (P4.4) ──────────────────────────────────────────────────────
 // Persists the active table number so it survives navigation from /table/[tableId]
