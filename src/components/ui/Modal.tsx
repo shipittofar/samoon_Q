@@ -164,7 +164,13 @@ export function Drawer({ open, onClose, title, children, side = 'right', size = 
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex" style={{ justifyContent: side === 'left' ? 'flex-start' : side === 'right' ? 'flex-end' : 'flex-end' }}>
+        <div
+          className="fixed inset-0 z-50 flex"
+          style={{ justifyContent: side === 'left' ? 'flex-start' : side === 'right' ? 'flex-end' : 'flex-end' }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={title ? 'drawer-title' : undefined}
+        >
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -191,7 +197,7 @@ export function Drawer({ open, onClose, title, children, side = 'right', size = 
                   <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-[var(--border-strong)] rounded-full" />
                 )}
                 {title && (
-                  <h2 className="font-semibold text-[var(--fg)] font-[var(--font-display)]">{title}</h2>
+                  <h2 id="drawer-title" className="font-semibold text-[var(--fg)] font-[var(--font-display)]">{title}</h2>
                 )}
                 <Button variant="ghost" size="icon-sm" onClick={onClose} className="ms-auto" aria-label="Close">
                   <X className="h-4 w-4" />

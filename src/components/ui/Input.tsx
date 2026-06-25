@@ -82,10 +82,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           rows={4}
           className={cn(inputBase, 'resize-none', error && 'border-red-500 focus:border-red-500 focus:ring-red-500/40', className)}
           aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           {...props}
         />
-        {error && <p className="text-xs text-red-500">⚠ {error}</p>}
-        {hint && !error && <p className="text-xs text-[var(--fg-muted)]">{hint}</p>}
+        {error && <p id={`${inputId}-error`} className="text-xs text-red-500">⚠ {error}</p>}
+        {hint && !error && <p id={`${inputId}-hint`} className="text-xs text-[var(--fg-muted)]">{hint}</p>}
       </div>
     )
   },
