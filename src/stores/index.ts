@@ -30,6 +30,7 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
   }
 }
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User, Role } from '@/types'
+import type { Branch as AdminBranch } from '@/types/branch'
 import type { TenantRoleAssignment, UserPermissionOverride, BranchRoleAssignment, RoleAssignment, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
@@ -307,8 +308,13 @@ export const useTenantStore = create<TenantState>()(
 
 // ── Branch Store ──────────────────────────────────────────────────────────────
 interface BranchState {
+  /** Public-facing branch (Location alias) used by the customer-facing header/BranchSelector. */
   activeBranch: Branch | null
   setActiveBranch: (branch: Branch) => void
+  /** Admin-selected branch with full AdminBranch data (tenantId, settings, businessHours, etc.).
+   *  Set by the AdminBranchSwitcher. Used for context-aware preview URLs and admin scoping. */
+  adminActiveBranch: AdminBranch | null
+  setAdminActiveBranch: (branch: AdminBranch | null) => void
 }
 
 export const useBranchStore = create<BranchState>()(
@@ -316,6 +322,8 @@ export const useBranchStore = create<BranchState>()(
     (set) => ({
       activeBranch: null,
       setActiveBranch: (activeBranch) => set({ activeBranch }),
+      adminActiveBranch: null,
+      setAdminActiveBranch: (adminActiveBranch) => set({ adminActiveBranch }),
     }),
     { name: BRANCH_KEY },
   ),

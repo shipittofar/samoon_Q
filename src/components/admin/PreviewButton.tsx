@@ -1,23 +1,24 @@
 'use client'
 
 /**
- * PreviewButton — P8.7 Phase C
+ * P8.7 / P8.7.5 — Context-aware Preview Button
  *
- * Opens a public-facing page in a new tab so admins can preview exactly
- * what customers see, without navigating away from the admin panel.
+ * Reads the active tenant and admin branch from their respective stores and
+ * generates the correct public URL using `hrefToPublicUrl`. The `href` prop is
+ * treated as a module hint (e.g. "/menu", "/reservation") and is automatically
+ * upgraded to the path-based URL /[tenantSlug]/[branchSlug]/[module].
  *
- * Usage:
- *   <PreviewButton href="/menu" label="Preview Menu" />
- *   <PreviewButton href="/" />           // defaults to "Preview Public Site"
- *   <PreviewButton href="/reservation" size="sm" />
+ * Falls back to the flat href if tenant or branch context is unavailable.
  */
 
 import Link from 'next/link'
 import { ExternalLink } from 'lucide-react'
 import { cn } from '@/utils'
+import { hrefToPublicUrl } from '@/utils/public-url'
+import { useTenantStore, useBranchStore } from '@/stores'
 
 export interface PreviewButtonProps {
-  /** The public URL to open (relative, e.g. "/menu"). */
+  /** Flat module href (e.g. "/menu", "/reservation", "/"). Upgraded to context-aware URL. */
   href: string
   /** Button label. Defaults to "Preview Public Site". */
   label?: string
@@ -33,16 +34,19 @@ export function PreviewButton({
   size = 'default',
   className,
 }: PreviewButtonProps) {
+  const tenantSlug = useTenantStore((s) => s.tenant?.slug)
+  const branchSlug = useBranchStore((s) => s.adminActiveBranch?.slug)
+
+  const publicUrl = hrefToPublicUrl(href, tenantSlug, branchSlug)
+
   return (
     <Link
-      href={href}
+      href={publicUrl}
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
         'inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-medium transition-colors hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900',
-        size === 'sm'
-          ? 'px-2.5 py-1.5 text-xs'
-          : 'px-3 py-2 text-sm',
+        size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
         className,
       )}
     >

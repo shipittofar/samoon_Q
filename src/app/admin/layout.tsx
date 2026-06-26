@@ -5,38 +5,41 @@ import { Menu } from 'lucide-react'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { AdminBreadcrumbs } from '@/components/admin/AdminBreadcrumbs'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
+import { AdminContextBar } from '@/components/admin/AdminContextBar'
 import { Button } from '@/components/ui/Button'
 
 /**
- * Admin layout — Phase 3 (P3.2) / P7.13 / P8.4.2
+ * Admin layout — Phase 3 (P3.2) / P7.13 / P8.4.2 / P8.7.5
  *
  * Wraps all /admin/* routes with:
  *   - AuthGuard: requires `dashboard:access` (staff/admin only; customers → home)
  *   - AdminSidebar: persistent left nav driven by useAdminModuleNav() (P8.4.2)
+ *   - AdminContextBar: tenant/branch switchers for context-aware admin (P8.7.5)
  *   - AdminBreadcrumbs: contextual breadcrumb bar below the fixed header
- *
- * P8.4.2: Added AdminSidebar — previously useAdminModuleNav() existed but was
- * never rendered, leaving all admin routes navigable only by direct URL.
  */
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <AuthGuard requiredPermission="dashboard:access" forbiddenPath="/">
-      {/* Breadcrumb bar — fixed below the global header */}
+      {/* Context + breadcrumb bar — fixed below the global header */}
       <div className="fixed top-16 inset-x-0 z-30 bg-[var(--bg)]/80 backdrop-blur border-b border-[var(--border)]">
-        <div className="flex items-center gap-2 px-4 py-1.5 max-w-7xl mx-auto">
-          {/* Mobile sidebar toggle */}
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden shrink-0"
-            aria-label="Open admin menu"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-          <AdminBreadcrumbs />
+        <div className="flex items-center justify-between gap-2 px-4 py-1.5 max-w-7xl mx-auto">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Mobile sidebar toggle */}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden shrink-0"
+              aria-label="Open admin menu"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+            <AdminBreadcrumbs />
+          </div>
+          {/* Tenant & branch context switchers */}
+          <AdminContextBar />
         </div>
       </div>
 

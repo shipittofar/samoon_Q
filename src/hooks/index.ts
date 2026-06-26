@@ -896,10 +896,12 @@ export function useAdminStats() {
 }
 
 export function useAdminOrders(filters: AdminOrderFilters = {}) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['admin-orders', filters],
+    queryKey: ['admin-orders', tenantId, filters],
     queryFn: () => adminService.getAdminOrders(filters),
     staleTime: 30_000,
+    enabled: !!tenantId,
   })
 }
 
@@ -939,10 +941,12 @@ export function useUpdateOrderStatus() {
 }
 
 export function useAdminReservations(filters: AdminReservationFilters = {}) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['admin-reservations', filters],
+    queryKey: ['admin-reservations', tenantId, filters],
     queryFn: () => adminService.getAdminReservations(filters),
     staleTime: 30_000,
+    enabled: !!tenantId,
   })
 }
 
@@ -1024,10 +1028,12 @@ export function useCancelReservation() {
 }
 
 export function useAdminCustomers(filters: AdminCustomerFilters = {}) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['admin-customers', filters],
+    queryKey: ['admin-customers', tenantId, filters],
     queryFn: () => adminService.getCustomers(filters),
     staleTime: STALE_TIME,
+    enabled: !!tenantId,
   })
 }
 
