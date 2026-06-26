@@ -1,13 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import {
-  Star, MapPin, Phone, Mail, Globe, Clock, ChevronRight,
-  UtensilsCrossed, Tag, Share2, Check, Copy, ExternalLink,
-  Wifi, Car, ShoppingBag, Truck, Accessibility, Sun,
-  ArrowLeft, Store,
+  Star, MapPin, Phone, Clock, ChevronRight,
+  UtensilsCrossed, Tag, Share2, Check, Copy,
+  ShoppingBag, ArrowLeft, Store,
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -452,28 +450,21 @@ interface Props {
 
 export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) {
   const { data: tenant, isLoading: tenantLoading } = usePublicTenant(tenantSlug)
+  // usePublicBranch returns PublicBranchInfo | null (properly typed via useQuery<PublicBranchInfo | null>)
   const { data: branch, isLoading: branchLoading } = usePublicBranch(tenantSlug, branchSlug)
-  const { data: categoriesPage } = useCategories()
+  // useCategories returns Category[] directly (not paginated)
+  const { data: categories = [] } = useCategories()
+  // useMenuItems returns PaginatedResponse<MenuItem>
   const { data: menuItemsPage } = useMenuItems()
   const { data: promotions = [] } = useActivePromotions()
 
-  // const categories = categoriesPage?.results ?? (Array.isArray(categoriesPage) ? (categoriesPage as Category[]) : [])
-  // const menuItems = menuItemsPage?.results ?? (Array.isArray(menuItemsPage) ? (menuItemsPage as MenuItem[]) : [])
-  
-  const categories = categoriesPage ?? []
-
-  const menuItems = menuItemsPage?.results ?? []  
+  const menuItems: MenuItem[] = menuItemsPage?.results ?? []
 
   if (tenantLoading || branchLoading) return <BranchSkeleton />
+  // After this guard, branch is PublicBranchInfo (not null/undefined)
   if (!tenant || !branch) return <BranchNotFound tenantSlug={tenantSlug} />
 
-  const meta = tenant ? (tenant.settings as Record<string, unknown>)?.marketplace as {
-    branches?: PublicBranchInfo[]
-    rating?: number
-    reviewCount?: number
-    gallery?: string[]
-    primaryBranchSlug?: string
-  } | undefined : undefined
+  const meta = getMarketplaceMeta(tenant.settings)
 
   const accentColor =
     (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor ?? '#e85d04'
@@ -486,16 +477,16 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
   return (
     <>
       <Header />
-      <Breadcrumb tenantSlug={tenantSlug} tenantName={tenant.name} branchName={(branch as PublicBranchInfo).name} />
-      <HeroSection branch={branch as PublicBranchInfo} tenant={tenant} accentColor={accentColor} />
-      <QuickActions branch={branch as PublicBranchInfo} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+      <Breadcrumb tenantSlug={tenantSlug} tenantName={tenant.name} branchName={branch.name} />
+      <HeroSection branch={branch} tenant={tenant} accentColor={accentColor} />
+      <QuickActions branch={branch} tenantSlug={tenantSlug} branchSlug={branchSlug} />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-10">
-            <FeaturedMenuSection items={menuItems as MenuItem[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />
-            <CategoriesSection categories={categories as Category[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+            <FeaturedMenuSection items={menuItems} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+            <CategoriesSection categories={categories} tenantSlug={tenantSlug} branchSlug={branchSlug} />
             <PromotionsSection promotions={promotions as PromotionRule[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />
             <ReviewsSection rating={rating} reviewCount={reviewCount} />
             {gallery.length > 0 && <GallerySection images={gallery} />}
@@ -503,7 +494,7 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
 
           {/* Sidebar */}
           <div className="space-y-5">
-            <BranchInfo branch={branch as PublicBranchInfo} />
+            <BranchInfo branch={branch} />
             <BranchSwitcher branches={allBranches} currentSlug={branchSlug} tenantSlug={tenantSlug} />
           </div>
         </div>

@@ -86,6 +86,7 @@ import type {
   SystemReadiness,
   TenantLifecycle,
 } from '@/types'
+import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -1557,14 +1558,13 @@ export function usePublicTenant(slug: string) {
 
 /** Fetches a single public branch by tenant+branch slug from marketplace meta. Returns null for unknown slugs. */
 export function usePublicBranch(tenantSlug: string, branchSlug: string) {
-  return useQuery({
+  return useQuery<PublicBranchInfo | null>({
     queryKey: ['public-branch', tenantSlug, branchSlug],
-    queryFn: async () => {
+    queryFn: async (): Promise<PublicBranchInfo | null> => {
       const tenant = await tenantService.getTenant(tenantSlug)
       if (tenant.slug === 'default' && tenantSlug !== 'default') return null
-      const meta = (tenant.settings as Record<string, unknown>)?.marketplace as Record<string, unknown> | undefined
-      const branches = meta?.branches as Array<{ slug: string; [k: string]: unknown }> | undefined
-      return branches?.find((b) => b.slug === branchSlug) ?? null
+      const meta = getMarketplaceMeta(tenant.settings)
+      return meta?.branches?.find((b) => b.slug === branchSlug) ?? null
     },
     staleTime: STALE_TIME,
     enabled: !!tenantSlug && !!branchSlug,
