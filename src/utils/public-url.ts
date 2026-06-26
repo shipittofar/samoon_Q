@@ -37,12 +37,12 @@ const HREF_TO_MODULE: Record<string, string> = {
   '/reviews':     'reviews',
 }
 
-export function buildPublicUrl({ tenantSlug, branchSlug, module = '' }: PublicUrlParams): string {
+export function buildPublicUrl({ tenantSlug, branchSlug, module: mod = '' }: PublicUrlParams): string {
   if (!tenantSlug || !branchSlug) {
-    return module ? `/${module}` : '/'
+    return mod ? `/${mod}` : '/'
   }
   const base = `/${tenantSlug}/${branchSlug}`
-  return module ? `${base}/${module}` : base
+  return mod ? `${base}/${mod}` : base
 }
 
 /**
@@ -54,6 +54,6 @@ export function hrefToPublicUrl(
   tenantSlug: string | null | undefined,
   branchSlug: string | null | undefined,
 ): string {
-  const module = HREF_TO_MODULE[href] ?? href.replace(/^\//, '')
-  return buildPublicUrl({ tenantSlug, branchSlug, module })
+  const mod = HREF_TO_MODULE[href] ?? href.replace(/^\//, '')
+  return buildPublicUrl({ tenantSlug, branchSlug, module: mod })
 }

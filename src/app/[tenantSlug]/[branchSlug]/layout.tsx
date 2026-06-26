@@ -16,6 +16,24 @@
 import { use, useEffect } from 'react'
 import { useTenantStore, useBranchStore } from '@/stores'
 import { useAdminBranches } from '@/hooks'
+import type { Branch as AdminBranch } from '@/types/branch'
+import type { Location } from '@/types'
+
+function adminBranchToPublic(b: AdminBranch): Location {
+  return {
+    id: b.id,
+    tenant_id: b.tenantId,
+    name: b.name,
+    slug: b.slug,
+    address: b.location.address,
+    city: b.location.city,
+    phone: b.contact.phone ?? '',
+    lat: b.location.latitude ?? 0,
+    lng: b.location.longitude ?? 0,
+    working_hours: [],
+    is_active: b.status === 'active',
+  }
+}
 
 export default function TenantBranchLayout({
   children,
@@ -28,7 +46,7 @@ export default function TenantBranchLayout({
 
   const loadTenant = useTenantStore((s) => s.loadTenant)
   const tenant = useTenantStore((s) => s.tenant)
-  const { setAdminActiveBranch } = useBranchStore()
+  const { setAdminActiveBranch, setActiveBranch } = useBranchStore()
   const { data: branches = [] } = useAdminBranches(tenant?.id ?? '')
 
   // Load correct tenant from URL slug
@@ -42,7 +60,10 @@ export default function TenantBranchLayout({
   useEffect(() => {
     if (branches.length === 0) return
     const match = branches.find((b) => b.slug === branchSlug)
-    if (match) setAdminActiveBranch(match)
+    if (match) {
+      setAdminActiveBranch(match)
+      setActiveBranch(adminBranchToPublic(match))
+    }
   }, [branchSlug, branches, setAdminActiveBranch])
 
   return <>{children}</>

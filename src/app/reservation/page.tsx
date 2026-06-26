@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
 import { Skeleton } from '@/components/ui'
 import { useCreateReservation, useAvailableSlots, useBranches } from '@/hooks'
+import { useBranchStore } from '@/stores'
 import { formatCurrency, cn } from '@/utils'
 import toast from 'react-hot-toast'
 import type { Reservation } from '@/types'
@@ -38,17 +39,25 @@ const minDate = tomorrow.toISOString().split('T')[0]
 
 export default function ReservationPage() {
   const router = useRouter()
+  const activeBranchId = useBranchStore((s) => s.activeBranch?.id)
   const [confirmed, setConfirmed] = useState<Reservation | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
-  const [selectedBranch, setSelectedBranch] = useState('1')
+  const [selectedBranch, setSelectedBranch] = useState(() => activeBranchId ?? '1')
   const { mutate: createReservation, isPending } = useCreateReservation()
   const { data: branches } = useBranches()
   const { data: slots, isLoading: slotsLoading } = useAvailableSlots(selectedDate, selectedBranch)
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
-    defaultValues: { guests: 2, branch_id: '1' },
+    defaultValues: { guests: 2, branch_id: activeBranchId ?? '1' },
   })
+
+  useEffect(() => {
+    if (activeBranchId) {
+      setSelectedBranch(activeBranchId)
+      setValue('branch_id', activeBranchId)
+    }
+  }, [activeBranchId, setValue])
 
   const watchedGuests = watch('guests')
   const watchedTime = watch('time')

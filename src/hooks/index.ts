@@ -425,8 +425,9 @@ export function useCategories() {
 }
 
 export function useMenuItems(filters?: MenuFilters) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['menu-items', filters],
+    queryKey: ['menu-items', tenantId, filters],
     queryFn: () => menuService.getItems(filters),
     staleTime: STALE_TIME,
   })
@@ -531,8 +532,9 @@ export function useCreatePaymentIntent() {
 
 // ── Branch Hooks (public) ─────────────────────────────────────────────────────
 export function useBranches() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['branches'],
+    queryKey: ['branches', tenantId],
     queryFn: () => branchService.getBranches(),
     staleTime: CACHE_TIME,
   })
@@ -1488,10 +1490,12 @@ export function useUpdateTenantSettings() {
 // ── Tenant Management Hooks (P6.15) ──────────────────────────────────────────
 
 export function useTenants() {
+  const canView = usePermission('tenant.view')
   return useQuery({
     queryKey: ['tenants'],
     queryFn: () => tenantService.getTenants(),
     staleTime: STALE_TIME,
+    enabled: canView,
   })
 }
 

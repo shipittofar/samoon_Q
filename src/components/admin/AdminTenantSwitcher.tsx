@@ -14,6 +14,7 @@ import { ChevronDown, Layers, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useTenantStore, useBranchStore } from '@/stores'
 import { useTenants, usePermission } from '@/hooks'
+import { featureFlagsService } from '@/services/feature-flags.service'
 
 const STATUS_DOT: Record<string, string> = {
   active:    'bg-green-500',
@@ -27,6 +28,8 @@ export function AdminTenantSwitcher() {
   const canViewTenants = usePermission('tenant.view')
   const tenant = useTenantStore((s) => s.tenant)
   const loadTenant = useTenantStore((s) => s.loadTenant)
+  const setFeatureFlags = useTenantStore((s) => s.setFeatureFlags)
+  const setFeatureFlagsInitialized = useTenantStore((s) => s.setFeatureFlagsInitialized)
   const setAdminActiveBranch = useBranchStore((s) => s.setAdminActiveBranch)
   const { data: tenants = [], isLoading } = useTenants()
 
@@ -52,6 +55,11 @@ export function AdminTenantSwitcher() {
     setOpen(false)
     setAdminActiveBranch(null)  // reset branch when tenant changes
     await loadTenant(slug)
+    const newTenant = useTenantStore.getState().tenant
+    if (newTenant) {
+      setFeatureFlags(featureFlagsService.resolve(newTenant))
+      setFeatureFlagsInitialized(true)
+    }
     setSwitching(false)
   }
 
