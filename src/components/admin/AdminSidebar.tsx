@@ -14,7 +14,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { X, ChevronRight, LayoutDashboard } from 'lucide-react'
+import { X, ChevronRight, LayoutDashboard, ExternalLink } from 'lucide-react'
 import { cn } from '@/utils'
 import { useAdminModuleNav } from '@/hooks'
 import { Button } from '@/components/ui/Button'
@@ -90,6 +90,20 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
             )
           })}
         </nav>
+
+        {/* Preview public site footer */}
+        <div className="shrink-0 border-t border-[var(--border)] p-3">
+          <Link
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-all duration-150 group"
+            aria-label="Open customer-facing site in new tab"
+          >
+            <ExternalLink className="h-3.5 w-3.5 shrink-0 text-orange-500 group-hover:text-orange-600" />
+            <span>Preview Public Site</span>
+          </Link>
+        </div>
       </aside>
     </>
   )

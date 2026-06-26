@@ -11,6 +11,7 @@ import type { LoyaltyReward, LoyaltyTier } from '@/types'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 
 const TIERS: LoyaltyTier[] = ['bronze', 'silver', 'gold', 'platinum']
 
@@ -183,6 +184,8 @@ export default function AdminLoyaltyPage() {
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">Loyalty Management</h1>
+        <div className="flex items-center gap-2">
+          <PreviewButton href="/loyalty" label="Preview Loyalty" size="sm" />
         <button
           onClick={() => { setShowCreate(true); setCreateForm(DEFAULT_FORM) }}
           className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white"
@@ -190,6 +193,7 @@ export default function AdminLoyaltyPage() {
         >
           + Create Reward
         </button>
+        </div>
       </div>
 
       {isLoading ? (

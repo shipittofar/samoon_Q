@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 import { usePromotions } from '@/hooks'
 import { formatDate } from '@/utils'
 import type { PromotionType } from '@/types'
@@ -63,6 +64,7 @@ function PromotionDetailContent({ id }: { id: string }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <PreviewButton href="/promotions" label="Preview Promotions" size="sm" />
             {promotion.active ? (
               <Badge variant="success" className="flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" /> Active

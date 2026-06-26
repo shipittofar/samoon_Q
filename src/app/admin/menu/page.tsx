@@ -16,6 +16,7 @@ import { formatCurrency } from '@/utils'
 import { useMenuItems, useCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem } from '@/hooks'
 import type { MenuItem } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
 
@@ -164,7 +165,10 @@ export default function AdminMenuPage() {
               </div>
               <p className="text-[var(--fg-muted)] mt-1">Add, edit, and manage your menu offerings</p>
             </div>
-            <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>Add Item</Button>
+            <div className="flex items-center gap-2">
+              <PreviewButton href="/menu" label="Preview Menu" size="sm" />
+              <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>Add Item</Button>
+            </div>
           </div>
 
           {/* Filters */}

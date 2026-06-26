@@ -7,6 +7,7 @@ import { useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 import { tenantService } from '@/services/tenant.service'
 import type { Tenant } from '@/types'
 
@@ -224,11 +225,14 @@ function TenantDetailContent({ slug }: { slug: string }) {
 
   return (
     <main aria-label="Tenant Detail" className="p-6 max-w-3xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/admin/tenants" className="text-sm text-gray-500 hover:underline">
-          ← Tenants
-        </Link>
-        <h1 className="text-2xl font-bold">{tenant.name}</h1>
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <Link href="/admin/tenants" className="text-sm text-gray-500 hover:underline">
+            ← Tenants
+          </Link>
+          <h1 className="text-2xl font-bold">{tenant.name}</h1>
+        </div>
+        <PreviewButton href="/" label="Preview Tenant Site" size="sm" />
       </div>
 
       <ProfileSection tenant={tenant} />

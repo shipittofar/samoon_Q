@@ -17,6 +17,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 
 
 const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary'> = {
@@ -89,6 +90,7 @@ export default function AdminReservationsPage() {
               <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">Reservations</h1>
               <p className="text-[var(--fg-muted)] mt-1">Manage table bookings across all branches</p>
             </div>
+            <PreviewButton href="/reservation" label="Preview Reservation Page" size="sm" />
             {/* Date navigator */}
             <div className="flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-xl p-1">
               <Button

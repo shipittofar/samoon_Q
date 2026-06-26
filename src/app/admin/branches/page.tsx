@@ -7,6 +7,7 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Link from 'next/link'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
@@ -153,6 +154,8 @@ function BranchManagementContent() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Branch Management</h1>
+        <div className="flex items-center gap-2">
+          <PreviewButton href="/restaurant" label="Preview Branch" size="sm" />
         <PermissionGuard permission="branches.manage" fallback={<AccessDenied />}>
           <Link
             href="/admin/branches/new"
@@ -161,6 +164,7 @@ function BranchManagementContent() {
             Add Branch
           </Link>
         </PermissionGuard>
+        </div>
       </div>
 
       <BranchList tenantId={tenantId} />

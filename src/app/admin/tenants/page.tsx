@@ -6,6 +6,7 @@ import type { Tenant } from '@/types'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'text-green-700 bg-green-50',
@@ -131,13 +132,16 @@ export default function AdminTenantsPage() {
           <h1 className="text-2xl font-bold">Tenants</h1>
           <p className="text-sm text-gray-500 mt-1">Manage and provision tenants</p>
         </div>
-        <Link
+        <div className="flex items-center gap-2">
+          <PreviewButton href="/" label="Preview Public Site" size="sm" />
+          <Link
           href="/admin/tenants/new"
           className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover"
           aria-label="Create new tenant"
         >
           + New Tenant
         </Link>
+        </div>
       </div>
 
       {isLoading ? (

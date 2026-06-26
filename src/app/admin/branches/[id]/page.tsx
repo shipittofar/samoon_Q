@@ -5,6 +5,7 @@ import { useAdminBranch, useAdminBranchMetrics, useActivateBranch, useDeactivate
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 import type { BranchStatus } from '@/types/branch'
 
 const STATUS_COLORS: Record<BranchStatus, string> = {
@@ -25,14 +26,17 @@ function BranchDetailContent({ id }: { id: string }) {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold">{branch.name}</h1>
           <p className="mt-1 text-sm text-gray-500">{branch.slug}</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-sm font-medium capitalize ${STATUS_COLORS[branch.status]}`}>
-          {branch.status}
-        </span>
+        <div className="flex items-center gap-2">
+          <PreviewButton href="/restaurant" label="Preview Branch" size="sm" />
+          <span className={`rounded-full px-3 py-1 text-sm font-medium capitalize ${STATUS_COLORS[branch.status]}`}>
+            {branch.status}
+          </span>
+        </div>
       </div>
 
       {/* Location */}

@@ -15,6 +15,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 
 
 const STATUS_CONFIG: Record<OrderStatus, {
@@ -109,14 +110,17 @@ export default function AdminOrdersPage() {
               </div>
               <p className="text-[var(--fg-muted)] mt-1">Manage and update incoming orders in real-time</p>
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
-              onClick={() => refetch()}
-            >
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <PreviewButton href="/menu" label="Preview Menu" size="sm" />
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+                onClick={() => refetch()}
+              >
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {/* Status Summary */}

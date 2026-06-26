@@ -5,6 +5,7 @@ import { Settings, Palette, Clock, Plug, Bell, Shield, Save, CheckCircle, Loader
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
+import { PreviewButton } from '@/components/admin/PreviewButton'
 import { useTenantStore } from '@/stores'
 import { useUpdateTenantSettings } from '@/hooks'
 import type { TenantTheme } from '@/types'
@@ -333,8 +334,9 @@ function SettingsContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-lg font-semibold">Settings</h1>
+          <PreviewButton href="/" label="Preview Public Site" size="sm" />
         </div>
       </div>
 
