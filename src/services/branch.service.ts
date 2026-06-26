@@ -26,6 +26,10 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
 const MOCK_TENANT_ID = 'tenant-savor-01'
+const TENANT_BREW_CAFE    = 'tenant-brew-cafe-01'
+const TENANT_OAK_BAR      = 'tenant-oak-bar-01'
+const TENANT_CENTRAL_FC   = 'tenant-central-fc-01'
+const TENANT_WHEELS_BREWS = 'tenant-wheels-brews-01'
 
 // ── Default business hours helper ─────────────────────────────────────────────
 
@@ -220,6 +224,84 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-02-01T00:00:00Z',
+  },
+
+  // ── Brew Cafe branches ─────────────────────────────────────────────────────
+  {
+    id: 'branch-brewcafe-01',
+    tenantId: TENANT_BREW_CAFE,
+    name: 'Midtown Cafe',
+    slug: 'main',
+    status: 'active',
+    type: 'physical',
+    location: { address: '789 Coffee Lane', city: 'New York', country: 'US', latitude: 40.754, longitude: -73.984 },
+    contact: { phone: '+1 212 555 0400', email: 'midtown@brewcafe.com' },
+    businessHours: defaultHours('07:00', '20:00'),
+    settings: { deliveryEnabled: true, deliveryRadius: 5, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 50 },
+    createdAt: '2023-08-01T00:00:00Z',
+    updatedAt: '2024-06-01T00:00:00Z',
+  },
+  {
+    id: 'branch-brewcafe-02',
+    tenantId: TENANT_BREW_CAFE,
+    name: 'Brooklyn Cafe',
+    slug: 'brooklyn-cafe',
+    status: 'active',
+    type: 'physical',
+    location: { address: '321 Brew Boulevard', city: 'Brooklyn', country: 'US', latitude: 40.678, longitude: -73.944 },
+    contact: { phone: '+1 718 555 0500', email: 'brooklyn@brewcafe.com' },
+    businessHours: defaultHours('08:00', '19:00'),
+    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 30 },
+    createdAt: '2023-09-01T00:00:00Z',
+    updatedAt: '2024-06-01T00:00:00Z',
+  },
+
+  // ── The Oak Bar branch ─────────────────────────────────────────────────────
+  {
+    id: 'branch-oakbar-01',
+    tenantId: TENANT_OAK_BAR,
+    name: 'East Village Bar',
+    slug: 'main',
+    status: 'active',
+    type: 'physical',
+    location: { address: '555 Tap Street', city: 'New York', country: 'US', latitude: 40.726, longitude: -73.983 },
+    contact: { phone: '+1 212 555 0600', email: 'bar@theoakbar.com' },
+    businessHours: defaultHours('16:00', '02:00'),
+    settings: { deliveryEnabled: false, pickupEnabled: false, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 100 },
+    createdAt: '2023-07-01T00:00:00Z',
+    updatedAt: '2024-06-01T00:00:00Z',
+  },
+
+  // ── Central Food Court branch ──────────────────────────────────────────────
+  {
+    id: 'branch-centralfc-01',
+    tenantId: TENANT_CENTRAL_FC,
+    name: 'Westside Food Court',
+    slug: 'main',
+    status: 'active',
+    type: 'physical',
+    location: { address: '100 Market Street', city: 'New York', country: 'US', latitude: 40.76, longitude: -73.99 },
+    contact: { phone: '+1 212 555 0700', email: 'info@centralfoodcourt.com' },
+    businessHours: defaultHours('10:00', '21:00'),
+    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: false, maxCapacity: 300 },
+    createdAt: '2022-11-01T00:00:00Z',
+    updatedAt: '2024-06-01T00:00:00Z',
+  },
+
+  // ── Wheels & Brews branch ──────────────────────────────────────────────────
+  {
+    id: 'branch-wheelsbrews-01',
+    tenantId: TENANT_WHEELS_BREWS,
+    name: 'Mobile Brew Cart',
+    slug: 'main',
+    status: 'active',
+    type: 'mobile',
+    location: { address: 'Central Park South Entrance', city: 'New York', country: 'US', latitude: 40.767, longitude: -73.977 },
+    contact: { phone: '+1 212 555 1000', email: 'hello@wheelsandbrews.com' },
+    businessHours: defaultHours('07:00', '17:00'),
+    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+    createdAt: '2023-10-01T00:00:00Z',
+    updatedAt: '2024-06-01T00:00:00Z',
   },
 ]
 

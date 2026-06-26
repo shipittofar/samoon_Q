@@ -1555,6 +1555,22 @@ export function usePublicTenant(slug: string) {
   })
 }
 
+/** Fetches a single public branch by tenant+branch slug from marketplace meta. Returns null for unknown slugs. */
+export function usePublicBranch(tenantSlug: string, branchSlug: string) {
+  return useQuery({
+    queryKey: ['public-branch', tenantSlug, branchSlug],
+    queryFn: async () => {
+      const tenant = await tenantService.getTenant(tenantSlug)
+      if (tenant.slug === 'default' && tenantSlug !== 'default') return null
+      const meta = (tenant.settings as Record<string, unknown>)?.marketplace as Record<string, unknown> | undefined
+      const branches = meta?.branches as Array<{ slug: string; [k: string]: unknown }> | undefined
+      return branches?.find((b) => b.slug === branchSlug) ?? null
+    },
+    staleTime: STALE_TIME,
+    enabled: !!tenantSlug && !!branchSlug,
+  })
+}
+
 export function useActivateTenant() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
