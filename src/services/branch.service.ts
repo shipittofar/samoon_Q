@@ -25,11 +25,12 @@ import type {
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
-const MOCK_TENANT_ID = 'tenant-savor-01'
-const TENANT_BREW_CAFE    = 'tenant-brew-cafe-01'
-const TENANT_OAK_BAR      = 'tenant-oak-bar-01'
-const TENANT_CENTRAL_FC   = 'tenant-central-fc-01'
+const MOCK_TENANT_ID     = 'tenant-savor-01'
+const TENANT_BREW_CAFE   = 'tenant-brew-cafe-01'
+const TENANT_OAK_BAR     = 'tenant-oak-bar-01'
+const TENANT_CENTRAL_FC  = 'tenant-central-fc-01'
 const TENANT_WHEELS_BREWS = 'tenant-wheels-brews-01'
+const TENANT_ROAD_BITES  = 'tenant-road-bites-01'
 
 // ── Default business hours helper ─────────────────────────────────────────────
 
@@ -301,6 +302,22 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     businessHours: defaultHours('07:00', '17:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
     createdAt: '2023-10-01T00:00:00Z',
+    updatedAt: '2024-06-01T00:00:00Z',
+  },
+
+  // ── Road Bites branch ──────────────────────────────────────────────────────
+  {
+    id: 'branch-roadbites-01',
+    tenantId: TENANT_ROAD_BITES,
+    name: 'Road Bites Truck',
+    slug: 'main',
+    status: 'inactive',
+    type: 'mobile',
+    location: { address: 'Various Locations', city: 'New York', country: 'US', latitude: 40.7128, longitude: -74.006 },
+    contact: { phone: '+1 212 555 0950', email: 'hello@roadbites.com' },
+    businessHours: defaultHours('11:00', '20:00'),
+    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+    createdAt: '2024-05-01T00:00:00Z',
     updatedAt: '2024-06-01T00:00:00Z',
   },
 ]

@@ -12,9 +12,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Layers, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/utils'
-import { useTenantStore, useBranchStore, useCartStore, useDineInStore, useFavoritesStore, useRecentlyViewedStore } from '@/stores'
+import { useTenantStore, useBranchStore, useCartStore, useDineInStore, useFavoritesStore, useRecentlyViewedStore, useRbacStore, useAuthStore } from '@/stores'
 import { useTenants, usePermission } from '@/hooks'
 import { featureFlagsService } from '@/services/feature-flags.service'
+import { getMockRoles } from '@/services/permission.service'
 import { useQueryClient } from '@tanstack/react-query'
 
 const STATUS_DOT: Record<string, string> = {
@@ -56,6 +57,9 @@ export function AdminTenantSwitcher() {
     setSwitching(true)
     setOpen(false)
     setAdminActiveBranch(null)
+    // Capture current user and roles before the tenant changes
+    const currentUser = useAuthStore.getState().user
+    const originRoles = currentUser ? useRbacStore.getState().getRolesForTenant(tenant.id) : []
     // Clear all client-side state that is tenant-scoped
     useCartStore.getState().clearCart()
     useDineInStore.getState().clearTable()
@@ -68,6 +72,16 @@ export function AdminTenantSwitcher() {
     if (newTenant) {
       setFeatureFlags(featureFlagsService.resolve(newTenant))
       setFeatureFlagsInitialized(true)
+      // Re-seed RBAC roles for the new tenant. In mock mode, check explicit per-tenant
+      // assignments first; fall back to origin-tenant roles for platform-admin workflows
+      // where the same user manages multiple tenants.
+      if (currentUser) {
+        const explicitRoles = getMockRoles(currentUser.id, newTenant.id)
+        const rolesToApply = explicitRoles.length > 0 ? explicitRoles : originRoles
+        if (rolesToApply.length > 0) {
+          useRbacStore.getState().setTenantRoles(newTenant.id, rolesToApply)
+        }
+      }
     }
     setSwitching(false)
   }
