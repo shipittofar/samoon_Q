@@ -23,7 +23,7 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
   const label = tenant.businessTypes.map((t) => BUSINESS_TYPE_LABELS[t] ?? t).join(' · ')
   const accentColor = (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor
   const viewHref  = `/${tenant.slug}/${meta.primaryBranchSlug}/menu`
-  const branchHref = `/${tenant.slug}/${meta.primaryBranchSlug}`
+  const branchHref = `/${tenant.slug}`
 
   return (
     <article

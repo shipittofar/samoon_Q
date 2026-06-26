@@ -7,6 +7,26 @@
  * owner explicitly chooses to show to the public.
  */
 
+/** Public-facing branch summary shown on the tenant homepage. */
+export interface PublicBranchInfo {
+  /** Branch route slug, used in /{tenantSlug}/{branchSlug} URLs. */
+  slug: string
+  /** Display name of the branch. */
+  name: string
+  /** Street address. */
+  address: string
+  /** City. */
+  city: string
+  /** Public phone number. */
+  phone?: string
+  /** Whether the branch is open right now. */
+  openNow: boolean
+  /** Today's opening hours string, e.g. "10:00–23:00" or "Closed today". */
+  todayHours?: string
+  /** Optional branch cover/thumbnail image URL. */
+  image?: string
+}
+
 export interface MarketplaceMeta {
   /** Short pitch shown on the business card (max ~120 chars). */
   description: string
@@ -34,6 +54,20 @@ export interface MarketplaceMeta {
   popular?: boolean
   /** Mark as newly onboarded in the "New" section. */
   isNew?: boolean
+  /** Public branch summaries for display on the tenant homepage. */
+  branches?: PublicBranchInfo[]
+  /** Tagline displayed below the business name on the tenant homepage. */
+  tagline?: string
+  /** Price level indicator: 1 = $, 2 = $$, 3 = $$$, 4 = $$$$ */
+  priceLevel?: 1 | 2 | 3 | 4
+  /** Public contact phone. */
+  phone?: string
+  /** Public contact email. */
+  email?: string
+  /** Public website URL. */
+  website?: string
+  /** Gallery image URLs (in addition to coverImage). */
+  gallery?: string[]
 }
 
 export const BUSINESS_TYPE_LABELS: Record<string, string> = {

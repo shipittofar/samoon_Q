@@ -6,9 +6,12 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { PreviewButton } from '@/components/admin/PreviewButton'
+import { CopyUrlWidget } from '@/components/marketplace/CopyUrlWidget'
 import { useTenantStore } from '@/stores'
 import { useUpdateTenantSettings } from '@/hooks'
 import type { TenantTheme } from '@/types'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
 const TABS = ['general', 'branding', 'hours', 'integrations', 'notifications', 'advanced'] as const
 type Tab = (typeof TABS)[number]
@@ -122,6 +125,10 @@ function GeneralTab() {
           className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
+      <CopyUrlWidget
+        url={`${APP_URL}/${tenant?.slug ?? ''}`}
+        label="Public URL"
+      />
       <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
     </div>
   )

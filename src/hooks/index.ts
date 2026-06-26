@@ -1540,6 +1540,21 @@ export function usePublicTenants() {
   })
 }
 
+/** Fetches a single public tenant by slug. Returns undefined for unknown slugs. */
+export function usePublicTenant(slug: string) {
+  return useQuery({
+    queryKey: ['public-tenant', slug],
+    queryFn: async () => {
+      const tenant = await tenantService.getTenant(slug)
+      // getTenant returns DEFAULT_TENANT for unknown slugs
+      if (tenant.slug === 'default' && slug !== 'default') return null
+      return tenant
+    },
+    staleTime: STALE_TIME,
+    enabled: !!slug,
+  })
+}
+
 export function useActivateTenant() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)

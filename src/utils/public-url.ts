@@ -24,10 +24,15 @@ export interface PublicUrlParams {
   module?: string
 }
 
+/**
+ * Hrefs that map to the tenant homepage (/{tenantSlug}) rather than a
+ * branch-level module. When these are used in PreviewButton the user is
+ * taken to the business's public landing page, not a specific branch.
+ */
+const TENANT_HOMEPAGE_HREFS = new Set(['/', '/restaurant'])
+
 /** Maps legacy flat hrefs to canonical module names. */
 const HREF_TO_MODULE: Record<string, string> = {
-  '/':            '',
-  '/restaurant':  '',
   '/menu':        'menu',
   '/reservation': 'reservation',
   '/promotions':  'promotions',
@@ -38,8 +43,11 @@ const HREF_TO_MODULE: Record<string, string> = {
 }
 
 export function buildPublicUrl({ tenantSlug, branchSlug, module: mod = '' }: PublicUrlParams): string {
-  if (!tenantSlug || !branchSlug) {
+  if (!tenantSlug) {
     return mod ? `/${mod}` : '/'
+  }
+  if (!branchSlug) {
+    return mod ? `/${tenantSlug}/${mod}` : `/${tenantSlug}`
   }
   const base = `/${tenantSlug}/${branchSlug}`
   return mod ? `${base}/${mod}` : base
@@ -48,18 +56,21 @@ export function buildPublicUrl({ tenantSlug, branchSlug, module: mod = '' }: Pub
 /**
  * Converts a legacy flat href (e.g. "/menu") into a context-aware public URL.
  * Used inside PreviewButton to upgrade all existing static hrefs automatically.
+ *
+ * "/" and "/restaurant" → /{tenantSlug}  (tenant homepage, P8.7.7.2)
+ * "/menu"               → /{tenantSlug}/{branchSlug}/menu
+ * "/reservation"        → /{tenantSlug}/{branchSlug}/reservation
+ * etc.
  */
 export function hrefToPublicUrl(
   href: string,
   tenantSlug: string | null | undefined,
   branchSlug: string | null | undefined,
 ): string {
-  const publicModule =
-    HREF_TO_MODULE[href] ?? href.replace(/^\//, '')
+  if (TENANT_HOMEPAGE_HREFS.has(href)) {
+    return tenantSlug ? `/${tenantSlug}` : '/'
+  }
 
-  return buildPublicUrl({
-    tenantSlug,
-    branchSlug,
-    module: publicModule,
-  })
+  const publicModule = HREF_TO_MODULE[href] ?? href.replace(/^\//, '')
+  return buildPublicUrl({ tenantSlug, branchSlug, module: publicModule })
 }
