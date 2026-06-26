@@ -17,12 +17,12 @@ export default function OfflinePage() {
           No internet connection detected. Some features may be unavailable, but you can still browse the cached menu.
         </p>
         <div className="space-y-3">
-          <a
+          <link
             href="/menu"
             className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-colors shadow-lg"
           >
             Browse Cached Menu
-          </a>
+          </link>
           <button
             onClick={() => window.location.reload()}
             className="flex items-center justify-center gap-2 w-full border border-[var(--border)] text-[var(--fg)] font-semibold px-6 py-3.5 rounded-2xl hover:bg-[var(--card-hover)] transition-colors"

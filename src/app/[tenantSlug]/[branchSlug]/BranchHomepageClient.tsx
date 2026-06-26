@@ -457,8 +457,12 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
   const { data: menuItemsPage } = useMenuItems()
   const { data: promotions = [] } = useActivePromotions()
 
-  const categories = categoriesPage?.results ?? (Array.isArray(categoriesPage) ? (categoriesPage as Category[]) : [])
-  const menuItems = menuItemsPage?.results ?? (Array.isArray(menuItemsPage) ? (menuItemsPage as MenuItem[]) : [])
+  // const categories = categoriesPage?.results ?? (Array.isArray(categoriesPage) ? (categoriesPage as Category[]) : [])
+  // const menuItems = menuItemsPage?.results ?? (Array.isArray(menuItemsPage) ? (menuItemsPage as MenuItem[]) : [])
+  
+  const categories = categoriesPage ?? []
+
+  const menuItems = menuItemsPage?.results ?? []  
 
   if (tenantLoading || branchLoading) return <BranchSkeleton />
   if (!tenant || !branch) return <BranchNotFound tenantSlug={tenantSlug} />
