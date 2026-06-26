@@ -54,6 +54,12 @@ export function hrefToPublicUrl(
   tenantSlug: string | null | undefined,
   branchSlug: string | null | undefined,
 ): string {
+<<<<<<< Updated upstream
   const mod = HREF_TO_MODULE[href] ?? href.replace(/^\//, '')
   return buildPublicUrl({ tenantSlug, branchSlug, module: mod })
 }
+=======
+  const publicModule = HREF_TO_MODULE[href] ?? href.replace(/^\//, '')
+  return buildPublicUrl({tenantSlug,branchSlug,module: publicModule,})
+}
+>>>>>>> Stashed changes
