@@ -31,7 +31,12 @@ import type { Role } from '@/types/rbac'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
-const MOCK_TENANT_ID = 'tenant-savor-01'
+const MOCK_TENANT_ID      = 'tenant-savor-01'
+const TENANT_BREW_CAFE    = 'tenant-brew-cafe-01'
+const TENANT_OAK_BAR      = 'tenant-oak-bar-01'
+const TENANT_CENTRAL_FC   = 'tenant-central-fc-01'
+const TENANT_WHEELS_BREWS = 'tenant-wheels-brews-01'
+const TENANT_ROAD_BITES   = 'tenant-road-bites-01'
 const MOCK_OWNER_ID = 'user-owner-01'
 
 // ── Staff Audit Hooks (P7.6 readiness) ───────────────────────────────────────
@@ -304,6 +309,86 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     activatedAt: daysAgo(29),
     lastSeenAt: daysAgo(0),
     createdBy: 'user-manager-01',
+  },
+
+  // ── Brew Cafe staff ────────────────────────────────────────────────────────
+  {
+    id: 'staff-brewcafe-owner-01',
+    tenantId: TENANT_BREW_CAFE,
+    userId: 'user-brewcafe-owner-01',
+    email: 'owner@brewcafe.com',
+    firstName: 'Blake',
+    lastName: 'Owner',
+    status: 'active',
+    roles: ['owner'],
+    invitedAt: daysAgo(200),
+    activatedAt: daysAgo(199),
+    lastSeenAt: daysAgo(1),
+    createdBy: 'system',
+  },
+
+  // ── The Oak Bar staff ──────────────────────────────────────────────────────
+  {
+    id: 'staff-oakbar-owner-01',
+    tenantId: TENANT_OAK_BAR,
+    userId: 'user-oakbar-owner-01',
+    email: 'owner@theoakbar.com',
+    firstName: 'Drew',
+    lastName: 'Owner',
+    status: 'active',
+    roles: ['owner'],
+    invitedAt: daysAgo(150),
+    activatedAt: daysAgo(149),
+    lastSeenAt: daysAgo(2),
+    createdBy: 'system',
+  },
+
+  // ── Central Food Court staff ───────────────────────────────────────────────
+  {
+    id: 'staff-centralfc-owner-01',
+    tenantId: TENANT_CENTRAL_FC,
+    userId: 'user-centralfc-owner-01',
+    email: 'owner@centralfoodcourt.com',
+    firstName: 'Jordan',
+    lastName: 'Owner',
+    status: 'active',
+    roles: ['owner'],
+    invitedAt: daysAgo(120),
+    activatedAt: daysAgo(119),
+    lastSeenAt: daysAgo(3),
+    createdBy: 'system',
+  },
+
+  // ── Wheels & Brews staff ───────────────────────────────────────────────────
+  {
+    id: 'staff-wheelsbrews-owner-01',
+    tenantId: TENANT_WHEELS_BREWS,
+    userId: 'user-wheelsbrews-owner-01',
+    email: 'owner@wheelsandbrews.com',
+    firstName: 'Riley',
+    lastName: 'Owner',
+    status: 'active',
+    roles: ['owner'],
+    invitedAt: daysAgo(90),
+    activatedAt: daysAgo(89),
+    lastSeenAt: daysAgo(4),
+    createdBy: 'system',
+  },
+
+  // ── Road Bites staff ───────────────────────────────────────────────────────
+  {
+    id: 'staff-roadbites-owner-01',
+    tenantId: TENANT_ROAD_BITES,
+    userId: 'user-roadbites-owner-01',
+    email: 'owner@roadbites.com',
+    firstName: 'Sam',
+    lastName: 'Owner',
+    status: 'suspended',
+    roles: ['owner'],
+    invitedAt: daysAgo(60),
+    activatedAt: daysAgo(59),
+    lastSeenAt: daysAgo(30),
+    createdBy: 'system',
   },
 ]
 
