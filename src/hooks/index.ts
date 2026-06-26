@@ -54,7 +54,7 @@ import type {
   ChannelPreference,
   NotificationPriority,
 } from '@/types/notification'
-import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore } from '@/stores'
+import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions, applyOverrides, resolveEffectivePermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions, EffectivePermissionResult } from '@/types/rbac'
 import { rbacService } from '@/services/rbac.service'
@@ -398,6 +398,11 @@ export function useLogout() {
     onSettled: () => {
       logout()
       useRbacStore.getState().clearRoles()
+      useBranchStore.getState().setAdminActiveBranch(null)
+      useCartStore.getState().clearCart()
+      useDineInStore.getState().clearTable()
+      useFavoritesStore.getState().setFavorites([])
+      useRecentlyViewedStore.getState().clear()
       qc.clear()
     },
   })
@@ -416,8 +421,9 @@ export function useMe() {
 
 // ── Menu Hooks ────────────────────────────────────────────────────────────────
 export function useCategories() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['categories'],
+    queryKey: ['categories', tenantId],
     queryFn: () => menuService.getCategories(),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
@@ -470,8 +476,9 @@ export function useMenuSearch(query: string) {
 
 // ── Order Hooks ───────────────────────────────────────────────────────────────
 export function useOrders() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['orders'],
+    queryKey: ['orders', tenantId],
     queryFn: () => orderService.getOrders(),
     staleTime: 30_000,
   })
@@ -714,8 +721,9 @@ export function useAssignBranchManager() {
 
 // ── Reservation Hooks ─────────────────────────────────────────────────────────
 export function useReservations() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['reservations'],
+    queryKey: ['reservations', tenantId],
     queryFn: () => reservationService.getReservations(),
     staleTime: STALE_TIME,
   })
@@ -813,56 +821,63 @@ export function useSetLocale() {
 
 // P6.13 — Analytics hooks
 export function useAnalyticsSummary() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['analytics-summary'],
+    queryKey: ['analytics-summary', tenantId],
     queryFn: () => analyticsService.getAnalyticsSummary(),
     staleTime: STALE_TIME,
   })
 }
 
 export function useRevenueAnalytics() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['analytics-revenue'],
+    queryKey: ['analytics-revenue', tenantId],
     queryFn: () => analyticsService.getRevenueAnalytics(),
     staleTime: STALE_TIME,
   })
 }
 
 export function useReservationAnalytics() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['analytics-reservations'],
+    queryKey: ['analytics-reservations', tenantId],
     queryFn: () => analyticsService.getReservationAnalytics(),
     staleTime: STALE_TIME,
   })
 }
 
 export function useLoyaltyAnalytics() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['analytics-loyalty'],
+    queryKey: ['analytics-loyalty', tenantId],
     queryFn: () => analyticsService.getLoyaltyAnalytics(),
     staleTime: STALE_TIME,
   })
 }
 
 export function usePromotionAnalytics() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['analytics-promotions'],
+    queryKey: ['analytics-promotions', tenantId],
     queryFn: () => analyticsService.getPromotionAnalytics(),
     staleTime: STALE_TIME,
   })
 }
 
 export function useVendorAnalytics() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['analytics-vendors'],
+    queryKey: ['analytics-vendors', tenantId],
     queryFn: () => analyticsService.getVendorAnalytics(),
     staleTime: STALE_TIME,
   })
 }
 
 export function useMenuAnalytics() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['analytics-menu'],
+    queryKey: ['analytics-menu', tenantId],
     queryFn: () => analyticsService.getMenuAnalytics(),
     staleTime: STALE_TIME,
   })
@@ -890,8 +905,9 @@ export function useTableInfo(tableId: string | null) {
 // ── Admin Hooks (P5.1) ────────────────────────────────────────────────────────
 
 export function useAdminStats() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['admin-stats'],
+    queryKey: ['admin-stats', tenantId],
     queryFn: () => adminService.getStats(),
     staleTime: 60_000,
   })
@@ -1192,8 +1208,9 @@ export function useUpdateMenuItem() {
 // ── Vendor Hooks (P6.11) ─────────────────────────────────────────────────────
 
 export function useVendors() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['vendors'],
+    queryKey: ['vendors', tenantId],
     queryFn: () => vendorService.getVendors(),
     staleTime: STALE_TIME,
   })
@@ -1268,16 +1285,18 @@ export function useCreateSettlement() {
 // ── Promotion Hooks (P6.10) ───────────────────────────────────────────────────
 
 export function usePromotions() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['promotions'],
+    queryKey: ['promotions', tenantId],
     queryFn: () => promotionService.getPromotions(),
     staleTime: STALE_TIME,
   })
 }
 
 export function useActivePromotions() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['active-promotions'],
+    queryKey: ['active-promotions', tenantId],
     queryFn: () => promotionService.getActivePromotions(),
     staleTime: 30_000,
     refetchInterval: 60_000,
@@ -1332,24 +1351,27 @@ export function useActivatePromotion() {
 // ── Loyalty Hooks (P6.9) ──────────────────────────────────────────────────────
 
 export function useLoyaltyAccount() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['loyalty-account'],
+    queryKey: ['loyalty-account', tenantId],
     queryFn: () => loyaltyService.getAccount(),
     staleTime: 30_000,
   })
 }
 
 export function useLoyaltyTransactions() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['loyalty-transactions'],
+    queryKey: ['loyalty-transactions', tenantId],
     queryFn: () => loyaltyService.getTransactions(),
     staleTime: 30_000,
   })
 }
 
 export function useLoyaltyRewards() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['loyalty-rewards'],
+    queryKey: ['loyalty-rewards', tenantId],
     queryFn: () => loyaltyService.getRewards(),
     staleTime: STALE_TIME,
   })
@@ -1378,8 +1400,9 @@ export function useEarnPoints() {
 }
 
 export function useAdminLoyaltyRewards() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['admin-loyalty-rewards'],
+    queryKey: ['admin-loyalty-rewards', tenantId],
     queryFn: () => loyaltyService.adminGetRewards(),
     staleTime: STALE_TIME,
   })

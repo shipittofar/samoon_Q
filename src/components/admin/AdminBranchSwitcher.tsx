@@ -17,11 +17,13 @@ import { cn } from '@/utils'
 import { useTenantStore, useBranchStore } from '@/stores'
 import { useAdminBranches } from '@/hooks'
 import type { Branch as AdminBranch } from '@/types/branch'
+import { useQueryClient } from '@tanstack/react-query'
 
 export function AdminBranchSwitcher() {
   const tenant = useTenantStore((s) => s.tenant)
   const { adminActiveBranch, setAdminActiveBranch } = useBranchStore()
   const { data: branches = [], isLoading } = useAdminBranches(tenant?.id ?? '')
+  const qc = useQueryClient()
 
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -43,8 +45,17 @@ export function AdminBranchSwitcher() {
   }, [])
 
   function select(branch: AdminBranch) {
+    if (branch.id === adminActiveBranch?.id) { setOpen(false); return }
     setAdminActiveBranch(branch)
     setOpen(false)
+    // Invalidate branch-scoped admin queries so stale branch data is not shown
+    qc.invalidateQueries({ queryKey: ['admin-orders'] })
+    qc.invalidateQueries({ queryKey: ['admin-reservations'] })
+    qc.invalidateQueries({ queryKey: ['admin-customers'] })
+    qc.invalidateQueries({ queryKey: ['admin-stats'] })
+    qc.invalidateQueries({ queryKey: ['analytics-summary'] })
+    qc.invalidateQueries({ queryKey: ['analytics-revenue'] })
+    qc.invalidateQueries({ queryKey: ['analytics-reservations'] })
   }
 
   const activeBranch = adminActiveBranch ?? branches[0] ?? null

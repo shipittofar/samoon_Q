@@ -12,9 +12,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Layers, Check, Loader2 } from 'lucide-react'
 import { cn } from '@/utils'
-import { useTenantStore, useBranchStore } from '@/stores'
+import { useTenantStore, useBranchStore, useCartStore, useDineInStore, useFavoritesStore, useRecentlyViewedStore } from '@/stores'
 import { useTenants, usePermission } from '@/hooks'
 import { featureFlagsService } from '@/services/feature-flags.service'
+import { useQueryClient } from '@tanstack/react-query'
 
 const STATUS_DOT: Record<string, string> = {
   active:    'bg-green-500',
@@ -32,6 +33,7 @@ export function AdminTenantSwitcher() {
   const setFeatureFlagsInitialized = useTenantStore((s) => s.setFeatureFlagsInitialized)
   const setAdminActiveBranch = useBranchStore((s) => s.setAdminActiveBranch)
   const { data: tenants = [], isLoading } = useTenants()
+  const qc = useQueryClient()
 
   const [open, setOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
@@ -53,7 +55,14 @@ export function AdminTenantSwitcher() {
     if (slug === tenant?.slug) { setOpen(false); return }
     setSwitching(true)
     setOpen(false)
-    setAdminActiveBranch(null)  // reset branch when tenant changes
+    setAdminActiveBranch(null)
+    // Clear all client-side state that is tenant-scoped
+    useCartStore.getState().clearCart()
+    useDineInStore.getState().clearTable()
+    useFavoritesStore.getState().setFavorites([])
+    useRecentlyViewedStore.getState().clear()
+    // Clear React Query cache so no tenant A data bleeds into tenant B
+    qc.clear()
     await loadTenant(slug)
     const newTenant = useTenantStore.getState().tenant
     if (newTenant) {
