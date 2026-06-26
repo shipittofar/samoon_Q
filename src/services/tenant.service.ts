@@ -22,6 +22,20 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'reviews.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#e85d04' },
+      marketplace: {
+        description: 'Fine dining with contemporary Mediterranean cuisine crafted with passion in an elegant atmosphere.',
+        coverImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+        cuisines: ['Mediterranean', 'Italian', 'Contemporary'],
+        tags: ['Fine Dining', 'Date Night', 'Family Friendly'],
+        rating: 4.8,
+        reviewCount: 1247,
+        city: 'New York',
+        branchCount: 3,
+        openNow: true,
+        primaryBranchSlug: 'main',
+        featured: true,
+        popular: true,
+      },
     },
   },
   'brew-cafe': {
@@ -34,6 +48,19 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'cafe.loyalty.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#6f4e37' },
+      marketplace: {
+        description: 'Specialty coffee roasters with artisan pastries and a cozy, work-friendly atmosphere.',
+        coverImage: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
+        cuisines: ['Coffee', 'Pastries', 'Light Bites'],
+        tags: ['Specialty Coffee', 'Remote-Work Friendly', 'Vegan Options'],
+        rating: 4.6,
+        reviewCount: 892,
+        city: 'New York',
+        branchCount: 2,
+        openNow: true,
+        primaryBranchSlug: 'main',
+        popular: true,
+      },
     },
   },
   'the-oak-bar': {
@@ -46,6 +73,19 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'promotions.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#1a1a2e' },
+      marketplace: {
+        description: 'Sophisticated cocktail bar with live music, craft beer and an extensive spirits collection.',
+        coverImage: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80',
+        cuisines: ['Cocktails', 'Craft Beer', 'Bar Bites'],
+        tags: ['Live Music', 'Happy Hour', 'Date Night'],
+        rating: 4.7,
+        reviewCount: 634,
+        city: 'New York',
+        branchCount: 1,
+        openNow: false,
+        primaryBranchSlug: 'main',
+        featured: true,
+      },
     },
   },
   'central-food-court': {
@@ -58,6 +98,19 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_court.vendor_management.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#2d6a4f' },
+      marketplace: {
+        description: 'Multi-vendor food court with diverse cuisines from around the world under one roof.',
+        coverImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
+        cuisines: ['International', 'Asian', 'Middle Eastern', 'Western'],
+        tags: ['Family Friendly', 'Variety', 'Large Portions'],
+        rating: 4.3,
+        reviewCount: 2108,
+        city: 'New York',
+        branchCount: 1,
+        openNow: true,
+        primaryBranchSlug: 'main',
+        isNew: true,
+      },
     },
   },
   'road-bites': {
@@ -70,6 +123,18 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_truck.live_location.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#f4a261' },
+      marketplace: {
+        description: 'Street food on the move — bold flavours, fast service, live GPS tracking.',
+        coverImage: 'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
+        cuisines: ['Street Food', 'Burgers', 'Wraps'],
+        tags: ['Mobile', 'Fast Casual', 'Live Location'],
+        rating: 4.4,
+        reviewCount: 511,
+        city: 'New York',
+        branchCount: 1,
+        openNow: false,
+        primaryBranchSlug: 'main',
+      },
     },
   },
   'wheels-and-brews': {
@@ -82,6 +147,19 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'mobile_cafe.loyalty.enabled': true, 'mobile_cafe.live_location.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#457b9d' },
+      marketplace: {
+        description: 'Mobile coffee and brunch on wheels — find our daily stops and enjoy fresh espresso anywhere.',
+        coverImage: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
+        cuisines: ['Coffee', 'Brunch', 'Smoothies'],
+        tags: ['Mobile', 'Outdoor', 'Healthy', 'Loyalty Rewards'],
+        rating: 4.5,
+        reviewCount: 312,
+        city: 'New York',
+        branchCount: 1,
+        openNow: true,
+        primaryBranchSlug: 'main',
+        isNew: true,
+      },
     },
   },
 }

@@ -1522,6 +1522,24 @@ export function useTenants() {
   })
 }
 
+/**
+ * P8.7.7.1 — Public marketplace discovery hook.
+ * Returns all tenants visible in the public /discover page (active + trial).
+ * No RBAC guard — this is explicitly public data for business discovery.
+ * Uses a separate query key so it never collides with the admin useTenants().
+ */
+export function usePublicTenants() {
+  return useQuery({
+    queryKey: ['public-tenants'],
+    queryFn: () => tenantService.getTenants(),
+    staleTime: STALE_TIME,
+    select: (tenants) =>
+      tenants.filter(
+        (t) => t.slug !== 'default' && (t.status === 'active' || t.status === 'trial'),
+      ),
+  })
+}
+
 export function useActivateTenant() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
