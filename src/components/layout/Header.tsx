@@ -7,7 +7,16 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin } from 'lucide-react'
 import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
 import type { TenantTheme } from '@/types'
+import type { NavItem } from '@/types'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
+
+// Platform-level nav shown on the root site (when no tenant is active).
+// Replaces restaurant-specific module nav on the public marketplace surface.
+const PLATFORM_NAV: NavItem[] = [
+  { href: '/discover', label: 'Discover' },
+  { href: '/reservation', label: 'Reservations' },
+  { href: '/restaurant', label: 'About' },
+]
 import { cn, formatCurrency } from '@/utils'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -37,7 +46,10 @@ export function Header() {
   // useModuleNav() returns header nav filtered by resolved feature flags (P6.8).
   // Items with featureFlagKey are hidden when the flag is false (e.g. reservations
   // disabled for food_truck, loyalty disabled for bar).
-  const navLinks = useModuleNav()
+  // On the root site (default tenant) we show PLATFORM_NAV instead of the
+  // restaurant-specific module nav (P8.8.2 — Phase I).
+  const moduleNav = useModuleNav()
+  const navLinks = tenant.slug === 'default' ? PLATFORM_NAV : moduleNav
   const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)

@@ -2,12 +2,16 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { DEFAULT_PLATFORM_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
 import Image from 'next/image'
-import { ArrowRight, MapPin, ChevronRight, Flame } from 'lucide-react'
+import { ArrowRight, ChevronRight, Search, Building2 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FeaturedSection } from '@/components/home/FeaturedSection'
+import { DiscoveryPreview } from '@/components/home/DiscoveryPreview'
+import { HowItWorks } from '@/components/home/HowItWorks'
+import { ForBusinessOwners } from '@/components/home/ForBusinessOwners'
+import { PlatformFeatures } from '@/components/home/PlatformFeatures'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
@@ -32,19 +36,31 @@ export const metadata: Metadata = {
   alternates: { canonical: BASE_URL },
 }
 
+// Platform-wide metrics shown in the stats strip (Phase J — mock data).
 const STATS = [
-  { value: '500+', label: 'Menu Items' },
-  { value: '50k+', label: 'Happy Customers' },
-  { value: '4.9★', label: 'Average Rating' },
-  { value: '30min', label: 'Avg. Delivery' },
+  { value: '500+', label: 'Businesses' },
+  { value: '50+', label: 'Branches' },
+  { value: '20+', label: 'Cities' },
+  { value: '50k+', label: 'Customers' },
 ]
 
+// Business-type discovery categories (Phase D).
+// Links to /discover?category=* (P8.8.2 — replaces single-restaurant /menu?category=* links).
 const CATEGORIES = [
-  { name: 'Pizza', icon: '🍕', count: 8, href: '/menu?category=pizza', color: 'from-red-400 to-orange-400' },
-  { name: 'Burgers', icon: '🍔', count: 6, href: '/menu?category=burger', color: 'from-amber-400 to-yellow-400' },
-  { name: 'Pasta', icon: '🍝', count: 5, href: '/menu?category=pasta', color: 'from-orange-400 to-amber-400' },
-  { name: 'Drinks', icon: '🥤', count: 7, href: '/menu?category=drinks', color: 'from-blue-400 to-cyan-400' },
-  { name: 'Desserts', icon: '🍰', count: 6, href: '/menu?category=desserts', color: 'from-pink-400 to-rose-400' },
+  { name: 'Restaurants', icon: '🍽️', href: '/discover?category=restaurant', color: 'from-red-400 to-orange-400' },
+  { name: 'Cafés', icon: '☕', href: '/discover?category=cafe', color: 'from-amber-400 to-yellow-400' },
+  { name: 'Bars', icon: '🍺', href: '/discover?category=bar', color: 'from-orange-400 to-amber-400' },
+  { name: 'Food Courts', icon: '🏪', href: '/discover?category=food_court', color: 'from-blue-400 to-cyan-400' },
+  { name: 'Food Trucks', icon: '🚚', href: '/discover?category=food_truck', color: 'from-pink-400 to-rose-400' },
+]
+
+// Category chips shown inside the hero search area.
+const HERO_CHIPS = [
+  { label: 'Restaurant', href: '/discover?category=restaurant' },
+  { label: 'Café', href: '/discover?category=cafe' },
+  { label: 'Bar', href: '/discover?category=bar' },
+  { label: 'Food Truck', href: '/discover?category=food_truck' },
+  { label: 'Food Court', href: '/discover?category=food_court' },
 ]
 
 export default function HomePage() {
@@ -58,78 +74,96 @@ export default function HomePage() {
       <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
-      {/* Hero */}
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Background */}
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920&q=80"
-            alt="Restaurant ambiance"
+            src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920&q=80"
+            alt="Vibrant marketplace of restaurants and cafés"
             fill
             className="object-cover"
             priority
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 w-full">
           <div className="max-w-2xl">
-            {/* Pill label */}
+            {/* Pill */}
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
-              <Flame className="h-3.5 w-3.5 text-orange-400" />
-              <span className="text-sm text-white/90 font-medium">Now open for delivery</span>
+              <Building2 className="h-3.5 w-3.5 text-orange-400" />
+              <span className="text-sm text-white/90 font-medium">500+ businesses on Savor</span>
             </div>
 
-            <h1 className="font-[var(--font-display)] text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6">
-              Extraordinary
-              <span className="block text-orange-400">Flavors,</span>
-              Delivered.
+            <h1 className="font-[var(--font-display)] text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-5">
+              Find Great
+              <span className="block text-orange-400">Restaurants</span>
+              Near You.
             </h1>
             <p className="text-lg text-white/70 mb-8 leading-relaxed max-w-lg">
-              From farm-fresh ingredients to unforgettable recipes crafted with passion. Experience fine dining at home or reserve your perfect table.
+              Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order — all in one place.
             </p>
 
+            {/* Search form — GET /discover?q= */}
+            <form action="/discover" method="GET" className="flex gap-2 mb-6 max-w-lg">
+              <div className="flex-1 relative">
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" />
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Search restaurants, cafés, bars…"
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/25 text-white placeholder:text-white/50 rounded-2xl ps-9 pe-4 py-3.5 text-sm focus:outline-none focus:border-orange-400 focus:bg-white/15 transition-all"
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
+              >
+                Search
+              </button>
+            </form>
+
+            {/* Category chips */}
+            <div className="flex flex-wrap gap-2 mb-8">
+              {HERO_CHIPS.map((chip) => (
+                <Link
+                  key={chip.label}
+                  href={chip.href}
+                  className="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:border-orange-400 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-all"
+                >
+                  {chip.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Primary + secondary CTAs */}
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/menu"
+                href="/discover"
                 className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 active:translate-y-0"
               >
-                Order Now
+                Explore Businesses
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/reservation"
+                href="/restaurant"
                 className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all hover:-translate-y-0.5"
               >
-                Reserve a Table
+                Become a Partner
               </Link>
-            </div>
-
-            {/* Mini stats */}
-            <div className="flex items-center gap-6 mt-10">
-              <div className="flex -space-x-2">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-8 w-8 rounded-full border-2 border-white bg-gradient-to-br from-orange-300 to-orange-600" />
-                ))}
-              </div>
-              <div>
-                <div className="flex text-orange-400 text-sm">{'★★★★★'}</div>
-                <p className="text-white/60 text-xs">Loved by 50,000+ customers</p>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
           <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/40" />
           <span className="text-white/40 text-xs">Scroll</span>
         </div>
       </section>
 
-      {/* Stats */}
+      {/* ── Platform Stats strip ──────────────────────────────────────────── */}
       <section className="bg-[var(--card)] border-b border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4">
@@ -146,15 +180,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories */}
+      {/* ── Business Categories ───────────────────────────────────────────── */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Explore</p>
-              <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">Our Categories</h2>
+              <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Browse by Type</p>
+              <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">Business Categories</h2>
             </div>
-            <Link href="/menu" className="flex items-center gap-1 text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors">
+            <Link href="/discover" className="flex items-center gap-1 text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors">
               View all <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
@@ -169,37 +203,26 @@ export default function HomePage() {
                   <span className="text-2xl">{cat.icon}</span>
                 </div>
                 <h3 className="font-semibold text-[var(--fg)] group-hover:text-orange-500 transition-colors">{cat.name}</h3>
-                <p className="text-xs text-[var(--fg-muted)] mt-1">{cat.count} items</p>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
+      {/* ── Discovery Preview — businesses on the platform ────────────────── */}
+      <DiscoveryPreview />
+
+      {/* ── Featured Section (preserved — P4 tests require <FeaturedSection />) */}
       <FeaturedSection />
 
-      {/* CTA */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative bg-gradient-to-br from-orange-500 to-orange-700 rounded-3xl overflow-hidden">
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 20% 80%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-            <div className="relative px-8 py-16 md:px-16 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="text-white text-center md:text-start">
-                <h2 className="font-[var(--font-display)] text-3xl md:text-4xl font-bold mb-3">Reserve Your Table</h2>
-                <p className="text-white/80 max-w-md">Book in advance and enjoy a premium dining experience. Special occasions, corporate dinners, or an intimate evening for two.</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-                <Link href="/reservation" className="inline-flex items-center justify-center gap-2 bg-white text-orange-600 font-semibold px-6 py-3.5 rounded-2xl hover:bg-orange-50 transition-colors shadow-lg">
-                  <MapPin className="h-4 w-4" /> Book a Table
-                </Link>
-                <Link href="/restaurant" className="inline-flex items-center justify-center gap-2 border border-white/30 text-white font-semibold px-6 py-3.5 rounded-2xl hover:bg-white/10 transition-colors">
-                  Learn More <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ── How It Works ─────────────────────────────────────────────────── */}
+      <HowItWorks />
+
+      {/* ── For Business Owners ──────────────────────────────────────────── */}
+      <ForBusinessOwners />
+
+      {/* ── Platform Features ────────────────────────────────────────────── */}
+      <PlatformFeatures />
 
       <Footer />
     </div>

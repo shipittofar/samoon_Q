@@ -11,17 +11,20 @@ const LINKS = {
     { label: 'Restaurants', href: '/discover?category=restaurant' },
     { label: 'Cafés', href: '/discover?category=cafe' },
     { label: 'Bars & Venues', href: '/discover?category=bar' },
+    { label: 'Food Trucks', href: '/discover?category=food_truck' },
   ],
   Platform: [
     { label: 'Order Online', href: '/menu' },
     { label: 'Book a Table', href: '/reservation' },
     { label: 'Track Order', href: '/dashboard/orders' },
-    { label: 'For Business Owners', href: '/restaurant' },
+    { label: 'Become a Partner', href: '/restaurant' },
+    { label: 'Pricing', href: '/restaurant' },
   ],
   Company: [
     { label: 'About Savor', href: '/restaurant' },
-    { label: 'Careers', href: '/careers' },
+    { label: 'Support', href: '/restaurant' },
     { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/privacy' },
   ],
 }
 
