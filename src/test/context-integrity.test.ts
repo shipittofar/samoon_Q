@@ -1,9 +1,15 @@
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { tenantService } from '@/services/tenant.service'
 import { branchManagementService } from '@/services/branch.service'
 import { getMockRoles } from '@/services/permission.service'
 import { hrefToPublicUrl } from '@/utils/public-url'
 import { getMarketplaceMeta } from '@/types/marketplace'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // ── P8.7.7.4 Context Integrity Regression Tests ───────────────────────────────
 
@@ -232,8 +238,8 @@ describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
 
   it('useLogout clears cart, favorites, recently-viewed, dine-in, and RBAC', async () => {
     // Source-text verification: useLogout must call clearCart, setFavorites([]), clear(), clearTable
-    const hooksSrc = require('node:fs').readFileSync(
-      require('node:path').join(__dirname, '..', 'hooks', 'index.ts'),
+    const hooksSrc = readFileSync(
+      join(__dirname, '..', 'hooks', 'index.ts'),
       'utf-8',
     )
     expect(hooksSrc).toContain('useCartStore.getState().clearCart()')
@@ -243,8 +249,8 @@ describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
   })
 
   it('TenantLayout clears cart on tenant switch', async () => {
-    const src = require('node:fs').readFileSync(
-      require('node:path').join(__dirname, '..', 'app', '[tenantSlug]', 'layout.tsx'),
+    const src = readFileSync(
+      join(__dirname, '..', 'app', '[tenantSlug]', 'layout.tsx'),
       'utf-8',
     )
     expect(src).toContain('clearCart()')
@@ -252,8 +258,8 @@ describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
   })
 
   it('useFeaturedItems query key includes tenantId (D-06 fix)', async () => {
-    const src = require('node:fs').readFileSync(
-      require('node:path').join(__dirname, '..', 'hooks', 'index.ts'),
+    const src = readFileSync(
+      join(__dirname, '..', 'hooks', 'index.ts'),
       'utf-8',
     )
     // Verify the queryKey for useFeaturedItems includes tenantId
@@ -261,16 +267,16 @@ describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
   })
 
   it('useMenuSearch query key includes tenantId (D-07 fix)', async () => {
-    const src = require('node:fs').readFileSync(
-      require('node:path').join(__dirname, '..', 'hooks', 'index.ts'),
+    const src = readFileSync(
+      join(__dirname, '..', 'hooks', 'index.ts'),
       'utf-8',
     )
     expect(src).toMatch(/queryKey.*menu-search.*tenantId|tenantId.*menu-search/)
   })
 
   it('useRelatedItems query key includes tenantId (D-08 fix)', async () => {
-    const src = require('node:fs').readFileSync(
-      require('node:path').join(__dirname, '..', 'hooks', 'index.ts'),
+    const src = readFileSync(
+      join(__dirname, '..', 'hooks', 'index.ts'),
       'utf-8',
     )
     expect(src).toMatch(/queryKey.*related-items.*tenantId|tenantId.*related-items/)
