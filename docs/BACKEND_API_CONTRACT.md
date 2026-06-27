@@ -2033,3 +2033,628 @@ NEXT_PUBLIC_TENANT_SLUG=default    # Dev override — bypasses middleware resolu
 
 ---
 
+
+---
+
+## 22. WebSocket Channels
+
+> All WebSocket connections require `Authorization: Bearer <token>` passed as a query parameter or in the initial handshake frame: `ws://.../ws/channel/?token=<access_token>`
+
+### 22.1 Order Tracking
+
+**Channel:** `ws/orders/{orderId}/`  
+**Authentication:** Customer (own orders) or Admin  
+**Events pushed by server:**
+
+```json
+{ "type": "order.status_changed", "order_id": "o1", "status": "preparing", "estimated_time": 15 }
+{ "type": "order.ready", "order_id": "o1" }
+{ "type": "order.delivered", "order_id": "o1" }
+```
+
+**Source:** `src/hooks/index.ts` → `useOrderTracking()`
+
+---
+
+### 22.2 Real-time Notifications
+
+**Channel:** `ws/notifications/`  
+**Authentication:** Any authenticated user  
+**Scope:** Filtered to the authenticated user + tenant  
+**Events pushed by server:**
+
+```json
+{ "type": "notification.new", "notification": { /* RichNotification object */ } }
+{ "type": "notification.read", "id": "n1" }
+{ "type": "notification.count", "unread": 3 }
+```
+
+**Source:** `src/hooks/index.ts` → `useRealtimeNotifications()`
+
+---
+
+### 22.3 Kitchen Display
+
+**Channel:** `ws/kitchen/{branchId}/`  
+**Authentication:** Staff (`kitchen.view`)  
+**Events pushed by server:**
+
+```json
+{ "type": "kitchen.status", "status": { /* KitchenStatus object */ } }
+{ "type": "kitchen.order_new", "order": { /* Order */ } }
+{ "type": "kitchen.order_updated", "order": { /* Order */ } }
+```
+
+**Source:** `src/services/realtime-operations.service.ts`
+
+---
+
+### 22.4 Admin Dashboard Live Updates
+
+**Channel:** `ws/admin/dashboard/`  
+**Authentication:** Admin  
+**Events pushed by server:**
+
+```json
+{ "type": "stats.updated", "stats": { /* AdminStats */ } }
+{ "type": "order.new", "order": { /* Order summary */ } }
+```
+
+---
+
+## 23. Pagination Contract
+
+All list endpoints that can return large result sets use Django REST Framework-style pagination.
+
+### 23.1 Standard Paginated Response
+
+```json
+{
+  "count": 142,
+  "next": "https://api.example.com/api/orders/?page=3",
+  "previous": "https://api.example.com/api/orders/?page=1",
+  "results": [ /* array of items */ ]
+}
+```
+
+**TypeScript type:** `PaginatedResponse<T>` — `src/types/index.ts`
+
+```typescript
+interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+```
+
+### 23.2 Pagination Query Parameters
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `page` | `number` | `1` | 1-based page number |
+| `page_size` | `number` | `20` | Items per page (max 100) |
+
+### 23.3 Endpoints Using Pagination
+
+| Endpoint | Notes |
+|----------|-------|
+| `GET /menu/items/` | `page`, `page_size` supported |
+| `GET /orders/` | `page` supported |
+| `GET /reservations/` | `page` supported |
+| `GET /notifications/` | `page` supported |
+| `GET /notifications/rich/` | `page`, `page_size` supported |
+| `GET /admin/customers/` | `page` supported |
+| `GET /admin/orders/` | `page` supported |
+| `GET /admin/reservations/` | `page` supported |
+| `GET /audit-logs/` | `page` supported |
+| `GET /tenants/` | `page` supported |
+
+---
+
+## 24. Error Response Contract
+
+All error responses follow a consistent JSON envelope.
+
+### 24.1 Standard Error Body
+
+```json
+{
+  "message": "Human-readable error description",
+  "code": "machine_readable_error_code",
+  "details": { /* optional field-level validation errors */ }
+}
+```
+
+### 24.2 Field Validation Error (422 / 400)
+
+```json
+{
+  "message": "Validation failed",
+  "code": "validation_error",
+  "details": {
+    "email": ["Enter a valid email address."],
+    "password": ["This field is required."]
+  }
+}
+```
+
+### 24.3 HTTP Status Code Conventions
+
+| Code | Meaning | When Used |
+|------|---------|-----------|
+| `200` | OK | Successful GET, POST (non-create), PATCH |
+| `201` | Created | Successful POST that creates a resource |
+| `204` | No Content | Successful DELETE |
+| `400` | Bad Request | Invalid input / business rule violation |
+| `401` | Unauthorized | Missing or invalid access token |
+| `403` | Forbidden | Authenticated but insufficient permission |
+| `404` | Not Found | Resource does not exist |
+| `409` | Conflict | Duplicate resource (e.g., slug already taken) |
+| `422` | Unprocessable Entity | Semantic validation failure (e.g., discount code expired) |
+| `429` | Too Many Requests | Rate limit exceeded |
+| `500` | Internal Server Error | Unexpected backend failure |
+
+### 24.4 Auth Error Codes
+
+| `code` | Trigger |
+|--------|---------|
+| `invalid_credentials` | Wrong email/password |
+| `token_expired` | Access token has expired |
+| `token_invalid` | Malformed or tampered token |
+| `refresh_expired` | Refresh token has expired — user must re-login |
+| `account_suspended` | User account is suspended |
+| `not_verified` | Email/phone not yet verified |
+| `otp_invalid` | Submitted OTP is wrong or expired |
+
+---
+
+## 25. Security & Headers
+
+### 25.1 Required Request Headers
+
+| Header | Required On | Value |
+|--------|------------|-------|
+| `Authorization` | All authenticated endpoints | `Bearer <access_token>` |
+| `Content-Type` | POST / PATCH with JSON body | `application/json` |
+| `Content-Type` | Avatar upload | `multipart/form-data` |
+| `X-CSRFToken` | Mutating requests (when using session auth) | Value from `csrftoken` cookie |
+| `X-Tenant-Slug` | All tenant-scoped endpoints | e.g. `savor` |
+
+### 25.2 CORS
+
+Backend must allow:
+- **Origins:** All configured frontend origins (dev + staging + production)
+- **Credentials:** `withCredentials: true` is set on every axios request — backend must respond with `Access-Control-Allow-Credentials: true` and an explicit origin (not `*`)
+- **Methods:** `GET, POST, PATCH, PUT, DELETE, OPTIONS`
+- **Headers:** `Authorization, Content-Type, X-CSRFToken, X-Tenant-Slug`
+
+### 25.3 CSRF
+
+The frontend axios instance reads the `csrftoken` cookie (set by Django on first request) and sends it as `X-CSRFToken` on all mutating requests (`POST`, `PATCH`, `PUT`, `DELETE`). Backend must:
+1. Issue a `csrftoken` cookie (not HttpOnly) on any GET request or on the login response
+2. Validate `X-CSRFToken` header on all mutating requests
+
+### 25.4 Token Storage
+
+| Token | Frontend Storage | Cookie Mirroring |
+|-------|-----------------|-----------------|
+| `access` | `localStorage["access_token"]` | Mirrored to a non-HttpOnly cookie for Next.js middleware use |
+| `refresh` | `localStorage["refresh_token"]` | Not mirrored |
+
+### 25.5 Rate Limiting (Recommended)
+
+| Endpoint Group | Recommended Limit |
+|---------------|------------------|
+| `POST /auth/login/` | 10 req/min per IP |
+| `POST /auth/send-otp/` | 3 req/min per phone |
+| `POST /auth/forgot-password/` | 5 req/min per email |
+| All other endpoints | 200 req/min per authenticated user |
+
+### 25.6 File Upload Constraints
+
+Enforced by the frontend before upload; backend must also validate:
+
+| Field | Constraint |
+|-------|-----------|
+| Avatar file types | `image/jpeg`, `image/png`, `image/webp`, `image/gif` |
+| Avatar max size | 5 MB |
+| Field name | `avatar` (multipart key) |
+| Response field | `avatar_url` (string URL) |
+
+---
+
+## 26. Business Rules
+
+### 26.1 Multi-Tenancy
+
+- Every resource (menu items, orders, reservations, branches, staff, notifications, audit logs) is scoped to a tenant.
+- The active tenant is identified by **slug** in the URL path (`/[tenantSlug]/...`) and resolved to a `tenant_id` by the backend.
+- The frontend sends `X-Tenant-Slug: <slug>` on all authenticated requests. Backend must reject requests where the token's tenant claim does not match the header.
+- **Cross-tenant data leakage is a critical security requirement.** Staff of Tenant A must never be able to read or mutate resources of Tenant B.
+
+### 26.2 RBAC
+
+- Every user has a list of **roles** scoped to a specific tenant. A user can have different roles in different tenants.
+- Roles: `owner`, `admin`, `manager`, `cashier`, `waiter`, `kitchen`, `marketing`, `support`
+- The backend must check `(userId, tenantId, role)` — not just `(userId, role)`.
+- Permission checks are **additive**: a user with both `manager` and `cashier` roles has the union of both permission sets.
+- `owner` has all permissions and cannot be removed from a tenant by anyone except themselves (via transfer-ownership).
+
+### 26.3 Order Lifecycle
+
+Valid status transitions enforced by the backend:
+
+```
+pending → accepted → preparing → ready → delivered
+pending → cancelled
+accepted → cancelled
+preparing → cancelled (only by owner/admin)
+```
+
+Frontend uses `PATCH /orders/{id}/status/` with `{ status }` for admin transitions.
+
+### 26.4 Reservation Lifecycle
+
+```
+pending → confirmed
+pending → cancelled
+confirmed → cancelled
+```
+
+`POST /reservations/{id}/confirm/` and `POST /reservations/{id}/cancel/` are the explicit action endpoints.
+
+### 26.5 Loyalty Points
+
+- Points are awarded on order completion (`POST /loyalty/earn/` with `order_id` and `amount`).
+- Points can be redeemed for rewards (`POST /loyalty/rewards/{rewardId}/redeem/`).
+- Tiers: determined by `lifetimePoints`. Backend owns tier calculation.
+- The frontend never calculates point values — it only reads `LoyaltyAccount` from the API.
+
+### 26.6 Discount Code Validation
+
+- Frontend validates discount codes **before** order creation via `POST /orders/validate-discount/`.
+- If valid, `discount_amount` is applied client-side to compute `total`.
+- The backend must re-validate the discount code on `POST /orders/` to prevent tampering.
+- Response shape: `{ valid, discount_type, discount_value, discount_amount, message? }`
+
+### 26.7 Tenant Provisioning
+
+- New tenants are created via `POST /tenants/provision/`.
+- Tenants can be cloned from an existing tenant via `POST /tenants/clone/`.
+- Status lifecycle: `active` → `suspended` → `archived`. Archived tenants cannot be reactivated.
+
+### 26.8 Branch Status Lifecycle
+
+```
+active → deactivated
+active → maintenance
+deactivated → active
+maintenance → active
+```
+
+Corresponding endpoints: `POST /branches/{id}/activate/`, `POST /branches/{id}/deactivate/`, `POST /branches/{id}/maintenance/`
+
+### 26.9 Staff Invite Flow
+
+1. Admin sends `POST /tenants/{tenantId}/staff/invite/` with `{ email, roles }`.
+2. Backend emails the invitee a link containing an invite token.
+3. Invitee hits `POST /invites/{id}/accept/` — this creates the `StaffMember` record.
+4. Admin can `POST /invites/{id}/resend/` or `POST /invites/{id}/cancel/` before acceptance.
+
+### 26.10 Audit Logging
+
+- Every mutation through the admin interface generates an audit log entry via `POST /audit-logs/`.
+- The frontend fires this as a **fire-and-forget** (errors are caught and swallowed).
+- The backend must also generate audit logs server-side as a safety net.
+- Audit logs are **immutable** — no update or delete endpoints exist.
+
+---
+
+## 27. RBAC Permission Matrix
+
+> Source: `src/types/rbac.ts` — `P7Permission` enum
+
+### 27.1 Permission → Role Mapping
+
+| Permission | owner | admin | manager | cashier | waiter | kitchen | marketing | support |
+|-----------|:-----:|:-----:|:-------:|:-------:|:------:|:-------:|:---------:|:-------:|
+| `orders.view` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| `orders.manage` | ✅ | ✅ | ✅ | ✅ | — | — | — | — |
+| `orders.cancel` | ✅ | ✅ | ✅ | — | — | — | — | — |
+| `orders.refund` | ✅ | ✅ | — | — | — | — | — | — |
+| `menu.view` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `menu.manage` | ✅ | ✅ | ✅ | — | — | — | ✅ | — |
+| `menu.delete` | ✅ | ✅ | — | — | — | — | — | — |
+| `reservations.view` | ✅ | ✅ | ✅ | — | ✅ | — | — | ✅ |
+| `reservations.manage` | ✅ | ✅ | ✅ | — | — | — | — | — |
+| `customers.view` | ✅ | ✅ | ✅ | — | — | — | ✅ | ✅ |
+| `customers.export` | ✅ | ✅ | — | — | — | — | — | — |
+| `staff.view` | ✅ | ✅ | ✅ | — | — | — | — | — |
+| `staff.manage` | ✅ | ✅ | — | — | — | — | — | — |
+| `staff.invite` | ✅ | ✅ | — | — | — | — | — | — |
+| `analytics.view` | ✅ | ✅ | ✅ | — | — | — | ✅ | — |
+| `settings.view` | ✅ | ✅ | — | — | — | — | — | — |
+| `settings.manage` | ✅ | ✅ | — | — | — | — | — | — |
+| `loyalty.view` | ✅ | ✅ | ✅ | — | — | — | ✅ | ✅ |
+| `loyalty.manage` | ✅ | ✅ | — | — | — | — | — | — |
+| `promotions.view` | ✅ | ✅ | ✅ | — | — | — | ✅ | — |
+| `promotions.manage` | ✅ | ✅ | ✅ | — | — | — | — | — |
+| `vendors.view` | ✅ | ✅ | ✅ | — | — | — | — | — |
+| `vendors.manage` | ✅ | ✅ | — | — | — | — | — | — |
+| `payments.view` | ✅ | ✅ | ✅ | — | — | — | — | ✅ |
+| `payments.refund` | ✅ | ✅ | — | — | — | — | — | — |
+| `kitchen.view` | ✅ | ✅ | ✅ | — | — | ✅ | — | — |
+| `kitchen.manage` | ✅ | ✅ | ✅ | — | — | ✅ | — | — |
+| `audit_logs.view` | ✅ | ✅ | — | — | — | — | — | — |
+| `branches.view` | ✅ | ✅ | ✅ | — | — | — | — | ✅ |
+| `branches.manage` | ✅ | ✅ | — | — | — | — | — | — |
+| `tenants.manage` | ✅ | — | — | — | — | — | — | — |
+
+### 27.2 Capability Flag → Feature Flag Mapping
+
+The frontend `CapabilityGuard` component checks `featureFlags[CAPABILITY_FLAG_MAP[capability]]`.
+
+| Capability | Feature Flag Key |
+|-----------|-----------------|
+| `loyalty` | `loyalty.enabled` |
+| `vendors` | `vendors.enabled` |
+| `reservations` | `reservations.enabled` |
+| `online_ordering` | `online_ordering.enabled` |
+| `promotions` | `promotions.enabled` |
+| `analytics` | `analytics.enabled` |
+| `kitchen_display` | `kitchen_display.enabled` |
+
+---
+
+## 28. Complete Endpoint Classification Summary (P8.7.8)
+
+> Last updated: 2026-06-27 (P8.7.8 audit)
+
+### 28.1 Authentication
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/auth/login/` | POST | Public | ✅ READY |
+| `/auth/register/` | POST | Public | ✅ READY |
+| `/auth/logout/` | POST | Authenticated | ✅ READY |
+| `/auth/me/` | GET | Authenticated | ✅ READY |
+| `/auth/token/refresh/` | POST | Public | ✅ READY |
+| `/auth/forgot-password/` | POST | Public | ✅ READY |
+| `/auth/reset-password/` | POST | Public | ✅ READY |
+| `/auth/send-otp/` | POST | Public | ✅ READY |
+| `/auth/verify-otp/` | POST | Public | ✅ READY |
+| `/auth/change-password/` | POST | Authenticated | ✅ READY |
+
+### 28.2 Menu
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/menu/categories/` | GET | Public | ✅ READY |
+| `/menu/categories/{id}/` | GET | Public | ✅ READY |
+| `/menu/items/` | GET | Public | ✅ READY |
+| `/menu/items/` | POST | `menu.manage` | ✅ READY |
+| `/menu/items/{id}/` | GET | Public | ✅ READY |
+| `/menu/items/{id}/` | PATCH | `menu.manage` | ✅ READY |
+| `/menu/items/{id}/` | DELETE | `menu.delete` | ✅ READY |
+| `/menu/items/featured/` | GET | Public | ✅ READY |
+| `/menu/items/popular/` | GET | Public | ✅ READY |
+| `/menu/items/search/` | GET | Public | ✅ READY |
+| `/menu/items/{id}/related/` | GET | Public | ✅ READY |
+
+### 28.3 Orders
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/orders/` | GET | Authenticated | ✅ READY |
+| `/orders/` | POST | Authenticated | ✅ READY |
+| `/orders/{id}/` | GET | Authenticated | ✅ READY |
+| `/orders/{id}/cancel/` | POST | Authenticated | ✅ READY |
+| `/orders/{id}/reorder/` | POST | Authenticated | ✅ READY |
+| `/orders/{id}/track/` | GET | Authenticated | ✅ READY |
+| `/orders/{id}/status/` | PATCH | `orders.manage` | 🔴 BLOCKED (P8 backend) |
+| `/orders/validate-discount/` | POST | Authenticated | ✅ READY |
+| `/admin/orders/bulk-status/` | POST | `orders.manage` | ✅ READY |
+| `/admin/orders/bulk-cancel/` | POST | `orders.manage` | ✅ READY |
+
+### 28.4 Reservations
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/reservations/` | GET | Authenticated | ✅ READY |
+| `/reservations/` | POST | Authenticated | ✅ READY |
+| `/reservations/{id}/` | GET | Authenticated | ✅ READY |
+| `/reservations/{id}/cancel/` | POST | Authenticated | ✅ READY |
+| `/reservations/{id}/confirm/` | POST | `reservations.manage` | 🔴 BLOCKED (P8 backend) |
+| `/reservations/available-slots/` | GET | Public | ✅ READY |
+| `/admin/reservations/bulk-confirm/` | POST | `reservations.manage` | ✅ READY |
+| `/admin/reservations/bulk-cancel/` | POST | `reservations.manage` | ✅ READY |
+
+### 28.5 Payments
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/payments/create-intent/` | POST | Authenticated | ✅ READY |
+
+> Note: `/payments/confirm/` is listed in ENDPOINTS but Stripe card confirmation is done client-side via Stripe SDK. Backend only needs `create-intent`.
+
+### 28.6 Branches
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/branches/` | GET | Public | ✅ READY |
+| `/branches/{id}/` | GET | Public | ✅ READY |
+| `/branches/nearby/` | GET | Public | ✅ READY |
+| `/branches/` | POST | `branches.manage` | ✅ READY |
+| `/branches/{id}/` | PATCH | `branches.manage` | ✅ READY |
+| `/branches/{id}/activate/` | POST | `branches.manage` | ✅ READY |
+| `/branches/{id}/deactivate/` | POST | `branches.manage` | ✅ READY |
+| `/branches/{id}/maintenance/` | POST | `branches.manage` | ✅ READY |
+| `/branches/{id}/manager/` | PATCH | `branches.manage` | ✅ READY |
+| `/branches/{id}/metrics/` | GET | `analytics.view` | ✅ READY |
+
+### 28.7 Users / Profile
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/users/profile/` | GET | Authenticated | ✅ READY |
+| `/users/profile/` | PATCH | Authenticated | ✅ READY |
+| `/users/avatar/` | POST | Authenticated | ✅ READY |
+| `/users/addresses/` | GET | Authenticated | ✅ READY |
+| `/users/addresses/` | POST | Authenticated | ✅ READY |
+| `/users/addresses/{id}/` | DELETE | Authenticated | ✅ READY |
+| `/users/favorites/` | GET | Authenticated | ✅ READY |
+| `/users/favorites/{itemId}/` | POST | Authenticated | ✅ READY |
+
+### 28.8 Notifications
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/notifications/` | GET | Authenticated | ✅ READY |
+| `/notifications/rich/` | GET | Authenticated | ✅ READY |
+| `/notifications/{id}/` | GET | Authenticated | ✅ READY |
+| `/notifications/{id}/read/` | POST | Authenticated | ✅ READY |
+| `/notifications/read-all/` | POST | Authenticated | ✅ READY |
+| `/notifications/{id}/` | DELETE | Authenticated | ✅ READY |
+| `/notifications/{id}/archive/` | POST | Authenticated | ✅ READY |
+| `/notifications/statistics/` | GET | Authenticated | ✅ READY |
+| `/notifications/unread-count/` | GET | Authenticated | ✅ READY |
+| `/notifications/summary/` | GET | Authenticated | ✅ READY |
+| `/notifications/` | POST | `staff.manage` | ✅ READY |
+| `/notifications/register-device/` | POST | Authenticated | ✅ READY |
+
+### 28.9 Tenants
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/tenants/` | GET | `tenants.manage` | ✅ READY |
+| `/tenants/{slug}/` | GET | Authenticated | ✅ READY |
+| `/tenants/current/` | GET | Authenticated | ✅ READY |
+| `/tenants/provision/` | POST | `tenants.manage` | ✅ READY |
+| `/tenants/clone/` | POST | `tenants.manage` | ✅ READY |
+| `/tenants/{slugOrId}/activate/` | POST | `tenants.manage` | ✅ READY |
+| `/tenants/{slugOrId}/suspend/` | POST | `tenants.manage` | ✅ READY |
+| `/tenants/{slugOrId}/archive/` | POST | `tenants.manage` | ✅ READY |
+| `/tenants/{slug}/settings/` | PATCH | `settings.manage` | ✅ READY |
+
+### 28.10 Reviews, Tables, Admin
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/reviews/` | POST | Authenticated | ✅ READY |
+| `/menu/items/{itemId}/reviews/` | GET | Public | ✅ READY |
+| `/tables/{tableId}/` | GET | Authenticated | ✅ READY |
+| `/tables/{tableId}/order/` | POST | Authenticated | ✅ READY |
+| `/admin/stats/` | GET | `analytics.view` | 🔴 BLOCKED (P8 backend) |
+| `/admin/customers/` | GET | `customers.view` | 🔴 BLOCKED (P8 backend) |
+| `/admin/customers/{id}/` | GET | `customers.view` | ✅ READY |
+| `/admin/customers/{id}/stats/` | GET | `customers.view` | 🔴 BLOCKED (P8 backend) |
+| `/admin/customers/bulk-export/` | POST | `customers.export` | ✅ READY |
+
+### 28.11 Staff Management
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/tenants/{tenantId}/staff/` | GET | `staff.view` | ✅ READY |
+| `/staff/{id}/` | GET | `staff.view` | ✅ READY |
+| `/tenants/{tenantId}/invites/` | GET | `staff.view` | ✅ READY |
+| `/tenants/{tenantId}/staff/invite/` | POST | `staff.invite` | ✅ READY |
+| `/invites/{id}/cancel/` | POST | `staff.manage` | ✅ READY |
+| `/invites/{id}/resend/` | POST | `staff.manage` | ✅ READY |
+| `/invites/{id}/accept/` | POST | Public (invite token) | ✅ READY |
+| `/staff/{id}/roles/` | PATCH | `staff.manage` | ✅ READY |
+| `/staff/{id}/activate/` | POST | `staff.manage` | ✅ READY |
+| `/staff/{id}/suspend/` | POST | `staff.manage` | ✅ READY |
+| `/staff/{id}/remove/` | POST | `staff.manage` | ✅ READY |
+| `/tenants/{tenantId}/transfer-ownership/` | POST | `owner` only | ✅ READY |
+
+### 28.12 Loyalty & Promotions
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/loyalty/account/` | GET | Authenticated | ✅ READY |
+| `/loyalty/transactions/` | GET | Authenticated | ✅ READY |
+| `/loyalty/rewards/` | GET | Authenticated | ✅ READY |
+| `/loyalty/rewards/{rewardId}/redeem/` | POST | Authenticated | ✅ READY |
+| `/loyalty/earn/` | POST | Authenticated | ✅ READY |
+| `/admin/loyalty/rewards/` | GET | `loyalty.manage` | ✅ READY |
+| `/admin/loyalty/rewards/` | POST | `loyalty.manage` | ✅ READY |
+| `/admin/loyalty/rewards/{id}/` | PATCH | `loyalty.manage` | ✅ READY |
+| `/promotions/` | GET | Public | ✅ READY |
+| `/promotions/active/` | GET | Public | ✅ READY |
+| `/promotions/` | POST | `promotions.manage` | ✅ READY |
+| `/promotions/{id}/` | PATCH | `promotions.manage` | ✅ READY |
+| `/promotions/{id}/activate/` | POST | `promotions.manage` | ✅ READY |
+
+### 28.13 Vendors
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/vendors/` | GET | Authenticated | ✅ READY |
+| `/vendors/{id}/` | GET | Authenticated | ✅ READY |
+| `/vendors/{id}/stats/` | GET | `vendors.view` | ✅ READY |
+| `/vendors/{id}/settlements/` | GET | `vendors.view` | ✅ READY |
+| `/admin/vendors/` | POST | `vendors.manage` | ✅ READY |
+| `/admin/vendors/{id}/` | PATCH | `vendors.manage` | ✅ READY |
+| `/admin/settlements/` | POST | `vendors.manage` | ✅ READY |
+
+### 28.14 Audit Logs
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/audit-logs/` | GET | `audit_logs.view` | ✅ READY |
+| `/audit-logs/{id}/` | GET | `audit_logs.view` | ✅ READY |
+| `/audit-logs/` | POST | Any staff (fire-and-forget) | ✅ READY |
+| `/audit-logs/timeline/` | GET | `audit_logs.view` | ✅ READY |
+| `/audit-logs/export/` | POST | `audit_logs.view` | ✅ READY |
+| `/audit-logs/statistics/` | GET | `audit_logs.view` | ✅ READY |
+
+### 28.15 Analytics
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/admin/analytics/summary/` | GET | `analytics.view` | ✅ READY |
+| `/admin/analytics/revenue/` | GET | `analytics.view` | ✅ READY |
+| `/admin/analytics/reservations/` | GET | `analytics.view` | ✅ READY |
+| `/admin/analytics/loyalty/` | GET | `analytics.view` | ✅ READY |
+| `/admin/analytics/promotions/` | GET | `analytics.view` | ✅ READY |
+| `/admin/analytics/vendors/` | GET | `analytics.view` | ✅ READY |
+| `/admin/analytics/menu/` | GET | `analytics.view` | ✅ READY |
+
+### 28.16 Kitchen Display
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/admin/kitchen/status/` | GET | `kitchen.view` | ✅ READY |
+| `ws/kitchen/{branchId}/` | WebSocket | `kitchen.view` | ✅ READY |
+
+### 28.17 WebSockets
+
+| Channel | Auth | Status |
+|---------|------|--------|
+| `ws/orders/{orderId}/` | Authenticated | ✅ READY |
+| `ws/notifications/` | Authenticated | ✅ READY |
+| `ws/kitchen/{branchId}/` | `kitchen.view` | ✅ READY |
+| `ws/admin/dashboard/` | `analytics.view` | ✅ READY |
+
+---
+
+## 29. Known Backend Blockers (P8 Phase)
+
+The following endpoints are called by the frontend but do not yet have confirmed backend implementations. These are **blocking** frontend features.
+
+| # | Endpoint | Method | Blocked Feature | Priority |
+|---|----------|--------|----------------|----------|
+| B-01 | `/orders/{id}/status/` | PATCH | Admin order status management | HIGH |
+| B-02 | `/reservations/{id}/confirm/` | POST | Admin reservation confirmation | HIGH |
+| B-03 | `/admin/stats/` | GET | Admin dashboard stats widget | HIGH |
+| B-04 | `/admin/customers/` | GET | Admin customer list with filters | MEDIUM |
+| B-05 | `/admin/customers/{id}/stats/` | GET | Customer detail stats panel | MEDIUM |
+| B-06 | `/admin/orders/` | GET | Dedicated admin order list (currently falls back to `/orders/?admin=true`) | LOW |
+| B-07 | `/admin/reservations/` | GET | Dedicated admin reservation list (currently falls back to `/reservations/?admin=true`) | LOW |
+
+> **Workaround currently in place:** `src/services/admin.service.ts` falls back to `/orders/?admin=true` and `/reservations/?admin=true` for B-06 and B-07. The backend can either implement dedicated admin endpoints or add `admin` query param support to the existing list endpoints.
+
+---
+
+*Document generated from actual frontend source code. Do not edit manually — re-derive from `src/services/` and `src/types/` on each major release.*
