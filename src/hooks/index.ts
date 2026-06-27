@@ -543,7 +543,7 @@ export function useBranches() {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
     queryKey: ['branches', tenantId],
-    queryFn: () => branchService.getBranches(),
+    queryFn: () => branchService.getBranches(tenantId ?? undefined),
     staleTime: CACHE_TIME,
   })
 }

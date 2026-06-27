@@ -1,7 +1,7 @@
 // ─── reservation.service.ts ──────────────────────────────────────────────────
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
+import { MOCK_BRANCHES, MOCK_TENANT_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
 import type { Address, Branch, Notification, PaginatedResponse, Reservation, TableInfo, User } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -67,12 +67,16 @@ export const reservationService = {
 
 // ─── branch.service.ts ────────────────────────────────────────────────────────
 export const branchService = {
-  async getBranches(): Promise<Branch[]> {
+  async getBranches(tenantId?: string): Promise<Branch[]> {
     if (USE_MOCK) {
       await delay(400)
+      if (tenantId && MOCK_TENANT_BRANCHES[tenantId]) {
+        return MOCK_TENANT_BRANCHES[tenantId]
+      }
       return MOCK_BRANCHES
     }
-    const { data } = await api.get<Branch[]>(ENDPOINTS.BRANCHES.LIST)
+    const params = tenantId ? { tenant_id: tenantId } : {}
+    const { data } = await api.get<Branch[]>(ENDPOINTS.BRANCHES.LIST, { params })
     return data
   },
 

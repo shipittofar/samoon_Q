@@ -154,3 +154,67 @@ describe('R-06 — CapabilityGuard loyalty flag consistency (P8.7.7.8)', () => {
     expect(flags['loyalty.enabled']).toBeUndefined()
   })
 })
+
+describe('R-07 — Reservation branch list is tenant-scoped (P8.7.7.10)', () => {
+  it('MOCK_TENANT_BRANCHES contains entries for all 6 tenants', async () => {
+    const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
+    const expectedTenants = [
+      'tenant-savor-01',
+      'tenant-brew-cafe-01',
+      'tenant-oak-bar-01',
+      'tenant-central-fc-01',
+      'tenant-wheels-brews-01',
+      'tenant-road-bites-01',
+    ]
+    for (const tenantId of expectedTenants) {
+      expect(MOCK_TENANT_BRANCHES[tenantId]).toBeDefined()
+      expect(MOCK_TENANT_BRANCHES[tenantId].length).toBeGreaterThanOrEqual(1)
+    }
+  })
+
+  it('MOCK_TENANT_BRANCHES branches use slug as id (consistent with publicBranchToLocation)', async () => {
+    const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
+    for (const branches of Object.values(MOCK_TENANT_BRANCHES)) {
+      for (const b of branches) {
+        expect(b.id).toBe(b.slug)
+      }
+    }
+  })
+
+  it('brew-cafe branches are Midtown Cafe and Brooklyn Cafe — not savor branches', async () => {
+    const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
+    const brewBranches = MOCK_TENANT_BRANCHES['tenant-brew-cafe-01']
+    const names = brewBranches.map((b) => b.name)
+    expect(names).toContain('Midtown Cafe')
+    expect(names).toContain('Brooklyn Cafe')
+    expect(names).not.toContain('Main Branch')
+    expect(names).not.toContain('Downtown Branch')
+    expect(names).not.toContain('Airport Branch')
+  })
+
+  it('branchService.getBranches(tenantId) returns tenant-specific branches', async () => {
+    const { branchService } = await import('@/services/combined.service')
+    const savorBranches = await branchService.getBranches('tenant-savor-01')
+    expect(savorBranches.length).toBe(3)
+    expect(savorBranches.map((b) => b.slug)).toContain('airport')
+
+    const brewBranches = await branchService.getBranches('tenant-brew-cafe-01')
+    expect(brewBranches.length).toBe(2)
+    expect(brewBranches.map((b) => b.slug)).toContain('brooklyn-cafe')
+    expect(brewBranches.map((b) => b.slug)).not.toContain('airport')
+  })
+
+  it('branchService.getBranches() without tenantId falls back to MOCK_BRANCHES', async () => {
+    const { branchService } = await import('@/services/combined.service')
+    const branches = await branchService.getBranches()
+    expect(branches.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('tenant-scoped branch ids match slug (activeBranch.id compatibility)', async () => {
+    const { branchService } = await import('@/services/combined.service')
+    const branches = await branchService.getBranches('tenant-brew-cafe-01')
+    const main = branches.find((b) => b.slug === 'main')
+    expect(main).toBeDefined()
+    expect(main?.id).toBe('main')
+  })
+})

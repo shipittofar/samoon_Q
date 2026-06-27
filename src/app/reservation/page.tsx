@@ -42,14 +42,14 @@ export default function ReservationPage() {
   const activeBranchId = useBranchStore((s) => s.activeBranch?.id)
   const [confirmed, setConfirmed] = useState<Reservation | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
-  const [selectedBranch, setSelectedBranch] = useState(() => activeBranchId ?? '1')
+  const [selectedBranch, setSelectedBranch] = useState(() => activeBranchId ?? '')
   const { mutate: createReservation, isPending } = useCreateReservation()
   const { data: branches } = useBranches()
   const { data: slots, isLoading: slotsLoading } = useAvailableSlots(selectedDate, selectedBranch)
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
-    defaultValues: { guests: 2, branch_id: activeBranchId ?? '1' },
+    defaultValues: { guests: 2, branch_id: activeBranchId ?? '' },
   })
 
   useEffect(() => {

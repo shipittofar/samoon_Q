@@ -209,6 +209,105 @@ export const MOCK_BRANCHES: Branch[] = [
   },
 ]
 
+// ── Tenant-scoped branches (id = slug, consistent with publicBranchToLocation) ──
+// P8.7.7.10 — used by branchService.getBranches(tenantId) so the reservation form
+// shows branches that belong to the active tenant and whose ids match activeBranch.id.
+export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
+  'tenant-savor-01': [
+    { id: 'main', slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone: '+1 (212) 555-0100', lat: 40.7128, lng: -74.006, is_active: true, working_hours: [
+      { day: 'Monday', open: '10:00', close: '23:00', is_closed: false },
+      { day: 'Tuesday', open: '10:00', close: '23:00', is_closed: false },
+      { day: 'Wednesday', open: '10:00', close: '23:00', is_closed: false },
+      { day: 'Thursday', open: '10:00', close: '23:00', is_closed: false },
+      { day: 'Friday', open: '10:00', close: '00:00', is_closed: false },
+      { day: 'Saturday', open: '09:00', close: '00:00', is_closed: false },
+      { day: 'Sunday', open: '11:00', close: '22:00', is_closed: false },
+    ] },
+    { id: 'downtown', slug: 'downtown', name: 'Downtown Branch', address: '456 Urban Street', city: 'New York', phone: '+1 (212) 555-0200', lat: 40.72, lng: -73.99, is_active: true, working_hours: [
+      { day: 'Monday', open: '11:00', close: '22:00', is_closed: false },
+      { day: 'Tuesday', open: '11:00', close: '22:00', is_closed: false },
+      { day: 'Wednesday', open: '11:00', close: '22:00', is_closed: false },
+      { day: 'Thursday', open: '11:00', close: '22:00', is_closed: false },
+      { day: 'Friday', open: '11:00', close: '23:00', is_closed: false },
+      { day: 'Saturday', open: '10:00', close: '23:00', is_closed: false },
+      { day: 'Sunday', open: '12:00', close: '21:00', is_closed: false },
+    ] },
+    { id: 'airport', slug: 'airport', name: 'Airport Branch', address: 'JFK Terminal 4', city: 'New York', phone: '+1 (212) 555-0300', lat: 40.6413, lng: -73.7781, is_active: true, working_hours: [
+      { day: 'Monday', open: '06:00', close: '23:00', is_closed: false },
+      { day: 'Tuesday', open: '06:00', close: '23:00', is_closed: false },
+      { day: 'Wednesday', open: '06:00', close: '23:00', is_closed: false },
+      { day: 'Thursday', open: '06:00', close: '23:00', is_closed: false },
+      { day: 'Friday', open: '06:00', close: '23:00', is_closed: false },
+      { day: 'Saturday', open: '06:00', close: '23:00', is_closed: false },
+      { day: 'Sunday', open: '06:00', close: '23:00', is_closed: false },
+    ] },
+  ],
+  'tenant-brew-cafe-01': [
+    { id: 'main', slug: 'main', name: 'Midtown Cafe', address: '789 Coffee Lane', city: 'New York', phone: '+1 (212) 555-0400', lat: 40.754, lng: -73.984, is_active: true, working_hours: [
+      { day: 'Monday', open: '07:00', close: '20:00', is_closed: false },
+      { day: 'Tuesday', open: '07:00', close: '20:00', is_closed: false },
+      { day: 'Wednesday', open: '07:00', close: '20:00', is_closed: false },
+      { day: 'Thursday', open: '07:00', close: '20:00', is_closed: false },
+      { day: 'Friday', open: '07:00', close: '21:00', is_closed: false },
+      { day: 'Saturday', open: '08:00', close: '21:00', is_closed: false },
+      { day: 'Sunday', open: '09:00', close: '18:00', is_closed: false },
+    ] },
+    { id: 'brooklyn-cafe', slug: 'brooklyn-cafe', name: 'Brooklyn Cafe', address: '321 Brew Boulevard', city: 'Brooklyn', phone: '+1 (718) 555-0500', lat: 40.678, lng: -73.944, is_active: true, working_hours: [
+      { day: 'Monday', open: '08:00', close: '19:00', is_closed: false },
+      { day: 'Tuesday', open: '08:00', close: '19:00', is_closed: false },
+      { day: 'Wednesday', open: '08:00', close: '19:00', is_closed: false },
+      { day: 'Thursday', open: '08:00', close: '19:00', is_closed: false },
+      { day: 'Friday', open: '08:00', close: '20:00', is_closed: false },
+      { day: 'Saturday', open: '09:00', close: '20:00', is_closed: false },
+      { day: 'Sunday', open: '10:00', close: '17:00', is_closed: false },
+    ] },
+  ],
+  'tenant-oak-bar-01': [
+    { id: 'main', slug: 'main', name: 'The Oak Bar', address: '789 Oak Street', city: 'Chicago', phone: '+1 (312) 555-0600', lat: 41.8781, lng: -87.6298, is_active: true, working_hours: [
+      { day: 'Monday', open: '16:00', close: '02:00', is_closed: false },
+      { day: 'Tuesday', open: '16:00', close: '02:00', is_closed: false },
+      { day: 'Wednesday', open: '16:00', close: '02:00', is_closed: false },
+      { day: 'Thursday', open: '16:00', close: '02:00', is_closed: false },
+      { day: 'Friday', open: '15:00', close: '03:00', is_closed: false },
+      { day: 'Saturday', open: '14:00', close: '03:00', is_closed: false },
+      { day: 'Sunday', open: '14:00', close: '00:00', is_closed: false },
+    ] },
+  ],
+  'tenant-central-fc-01': [
+    { id: 'main', slug: 'main', name: 'Central Food Court', address: '500 Mall Drive', city: 'Los Angeles', phone: '+1 (323) 555-0700', lat: 34.0522, lng: -118.2437, is_active: true, working_hours: [
+      { day: 'Monday', open: '10:00', close: '22:00', is_closed: false },
+      { day: 'Tuesday', open: '10:00', close: '22:00', is_closed: false },
+      { day: 'Wednesday', open: '10:00', close: '22:00', is_closed: false },
+      { day: 'Thursday', open: '10:00', close: '22:00', is_closed: false },
+      { day: 'Friday', open: '10:00', close: '23:00', is_closed: false },
+      { day: 'Saturday', open: '09:00', close: '23:00', is_closed: false },
+      { day: 'Sunday', open: '11:00', close: '21:00', is_closed: false },
+    ] },
+  ],
+  'tenant-wheels-brews-01': [
+    { id: 'main', slug: 'main', name: 'Wheels & Brews HQ', address: '100 Roaster Road', city: 'Austin', phone: '+1 (512) 555-0800', lat: 30.2672, lng: -97.7431, is_active: true, working_hours: [
+      { day: 'Monday', open: '08:00', close: '18:00', is_closed: false },
+      { day: 'Tuesday', open: '08:00', close: '18:00', is_closed: false },
+      { day: 'Wednesday', open: '08:00', close: '18:00', is_closed: false },
+      { day: 'Thursday', open: '08:00', close: '18:00', is_closed: false },
+      { day: 'Friday', open: '08:00', close: '20:00', is_closed: false },
+      { day: 'Saturday', open: '09:00', close: '20:00', is_closed: false },
+      { day: 'Sunday', open: '10:00', close: '16:00', is_closed: false },
+    ] },
+  ],
+  'tenant-road-bites-01': [
+    { id: 'main', slug: 'main', name: 'Road Bites HQ', address: '200 Food Truck Row', city: 'Miami', phone: '+1 (305) 555-0900', lat: 25.7617, lng: -80.1918, is_active: true, working_hours: [
+      { day: 'Monday', open: '11:00', close: '21:00', is_closed: false },
+      { day: 'Tuesday', open: '11:00', close: '21:00', is_closed: false },
+      { day: 'Wednesday', open: '11:00', close: '21:00', is_closed: false },
+      { day: 'Thursday', open: '11:00', close: '21:00', is_closed: false },
+      { day: 'Friday', open: '11:00', close: '23:00', is_closed: false },
+      { day: 'Saturday', open: '10:00', close: '23:00', is_closed: false },
+      { day: 'Sunday', open: '11:00', close: '20:00', is_closed: false },
+    ] },
+  ],
+}
+
 // ── Categories ────────────────────────────────────────────────────────────────
 export const MOCK_CATEGORIES: Category[] = [
   { id: '1', name: 'Pizza', slug: 'pizza', icon: '🍕', order: 1, items_count: 8 },
