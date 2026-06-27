@@ -3055,3 +3055,100 @@ interface BusinessReview {
 - `reviews.manage` required for moderation and owner replies.
 - Customers may only submit reviews for tenants they have visited (verified via order history).
 
+
+---
+
+## 33. Website Builder API (P8.8.6)
+
+Base path: `/tenants/{tenantSlug}/website/`
+
+### 33.1 Layout
+
+**GET** `/tenants/{tenantSlug}/website/layout/`
+- Auth: `settings.view` permission
+- Response: `HomepageLayout`
+
+**PUT** `/tenants/{tenantSlug}/website/layout/`
+- Auth: `settings.view` permission
+- Body: `HomepageLayout`
+- Response: `HomepageLayout` with `lastSavedAt` set
+
+### 33.2 Publish
+
+**POST** `/tenants/{tenantSlug}/website/publish/`
+- Auth: `settings.view` permission
+- Body: `HomepageLayout`
+- Response: `HomepageLayout` with `status: 'published'`, `lastPublishedAt`, and new entry in `versions[]`
+
+### 33.3 Version History
+
+**GET** `/tenants/{tenantSlug}/website/versions/`
+- Auth: `settings.view` permission
+- Response: `HomepageVersion[]`
+
+### 33.4 Restore Version
+
+**POST** `/tenants/{tenantSlug}/website/versions/{versionId}/restore/`
+- Auth: `settings.view` permission
+- Response: `HomepageLayout` restored from the specified version (status → `'draft'`)
+
+### 33.5 Branch Overrides
+
+**GET** `/tenants/{tenantSlug}/branches/{branchSlug}/website/overrides/`
+- Auth: `settings.view` permission
+- Response: `BranchContentOverrides`
+
+**PUT** `/tenants/{tenantSlug}/branches/{branchSlug}/website/overrides/`
+- Auth: `settings.view` permission
+- Body: `BranchContentOverrides`
+- Response: `BranchContentOverrides`
+
+### 33.6 Media Upload
+
+**POST** `/tenants/{tenantSlug}/website/media/`
+- Auth: `settings.view` permission
+- Body: `multipart/form-data` with `file` field
+- Response: `{ url: string }`
+- Use: upload hero background images, gallery images, founder photos
+
+### 33.7 Types
+
+```typescript
+interface HomepageLayout {
+  sections: SectionConfig[]
+  hero: HeroContent
+  about: AboutContent
+  contact: ContactContent
+  faq: FAQItem[]
+  theme: ThemeSettings
+  status: 'draft' | 'published'
+  lastSavedAt?: string        // ISO 8601
+  lastPublishedAt?: string    // ISO 8601
+  publishedVersion?: HomepageVersion
+  versions?: HomepageVersion[]
+}
+
+interface SectionConfig {
+  key: 'hero' | 'featured_menu' | 'about' | 'gallery' | 'promotions'
+     | 'reviews' | 'branches' | 'events' | 'faq' | 'contact'
+  enabled: boolean
+  order: number
+}
+
+interface BranchContentOverrides {
+  heroHeadline?: string
+  heroSubheadline?: string
+  heroImage?: string
+  description?: string
+  phone?: string
+  gallery?: string[]
+  about?: string
+}
+```
+
+### 33.8 Tenant Isolation
+
+- All website builder endpoints are scoped to `tenantSlug` in the URL.
+- `settings.view` permission gates both read and write access.
+- Branch overrides are stored per `branchSlug` within the tenant's settings scope.
+- Version history is retained server-side; clients receive the last 10 versions.

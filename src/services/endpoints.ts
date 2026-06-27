@@ -110,6 +110,16 @@ export const ENDPOINTS = {
     ITEM_REVIEWS: (itemId: string) => `/menu/items/${itemId}/reviews/`,
   },
 
+  // Website Builder (P8.8.6)
+  WEBSITE_BUILDER: {
+    LAYOUT: (tenantSlug: string) => `/tenants/${tenantSlug}/website/layout/`,
+    PUBLISH: (tenantSlug: string) => `/tenants/${tenantSlug}/website/publish/`,
+    RESTORE: (tenantSlug: string, versionId: string) => `/tenants/${tenantSlug}/website/versions/${versionId}/restore/`,
+    VERSIONS: (tenantSlug: string) => `/tenants/${tenantSlug}/website/versions/`,
+    BRANCH_OVERRIDES: (tenantSlug: string, branchSlug: string) => `/tenants/${tenantSlug}/branches/${branchSlug}/website/overrides/`,
+    MEDIA_UPLOAD: (tenantSlug: string) => `/tenants/${tenantSlug}/website/media/`,
+  },
+
   // Business Reviews (tenant/branch level — P8.8.5)
   BUSINESS_REVIEWS: {
     LIST: (tenantId: string) => `/tenants/${tenantId}/reviews/`,

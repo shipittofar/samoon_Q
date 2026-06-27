@@ -2484,3 +2484,70 @@ export function useReviewAnalytics(tenantId: string) {
     gcTime: CACHE_TIME,
   })
 }
+
+// ── Website Builder Hooks — P8.8.6 ───────────────────────────────────────────
+
+import { websiteBuilderService } from '@/services/website-builder.service'
+import type { HomepageLayout, BranchContentOverrides } from '@/types/website-builder'
+
+export function useHomepageLayout(tenantSlug: string) {
+  return useQuery({
+    queryKey: ['website-builder', tenantSlug, 'layout'],
+    queryFn: () => websiteBuilderService.getLayout(tenantSlug),
+    enabled: Boolean(tenantSlug),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useSaveLayout(tenantSlug: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (layout: HomepageLayout) => websiteBuilderService.saveLayout(tenantSlug, layout),
+    onSuccess: (saved) => {
+      qc.setQueryData(['website-builder', tenantSlug, 'layout'], saved)
+    },
+  })
+}
+
+export function usePublishLayout(tenantSlug: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (layout: HomepageLayout) => websiteBuilderService.publishLayout(tenantSlug, layout),
+    onSuccess: (published) => {
+      qc.setQueryData(['website-builder', tenantSlug, 'layout'], published)
+      void qc.invalidateQueries({ queryKey: ['tenant', tenantSlug] })
+    },
+  })
+}
+
+export function useRestoreVersion(tenantSlug: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (versionId: string) => websiteBuilderService.restoreVersion(tenantSlug, versionId),
+    onSuccess: (restored) => {
+      qc.setQueryData(['website-builder', tenantSlug, 'layout'], restored)
+    },
+  })
+}
+
+export function useBranchOverrides(tenantSlug: string, branchSlug: string) {
+  return useQuery({
+    queryKey: ['website-builder', tenantSlug, 'branch-overrides', branchSlug],
+    queryFn: () => websiteBuilderService.getBranchOverrides(tenantSlug, branchSlug),
+    enabled: Boolean(tenantSlug) && Boolean(branchSlug),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useSaveBranchOverrides(tenantSlug: string, branchSlug: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (overrides: BranchContentOverrides) =>
+      websiteBuilderService.saveBranchOverrides(tenantSlug, branchSlug, overrides),
+    onSuccess: (saved) => {
+      qc.setQueryData(['website-builder', tenantSlug, 'branch-overrides', branchSlug], saved)
+    },
+  })
+}
