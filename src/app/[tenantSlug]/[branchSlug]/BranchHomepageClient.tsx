@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn } from '@/utils'
 import { usePublicTenant, usePublicBranch, useCategories, useMenuItems, useActivePromotions } from '@/hooks'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
@@ -499,7 +500,9 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
           </div>
         </div>
       </div>
-      <Footer />
+      {meta
+        ? <TenantFooter tenantName={tenant.name} tenantSlug={tenantSlug} meta={meta} />
+        : <Footer />}
     </>
   )
 }

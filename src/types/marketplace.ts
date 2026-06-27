@@ -68,6 +68,19 @@ export interface MarketplaceMeta {
   website?: string
   /** Gallery image URLs (in addition to coverImage). */
   gallery?: string[]
+  /** Long-form about / story text shown on the public About page. */
+  story?: string
+  /** Amenities the business offers (e.g. "WiFi", "Parking", "Outdoor Seating"). */
+  amenities?: string[]
+  /** Public social media profile URLs. */
+  socialLinks?: {
+    instagram?: string
+    twitter?: string
+    facebook?: string
+    youtube?: string
+  }
+  /** Hero / banner image URL (used on the full-page tenant hero; falls back to coverImage). */
+  heroImage?: string
 }
 
 export const BUSINESS_TYPE_LABELS: Record<string, string> = {

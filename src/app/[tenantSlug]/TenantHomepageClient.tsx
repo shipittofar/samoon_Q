@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn } from '@/utils'
 import { usePublicTenant, useCategories, useMenuItems, useActivePromotions } from '@/hooks'
 import {
@@ -751,7 +752,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
         </div>
       </main>
 
-      <Footer />
+      <TenantFooter tenantName={tenant.name} tenantSlug={tenantSlug} meta={meta} />
     </>
   )
 }

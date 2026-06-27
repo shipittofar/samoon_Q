@@ -2658,3 +2658,124 @@ The following endpoints are called by the frontend but do not yet have confirmed
 ---
 
 *Document generated from actual frontend source code. Do not edit manually — re-derive from `src/services/` and `src/types/` on each major release.*
+
+---
+
+## 30. Marketplace Content API (P8.8.3)
+
+Public-facing business profile content is stored in `Tenant.settings.marketplace` and served through the tenant endpoints below.
+
+### 30.1 Get Marketplace Meta
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/tenants/{slug}/` | GET | Public | ✅ READY (via existing tenant endpoint) |
+
+The `settings.marketplace` object is returned as part of the tenant response. Frontend reads it via `getMarketplaceMeta(tenant.settings)`.
+
+### 30.2 Update Marketplace Meta
+
+| Endpoint | Method | Auth | Status |
+|----------|--------|------|--------|
+| `/tenants/{slug}/settings/` | PATCH | `settings.edit` | ✅ READY (via existing settings PATCH) |
+
+**Request body:**
+```json
+{
+  "marketplace": {
+    "tagline": "string",
+    "description": "string",
+    "story": "string",
+    "cuisines": ["string"],
+    "tags": ["string"],
+    "amenities": ["string"],
+    "priceLevel": 1,
+    "phone": "string",
+    "email": "string",
+    "website": "string",
+    "coverImage": "string",
+    "heroImage": "string",
+    "gallery": ["string"],
+    "socialLinks": {
+      "instagram": "string",
+      "twitter": "string",
+      "facebook": "string",
+      "youtube": "string"
+    }
+  }
+}
+```
+
+All fields are optional. The backend must merge (not replace) the `marketplace` object to avoid overwriting fields not included in the request.
+
+**Permissions:** `settings.edit` — Admin role required.
+
+**Tenant scope:** The `{slug}` must match the authenticated user's tenant. Super-admins may target any slug.
+
+### 30.3 Marketplace Meta Schema
+
+```typescript
+interface MarketplaceMeta {
+  // Core identity
+  tagline?: string
+  description?: string
+  story?: string          // Long-form about / story text
+  cuisines?: string[]
+  tags?: string[]
+  amenities?: string[]    // e.g. "WiFi", "Parking", "Outdoor Seating"
+  priceLevel?: 1 | 2 | 3 | 4
+
+  // Contact
+  phone?: string
+  email?: string
+  website?: string
+  city?: string
+
+  // Media
+  coverImage?: string
+  heroImage?: string      // Falls back to coverImage if absent
+  gallery?: string[]      // Array of image URLs
+
+  // Social
+  socialLinks?: {
+    instagram?: string
+    twitter?: string
+    facebook?: string
+    youtube?: string
+  }
+
+  // Discovery
+  primaryBranchSlug?: string
+  branches?: PublicBranchInfo[]
+  rating?: number
+  reviewCount?: number
+  isOpen?: boolean
+}
+```
+
+### 30.4 Branch Scope
+
+Branch-level overrides are not currently supported at the `marketplace` level. Branch-specific data (hours, address, phone) is stored in `Branch` records and aggregated into `meta.branches[]` by the backend when returning the tenant.
+
+### 30.5 Validation Rules
+
+| Field | Validation |
+|-------|-----------|
+| `priceLevel` | Integer 1–4 |
+| `email` | Valid email format |
+| `website` | Valid URL (http/https) |
+| `coverImage`, `heroImage`, `gallery[]` | Valid URL per entry |
+| `socialLinks.*` | Valid URL per entry |
+| `gallery` | Max 20 entries recommended |
+| `amenities` | Max 20 entries recommended |
+
+### 30.6 Public Endpoints
+
+The following public (unauthenticated) read paths expose marketplace content:
+
+| Path | Data Source |
+|------|------------|
+| `/{tenantSlug}` | `meta.tagline`, `meta.coverImage`, `meta.branches` |
+| `/{tenantSlug}/{branchSlug}` | Branch-scoped, falls back to tenant meta |
+| `/restaurant` | `tenantService.getTenant('savor')` → full meta |
+| `/discover` | Aggregated across tenants — `tagline`, `coverImage`, `cuisines`, `rating` |

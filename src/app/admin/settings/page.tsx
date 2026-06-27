@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, Palette, Clock, Plug, Bell, Shield, Save, CheckCircle, Loader2 } from 'lucide-react'
+import { Settings, Palette, Clock, Plug, Bell, Shield, Save, CheckCircle, Loader2, Globe } from 'lucide-react'
+import { getMarketplaceMeta } from '@/types/marketplace'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -13,13 +14,14 @@ import type { TenantTheme } from '@/types'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
-const TABS = ['general', 'branding', 'hours', 'integrations', 'notifications', 'advanced'] as const
+const TABS = ['general', 'branding', 'hours', 'publicprofile', 'integrations', 'notifications', 'advanced'] as const
 type Tab = (typeof TABS)[number]
 
 const TAB_CONFIG: Record<Tab, { label: string; icon: React.ElementType }> = {
   general:       { label: 'General',        icon: Settings  },
   branding:      { label: 'Branding',       icon: Palette   },
   hours:         { label: 'Business Hours', icon: Clock     },
+  publicprofile: { label: 'Public Profile', icon: Globe     },
   integrations:  { label: 'Integrations',   icon: Plug      },
   notifications: { label: 'Notifications',  icon: Bell      },
   advanced:      { label: 'Advanced',       icon: Shield    },
@@ -327,6 +329,201 @@ function NotificationsTab() {
   )
 }
 
+function PublicProfileTab() {
+  const tenant = useTenantStore((s) => s.tenant)
+  const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
+  const existingMeta = getMarketplaceMeta(tenant?.settings)
+
+  const [tagline, setTagline] = useState(existingMeta?.tagline ?? '')
+  const [description, setDescription] = useState(existingMeta?.description ?? '')
+  const [story, setStory] = useState(existingMeta?.story ?? '')
+  const [cuisines, setCuisines] = useState(existingMeta?.cuisines?.join(', ') ?? '')
+  const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
+  const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
+  const [phone, setPhone] = useState(existingMeta?.phone ?? '')
+  const [email, setEmail] = useState(existingMeta?.email ?? '')
+  const [website, setWebsite] = useState(existingMeta?.website ?? '')
+  const [coverImage, setCoverImage] = useState(existingMeta?.coverImage ?? '')
+  const [gallery, setGallery] = useState(existingMeta?.gallery?.join('\n') ?? '')
+  const [amenities, setAmenities] = useState(existingMeta?.amenities?.join(', ') ?? '')
+  const [instagram, setInstagram] = useState(existingMeta?.socialLinks?.instagram ?? '')
+  const [twitter, setTwitter] = useState(existingMeta?.socialLinks?.twitter ?? '')
+
+  useEffect(() => {
+    const m = getMarketplaceMeta(tenant?.settings)
+    if (m) {
+      setTagline(m.tagline ?? '')
+      setDescription(m.description ?? '')
+      setStory(m.story ?? '')
+      setCuisines(m.cuisines?.join(', ') ?? '')
+      setTags(m.tags?.join(', ') ?? '')
+      setPriceLevel(String(m.priceLevel ?? ''))
+      setPhone(m.phone ?? '')
+      setEmail(m.email ?? '')
+      setWebsite(m.website ?? '')
+      setCoverImage(m.coverImage ?? '')
+      setGallery(m.gallery?.join('\n') ?? '')
+      setAmenities(m.amenities?.join(', ') ?? '')
+      setInstagram(m.socialLinks?.instagram ?? '')
+      setTwitter(m.socialLinks?.twitter ?? '')
+    }
+  }, [tenant?.slug])
+
+  function handleSave() {
+    const toArr = (s: string) => s.split(',').map((v) => v.trim()).filter(Boolean)
+    const toLines = (s: string) => s.split('\n').map((v) => v.trim()).filter(Boolean)
+    save({
+      marketplace: {
+        ...existingMeta,
+        tagline: tagline || undefined,
+        description: description || existingMeta?.description || '',
+        story: story || undefined,
+        cuisines: cuisines ? toArr(cuisines) : (existingMeta?.cuisines ?? []),
+        tags: tags ? toArr(tags) : (existingMeta?.tags ?? []),
+        priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
+        phone: phone || undefined,
+        email: email || undefined,
+        website: website || undefined,
+        coverImage: coverImage || existingMeta?.coverImage || '',
+        gallery: gallery ? toLines(gallery) : existingMeta?.gallery,
+        amenities: amenities ? toArr(amenities) : existingMeta?.amenities,
+        socialLinks: {
+          ...existingMeta?.socialLinks,
+          instagram: instagram || undefined,
+          twitter: twitter || undefined,
+        },
+      },
+    })
+  }
+
+  const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
+  const hintClass = 'text-xs text-gray-400 mt-1'
+
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-gray-500 mb-4">
+        This information is displayed publicly on your business page and discovery cards.
+        Changes take effect immediately after saving.
+      </p>
+
+      <div>
+        <label className={labelClass}>Tagline</label>
+        <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)}
+          placeholder="Your catchy one-liner" className={inputClass} maxLength={120} />
+        <p className={hintClass}>Shown below your business name. Max 120 characters.</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>Short Description</label>
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+          placeholder="Brief pitch shown on discovery cards (max ~200 chars)" rows={3}
+          className={inputClass} maxLength={200} />
+        <p className={hintClass}>Displayed on the marketplace discovery card.</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>About / Story</label>
+        <textarea value={story} onChange={(e) => setStory(e.target.value)}
+          placeholder="Tell your story — history, mission, what makes you special" rows={5}
+          className={inputClass} />
+        <p className={hintClass}>Shown on the public About section of your business page.</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>Cuisines / Specialties</label>
+        <input type="text" value={cuisines} onChange={(e) => setCuisines(e.target.value)}
+          placeholder="Mediterranean, Italian, Coffee" className={inputClass} />
+        <p className={hintClass}>Comma-separated. Used for search and filtering.</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>Discovery Tags</label>
+        <input type="text" value={tags} onChange={(e) => setTags(e.target.value)}
+          placeholder="Date Night, Pet Friendly, Outdoor Seating" className={inputClass} />
+        <p className={hintClass}>Comma-separated tags that help customers find you.</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>Amenities</label>
+        <input type="text" value={amenities} onChange={(e) => setAmenities(e.target.value)}
+          placeholder="WiFi, Parking, Outdoor Seating, Takeaway" className={inputClass} />
+        <p className={hintClass}>Comma-separated amenities shown on your business page.</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>Price Level</label>
+        <select value={priceLevel} onChange={(e) => setPriceLevel(e.target.value)}
+          className={inputClass}>
+          <option value="">— Select —</option>
+          <option value="1">$ — Budget-friendly</option>
+          <option value="2">$$ — Moderate</option>
+          <option value="3">$$$ — Upscale</option>
+          <option value="4">$$$$ — Fine Dining</option>
+        </select>
+      </div>
+
+      <div className="border-t pt-5">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Contact Information</h3>
+        <div className="space-y-4">
+          <div>
+            <label className={labelClass}>Public Phone</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+              placeholder="+1 555-000-0000" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Public Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              placeholder="hello@yourbusiness.com" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Website</label>
+            <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)}
+              placeholder="https://yourbusiness.com" className={inputClass} />
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t pt-5">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Social Media</h3>
+        <div className="space-y-4">
+          <div>
+            <label className={labelClass}>Instagram URL</label>
+            <input type="url" value={instagram} onChange={(e) => setInstagram(e.target.value)}
+              placeholder="https://instagram.com/yourbusiness" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Twitter / X URL</label>
+            <input type="url" value={twitter} onChange={(e) => setTwitter(e.target.value)}
+              placeholder="https://twitter.com/yourbusiness" className={inputClass} />
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t pt-5">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Media</h3>
+        <div className="space-y-4">
+          <div>
+            <label className={labelClass}>Cover Image URL</label>
+            <input type="url" value={coverImage} onChange={(e) => setCoverImage(e.target.value)}
+              placeholder="https://example.com/cover.jpg" className={inputClass} />
+            <p className={hintClass}>Displayed as the hero image on your business card and page. Recommended: 1200×630px.</p>
+          </div>
+          <div>
+            <label className={labelClass}>Gallery Image URLs</label>
+            <textarea value={gallery} onChange={(e) => setGallery(e.target.value)}
+              placeholder={'https://example.com/image1.jpg\nhttps://example.com/image2.jpg'} rows={4}
+              className={inputClass} />
+            <p className={hintClass}>One URL per line. Shown in the gallery section of your business page.</p>
+          </div>
+        </div>
+      </div>
+
+      <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
+    </div>
+  )
+}
+
 function PlaceholderSection({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-2">
@@ -375,6 +572,7 @@ function SettingsContent() {
               {activeTab === 'general'       && <GeneralTab />}
               {activeTab === 'branding'      && <BrandingTab />}
               {activeTab === 'hours'         && <HoursTab />}
+              {activeTab === 'publicprofile' && <PublicProfileTab />}
               {activeTab === 'integrations'  && <PlaceholderSection label="Integrations" />}
               {activeTab === 'notifications' && <NotificationsTab />}
               {activeTab === 'advanced'      && <PlaceholderSection label="Advanced" />}
