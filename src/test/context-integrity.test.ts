@@ -131,3 +131,26 @@ describe('Bug 7 — Public context initialization', () => {
     expect(branch?.city).toBe('Brooklyn')
   })
 })
+
+describe('R-06 — CapabilityGuard loyalty flag consistency (P8.7.7.8)', () => {
+  it('brew-cafe featureFlags includes loyalty.enabled: true so CapabilityGuard passes', async () => {
+    const tenant = await tenantService.getTenant('brew-cafe')
+    const flags = (tenant.settings?.featureFlags ?? {}) as Record<string, boolean>
+    // CapabilityGuard checks CAPABILITY_FLAG_MAP['loyalty'] = 'loyalty.enabled'
+    expect(flags['loyalty.enabled']).toBe(true)
+  })
+
+  it('wheels-and-brews featureFlags does not explicitly disable loyalty.enabled', async () => {
+    const tenant = await tenantService.getTenant('wheels-and-brews')
+    const flags = (tenant.settings?.featureFlags ?? {}) as Record<string, boolean>
+    // mobile_cafe has loyalty in defaultEnabled → Layer 2 sets loyalty.enabled=true
+    // tenant Layer 3 override must not actively disable it
+    expect(flags['loyalty.enabled']).not.toBe(false)
+  })
+
+  it('savor tenant does not explicitly enable loyalty.enabled', async () => {
+    const tenant = await tenantService.getTenant('savor')
+    const flags = (tenant.settings?.featureFlags ?? {}) as Record<string, boolean>
+    expect(flags['loyalty.enabled']).toBeUndefined()
+  })
+})

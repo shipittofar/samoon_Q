@@ -63,7 +63,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     status: 'active',
     createdAt: '2024-02-01T00:00:00.000Z',
     settings: {
-      featureFlags: { 'menu.enabled': true, 'cafe.loyalty.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true },
+      featureFlags: { 'menu.enabled': true, 'loyalty.enabled': true, 'cafe.loyalty.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#6f4e37' },
       marketplace: {
         description: 'Specialty coffee roasters with artisan pastries and a cozy, work-friendly atmosphere.',
