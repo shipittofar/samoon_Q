@@ -94,12 +94,75 @@ export const BUSINESS_TYPE_LABELS: Record<string, string> = {
   other:       'Other',
 }
 
+export const PRICE_LEVEL_LABELS: Record<number, string> = {
+  1: '$ · Budget',
+  2: '$$ · Moderate',
+  3: '$$$ · Upscale',
+  4: '$$$$ · Fine Dining',
+}
+
+// ── Sort & Filter types ───────────────────────────────────────────────────────
+
+export type SortOption =
+  | 'recommended'
+  | 'highest_rated'
+  | 'most_reviewed'
+  | 'newest'
+  | 'alphabetical'
+  | 'price_asc'
+  | 'open_now'
+
+export interface FilterState {
+  cuisines: string[]
+  cities: string[]
+  priceLevels: number[]
+  openNow: boolean
+  /** Feature flag keys: 'reservations.enabled', 'loyalty.enabled' */
+  services: string[]
+  amenities: string[]
+}
+
+export const DEFAULT_FILTERS: FilterState = {
+  cuisines: [],
+  cities: [],
+  priceLevels: [],
+  openNow: false,
+  services: [],
+  amenities: [],
+}
+
+export function countActiveFilters(f: FilterState): number {
+  return (
+    f.cuisines.length +
+    f.cities.length +
+    f.priceLevels.length +
+    (f.openNow ? 1 : 0) +
+    f.services.length +
+    f.amenities.length
+  )
+}
+
+export function hasActiveFilters(f: FilterState): boolean {
+  return countActiveFilters(f) > 0
+}
+
+// ── Core helpers ──────────────────────────────────────────────────────────────
+
 /** Returns the MarketplaceMeta stored in Tenant.settings.marketplace, or undefined. */
 export function getMarketplaceMeta(settings?: Record<string, unknown>): MarketplaceMeta | undefined {
   return settings?.marketplace as MarketplaceMeta | undefined
 }
 
-/** Client-side search: returns true if the tenant matches the query string. */
+/** Accent-strip + lowercase for accent-insensitive matching. */
+function normalize(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
+}
+
+/**
+ * Client-side search: returns true if the tenant matches the query string.
+ * Searches name, city, description, tagline, cuisines, tags, amenities,
+ * business type labels, and branch names (case + accent insensitive).
+ */
 export function matchesSearch(
   tenantName: string,
   meta: MarketplaceMeta,
@@ -107,14 +170,20 @@ export function matchesSearch(
   query: string,
 ): boolean {
   if (!query.trim()) return true
-  const q = query.toLowerCase()
+  const q = normalize(query)
   return (
-    tenantName.toLowerCase().includes(q) ||
-    meta.city.toLowerCase().includes(q) ||
-    meta.description.toLowerCase().includes(q) ||
-    meta.cuisines.some((c) => c.toLowerCase().includes(q)) ||
-    meta.tags.some((t) => t.toLowerCase().includes(q)) ||
-    businessTypes.some((bt) => BUSINESS_TYPE_LABELS[bt]?.toLowerCase().includes(q))
+    normalize(tenantName).includes(q) ||
+    normalize(meta.city).includes(q) ||
+    normalize(meta.description).includes(q) ||
+    (meta.tagline ? normalize(meta.tagline).includes(q) : false) ||
+    meta.cuisines.some((c) => normalize(c).includes(q)) ||
+    meta.tags.some((t) => normalize(t).includes(q)) ||
+    (meta.amenities ?? []).some((a) => normalize(a).includes(q)) ||
+    businessTypes.some((bt) => {
+      const label = BUSINESS_TYPE_LABELS[bt]
+      return label ? normalize(label).includes(q) : false
+    }) ||
+    (meta.branches ?? []).some((b) => normalize(b.name).includes(q))
   )
 }
 
@@ -122,4 +191,62 @@ export function matchesSearch(
 export function matchesCategory(businessTypes: string[], category: string): boolean {
   if (!category) return true
   return businessTypes.includes(category)
+}
+
+/**
+ * Apply advanced filters to a tenant.
+ * featureFlags is Tenant.settings.featureFlags cast to Record<string, boolean>.
+ */
+export function matchesFilters(
+  meta: MarketplaceMeta,
+  featureFlags: Record<string, boolean | undefined>,
+  filters: FilterState,
+): boolean {
+  if (filters.cuisines.length > 0 && !filters.cuisines.some((c) => meta.cuisines.includes(c))) return false
+  if (filters.cities.length > 0 && !filters.cities.includes(meta.city)) return false
+  if (filters.priceLevels.length > 0 && (!meta.priceLevel || !filters.priceLevels.includes(meta.priceLevel))) return false
+  if (filters.openNow && !meta.openNow) return false
+  if (filters.amenities.length > 0 && !filters.amenities.every((a) => (meta.amenities ?? []).includes(a))) return false
+  if (filters.services.length > 0) {
+    const hasAll = filters.services.every((svc) => {
+      if (svc === 'loyalty.enabled') {
+        return Object.entries(featureFlags).some(([k, v]) => k.includes('loyalty') && v === true)
+      }
+      return featureFlags[svc] === true
+    })
+    if (!hasAll) return false
+  }
+  return true
+}
+
+/**
+ * Sort a TenantWithMeta array by the given SortOption.
+ * Uses duck typing to avoid importing the Tenant type (circular-dep safe).
+ */
+export function sortItems<T extends { tenant: { name: string; createdAt: string }; meta: MarketplaceMeta }>(
+  items: T[],
+  sortBy: SortOption,
+): T[] {
+  const copy = [...items]
+  switch (sortBy) {
+    case 'highest_rated':
+      return copy.sort((a, b) => b.meta.rating - a.meta.rating)
+    case 'most_reviewed':
+      return copy.sort((a, b) => b.meta.reviewCount - a.meta.reviewCount)
+    case 'newest':
+      return copy.sort((a, b) => new Date(b.tenant.createdAt).getTime() - new Date(a.tenant.createdAt).getTime())
+    case 'alphabetical':
+      return copy.sort((a, b) => a.tenant.name.localeCompare(b.tenant.name))
+    case 'price_asc':
+      return copy.sort((a, b) => (a.meta.priceLevel ?? 0) - (b.meta.priceLevel ?? 0))
+    case 'open_now':
+      return copy.sort((a, b) => (b.meta.openNow ? 1 : 0) - (a.meta.openNow ? 1 : 0))
+    default:
+      // recommended: featured first, then popular, then rest
+      return copy.sort((a, b) => {
+        const aScore = (a.meta.featured ? 2 : 0) + (a.meta.popular ? 1 : 0)
+        const bScore = (b.meta.featured ? 2 : 0) + (b.meta.popular ? 1 : 0)
+        return bScore - aScore
+      })
+  }
 }

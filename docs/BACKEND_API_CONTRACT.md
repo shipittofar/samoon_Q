@@ -2779,3 +2779,115 @@ The following public (unauthenticated) read paths expose marketplace content:
 | `/{tenantSlug}/{branchSlug}` | Branch-scoped, falls back to tenant meta |
 | `/restaurant` | `tenantService.getTenant('savor')` → full meta |
 | `/discover` | Aggregated across tenants — `tagline`, `coverImage`, `cuisines`, `rating` |
+
+---
+
+## 31. Discovery & Search API (P8.8.4)
+
+The current implementation performs all search, filtering, and sorting client-side. This section specifies the backend endpoints required when the tenant count grows beyond client-side scale (~100+) or when search analytics are needed.
+
+### 31.1 Public Tenant List
+
+Already covered by existing endpoints (section 30). The key query:
+
+```
+GET /tenants/?public=true&status=active,trial
+```
+
+Returns tenants with full `settings.marketplace` embedded. Used by `usePublicTenants()`.
+
+### 31.2 Server-Side Search (Future)
+
+When client-side filtering is no longer sufficient:
+
+```
+GET /tenants/search
+```
+
+**Query parameters:**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `q` | string | Full-text search (name, tagline, description, cuisines, tags, amenities, branch names) |
+| `category` | string | Business type key (e.g. `restaurant`, `cafe`) |
+| `city` | string | Exact city match |
+| `cuisine` | string | Cuisine type match |
+| `priceLevel` | `1\|2\|3\|4` | Exact price level |
+| `openNow` | boolean | Filter to currently open businesses |
+| `amenities` | string (comma-sep) | Must include ALL listed amenities |
+| `services` | string (comma-sep) | Feature flag keys, e.g. `reservations.enabled,loyalty.enabled` |
+| `sort` | string | One of: `recommended`, `highest_rated`, `most_reviewed`, `newest`, `alphabetical`, `price_asc`, `open_now` |
+| `page` | integer | 1-based page number (default: 1) |
+| `limit` | integer | Results per page (default: 20, max: 100) |
+
+**Response:**
+```json
+{
+  "data": [Tenant],
+  "meta": {
+    "total": 142,
+    "page": 1,
+    "limit": 20,
+    "hasNext": true
+  }
+}
+```
+
+**Permissions:** Public (no auth required). Only returns `active` and `trial` tenants.
+
+### 31.3 Collections API (Future)
+
+```
+GET /discover/collections
+```
+
+Returns curated collection definitions. Each collection has a filter spec and a display label. The frontend derives items by applying the filter to the tenant list client-side, or the backend may pre-compute them.
+
+**Response:**
+```json
+{
+  "collections": [
+    { "id": "featured", "label": "Featured", "filter": { "featured": true } },
+    { "id": "top_rated", "label": "Top Rated", "filter": { "minRating": 4.5, "sort": "highest_rated" } },
+    { "id": "family_friendly", "label": "Family Friendly", "filter": { "tags": ["Family Friendly"] } }
+  ]
+}
+```
+
+**Permissions:** Public.
+
+### 31.4 Search Analytics (Future)
+
+```
+POST /analytics/search
+```
+
+**Body:**
+```json
+{
+  "query": "sushi",
+  "filters": { "category": "restaurant", "city": "New York" },
+  "resultCount": 3,
+  "tenantSlug": null
+}
+```
+
+Used to track search terms, zero-result queries, and filter usage. Not yet implemented client-side.
+
+### 31.5 Pagination Contract
+
+When pagination is implemented, the frontend will use cursor-based pagination:
+
+```
+GET /tenants/search?cursor=<opaque_cursor>&limit=20
+```
+
+The `cursor` is returned in the response `meta.nextCursor` field. Offset-based pagination (`page=N`) is acceptable for the initial implementation but not recommended at scale.
+
+### 31.6 Geo / Nearest Sort (Future)
+
+```
+GET /tenants/search?lat=40.7128&lng=-74.0060&sort=nearest
+```
+
+Requires branch-level coordinates stored in `Branch.location`. Deferred until maps integration is complete.

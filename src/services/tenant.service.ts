@@ -37,6 +37,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         popular: true,
         tagline: 'Where every dish tells a story.',
         priceLevel: 3,
+        amenities: ['WiFi', 'Parking', 'Outdoor Seating', 'Accessible'],
         phone: '+1 (212) 555-0100',
         email: 'hello@savor.com',
         website: 'https://www.savor.com',
@@ -79,6 +80,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         popular: true,
         tagline: 'Your daily ritual, elevated.',
         priceLevel: 2,
+        amenities: ['WiFi', 'Outdoor Seating'],
         phone: '+1 (212) 555-0400',
         email: 'hello@brewcafe.com',
         gallery: [
@@ -117,6 +119,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         featured: true,
         tagline: 'Craft cocktails. Live music. Good company.',
         priceLevel: 2,
+        amenities: ['Parking', 'Pet Friendly'],
         phone: '+1 (212) 555-0600',
         email: 'hello@theoakbar.com',
         gallery: [
@@ -154,6 +157,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         isNew: true,
         tagline: 'Every cuisine under one roof.',
         priceLevel: 1,
+        amenities: ['Parking', 'Accessible', 'Family Area'],
         phone: '+1 (212) 555-0700',
         email: 'hello@centralfoodcourt.com',
         gallery: [
@@ -215,6 +219,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         isNew: true,
         tagline: 'Good coffee wherever life takes you.',
         priceLevel: 1,
+        amenities: ['Outdoor Seating', 'Pet Friendly'],
         phone: '+1 (212) 555-1000',
         email: 'hello@wheelsandbrews.com',
         gallery: [

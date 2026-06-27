@@ -1,10 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { Star, MapPin, GitBranch, ExternalLink } from 'lucide-react'
+import { Star, MapPin, GitBranch, Calendar, Award, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/utils'
 import type { Tenant } from '@/types'
 import { type MarketplaceMeta, BUSINESS_TYPE_LABELS } from '@/types/marketplace'
+import { BranchPreview } from './BranchPreview'
 
 interface BusinessCardProps {
   tenant: Tenant
@@ -12,18 +14,38 @@ interface BusinessCardProps {
   className?: string
 }
 
-function Badge({ meta }: { meta: MarketplaceMeta }) {
+function StatusBadge({ meta }: { meta: MarketplaceMeta }) {
   if (meta.featured) return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500 text-white">Featured</span>
   if (meta.isNew)    return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500 text-white">New</span>
   if (meta.popular)  return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500 text-white">Popular</span>
   return null
 }
 
+function PriceDots({ level }: { level?: number }) {
+  if (!level) return null
+  const symbol = '$'.repeat(level)
+  return (
+    <span
+      className="text-xs font-medium text-[var(--fg-subtle)]"
+      aria-label={['', 'Budget', 'Moderate', 'Upscale', 'Fine Dining'][level]}
+    >
+      {symbol}
+    </span>
+  )
+}
+
 export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
+  const [branchesOpen, setBranchesOpen] = useState(false)
+
   const label = tenant.businessTypes.map((t) => BUSINESS_TYPE_LABELS[t] ?? t).join(' · ')
   const accentColor = (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor
-  const viewHref  = `/${tenant.slug}/${meta.primaryBranchSlug}/menu`
-  const branchHref = `/${tenant.slug}`
+  const featureFlags = (tenant.settings?.featureFlags as Record<string, boolean | undefined>) ?? {}
+  const hasReservations = featureFlags['reservations.enabled'] === true
+  const hasLoyalty = Object.entries(featureFlags).some(([k, v]) => k.includes('loyalty') && v === true)
+
+  const viewHref   = `/${tenant.slug}/${meta.primaryBranchSlug}/menu`
+  const tenantHref = `/${tenant.slug}`
+  const hasBranches = (meta.branches?.length ?? 0) > 0
 
   return (
     <article
@@ -33,7 +55,7 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
         'transition-all duration-200',
         className,
       )}
-      aria-label={tenant.name}
+      aria-label={`${tenant.name} — ${label}`}
     >
       {/* Cover image */}
       <div className="relative h-44 overflow-hidden bg-[var(--bg-secondary)] shrink-0">
@@ -52,12 +74,12 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
         >
           {meta.openNow ? 'Open now' : 'Closed'}
         </span>
-        <Badge meta={meta} />
+        <StatusBadge meta={meta} />
       </div>
 
       {/* Card body */}
       <div className="flex flex-col flex-1 p-4">
-        {/* Logo + name */}
+        {/* Logo + name + price */}
         <div className="flex items-start gap-3 mb-2">
           <div
             className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-sm"
@@ -66,8 +88,11 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
           >
             {tenant.name[0]}
           </div>
-          <div className="min-w-0">
-            <h3 className="font-semibold text-[var(--fg)] leading-tight truncate">{tenant.name}</h3>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline justify-between gap-1">
+              <h3 className="font-semibold text-[var(--fg)] leading-tight truncate">{tenant.name}</h3>
+              <PriceDots level={meta.priceLevel} />
+            </div>
             <p className="text-xs text-[var(--fg-muted)] mt-0.5">{label}</p>
           </div>
         </div>
@@ -76,7 +101,7 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
         <p className="text-sm text-[var(--fg-muted)] line-clamp-2 mb-3">{meta.description}</p>
 
         {/* Stats row */}
-        <div className="flex items-center gap-3 text-xs text-[var(--fg-subtle)] mb-3">
+        <div className="flex items-center gap-3 text-xs text-[var(--fg-subtle)] mb-3 flex-wrap">
           <span className="flex items-center gap-1" aria-label={`Rating: ${meta.rating} out of 5`}>
             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" aria-hidden="true" />
             <span className="font-medium text-[var(--fg-muted)]">{meta.rating.toFixed(1)}</span>
@@ -94,13 +119,47 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
 
         {/* Cuisine tags */}
         {meta.cuisines.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
+          <div className="flex flex-wrap gap-1 mb-2" role="list" aria-label="Cuisines">
             {meta.cuisines.slice(0, 3).map((c) => (
               <span
                 key={c}
+                role="listitem"
                 className="text-xs px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] border border-[var(--border)]"
               >
                 {c}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Service & amenity badges */}
+        {(hasReservations || hasLoyalty || (meta.amenities ?? []).length > 0) && (
+          <div className="flex flex-wrap gap-1 mb-3" role="list" aria-label="Features and amenities">
+            {hasReservations && (
+              <span
+                role="listitem"
+                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
+              >
+                <Calendar className="w-2.5 h-2.5" aria-hidden="true" />
+                Reservations
+              </span>
+            )}
+            {hasLoyalty && (
+              <span
+                role="listitem"
+                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800"
+              >
+                <Award className="w-2.5 h-2.5" aria-hidden="true" />
+                Loyalty
+              </span>
+            )}
+            {(meta.amenities ?? []).slice(0, 2).map((a) => (
+              <span
+                key={a}
+                role="listitem"
+                className="text-xs px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-subtle)] border border-[var(--border)]"
+              >
+                {a}
               </span>
             ))}
           </div>
@@ -115,15 +174,34 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
           >
             View Menu
           </Link>
-          <Link
-            href={branchHref}
-            className="text-sm font-medium px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors flex items-center gap-1.5"
-            aria-label={`View ${tenant.name} branches`}
-          >
-            <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-            Branches
-          </Link>
+          {hasBranches ? (
+            <button
+              type="button"
+              onClick={() => setBranchesOpen((o) => !o)}
+              aria-expanded={branchesOpen}
+              aria-label={branchesOpen ? `Hide branches for ${tenant.name}` : `Show branches for ${tenant.name}`}
+              className="text-sm font-medium px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors flex items-center gap-1.5"
+            >
+              {branchesOpen
+                ? <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
+                : <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />}
+              Branches
+            </button>
+          ) : (
+            <Link
+              href={tenantHref}
+              className="text-sm font-medium px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
+              aria-label={`View ${tenant.name} homepage`}
+            >
+              Visit
+            </Link>
+          )}
         </div>
+
+        {/* Branch preview */}
+        {branchesOpen && meta.branches && meta.branches.length > 0 && (
+          <BranchPreview branches={meta.branches} tenantSlug={tenant.slug} />
+        )}
       </div>
     </article>
   )
