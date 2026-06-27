@@ -345,7 +345,8 @@ describe('P4.4.6 — JSON-LD generation', () => {
   it('homepage includes JSON-LD script tag', () => {
     const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
     expect(src).toContain('application/ld+json')
-    expect(src).toContain('DEFAULT_RESTAURANT_JSON_LD')
+    // P8.8.1 — homepage uses platform WebSite schema, not restaurant schema
+    expect(src).toContain('DEFAULT_PLATFORM_JSON_LD')
   })
 
   it('menu page includes JSON-LD script tag', () => {

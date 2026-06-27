@@ -33,7 +33,7 @@ export async function generateMetadata({
       title,
       description,
       url,
-      siteName: 'Savor',
+      siteName: 'Savor Platform',
       type: 'website',
       images: [{ url: image, width: 1200, height: 630, alt: tenant.name }],
     },

@@ -1,63 +1,23 @@
 import type { MenuItem } from '@/types'
 
-// ── Restaurant Schema ─────────────────────────────────────────────────────────
-export function RestaurantSchema() {
+// ── Platform WebSite Schema ───────────────────────────────────────────────────
+// P8.8.1 — replaced single-restaurant RestaurantSchema with a platform-level
+// WebSite schema. The platform is a multi-tenant hospitality marketplace, not
+// a restaurant. Tenant/branch pages emit their own restaurant-typed schemas.
+export function PlatformSchema() {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
   const schema = {
     '@context': 'https://schema.org',
-    '@type': 'Restaurant',
-    name: 'Savor Restaurant',
-    description: 'Experience extraordinary cuisine crafted with passion.',
-    url: process.env.NEXT_PUBLIC_APP_URL,
-    telephone: '+12125550100',
-    email: 'hello@savor.com',
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: '123 Culinary Avenue',
-      addressLocality: 'New York',
-      addressRegion: 'NY',
-      postalCode: '10001',
-      addressCountry: 'US',
+    '@type': 'WebSite',
+    name: 'Savor',
+    description: 'Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses.',
+    url: baseUrl,
+    image: `${baseUrl}/og-image.jpg`,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: `${baseUrl}/discover?q={search_term_string}` },
+      'query-input': 'required name=search_term_string',
     },
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: 40.7128,
-      longitude: -74.006,
-    },
-    openingHoursSpecification: [
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday'],
-        opens: '10:00',
-        closes: '23:00',
-      },
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Friday', 'Saturday'],
-        opens: '10:00',
-        closes: '00:00',
-      },
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: 'Sunday',
-        opens: '11:00',
-        closes: '22:00',
-      },
-    ],
-    servesCuisine: ['Italian', 'American', 'Mediterranean'],
-    priceRange: '$$',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.8',
-      reviewCount: '2847',
-    },
-    image: `${process.env.NEXT_PUBLIC_APP_URL}/og-image.jpg`,
-    hasMenu: `${process.env.NEXT_PUBLIC_APP_URL}/menu`,
-    acceptsReservations: true,
-    sameAs: [
-      'https://instagram.com/savorrestaurant',
-      'https://twitter.com/savornyc',
-      'https://facebook.com/savorrestaurant',
-    ],
   }
 
   return (
@@ -67,6 +27,9 @@ export function RestaurantSchema() {
     />
   )
 }
+
+/** @deprecated Use PlatformSchema instead. Kept for any tenant pages that imported it directly. */
+export const RestaurantSchema = PlatformSchema
 
 // ── Menu Product Schema ────────────────────────────────────────────────────────
 export function MenuItemSchema({ item }: { item: MenuItem }) {

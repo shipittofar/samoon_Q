@@ -51,7 +51,7 @@ function ReservationConfirmContent() {
     time,
     durationMinutes: 120,
     description: `Confirmation code: ${code} · Guests: ${guests} · Name: ${name}`,
-    location: branch || 'Savor Restaurant',
+    location: branch || 'Savor Platform',
     uid: id ? `${id}@savor` : undefined,
   }
 

@@ -1,22 +1,25 @@
 import Link from 'next/link'
-import { Instagram, Twitter, Facebook, Youtube, MapPin, Phone, Mail, Clock } from 'lucide-react'
+import { Instagram, Twitter, Facebook, Youtube, Mail } from 'lucide-react'
+
+// P8.8.1 — Footer rewritten to represent the Savor hospitality platform
+// rather than a single restaurant. Routing structure is unchanged; only
+// labels, sections, and brand copy were updated.
 
 const LINKS = {
-  Menu: [
-    { label: 'Full Menu', href: '/menu' },
-    { label: 'Pizza', href: '/menu?category=pizza' },
-    { label: 'Burgers', href: '/menu?category=burger' },
-    { label: 'Desserts', href: '/menu?category=desserts' },
+  Explore: [
+    { label: 'Discover Businesses', href: '/discover' },
+    { label: 'Restaurants', href: '/discover?category=restaurant' },
+    { label: 'Cafés', href: '/discover?category=cafe' },
+    { label: 'Bars & Venues', href: '/discover?category=bar' },
   ],
-  Services: [
-    { label: 'Table Reservation', href: '/reservation' },
+  Platform: [
     { label: 'Order Online', href: '/menu' },
+    { label: 'Book a Table', href: '/reservation' },
     { label: 'Track Order', href: '/dashboard/orders' },
-    { label: 'Catering', href: '/restaurant' },
+    { label: 'For Business Owners', href: '/restaurant' },
   ],
   Company: [
-    { label: 'About Us', href: '/restaurant' },
-    { label: 'Our Branches', href: '/restaurant#branches' },
+    { label: 'About Savor', href: '/restaurant' },
     { label: 'Careers', href: '/careers' },
     { label: 'Privacy Policy', href: '/privacy' },
   ],
@@ -44,24 +47,12 @@ export function Footer() {
               <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
             </Link>
             <p className="text-sm text-[var(--fg-muted)] leading-relaxed mb-6 max-w-xs">
-              Experience extraordinary cuisine crafted with passion. From farm-fresh ingredients to unforgettable flavors.
+              Connecting customers with great local restaurants, cafés, bars, and more. Discover, order, and book — all in one place.
             </p>
             <div className="space-y-3 text-sm text-[var(--fg-muted)]">
-              <div className="flex items-start gap-2.5">
-                <MapPin className="h-4 w-4 shrink-0 text-orange-500 mt-0.5" />
-                <span>123 Culinary Avenue, New York, NY 10001</span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Phone className="h-4 w-4 text-orange-500" />
-                <a href="tel:+12125550100" className="hover:text-orange-500 transition-colors">+1 (212) 555-0100</a>
-              </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-orange-500" />
                 <a href="mailto:hello@savor.com" className="hover:text-orange-500 transition-colors">hello@savor.com</a>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Clock className="h-4 w-4 text-orange-500" />
-                <span>Mon–Fri 10am–11pm · Sat–Sun 9am–midnight</span>
               </div>
             </div>
           </div>
@@ -89,7 +80,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="py-6 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[var(--fg-subtle)]">
-            © {new Date().getFullYear()} Savor Restaurant. All rights reserved.
+            © {new Date().getFullYear()} Savor Platform. All rights reserved.
           </p>
           <div className="flex items-center gap-1">
             {SOCIALS.map((social) => (

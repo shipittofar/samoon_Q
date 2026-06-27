@@ -8,8 +8,8 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Badge } from '@/components/ui'
 
 export const metadata: Metadata = {
-  title: 'About Us',
-  description: 'Learn about Savor restaurant — our story, team, and locations.',
+  title: 'About — Savor Platform',
+  description: 'Learn about the Savor hospitality platform — connecting customers with great local businesses.',
 }
 
 const BRANCHES = [

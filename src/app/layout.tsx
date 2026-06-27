@@ -11,11 +11,11 @@ const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-body', display: '
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: { default: 'Savor — Fine Dining & Delivery', template: '%s | Savor' },
-  description: 'Experience extraordinary cuisine crafted with passion. Order online, reserve a table, or dine in.',
-  keywords: ['restaurant', 'food delivery', 'online ordering', 'reservation', 'fine dining'],
-  openGraph: { type: 'website', siteName: 'Savor', title: 'Savor — Fine Dining & Delivery', description: 'Experience extraordinary cuisine crafted with passion.', images: [{ url: '/og-image.jpg', width: 1200, height: 630 }] },
-  twitter: { card: 'summary_large_image', title: 'Savor — Fine Dining & Delivery', images: ['/og-image.jpg'] },
+  title: { default: 'Savor — Hospitality Platform', template: '%s | Savor' },
+  description: 'Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses on Savor.',
+  keywords: ['restaurant discovery', 'hospitality platform', 'food ordering', 'table booking', 'cafe', 'bar', 'food truck', 'local dining', 'marketplace', 'restaurant marketplace'],
+  openGraph: { type: 'website', siteName: 'Savor Platform', title: 'Savor — Hospitality Platform', description: 'Discover restaurants, cafés, and bars near you.', images: [{ url: '/og-image.jpg', width: 1200, height: 630 }] },
+  twitter: { card: 'summary_large_image', title: 'Savor — Hospitality Platform', images: ['/og-image.jpg'] },
   robots: { index: true, follow: true },
   manifest: '/manifest.json',
   icons: {

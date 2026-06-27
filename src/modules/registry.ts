@@ -224,7 +224,7 @@ export const RESTAURANT_MODULE: Module = {
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
-    { href: '/restaurant', label: 'Restaurant' },
+    { href: '/restaurant', label: 'About' },
   ],
   defaultFeatureFlags: {
     'menu.enabled': true,

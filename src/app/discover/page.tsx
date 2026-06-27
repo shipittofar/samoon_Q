@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: 'Discover Businesses — Savor Platform',
     description: 'Browse all businesses registered on the Savor platform.',
     url: `${BASE_URL}/discover`,
-    siteName: 'Savor',
+    siteName: 'Savor Platform',
     type: 'website',
   },
 }

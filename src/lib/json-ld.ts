@@ -122,7 +122,50 @@ export function serializeJsonLd(ld: Record<string, unknown>): string {
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
-/** Default Restaurant JSON-LD using platform-level brand data. */
+export interface JsonLdWebSiteOptions {
+  name: string
+  description?: string
+  url: string
+  image?: string
+  searchUrl?: string
+}
+
+/** Builds a WebSite JSON-LD object suitable for the platform homepage. */
+export function buildWebSiteJsonLd(options: JsonLdWebSiteOptions): Record<string, unknown> {
+  const ld: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: options.name,
+    url: options.url,
+  }
+  if (options.description) ld.description = options.description
+  if (options.image) ld.image = options.image
+  if (options.searchUrl) {
+    ld.potentialAction = {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: options.searchUrl },
+      'query-input': 'required name=search_term_string',
+    }
+  }
+  return ld
+}
+
+/**
+ * Platform-level JSON-LD for the root homepage.
+ * Uses WebSite schema — the platform is a marketplace, not a restaurant.
+ */
+export const DEFAULT_PLATFORM_JSON_LD = buildWebSiteJsonLd({
+  name: 'Savor',
+  description: 'Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses.',
+  url: BASE_URL,
+  image: `${BASE_URL}/og-image.jpg`,
+  searchUrl: `${BASE_URL}/discover?q={search_term_string}`,
+})
+
+/**
+ * Legacy Restaurant JSON-LD retained for tenant-level pages that reference it.
+ * Do NOT use on platform-level pages — use DEFAULT_PLATFORM_JSON_LD instead.
+ */
 export const DEFAULT_RESTAURANT_JSON_LD = buildRestaurantJsonLd({
   name: 'Savor',
   description: 'Fine dining and delivery. Handcrafted dishes made with the finest ingredients.',
@@ -134,8 +177,8 @@ export const DEFAULT_RESTAURANT_JSON_LD = buildRestaurantJsonLd({
 
 /** Default Menu JSON-LD for the /menu route. */
 export const DEFAULT_MENU_JSON_LD = buildMenuJsonLd({
-  name: 'Savor Full Menu',
-  description: 'Explore our complete selection of handcrafted dishes.',
+  name: 'Menu — Savor',
+  description: 'Explore menus from restaurants, cafés, and bars on Savor.',
   url: `${BASE_URL}/menu`,
   restaurantName: 'Savor',
 })

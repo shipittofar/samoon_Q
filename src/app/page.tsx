@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { DEFAULT_RESTAURANT_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
+import { DEFAULT_PLATFORM_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
 import Image from 'next/image'
 import { ArrowRight, MapPin, ChevronRight, Flame } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
@@ -12,21 +12,21 @@ import { FeaturedSection } from '@/components/home/FeaturedSection'
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
 export const metadata: Metadata = {
-  title: 'Savor — Fine Dining & Delivery',
+  title: 'Savor — Discover Local Businesses',
   description:
-    'Experience extraordinary cuisine crafted with passion. Order online, reserve a table, or track your delivery in real time.',
+    'Browse restaurants, cafés, bars, food trucks, and more. Discover local businesses, explore menus, and book tables on Savor.',
   openGraph: {
-    title: 'Savor — Fine Dining & Delivery',
-    description: 'Experience extraordinary cuisine crafted with passion.',
+    title: 'Savor — Discover Local Businesses',
+    description: 'Discover local restaurants, cafés, and bars near you.',
     url: BASE_URL,
-    siteName: 'Savor',
+    siteName: 'Savor Platform',
     type: 'website',
-    images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor Restaurant' }],
+    images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor Platform' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Savor — Fine Dining & Delivery',
-    description: 'Experience extraordinary cuisine crafted with passion.',
+    title: 'Savor — Discover Local Businesses',
+    description: 'Discover local restaurants, cafés, and bars near you.',
     images: [`${BASE_URL}/og-image.jpg`],
   },
   alternates: { canonical: BASE_URL },
@@ -52,7 +52,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-[var(--bg)]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeJsonLd(DEFAULT_RESTAURANT_JSON_LD) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(DEFAULT_PLATFORM_JSON_LD) }}
       />
       <Header />
       <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>

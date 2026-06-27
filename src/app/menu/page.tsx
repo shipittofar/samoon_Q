@@ -23,21 +23,21 @@ import MenuLoading from './loading'
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
 export const metadata: Metadata = {
-  title: 'Full Menu — Savor Fine Dining & Delivery',
+  title: 'Menu — Savor',
   description:
-    'Explore our handcrafted menu of pizzas, burgers, pasta, desserts and more. Fresh ingredients, bold flavours, delivered to your door.',
+    'Browse menus from restaurants, cafés, bars, and more on Savor. Find dishes, explore categories, and order online.',
   openGraph: {
-    title: 'Full Menu — Savor',
-    description: 'Discover hundreds of handcrafted dishes made with the finest ingredients.',
+    title: 'Menu — Savor',
+    description: 'Browse menus from local businesses on Savor.',
     url: `${BASE_URL}/menu`,
-    siteName: 'Savor',
+    siteName: 'Savor Platform',
     type: 'website',
-    images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor Menu' }],
+    images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Full Menu — Savor',
-    description: 'Discover hundreds of handcrafted dishes made with the finest ingredients.',
+    title: 'Menu — Savor',
+    description: 'Browse menus from local businesses on Savor.',
     images: [`${BASE_URL}/og-image.jpg`],
   },
   alternates: { canonical: `${BASE_URL}/menu` },
