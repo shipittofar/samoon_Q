@@ -12,6 +12,7 @@ import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn } from '@/utils'
 import { usePublicTenant, usePublicBranch, useCategories, useMenuItems, useActivePromotions } from '@/hooks'
+import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
 
@@ -329,52 +330,7 @@ function PromotionsSection({ promotions, tenantSlug, branchSlug }: { promotions:
   )
 }
 
-// ── Mock Reviews ──────────────────────────────────────────────────────────────
-
-const MOCK_REVIEWS = [
-  { id: '1', author: 'Alex M.', rating: 5, text: 'Exceptional experience — every detail was perfect. Will definitely be back!', date: '2 days ago' },
-  { id: '2', author: 'Sarah K.', rating: 4, text: 'Great atmosphere and friendly staff. Food was delicious and arrived quickly.', date: '1 week ago' },
-  { id: '3', author: 'James P.', rating: 5, text: 'One of the best spots in the city. Highly recommend the specials.', date: '2 weeks ago' },
-]
-
-function ReviewsSection({ rating, reviewCount }: { rating?: number; reviewCount?: number }) {
-  return (
-    <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-[var(--fg)]">Reviews</h2>
-        {rating != null && (
-          <div className="flex items-center gap-1.5">
-            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-            <span className="font-semibold text-[var(--fg)]">{rating.toFixed(1)}</span>
-            {reviewCount != null && (
-              <span className="text-sm text-[var(--fg-muted)]">({reviewCount.toLocaleString()})</span>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="space-y-3">
-        {MOCK_REVIEWS.map((r) => (
-          <div key={r.id} className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-sm text-[var(--fg)]">{r.author}</span>
-              <span className="text-xs text-[var(--fg-muted)]">{r.date}</span>
-            </div>
-            <div className="flex gap-0.5 mb-2" aria-label={`Rating: ${r.rating} out of 5`}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  className={cn('w-3.5 h-3.5', i < r.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200')}
-                  aria-hidden="true"
-                />
-              ))}
-            </div>
-            <p className="text-sm text-[var(--fg-muted)]">{r.text}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
+// ReviewsSection is imported from @/components/reviews/ReviewsSection
 
 // ── Gallery ───────────────────────────────────────────────────────────────────
 
@@ -489,7 +445,13 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
             <FeaturedMenuSection items={menuItems} tenantSlug={tenantSlug} branchSlug={branchSlug} />
             <CategoriesSection categories={categories} tenantSlug={tenantSlug} branchSlug={branchSlug} />
             <PromotionsSection promotions={promotions as PromotionRule[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />
-            <ReviewsSection rating={rating} reviewCount={reviewCount} />
+            <ReviewsSection
+              tenantId={tenant.id}
+              tenantSlug={tenantSlug}
+              branchId={branchSlug}
+              initialRating={rating}
+              initialReviewCount={reviewCount}
+            />
             {gallery.length > 0 && <GallerySection images={gallery} />}
           </div>
 

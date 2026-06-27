@@ -103,11 +103,24 @@ export const ENDPOINTS = {
     SETTINGS: (slug: string) => `/tenants/${slug}/settings/`,
   },
 
-  // Reviews
+  // Reviews (menu-item level)
   REVIEWS: {
     CREATE: '/reviews/',
     LIST: '/reviews/',
     ITEM_REVIEWS: (itemId: string) => `/menu/items/${itemId}/reviews/`,
+  },
+
+  // Business Reviews (tenant/branch level — P8.8.5)
+  BUSINESS_REVIEWS: {
+    LIST: (tenantId: string) => `/tenants/${tenantId}/reviews/`,
+    RATING: (tenantId: string) => `/tenants/${tenantId}/reviews/rating/`,
+    BRANCH_RATING: (tenantId: string, branchId: string) => `/tenants/${tenantId}/branches/${branchId}/reviews/rating/`,
+    CREATE: (tenantId: string) => `/tenants/${tenantId}/reviews/`,
+    DETAIL: (tenantId: string, reviewId: string) => `/tenants/${tenantId}/reviews/${reviewId}/`,
+    REPLY: (tenantId: string, reviewId: string) => `/tenants/${tenantId}/reviews/${reviewId}/reply/`,
+    HELPFUL: (tenantId: string, reviewId: string) => `/tenants/${tenantId}/reviews/${reviewId}/helpful/`,
+    MODERATE: (tenantId: string, reviewId: string) => `/tenants/${tenantId}/reviews/${reviewId}/moderate/`,
+    ANALYTICS: (tenantId: string) => `/tenants/${tenantId}/reviews/analytics/`,
   },
 
   // Table

@@ -2400,3 +2400,87 @@ interface AnalyticsSummaryPair {
   _period: 'current' | 'previous'
   [key: string]: unknown
 }
+
+// ── Business Reviews Hooks — P8.8.5 ──────────────────────────────────────────
+
+import { businessReviewService } from '@/services/business-review.service'
+import type {
+  BusinessReviewFilters,
+  CreateBusinessReviewPayload,
+  ReviewStatus,
+} from '@/types/business-review'
+
+export function useBusinessReviews(
+  tenantId: string,
+  filters: Partial<BusinessReviewFilters> = {},
+) {
+  return useQuery({
+    queryKey: ['business-reviews', tenantId, filters],
+    queryFn: () => businessReviewService.getBusinessReviews(tenantId, filters),
+    enabled: Boolean(tenantId),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useRatingBreakdown(tenantId: string, branchId?: string) {
+  return useQuery({
+    queryKey: ['business-reviews', tenantId, 'rating', branchId ?? null],
+    queryFn: () => businessReviewService.getRatingBreakdown(tenantId, branchId),
+    enabled: Boolean(tenantId),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useCreateBusinessReview(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateBusinessReviewPayload) => businessReviewService.createReview(payload),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['business-reviews', tenantId] })
+    },
+  })
+}
+
+export function useReplyToReview(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ reviewId, text }: { reviewId: string; text: string }) =>
+      businessReviewService.replyToReview(reviewId, tenantId, text),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['business-reviews', tenantId] })
+    },
+  })
+}
+
+export function useMarkHelpful(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (reviewId: string) => businessReviewService.markHelpful(reviewId, tenantId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['business-reviews', tenantId] })
+    },
+  })
+}
+
+export function useModerateReview(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ reviewId, status }: { reviewId: string; status: ReviewStatus }) =>
+      businessReviewService.moderateReview(reviewId, tenantId, status),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['business-reviews', tenantId] })
+    },
+  })
+}
+
+export function useReviewAnalytics(tenantId: string) {
+  return useQuery({
+    queryKey: ['business-reviews', tenantId, 'analytics'],
+    queryFn: () => businessReviewService.getReviewAnalytics(tenantId),
+    enabled: Boolean(tenantId),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}

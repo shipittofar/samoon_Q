@@ -69,5 +69,32 @@ export default async function BranchPage({
     notFound()
   }
 
-  return <BranchHomepageClient tenantSlug={tenantSlug} branchSlug={branchSlug} />
+  const aggregateRatingJsonLd =
+    meta?.rating && meta.reviewCount
+      ? JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'LocalBusiness',
+          name: branch!.name,
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: meta.rating,
+            reviewCount: meta.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        })
+      : null
+
+  return (
+    <>
+      {aggregateRatingJsonLd && (
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: aggregateRatingJsonLd }}
+        />
+      )}
+      <BranchHomepageClient tenantSlug={tenantSlug} branchSlug={branchSlug} />
+    </>
+  )
 }

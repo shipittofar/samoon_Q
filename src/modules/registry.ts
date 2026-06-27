@@ -157,6 +157,13 @@ const USERS_NAV_ITEM = {
   permissionKey: 'staff.manage',
 } as const
 
+const REVIEWS_NAV_ITEM = {
+  href: '/admin/reviews',
+  label: 'Reviews',
+  featureFlagKey: 'reviews.enabled',
+  permissionKey: 'reviews.view',
+} as const
+
 const ORDERS_NAV_ITEM = {
   href: '/admin/orders',
   label: 'Orders',
@@ -208,6 +215,9 @@ export const ADMIN_SETTINGS_ROUTES: readonly string[] = ['/admin/settings', '/ad
 /** User management routes (P8.6) — spread into each module's routes array. */
 export const ADMIN_USERS_ROUTES: readonly string[] = ['/admin/users', '/admin/users/[id]']
 
+/** Review management routes (P8.8.5) — spread into each module's routes array. */
+export const ADMIN_REVIEWS_ROUTES: readonly string[] = ['/admin/reviews']
+
 // ── Built-in module definitions ───────────────────────────────────────────────
 
 export const RESTAURANT_MODULE: Module = {
@@ -220,7 +230,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_USERS_ROUTES],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_USERS_ROUTES, ...ADMIN_REVIEWS_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -240,6 +250,7 @@ export const RESTAURANT_MODULE: Module = {
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
+    REVIEWS_NAV_ITEM,
     LOYALTY_NAV_ITEM,
     KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
@@ -320,6 +331,7 @@ export const CAFE_MODULE: Module = {
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
+    REVIEWS_NAV_ITEM,
     { href: '/admin/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
     { href: '/admin/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled', permissionKey: 'promotions.view' },
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled', permissionKey: 'promotions.view' },
@@ -395,6 +407,7 @@ export const BAR_MODULE: Module = {
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
+    REVIEWS_NAV_ITEM,
     { href: '/admin/bar/events', label: 'Event Management', featureFlagKey: 'bar.events.enabled', permissionKey: 'operations.view' },
     { href: '/admin/bar/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'bar.happy_hour.enabled', permissionKey: 'promotions.view' },
     { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled', permissionKey: 'promotions.view' },
@@ -469,6 +482,7 @@ export const FOOD_COURT_MODULE: Module = {
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
+    REVIEWS_NAV_ITEM,
     { href: '/admin/food-court/vendors', label: 'Vendor Management', featureFlagKey: 'food_court.vendor_management.enabled', permissionKey: 'vendors.view' },
     { href: '/admin/food-court/seating', label: 'Seating Management', featureFlagKey: 'food_court.shared_seating.enabled', permissionKey: 'operations.view' },
     KITCHEN_NAV_ITEM,
@@ -542,6 +556,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
+    REVIEWS_NAV_ITEM,
     { href: '/admin/food-truck/routes', label: 'Route Management', featureFlagKey: 'food_truck.route_tracking.enabled', permissionKey: 'operations.view' },
     { href: '/admin/food-truck/stops', label: 'Stop Management', featureFlagKey: 'food_truck.scheduled_stops.enabled', permissionKey: 'operations.view' },
     KITCHEN_NAV_ITEM,
@@ -619,6 +634,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
+    REVIEWS_NAV_ITEM,
     { href: '/admin/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled', permissionKey: 'operations.view' },
     { href: '/admin/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
     KITCHEN_NAV_ITEM,

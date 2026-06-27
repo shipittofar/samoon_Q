@@ -58,5 +58,33 @@ export default async function TenantPage({
     notFound()
   }
 
-  return <TenantHomepageClient tenantSlug={tenantSlug} />
+  const meta = getMarketplaceMeta(tenant.settings)
+  const aggregateRatingJsonLd =
+    meta?.rating && meta.reviewCount
+      ? JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Restaurant',
+          name: tenant.name,
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: meta.rating,
+            reviewCount: meta.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        })
+      : null
+
+  return (
+    <>
+      {aggregateRatingJsonLd && (
+        <script
+          type="application/ld+json"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: aggregateRatingJsonLd }}
+        />
+      )}
+      <TenantHomepageClient tenantSlug={tenantSlug} />
+    </>
+  )
 }

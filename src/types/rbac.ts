@@ -91,6 +91,9 @@ export type P7Permission =
   // ── Operations ────────────────────────────────────────────
   | 'operations.view'
   | 'operations.manage'
+  // ── Reviews (P8.8.5) ──────────────────────────────────────
+  | 'reviews.view'
+  | 'reviews.manage'
 
 /** A user's role assignment scoped to a specific tenant. */
 export interface UserTenantRole {

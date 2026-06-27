@@ -2891,3 +2891,167 @@ GET /tenants/search?lat=40.7128&lng=-74.0060&sort=nearest
 ```
 
 Requires branch-level coordinates stored in `Branch.location`. Deferred until maps integration is complete.
+
+---
+
+## Section 32 — Business Reviews API (P8.8.5)
+
+### 32.1 List Business Reviews
+
+```
+GET /tenants/{tenantId}/reviews/
+```
+
+Query parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sort` | `newest\|highest\|lowest\|most_helpful` | Sort order (default: newest) |
+| `verified` | `boolean` | Filter to verified visits only |
+| `with_photos` | `boolean` | Filter to reviews with photos only |
+| `branch_id` | `string` | Filter by branch |
+| `language` | `string` | Filter by language code (e.g. `en`) |
+| `rating` | `1–5` | Filter by exact star rating |
+| `page` | `integer` | Page number (1-indexed) |
+| `limit` | `integer` | Page size (default: 20, max: 100) |
+| `status` | `published\|pending\|hidden\|spam` | Admin only — filter by moderation status |
+
+Response:
+```json
+{
+  "reviews": [ BusinessReview ],
+  "total": 1247,
+  "breakdown": {
+    "average": 4.8,
+    "total": 1247,
+    "distribution": [
+      { "star": 5, "count": 960, "percentage": 77 },
+      { "star": 4, "count": 200, "percentage": 16 },
+      { "star": 3, "count": 60, "percentage": 5 },
+      { "star": 2, "count": 17, "percentage": 1 },
+      { "star": 1, "count": 10, "percentage": 1 }
+    ]
+  }
+}
+```
+
+### 32.2 Rating Breakdown
+
+```
+GET /tenants/{tenantId}/reviews/rating/
+GET /tenants/{tenantId}/branches/{branchId}/reviews/rating/
+```
+
+Returns `RatingBreakdownData` only (no review list).
+
+### 32.3 Submit Review
+
+```
+POST /tenants/{tenantId}/reviews/
+```
+
+Body:
+```json
+{
+  "rating": 5,
+  "title": "Excellent",
+  "comment": "...",
+  "visit_date": "2025-12-15",
+  "visit_type": "dine_in",
+  "images": [],
+  "language": "en"
+}
+```
+
+Response: `BusinessReview` with `status: "pending"`.
+
+Authentication: requires customer session or loyalty token.
+
+### 32.4 Owner Reply
+
+```
+POST   /tenants/{tenantId}/reviews/{reviewId}/reply/   — create reply
+PATCH  /tenants/{tenantId}/reviews/{reviewId}/reply/   — edit reply
+DELETE /tenants/{tenantId}/reviews/{reviewId}/reply/   — delete reply
+```
+
+Body (POST/PATCH): `{ "text": "..." }`
+
+Response: updated `BusinessReview`. Requires `reviews.manage` permission.
+
+### 32.5 Helpful Vote
+
+```
+POST /tenants/{tenantId}/reviews/{reviewId}/helpful/
+```
+
+Idempotent per customer session. Response: `{ "helpful_count": 43 }`.
+
+### 32.6 Moderation
+
+```
+PATCH /tenants/{tenantId}/reviews/{reviewId}/moderate/
+```
+
+Body: `{ "status": "published" | "hidden" | "spam" | "deleted" | "rejected" }`
+
+Response: updated `BusinessReview`. Requires `reviews.manage` permission.
+
+### 32.7 Review Analytics
+
+```
+GET /tenants/{tenantId}/reviews/analytics/
+```
+
+Response:
+```json
+{
+  "average_rating": 4.8,
+  "total_reviews": 1247,
+  "reviews_this_month": 87,
+  "trend": "up",
+  "trend_delta": 0.2,
+  "reply_rate": 0.73,
+  "avg_reply_time_hours": 18,
+  "breakdown": [ RatingDistribution ],
+  "top_keywords": [ { "word": "excellent", "count": 42 } ],
+  "monthly_averages": [ { "month": "Dec 2025", "average": 4.8, "count": 87 } ]
+}
+```
+
+Requires `analytics.view` or `reviews.view` permission.
+
+### 32.8 BusinessReview Schema
+
+```typescript
+interface BusinessReview {
+  id: string
+  tenant_id: string
+  branch_id?: string
+  customer_id?: string
+  customer_name: string
+  avatar?: string          // URL
+  rating: number           // 1–5
+  title?: string
+  comment: string
+  images?: string[]        // URLs
+  visit_date?: string      // ISO date
+  visit_type?: 'dine_in' | 'takeaway' | 'delivery'
+  created_at: string       // ISO datetime
+  updated_at: string
+  owner_reply?: OwnerReply
+  helpful_count: number
+  verified_visit: boolean
+  status: 'published' | 'pending' | 'hidden' | 'spam' | 'deleted' | 'rejected'
+  language?: string        // BCP 47
+  pinned?: boolean
+}
+```
+
+### 32.9 Tenant Isolation
+
+- All review endpoints are scoped to `tenantId` in the URL.
+- Staff with `reviews.view` can see reviews for their tenant only.
+- `reviews.manage` required for moderation and owner replies.
+- Customers may only submit reviews for tenants they have visited (verified via order history).
+

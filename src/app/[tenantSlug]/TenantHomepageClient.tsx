@@ -12,6 +12,7 @@ import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn } from '@/utils'
 import { usePublicTenant, useCategories, useMenuItems, useActivePromotions } from '@/hooks'
+import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   getMarketplaceMeta,
   BUSINESS_TYPE_LABELS,
@@ -549,94 +550,7 @@ function PromotionsSection({ promotions }: { promotions: PromotionRule[] }) {
   )
 }
 
-// ── Reviews Section ───────────────────────────────────────────────────────────
-
-interface MockReview {
-  id: string
-  name: string
-  initials: string
-  rating: number
-  date: string
-  text: string
-}
-
-const MOCK_REVIEWS: MockReview[] = [
-  {
-    id: 'r1',
-    name: 'Sarah M.',
-    initials: 'SM',
-    rating: 5,
-    date: 'December 2024',
-    text: 'Absolutely outstanding experience from start to finish. The food was incredible, service impeccable, and the ambience perfect for a special occasion.',
-  },
-  {
-    id: 'r2',
-    name: 'James K.',
-    initials: 'JK',
-    rating: 5,
-    date: 'November 2024',
-    text: 'Best meal I have had all year. Everything on the menu is thoughtfully crafted. Will be coming back with the whole family next time.',
-  },
-  {
-    id: 'r3',
-    name: 'Aisha T.',
-    initials: 'AT',
-    rating: 4,
-    date: 'October 2024',
-    text: 'Great food and friendly staff. A couple of dishes were slow to arrive but the quality made it worthwhile. Highly recommend the signature dishes.',
-  },
-]
-
-function ReviewsSection({ rating, reviewCount }: { rating: number; reviewCount: number }) {
-  return (
-    <section aria-labelledby="reviews-heading">
-      <div className="flex items-center gap-4 mb-5">
-        <h2 id="reviews-heading" className="text-xl font-semibold text-[var(--fg)]">
-          Customer Reviews
-        </h2>
-        <span className="flex items-center gap-1 text-sm text-[var(--fg-muted)]">
-          <Star className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
-          <strong className="text-[var(--fg)]">{rating.toFixed(1)}</strong>
-          <span>· {reviewCount.toLocaleString()} reviews</span>
-        </span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {MOCK_REVIEWS.map((review) => (
-          <div
-            key={review.id}
-            className="p-4 bg-[var(--card)] rounded-2xl border border-[var(--border)] shadow-[var(--shadow-soft)]"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-9 w-9 rounded-full bg-[var(--accent)] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                {review.initials}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[var(--fg)]">{review.name}</p>
-                <p className="text-xs text-[var(--fg-muted)]">{review.date}</p>
-              </div>
-            </div>
-            <div className="flex gap-0.5 mb-2" aria-label={`${review.rating} out of 5 stars`}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={i}
-                  className={cn(
-                    'w-3.5 h-3.5',
-                    i < review.rating
-                      ? 'text-amber-400 fill-amber-400'
-                      : 'text-gray-300 fill-gray-300',
-                  )}
-                  aria-hidden="true"
-                />
-              ))}
-            </div>
-            <p className="text-sm text-[var(--fg-muted)] leading-relaxed">{review.text}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
+// ReviewsSection is imported from @/components/reviews/ReviewsSection
 
 // ── Gallery Section ───────────────────────────────────────────────────────────
 
@@ -747,7 +661,12 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
             primaryBranchSlug={meta.primaryBranchSlug}
           />
           <PromotionsSection promotions={promotions} />
-          <ReviewsSection rating={meta.rating} reviewCount={meta.reviewCount} />
+          <ReviewsSection
+            tenantId={tenant.id}
+            tenantSlug={tenantSlug}
+            initialRating={meta.rating}
+            initialReviewCount={meta.reviewCount}
+          />
           <GallerySection meta={meta} />
         </div>
       </main>
