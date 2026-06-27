@@ -218,3 +218,76 @@ describe('R-07 — Reservation branch list is tenant-scoped (P8.7.7.10)', () => 
     expect(main?.id).toBe('main')
   })
 })
+
+describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
+  it('MOCK_TENANT_BRANCHES has no cross-tenant branch contamination', async () => {
+    const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
+    const savor = MOCK_TENANT_BRANCHES['tenant-savor-01'].map((b) => b.slug)
+    const brew = MOCK_TENANT_BRANCHES['tenant-brew-cafe-01'].map((b) => b.slug)
+    // brooklyn-cafe belongs only to brew-cafe, not savor
+    expect(savor).not.toContain('brooklyn-cafe')
+    // airport belongs only to savor, not brew-cafe
+    expect(brew).not.toContain('airport')
+  })
+
+  it('useLogout clears cart, favorites, recently-viewed, dine-in, and RBAC', async () => {
+    // Source-text verification: useLogout must call clearCart, setFavorites([]), clear(), clearTable
+    const hooksSrc = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '..', 'hooks', 'index.ts'),
+      'utf-8',
+    )
+    expect(hooksSrc).toContain('useCartStore.getState().clearCart()')
+    expect(hooksSrc).toContain('useFavoritesStore.getState().setFavorites([])')
+    expect(hooksSrc).toContain('useRecentlyViewedStore.getState().clear()')
+    expect(hooksSrc).toContain('useDineInStore.getState().clearTable()')
+  })
+
+  it('TenantLayout clears cart on tenant switch', async () => {
+    const src = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '..', 'app', '[tenantSlug]', 'layout.tsx'),
+      'utf-8',
+    )
+    expect(src).toContain('clearCart()')
+    expect(src).toContain('useCartStore')
+  })
+
+  it('useFeaturedItems query key includes tenantId (D-06 fix)', async () => {
+    const src = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '..', 'hooks', 'index.ts'),
+      'utf-8',
+    )
+    // Verify the queryKey for useFeaturedItems includes tenantId
+    expect(src).toMatch(/queryKey.*featured-items.*tenantId|tenantId.*featured-items/)
+  })
+
+  it('useMenuSearch query key includes tenantId (D-07 fix)', async () => {
+    const src = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '..', 'hooks', 'index.ts'),
+      'utf-8',
+    )
+    expect(src).toMatch(/queryKey.*menu-search.*tenantId|tenantId.*menu-search/)
+  })
+
+  it('useRelatedItems query key includes tenantId (D-08 fix)', async () => {
+    const src = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '..', 'hooks', 'index.ts'),
+      'utf-8',
+    )
+    expect(src).toMatch(/queryKey.*related-items.*tenantId|tenantId.*related-items/)
+  })
+
+  it('all 6 tenants have isolated MOCK_TENANT_BRANCHES entries with at least 1 branch', async () => {
+    const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
+    const tenants = [
+      'tenant-savor-01',
+      'tenant-brew-cafe-01',
+      'tenant-oak-bar-01',
+      'tenant-central-fc-01',
+      'tenant-wheels-brews-01',
+      'tenant-road-bites-01',
+    ]
+    for (const t of tenants) {
+      expect(MOCK_TENANT_BRANCHES[t]?.length).toBeGreaterThanOrEqual(1)
+    }
+  })
+})

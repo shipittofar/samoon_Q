@@ -1,10 +1,11 @@
 'use client'
 
 import { use, useEffect } from 'react'
-import { useTenantStore } from '@/stores'
+import { useTenantStore, useCartStore } from '@/stores'
 
 /**
  * P8.7.7.2 — Tenant Context Layout
+ * P8.7.7.11 — Clear cart on tenant switch (D-05 fix)
  *
  * Wraps all routes under /[tenantSlug]/ that do NOT have a branchSlug.
  * Loads the correct tenant into the store from the URL slug so child pages
@@ -23,12 +24,14 @@ export default function TenantLayout({
   const { tenantSlug } = use(params)
   const loadTenant = useTenantStore((s) => s.loadTenant)
   const tenant = useTenantStore((s) => s.tenant)
+  const clearCart = useCartStore((s) => s.clearCart)
 
   useEffect(() => {
     if (tenant?.slug !== tenantSlug) {
+      clearCart()
       loadTenant(tenantSlug)
     }
-  }, [tenantSlug, tenant?.slug, loadTenant])
+  }, [tenantSlug, tenant?.slug, loadTenant, clearCart])
 
   return <>{children}</>
 }

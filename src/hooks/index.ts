@@ -450,16 +450,18 @@ export function useMenuItem(id: string) {
 }
 
 export function useFeaturedItems() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['featured-items'],
+    queryKey: ['featured-items', tenantId],
     queryFn: () => menuService.getFeatured(),
     staleTime: STALE_TIME,
   })
 }
 
 export function useRelatedItems(id: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['related-items', id],
+    queryKey: ['related-items', tenantId, id],
     queryFn: () => menuService.getRelated(id),
     staleTime: STALE_TIME,
     enabled: !!id,
@@ -467,8 +469,9 @@ export function useRelatedItems(id: string) {
 }
 
 export function useMenuSearch(query: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['menu-search', query],
+    queryKey: ['menu-search', tenantId, query],
     queryFn: () => menuService.search(query),
     enabled: query.length >= 2,
     staleTime: 30_000,
