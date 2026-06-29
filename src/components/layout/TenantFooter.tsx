@@ -94,7 +94,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                 </Link>
               </li>
               <li>
-                <Link href="/#branches" className="hover:text-orange-500 transition-colors">
+                <Link href={`/${tenantSlug}#branches`} className="hover:text-orange-500 transition-colors">
                   Locations
                 </Link>
               </li>

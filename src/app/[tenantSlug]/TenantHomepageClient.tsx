@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import {
-  Star, MapPin, GitBranch, Phone, Mail, Globe, Clock,
+  Star, MapPin, Phone, Mail, Globe, Clock,
   UtensilsCrossed, Tag, Share2, Check, ExternalLink,
-  ChevronRight, Store, ArrowLeft,
+  ChevronRight, Store, ArrowLeft, Wifi, ParkingSquare, Wind,
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -27,7 +28,7 @@ function PriceLevel({ level }: { level?: number }) {
   if (!level) return null
   const labels = ['', '$', '$$', '$$$', '$$$$']
   return (
-    <span className="text-sm text-[var(--fg-muted)]" aria-label={`Price level: ${labels[level]}`}>
+    <span className="text-sm text-white/80" aria-label={`Price level: ${labels[level]}`}>
       {labels[level]}
     </span>
   )
@@ -63,18 +64,33 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
     'var(--accent)'
   const label = tenant.businessTypes.map((t) => BUSINESS_TYPE_LABELS[t] ?? t).join(' · ')
 
+  const nonMenuTypes = ['bar', 'hotel', 'other']
+  const isNonMenuType = tenant.businessTypes.every((t) => nonMenuTypes.includes(t))
+  const isMultiBranch = meta.branchCount > 1
+  const primaryHref = isMultiBranch
+    ? `#branches`
+    : `/${tenant.slug}/${meta.primaryBranchSlug}/menu`
+  const primaryLabel = isMultiBranch ? 'Choose a Location' : isNonMenuType ? 'Visit Us' : 'View Menu'
+
   return (
     <section
       aria-labelledby="tenant-hero-heading"
       className="relative h-[55vh] min-h-[340px] max-h-[600px] overflow-hidden"
     >
-      {/* Cover image */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={meta.coverImage}
-        alt={`${tenant.name} cover`}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      {/* C1/H1: Next.js Image with priority for above-fold hero */}
+      {meta.coverImage ? (
+        <Image
+          src={meta.coverImage}
+          alt=""
+          aria-hidden="true"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-900 to-stone-900" />
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
 
       {/* Badges */}
@@ -125,8 +141,9 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
             >
               {tenant.name}
             </h1>
+            {/* H8: tagline — not italic, cleaner weight */}
             {meta.tagline && (
-              <p className="text-white/80 text-sm sm:text-base mt-1 italic">{meta.tagline}</p>
+              <p className="text-base text-white/90 mt-1">{meta.tagline}</p>
             )}
             <div className="flex flex-wrap items-center gap-3 mt-2">
               <span className="flex items-center gap-1 text-sm text-white/80">
@@ -138,11 +155,30 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
                 <MapPin className="w-4 h-4" aria-hidden="true" />
                 {meta.city}
               </span>
+              {/* C4: MapPin instead of GitBranch */}
               <span className="flex items-center gap-1 text-sm text-white/80">
-                <GitBranch className="w-4 h-4" aria-hidden="true" />
-                {meta.branchCount} {meta.branchCount === 1 ? 'branch' : 'branches'}
+                <MapPin className="w-4 h-4" aria-hidden="true" />
+                {meta.branchCount} {meta.branchCount === 1 ? 'location' : 'locations'}
               </span>
               <PriceLevel level={meta.priceLevel} />
+            </div>
+
+            {/* C1: Primary CTA in hero */}
+            <div className="flex flex-wrap gap-3 mt-4">
+              <Link
+                href={primaryHref}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
+              >
+                <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+                {primaryLabel}
+              </Link>
+              <a
+                href="#branches"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
+              >
+                <MapPin className="w-4 h-4" aria-hidden="true" />
+                All Locations
+              </a>
             </div>
           </div>
         </div>
@@ -215,12 +251,13 @@ function QuickActions({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta 
           View Menu
         </Link>
 
+        {/* C4: MapPin instead of GitBranch */}
         <a
           href="#branches"
           className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
         >
-          <GitBranch className="w-4 h-4" aria-hidden="true" />
-          Choose Branch
+          <MapPin className="w-4 h-4" aria-hidden="true" />
+          Choose Location
         </a>
 
         {hasReservations && (
@@ -249,18 +286,56 @@ function QuickActions({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta 
   )
 }
 
+// ── Amenities Strip ───────────────────────────────────────────────────────────
+
+const AMENITY_ICONS: Record<string, React.ReactNode> = {
+  wifi: <Wifi className="w-3.5 h-3.5" aria-hidden="true" />,
+  parking: <ParkingSquare className="w-3.5 h-3.5" aria-hidden="true" />,
+  'air conditioning': <Wind className="w-3.5 h-3.5" aria-hidden="true" />,
+}
+
+function AmenitiesStrip({ amenities }: { amenities: string[] }) {
+  if (amenities.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-2 mt-4" role="list" aria-label="Amenities">
+      {amenities.map((a) => (
+        <span
+          key={a}
+          role="listitem"
+          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] border border-[var(--border)]"
+        >
+          {AMENITY_ICONS[a.toLowerCase()] ?? null}
+          {a}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 // ── Business Info ─────────────────────────────────────────────────────────────
 
 function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
   return (
     <section aria-labelledby="about-heading">
-      <h2 id="about-heading" className="text-xl font-semibold text-[var(--fg)] mb-4">
+      {/* H9: Upgraded section heading */}
+      <h2
+        id="about-heading"
+        className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-4 pb-3 border-b border-[var(--border)]"
+      >
         About
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Description + tags */}
+        {/* Description + story + tags */}
         <div>
           <p className="text-[var(--fg-muted)] leading-relaxed mb-4">{meta.description}</p>
+
+          {/* C2: Our Story block */}
+          {meta.story && (
+            <div className="mb-4 p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border)]">
+              <h3 className="text-sm font-semibold text-[var(--fg)] mb-2">Our Story</h3>
+              <p className="text-sm text-[var(--fg-muted)] leading-relaxed">{meta.story}</p>
+            </div>
+          )}
 
           {meta.cuisines.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-3">
@@ -287,6 +362,9 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
               ))}
             </div>
           )}
+
+          {/* C5: Amenities */}
+          <AmenitiesStrip amenities={meta.amenities ?? []} />
         </div>
 
         {/* Contact info */}
@@ -334,8 +412,15 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
     <article className="flex flex-col bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden shadow-[var(--shadow-soft)] hover:shadow-md transition-shadow">
       {branch.image && (
         <div className="relative h-36 overflow-hidden bg-[var(--bg-secondary)]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={branch.image} alt="" aria-hidden="true" className="w-full h-full object-cover" />
+          {/* H10: Next.js Image for branch card */}
+          <Image
+            src={branch.image}
+            alt=""
+            aria-hidden="true"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
           <span
             className={cn(
               'absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full',
@@ -391,7 +476,11 @@ function BranchesSection({
 
   return (
     <section id="branches" aria-labelledby="branches-heading">
-      <h2 id="branches-heading" className="text-xl font-semibold text-[var(--fg)] mb-5">
+      {/* H9: Upgraded section heading */}
+      <h2
+        id="branches-heading"
+        className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
+      >
         Our Locations
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -405,7 +494,15 @@ function BranchesSection({
 
 // ── Categories Section ────────────────────────────────────────────────────────
 
-function CategoriesSection({ categories }: { categories: Category[] }) {
+function CategoriesSection({
+  categories,
+  tenantSlug,
+  primaryBranchSlug,
+}: {
+  categories: Category[]
+  tenantSlug: string
+  primaryBranchSlug: string
+}) {
   if (categories.length === 0) return null
   const CATEGORY_ICONS: Record<string, string> = {
     pizza: '🍕', burgers: '🍔', pasta: '🍝', drinks: '🥤', desserts: '🍰',
@@ -414,16 +511,23 @@ function CategoriesSection({ categories }: { categories: Category[] }) {
 
   return (
     <section aria-labelledby="categories-heading">
-      <h2 id="categories-heading" className="text-xl font-semibold text-[var(--fg)] mb-5">
+      {/* H9: Upgraded section heading */}
+      <h2
+        id="categories-heading"
+        className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
+      >
         Browse by Category
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {categories.slice(0, 10).map((cat) => {
           const icon = CATEGORY_ICONS[cat.slug?.toLowerCase() ?? ''] ?? '🍽️'
           return (
-            <div
+            // C3: Link instead of non-interactive div
+            <Link
               key={cat.id}
-              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--card-hover)] transition-colors cursor-default"
+              href={`/${tenantSlug}/${primaryBranchSlug}/menu?category=${cat.slug ?? cat.id}`}
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--card-hover)] hover:border-[var(--accent)]/30 transition-colors"
+              aria-label={`Browse ${cat.name}`}
             >
               <span className="text-2xl" role="img" aria-label={cat.name}>
                 {icon}
@@ -432,7 +536,7 @@ function CategoriesSection({ categories }: { categories: Category[] }) {
               {cat.items_count != null && (
                 <span className="text-xs text-[var(--fg-muted)]">{cat.items_count} items</span>
               )}
-            </div>
+            </Link>
           )
         })}
       </div>
@@ -456,8 +560,12 @@ function FeaturedItemsSection({
 
   return (
     <section aria-labelledby="featured-items-heading">
-      <div className="flex items-center justify-between mb-5">
-        <h2 id="featured-items-heading" className="text-xl font-semibold text-[var(--fg)]">
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border)]">
+        {/* H9: Upgraded section heading */}
+        <h2
+          id="featured-items-heading"
+          className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]"
+        >
           Popular Items
         </h2>
         <Link
@@ -474,12 +582,14 @@ function FeaturedItemsSection({
             className="bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden shadow-[var(--shadow-soft)]"
           >
             {item.image && (
-              <div className="h-32 overflow-hidden bg-[var(--bg-secondary)]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+              // H10: Next.js Image for featured items
+              <div className="relative h-32 overflow-hidden bg-[var(--bg-secondary)]">
+                <Image
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 50vw, 25vw"
                 />
               </div>
             )}
@@ -507,7 +617,15 @@ function FeaturedItemsSection({
 
 // ── Promotions Section ────────────────────────────────────────────────────────
 
-function PromotionsSection({ promotions }: { promotions: PromotionRule[] }) {
+function PromotionsSection({
+  promotions,
+  tenantSlug,
+  primaryBranchSlug,
+}: {
+  promotions: PromotionRule[]
+  tenantSlug: string
+  primaryBranchSlug: string
+}) {
   if (promotions.length === 0) return null
 
   const TYPE_LABELS: Record<string, string> = {
@@ -519,7 +637,11 @@ function PromotionsSection({ promotions }: { promotions: PromotionRule[] }) {
 
   return (
     <section aria-labelledby="promotions-heading">
-      <h2 id="promotions-heading" className="text-xl font-semibold text-[var(--fg)] mb-5">
+      {/* H9: Upgraded section heading */}
+      <h2
+        id="promotions-heading"
+        className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
+      >
         Current Offers
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -543,6 +665,13 @@ function PromotionsSection({ promotions }: { promotions: PromotionRule[] }) {
                 ${promo.discountAmount} off
               </p>
             )}
+            {/* H6: Use this offer CTA */}
+            <Link
+              href={`/${tenantSlug}/${primaryBranchSlug}/menu`}
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] hover:underline"
+            >
+              Use this offer →
+            </Link>
           </div>
         ))}
       </div>
@@ -555,27 +684,32 @@ function PromotionsSection({ promotions }: { promotions: PromotionRule[] }) {
 // ── Gallery Section ───────────────────────────────────────────────────────────
 
 function GallerySection({ meta }: { meta: MarketplaceMeta }) {
-  const images = [meta.coverImage, ...(meta.gallery ?? [])].slice(0, 6)
-  if (images.length <= 1) return null
+  const images = [meta.coverImage, ...(meta.gallery ?? [])].filter(Boolean).slice(0, 6)
+  // H5: Show gallery even with a single image (was <= 1)
+  if (images.length === 0) return null
 
   return (
     <section aria-labelledby="gallery-heading">
-      <h2 id="gallery-heading" className="text-xl font-semibold text-[var(--fg)] mb-5">
+      {/* H9: Upgraded section heading */}
+      <h2
+        id="gallery-heading"
+        className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
+      >
         Gallery
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {images.map((src, i) => (
           <div
-            // eslint-disable-next-line react/no-array-index-key
             key={i}
-            className="aspect-video overflow-hidden rounded-xl bg-[var(--bg-secondary)]"
+            className="relative aspect-video overflow-hidden rounded-xl bg-[var(--bg-secondary)]"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={src}
+            <Image
+              src={src as string}
               alt=""
               aria-hidden="true"
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 640px) 50vw, 33vw"
             />
           </div>
         ))}
@@ -653,14 +787,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-16">
           <QuickActions tenant={tenant} meta={meta} />
           <BusinessInfo meta={meta} />
-          <BranchesSection meta={meta} tenantSlug={tenantSlug} />
-          <CategoriesSection categories={categories} />
-          <FeaturedItemsSection
-            items={menuItems}
-            tenantSlug={tenantSlug}
-            primaryBranchSlug={meta.primaryBranchSlug}
-          />
-          <PromotionsSection promotions={promotions} />
+          {/* H3/H4: Reviews and Gallery moved up before Branches/Categories */}
           <ReviewsSection
             tenantId={tenant.id}
             tenantSlug={tenantSlug}
@@ -668,6 +795,22 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
             initialReviewCount={meta.reviewCount}
           />
           <GallerySection meta={meta} />
+          <BranchesSection meta={meta} tenantSlug={tenantSlug} />
+          <CategoriesSection
+            categories={categories}
+            tenantSlug={tenantSlug}
+            primaryBranchSlug={meta.primaryBranchSlug}
+          />
+          <FeaturedItemsSection
+            items={menuItems}
+            tenantSlug={tenantSlug}
+            primaryBranchSlug={meta.primaryBranchSlug}
+          />
+          <PromotionsSection
+            promotions={promotions}
+            tenantSlug={tenantSlug}
+            primaryBranchSlug={meta.primaryBranchSlug}
+          />
         </div>
       </main>
 
