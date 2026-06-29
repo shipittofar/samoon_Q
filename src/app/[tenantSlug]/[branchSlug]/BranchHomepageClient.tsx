@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import {
   Star, MapPin, Phone, Clock, ChevronRight,
-  UtensilsCrossed, Tag, Share2, Check, Copy,
-  ShoppingBag, ArrowLeft, Store,
+  UtensilsCrossed, Tag, Share2, Check,
+  ArrowLeft, Store,
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -38,24 +39,63 @@ function Breadcrumb({ tenantSlug, tenantName, branchName }: { tenantSlug: string
 
 // ── Hero ──────────────────────────────────────────────────────────────────────
 
-function HeroSection({ branch, tenant, accentColor }: { branch: PublicBranchInfo; tenant: Tenant; accentColor: string }) {
+function HeroSection({
+  branch,
+  tenant,
+  accentColor,
+  tenantSlug,
+  branchSlug,
+}: {
+  branch: PublicBranchInfo
+  tenant: Tenant
+  accentColor: string
+  tenantSlug: string
+  branchSlug: string
+}) {
+  const featureFlags = (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+  const hasReservations = featureFlags['reservations.enabled'] ?? false
+
   return (
-    <section className="relative h-64 md:h-80 overflow-hidden bg-gray-900">
+    // H9: increased height, H7: aria-labelledby
+    <section
+      aria-labelledby="branch-hero-heading"
+      className="relative h-[45vh] min-h-[300px] max-h-[480px] overflow-hidden bg-gray-900"
+    >
       {branch.image ? (
-        <img
+        // C3: next/image with priority for LCP, H7: decorative alt
+        <Image
           src={branch.image}
-          alt={branch.name}
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
+          alt=""
+          aria-hidden="true"
+          fill
+          priority
+          className="object-cover opacity-70"
+          sizes="100vw"
         />
       ) : (
         <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${accentColor}88, ${accentColor}44)` }} />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 pb-6">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+      <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-8 pb-8">
         <div className="flex items-end gap-4">
           <div className="flex-1 min-w-0">
-            <p className="text-white/80 text-sm font-medium mb-1">{tenant.name}</p>
-            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight truncate">{branch.name}</h1>
+            <p className="text-white/70 text-sm font-medium mb-0.5">{tenant.name}</p>
+            {/* H7: id for aria-labelledby */}
+            <h1
+              id="branch-hero-heading"
+              className="text-3xl md:text-4xl font-bold text-white leading-tight"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              {branch.name}
+            </h1>
+
+            {/* C2: address in hero */}
+            <p className="flex items-center gap-1.5 text-sm text-white/80 mt-1.5">
+              <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              {branch.address}, {branch.city}
+            </p>
+
             <div className="flex items-center gap-3 mt-2">
               <span
                 className={cn(
@@ -67,9 +107,38 @@ function HeroSection({ branch, tenant, accentColor }: { branch: PublicBranchInfo
               </span>
               {branch.todayHours && (
                 <span className="text-white/70 text-xs flex items-center gap-1">
-                  <Clock className="w-3 h-3" />{branch.todayHours}
+                  <Clock className="w-3 h-3" aria-hidden="true" />{branch.todayHours}
                 </span>
               )}
+            </div>
+
+            {/* C1: Hero CTAs */}
+            <div className="flex flex-wrap gap-3 mt-4">
+              <Link
+                href={`/${tenantSlug}/${branchSlug}/menu`}
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
+              >
+                <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+                View Menu
+              </Link>
+              {hasReservations && (
+                <Link
+                  href={`/${tenantSlug}/${branchSlug}/reservation`}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
+                >
+                  <Clock className="w-4 h-4" aria-hidden="true" />
+                  Reserve
+                </Link>
+              )}
+              <a
+                href={`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
+              >
+                <MapPin className="w-4 h-4" aria-hidden="true" />
+                Directions
+              </a>
             </div>
           </div>
         </div>
@@ -80,75 +149,92 @@ function HeroSection({ branch, tenant, accentColor }: { branch: PublicBranchInfo
 
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
-function QuickActions({ branch, tenantSlug, branchSlug }: { branch: PublicBranchInfo; tenantSlug: string; branchSlug: string }) {
+function QuickActions({
+  branch,
+  tenant,
+  tenantSlug,
+  branchSlug,
+}: {
+  branch: PublicBranchInfo
+  tenant: Tenant
+  tenantSlug: string
+  branchSlug: string
+}) {
   const [copied, setCopied] = useState(false)
   const pageUrl = typeof window !== 'undefined' ? window.location.href : `/${tenantSlug}/${branchSlug}`
 
-  async function handleCopy() {
-    await navigator.clipboard.writeText(pageUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  // C5: feature flag check
+  const featureFlags = (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+  const hasReservations = featureFlags['reservations.enabled'] ?? false
+  const hasLoyalty =
+    featureFlags['loyalty.enabled'] ??
+    featureFlags['cafe.loyalty.enabled'] ??
+    featureFlags['mobile_cafe.loyalty.enabled'] ??
+    false
 
   async function handleShare() {
     if (navigator.share) {
       await navigator.share({ title: branch.name, url: pageUrl }).catch(() => {})
     } else {
-      handleCopy()
+      await navigator.clipboard.writeText(pageUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
   return (
-    <section className="bg-[var(--card)] border-b border-[var(--border)]">
+    <section className="bg-[var(--card)] border-b border-[var(--border)]" aria-label="Quick actions">
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap gap-2">
+        {/* Primary action */}
         <Link
           href={`/${tenantSlug}/${branchSlug}/menu`}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-xl text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
         >
-          <UtensilsCrossed className="w-4 h-4" />View Menu
+          <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />View Menu
         </Link>
-        <Link
-          href={`/${tenantSlug}/${branchSlug}/reservation`}
-          className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-        >
-          <Clock className="w-4 h-4" />Reserve Table
-        </Link>
-        <Link
-          href={`/${tenantSlug}/${branchSlug}/menu`}
-          className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-        >
-          <ShoppingBag className="w-4 h-4" />Order Online
-        </Link>
+
+        {/* H1: Reserve only if enabled (C5 fix), no duplicate Order Online */}
+        {hasReservations && (
+          <Link
+            href={`/${tenantSlug}/${branchSlug}/reservation`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+          >
+            <Clock className="w-4 h-4" aria-hidden="true" />Reserve Table
+          </Link>
+        )}
+
+        {hasLoyalty && (
+          <Link
+            href={`/${tenantSlug}/${branchSlug}/loyalty`}
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+          >
+            <Tag className="w-4 h-4" aria-hidden="true" />Loyalty
+          </Link>
+        )}
+
         {branch.phone && (
           <a
             href={`tel:${branch.phone.replace(/\s/g, '')}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
-            <Phone className="w-4 h-4" />Call
+            <Phone className="w-4 h-4" aria-hidden="true" />Call
           </a>
         )}
         <a
           href={`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
         >
-          <MapPin className="w-4 h-4" />Directions
+          <MapPin className="w-4 h-4" aria-hidden="true" />Directions
         </a>
         <button
           type="button"
           onClick={handleShare}
-          className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
         >
-          <Share2 className="w-4 h-4" />Share
-        </button>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-lg text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-        >
-          {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-          {copied ? 'Copied' : 'Copy URL'}
+          {copied ? <Check className="w-4 h-4 text-emerald-500" aria-hidden="true" /> : <Share2 className="w-4 h-4" aria-hidden="true" />}
+          {copied ? 'Copied!' : 'Share'}
         </button>
       </div>
     </section>
@@ -159,11 +245,11 @@ function QuickActions({ branch, tenantSlug, branchSlug }: { branch: PublicBranch
 
 function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-5 space-y-4">
+    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 space-y-4">
       <h2 className="font-semibold text-[var(--fg)]">Branch Information</h2>
       <div className="space-y-3 text-sm">
         <div className="flex items-start gap-3 text-[var(--fg-muted)]">
-          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent)]" />
+          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
           <div>
             <p>{branch.address}</p>
             <p>{branch.city}</p>
@@ -171,29 +257,30 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
         </div>
         {branch.phone && (
           <div className="flex items-center gap-3 text-[var(--fg-muted)]">
-            <Phone className="w-4 h-4 shrink-0 text-[var(--accent)]" />
+            <Phone className="w-4 h-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
             <a href={`tel:${branch.phone.replace(/\s/g, '')}`} className="hover:text-[var(--fg)] transition-colors">{branch.phone}</a>
           </div>
         )}
         {branch.todayHours && (
           <div className="flex items-center gap-3 text-[var(--fg-muted)]">
-            <Clock className="w-4 h-4 shrink-0 text-[var(--accent)]" />
+            <Clock className="w-4 h-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
             <span>Today: {branch.todayHours}</span>
           </div>
         )}
       </div>
-      {/* Map placeholder */}
-      <div
-        className="w-full h-36 rounded-lg bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[var(--fg-muted)] text-sm cursor-pointer hover:bg-[var(--card-hover)] transition-colors"
+      {/* H5: converted to <button> for keyboard accessibility, increased height */}
+      <button
+        type="button"
+        className="w-full h-48 rounded-xl bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[var(--fg-muted)] text-sm cursor-pointer hover:bg-[var(--card-hover)] transition-colors"
         onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`, '_blank')}
-        role="button"
         aria-label="Open in Google Maps"
       >
         <div className="text-center">
           <MapPin className="w-8 h-8 mx-auto mb-1 text-[var(--accent)]" aria-hidden="true" />
-          <p>View on Map</p>
+          <p className="font-medium">View on Map</p>
+          <p className="text-xs text-[var(--fg-subtle)] mt-0.5">{branch.address}</p>
         </div>
-      </div>
+      </button>
     </div>
   )
 }
@@ -210,35 +297,56 @@ function BranchSwitcher({
   tenantSlug: string
 }) {
   if (branches.length <= 1) return null
+
+  const currentBranch = branches.find((b) => b.slug === currentSlug)
+  const otherBranches = branches.filter((b) => b.slug !== currentSlug)
+
   return (
-    <div className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-5">
-      <h2 className="font-semibold text-[var(--fg)] mb-3">Other Locations</h2>
-      <div className="space-y-2">
-        {branches
-          .filter((b) => b.slug !== currentSlug)
-          .map((b) => (
-            <Link
-              key={b.slug}
-              href={`/${tenantSlug}/${b.slug}`}
-              className="flex items-center justify-between p-3 rounded-lg hover:bg-[var(--card-hover)] transition-colors group"
-            >
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-[var(--fg)] truncate">{b.name}</p>
-                <p className="text-xs text-[var(--fg-muted)] truncate">{b.address}, {b.city}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 ml-3">
-                <span
-                  className={cn(
-                    'text-xs px-2 py-0.5 rounded-full font-medium',
-                    b.openNow ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500',
-                  )}
-                >
-                  {b.openNow ? 'Open' : 'Closed'}
-                </span>
-                <ChevronRight className="w-4 h-4 text-[var(--fg-muted)] group-hover:text-[var(--fg)]" />
-              </div>
-            </Link>
-          ))}
+    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5">
+      <h2 className="font-semibold text-[var(--fg)] mb-3">Locations</h2>
+
+      {/* H2: Current branch indicator */}
+      {currentBranch && (
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--accent)]/8 border border-[var(--accent)]/20 mb-2">
+          <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-[var(--fg)] truncate">{currentBranch.name}</p>
+            {currentBranch.todayHours && (
+              <p className="text-xs text-[var(--fg-muted)] truncate">{currentBranch.todayHours}</p>
+            )}
+          </div>
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium shrink-0">You&apos;re here</span>
+        </div>
+      )}
+
+      <div className="space-y-1">
+        {otherBranches.map((b) => (
+          <Link
+            key={b.slug}
+            href={`/${tenantSlug}/${b.slug}`}
+            className="flex items-center justify-between p-3 rounded-xl hover:bg-[var(--card-hover)] transition-colors group"
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[var(--fg)] truncate">{b.name}</p>
+              <p className="text-xs text-[var(--fg-muted)] truncate">{b.address}, {b.city}</p>
+              {/* H8: today's hours in switcher */}
+              {b.todayHours && (
+                <p className="text-xs text-[var(--fg-subtle)] truncate mt-0.5">{b.todayHours}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0 ml-3">
+              <span
+                className={cn(
+                  'text-xs px-2 py-0.5 rounded-full font-medium',
+                  b.openNow ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+                )}
+              >
+                {b.openNow ? 'Open' : 'Closed'}
+              </span>
+              <ChevronRight className="w-4 h-4 text-[var(--fg-muted)] group-hover:text-[var(--fg)]" aria-hidden="true" />
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   )
@@ -247,25 +355,42 @@ function BranchSwitcher({
 // ── Featured Menu Items ───────────────────────────────────────────────────────
 
 function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuItem[]; tenantSlug: string; branchSlug: string }) {
-  if (!items.length) return null
+  const featured = items.filter((i) => i.is_featured || i.is_popular).slice(0, 6)
+  if (!featured.length) return null
   return (
-    <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-[var(--fg)]">Popular Items</h2>
-        <Link href={`/${tenantSlug}/${branchSlug}/menu`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1">
-          Full Menu <ChevronRight className="w-3.5 h-3.5" />
+    <section aria-labelledby="featured-items-heading">
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border)]">
+        {/* H6: upgraded heading */}
+        <h2
+          id="featured-items-heading"
+          className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]"
+        >
+          Popular Items
+        </h2>
+        <Link href={`/${tenantSlug}/${branchSlug}/menu`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1 font-medium">
+          Full Menu <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
         </Link>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {items.slice(0, 6).map((item) => (
+        {featured.map((item) => (
           <div key={item.id} className="bg-[var(--card)] rounded-xl border border-[var(--border)] overflow-hidden hover:shadow-md transition-shadow">
             {item.image && (
-              <img src={item.image} alt={item.name} className="w-full h-28 object-cover" loading="lazy" />
+              // H10: next/image for featured items
+              <div className="relative h-28 overflow-hidden">
+                <Image
+                  src={item.image}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 50vw, 33vw"
+                />
+              </div>
             )}
             <div className="p-3">
               <p className="text-sm font-medium text-[var(--fg)] truncate">{item.name}</p>
+              {/* H4: price fix — remove /100 */}
               <p className="text-sm text-[var(--accent)] font-semibold mt-0.5">
-                ${(item.price / 100).toFixed(2)}
+                ${item.price.toFixed(2)}
               </p>
             </div>
           </div>
@@ -280,9 +405,12 @@ function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuIte
 function CategoriesSection({ categories, tenantSlug, branchSlug }: { categories: Category[]; tenantSlug: string; branchSlug: string }) {
   if (!categories.length) return null
   return (
-    <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-[var(--fg)]">Categories</h2>
+    <section aria-labelledby="categories-heading">
+      <div className="mb-5 pb-3 border-b border-[var(--border)]">
+        {/* H6: upgraded heading */}
+        <h2 id="categories-heading" className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
+          Categories
+        </h2>
       </div>
       <div className="flex flex-wrap gap-2">
         {categories.map((cat) => (
@@ -291,7 +419,7 @@ function CategoriesSection({ categories, tenantSlug, branchSlug }: { categories:
             href={`/${tenantSlug}/${branchSlug}/menu?category=${cat.id}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)] transition-colors"
           >
-            <Tag className="w-3.5 h-3.5" />{cat.name}
+            <Tag className="w-3.5 h-3.5" aria-hidden="true" />{cat.name}
           </Link>
         ))}
       </div>
@@ -303,26 +431,49 @@ function CategoriesSection({ categories, tenantSlug, branchSlug }: { categories:
 
 function PromotionsSection({ promotions, tenantSlug, branchSlug }: { promotions: PromotionRule[]; tenantSlug: string; branchSlug: string }) {
   if (!promotions.length) return null
+
+  const TYPE_LABELS: Record<string, string> = {
+    percentage_discount: 'Discount',
+    fixed_discount: 'Fixed off',
+    buy_one_get_one: 'BOGO',
+    happy_hour: 'Happy Hour',
+  }
+
   return (
-    <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-[var(--fg)]">Current Offers</h2>
-        <Link href={`/${tenantSlug}/${branchSlug}/promotions`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1">
-          All Offers <ChevronRight className="w-3.5 h-3.5" />
+    <section aria-labelledby="promotions-heading">
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border)]">
+        {/* H6: upgraded heading */}
+        <h2 id="promotions-heading" className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
+          Current Offers
+        </h2>
+        <Link href={`/${tenantSlug}/${branchSlug}/promotions`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1 font-medium">
+          All Offers <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
         </Link>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
         {promotions.slice(0, 4).map((promo) => (
-          <div key={promo.id} className="bg-[var(--card)] rounded-xl border border-[var(--border)] p-4 flex items-start gap-3">
-            <div className="w-10 h-10 rounded-full bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
-              <Tag className="w-5 h-5 text-[var(--accent)]" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-medium text-[var(--fg)] text-sm truncate">{promo.name}</p>
-              {promo.description && (
-                <p className="text-xs text-[var(--fg-muted)] mt-0.5 line-clamp-2">{promo.description}</p>
-              )}
-            </div>
+          <div key={promo.id} className="bg-[var(--card)] rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 p-4">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)] mb-1 block">
+              {TYPE_LABELS[promo.type] ?? promo.type}
+            </span>
+            <p className="font-semibold text-[var(--fg)] text-sm mb-1">{promo.name}</p>
+            {promo.description && (
+              <p className="text-xs text-[var(--fg-muted)] line-clamp-2 mb-2">{promo.description}</p>
+            )}
+            {/* H3: show discount value */}
+            {promo.discountPercent != null && (
+              <p className="text-lg font-bold text-[var(--accent)] mb-2">{promo.discountPercent}% off</p>
+            )}
+            {promo.discountAmount != null && (
+              <p className="text-lg font-bold text-[var(--accent)] mb-2">${promo.discountAmount} off</p>
+            )}
+            {/* H3: Use this offer CTA */}
+            <Link
+              href={`/${tenantSlug}/${branchSlug}/menu`}
+              className="inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] hover:underline"
+            >
+              Use this offer →
+            </Link>
           </div>
         ))}
       </div>
@@ -334,15 +485,32 @@ function PromotionsSection({ promotions, tenantSlug, branchSlug }: { promotions:
 
 // ── Gallery ───────────────────────────────────────────────────────────────────
 
-function GallerySection({ images }: { images: string[] }) {
+function GallerySection({ images, label }: { images: string[]; label: string }) {
   if (!images.length) return null
   return (
-    <section>
-      <h2 className="text-xl font-semibold text-[var(--fg)] mb-4">Gallery</h2>
+    <section aria-labelledby="gallery-heading">
+      {/* H6: upgraded heading; C4: label makes source clear ("Business Gallery" vs branch) */}
+      <h2
+        id="gallery-heading"
+        className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
+      >
+        {label}
+      </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {images.slice(0, 6).map((url, i) => (
-          <div key={i} className="aspect-square rounded-xl overflow-hidden">
-            <img src={url} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" aria-hidden="true" />
+          // H10: next/image for gallery
+          <div
+            key={i}
+            className="relative aspect-square rounded-xl overflow-hidden bg-[var(--bg-secondary)]"
+          >
+            <Image
+              src={url}
+              alt=""
+              aria-hidden="true"
+              fill
+              className="object-cover hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 50vw, 33vw"
+            />
           </div>
         ))}
       </div>
@@ -350,18 +518,39 @@ function GallerySection({ images }: { images: string[] }) {
   )
 }
 
+// ── Rating Summary ────────────────────────────────────────────────────────────
+
+function RatingSummary({ rating, reviewCount }: { rating?: number; reviewCount?: number }) {
+  if (!rating) return null
+  return (
+    <div className="flex items-center gap-2 p-4 bg-[var(--card)] rounded-2xl border border-[var(--border)]">
+      <Star className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0" aria-hidden="true" />
+      <div>
+        <span className="font-bold text-[var(--fg)] text-lg">{rating.toFixed(1)}</span>
+        {reviewCount != null && (
+          <span className="text-sm text-[var(--fg-muted)] ml-1.5">({reviewCount.toLocaleString()} reviews)</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Loading skeleton ──────────────────────────────────────────────────────────
 
 function BranchSkeleton() {
   return (
-    <div className="animate-pulse">
-      <div className="h-64 bg-gray-200 dark:bg-gray-700" />
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+    <>
+      <Header />
+      <div className="animate-pulse">
+        <div className="h-[45vh] min-h-[300px] bg-[var(--card)]" aria-hidden="true" />
+        <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+          <div className="h-8 bg-[var(--card)] rounded-xl w-1/3" />
+          <div className="h-4 bg-[var(--card)] rounded-xl w-1/2" />
+          <div className="h-4 bg-[var(--card)] rounded-xl w-2/3" />
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   )
 }
 
@@ -407,18 +596,14 @@ interface Props {
 
 export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) {
   const { data: tenant, isLoading: tenantLoading } = usePublicTenant(tenantSlug)
-  // usePublicBranch returns PublicBranchInfo | null (properly typed via useQuery<PublicBranchInfo | null>)
   const { data: branch, isLoading: branchLoading } = usePublicBranch(tenantSlug, branchSlug)
-  // useCategories returns Category[] directly (not paginated)
   const { data: categories = [] } = useCategories()
-  // useMenuItems returns PaginatedResponse<MenuItem>
   const { data: menuItemsPage } = useMenuItems()
   const { data: promotions = [] } = useActivePromotions()
 
   const menuItems: MenuItem[] = menuItemsPage?.results ?? []
 
   if (tenantLoading || branchLoading) return <BranchSkeleton />
-  // After this guard, branch is PublicBranchInfo (not null/undefined)
   if (!tenant || !branch) return <BranchNotFound tenantSlug={tenantSlug} />
 
   const meta = getMarketplaceMeta(tenant.settings)
@@ -427,24 +612,36 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
     (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor ?? '#e85d04'
 
   const allBranches = meta?.branches ?? []
-  const gallery = meta?.gallery ?? []
+  const tenantGallery = meta?.gallery ?? []
   const rating = meta?.rating
   const reviewCount = meta?.reviewCount
+
+  // C4: use branch.image as the branch-specific photo if available;
+  // label tenant gallery clearly so it doesn't imply branch-specific imagery
+  const branchPhotos = branch.image ? [branch.image] : []
+  const hasGallery = tenantGallery.length > 0
 
   return (
     <>
       <Header />
       <Breadcrumb tenantSlug={tenantSlug} tenantName={tenant.name} branchName={branch.name} />
-      <HeroSection branch={branch} tenant={tenant} accentColor={accentColor} />
-      <QuickActions branch={branch} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+      <HeroSection
+        branch={branch}
+        tenant={tenant}
+        accentColor={accentColor}
+        tenantSlug={tenantSlug}
+        branchSlug={branchSlug}
+      />
+      <QuickActions branch={branch} tenant={tenant} tenantSlug={tenantSlug} branchSlug={branchSlug} />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-10">
+            {/* Trust signal near top */}
+            <RatingSummary rating={rating} reviewCount={reviewCount} />
             <FeaturedMenuSection items={menuItems} tenantSlug={tenantSlug} branchSlug={branchSlug} />
             <CategoriesSection categories={categories} tenantSlug={tenantSlug} branchSlug={branchSlug} />
-            <PromotionsSection promotions={promotions as PromotionRule[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />
             <ReviewsSection
               tenantId={tenant.id}
               tenantSlug={tenantSlug}
@@ -452,7 +649,14 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
               initialRating={rating}
               initialReviewCount={reviewCount}
             />
-            {gallery.length > 0 && <GallerySection images={gallery} />}
+            {/* C4: Branch-specific photo first, then labeled tenant gallery */}
+            {branchPhotos.length > 0 && (
+              <GallerySection images={branchPhotos} label="This Location" />
+            )}
+            {hasGallery && (
+              <GallerySection images={tenantGallery} label="Business Gallery" />
+            )}
+            <PromotionsSection promotions={promotions as PromotionRule[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />
           </div>
 
           {/* Sidebar */}
