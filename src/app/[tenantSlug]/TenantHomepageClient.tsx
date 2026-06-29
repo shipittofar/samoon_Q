@@ -8,7 +8,7 @@ import {
   UtensilsCrossed, Tag, Share2, Check, ExternalLink,
   ChevronRight, Store, ArrowLeft, Wifi, ParkingSquare, Wind,
 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
+import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn } from '@/utils'
@@ -723,7 +723,7 @@ function GallerySection({ meta }: { meta: MarketplaceMeta }) {
 function LoadingSkeleton() {
   return (
     <>
-      <Header />
+      <TenantHeader />
       <div className="animate-pulse">
         <div className="h-[55vh] min-h-[340px] bg-[var(--card)]" aria-hidden="true" />
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-6">
@@ -740,7 +740,7 @@ function LoadingSkeleton() {
 function TenantNotFoundState() {
   return (
     <>
-      <Header />
+      <TenantHeader />
       <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
         <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6" aria-hidden="true" />
         <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">Business not found</h1>
@@ -777,7 +777,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
 
   return (
     <>
-      <Header />
+      <TenantHeader />
 
       <Breadcrumb name={tenant.name} />
 

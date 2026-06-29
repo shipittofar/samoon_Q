@@ -8,7 +8,7 @@ import {
   UtensilsCrossed, Tag, Share2, Check,
   ArrowLeft, Store,
 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
+import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn } from '@/utils'
@@ -540,7 +540,7 @@ function RatingSummary({ rating, reviewCount }: { rating?: number; reviewCount?:
 function BranchSkeleton() {
   return (
     <>
-      <Header />
+      <TenantHeader />
       <div className="animate-pulse">
         <div className="h-[45vh] min-h-[300px] bg-[var(--card)]" aria-hidden="true" />
         <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
@@ -559,7 +559,7 @@ function BranchSkeleton() {
 function BranchNotFound({ tenantSlug }: { tenantSlug: string }) {
   return (
     <>
-      <Header />
+      <TenantHeader />
       <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
         <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6" aria-hidden="true" />
         <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">Branch not found</h1>
@@ -623,7 +623,7 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
 
   return (
     <>
-      <Header />
+      <TenantHeader />
       <Breadcrumb tenantSlug={tenantSlug} tenantName={tenant.name} branchName={branch.name} />
       <HeroSection
         branch={branch}

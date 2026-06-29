@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, List, Sparkles } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
+import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -146,7 +146,7 @@ export function MenuContent() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <Header />
+      <TenantHeader />
       <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 

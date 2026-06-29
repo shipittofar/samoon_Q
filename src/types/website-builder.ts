@@ -134,6 +134,7 @@ export interface HomepageLayout {
   brandTheme?: BrandThemeName      // P8.8.6.1 opinionated theme
   heroConfig?: HeroConfig          // P8.8.6.1 opinionated hero
   sectionTemplates?: SectionTemplates  // P8.8.6.1 per-section templates
+  navItems?: TenantNavItemConfig[] // P8.8.11.1 owner-configurable nav order/visibility
 }
 
 export interface BranchContentOverrides {
@@ -158,6 +159,37 @@ export const DEFAULT_THEME: ThemeSettings = {
   cardStyle: 'elevated',
   darkModePreference: 'system',
 }
+
+// ── P8.8.11.1 — Tenant Navigation Configuration ───────────────────────────────
+
+/**
+ * A single entry in the owner-configurable tenant navigation.
+ * Owners select from a curated list of keys — no free-form URL editing.
+ * The key maps to a known route segment that the TenantHeader converts to
+ * a branch-aware full path at render time.
+ */
+export interface TenantNavItemConfig {
+  /** Curated nav key — matches a route segment or special key ('discover', 'locations'). */
+  key: string
+  /** Whether this item is visible in the navigation. */
+  enabled: boolean
+  /** Display order (ascending). */
+  order: number
+  /** Optional custom label override (e.g., owner renames "Menu" → "Our Menu"). */
+  label?: string
+}
+
+/** Default nav configuration — mirrors the module registry navItems order. */
+export const DEFAULT_TENANT_NAV: TenantNavItemConfig[] = [
+  { key: 'discover',     enabled: true,  order: 0 },
+  { key: 'menu',         enabled: true,  order: 1 },
+  { key: 'locations',    enabled: false, order: 2 },
+  { key: 'reservation',  enabled: true,  order: 3 },
+  { key: 'gallery',      enabled: false, order: 4 },
+  { key: 'reviews',      enabled: true,  order: 5 },
+  { key: 'about',        enabled: true,  order: 6 },
+  { key: 'contact',      enabled: false, order: 7 },
+]
 
 export const DEFAULT_LAYOUT: HomepageLayout = {
   sections: DEFAULT_SECTIONS,
