@@ -15,7 +15,7 @@ import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 const PLATFORM_NAV: NavItem[] = [
   { href: '/discover', label: 'Discover' },
   { href: '/reservation', label: 'Reservations' },
-  { href: '/restaurant', label: 'About' },
+  { href: '/restaurant', label: 'For Business' },
 ]
 import { cn, formatCurrency } from '@/utils'
 import { Avatar } from '@/components/ui'
@@ -55,6 +55,10 @@ export function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  // True only on the landing page before the user scrolls — the header is
+  // transparent over the dark hero image, so we flip all text to white for
+  // WCAG AA contrast (dark tokens on dark background = ~1:1 contrast ratio).
+  const isTransparentHero = pathname === '/' && !scrolled
 
   const cartCount = getItemCount()
 
@@ -75,6 +79,14 @@ export function Header() {
   }
 
   return (
+    <>
+      {/* Skip-to-content — WCAG 2.4.1 Level A. Visually hidden until focused. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
     <header
       className={cn(
         'fixed top-0 inset-x-0 z-40 transition-all duration-300',
@@ -101,7 +113,12 @@ export function Header() {
                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
                   <span className="text-white text-sm font-bold">S</span>
                 </div>
-                <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors">
+                <span className={cn(
+                  'font-[var(--font-display)] text-xl font-bold transition-colors',
+                  isTransparentHero
+                    ? 'text-white group-hover:text-orange-300'
+                    : 'text-[var(--fg)] group-hover:text-orange-500',
+                )}>
                   Savor
                 </span>
               </>
@@ -109,7 +126,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -117,8 +134,12 @@ export function Header() {
                 className={cn(
                   'px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                   pathname.startsWith(link.href)
-                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
-                    : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
+                    ? isTransparentHero
+                      ? 'bg-white/15 text-white'
+                      : 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
+                    : isTransparentHero
+                      ? 'text-white/80 hover:text-white hover:bg-white/10'
+                      : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
                 )}
               >
                 {link.label}
@@ -134,7 +155,7 @@ export function Header() {
               size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               aria-label="Toggle theme"
-              className="hidden sm:flex"
+              className={cn('hidden sm:flex', isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
             >
               <AnimatePresence mode="wait">
                 {theme === 'dark' ? (
@@ -156,6 +177,7 @@ export function Header() {
                 size="icon"
                 onClick={() => setLangMenuOpen((v) => !v)}
                 aria-label="Change language"
+                className={cn(isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
               >
                 <Globe className="h-4 w-4" />
               </Button>
@@ -210,7 +232,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setCartOpen(true)}
-              className="relative"
+              className={cn('relative', isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
               aria-label={`Cart with ${cartCount} items`}
             >
               <ShoppingCart className="h-4 w-4" />
@@ -277,8 +299,23 @@ export function Header() {
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-2">
-                <Link href="/login"><Button variant="ghost" size="sm">Sign In</Button></Link>
-                <Link href="/register"><Button size="sm">Get Started</Button></Link>
+                <Link href="/login">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button
+                    size="sm"
+                    className={cn(isTransparentHero && 'bg-white/15 border border-white/30 text-white hover:bg-white/25 shadow-none')}
+                  >
+                    Get Started
+                  </Button>
+                </Link>
               </div>
             )}
 
@@ -299,7 +336,7 @@ export function Header() {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-[var(--card)] border-b border-[var(--border)] overflow-hidden"
           >
-            <nav className="px-4 py-3 flex flex-col gap-1">
+            <nav className="px-4 py-3 flex flex-col gap-1" aria-label="Mobile navigation">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -340,5 +377,6 @@ export function Header() {
         )}
       </AnimatePresence>
     </header>
+    </>
   )
 }

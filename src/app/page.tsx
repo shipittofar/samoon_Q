@@ -75,7 +75,7 @@ export default function HomePage() {
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      <section id="main-content" className="relative min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920&q=80"
@@ -98,8 +98,8 @@ export default function HomePage() {
             </div>
 
             <h1 className="font-[var(--font-display)] text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-5">
-              Find Great
-              <span className="block text-orange-400">Restaurants</span>
+              Discover
+              <span className="block text-orange-400">Local Businesses</span>
               Near You.
             </h1>
             <p className="text-lg text-white/70 mb-8 leading-relaxed max-w-lg">
@@ -109,8 +109,10 @@ export default function HomePage() {
             {/* Search form — GET /discover?q= */}
             <form action="/discover" method="GET" className="flex gap-2 mb-6 max-w-lg">
               <div className="flex-1 relative">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" aria-hidden="true" />
+                <label htmlFor="hero-search" className="sr-only">Search for restaurants, cafés, bars, and more</label>
                 <input
+                  id="hero-search"
                   type="text"
                   name="q"
                   placeholder="Search restaurants, cafés, bars…"
@@ -159,7 +161,7 @@ export default function HomePage() {
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
           <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/40" />
-          <span className="text-white/40 text-xs">Scroll</span>
+          <span className="text-white/60 text-xs">Scroll</span>
         </div>
       </section>
 

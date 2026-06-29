@@ -24,7 +24,7 @@ const LINKS = {
     { label: 'About Savor', href: '/restaurant' },
     { label: 'Support', href: '/restaurant' },
     { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
   ],
 }
 
