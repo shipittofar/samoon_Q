@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Minus, Plus, Trash2, Tag, ShoppingBag, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useCartStore } from '@/stores'
+import { useRouter } from 'next/navigation'
+import { useCartStore, useTenantStore, useBranchStore } from '@/stores'
 import { useValidateDiscount } from '@/hooks'
 import { Drawer } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
@@ -78,6 +79,20 @@ export function CartDrawer() {
   const { items, isOpen, setOpen, discountCode, discountAmount, setDiscount, clearCart, getSubtotal, getTax, getServiceCharge, getTotal } = useCartStore()
   const { mutate: validateDiscount, isPending: validating } = useValidateDiscount()
   const [codeInput, setCodeInput] = useState(discountCode || '')
+  const router = useRouter()
+  const tenantSlug = useTenantStore((s) => s.tenant?.slug)
+  const branchSlug = useBranchStore((s) => s.activeBranch?.slug)
+
+  const handleBrowseMenu = () => {
+    setOpen(false)
+    if (tenantSlug && branchSlug) {
+      router.push(`/${tenantSlug}/${branchSlug}/menu`)
+    } else if (tenantSlug) {
+      router.push(`/${tenantSlug}`)
+    } else {
+      router.push('/discover')
+    }
+  }
 
   const subtotal = getSubtotal()
   const tax = getTax()
@@ -114,7 +129,7 @@ export function CartDrawer() {
               <h3 className="font-semibold text-[var(--fg)] mb-1">Your cart is empty</h3>
               <p className="text-sm text-[var(--fg-muted)]">Add some delicious items from our menu</p>
             </div>
-            <Button onClick={() => setOpen(false)} variant="outline">
+            <Button onClick={handleBrowseMenu} variant="outline">
               Browse Menu
             </Button>
           </div>

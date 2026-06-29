@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, List, Sparkles } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
@@ -13,7 +13,7 @@ import { LazyFoodDetailModal } from '@/components/menu/LazyFoodDetailModal'
 import { FoodCardSkeleton, Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useCategories, useMenuItems } from '@/hooks'
-import { useRecentlyViewedStore } from '@/stores'
+import { useRecentlyViewedStore, useCartStore, useTenantStore, useBranchStore } from '@/stores'
 import { cn, debounce } from '@/utils'
 import type { MenuItem } from '@/types'
 import type { MenuFilters } from '@/services/menu.service'
@@ -26,9 +26,19 @@ const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest' },
 ]
 
+const DIETARY_TAGS = [
+  { label: '🌱 Vegan', tag: 'vegan' },
+  { label: '🥗 Vegetarian', tag: 'vegetarian' },
+  { label: '✡ Halal', tag: 'halal' },
+  { label: '🌾 Gluten-Free', tag: 'gluten-free' },
+  { label: '🌶 Spicy', tag: 'spicy' },
+]
+
 export function MenuContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  // C1: use pathname for correct relative URL building
+  const pathname = usePathname()
   const categoryFromUrl = searchParams.get('category') || ''
 
   const [activeCategory, setActiveCategory] = useState(categoryFromUrl)
@@ -40,10 +50,17 @@ export function MenuContent() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100])
   const [minRating, setMinRating] = useState(0)
   const [onlyAvailable, setOnlyAvailable] = useState(false)
+  // C2/H5: dietary quick-filters
+  const [activeDietaryTags, setActiveDietaryTags] = useState<string[]>([])
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const categoryBarRef = useRef<HTMLDivElement>(null)
   const { items: recentlyViewed } = useRecentlyViewedStore()
+  // H1: detect cart for bottom padding
+  const cartCount = useCartStore((s) => s.getItemCount())
+  // H7: tenant/branch name for heading
+  const tenantName = useTenantStore((s) => s.tenant?.name)
+  const branchName = useBranchStore((s) => s.activeBranch?.name)
 
   const debouncedSetSearch = useCallback(
     debounce((v: string) => setDebouncedSearch(v), 350),
@@ -68,19 +85,42 @@ export function MenuContent() {
   }
 
   const { data, isLoading } = useMenuItems(filters)
-  const items = data?.results || []
+  const allItems = data?.results || []
+
+  // C2: filter by dietary tags client-side (item.tags)
+  const items = activeDietaryTags.length > 0
+    ? allItems.filter((item) =>
+        activeDietaryTags.every((tag) =>
+          (item.tags ?? []).some((t) => t.toLowerCase() === tag.toLowerCase()),
+        ),
+      )
+    : allItems
 
   const handleCategoryChange = (slug: string) => {
     setActiveCategory(slug)
     const params = new URLSearchParams(searchParams.toString())
     if (slug) params.set('category', slug)
     else params.delete('category')
-    router.replace(`/menu?${params.toString()}`, { scroll: false })
+    // C1: use pathname (current route) not hardcoded '/menu'
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
+
+  // H2: scroll active category tab into view
+  useEffect(() => {
+    if (!categoryBarRef.current) return
+    const active = categoryBarRef.current.querySelector('[aria-selected="true"]') as HTMLElement | null
+    active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+  }, [activeCategory])
 
   const handleOpenDetail = (item: MenuItem) => {
     setSelectedItem(item)
     setModalOpen(true)
+  }
+
+  const toggleDietaryTag = (tag: string) => {
+    setActiveDietaryTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+    )
   }
 
   const clearFilters = () => {
@@ -91,10 +131,18 @@ export function MenuContent() {
     setSearch('')
     setDebouncedSearch('')
     setActiveCategory('')
+    setActiveDietaryTags([])
   }
 
   const hasActiveFilters =
-    priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || onlyAvailable || !!debouncedSearch
+    priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || onlyAvailable || !!debouncedSearch || activeDietaryTags.length > 0
+
+  // H7: compose page heading
+  const pageHeading = branchName
+    ? `${branchName} Menu`
+    : tenantName
+      ? `${tenantName} Menu`
+      : 'Our Full Menu'
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -104,11 +152,12 @@ export function MenuContent() {
 
       {/* Hero */}
       <div className="pt-16 bg-gradient-to-b from-orange-50/80 to-transparent dark:from-orange-950/20 dark:to-transparent">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="text-center mb-8">
             <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Explore</p>
+            {/* H7: tenant/branch-aware heading */}
             <h1 className="font-[var(--font-display)] text-4xl sm:text-5xl font-bold text-[var(--fg)] mb-3">
-              Our Full Menu
+              {pageHeading}
             </h1>
             <p className="text-[var(--fg-muted)] max-w-lg mx-auto">
               Discover {data?.count || '...'} handcrafted dishes made with the finest ingredients.
@@ -118,7 +167,7 @@ export function MenuContent() {
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
             <div className="relative">
-              <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+              <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" aria-hidden="true" />
               <input
                 type="search"
                 value={search}
@@ -163,7 +212,7 @@ export function MenuContent() {
               )}
             >
               ✨ All
-              {data && <Badge variant={activeCategory === '' ? 'secondary' : 'secondary'} className="text-[10px]">{data.count}</Badge>}
+              {data && <Badge variant="secondary" className="text-[10px]">{data.count}</Badge>}
             </button>
 
             {catsLoading
@@ -183,13 +232,33 @@ export function MenuContent() {
                         : 'bg-[var(--card)] text-[var(--fg-muted)] hover:text-[var(--fg)] border border-[var(--border)] hover:border-orange-200',
                     )}
                   >
-                    {cat.icon && <span>{cat.icon}</span>}
+                    {cat.icon && <span aria-hidden="true">{cat.icon}</span>}
                     {cat.name}
                     {cat.items_count !== undefined && (
                       <Badge variant="secondary" className="text-[10px]">{cat.items_count}</Badge>
                     )}
                   </button>
                 ))}
+          </div>
+
+          {/* H5: Dietary quick-filter chips */}
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2" role="group" aria-label="Dietary filters">
+            {DIETARY_TAGS.map(({ label, tag }) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => toggleDietaryTag(tag)}
+                aria-pressed={activeDietaryTags.includes(tag)}
+                className={cn(
+                  'whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 border',
+                  activeDietaryTags.includes(tag)
+                    ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                    : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)] hover:border-orange-300 hover:text-[var(--fg)]',
+                )}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           {/* Toolbar */}
@@ -202,8 +271,11 @@ export function MenuContent() {
                 leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
               >
                 Filters
-                {hasActiveFilters && (
-                  <span className="ms-1 h-4 w-4 rounded-full bg-white/30 text-[10px] font-bold flex items-center justify-center">!</span>
+                {/* H2 (filter count): show count of active non-dietary filters */}
+                {(priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || onlyAvailable) && (
+                  <span className="ms-1 h-4 w-4 rounded-full bg-white/30 text-[10px] font-bold flex items-center justify-center">
+                    {[priceRange[0] > 0, priceRange[1] < 100, minRating > 0, onlyAvailable].filter(Boolean).length}
+                  </span>
                 )}
               </Button>
               {hasActiveFilters && (
@@ -226,7 +298,7 @@ export function MenuContent() {
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute end-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--fg-muted)] pointer-events-none" />
+                <ChevronDown className="absolute end-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--fg-muted)] pointer-events-none" aria-hidden="true" />
               </div>
 
               {/* View mode */}
@@ -240,6 +312,7 @@ export function MenuContent() {
                       viewMode === mode ? 'bg-orange-500 text-white' : 'bg-[var(--card)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
                     )}
                     aria-label={`${mode} view`}
+                    aria-pressed={viewMode === mode}
                   >
                     {mode === 'grid' ? <Grid3X3 className="h-3.5 w-3.5" /> : <List className="h-3.5 w-3.5" />}
                   </button>
@@ -267,8 +340,8 @@ export function MenuContent() {
                     Price Range: ${priceRange[0]} – ${priceRange[1] >= 100 ? '100+' : priceRange[1]}
                   </label>
                   <div className="flex items-center gap-3">
-                    <input type="range" min={0} max={100} value={priceRange[0]} onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])} className="flex-1 accent-orange-500" />
-                    <input type="range" min={0} max={100} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], +e.target.value])} className="flex-1 accent-orange-500" />
+                    <input type="range" min={0} max={100} value={priceRange[0]} onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])} className="flex-1 accent-orange-500" aria-label="Minimum price" />
+                    <input type="range" min={0} max={100} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], +e.target.value])} className="flex-1 accent-orange-500" aria-label="Maximum price" />
                   </div>
                 </div>
 
@@ -319,13 +392,13 @@ export function MenuContent() {
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* H1: pb-28 when floating cart is visible to prevent overlap */}
+      <main className={cn('max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10', cartCount > 0 && 'pb-28')}>
         {/* Recently Viewed */}
         {recentlyViewed.length > 0 && !debouncedSearch && !activeCategory && (
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="h-4 w-4 text-orange-500" />
+              <Sparkles className="h-4 w-4 text-orange-500" aria-hidden="true" />
               <h2 className="text-sm font-semibold text-[var(--fg)]">Recently Viewed</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -338,24 +411,41 @@ export function MenuContent() {
 
         {/* Results */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-sm text-[var(--fg-muted)]">
+          <p className="text-sm text-[var(--fg-muted)]" aria-live="polite" aria-atomic="true">
             {isLoading ? 'Loading…' : `${items.length} ${items.length === 1 ? 'item' : 'items'} found`}
-          </h2>
+          </p>
         </div>
 
         {isLoading ? (
-          <div className={cn('grid gap-6', viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1')}>
-            {Array.from({ length: 8 }).map((_, i) => <FoodCardSkeleton key={i} />)}
+          <div className={cn('grid gap-6', viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3' : 'grid-cols-1')}>
+            {Array.from({ length: 9 }).map((_, i) => <FoodCardSkeleton key={i} />)}
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-            <span className="text-5xl">🍽️</span>
+            <span className="text-5xl" aria-hidden="true">🍽️</span>
             <h3 className="font-[var(--font-display)] text-xl font-semibold text-[var(--fg)]">No dishes found</h3>
             <p className="text-[var(--fg-muted)] max-w-sm">
               {debouncedSearch
                 ? `No results for "${debouncedSearch}". Try different keywords.`
                 : 'No items match your current filters.'}
             </p>
+            {/* H3: category shortcuts in empty state */}
+            {debouncedSearch && categories && categories.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-[var(--fg-muted)] mb-3">Browse by category instead:</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {categories.slice(0, 4).map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => { handleSearch(''); handleCategoryChange(cat.slug) }}
+                      className="px-3 py-1.5 rounded-full border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:border-orange-300 hover:text-[var(--fg)] transition-colors"
+                    >
+                      {cat.icon && <span aria-hidden="true">{cat.icon} </span>}{cat.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
           </div>
         ) : (
@@ -364,7 +454,8 @@ export function MenuContent() {
             className={cn(
               'grid gap-6',
               viewMode === 'grid'
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                // M4: cap at 3 columns (was xl:grid-cols-4)
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
                 : 'grid-cols-1 max-w-2xl',
             )}
           >
@@ -376,7 +467,8 @@ export function MenuContent() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ delay: i * 0.04 }}
+                  // H8: cap stagger delay at 200ms
+                  transition={{ delay: Math.min(i * 0.04, 0.2) }}
                 >
                   <FoodCard
                     item={item}
@@ -397,6 +489,7 @@ export function MenuContent() {
         item={selectedItem}
         open={modalOpen}
         onClose={() => { setModalOpen(false); setTimeout(() => setSelectedItem(null), 300) }}
+        onOpenRelated={handleOpenDetail}
       />
     </div>
   )

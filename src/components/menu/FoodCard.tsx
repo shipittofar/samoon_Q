@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Heart, Plus, Clock, Flame, Star, ChefHat } from 'lucide-react'
+import { Heart, Plus, Clock, Flame, Star } from 'lucide-react'
 import { useCartStore, useFavoritesStore, useRecentlyViewedStore } from '@/stores'
 import { useToggleFavorite } from '@/hooks'
 import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
@@ -62,8 +62,14 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
           className,
         )}
       >
-        <div className="relative h-20 w-20 rounded-lg overflow-hidden shrink-0">
-          <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="80px" />
+        <div className="relative h-20 w-20 rounded-lg overflow-hidden shrink-0 bg-[var(--bg-secondary)]">
+          {item.image ? (
+            <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="80px" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-2xl opacity-30" aria-hidden="true">🍽️</span>
+            </div>
+          )}
           {!item.available && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
               <span className="text-white text-[10px] font-medium">Unavailable</span>
@@ -100,15 +106,21 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
         className,
       )}
     >
-      {/* Image */}
+      {/* Image — C3: fallback for missing image */}
       <div className="relative h-48 overflow-hidden">
-        <Image
-          src={item.image}
-          alt={item.name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-        />
+        {item.image ? (
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-950/30 dark:to-stone-900 flex items-center justify-center">
+            <span className="text-5xl opacity-30" aria-hidden="true">🍽️</span>
+          </div>
+        )}
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
@@ -162,9 +174,10 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
               <span className="text-[var(--fg-subtle)]">({item.rating_count})</span>
             )}
           </span>
+          {/* H6: friendlier prep time label */}
           <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
-            {item.preparation_time}m
+            <Clock className="h-3 w-3" aria-hidden="true" />
+            ~{item.preparation_time} min
           </span>
           {item.calories && (
             <span className="flex items-center gap-1">
@@ -192,9 +205,8 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
               leftIcon={addedAnim ? <span>✓</span> : <Plus className="h-3.5 w-3.5" />}
               className={cn(addedAnim && 'bg-emerald-500 hover:bg-emerald-500')}
             >
-              {item.extras && item.extras.length > 0 ? (
-                <><ChefHat className="h-3.5 w-3.5" /> Customize</>
-              ) : addedAnim ? 'Added!' : 'Add'}
+              {/* H4: "Add" label for all items — customization opens naturally in the modal */}
+              {addedAnim ? 'Added!' : 'Add'}
             </Button>
           </motion.div>
         </div>

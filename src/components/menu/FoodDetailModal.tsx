@@ -19,9 +19,11 @@ interface FoodDetailModalProps {
   item: MenuItem | null
   open: boolean
   onClose: () => void
+  /** C4/H9: callback to open a related item in the same modal */
+  onOpenRelated?: (item: MenuItem) => void
 }
 
-export function FoodDetailModal({ item, open, onClose }: FoodDetailModalProps) {
+export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDetailModalProps) {
   const { addItem } = useCartStore()
   const { isFavorite, toggleFavorite } = useFavoritesStore()
   const { mutate: toggleFav } = useToggleFavorite()
@@ -353,8 +355,9 @@ export function FoodDetailModal({ item, open, onClose }: FoodDetailModalProps) {
         <div className="border-t border-[var(--border)] p-6">
           <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] mb-4">You might also like</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {/* C4/H9: wire onOpenRelated so related items open in the modal */}
             {related.slice(0, 4).map((rel) => (
-              <FoodCard key={rel.id} item={rel} compact />
+              <FoodCard key={rel.id} item={rel} compact onOpenDetail={onOpenRelated} />
             ))}
           </div>
         </div>
