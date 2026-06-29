@@ -161,7 +161,7 @@ export function DiscoveryPreview() {
           <div>
             <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Explore</p>
             <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">
-              Businesses Near You
+              Popular on Savor
             </h2>
             <p className="text-[var(--fg-muted)] mt-2">Restaurants, cafés, bars, and more — all on Savor</p>
           </div>
@@ -184,7 +184,7 @@ export function DiscoveryPreview() {
             href="/discover"
             className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
           >
-            Discover All Businesses <ArrowRight className="h-4 w-4" />
+            Browse All 500+ Businesses <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>

@@ -4,15 +4,15 @@ import { ArrowRight, BarChart3, QrCode, Users, Star, Layers, Zap } from 'lucide-
 const BENEFITS = [
   { icon: BarChart3, title: 'Real-time Analytics', description: 'Track orders, revenue, and customer trends across all your branches from one dashboard.' },
   { icon: QrCode, title: 'QR Table Ordering', description: 'Let guests scan and order directly from their table — no app download required.' },
-  { icon: Users, title: 'Staff & RBAC', description: 'Fine-grained role-based access control for managers, chefs, cashiers, and staff.' },
+  { icon: Users, title: 'Team Management', description: 'Fine-grained role-based access for managers, chefs, cashiers, and staff.' },
   { icon: Star, title: 'Loyalty Programs', description: 'Build and reward your regulars with points, tiers, and custom loyalty campaigns.' },
   { icon: Layers, title: 'Multi-Branch Ready', description: 'Manage unlimited branches, each with its own menu, hours, and inventory.' },
-  { icon: Zap, title: 'Kitchen Display System', description: 'Stream incoming orders directly to your kitchen display in real time.' },
+  { icon: Zap, title: 'Live Order Display', description: 'Stream incoming orders directly to your kitchen display in real time.' },
 ]
 
 export function ForBusinessOwners() {
   return (
-    <section className="py-20 bg-[var(--bg)]">
+    <section className="py-20 bg-[var(--bg-secondary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left — copy */}
@@ -37,7 +37,7 @@ export function ForBusinessOwners() {
                 href="/restaurant"
                 className="inline-flex items-center gap-2 border border-[var(--border)] hover:border-orange-300 text-[var(--fg)] font-semibold px-5 py-3 rounded-2xl transition-all hover:-translate-y-0.5"
               >
-                Learn More
+                See All Features
               </Link>
             </div>
           </div>

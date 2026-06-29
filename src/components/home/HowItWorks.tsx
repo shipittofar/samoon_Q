@@ -44,7 +44,7 @@ export function HowItWorks() {
             How It Works
           </h2>
           <p className="text-[var(--fg-muted)] max-w-xl mx-auto">
-            From discovery to your first meal — three easy steps.
+            Your next great meal, three steps away.
           </p>
         </div>
 

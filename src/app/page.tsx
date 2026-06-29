@@ -12,6 +12,7 @@ import { DiscoveryPreview } from '@/components/home/DiscoveryPreview'
 import { HowItWorks } from '@/components/home/HowItWorks'
 import { ForBusinessOwners } from '@/components/home/ForBusinessOwners'
 import { PlatformFeatures } from '@/components/home/PlatformFeatures'
+import { PlatformTestimonials } from '@/components/home/PlatformTestimonials'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
@@ -96,7 +97,7 @@ export default function HomePage() {
             {/* Pill */}
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
               <Building2 className="h-3.5 w-3.5 text-orange-400" />
-              <span className="text-sm text-white/90 font-medium">500+ businesses on Savor</span>
+              <span className="text-sm text-white/90 font-medium">Search · Book · Order — one platform</span>
             </div>
 
             <h1 className="font-[var(--font-display)] text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-5">
@@ -157,7 +158,7 @@ export default function HomePage() {
               {/* Business-owner path — text link so it doesn't compete with the customer CTA */}
               <Link
                 href="/restaurant"
-                className="text-sm text-white/60 hover:text-white transition-colors underline underline-offset-4"
+                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white/85 hover:text-white text-sm font-medium px-4 py-2.5 rounded-2xl transition-all"
               >
                 Are you a business owner?
               </Link>
@@ -226,6 +227,9 @@ export default function HomePage() {
           platform homepage because it shows menu items from a single restaurant
           (DEFAULT tenant), which breaks the multi-business marketplace positioning. */}
       {/* <FeaturedSection /> */}
+
+      {/* ── Testimonials & Trust ─────────────────────────────────────────── */}
+      <PlatformTestimonials />
 
       {/* ── For Business Owners ──────────────────────────────────────────── */}
       <ForBusinessOwners />
