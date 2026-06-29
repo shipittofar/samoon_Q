@@ -15,9 +15,9 @@ const STEPS = [
   {
     step: '02',
     icon: Store,
-    title: 'Choose a Branch',
+    title: 'Pick a Location',
     description:
-      'Pick the nearest location, check the menu, opening hours, and table availability in real time.',
+      'Choose the nearest spot, check the menu, opening hours, and table availability in real time.',
     cta: { label: 'See Locations', href: '/discover' },
     color: 'bg-blue-50 dark:bg-blue-950/20 text-blue-500',
     border: 'border-blue-200 dark:border-blue-900',

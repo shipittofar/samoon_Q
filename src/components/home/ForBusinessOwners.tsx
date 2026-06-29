@@ -39,12 +39,6 @@ export function ForBusinessOwners() {
               >
                 Learn More
               </Link>
-              <Link
-                href="/admin"
-                className="inline-flex items-center gap-2 border border-[var(--border)] hover:border-orange-300 text-[var(--fg-muted)] text-sm px-5 py-3 rounded-2xl transition-all"
-              >
-                Admin Preview
-              </Link>
             </div>
           </div>
 

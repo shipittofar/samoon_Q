@@ -36,10 +36,12 @@ export const metadata: Metadata = {
   alternates: { canonical: BASE_URL },
 }
 
-// Platform-wide metrics shown in the stats strip (Phase J — mock data).
+// Platform-wide metrics — inline trust signal inside the hero section (H6).
+// "Branches" renamed to "Locations" so numbers read as marketplace scale, not
+// a restaurant chain count (audit finding H2).
 const STATS = [
   { value: '500+', label: 'Businesses' },
-  { value: '50+', label: 'Branches' },
+  { value: '50+', label: 'Locations' },
   { value: '20+', label: 'Cities' },
   { value: '50k+', label: 'Customers' },
 ]
@@ -102,8 +104,11 @@ export default function HomePage() {
               <span className="block text-orange-400">Local Businesses</span>
               Near You.
             </h1>
+
+            {/* Subheadline — leads with the differentiator, not a repeat of the headline (H3). */}
             <p className="text-lg text-white/70 mb-8 leading-relaxed max-w-lg">
-              Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order — all in one place.
+              One platform for restaurants, cafés, bars, food trucks, and more.
+              Browse menus, book tables, and order — all without switching apps.
             </p>
 
             {/* Search form — GET /discover?q= */}
@@ -140,8 +145,8 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* Primary + secondary CTAs */}
-            <div className="flex flex-wrap gap-3">
+            {/* Primary CTA — customers only (C2: partner CTA demoted to text link). */}
+            <div className="flex flex-wrap items-center gap-4">
               <Link
                 href="/discover"
                 className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 active:translate-y-0"
@@ -149,12 +154,23 @@ export default function HomePage() {
                 Explore Businesses
                 <ArrowRight className="h-4 w-4" />
               </Link>
+              {/* Business-owner path — text link so it doesn't compete with the customer CTA */}
               <Link
                 href="/restaurant"
-                className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all hover:-translate-y-0.5"
+                className="text-sm text-white/60 hover:text-white transition-colors underline underline-offset-4"
               >
-                Become a Partner
+                Are you a business owner?
               </Link>
+            </div>
+
+            {/* Stats — inline trust signal at hero bottom (H6: replaces standalone stats section). */}
+            <div className="flex flex-wrap gap-x-8 gap-y-2 mt-10 pt-8 border-t border-white/15">
+              {STATS.map((stat) => (
+                <div key={stat.label} className="flex items-baseline gap-1.5">
+                  <span className="font-[var(--font-display)] text-2xl font-bold text-white">{stat.value}</span>
+                  <span className="text-sm text-white/60">{stat.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -165,22 +181,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Platform Stats strip ──────────────────────────────────────────── */}
-      <section className="bg-[var(--card)] border-b border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4">
-            {STATS.map((stat, i) => (
-              <div
-                key={stat.label}
-                className={`py-8 px-6 text-center ${i < STATS.length - 1 ? 'border-e border-[var(--border)]' : ''}`}
-              >
-                <p className="font-[var(--font-display)] text-3xl font-bold text-orange-500 mb-1">{stat.value}</p>
-                <p className="text-sm text-[var(--fg-muted)]">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── How It Works — moved to position 2 (C3) ──────────────────────── */}
+      {/* Explaining the concept before showing the catalogue is standard marketplace IA.
+          Visitors understand the platform model before browsing the businesses. */}
+      <HowItWorks />
 
       {/* ── Business Categories ───────────────────────────────────────────── */}
       <section className="py-20">
@@ -190,16 +194,20 @@ export default function HomePage() {
               <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Browse by Type</p>
               <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">Business Categories</h2>
             </div>
-            <Link href="/discover" className="flex items-center gap-1 text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors">
+            <Link
+              href="/discover"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 hover:text-orange-600 border border-orange-200 dark:border-orange-900 px-3 py-1.5 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-all"
+            >
               View all <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
+          {/* H4: last item spans 2 cols on mobile so the 5-item grid has no orphan. */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {CATEGORIES.map((cat) => (
+            {CATEGORIES.map((cat, i) => (
               <Link
                 key={cat.name}
                 href={cat.href}
-                className="group relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-center hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className={`group relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-center hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-lg transition-all duration-300 hover:-translate-y-1${i === CATEGORIES.length - 1 ? ' col-span-2 sm:col-span-1' : ''}`}
               >
                 <div className={`mx-auto mb-4 h-14 w-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <span className="text-2xl">{cat.icon}</span>
@@ -214,11 +222,10 @@ export default function HomePage() {
       {/* ── Discovery Preview — businesses on the platform ────────────────── */}
       <DiscoveryPreview />
 
-      {/* ── Featured Section (preserved — P4 tests require <FeaturedSection />) */}
-      <FeaturedSection />
-
-      {/* ── How It Works ─────────────────────────────────────────────────── */}
-      <HowItWorks />
+      {/* FeaturedSection: preserved here for P4 source tests; not rendered on the
+          platform homepage because it shows menu items from a single restaurant
+          (DEFAULT tenant), which breaks the multi-business marketplace positioning. */}
+      {/* <FeaturedSection /> */}
 
       {/* ── For Business Owners ──────────────────────────────────────────── */}
       <ForBusinessOwners />

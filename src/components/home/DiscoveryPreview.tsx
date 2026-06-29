@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Star, MapPin, ChevronRight, ArrowRight } from 'lucide-react'
 
 const BUSINESS_TYPE_LABELS: Record<string, string> = {
@@ -20,14 +21,15 @@ interface MockBusiness {
   location: string
   priceLevel: number
   tag: string
-  color: string
-  emoji: string
+  image: string
 }
 
+// H1: replaced emoji+gradient card headers with real Unsplash food photography.
+// Realistic images are a baseline trust requirement for any marketplace listing card.
 const MOCK_BUSINESSES: MockBusiness[] = [
   {
     id: '1',
-    name: 'Savor Fine Dining',
+    name: 'Maison Dorée',
     slug: 'savor',
     type: 'restaurant',
     rating: 4.9,
@@ -35,8 +37,7 @@ const MOCK_BUSINESSES: MockBusiness[] = [
     location: 'Downtown',
     priceLevel: 3,
     tag: 'Top Rated',
-    color: 'from-orange-400 to-red-500',
-    emoji: '🍽️',
+    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=75',
   },
   {
     id: '2',
@@ -48,8 +49,7 @@ const MOCK_BUSINESSES: MockBusiness[] = [
     location: 'Midtown',
     priceLevel: 1,
     tag: 'Trending',
-    color: 'from-amber-400 to-orange-400',
-    emoji: '☕',
+    image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=75',
   },
   {
     id: '3',
@@ -61,8 +61,7 @@ const MOCK_BUSINESSES: MockBusiness[] = [
     location: 'West Side',
     priceLevel: 2,
     tag: 'Popular',
-    color: 'from-slate-600 to-slate-800',
-    emoji: '🍺',
+    image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=75',
   },
   {
     id: '4',
@@ -74,8 +73,7 @@ const MOCK_BUSINESSES: MockBusiness[] = [
     location: 'City Center',
     priceLevel: 1,
     tag: 'Family Friendly',
-    color: 'from-blue-400 to-cyan-500',
-    emoji: '🏪',
+    image: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=600&q=75',
   },
   {
     id: '5',
@@ -87,8 +85,7 @@ const MOCK_BUSINESSES: MockBusiness[] = [
     location: 'Various Spots',
     priceLevel: 1,
     tag: 'New',
-    color: 'from-green-400 to-emerald-500',
-    emoji: '🚚',
+    image: 'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=600&q=75',
   },
   {
     id: '6',
@@ -100,8 +97,7 @@ const MOCK_BUSINESSES: MockBusiness[] = [
     location: 'East District',
     priceLevel: 1,
     tag: 'Budget Friendly',
-    color: 'from-pink-400 to-rose-500',
-    emoji: '🌮',
+    image: 'https://images.unsplash.com/photo-1551782450-17144efb9c50?w=600&q=75',
   },
 ]
 
@@ -113,10 +109,17 @@ function BusinessCard({ biz }: { biz: MockBusiness }) {
       href={`/${biz.slug}`}
       className="group bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col"
     >
-      {/* Header band */}
-      <div className={`h-28 bg-gradient-to-br ${biz.color} flex items-center justify-center relative`}>
-        <span className="text-5xl">{biz.emoji}</span>
-        <span className="absolute top-3 start-3 bg-white/20 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+      {/* Photo header */}
+      <div className="relative h-44 overflow-hidden">
+        <Image
+          src={biz.image}
+          alt={biz.name}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        <span className="absolute top-3 start-3 bg-black/40 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
           {biz.tag}
         </span>
       </div>

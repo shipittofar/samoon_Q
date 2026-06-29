@@ -1,15 +1,5 @@
-import {
-  UtensilsCrossed,
-  CalendarCheck,
-  QrCode,
-  Gift,
-  BarChart2,
-  Monitor,
-  CreditCard,
-  GitBranch,
-  Ticket,
-  PartyPopper,
-} from 'lucide-react'
+import Link from 'next/link'
+import { ArrowRight, UtensilsCrossed, CalendarCheck, QrCode, Gift, BarChart2, Monitor, CreditCard, GitBranch, Ticket, PartyPopper } from 'lucide-react'
 
 const FEATURES = [
   { icon: UtensilsCrossed, label: 'Online Menu', description: 'Beautiful digital menus with photos, descriptions, and dietary tags.' },
@@ -58,6 +48,20 @@ export function PlatformFeatures() {
               </div>
             )
           })}
+        </div>
+
+        {/* H5: closing CTA so the features section doesn't end cold. */}
+        <div className="mt-12 text-center">
+          <Link
+            href="/register"
+            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
+          >
+            Get Started Free
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <p className="mt-3 text-sm text-[var(--fg-muted)]">
+            No credit card required · Set up in minutes
+          </p>
         </div>
       </div>
     </section>
