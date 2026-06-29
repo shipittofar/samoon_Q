@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Star, MapPin, GitBranch, Calendar, Award, ChevronDown, ChevronUp } from 'lucide-react'
+import Image from 'next/image'
+import { Star, MapPin, Calendar, Award, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/utils'
 import type { Tenant } from '@/types'
 import { type MarketplaceMeta, BUSINESS_TYPE_LABELS } from '@/types/marketplace'
@@ -43,9 +44,16 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
   const hasReservations = featureFlags['reservations.enabled'] === true
   const hasLoyalty = Object.entries(featureFlags).some(([k, v]) => k.includes('loyalty') && v === true)
 
-  const viewHref   = `/${tenant.slug}/${meta.primaryBranchSlug}/menu`
+  // C3: multi-branch businesses go to the tenant homepage so users can choose a location.
+  // Single-branch businesses go directly to the menu.
+  const isMultiBranch = meta.branchCount > 1
+  const viewHref   = isMultiBranch ? `/${tenant.slug}` : `/${tenant.slug}/${meta.primaryBranchSlug}/menu`
   const tenantHref = `/${tenant.slug}`
   const hasBranches = (meta.branches?.length ?? 0) > 0
+  // C3: Use a contextual CTA label based on business type and branch count
+  const nonMenuTypes = ['bar', 'hotel', 'other']
+  const isNonMenuType = tenant.businessTypes.every((t) => nonMenuTypes.includes(t))
+  const ctaLabel = isMultiBranch ? 'Explore' : isNonMenuType ? 'Visit' : 'View Menu'
 
   return (
     <article
@@ -57,15 +65,23 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
       )}
       aria-label={`${tenant.name} — ${label}`}
     >
-      {/* Cover image */}
-      <div className="relative h-44 overflow-hidden bg-[var(--bg-secondary)] shrink-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={meta.coverImage}
-          alt=""
-          aria-hidden="true"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+      {/* Cover image — H4: use Next.js Image for format negotiation + lazy loading */}
+      <div className="relative h-48 overflow-hidden bg-[var(--bg-secondary)] shrink-0">
+        {meta.coverImage ? (
+          <Image
+            src={meta.coverImage}
+            alt=""
+            aria-hidden="true"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-950/30 dark:to-stone-900 flex items-center justify-center">
+            <span className="text-4xl opacity-40">🍽️</span>
+          </div>
+        )}
         <span
           className={cn(
             'absolute top-3 left-3 text-xs font-semibold px-2 py-0.5 rounded-full',
@@ -111,9 +127,9 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
             <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
             {meta.city}
           </span>
-          <span className="flex items-center gap-1" aria-label={`${meta.branchCount} ${meta.branchCount === 1 ? 'branch' : 'branches'}`}>
-            <GitBranch className="w-3.5 h-3.5" aria-hidden="true" />
-            {meta.branchCount} {meta.branchCount === 1 ? 'Branch' : 'Branches'}
+          <span className="flex items-center gap-1" aria-label={`${meta.branchCount} ${meta.branchCount === 1 ? 'location' : 'locations'}`}>
+            <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
+            {meta.branchCount} {meta.branchCount === 1 ? 'Location' : 'Locations'}
           </span>
         </div>
 
@@ -170,9 +186,9 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
           <Link
             href={viewHref}
             className="flex-1 text-center text-sm font-medium px-3 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] transition-colors"
-            aria-label={`View ${tenant.name} menu`}
+            aria-label={`${ctaLabel} — ${tenant.name}`}
           >
-            View Menu
+            {ctaLabel}
           </Link>
           {hasBranches ? (
             <button

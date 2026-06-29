@@ -36,7 +36,7 @@ export function SortBar({ value, onChange, resultCount, resultLabel }: SortBarPr
           id="sort-select"
           value={value}
           onChange={(e) => onChange(e.target.value as SortOption)}
-          className="text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg px-2.5 py-1.5 text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          className="text-sm bg-[var(--card)] border border-[var(--border)] rounded-2xl px-3 py-2 text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] cursor-pointer"
         >
           {SORT_OPTIONS.map(({ value: v, label: l }) => (
             <option key={v} value={v}>

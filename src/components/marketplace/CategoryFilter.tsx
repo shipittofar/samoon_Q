@@ -19,9 +19,21 @@ interface CategoryFilterProps {
   categories: string[]
   selected: string
   onChange: (category: string) => void
+  /** Per-category business counts to display next to each chip label. */
+  counts?: Record<string, number>
+  /** C2: Open Now quick-filter — controlled externally so it integrates with AdvancedFilters state. */
+  openNow?: boolean
+  onOpenNowChange?: (value: boolean) => void
 }
 
-export function CategoryFilter({ categories, selected, onChange }: CategoryFilterProps) {
+export function CategoryFilter({
+  categories,
+  selected,
+  onChange,
+  counts,
+  openNow,
+  onOpenNowChange,
+}: CategoryFilterProps) {
   if (categories.length === 0) return null
 
   return (
@@ -59,9 +71,33 @@ export function CategoryFilter({ categories, selected, onChange }: CategoryFilte
             >
               <span aria-hidden="true">{ICONS[cat] ?? '🍴'}</span>
               {BUSINESS_TYPE_LABELS[cat] ?? cat}
+              {/* H6: show per-category count */}
+              {counts && counts[cat] != null && (
+                <span className="text-xs opacity-60">({counts[cat]})</span>
+              )}
             </button>
           </li>
         ))}
+
+        {/* C2: Open Now quick-filter chip — always visible, no panel required */}
+        {onOpenNowChange && (
+          <li>
+            <button
+              type="button"
+              onClick={() => onOpenNowChange(!openNow)}
+              aria-pressed={openNow}
+              className={cn(
+                'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                openNow
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
+              )}
+            >
+              <span className={cn('h-1.5 w-1.5 rounded-full', openNow ? 'bg-white' : 'bg-emerald-500')} aria-hidden="true" />
+              Open Now
+            </button>
+          </li>
+        )}
       </ul>
     </nav>
   )
