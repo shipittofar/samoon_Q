@@ -10,6 +10,7 @@ import {
   MOCK_MARKETING_USER,
   MOCK_SUPPORT_USER,
   MOCK_MULTI_ROLE_USER,
+  MOCK_PLATFORM_ADMIN_USER,
 } from '@/lib/mock-data'
 import { MOCK_DELAY } from '@/constants'
 import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, User } from '@/types'
@@ -51,6 +52,8 @@ export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> =
   'owner@savor.com':     { user: MOCK_OWNER_USER,     p7Roles: ['owner'] },
   // P8.5 — Multi-role demo: Cashier + Kitchen combined (orders + kitchen display + payments)
   'multirole@savor.com': { user: MOCK_MULTI_ROLE_USER, p7Roles: ['cashier', 'kitchen'] },
+  // P8.9.1 — Platform Admin: cross-tenant management (owner P7 role grants full platform access)
+  'platform@savor.com':  { user: MOCK_PLATFORM_ADMIN_USER, p7Roles: ['owner'] },
 }
 
 export const authService = {

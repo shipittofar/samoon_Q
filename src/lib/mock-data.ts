@@ -100,6 +100,18 @@ export const MOCK_SUPPORT_USER: User = {
   created_at: '2024-01-01T00:00:00Z',
 }
 
+// P8.9.1 — Platform Admin: cross-tenant visibility (owner P7 role)
+export const MOCK_PLATFORM_ADMIN_USER: User = {
+  id: '10',
+  email: 'platform@savor.com',
+  phone: '+14155550109',
+  first_name: 'Pat',
+  last_name: 'Platform',
+  role: 'admin',
+  is_verified: true,
+  created_at: '2024-01-01T00:00:00Z',
+}
+
 // P8.5 — Multi-role demo user: Cashier + Kitchen combined
 export const MOCK_MULTI_ROLE_USER: User = {
   id: '9',

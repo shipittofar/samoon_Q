@@ -7,26 +7,28 @@ import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, User, Crown, ChefHat, Megaphone, HeadphonesIcon, CreditCard, Layers } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, User, Crown, ChefHat, Megaphone, HeadphonesIcon, CreditCard, Layers, Building2 } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Divider } from '@/components/ui'
 import { useLogin } from '@/hooks'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
+import { getDemoRedirect, getPostLoginRedirect } from '@/utils/auth-redirect'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 const DEMO_ACCOUNTS = [
-  { label: 'Customer',  email: 'demo@savor.com',      description: 'Menu, orders, reservations',   icon: User,             color: 'text-blue-600 dark:text-blue-400',    bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',    border: 'border-blue-200 dark:border-blue-800' },
-  { label: 'Staff',     email: 'staff@savor.com',     description: 'Manager — full ops',           icon: ShieldCheck,      color: 'text-green-600 dark:text-green-400',  bg: 'hover:bg-green-50 dark:hover:bg-green-950/20',  border: 'border-green-200 dark:border-green-800' },
-  { label: 'Cashier',   email: 'cashier@savor.com',   description: 'Orders + customers',           icon: CreditCard,       color: 'text-cyan-600 dark:text-cyan-400',    bg: 'hover:bg-cyan-50 dark:hover:bg-cyan-950/20',    border: 'border-cyan-200 dark:border-cyan-800' },
-  { label: 'Kitchen',   email: 'kitchen@savor.com',   description: 'Order queue + kitchen display', icon: ChefHat,         color: 'text-amber-600 dark:text-amber-400',  bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20',  border: 'border-amber-200 dark:border-amber-800' },
-  { label: 'Marketing', email: 'marketing@savor.com', description: 'Analytics + promotions',       icon: Megaphone,        color: 'text-pink-600 dark:text-pink-400',    bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20',    border: 'border-pink-200 dark:border-pink-800' },
-  { label: 'Support',   email: 'support@savor.com',   description: 'Customers + reservations',     icon: HeadphonesIcon,   color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
-  { label: 'Admin',     email: 'admin@savor.com',     description: 'Full admin panel',             icon: ShieldCheck,      color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
-  { label: 'Owner',     email: 'owner@savor.com',     description: 'Tenant management + all',      icon: Crown,            color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
-  { label: 'Multi-Role', email: 'multirole@savor.com', description: 'Cashier + Kitchen (P8.5)',   icon: Layers,           color: 'text-teal-600 dark:text-teal-400',    bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',    border: 'border-teal-200 dark:border-teal-800' },
+  { label: 'Customer',       email: 'demo@savor.com',      phone: '+1 415 555 0101', description: 'Menu, orders, reservations',    icon: User,           color: 'text-blue-600 dark:text-blue-400',     bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',     border: 'border-blue-200 dark:border-blue-800' },
+  { label: 'Staff',          email: 'staff@savor.com',     phone: '+1 415 555 0102', description: 'Manager — full ops',            icon: ShieldCheck,    color: 'text-green-600 dark:text-green-400',   bg: 'hover:bg-green-50 dark:hover:bg-green-950/20',   border: 'border-green-200 dark:border-green-800' },
+  { label: 'Cashier',        email: 'cashier@savor.com',   phone: '+1 415 555 0103', description: 'Orders + customers',            icon: CreditCard,     color: 'text-cyan-600 dark:text-cyan-400',     bg: 'hover:bg-cyan-50 dark:hover:bg-cyan-950/20',     border: 'border-cyan-200 dark:border-cyan-800' },
+  { label: 'Kitchen',        email: 'kitchen@savor.com',   phone: '+1 415 555 0104', description: 'Order queue + kitchen display', icon: ChefHat,        color: 'text-amber-600 dark:text-amber-400',   bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20',   border: 'border-amber-200 dark:border-amber-800' },
+  { label: 'Marketing',      email: 'marketing@savor.com', phone: '+1 415 555 0105', description: 'Analytics + promotions',        icon: Megaphone,      color: 'text-pink-600 dark:text-pink-400',     bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20',     border: 'border-pink-200 dark:border-pink-800' },
+  { label: 'Support',        email: 'support@savor.com',   phone: '+1 415 555 0106', description: 'Customers + reservations',      icon: HeadphonesIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
+  { label: 'Admin',          email: 'admin@savor.com',     phone: '+1 415 555 0107', description: 'Full admin panel',              icon: ShieldCheck,    color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
+  { label: 'Owner',          email: 'owner@savor.com',     phone: '+1 415 555 0108', description: 'Tenant management + all',       icon: Crown,          color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
+  { label: 'Platform Admin', email: 'platform@savor.com',  phone: '+1 415 555 0109', description: 'Cross-tenant platform access',  icon: Building2,      color: 'text-rose-600 dark:text-rose-400',     bg: 'hover:bg-rose-50 dark:hover:bg-rose-950/20',     border: 'border-rose-200 dark:border-rose-800' },
+  { label: 'Multi-Role',     email: 'multirole@savor.com', phone: '+1 415 555 0110', description: 'Cashier + Kitchen (P8.5)',      icon: Layers,         color: 'text-teal-600 dark:text-teal-400',     bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',     border: 'border-teal-200 dark:border-teal-800' },
 ]
 
 const loginSchema = z.object({
@@ -51,10 +53,10 @@ export default function LoginPage() {
       return
     }
     login(data, {
-      onSuccess: () => {
+      onSuccess: (result) => {
         LOGIN_LIMIT.reset(data.email)
-        toast.success('Welcome back!!! 👋')
-        router.push('/')
+        toast.success('Welcome back!')
+        router.push(getPostLoginRedirect(result.user.role))
       },
       onError: () => toast.error('Invalid credentials. Please try again.'),
     })
@@ -75,7 +77,7 @@ export default function LoginPage() {
       onSuccess: () => {
         LOGIN_LIMIT.reset(email)
         toast.success('Welcome back!')
-        router.push(email === 'demo@savor.com' ? '/' : '/admin')
+        router.push(getDemoRedirect(email))
       },
       onError: () => toast.error('Login failed. Please try again.'),
     })
@@ -110,7 +112,7 @@ export default function LoginPage() {
                 <Sparkles className="h-3 w-3 text-orange-500" /> Demo accounts (password: <code className="font-mono bg-[var(--card)] px-1 rounded">password</code>)
               </p>
               <div className="grid grid-cols-2 gap-1.5">
-                {DEMO_ACCOUNTS.map(({ label, email, description, icon: Icon, color, bg, border }) => (
+                {DEMO_ACCOUNTS.map(({ label, email, phone, description, icon: Icon, color, bg, border }) => (
                   <button
                     key={email}
                     type="button"
@@ -122,7 +124,7 @@ export default function LoginPage() {
                       <Icon className="h-3.5 w-3.5" />{label}
                     </span>
                     <span className="text-[11px] text-[var(--fg-muted)] leading-tight">{description}</span>
-                    <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{email}</span>
+                    <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{phone}</span>
                   </button>
                 ))}
               </div>

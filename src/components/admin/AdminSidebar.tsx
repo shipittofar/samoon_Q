@@ -13,10 +13,10 @@
  */
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { X, ChevronRight, LayoutDashboard, ExternalLink } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { X, ChevronRight, LayoutDashboard, ExternalLink, Home, LogOut } from 'lucide-react'
 import { cn } from '@/utils'
-import { useAdminModuleNav } from '@/hooks'
+import { useAdminModuleNav, useLogout } from '@/hooks'
 import { Button } from '@/components/ui/Button'
 
 export interface AdminSidebarProps {
@@ -26,7 +26,9 @@ export interface AdminSidebarProps {
 
 export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const navItems = useAdminModuleNav()
+  const { mutate: logout, isPending: isLoggingOut } = useLogout()
 
   return (
     <>
@@ -69,6 +71,24 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           role="navigation"
           aria-label="Admin menu"
         >
+          {/* Always-visible dashboard home link */}
+          <Link
+            href="/admin"
+            onClick={onClose}
+            aria-current={pathname === '/admin' ? 'page' : undefined}
+            className={cn(
+              'flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150',
+              pathname === '/admin'
+                ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
+                : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
+            )}
+          >
+            <span className="flex items-center gap-2">
+              <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
+              Dashboard
+            </span>
+            {pathname === '/admin' && <ChevronRight className="h-3 w-3 shrink-0 text-orange-500" />}
+          </Link>
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
@@ -91,18 +111,25 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           })}
         </nav>
 
-        {/* Preview public site footer */}
-        <div className="shrink-0 border-t border-[var(--border)] p-3">
+        {/* Sidebar footer: public site + logout */}
+        <div className="shrink-0 border-t border-[var(--border)] p-3 space-y-0.5">
           <Link
             href="/"
-            target="_blank"
-            rel="noopener noreferrer"
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-all duration-150 group"
-            aria-label="Open customer-facing site in new tab"
+            aria-label="Go to customer-facing site"
           >
-            <ExternalLink className="h-3.5 w-3.5 shrink-0 text-orange-500 group-hover:text-orange-600" />
-            <span>Preview Public Site</span>
+            <Home className="h-3.5 w-3.5 shrink-0 text-orange-500 group-hover:text-orange-600" />
+            <span>Back to Public Site</span>
           </Link>
+          <button
+            type="button"
+            onClick={() => logout(undefined, { onSuccess: () => router.push('/login') })}
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-[var(--fg-muted)] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-150 disabled:opacity-50"
+          >
+            <LogOut className="h-3.5 w-3.5 shrink-0" />
+            <span>Log Out</span>
+          </button>
         </div>
       </aside>
     </>
