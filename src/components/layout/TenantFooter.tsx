@@ -1,6 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import { Mail, Phone, Globe, Instagram, Twitter, MapPin } from 'lucide-react'
 import type { MarketplaceMeta } from '@/types/marketplace'
+import { useTenantStore } from '@/stores'
+import { buildFooterLinks } from '@/utils'
 
 interface TenantFooterProps {
   tenantName: string
@@ -9,6 +13,9 @@ interface TenantFooterProps {
 }
 
 export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps) {
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const quickLinks = buildFooterLinks({ tenantSlug, featureFlags, meta })
+
   const year = new Date().getFullYear()
 
   const hasSocial = meta.socialLinks?.instagram || meta.socialLinks?.twitter
@@ -69,40 +76,17 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
             )}
           </div>
 
-          {/* Quick links */}
+          {/* Quick links — feature-flag-aware, branch-aware via buildFooterLinks() */}
           <div>
             <h4 className="text-sm font-semibold text-[var(--fg)] mb-4">Quick Links</h4>
             <ul className="space-y-3 text-sm text-[var(--fg-muted)]">
-              <li>
-                <Link href={`/${tenantSlug}`} className="hover:text-orange-500 transition-colors">
-                  Home
-                </Link>
-              </li>
-              {meta.primaryBranchSlug && (
-                <li>
-                  <Link
-                    href={`/${tenantSlug}/${meta.primaryBranchSlug}/menu`}
-                    className="hover:text-orange-500 transition-colors"
-                  >
-                    Menu
+              {quickLinks.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className="hover:text-orange-500 transition-colors">
+                    {link.label}
                   </Link>
                 </li>
-              )}
-              <li>
-                <Link href="/reservation" className="hover:text-orange-500 transition-colors">
-                  Reservations
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${tenantSlug}#branches`} className="hover:text-orange-500 transition-colors">
-                  Locations
-                </Link>
-              </li>
-              <li>
-                <Link href="/discover" className="hover:text-orange-500 transition-colors">
-                  Discover More
-                </Link>
-              </li>
+              ))}
             </ul>
           </div>
 

@@ -11,9 +11,9 @@ import {
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
-import { cn, getSmartCTA } from '@/utils'
+import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections } from '@/utils'
 import { useTenantStore } from '@/stores'
-import { usePublicTenant, useCategories, useMenuItems, useActivePromotions } from '@/hooks'
+import { usePublicTenant, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   getMarketplaceMeta,
@@ -238,53 +238,49 @@ function ShareButton({ tenant }: { tenant: Tenant }) {
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
 function QuickActions({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }) {
-  const flags = useTenantStore((s) => s.featureFlags)
-  const hasReservations = flags['reservations.enabled'] ?? false
-  const hasLoyalty =
-    flags['loyalty.enabled'] ??
-    flags['cafe.loyalty.enabled'] ??
-    flags['mobile_cafe.loyalty.enabled'] ??
-    false
-
-  const base = `/${tenant.slug}/${meta.primaryBranchSlug}`
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const ctas = buildPublicCTAs({ tenantSlug: tenant.slug, branchSlug: undefined, featureFlags, meta })
 
   return (
     <section aria-label="Quick actions">
       <div className="flex flex-wrap gap-2">
-        <Link
-          href={`${base}/menu`}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
-        >
-          <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
-          View Menu
-        </Link>
-
-        {/* C4: MapPin instead of GitBranch */}
-        <a
-          href="#branches"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-        >
-          <MapPin className="w-4 h-4" aria-hidden="true" />
-          Choose Location
-        </a>
-
-        {hasReservations && (
+        {ctas.menu && (
           <Link
-            href={`${base}/reservation`}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+            href={ctas.menu.href}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
           >
-            <Clock className="w-4 h-4" aria-hidden="true" />
-            Reserve
+            <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+            {ctas.menu.label}
           </Link>
         )}
 
-        {hasLoyalty && (
+        {ctas.locations && (
+          <a
+            href={ctas.locations.href}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+          >
+            <MapPin className="w-4 h-4" aria-hidden="true" />
+            {ctas.locations.label}
+          </a>
+        )}
+
+        {ctas.reservation && (
           <Link
-            href={`${base}/loyalty`}
+            href={ctas.reservation.href}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+          >
+            <Clock className="w-4 h-4" aria-hidden="true" />
+            {ctas.reservation.label}
+          </Link>
+        )}
+
+        {ctas.loyalty && (
+          <Link
+            href={ctas.loyalty.href}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
             <Tag className="w-4 h-4" aria-hidden="true" />
-            Loyalty
+            {ctas.loyalty.label}
           </Link>
         )}
 
@@ -776,12 +772,17 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const { data: menuItemsPage } = useMenuItems()
   const menuItems = menuItemsPage?.results ?? []
   const { data: promotions = [] } = useActivePromotions()
+  // Website Builder section config — optional, fails open to DEFAULT_SECTIONS
+  const { data: layout } = useHomepageLayout(tenantSlug)
 
   if (isLoading) return <LoadingSkeleton />
   if (!tenant) return <TenantNotFoundState />
 
   const meta = getMarketplaceMeta(tenant.settings)
   if (!meta) return <TenantNotFoundState />
+
+  // Section visibility driven by Website Builder config (or defaults when unset)
+  const sections = buildPublicSections(layout?.sections)
 
   return (
     <>
@@ -794,31 +795,36 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
 
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-16">
           <QuickActions tenant={tenant} meta={meta} />
-          <BusinessInfo meta={meta} />
-          {/* H3/H4: Reviews and Gallery moved up before Branches/Categories */}
-          <ReviewsSection
-            tenantId={tenant.id}
-            tenantSlug={tenantSlug}
-            initialRating={meta.rating}
-            initialReviewCount={meta.reviewCount}
-          />
-          <GallerySection meta={meta} />
-          <BranchesSection meta={meta} tenantSlug={tenantSlug} />
+          {sections.about && <BusinessInfo meta={meta} />}
+          {sections.reviews && (
+            <ReviewsSection
+              tenantId={tenant.id}
+              tenantSlug={tenantSlug}
+              initialRating={meta.rating}
+              initialReviewCount={meta.reviewCount}
+            />
+          )}
+          {sections.gallery && <GallerySection meta={meta} />}
+          {sections.branches && <BranchesSection meta={meta} tenantSlug={tenantSlug} />}
           <CategoriesSection
             categories={categories}
             tenantSlug={tenantSlug}
             primaryBranchSlug={meta.primaryBranchSlug}
           />
-          <FeaturedItemsSection
-            items={menuItems}
-            tenantSlug={tenantSlug}
-            primaryBranchSlug={meta.primaryBranchSlug}
-          />
-          <PromotionsSection
-            promotions={promotions}
-            tenantSlug={tenantSlug}
-            primaryBranchSlug={meta.primaryBranchSlug}
-          />
+          {sections.featured_menu && (
+            <FeaturedItemsSection
+              items={menuItems}
+              tenantSlug={tenantSlug}
+              primaryBranchSlug={meta.primaryBranchSlug}
+            />
+          )}
+          {sections.promotions && (
+            <PromotionsSection
+              promotions={promotions}
+              tenantSlug={tenantSlug}
+              primaryBranchSlug={meta.primaryBranchSlug}
+            />
+          )}
         </div>
       </main>
 
