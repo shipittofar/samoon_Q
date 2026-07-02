@@ -100,3 +100,5 @@ export function getInitials(firstName: string, lastName: string): string {
 }
 
 export { buildPublicUrl, hrefToPublicUrl } from './public-url'
+export { buildTenantNavigation, getSmartCTA, getBusinessTypeBadge } from './navigation'
+export type { TenantNavLink, SmartCTA } from './navigation'

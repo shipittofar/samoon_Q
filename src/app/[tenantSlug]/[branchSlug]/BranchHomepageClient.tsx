@@ -11,7 +11,8 @@ import {
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
-import { cn } from '@/utils'
+import { cn, getSmartCTA } from '@/utils'
+import { useTenantStore } from '@/stores'
 import { usePublicTenant, usePublicBranch, useCategories, useMenuItems, useActivePromotions } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
@@ -52,8 +53,9 @@ function HeroSection({
   tenantSlug: string
   branchSlug: string
 }) {
-  const featureFlags = (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
-  const hasReservations = featureFlags['reservations.enabled'] ?? false
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const meta = getMarketplaceMeta(tenant.settings)
+  const cta = getSmartCTA({ tenantSlug, branchSlug, featureFlags, meta })
 
   return (
     // H9: increased height, H7: aria-labelledby
@@ -112,34 +114,36 @@ function HeroSection({
               )}
             </div>
 
-            {/* C1: Hero CTAs */}
-            <div className="flex flex-wrap gap-3 mt-4">
-              <Link
-                href={`/${tenantSlug}/${branchSlug}/menu`}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
-              >
-                <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
-                View Menu
-              </Link>
-              {hasReservations && (
+            {/* C1: Hero CTAs — driven by getSmartCTA (resolved feature flags) */}
+            {cta && (
+              <div className="flex flex-wrap gap-3 mt-4">
                 <Link
-                  href={`/${tenantSlug}/${branchSlug}/reservation`}
+                  href={cta.primary.href}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
+                >
+                  <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+                  {cta.primary.label}
+                </Link>
+                {cta.secondary && (
+                  <Link
+                    href={cta.secondary.href}
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
+                  >
+                    <Clock className="w-4 h-4" aria-hidden="true" />
+                    {cta.secondary.label}
+                  </Link>
+                )}
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
                 >
-                  <Clock className="w-4 h-4" aria-hidden="true" />
-                  Reserve
-                </Link>
-              )}
-              <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
-              >
-                <MapPin className="w-4 h-4" aria-hidden="true" />
-                Directions
-              </a>
-            </div>
+                  <MapPin className="w-4 h-4" aria-hidden="true" />
+                  Directions
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -151,20 +155,18 @@ function HeroSection({
 
 function QuickActions({
   branch,
-  tenant,
   tenantSlug,
   branchSlug,
 }: {
   branch: PublicBranchInfo
-  tenant: Tenant
   tenantSlug: string
   branchSlug: string
 }) {
   const [copied, setCopied] = useState(false)
   const pageUrl = typeof window !== 'undefined' ? window.location.href : `/${tenantSlug}/${branchSlug}`
 
-  // C5: feature flag check
-  const featureFlags = (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+  // C5: feature flag check — use resolved flags from store (not raw settings)
+  const featureFlags = useTenantStore((s) => s.featureFlags)
   const hasReservations = featureFlags['reservations.enabled'] ?? false
   const hasLoyalty =
     featureFlags['loyalty.enabled'] ??
@@ -632,7 +634,7 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
         tenantSlug={tenantSlug}
         branchSlug={branchSlug}
       />
-      <QuickActions branch={branch} tenant={tenant} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+      <QuickActions branch={branch} tenantSlug={tenantSlug} branchSlug={branchSlug} />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

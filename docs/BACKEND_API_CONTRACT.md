@@ -3121,11 +3121,22 @@ interface HomepageLayout {
   contact: ContactContent
   faq: FAQItem[]
   theme: ThemeSettings
+  navItems?: TenantNavItemConfig[]  // P8.8.11.2 — owner-configurable nav (see below)
   status: 'draft' | 'published'
   lastSavedAt?: string        // ISO 8601
   lastPublishedAt?: string    // ISO 8601
   publishedVersion?: HomepageVersion
   versions?: HomepageVersion[]
+}
+
+// P8.8.11.2 — Navigation configuration
+// Controls which nav items are shown, their display order, and custom labels.
+// When absent, TenantHeader renders the module registry defaults.
+interface TenantNavItemConfig {
+  key: string       // 'menu' | 'reservation' | 'locations' | 'reviews' | 'loyalty' | etc.
+  enabled: boolean
+  order: number
+  label?: string    // optional custom label (e.g. "Our Menu" instead of "Menu")
 }
 
 interface SectionConfig {

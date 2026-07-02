@@ -11,7 +11,8 @@ import {
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
-import { cn } from '@/utils'
+import { cn, getSmartCTA } from '@/utils'
+import { useTenantStore } from '@/stores'
 import { usePublicTenant, useCategories, useMenuItems, useActivePromotions } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
@@ -64,13 +65,8 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
     'var(--accent)'
   const label = tenant.businessTypes.map((t) => BUSINESS_TYPE_LABELS[t] ?? t).join(' · ')
 
-  const nonMenuTypes = ['bar', 'hotel', 'other']
-  const isNonMenuType = tenant.businessTypes.every((t) => nonMenuTypes.includes(t))
-  const isMultiBranch = meta.branchCount > 1
-  const primaryHref = isMultiBranch
-    ? `#branches`
-    : `/${tenant.slug}/${meta.primaryBranchSlug}/menu`
-  const primaryLabel = isMultiBranch ? 'Choose a Location' : isNonMenuType ? 'Visit Us' : 'View Menu'
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const cta = getSmartCTA({ tenantSlug: tenant.slug, branchSlug: undefined, featureFlags, meta })
 
   return (
     <section
@@ -163,23 +159,35 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
               <PriceLevel level={meta.priceLevel} />
             </div>
 
-            {/* C1: Primary CTA in hero */}
-            <div className="flex flex-wrap gap-3 mt-4">
-              <Link
-                href={primaryHref}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
-              >
-                <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
-                {primaryLabel}
-              </Link>
-              <a
-                href="#branches"
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
-              >
-                <MapPin className="w-4 h-4" aria-hidden="true" />
-                All Locations
-              </a>
-            </div>
+            {/* C1: Primary CTA in hero — driven by getSmartCTA (resolved feature flags) */}
+            {cta && (
+              <div className="flex flex-wrap gap-3 mt-4">
+                <Link
+                  href={cta.primary.href}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
+                >
+                  <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+                  {cta.primary.label}
+                </Link>
+                {cta.secondary ? (
+                  <Link
+                    href={cta.secondary.href}
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
+                  >
+                    <MapPin className="w-4 h-4" aria-hidden="true" />
+                    {cta.secondary.label}
+                  </Link>
+                ) : (
+                  <a
+                    href="#branches"
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
+                  >
+                    <MapPin className="w-4 h-4" aria-hidden="true" />
+                    All Locations
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -230,12 +238,12 @@ function ShareButton({ tenant }: { tenant: Tenant }) {
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
 function QuickActions({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }) {
-  const flags = tenant.settings?.featureFlags as Record<string, boolean> | undefined
-  const hasReservations = flags?.['reservations.enabled'] ?? false
+  const flags = useTenantStore((s) => s.featureFlags)
+  const hasReservations = flags['reservations.enabled'] ?? false
   const hasLoyalty =
-    flags?.['loyalty.enabled'] ??
-    flags?.['cafe.loyalty.enabled'] ??
-    flags?.['mobile_cafe.loyalty.enabled'] ??
+    flags['loyalty.enabled'] ??
+    flags['cafe.loyalty.enabled'] ??
+    flags['mobile_cafe.loyalty.enabled'] ??
     false
 
   const base = `/${tenant.slug}/${meta.primaryBranchSlug}`

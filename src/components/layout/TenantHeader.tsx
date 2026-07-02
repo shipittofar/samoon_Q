@@ -2,17 +2,21 @@
 
 /**
  * P8.8.11.1 — Tenant-branded navigation header
+ * P8.8.11.2 — Intelligent, data-driven, context-aware header
  *
- * Replaces the shared platform Header on all tenant and branch pages.
- * Shows the business logo as the primary identity and "Powered by Savor"
- * as a subtle secondary signature.
+ * This component is a pure renderer. All navigation business logic lives in
+ * src/utils/navigation.ts → buildTenantNavigation(). No nav logic here.
  *
- * Nav links are built from useModuleNav() (already feature-flag filtered)
- * and converted to branch-aware full paths so every link stays inside the
- * current /{tenantSlug}/{branchSlug}/ context.
- *
- * The platform Header is left unchanged and continues to serve /, /discover,
- * /admin, /dashboard, and all other non-tenant routes.
+ * Features (P8.8.11.2):
+ *   B  — Nav generated from buildTenantNavigation(), never hardcoded
+ *   C  — Feature-flag items hidden automatically (via useModuleNav())
+ *   D  — Single vs. multi-branch: "Locations" injected only when needed
+ *   E  — "Explore Businesses" as the marketplace re-entry item
+ *   F  — Business type badge (☕ Cafe, 🍽️ Restaurant, etc.) beside logo
+ *   G  — Smart CTA awareness (not in header itself — in hero sections)
+ *   H  — Active state: exact match for marketplace, startsWith for branches
+ *   I  — Website Builder nav config wired via buildTenantNavigation()
+ *   J  — Zero nav logic in this component
  */
 
 import { useState, useEffect } from 'react'
@@ -24,12 +28,17 @@ import {
   ShoppingCart, User, Menu, X, Sun, Moon, Globe,
   ChevronDown, LogOut, Settings, Package, Heart, MapPin,
 } from 'lucide-react'
-import { useCartStore, useAuthStore, useLangStore, useThemeStore, useTenantStore, useBranchStore } from '@/stores'
+import {
+  useCartStore, useAuthStore, useLangStore, useThemeStore,
+  useTenantStore, useBranchStore,
+} from '@/stores'
 import type { TenantTheme } from '@/types'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 import { cn } from '@/utils'
+import { buildTenantNavigation, getBusinessTypeBadge } from '@/utils/navigation'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
+import { useHomepageLayout } from '@/hooks'
 import toast from 'react-hot-toast'
 
 const LANGUAGES = [
@@ -48,9 +57,16 @@ export function TenantHeader() {
   const { tenant } = useTenantStore()
   const activeBranch = useBranchStore((s) => s.activeBranch)
   const { mutate: logout } = useLogout()
-  // Feature-flag-filtered nav items from the active module (same hook Header uses).
-  // Items with disabled feature flags are already removed — no additional filtering needed.
-  const moduleNav = useModuleNav()
+
+  // Feature-flag-filtered nav items from the active module.
+  // useModuleNav() already applies feature flags — buildTenantNavigation receives
+  // the filtered list so no second-pass filtering is needed here.
+  const moduleNavItems = useModuleNav()
+
+  // Website Builder nav config for this tenant's homepage layout (Phase I).
+  // Optional — when undefined the module registry defaults are used.
+  const { data: layout } = useHomepageLayout(tenant?.slug ?? '')
+  const layoutNavConfig = layout?.navItems
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -59,22 +75,22 @@ export function TenantHeader() {
 
   const cartCount = getItemCount()
   const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
-  const tenantSlug = tenant.slug
   const branchSlug = activeBranch?.slug
 
-  // Convert module nav items (relative paths like "/menu") to full branch-aware paths.
-  // Discover is always the first item — it links back to the platform marketplace.
-  const branchNavLinks = moduleNav.map((item) => ({
-    ...item,
-    href: branchSlug
-      ? `/${tenantSlug}/${branchSlug}${item.href}`
-      : `/${tenantSlug}${item.href}`,
-    baseHref: item.href,
-  }))
-  const navLinks = [
-    { href: '/discover', label: 'Discover', baseHref: '/discover' },
-    ...branchNavLinks,
-  ]
+  // Phase J: buildTenantNavigation() owns all nav business logic.
+  const navLinks = buildTenantNavigation({
+    tenant,
+    branchSlug,
+    moduleNavItems,
+    layoutNavConfig,
+  })
+
+  // Phase F: business type badge (☕ Cafe, 🍽️ Restaurant, …)
+  const businessBadge = getBusinessTypeBadge(tenant.businessTypes ?? [])
+
+  // Phase H: active state — exact for marketplace, prefix for business routes.
+  const isActive = (href: string): boolean =>
+    href === '/discover' ? pathname === '/discover' : pathname.startsWith(href)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -91,9 +107,6 @@ export function TenantHeader() {
   const handleLogout = () => {
     logout(undefined, { onSuccess: () => toast.success('See you next time!') })
   }
-
-  const isActive = (href: string) =>
-    href === '/discover' ? pathname === '/discover' : pathname.startsWith(href)
 
   return (
     <>
@@ -114,11 +127,11 @@ export function TenantHeader() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
 
-            {/* ── Business logo + platform signature ───────────────────── */}
+            {/* ── Phase C + F: Business logo + type badge + platform signature ── */}
             <div className="flex items-center gap-3 min-w-0">
               <Link
-                href={`/${tenantSlug}`}
-                className="flex items-center gap-2 group shrink-0"
+                href={`/${tenant.slug}`}
+                className="flex items-center gap-2.5 group shrink-0"
                 aria-label={`${tenant.name} home`}
               >
                 {logoUrl ? (
@@ -138,14 +151,22 @@ export function TenantHeader() {
                         {tenant.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
-                    <span className="font-[var(--font-display)] text-lg font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors hidden sm:block truncate max-w-[160px]">
-                      {tenant.name}
-                    </span>
+                    <div className="hidden sm:flex flex-col leading-none">
+                      <span className="font-[var(--font-display)] text-base font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors truncate max-w-[140px]">
+                        {tenant.name}
+                      </span>
+                      {/* Phase F: business type badge */}
+                      {businessBadge && (
+                        <span className="text-[10px] text-[var(--fg-subtle)] leading-tight mt-px">
+                          {businessBadge}
+                        </span>
+                      )}
+                    </div>
                   </>
                 )}
               </Link>
 
-              {/* Powered by Savor — subtle platform signature */}
+              {/* Platform signature — subtle secondary identity */}
               <Link
                 href="/discover"
                 className="hidden sm:flex flex-col leading-none border-s border-[var(--border)] ps-3 text-[var(--fg-subtle)] hover:text-orange-500 transition-colors shrink-0"
@@ -156,18 +177,21 @@ export function TenantHeader() {
               </Link>
             </div>
 
-            {/* ── Desktop navigation ────────────────────────────────────── */}
-            <nav className="hidden md:flex items-center gap-0.5" aria-label={`${tenant.name} navigation`}>
+            {/* ── Phase B + H: Desktop navigation ──────────────────────── */}
+            <nav
+              className="hidden md:flex items-center gap-0.5"
+              aria-label={`${tenant.name} navigation`}
+            >
               {navLinks.map((link) => (
                 <Link
-                  key={link.href}
+                  key={link.key}
                   href={link.href}
                   aria-current={isActive(link.href) ? 'page' : undefined}
                   className={cn(
                     'px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                     isActive(link.href)
                       ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
-                      : link.href === '/discover'
+                      : link.isMarketplace
                         ? 'text-[var(--fg-subtle)] hover:text-[var(--fg-muted)] hover:bg-[var(--card-hover)]'
                         : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
                   )}
@@ -345,7 +369,7 @@ export function TenantHeader() {
           </div>
         </div>
 
-        {/* ── Mobile drawer ─────────────────────────────────────────────── */}
+        {/* ── Phase H: Mobile drawer ─────────────────────────────────── */}
         <AnimatePresence>
           {mobileOpen && (
             <motion.div
@@ -354,7 +378,10 @@ export function TenantHeader() {
               exit={{ opacity: 0, height: 0 }}
               className="md:hidden bg-[var(--card)] border-b border-[var(--border)] overflow-hidden"
             >
-              <nav className="px-4 py-3 flex flex-col gap-1" aria-label={`${tenant.name} mobile navigation`}>
+              <nav
+                className="px-4 py-3 flex flex-col gap-1"
+                aria-label={`${tenant.name} mobile navigation`}
+              >
                 {/* Platform signature — mobile */}
                 <Link
                   href="/discover"
@@ -365,14 +392,14 @@ export function TenantHeader() {
 
                 {navLinks.map((link) => (
                   <Link
-                    key={link.href}
+                    key={link.key}
                     href={link.href}
                     aria-current={isActive(link.href) ? 'page' : undefined}
                     className={cn(
                       'px-4 py-3 rounded-xl text-sm font-medium transition-colors',
                       isActive(link.href)
                         ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
-                        : link.href === '/discover'
+                        : link.isMarketplace
                           ? 'text-[var(--fg-subtle)] hover:bg-[var(--card-hover)]'
                           : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
                     )}
