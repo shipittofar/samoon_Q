@@ -2,9 +2,8 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { tenantService } from '@/services/tenant.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
+import { buildBranchMetadata, buildBranchJsonLd } from '@/utils'
 import BranchHomepageClient from './BranchHomepageClient'
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
 export async function generateMetadata({
   params,
@@ -25,10 +24,16 @@ export async function generateMetadata({
     return { title: `${tenant.name} — Branch not found` }
   }
 
-  const title = `${branch.name} — ${tenant.name}`
-  const description = `Visit ${branch.name} at ${branch.address}, ${branch.city}. ${meta?.description ?? ''}`
-  const url = `${BASE_URL}/${tenantSlug}/${branchSlug}`
-  const image = branch.image ?? meta?.coverImage ?? `${BASE_URL}/og-image.jpg`
+  const { title, description, url, image } = buildBranchMetadata({
+    branchName: branch.name,
+    tenantName: tenant.name,
+    tenantSlug,
+    branchSlug,
+    branchAddress: branch.address,
+    branchCity: branch.city,
+    branchImage: branch.image,
+    meta,
+  })
 
   return {
     title,
@@ -69,29 +74,24 @@ export default async function BranchPage({
     notFound()
   }
 
-  const aggregateRatingJsonLd =
-    meta?.rating && meta.reviewCount
-      ? JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'LocalBusiness',
-          name: branch!.name,
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: meta.rating,
-            reviewCount: meta.reviewCount,
-            bestRating: 5,
-            worstRating: 1,
-          },
-        })
-      : null
+  const jsonLd = buildBranchJsonLd({
+    branchName: branch.name,
+    tenantSlug,
+    branchSlug,
+    branchAddress: branch.address,
+    branchCity: branch.city,
+    branchPhone: branch.phone,
+    branchImage: branch.image,
+    meta,
+  })
 
   return (
     <>
-      {aggregateRatingJsonLd && (
+      {jsonLd && (
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: aggregateRatingJsonLd }}
+          dangerouslySetInnerHTML={{ __html: jsonLd }}
         />
       )}
       <BranchHomepageClient tenantSlug={tenantSlug} branchSlug={branchSlug} />

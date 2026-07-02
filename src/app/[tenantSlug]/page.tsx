@@ -2,9 +2,8 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { tenantService } from '@/services/tenant.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
+import { buildTenantMetadata, buildTenantJsonLd } from '@/utils'
 import { TenantHomepageClient } from './TenantHomepageClient'
-
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
 export async function generateMetadata({
   params,
@@ -19,11 +18,11 @@ export async function generateMetadata({
   }
 
   const meta = getMarketplaceMeta(tenant.settings)
-  const title = `${tenant.name} — Savor Platform`
-  const description =
-    meta?.description ?? `Discover ${tenant.name} on the Savor platform.`
-  const url = `${BASE_URL}/${tenantSlug}`
-  const image = meta?.coverImage ?? `${BASE_URL}/og-image.jpg`
+  const { title, description, url, image } = buildTenantMetadata({
+    tenantName: tenant.name,
+    tenantSlug,
+    meta,
+  })
 
   return {
     title,
@@ -59,29 +58,15 @@ export default async function TenantPage({
   }
 
   const meta = getMarketplaceMeta(tenant.settings)
-  const aggregateRatingJsonLd =
-    meta?.rating && meta.reviewCount
-      ? JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'Restaurant',
-          name: tenant.name,
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: meta.rating,
-            reviewCount: meta.reviewCount,
-            bestRating: 5,
-            worstRating: 1,
-          },
-        })
-      : null
+  const jsonLd = buildTenantJsonLd({ tenantName: tenant.name, tenantSlug, meta })
 
   return (
     <>
-      {aggregateRatingJsonLd && (
+      {jsonLd && (
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={{ __html: aggregateRatingJsonLd }}
+          dangerouslySetInnerHTML={{ __html: jsonLd }}
         />
       )}
       <TenantHomepageClient tenantSlug={tenantSlug} />

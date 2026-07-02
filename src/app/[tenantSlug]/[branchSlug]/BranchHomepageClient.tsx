@@ -11,9 +11,9 @@ import {
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
-import { cn, getSmartCTA } from '@/utils'
+import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections } from '@/utils'
 import { useTenantStore } from '@/stores'
-import { usePublicTenant, usePublicBranch, useCategories, useMenuItems, useActivePromotions } from '@/hooks'
+import { usePublicTenant, usePublicBranch, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
@@ -165,14 +165,8 @@ function QuickActions({
   const [copied, setCopied] = useState(false)
   const pageUrl = typeof window !== 'undefined' ? window.location.href : `/${tenantSlug}/${branchSlug}`
 
-  // C5: feature flag check — use resolved flags from store (not raw settings)
   const featureFlags = useTenantStore((s) => s.featureFlags)
-  const hasReservations = featureFlags['reservations.enabled'] ?? false
-  const hasLoyalty =
-    featureFlags['loyalty.enabled'] ??
-    featureFlags['cafe.loyalty.enabled'] ??
-    featureFlags['mobile_cafe.loyalty.enabled'] ??
-    false
+  const ctas = buildPublicCTAs({ tenantSlug, branchSlug, featureFlags })
 
   async function handleShare() {
     if (navigator.share) {
@@ -187,30 +181,30 @@ function QuickActions({
   return (
     <section className="bg-[var(--card)] border-b border-[var(--border)]" aria-label="Quick actions">
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap gap-2">
-        {/* Primary action */}
-        <Link
-          href={`/${tenantSlug}/${branchSlug}/menu`}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-xl text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
-        >
-          <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />View Menu
-        </Link>
-
-        {/* H1: Reserve only if enabled (C5 fix), no duplicate Order Online */}
-        {hasReservations && (
+        {ctas.menu && (
           <Link
-            href={`/${tenantSlug}/${branchSlug}/reservation`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+            href={ctas.menu.href}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-xl text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
           >
-            <Clock className="w-4 h-4" aria-hidden="true" />Reserve Table
+            <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />{ctas.menu.label}
           </Link>
         )}
 
-        {hasLoyalty && (
+        {ctas.reservation && (
           <Link
-            href={`/${tenantSlug}/${branchSlug}/loyalty`}
+            href={ctas.reservation.href}
             className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
-            <Tag className="w-4 h-4" aria-hidden="true" />Loyalty
+            <Clock className="w-4 h-4" aria-hidden="true" />{ctas.reservation.label}
+          </Link>
+        )}
+
+        {ctas.loyalty && (
+          <Link
+            href={ctas.loyalty.href}
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
+          >
+            <Tag className="w-4 h-4" aria-hidden="true" />{ctas.loyalty.label}
           </Link>
         )}
 
@@ -602,6 +596,7 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
   const { data: categories = [] } = useCategories()
   const { data: menuItemsPage } = useMenuItems()
   const { data: promotions = [] } = useActivePromotions()
+  const { data: layout } = useHomepageLayout(tenantSlug)
 
   const menuItems: MenuItem[] = menuItemsPage?.results ?? []
 
@@ -609,6 +604,7 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
   if (!tenant || !branch) return <BranchNotFound tenantSlug={tenantSlug} />
 
   const meta = getMarketplaceMeta(tenant.settings)
+  const sections = buildPublicSections(layout?.sections)
 
   const accentColor =
     (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor ?? '#e85d04'
@@ -642,29 +638,31 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
           <div className="lg:col-span-2 space-y-10">
             {/* Trust signal near top */}
             <RatingSummary rating={rating} reviewCount={reviewCount} />
-            <FeaturedMenuSection items={menuItems} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+            {sections.featured_menu && <FeaturedMenuSection items={menuItems} tenantSlug={tenantSlug} branchSlug={branchSlug} />}
             <CategoriesSection categories={categories} tenantSlug={tenantSlug} branchSlug={branchSlug} />
-            <ReviewsSection
-              tenantId={tenant.id}
-              tenantSlug={tenantSlug}
-              branchId={branchSlug}
-              initialRating={rating}
-              initialReviewCount={reviewCount}
-            />
+            {sections.reviews && (
+              <ReviewsSection
+                tenantId={tenant.id}
+                tenantSlug={tenantSlug}
+                branchId={branchSlug}
+                initialRating={rating}
+                initialReviewCount={reviewCount}
+              />
+            )}
             {/* C4: Branch-specific photo first, then labeled tenant gallery */}
-            {branchPhotos.length > 0 && (
+            {sections.gallery && branchPhotos.length > 0 && (
               <GallerySection images={branchPhotos} label="This Location" />
             )}
-            {hasGallery && (
+            {sections.gallery && hasGallery && (
               <GallerySection images={tenantGallery} label="Business Gallery" />
             )}
-            <PromotionsSection promotions={promotions as PromotionRule[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+            {sections.promotions && <PromotionsSection promotions={promotions as PromotionRule[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-5">
             <BranchInfo branch={branch} />
-            <BranchSwitcher branches={allBranches} currentSlug={branchSlug} tenantSlug={tenantSlug} />
+            {sections.branches && <BranchSwitcher branches={allBranches} currentSlug={branchSlug} tenantSlug={tenantSlug} />}
           </div>
         </div>
       </div>
