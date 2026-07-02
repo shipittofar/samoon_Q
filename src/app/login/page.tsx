@@ -3,20 +3,27 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles, ShieldCheck, User, Crown, ChefHat, Megaphone, HeadphonesIcon, CreditCard, Layers, Building2 } from 'lucide-react'
+import {
+  Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles,
+  ShieldCheck, User, Crown, ChefHat, Megaphone,
+  HeadphonesIcon, CreditCard, Layers, Building2, Phone,
+} from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Divider } from '@/components/ui'
-import { useLogin } from '@/hooks'
+import { PhoneInput } from '@/components/ui/PhoneInput'
+import { useLogin, useSendOTP } from '@/hooks'
+import { getDemoRedirect, getPostLoginRedirect } from '@/utils/auth-redirect'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
-import { getDemoRedirect, getPostLoginRedirect } from '@/utils/auth-redirect'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+
+// ── Demo accounts ──────────────────────────────────────────────────────────────
 
 const DEMO_ACCOUNTS = [
   { label: 'Customer',       email: 'demo@savor.com',      phone: '+1 415 555 0101', description: 'Menu, orders, reservations',    icon: User,           color: 'text-blue-600 dark:text-blue-400',     bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',     border: 'border-blue-200 dark:border-blue-800' },
@@ -31,41 +38,48 @@ const DEMO_ACCOUNTS = [
   { label: 'Multi-Role',     email: 'multirole@savor.com', phone: '+1 415 555 0110', description: 'Cashier + Kitchen (P8.5)',      icon: Layers,         color: 'text-teal-600 dark:text-teal-400',     bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',     border: 'border-teal-200 dark:border-teal-800' },
 ]
 
-const loginSchema = z.object({
+// ── Email fallback schema ──────────────────────────────────────────────────────
+
+const emailSchema = z.object({
   email: z.string().email('Valid email required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
-type LoginFormData = z.infer<typeof loginSchema>
+type EmailFormData = z.infer<typeof emailSchema>
+
+// ── Page component ─────────────────────────────────────────────────────────────
 
 export default function LoginPage() {
   const router = useRouter()
-  const { mutate: login, isPending } = useLogin()
+  const prefersReducedMotion = useReducedMotion()
+  const { mutate: login, isPending: isEmailPending } = useLogin()
+  const { mutate: sendOTP, isPending: isSendingOTP } = useSendOTP()
+
+  const [phoneE164, setPhoneE164] = useState('')
+  const [phoneValid, setPhoneValid] = useState(false)
+  const [showEmailForm, setShowEmailForm] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<EmailFormData>({
+    resolver: zodResolver(emailSchema),
   })
 
-  const onSubmit = (data: LoginFormData) => {
-    const rateCheck = LOGIN_LIMIT.check(data.email)
+  // ── Phone continue ────────────────────────────────────────────────────────────
+
+  const handlePhoneContinue = () => {
+    const rateCheck = LOGIN_LIMIT.check(phoneE164)
     if (!rateCheck.allowed) {
-      toast.error(`Too many login attempts. Please try again later.`)
+      toast.error('Too many attempts. Please try again later.')
       return
     }
-    login(data, {
-      onSuccess: (result) => {
-        LOGIN_LIMIT.reset(data.email)
-        toast.success('Welcome back!')
-        router.push(getPostLoginRedirect(result.user.role))
+    sendOTP(phoneE164, {
+      onSuccess: () => {
+        router.push(`/verify?phone=${encodeURIComponent(phoneE164)}`)
       },
-      onError: () => toast.error('Invalid credentials. Please try again.'),
+      onError: () => toast.error('Could not send code. Please try again.'),
     })
   }
 
-  const fillDemo = (email = 'demo@savor.com') => {
-    setValue('email', email)
-    setValue('password', 'password')
-  }
+  // ── Demo one-click login ──────────────────────────────────────────────────────
 
   const loginAs = (email: string) => {
     const rateCheck = LOGIN_LIMIT.check(email)
@@ -83,15 +97,41 @@ export default function LoginPage() {
     })
   }
 
+  // ── Email form submit ─────────────────────────────────────────────────────────
+
+  const onEmailSubmit = (data: EmailFormData) => {
+    const rateCheck = LOGIN_LIMIT.check(data.email)
+    if (!rateCheck.allowed) {
+      toast.error('Too many login attempts. Please try again later.')
+      return
+    }
+    login(data, {
+      onSuccess: (result) => {
+        LOGIN_LIMIT.reset(data.email)
+        toast.success('Welcome back!')
+        router.push(getPostLoginRedirect(result.user.role))
+      },
+      onError: () => toast.error('Invalid credentials. Please try again.'),
+    })
+  }
+
+  const fillDemo = () => {
+    setValue('email', 'demo@savor.com')
+    setValue('password', 'password')
+  }
+
+  const motionProps = prefersReducedMotion
+    ? {}
+    : { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } }
+
+  const isPending = isEmailPending || isSendingOTP
+
   return (
     <div className="min-h-screen bg-[var(--bg)] flex">
-      {/* Left: Form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md"
-        >
+      {/* ── Left: Form ── */}
+      <div className="flex-1 flex items-start justify-center p-6 sm:p-8 overflow-y-auto">
+        <motion.div {...motionProps} className="w-full max-w-md py-8">
+
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 mb-8">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
@@ -100,100 +140,162 @@ export default function LoginPage() {
             <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
           </Link>
 
+          {/* Heading */}
           <div className="mb-8">
-            <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-2">Welcome back</h1>
-            <p className="text-[var(--fg-muted)]">Sign in to your account to continue</p>
+            <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-2">
+              Welcome
+            </h1>
+            <p className="text-[var(--fg-muted)]">Enter your phone number to continue</p>
           </div>
 
-          {/* Demo Accounts */}
-          {USE_MOCK ? (
-            <div className="mb-6 space-y-2">
-              <p className="text-xs font-medium text-[var(--fg-muted)] flex items-center gap-1.5">
-                <Sparkles className="h-3 w-3 text-orange-500" /> Demo accounts (password: <code className="font-mono bg-[var(--card)] px-1 rounded">password</code>)
-              </p>
-              <div className="grid grid-cols-2 gap-1.5">
-                {DEMO_ACCOUNTS.map(({ label, email, phone, description, icon: Icon, color, bg, border }) => (
-                  <button
-                    key={email}
-                    type="button"
-                    onClick={() => loginAs(email)}
-                    disabled={isPending}
-                    className={`flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border text-left transition-colors ${border} ${bg} disabled:opacity-50`}
-                  >
-                    <span className={`flex items-center gap-1.5 text-sm font-semibold ${color}`}>
-                      <Icon className="h-3.5 w-3.5" />{label}
-                    </span>
-                    <span className="text-[11px] text-[var(--fg-muted)] leading-tight">{description}</span>
-                    <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{phone}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <button
+          {/* ── Primary: Phone entry ── */}
+          <div className="mb-6 space-y-3">
+            <PhoneInput
+              label="Phone number"
+              defaultCountry="US"
+              onChange={(e164, meta) => {
+                setPhoneE164(e164)
+                setPhoneValid(meta.isValid)
+              }}
+              hint="We'll send a 6-digit code to verify your number"
+              required
+            />
+            <Button
               type="button"
-              onClick={() => fillDemo()}
-              className="w-full mb-6 flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 text-sm hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
+              className="w-full"
+              size="lg"
+              loading={isSendingOTP}
+              disabled={!phoneValid || isSendingOTP}
+              onClick={handlePhoneContinue}
+              rightIcon={<ArrowRight className="h-4 w-4" />}
             >
-              <Sparkles className="h-3.5 w-3.5" /> Use Demo Account
-            </button>
+              Continue
+            </Button>
+          </div>
+
+          {/* ── Demo accounts ── */}
+          {USE_MOCK && (
+            <>
+              <Divider label="or try a demo account" className="mb-4" />
+              <div className="mb-6 space-y-2">
+                <p className="text-xs text-[var(--fg-muted)] flex items-center gap-1.5">
+                  <Sparkles className="h-3 w-3 text-orange-500" aria-hidden="true" />
+                  One-click login — no OTP needed in demo mode
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {DEMO_ACCOUNTS.map(({ label, email, phone, description, icon: Icon, color, bg, border }) => (
+                    <button
+                      key={email}
+                      type="button"
+                      onClick={() => loginAs(email)}
+                      disabled={isPending}
+                      className={`flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border text-left transition-colors ${border} ${bg} disabled:opacity-50`}
+                    >
+                      <span className={`flex items-center gap-1.5 text-sm font-semibold ${color}`}>
+                        <Icon className="h-3.5 w-3.5" aria-hidden="true" />{label}
+                      </span>
+                      <span className="text-[11px] text-[var(--fg-muted)] leading-tight">{description}</span>
+                      <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{phone}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
 
-          <Divider label="or sign in with email" className="mb-6" />
+          {/* ── Email fallback (collapsed by default) ── */}
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => setShowEmailForm((v) => !v)}
+              className="w-full text-center text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors py-2"
+              aria-expanded={showEmailForm}
+            >
+              {showEmailForm ? 'Hide email sign-in' : 'Sign in with email instead'}
+            </button>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              required
-              leftIcon={<Mail className="h-3.5 w-3.5" />}
-              placeholder="you@example.com"
-              {...register('email')}
-              error={errors.email?.message}
-              autoComplete="email"
-            />
-            <Input
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              required
-              leftIcon={<Lock className="h-3.5 w-3.5" />}
-              rightIcon={
-                <button type="button" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                  {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </button>
-              }
-              placeholder="••••••••"
-              {...register('password')}
-              error={errors.password?.message}
-              autoComplete="current-password"
-            />
+            <AnimatePresence>
+              {showEmailForm && (
+                <motion.div
+                  initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                  animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
+                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-4 space-y-4">
+                    {USE_MOCK && (
+                      <button
+                        type="button"
+                        onClick={fillDemo}
+                        className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 text-sm hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Fill demo credentials
+                      </button>
+                    )}
+                    <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
+                      <Input
+                        label="Email"
+                        type="email"
+                        required
+                        leftIcon={<Mail className="h-3.5 w-3.5" />}
+                        placeholder="you@example.com"
+                        {...register('email')}
+                        error={errors.email?.message}
+                        autoComplete="email"
+                      />
+                      <Input
+                        label="Password"
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        leftIcon={<Lock className="h-3.5 w-3.5" />}
+                        rightIcon={
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((v) => !v)}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          >
+                            {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                          </button>
+                        }
+                        placeholder="••••••••"
+                        {...register('password')}
+                        error={errors.password?.message}
+                        autoComplete="current-password"
+                      />
+                      <div className="flex items-center justify-end text-sm">
+                        <Link href="/forgot-password" className="text-orange-500 hover:text-orange-600 transition-colors">
+                          Forgot password?
+                        </Link>
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        size="lg"
+                        loading={isEmailPending}
+                        rightIcon={<ArrowRight className="h-4 w-4" />}
+                      >
+                        Sign In with Email
+                      </Button>
+                    </form>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer text-[var(--fg-muted)]">
-                <input type="checkbox" className="accent-orange-500" />
-                Remember me
-              </label>
-              <Link href="/forgot-password" className="text-orange-500 hover:text-orange-600 transition-colors">
-                Forgot password?
-              </Link>
-            </div>
-
-            <Button type="submit" className="w-full" size="lg" loading={isPending} rightIcon={<ArrowRight className="h-4 w-4" />}>
-              Sign In
-            </Button>
-          </form>
-
-          <p className="text-center text-sm text-[var(--fg-muted)] mt-6">
-            Dont have an account?{' '}
-            <Link href="/register" className="text-orange-500 font-medium hover:text-orange-600 transition-colors">
-              Create one →
-            </Link>
+          {/* Footer note */}
+          <p className="text-center text-xs text-[var(--fg-muted)] mt-8">
+            By continuing you agree to our{' '}
+            <Link href="/terms" className="text-orange-500 hover:underline">Terms</Link>
+            {' '}and{' '}
+            <Link href="/privacy" className="text-orange-500 hover:underline">Privacy Policy</Link>
           </p>
         </motion.div>
       </div>
 
-      {/* Right: Visual */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700">
+      {/* ── Right: Hero (desktop only) ── */}
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700" aria-hidden="true">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, white 2px, transparent 2px), radial-gradient(circle at 70% 30%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div className="relative flex flex-col items-center justify-center p-12 text-center text-white">
           <div className="text-7xl mb-6">🍽️</div>

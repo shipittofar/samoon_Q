@@ -163,3 +163,8 @@ export function RatingStars({ rating, count, size = 'sm' }: { rating: number; co
     </span>
   )
 }
+
+export { PhoneInput } from './PhoneInput'
+export type { PhoneInputProps, PhoneInputMeta } from './PhoneInput'
+export { OTPInput } from './OTPInput'
+export type { OTPInputProps } from './OTPInput'

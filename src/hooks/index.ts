@@ -391,6 +391,28 @@ export function useRegister() {
   })
 }
 
+/** P8.9.2 — Send OTP to a phone number. */
+export function useSendOTP() {
+  return useMutation({
+    mutationFn: (phone: string) => authService.sendOTP(phone),
+  })
+}
+
+/** P8.9.2 — Verify OTP and complete phone login / registration. */
+export function useVerifyOTP() {
+  const setUser = useAuthStore((s) => s.setUser)
+  return useMutation({
+    mutationFn: (payload: { phone: string; otp: string }) => authService.verifyOTP(payload),
+    onSuccess: ({ user, p7Roles }) => {
+      setUser(user)
+      if (p7Roles && p7Roles.length > 0) {
+        const tenantId = useTenantStore.getState().tenant.id
+        useRbacStore.getState().setTenantRoles(tenantId, p7Roles)
+      }
+    },
+  })
+}
+
 export function useLogout() {
   const qc = useQueryClient()
   const logout = useAuthStore((s) => s.logout)

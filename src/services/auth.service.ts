@@ -1,5 +1,6 @@
 import api, { clearTokens, setTokens } from './axios.instance'
 import { ENDPOINTS } from './endpoints'
+import { DEMO_PHONE_TO_EMAIL } from '@/utils/auth-redirect'
 import {
   MOCK_USER,
   MOCK_ADMIN_USER,
@@ -149,14 +150,42 @@ export const authService = {
     return data
   },
 
-  async verifyOTP(payload: OTPVerifyData): Promise<{ user: User; tokens: AuthTokens }> {
+  /**
+   * P8.9.2 — Extended mock: resolves phone → demo user.
+   * Returns { user, tokens, p7Roles, isNewUser }.
+   * Code '000000' is always rejected (for UX error-state demo).
+   * Any other 6-digit code succeeds.
+   */
+  async verifyOTP(
+    payload: OTPVerifyData,
+  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; isNewUser?: boolean }> {
     if (USE_MOCK) {
       await delay(MOCK_DELAY)
+
+      // Reserved "always wrong" code for UX testing
+      if (payload.otp === '000000') {
+        throw new Error('otp_invalid')
+      }
+
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
+
+      // Look up demo phone → email → MOCK_CREDENTIALS entry
+      const email = DEMO_PHONE_TO_EMAIL[payload.phone]
+      if (email && MOCK_CREDENTIALS[email]) {
+        const entry = MOCK_CREDENTIALS[email]
+        setTokens(tokens.access, tokens.refresh)
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(MOCK_SESSION_KEY, email)
+        }
+        return { user: entry.user, tokens, p7Roles: entry.p7Roles, isNewUser: false }
+      }
+
+      // Unknown phone — treat as new user
       setTokens(tokens.access, tokens.refresh)
-      return { user: MOCK_USER, tokens }
+      return { user: MOCK_USER, tokens, p7Roles: [], isNewUser: true }
     }
-    const { data } = await api.post<{ user: User; tokens: AuthTokens }>(
+
+    const { data } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; isNewUser?: boolean }>(
       ENDPOINTS.AUTH.VERIFY_OTP,
       payload,
     )

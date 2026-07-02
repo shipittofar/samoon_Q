@@ -1,0 +1,167 @@
+'use client'
+
+/**
+ * P8.9.2 — Registration completion page (/complete-profile).
+ *
+ * Shown after OTP verification when the phone number belongs to a new user.
+ * Collects only the minimum information needed: first name, last name, terms acceptance.
+ * Phone number is pre-filled from the query param and is NOT editable.
+ */
+
+import { Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { motion, useReducedMotion } from 'framer-motion'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { ArrowRight, Phone } from 'lucide-react'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { useRegister } from '@/hooks'
+import toast from 'react-hot-toast'
+
+// ── Schema ─────────────────────────────────────────────────────────────────────
+
+const schema = z.object({
+  first_name: z.string().min(1, 'First name is required').max(50),
+  last_name: z.string().min(1, 'Last name is required').max(50),
+  terms: z.literal(true, { errorMap: () => ({ message: 'You must accept the terms' }) }),
+})
+type FormData = z.infer<typeof schema>
+
+// ── Inner page ─────────────────────────────────────────────────────────────────
+
+function CompleteProfileInner() {
+  const router = useRouter()
+  const params = useSearchParams()
+  const phone = params.get('phone') ?? ''
+  const prefersReducedMotion = useReducedMotion()
+  const { mutate: register, isPending } = useRegister()
+
+  const { register: reg, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
+
+  const onSubmit = (data: FormData) => {
+    register(
+      {
+        email: `${phone.replace(/\D/g, '')}@phone.savor.local`,
+        phone,
+        password: 'mock-phone-auth',
+        confirm_password: 'mock-phone-auth',
+        first_name: data.first_name,
+        last_name: data.last_name,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Account created!')
+          router.push('/dashboard')
+        },
+        onError: () => toast.error('Could not create account. Please try again.'),
+      },
+    )
+  }
+
+  const motionProps = prefersReducedMotion
+    ? {}
+    : { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } }
+
+  return (
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-6">
+      <motion.div {...motionProps} className="w-full max-w-sm">
+
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-8">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold">S</span>
+          </div>
+          <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
+        </div>
+
+        <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
+          Create your account
+        </h1>
+        <p className="text-[var(--fg-muted)] mb-8 text-sm">
+          Just a few more details to get you started.
+        </p>
+
+        {/* Phone number — read-only, for context */}
+        {phone && (
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)] mb-6">
+            <Phone className="h-4 w-4 text-orange-500 shrink-0" aria-hidden="true" />
+            <span className="text-sm text-[var(--fg)] font-mono">{phone}</span>
+            <span className="ms-auto text-xs text-green-500 font-medium">Verified</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="First name"
+              placeholder="Alex"
+              required
+              autoComplete="given-name"
+              autoFocus
+              {...reg('first_name')}
+              error={errors.first_name?.message}
+            />
+            <Input
+              label="Last name"
+              placeholder="Kim"
+              required
+              autoComplete="family-name"
+              {...reg('last_name')}
+              error={errors.last_name?.message}
+            />
+          </div>
+
+          <label className="flex items-start gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              {...reg('terms')}
+              className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-orange-500 cursor-pointer"
+            />
+            <span className="text-sm text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors">
+              I agree to the{' '}
+              <Link href="/terms" className="text-orange-500 hover:underline" target="_blank">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="text-orange-500 hover:underline" target="_blank">
+                Privacy Policy
+              </Link>
+            </span>
+          </label>
+          {errors.terms && (
+            <p role="alert" className="text-xs text-red-500">{errors.terms.message}</p>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            loading={isPending}
+            rightIcon={<ArrowRight className="h-4 w-4" />}
+          >
+            Create Account
+          </Button>
+        </form>
+      </motion.div>
+    </div>
+  )
+}
+
+// ── Wrapper with Suspense ──────────────────────────────────────────────────────
+
+export default function CompleteProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" aria-label="Loading" />
+      </div>
+    }>
+      <CompleteProfileInner />
+    </Suspense>
+  )
+}
