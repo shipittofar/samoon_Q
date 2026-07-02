@@ -4,7 +4,7 @@
 > Generated from frontend source code. All types, endpoints, and business rules are
 > derived from `src/types/index.ts`, `src/services/`, `src/hooks/`, and runtime service usage.
 >
-> Last updated: 2026-06-25 (updated for P7.8–P7.14.5: analytics, bulk ops, kitchen, staff, audit logs, realtime, branches, tenants, loyalty, promotions, vendors)
+> Last updated: 2026-07-02 (P8.9.3: complete phone authentication contract — section 2 rewritten)
 
 ---
 
@@ -64,7 +64,403 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
 
 ## 2. Authentication Endpoints
 
-### 2.1 Login
+> **P8.9.3 Contract** — Phone-first auth with backward-compatible legacy endpoints.
+> All new endpoints are under `/auth/phone/` prefix to avoid breaking changes.
+
+---
+
+### 2.0 Design Principles
+
+1. **Phone-first, email-optional** — phone-only accounts are fully supported; `email` is nullable
+2. **Challenge-bound OTPs** — OTPs are tied to a `challenge_id`, not just a phone number
+3. **Refresh token rotation** — every refresh issues a new token pair; stolen tokens are detected via family revocation
+4. **Device sessions** — each login is tracked per device; users can view and revoke sessions
+5. **`next_step` extension point** — the verify response carries a `next_step` field for future MFA without a new endpoint
+6. **Superset responses** — all new fields are additive; old clients ignoring new fields remain functional
+
+---
+
+### 2.A Shared Schemas
+
+#### AuthResponse
+```json
+{
+  "user": { "...": "see User object below" },
+  "tokens": {
+    "access": "eyJ...",
+    "refresh": "eyJ..."
+  },
+  "p7_roles": ["owner", "admin"],
+  "device_id": "dev_uuid",
+  "is_new_user": false
+}
+```
+
+#### User Object (updated — email nullable)
+```json
+{
+  "id": "u1",
+  "email": "user@example.com",
+  "phone": "+14155550101",
+  "first_name": "Alice",
+  "last_name": "Johnson",
+  "avatar": null,
+  "role": "customer",
+  "is_verified": true,
+  "phone_verified_at": "2024-01-15T00:00:00Z",
+  "email_verified_at": null,
+  "created_at": "2024-01-15T00:00:00Z"
+}
+```
+
+> `email` is `null` for phone-only accounts. `phone` is `null` for email-only accounts.
+> At least one of `email` or `phone` must be non-null.
+
+#### JWT Payload (updated)
+```json
+{
+  "sub": "user_id",
+  "exp": 1234567890,
+  "iat": 1234567890,
+  "jti": "uuid-v4",
+  "phone": "+14155550101",
+  "email": null,
+  "role": "customer",
+  "tenant": "savor",
+  "device": "device_uuid"
+}
+```
+
+#### Error Response
+```json
+{
+  "code": "OTP_INVALID",
+  "message": "The code you entered is incorrect.",
+  "retry_after": null,
+  "attempts_remaining": 4,
+  "recovery": null
+}
+```
+
+---
+
+### 2.1 POST /auth/phone/start
+
+Initiate phone authentication. Sends an OTP and returns a `challenge_id`.
+
+**Authentication:** Public
+
+**Request Body:**
+```json
+{ "phone": "+14155550101" }
+```
+
+**Success Response `200`:**
+```json
+{
+  "challenge_id": "chal_uuid",
+  "expires_at": "2024-01-15T00:10:00Z",
+  "resend_after": "2024-01-15T00:01:00Z"
+}
+```
+
+**Error Responses:**
+| Status | Code | Meaning |
+|---|---|---|
+| 400 | `PHONE_INVALID` | Not a valid E.164 phone number |
+| 429 | `RATE_LIMITED` | Too many OTP requests; `retry_after` set |
+
+---
+
+### 2.2 POST /auth/phone/verify
+
+Verify the OTP code. Returns full auth response or profile completion token for new users.
+
+**Authentication:** Public
+
+**Request Body:**
+```json
+{
+  "challenge_id": "chal_uuid",
+  "phone": "+14155550101",
+  "otp": "123456"
+}
+```
+
+**Success Response `200` — existing user:**
+```json
+{
+  "next_step": "complete",
+  "user": { "...": "User object" },
+  "tokens": { "access": "eyJ...", "refresh": "eyJ..." },
+  "p7_roles": ["owner"],
+  "device_id": "dev_uuid",
+  "is_new_user": false
+}
+```
+
+**Success Response `200` — new user:**
+```json
+{
+  "next_step": "complete_profile",
+  "profile_token": "tmp_token_used_once",
+  "is_new_user": true
+}
+```
+
+> `profile_token` is a short-lived (15 min) single-use token for `POST /auth/complete-profile`.
+> `next_step` is the extension point for future MFA steps.
+
+**Error Responses:**
+| Status | Code | Meaning |
+|---|---|---|
+| 400 | `OTP_INVALID` | Wrong code; `attempts_remaining` returned |
+| 400 | `OTP_EXPIRED` | Challenge expired; start a new one |
+| 400 | `CHALLENGE_NOT_FOUND` | Unknown `challenge_id` |
+| 429 | `TOO_MANY_ATTEMPTS` | Max attempts exceeded |
+
+---
+
+### 2.3 POST /auth/phone/resend
+
+Request a new OTP for an existing challenge (respects cooldown).
+
+**Authentication:** Public
+
+**Request Body:**
+```json
+{ "challenge_id": "chal_uuid", "phone": "+14155550101" }
+```
+
+**Success Response `200`:**
+```json
+{
+  "challenge_id": "chal_uuid_new",
+  "expires_at": "2024-01-15T00:10:00Z",
+  "resend_after": "2024-01-15T00:01:00Z"
+}
+```
+
+> A new `challenge_id` is issued; the old one is invalidated.
+
+**Error Responses:**
+| Status | Code | Meaning |
+|---|---|---|
+| 429 | `RESEND_TOO_SOON` | Cooldown not elapsed; `retry_after` set |
+| 429 | `RATE_LIMITED` | Daily resend cap hit |
+
+---
+
+### 2.4 POST /auth/complete-profile
+
+Complete registration for new phone users. Requires `profile_token` from verify step.
+
+**Authentication:** `profile_token` in `Authorization: Bearer` header
+
+**Request Body:**
+```json
+{
+  "first_name": "Alice",
+  "last_name": "Johnson"
+}
+```
+
+**Success Response `201`:** Full `AuthResponse` (same as existing user verify).
+
+**Error Responses:**
+| Status | Code | Meaning |
+|---|---|---|
+| 401 | `PROFILE_TOKEN_INVALID` | Token invalid or expired |
+| 400 | `VALIDATION_ERROR` | Required fields missing |
+
+---
+
+### 2.5 POST /auth/logout
+
+Invalidate the current session's access token (add `jti` to blocklist) and refresh token.
+
+**Authentication:** Customer / Staff / Admin
+
+**Request Body:** Empty  
+**Success Response:** `200 OK` (empty body)
+
+---
+
+### 2.6 POST /auth/logout-all
+
+Revoke all sessions for the account. Increments `token_revoke_version`; all existing JWTs become invalid.
+
+**Authentication:** Customer / Staff / Admin
+
+**Request Body:**
+```json
+{ "except_current": true }
+```
+
+**Success Response `200`:**
+```json
+{ "sessions_revoked": 3 }
+```
+
+---
+
+### 2.7 GET /auth/session
+
+Returns metadata about the current session. Used for session health checks.
+
+**Authentication:** Customer / Staff / Admin
+
+**Success Response `200`:**
+```json
+{
+  "user_id": "u1",
+  "device_id": "dev_uuid",
+  "issued_at": "2024-01-15T00:00:00Z",
+  "expires_at": "2024-01-15T00:15:00Z",
+  "is_valid": true
+}
+```
+
+---
+
+### 2.8 GET /auth/devices
+
+List all active sessions (devices) for the current user.
+
+**Authentication:** Customer / Staff / Admin
+
+**Success Response `200`:**
+```json
+[
+  {
+    "device_id": "dev_uuid",
+    "user_agent": "Mozilla/5.0 ...",
+    "ip_address": "203.0.113.1",
+    "last_active_at": "2024-01-15T00:00:00Z",
+    "created_at": "2024-01-14T09:00:00Z",
+    "is_current": true
+  }
+]
+```
+
+---
+
+### 2.9 DELETE /auth/devices/{device_id}
+
+Revoke a specific device session (remote logout).
+
+**Authentication:** Customer / Staff / Admin
+
+**Success Response `200`:**
+```json
+{ "revoked": true }
+```
+
+**Error Responses:**
+| Status | Code | Meaning |
+|---|---|---|
+| 404 | `DEVICE_NOT_FOUND` | Device does not belong to user |
+
+---
+
+### 2.10 GET /auth/me
+
+Returns the authenticated user object.
+
+**Authentication:** Customer / Staff / Admin
+
+**Success Response `200`:** `User` object (updated schema with nullable email, `phone_verified_at`, `email_verified_at`).
+
+---
+
+### 2.11 POST /auth/token/refresh
+
+Silent token refresh with rotation. Implements token family revocation.
+
+**Authentication:** Public (refresh token in body)
+
+**Request Body:**
+```json
+{ "refresh": "eyJ..." }
+```
+
+**Success Response `200`:**
+```json
+{ "access": "eyJ...", "refresh": "eyJ..." }
+```
+
+> **Rotation algorithm:**
+> 1. Validate refresh token signature and `exp`
+> 2. Look up `RefreshSession` by `jti`
+> 3. If `used_at IS NOT NULL` → family was stolen; revoke all tokens in family → return `403 FAMILY_REVOKED`
+> 4. Mark current token `used_at = now()`
+> 5. Issue new access token (15 min) + new refresh token (30 days) in same family
+> 6. Return new pair
+
+**Error Responses:**
+| Status | Code | Meaning |
+|---|---|---|
+| 401 | `REFRESH_INVALID` | Token not found or signature invalid |
+| 401 | `REFRESH_EXPIRED` | Refresh token past expiry |
+| 403 | `FAMILY_REVOKED` | Reuse detected; all sessions killed |
+
+---
+
+### 2.12 POST /auth/change-phone
+
+Initiate a phone number change. Sends OTP to the new number.
+
+**Authentication:** Customer / Staff / Admin
+
+**Request Body:**
+```json
+{ "new_phone": "+14155550199" }
+```
+
+**Success Response `200`:**
+```json
+{ "challenge_id": "chal_uuid", "expires_at": "2024-01-15T00:10:00Z" }
+```
+
+---
+
+### 2.13 POST /auth/verify-phone-change
+
+Confirm the new phone number with the OTP.
+
+**Authentication:** Customer / Staff / Admin
+
+**Request Body:**
+```json
+{ "challenge_id": "chal_uuid", "otp": "123456" }
+```
+
+**Success Response `200`:**
+```json
+{ "phone": "+14155550199", "phone_verified_at": "2024-01-15T00:05:00Z" }
+```
+
+---
+
+### 2.14 POST /auth/delete-account
+
+Soft-delete the account. 30-day recovery window before permanent deletion.
+
+**Authentication:** Customer / Staff / Admin
+
+**Request Body:**
+```json
+{ "confirmation": "DELETE" }
+```
+
+**Success Response `200`:**
+```json
+{ "scheduled_deletion_at": "2024-02-14T00:00:00Z" }
+```
+
+---
+
+### 2.15 POST /auth/login (legacy — preserved)
 
 **Method:** `POST`  
 **Path:** `/auth/login/`  
@@ -73,43 +469,23 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
 
 **Request Body:**
 ```json
-{
-  "email": "user@example.com",
-  "password": "secret123"
-}
+{ "email": "user@example.com", "password": "secret123" }
 ```
 
 **Success Response `200`:**
 ```json
 {
-  "user": {
-    "id": "u1",
-    "email": "user@example.com",
-    "phone": "+1234567890",
-    "first_name": "Alice",
-    "last_name": "Johnson",
-    "avatar": null,
-    "role": "customer",
-    "is_verified": true,
-    "created_at": "2024-01-15T00:00:00Z"
-  },
-  "tokens": {
-    "access": "eyJ...",
-    "refresh": "eyJ..."
-  }
+  "user": { "...": "User object" },
+  "tokens": { "access": "eyJ...", "refresh": "eyJ..." },
+  "p7_roles": ["owner"]
 }
 ```
 
-**Error Response `400`:**
-```json
-{ "message": "Invalid credentials", "code": "invalid_credentials" }
-```
-
-**Frontend Type:** `User`, `AuthTokens` — `src/types/index.ts:8,23`
+> `p7_roles` added to legacy response for frontend compatibility (P8.9.3).
 
 ---
 
-### 2.2 Register
+### 2.16 POST /auth/register (legacy — preserved)
 
 **Method:** `POST`  
 **Path:** `/auth/register/`  
@@ -127,121 +503,182 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
 }
 ```
 
-**Success Response `201`:** Same shape as Login `200`.
-
-**Frontend Type:** `RegisterData` — `src/types/index.ts:30`
+**Success Response `201`:** Full `AuthResponse`.
 
 ---
 
-### 2.3 Logout
+### 2.17 POST /auth/send-otp (legacy — preserved)
 
-**Method:** `POST`  
-**Path:** `/auth/logout/`  
-**Authentication:** Customer / Staff / Admin  
-
-**Request Body:** Empty  
-**Success Response:** `200 OK` (empty body)
-
----
-
-### 2.4 Get Current User
-
-**Method:** `GET`  
-**Path:** `/auth/me/`  
-**Authentication:** Customer / Staff / Admin
-
-**Success Response `200`:** `User` object (same as login user field)
-
----
-
-### 2.5 Refresh Token
-
-**Method:** `POST`  
-**Path:** `/auth/token/refresh/`  
-**Authentication:** Public (bearer not required; refresh token in body)
-
-**Request Body:**
-```json
-{ "refresh": "eyJ..." }
-```
-
-**Success Response `200`:**
-```json
-{ "access": "eyJ...", "refresh": "eyJ..." }
-```
-
-Backend should implement **refresh token rotation** — each refresh issues a new refresh token and invalidates the old one.
-
----
-
-### 2.6 Forgot Password
-
-**Method:** `POST`  
-**Path:** `/auth/forgot-password/`  
-**Authentication:** Public
-
-**Request Body:** `{ "email": "user@example.com" }`  
-**Success Response `200`:** `{ "message": "Reset link sent" }`
-
----
-
-### 2.7 Reset Password
-
-**Method:** `POST`  
-**Path:** `/auth/reset-password/`  
-**Authentication:** Public (token in body)
-
-**Request Body:**
-```json
-{ "token": "abc123", "password": "NewSecret123!" }
-```
-
-**Success Response `200`:** `{ "message": "Password updated" }`
-
----
-
-### 2.8 Send OTP
-
-**Method:** `POST`  
 **Path:** `/auth/send-otp/`  
-**Authentication:** Public
-
 **Request Body:** `{ "phone": "+1234567890" }`  
 **Success Response `200`:** `{ "message": "OTP sent" }`
 
+> Deprecated in favour of `/auth/phone/start`. Preserved for clients that haven't migrated.
+
 ---
 
-### 2.9 Verify OTP
+### 2.18 POST /auth/verify-otp (legacy — preserved)
 
-**Method:** `POST`  
 **Path:** `/auth/verify-otp/`  
-**Authentication:** Public
+**Request Body:** `{ "phone": "+1234567890", "otp": "123456" }`  
+**Success Response `200`:** `AuthResponse` (with `p7_roles`, `is_new_user`).
 
-**Request Body:**
-```json
-{ "phone": "+1234567890", "otp": "123456" }
-```
-
-**Success Response `200`:** Same shape as Login `200`.
-
-**Frontend Type:** `OTPVerifyData` — `src/types/index.ts:39`
+> Deprecated in favour of `/auth/phone/verify`. Preserved for clients that haven't migrated.
 
 ---
 
-### 2.10 Change Password
+### 2.19 POST /auth/forgot-password, 2.20 POST /auth/reset-password, 2.21 POST /auth/change-password (legacy — preserved)
 
-**Method:** `POST`  
-**Path:** `/auth/change-password/`  
-**Authentication:** Customer / Staff / Admin
-
-**Request Body:**
-```json
-{ "old_password": "current", "new_password": "NewSecret123!" }
-```
-
-**Success Response `200`:** `{ "message": "Password changed" }`
+Unchanged from original contract. See original sections 2.6–2.10.
 
 ---
+
+### 2.D OTP Architecture
+
+| Property | Value |
+|---|---|
+| Length | 6 digits |
+| Expiry | 10 minutes |
+| Max attempts per challenge | 5 |
+| Cooldown between resends | 60 seconds |
+| Daily resend cap per phone | 10 |
+| Storage | HMAC-SHA256 of OTP, never plaintext |
+| Binding | `challenge_id` + phone (not phone alone) |
+
+**PhoneChallenge SQL schema:**
+```sql
+CREATE TABLE phone_challenges (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  phone       VARCHAR(20) NOT NULL,
+  otp_hash    VARCHAR(64) NOT NULL,
+  attempts    SMALLINT NOT NULL DEFAULT 0,
+  max_attempts SMALLINT NOT NULL DEFAULT 5,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  used_at     TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  INDEX (phone, created_at),
+  INDEX (expires_at)
+);
+```
+
+---
+
+### 2.E Session Architecture
+
+| Token | Lifetime | Storage |
+|---|---|---|
+| Access token | 15 minutes | Non-HttpOnly cookie + localStorage |
+| Refresh token | 30 days | localStorage (current) |
+
+**RefreshSession SQL schema:**
+```sql
+CREATE TABLE refresh_sessions (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  device_id   UUID NOT NULL REFERENCES user_devices(id) ON DELETE CASCADE,
+  family_id   UUID NOT NULL,
+  jti         UUID NOT NULL UNIQUE,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  used_at     TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  INDEX (user_id),
+  INDEX (family_id),
+  INDEX (jti)
+);
+```
+
+**Revocation strategy:**
+- Single token: add `jti` to blocklist (Redis TTL = access token lifetime)
+- All sessions: increment `users.token_revoke_version`; JWTs with lower version are rejected
+- Family reuse: `UPDATE refresh_sessions SET used_at = now() WHERE family_id = ? AND used_at IS NULL`
+
+---
+
+### 2.F Phone Normalization
+
+All phone numbers MUST be stored and compared in E.164 format (`+{country_code}{number}`).
+
+| Input | Normalized |
+|---|---|
+| `(415) 555-0101` | `+14155550101` |
+| `415-555-0101` | `+14155550101` |
+| `+1 415 555 0101` | `+14155550101` |
+| `00441234567890` | `+441234567890` |
+
+Backend MUST use `libphonenumber` (or `google-libphonenumber` for Node) for normalization and validation before storing or comparing.
+
+Duplicate detection: if a normalized phone already exists when creating a new account, return the existing account's auth flow (no enumeration).
+
+---
+
+### 2.G Security Controls
+
+| Threat | Control |
+|---|---|
+| OTP brute force | 5 attempts per challenge; exponential backoff 1s→2s→4s→8s→16s |
+| SMS flooding | 60s resend cooldown, 10/day cap per phone, 20/day cap per IP |
+| Phone enumeration | `send-otp` always returns `200` regardless of whether phone is registered |
+| Token theft | Refresh family revocation kills all sessions on reuse detection |
+| Replay | `challenge_id` single-use; `jti` blocklist for access tokens |
+| Account takeover | `logout-all` with `token_revoke_version` increment |
+| Concurrent OTPs | New `challenge_id` per send; old challenge invalidated on new send |
+
+---
+
+### 2.H Error Code Reference
+
+| Code | HTTP | Meaning |
+|---|---|---|
+| `PHONE_INVALID` | 400 | Not a valid E.164 number |
+| `OTP_INVALID` | 400 | Wrong code |
+| `OTP_EXPIRED` | 400 | Challenge expired |
+| `CHALLENGE_NOT_FOUND` | 400 | Unknown `challenge_id` |
+| `TOO_MANY_ATTEMPTS` | 429 | Max OTP attempts exceeded |
+| `RESEND_TOO_SOON` | 429 | Within cooldown window |
+| `RATE_LIMITED` | 429 | IP or phone rate limit hit |
+| `PROFILE_TOKEN_INVALID` | 401 | `profile_token` invalid or expired |
+| `REFRESH_INVALID` | 401 | Refresh token not found |
+| `REFRESH_EXPIRED` | 401 | Refresh token past `exp` |
+| `FAMILY_REVOKED` | 403 | Token reuse detected; all sessions revoked |
+| `DEVICE_NOT_FOUND` | 404 | Device not in user's session list |
+| `INVALID_CREDENTIALS` | 400 | Email/password mismatch (legacy) |
+| `VALIDATION_ERROR` | 400 | Request body failed schema validation |
+
+---
+
+### 2.I Backend Data Model
+
+**Migrations required (additive only — no breaking changes):**
+
+```sql
+-- Extend users table
+ALTER TABLE users
+  ALTER COLUMN email DROP NOT NULL,
+  ADD COLUMN IF NOT EXISTS phone_verified_at   TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS email_verified_at   TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS token_revoke_version INTEGER NOT NULL DEFAULT 0;
+
+-- Device sessions
+CREATE TABLE IF NOT EXISTS user_devices (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_agent    TEXT,
+  ip_address    INET,
+  last_active_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  INDEX (user_id)
+);
+```
+
+---
+
+### 2.J Versioning
+
+- URL-based versioning: `/api/v1/` (current) vs `/api/v2/` (future)
+- All new endpoints are **additive** — existing clients ignoring new fields continue to work
+- Legacy endpoints (`/auth/login/`, `/auth/send-otp/`, `/auth/verify-otp/`) remain functional indefinitely
+- `next_step` in verify response is the extension point for future MFA without new endpoints
+
 
 ## 3. Menu Endpoints
 
