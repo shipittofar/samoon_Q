@@ -34,7 +34,7 @@ import {
 } from '@/stores'
 import type { TenantTheme } from '@/types'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
-import { cn } from '@/utils'
+import { cn, buildPublicCTAs, buildCustomerJourney } from '@/utils'
 import { buildTenantNavigation, getBusinessTypeBadge } from '@/utils/navigation'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -77,12 +77,25 @@ export function TenantHeader() {
   const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
   const branchSlug = activeBranch?.slug
 
+  // P8.8.11.4: journey nav priority — business-type-aware nav ordering hint.
+  // Website Builder config (layoutNavConfig) overrides this when present.
+  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const meta = (tenant.settings as { marketplace?: { branchCount?: number; primaryBranchSlug?: string } } | undefined)?.marketplace
+  const journeyCTAs = buildPublicCTAs({
+    tenantSlug: tenant.slug,
+    branchSlug,
+    featureFlags,
+    meta,
+  })
+  const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes ?? [], ctas: journeyCTAs })
+
   // Phase J: buildTenantNavigation() owns all nav business logic.
   const navLinks = buildTenantNavigation({
     tenant,
     branchSlug,
     moduleNavItems,
     layoutNavConfig,
+    journeyNavPriority: journey.navPriority,
   })
 
   // Phase F: business type badge (☕ Cafe, 🍽️ Restaurant, …)

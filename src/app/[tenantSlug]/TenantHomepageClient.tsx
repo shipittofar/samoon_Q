@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import {
   Star, MapPin, Phone, Mail, Globe, Clock,
   UtensilsCrossed, Tag, Share2, Check, ExternalLink,
@@ -11,7 +11,8 @@ import {
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
-import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections } from '@/utils'
+import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
+import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { usePublicTenant, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
@@ -237,53 +238,43 @@ function ShareButton({ tenant }: { tenant: Tenant }) {
 
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
-function QuickActions({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }) {
-  const featureFlags = useTenantStore((s) => s.featureFlags)
-  const ctas = buildPublicCTAs({ tenantSlug: tenant.slug, branchSlug: undefined, featureFlags, meta })
+/** Selects the icon for a CTA based on its destination href. */
+function ctaIcon(href: string): React.ReactNode {
+  if (href.includes('/menu'))        return <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+  if (href.includes('/reservation')) return <Clock           className="w-4 h-4" aria-hidden="true" />
+  if (href.includes('/loyalty'))     return <Tag             className="w-4 h-4" aria-hidden="true" />
+  if (href.includes('#branches'))    return <MapPin          className="w-4 h-4" aria-hidden="true" />
+  return                                    <ExternalLink    className="w-4 h-4" aria-hidden="true" />
+}
+
+/**
+ * Renders the quick-action bar in journey priority order.
+ * Receives a pre-computed CustomerJourney so CTA resolution and ordering
+ * happen once in the parent, not in every sub-component.
+ */
+function QuickActions({ journey, tenant }: { journey: CustomerJourney; tenant: Tenant }) {
+  const allCTAs = [journey.primaryCTA, ...journey.secondaryCTAs].filter(
+    (c): c is NonNullable<typeof c> => c !== null,
+  )
 
   return (
     <section aria-label="Quick actions">
       <div className="flex flex-wrap gap-2">
-        {ctas.menu && (
+        {allCTAs.map((cta, i) => (
           <Link
-            href={ctas.menu.href}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
+            key={cta.href}
+            href={cta.href}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm transition-colors',
+              i === 0
+                ? 'bg-[var(--accent)] text-[var(--accent-fg)] font-semibold hover:bg-[var(--accent-hover)]'
+                : 'border border-[var(--border)] font-medium text-[var(--fg)] hover:bg-[var(--card-hover)]',
+            )}
           >
-            <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
-            {ctas.menu.label}
+            {ctaIcon(cta.href)}
+            {cta.label}
           </Link>
-        )}
-
-        {ctas.locations && (
-          <a
-            href={ctas.locations.href}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-          >
-            <MapPin className="w-4 h-4" aria-hidden="true" />
-            {ctas.locations.label}
-          </a>
-        )}
-
-        {ctas.reservation && (
-          <Link
-            href={ctas.reservation.href}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-          >
-            <Clock className="w-4 h-4" aria-hidden="true" />
-            {ctas.reservation.label}
-          </Link>
-        )}
-
-        {ctas.loyalty && (
-          <Link
-            href={ctas.loyalty.href}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-          >
-            <Tag className="w-4 h-4" aria-hidden="true" />
-            {ctas.loyalty.label}
-          </Link>
-        )}
-
+        ))}
         <ShareButton tenant={tenant} />
       </div>
     </section>
@@ -774,6 +765,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const { data: promotions = [] } = useActivePromotions()
   // Website Builder section config — optional, fails open to DEFAULT_SECTIONS
   const { data: layout } = useHomepageLayout(tenantSlug)
+  const featureFlags = useTenantStore((s) => s.featureFlags)
 
   if (isLoading) return <LoadingSkeleton />
   if (!tenant) return <TenantNotFoundState />
@@ -781,8 +773,53 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const meta = getMarketplaceMeta(tenant.settings)
   if (!meta) return <TenantNotFoundState />
 
-  // Section visibility driven by Website Builder config (or defaults when unset)
+  // Section visibility: Website Builder config or DEFAULT_SECTIONS
   const sections = buildPublicSections(layout?.sections)
+
+  // Smart Customer Journey: business-type-aware CTA priority + section order
+  const ctas = buildPublicCTAs({ tenantSlug, branchSlug: undefined, featureFlags, meta })
+  const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas })
+
+  // Section component map — visibility still gated by buildPublicSections().
+  // The featured_menu slot always includes CategoriesSection so it moves with
+  // featured content in the journey order.
+  const sectionNodes: Partial<Record<string, React.ReactNode>> = {
+    about: sections.about ? <BusinessInfo meta={meta} /> : null,
+    reviews: sections.reviews ? (
+      <ReviewsSection
+        tenantId={tenant.id}
+        tenantSlug={tenantSlug}
+        initialRating={meta.rating}
+        initialReviewCount={meta.reviewCount}
+      />
+    ) : null,
+    gallery: sections.gallery ? <GallerySection meta={meta} /> : null,
+    branches: sections.branches ? <BranchesSection meta={meta} tenantSlug={tenantSlug} /> : null,
+    // CategoriesSection always renders (structural nav); FeaturedItemsSection is section-gated.
+    featured_menu: (
+      <>
+        <CategoriesSection
+          categories={categories}
+          tenantSlug={tenantSlug}
+          primaryBranchSlug={meta.primaryBranchSlug}
+        />
+        {sections.featured_menu && (
+          <FeaturedItemsSection
+            items={menuItems}
+            tenantSlug={tenantSlug}
+            primaryBranchSlug={meta.primaryBranchSlug}
+          />
+        )}
+      </>
+    ),
+    promotions: sections.promotions ? (
+      <PromotionsSection
+        promotions={promotions}
+        tenantSlug={tenantSlug}
+        primaryBranchSlug={meta.primaryBranchSlug}
+      />
+    ) : null,
+  }
 
   return (
     <>
@@ -794,37 +831,12 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
         <HeroSection tenant={tenant} meta={meta} />
 
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-16">
-          <QuickActions tenant={tenant} meta={meta} />
-          {sections.about && <BusinessInfo meta={meta} />}
-          {sections.reviews && (
-            <ReviewsSection
-              tenantId={tenant.id}
-              tenantSlug={tenantSlug}
-              initialRating={meta.rating}
-              initialReviewCount={meta.reviewCount}
-            />
-          )}
-          {sections.gallery && <GallerySection meta={meta} />}
-          {sections.branches && <BranchesSection meta={meta} tenantSlug={tenantSlug} />}
-          <CategoriesSection
-            categories={categories}
-            tenantSlug={tenantSlug}
-            primaryBranchSlug={meta.primaryBranchSlug}
-          />
-          {sections.featured_menu && (
-            <FeaturedItemsSection
-              items={menuItems}
-              tenantSlug={tenantSlug}
-              primaryBranchSlug={meta.primaryBranchSlug}
-            />
-          )}
-          {sections.promotions && (
-            <PromotionsSection
-              promotions={promotions}
-              tenantSlug={tenantSlug}
-              primaryBranchSlug={meta.primaryBranchSlug}
-            />
-          )}
+          <QuickActions journey={journey} tenant={tenant} />
+          {journey.sectionOrder.map((key) => {
+            const node = sectionNodes[key]
+            if (node === null || node === undefined) return null
+            return <Fragment key={key}>{node}</Fragment>
+          })}
         </div>
       </main>
 

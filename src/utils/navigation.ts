@@ -89,8 +89,15 @@ interface BuildTenantNavOptions {
   /**
    * Optional Website Builder nav config from HomepageLayout.navItems.
    * When present, controls item visibility, ordering, and custom labels.
+   * Website Builder config takes precedence over journeyNavPriority.
    */
   layoutNavConfig?: TenantNavItemConfig[]
+  /**
+   * Optional business-type-driven nav key order from buildCustomerJourney().
+   * Applied only when layoutNavConfig is absent or has no ordering config.
+   * Example: ['locations', 'menu', 'order'] for food_truck.
+   */
+  journeyNavPriority?: string[]
 }
 
 /**
@@ -104,7 +111,7 @@ interface BuildTenantNavOptions {
  * The returned array is always led by the marketplace re-entry item.
  */
 export function buildTenantNavigation(opts: BuildTenantNavOptions): TenantNavLink[] {
-  const { tenant, branchSlug, moduleNavItems, layoutNavConfig } = opts
+  const { tenant, branchSlug, moduleNavItems, layoutNavConfig, journeyNavPriority } = opts
   const tenantSlug = tenant.slug
   const meta = getMarketplaceMeta(tenant.settings)
   const branchCount = meta?.branchCount ?? 1
@@ -146,7 +153,20 @@ export function buildTenantNavigation(opts: BuildTenantNavOptions): TenantNavLin
     ]
   }
 
-  // Step 4: apply Website Builder configuration (Phase I)
+  // Step 4: apply journey nav priority (Phase E — P8.8.11.4)
+  // Only applied when Website Builder does not already define ordering.
+  // Reorders business items by the journey profile's preferred key order;
+  // items not in the priority list are appended at the end.
+  const hasWBOrdering =
+    layoutNavConfig && layoutNavConfig.some((c) => c.enabled && c.order != null)
+  if (!hasWBOrdering && journeyNavPriority && journeyNavPriority.length > 0) {
+    const byKey = new Map(businessItems.map((i) => [i.key, i]))
+    const ordered = journeyNavPriority.flatMap((k) => (byKey.has(k) ? [byKey.get(k)!] : []))
+    const unordered = businessItems.filter((i) => !journeyNavPriority.includes(i.key))
+    businessItems = [...ordered, ...unordered]
+  }
+
+  // Step 5: apply Website Builder configuration (Phase I)
   if (layoutNavConfig && layoutNavConfig.length > 0) {
     // 4a. Remove items disabled by the owner
     const disabledKeys = new Set(

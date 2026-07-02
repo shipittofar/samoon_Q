@@ -113,3 +113,5 @@ export {
   buildBranchJsonLd,
 } from './public-context'
 export type { PublicCTALink, PublicCTASet, FooterQuickLink } from './public-context'
+export { buildCustomerJourney } from './journey'
+export type { PrimaryBusinessType, CustomerJourney, BuildCustomerJourneyOptions } from './journey'

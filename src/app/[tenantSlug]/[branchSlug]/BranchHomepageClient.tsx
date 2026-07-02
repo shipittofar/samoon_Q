@@ -11,7 +11,9 @@ import {
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
-import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections } from '@/utils'
+import { Fragment } from 'react'
+import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
+import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { usePublicTenant, usePublicBranch, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
@@ -153,20 +155,32 @@ function HeroSection({
 
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
+/** Selects the icon for a CTA based on its destination href. */
+function ctaIcon(href: string): React.ReactNode {
+  if (href.includes('/menu'))        return <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+  if (href.includes('/reservation')) return <Clock           className="w-4 h-4" aria-hidden="true" />
+  if (href.includes('/loyalty'))     return <Tag             className="w-4 h-4" aria-hidden="true" />
+  if (href.includes('#branches'))    return <MapPin          className="w-4 h-4" aria-hidden="true" />
+  return                                    <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+}
+
 function QuickActions({
   branch,
   tenantSlug,
   branchSlug,
+  journey,
 }: {
   branch: PublicBranchInfo
   tenantSlug: string
   branchSlug: string
+  journey: CustomerJourney
 }) {
   const [copied, setCopied] = useState(false)
   const pageUrl = typeof window !== 'undefined' ? window.location.href : `/${tenantSlug}/${branchSlug}`
 
-  const featureFlags = useTenantStore((s) => s.featureFlags)
-  const ctas = buildPublicCTAs({ tenantSlug, branchSlug, featureFlags })
+  const allCTAs = [journey.primaryCTA, ...journey.secondaryCTAs].filter(
+    (c): c is NonNullable<typeof c> => c !== null,
+  )
 
   async function handleShare() {
     if (navigator.share) {
@@ -181,33 +195,23 @@ function QuickActions({
   return (
     <section className="bg-[var(--card)] border-b border-[var(--border)]" aria-label="Quick actions">
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap gap-2">
-        {ctas.menu && (
+        {/* Journey-ordered feature CTAs */}
+        {allCTAs.map((cta, i) => (
           <Link
-            href={ctas.menu.href}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[var(--accent)] text-[var(--accent-fg)] rounded-xl text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
+            key={cta.href}
+            href={cta.href}
+            className={cn(
+              'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm transition-colors',
+              i === 0
+                ? 'bg-[var(--accent)] text-[var(--accent-fg)] font-semibold hover:bg-[var(--accent-hover)]'
+                : 'border border-[var(--border)] font-medium text-[var(--fg)] hover:bg-[var(--card-hover)]',
+            )}
           >
-            <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />{ctas.menu.label}
+            {ctaIcon(cta.href)}{cta.label}
           </Link>
-        )}
+        ))}
 
-        {ctas.reservation && (
-          <Link
-            href={ctas.reservation.href}
-            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-          >
-            <Clock className="w-4 h-4" aria-hidden="true" />{ctas.reservation.label}
-          </Link>
-        )}
-
-        {ctas.loyalty && (
-          <Link
-            href={ctas.loyalty.href}
-            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-          >
-            <Tag className="w-4 h-4" aria-hidden="true" />{ctas.loyalty.label}
-          </Link>
-        )}
-
+        {/* Branch-specific CTAs — not feature-flag-gated; always shown when available */}
         {branch.phone && (
           <a
             href={`tel:${branch.phone.replace(/\s/g, '')}`}
@@ -597,6 +601,7 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
   const { data: menuItemsPage } = useMenuItems()
   const { data: promotions = [] } = useActivePromotions()
   const { data: layout } = useHomepageLayout(tenantSlug)
+  const featureFlags = useTenantStore((s) => s.featureFlags)
 
   const menuItems: MenuItem[] = menuItemsPage?.results ?? []
 
@@ -605,6 +610,10 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
 
   const meta = getMarketplaceMeta(tenant.settings)
   const sections = buildPublicSections(layout?.sections)
+
+  // Smart Customer Journey: business-type-aware CTA priority + section order
+  const ctas = buildPublicCTAs({ tenantSlug, branchSlug, featureFlags })
+  const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas })
 
   const accentColor =
     (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor ?? '#e85d04'
@@ -630,33 +639,54 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
         tenantSlug={tenantSlug}
         branchSlug={branchSlug}
       />
-      <QuickActions branch={branch} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+      <QuickActions branch={branch} tenantSlug={tenantSlug} branchSlug={branchSlug} journey={journey} />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main content */}
+          {/* Main content — rendered in journey section order */}
           <div className="lg:col-span-2 space-y-10">
-            {/* Trust signal near top */}
+            {/* Trust signal near top — always first */}
             <RatingSummary rating={rating} reviewCount={reviewCount} />
-            {sections.featured_menu && <FeaturedMenuSection items={menuItems} tenantSlug={tenantSlug} branchSlug={branchSlug} />}
-            <CategoriesSection categories={categories} tenantSlug={tenantSlug} branchSlug={branchSlug} />
-            {sections.reviews && (
-              <ReviewsSection
-                tenantId={tenant.id}
-                tenantSlug={tenantSlug}
-                branchId={branchSlug}
-                initialRating={rating}
-                initialReviewCount={reviewCount}
-              />
-            )}
-            {/* C4: Branch-specific photo first, then labeled tenant gallery */}
-            {sections.gallery && branchPhotos.length > 0 && (
-              <GallerySection images={branchPhotos} label="This Location" />
-            )}
-            {sections.gallery && hasGallery && (
-              <GallerySection images={tenantGallery} label="Business Gallery" />
-            )}
-            {sections.promotions && <PromotionsSection promotions={promotions as PromotionRule[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />}
+
+            {/* Section component map: visibility gated by buildPublicSections(),
+                order driven by buildCustomerJourney().sectionOrder */}
+            {(() => {
+              const sectionNodes: Partial<Record<string, React.ReactNode>> = {
+                // CategoriesSection always renders alongside featured_menu (structural nav)
+                featured_menu: (
+                  <>
+                    <CategoriesSection categories={categories} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+                    {sections.featured_menu && <FeaturedMenuSection items={menuItems} tenantSlug={tenantSlug} branchSlug={branchSlug} />}
+                  </>
+                ),
+                reviews: sections.reviews ? (
+                  <ReviewsSection
+                    tenantId={tenant.id}
+                    tenantSlug={tenantSlug}
+                    branchId={branchSlug}
+                    initialRating={rating}
+                    initialReviewCount={reviewCount}
+                  />
+                ) : null,
+                // C4: Branch-specific photo first, then labeled tenant gallery
+                gallery: sections.gallery ? (
+                  <>
+                    {branchPhotos.length > 0 && <GallerySection images={branchPhotos} label="This Location" />}
+                    {hasGallery && <GallerySection images={tenantGallery} label="Business Gallery" />}
+                  </>
+                ) : null,
+                promotions: sections.promotions ? (
+                  <PromotionsSection promotions={promotions as PromotionRule[]} tenantSlug={tenantSlug} branchSlug={branchSlug} />
+                ) : null,
+              }
+              return journey.sectionOrder
+                .filter((k) => k !== 'branches') // branches is in sidebar, not main column
+                .map((key) => {
+                  const node = sectionNodes[key]
+                  if (node === null || node === undefined) return null
+                  return <Fragment key={key}>{node}</Fragment>
+                })
+            })()}
           </div>
 
           {/* Sidebar */}
