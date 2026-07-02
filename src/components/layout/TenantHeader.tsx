@@ -23,7 +23,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   ShoppingCart, User, Menu, X, Sun, Moon, Globe,
   ChevronDown, LogOut, Settings, Package, Heart, MapPin,
@@ -72,6 +72,8 @@ export function TenantHeader() {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+
+  const prefersReducedMotion = useReducedMotion()
 
   const cartCount = getItemCount()
   const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
@@ -227,11 +229,11 @@ export function TenantHeader() {
               >
                 <AnimatePresence mode="wait">
                   {theme === 'dark' ? (
-                    <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                    <motion.div key="sun" initial={{ rotate: prefersReducedMotion ? 0 : -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: prefersReducedMotion ? 0 : 90, opacity: 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}>
                       <Sun className="h-4 w-4" />
                     </motion.div>
                   ) : (
-                    <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                    <motion.div key="moon" initial={{ rotate: prefersReducedMotion ? 0 : 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: prefersReducedMotion ? 0 : -90, opacity: 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}>
                       <Moon className="h-4 w-4" />
                     </motion.div>
                   )}
@@ -252,10 +254,10 @@ export function TenantHeader() {
                 <AnimatePresence>
                   {langMenuOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 8, scale: prefersReducedMotion ? 1 : 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                      transition={{ duration: 0.15 }}
+                      exit={{ opacity: 0, y: prefersReducedMotion ? 0 : 8, scale: prefersReducedMotion ? 1 : 0.95 }}
+                      transition={{ duration: prefersReducedMotion ? 0 : 0.15 }}
                       className="absolute end-0 top-full mt-2 w-36 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl overflow-hidden z-50"
                     >
                       {LANGUAGES.map((lang) => (
@@ -317,10 +319,10 @@ export function TenantHeader() {
                   <AnimatePresence>
                     {userMenuOpen && (
                       <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 8, scale: prefersReducedMotion ? 1 : 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
+                        exit={{ opacity: 0, y: prefersReducedMotion ? 0 : 8, scale: prefersReducedMotion ? 1 : 0.95 }}
+                        transition={{ duration: prefersReducedMotion ? 0 : 0.15 }}
                         className="absolute end-0 top-full mt-2 w-52 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl overflow-hidden z-50"
                       >
                         <div className="p-3 border-b border-[var(--border)]">

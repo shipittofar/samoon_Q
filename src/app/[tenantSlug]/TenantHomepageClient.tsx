@@ -524,7 +524,7 @@ function CategoriesSection({
               className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--card-hover)] hover:border-[var(--accent)]/30 transition-colors"
               aria-label={`Browse ${cat.name}`}
             >
-              <span className="text-2xl" role="img" aria-label={cat.name}>
+              <span className="text-2xl" aria-hidden="true">
                 {icon}
               </span>
               <span className="text-sm font-medium text-[var(--fg)] text-center">{cat.name}</span>
@@ -703,7 +703,7 @@ function GallerySection({ meta }: { meta: MarketplaceMeta }) {
               alt=""
               aria-hidden="true"
               fill
-              className="object-cover hover:scale-105 transition-transform duration-500"
+              className="object-cover hover:scale-105 transition-transform duration-300"
               sizes="(max-width: 640px) 50vw, 33vw"
             />
           </div>
@@ -719,13 +719,38 @@ function LoadingSkeleton() {
   return (
     <>
       <TenantHeader />
-      <div className="animate-pulse">
+      <div role="status" aria-label="Loading page content" className="animate-pulse">
         <div className="h-[55vh] min-h-[340px] bg-[var(--card)]" aria-hidden="true" />
-        <div className="max-w-7xl mx-auto px-4 py-10 space-y-6">
-          <div className="h-8 w-48 bg-[var(--card)] rounded-xl" />
-          <div className="h-4 w-full max-w-lg bg-[var(--card)] rounded-xl" />
-          <div className="h-4 w-full max-w-md bg-[var(--card)] rounded-xl" />
+        <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
+          {/* Quick actions row */}
+          <div className="flex gap-3">
+            <div className="h-10 w-32 bg-[var(--card-hover)] rounded-xl" />
+            <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl" />
+            <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl" />
+          </div>
+          {/* Section heading + cards */}
+          <div className="space-y-4">
+            <div className="h-7 w-44 bg-[var(--card-hover)] rounded-xl" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
+                  <div className="h-36 bg-[var(--card-hover)]" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-4 w-3/4 bg-[var(--card-hover)] rounded" />
+                    <div className="h-3 w-1/2 bg-[var(--card-hover)] rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Secondary section */}
+          <div className="space-y-4">
+            <div className="h-7 w-36 bg-[var(--card-hover)] rounded-xl" />
+            <div className="h-4 w-full max-w-lg bg-[var(--card-hover)] rounded-xl" />
+            <div className="h-4 w-full max-w-md bg-[var(--card-hover)] rounded-xl" />
+          </div>
         </div>
+        <span className="sr-only">Loading…</span>
       </div>
       <Footer />
     </>

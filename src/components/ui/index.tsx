@@ -90,7 +90,7 @@ export function Avatar({ src, firstName = '', lastName = '', size = 'md', classN
   return (
     <div className={cn('relative rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center font-semibold text-white shrink-0', avatarSizes[size], className)}>
       {src ? (
-        <img src={src} alt={`${firstName} ${lastName}`} className="h-full w-full object-cover" />
+        <img src={src} alt={`${firstName} ${lastName}`} className="h-full w-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
       ) : (
         <span>{initials}</span>
       )}

@@ -236,6 +236,7 @@ function QuickActions({
           {copied ? <Check className="w-4 h-4 text-emerald-500" aria-hidden="true" /> : <Share2 className="w-4 h-4" aria-hidden="true" />}
           {copied ? 'Copied!' : 'Share'}
         </button>
+        <span role="status" aria-live="polite" className="sr-only">{copied ? 'Link copied to clipboard' : ''}</span>
       </div>
     </section>
   )
@@ -245,8 +246,8 @@ function QuickActions({
 
 function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
   return (
-    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 space-y-4">
-      <h2 className="font-semibold text-[var(--fg)]">Branch Information</h2>
+    <section aria-labelledby="branch-info-heading" className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 space-y-4">
+      <h2 id="branch-info-heading" className="font-semibold text-[var(--fg)]">Branch Information</h2>
       <div className="space-y-3 text-sm">
         <div className="flex items-start gap-3 text-[var(--fg-muted)]">
           <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
@@ -281,7 +282,7 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
           <p className="text-xs text-[var(--fg-subtle)] mt-0.5">{branch.address}</p>
         </div>
       </button>
-    </div>
+    </section>
   )
 }
 
@@ -302,8 +303,8 @@ function BranchSwitcher({
   const otherBranches = branches.filter((b) => b.slug !== currentSlug)
 
   return (
-    <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5">
-      <h2 className="font-semibold text-[var(--fg)] mb-3">Locations</h2>
+    <section aria-labelledby="branch-switcher-heading" className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5">
+      <h2 id="branch-switcher-heading" className="font-semibold text-[var(--fg)] mb-3">Locations</h2>
 
       {/* H2: Current branch indicator */}
       {currentBranch && (
@@ -348,7 +349,7 @@ function BranchSwitcher({
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -541,13 +542,41 @@ function BranchSkeleton() {
   return (
     <>
       <TenantHeader />
-      <div className="animate-pulse">
+      <div role="status" aria-label="Loading branch page" className="animate-pulse">
         <div className="h-[45vh] min-h-[300px] bg-[var(--card)]" aria-hidden="true" />
-        <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-          <div className="h-8 bg-[var(--card)] rounded-xl w-1/3" />
-          <div className="h-4 bg-[var(--card)] rounded-xl w-1/2" />
-          <div className="h-4 bg-[var(--card)] rounded-xl w-2/3" />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="flex-1 space-y-6">
+              {/* Quick actions */}
+              <div className="flex gap-3">
+                <div className="h-10 w-32 bg-[var(--card-hover)] rounded-xl" />
+                <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl" />
+                <div className="h-10 w-24 bg-[var(--card-hover)] rounded-xl" />
+              </div>
+              {/* Menu cards */}
+              <div className="space-y-3">
+                <div className="h-7 w-40 bg-[var(--card-hover)] rounded-xl" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
+                      <div className="h-32 bg-[var(--card-hover)]" />
+                      <div className="p-3 space-y-2">
+                        <div className="h-4 w-3/4 bg-[var(--card-hover)] rounded" />
+                        <div className="h-3 w-1/2 bg-[var(--card-hover)] rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            {/* Sidebar */}
+            <div className="w-full lg:w-72 space-y-4 shrink-0">
+              <div className="h-48 bg-[var(--card)] rounded-2xl border border-[var(--border)]" />
+              <div className="h-32 bg-[var(--card)] rounded-2xl border border-[var(--border)]" />
+            </div>
+          </div>
         </div>
+        <span className="sr-only">Loading…</span>
       </div>
       <Footer />
     </>
