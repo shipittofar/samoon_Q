@@ -6,7 +6,6 @@ import {
   ArrowLeft, AlertCircle, Info, AlertTriangle, Clock, User,
   Tag, FileText, Loader2,
 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -189,7 +188,6 @@ export default function AuditLogDetailPage({ params }: { params: Promise<{ id: s
     <ErrorBoundary feature="Audit Log Detail">
       <PermissionGuard permission="audit.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
-          <Header />
           <div className="pt-16">
             <AuditLogDetailContent id={id} />
           </div>

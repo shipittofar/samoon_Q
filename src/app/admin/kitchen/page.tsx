@@ -1,7 +1,6 @@
 'use client'
 
 import { use, useState, useEffect, useCallback } from 'react'
-import { Header } from '@/components/layout/Header'
 import { KitchenDisplay } from '@/components/admin/KitchenDisplay'
 import { BranchSelector } from '@/components/common/BranchSelector'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -68,7 +67,7 @@ function KitchenPageContent() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      {!isFullscreen && <Header />}
+      {/* AdminHeader is rendered by the layout; no per-page header needed */}
       <div className={isFullscreen ? 'p-4' : 'pt-20 px-4 pb-6'}>
         {/* Toolbar */}
         <div className="flex items-center justify-between flex-wrap gap-3 mb-4">

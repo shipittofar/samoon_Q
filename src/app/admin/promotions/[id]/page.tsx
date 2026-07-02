@@ -3,7 +3,6 @@
 import { use } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Tag, Calendar, Percent, CheckCircle, XCircle, Loader2 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -146,7 +145,6 @@ export default function PromotionDetailPage({ params }: { params: Promise<{ id: 
     <ErrorBoundary feature="Promotion Detail">
       <PermissionGuard permission="promotions.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
-          <Header />
           <div className="pt-16">
             <PromotionDetailContent id={id} />
           </div>

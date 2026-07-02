@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ChevronRight, Home } from 'lucide-react'
+import { ChevronRight, LayoutDashboard } from 'lucide-react'
 
 interface BreadcrumbSegment {
   label: string
@@ -22,11 +22,25 @@ const SEGMENT_LABELS: Record<string, string> = {
   analytics:    'Analytics',
   notifications:'Notifications',
   'audit-logs': 'Audit Logs',
-  operations:   'Operations',
+  operations:   'Live Operations',
   settings:     'Settings',
   kitchen:      'Kitchen Display',
   reviews:      'Reviews',
   menu:         'Menu',
+  loyalty:      'Loyalty',
+  permissions:  'Permissions',
+  roles:        'Roles',
+  users:        'Users',
+  website:      'Website Builder',
+  new:          'New',
+  simulator:    'Simulator',
+  'feature-flags': 'Feature Flags',
+  'happy-hour': 'Happy Hour',
+  'food-court': 'Food Court',
+  'food-truck': 'Food Truck',
+  'mobile-cafe':'Mobile Cafe',
+  bar:          'Bar',
+  cafe:         'Cafe',
 }
 
 function isId(segment: string): boolean {
@@ -45,11 +59,14 @@ function labelForSegment(segment: string, prevSegment?: string): string {
 
 function buildBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   const segments = pathname.split('/').filter(Boolean)
-  const crumbs: BreadcrumbSegment[] = [{ label: 'Home', href: '/' }]
+  // Home crumb points to /admin (not public site root) — C4 fix (P8.9.4)
+  const crumbs: BreadcrumbSegment[] = [{ label: 'Admin', href: '/admin' }]
   let path = ''
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i]
     path += `/${seg}`
+    // Skip /admin itself since it's already the root crumb
+    if (path === '/admin') continue
     crumbs.push({
       label: labelForSegment(seg, segments[i - 1]),
       href: path,
@@ -68,7 +85,8 @@ export function AdminBreadcrumbs({ className, overrides }: AdminBreadcrumbsProps
   const pathname = usePathname()
   const crumbs = buildBreadcrumbs(pathname)
 
-  if (crumbs.length <= 2) return null
+  // Show breadcrumbs whenever we're deeper than the admin root itself
+  if (crumbs.length <= 1) return null
 
   const visible = overrides
     ? crumbs.map((c, i) => overrides[i] ? { ...c, label: overrides[i] } : c)
@@ -81,8 +99,8 @@ export function AdminBreadcrumbs({ className, overrides }: AdminBreadcrumbsProps
         return (
           <span key={crumb.href} className="flex items-center gap-1">
             {i === 0 ? (
-              <Link href={crumb.href} className="hover:text-[var(--fg)] transition-colors" aria-label="Home">
-                <Home className="h-3.5 w-3.5" />
+              <Link href={crumb.href} className="hover:text-[var(--fg)] transition-colors" aria-label="Admin dashboard">
+                <LayoutDashboard className="h-3.5 w-3.5" />
               </Link>
             ) : isLast ? (
               <span className="text-[var(--fg)] font-medium truncate max-w-[180px]" aria-current="page">

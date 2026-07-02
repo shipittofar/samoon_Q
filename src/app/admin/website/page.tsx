@@ -6,7 +6,6 @@ import {
   Globe, GitBranch, Save, Upload, RotateCcw, Loader2, CheckCircle2,
   ChevronDown, ChevronUp, GripVertical, Layers, Cpu,
 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { cn } from '@/utils'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -1001,7 +1000,6 @@ export default function WebsiteBuilderPage() {
   return (
     <PermissionGuard permission="settings.view" fallback={<AccessDenied />}>
       <div className="min-h-screen bg-[var(--bg)]">
-        <Header />
         <main>
           <WebsiteBuilderContent />
         </main>

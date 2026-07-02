@@ -78,9 +78,15 @@ export const ADMIN_NOTIFICATION_ROUTES: readonly string[] = ['/admin/notificatio
 
 // ── Shared admin nav items ────────────────────────────────────────────────────
 
+// ── Grouped, icon-annotated nav item constants (P8.9.4) ──────────────────────
+// group: matches the section header label rendered in AdminSidebar.
+// icon:  lucide-react icon name, resolved via ADMIN_NAV_ICON_MAP in AdminSidebar.
+
 const TENANTS_NAV_ITEM = {
   href: '/admin/tenants',
   label: 'Tenants',
+  icon: 'Layers',
+  group: 'Platform',
   featureFlagKey: 'admin.tenants.enabled',
   permissionKey: 'tenant.view',
 } as const
@@ -88,6 +94,8 @@ const TENANTS_NAV_ITEM = {
 const STAFF_NAV_ITEM = {
   href: '/admin/staff',
   label: 'Staff',
+  icon: 'Users',
+  group: 'People',
   featureFlagKey: 'admin.staff.enabled',
   permissionKey: 'staff.view',
 } as const
@@ -95,6 +103,8 @@ const STAFF_NAV_ITEM = {
 const BRANCHES_NAV_ITEM = {
   href: '/admin/branches',
   label: 'Branches',
+  icon: 'GitBranch',
+  group: 'Platform',
   featureFlagKey: 'admin.branches.enabled',
   permissionKey: 'branches.view',
 } as const
@@ -102,6 +112,8 @@ const BRANCHES_NAV_ITEM = {
 const BRANCH_ANALYTICS_NAV_ITEM = {
   href: '/admin/branches/analytics',
   label: 'Branch Analytics',
+  icon: 'BarChart3',
+  group: 'Analytics',
   featureFlagKey: 'admin.branches.enabled',
   permissionKey: 'branches.view',
 } as const
@@ -109,6 +121,8 @@ const BRANCH_ANALYTICS_NAV_ITEM = {
 const AUDIT_LOGS_NAV_ITEM = {
   href: '/admin/audit-logs',
   label: 'Audit Logs',
+  icon: 'ScrollText',
+  group: 'Platform',
   featureFlagKey: 'admin.audit.enabled',
   permissionKey: 'audit.view',
 } as const
@@ -116,13 +130,17 @@ const AUDIT_LOGS_NAV_ITEM = {
 const NOTIFICATIONS_NAV_ITEM = {
   href: '/admin/notifications',
   label: 'Notifications',
+  icon: 'Bell',
+  group: 'System',
   featureFlagKey: 'notifications.enabled',
   permissionKey: 'notifications.view',
 } as const
 
 const OPERATIONS_NAV_ITEM = {
   href: '/admin/operations',
-  label: 'Operations',
+  label: 'Live Operations',
+  icon: 'Activity',
+  group: 'Operations',
   featureFlagKey: 'operations.enabled',
   permissionKey: 'operations.view',
 } as const
@@ -130,6 +148,8 @@ const OPERATIONS_NAV_ITEM = {
 const SETTINGS_NAV_ITEM = {
   href: '/admin/settings',
   label: 'Settings',
+  icon: 'Settings',
+  group: 'System',
   featureFlagKey: 'admin.settings.enabled',
   permissionKey: 'settings.view',
 } as const
@@ -138,6 +158,8 @@ const SETTINGS_NAV_ITEM = {
 const PERMISSIONS_NAV_ITEM = {
   href: '/admin/permissions',
   label: 'Permissions',
+  icon: 'Shield',
+  group: 'People',
   featureFlagKey: 'admin.staff.enabled',
   permissionKey: 'staff.manage',
 } as const
@@ -145,6 +167,8 @@ const PERMISSIONS_NAV_ITEM = {
 const ROLES_NAV_ITEM = {
   href: '/admin/roles',
   label: 'Roles',
+  icon: 'KeyRound',
+  group: 'People',
   featureFlagKey: 'admin.staff.enabled',
   permissionKey: 'staff.manage',
 } as const
@@ -153,6 +177,8 @@ const ROLES_NAV_ITEM = {
 const USERS_NAV_ITEM = {
   href: '/admin/users',
   label: 'Users',
+  icon: 'UserCog',
+  group: 'People',
   featureFlagKey: 'admin.staff.enabled',
   permissionKey: 'staff.manage',
 } as const
@@ -160,6 +186,8 @@ const USERS_NAV_ITEM = {
 const REVIEWS_NAV_ITEM = {
   href: '/admin/reviews',
   label: 'Reviews',
+  icon: 'Star',
+  group: 'Content',
   featureFlagKey: 'reviews.enabled',
   permissionKey: 'reviews.view',
 } as const
@@ -167,6 +195,8 @@ const REVIEWS_NAV_ITEM = {
 const WEBSITE_BUILDER_NAV_ITEM = {
   href: '/admin/website',
   label: 'Website Builder',
+  icon: 'Globe',
+  group: 'Platform',
   featureFlagKey: 'website_builder.enabled',
   permissionKey: 'settings.view',
 } as const
@@ -174,6 +204,8 @@ const WEBSITE_BUILDER_NAV_ITEM = {
 const ORDERS_NAV_ITEM = {
   href: '/admin/orders',
   label: 'Orders',
+  icon: 'ShoppingBag',
+  group: 'Operations',
   featureFlagKey: 'ordering.enabled',
   permissionKey: 'orders.view',
 } as const
@@ -181,6 +213,8 @@ const ORDERS_NAV_ITEM = {
 const MENU_NAV_ITEM = {
   href: '/admin/menu',
   label: 'Menu',
+  icon: 'UtensilsCrossed',
+  group: 'Content',
   featureFlagKey: 'menu.enabled',
   permissionKey: 'menu.view',
 } as const
@@ -188,6 +222,8 @@ const MENU_NAV_ITEM = {
 const LOYALTY_NAV_ITEM = {
   href: '/admin/loyalty',
   label: 'Loyalty',
+  icon: 'Heart',
+  group: 'Content',
   featureFlagKey: 'loyalty.enabled',
   permissionKey: 'loyalty.view',
 } as const
@@ -195,6 +231,8 @@ const LOYALTY_NAV_ITEM = {
 const KITCHEN_NAV_ITEM = {
   href: '/admin/kitchen',
   label: 'Kitchen Display',
+  icon: 'ChefHat',
+  group: 'Operations',
   featureFlagKey: 'ordering.enabled',
   permissionKey: 'operations.view',
 } as const
@@ -202,15 +240,38 @@ const KITCHEN_NAV_ITEM = {
 const CUSTOMERS_NAV_ITEM = {
   href: '/admin/customers',
   label: 'Customers',
-  featureFlagKey: 'menu.enabled',
+  icon: 'Contact',
+  group: 'Customers',
+  // No featureFlagKey — customer management is always available; it was incorrectly
+  // gated on 'menu.enabled' which would hide it when the menu module is disabled (P8.9.4 C7 fix)
   permissionKey: 'customers.view',
 } as const
 
 const RESERVATIONS_NAV_ITEM = {
   href: '/admin/reservations',
   label: 'Reservations',
+  icon: 'CalendarDays',
+  group: 'Operations',
   featureFlagKey: 'reservations.enabled',
   permissionKey: 'reservations.view',
+} as const
+
+const ANALYTICS_NAV_ITEM = {
+  href: '/admin/analytics',
+  label: 'Analytics',
+  icon: 'TrendingUp',
+  group: 'Analytics',
+  featureFlagKey: 'analytics.enabled',
+  permissionKey: 'analytics.view',
+} as const
+
+const PROMOTIONS_NAV_ITEM = {
+  href: '/admin/promotions',
+  label: 'Promotions',
+  icon: 'Tag',
+  group: 'Content',
+  featureFlagKey: 'promotions.enabled',
+  permissionKey: 'promotions.view',
 } as const
 
 /** Operations dashboard routes (P7.7) — spread into each module's routes array. */
@@ -255,26 +316,34 @@ export const RESTAURANT_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
+    // Operations
     ORDERS_NAV_ITEM,
-    MENU_NAV_ITEM,
-    CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
+    KITCHEN_NAV_ITEM,
+    OPERATIONS_NAV_ITEM,
+    // Content
+    MENU_NAV_ITEM,
+    PROMOTIONS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
     LOYALTY_NAV_ITEM,
-    KITCHEN_NAV_ITEM,
-    TENANTS_NAV_ITEM,
-    STAFF_NAV_ITEM,
-    BRANCHES_NAV_ITEM,
+    // Customers
+    CUSTOMERS_NAV_ITEM,
+    // Analytics
+    ANALYTICS_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
-    AUDIT_LOGS_NAV_ITEM,
-    NOTIFICATIONS_NAV_ITEM,
-    OPERATIONS_NAV_ITEM,
-    SETTINGS_NAV_ITEM,
+    // People
+    STAFF_NAV_ITEM,
+    USERS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
-    USERS_NAV_ITEM,
+    // Platform
+    TENANTS_NAV_ITEM,
+    BRANCHES_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
+    AUDIT_LOGS_NAV_ITEM,
+    // System
+    NOTIFICATIONS_NAV_ITEM,
+    SETTINGS_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -339,7 +408,7 @@ export const CAFE_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
+    ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -416,7 +485,7 @@ export const BAR_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
+    ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -493,7 +562,7 @@ export const FOOD_COURT_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
+    ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -570,7 +639,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
+    ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
@@ -650,7 +719,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     'analytics.enabled': true,
   },
   adminNavItems: [
-    { href: '/admin/analytics', label: 'Analytics', featureFlagKey: 'analytics.enabled', permissionKey: 'analytics.view' },
+    ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,

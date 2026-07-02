@@ -581,10 +581,12 @@ describe('M. Navigation enforcement via featureFlagKey filtering', () => {
 describe('N. Admin nav enforcement', () => {
   afterEach(() => vi.resetModules())
 
-  it('getAdminNav(["cafe"]) both items have featureFlagKey', async () => {
+  it('getAdminNav(["cafe"]) most items have featureFlagKey (customers is always visible)', async () => {
     const { getAdminNav } = await freshRegistry()
     const items = getAdminNav(['cafe'])
-    expect(items.every((n) => n.featureFlagKey !== undefined)).toBe(true)
+    // CUSTOMERS_NAV_ITEM intentionally has no featureFlagKey (P8.9.4 C7 fix)
+    const gatedItems = items.filter((n) => n.featureFlagKey !== undefined)
+    expect(gatedItems.length).toBeGreaterThan(items.length / 2)
   })
 
   it('getAdminNav(["bar"]) Event Management gated by bar.events.enabled', async () => {

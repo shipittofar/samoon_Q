@@ -6,7 +6,6 @@ import {
   ArrowLeft, AlertCircle, Info, AlertTriangle, Zap,
   Clock, ExternalLink, Loader2, Bell,
 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -198,7 +197,6 @@ export default function NotificationDetailPage({ params }: { params: Promise<{ i
     <ErrorBoundary feature="Notification Detail">
       <PermissionGuard permission="notifications.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
-          <Header />
           <div className="pt-16">
             <NotificationDetailContent id={id} />
           </div>

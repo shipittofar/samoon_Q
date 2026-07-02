@@ -3,7 +3,6 @@
 import { use } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Star, ShoppingBag, DollarSign, Percent, Loader2, AlertCircle, Mail, Phone } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -139,7 +138,6 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
     <ErrorBoundary feature="Vendor Detail">
       <PermissionGuard permission="vendors.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-gray-50">
-          <Header />
           <div className="pt-16">
             <VendorDetailContent id={id} />
           </div>

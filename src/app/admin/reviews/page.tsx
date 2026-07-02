@@ -5,7 +5,6 @@ import {
   Star, MessageSquare, Flag, Eye, EyeOff, Trash2, TrendingUp,
   ThumbsUp, BadgeCheck, BarChart2, Loader2,
 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { cn } from '@/utils'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -159,7 +158,6 @@ export default function AdminReviewsPage() {
 
   return (
     <PermissionGuard permission="reviews.view" fallback={<AccessDenied />}>
-      <Header />
       <main id="main-content" className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex items-center gap-3 mb-8">
           <Star className="w-6 h-6 text-amber-400" aria-hidden="true" />

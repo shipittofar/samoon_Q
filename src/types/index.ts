@@ -420,6 +420,12 @@ export interface NavItem {
    * Items without this field are always shown.
    */
   permissionKey?: import('./rbac').P7Permission
+  /**
+   * Sidebar group label (P8.9.4).
+   * Items with the same group label are rendered under a shared section header.
+   * Items without a group appear in an implicit ungrouped section.
+   */
+  group?: string
 }
 
 /**

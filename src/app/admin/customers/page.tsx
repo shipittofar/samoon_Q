@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Search, Users, Mail, Phone, ShoppingBag, Star, TrendingUp, Loader2, AlertCircle } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -68,7 +67,6 @@ export default function AdminCustomersPage() {
     <PermissionGuard permission="customers.view" fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminCustomers">
     <div className="min-h-screen bg-[var(--bg)]">
-      <Header />
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">

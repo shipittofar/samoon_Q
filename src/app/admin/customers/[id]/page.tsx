@@ -6,7 +6,6 @@ import {
   ArrowLeft, Mail, Phone, ShoppingBag, Star, TrendingUp,
   Calendar, Clock, Award, Loader2, AlertCircle, User, MessageSquare,
 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { Avatar } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -216,7 +215,6 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     <ErrorBoundary feature="Customer Detail">
       <PermissionGuard permission="customers.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-[var(--bg)]">
-          <Header />
           <div className="pt-16">
             <CustomerDetailContent id={id} />
           </div>

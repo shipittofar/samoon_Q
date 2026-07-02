@@ -3,7 +3,6 @@
 import { use } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Star, MessageSquare, Loader2, AlertCircle } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Avatar } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -135,7 +134,6 @@ export default function CustomerReviewsPage({ params }: { params: Promise<{ id: 
     <ErrorBoundary feature="Customer Reviews">
       <PermissionGuard permission="customers.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-[var(--bg)]">
-          <Header />
           <div className="pt-16">
             <ReviewsContent id={id} />
           </div>

@@ -731,7 +731,7 @@ describe('F2 — Module registry runtime nav counts', () => {
 
   it('RESTAURANT_MODULE has 8 admin nav items', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(20)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(21)
   })
 
   it('CAFE_MODULE has 11 admin nav items', async () => {
@@ -761,7 +761,7 @@ describe('F2 — Module registry runtime nav counts', () => {
 
   it('getAdminNav(["restaurant"]) returns 8 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['restaurant'])).toHaveLength(20)
+    expect(getAdminNav(['restaurant'])).toHaveLength(21)
   })
 
   it('getAdminNav(["cafe"]) returns 11 items', async () => {
@@ -800,7 +800,7 @@ describe('F2 — Module registry runtime nav counts', () => {
     modules.forEach((mod) => {
       const found = mod.adminNavItems?.find((n) => n.href === '/admin/operations')
       expect(found).toBeDefined()
-      expect(found?.label).toBe('Operations')
+      expect(found?.label).toBe('Live Operations')
     })
   })
 })

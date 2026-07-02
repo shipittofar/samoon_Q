@@ -7,7 +7,6 @@ import {
   Settings, Inbox,
 } from 'lucide-react'
 import Link from 'next/link'
-import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -493,7 +492,6 @@ function NotificationsContent() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
         {/* Page header */}
         <div className="mb-8">

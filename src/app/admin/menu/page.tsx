@@ -7,7 +7,6 @@ import {
   Plus, Search, Edit2, Trash2, Eye, EyeOff, Star, Clock, Flame,
   Loader2, AlertCircle,
 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -152,7 +151,6 @@ export default function AdminMenuPage() {
     <PermissionGuard permission="menu.view" fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminMenu">
     <div className="min-h-screen bg-[var(--bg)]">
-      <Header />
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 

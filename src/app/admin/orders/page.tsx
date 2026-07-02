@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Package, Clock, ChefHat, CheckCircle, Truck, XCircle, RefreshCw, AlertCircle, Loader2 } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatRelativeTime } from '@/utils'
@@ -99,7 +98,6 @@ export default function AdminOrdersPage() {
     <PermissionGuard permission="orders.view" fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminOrders">
     <div className="min-h-screen bg-[var(--bg)]">
-      <Header />
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6 flex items-center justify-between gap-4">

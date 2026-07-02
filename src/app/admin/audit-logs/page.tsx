@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react'
 import { Search, Download, AlertCircle, Loader2, RefreshCw, Filter } from 'lucide-react'
-import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -69,7 +68,6 @@ function AuditLogsContent() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <Header />
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 

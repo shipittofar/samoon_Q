@@ -326,7 +326,7 @@ describe('P7.8-F/G: Loyalty and Promotions pages (regression)', () => {
 describe('P7.8-C: Module nav counts with settings', () => {
   it('restaurant module has 9 adminNavItems', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect((RESTAURANT_MODULE.adminNavItems ?? []).length).toBe(20)
+    expect((RESTAURANT_MODULE.adminNavItems ?? []).length).toBe(21)
   })
 
   it('cafe module has 12 adminNavItems', async () => {
