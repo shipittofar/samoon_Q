@@ -146,7 +146,7 @@ describe('AdminBreadcrumbs segment label resolution', () => {
     expect(labelForSegment('my-page')).toBe('My page')
   })
 
-  it('builds crumbs for /admin/orders/abc', () => {
+  it('builds crumbs for /console/orders/abc', () => {
     const segments = ['admin', 'orders', 'abc123']
     const crumbs = segments.map((s) => labelForSegment(s))
     expect(crumbs).toEqual(['Admin', 'Orders', 'Abc123'])
@@ -156,8 +156,8 @@ describe('AdminBreadcrumbs segment label resolution', () => {
 // ── Kitchen route ─────────────────────────────────────────────────────────────
 
 describe('Kitchen page route integration', () => {
-  it('ADMIN_OPERATIONS_ROUTES includes /admin/kitchen', async () => {
+  it('ADMIN_OPERATIONS_ROUTES includes /console/kitchen', async () => {
     const { ADMIN_OPERATIONS_ROUTES } = await import('@/modules/registry')
-    expect(ADMIN_OPERATIONS_ROUTES).toContain('/admin/kitchen')
+    expect(ADMIN_OPERATIONS_ROUTES).toContain('/console/kitchen')
   })
 })

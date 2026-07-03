@@ -213,43 +213,43 @@ describe('P7.6 — Notification Event Registry', () => {
   it('buildDeepLinkHref generates correct order href', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
     const href = buildDeepLinkHref('order', 'order-123')
-    expect(href).toBe('/admin/orders/order-123')
+    expect(href).toBe('/console/orders/order-123')
   })
 
   it('buildDeepLinkHref generates correct staff href', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
     const href = buildDeepLinkHref('staff', 'staff-456')
-    expect(href).toBe('/admin/staff/staff-456')
+    expect(href).toBe('/console/staff/staff-456')
   })
 
   it('buildDeepLinkHref generates correct branch href', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
     const href = buildDeepLinkHref('branch', 'branch-789')
-    expect(href).toBe('/admin/branches/branch-789')
+    expect(href).toBe('/console/branches/branch-789')
   })
 
   it('buildDeepLinkHref generates correct reservation href', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
     const href = buildDeepLinkHref('reservation', 'res-001')
-    expect(href).toBe('/admin/reservations/res-001')
+    expect(href).toBe('/console/reservations/res-001')
   })
 
   it('buildDeepLinkHref generates correct audit_log href', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
     const href = buildDeepLinkHref('audit_log', 'log-001')
-    expect(href).toBe('/admin/audit-logs/log-001')
+    expect(href).toBe('/console/audit-logs/log-001')
   })
 
   it('buildDeepLinkHref generates correct vendor href', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
     const href = buildDeepLinkHref('vendor', 'vendor-001')
-    expect(href).toBe('/admin/vendors/vendor-001')
+    expect(href).toBe('/console/vendors/vendor-001')
   })
 
   it('buildDeepLinkHref generates correct tenant href', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
     const href = buildDeepLinkHref('tenant', 'tenant-001')
-    expect(href).toBe('/admin/tenants/tenant-001')
+    expect(href).toBe('/console/tenants/tenant-001')
   })
 
   it('getAuditMetaForNotification returns audit event meta', async () => {
@@ -832,93 +832,93 @@ describe('P7.6 — Navigation Integration', () => {
 
   it('RESTAURANT_MODULE.adminNavItems has Notifications item', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    const notifItem = RESTAURANT_MODULE.adminNavItems?.find((i) => i.href === '/admin/notifications')
+    const notifItem = RESTAURANT_MODULE.adminNavItems?.find((i) => i.href === '/console/notifications')
     expect(notifItem).toBeDefined()
     expect(notifItem!.label).toBe('Notifications')
   })
 
   it('CAFE_MODULE.adminNavItems has Notifications item', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    const notifItem = CAFE_MODULE.adminNavItems?.find((i) => i.href === '/admin/notifications')
+    const notifItem = CAFE_MODULE.adminNavItems?.find((i) => i.href === '/console/notifications')
     expect(notifItem).toBeDefined()
   })
 
   it('BAR_MODULE.adminNavItems has Notifications item', async () => {
     const { BAR_MODULE } = await freshRegistry()
-    const notifItem = BAR_MODULE.adminNavItems?.find((i) => i.href === '/admin/notifications')
+    const notifItem = BAR_MODULE.adminNavItems?.find((i) => i.href === '/console/notifications')
     expect(notifItem).toBeDefined()
   })
 
   it('FOOD_COURT_MODULE.adminNavItems has Notifications item', async () => {
     const { FOOD_COURT_MODULE } = await freshRegistry()
-    const notifItem = FOOD_COURT_MODULE.adminNavItems?.find((i) => i.href === '/admin/notifications')
+    const notifItem = FOOD_COURT_MODULE.adminNavItems?.find((i) => i.href === '/console/notifications')
     expect(notifItem).toBeDefined()
   })
 
   it('FOOD_TRUCK_MODULE.adminNavItems has Notifications item', async () => {
     const { FOOD_TRUCK_MODULE } = await freshRegistry()
-    const notifItem = FOOD_TRUCK_MODULE.adminNavItems?.find((i) => i.href === '/admin/notifications')
+    const notifItem = FOOD_TRUCK_MODULE.adminNavItems?.find((i) => i.href === '/console/notifications')
     expect(notifItem).toBeDefined()
   })
 
   it('MOBILE_CAFE_MODULE.adminNavItems has Notifications item', async () => {
     const { MOBILE_CAFE_MODULE } = await freshRegistry()
-    const notifItem = MOBILE_CAFE_MODULE.adminNavItems?.find((i) => i.href === '/admin/notifications')
+    const notifItem = MOBILE_CAFE_MODULE.adminNavItems?.find((i) => i.href === '/console/notifications')
     expect(notifItem).toBeDefined()
   })
 
   it('Notifications nav item has permissionKey=notifications.view', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    const notifItem = RESTAURANT_MODULE.adminNavItems?.find((i) => i.href === '/admin/notifications')
+    const notifItem = RESTAURANT_MODULE.adminNavItems?.find((i) => i.href === '/console/notifications')
     expect((notifItem as unknown as Record<string, unknown>)?.permissionKey).toBe('notifications.view')
   })
 
   it('Notifications nav item has featureFlagKey=notifications.enabled', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    const notifItem = RESTAURANT_MODULE.adminNavItems?.find((i) => i.href === '/admin/notifications')
+    const notifItem = RESTAURANT_MODULE.adminNavItems?.find((i) => i.href === '/console/notifications')
     expect((notifItem as unknown as Record<string, unknown>)?.featureFlagKey).toBe('notifications.enabled')
   })
 
-  it('RESTAURANT_MODULE routes includes /admin/notifications', async () => {
+  it('RESTAURANT_MODULE routes includes /console/notifications', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.routes).toContain('/admin/notifications')
+    expect(RESTAURANT_MODULE.routes).toContain('/console/notifications')
   })
 
-  it('CAFE_MODULE routes includes /admin/notifications', async () => {
+  it('CAFE_MODULE routes includes /console/notifications', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.routes).toContain('/admin/notifications')
+    expect(CAFE_MODULE.routes).toContain('/console/notifications')
   })
 
-  it('BAR_MODULE routes includes /admin/notifications', async () => {
+  it('BAR_MODULE routes includes /console/notifications', async () => {
     const { BAR_MODULE } = await freshRegistry()
-    expect(BAR_MODULE.routes).toContain('/admin/notifications')
+    expect(BAR_MODULE.routes).toContain('/console/notifications')
   })
 
-  it('FOOD_COURT_MODULE routes includes /admin/notifications', async () => {
+  it('FOOD_COURT_MODULE routes includes /console/notifications', async () => {
     const { FOOD_COURT_MODULE } = await freshRegistry()
-    expect(FOOD_COURT_MODULE.routes).toContain('/admin/notifications')
+    expect(FOOD_COURT_MODULE.routes).toContain('/console/notifications')
   })
 
-  it('FOOD_TRUCK_MODULE routes includes /admin/notifications', async () => {
+  it('FOOD_TRUCK_MODULE routes includes /console/notifications', async () => {
     const { FOOD_TRUCK_MODULE } = await freshRegistry()
-    expect(FOOD_TRUCK_MODULE.routes).toContain('/admin/notifications')
+    expect(FOOD_TRUCK_MODULE.routes).toContain('/console/notifications')
   })
 
-  it('MOBILE_CAFE_MODULE routes includes /admin/notifications', async () => {
+  it('MOBILE_CAFE_MODULE routes includes /console/notifications', async () => {
     const { MOBILE_CAFE_MODULE } = await freshRegistry()
-    expect(MOBILE_CAFE_MODULE.routes).toContain('/admin/notifications')
+    expect(MOBILE_CAFE_MODULE.routes).toContain('/console/notifications')
   })
 
   it('getAdminNav([restaurant]) includes notifications item', async () => {
     const { getAdminNav } = await freshRegistry()
     const nav = getAdminNav(['restaurant'])
-    const notif = nav.find((i) => i.href === '/admin/notifications')
+    const notif = nav.find((i) => i.href === '/console/notifications')
     expect(notif).toBeDefined()
   })
 
-  it('ADMIN_NOTIFICATION_ROUTES contains /admin/notifications', async () => {
+  it('ADMIN_NOTIFICATION_ROUTES contains /console/notifications', async () => {
     const { ADMIN_NOTIFICATION_ROUTES } = await freshRegistry()
-    expect(ADMIN_NOTIFICATION_ROUTES).toContain('/admin/notifications')
+    expect(ADMIN_NOTIFICATION_ROUTES).toContain('/console/notifications')
   })
 
   it('RESTAURANT_MODULE adminNavItems count is 7', async () => {
@@ -1049,43 +1049,43 @@ describe('P7.6 — Component Exports', () => {
 // ── 12. Deep Link Tests ───────────────────────────────────────────────────────
 
 describe('P7.6 — Deep Links', () => {
-  it('order deep link points to /admin/orders/[id]', async () => {
+  it('order deep link points to /console/orders/[id]', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
-    expect(buildDeepLinkHref('order', 'order-1')).toBe('/admin/orders/order-1')
+    expect(buildDeepLinkHref('order', 'order-1')).toBe('/console/orders/order-1')
   })
 
-  it('reservation deep link points to /admin/reservations/[id]', async () => {
+  it('reservation deep link points to /console/reservations/[id]', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
-    expect(buildDeepLinkHref('reservation', 'res-1')).toBe('/admin/reservations/res-1')
+    expect(buildDeepLinkHref('reservation', 'res-1')).toBe('/console/reservations/res-1')
   })
 
-  it('staff deep link points to /admin/staff/[id]', async () => {
+  it('staff deep link points to /console/staff/[id]', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
-    expect(buildDeepLinkHref('staff', 's-1')).toBe('/admin/staff/s-1')
+    expect(buildDeepLinkHref('staff', 's-1')).toBe('/console/staff/s-1')
   })
 
-  it('branch deep link points to /admin/branches/[id]', async () => {
+  it('branch deep link points to /console/branches/[id]', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
-    expect(buildDeepLinkHref('branch', 'b-1')).toBe('/admin/branches/b-1')
+    expect(buildDeepLinkHref('branch', 'b-1')).toBe('/console/branches/b-1')
   })
 
-  it('promotion deep link points to /admin/promotions/[id]', async () => {
+  it('promotion deep link points to /console/promotions/[id]', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
-    expect(buildDeepLinkHref('promotion', 'p-1')).toBe('/admin/promotions/p-1')
+    expect(buildDeepLinkHref('promotion', 'p-1')).toBe('/console/promotions/p-1')
   })
 
-  it('audit_log deep link points to /admin/audit-logs/[id]', async () => {
+  it('audit_log deep link points to /console/audit-logs/[id]', async () => {
     const { buildDeepLinkHref } = await import('@/services/notification-event-registry')
-    expect(buildDeepLinkHref('audit_log', 'al-1')).toBe('/admin/audit-logs/al-1')
+    expect(buildDeepLinkHref('audit_log', 'al-1')).toBe('/console/audit-logs/al-1')
   })
 
-  it('notifications with deepLink.href start with /admin/', async () => {
+  it('notifications with deepLink.href start with /console/', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
     const notifs = await notificationRichService.getNotifications({})
     const linked = notifs.results.filter((n) => n.deepLink)
     expect(linked.length).toBeGreaterThan(0)
     for (const n of linked) {
-      expect(n.deepLink!.href).toMatch(/^\/admin\//)
+      expect(n.deepLink!.href).toMatch(/^\/console\//)
     }
   })
 })

@@ -51,30 +51,30 @@ export const CAPABILITY_FLAG_MAP: Readonly<Record<Capability, string>> = {
 /**
  * Admin routes shared across all business-type modules.
  * Spread into each module's routes array so the route is registered once per source.
- * P6.15 — eliminates per-module duplication of /admin/tenants routes.
+ * P6.15 — eliminates per-module duplication of /console/tenants routes.
  */
 export const ADMIN_TENANT_ROUTES: readonly string[] = [
-  '/admin/tenants',
-  '/admin/tenants/new',
+  '/console/tenants',
+  '/console/tenants/new',
 ]
 
 /** Staff management routes — spread into each module's routes array. */
-export const ADMIN_STAFF_ROUTES: readonly string[] = ['/admin/staff']
+export const ADMIN_STAFF_ROUTES: readonly string[] = ['/console/staff']
 
 /** Branch management routes — spread into each module's routes array. */
-export const ADMIN_BRANCHES_ROUTES: readonly string[] = ['/admin/branches', '/admin/branches/[id]']
+export const ADMIN_BRANCHES_ROUTES: readonly string[] = ['/console/branches', '/console/branches/[id]']
 
 /** Branch analytics routes (P7.4) — spread into each module's routes array. */
 export const ADMIN_BRANCH_ANALYTICS_ROUTES: readonly string[] = [
-  '/admin/branches/analytics',
-  '/admin/branches/[id]/analytics',
+  '/console/branches/analytics',
+  '/console/branches/[id]/analytics',
 ]
 
 /** Audit log routes (P7.5) — spread into each module's routes array. */
-export const ADMIN_AUDIT_ROUTES: readonly string[] = ['/admin/audit-logs']
+export const ADMIN_AUDIT_ROUTES: readonly string[] = ['/console/audit-logs']
 
 /** Notification center routes (P7.6) — spread into each module's routes array. */
-export const ADMIN_NOTIFICATION_ROUTES: readonly string[] = ['/admin/notifications']
+export const ADMIN_NOTIFICATION_ROUTES: readonly string[] = ['/console/notifications']
 
 // ── Shared admin nav items ────────────────────────────────────────────────────
 
@@ -83,7 +83,7 @@ export const ADMIN_NOTIFICATION_ROUTES: readonly string[] = ['/admin/notificatio
 // icon:  lucide-react icon name, resolved via ADMIN_NAV_ICON_MAP in AdminSidebar.
 
 const TENANTS_NAV_ITEM = {
-  href: '/admin/tenants',
+  href: '/console/tenants',
   label: 'Tenants',
   icon: 'Layers',
   group: 'Platform',
@@ -92,7 +92,7 @@ const TENANTS_NAV_ITEM = {
 } as const
 
 const STAFF_NAV_ITEM = {
-  href: '/admin/staff',
+  href: '/console/staff',
   label: 'Staff',
   icon: 'Users',
   group: 'People',
@@ -101,7 +101,7 @@ const STAFF_NAV_ITEM = {
 } as const
 
 const BRANCHES_NAV_ITEM = {
-  href: '/admin/branches',
+  href: '/console/branches',
   label: 'Branches',
   icon: 'GitBranch',
   group: 'Platform',
@@ -110,7 +110,7 @@ const BRANCHES_NAV_ITEM = {
 } as const
 
 const BRANCH_ANALYTICS_NAV_ITEM = {
-  href: '/admin/branches/analytics',
+  href: '/console/branches/analytics',
   label: 'Branch Analytics',
   icon: 'BarChart3',
   group: 'Analytics',
@@ -119,7 +119,7 @@ const BRANCH_ANALYTICS_NAV_ITEM = {
 } as const
 
 const AUDIT_LOGS_NAV_ITEM = {
-  href: '/admin/audit-logs',
+  href: '/console/audit-logs',
   label: 'Audit Logs',
   icon: 'ScrollText',
   group: 'Platform',
@@ -128,7 +128,7 @@ const AUDIT_LOGS_NAV_ITEM = {
 } as const
 
 const NOTIFICATIONS_NAV_ITEM = {
-  href: '/admin/notifications',
+  href: '/console/notifications',
   label: 'Notifications',
   icon: 'Bell',
   group: 'System',
@@ -137,7 +137,7 @@ const NOTIFICATIONS_NAV_ITEM = {
 } as const
 
 const OPERATIONS_NAV_ITEM = {
-  href: '/admin/operations',
+  href: '/console/operations',
   label: 'Live Operations',
   icon: 'Activity',
   group: 'Operations',
@@ -146,7 +146,7 @@ const OPERATIONS_NAV_ITEM = {
 } as const
 
 const SETTINGS_NAV_ITEM = {
-  href: '/admin/settings',
+  href: '/console/settings',
   label: 'Settings',
   icon: 'Settings',
   group: 'System',
@@ -156,7 +156,7 @@ const SETTINGS_NAV_ITEM = {
 
 // P8.5 — Enterprise RBAC management nav items
 const PERMISSIONS_NAV_ITEM = {
-  href: '/admin/permissions',
+  href: '/console/permissions',
   label: 'Permissions',
   icon: 'Shield',
   group: 'People',
@@ -165,7 +165,7 @@ const PERMISSIONS_NAV_ITEM = {
 } as const
 
 const ROLES_NAV_ITEM = {
-  href: '/admin/roles',
+  href: '/console/roles',
   label: 'Roles',
   icon: 'KeyRound',
   group: 'People',
@@ -175,7 +175,7 @@ const ROLES_NAV_ITEM = {
 
 // P8.6 — User management nav item
 const USERS_NAV_ITEM = {
-  href: '/admin/users',
+  href: '/console/users',
   label: 'Users',
   icon: 'UserCog',
   group: 'People',
@@ -184,7 +184,7 @@ const USERS_NAV_ITEM = {
 } as const
 
 const REVIEWS_NAV_ITEM = {
-  href: '/admin/reviews',
+  href: '/console/reviews',
   label: 'Reviews',
   icon: 'Star',
   group: 'Content',
@@ -193,7 +193,7 @@ const REVIEWS_NAV_ITEM = {
 } as const
 
 const WEBSITE_BUILDER_NAV_ITEM = {
-  href: '/admin/website',
+  href: '/console/website',
   label: 'Website Builder',
   icon: 'Globe',
   group: 'Content',
@@ -202,7 +202,7 @@ const WEBSITE_BUILDER_NAV_ITEM = {
 } as const
 
 const ORDERS_NAV_ITEM = {
-  href: '/admin/orders',
+  href: '/console/orders',
   label: 'Orders',
   icon: 'ShoppingBag',
   group: 'Operations',
@@ -211,7 +211,7 @@ const ORDERS_NAV_ITEM = {
 } as const
 
 const MENU_NAV_ITEM = {
-  href: '/admin/menu',
+  href: '/console/menu',
   label: 'Menu',
   icon: 'UtensilsCrossed',
   group: 'Content',
@@ -220,7 +220,7 @@ const MENU_NAV_ITEM = {
 } as const
 
 const LOYALTY_NAV_ITEM = {
-  href: '/admin/loyalty',
+  href: '/console/loyalty',
   label: 'Loyalty',
   icon: 'Heart',
   group: 'Content',
@@ -229,7 +229,7 @@ const LOYALTY_NAV_ITEM = {
 } as const
 
 const KITCHEN_NAV_ITEM = {
-  href: '/admin/kitchen',
+  href: '/console/kitchen',
   label: 'Kitchen Display',
   icon: 'ChefHat',
   group: 'Operations',
@@ -238,7 +238,7 @@ const KITCHEN_NAV_ITEM = {
 } as const
 
 const CUSTOMERS_NAV_ITEM = {
-  href: '/admin/customers',
+  href: '/console/customers',
   label: 'Customers',
   icon: 'Contact',
   group: 'Customers',
@@ -248,7 +248,7 @@ const CUSTOMERS_NAV_ITEM = {
 } as const
 
 const RESERVATIONS_NAV_ITEM = {
-  href: '/admin/reservations',
+  href: '/console/reservations',
   label: 'Reservations',
   icon: 'CalendarDays',
   group: 'Operations',
@@ -257,7 +257,7 @@ const RESERVATIONS_NAV_ITEM = {
 } as const
 
 const ANALYTICS_NAV_ITEM = {
-  href: '/admin/analytics',
+  href: '/console/analytics',
   label: 'Analytics',
   icon: 'TrendingUp',
   group: 'Analytics',
@@ -266,7 +266,7 @@ const ANALYTICS_NAV_ITEM = {
 } as const
 
 const PROMOTIONS_NAV_ITEM = {
-  href: '/admin/promotions',
+  href: '/console/promotions',
   label: 'Promotions',
   icon: 'Tag',
   group: 'Content',
@@ -275,19 +275,19 @@ const PROMOTIONS_NAV_ITEM = {
 } as const
 
 /** Operations dashboard routes (P7.7) — spread into each module's routes array. */
-export const ADMIN_OPERATIONS_ROUTES: readonly string[] = ['/admin/operations', '/admin/kitchen']
+export const ADMIN_OPERATIONS_ROUTES: readonly string[] = ['/console/operations', '/console/kitchen']
 
 /** Settings routes (P7.8) — spread into each module's routes array. */
-export const ADMIN_SETTINGS_ROUTES: readonly string[] = ['/admin/settings', '/admin/settings/feature-flags']
+export const ADMIN_SETTINGS_ROUTES: readonly string[] = ['/console/settings', '/console/settings/feature-flags']
 
 /** User management routes (P8.6) — spread into each module's routes array. */
-export const ADMIN_USERS_ROUTES: readonly string[] = ['/admin/users', '/admin/users/[id]']
+export const ADMIN_USERS_ROUTES: readonly string[] = ['/console/users', '/console/users/[id]']
 
 /** Review management routes (P8.8.5) — spread into each module's routes array. */
-export const ADMIN_REVIEWS_ROUTES: readonly string[] = ['/admin/reviews']
+export const ADMIN_REVIEWS_ROUTES: readonly string[] = ['/console/reviews']
 
 /** Website builder routes (P8.8.6) — spread into each module's routes array. */
-export const ADMIN_WEBSITE_ROUTES: readonly string[] = ['/admin/website']
+export const ADMIN_WEBSITE_ROUTES: readonly string[] = ['/console/website']
 
 // ── Built-in module definitions ───────────────────────────────────────────────
 
@@ -301,7 +301,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/admin/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_USERS_ROUTES, ...ADMIN_REVIEWS_ROUTES, ...ADMIN_WEBSITE_ROUTES],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/console/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_USERS_ROUTES, ...ADMIN_REVIEWS_ROUTES, ...ADMIN_WEBSITE_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -374,7 +374,7 @@ export const CAFE_MODULE: Module = {
     '/reviews',
     '/loyalty',
     '/promotions',
-    '/admin/analytics',
+    '/console/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
@@ -413,9 +413,9 @@ export const CAFE_MODULE: Module = {
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
-    { href: '/admin/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
-    { href: '/admin/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled', permissionKey: 'promotions.view' },
-    { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled', permissionKey: 'promotions.view' },
+    { href: '/console/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
+    { href: '/console/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled', permissionKey: 'promotions.view' },
+    { href: '/console/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled', permissionKey: 'promotions.view' },
     KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
@@ -453,7 +453,7 @@ export const BAR_MODULE: Module = {
     '/reviews',
     '/events',
     '/promotions',
-    '/admin/analytics',
+    '/console/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
@@ -491,9 +491,9 @@ export const BAR_MODULE: Module = {
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
-    { href: '/admin/bar/events', label: 'Event Management', featureFlagKey: 'bar.events.enabled', permissionKey: 'operations.view' },
-    { href: '/admin/bar/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'bar.happy_hour.enabled', permissionKey: 'promotions.view' },
-    { href: '/admin/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled', permissionKey: 'promotions.view' },
+    { href: '/console/bar/events', label: 'Event Management', featureFlagKey: 'bar.events.enabled', permissionKey: 'operations.view' },
+    { href: '/console/bar/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'bar.happy_hour.enabled', permissionKey: 'promotions.view' },
+    { href: '/console/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled', permissionKey: 'promotions.view' },
     KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
@@ -530,7 +530,7 @@ export const FOOD_COURT_MODULE: Module = {
     '/reservation',
     '/reviews',
     '/vendors',
-    '/admin/analytics',
+    '/console/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
@@ -568,8 +568,8 @@ export const FOOD_COURT_MODULE: Module = {
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
-    { href: '/admin/food-court/vendors', label: 'Vendor Management', featureFlagKey: 'food_court.vendor_management.enabled', permissionKey: 'vendors.view' },
-    { href: '/admin/food-court/seating', label: 'Seating Management', featureFlagKey: 'food_court.shared_seating.enabled', permissionKey: 'operations.view' },
+    { href: '/console/food-court/vendors', label: 'Vendor Management', featureFlagKey: 'food_court.vendor_management.enabled', permissionKey: 'vendors.view' },
+    { href: '/console/food-court/seating', label: 'Seating Management', featureFlagKey: 'food_court.shared_seating.enabled', permissionKey: 'operations.view' },
     KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
@@ -606,7 +606,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     '/reviews',
     '/reservation',
     '/location',
-    '/admin/analytics',
+    '/console/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
@@ -644,8 +644,8 @@ export const FOOD_TRUCK_MODULE: Module = {
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
-    { href: '/admin/food-truck/routes', label: 'Route Management', featureFlagKey: 'food_truck.route_tracking.enabled', permissionKey: 'operations.view' },
-    { href: '/admin/food-truck/stops', label: 'Stop Management', featureFlagKey: 'food_truck.scheduled_stops.enabled', permissionKey: 'operations.view' },
+    { href: '/console/food-truck/routes', label: 'Route Management', featureFlagKey: 'food_truck.route_tracking.enabled', permissionKey: 'operations.view' },
+    { href: '/console/food-truck/stops', label: 'Stop Management', featureFlagKey: 'food_truck.scheduled_stops.enabled', permissionKey: 'operations.view' },
     KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,
@@ -683,7 +683,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     '/loyalty',
     '/reservation',
     '/location',
-    '/admin/analytics',
+    '/console/analytics',
     ...ADMIN_TENANT_ROUTES,
     ...ADMIN_STAFF_ROUTES,
     ...ADMIN_BRANCHES_ROUTES,
@@ -724,8 +724,8 @@ export const MOBILE_CAFE_MODULE: Module = {
     MENU_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
-    { href: '/admin/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled', permissionKey: 'operations.view' },
-    { href: '/admin/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
+    { href: '/console/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled', permissionKey: 'operations.view' },
+    { href: '/console/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
     KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,

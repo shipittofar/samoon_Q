@@ -770,7 +770,7 @@ describe('N — hooks source text', () => {
 
 describe('O — admin tenants page source', () => {
   const src = () =>
-    fs.readFileSync(path.join(ROOT, 'src/app/admin/tenants/page.tsx'), 'utf8')
+    fs.readFileSync(path.join(ROOT, 'src/app/console/tenants/page.tsx'), 'utf8')
 
   it('is a client component', () => {
     expect(src()).toContain("'use client'")
@@ -780,8 +780,8 @@ describe('O — admin tenants page source', () => {
     expect(src()).toContain('Tenant Management')
   })
 
-  it('has a link to /admin/tenants/new', () => {
-    expect(src()).toContain('/admin/tenants/new')
+  it('has a link to /console/tenants/new', () => {
+    expect(src()).toContain('/console/tenants/new')
   })
 
   it('uses useTenants hook', () => {
@@ -801,7 +801,7 @@ describe('O — admin tenants page source', () => {
 
 describe('P — new tenant wizard source', () => {
   const src = () =>
-    fs.readFileSync(path.join(ROOT, 'src/app/admin/tenants/new/page.tsx'), 'utf8')
+    fs.readFileSync(path.join(ROOT, 'src/app/console/tenants/new/page.tsx'), 'utf8')
 
   it('is a client component', () => {
     expect(src()).toContain("'use client'")
@@ -829,7 +829,7 @@ describe('P — new tenant wizard source', () => {
 
 describe('Q — wizard step labels', () => {
   const src = () =>
-    fs.readFileSync(path.join(ROOT, 'src/app/admin/tenants/new/page.tsx'), 'utf8')
+    fs.readFileSync(path.join(ROOT, 'src/app/console/tenants/new/page.tsx'), 'utf8')
 
   it('Step 1: Business Type', () => {
     expect(src()).toContain('Business Type')
@@ -902,7 +902,7 @@ describe('R — business types coverage', () => {
   })
 
   it('wizard page renders all 6 business type buttons', () => {
-    const src = fs.readFileSync(path.join(ROOT, 'src/app/admin/tenants/new/page.tsx'), 'utf8')
+    const src = fs.readFileSync(path.join(ROOT, 'src/app/console/tenants/new/page.tsx'), 'utf8')
     for (const bt of BUSINESS_TYPES) {
       expect(src).toContain(bt)
     }

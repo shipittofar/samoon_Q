@@ -25,29 +25,29 @@ export const DEMO_PHONE_TO_EMAIL: Record<string, string> = {
 /** Maps demo account email → the frontend route the user should land on after login. */
 export const DEMO_EMAIL_REDIRECTS: Record<string, string> = {
   'demo@savor.com':      '/dashboard',
-  'staff@savor.com':     '/admin/orders',
-  'cashier@savor.com':   '/admin/orders',
-  'kitchen@savor.com':   '/admin/kitchen',
-  'marketing@savor.com': '/admin/analytics',
-  'support@savor.com':   '/admin/customers',
-  'admin@savor.com':     '/admin',
-  'owner@savor.com':     '/admin',
-  'platform@savor.com':  '/admin/tenants',
-  'multirole@savor.com': '/admin/orders',
+  'staff@savor.com':     '/console/orders',
+  'cashier@savor.com':   '/console/orders',
+  'kitchen@savor.com':   '/console/kitchen',
+  'marketing@savor.com': '/console/analytics',
+  'support@savor.com':   '/console/customers',
+  'admin@savor.com':     '/console',
+  'owner@savor.com':     '/console',
+  'platform@savor.com':  '/console/tenants',
+  'multirole@savor.com': '/console/orders',
 }
 
 /**
  * Returns the post-login destination for a demo account email.
- * Falls back to /admin for any unmapped email.
+ * Falls back to /console for any unmapped email.
  */
 export function getDemoRedirect(email: string): string {
-  return DEMO_EMAIL_REDIRECTS[email] ?? '/admin'
+  return DEMO_EMAIL_REDIRECTS[email] ?? '/console'
 }
 
 /**
  * Returns the post-login destination for a real (non-demo) user based on their role.
- * Customer → /dashboard; staff/admin → /admin.
+ * Customer → /dashboard; staff/console → /admin.
  */
 export function getPostLoginRedirect(role: string): string {
-  return role === 'customer' ? '/dashboard' : '/admin'
+  return role === 'customer' ? '/dashboard' : '/console'
 }

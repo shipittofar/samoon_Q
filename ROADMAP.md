@@ -160,7 +160,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 - Document and enforce: every new foundation model has a **default value** that reproduces today's single-restaurant behavior (default tenant, `restaurant` module, default location = existing branch list).
 - Add a CI/lint check or PR checklist item: "Does this change require a tenant/module/location to be set, and does it degrade gracefully when one isn't?"
 - No existing component is required to change in this phase. Existing services (`menuService`, `orderService`, etc.) keep their current signatures; tenant/location context is threaded through implicitly via the new `useTenantStore` rather than requiring every call site to be rewritten.
-- *(Role-based behavior is explicitly out of scope for this item — the default `customer/staff/admin` role set continues to work unchanged until Phase 1B introduces the RBAC foundation; this item only guarantees Tenant/Location/Module defaults.)*
+- *(Role-based behavior is explicitly out of scope for this item — the default `customer/staff/console` role set continues to work unchanged until Phase 1B introduces the RBAC foundation; this item only guarantees Tenant/Location/Module defaults.)*
 
 ---
 
@@ -183,7 +183,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 
 - Generalize the existing `customer | staff | admin` role enum into a **tenant-scoped, permission-based** model: `Role { key, tenantId | null (global), permissions: Permission[] }`, with `Permission` strings like `menu.edit`, `order.manage`, `branch.manage`, `room.manage` (future), `tenant.manage` (platform-level).
 - This is the **foundation** consumed by Phase 5 (Admin Platform) for admin authorization and by Phase 9 (SaaS & Enterprise) for Advanced RBAC — it is not duplicated work, it is built once here and extended later.
-- Existing `customer/staff/admin` values continue to work unchanged as a default role set for the `restaurant` module; no existing authorization behavior changes in this phase.
+- Existing `customer/staff/console` values continue to work unchanged as a default role set for the `restaurant` module; no existing authorization behavior changes in this phase.
 
 ---
 
@@ -209,7 +209,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 **Estimated Effort:** 2–3 days
 
 - Implement the routing decision from P1A.1 in `next.config.ts` / `src/middleware.ts` (the same middleware file already planned in Phase 3 Production Hardening — see P3.1 — is extended, not duplicated, to also resolve tenant context).
-- Define how `src/app/admin/*` and module-specific routes (e.g., future `/hotel/*`, `/bar/*`) nest under tenant resolution.
+- Define how `src/app/console/*` and module-specific routes (e.g., future `/hotel/*`, `/bar/*`) nest under tenant resolution.
 - Existing routes (`/menu`, `/checkout`, `/dashboard`, etc.) continue to resolve identically for the default/implicit tenant — **no URL changes for the current single-tenant deployment.**
 
 ---
@@ -294,7 +294,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 
 - Formalize the existing `components/ui/` primitives (Button, Input, Modal, Badge, Card, Avatar, Skeleton, Divider — already built on Radix UI per `ARCHITECTURE.md`) into a documented, token-driven shared library:
   - **Button, Input, Form primitives** — consolidate existing variants/sizes, wire to design tokens instead of hardcoded Tailwind classes
-  - **Card, Modal** — already exist; formalize as the canonical primitives all future feature/admin UI must use
+  - **Card, Modal** — already exist; formalize as the canonical primitives all future feature/console UI must use
   - **Table** *(new primitive)* — a reusable data table component, since `TECHNICAL_DEBT.md` notes the admin panel has no pagination or consistent list UI; this primitive is what Phase 5 (Admin Platform) and Phase 6/8 modules will build on instead of hand-rolling tables per screen
   - **Data display patterns** *(new)* — stat cards, empty states, loading skeletons, and error states standardized once, reused everywhere
 - No existing usage of `components/ui/*` is broken; this is a refactor-in-place plus additive new primitives (Table, standardized data display patterns).
@@ -331,7 +331,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 **Dependencies:** Requires decision on JWT storage strategy. *(Updated dependency, unchanged from prior revision: this middleware is the same file extended by P1B.3 for tenant resolution — implement together for efficiency, but auth gating itself is unchanged.)*
 **Estimated Effort:** 3–5 days
 
-Create `src/middleware.ts` to protect `/dashboard/*`, `/checkout/*`, and `/admin/*`. Decide between:
+Create `src/middleware.ts` to protect `/dashboard/*`, `/checkout/*`, and `/console/*`. Decide between:
 - Option A: Keep JWT in localStorage, check auth client-side with redirect on mount (quick, but race condition)
 - Option B: Move JWT to `httpOnly` cookie managed by Django → middleware reads cookie (secure, correct)
 
@@ -346,7 +346,7 @@ Recommendation: Option B for production.
 **Dependencies:** P3.1 (middleware), backend must include role in JWT claims. *(Note, unchanged from prior revision: once Phase 1B's RBAC foundation (P1B.1) lands, this task's implementation target shifts from a hardcoded role check to a permission check — see Phase 5 for the updated version. This Phase 3 version remains valid as an interim hardening step if Phase 5 has not yet shipped.)*
 **Estimated Effort:** 1 day
 
-Add role check in middleware for `/admin/*` routes. Redirect non-admin users to home.
+Add role check in middleware for `/console/*` routes. Redirect non-admin users to home.
 
 ---
 
@@ -369,7 +369,7 @@ Change `.env.example` default to `NEXT_PUBLIC_USE_MOCK=false`. Add CI step to re
 **Estimated Effort:** 4 hours
 
 Generate icon files for all 8 sizes declared in `manifest.json`. Create `public/og-image.jpg`. Create `public/screenshots/menu.png` (referenced in manifest). Verify PWA install flow end-to-end.
-- Verify install/usability on a tablet/phone form factor specifically for `/admin/*` routes, not just customer-facing pages — admin and staff users are expected to install and run this PWA on point-of-service hardware (P7.3 builds on this). Native iOS/Android apps are explicitly out of scope for this roadmap; PWA is the sole mobile strategy unless a future revision states otherwise.
+- Verify install/usability on a tablet/phone form factor specifically for `/console/*` routes, not just customer-facing pages — admin and staff users are expected to install and run this PWA on point-of-service hardware (P7.3 builds on this). Native iOS/Android apps are explicitly out of scope for this roadmap; PWA is the sole mobile strategy unless a future revision states otherwise.
 
 ---
 
@@ -765,7 +765,7 @@ Audit logging is moved earlier from its prior position as a Phase 9-only item, b
 
 **Effort:** 3–5 days *(unchanged — implemented via the RBAC foundation from P1B.1/P5.6 instead of a one-off middleware branch, which simplifies implementation but the estimate is left unchanged to absorb integration testing)*
 
-- Add `staff` role handling in middleware (access to `/admin/orders` only)
+- Add `staff` role handling in middleware (access to `/console/orders` only)
 - Staff dashboard: simplified view of incoming orders for their location
 - Table management view for front-of-house staff
 - Staff dashboard is installable as a PWA on handheld/tablet hardware using the existing manifest/service worker from P3.4 — no separate mobile build; this is the primary operational use case the PWA strategy is expected to serve on the floor.
@@ -774,7 +774,7 @@ Audit logging is moved earlier from its prior position as a Phase 9-only item, b
 
 **Effort:** 3–5 days
 
-- New `/admin/locations` page (was `/admin/branches`)
+- New `/console/locations` page (was `/console/branches`)
 - Create/edit location details, working hours, delivery radius, and — new — `type` (restaurant branch, cafe, bar, mobile truck, etc.)
 - Activate/deactivate locations
 - Built on the Phase 2 Table primitive (P2.3) and Admin Shell (P5.7) rather than a one-off list UI
@@ -920,7 +920,7 @@ Audit logging is moved earlier from its prior position as a Phase 9-only item, b
 
 **Effort:** 3–5 days *(unchanged from the prior revision; reduced from the original 5–8 days, since the permission model and `Role`/`Permission` primitives already exist from P1B.1 — this phase only adds the additional fine-grained roles, not the underlying system)*
 
-Fine-grained permissions beyond `customer/staff/admin`, layered on the Phase 1B RBAC foundation:
+Fine-grained permissions beyond `customer/staff/console`, layered on the Phase 1B RBAC foundation:
 - `menu_editor` — can edit menu items
 - `order_manager` — can manage orders
 - `branch_manager` / `location_manager` — scoped to specific locations

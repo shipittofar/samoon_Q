@@ -12,11 +12,11 @@
  * Backend-gated endpoints:
  *   ⚠️  PATCH /orders/{id}/status/        — no backend route yet
  *   ⚠️  POST  /reservations/{id}/confirm/ — no backend route yet
- *   ⚠️  GET   /admin/stats/               — no backend route yet
- *   ⚠️  GET   /admin/orders/              — falls back to /orders/ in real mode
- *   ⚠️  GET   /admin/reservations/        — falls back to /reservations/ in real mode
- *   ⚠️  GET   /admin/customers/           — no backend route yet
- *   ⚠️  GET   /admin/customers/{id}/stats/ — no backend route yet
+ *   ⚠️  GET   /console/stats/               — no backend route yet
+ *   ⚠️  GET   /console/orders/              — falls back to /orders/ in real mode
+ *   ⚠️  GET   /console/reservations/        — falls back to /reservations/ in real mode
+ *   ⚠️  GET   /console/customers/           — no backend route yet
+ *   ⚠️  GET   /console/customers/{id}/stats/ — no backend route yet
  */
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
@@ -158,7 +158,7 @@ function paginate<T>(items: T[], page = 1, pageSize = 20): PaginatedResponse<T> 
 // ── adminService ───────────────────────────────────────────────────────────────
 
 export const adminService = {
-  // ⚠️ Backend blocker: GET /admin/stats/ not yet deployed
+  // ⚠️ Backend blocker: GET /console/stats/ not yet deployed
   async getStats(): Promise<AdminStats> {
     if (USE_MOCK) {
       await delay(600)
@@ -231,7 +231,7 @@ export const adminService = {
     return data
   },
 
-  // ⚠️ Backend blocker: GET /admin/customers/ not yet deployed
+  // ⚠️ Backend blocker: GET /console/customers/ not yet deployed
   async getCustomers(filters: AdminCustomerFilters = {}): Promise<PaginatedResponse<AdminCustomer>> {
     if (USE_MOCK) {
       await delay(500)
@@ -255,7 +255,7 @@ export const adminService = {
     return data
   },
 
-  // ⚠️ Backend blocker: GET /admin/customers/{id}/stats/ not yet deployed
+  // ⚠️ Backend blocker: GET /console/customers/{id}/stats/ not yet deployed
   async getCustomerStats(id: string): Promise<AdminCustomerStats> {
     if (USE_MOCK) {
       await delay(400)
@@ -297,7 +297,7 @@ export const adminService = {
         },
       ]
     }
-    const { data } = await api.get<Review[]>(`/admin/customers/${customerId}/reviews/`)
+    const { data } = await api.get<Review[]>(`/console/customers/${customerId}/reviews/`)
     return data
   },
 }

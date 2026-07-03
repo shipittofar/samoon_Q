@@ -938,12 +938,12 @@ describe('S. Navigation integration', () => {
     expect(Array.isArray(ADMIN_STAFF_ROUTES)).toBe(true)
   })
 
-  it('S3: ADMIN_STAFF_ROUTES contains /admin/staff', async () => {
+  it('S3: ADMIN_STAFF_ROUTES contains /console/staff', async () => {
     const { ADMIN_STAFF_ROUTES } = await import('@/modules/registry')
-    expect(ADMIN_STAFF_ROUTES).toContain('/admin/staff')
+    expect(ADMIN_STAFF_ROUTES).toContain('/console/staff')
   })
 
-  it('S4: all 6 modules include /admin/staff in routes', async () => {
+  it('S4: all 6 modules include /console/staff in routes', async () => {
     const {
       RESTAURANT_MODULE,
       CAFE_MODULE,
@@ -960,7 +960,7 @@ describe('S. Navigation integration', () => {
       FOOD_TRUCK_MODULE,
       MOBILE_CAFE_MODULE,
     ]) {
-      expect(mod.routes).toContain('/admin/staff')
+      expect(mod.routes).toContain('/console/staff')
     }
   })
 
@@ -981,7 +981,7 @@ describe('S. Navigation integration', () => {
       FOOD_TRUCK_MODULE,
       MOBILE_CAFE_MODULE,
     ]) {
-      expect(mod.adminNavItems?.some((n) => n.href === '/admin/staff')).toBe(true)
+      expect(mod.adminNavItems?.some((n) => n.href === '/console/staff')).toBe(true)
     }
   })
 
@@ -1165,57 +1165,57 @@ describe('V. Staff hooks source', () => {
 
 describe('W. Staff page source', () => {
   it('W1: admin/staff/page.tsx exists and has content', () => {
-    const pageSrc = readSrc('src/app/admin/staff/page.tsx')
+    const pageSrc = readSrc('src/app/console/staff/page.tsx')
     expect(pageSrc.length).toBeGreaterThan(0)
   })
 
   it('W2: staff page uses PermissionGuard', () => {
-    const pageSrc = readSrc('src/app/admin/staff/page.tsx')
+    const pageSrc = readSrc('src/app/console/staff/page.tsx')
     expect(pageSrc).toContain('PermissionGuard')
   })
 
   it('W3: staff page guards staff.view permission', () => {
-    const pageSrc = readSrc('src/app/admin/staff/page.tsx')
+    const pageSrc = readSrc('src/app/console/staff/page.tsx')
     expect(pageSrc).toContain('staff.view')
   })
 
   it('W4: staff page imports useStaff', () => {
-    const pageSrc = readSrc('src/app/admin/staff/page.tsx')
+    const pageSrc = readSrc('src/app/console/staff/page.tsx')
     expect(pageSrc).toContain('useStaff')
   })
 
   it('W5: staff page imports useInvites', () => {
-    const pageSrc = readSrc('src/app/admin/staff/page.tsx')
+    const pageSrc = readSrc('src/app/console/staff/page.tsx')
     expect(pageSrc).toContain('useInvites')
   })
 
   it('W6: staff page shows analytics section', () => {
-    const pageSrc = readSrc('src/app/admin/staff/page.tsx')
+    const pageSrc = readSrc('src/app/console/staff/page.tsx')
     expect(pageSrc).toContain('analytics')
   })
 
   it('W7: staff detail page exists and has content', () => {
-    const detailSrc = readSrc('src/app/admin/staff/[id]/page.tsx')
+    const detailSrc = readSrc('src/app/console/staff/[id]/page.tsx')
     expect(detailSrc.length).toBeGreaterThan(0)
   })
 
   it('W8: detail page uses PermissionGuard', () => {
-    const detailSrc = readSrc('src/app/admin/staff/[id]/page.tsx')
+    const detailSrc = readSrc('src/app/console/staff/[id]/page.tsx')
     expect(detailSrc).toContain('PermissionGuard')
   })
 
   it('W9: detail page uses use(params) for async route params', () => {
-    const detailSrc = readSrc('src/app/admin/staff/[id]/page.tsx')
+    const detailSrc = readSrc('src/app/console/staff/[id]/page.tsx')
     expect(detailSrc).toContain('use(params)')
   })
 
   it('W10: detail page shows derived permissions', () => {
-    const detailSrc = readSrc('src/app/admin/staff/[id]/page.tsx')
+    const detailSrc = readSrc('src/app/console/staff/[id]/page.tsx')
     expect(detailSrc).toContain('getPermissionsForRole')
   })
 
   it('W11: detail page guards staff.view', () => {
-    const detailSrc = readSrc('src/app/admin/staff/[id]/page.tsx')
+    const detailSrc = readSrc('src/app/console/staff/[id]/page.tsx')
     expect(detailSrc).toContain('staff.view')
   })
 })

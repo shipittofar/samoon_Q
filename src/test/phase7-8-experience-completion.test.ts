@@ -19,13 +19,13 @@ import { describe, it, expect, vi } from 'vitest'
 
 describe('P7.8-A: Order Detail Page', () => {
   it('exists at the correct path', async () => {
-    const mod = await import('@/app/admin/orders/[id]/page')
+    const mod = await import('@/app/console/orders/[id]/page')
     expect(mod.default).toBeDefined()
     expect(typeof mod.default).toBe('function')
   })
 
   it('is a default export (page component)', async () => {
-    const mod = await import('@/app/admin/orders/[id]/page')
+    const mod = await import('@/app/console/orders/[id]/page')
     expect(mod.default.name || typeof mod.default).toBeTruthy()
   })
 })
@@ -34,7 +34,7 @@ describe('P7.8-A: Order Detail Page', () => {
 
 describe('P7.8-B: Reservation Detail Page', () => {
   it('exists at the correct path', async () => {
-    const mod = await import('@/app/admin/reservations/[id]/page')
+    const mod = await import('@/app/console/reservations/[id]/page')
     expect(mod.default).toBeDefined()
     expect(typeof mod.default).toBe('function')
   })
@@ -71,13 +71,13 @@ describe('P7.8-B: adminService.getAdminReservation', () => {
 
 describe('P7.8-C: Admin Settings Page', () => {
   it('exists at the correct path', async () => {
-    const mod = await import('@/app/admin/settings/page')
+    const mod = await import('@/app/console/settings/page')
     expect(mod.default).toBeDefined()
     expect(typeof mod.default).toBe('function')
   })
 
   it('feature-flags subpage exists', async () => {
-    const mod = await import('@/app/admin/settings/feature-flags/page')
+    const mod = await import('@/app/console/settings/feature-flags/page')
     expect(mod.default).toBeDefined()
     expect(typeof mod.default).toBe('function')
   })
@@ -89,50 +89,50 @@ describe('P7.8-C: Module Registry — Settings nav item', () => {
   it('ADMIN_SETTINGS_ROUTES is exported', async () => {
     const { ADMIN_SETTINGS_ROUTES } = await import('@/modules/registry')
     expect(Array.isArray(ADMIN_SETTINGS_ROUTES)).toBe(true)
-    expect(ADMIN_SETTINGS_ROUTES).toContain('/admin/settings')
+    expect(ADMIN_SETTINGS_ROUTES).toContain('/console/settings')
   })
 
   it('restaurant module has settings in adminNavItems', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    const hasSettings = (RESTAURANT_MODULE.adminNavItems ?? []).some((n) => n.href === '/admin/settings')
+    const hasSettings = (RESTAURANT_MODULE.adminNavItems ?? []).some((n) => n.href === '/console/settings')
     expect(hasSettings).toBe(true)
   })
 
   it('cafe module has settings in adminNavItems', async () => {
     const { CAFE_MODULE } = await import('@/modules/registry')
-    const hasSettings = (CAFE_MODULE.adminNavItems ?? []).some((n) => n.href === '/admin/settings')
+    const hasSettings = (CAFE_MODULE.adminNavItems ?? []).some((n) => n.href === '/console/settings')
     expect(hasSettings).toBe(true)
   })
 
   it('bar module has settings in adminNavItems', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
-    const hasSettings = (BAR_MODULE.adminNavItems ?? []).some((n) => n.href === '/admin/settings')
+    const hasSettings = (BAR_MODULE.adminNavItems ?? []).some((n) => n.href === '/console/settings')
     expect(hasSettings).toBe(true)
   })
 
   it('food_court module has settings in adminNavItems', async () => {
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
-    const hasSettings = (FOOD_COURT_MODULE.adminNavItems ?? []).some((n) => n.href === '/admin/settings')
+    const hasSettings = (FOOD_COURT_MODULE.adminNavItems ?? []).some((n) => n.href === '/console/settings')
     expect(hasSettings).toBe(true)
   })
 
   it('food_truck module has settings in adminNavItems', async () => {
     const { FOOD_TRUCK_MODULE } = await import('@/modules/registry')
-    const hasSettings = (FOOD_TRUCK_MODULE.adminNavItems ?? []).some((n) => n.href === '/admin/settings')
+    const hasSettings = (FOOD_TRUCK_MODULE.adminNavItems ?? []).some((n) => n.href === '/console/settings')
     expect(hasSettings).toBe(true)
   })
 
   it('mobile_cafe module has settings in adminNavItems', async () => {
     const { MOBILE_CAFE_MODULE } = await import('@/modules/registry')
-    const hasSettings = (MOBILE_CAFE_MODULE.adminNavItems ?? []).some((n) => n.href === '/admin/settings')
+    const hasSettings = (MOBILE_CAFE_MODULE.adminNavItems ?? []).some((n) => n.href === '/console/settings')
     expect(hasSettings).toBe(true)
   })
 
-  it('all 6 modules have /admin/settings in their routes arrays', async () => {
+  it('all 6 modules have /console/settings in their routes arrays', async () => {
     const { RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE, FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE } = await import('@/modules/registry')
     const modules = [RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE, FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE]
     for (const mod of modules) {
-      expect(mod.routes).toContain('/admin/settings')
+      expect(mod.routes).toContain('/console/settings')
     }
   })
 })
@@ -243,7 +243,7 @@ describe('P7.8-E: BranchSelector integration', () => {
 
   it('operations page uses useBranchStore instead of local state for branch', async () => {
     const fs = await import('fs')
-    const content = fs.readFileSync('/home/user/samoon_Q/src/app/admin/operations/page.tsx', 'utf-8')
+    const content = fs.readFileSync('/home/user/samoon_Q/src/app/console/operations/page.tsx', 'utf-8')
     expect(content).toContain('useBranchStore')
     expect(content).not.toContain('setBranchFilter')
   })

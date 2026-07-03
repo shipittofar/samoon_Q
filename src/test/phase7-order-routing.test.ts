@@ -7,7 +7,7 @@
  *   C. BranchIsolationResult shape
  *   D. BranchScope union values
  *   E. BranchAssignmentRule shape
- *   F. branchAccessService — getAccessibleBranches (owner/admin sees all)
+ *   F. branchAccessService — getAccessibleBranches (owner/console sees all)
  *   G. branchAccessService — getAccessibleBranches (manager/cashier sees assigned)
  *   H. branchAccessService — canAccessBranch
  *   I. branchAccessService — filterByAccessibleBranches
@@ -283,9 +283,9 @@ describe('E — ORDER_ROUTING_RULES', () => {
   })
 })
 
-// ── F. getAccessibleBranches — owner/admin sees all ───────────────────────────
+// ── F. getAccessibleBranches — owner/console sees all ───────────────────────────
 
-describe('F — getAccessibleBranches (owner/admin sees all tenant branches)', () => {
+describe('F — getAccessibleBranches (owner/console sees all tenant branches)', () => {
   it('F1: owner sees all branches in tenant', () => {
     const result = branchAccessService.getAccessibleBranches(
       { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
@@ -1228,11 +1228,11 @@ describe('X — Hooks source checks', () => {
 // ── Y. Admin pages source checks ──────────────────────────────────────────────
 
 describe('Y — Admin pages source checks', () => {
-  const orderPage = () => src('src/app/admin/orders/page.tsx')
-  const resPage = () => src('src/app/admin/reservations/page.tsx')
-  const staffPage = () => src('src/app/admin/staff/[id]/page.tsx')
-  const branchAnalytics = () => src('src/app/admin/branches/[id]/analytics/page.tsx')
-  const branchAnalyticsOverview = () => src('src/app/admin/branches/analytics/page.tsx')
+  const orderPage = () => src('src/app/console/orders/page.tsx')
+  const resPage = () => src('src/app/console/reservations/page.tsx')
+  const staffPage = () => src('src/app/console/staff/[id]/page.tsx')
+  const branchAnalytics = () => src('src/app/console/branches/[id]/analytics/page.tsx')
+  const branchAnalyticsOverview = () => src('src/app/console/branches/analytics/page.tsx')
 
   it('Y1: orders page has branch filter select', () => {
     expect(orderPage()).toContain('branchFilter')
@@ -1293,19 +1293,19 @@ describe('Z — Registry and navigation', () => {
     expect(Array.isArray(ADMIN_BRANCH_ANALYTICS_ROUTES)).toBe(true)
   })
 
-  it('Z2: ADMIN_BRANCH_ANALYTICS_ROUTES includes /admin/branches/analytics', async () => {
+  it('Z2: ADMIN_BRANCH_ANALYTICS_ROUTES includes /console/branches/analytics', async () => {
     const { ADMIN_BRANCH_ANALYTICS_ROUTES } = await import('@/modules/registry')
-    expect(ADMIN_BRANCH_ANALYTICS_ROUTES).toContain('/admin/branches/analytics')
+    expect(ADMIN_BRANCH_ANALYTICS_ROUTES).toContain('/console/branches/analytics')
   })
 
-  it('Z3: ADMIN_BRANCH_ANALYTICS_ROUTES includes /admin/branches/[id]/analytics', async () => {
+  it('Z3: ADMIN_BRANCH_ANALYTICS_ROUTES includes /console/branches/[id]/analytics', async () => {
     const { ADMIN_BRANCH_ANALYTICS_ROUTES } = await import('@/modules/registry')
-    expect(ADMIN_BRANCH_ANALYTICS_ROUTES).toContain('/admin/branches/[id]/analytics')
+    expect(ADMIN_BRANCH_ANALYTICS_ROUTES).toContain('/console/branches/[id]/analytics')
   })
 
-  it('Z4: RESTAURANT_MODULE routes include /admin/branches/analytics', async () => {
+  it('Z4: RESTAURANT_MODULE routes include /console/branches/analytics', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect(RESTAURANT_MODULE.routes).toContain('/admin/branches/analytics')
+    expect(RESTAURANT_MODULE.routes).toContain('/console/branches/analytics')
   })
 
   it('Z5: CAFE_MODULE adminNavItems includes Branch Analytics', async () => {
@@ -1318,10 +1318,10 @@ describe('Z — Registry and navigation', () => {
     expect(RESTAURANT_MODULE.adminNavItems?.some((n) => n.label === 'Branch Analytics')).toBe(true)
   })
 
-  it('Z7: Branch Analytics nav item points to /admin/branches/analytics', async () => {
+  it('Z7: Branch Analytics nav item points to /console/branches/analytics', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
     const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.label === 'Branch Analytics')
-    expect(item?.href).toBe('/admin/branches/analytics')
+    expect(item?.href).toBe('/console/branches/analytics')
   })
 
   it('Z8: Branch Analytics nav item has permissionKey branches.view', async () => {

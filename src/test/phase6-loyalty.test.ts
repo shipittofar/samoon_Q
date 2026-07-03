@@ -643,8 +643,8 @@ describe('O. /loyalty/page.tsx source-text', () => {
 
 // ── P. Admin loyalty page — source-text structure ─────────────────────────────
 
-describe('P. /admin/loyalty/page.tsx source-text', () => {
-  const adminSrc = readSrc('app/admin/loyalty/page.tsx')
+describe('P. /console/loyalty/page.tsx source-text', () => {
+  const adminSrc = readSrc('app/console/loyalty/page.tsx')
 
   it('uses useAdminLoyaltyRewards', () => {
     expect(adminSrc).toContain('useAdminLoyaltyRewards')

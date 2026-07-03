@@ -38,27 +38,27 @@ function resolveDeepLink(event: OperationsEvent): string | null {
     case 'LIVE_ORDER_CREATED':
     case 'LIVE_ORDER_UPDATED':
     case 'LIVE_ORDER_CANCELLED':
-      if (payload.orderId) return `/admin/orders/${payload.orderId}`
+      if (payload.orderId) return `/console/orders/${payload.orderId}`
       break
     case 'LIVE_RESERVATION_CREATED':
     case 'LIVE_RESERVATION_UPDATED':
     case 'LIVE_RESERVATION_CANCELLED':
     case 'LIVE_RESERVATION_CHECKED_IN':
-      if (payload.reservationId) return `/admin/reservations/${payload.reservationId}`
+      if (payload.reservationId) return `/console/reservations/${payload.reservationId}`
       break
     case 'STAFF_STATUS_CHANGED':
     case 'STAFF_PRESENCE_UPDATED':
-      if (payload.userId) return `/admin/staff/${payload.userId}`
+      if (payload.userId) return `/console/staff/${payload.userId}`
       break
     case 'BRANCH_STATUS_CHANGED':
     case 'BRANCH_HEALTH_UPDATED':
-      if (event.scope.branchId) return `/admin/branches/${event.scope.branchId}`
+      if (event.scope.branchId) return `/console/branches/${event.scope.branchId}`
       break
     case 'LIVE_AUDIT_EVENT':
-      if (payload.auditId) return `/admin/audit-logs/${payload.auditId}`
+      if (payload.auditId) return `/console/audit-logs/${payload.auditId}`
       break
     case 'LIVE_NOTIFICATION':
-      if (payload.notificationId) return `/admin/notifications/${payload.notificationId}`
+      if (payload.notificationId) return `/console/notifications/${payload.notificationId}`
       break
   }
   return null

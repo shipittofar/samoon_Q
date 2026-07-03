@@ -216,12 +216,12 @@ export function Header() {
                 <NotificationCenter />
               </ErrorBoundary>
             )}
-            {isAuthenticated && pathname.startsWith('/admin') && (
+            {isAuthenticated && pathname.startsWith('/console') && (
               <ErrorBoundary feature="BranchSelector">
                 <BranchSelector className="hidden sm:flex" />
               </ErrorBoundary>
             )}
-            {isAuthenticated && pathname.startsWith('/admin') && (
+            {isAuthenticated && pathname.startsWith('/console') && (
               <ErrorBoundary feature="NotificationBell">
                 <NotificationBell tenantId={tenant?.id} />
               </ErrorBoundary>
@@ -351,7 +351,7 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-              {isAuthenticated && pathname.startsWith('/admin') && (
+              {isAuthenticated && pathname.startsWith('/console') && (
                 <ErrorBoundary feature="BranchSelector">
                   <BranchSelector className="mt-1" />
                 </ErrorBoundary>

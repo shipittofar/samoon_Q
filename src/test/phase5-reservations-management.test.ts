@@ -29,7 +29,7 @@ import * as path from 'path'
 const ROOT = path.resolve(__dirname, '../../')
 function src(rel: string) { return fs.readFileSync(path.join(ROOT, rel), 'utf8') }
 
-const page = src('src/app/admin/reservations/page.tsx')
+const page = src('src/app/console/reservations/page.tsx')
 const hooks = src('src/hooks/index.ts')
 
 // ── A. No MOCK_RESERVATIONS ───────────────────────────────────────────────────
@@ -313,7 +313,7 @@ describe('Regression — branch hooks', () => {
 
 describe('Regression — admin auth guard', () => {
   it('admin layout still enforces dashboard:access', () => {
-    const layout = src('src/app/admin/layout.tsx')
+    const layout = src('src/app/console/layout.tsx')
     expect(layout).toMatch(/dashboard:access/)
   })
 })

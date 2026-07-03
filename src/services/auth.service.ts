@@ -37,7 +37,7 @@ export const MOCK_REFRESH_TOKEN =
  * Maps accepted email → { user, p7Roles } for mock mode login.
  * All passwords are 'password'. The demo@savor.com credential is the
  * original customer demo preserved for backward compat + security tests.
- * Staff/admin/owner credentials give access to /admin/* routes.
+ * Staff/console/owner credentials give access to /console/* routes.
  *
  * p7Roles are the P7 tenant-scoped roles seeded into useRbacStore by
  * useLogin() on successful mock login. They cover all PermissionGuard checks.

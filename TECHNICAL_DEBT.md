@@ -30,7 +30,7 @@ Items marked ✅ were resolved during P5–P7.14.5. Open items require backend i
 
 ### C-01 — No Route Authentication Middleware
 
-**Description:** There is no `src/middleware.ts` file. Next.js App Router route protection requires middleware to intercept requests before rendering. Without it, `/dashboard/*` and `/admin/*` are publicly accessible to any unauthenticated user.
+**Description:** There is no `src/middleware.ts` file. Next.js App Router route protection requires middleware to intercept requests before rendering. Without it, `/dashboard/*` and `/console/*` are publicly accessible to any unauthenticated user.
 
 **Evidence:** `find /tmp/frontend_source/src -name "middleware.ts"` returns nothing. Dashboard layout (`src/app/dashboard/layout.tsx`) and admin pages have no server-side auth check.
 
@@ -46,7 +46,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('access_token')?.value
   const { pathname } = request.nextUrl
 
-  const protectedPrefixes = ['/dashboard', '/admin', '/checkout']
+  const protectedPrefixes = ['/dashboard', '/console', '/checkout']
   const isProtected = protectedPrefixes.some((p) => pathname.startsWith(p))
 
   if (isProtected && !token) {
@@ -54,7 +54,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Admin-only
-  if (pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/console')) {
     // Decode JWT and check role — requires JWT to be in a cookie
     // Alternative: check a separate admin cookie set by the backend
   }
@@ -63,7 +63,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/admin/:path*', '/checkout/:path*'],
+  matcher: ['/dashboard/:path*', '/console/:path*', '/checkout/:path*'],
 }
 ```
 
@@ -243,7 +243,7 @@ if (USE_MOCK) {
 
 ### ~~H-10 — Reviews Feature Typed but Not Implemented~~ ✅ Resolved (P7.12)
 
-`review.service.ts` implemented. `/reviews/page.tsx` exists. `/admin/customers/[id]/reviews/page.tsx` exists. Customer reviews are viewable from the customer detail page in the admin panel.
+`review.service.ts` implemented. `/reviews/page.tsx` exists. `/console/customers/[id]/reviews/page.tsx` exists. Customer reviews are viewable from the customer detail page in the admin panel.
 
 ---
 

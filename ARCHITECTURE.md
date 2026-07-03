@@ -577,7 +577,7 @@ graph TD
     ROOT --> PUBS[Public pages\n/events /location /loyalty\n/promotions /reviews /vendors]
     ROOT --> AUTH[Auth Routes\n/login /register\n/forgot-password /verify-otp]
     ROOT --> DASH[/dashboard\nsrc/app/dashboard/layout.tsx]
-    ROOT --> ADMIN[/admin/* — 40+ routes\nPermissionGuard on each page]
+    ROOT --> ADMIN[/console/* — 40+ routes\nPermissionGuard on each page]
     ROOT --> API[/api/health]
     ROOT --> OFFLINE[/offline — PWA fallback]
 

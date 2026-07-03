@@ -116,25 +116,25 @@ All admin routes are triple-gated:
 
 | Route | Required Permission | Notes |
 |---|---|---|
-| /admin/orders | orders.view | |
-| /admin/orders/[id] | orders.view | |
-| /admin/menu | menu.view | |
-| /admin/customers | customers.view | |
-| /admin/customers/[id] | customers.view | |
-| /admin/reservations | reservations.view | |
-| /admin/analytics | analytics.view | |
-| /admin/audit-logs | audit.view | |
-| /admin/staff | staff.view | |
-| /admin/loyalty | loyalty.view | |
-| /admin/notifications | notifications.view | |
-| /admin/settings | settings.view | |
-| /admin/tenants | tenant.view | |
-| /admin/vendors/[id] | vendors.view | |
-| /admin/operations | operations.view | |
-| /admin/kitchen | operations.view | |
-| /admin/branches | branches.view | |
-| /admin/branches/analytics | analytics.view | |
-| /admin/promotions | promotions.view | |
+| /console/orders | orders.view | |
+| /console/orders/[id] | orders.view | |
+| /console/menu | menu.view | |
+| /console/customers | customers.view | |
+| /console/customers/[id] | customers.view | |
+| /console/reservations | reservations.view | |
+| /console/analytics | analytics.view | |
+| /console/audit-logs | audit.view | |
+| /console/staff | staff.view | |
+| /console/loyalty | loyalty.view | |
+| /console/notifications | notifications.view | |
+| /console/settings | settings.view | |
+| /console/tenants | tenant.view | |
+| /console/vendors/[id] | vendors.view | |
+| /console/operations | operations.view | |
+| /console/kitchen | operations.view | |
+| /console/branches | branches.view | |
+| /console/branches/analytics | analytics.view | |
+| /console/promotions | promotions.view | |
 
 ---
 

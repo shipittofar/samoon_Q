@@ -36,7 +36,7 @@ describe('P4.7.1 — Image optimization: all Image usages have sizes prop', () =
    * src/components/cart/CartDrawer.tsx
    *   → sizes="64px"  (cart line-item thumbnail)
    *
-   * src/app/admin/menu/page.tsx
+   * src/app/console/menu/page.tsx
    *   → sizes="(max-width: 768px) 100vw, 25vw"
    *
    * src/app/restaurant/page.tsx (hero)
@@ -80,7 +80,7 @@ describe('P4.7.1 — Image optimization: all Image usages have sizes prop', () =
   })
 
   it('admin/menu page Image has sizes prop', () => {
-    const content = src('app/admin/menu/page.tsx')
+    const content = src('app/console/menu/page.tsx')
     expect(content).toContain('sizes=')
   })
 

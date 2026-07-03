@@ -386,11 +386,11 @@ describe('I. admin navigation', () => {
     expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(20)
   })
 
-  it('Route Management links to /admin/food-truck/routes', async () => {
+  it('Route Management links to /console/food-truck/routes', async () => {
     const { FOOD_TRUCK_MODULE } = await import('@/modules/registry')
     const item = FOOD_TRUCK_MODULE.adminNavItems!.find((n) => n.label === 'Route Management')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/admin/food-truck/routes')
+    expect(item!.href).toBe('/console/food-truck/routes')
   })
 
   it('Route Management is gated by food_truck.route_tracking.enabled', async () => {
@@ -399,11 +399,11 @@ describe('I. admin navigation', () => {
     expect(item!.featureFlagKey).toBe('food_truck.route_tracking.enabled')
   })
 
-  it('Stop Management links to /admin/food-truck/stops', async () => {
+  it('Stop Management links to /console/food-truck/stops', async () => {
     const { FOOD_TRUCK_MODULE } = await import('@/modules/registry')
     const item = FOOD_TRUCK_MODULE.adminNavItems!.find((n) => n.label === 'Stop Management')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/admin/food-truck/stops')
+    expect(item!.href).toBe('/console/food-truck/stops')
   })
 
   it('Stop Management is gated by food_truck.scheduled_stops.enabled', async () => {

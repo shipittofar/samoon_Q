@@ -81,10 +81,10 @@ const ICON_MAP: Record<string, React.ElementType> = {
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
-  { label: 'New Menu Item', href: '/admin/menu', icon: UtensilsCrossed },
-  { label: 'New Promotion', href: '/admin/promotions', icon: Tag },
-  { label: 'New Reservation', href: '/admin/reservations', icon: CalendarDays },
-  { label: 'Invite Staff', href: '/admin/staff', icon: Users },
+  { label: 'New Menu Item', href: '/console/menu', icon: UtensilsCrossed },
+  { label: 'New Promotion', href: '/console/promotions', icon: Tag },
+  { label: 'New Reservation', href: '/console/reservations', icon: CalendarDays },
+  { label: 'Invite Staff', href: '/console/staff', icon: Users },
 ] as const
 
 function QuickActions({ onClose }: { onClose: () => void }) {
@@ -248,12 +248,12 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           {/* Always-visible dashboard link */}
           <div className="px-2 mb-1">
             <Link
-              href="/admin"
+              href="/console"
               onClick={onClose}
-              aria-current={pathname === '/admin' ? 'page' : undefined}
+              aria-current={pathname === '/console' ? 'page' : undefined}
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 min-h-[44px]',
-                pathname === '/admin'
+                pathname === '/console'
                   ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
                   : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
               )}

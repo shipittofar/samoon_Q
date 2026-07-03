@@ -59,14 +59,14 @@ function labelForSegment(segment: string, prevSegment?: string): string {
 
 function buildBreadcrumbs(pathname: string): BreadcrumbSegment[] {
   const segments = pathname.split('/').filter(Boolean)
-  // Home crumb points to /admin (not public site root) — C4 fix (P8.9.4)
-  const crumbs: BreadcrumbSegment[] = [{ label: 'Admin', href: '/admin' }]
+  // Home crumb points to /console (not public site root) — C4 fix (P8.9.4)
+  const crumbs: BreadcrumbSegment[] = [{ label: 'Admin', href: '/console' }]
   let path = ''
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i]
     path += `/${seg}`
-    // Skip /admin itself since it's already the root crumb
-    if (path === '/admin') continue
+    // Skip /console itself since it's already the root crumb
+    if (path === '/console') continue
     crumbs.push({
       label: labelForSegment(seg, segments[i - 1]),
       href: path,

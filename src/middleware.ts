@@ -7,7 +7,7 @@ import { JWT_ACCESS_KEY } from '@/constants'
  * original destination preserved in `?redirect=` so the login page can
  * restore the user's intent after they authenticate.
  */
-const PROTECTED_PREFIXES = ['/dashboard', '/checkout', '/admin'] as const
+const PROTECTED_PREFIXES = ['/dashboard', '/checkout', '/console'] as const
 
 /** Returns true when the pathname starts with any protected prefix. */
 function isProtectedRoute(pathname: string): boolean {
@@ -110,7 +110,7 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/checkout/:path*',
-    '/admin/:path*',
+    '/console/:path*',
     // Also run on public routes so tenant header is injected for all page loads
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],

@@ -562,8 +562,8 @@ describe('Q — Navigation', () => {
     expect(readSrc('modules/registry.ts')).toContain('ADMIN_BRANCHES_ROUTES')
   })
 
-  it('Q3: BRANCHES_NAV_ITEM href is /admin/branches', () => {
-    expect(readSrc('modules/registry.ts')).toContain("href: '/admin/branches'")
+  it('Q3: BRANCHES_NAV_ITEM href is /console/branches', () => {
+    expect(readSrc('modules/registry.ts')).toContain("href: '/console/branches'")
   })
 
   it('Q4: BRANCHES_NAV_ITEM has branches.view permissionKey', () => {
@@ -581,7 +581,7 @@ describe('Q — Navigation', () => {
     } = await import('@/modules/registry')
     const modules = [RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE, FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE]
     for (const mod of modules) {
-      expect(mod.adminNavItems?.some((n) => n.href === '/admin/branches')).toBe(true)
+      expect(mod.adminNavItems?.some((n) => n.href === '/console/branches')).toBe(true)
     }
   })
 
@@ -753,39 +753,39 @@ describe('T — Hooks source', () => {
 
 describe('U — Admin pages source', () => {
   it('U1: branches page.tsx exists', () => {
-    expect(fs.existsSync(path.join(ROOT, 'src/app/admin/branches/page.tsx'))).toBe(true)
+    expect(fs.existsSync(path.join(ROOT, 'src/app/console/branches/page.tsx'))).toBe(true)
   })
 
   it('U2: branches [id] page.tsx exists', () => {
-    expect(fs.existsSync(path.join(ROOT, 'src/app/admin/branches/[id]/page.tsx'))).toBe(true)
+    expect(fs.existsSync(path.join(ROOT, 'src/app/console/branches/[id]/page.tsx'))).toBe(true)
   })
 
   it('U3: branches page uses PermissionGuard with branches.view', () => {
-    expect(readSrc('app/admin/branches/page.tsx')).toContain('branches.view')
+    expect(readSrc('app/console/branches/page.tsx')).toContain('branches.view')
   })
 
   it('U4: branches detail page uses PermissionGuard with branches.view', () => {
-    expect(readSrc('app/admin/branches/[id]/page.tsx')).toContain('branches.view')
+    expect(readSrc('app/console/branches/[id]/page.tsx')).toContain('branches.view')
   })
 
   it('U5: branches page uses useAdminBranches', () => {
-    expect(readSrc('app/admin/branches/page.tsx')).toContain('useAdminBranches')
+    expect(readSrc('app/console/branches/page.tsx')).toContain('useAdminBranches')
   })
 
   it('U6: branches detail page uses useAdminBranch', () => {
-    expect(readSrc('app/admin/branches/[id]/page.tsx')).toContain('useAdminBranch')
+    expect(readSrc('app/console/branches/[id]/page.tsx')).toContain('useAdminBranch')
   })
 
   it('U7: branches detail page uses use(params)', () => {
-    expect(readSrc('app/admin/branches/[id]/page.tsx')).toContain('use(params)')
+    expect(readSrc('app/console/branches/[id]/page.tsx')).toContain('use(params)')
   })
 
   it('U8: branches detail page shows status actions with branches.manage guard', () => {
-    expect(readSrc('app/admin/branches/[id]/page.tsx')).toContain('branches.manage')
+    expect(readSrc('app/console/branches/[id]/page.tsx')).toContain('branches.manage')
   })
 
   it('U9: branches page uses computeAnalytics', () => {
-    expect(readSrc('app/admin/branches/page.tsx')).toContain('computeAnalytics')
+    expect(readSrc('app/console/branches/page.tsx')).toContain('computeAnalytics')
   })
 })
 
@@ -793,15 +793,15 @@ describe('U — Admin pages source', () => {
 
 describe('V — Staff detail page integration', () => {
   it('V1: staff detail page imports useAdminBranch', () => {
-    expect(readSrc('app/admin/staff/[id]/page.tsx')).toContain('useAdminBranch')
+    expect(readSrc('app/console/staff/[id]/page.tsx')).toContain('useAdminBranch')
   })
 
   it('V2: staff detail page has BranchBadge component', () => {
-    expect(readSrc('app/admin/staff/[id]/page.tsx')).toContain('BranchBadge')
+    expect(readSrc('app/console/staff/[id]/page.tsx')).toContain('BranchBadge')
   })
 
-  it('V3: staff detail page links to /admin/branches', () => {
-    expect(readSrc('app/admin/staff/[id]/page.tsx')).toContain('/admin/branches/')
+  it('V3: staff detail page links to /console/branches', () => {
+    expect(readSrc('app/console/staff/[id]/page.tsx')).toContain('/console/branches/')
   })
 })
 
@@ -874,25 +874,25 @@ describe('Y — Regression', () => {
     expect(ROLE_PERMISSION_MAP.manager).not.toContain('branches.manage')
   })
 
-  it('Y8: all 6 modules have /admin/branches in routes', async () => {
+  it('Y8: all 6 modules have /console/branches in routes', async () => {
     const {
       RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE,
       FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE,
     } = await import('@/modules/registry')
     const modules = [RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE, FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE]
     for (const mod of modules) {
-      expect(mod.routes).toContain('/admin/branches')
+      expect(mod.routes).toContain('/console/branches')
     }
   })
 
-  it('Y9: all 6 modules have /admin/branches/[id] in routes', async () => {
+  it('Y9: all 6 modules have /console/branches/[id] in routes', async () => {
     const {
       RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE,
       FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE,
     } = await import('@/modules/registry')
     const modules = [RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE, FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE]
     for (const mod of modules) {
-      expect(mod.routes).toContain('/admin/branches/[id]')
+      expect(mod.routes).toContain('/console/branches/[id]')
     }
   })
 

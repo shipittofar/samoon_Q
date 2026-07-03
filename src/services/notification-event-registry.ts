@@ -596,14 +596,14 @@ export function resolveNotificationMessage(config: NotificationEventConfig, acto
 
 export function buildDeepLinkHref(type: NonNullable<NotificationEventConfig['deepLinkType']>, id: string): string {
   const DEEP_LINK_MAP: Record<string, string> = {
-    order: `/admin/orders/${id}`,
-    reservation: `/admin/reservations/${id}`,
-    staff: `/admin/staff/${id}`,
-    branch: `/admin/branches/${id}`,
-    promotion: `/admin/promotions/${id}`,
-    audit_log: `/admin/audit-logs/${id}`,
-    vendor: `/admin/vendors/${id}`,
-    tenant: `/admin/tenants/${id}`,
+    order: `/console/orders/${id}`,
+    reservation: `/console/reservations/${id}`,
+    staff: `/console/staff/${id}`,
+    branch: `/console/branches/${id}`,
+    promotion: `/console/promotions/${id}`,
+    audit_log: `/console/audit-logs/${id}`,
+    vendor: `/console/vendors/${id}`,
+    tenant: `/console/tenants/${id}`,
   }
   return DEEP_LINK_MAP[type] ?? '/'
 }

@@ -97,7 +97,7 @@ function VerifyPageInner() {
           ? `/complete-profile?phone=${encodeURIComponent(phone)}`
           : result.user.role === 'customer'
             ? getPostLoginRedirect('customer')
-            : getDemoRedirect(phone) !== '/admin'
+            : getDemoRedirect(phone) !== '/console'
               ? getDemoRedirect(phone)
               : getPostLoginRedirect(result.user.role)
 

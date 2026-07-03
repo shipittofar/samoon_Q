@@ -15,11 +15,11 @@
  *   K. Service — _resetMockStore()
  *   L. Capability enforcement — food_court only
  *   M. Feature flags — vendor_management, featured_vendor flags
- *   N. Navigation — /vendors in food court navItems, /admin/food-court/vendors in adminNavItems
+ *   N. Navigation — /vendors in food court navItems, /console/food-court/vendors in adminNavItems
  *   O. Endpoints — VENDORS shape
  *   P. Hooks — source-text existence
  *   Q. Customer /vendors page — source-text structure
- *   R. Admin /admin/food-court/vendors page — source-text structure
+ *   R. Admin /console/food-court/vendors page — source-text structure
  *   S. Mock mode compatibility
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -583,11 +583,11 @@ describe('N. Navigation', () => {
     expect(FOOD_COURT_MODULE.routes).toContain('/vendors')
   })
 
-  it('Vendor Management admin nav links to /admin/food-court/vendors', async () => {
+  it('Vendor Management admin nav links to /console/food-court/vendors', async () => {
     vi.resetModules()
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
     const item = FOOD_COURT_MODULE.adminNavItems?.find((n) => n.label === 'Vendor Management')
-    expect(item?.href).toBe('/admin/food-court/vendors')
+    expect(item?.href).toBe('/console/food-court/vendors')
   })
 
   it('getHeaderNav(["food_court"]) includes Vendors', async () => {
@@ -686,10 +686,10 @@ describe('Q. /vendors/page.tsx source-text', () => {
   it('has vendor list', () => expect(src).toContain('VendorCard'))
 })
 
-// ── R. Admin /admin/food-court/vendors page ───────────────────────────────────
+// ── R. Admin /console/food-court/vendors page ───────────────────────────────────
 
-describe('R. /admin/food-court/vendors/page.tsx source-text', () => {
-  const src = readSrc('app/admin/food-court/vendors/page.tsx')
+describe('R. /console/food-court/vendors/page.tsx source-text', () => {
+  const src = readSrc('app/console/food-court/vendors/page.tsx')
 
   it('is a client component', () => expect(src.trimStart()).toMatch(/^'use client'/))
   it('uses useVendors', () => expect(src).toContain('useVendors'))
@@ -762,8 +762,8 @@ describe('S. Mock mode compatibility', () => {
     expect(categories.size).toBeGreaterThan(3)
   })
 
-  it('/admin/vendors/page.tsx re-exports the food-court admin page', () => {
-    const src = readSrc('app/admin/vendors/page.tsx')
-    expect(src).toContain('admin/food-court/vendors')
+  it('/console/vendors/page.tsx re-exports the food-court admin page', () => {
+    const src = readSrc('app/console/vendors/page.tsx')
+    expect(src).toContain('console/food-court/vendors')
   })
 })

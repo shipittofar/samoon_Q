@@ -13,7 +13,7 @@ export const MOCK_USER: User = {
   created_at: '2024-01-01T00:00:00Z',
 }
 
-// Mock demo accounts for staff/admin roles (mock mode only).
+// Mock demo accounts for staff/console roles (mock mode only).
 // These are separate from MOCK_USER to preserve the security invariant
 // that MOCK_USER.role === 'customer'.
 export const MOCK_STAFF_USER: User = {

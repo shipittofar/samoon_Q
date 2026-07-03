@@ -34,7 +34,7 @@ function src(rel: string) {
 // ── A. Page uses useAdminOrders ───────────────────────────────────────────────
 
 describe('Admin orders page — useAdminOrders integration', () => {
-  const page = src('src/app/admin/orders/page.tsx')
+  const page = src('src/app/console/orders/page.tsx')
 
   it('A: imports useAdminOrders from @/hooks', () => {
     expect(page).toMatch(/useAdminOrders/)
@@ -53,7 +53,7 @@ describe('Admin orders page — useAdminOrders integration', () => {
 // ── B. No MOCK_LIVE_ORDERS ────────────────────────────────────────────────────
 
 describe('Admin orders page — no hardcoded data', () => {
-  const page = src('src/app/admin/orders/page.tsx')
+  const page = src('src/app/console/orders/page.tsx')
 
   it('B: MOCK_LIVE_ORDERS is removed', () => {
     expect(page).not.toContain('MOCK_LIVE_ORDERS')
@@ -71,7 +71,7 @@ describe('Admin orders page — no hardcoded data', () => {
 // ── C. Status mutation uses useUpdateOrderStatus ──────────────────────────────
 
 describe('Admin orders page — useUpdateOrderStatus mutation', () => {
-  const page = src('src/app/admin/orders/page.tsx')
+  const page = src('src/app/console/orders/page.tsx')
 
   it('C: imports useUpdateOrderStatus', () => {
     expect(page).toMatch(/useUpdateOrderStatus/)
@@ -90,7 +90,7 @@ describe('Admin orders page — useUpdateOrderStatus mutation', () => {
 // ── D. Filters drive query inputs ─────────────────────────────────────────────
 
 describe('Admin orders page — filter state → query params', () => {
-  const page = src('src/app/admin/orders/page.tsx')
+  const page = src('src/app/console/orders/page.tsx')
 
   it('D: uses useMemo for filters object', () => {
     expect(page).toMatch(/useMemo/)
@@ -113,7 +113,7 @@ describe('Admin orders page — filter state → query params', () => {
 // ── E. Loading state ──────────────────────────────────────────────────────────
 
 describe('Admin orders page — loading state', () => {
-  const page = src('src/app/admin/orders/page.tsx')
+  const page = src('src/app/console/orders/page.tsx')
 
   it('E: isLoading from useAdminOrders', () => {
     expect(page).toMatch(/isLoading/)
@@ -131,7 +131,7 @@ describe('Admin orders page — loading state', () => {
 // ── F. Error state ────────────────────────────────────────────────────────────
 
 describe('Admin orders page — error state', () => {
-  const page = src('src/app/admin/orders/page.tsx')
+  const page = src('src/app/console/orders/page.tsx')
 
   it('F: isError from useAdminOrders', () => {
     expect(page).toMatch(/isError/)
@@ -149,7 +149,7 @@ describe('Admin orders page — error state', () => {
 // ── G. Empty state ────────────────────────────────────────────────────────────
 
 describe('Admin orders page — empty state', () => {
-  const page = src('src/app/admin/orders/page.tsx')
+  const page = src('src/app/console/orders/page.tsx')
 
   it('G: renders empty state when orders.length === 0', () => {
     expect(page).toMatch(/orders\.length\s*===\s*0/)
@@ -228,7 +228,7 @@ describe('adminService mock mode — orders path', () => {
 
 describe('Real-time layer audit — no admin WebSocket', () => {
   const hooks = src('src/hooks/client.ts')
-  const page = src('src/app/admin/orders/page.tsx')
+  const page = src('src/app/console/orders/page.tsx')
 
   it('customer useOrderWebSocket exists and takes orderId', () => {
     expect(hooks).toMatch(/useOrderWebSocket\s*\(\s*orderId/)
@@ -246,7 +246,7 @@ describe('Real-time layer audit — no admin WebSocket', () => {
 // ── Regression: Admin layout auth guard ───────────────────────────────────────
 
 describe('Regression — admin layout auth guard', () => {
-  const layout = src('src/app/admin/layout.tsx')
+  const layout = src('src/app/console/layout.tsx')
 
   it('admin layout still exists', () => {
     expect(layout.length).toBeGreaterThan(0)
@@ -260,7 +260,7 @@ describe('Regression — admin layout auth guard', () => {
 // ── Regression: Dashboard routes ──────────────────────────────────────────────
 
 describe('Regression — dashboard routes', () => {
-  const layout = src('src/app/admin/layout.tsx')
+  const layout = src('src/app/console/layout.tsx')
 
   it('admin layout wraps children with auth guard', () => {
     expect(layout).toMatch(/AuthGuard|dashboard:access/)

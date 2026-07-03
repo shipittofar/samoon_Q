@@ -983,47 +983,47 @@ describe('P7.5 Permissions — audit permissions in RBAC', () => {
 
 describe('P7.5 Navigation — AUDIT_LOGS_NAV_ITEM in all modules', () => {
   it('RESTAURANT_MODULE has audit-logs nav item', () => {
-    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item).toBeDefined()
   })
 
   it('CAFE_MODULE has audit-logs nav item', () => {
-    const item = CAFE_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = CAFE_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item).toBeDefined()
   })
 
   it('BAR_MODULE has audit-logs nav item', () => {
-    const item = BAR_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = BAR_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item).toBeDefined()
   })
 
   it('FOOD_COURT_MODULE has audit-logs nav item', () => {
-    const item = FOOD_COURT_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = FOOD_COURT_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item).toBeDefined()
   })
 
   it('FOOD_TRUCK_MODULE has audit-logs nav item', () => {
-    const item = FOOD_TRUCK_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = FOOD_TRUCK_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item).toBeDefined()
   })
 
   it('MOBILE_CAFE_MODULE has audit-logs nav item', () => {
-    const item = MOBILE_CAFE_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = MOBILE_CAFE_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item).toBeDefined()
   })
 
   it('audit-logs nav item has label "Audit Logs"', () => {
-    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item?.label).toBe('Audit Logs')
   })
 
   it('audit-logs nav item has permissionKey audit.view', () => {
-    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item?.permissionKey).toBe('audit.view')
   })
 
   it('audit-logs nav item has featureFlagKey', () => {
-    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
+    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
     expect(item?.featureFlagKey).toBeDefined()
   })
 
@@ -1061,32 +1061,32 @@ describe('P7.5 Registry — ADMIN_AUDIT_ROUTES', () => {
     expect(ADMIN_AUDIT_ROUTES).toBeDefined()
   })
 
-  it('ADMIN_AUDIT_ROUTES contains /admin/audit-logs', () => {
-    expect(ADMIN_AUDIT_ROUTES).toContain('/admin/audit-logs')
+  it('ADMIN_AUDIT_ROUTES contains /console/audit-logs', () => {
+    expect(ADMIN_AUDIT_ROUTES).toContain('/console/audit-logs')
   })
 
-  it('RESTAURANT_MODULE routes include /admin/audit-logs', () => {
-    expect(RESTAURANT_MODULE.routes).toContain('/admin/audit-logs')
+  it('RESTAURANT_MODULE routes include /console/audit-logs', () => {
+    expect(RESTAURANT_MODULE.routes).toContain('/console/audit-logs')
   })
 
-  it('CAFE_MODULE routes include /admin/audit-logs', () => {
-    expect(CAFE_MODULE.routes).toContain('/admin/audit-logs')
+  it('CAFE_MODULE routes include /console/audit-logs', () => {
+    expect(CAFE_MODULE.routes).toContain('/console/audit-logs')
   })
 
-  it('BAR_MODULE routes include /admin/audit-logs', () => {
-    expect(BAR_MODULE.routes).toContain('/admin/audit-logs')
+  it('BAR_MODULE routes include /console/audit-logs', () => {
+    expect(BAR_MODULE.routes).toContain('/console/audit-logs')
   })
 
-  it('FOOD_COURT_MODULE routes include /admin/audit-logs', () => {
-    expect(FOOD_COURT_MODULE.routes).toContain('/admin/audit-logs')
+  it('FOOD_COURT_MODULE routes include /console/audit-logs', () => {
+    expect(FOOD_COURT_MODULE.routes).toContain('/console/audit-logs')
   })
 
-  it('FOOD_TRUCK_MODULE routes include /admin/audit-logs', () => {
-    expect(FOOD_TRUCK_MODULE.routes).toContain('/admin/audit-logs')
+  it('FOOD_TRUCK_MODULE routes include /console/audit-logs', () => {
+    expect(FOOD_TRUCK_MODULE.routes).toContain('/console/audit-logs')
   })
 
-  it('MOBILE_CAFE_MODULE routes include /admin/audit-logs', () => {
-    expect(MOBILE_CAFE_MODULE.routes).toContain('/admin/audit-logs')
+  it('MOBILE_CAFE_MODULE routes include /console/audit-logs', () => {
+    expect(MOBILE_CAFE_MODULE.routes).toContain('/console/audit-logs')
   })
 })
 
@@ -1227,8 +1227,8 @@ describe('P7.5 Branch Isolation', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('P7.5 Deep Links', () => {
-  it('/admin/audit-logs is a valid route', () => {
-    expect(ADMIN_AUDIT_ROUTES).toContain('/admin/audit-logs')
+  it('/console/audit-logs is a valid route', () => {
+    expect(ADMIN_AUDIT_ROUTES).toContain('/console/audit-logs')
   })
 
   it('all modules expose the audit-logs route for deep linking', () => {
@@ -1237,13 +1237,13 @@ describe('P7.5 Deep Links', () => {
       FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE,
     ]
     for (const mod of modules) {
-      expect(mod.routes).toContain('/admin/audit-logs')
+      expect(mod.routes).toContain('/console/audit-logs')
     }
   })
 
   it('audit-logs nav item href matches the route', () => {
-    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/admin/audit-logs')
-    expect(item?.href).toBe('/admin/audit-logs')
+    const item = RESTAURANT_MODULE.adminNavItems?.find((n) => n.href === '/console/audit-logs')
+    expect(item?.href).toBe('/console/audit-logs')
     expect(ADMIN_AUDIT_ROUTES).toContain(item?.href)
   })
 })

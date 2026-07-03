@@ -37,44 +37,44 @@ describe('getDemoRedirect', () => {
     expect(getDemoRedirect('demo@savor.com')).toBe('/dashboard')
   })
 
-  it('sends staff to /admin/orders', () => {
-    expect(getDemoRedirect('staff@savor.com')).toBe('/admin/orders')
+  it('sends staff to /console/orders', () => {
+    expect(getDemoRedirect('staff@savor.com')).toBe('/console/orders')
   })
 
-  it('sends cashier to /admin/orders', () => {
-    expect(getDemoRedirect('cashier@savor.com')).toBe('/admin/orders')
+  it('sends cashier to /console/orders', () => {
+    expect(getDemoRedirect('cashier@savor.com')).toBe('/console/orders')
   })
 
-  it('sends kitchen to /admin/kitchen', () => {
-    expect(getDemoRedirect('kitchen@savor.com')).toBe('/admin/kitchen')
+  it('sends kitchen to /console/kitchen', () => {
+    expect(getDemoRedirect('kitchen@savor.com')).toBe('/console/kitchen')
   })
 
-  it('sends marketing to /admin/analytics', () => {
-    expect(getDemoRedirect('marketing@savor.com')).toBe('/admin/analytics')
+  it('sends marketing to /console/analytics', () => {
+    expect(getDemoRedirect('marketing@savor.com')).toBe('/console/analytics')
   })
 
-  it('sends support to /admin/customers', () => {
-    expect(getDemoRedirect('support@savor.com')).toBe('/admin/customers')
+  it('sends support to /console/customers', () => {
+    expect(getDemoRedirect('support@savor.com')).toBe('/console/customers')
   })
 
-  it('sends admin to /admin', () => {
-    expect(getDemoRedirect('admin@savor.com')).toBe('/admin')
+  it('sends admin to /console', () => {
+    expect(getDemoRedirect('admin@savor.com')).toBe('/console')
   })
 
-  it('sends owner to /admin', () => {
-    expect(getDemoRedirect('owner@savor.com')).toBe('/admin')
+  it('sends owner to /console', () => {
+    expect(getDemoRedirect('owner@savor.com')).toBe('/console')
   })
 
-  it('sends platform admin to /admin/tenants', () => {
-    expect(getDemoRedirect('platform@savor.com')).toBe('/admin/tenants')
+  it('sends platform admin to /console/tenants', () => {
+    expect(getDemoRedirect('platform@savor.com')).toBe('/console/tenants')
   })
 
-  it('sends multi-role to /admin/orders', () => {
-    expect(getDemoRedirect('multirole@savor.com')).toBe('/admin/orders')
+  it('sends multi-role to /console/orders', () => {
+    expect(getDemoRedirect('multirole@savor.com')).toBe('/console/orders')
   })
 
-  it('falls back to /admin for unknown email', () => {
-    expect(getDemoRedirect('unknown@example.com')).toBe('/admin')
+  it('falls back to /console for unknown email', () => {
+    expect(getDemoRedirect('unknown@example.com')).toBe('/console')
   })
 })
 
@@ -83,15 +83,15 @@ describe('getPostLoginRedirect', () => {
     expect(getPostLoginRedirect('customer')).toBe('/dashboard')
   })
 
-  it('sends staff role to /admin', () => {
-    expect(getPostLoginRedirect('staff')).toBe('/admin')
+  it('sends staff role to /console', () => {
+    expect(getPostLoginRedirect('staff')).toBe('/console')
   })
 
-  it('sends admin role to /admin', () => {
-    expect(getPostLoginRedirect('admin')).toBe('/admin')
+  it('sends admin role to /console', () => {
+    expect(getPostLoginRedirect('admin')).toBe('/console')
   })
 
-  it('sends unknown role to /admin', () => {
-    expect(getPostLoginRedirect('superuser')).toBe('/admin')
+  it('sends unknown role to /console', () => {
+    expect(getPostLoginRedirect('superuser')).toBe('/console')
   })
 })

@@ -34,7 +34,7 @@ export function AccessDenied({ resource }: AccessDeniedProps) {
         </p>
       </div>
       <Link
-        href="/admin/orders"
+        href="/console/orders"
         className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
       >
         Go to Orders

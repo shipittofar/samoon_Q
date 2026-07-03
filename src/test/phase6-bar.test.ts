@@ -345,11 +345,11 @@ describe('I. admin navigation', () => {
     expect(BAR_MODULE.adminNavItems).toHaveLength(22)
   })
 
-  it('Event Management admin item links to /admin/bar/events', async () => {
+  it('Event Management admin item links to /console/bar/events', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
     const item = BAR_MODULE.adminNavItems!.find((n) => n.label === 'Event Management')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/admin/bar/events')
+    expect(item!.href).toBe('/console/bar/events')
   })
 
   it('Event Management is gated by bar.events.enabled', async () => {
@@ -358,11 +358,11 @@ describe('I. admin navigation', () => {
     expect(item!.featureFlagKey).toBe('bar.events.enabled')
   })
 
-  it('Happy Hour Settings admin item links to /admin/bar/happy-hour', async () => {
+  it('Happy Hour Settings admin item links to /console/bar/happy-hour', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
     const item = BAR_MODULE.adminNavItems!.find((n) => n.label === 'Happy Hour Settings')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/admin/bar/happy-hour')
+    expect(item!.href).toBe('/console/bar/happy-hour')
   })
 
   it('Happy Hour Settings is gated by bar.happy_hour.enabled', async () => {

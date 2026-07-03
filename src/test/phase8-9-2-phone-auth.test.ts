@@ -205,18 +205,18 @@ describe('DEMO_PHONE_TO_EMAIL', () => {
 // ── getDemoRedirect via phone → email chain ────────────────────────────────────
 
 describe('getDemoRedirect (via phone→email chain)', () => {
-  it('kitchen phone eventually maps to /admin/kitchen', () => {
+  it('kitchen phone eventually maps to /console/kitchen', () => {
     const email = DEMO_PHONE_TO_EMAIL['+14155550104']
-    expect(getDemoRedirect(email)).toBe('/admin/kitchen')
+    expect(getDemoRedirect(email)).toBe('/console/kitchen')
   })
 
-  it('marketing phone eventually maps to /admin/analytics', () => {
+  it('marketing phone eventually maps to /console/analytics', () => {
     const email = DEMO_PHONE_TO_EMAIL['+14155550105']
-    expect(getDemoRedirect(email)).toBe('/admin/analytics')
+    expect(getDemoRedirect(email)).toBe('/console/analytics')
   })
 
-  it('platform phone eventually maps to /admin/tenants', () => {
+  it('platform phone eventually maps to /console/tenants', () => {
     const email = DEMO_PHONE_TO_EMAIL['+14155550109']
-    expect(getDemoRedirect(email)).toBe('/admin/tenants')
+    expect(getDemoRedirect(email)).toBe('/console/tenants')
   })
 })

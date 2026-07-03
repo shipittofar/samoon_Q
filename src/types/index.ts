@@ -839,7 +839,7 @@ export interface AdminCustomer extends User {
   last_order_at?: string
 }
 
-/** Per-customer aggregated stats returned by /admin/customers/{id}/stats/ */
+/** Per-customer aggregated stats returned by /console/customers/{id}/stats/ */
 export interface AdminCustomerStats {
   customer_id: string
   order_count: number
@@ -858,7 +858,7 @@ export interface AdminTopItem {
   trend_pct: number
 }
 
-/** Dashboard KPI snapshot returned by /admin/stats/ */
+/** Dashboard KPI snapshot returned by /console/stats/ */
 export interface AdminStats {
   period_days: number
   total_revenue: number

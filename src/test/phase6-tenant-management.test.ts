@@ -45,20 +45,20 @@ const ALL_MODULES = ['restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'm
 
 // ── A: Route Registration ─────────────────────────────────────────────────────
 
-describe('A — route registration: /admin/tenants in all modules', () => {
+describe('A — route registration: /console/tenants in all modules', () => {
   afterEach(() => vi.resetModules())
 
   for (const moduleKey of ALL_MODULES) {
-    it(`${moduleKey} module routes include /admin/tenants`, async () => {
+    it(`${moduleKey} module routes include /console/tenants`, async () => {
       const reg = await freshRegistry()
       const mod = reg.getModule(moduleKey)
-      expect(mod?.routes).toContain('/admin/tenants')
+      expect(mod?.routes).toContain('/console/tenants')
     })
 
-    it(`${moduleKey} module routes include /admin/tenants/new`, async () => {
+    it(`${moduleKey} module routes include /console/tenants/new`, async () => {
       const reg = await freshRegistry()
       const mod = reg.getModule(moduleKey)
-      expect(mod?.routes).toContain('/admin/tenants/new')
+      expect(mod?.routes).toContain('/console/tenants/new')
     })
   }
 })
@@ -72,14 +72,14 @@ describe('B — ADMIN_TENANT_ROUTES constant', () => {
     expect(src).toContain("export const ADMIN_TENANT_ROUTES")
   })
 
-  it('contains /admin/tenants', async () => {
+  it('contains /console/tenants', async () => {
     const { ADMIN_TENANT_ROUTES } = await freshRegistry()
-    expect(ADMIN_TENANT_ROUTES).toContain('/admin/tenants')
+    expect(ADMIN_TENANT_ROUTES).toContain('/console/tenants')
   })
 
-  it('contains /admin/tenants/new', async () => {
+  it('contains /console/tenants/new', async () => {
     const { ADMIN_TENANT_ROUTES } = await freshRegistry()
-    expect(ADMIN_TENANT_ROUTES).toContain('/admin/tenants/new')
+    expect(ADMIN_TENANT_ROUTES).toContain('/console/tenants/new')
   })
 
   it('has exactly 2 entries', async () => {
@@ -525,8 +525,8 @@ describe('N — hooks', () => {
 
 // ── O: Admin Tenants Page ─────────────────────────────────────────────────────
 
-describe('O — admin tenants page (/admin/tenants)', () => {
-  const src = () => readSrc('app/admin/tenants/page.tsx')
+describe('O — admin tenants page (/console/tenants)', () => {
+  const src = () => readSrc('app/console/tenants/page.tsx')
 
   it('is a client component', () => {
     expect(src()).toContain("'use client'")
@@ -540,8 +540,8 @@ describe('O — admin tenants page (/admin/tenants)', () => {
     expect(src()).toContain('useTenants')
   })
 
-  it('has a link to /admin/tenants/new', () => {
-    expect(src()).toContain('/admin/tenants/new')
+  it('has a link to /console/tenants/new', () => {
+    expect(src()).toContain('/console/tenants/new')
   })
 
   it('shows tenant list table', () => {
@@ -581,14 +581,14 @@ describe('O — admin tenants page (/admin/tenants)', () => {
   })
 
   it('links to tenant detail page', () => {
-    expect(src()).toContain('/admin/tenants/${')
+    expect(src()).toContain('/console/tenants/${')
   })
 })
 
 // ── P: Tenant Detail Page ─────────────────────────────────────────────────────
 
-describe('P — tenant detail page (/admin/tenants/[slug])', () => {
-  const src = () => readSrc('app/admin/tenants/[slug]/page.tsx')
+describe('P — tenant detail page (/console/tenants/[slug])', () => {
+  const src = () => readSrc('app/console/tenants/[slug]/page.tsx')
 
   it('is a client component', () => {
     expect(src()).toContain("'use client'")
@@ -639,8 +639,8 @@ describe('P — tenant detail page (/admin/tenants/[slug])', () => {
     expect(src()).toContain('Feature Flags')
   })
 
-  it('has back link to /admin/tenants', () => {
-    expect(src()).toContain('/admin/tenants')
+  it('has back link to /console/tenants', () => {
+    expect(src()).toContain('/console/tenants')
   })
 
   it('uses useActivateTenant hook', () => {
@@ -660,7 +660,7 @@ describe('P — tenant detail page (/admin/tenants/[slug])', () => {
 
 describe('Q — tenant analytics computed from list', () => {
   it('page computes active count from tenant list', () => {
-    const src = readSrc('app/admin/tenants/page.tsx')
+    const src = readSrc('app/console/tenants/page.tsx')
     expect(src).toContain('active')
     expect(src).toContain('suspended')
   })
@@ -821,7 +821,7 @@ describe('V — adminNavItems counts after P6.15 (all modules +1 Tenants item)',
     const reg = await freshRegistry()
     for (const key of ALL_MODULES) {
       const mod = reg.getModule(key)
-      const hasTenantsItem = mod?.adminNavItems?.some((n) => n.href === '/admin/tenants')
+      const hasTenantsItem = mod?.adminNavItems?.some((n) => n.href === '/console/tenants')
       expect(hasTenantsItem).toBe(true)
     }
   })
@@ -833,14 +833,14 @@ describe('W — getModuleRoutes includes tenant routes for all modules', () => {
   afterEach(() => vi.resetModules())
 
   for (const key of ALL_MODULES) {
-    it(`getModuleRoutes(['${key}']) includes /admin/tenants`, async () => {
+    it(`getModuleRoutes(['${key}']) includes /console/tenants`, async () => {
       const { getModuleRoutes } = await freshRegistry()
-      expect(getModuleRoutes([key])).toContain('/admin/tenants')
+      expect(getModuleRoutes([key])).toContain('/console/tenants')
     })
 
-    it(`getModuleRoutes(['${key}']) includes /admin/tenants/new`, async () => {
+    it(`getModuleRoutes(['${key}']) includes /console/tenants/new`, async () => {
       const { getModuleRoutes } = await freshRegistry()
-      expect(getModuleRoutes([key])).toContain('/admin/tenants/new')
+      expect(getModuleRoutes([key])).toContain('/console/tenants/new')
     })
   }
 })
@@ -848,7 +848,7 @@ describe('W — getModuleRoutes includes tenant routes for all modules', () => {
 // ── X: Tenant detail sections ────────────────────────────────────────────────
 
 describe('X — tenant detail page sections', () => {
-  const src = () => readSrc('app/admin/tenants/[slug]/page.tsx')
+  const src = () => readSrc('app/console/tenants/[slug]/page.tsx')
 
   it('ProfileSection renders tenant.name', () => {
     expect(src()).toContain('tenant.name')

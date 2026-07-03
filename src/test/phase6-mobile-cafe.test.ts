@@ -394,11 +394,11 @@ describe('I. admin navigation', () => {
     expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(20)
   })
 
-  it('Route Management links to /admin/mobile-cafe/routes', async () => {
+  it('Route Management links to /console/mobile-cafe/routes', async () => {
     const { MOBILE_CAFE_MODULE } = await import('@/modules/registry')
     const item = MOBILE_CAFE_MODULE.adminNavItems!.find((n) => n.label === 'Route Management')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/admin/mobile-cafe/routes')
+    expect(item!.href).toBe('/console/mobile-cafe/routes')
   })
 
   it('Route Management is gated by mobile_cafe.route_tracking.enabled', async () => {
@@ -407,11 +407,11 @@ describe('I. admin navigation', () => {
     expect(item!.featureFlagKey).toBe('mobile_cafe.route_tracking.enabled')
   })
 
-  it('Loyalty Management links to /admin/mobile-cafe/loyalty', async () => {
+  it('Loyalty Management links to /console/mobile-cafe/loyalty', async () => {
     const { MOBILE_CAFE_MODULE } = await import('@/modules/registry')
     const item = MOBILE_CAFE_MODULE.adminNavItems!.find((n) => n.label === 'Loyalty Management')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/admin/mobile-cafe/loyalty')
+    expect(item!.href).toBe('/console/mobile-cafe/loyalty')
   })
 
   it('Loyalty Management is gated by mobile_cafe.loyalty.enabled', async () => {
@@ -444,7 +444,7 @@ describe('I. admin navigation', () => {
     const { getAdminNav } = await freshRegistry()
     const items = getAdminNav(['bar'])
     expect(items.some((n) => n.label === 'Loyalty Management')).toBe(false)
-    expect(items.every((n) => n.href !== '/admin/mobile-cafe/loyalty')).toBe(true)
+    expect(items.every((n) => n.href !== '/console/mobile-cafe/loyalty')).toBe(true)
   })
 
   it('getAdminNav(["mobile_cafe", "food_truck"]) aggregates both modules', async () => {
@@ -642,7 +642,7 @@ describe('M. cafe regression', () => {
   it('getAdminNav(["cafe"]) does not include mobile cafe admin items', async () => {
     const { getAdminNav } = await freshRegistry()
     const items = getAdminNav(['cafe'])
-    expect(items.every((n) => n.href !== '/admin/mobile-cafe/loyalty')).toBe(true)
+    expect(items.every((n) => n.href !== '/console/mobile-cafe/loyalty')).toBe(true)
   })
 })
 
@@ -689,7 +689,7 @@ describe('O. food court regression', () => {
   it('getAdminNav(["food_court"]) does not include mobile cafe admin items', async () => {
     const { getAdminNav } = await freshRegistry()
     const items = getAdminNav(['food_court'])
-    expect(items.every((n) => n.href !== '/admin/mobile-cafe/loyalty')).toBe(true)
+    expect(items.every((n) => n.href !== '/console/mobile-cafe/loyalty')).toBe(true)
   })
 })
 

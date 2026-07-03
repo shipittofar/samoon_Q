@@ -711,7 +711,7 @@ describe('F — Module registry operations nav', () => {
   const src = () => readSrc('modules/registry.ts')
 
   it('OPERATIONS_NAV_ITEM defined in registry', () => {
-    expect(src()).toContain("href: '/admin/operations'")
+    expect(src()).toContain("href: '/console/operations'")
   })
 
   it('ADMIN_OPERATIONS_ROUTES exported', () => {
@@ -789,16 +789,16 @@ describe('F2 — Module registry runtime nav counts', () => {
     expect(getAdminNav(['mobile_cafe'])).toHaveLength(20)
   })
 
-  it('RESTAURANT_MODULE routes include /admin/operations', async () => {
+  it('RESTAURANT_MODULE routes include /console/operations', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.routes).toContain('/admin/operations')
+    expect(RESTAURANT_MODULE.routes).toContain('/console/operations')
   })
 
   it('all 6 modules include operations nav item', async () => {
     const { RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE, FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE } = await freshRegistry()
     const modules = [RESTAURANT_MODULE, CAFE_MODULE, BAR_MODULE, FOOD_COURT_MODULE, FOOD_TRUCK_MODULE, MOBILE_CAFE_MODULE]
     modules.forEach((mod) => {
-      const found = mod.adminNavItems?.find((n) => n.href === '/admin/operations')
+      const found = mod.adminNavItems?.find((n) => n.href === '/console/operations')
       expect(found).toBeDefined()
       expect(found?.label).toBe('Live Operations')
     })
@@ -1083,19 +1083,19 @@ describe('N — ActivityFeed component source', () => {
   })
 
   it('resolves deep links for orders', () => {
-    expect(src()).toContain('/admin/orders/')
+    expect(src()).toContain('/console/orders/')
   })
 
   it('resolves deep links for reservations', () => {
-    expect(src()).toContain('/admin/reservations/')
+    expect(src()).toContain('/console/reservations/')
   })
 
   it('resolves deep links for staff', () => {
-    expect(src()).toContain('/admin/staff/')
+    expect(src()).toContain('/console/staff/')
   })
 
   it('resolves deep links for audit events', () => {
-    expect(src()).toContain('/admin/audit-logs/')
+    expect(src()).toContain('/console/audit-logs/')
   })
 
   it('uses useOperationsStream hook', () => {
@@ -1110,7 +1110,7 @@ describe('N — ActivityFeed component source', () => {
 // ── O — Operations page ───────────────────────────────────────────────────────
 
 describe('O — Operations page source', () => {
-  const src = () => readSrc('app/admin/operations/page.tsx')
+  const src = () => readSrc('app/console/operations/page.tsx')
 
   it('page exists', () => {
     expect(src()).toBeTruthy()
@@ -1313,14 +1313,14 @@ describe('R — Regression', () => {
 
   it('P7.6 NOTIFICATIONS_NAV_ITEM still in all 6 modules', () => {
     const src = readSrc('modules/registry.ts')
-    expect(src).toContain("href: '/admin/notifications'")
+    expect(src).toContain("href: '/console/notifications'")
     const count = (src.match(/NOTIFICATIONS_NAV_ITEM/g) ?? []).length
     expect(count).toBeGreaterThanOrEqual(6)
   })
 
   it('P7.7 OPERATIONS_NAV_ITEM in all 6 modules', () => {
     const src = readSrc('modules/registry.ts')
-    expect(src).toContain("href: '/admin/operations'")
+    expect(src).toContain("href: '/console/operations'")
     const count = (src.match(/OPERATIONS_NAV_ITEM/g) ?? []).length
     expect(count).toBeGreaterThanOrEqual(6)
   })
@@ -1343,7 +1343,7 @@ describe('R — Regression', () => {
   })
 
   it('operations page gated by operations.view not hardcoded role', () => {
-    const src = readSrc('app/admin/operations/page.tsx')
+    const src = readSrc('app/console/operations/page.tsx')
     expect(src).not.toMatch(/role\s*===\s*['"]/)
     expect(src).toContain('operations.view')
   })

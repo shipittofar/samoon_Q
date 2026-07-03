@@ -4,8 +4,8 @@
  * AdminHeader — P8.9.4 Phase E
  *
  * Admin-specific top bar that replaces the consumer-facing Header for all
- * /admin/* routes. Shows:
- *   - Logo + "Admin" label (links to /admin)
+ * /console/* routes. Shows:
+ *   - Logo + "Admin" label (links to /console)
  *   - Mock-mode environment badge (when NEXT_PUBLIC_USE_MOCK=true)
  *   - Notifications (admin-scoped bell)
  *   - Theme toggle
@@ -47,7 +47,7 @@ export function AdminHeader() {
           {/* Left: logo + admin label + env badge */}
           <div className="flex items-center gap-3 shrink-0">
             <Link
-              href="/admin"
+              href="/console"
               className="flex items-center gap-2 group"
               aria-label={`${tenant?.name ?? 'Savor'} Admin — go to dashboard`}
             >

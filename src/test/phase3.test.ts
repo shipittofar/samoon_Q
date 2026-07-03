@@ -23,7 +23,7 @@ import { join } from 'path'
 // ── P3.1 Middleware Route Protection ─────────────────────────────────────────
 
 describe('P3.1 — Middleware protected route logic', () => {
-  const PROTECTED_PREFIXES = ['/dashboard', '/checkout', '/admin']
+  const PROTECTED_PREFIXES = ['/dashboard', '/checkout', '/console']
 
   function isProtected(pathname: string): boolean {
     return PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
@@ -41,11 +41,11 @@ describe('P3.1 — Middleware protected route logic', () => {
     expect(isProtected('/checkout/failure')).toBe(true)
   })
 
-  it('protects /admin and all sub-paths', () => {
-    expect(isProtected('/admin')).toBe(true)
-    expect(isProtected('/admin/stats')).toBe(true)
-    expect(isProtected('/admin/orders')).toBe(true)
-    expect(isProtected('/admin/menu')).toBe(true)
+  it('protects /console and all sub-paths', () => {
+    expect(isProtected('/console')).toBe(true)
+    expect(isProtected('/console/stats')).toBe(true)
+    expect(isProtected('/console/orders')).toBe(true)
+    expect(isProtected('/console/menu')).toBe(true)
   })
 
   it('does not protect public routes', () => {
@@ -70,7 +70,7 @@ describe('P3.1 — Middleware protected route logic', () => {
     const matcher = config.matcher as string[]
     expect(matcher.some((m) => m.includes('dashboard'))).toBe(true)
     expect(matcher.some((m) => m.includes('checkout'))).toBe(true)
-    expect(matcher.some((m) => m.includes('admin'))).toBe(true)
+    expect(matcher.some((m) => m.includes('console'))).toBe(true)
   })
 })
 
@@ -100,7 +100,7 @@ describe('P3.2 — Admin authorization (dashboard:access permission)', () => {
 
   it('AdminLayout exists (admin/layout.tsx)', async () => {
     // Dynamic import of the default export (server component)
-    const mod = await import('@/app/admin/layout')
+    const mod = await import('@/app/console/layout')
     expect(typeof mod.default).toBe('function')
   })
 })

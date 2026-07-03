@@ -302,7 +302,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             {/* Footer link */}
             <div className="border-t border-border px-6 py-3">
               <Link
-                href="/admin/notifications"
+                href="/console/notifications"
                 onClick={onClose}
                 className="flex items-center justify-center gap-1.5 text-sm text-primary hover:underline"
               >

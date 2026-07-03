@@ -352,11 +352,11 @@ describe('I. admin navigation', () => {
     expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(21)
   })
 
-  it('Vendor Management links to /admin/food-court/vendors', async () => {
+  it('Vendor Management links to /console/food-court/vendors', async () => {
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
     const item = FOOD_COURT_MODULE.adminNavItems!.find((n) => n.label === 'Vendor Management')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/admin/food-court/vendors')
+    expect(item!.href).toBe('/console/food-court/vendors')
   })
 
   it('Vendor Management is gated by food_court.vendor_management.enabled', async () => {
@@ -365,11 +365,11 @@ describe('I. admin navigation', () => {
     expect(item!.featureFlagKey).toBe('food_court.vendor_management.enabled')
   })
 
-  it('Seating Management links to /admin/food-court/seating', async () => {
+  it('Seating Management links to /console/food-court/seating', async () => {
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
     const item = FOOD_COURT_MODULE.adminNavItems!.find((n) => n.label === 'Seating Management')
     expect(item).toBeDefined()
-    expect(item!.href).toBe('/admin/food-court/seating')
+    expect(item!.href).toBe('/console/food-court/seating')
   })
 
   it('Seating Management is gated by food_court.shared_seating.enabled', async () => {

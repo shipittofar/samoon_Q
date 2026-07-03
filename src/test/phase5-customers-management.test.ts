@@ -28,7 +28,7 @@ import * as path from 'path'
 const ROOT = path.resolve(__dirname, '../../')
 function src(rel: string) { return fs.readFileSync(path.join(ROOT, rel), 'utf8') }
 
-const page = src('src/app/admin/customers/page.tsx')
+const page = src('src/app/console/customers/page.tsx')
 const hooks = src('src/hooks/index.ts')
 const types = src('src/types/index.ts')
 
@@ -301,7 +301,7 @@ describe('Regression — user-related hooks', () => {
 
 describe('Regression — admin auth guard', () => {
   it('admin layout still enforces dashboard:access', () => {
-    const layout = src('src/app/admin/layout.tsx')
+    const layout = src('src/app/console/layout.tsx')
     expect(layout).toMatch(/dashboard:access/)
   })
 })

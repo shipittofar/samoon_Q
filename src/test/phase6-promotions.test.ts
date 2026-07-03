@@ -20,7 +20,7 @@
  *   P. Endpoints — PROMOTIONS shape
  *   Q. Hooks — source-text existence
  *   R. Customer /promotions page — source-text structure
- *   S. Admin /admin/promotions page — source-text structure
+ *   S. Admin /console/promotions page — source-text structure
  *   T. Mock mode compatibility
  */
 import { describe, it, expect, vi } from 'vitest'
@@ -624,7 +624,7 @@ describe('O. Feature flags in module registries', () => {
   it('cafe adminNavItems includes Promotions entry gated by promotions.enabled', async () => {
     vi.resetModules()
     const { CAFE_MODULE } = await import('@/modules/registry')
-    const entry = CAFE_MODULE.adminNavItems?.find((n) => n.href === '/admin/promotions')
+    const entry = CAFE_MODULE.adminNavItems?.find((n) => n.href === '/console/promotions')
     expect(entry).toBeDefined()
     expect(entry?.featureFlagKey).toBe('promotions.enabled')
   })
@@ -632,7 +632,7 @@ describe('O. Feature flags in module registries', () => {
   it('bar adminNavItems includes Promotions entry gated by promotions.enabled', async () => {
     vi.resetModules()
     const { BAR_MODULE } = await import('@/modules/registry')
-    const entry = BAR_MODULE.adminNavItems?.find((n) => n.href === '/admin/promotions')
+    const entry = BAR_MODULE.adminNavItems?.find((n) => n.href === '/console/promotions')
     expect(entry).toBeDefined()
     expect(entry?.featureFlagKey).toBe('promotions.enabled')
   })
@@ -749,10 +749,10 @@ describe('R. /promotions/page.tsx source-text', () => {
   })
 })
 
-// ── S. Admin /admin/promotions page ──────────────────────────────────────────
+// ── S. Admin /console/promotions page ──────────────────────────────────────────
 
-describe('S. /admin/promotions/page.tsx source-text', () => {
-  const src = readSrc('app/admin/promotions/page.tsx')
+describe('S. /console/promotions/page.tsx source-text', () => {
+  const src = readSrc('app/console/promotions/page.tsx')
 
   it('uses usePromotions', () => {
     expect(src).toContain('usePromotions')

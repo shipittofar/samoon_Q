@@ -31,7 +31,7 @@ import * as path from 'path'
 const ROOT = path.resolve(__dirname, '../../')
 function src(rel: string) { return fs.readFileSync(path.join(ROOT, rel), 'utf8') }
 
-const page = src('src/app/admin/menu/page.tsx')
+const page = src('src/app/console/menu/page.tsx')
 const hooks = src('src/hooks/index.ts')
 
 // ── A. No MOCK_MENU_ITEMS ─────────────────────────────────────────────────────
@@ -296,7 +296,7 @@ describe('Regression — menu hooks', () => {
 
 describe('Regression — admin auth guard', () => {
   it('admin layout unchanged', () => {
-    const layout = src('src/app/admin/layout.tsx')
+    const layout = src('src/app/console/layout.tsx')
     expect(layout).toMatch(/dashboard:access/)
   })
 })

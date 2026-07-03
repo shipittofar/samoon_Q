@@ -97,8 +97,8 @@ describe('registry.ts — getAdminNav export (P6.3)', () => {
 
   it('exports getAdminNav function',              () => expect(src()).toContain('export function getAdminNav'))
   it('CAFE_MODULE declares adminNavItems',         () => expect(src()).toContain('adminNavItems'))
-  it('loyalty management admin href declared',    () => expect(src()).toContain('/admin/cafe/loyalty'))
-  it('happy hour admin href declared',            () => expect(src()).toContain('/admin/cafe/happy-hour'))
+  it('loyalty management admin href declared',    () => expect(src()).toContain('/console/cafe/loyalty'))
+  it('happy hour admin href declared',            () => expect(src()).toContain('/console/cafe/happy-hour'))
   it('cafe.loyalty.enabled flag gating declared', () => expect(src()).toContain("'cafe.loyalty.enabled'"))
   it('cafe.happy_hour.enabled flag declared',     () => expect(src()).toContain("'cafe.happy_hour.enabled'"))
   it('cafe.featured_coffee.enabled flag declared',() => expect(src()).toContain("'cafe.featured_coffee.enabled'"))
@@ -433,16 +433,16 @@ describe('getAdminNav() — cafe module admin visibility (P6.3)', () => {
     expect(getAdminNav([])).toHaveLength(0)
   })
 
-  it('Loyalty Management links to /admin/cafe/loyalty', async () => {
+  it('Loyalty Management links to /console/cafe/loyalty', async () => {
     const { getAdminNav } = await freshRegistry()
     const item = getAdminNav(['cafe']).find((n) => n.label === 'Loyalty Management')
-    expect(item?.href).toBe('/admin/cafe/loyalty')
+    expect(item?.href).toBe('/console/cafe/loyalty')
   })
 
-  it('Happy Hour Settings links to /admin/cafe/happy-hour', async () => {
+  it('Happy Hour Settings links to /console/cafe/happy-hour', async () => {
     const { getAdminNav } = await freshRegistry()
     const item = getAdminNav(['cafe']).find((n) => n.label === 'Happy Hour Settings')
-    expect(item?.href).toBe('/admin/cafe/happy-hour')
+    expect(item?.href).toBe('/console/cafe/happy-hour')
   })
 })
 
@@ -507,7 +507,7 @@ describe('Backward compatibility — restaurant unchanged (P6.3)', () => {
 
   it('RESTAURANT_MODULE has adminNavItems with analytics entry', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect(RESTAURANT_MODULE.adminNavItems?.some((n) => n.href === '/admin/analytics')).toBe(true)
+    expect(RESTAURANT_MODULE.adminNavItems?.some((n) => n.href === '/console/analytics')).toBe(true)
   })
 
   it('restaurant defaultFeatureFlags unchanged', async () => {

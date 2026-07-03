@@ -218,7 +218,7 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
             {/* Footer */}
             <div className="border-t border-border px-4 py-2.5">
               <Link
-                href="/admin/notifications"
+                href="/console/notifications"
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center gap-1.5 text-sm text-primary hover:underline"
               >

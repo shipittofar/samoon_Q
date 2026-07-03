@@ -12,8 +12,8 @@
  *  H. Time series — deterministic and 30-day length
  *  I. Business invariants — rates, ratios, consistency
  *  J. Registry — analytics.enabled flag on all modules
- *  K. Registry — /admin/analytics in adminNavItems for all modules
- *  L. Registry — /admin/analytics in routes for all modules
+ *  K. Registry — /console/analytics in adminNavItems for all modules
+ *  L. Registry — /console/analytics in routes for all modules
  *  M. Endpoints — ANALYTICS group present
  *  N. Hooks — useAnalyticsSummary
  *  O. Hooks — useRevenueAnalytics
@@ -508,35 +508,35 @@ describe('J. Registry — analytics.enabled flag on all modules', () => {
   })
 })
 
-// ── K. Registry — /admin/analytics in adminNavItems ──────────────────────────
+// ── K. Registry — /console/analytics in adminNavItems ──────────────────────────
 
-describe('K. Registry — /admin/analytics in adminNavItems for all modules', () => {
+describe('K. Registry — /console/analytics in adminNavItems for all modules', () => {
   beforeEach(() => { vi.resetModules() })
 
   const modules = ['RESTAURANT_MODULE', 'CAFE_MODULE', 'BAR_MODULE', 'FOOD_COURT_MODULE', 'FOOD_TRUCK_MODULE', 'MOBILE_CAFE_MODULE'] as const
 
   for (const modName of modules) {
-    it(`${modName} adminNavItems includes /admin/analytics`, async () => {
+    it(`${modName} adminNavItems includes /console/analytics`, async () => {
       const reg = await import('@/modules/registry')
       const mod = reg[modName]
-      const found = mod.adminNavItems?.some((n) => n.href === '/admin/analytics')
+      const found = mod.adminNavItems?.some((n) => n.href === '/console/analytics')
       expect(found).toBe(true)
     })
   }
 })
 
-// ── L. Registry — /admin/analytics in routes ─────────────────────────────────
+// ── L. Registry — /console/analytics in routes ─────────────────────────────────
 
-describe('L. Registry — /admin/analytics in routes for all modules', () => {
+describe('L. Registry — /console/analytics in routes for all modules', () => {
   beforeEach(() => { vi.resetModules() })
 
   const modules = ['RESTAURANT_MODULE', 'CAFE_MODULE', 'BAR_MODULE', 'FOOD_COURT_MODULE', 'FOOD_TRUCK_MODULE', 'MOBILE_CAFE_MODULE'] as const
 
   for (const modName of modules) {
-    it(`${modName} routes includes /admin/analytics`, async () => {
+    it(`${modName} routes includes /console/analytics`, async () => {
       const reg = await import('@/modules/registry')
       const mod = reg[modName]
-      expect(mod.routes).toContain('/admin/analytics')
+      expect(mod.routes).toContain('/console/analytics')
     })
   }
 })
@@ -649,7 +649,7 @@ describe('S. Hooks — useVendorAnalytics', () => {
 // ── T. Admin page source-text checks ─────────────────────────────────────────
 
 describe('T. Admin analytics page source-text', () => {
-  const page = src('app/admin/analytics/page.tsx')
+  const page = src('app/console/analytics/page.tsx')
 
   it('is a client component', () => {
     expect(page).toMatch(/'use client'/)

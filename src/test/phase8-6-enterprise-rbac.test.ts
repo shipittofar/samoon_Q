@@ -519,7 +519,7 @@ describe('H — USERS_NAV_ITEM in registry', () => {
   const registrySrc = () => src('src/modules/registry.ts')
 
   it('registry exports USERS_NAV_ITEM', () => {
-    expect(registrySrc()).toContain("href: '/admin/users'")
+    expect(registrySrc()).toContain("href: '/console/users'")
   })
 
   it('all 6 modules include USERS_NAV_ITEM', () => {
@@ -539,61 +539,61 @@ describe('I — ADMIN_USERS_ROUTES in registry', () => {
     expect(registrySrc()).toContain('ADMIN_USERS_ROUTES')
   })
 
-  it('routes include /admin/users', () => {
-    expect(registrySrc()).toContain("'/admin/users'")
+  it('routes include /console/users', () => {
+    expect(registrySrc()).toContain("'/console/users'")
   })
 })
 
 // ── J — Admin pages exist ─────────────────────────────────────────────────────
 
 describe('J — P8.6 admin pages exist', () => {
-  it('/admin/users/page.tsx exists and uses PermissionGuard', () => {
-    const content = src('src/app/admin/users/page.tsx')
+  it('/console/users/page.tsx exists and uses PermissionGuard', () => {
+    const content = src('src/app/console/users/page.tsx')
     expect(content).toContain('PermissionGuard')
     expect(content).toContain('staff.manage')
   })
 
-  it('/admin/users/[id]/page.tsx exists and uses PermissionGuard', () => {
-    const content = src('src/app/admin/users/[id]/page.tsx')
+  it('/console/users/[id]/page.tsx exists and uses PermissionGuard', () => {
+    const content = src('src/app/console/users/[id]/page.tsx')
     expect(content).toContain('PermissionGuard')
     expect(content).toContain('staff.manage')
   })
 
-  it('/admin/roles/new/page.tsx exists and uses PermissionGuard', () => {
-    const content = src('src/app/admin/roles/new/page.tsx')
+  it('/console/roles/new/page.tsx exists and uses PermissionGuard', () => {
+    const content = src('src/app/console/roles/new/page.tsx')
     expect(content).toContain('PermissionGuard')
     expect(content).toContain('staff.manage')
   })
 
-  it('/admin/permissions/simulator/page.tsx exists and uses PermissionGuard', () => {
-    const content = src('src/app/admin/permissions/simulator/page.tsx')
+  it('/console/permissions/simulator/page.tsx exists and uses PermissionGuard', () => {
+    const content = src('src/app/console/permissions/simulator/page.tsx')
     expect(content).toContain('PermissionGuard')
     expect(content).toContain('staff.manage')
   })
 
-  it('/admin/users/page.tsx renders user list', () => {
-    const content = src('src/app/admin/users/page.tsx')
+  it('/console/users/page.tsx renders user list', () => {
+    const content = src('src/app/console/users/page.tsx')
     expect(content).toContain('User Management')
     expect(content).toContain('Invite User')
   })
 
-  it('/admin/users/[id]/page.tsx has tab navigation', () => {
-    const content = src('src/app/admin/users/[id]/page.tsx')
+  it('/console/users/[id]/page.tsx has tab navigation', () => {
+    const content = src('src/app/console/users/[id]/page.tsx')
     expect(content).toContain('Profile')
     expect(content).toContain('Roles')
     expect(content).toContain('Permissions')
     expect(content).toContain('Security')
   })
 
-  it('/admin/roles/new/page.tsx has Role Builder UI', () => {
-    const content = src('src/app/admin/roles/new/page.tsx')
+  it('/console/roles/new/page.tsx has Role Builder UI', () => {
+    const content = src('src/app/console/roles/new/page.tsx')
     expect(content).toContain('Role Builder')
     expect(content).toContain('Save Role')
     expect(content).toContain('Clone from role')
   })
 
-  it('/admin/permissions/simulator/page.tsx has simulation UI', () => {
-    const content = src('src/app/admin/permissions/simulator/page.tsx')
+  it('/console/permissions/simulator/page.tsx has simulation UI', () => {
+    const content = src('src/app/console/permissions/simulator/page.tsx')
     expect(content).toContain('Permission Simulator')
     expect(content).toContain('Run Simulation')
   })

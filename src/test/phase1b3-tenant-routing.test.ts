@@ -70,7 +70,7 @@ describe('middleware.ts — source structure', () => {
     expect(src()).toContain('PROTECTED_PREFIXES')
     expect(src()).toContain('/dashboard')
     expect(src()).toContain('/checkout')
-    expect(src()).toContain('/admin')
+    expect(src()).toContain('/console')
   })
 
   it('passes modified headers to NextResponse.next()', () => {
