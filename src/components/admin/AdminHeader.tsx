@@ -86,11 +86,11 @@ export function AdminHeader() {
               <ThemeIcon className="h-4 w-4" />
             </button>
 
-            {/* Public site link */}
+            {/* Public site link — deep-links to this tenant's public page when slug is available */}
             <Link
-              href="/"
+              href={tenant?.slug ? `/${tenant.slug}` : '/'}
               className="hidden sm:flex h-9 items-center gap-1.5 px-3 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label="Open public-facing website in the same tab"
+              aria-label={tenant?.name ? `View ${tenant.name} public site` : 'Open public-facing website'}
             >
               <ExternalLink className="h-3.5 w-3.5" />
               <span className="hidden md:inline">Public Site</span>

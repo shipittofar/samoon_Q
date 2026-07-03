@@ -196,7 +196,7 @@ const WEBSITE_BUILDER_NAV_ITEM = {
   href: '/admin/website',
   label: 'Website Builder',
   icon: 'Globe',
-  group: 'Platform',
+  group: 'Content',
   featureFlagKey: 'website_builder.enabled',
   permissionKey: 'settings.view',
 } as const

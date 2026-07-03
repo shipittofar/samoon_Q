@@ -41,6 +41,8 @@ import {
   ScrollText,
   Bell,
   Settings,
+  Zap,
+  Plus,
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useAdminModuleNav, useLogout } from '@/hooks'
@@ -73,6 +75,40 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Bell,
   Settings,
   LayoutDashboard,
+  Zap,
+}
+
+// ── Quick Actions ─────────────────────────────────────────────────────────────
+
+const QUICK_ACTIONS = [
+  { label: 'New Menu Item', href: '/admin/menu', icon: UtensilsCrossed },
+  { label: 'New Promotion', href: '/admin/promotions', icon: Tag },
+  { label: 'New Reservation', href: '/admin/reservations', icon: CalendarDays },
+  { label: 'Invite Staff', href: '/admin/staff', icon: Users },
+] as const
+
+function QuickActions({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="shrink-0 border-t border-[var(--border)] px-2 pt-2 pb-1">
+      <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)] opacity-60 select-none flex items-center gap-1">
+        <Zap className="h-3 w-3" />
+        Quick Actions
+      </p>
+      <div className="grid grid-cols-2 gap-1">
+        {QUICK_ACTIONS.map(({ label, href, icon: Icon }) => (
+          <a
+            key={href}
+            href={href}
+            onClick={onClose}
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors min-h-[36px] border border-[var(--border)] border-dashed"
+          >
+            <Plus className="h-3 w-3 shrink-0 text-orange-500" />
+            <span className="truncate leading-tight">{label}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function NavIcon({ name, className }: { name?: string; className?: string }) {
@@ -264,6 +300,9 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
             </div>
           ))}
         </nav>
+
+        {/* Quick actions */}
+        <QuickActions onClose={onClose} />
 
         {/* Footer: public site + logout */}
         <div className="shrink-0 border-t border-[var(--border)] p-2 space-y-0.5">

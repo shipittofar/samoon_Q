@@ -1,30 +1,31 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, Palette, Clock, Plug, Bell, Shield, Save, CheckCircle, Loader2, Globe } from 'lucide-react'
+import { Settings, Palette, Clock, Plug, Bell, Shield, Save, CheckCircle, Loader2, Globe, ToggleLeft, ToggleRight, XCircle, Flag } from 'lucide-react'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 import { CopyUrlWidget } from '@/components/marketplace/CopyUrlWidget'
+import { Badge } from '@/components/ui'
 import { useTenantStore } from '@/stores'
-import { useUpdateTenantSettings } from '@/hooks'
+import { useUpdateTenantSettings, useFeatureFlags, useUpdateFeatureFlag } from '@/hooks'
 import type { TenantTheme } from '@/types'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
-const TABS = ['general', 'branding', 'hours', 'publicprofile', 'integrations', 'notifications', 'advanced'] as const
+const TABS = ['general', 'branding', 'hours', 'publicprofile', 'integrations', 'notifications', 'feature-flags'] as const
 type Tab = (typeof TABS)[number]
 
 const TAB_CONFIG: Record<Tab, { label: string; icon: React.ElementType }> = {
-  general:       { label: 'General',        icon: Settings  },
-  branding:      { label: 'Branding',       icon: Palette   },
-  hours:         { label: 'Business Hours', icon: Clock     },
-  publicprofile: { label: 'Public Profile', icon: Globe     },
-  integrations:  { label: 'Integrations',   icon: Plug      },
-  notifications: { label: 'Notifications',  icon: Bell      },
-  advanced:      { label: 'Advanced',       icon: Shield    },
+  general:        { label: 'General',        icon: Settings     },
+  branding:       { label: 'Branding',       icon: Palette      },
+  hours:          { label: 'Business Hours', icon: Clock        },
+  publicprofile:  { label: 'Public Profile', icon: Globe        },
+  integrations:   { label: 'Integrations',   icon: Plug         },
+  notifications:  { label: 'Notifications',  icon: Bell         },
+  'feature-flags':{ label: 'Feature Flags',  icon: Flag         },
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
@@ -532,6 +533,78 @@ function PlaceholderSection({ label }: { label: string }) {
   )
 }
 
+const SOURCE_LABEL: Record<string, string> = {
+  module_default:  'Module Default',
+  capability:      'Capability',
+  tenant_override: 'Tenant Override',
+}
+const SOURCE_BADGE_VARIANT: Record<string, 'secondary' | 'info' | 'success'> = {
+  module_default:  'secondary',
+  capability:      'info',
+  tenant_override: 'success',
+}
+
+function FeatureFlagsTab() {
+  const { data: flags, isLoading, isError } = useFeatureFlags()
+  const { mutate: updateFlag, isPending } = useUpdateFeatureFlag()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-48 gap-2 text-gray-500 text-sm">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Loading feature flags…
+      </div>
+    )
+  }
+
+  if (isError || !flags) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 gap-2">
+        <XCircle className="w-6 h-6 text-red-400" />
+        <p className="text-sm text-gray-600">Failed to load feature flags.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-gray-500 mb-4">
+        Toggle capability flags for this tenant. Tenant overrides take precedence over module defaults.
+      </p>
+      {flags.map((flag) => (
+        <div
+          key={flag.key}
+          className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg border hover:border-gray-300 transition-colors"
+        >
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-mono font-medium text-gray-800">{flag.key}</span>
+              <Badge variant={SOURCE_BADGE_VARIANT[flag.source] ?? 'secondary'}>
+                {SOURCE_LABEL[flag.source] ?? flag.source}
+              </Badge>
+            </div>
+          </div>
+          <button
+            onClick={() => updateFlag({ key: flag.key, value: !flag.value })}
+            disabled={isPending}
+            className={`ml-4 shrink-0 transition-colors ${isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            aria-label={`Toggle ${flag.key}`}
+          >
+            {flag.value ? (
+              <ToggleRight className="w-8 h-8 text-blue-600" />
+            ) : (
+              <ToggleLeft className="w-8 h-8 text-gray-400" />
+            )}
+          </button>
+        </div>
+      ))}
+      {flags.length === 0 && (
+        <p className="text-sm text-gray-500 text-center py-8">No feature flags configured.</p>
+      )}
+    </div>
+  )
+}
+
 function SettingsContent() {
   const [activeTab, setActiveTab] = useState<Tab>('general')
 
@@ -569,13 +642,13 @@ function SettingsContent() {
           <div className="flex-1 bg-white rounded-lg border p-6">
             <h2 className="text-base font-semibold mb-5">{TAB_CONFIG[activeTab].label}</h2>
             <ErrorBoundary feature={`Settings — ${TAB_CONFIG[activeTab].label}`}>
-              {activeTab === 'general'       && <GeneralTab />}
-              {activeTab === 'branding'      && <BrandingTab />}
-              {activeTab === 'hours'         && <HoursTab />}
-              {activeTab === 'publicprofile' && <PublicProfileTab />}
-              {activeTab === 'integrations'  && <PlaceholderSection label="Integrations" />}
-              {activeTab === 'notifications' && <NotificationsTab />}
-              {activeTab === 'advanced'      && <PlaceholderSection label="Advanced" />}
+              {activeTab === 'general'        && <GeneralTab />}
+              {activeTab === 'branding'       && <BrandingTab />}
+              {activeTab === 'hours'          && <HoursTab />}
+              {activeTab === 'publicprofile'  && <PublicProfileTab />}
+              {activeTab === 'integrations'   && <PlaceholderSection label="Integrations" />}
+              {activeTab === 'notifications'  && <NotificationsTab />}
+              {activeTab === 'feature-flags'  && <FeatureFlagsTab />}
             </ErrorBoundary>
           </div>
         </div>
