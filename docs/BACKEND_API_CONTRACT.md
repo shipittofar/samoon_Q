@@ -4,7 +4,7 @@
 > Generated from frontend source code. All types, endpoints, and business rules are
 > derived from `src/types/index.ts`, `src/services/`, `src/hooks/`, and runtime service usage.
 >
-> Last updated: 2026-07-02 (P8.9.3: complete phone authentication contract — section 2 rewritten)
+> Last updated: 2026-07-04 (P9.0: added §36 Platform Configuration API contract)
 
 ---
 
@@ -39,6 +39,7 @@
 19. [RBAC Permission Matrix](#19-rbac-permission-matrix)
 20. [Environment Variables](#20-environment-variables)
 21. [Endpoint Classification Summary](#21-endpoint-classification-summary)
+36. [Platform Configuration API](#36-platform-configuration-api-p90) *(added P9.0 — contract only, no backend yet)*
 
 ---
 
@@ -4130,3 +4131,212 @@ All CRM data (notes, tags, analytics, marketing, coupons, payments, timeline) MU
 | `MOCK_CUSTOMER_MARKETING` | 3 | pu-001, pu-003, pu-005 at `tenant-savor-01` |
 | `MOCK_CUSTOMER_COUPONS` | 8 | pu-001, pu-003, pu-005 at `tenant-savor-01` |
 | `MOCK_CUSTOMER_TIMELINE` | ~36 events | pu-001 (22 events), pu-003 (6), pu-005 (6) at `tenant-savor-01` |
+
+---
+
+## 36. Platform Configuration API (P9.0)
+
+> **Contract only — no backend implementation exists yet.** Generated from
+> `src/config/types.ts` and `src/config/service.ts` (P9.0 Platform
+> Configuration Foundation). Per Rule 8 (API Follows Registry), this contract
+> is derived from the configuration schema — the schema was never derived
+> from an API design. Requires `settings.view` to read, `settings.manage`
+> (or the field's own `permissions.edit` key) to write. Feature-flag fields
+> additionally require `featureflags.manage`.
+>
+> Frontend reference implementation: `src/config/service.ts`
+> (`configurationService`). The frontend currently holds overrides in an
+> in-memory mock store (`ConfigOverrideStore`) that mirrors the
+> `platform_configuration_overrides` table this contract implies — swapping
+> the mock store for these real endpoints requires no change to
+> `ConfigurationResolver`, `ConfigurationValidator`, or any hook.
+
+### 36.1 List Modules
+
+**Method:** `GET`
+**Path:** `/admin/config/modules/`
+
+Returns every registered module's metadata (no field values) — id, name,
+description, category, version, permissions, featureFlag, dependencies. Used
+to render the Console settings index page (P9.1+).
+
+**Success Response `200`:**
+```json
+{
+  "results": [
+    {
+      "id": "themes",
+      "name": "Themes",
+      "description": "Default brand palette and the CSS variables tenants are permitted to override.",
+      "category": "branding",
+      "version": "1.0.0",
+      "icon": "Palette",
+      "permissions": { "view": "settings.view", "edit": "settings.manage" },
+      "dependencies": [{ "moduleId": "typography", "reason": "Theme preview renders using the configured font stack." }]
+    }
+  ]
+}
+```
+
+**Source:** `src/config/registry.ts` (`platformConfigurationRegistry.getModules()`)
+
+### 36.2 Get Module Schema + Resolved Values
+
+**Method:** `GET`
+**Path:** `/admin/config/modules/{moduleId}/`
+**Query params:** `tenant_id`, `branch_id`, `user_id` (all optional — omitted levels are not resolved against)
+
+Returns the module's full section/field schema, each field's resolved value
+for the given scope, which level the value resolved from, and whether an
+override attempt was blocked by a locked field.
+
+**Success Response `200`:**
+```json
+{
+  "module": { "id": "themes", "name": "Themes", "version": "1.0.0" },
+  "sections": [
+    {
+      "id": "themes.palette",
+      "title": "Palette",
+      "fields": [
+        {
+          "id": "themes.primary_color",
+          "title": "Primary Color",
+          "type": "color",
+          "default": "#f97316",
+          "validation": {},
+          "visibility": "admin_only",
+          "permissions": { "view": "settings.view", "edit": "settings.manage" },
+          "preview": { "kind": "swatch" },
+          "inheritance": { "level": "platform", "canOverride": true, "mode": "override", "fallback": "inherit" },
+          "resolved": { "value": "#0ea5e9", "resolvedFrom": "tenant", "overrideBlocked": false }
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Errors:** `404` unknown `moduleId`. `403` caller lacks the module's `permissions.view`.
+
+**Source:** `src/config/service.ts` (`configurationService.resolveModule()`)
+
+### 36.3 Get / Update a Single Field
+
+**Method:** `GET`
+**Path:** `/admin/config/fields/{fieldId}/`
+**Query params:** `tenant_id`, `branch_id`, `user_id`
+
+**Method:** `PATCH`
+**Path:** `/admin/config/fields/{fieldId}/`
+
+**Request Body:**
+```json
+{
+  "value": "#0ea5e9",
+  "level": "tenant",
+  "tenant_id": "tenant-savor-01",
+  "reason": "Rebrand to match new signage"
+}
+```
+
+**Validation (400 on failure):** the value is checked against the field's
+`type` and `validation` block (`required`/`min`/`max`/`minLength`/
+`maxLength`/`pattern`/`enumValues`) exactly as implemented by
+`src/config/validator.ts`.
+
+**Permission (403 on failure):** caller must hold the field's
+`permissions.edit` key.
+
+**Inheritance (409 on failure):** if `level` is below the field's
+`inheritance.level` and the field's `inheritance.canOverride` is `false` or
+`inheritance.mode` is `"locked"`, the write is rejected with the level the
+field is actually locked at.
+```json
+{ "error": "field_locked", "lockedAtLevel": "platform" }
+```
+
+**Reason required (400 on failure):** if the field's `audit.requireReason`
+is `true` and no `reason` is supplied.
+
+**Success Response `200`:** same shape as the `resolved` object in §36.2,
+recomputed after the write.
+
+**Source:** `src/config/service.ts` (`configurationService.updateField()`)
+
+### 36.4 Audit Trail
+
+**Method:** `GET`
+**Path:** `/admin/config/audit/`
+**Query params:** `field_id`, `tenant_id`, `branch_id`, `user_id` (any combination filters)
+
+**Success Response `200`:**
+```json
+{
+  "results": [
+    {
+      "id": "cfg-audit-1",
+      "fieldId": "themes.primary_color",
+      "scope": { "tenantId": "tenant-savor-01" },
+      "level": "tenant",
+      "actorId": "staff-001",
+      "actorName": "Alice Chen",
+      "reason": "Rebrand to match new signage",
+      "previousValue": "#f97316",
+      "newValue": "#0ea5e9",
+      "timestamp": "2026-06-01T10:00:00Z"
+    }
+  ]
+}
+```
+
+Fields whose schema sets `audit.sensitive: true` (e.g. `payments.stripe_secret_key`)
+MUST have `previousValue`/`newValue` redacted to `"••••••"` in the response —
+never store or return the plaintext secret in an audit entry.
+
+**Source:** `src/config/audit.ts`
+
+### 36.5 Rollback
+
+**Method:** `POST`
+**Path:** `/admin/config/audit/{auditEntryId}/rollback/`
+
+Re-applies `previousValue` from the named audit entry as a new write (through
+the same validation/permission/audit path as §36.3 — a rollback is itself an
+audited change, not a raw restore).
+
+**Errors:** `404` unknown audit entry id. `409` if the field's current value
+has since changed at a level that would make the rollback ambiguous
+(implementation may instead always apply — left to backend design;
+frontend's `configurationAudit.getRollbackValue()` only returns the value,
+it does not decide rollback semantics).
+
+### 36.6 Version History
+
+**Method:** `GET`
+**Path:** `/admin/config/modules/{moduleId}/versions/`
+
+**Success Response `200`:**
+```json
+{
+  "results": [
+    { "moduleId": "themes", "version": "1.0.0", "changedAt": "2026-07-04T00:00:00Z", "changeNote": "Initial P9.0 registration" }
+  ]
+}
+```
+
+**Source:** `src/config/version-manager.ts`
+
+### 36.7 Permission Summary
+
+All Platform Configuration endpoints share this permission model:
+
+| Action | Required permission |
+|---|---|
+| Read any module/field | `settings.view` (the requesting caller must additionally hold that specific field's `permissions.view`, which for most fields is also `settings.view`) |
+| Write a field | The field's own `permissions.edit` (commonly `settings.manage`; `featureflags.manage` for `feature_flags.*` fields; `tenant.manage` for `subscriptions.*`; `staff.manage` for `rbac.*`) |
+| View audit trail | Same as read (`settings.view` + field-level `permissions.view`) |
+| Rollback | Same as write for the field being rolled back |
+
+No new permission strings are introduced by this contract — it reuses the
+existing catalog in `src/types/rbac.ts` (Rule 3 — Single Source of Truth).
