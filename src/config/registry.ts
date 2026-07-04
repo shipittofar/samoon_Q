@@ -10,7 +10,7 @@
  * across concurrent requests, so registration must happen at import time, not
  * inside a request handler or component render.
  */
-import type { ConfigFieldDefinition, ConfigModuleDefinition } from './types'
+import type { ConfigFieldDefinition, ConfigLifecycleState, ConfigModuleDefinition } from './types'
 
 class PlatformConfigurationRegistryClass {
   private _modules = new Map<string, ConfigModuleDefinition>()
@@ -89,6 +89,32 @@ class PlatformConfigurationRegistryClass {
       defaults[field.id] = field.default
     }
     return defaults
+  }
+
+  /**
+   * A module's lifecycle defaults to 'published' when omitted (P9.0.1 / Phase D).
+   * Always read lifecycle through this method rather than `module.lifecycle`
+   * directly, so callers never have to repeat the default-fallback logic.
+   */
+  getModuleLifecycle(id: string): ConfigLifecycleState {
+    return this.getModule(id)?.lifecycle ?? 'published'
+  }
+
+  /** All fields across the registry matching the given lifecycle state. */
+  getFieldsByLifecycle(state: ConfigLifecycleState): ConfigFieldDefinition[] {
+    return this.getAllFields().filter((f) => f.lifecycle === state)
+  }
+
+  /**
+   * Modules that declare a dependency on `moduleId` (P9.0.1 / Phase G).
+   * The registry only stores "depends on"; this is the inverse query so a
+   * future Console can warn "changing X affects: [...]" before a breaking edit.
+   */
+  getDependents(moduleId: string): ConfigModuleDefinition[] {
+    this.seal()
+    return Array.from(this._modules.values()).filter((m) =>
+      m.dependencies?.some((d) => d.moduleId === moduleId),
+    )
   }
 
   /** Test-only escape hatch — never call outside vitest. */

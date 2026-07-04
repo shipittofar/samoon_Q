@@ -15,6 +15,7 @@ import { configurationValidator } from './validator'
 import { configurationCache } from './cache'
 import { configurationAudit } from './audit'
 import { configurationVersionManager } from './version-manager'
+import { CONFIG_INHERITANCE_CHAIN } from './types'
 import type {
   ConfigFieldDefinition,
   ConfigModuleDefinition,
@@ -122,7 +123,19 @@ function updateField(input: {
   const field = platformConfigurationRegistry.getField(input.fieldId)
   if (!field) throw new Error(`[ConfigurationService] unknown field "${input.fieldId}"`)
 
-  if (input.level !== field.inheritance.level && (!field.inheritance.canOverride || field.inheritance.mode === 'locked')) {
+  // P9.0.1 Phase A hardening: the original check only compared input.level to
+  // field.inheritance.level by equality, so it silently allowed writes ABOVE
+  // the owning level too (e.g. a 'platform'-level write to a field owned at
+  // 'tenant') as long as it wasn't exactly equal — direction was never
+  // actually verified. Compare chain indices so both directions are guarded.
+  const ownerIndex = CONFIG_INHERITANCE_CHAIN.indexOf(field.inheritance.level)
+  const targetIndex = CONFIG_INHERITANCE_CHAIN.indexOf(input.level)
+  if (targetIndex < ownerIndex) {
+    throw new Error(
+      `[ConfigurationService] field "${input.fieldId}" cannot be written at "${input.level}" — above its owning level "${field.inheritance.level}"`,
+    )
+  }
+  if (targetIndex > ownerIndex && (!field.inheritance.canOverride || field.inheritance.mode === 'locked')) {
     throw new Error(
       `[ConfigurationService] field "${input.fieldId}" cannot be overridden at "${input.level}" (locked at "${field.inheritance.level}")`,
     )

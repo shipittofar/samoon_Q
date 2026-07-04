@@ -40,6 +40,7 @@ export function defineField<T>(
   return {
     visibility: 'admin_only',
     version: '1.0.0',
+    lifecycle: 'published',
     ...input,
     inheritance: { ...DEFAULT_INHERITANCE, ...input.inheritance },
     audit: { ...DEFAULT_AUDIT, ...input.audit },

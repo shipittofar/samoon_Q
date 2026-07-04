@@ -5,7 +5,7 @@
  * (Phase E): registration integrity, inheritance resolution, validation,
  * locked-field enforcement, caching, and audit redaction.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 /** Fresh module scope per test so the sealed registry doesn't bleed across tests. */
 async function freshConfig() {
@@ -55,7 +55,8 @@ describe('PlatformConfigurationRegistry (P9.0 Phase C)', () => {
         sections: [{ id: 's', title: 's', fields: [{
           id: 'authentication.otp.length', // collides with authentication module
           title: 'Dup', category: 'test', type: 'number', default: 1,
-          visibility: 'admin_only', permissions: { view: 'settings.view', edit: 'settings.manage' },
+          visibility: 'admin_only', lifecycle: 'published',
+          permissions: { view: 'settings.view', edit: 'settings.manage' },
           preview: { kind: 'none' },
           inheritance: { level: 'platform', canOverride: false, mode: 'locked', fallback: 'inherit' },
           audit: { trackHistory: true, requireReason: false, sensitive: false },
@@ -63,6 +64,23 @@ describe('PlatformConfigurationRegistry (P9.0 Phase C)', () => {
         }] }],
       }),
     ).toThrow(/duplicate field id/)
+  })
+
+  it('defaults field lifecycle to "published" via defineField()', async () => {
+    const { platformConfigurationRegistry } = await freshConfig()
+    const field = platformConfigurationRegistry.getField('themes.primary_color')
+    expect(field?.lifecycle).toBe('published')
+  })
+
+  it('getModuleLifecycle() defaults to "published" for modules that omit it', async () => {
+    const { platformConfigurationRegistry } = await freshConfig()
+    expect(platformConfigurationRegistry.getModuleLifecycle('themes')).toBe('published')
+  })
+
+  it('getDependents() returns modules that declare a dependency on the given module', async () => {
+    const { platformConfigurationRegistry } = await freshConfig()
+    const dependents = platformConfigurationRegistry.getDependents('themes').map((m) => m.id)
+    expect(dependents).toContain('website_builder')
   })
 })
 
@@ -99,6 +117,21 @@ describe('ConfigurationResolver — Platform → Tenant → Branch → User (Rul
         actor: { id: 'u1', name: 'Test Admin' },
       }),
     ).toThrow(/cannot be overridden/)
+  })
+
+  it('rejects a write above the field\'s owning level (P9.0.1 Phase A hardening)', async () => {
+    const { configurationService } = await freshConfig()
+    // themes.accent_hover_color is owned at 'tenant' — writing at 'platform' is
+    // above the owning level and must be rejected, not silently accepted.
+    expect(() =>
+      configurationService.updateField({
+        fieldId: 'themes.accent_hover_color',
+        value: '#000000',
+        level: 'platform',
+        scope: {},
+        actor: { id: 'u1', name: 'Test Admin' },
+      }),
+    ).toThrow(/above its owning level/)
   })
 
   it('overrides scoped to another tenant do not leak', async () => {
@@ -157,5 +190,47 @@ describe('ConfigurationAudit (Rule 6)', () => {
         actor: { id: 'u1', name: 'Test Admin' },
       }),
     ).toThrow(/requires a reason/)
+  })
+})
+
+describe('ConfigurationDiff (P9.0.1 Phase F)', () => {
+  it('reports identical when no override exists at any checked level', async () => {
+    const { configurationDiff } = await freshConfig()
+    const diff = configurationDiff.diffField('themes.primary_color', { tenantId: 't1' })
+    expect(diff.identical).toBe(true)
+    expect(diff.levels.map((l) => l.level)).toEqual(['platform', 'tenant'])
+  })
+
+  it('reports non-identical once a tenant override diverges from the platform default', async () => {
+    const { configurationService, configurationDiff } = await freshConfig()
+    configurationService.updateField({
+      fieldId: 'themes.primary_color',
+      value: '#0ea5e9',
+      level: 'tenant',
+      scope: { tenantId: 't1' },
+      actor: { id: 'u1', name: 'Test Admin' },
+    })
+    const diff = configurationDiff.diffField('themes.primary_color', { tenantId: 't1' })
+    expect(diff.identical).toBe(false)
+    expect(diff.levels.find((l) => l.level === 'tenant')?.hasOwnValue).toBe(true)
+  })
+
+  it('diffFieldAcrossScopes compares two tenants independently of inheritance', async () => {
+    const { configurationService, configurationDiff } = await freshConfig()
+    configurationService.updateField({
+      fieldId: 'themes.primary_color',
+      value: '#111111',
+      level: 'tenant',
+      scope: { tenantId: 't1' },
+      actor: { id: 'u1', name: 'Test Admin' },
+    })
+    const result = configurationDiff.diffFieldAcrossScopes(
+      'themes.primary_color',
+      { tenantId: 't1' },
+      { tenantId: 't2' },
+    )
+    expect(result.identical).toBe(false)
+    expect(result.a).toBe('#111111')
+    expect(result.b).toBe('#f97316')
   })
 })

@@ -49,6 +49,29 @@ export interface ConfigFieldValidation {
   custom?: string
 }
 
+// ── Secret references (P9.0.1 / Phase C) ─────────────────────────────────────
+
+/**
+ * Rule: Platform Configuration must NEVER store secrets. Fields of type
+ * 'secret' (and, in production, 'password') resolve to a SecretReference —
+ * a pointer into a future Secret Provider (vault) — never the plaintext.
+ *
+ * This type exists so a future Secret Provider integration has a stable
+ * contract to target; no provider is implemented in P9.0/P9.0.1 (see
+ * docs/P9.0.1_ARCHITECTURE_HARDENING.md §C). Until that lands, mock/dev
+ * module defaults for 'secret' fields are inline placeholder strings for
+ * local development convenience only and MUST NOT be treated as a pattern
+ * to copy for real credentials.
+ */
+export interface SecretReference {
+  /** Opaque id the Secret Provider resolves at runtime; never the value itself. */
+  ref: string
+  /** Which provider owns this secret, e.g. 'vault' | 'aws-secrets-manager' | 'env'. */
+  provider: string
+  /** ISO timestamp of the last rotation, for rotation-policy reporting. */
+  rotatedAt?: string
+}
+
 // ── Configuration Inheritance (Rule 4) ───────────────────────────────────────
 
 export type ConfigInheritanceLevel = 'platform' | 'tenant' | 'branch' | 'user'
@@ -100,6 +123,24 @@ export interface ConfigFieldPermissions {
   edit: string
 }
 
+// ── Lifecycle (P9.0.1 / Phase D) ─────────────────────────────────────────────
+
+/**
+ * Every field and module carries a lifecycle state, independent of its
+ * inheritance level or audit settings. A future Console reads this to decide
+ * whether a field/module is safe to surface, editable, or read-only:
+ *
+ *   draft      → visible only to the authoring team; never resolved for real tenants
+ *   testing    → resolvable behind a feature flag / for internal tenants only
+ *   published  → the default; fully live
+ *   deprecated → still resolves (existing overrides keep working) but is
+ *                hidden from "add new configuration" UI and flagged in the Console
+ *   archived   → no longer resolves; reads fall back to `default` only
+ *
+ * See docs/P9.0.1_ARCHITECTURE_HARDENING.md §D for the full state machine.
+ */
+export type ConfigLifecycleState = 'draft' | 'testing' | 'published' | 'deprecated' | 'archived'
+
 export interface ConfigFieldDefinition<T = unknown> {
   /** Dotted, globally unique id, e.g. "authentication.otp.length". */
   id: string
@@ -118,6 +159,9 @@ export interface ConfigFieldDefinition<T = unknown> {
   inheritance: ConfigFieldInheritance
   audit: ConfigFieldAudit
   version: string
+  /** Defaults to 'published' via defineField() — see ConfigLifecycleState. */
+  lifecycle: ConfigLifecycleState
+  /** @deprecated Use lifecycle: 'deprecated' instead. Kept only for source compatibility. */
   deprecated?: boolean
   /** When set, the field itself only applies while this platform feature flag is on. */
   featureFlag?: string
@@ -133,6 +177,15 @@ export interface ConfigSectionDefinition {
 export interface ConfigModuleDependency {
   moduleId: string
   reason?: string
+  /**
+   * 'hard' (default when omitted) — the dependent module cannot function
+   * without the dependency; the registry refuses to register the dependent
+   * before the dependency exists (see registry.ts `register()`).
+   * 'soft' — the dependent merely reads the dependency's resolved values
+   * when present (e.g. for preview rendering) but registers fine without it.
+   * P9.0.1 / Phase G — see docs/P9.0.1_ARCHITECTURE_HARDENING.md §G.
+   */
+  type?: 'hard' | 'soft'
 }
 
 /**
@@ -151,6 +204,8 @@ export interface ConfigModuleDefinition {
   permissions: ConfigFieldPermissions
   featureFlag?: string
   dependencies?: ConfigModuleDependency[]
+  /** Omitted means 'published' — use registry.getModuleLifecycle(id) rather than reading this directly. */
+  lifecycle?: ConfigLifecycleState
   sections: ConfigSectionDefinition[]
 }
 
