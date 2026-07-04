@@ -7,6 +7,7 @@
  *             fuzzy search, PageUp/PageDown, type-to-search, aria-live,
  *             aria-activedescendant, per-option IDs, RTL-safe dial codes,
  *             visual hierarchy, empty state with clear, scrollbar polish.
+ * P8.9.2.3 — SVG flags, VisualViewport keyboard safety, production hardening.
  */
 
 import {
@@ -25,7 +26,6 @@ import { cn } from '@/utils'
 import {
   COUNTRIES,
   Country,
-  getFlagEmoji,
   PINNED_COUNTRY_CODES,
   getPinnedCountries,
   getRestCountries,
@@ -38,6 +38,7 @@ import {
   loadLastSelected,
   searchCountries,
 } from '@/data/countries'
+import { FlagIcon } from '@/components/ui/FlagIcon'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -195,6 +196,34 @@ function useAnnouncer() {
   return { announce, node }
 }
 
+// ── VisualViewport keyboard safety ────────────────────────────────────────────
+
+function useVisualViewport() {
+  const [keyboardHeight, setKeyboardHeight] = useState(0)
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+
+    function update() {
+      const windowHeight = window.innerHeight
+      const viewportHeight = vv!.height
+      const offset = windowHeight - viewportHeight - (vv!.offsetTop ?? 0)
+      setKeyboardHeight(Math.max(0, offset))
+    }
+
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    update()
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }, [])
+
+  return keyboardHeight
+}
+
 // ── Section header ─────────────────────────────────────────────────────────────
 
 function SectionHeader({ label }: { label: string }) {
@@ -244,8 +273,8 @@ function CountryRow({ country, selected, onSelect, optionId, isActive }: Country
       )}
     >
       {/* Flag */}
-      <span className="text-xl leading-none w-8 shrink-0 text-center" aria-hidden="true">
-        {getFlagEmoji(country.code)}
+      <span className="w-8 shrink-0 flex items-center justify-center" aria-hidden="true">
+        <FlagIcon code={country.code} size={22} />
       </span>
 
       {/* Name */}
@@ -298,6 +327,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
   const [recents, setRecents] = useState<Country[]>([])
+  const keyboardHeight = useVisualViewport()
 
   const searchRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -657,11 +687,12 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: slideY, opacity: prefersReducedMotion ? 0 : 1 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300, duration: motionDuration }}
+            style={{ bottom: keyboardHeight }}
             className={cn(
               // Base
               'fixed z-50 bg-[var(--bg)] shadow-2xl flex flex-col',
-              // Mobile: bottom sheet
-              'bottom-0 start-0 end-0 rounded-t-2xl max-h-[85dvh]',
+              // Mobile: bottom sheet (bottom set via style for VisualViewport)
+              'start-0 end-0 rounded-t-2xl max-h-[85dvh]',
               // Desktop: centered modal
               'md:bottom-auto md:start-1/2 md:top-1/2',
               'md:-translate-x-1/2 md:-translate-y-1/2',
@@ -816,7 +847,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
             'focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--accent)]',
           )}
         >
-          <span className="text-base leading-none" aria-hidden="true">{getFlagEmoji(country.code)}</span>
+          <FlagIcon code={country.code} size={20} />
           <span dir="ltr" className="text-sm font-medium text-[var(--fg)] tabular-nums">
             {country.dialCode}
           </span>
