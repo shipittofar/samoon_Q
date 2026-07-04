@@ -12,6 +12,7 @@ import type {
   ConfigUIControlType,
   ResolvedConfigValue,
 } from '@/config'
+import { configCollection, type ConfigCollectionEntry, type ConfigCollectionFilterValue } from '@/config'
 
 // ── Phase C — control inference ───────────────────────────────────────────────
 
@@ -80,11 +81,23 @@ export function isFieldEnabled(
 
 // ── Phase G — search ──────────────────────────────────────────────────────────
 
+/**
+ * Joins any set of searchable text fragments into one lowercase haystack.
+ * Shared by plain-field search and collection-entry search (Phase E, P9.2) so
+ * "match a free-text query against a bag of strings" is defined exactly once.
+ */
+export function buildSearchHaystack(parts: Array<string | undefined | null>): string {
+  return parts
+    .filter((part): part is string => Boolean(part))
+    .join(' ')
+    .toLowerCase()
+}
+
 /** Matches a field against a free-text query across every Phase G search surface. */
 export function matchesSearch(field: ConfigFieldDefinition, query: string): boolean {
   const q = query.trim().toLowerCase()
   if (!q) return true
-  const haystack = [
+  const haystack = buildSearchHaystack([
     field.display?.displayName,
     field.title,
     field.description,
@@ -95,12 +108,78 @@ export function matchesSearch(field: ConfigFieldDefinition, query: string): bool
     ...(field.display?.tags ?? []),
     ...(field.search?.keywords ?? []),
     ...(field.search?.aliases ?? []),
-  ]
-    .filter((part): part is string => Boolean(part))
-    .join(' ')
-    .toLowerCase()
+  ])
   return haystack.includes(q)
 }
+
+/**
+ * Matches one collection entry (e.g. a country) against a free-text query —
+ * the collection-field analogue of `matchesSearch`, reusing the same
+ * haystack builder so search behaves identically whether the searchable
+ * unit is a top-level field or a row inside a `'collection'` field. Any
+ * schema property carrying `search.keywords`/`search.aliases` contributes
+ * those too, so per-property search metadata (e.g. a country's ISO code
+ * aliases) is picked up generically, with no per-module search code.
+ */
+export function matchesCollectionEntrySearch(
+  field: ConfigFieldDefinition,
+  entry: ConfigCollectionEntry,
+  query: string,
+): boolean {
+  const q = query.trim().toLowerCase()
+  if (!q) return true
+  const schema = configCollection.getSchema(field)
+  const propertyParts = schema.flatMap((prop) => [
+    String(entry.values[prop.id] ?? ''),
+    ...(prop.search?.keywords ?? []),
+    ...(prop.search?.aliases ?? []),
+  ])
+  const haystack = buildSearchHaystack([
+    entry.entityId,
+    configCollection.getEntityLabel(field, entry.entityId),
+    ...(field.collection?.getEntitySearchTerms?.(entry.entityId) ?? []),
+    ...propertyParts,
+  ])
+  return haystack.includes(q)
+}
+
+// ── Phase F — generic filter engine ───────────────────────────────────────────
+
+/** One selectable filter option, derived from a collection's own schema — never hand-authored per module. */
+export interface ConfigCollectionFilterOption {
+  propertyId: string
+  label: string
+  value: ConfigCollectionFilterValue
+}
+
+/**
+ * Derives the available filter options for a collection field straight from
+ * its schema: every `boolean` property becomes an Enabled/Disabled pair,
+ * every `select` property with `validation.options` becomes one option per
+ * choice. This is the Phase F "generic filtering engine" — Countries is the
+ * first consumer, but any future collection (Branches, Tenants, …) gets
+ * working filters for free just by declaring its schema.
+ */
+export function deriveCollectionFilterOptions(field: ConfigFieldDefinition): ConfigCollectionFilterOption[] {
+  const options: ConfigCollectionFilterOption[] = []
+  for (const prop of configCollection.getSchema(field)) {
+    const label = prop.display?.displayName ?? prop.title
+    if (prop.type === 'boolean') {
+      options.push({ propertyId: prop.id, label: `${label}: Enabled`, value: true })
+      options.push({ propertyId: prop.id, label: `${label}: Disabled`, value: false })
+      continue
+    }
+    if (prop.type === 'select') {
+      for (const opt of prop.options ?? []) {
+        options.push({ propertyId: prop.id, label: `${label}: ${opt.label}`, value: opt.value as ConfigCollectionFilterValue })
+      }
+    }
+  }
+  return options
+}
+
+/** Re-exported for convenience so Console pages only need one import site for entry-level filtering. */
+export const matchesCollectionEntryFilters = configCollection.matchesFilters
 
 // ── Phase H — configuration state ─────────────────────────────────────────────
 

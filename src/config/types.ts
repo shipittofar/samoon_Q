@@ -29,6 +29,15 @@ export type ConfigFieldType =
   | 'language'
   | 'feature_flag'
   | 'permission'
+  /**
+   * P9.2 — "one schema, many entities." The field's value is a keyed
+   * collection of sub-records (e.g. one record per ISO country code), each
+   * shaped by `ConfigFieldDefinition.collection.schema`. Framework-level —
+   * not specific to Countries; any future module needing per-entity
+   * configuration (e.g. per-branch, per-provider) registers the same way.
+   * See src/config/collection.ts and docs/P9.2_COUNTRIES_MANAGEMENT.md.
+   */
+  | 'collection'
 
 export interface ConfigFieldOption {
   value: string | number | boolean
@@ -281,6 +290,55 @@ export interface ConfigFieldSearchMeta {
   popular?: boolean
 }
 
+// ── Collection fields (P9.2 / Phase K framework improvement) ─────────────────
+//
+// A 'collection'-typed field's value is `Record<entityId, Record<propertyId,
+// unknown>>` — one sub-record per entity (e.g. one per ISO country code),
+// each shaped by `schema`. `schema` entries are themselves full
+// `ConfigFieldDefinition`s (built with the same `defineField()` used for
+// ordinary module fields — Rule 3: one schema-authoring mechanism, not two)
+// but are never passed to `platformConfigurationRegistry.register()`
+// individually; they exist purely so the existing field-rendering
+// components (ConfigurationFieldControl/Badges/Preview) can render each
+// property with zero new code, per-entity, inside a
+// ConfigurationCollectionTable / ConfigurationEntityDrawer.
+
+export interface ConfigCollectionMeta {
+  /** Singular display name for one entity, e.g. "Country". */
+  entityLabel: string
+  /** Column header / label for the entity id itself, e.g. "ISO Code". */
+  entityIdLabel: string
+  /** Per-entity property schema, authored with defineField() but never separately registered. */
+  schema: ConfigFieldDefinition[]
+  /**
+   * The full fixed roster of entity ids, independent of which ones happen to
+   * have a stored override — e.g. Countries lists all 176 ISO codes here so
+   * every country appears in the table even with zero overrides. Omit this
+   * for an ad-hoc collection whose entities are created by admins (its
+   * roster is simply whatever keys exist in the stored value).
+   */
+  entityIds?: string[]
+  /** Resolves a human-readable name for an entity id (e.g. 'US' -> 'United States'). */
+  getEntityLabel?: (entityId: string) => string
+  /** Property id (within `schema`) used as the default grouping key in a collection table, e.g. 'region'. */
+  defaultGroupBy?: string
+  /**
+   * Computes the entity detail drawer's live-preview pairs (label -> formatted
+   * value) from one entity's merged values, e.g. Countries turning
+   * `{ default_phone_prefix: '+1', ... }` into `{ 'Example Phone': '+1 202-555-0143' }`.
+   * Optional and purely additive — the framework never assumes what "preview"
+   * means for a given collection, so this stays a plain callback rather than
+   * hardcoded per-property preview logic.
+   */
+  buildPreview?: (values: Record<string, unknown>) => Record<string, string>
+  /**
+   * Extra free-text search terms for one entity id beyond its id/label —
+   * e.g. Countries contributing informal aliases ("uk" -> GB). Optional;
+   * a collection with no natural aliases (e.g. Branches) simply omits it.
+   */
+  getEntitySearchTerms?: (entityId: string) => string[]
+}
+
 export interface ConfigFieldDefinition<T = unknown> {
   /** Dotted, globally unique id, e.g. "authentication.otp.length". */
   id: string
@@ -317,6 +375,8 @@ export interface ConfigFieldDefinition<T = unknown> {
   dependency?: ConfigFieldDependencyMeta
   /** Global configuration search metadata (Phase G). */
   search?: ConfigFieldSearchMeta
+  /** Present only when `type === 'collection'` (P9.2 / Phase K). */
+  collection?: ConfigCollectionMeta
 }
 
 export interface ConfigSectionDefinition {
@@ -419,4 +479,25 @@ export interface ConfigVersionEntry {
   version: string
   changedAt: string
   changeNote: string
+}
+
+// ── Bulk operations (P9.2 / Phase D framework improvement) ──────────────────
+//
+// Generic across any collection field — Countries is the first consumer,
+// per the phase brief ("future modules must reuse the same implementation").
+
+export type ConfigBulkActionKind =
+  | 'enable'
+  | 'disable'
+  | 'publish'
+  | 'archive'
+  | 'reset'
+  | 'export'
+  | 'import'
+
+export interface ConfigBulkActionResult {
+  action: ConfigBulkActionKind
+  affectedIds: string[]
+  ok: boolean
+  message?: string
 }

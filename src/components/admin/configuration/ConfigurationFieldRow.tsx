@@ -15,6 +15,7 @@ import type { ConfigAuditEntry, ConfigFieldDefinition, ResolvedConfigValue } fro
 import { ConfigurationFieldControl } from './ConfigurationFieldControl'
 import { ConfigurationFieldBadges } from './ConfigurationFieldBadges'
 import { ConfigurationFieldPreview } from './ConfigurationFieldPreview'
+import { ConfigurationCollectionTable } from './ConfigurationCollectionTable'
 import { deriveFieldState } from './configUiHelpers'
 
 export interface ConfigurationFieldRowProps {
@@ -93,9 +94,13 @@ export function ConfigurationFieldRow({
         </div>
       </div>
 
-      <div className="mt-3 max-w-md">
+      <div className={field.type === 'collection' ? 'mt-3' : 'mt-3 max-w-md'}>
         <div id={field.id}>
-          <ConfigurationFieldControl field={field} value={currentValue} onChange={onChange} disabled={!editable} />
+          {field.type === 'collection' ? (
+            <ConfigurationCollectionTable field={field} value={currentValue} onChange={onChange} disabled={!editable} />
+          ) : (
+            <ConfigurationFieldControl field={field} value={currentValue} onChange={onChange} disabled={!editable} />
+          )}
         </div>
         {!enabled && (
           <p className="mt-1 text-xs text-[var(--fg-muted)]">Disabled because a dependency isn&apos;t met.</p>
