@@ -3600,3 +3600,215 @@ interface BranchContentOverrides {
 - `settings.view` permission gates both read and write access.
 - Branch overrides are stored per `branchSlug` within the tenant's settings scope.
 - Version history is retained server-side; clients receive the last 10 versions.
+
+---
+
+## 34. Platform Customer Identity & Business Relationship Architecture *(added P8.9.6)*
+
+> This section defines the three-layer customer identity model that replaces the legacy flat
+> `AdminCustomer` approach. It is the single source of truth for backend implementation.
+
+### 34.1 Domain Model Overview
+
+```
+PlatformUser (1)
+  └── BusinessCustomer (many — one per tenant where they have interacted)
+        ├── loyaltyPoints: number      ← per-tenant, never global
+        ├── loyaltyTier                ← per-tenant
+        ├── totalSpent                 ← at this tenant only
+        └── BranchCustomer (many — one per branch within tenant)
+              ├── visits: number
+              ├── ordersCount: number
+              └── favoriteBranch: boolean
+```
+
+**Key invariants (must be enforced by backend):**
+1. `PlatformUser` is created once at registration. Phone is the primary key. Never duplicated.
+2. `BusinessCustomer` is created only on the customer's first interaction with a tenant (order, reservation, QR scan, payment). Never pre-created.
+3. `BranchCustomer` is created on first interaction at a specific branch.
+4. All commerce metrics (`totalSpent`, `ordersCount`, `loyaltyPoints`, `loyaltyTier`) are scoped to the `BusinessCustomer`/tenant — never global aggregates.
+5. A PlatformUser may have zero BusinessCustomer records (they registered but never placed an order). They may have many (one per business they've visited).
+
+---
+
+### 34.2 PlatformUser Schema
+
+**Type source:** `src/types/index.ts → PlatformUser`
+
+```typescript
+interface PlatformUser {
+  id: string           // UUID, platform-wide unique
+  phone: string        // E.164 format, primary identifier, unique across platform
+  name: string         // Full display name
+  avatar?: string      // URL to avatar image
+  email?: string       // Optional — many customers never provide email
+  language?: string    // IETF BCP 47 language tag (e.g. "en", "ar")
+  createdAt: string    // ISO 8601
+  status: 'active' | 'inactive' | 'suspended'
+}
+```
+
+**Endpoints:**
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/admin/platform-users/` | Platform Admin | Paginated list with search |
+| `GET` | `/admin/platform-users/{id}/` | Platform Admin | Single user detail |
+| `PATCH` | `/admin/platform-users/{id}/` | Platform Admin | Update name/status/language |
+| `GET` | `/admin/platform-users/{id}/businesses/` | Platform Admin | All BusinessCustomer records for this user |
+
+**Query params for list:** `?search=` (matches phone, name, email), `?status=active|inactive|suspended`, `?page=`, `?page_size=`
+
+---
+
+### 34.3 BusinessCustomer Schema
+
+**Type source:** `src/types/index.ts → BusinessCustomer`
+
+```typescript
+interface BusinessCustomer {
+  id: string                          // UUID, unique per userId+tenantId pair
+  userId: string                      // → PlatformUser.id
+  tenantId: string                    // Scopes all metrics to this tenant
+  firstInteractionAt: string          // ISO 8601 — when the relationship was created
+  lastInteractionAt: string           // ISO 8601 — most recent order/reservation/scan
+  ordersCount: number
+  reservationsCount: number
+  totalSpent: number                  // Decimal, in tenant's currency
+  lifetimeValue: number               // Same as totalSpent for now; reserved for future LTV models
+  favorite: boolean                   // Admin-flagged as notable customer
+  lastBranchId?: string               // → Branch.id of most recent visit
+  loyaltyPoints: number               // Current redeemable points at this tenant
+  loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum'
+  status: 'active' | 'inactive'
+}
+```
+
+**Endpoints:**
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/admin/business-customers/` | Owner/Manager (tenant-scoped) | Paginated. Filtered by `tenantId` at the middleware layer |
+| `GET` | `/admin/business-customers/{id}/` | Owner/Manager | Single record |
+| `GET` | `/admin/business-customers/?userId={id}&tenantId={id}` | Owner/Manager | Lookup by PlatformUser within tenant |
+| `PATCH` | `/admin/business-customers/{id}/` | Owner/Manager | Update `favorite`, `status` |
+| `GET` | `/admin/business-customers/{userId}/branches/` | Owner/Manager | All BranchCustomer records for this user within the tenant |
+
+**Creation:** Backend MUST auto-create `BusinessCustomer` records when:
+- An order is placed by a `PlatformUser` at a tenant for the first time
+- A reservation is made by a `PlatformUser` at a tenant for the first time
+- A QR check-in is recorded for a `PlatformUser` at a tenant for the first time
+
+---
+
+### 34.4 BranchCustomer Schema
+
+**Type source:** `src/types/index.ts → BranchCustomer`
+
+```typescript
+interface BranchCustomer {
+  id: string                       // UUID
+  businessCustomerId: string       // → BusinessCustomer.id
+  branchId: string                 // → Branch.id
+  ordersCount: number
+  reservationsCount: number
+  visits: number                   // Total check-ins/QR scans at this branch
+  favoriteBranch: boolean          // True if this is the most-visited branch for this customer
+  lastVisit?: string               // ISO 8601
+  lastOrder?: string               // ISO 8601
+}
+```
+
+**Endpoints:**
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| `GET` | `/admin/business-customers/{userId}/branches/` | Owner/Manager | All branches this customer has visited within the tenant (pass `?tenantId=`) |
+| `GET` | `/admin/branches/{branchId}/customers/` | Branch Manager | All customers who visited this branch |
+
+---
+
+### 34.5 AdminCustomer View (derived — not a stored entity)
+
+The `AdminCustomer` type used in the console customer list/detail pages is a **read-only view** composed server-side from `PlatformUser + BusinessCustomer`. It is not a separate table.
+
+```typescript
+interface AdminCustomer {
+  id: string              // = PlatformUser.id
+  email: string           // = PlatformUser.email ?? ''
+  phone: string           // = PlatformUser.phone
+  first_name: string      // derived from PlatformUser.name
+  last_name: string       // derived from PlatformUser.name
+  avatar?: string
+  role: 'customer'
+  is_verified: boolean    // PlatformUser.status === 'active'
+  created_at: string      // PlatformUser.createdAt
+  order_count: number     // = BusinessCustomer.ordersCount (tenant-scoped)
+  total_spent: number     // = BusinessCustomer.totalSpent (tenant-scoped)
+  avg_order_value: number // = totalSpent / ordersCount
+  tier: 'new' | 'regular' | 'vip'  // derived from BusinessCustomer.loyaltyTier
+  last_order_at?: string  // = BusinessCustomer.lastInteractionAt
+}
+```
+
+**Backend derivation rule:** When the backend serves `/admin/customers/`, it MUST join PlatformUser + BusinessCustomer filtered to the authenticated staff member's `tenantId`. Cross-tenant data MUST NOT be returned.
+
+---
+
+### 34.6 Loyalty Isolation
+
+`LoyaltyAccount` and `LoyaltyTransaction` MUST include `tenantId`. Loyalty at business A never carries to business B.
+
+```typescript
+interface LoyaltyAccount {
+  id: string
+  userId: string       // → PlatformUser.id
+  tenantId: string     // Required — loyalty is per BusinessCustomer relationship
+  points: number       // Redeemable
+  lifetimePoints: number
+  tier: 'bronze' | 'silver' | 'gold' | 'platinum'
+  tierExpiresAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface LoyaltyTransaction {
+  id: string
+  accountId: string    // → LoyaltyAccount.id
+  tenantId: string     // Denormalized for fast queries; must match LoyaltyAccount.tenantId
+  type: 'earn' | 'redeem' | 'expire' | 'adjust'
+  points: number       // Negative for redeem/expire
+  description: string
+  createdAt: string
+  referenceId?: string // orderId or rewardId
+}
+```
+
+**Endpoints (existing — updated to require tenantId):**
+
+| Method | Path | Auth | Change from P6 |
+|--------|------|------|---------------|
+| `GET` | `/loyalty/account/` | Customer (JWT) | Backend must use `request.tenant` to scope lookup |
+| `GET` | `/loyalty/transactions/` | Customer (JWT) | Same — tenant-scoped |
+| `POST` | `/loyalty/rewards/{id}/redeem/` | Customer (JWT) | Deduct from tenant-specific account only |
+| `POST` | `/loyalty/earn/` | Internal/Order service | Must pass `tenantId` in payload |
+
+---
+
+### 34.7 Frontend Mock Data Reference
+
+For development/QA, the frontend provides pre-built mock data in `src/lib/mock-data.ts`:
+
+| Export | Count | Notes |
+|--------|-------|-------|
+| `MOCK_PLATFORM_USERS` | 32 | pu-001 through pu-032; phone-primary; varied statuses |
+| `MOCK_BUSINESS_CUSTOMERS` | 48 | Distributed across 6 tenants; cross-tenant users demonstrated |
+| `MOCK_BRANCH_CUSTOMERS` | 40 | Per-branch breakdown for MOCK_BUSINESS_CUSTOMERS |
+| `MOCK_LOYALTY_ACCOUNTS` | 15 | All include `tenantId`; independently scoped per tenant |
+
+**Cross-tenant user example (pu-001 / Alice Johnson):**
+- `tenant-savor-01`: 14 orders, gold tier, 2,840 pts
+- `tenant-brew-cafe-01`: 31 orders, gold tier, 1,580 pts
+- `tenant-wheels-brews-01`: 25 orders, gold tier, 3,200 pts
+
+These three records are completely independent; Alice's loyalty at Savor never affects Brew Café.
