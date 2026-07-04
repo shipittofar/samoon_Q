@@ -383,7 +383,7 @@ describe('I. admin navigation', () => {
 
   it('adminNavItems has 6 items', async () => {
     const { FOOD_TRUCK_MODULE } = await import('@/modules/registry')
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(20)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(21)
   })
 
   it('Route Management links to /console/food-truck/routes', async () => {
@@ -414,7 +414,7 @@ describe('I. admin navigation', () => {
 
   it('getAdminNav(["food_truck"]) returns 6 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['food_truck'])).toHaveLength(20)
+    expect(getAdminNav(['food_truck'])).toHaveLength(21)
   })
 
   it('getAdminNav(["food_truck"]) includes Route Management', async () => {
@@ -616,7 +616,7 @@ describe('M. cafe regression', () => {
 
   it('cafe admin nav still returns 7 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(21)
+    expect(getAdminNav(['cafe'])).toHaveLength(22)
   })
 
   it('getHeaderNav(["cafe"]) does not include Live Location', async () => {
@@ -638,7 +638,7 @@ describe('N. bar regression', () => {
 
   it('bar admin nav still returns 7 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['bar'])).toHaveLength(22)
+    expect(getAdminNav(['bar'])).toHaveLength(23)
   })
 
   it('getHeaderNav(["bar"]) does not include Live Location or Stop Management', async () => {
@@ -662,7 +662,7 @@ describe('O. food court regression', () => {
 
   it('food court admin nav still returns 6 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['food_court'])).toHaveLength(21)
+    expect(getAdminNav(['food_court'])).toHaveLength(22)
   })
 
   it('getHeaderNav(["food_court"]) does not include Live Location', async () => {

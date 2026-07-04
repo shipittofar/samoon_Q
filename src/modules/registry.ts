@@ -154,6 +154,18 @@ const SETTINGS_NAV_ITEM = {
   permissionKey: 'settings.view',
 } as const
 
+// P9.1.3 — Platform Configuration Console entry point. Lists every registered
+// PlatformConfigurationRegistry module (Authentication first); future modules
+// appear beside it automatically since the index page reads the registry,
+// not a hardcoded list (see src/app/console/settings/configuration/page.tsx).
+const PLATFORM_CONFIGURATION_NAV_ITEM = {
+  href: '/console/settings/configuration',
+  label: 'Platform Configuration',
+  icon: 'SlidersHorizontal',
+  group: 'System',
+  permissionKey: 'settings.view',
+} as const
+
 // P8.5 — Enterprise RBAC management nav items
 const PERMISSIONS_NAV_ITEM = {
   href: '/console/permissions',
@@ -278,7 +290,13 @@ const PROMOTIONS_NAV_ITEM = {
 export const ADMIN_OPERATIONS_ROUTES: readonly string[] = ['/console/operations', '/console/kitchen']
 
 /** Settings routes (P7.8) — spread into each module's routes array. */
-export const ADMIN_SETTINGS_ROUTES: readonly string[] = ['/console/settings', '/console/settings/feature-flags']
+export const ADMIN_SETTINGS_ROUTES: readonly string[] = [
+  '/console/settings',
+  '/console/settings/feature-flags',
+  // P9.1.3 — Platform Configuration Console (generic, reused per module id).
+  '/console/settings/configuration',
+  '/console/settings/configuration/[moduleId]',
+]
 
 /** User management routes (P8.6) — spread into each module's routes array. */
 export const ADMIN_USERS_ROUTES: readonly string[] = ['/console/users', '/console/users/[id]']
@@ -344,6 +362,7 @@ export const RESTAURANT_MODULE: Module = {
     // System
     NOTIFICATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PLATFORM_CONFIGURATION_NAV_ITEM,
   ],
   enabled: true,
 }
@@ -425,6 +444,7 @@ export const CAFE_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
     USERS_NAV_ITEM,
@@ -503,6 +523,7 @@ export const BAR_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
     USERS_NAV_ITEM,
@@ -579,6 +600,7 @@ export const FOOD_COURT_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
     USERS_NAV_ITEM,
@@ -655,6 +677,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
     USERS_NAV_ITEM,
@@ -735,6 +758,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
     USERS_NAV_ITEM,

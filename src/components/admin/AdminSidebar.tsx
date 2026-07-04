@@ -41,6 +41,7 @@ import {
   ScrollText,
   Bell,
   Settings,
+  SlidersHorizontal,
   Zap,
   Plus,
 } from 'lucide-react'
@@ -74,6 +75,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   ScrollText,
   Bell,
   Settings,
+  SlidersHorizontal,
   LayoutDashboard,
   Zap,
 }
