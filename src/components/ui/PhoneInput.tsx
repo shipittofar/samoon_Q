@@ -197,19 +197,29 @@ function useAnnouncer() {
 }
 
 // ── VisualViewport keyboard safety ────────────────────────────────────────────
+//
+// The Bottom Sheet stays anchored at bottom:0. When a software keyboard opens,
+// visualViewport.height shrinks. We cap the sheet's maxHeight to that visible
+// height so only the inner list (flex-1) shrinks — the sheet never moves.
 
-function useVisualViewport() {
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
+interface ViewportState {
+  keyboardHeight: number  // px the keyboard occupies (0 when hidden)
+  viewportHeight: number  // px of visible screen above keyboard
+}
+
+function useVisualViewport(): ViewportState {
+  const [state, setState] = useState<ViewportState>({
+    keyboardHeight: 0,
+    viewportHeight: typeof window !== 'undefined' ? window.innerHeight : 800,
+  })
 
   useEffect(() => {
     const vv = window.visualViewport
     if (!vv) return
 
     function update() {
-      const windowHeight = window.innerHeight
-      const viewportHeight = vv!.height
-      const offset = windowHeight - viewportHeight - (vv!.offsetTop ?? 0)
-      setKeyboardHeight(Math.max(0, offset))
+      const kh = Math.max(0, window.innerHeight - vv!.height - (vv!.offsetTop ?? 0))
+      setState({ keyboardHeight: kh, viewportHeight: vv!.height })
     }
 
     vv.addEventListener('resize', update)
@@ -221,7 +231,7 @@ function useVisualViewport() {
     }
   }, [])
 
-  return keyboardHeight
+  return state
 }
 
 // ── Section header ─────────────────────────────────────────────────────────────
@@ -327,7 +337,12 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
   const [recents, setRecents] = useState<Country[]>([])
-  const keyboardHeight = useVisualViewport()
+  const { keyboardHeight, viewportHeight } = useVisualViewport()
+  // When the software keyboard is open (height > 50px threshold), cap the sheet
+  // to 92% of the remaining visible area. The sheet stays at bottom:0; only its
+  // internal flex-1 list shrinks to fit.
+  const keyboardOpen = keyboardHeight > 50
+  const sheetMaxHeight = keyboardOpen ? `${Math.round(viewportHeight * 0.92)}px` : undefined
 
   const searchRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -687,13 +702,17 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: slideY, opacity: prefersReducedMotion ? 0 : 1 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300, duration: motionDuration }}
-            style={{ bottom: keyboardHeight }}
+            style={sheetMaxHeight ? { maxHeight: sheetMaxHeight } : undefined}
             className={cn(
-              // Base
+              // Base — sheet never moves; bottom:0 is always its anchor
               'fixed z-50 bg-[var(--bg)] shadow-2xl flex flex-col',
-              // Mobile: bottom sheet (bottom set via style for VisualViewport)
-              'start-0 end-0 rounded-t-2xl max-h-[85dvh]',
-              // Desktop: centered modal
+              // Mobile: bottom sheet anchored at bottom:0
+              // maxHeight caps to VisualViewport height when keyboard is open;
+              // the inner flex-1 list absorbs the resize (sheet never translates)
+              'bottom-0 start-0 end-0 rounded-t-2xl max-h-[85dvh]',
+              // Smooth max-height transition as keyboard slides in/out
+              prefersReducedMotion ? '' : 'transition-[max-height] duration-200 ease-out',
+              // Desktop: centered modal (overrides bottom:0 with centering transform)
               'md:bottom-auto md:start-1/2 md:top-1/2',
               'md:-translate-x-1/2 md:-translate-y-1/2',
               'md:rounded-2xl md:w-[480px] md:max-h-[70vh]',
