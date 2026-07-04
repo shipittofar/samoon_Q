@@ -40,13 +40,25 @@ export interface ConfigFieldValidation {
   required?: boolean
   min?: number
   max?: number
+  /** Increment step for numeric/slider controls — display hint only; not enforced by ConfigurationValidator. */
+  step?: number
   minLength?: number
   maxLength?: number
   /** Regex source (no flags) evaluated against string values. */
   pattern?: string
   enumValues?: Array<string | number>
+  /** Deny-list — a value matching any of these fails validation even if otherwise valid. */
+  disallowedValues?: Array<string | number>
   /** Name of a validator registered with ConfigurationValidator.registerRule(). */
   custom?: string
+  /** Soft warning shown alongside a value that is valid but discouraged (e.g. an unusually low timeout). Display-only — never blocks a write. */
+  warningMessage?: string
+  /** Overrides ConfigurationValidator's generated message for this field, when a friendlier one is warranted. */
+  errorMessage?: string
+  /** Whether the Console should run this field's validation before submit (P9.1.2.1 — metadata only, no client validator implemented here). Defaults true when omitted. */
+  clientValidation?: boolean
+  /** Whether the backend must re-validate on write, even if the client already did (defense in depth). Defaults true when omitted. */
+  serverValidation?: boolean
 }
 
 // ── Secret references (P9.0.1 / Phase C) ─────────────────────────────────────
@@ -141,6 +153,134 @@ export interface ConfigFieldPermissions {
  */
 export type ConfigLifecycleState = 'draft' | 'testing' | 'published' | 'deprecated' | 'archived'
 
+// ── Console Readiness metadata (P9.1.2.1) ────────────────────────────────────
+//
+// Everything in this block is OPTIONAL and purely descriptive — no resolver,
+// validator, cache, audit, or service logic reads any of it as of P9.1.2.1.
+// It exists so a future Console can generate forms, search, and dependency
+// wiring directly from the registry instead of hand-built per-field UI (Rule
+// 7). Adding these fields to ConfigFieldDefinition is non-breaking: every
+// existing field registration across all 15 modules remains valid untouched.
+// See docs/P9.1.2.1_CONFIGURATION_METADATA.md for the full rendering model.
+
+/**
+ * Rendering hint for the future Console — which control a field should be
+ * drawn with. Distinct from `type` (the value's data shape): a `'string'`
+ * field might render as `'text'`, `'textarea'`, or `'secret_input'` depending
+ * on this hint, and a `'number'` field might render as `'number'` or
+ * `'slider'`. When omitted, the Console falls back to a sensible default
+ * purely from `type` (see the mapping table in
+ * docs/P9.1.2.1_CONFIGURATION_METADATA.md).
+ */
+export type ConfigUIControlType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'slider'
+  | 'switch'
+  | 'checkbox'
+  | 'radio'
+  | 'country_selector'
+  | 'language_selector'
+  | 'color_picker'
+  | 'font_selector'
+  | 'json_editor'
+  | 'secret_input'
+  | 'otp_provider_picker'
+  | 'timezone_picker'
+  | 'currency_picker'
+  | 'file_upload'
+  | 'table_editor'
+
+/** Phase B — organizational/display metadata beyond the always-required title/description/helpText/placeholder/category. */
+export interface ConfigFieldDisplayMeta {
+  /** Short label for compact UI (chips, search results) when `title` is too long. Falls back to `title` when absent. */
+  displayName?: string
+  /** A finer grouping within `category`, e.g. category 'security' + subcategory 'otp'. */
+  subcategory?: string
+  /** Icon name (lucide-react convention, matching ADMIN_NAV_ICON_MAP's pattern in AdminSidebar). */
+  icon?: string
+  /** Sort position within its section. Lower renders first. Fields without one sort after those with one, in registration order. */
+  displayOrder?: number
+  /** Visual grouping tag distinct from `category`/`subcategory` — e.g. grouping fields from different sections under one Console tab. */
+  group?: string
+  /** Short label rendered as a chip next to the field, e.g. "New", "Recommended". Distinct from lifecycle state badges, which the Console derives automatically. */
+  badge?: string
+  tags?: string[]
+  /** Link to prose documentation for this specific field (module-level docs live in ConfigModuleDefinition's own description). */
+  documentationLink?: string
+  /** Name of a Console-side custom preview component, for fields whose preview needs more than `ConfigFieldPreview.kind` supports. */
+  previewComponent?: string
+  /** A realistic example value shown as inline guidance, distinct from `default` (the value actually used) and `placeholder` (shown in an empty input). */
+  exampleValue?: unknown
+  /** Prose explaining *why* the default is what it is — for fields whose default isn't self-evident (e.g. "300s balances SMS delivery latency against brute-force exposure"). */
+  defaultExplanation?: string
+}
+
+/** Phase D — permission/risk metadata beyond the always-required `permissions: { view, edit }`. */
+export interface ConfigFieldGovernanceMeta {
+  /** Specific roles/permission keys allowed to edit, narrower than `permissions.edit` alone — e.g. edit requires 'settings.manage' AND being in this list. Empty/omitted means `permissions.edit` alone governs. */
+  editableBy?: string[]
+  /** Specific roles/permission keys allowed to view, narrower than `permissions.view` alone. */
+  visibleTo?: string[]
+  /** How much detail the audit trail captures for this field, beyond the boolean `audit.trackHistory`. */
+  auditLevel?: 'none' | 'basic' | 'detailed' | 'forensic'
+  /** Coarse risk classification the Console uses for visual treatment (e.g. a red border on 'critical' fields) — distinct from `audit.sensitive` (which governs redaction specifically). */
+  securityLevel?: 'low' | 'medium' | 'high' | 'critical'
+  /** Whether a change to this field must go through an approval workflow before taking effect (workflow itself is not implemented here — metadata only). */
+  requiresApproval?: boolean
+  /** Whether a change requires an application/process restart to take effect (vs. being live-read on next resolution). */
+  requiresRestart?: boolean
+  /** Whether a change requires an explicit "publish" step (draft → live) rather than taking effect immediately on write. */
+  requiresPublish?: boolean
+  /** Whether the runtime picks up a change without restart or publish — the common case; explicit here so the Console can warn when it's false. */
+  runtimeReloadable?: boolean
+  /** Whether the Console should show an extra confirmation step before allowing a write (e.g. system.maintenance_mode). */
+  dangerous?: boolean
+  experimental?: boolean
+  beta?: boolean
+  /** Never shown to tenant-level administrators, regardless of `visibility` — reserved for platform engineering only. */
+  internalOnly?: boolean
+}
+
+/** A single condition referencing another field's resolved value — the building block for `enabledWhen`/`hiddenWhen`. */
+export interface ConfigFieldCondition {
+  fieldId: string
+  equals?: unknown
+  notEquals?: unknown
+  in?: unknown[]
+}
+
+/** Phase F — dependency metadata so a future Console can show/hide/disable fields automatically without per-field UI logic. */
+export interface ConfigFieldDependencyMeta {
+  /** Field ids this field's value or availability depends on, for display/documentation purposes. */
+  dependsOn?: string[]
+  /** The Console renders this field's control as enabled only when this condition holds; disabled (but still visible) otherwise. */
+  enabledWhen?: ConfigFieldCondition
+  /** The Console hides this field entirely when this condition holds. */
+  hiddenWhen?: ConfigFieldCondition
+  /** Field ids that cannot simultaneously hold a truthy/non-default value alongside this one — Console shows a warning, does not block (validation-time enforcement is a future ConfigurationValidator custom rule, not implied by this metadata alone). */
+  conflictsWith?: string[]
+  /** Field ids that must already have a non-default value for this field to make sense (weaker than `dependsOn` — informational). */
+  requires?: string[]
+  /** Field ids forming a radio-group-like set where only one may be truthy/active at a time. */
+  mutuallyExclusive?: string[]
+}
+
+/** Phase G — search metadata to power a future global configuration search. Not consumed by any search implementation in P9.1.2.1. */
+export interface ConfigFieldSearchMeta {
+  keywords?: string[]
+  aliases?: string[]
+  /** Relative ranking boost for search results; higher sorts first. Unset fields rank neutrally. */
+  searchWeight?: number
+  /** Platform-wide "commonly favorited" flag — distinct from any individual admin's personal favorites (a future per-user preference, not modeled here). */
+  favorite?: boolean
+  /** Whether to surface this field in a "recently changed" quick-access list — derived data in a real implementation; a static hint here for design purposes only. */
+  recent?: boolean
+  /** Platform-wide "commonly adjusted" flag, analogous to `favorite` but computed from usage rather than curated. */
+  popular?: boolean
+}
+
 export interface ConfigFieldDefinition<T = unknown> {
   /** Dotted, globally unique id, e.g. "authentication.otp.length". */
   id: string
@@ -165,6 +305,18 @@ export interface ConfigFieldDefinition<T = unknown> {
   deprecated?: boolean
   /** When set, the field itself only applies while this platform feature flag is on. */
   featureFlag?: string
+
+  // ── Console Readiness (P9.1.2.1) — all optional, all descriptive only ──────
+  /** Rendering hint (Phase C). Omit to let the Console infer a default control from `type`. */
+  uiControl?: ConfigUIControlType
+  /** Organizational/display metadata (Phase B). */
+  display?: ConfigFieldDisplayMeta
+  /** Permission/risk metadata beyond `permissions` (Phase D). */
+  governance?: ConfigFieldGovernanceMeta
+  /** Show/hide/conflict wiring for a future Console (Phase F). */
+  dependency?: ConfigFieldDependencyMeta
+  /** Global configuration search metadata (Phase G). */
+  search?: ConfigFieldSearchMeta
 }
 
 export interface ConfigSectionDefinition {

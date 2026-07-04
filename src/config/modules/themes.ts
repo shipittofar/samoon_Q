@@ -36,6 +36,7 @@ export const THEMES_MODULE: ConfigModuleDefinition = {
           ],
           permissions: PERMISSIONS,
           inheritance: { level: 'platform', canOverride: true, mode: 'override', fallback: 'inherit' },
+          uiControl: 'radio',
         }),
         defineField({
           id: 'themes.primary_color',
@@ -47,6 +48,8 @@ export const THEMES_MODULE: ConfigModuleDefinition = {
           permissions: PERMISSIONS,
           preview: { kind: 'swatch' },
           inheritance: { level: 'platform', canOverride: true, mode: 'override', fallback: 'inherit' },
+          uiControl: 'color_picker',
+          display: { exampleValue: '#f97316' },
         }),
         defineField({
           id: 'themes.accent_hover_color',
@@ -58,6 +61,8 @@ export const THEMES_MODULE: ConfigModuleDefinition = {
           permissions: PERMISSIONS,
           preview: { kind: 'swatch' },
           inheritance: { level: 'tenant', canOverride: true, mode: 'override', fallback: 'inherit' },
+          uiControl: 'color_picker',
+          dependency: { dependsOn: ['themes.primary_color'] },
         }),
         defineField({
           id: 'themes.logo_url',
@@ -68,6 +73,7 @@ export const THEMES_MODULE: ConfigModuleDefinition = {
           permissions: PERMISSIONS,
           preview: { kind: 'image' },
           inheritance: { level: 'tenant', canOverride: true, mode: 'override', fallback: 'inherit' },
+          uiControl: 'file_upload',
         }),
       ],
     },

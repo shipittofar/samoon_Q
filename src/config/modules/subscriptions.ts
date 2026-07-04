@@ -35,6 +35,8 @@ export const SUBSCRIPTIONS_MODULE: ConfigModuleDefinition = {
           permissions: PERMISSIONS,
           preview: { kind: 'json' },
           inheritance: { level: 'platform', canOverride: false, mode: 'locked', fallback: 'inherit' },
+          uiControl: 'table_editor',
+          display: { previewComponent: 'PlanCatalogTable' },
         }),
         defineField({
           id: 'subscriptions.default_plan_id',

@@ -53,6 +53,8 @@ export const PAYMENTS_MODULE: ConfigModuleDefinition = {
           permissions: PERMISSIONS,
           audit: { trackHistory: true, requireReason: true, sensitive: true },
           inheritance: { level: 'tenant', canOverride: true, mode: 'override', fallback: 'inherit' },
+          uiControl: 'secret_input',
+          governance: { securityLevel: 'critical', dangerous: true },
         }),
         defineField({
           id: 'payments.default_currency',
@@ -68,6 +70,7 @@ export const PAYMENTS_MODULE: ConfigModuleDefinition = {
           ],
           permissions: PERMISSIONS,
           inheritance: { level: 'tenant', canOverride: true, mode: 'override', fallback: 'inherit' },
+          uiControl: 'currency_picker',
         }),
         defineField({
           id: 'payments.platform_fee_percent',

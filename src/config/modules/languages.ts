@@ -49,6 +49,8 @@ export const LANGUAGES_MODULE: ConfigModuleDefinition = {
           options: LANGUAGE_OPTIONS,
           permissions: PERMISSIONS,
           inheritance: { level: 'tenant', canOverride: true, mode: 'override', fallback: 'inherit' },
+          uiControl: 'language_selector',
+          display: { icon: 'Languages' },
         }),
         defineField({
           id: 'languages.rtl_locales',
