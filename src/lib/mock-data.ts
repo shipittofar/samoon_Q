@@ -1,4 +1,4 @@
-import type { Branch, Category, MenuItem, Notification, Order, Reservation, User } from '@/types'
+import type { Branch, BusinessCustomer, BranchCustomer, Category, LoyaltyAccount, MenuItem, Notification, Order, PlatformUser, Reservation, User } from '@/types'
 
 // ── Users ────────────────────────────────────────────────────────────────────
 export const MOCK_USER: User = {
@@ -590,4 +590,204 @@ export const MOCK_RESERVATIONS: Reservation[] = [
     notes: 'Window seat preferred',
     created_at: new Date().toISOString(),
   },
+]
+
+// ── P8.9.6 — Platform Customer Identity ──────────────────────────────────────
+//
+// PlatformUser = one record per real person, created at registration.
+// Phone is the primary identifier (phone-first auth per P8.9.3).
+// These users are NOT customers of any specific business until they interact.
+//
+// Tenant IDs used below:
+//   tenant-savor-01         (restaurant — 3 branches: main, downtown, airport)
+//   tenant-brew-cafe-01     (cafe       — 2 branches: main/midtown, brooklyn-cafe)
+//   tenant-oak-bar-01       (bar        — 1 branch:   main)
+//   tenant-central-fc-01    (food court — 1 branch:   main)
+//   tenant-wheels-brews-01  (mobile cafe — 1 branch:  main)
+//   tenant-road-bites-01    (food truck — 1 branch:   main)
+
+export const MOCK_PLATFORM_USERS: PlatformUser[] = [
+  // ── Regular cross-business users ──
+  { id: 'pu-001', phone: '+12125550101', name: 'Alice Johnson',   email: 'alice@example.com',   avatar: undefined, language: 'en', createdAt: '2023-06-15T10:00:00Z', status: 'active' },
+  { id: 'pu-002', phone: '+12125550102', name: 'Bob Smith',       email: 'bob@example.com',     avatar: undefined, language: 'en', createdAt: '2023-07-20T09:30:00Z', status: 'active' },
+  { id: 'pu-003', phone: '+12125550103', name: 'Carol Davis',     email: 'carol@example.com',   avatar: undefined, language: 'en', createdAt: '2023-04-10T14:00:00Z', status: 'active' },
+  { id: 'pu-004', phone: '+12125550104', name: 'David Wilson',    email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-01-05T11:00:00Z', status: 'active' },
+  { id: 'pu-005', phone: '+12125550105', name: 'Emma Brown',      email: 'emma@example.com',    avatar: undefined, language: 'en', createdAt: '2023-03-01T08:00:00Z', status: 'active' },
+  { id: 'pu-006', phone: '+12125550106', name: 'Frank Garcia',    email: 'frank@example.com',   avatar: undefined, language: 'es', createdAt: '2023-09-12T13:00:00Z', status: 'active' },
+  { id: 'pu-007', phone: '+12125550107', name: 'Grace Lee',       email: 'grace@example.com',   avatar: undefined, language: 'en', createdAt: '2023-11-08T16:00:00Z', status: 'active' },
+  { id: 'pu-008', phone: '+12125550108', name: 'Henry Martinez',  email: undefined,             avatar: undefined, language: 'es', createdAt: '2024-02-14T10:30:00Z', status: 'active' },
+  { id: 'pu-009', phone: '+12125550109', name: 'Iris Chen',       email: 'iris@example.com',    avatar: undefined, language: 'zh', createdAt: '2023-08-25T15:00:00Z', status: 'active' },
+  { id: 'pu-010', phone: '+12125550110', name: 'James Taylor',    email: 'james@example.com',   avatar: undefined, language: 'en', createdAt: '2023-05-30T12:00:00Z', status: 'active' },
+  { id: 'pu-011', phone: '+12125550111', name: 'Karen White',     email: 'karen@example.com',   avatar: undefined, language: 'en', createdAt: '2023-10-17T09:00:00Z', status: 'active' },
+  { id: 'pu-012', phone: '+12125550112', name: 'Liam Anderson',   email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-03-22T14:00:00Z', status: 'active' },
+  { id: 'pu-013', phone: '+12125550113', name: 'Mia Jackson',     email: 'mia@example.com',     avatar: undefined, language: 'en', createdAt: '2023-12-01T10:00:00Z', status: 'active' },
+  { id: 'pu-014', phone: '+12125550114', name: 'Noah Harris',     email: 'noah@example.com',    avatar: undefined, language: 'en', createdAt: '2023-07-07T11:00:00Z', status: 'active' },
+  { id: 'pu-015', phone: '+12125550115', name: 'Olivia Thomas',   email: 'olivia@example.com',  avatar: undefined, language: 'en', createdAt: '2023-02-20T08:30:00Z', status: 'active' },
+  { id: 'pu-016', phone: '+12125550116', name: 'Peter Robinson',  email: 'peter@example.com',   avatar: undefined, language: 'en', createdAt: '2024-04-10T13:00:00Z', status: 'active' },
+  { id: 'pu-017', phone: '+12125550117', name: 'Quinn Walker',    email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-01-18T16:00:00Z', status: 'active' },
+  { id: 'pu-018', phone: '+12125550118', name: 'Rachel Hall',     email: 'rachel@example.com',  avatar: undefined, language: 'en', createdAt: '2023-06-30T09:30:00Z', status: 'active' },
+  { id: 'pu-019', phone: '+12125550119', name: 'Samuel Young',    email: 'samuel@example.com',  avatar: undefined, language: 'en', createdAt: '2023-09-05T10:00:00Z', status: 'active' },
+  { id: 'pu-020', phone: '+12125550120', name: 'Tina King',       email: 'tina@example.com',    avatar: undefined, language: 'en', createdAt: '2023-04-15T14:30:00Z', status: 'active' },
+  // ── Additional users for realistic list density ──
+  { id: 'pu-021', phone: '+12125550121', name: 'Uma Scott',       email: 'uma@example.com',     avatar: undefined, language: 'en', createdAt: '2024-05-01T11:00:00Z', status: 'active' },
+  { id: 'pu-022', phone: '+12125550122', name: 'Victor Green',    email: undefined,             avatar: undefined, language: 'pt', createdAt: '2024-02-28T09:00:00Z', status: 'active' },
+  { id: 'pu-023', phone: '+12125550123', name: 'Wendy Adams',     email: 'wendy@example.com',   avatar: undefined, language: 'en', createdAt: '2023-11-20T15:00:00Z', status: 'active' },
+  { id: 'pu-024', phone: '+12125550124', name: 'Xavier Baker',    email: 'xavier@example.com',  avatar: undefined, language: 'en', createdAt: '2023-08-14T10:00:00Z', status: 'active' },
+  { id: 'pu-025', phone: '+12125550125', name: 'Yara Nelson',     email: 'yara@example.com',    avatar: undefined, language: 'ar', createdAt: '2024-01-30T12:00:00Z', status: 'active' },
+  { id: 'pu-026', phone: '+12125550126', name: 'Zoe Carter',      email: 'zoe@example.com',     avatar: undefined, language: 'en', createdAt: '2023-10-05T09:30:00Z', status: 'active' },
+  { id: 'pu-027', phone: '+12125550127', name: 'Aaron Mitchell',  email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-03-08T14:00:00Z', status: 'active' },
+  { id: 'pu-028', phone: '+12125550128', name: 'Bella Perez',     email: 'bella@example.com',   avatar: undefined, language: 'es', createdAt: '2023-12-18T11:00:00Z', status: 'active' },
+  { id: 'pu-029', phone: '+12125550129', name: 'Carlos Rivera',   email: 'carlos@example.com',  avatar: undefined, language: 'es', createdAt: '2023-05-22T10:30:00Z', status: 'active' },
+  { id: 'pu-030', phone: '+12125550130', name: 'Diana Evans',     email: 'diana@example.com',   avatar: undefined, language: 'en', createdAt: '2023-07-11T08:00:00Z', status: 'active' },
+  // ── Suspended / inactive users (edge case testing) ──
+  { id: 'pu-031', phone: '+12125550131', name: 'Ethan Collins',   email: 'ethan@example.com',   avatar: undefined, language: 'en', createdAt: '2023-09-29T13:00:00Z', status: 'suspended' },
+  { id: 'pu-032', phone: '+12125550132', name: 'Fiona Stewart',   email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-04-20T10:00:00Z', status: 'inactive' },
+]
+
+// ── BusinessCustomer — per-tenant relationships ───────────────────────────────
+//
+// Each BusinessCustomer links one PlatformUser to one tenant.
+// Metrics (ordersCount, totalSpent, loyaltyPoints) are SCOPED to this tenant only.
+// A user visiting both savor-01 and brew-cafe-01 gets two separate BusinessCustomer records.
+
+export const MOCK_BUSINESS_CUSTOMERS: BusinessCustomer[] = [
+  // ── tenant-savor-01 (restaurant, 3 branches) ──
+  { id: 'bc-s01-001', userId: 'pu-001', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-06-20T12:00:00Z', lastInteractionAt: '2024-05-10T19:30:00Z', ordersCount: 14, reservationsCount: 3, totalSpent: 420.50, favorite: true,  lifetimeValue: 420.50, lastBranchId: 'downtown', loyaltyPoints: 1240, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-002', userId: 'pu-002', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-08-05T13:00:00Z', lastInteractionAt: '2024-04-20T20:00:00Z', ordersCount: 6,  reservationsCount: 1, totalSpent: 180.00, favorite: false, lifetimeValue: 180.00, lastBranchId: 'main',     loyaltyPoints: 420,  loyaltyTier: 'silver',   status: 'active' },
+  { id: 'bc-s01-003', userId: 'pu-003', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-04-12T18:00:00Z', lastInteractionAt: '2024-05-15T20:30:00Z', ordersCount: 22, reservationsCount: 6, totalSpent: 890.75, favorite: true,  lifetimeValue: 890.75, lastBranchId: 'airport',  loyaltyPoints: 2680, loyaltyTier: 'platinum', status: 'active' },
+  { id: 'bc-s01-004', userId: 'pu-004', tenantId: 'tenant-savor-01', firstInteractionAt: '2024-01-10T12:30:00Z', lastInteractionAt: '2024-01-10T12:30:00Z', ordersCount: 1,  reservationsCount: 0, totalSpent: 29.99,  favorite: false, lifetimeValue: 29.99,  lastBranchId: 'main',     loyaltyPoints: 90,   loyaltyTier: 'bronze',   status: 'active' },
+  { id: 'bc-s01-005', userId: 'pu-005', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-03-05T19:00:00Z', lastInteractionAt: '2024-05-18T21:00:00Z', ordersCount: 18, reservationsCount: 4, totalSpent: 650.00, favorite: true,  lifetimeValue: 650.00, lastBranchId: 'downtown', loyaltyPoints: 1950, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-006', userId: 'pu-006', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-09-18T13:30:00Z', lastInteractionAt: '2024-03-30T20:00:00Z', ordersCount: 9,  reservationsCount: 2, totalSpent: 310.25, favorite: false, lifetimeValue: 310.25, lastBranchId: 'main',     loyaltyPoints: 930,  loyaltyTier: 'silver',   status: 'active' },
+  { id: 'bc-s01-007', userId: 'pu-007', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-11-12T18:30:00Z', lastInteractionAt: '2024-04-25T19:30:00Z', ordersCount: 7,  reservationsCount: 1, totalSpent: 245.00, favorite: false, lifetimeValue: 245.00, lastBranchId: 'airport',  loyaltyPoints: 735,  loyaltyTier: 'silver',   status: 'active' },
+  { id: 'bc-s01-008', userId: 'pu-008', tenantId: 'tenant-savor-01', firstInteractionAt: '2024-02-20T20:00:00Z', lastInteractionAt: '2024-04-05T19:00:00Z', ordersCount: 3,  reservationsCount: 1, totalSpent: 89.50,  favorite: false, lifetimeValue: 89.50,  lastBranchId: 'main',     loyaltyPoints: 270,  loyaltyTier: 'bronze',   status: 'active' },
+  { id: 'bc-s01-009', userId: 'pu-009', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-08-28T12:00:00Z', lastInteractionAt: '2024-05-08T13:00:00Z', ordersCount: 11, reservationsCount: 2, totalSpent: 380.00, favorite: true,  lifetimeValue: 380.00, lastBranchId: 'downtown', loyaltyPoints: 1140, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-010', userId: 'pu-010', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-06-02T19:30:00Z', lastInteractionAt: '2024-05-01T20:00:00Z', ordersCount: 15, reservationsCount: 3, totalSpent: 510.00, favorite: false, lifetimeValue: 510.00, lastBranchId: 'main',     loyaltyPoints: 1530, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-011', userId: 'pu-011', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-10-20T18:00:00Z', lastInteractionAt: '2024-04-15T19:00:00Z', ordersCount: 8,  reservationsCount: 2, totalSpent: 275.00, favorite: false, lifetimeValue: 275.00, lastBranchId: 'downtown', loyaltyPoints: 825,  loyaltyTier: 'silver',   status: 'active' },
+  { id: 'bc-s01-012', userId: 'pu-013', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-12-05T20:00:00Z', lastInteractionAt: '2024-03-20T21:00:00Z', ordersCount: 5,  reservationsCount: 1, totalSpent: 165.00, favorite: false, lifetimeValue: 165.00, lastBranchId: 'main',     loyaltyPoints: 495,  loyaltyTier: 'bronze',   status: 'active' },
+  { id: 'bc-s01-013', userId: 'pu-015', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-02-25T19:00:00Z', lastInteractionAt: '2024-05-12T20:30:00Z', ordersCount: 28, reservationsCount: 7, totalSpent: 1120.00, favorite: true, lifetimeValue: 1120.00, lastBranchId: 'downtown', loyaltyPoints: 3360, loyaltyTier: 'platinum', status: 'active' },
+  { id: 'bc-s01-014', userId: 'pu-018', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-07-05T18:30:00Z', lastInteractionAt: '2024-04-28T19:30:00Z', ordersCount: 12, reservationsCount: 2, totalSpent: 420.00, favorite: false, lifetimeValue: 420.00, lastBranchId: 'airport',  loyaltyPoints: 1260, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-015', userId: 'pu-020', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-04-18T13:00:00Z', lastInteractionAt: '2024-05-05T12:30:00Z', ordersCount: 16, reservationsCount: 4, totalSpent: 555.00, favorite: true,  lifetimeValue: 555.00, lastBranchId: 'main',     loyaltyPoints: 1665, loyaltyTier: 'gold',     status: 'active' },
+
+  // ── tenant-brew-cafe-01 (cafe, 2 branches) ──
+  // Note: pu-001 (Alice) also visits the cafe — she has TWO BusinessCustomer records across the platform
+  { id: 'bc-bc01-001', userId: 'pu-001', tenantId: 'tenant-brew-cafe-01', firstInteractionAt: '2023-07-01T08:30:00Z', lastInteractionAt: '2024-05-12T09:00:00Z', ordersCount: 31, reservationsCount: 0, totalSpent: 248.00, favorite: true,  lifetimeValue: 248.00, lastBranchId: 'main',           loyaltyPoints: 744,  loyaltyTier: 'gold',   status: 'active' },
+  { id: 'bc-bc01-002', userId: 'pu-003', tenantId: 'tenant-brew-cafe-01', firstInteractionAt: '2023-05-10T07:45:00Z', lastInteractionAt: '2024-05-14T08:30:00Z', ordersCount: 45, reservationsCount: 0, totalSpent: 360.00, favorite: true,  lifetimeValue: 360.00, lastBranchId: 'brooklyn-cafe',  loyaltyPoints: 1080, loyaltyTier: 'gold',   status: 'active' },
+  { id: 'bc-bc01-003', userId: 'pu-009', tenantId: 'tenant-brew-cafe-01', firstInteractionAt: '2023-09-02T08:00:00Z', lastInteractionAt: '2024-04-30T09:15:00Z', ordersCount: 22, reservationsCount: 0, totalSpent: 176.00, favorite: false, lifetimeValue: 176.00, lastBranchId: 'main',           loyaltyPoints: 528,  loyaltyTier: 'silver', status: 'active' },
+  { id: 'bc-bc01-004', userId: 'pu-014', tenantId: 'tenant-brew-cafe-01', firstInteractionAt: '2023-07-10T09:00:00Z', lastInteractionAt: '2024-05-10T08:45:00Z', ordersCount: 18, reservationsCount: 0, totalSpent: 144.00, favorite: false, lifetimeValue: 144.00, lastBranchId: 'brooklyn-cafe',  loyaltyPoints: 432,  loyaltyTier: 'silver', status: 'active' },
+  { id: 'bc-bc01-005', userId: 'pu-016', tenantId: 'tenant-brew-cafe-01', firstInteractionAt: '2024-04-15T07:30:00Z', lastInteractionAt: '2024-05-08T08:00:00Z', ordersCount: 4,  reservationsCount: 0, totalSpent: 32.00,  favorite: false, lifetimeValue: 32.00,  lastBranchId: 'main',           loyaltyPoints: 96,   loyaltyTier: 'bronze', status: 'active' },
+  { id: 'bc-bc01-006', userId: 'pu-021', tenantId: 'tenant-brew-cafe-01', firstInteractionAt: '2024-05-02T08:15:00Z', lastInteractionAt: '2024-05-15T09:00:00Z', ordersCount: 3,  reservationsCount: 0, totalSpent: 24.00,  favorite: false, lifetimeValue: 24.00,  lastBranchId: 'main',           loyaltyPoints: 72,   loyaltyTier: 'bronze', status: 'active' },
+  { id: 'bc-bc01-007', userId: 'pu-023', tenantId: 'tenant-brew-cafe-01', firstInteractionAt: '2023-11-25T07:00:00Z', lastInteractionAt: '2024-05-13T08:00:00Z', ordersCount: 28, reservationsCount: 0, totalSpent: 224.00, favorite: false, lifetimeValue: 224.00, lastBranchId: 'brooklyn-cafe',  loyaltyPoints: 672,  loyaltyTier: 'gold',   status: 'active' },
+  { id: 'bc-bc01-008', userId: 'pu-026', tenantId: 'tenant-brew-cafe-01', firstInteractionAt: '2023-10-10T08:00:00Z', lastInteractionAt: '2024-05-11T09:30:00Z', ordersCount: 35, reservationsCount: 0, totalSpent: 280.00, favorite: true,  lifetimeValue: 280.00, lastBranchId: 'main',           loyaltyPoints: 840,  loyaltyTier: 'gold',   status: 'active' },
+
+  // ── tenant-oak-bar-01 (bar, 1 branch) ──
+  { id: 'bc-ob01-001', userId: 'pu-002', tenantId: 'tenant-oak-bar-01', firstInteractionAt: '2023-09-01T20:00:00Z', lastInteractionAt: '2024-05-04T22:00:00Z', ordersCount: 8,  reservationsCount: 2, totalSpent: 320.00, favorite: false, lifetimeValue: 320.00, lastBranchId: 'main', loyaltyPoints: 640,  loyaltyTier: 'silver', status: 'active' },
+  { id: 'bc-ob01-002', userId: 'pu-005', tenantId: 'tenant-oak-bar-01', firstInteractionAt: '2023-04-15T21:00:00Z', lastInteractionAt: '2024-04-20T23:00:00Z', ordersCount: 15, reservationsCount: 4, totalSpent: 600.00, favorite: true,  lifetimeValue: 600.00, lastBranchId: 'main', loyaltyPoints: 1200, loyaltyTier: 'gold',   status: 'active' },
+  { id: 'bc-ob01-003', userId: 'pu-010', tenantId: 'tenant-oak-bar-01', firstInteractionAt: '2023-06-10T20:30:00Z', lastInteractionAt: '2024-05-01T22:30:00Z', ordersCount: 11, reservationsCount: 1, totalSpent: 440.00, favorite: false, lifetimeValue: 440.00, lastBranchId: 'main', loyaltyPoints: 880,  loyaltyTier: 'silver', status: 'active' },
+  { id: 'bc-ob01-004', userId: 'pu-019', tenantId: 'tenant-oak-bar-01', firstInteractionAt: '2023-09-08T21:00:00Z', lastInteractionAt: '2024-03-15T23:00:00Z', ordersCount: 6,  reservationsCount: 1, totalSpent: 240.00, favorite: false, lifetimeValue: 240.00, lastBranchId: 'main', loyaltyPoints: 480,  loyaltyTier: 'bronze', status: 'active' },
+  { id: 'bc-ob01-005', userId: 'pu-024', tenantId: 'tenant-oak-bar-01', firstInteractionAt: '2023-08-18T22:00:00Z', lastInteractionAt: '2024-05-10T23:30:00Z', ordersCount: 12, reservationsCount: 3, totalSpent: 480.00, favorite: true,  lifetimeValue: 480.00, lastBranchId: 'main', loyaltyPoints: 960,  loyaltyTier: 'gold',   status: 'active' },
+
+  // ── tenant-central-fc-01 (food court, 1 branch) ──
+  { id: 'bc-fc01-001', userId: 'pu-003', tenantId: 'tenant-central-fc-01', firstInteractionAt: '2023-05-20T12:00:00Z', lastInteractionAt: '2024-05-15T13:30:00Z', ordersCount: 19, reservationsCount: 0, totalSpent: 380.00, favorite: true,  lifetimeValue: 380.00, lastBranchId: 'main', loyaltyPoints: 760,  loyaltyTier: 'gold',   status: 'active' },
+  { id: 'bc-fc01-002', userId: 'pu-007', tenantId: 'tenant-central-fc-01', firstInteractionAt: '2023-11-15T11:30:00Z', lastInteractionAt: '2024-04-28T12:00:00Z', ordersCount: 8,  reservationsCount: 0, totalSpent: 160.00, favorite: false, lifetimeValue: 160.00, lastBranchId: 'main', loyaltyPoints: 320,  loyaltyTier: 'silver', status: 'active' },
+  { id: 'bc-fc01-003', userId: 'pu-012', tenantId: 'tenant-central-fc-01', firstInteractionAt: '2024-03-25T12:30:00Z', lastInteractionAt: '2024-05-10T13:00:00Z', ordersCount: 4,  reservationsCount: 0, totalSpent: 80.00,  favorite: false, lifetimeValue: 80.00,  lastBranchId: 'main', loyaltyPoints: 160,  loyaltyTier: 'bronze', status: 'active' },
+  { id: 'bc-fc01-004', userId: 'pu-017', tenantId: 'tenant-central-fc-01', firstInteractionAt: '2024-01-22T11:00:00Z', lastInteractionAt: '2024-04-20T12:30:00Z', ordersCount: 6,  reservationsCount: 0, totalSpent: 120.00, favorite: false, lifetimeValue: 120.00, lastBranchId: 'main', loyaltyPoints: 240,  loyaltyTier: 'bronze', status: 'active' },
+  { id: 'bc-fc01-005', userId: 'pu-029', tenantId: 'tenant-central-fc-01', firstInteractionAt: '2023-05-25T12:00:00Z', lastInteractionAt: '2024-05-14T13:00:00Z', ordersCount: 22, reservationsCount: 0, totalSpent: 440.00, favorite: true,  lifetimeValue: 440.00, lastBranchId: 'main', loyaltyPoints: 880,  loyaltyTier: 'gold',   status: 'active' },
+
+  // ── tenant-wheels-brews-01 (mobile cafe, 1 branch) ──
+  { id: 'bc-wb01-001', userId: 'pu-001', tenantId: 'tenant-wheels-brews-01', firstInteractionAt: '2023-07-15T07:30:00Z', lastInteractionAt: '2024-05-13T08:00:00Z', ordersCount: 25, reservationsCount: 0, totalSpent: 175.00, favorite: true,  lifetimeValue: 175.00, lastBranchId: 'main', loyaltyPoints: 525,  loyaltyTier: 'gold',   status: 'active' },
+  { id: 'bc-wb01-002', userId: 'pu-011', tenantId: 'tenant-wheels-brews-01', firstInteractionAt: '2023-10-22T07:00:00Z', lastInteractionAt: '2024-05-08T08:15:00Z', ordersCount: 14, reservationsCount: 0, totalSpent: 98.00,  favorite: false, lifetimeValue: 98.00,  lastBranchId: 'main', loyaltyPoints: 294,  loyaltyTier: 'silver', status: 'active' },
+  { id: 'bc-wb01-003', userId: 'pu-022', tenantId: 'tenant-wheels-brews-01', firstInteractionAt: '2024-03-01T08:00:00Z', lastInteractionAt: '2024-05-12T08:45:00Z', ordersCount: 6,  reservationsCount: 0, totalSpent: 42.00,  favorite: false, lifetimeValue: 42.00,  lastBranchId: 'main', loyaltyPoints: 126,  loyaltyTier: 'bronze', status: 'active' },
+
+  // ── tenant-road-bites-01 (food truck, 1 branch) ──
+  { id: 'bc-rb01-001', userId: 'pu-006', tenantId: 'tenant-road-bites-01', firstInteractionAt: '2023-09-20T12:30:00Z', lastInteractionAt: '2024-05-11T13:00:00Z', ordersCount: 10, reservationsCount: 0, totalSpent: 150.00, favorite: false, lifetimeValue: 150.00, lastBranchId: 'main', loyaltyPoints: 300,  loyaltyTier: 'silver', status: 'active' },
+  { id: 'bc-rb01-002', userId: 'pu-028', tenantId: 'tenant-road-bites-01', firstInteractionAt: '2023-12-20T12:00:00Z', lastInteractionAt: '2024-05-09T13:30:00Z', ordersCount: 7,  reservationsCount: 0, totalSpent: 105.00, favorite: false, lifetimeValue: 105.00, lastBranchId: 'main', loyaltyPoints: 210,  loyaltyTier: 'bronze', status: 'active' },
+  { id: 'bc-rb01-003', userId: 'pu-030', tenantId: 'tenant-road-bites-01', firstInteractionAt: '2023-07-15T11:30:00Z', lastInteractionAt: '2024-04-30T12:30:00Z', ordersCount: 13, reservationsCount: 0, totalSpent: 195.00, favorite: true,  lifetimeValue: 195.00, lastBranchId: 'main', loyaltyPoints: 390,  loyaltyTier: 'silver', status: 'active' },
+]
+
+// ── BranchCustomer — per-branch visit behaviour ───────────────────────────────
+//
+// Each BranchCustomer links one BusinessCustomer to one branch.
+// For tenants with a single branch, each BusinessCustomer has exactly one BranchCustomer.
+// For multi-branch tenants (savor-01, brew-cafe-01) customers may have records at multiple branches.
+
+export const MOCK_BRANCH_CUSTOMERS: BranchCustomer[] = [
+  // ── tenant-savor-01 — main branch ──
+  { id: 'brc-s01-main-001', businessCustomerId: 'bc-s01-001', branchId: 'main',     ordersCount: 4,  reservationsCount: 1, visits: 5,  favoriteBranch: false, lastVisit: '2024-03-15T19:30:00Z', lastOrder: '2024-03-15T19:45:00Z' },
+  { id: 'brc-s01-main-002', businessCustomerId: 'bc-s01-002', branchId: 'main',     ordersCount: 6,  reservationsCount: 1, visits: 7,  favoriteBranch: true,  lastVisit: '2024-04-20T20:00:00Z', lastOrder: '2024-04-20T20:15:00Z' },
+  { id: 'brc-s01-main-003', businessCustomerId: 'bc-s01-004', branchId: 'main',     ordersCount: 1,  reservationsCount: 0, visits: 1,  favoriteBranch: true,  lastVisit: '2024-01-10T12:30:00Z', lastOrder: '2024-01-10T12:30:00Z' },
+  { id: 'brc-s01-main-004', businessCustomerId: 'bc-s01-006', branchId: 'main',     ordersCount: 5,  reservationsCount: 1, visits: 6,  favoriteBranch: true,  lastVisit: '2024-03-30T20:00:00Z', lastOrder: '2024-03-30T20:10:00Z' },
+  { id: 'brc-s01-main-005', businessCustomerId: 'bc-s01-008', branchId: 'main',     ordersCount: 3,  reservationsCount: 1, visits: 4,  favoriteBranch: true,  lastVisit: '2024-04-05T19:00:00Z', lastOrder: '2024-04-05T19:10:00Z' },
+  { id: 'brc-s01-main-006', businessCustomerId: 'bc-s01-010', branchId: 'main',     ordersCount: 8,  reservationsCount: 2, visits: 10, favoriteBranch: true,  lastVisit: '2024-05-01T20:00:00Z', lastOrder: '2024-05-01T20:05:00Z' },
+  { id: 'brc-s01-main-007', businessCustomerId: 'bc-s01-012', branchId: 'main',     ordersCount: 5,  reservationsCount: 1, visits: 6,  favoriteBranch: true,  lastVisit: '2024-03-20T21:00:00Z', lastOrder: '2024-03-20T21:05:00Z' },
+  { id: 'brc-s01-main-008', businessCustomerId: 'bc-s01-015', branchId: 'main',     ordersCount: 10, reservationsCount: 2, visits: 12, favoriteBranch: true,  lastVisit: '2024-05-05T12:30:00Z', lastOrder: '2024-05-05T12:40:00Z' },
+  // ── tenant-savor-01 — downtown branch ──
+  { id: 'brc-s01-dt-001',  businessCustomerId: 'bc-s01-001', branchId: 'downtown', ordersCount: 10, reservationsCount: 2, visits: 12, favoriteBranch: true,  lastVisit: '2024-05-10T19:30:00Z', lastOrder: '2024-05-10T19:45:00Z' },
+  { id: 'brc-s01-dt-002',  businessCustomerId: 'bc-s01-005', branchId: 'downtown', ordersCount: 12, reservationsCount: 3, visits: 15, favoriteBranch: true,  lastVisit: '2024-05-18T21:00:00Z', lastOrder: '2024-05-18T21:10:00Z' },
+  { id: 'brc-s01-dt-003',  businessCustomerId: 'bc-s01-009', branchId: 'downtown', ordersCount: 7,  reservationsCount: 1, visits: 8,  favoriteBranch: true,  lastVisit: '2024-05-08T13:00:00Z', lastOrder: '2024-05-08T13:05:00Z' },
+  { id: 'brc-s01-dt-004',  businessCustomerId: 'bc-s01-011', branchId: 'downtown', ordersCount: 5,  reservationsCount: 2, visits: 7,  favoriteBranch: true,  lastVisit: '2024-04-15T19:00:00Z', lastOrder: '2024-04-15T19:10:00Z' },
+  { id: 'brc-s01-dt-005',  businessCustomerId: 'bc-s01-013', branchId: 'downtown', ordersCount: 20, reservationsCount: 5, visits: 25, favoriteBranch: true,  lastVisit: '2024-05-12T20:30:00Z', lastOrder: '2024-05-12T20:45:00Z' },
+  { id: 'brc-s01-dt-006',  businessCustomerId: 'bc-s01-015', branchId: 'downtown', ordersCount: 6,  reservationsCount: 2, visits: 8,  favoriteBranch: false, lastVisit: '2024-04-28T13:00:00Z', lastOrder: '2024-04-28T13:10:00Z' },
+  // ── tenant-savor-01 — airport branch ──
+  { id: 'brc-s01-ap-001',  businessCustomerId: 'bc-s01-003', branchId: 'airport',  ordersCount: 22, reservationsCount: 6, visits: 28, favoriteBranch: true,  lastVisit: '2024-05-15T20:30:00Z', lastOrder: '2024-05-15T20:45:00Z' },
+  { id: 'brc-s01-ap-002',  businessCustomerId: 'bc-s01-007', branchId: 'airport',  ordersCount: 7,  reservationsCount: 1, visits: 8,  favoriteBranch: true,  lastVisit: '2024-04-25T19:30:00Z', lastOrder: '2024-04-25T19:40:00Z' },
+  { id: 'brc-s01-ap-003',  businessCustomerId: 'bc-s01-014', branchId: 'airport',  ordersCount: 12, reservationsCount: 2, visits: 14, favoriteBranch: true,  lastVisit: '2024-04-28T19:30:00Z', lastOrder: '2024-04-28T19:45:00Z' },
+  // ── tenant-brew-cafe-01 — main (midtown) branch ──
+  { id: 'brc-bc01-main-001', businessCustomerId: 'bc-bc01-001', branchId: 'main',          ordersCount: 18, reservationsCount: 0, visits: 18, favoriteBranch: true,  lastVisit: '2024-05-12T09:00:00Z', lastOrder: '2024-05-12T09:05:00Z' },
+  { id: 'brc-bc01-main-002', businessCustomerId: 'bc-bc01-003', branchId: 'main',          ordersCount: 22, reservationsCount: 0, visits: 22, favoriteBranch: true,  lastVisit: '2024-04-30T09:15:00Z', lastOrder: '2024-04-30T09:20:00Z' },
+  { id: 'brc-bc01-main-003', businessCustomerId: 'bc-bc01-005', branchId: 'main',          ordersCount: 4,  reservationsCount: 0, visits: 4,  favoriteBranch: true,  lastVisit: '2024-05-08T08:00:00Z', lastOrder: '2024-05-08T08:05:00Z' },
+  { id: 'brc-bc01-main-004', businessCustomerId: 'bc-bc01-006', branchId: 'main',          ordersCount: 3,  reservationsCount: 0, visits: 3,  favoriteBranch: true,  lastVisit: '2024-05-15T09:00:00Z', lastOrder: '2024-05-15T09:05:00Z' },
+  { id: 'brc-bc01-main-005', businessCustomerId: 'bc-bc01-008', branchId: 'main',          ordersCount: 35, reservationsCount: 0, visits: 35, favoriteBranch: true,  lastVisit: '2024-05-11T09:30:00Z', lastOrder: '2024-05-11T09:35:00Z' },
+  // ── tenant-brew-cafe-01 — brooklyn branch ──
+  { id: 'brc-bc01-bk-001',  businessCustomerId: 'bc-bc01-001', branchId: 'brooklyn-cafe', ordersCount: 13, reservationsCount: 0, visits: 13, favoriteBranch: false, lastVisit: '2024-04-25T08:45:00Z', lastOrder: '2024-04-25T08:50:00Z' },
+  { id: 'brc-bc01-bk-002',  businessCustomerId: 'bc-bc01-002', branchId: 'brooklyn-cafe', ordersCount: 45, reservationsCount: 0, visits: 45, favoriteBranch: true,  lastVisit: '2024-05-14T08:30:00Z', lastOrder: '2024-05-14T08:35:00Z' },
+  { id: 'brc-bc01-bk-003',  businessCustomerId: 'bc-bc01-004', branchId: 'brooklyn-cafe', ordersCount: 18, reservationsCount: 0, visits: 18, favoriteBranch: true,  lastVisit: '2024-05-10T08:45:00Z', lastOrder: '2024-05-10T08:50:00Z' },
+  { id: 'brc-bc01-bk-004',  businessCustomerId: 'bc-bc01-007', branchId: 'brooklyn-cafe', ordersCount: 28, reservationsCount: 0, visits: 28, favoriteBranch: true,  lastVisit: '2024-05-13T08:00:00Z', lastOrder: '2024-05-13T08:05:00Z' },
+  // ── Single-branch tenants — one BranchCustomer per BusinessCustomer ──
+  // oak-bar-01
+  { id: 'brc-ob01-001', businessCustomerId: 'bc-ob01-001', branchId: 'main', ordersCount: 8,  reservationsCount: 2, visits: 10, favoriteBranch: true, lastVisit: '2024-05-04T22:00:00Z', lastOrder: '2024-05-04T22:15:00Z' },
+  { id: 'brc-ob01-002', businessCustomerId: 'bc-ob01-002', branchId: 'main', ordersCount: 15, reservationsCount: 4, visits: 19, favoriteBranch: true, lastVisit: '2024-04-20T23:00:00Z', lastOrder: '2024-04-20T23:15:00Z' },
+  { id: 'brc-ob01-003', businessCustomerId: 'bc-ob01-003', branchId: 'main', ordersCount: 11, reservationsCount: 1, visits: 12, favoriteBranch: true, lastVisit: '2024-05-01T22:30:00Z', lastOrder: '2024-05-01T22:40:00Z' },
+  { id: 'brc-ob01-004', businessCustomerId: 'bc-ob01-004', branchId: 'main', ordersCount: 6,  reservationsCount: 1, visits: 7,  favoriteBranch: true, lastVisit: '2024-03-15T23:00:00Z', lastOrder: '2024-03-15T23:10:00Z' },
+  { id: 'brc-ob01-005', businessCustomerId: 'bc-ob01-005', branchId: 'main', ordersCount: 12, reservationsCount: 3, visits: 15, favoriteBranch: true, lastVisit: '2024-05-10T23:30:00Z', lastOrder: '2024-05-10T23:45:00Z' },
+  // central-fc-01
+  { id: 'brc-fc01-001', businessCustomerId: 'bc-fc01-001', branchId: 'main', ordersCount: 19, reservationsCount: 0, visits: 19, favoriteBranch: true, lastVisit: '2024-05-15T13:30:00Z', lastOrder: '2024-05-15T13:35:00Z' },
+  { id: 'brc-fc01-002', businessCustomerId: 'bc-fc01-002', branchId: 'main', ordersCount: 8,  reservationsCount: 0, visits: 8,  favoriteBranch: true, lastVisit: '2024-04-28T12:00:00Z', lastOrder: '2024-04-28T12:05:00Z' },
+  { id: 'brc-fc01-003', businessCustomerId: 'bc-fc01-003', branchId: 'main', ordersCount: 4,  reservationsCount: 0, visits: 4,  favoriteBranch: true, lastVisit: '2024-05-10T13:00:00Z', lastOrder: '2024-05-10T13:05:00Z' },
+  { id: 'brc-fc01-004', businessCustomerId: 'bc-fc01-004', branchId: 'main', ordersCount: 6,  reservationsCount: 0, visits: 6,  favoriteBranch: true, lastVisit: '2024-04-20T12:30:00Z', lastOrder: '2024-04-20T12:35:00Z' },
+  { id: 'brc-fc01-005', businessCustomerId: 'bc-fc01-005', branchId: 'main', ordersCount: 22, reservationsCount: 0, visits: 22, favoriteBranch: true, lastVisit: '2024-05-14T13:00:00Z', lastOrder: '2024-05-14T13:05:00Z' },
+  // wheels-brews-01
+  { id: 'brc-wb01-001', businessCustomerId: 'bc-wb01-001', branchId: 'main', ordersCount: 25, reservationsCount: 0, visits: 25, favoriteBranch: true, lastVisit: '2024-05-13T08:00:00Z', lastOrder: '2024-05-13T08:05:00Z' },
+  { id: 'brc-wb01-002', businessCustomerId: 'bc-wb01-002', branchId: 'main', ordersCount: 14, reservationsCount: 0, visits: 14, favoriteBranch: true, lastVisit: '2024-05-08T08:15:00Z', lastOrder: '2024-05-08T08:20:00Z' },
+  { id: 'brc-wb01-003', businessCustomerId: 'bc-wb01-003', branchId: 'main', ordersCount: 6,  reservationsCount: 0, visits: 6,  favoriteBranch: true, lastVisit: '2024-05-12T08:45:00Z', lastOrder: '2024-05-12T08:50:00Z' },
+  // road-bites-01
+  { id: 'brc-rb01-001', businessCustomerId: 'bc-rb01-001', branchId: 'main', ordersCount: 10, reservationsCount: 0, visits: 10, favoriteBranch: true, lastVisit: '2024-05-11T13:00:00Z', lastOrder: '2024-05-11T13:05:00Z' },
+  { id: 'brc-rb01-002', businessCustomerId: 'bc-rb01-002', branchId: 'main', ordersCount: 7,  reservationsCount: 0, visits: 7,  favoriteBranch: true, lastVisit: '2024-05-09T13:30:00Z', lastOrder: '2024-05-09T13:35:00Z' },
+  { id: 'brc-rb01-003', businessCustomerId: 'bc-rb01-003', branchId: 'main', ordersCount: 13, reservationsCount: 0, visits: 13, favoriteBranch: true, lastVisit: '2024-04-30T12:30:00Z', lastOrder: '2024-04-30T12:35:00Z' },
+]
+
+// ── Loyalty Accounts — per tenant per user ────────────────────────────────────
+//
+// Each LoyaltyAccount is scoped to a tenantId. A PlatformUser visiting two businesses
+// has two independent LoyaltyAccount records. Points and tier at one business do NOT
+// carry over to another.
+
+export const MOCK_LOYALTY_ACCOUNTS: LoyaltyAccount[] = [
+  // tenant-savor-01
+  { id: 'la-s01-001', userId: 'pu-001', tenantId: 'tenant-savor-01', points: 1240, lifetimePoints: 2080, tier: 'gold',     createdAt: '2023-06-20T12:00:00Z', updatedAt: '2024-05-10T19:30:00Z' },
+  { id: 'la-s01-002', userId: 'pu-002', tenantId: 'tenant-savor-01', points: 420,  lifetimePoints: 680,  tier: 'silver',   createdAt: '2023-08-05T13:00:00Z', updatedAt: '2024-04-20T20:00:00Z' },
+  { id: 'la-s01-003', userId: 'pu-003', tenantId: 'tenant-savor-01', points: 2680, lifetimePoints: 4450, tier: 'platinum', createdAt: '2023-04-12T18:00:00Z', updatedAt: '2024-05-15T20:30:00Z' },
+  { id: 'la-s01-004', userId: 'pu-004', tenantId: 'tenant-savor-01', points: 90,   lifetimePoints: 90,   tier: 'bronze',   createdAt: '2024-01-10T12:30:00Z', updatedAt: '2024-01-10T12:30:00Z' },
+  { id: 'la-s01-005', userId: 'pu-005', tenantId: 'tenant-savor-01', points: 1950, lifetimePoints: 3250, tier: 'gold',     createdAt: '2023-03-05T19:00:00Z', updatedAt: '2024-05-18T21:00:00Z' },
+  { id: 'la-s01-009', userId: 'pu-009', tenantId: 'tenant-savor-01', points: 1140, lifetimePoints: 1900, tier: 'gold',     createdAt: '2023-08-28T12:00:00Z', updatedAt: '2024-05-08T13:00:00Z' },
+  { id: 'la-s01-010', userId: 'pu-010', tenantId: 'tenant-savor-01', points: 1530, lifetimePoints: 2550, tier: 'gold',     createdAt: '2023-06-02T19:30:00Z', updatedAt: '2024-05-01T20:00:00Z' },
+  { id: 'la-s01-013', userId: 'pu-015', tenantId: 'tenant-savor-01', points: 3360, lifetimePoints: 5600, tier: 'platinum', createdAt: '2023-02-25T19:00:00Z', updatedAt: '2024-05-12T20:30:00Z' },
+  // tenant-brew-cafe-01
+  { id: 'la-bc01-001', userId: 'pu-001', tenantId: 'tenant-brew-cafe-01', points: 744,  lifetimePoints: 1240, tier: 'gold',   createdAt: '2023-07-01T08:30:00Z', updatedAt: '2024-05-12T09:00:00Z' },
+  { id: 'la-bc01-002', userId: 'pu-003', tenantId: 'tenant-brew-cafe-01', points: 1080, lifetimePoints: 1800, tier: 'gold',   createdAt: '2023-05-10T07:45:00Z', updatedAt: '2024-05-14T08:30:00Z' },
+  { id: 'la-bc01-003', userId: 'pu-009', tenantId: 'tenant-brew-cafe-01', points: 528,  lifetimePoints: 880,  tier: 'silver', createdAt: '2023-09-02T08:00:00Z', updatedAt: '2024-04-30T09:15:00Z' },
+  { id: 'la-bc01-004', userId: 'pu-026', tenantId: 'tenant-brew-cafe-01', points: 840,  lifetimePoints: 1400, tier: 'gold',   createdAt: '2023-10-10T08:00:00Z', updatedAt: '2024-05-11T09:30:00Z' },
+  // tenant-oak-bar-01
+  { id: 'la-ob01-001', userId: 'pu-005', tenantId: 'tenant-oak-bar-01', points: 1200, lifetimePoints: 2000, tier: 'gold',   createdAt: '2023-04-15T21:00:00Z', updatedAt: '2024-04-20T23:00:00Z' },
+  { id: 'la-ob01-002', userId: 'pu-010', tenantId: 'tenant-oak-bar-01', points: 880,  lifetimePoints: 1467, tier: 'silver', createdAt: '2023-06-10T20:30:00Z', updatedAt: '2024-05-01T22:30:00Z' },
+  { id: 'la-ob01-003', userId: 'pu-024', tenantId: 'tenant-oak-bar-01', points: 960,  lifetimePoints: 1600, tier: 'gold',   createdAt: '2023-08-18T22:00:00Z', updatedAt: '2024-05-10T23:30:00Z' },
 ]

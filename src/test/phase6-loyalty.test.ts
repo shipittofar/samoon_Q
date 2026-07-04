@@ -711,19 +711,21 @@ describe('Q. Mock mode compatibility', () => {
     expect(src).toContain('delay(')
   })
 
-  it('module-level mock state is declared with let', () => {
+  it('module-level mock state storage is declared', () => {
     const src = readSrc('services/loyalty.service.ts')
-    expect(src).toContain('let mockAccount')
-    expect(src).toContain('let mockTransactions')
+    // P8.9.6: mock state is stored in Maps keyed by userId:tenantId (per-tenant isolation)
+    expect(src).toContain('mockAccountOverrides')
+    expect(src).toContain('mockTransactionsByAccount')
     expect(src).toContain('let mockRewards')
   })
 
   it('state persists across calls within same module instance', async () => {
     const { loyaltyService } = await freshService()
     loyaltyService._resetMockStore()
+    const before = await loyaltyService.getAccount()
     await loyaltyService.earnPoints({ orderId: 'x', amount: 100 })
     const account = await loyaltyService.getAccount()
-    expect(account.points).toBe(440) // 340 + 100
+    expect(account.points).toBe(before.points + 100)
   })
 
   it('loyalty.rewards.enabled flag is present in cafe module', async () => {

@@ -11,6 +11,7 @@
 
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
+import { MOCK_LOYALTY_ACCOUNTS } from '@/lib/mock-data'
 import type { LoyaltyAccount, LoyaltyReward, LoyaltyTransaction, LoyaltyTier } from '@/types'
 import { LOYALTY_TIER_THRESHOLDS } from '@/types'
 
@@ -28,64 +29,41 @@ function resolveTier(lifetimePoints: number): LoyaltyTier {
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
-let mockAccount: LoyaltyAccount = {
-  id: 'loyalty-account-mock-1',
-  userId: 'user-mock-1',
-  points: 340,
-  lifetimePoints: 1340,
-  tier: 'silver',
-  tierExpiresAt: new Date(Date.now() + 90 * 86_400_000).toISOString(),
-  createdAt: '2024-01-15T10:00:00Z',
-  updatedAt: new Date().toISOString(),
+// Mutable per-session overrides keyed by "${userId}:${tenantId}" — applied on top of MOCK_LOYALTY_ACCOUNTS.
+const mockAccountOverrides = new Map<string, Partial<LoyaltyAccount>>()
+const mockTransactionsByAccount = new Map<string, LoyaltyTransaction[]>()
+
+function getMockAccount(userId: string, tenantId: string): LoyaltyAccount {
+  const key = `${userId}:${tenantId}`
+  const overrides = mockAccountOverrides.get(key)
+  const base = MOCK_LOYALTY_ACCOUNTS.find((a) => a.userId === userId && a.tenantId === tenantId)
+  if (!base && !overrides) {
+    // First interaction — bootstrap a new bronze account
+    return {
+      id: `la-${userId}-${tenantId}`,
+      userId,
+      tenantId,
+      points: 0,
+      lifetimePoints: 0,
+      tier: 'bronze',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+  }
+  return { ...(base ?? { id: `la-${userId}-${tenantId}`, userId, tenantId, points: 0, lifetimePoints: 0, tier: 'bronze' as LoyaltyTier, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }), ...(overrides ?? {}) } as LoyaltyAccount
 }
 
-let mockTransactions: LoyaltyTransaction[] = [
-  {
-    id: 'txn-1',
-    accountId: mockAccount.id,
-    type: 'earn',
-    points: 120,
-    description: 'Order #1042 — earned 120 pts',
-    createdAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
-    referenceId: 'order-1042',
-  },
-  {
-    id: 'txn-2',
-    accountId: mockAccount.id,
-    type: 'earn',
-    points: 85,
-    description: 'Order #1038 — earned 85 pts',
-    createdAt: new Date(Date.now() - 5 * 86_400_000).toISOString(),
-    referenceId: 'order-1038',
-  },
-  {
-    id: 'txn-3',
-    accountId: mockAccount.id,
-    type: 'redeem',
-    points: -200,
-    description: 'Redeemed: Free Latte',
-    createdAt: new Date(Date.now() - 8 * 86_400_000).toISOString(),
-    referenceId: 'reward-free-latte',
-  },
-  {
-    id: 'txn-4',
-    accountId: mockAccount.id,
-    type: 'earn',
-    points: 200,
-    description: 'Order #1025 — earned 200 pts',
-    createdAt: new Date(Date.now() - 12 * 86_400_000).toISOString(),
-    referenceId: 'order-1025',
-  },
-  {
-    id: 'txn-5',
-    accountId: mockAccount.id,
-    type: 'earn',
-    points: 135,
-    description: 'Order #1019 — earned 135 pts',
-    createdAt: new Date(Date.now() - 18 * 86_400_000).toISOString(),
-    referenceId: 'order-1019',
-  },
+const DEFAULT_TRANSACTIONS = (accountId: string, tenantId: string): LoyaltyTransaction[] => [
+  { id: `txn-${accountId}-1`, accountId, tenantId, type: 'earn',   points: 120,  description: 'Order #1042 — earned 120 pts',  createdAt: new Date(Date.now() - 2  * 86_400_000).toISOString(), referenceId: 'order-1042' },
+  { id: `txn-${accountId}-2`, accountId, tenantId, type: 'earn',   points: 85,   description: 'Order #1038 — earned 85 pts',   createdAt: new Date(Date.now() - 5  * 86_400_000).toISOString(), referenceId: 'order-1038' },
+  { id: `txn-${accountId}-3`, accountId, tenantId, type: 'redeem', points: -200,  description: 'Redeemed: Free Latte',           createdAt: new Date(Date.now() - 8  * 86_400_000).toISOString(), referenceId: 'reward-free-latte' },
+  { id: `txn-${accountId}-4`, accountId, tenantId, type: 'earn',   points: 200,  description: 'Order #1025 — earned 200 pts',  createdAt: new Date(Date.now() - 12 * 86_400_000).toISOString(), referenceId: 'order-1025' },
+  { id: `txn-${accountId}-5`, accountId, tenantId, type: 'earn',   points: 135,  description: 'Order #1019 — earned 135 pts',  createdAt: new Date(Date.now() - 18 * 86_400_000).toISOString(), referenceId: 'order-1019' },
 ]
+
+function getMockTransactions(accountId: string, tenantId = 'tenant-savor-01'): LoyaltyTransaction[] {
+  return mockTransactionsByAccount.get(accountId) ?? DEFAULT_TRANSACTIONS(accountId, tenantId)
+}
 
 let mockRewards: LoyaltyReward[] = [
   {
@@ -148,19 +126,24 @@ export interface EarnPointsResponse {
 // ── Service ───────────────────────────────────────────────────────────────────
 
 export const loyaltyService = {
-  async getAccount(): Promise<LoyaltyAccount> {
+  async getAccount(userId?: string, tenantId?: string): Promise<LoyaltyAccount> {
     if (USE_MOCK) {
       await delay(400)
-      return { ...mockAccount }
+      const uid = userId ?? 'pu-001'
+      const tid = tenantId ?? 'tenant-savor-01'
+      return getMockAccount(uid, tid)
     }
     const { data } = await api.get<LoyaltyAccount>(ENDPOINTS.LOYALTY.ACCOUNT)
     return data
   },
 
-  async getTransactions(): Promise<LoyaltyTransaction[]> {
+  async getTransactions(userId?: string, tenantId?: string): Promise<LoyaltyTransaction[]> {
     if (USE_MOCK) {
       await delay(500)
-      return [...mockTransactions]
+      const uid = userId ?? 'pu-001'
+      const tid = tenantId ?? 'tenant-savor-01'
+      const account = getMockAccount(uid, tid)
+      return getMockTransactions(account.id)
     }
     const { data } = await api.get<LoyaltyTransaction[]>(ENDPOINTS.LOYALTY.TRANSACTIONS)
     return data
@@ -175,19 +158,24 @@ export const loyaltyService = {
     return data
   },
 
-  async redeemReward(rewardId: string): Promise<RedeemRewardResponse> {
+  async redeemReward(rewardId: string, userId?: string, tenantId?: string): Promise<RedeemRewardResponse> {
     if (USE_MOCK) {
       await delay(700)
+      const uid = userId ?? 'pu-001'
+      const tid = tenantId ?? 'tenant-savor-01'
+      const key = `${uid}:${tid}`
+      const account = getMockAccount(uid, tid)
       const reward = mockRewards.find((r) => r.id === rewardId)
       if (!reward) throw new Error(`Reward "${rewardId}" not found`)
       if (!reward.active) throw new Error(`Reward "${reward.name}" is no longer active`)
-      if (mockAccount.points < reward.pointsCost) {
-        throw new Error(`Insufficient points: need ${reward.pointsCost}, have ${mockAccount.points}`)
+      if (account.points < reward.pointsCost) {
+        throw new Error(`Insufficient points: need ${reward.pointsCost}, have ${account.points}`)
       }
 
       const txn: LoyaltyTransaction = {
         id: `txn-redeem-${Date.now()}`,
-        accountId: mockAccount.id,
+        accountId: account.id,
+        tenantId: tid,
         type: 'redeem',
         points: -reward.pointsCost,
         description: `Redeemed: ${reward.name}`,
@@ -195,27 +183,29 @@ export const loyaltyService = {
         referenceId: rewardId,
       }
 
-      mockAccount = {
-        ...mockAccount,
-        points: mockAccount.points - reward.pointsCost,
-        updatedAt: new Date().toISOString(),
-      }
-      mockTransactions = [txn, ...mockTransactions]
+      const updated = { ...account, points: account.points - reward.pointsCost, updatedAt: new Date().toISOString() }
+      mockAccountOverrides.set(key, updated)
+      const txns = getMockTransactions(account.id)
+      mockTransactionsByAccount.set(account.id, [txn, ...txns])
 
-      return { transaction: txn, account: { ...mockAccount } }
+      return { transaction: txn, account: updated }
     }
     const { data } = await api.post<RedeemRewardResponse>(ENDPOINTS.LOYALTY.REDEEM(rewardId))
     return data
   },
 
-  async earnPoints(payload: EarnPointsPayload): Promise<EarnPointsResponse> {
+  async earnPoints(payload: EarnPointsPayload, userId?: string, tenantId?: string): Promise<EarnPointsResponse> {
     if (USE_MOCK) {
       await delay(400)
-      // 1 point per unit of currency (rounded)
+      const uid = userId ?? 'pu-001'
+      const tid = tenantId ?? 'tenant-savor-01'
+      const key = `${uid}:${tid}`
+      const account = getMockAccount(uid, tid)
       const pointsEarned = Math.round(payload.amount)
       const txn: LoyaltyTransaction = {
         id: `txn-earn-${Date.now()}`,
-        accountId: mockAccount.id,
+        accountId: account.id,
+        tenantId: tid,
         type: 'earn',
         points: pointsEarned,
         description: `Order #${payload.orderId} — earned ${pointsEarned} pts`,
@@ -223,17 +213,19 @@ export const loyaltyService = {
         referenceId: payload.orderId,
       }
 
-      const newLifetime = mockAccount.lifetimePoints + pointsEarned
-      mockAccount = {
-        ...mockAccount,
-        points: mockAccount.points + pointsEarned,
+      const newLifetime = account.lifetimePoints + pointsEarned
+      const updated = {
+        ...account,
+        points: account.points + pointsEarned,
         lifetimePoints: newLifetime,
         tier: resolveTier(newLifetime),
         updatedAt: new Date().toISOString(),
       }
-      mockTransactions = [txn, ...mockTransactions]
+      mockAccountOverrides.set(key, updated)
+      const txns = getMockTransactions(account.id)
+      mockTransactionsByAccount.set(account.id, [txn, ...txns])
 
-      return { transaction: txn, account: { ...mockAccount }, pointsEarned }
+      return { transaction: txn, account: updated, pointsEarned }
     }
     const { data } = await api.post<EarnPointsResponse>(ENDPOINTS.LOYALTY.EARN, {
       order_id: payload.orderId,
@@ -285,17 +277,25 @@ export const loyaltyService = {
   },
 
   _resetMockStore() {
-    mockAccount = {
-      id: 'loyalty-account-mock-1',
-      userId: 'user-mock-1',
+    mockAccountOverrides.clear()
+    mockTransactionsByAccount.clear()
+    mockRewards = mockRewards.map((r) => ({ ...r, active: true }))
+    // Restore the canonical test state for the default user (pu-001 / tenant-savor-01).
+    // Tests that call _resetMockStore() then getAccount() expect these exact values.
+    const testKey = 'pu-001:tenant-savor-01'
+    const testAccountId = 'la-test-reset'
+    mockAccountOverrides.set(testKey, {
+      id: testAccountId,
+      userId: 'pu-001',
+      tenantId: 'tenant-savor-01',
       points: 340,
       lifetimePoints: 1340,
       tier: 'silver',
       tierExpiresAt: new Date(Date.now() + 90 * 86_400_000).toISOString(),
       createdAt: '2024-01-15T10:00:00Z',
       updatedAt: new Date().toISOString(),
-    }
-    mockTransactions = []
-    mockRewards = mockRewards.map((r) => ({ ...r, active: true }))
+    })
+    // Tests expect 0 transactions after reset (not the default fallback set)
+    mockTransactionsByAccount.set(testAccountId, [])
   },
 }

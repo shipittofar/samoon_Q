@@ -526,6 +526,7 @@ export type LoyaltyTier = 'bronze' | 'silver' | 'gold' | 'platinum'
 export interface LoyaltyAccount {
   id: string
   userId: string
+  tenantId: string     // loyalty is per-tenant, never global
   points: number
   lifetimePoints: number
   tier: LoyaltyTier
@@ -539,6 +540,7 @@ export type LoyaltyTransactionType = 'earn' | 'redeem' | 'expire' | 'adjustment'
 export interface LoyaltyTransaction {
   id: string
   accountId: string
+  tenantId: string     // inherited from parent LoyaltyAccount for query convenience
   type: LoyaltyTransactionType
   points: number
   /** Human-readable description (e.g. "Order #1234 — earned 120 pts"). */
@@ -842,6 +844,7 @@ export interface AdminCustomer extends User {
 /** Per-customer aggregated stats returned by /console/customers/{id}/stats/ */
 export interface AdminCustomerStats {
   customer_id: string
+  tenant_id: string     // stats are always scoped to the requesting tenant
   order_count: number
   total_spent: number
   avg_order_value: number
@@ -898,10 +901,69 @@ export interface AdminReservationFilters {
 
 /** Filter params accepted by getCustomers() */
 export interface AdminCustomerFilters {
+  tenantId?: string
+  branchId?: string
   tier?: AdminCustomerTier
   search?: string
   page?: number
   page_size?: number
+}
+
+// ── P8.9.6 — Platform Customer Identity & Business Relationship Types ─────────
+
+/**
+ * Platform-wide customer identity. Created once at account registration.
+ * Phone is the primary identifier (phone-first auth per P8.9.3).
+ * A single PlatformUser may have BusinessCustomer relationships at many tenants.
+ */
+export interface PlatformUser {
+  id: string
+  phone: string
+  name: string
+  avatar?: string
+  email?: string
+  language?: string
+  createdAt: string
+  status: 'active' | 'inactive' | 'suspended'
+}
+
+/**
+ * A PlatformUser's relationship to a single tenant.
+ * Created only on first interaction (order, reservation, QR scan, or payment).
+ * All commerce aggregates are scoped to this tenant only — never cross-tenant.
+ * Loyalty points and tier are per-tenant, independent of other businesses.
+ */
+export interface BusinessCustomer {
+  id: string
+  userId: string           // references PlatformUser.id
+  tenantId: string
+  firstInteractionAt: string
+  lastInteractionAt: string
+  ordersCount: number
+  reservationsCount: number
+  totalSpent: number
+  favorite: boolean
+  lifetimeValue: number
+  lastBranchId?: string
+  loyaltyPoints: number
+  loyaltyTier: 'bronze' | 'silver' | 'gold' | 'platinum'
+  status: 'active' | 'inactive'
+}
+
+/**
+ * A BusinessCustomer's visit behaviour at a single branch.
+ * Created only on first branch-level interaction.
+ */
+export interface BranchCustomer {
+  id: string
+  businessCustomerId: string   // references BusinessCustomer.id
+  branchId: string
+  ordersCount: number
+  reservationsCount: number
+  visits: number
+  favoriteBranch: boolean
+  lastVisit?: string
+  lastOrder?: string
 }
 
 // ── Vendor Management Domain Types (P6.11) ────────────────────────────────────

@@ -1075,35 +1075,38 @@ export function useAdminCustomers(filters: AdminCustomerFilters = {}) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
     queryKey: ['admin-customers', tenantId, filters],
-    queryFn: () => adminService.getCustomers(filters),
+    queryFn: () => adminService.getCustomers({ ...filters, tenantId: tenantId ?? undefined }),
     staleTime: STALE_TIME,
     enabled: !!tenantId,
   })
 }
 
 export function useAdminCustomer(id: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['admin-customer', id],
-    queryFn: () => adminService.getCustomer(id),
-    enabled: !!id,
+    queryKey: ['admin-customer', tenantId, id],
+    queryFn: () => adminService.getCustomer(id, tenantId ?? undefined),
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
   })
 }
 
 export function useAdminCustomerStats(id: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['admin-customer-stats', id],
-    queryFn: () => adminService.getCustomerStats(id),
-    enabled: !!id,
+    queryKey: ['admin-customer-stats', tenantId, id],
+    queryFn: () => adminService.getCustomerStats(id, tenantId ?? undefined),
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
   })
 }
 
 export function useAdminCustomerReviews(id: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['admin-customer-reviews', id],
-    queryFn: () => adminService.getCustomerReviews(id),
-    enabled: !!id,
+    queryKey: ['admin-customer-reviews', tenantId, id],
+    queryFn: () => adminService.getCustomerReviews(id, tenantId ?? undefined),
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
   })
 }

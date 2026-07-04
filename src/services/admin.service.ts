@@ -20,7 +20,7 @@
  */
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_MENU_ITEMS, MOCK_ORDERS, MOCK_RESERVATIONS } from '@/lib/mock-data'
+import { MOCK_MENU_ITEMS, MOCK_ORDERS, MOCK_PLATFORM_USERS, MOCK_BUSINESS_CUSTOMERS, MOCK_RESERVATIONS } from '@/lib/mock-data'
 import type {
   AdminCustomer,
   AdminCustomerFilters,
@@ -65,43 +65,34 @@ const MOCK_ADMIN_STATS: AdminStats = {
   tables_total: 24,
 }
 
-const MOCK_CUSTOMERS: AdminCustomer[] = [
-  {
-    id: 'u1', email: 'alice@example.com', first_name: 'Alice', last_name: 'Johnson',
-    phone: '+1234567890', role: 'customer' as UserRole, is_verified: true,
-    created_at: '2024-01-15T00:00:00Z',
-    order_count: 14, total_spent: 420.50, avg_order_value: 30.04, tier: 'vip',
-    last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-  },
-  {
-    id: 'u2', email: 'bob@example.com', first_name: 'Bob', last_name: 'Chen',
-    phone: '+0987654321', role: 'customer' as UserRole, is_verified: true,
-    created_at: '2024-02-20T00:00:00Z',
-    order_count: 8, total_spent: 210.75, avg_order_value: 26.34, tier: 'regular',
-    last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-  },
-  {
-    id: 'u3', email: 'carol@example.com', first_name: 'Carol', last_name: 'Davis',
-    phone: '+1122334455', role: 'customer' as UserRole, is_verified: true,
-    created_at: '2023-11-05T00:00:00Z',
-    order_count: 22, total_spent: 680.00, avg_order_value: 30.91, tier: 'vip',
-    last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-  },
-  {
-    id: 'u4', email: 'dan@example.com', first_name: 'Dan', last_name: 'Wilson',
-    phone: '+5544332211', role: 'customer' as UserRole, is_verified: false,
-    created_at: '2024-03-10T00:00:00Z',
-    order_count: 3, total_spent: 67.20, avg_order_value: 22.40, tier: 'new',
-    last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
-  },
-  {
-    id: 'u5', email: 'eva@example.com', first_name: 'Eva', last_name: 'Martinez',
-    phone: '+6677889900', role: 'customer' as UserRole, is_verified: true,
-    created_at: '2023-12-01T00:00:00Z',
-    order_count: 17, total_spent: 530.40, avg_order_value: 31.20, tier: 'vip',
-    last_order_at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-  },
-]
+// Build tenant-scoped AdminCustomer views from PlatformUser + BusinessCustomer.
+// This join replaces the old flat MOCK_CUSTOMERS array.
+function buildAdminCustomers(tenantId: string): AdminCustomer[] {
+  const bcs = MOCK_BUSINESS_CUSTOMERS.filter((bc) => bc.tenantId === tenantId)
+  return bcs.map((bc) => {
+    const pu = MOCK_PLATFORM_USERS.find((u) => u.id === bc.userId)
+    const avgOrder = bc.ordersCount > 0 ? bc.totalSpent / bc.ordersCount : 0
+    const tierMap: Record<string, 'new' | 'regular' | 'vip'> = {
+      bronze: 'new', silver: 'regular', gold: 'vip', platinum: 'vip',
+    }
+    return {
+      id: bc.userId,
+      email: pu?.email ?? '',
+      phone: pu?.phone ?? '',
+      first_name: pu?.name.split(' ')[0] ?? '',
+      last_name: pu?.name.split(' ').slice(1).join(' ') ?? '',
+      avatar: pu?.avatar,
+      role: 'customer' as UserRole,
+      is_verified: pu?.status === 'active',
+      created_at: pu?.createdAt ?? bc.firstInteractionAt,
+      order_count: bc.ordersCount,
+      total_spent: bc.totalSpent,
+      avg_order_value: Math.round(avgOrder * 100) / 100,
+      tier: tierMap[bc.loyaltyTier] ?? 'new',
+      last_order_at: bc.lastInteractionAt,
+    } satisfies AdminCustomer
+  })
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -148,6 +139,9 @@ function applyCustomerFilters(customers: AdminCustomer[], filters: AdminCustomer
   }
   return result
 }
+
+// Default tenant used when no tenantId is passed — covers legacy call sites.
+const FALLBACK_TENANT = 'tenant-savor-01'
 
 function paginate<T>(items: T[], page = 1, pageSize = 20): PaginatedResponse<T> {
   const start = (page - 1) * pageSize
@@ -231,11 +225,13 @@ export const adminService = {
     return data
   },
 
-  // ⚠️ Backend blocker: GET /console/customers/ not yet deployed
+  // ⚠️ Backend blocker: GET /admin/customers/ not yet deployed
   async getCustomers(filters: AdminCustomerFilters = {}): Promise<PaginatedResponse<AdminCustomer>> {
     if (USE_MOCK) {
       await delay(500)
-      const filtered = applyCustomerFilters(MOCK_CUSTOMERS, filters)
+      const tenantId = filters.tenantId ?? FALLBACK_TENANT
+      const tenantCustomers = buildAdminCustomers(tenantId)
+      const filtered = applyCustomerFilters(tenantCustomers, filters)
       return paginate(filtered, filters.page, filters.page_size)
     }
     const { data } = await api.get<PaginatedResponse<AdminCustomer>>(ENDPOINTS.ADMIN.CUSTOMERS, {
@@ -244,10 +240,12 @@ export const adminService = {
     return data
   },
 
-  async getCustomer(id: string): Promise<AdminCustomer> {
+  async getCustomer(id: string, tenantId?: string): Promise<AdminCustomer> {
     if (USE_MOCK) {
       await delay(300)
-      const customer = MOCK_CUSTOMERS.find((c) => c.id === id)
+      const tid = tenantId ?? FALLBACK_TENANT
+      const tenantCustomers = buildAdminCustomers(tid)
+      const customer = tenantCustomers.find((c) => c.id === id)
       if (!customer) throw new Error(`Customer not found: ${id}`)
       return { ...customer }
     }
@@ -255,32 +253,38 @@ export const adminService = {
     return data
   },
 
-  // ⚠️ Backend blocker: GET /console/customers/{id}/stats/ not yet deployed
-  async getCustomerStats(id: string): Promise<AdminCustomerStats> {
+  // ⚠️ Backend blocker: GET /admin/customers/{id}/stats/ not yet deployed
+  async getCustomerStats(id: string, tenantId?: string): Promise<AdminCustomerStats> {
     if (USE_MOCK) {
       await delay(400)
-      const customer = MOCK_CUSTOMERS.find((c) => c.id === id)
+      const tid = tenantId ?? FALLBACK_TENANT
+      const bc = MOCK_BUSINESS_CUSTOMERS.find((b) => b.userId === id && b.tenantId === tid)
+      const avgOrder = bc && bc.ordersCount > 0 ? bc.totalSpent / bc.ordersCount : 0
       return {
         customer_id: id,
-        order_count: customer?.order_count ?? 0,
-        total_spent: customer?.total_spent ?? 0,
-        avg_order_value: customer?.avg_order_value ?? 0,
-        last_order_at: customer?.last_order_at,
+        tenant_id: tid,
+        order_count: bc?.ordersCount ?? 0,
+        total_spent: bc?.totalSpent ?? 0,
+        avg_order_value: Math.round(avgOrder * 100) / 100,
+        last_order_at: bc?.lastInteractionAt,
       }
     }
     const { data } = await api.get<AdminCustomerStats>(ENDPOINTS.ADMIN.CUSTOMER_STATS(id))
     return data
   },
 
-  async getCustomerReviews(customerId: string): Promise<Review[]> {
+  async getCustomerReviews(customerId: string, tenantId?: string): Promise<Review[]> {
     if (USE_MOCK) {
       await delay(300)
-      const customer = MOCK_CUSTOMERS.find((c) => c.id === customerId)
-      if (!customer) return []
+      const pu = MOCK_PLATFORM_USERS.find((u) => u.id === customerId)
+      if (!pu) return []
+      const firstName = pu.name.split(' ')[0] ?? ''
+      const lastName = pu.name.split(' ').slice(1).join(' ') ?? ''
+      const mockUser = { id: customerId, first_name: firstName, last_name: lastName, email: pu.email ?? '', role: 'customer' as UserRole, is_verified: pu.status === 'active', created_at: pu.createdAt }
       return [
         {
           id: `review-${customerId}-1`,
-          user: { id: customerId, first_name: customer.first_name, last_name: customer.last_name, email: customer.email, role: 'customer', is_verified: customer.is_verified, created_at: customer.created_at },
+          user: mockUser,
           menu_item_id: 'item-001',
           rating: 5,
           comment: 'Excellent food and service! Will definitely come back.',
@@ -288,7 +292,7 @@ export const adminService = {
         },
         {
           id: `review-${customerId}-2`,
-          user: { id: customerId, first_name: customer.first_name, last_name: customer.last_name, email: customer.email, role: 'customer', is_verified: customer.is_verified, created_at: customer.created_at },
+          user: mockUser,
           menu_item_id: 'item-003',
           order_id: `order-${customerId}-1`,
           rating: 4,
