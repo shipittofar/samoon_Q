@@ -14,12 +14,39 @@ import {
   MOCK_PLATFORM_ADMIN_USER,
 } from '@/lib/mock-data'
 import { MOCK_DELAY } from '@/constants'
+import { configurationService } from '@/config'
 import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, User } from '@/types'
 import type { Role } from '@/types/rbac'
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+// ── P9.1.2 — Configuration-driven runtime flags ──────────────────────────────
+// Resolved fresh on every call (cheap, in-memory reads) rather than frozen at
+// module load, so a Platform Administrator's change takes effect immediately.
+// This plain service module has no tenant-context threading today (unlike the
+// React hooks in src/hooks/index.ts, which read useTenantStore) — every field
+// below is platform-locked in src/config/modules/authentication.ts specifically
+// because it's a platform-wide master switch, so resolving at platform scope
+// ({}) is correct, not a shortcut. See docs/P9.1.2_RUNTIME_INTEGRATION.md.
+function authFlag(fieldId: string): boolean {
+  return configurationService.resolveField(fieldId, {}).value as boolean
+}
+
+function isAuthenticationEnabled(): boolean {
+  return authFlag('authentication.enabled')
+}
+
+/** Mock branch runs only when both the build-time env flag AND the configuration switch allow it. */
+function mockActive(): boolean {
+  return USE_MOCK_ENV && authFlag('authentication.mock_authentication_enabled')
+}
+
+/** Known demo credentials are honored only when this resolves true (see field description). */
+function demoLoginEnabled(): boolean {
+  return authFlag('authentication.demo_login_enabled')
+}
 
 export const MOCK_SESSION_KEY = 'mock_session_email'
 
@@ -59,12 +86,16 @@ export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> =
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[] }> {
-    if (USE_MOCK) {
+    if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
+
+    if (mockActive()) {
       await delay(MOCK_DELAY)
       // P3.5 — Only known demo credentials are accepted in mock mode.
       // Any other email/password combination must be rejected so the mock
       // login cannot be used as an authentication bypass.
-      const entry = MOCK_CREDENTIALS[credentials.email]
+      // P9.1.2 — demoLoginEnabled() lets a Platform Administrator disable the
+      // demo-credential shortcut without disabling mock mode entirely.
+      const entry = demoLoginEnabled() ? MOCK_CREDENTIALS[credentials.email] : undefined
       if (!entry || credentials.password !== 'password') {
         throw new Error('Invalid credentials')
       }
@@ -73,6 +104,8 @@ export const authService = {
       if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_SESSION_KEY, credentials.email)
       return { user: entry.user, tokens, p7Roles: entry.p7Roles }
     }
+
+    if (!authFlag('authentication.email_login_enabled')) throw new Error('email_login_disabled')
 
     const { data } = await api.post<{ user: User; tokens: AuthTokens }>(
       ENDPOINTS.AUTH.LOGIN,
@@ -83,7 +116,10 @@ export const authService = {
   },
 
   async register(data: RegisterData): Promise<{ user: User; tokens: AuthTokens }> {
-    if (USE_MOCK) {
+    if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
+    if (!authFlag('authentication.registration_enabled')) throw new Error('registration_disabled')
+
+    if (mockActive()) {
       await delay(MOCK_DELAY)
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
@@ -100,7 +136,7 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
-      if (!USE_MOCK) await api.post(ENDPOINTS.AUTH.LOGOUT)
+      if (!mockActive()) await api.post(ENDPOINTS.AUTH.LOGOUT)
     } finally {
       clearTokens()
       if (typeof localStorage !== 'undefined') localStorage.removeItem(MOCK_SESSION_KEY)
@@ -108,7 +144,7 @@ export const authService = {
   },
 
   async getMe(): Promise<User> {
-    if (USE_MOCK) {
+    if (mockActive()) {
       await delay(300)
       if (typeof localStorage !== 'undefined') {
         const email = localStorage.getItem(MOCK_SESSION_KEY)
@@ -121,7 +157,7 @@ export const authService = {
   },
 
   async forgotPassword(email: string): Promise<{ message: string }> {
-    if (USE_MOCK) {
+    if (mockActive()) {
       await delay(MOCK_DELAY)
       return { message: 'Password reset email sent.' }
     }
@@ -130,7 +166,7 @@ export const authService = {
   },
 
   async resetPassword(token: string, password: string): Promise<{ message: string }> {
-    if (USE_MOCK) {
+    if (mockActive()) {
       await delay(MOCK_DELAY)
       return { message: 'Password reset successfully.' }
     }
@@ -142,7 +178,11 @@ export const authService = {
   },
 
   async sendOTP(phone: string): Promise<{ message: string }> {
-    if (USE_MOCK) {
+    if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
+    if (!authFlag('authentication.otp.enabled')) throw new Error('otp_disabled')
+    if (!authFlag('authentication.phone_login_enabled')) throw new Error('phone_login_disabled')
+
+    if (mockActive()) {
       await delay(MOCK_DELAY)
       return { message: 'OTP sent to your phone.' }
     }
@@ -159,7 +199,10 @@ export const authService = {
   async verifyOTP(
     payload: OTPVerifyData,
   ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; isNewUser?: boolean }> {
-    if (USE_MOCK) {
+    if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
+    if (!authFlag('authentication.otp.enabled')) throw new Error('otp_disabled')
+
+    if (mockActive()) {
       await delay(MOCK_DELAY)
 
       // Reserved "always wrong" code for UX testing
@@ -170,7 +213,9 @@ export const authService = {
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
 
       // Look up demo phone → email → MOCK_CREDENTIALS entry
-      const email = DEMO_PHONE_TO_EMAIL[payload.phone]
+      // P9.1.2 — gated by demoLoginEnabled() so disabling demo login forces
+      // every phone down the "unknown → new user" path below.
+      const email = demoLoginEnabled() ? DEMO_PHONE_TO_EMAIL[payload.phone] : undefined
       if (email && MOCK_CREDENTIALS[email]) {
         const entry = MOCK_CREDENTIALS[email]
         setTokens(tokens.access, tokens.refresh)
@@ -194,7 +239,7 @@ export const authService = {
   },
 
   async changePassword(old_password: string, new_password: string): Promise<void> {
-    if (USE_MOCK) {
+    if (mockActive()) {
       await delay(MOCK_DELAY)
       return
     }

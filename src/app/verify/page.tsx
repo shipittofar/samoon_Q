@@ -18,10 +18,15 @@ import { ArrowLeft, CheckCircle2, Phone, RefreshCw } from 'lucide-react'
 import { OTPInput } from '@/components/ui/OTPInput'
 import { Button } from '@/components/ui/Button'
 import { useVerifyOTP, useSendOTP } from '@/hooks'
+import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import { getDemoRedirect, getPostLoginRedirect } from '@/utils/auth-redirect'
 import toast from 'react-hot-toast'
 
-const RESEND_SECONDS = 60
+// P9.1.2 — fallback values match the platform defaults registered in
+// src/config/modules/authentication.ts, used only if the registry lookup
+// ever returns undefined (e.g. during a hot-reload edge case).
+const FALLBACK_RESEND_SECONDS = 60
+const FALLBACK_MAX_ATTEMPTS = 3
 
 // ── Countdown hook ─────────────────────────────────────────────────────────────
 
@@ -69,12 +74,21 @@ function VerifyPageInner() {
   const { mutate: verifyOTP } = useVerifyOTP()
   const { mutate: sendOTP, isPending: isResending } = useSendOTP()
 
+  // P9.1.2 — Runtime Integration: resend cooldown and max verify attempts now
+  // resolve through the Platform Configuration Foundation
+  // (authentication.otp.resend_cooldown_seconds / authentication.otp.max_verify_attempts)
+  // instead of hardcoded literals. Defaults are unchanged (60s / 3 attempts).
+  const { resolved: resendCooldownField } = useConfigurationField('authentication.otp.resend_cooldown_seconds')
+  const { resolved: maxAttemptsField } = useConfigurationField('authentication.otp.max_verify_attempts')
+  const RESEND_SECONDS = (resendCooldownField?.value as number | undefined) ?? FALLBACK_RESEND_SECONDS
+  const MAX_ATTEMPTS = (maxAttemptsField?.value as number | undefined) ?? FALLBACK_MAX_ATTEMPTS
+  const { resolved: mockAuthField } = useConfigurationField('authentication.mock_authentication_enabled')
+  const mockHintVisible = process.env.NEXT_PUBLIC_USE_MOCK === 'true' && (mockAuthField?.value as boolean | undefined) !== false
+
   const [otp, setOtp] = useState('')
   const [state, setState] = useState<VerifyState>('pending')
   const [attempts, setAttempts] = useState(0)
   const { seconds, expired: resendReady, start: restartCountdown } = useCountdown(RESEND_SECONDS)
-
-  const MAX_ATTEMPTS = 3
 
   // Redirect if no phone provided
   useEffect(() => {
@@ -117,7 +131,7 @@ function VerifyPageInner() {
         }
       },
     })
-  }, [state, phone, otp, attempts, verifyOTP, router, prefersReducedMotion])
+  }, [state, phone, otp, attempts, verifyOTP, router, prefersReducedMotion, MAX_ATTEMPTS])
 
   const handleResend = () => {
     sendOTP(phone, {
@@ -282,7 +296,7 @@ function VerifyPageInner() {
               </div>
 
               {/* Dev hint (mock mode only) */}
-              {process.env.NEXT_PUBLIC_USE_MOCK === 'true' && (
+              {mockHintVisible && (
                 <p className="mt-6 text-center text-[11px] text-[var(--fg-muted)] opacity-60">
                   Mock mode: any code works except <code className="font-mono">000000</code>
                 </p>

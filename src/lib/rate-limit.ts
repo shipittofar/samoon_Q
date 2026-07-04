@@ -1,12 +1,15 @@
 /**
- * Rate Limiting — Phase 4 (P4.2)
+ * Rate Limiting — Phase 4 (P4.2), config-integrated P9.1.2
  *
  * Sliding-window rate limiter with injectable clock for deterministic testing.
  * Memory-backed, edge-safe (no Node.js APIs), no singleton hidden state.
  *
  * Each RateLimiter instance owns its own store — create one per policy and
- * share it explicitly. No module-level mutable state.
+ * share it explicitly. No module-level mutable state (beyond the exported
+ * limiter instances themselves, which are intentionally process-lifetime
+ * singletons — see their own docs below).
  */
+import { configurationService } from '@/config'
 
 export type RateLimitResult = {
   allowed: boolean
@@ -101,12 +104,23 @@ export function getRetryAfterSeconds(result: RateLimitResult, now = Date.now()):
 }
 
 // ── P4.2.2 — Auth Protection Policies ────────────────────────────────────────
+// P9.1.2 — Runtime Integration: limits now resolve through the Platform
+// Configuration Foundation (platform scope — this module has no per-tenant
+// context, matching the platform-locked fields it reads) instead of hardcoded
+// literals. Read once at module load, same as the literals they replace;
+// values are unchanged (5 and 3) so default behavior is identical.
 
-/** 5 login attempts per minute per IP / identifier. */
-export const LOGIN_LIMIT = createRateLimiter({ limit: 5, windowMs: 60_000 })
+/** Login attempts per minute per IP / identifier — from authentication.max_login_attempts. */
+export const LOGIN_LIMIT = createRateLimiter({
+  limit: configurationService.resolveField('authentication.max_login_attempts', {}).value as number,
+  windowMs: 60_000,
+})
 
-/** 3 OTP requests per 5-minute window. */
-export const OTP_LIMIT = createRateLimiter({ limit: 3, windowMs: 5 * 60_000 })
+/** OTP requests per 5-minute window — from authentication.otp.max_verify_attempts. */
+export const OTP_LIMIT = createRateLimiter({
+  limit: configurationService.resolveField('authentication.otp.max_verify_attempts', {}).value as number,
+  windowMs: 5 * 60_000,
+})
 
 /** 3 password-reset requests per hour. */
 export const PASSWORD_RESET_LIMIT = createRateLimiter({ limit: 3, windowMs: 60 * 60_000 })

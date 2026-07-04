@@ -10,6 +10,10 @@ import { authService } from '@/services/auth.service'
 import { useAuthStore } from '@/stores'
 import toast from 'react-hot-toast'
 import { OTP_LIMIT } from '@/lib/rate-limit'
+import { useConfigurationField } from '@/hooks/use-platform-configuration'
+
+// P9.1.2 — fallback matches the platform default in src/config/modules/authentication.ts
+const FALLBACK_RESEND_SECONDS = 60
 
 function OTPContent() {
   const router = useRouter()
@@ -17,10 +21,16 @@ function OTPContent() {
   const phone = params.get('phone') || ''
   const { setUser } = useAuthStore()
 
+  // P9.1.2 — resend cooldown now resolves through the Platform Configuration
+  // Foundation (authentication.otp.resend_cooldown_seconds) instead of a
+  // hardcoded literal. Default is unchanged (60s).
+  const { resolved: resendCooldownField } = useConfigurationField('authentication.otp.resend_cooldown_seconds')
+  const RESEND_SECONDS = (resendCooldownField?.value as number | undefined) ?? FALLBACK_RESEND_SECONDS
+
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
-  const [countdown, setCountdown] = useState(60)
+  const [countdown, setCountdown] = useState(RESEND_SECONDS)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
@@ -86,7 +96,7 @@ function OTPContent() {
     setResending(true)
     try {
       await authService.sendOTP(phone)
-      setCountdown(60)
+      setCountdown(RESEND_SECONDS)
       toast.success('New OTP sent!')
     } catch {
       toast.error('Failed to resend OTP.')

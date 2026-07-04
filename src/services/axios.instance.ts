@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import { API_BASE_URL, CSRF_COOKIE, CSRF_HEADER, JWT_ACCESS_KEY, JWT_REFRESH_KEY } from '@/constants'
+import { configurationService } from '@/config'
 
 // ── Cookie helpers ───────────────────────────────────────────────────────────
 function getCookie(name: string): string | null {
@@ -24,7 +25,14 @@ export function setTokens(access: string, refresh: string) {
   localStorage.setItem(JWT_REFRESH_KEY, refresh)
   // Mirror access token to a cookie so Next.js middleware (Edge runtime) can read it.
   // Not HttpOnly — deliberately set from JS to enable middleware auth checks.
-  const maxAge = 60 * 60 * 24 * 7 // 7 days
+  // P9.1.2 — Runtime Integration: lifetime now resolves through the Platform
+  // Configuration Foundation (authentication.jwt_refresh_ttl_days, platform
+  // scope) instead of a hardcoded 7-day literal. Default is unchanged (7
+  // days), so behavior is identical; a Platform Administrator can now change
+  // it without a deploy. See docs/P9.1.1_IMPLEMENTATION_PLAN.md §H for the
+  // reconciliation note on this value vs. the backend contract's 30-day figure.
+  const refreshTtlDays = configurationService.resolveField('authentication.jwt_refresh_ttl_days', {}).value as number
+  const maxAge = 60 * 60 * 24 * refreshTtlDays
   document.cookie = `${JWT_ACCESS_KEY}=${encodeURIComponent(access)}; path=/; max-age=${maxAge}; SameSite=Strict`
 }
 

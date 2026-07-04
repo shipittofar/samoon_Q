@@ -17,11 +17,12 @@ import { Button } from '@/components/ui/Button'
 import { Divider } from '@/components/ui'
 import { PhoneInput } from '@/components/ui/PhoneInput'
 import { useLogin, useSendOTP } from '@/hooks'
+import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import { getDemoRedirect, getPostLoginRedirect } from '@/utils/auth-redirect'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 // ── Demo accounts ──────────────────────────────────────────────────────────────
 
@@ -53,6 +54,12 @@ export default function LoginPage() {
   const prefersReducedMotion = useReducedMotion()
   const { mutate: login, isPending: isEmailPending } = useLogin()
   const { mutate: sendOTP, isPending: isSendingOTP } = useSendOTP()
+
+  // P9.1.2 — Runtime Integration: demo grid visibility now additionally gated
+  // by authentication.demo_accounts_visible (platform-locked config), never
+  // replacing the NEXT_PUBLIC_USE_MOCK build flag — both must allow it.
+  const { resolved: demoVisibleField } = useConfigurationField('authentication.demo_accounts_visible')
+  const USE_MOCK = USE_MOCK_ENV && (demoVisibleField?.value as boolean | undefined) !== false
 
   const [phoneE164, setPhoneE164] = useState('')
   const [phoneValid, setPhoneValid] = useState(false)
