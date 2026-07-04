@@ -10,6 +10,7 @@
  * P8.9.2.3 — SVG flags, VisualViewport keyboard safety, production hardening.
  * P8.9.2.4 — Native keyboard: sheet anchored at bottom:0; only list resizes.
  * P8.9.2.5 — Layout rewrite: CSS Grid dialog, min-h-0 list, overflow-hidden sheet.
+ * P8.9.2.6 — Mobile keyboard UX: no auto-focus on open; blur-on-close; tap-to-search.
  */
 
 import {
@@ -392,7 +393,11 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
     return unlock
   }, [isOpen])
 
-  // ── Open: reset, focus, scroll to selected, announce ────────────────────────
+  // ── Open: reset state, scroll to selected, announce ─────────────────────────
+  // Phase A/B: NO automatic focus on the search input.
+  // Focusing the search field would immediately open the soft keyboard on mobile,
+  // which is not native UX. The keyboard must only appear when the user
+  // intentionally taps the search field.
   useEffect(() => {
     if (!isOpen) return
     setQuery('')
@@ -400,8 +405,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
     setRecents(loadRecentCountries())
 
     const t = setTimeout(() => {
-      searchRef.current?.focus()
-      // Scroll selected row into view
+      // Scroll selected row into view — but do NOT focus any input
       if (listRef.current) {
         const sel = listRef.current.querySelector('[data-selected="true"]') as HTMLElement
         sel?.scrollIntoView({ block: 'center' })
@@ -411,9 +415,12 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
     return () => clearTimeout(t)
   }, [isOpen, announce])
 
-  // ── Close: restore focus ─────────────────────────────────────────────────────
+  // ── Close: dismiss keyboard, restore focus to trigger ────────────────────────
+  // Phase G: blur the search input so the soft keyboard dismisses when the picker
+  // closes (either via selection, Escape, or backdrop tap).
   useEffect(() => {
     if (isOpen) return
+    searchRef.current?.blur()
     const t = setTimeout(() => triggerRef.current?.focus(), 50)
     return () => clearTimeout(t)
   }, [isOpen, triggerRef])
