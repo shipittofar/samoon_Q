@@ -3812,3 +3812,321 @@ For development/QA, the frontend provides pre-built mock data in `src/lib/mock-d
 - `tenant-wheels-brews-01`: 25 orders, gold tier, 3,200 pts
 
 These three records are completely independent; Alice's loyalty at Savor never affects Brew Café.
+
+
+---
+
+## Section 35 — Customer 360° CRM API (P8.9.7)
+
+This section documents all new API endpoints introduced in P8.9.7 for the unified Customer 360° CRM experience. All endpoints are tenant-scoped: the backend MUST enforce that the requesting admin user belongs to the tenant and has `customers.view` permission (or higher). Cross-tenant access MUST return 403.
+
+### 35.1 Customer Timeline
+
+```
+GET /admin/customers/{userId}/timeline/?tenant_id={tenantId}
+```
+
+Returns a chronological list of all customer interactions for the given `(userId, tenantId)` pair. Sorted descending by `created_at` (most recent first).
+
+**Query params:** `tenant_id` (required), `limit` (default 100), `offset` (default 0), `type` (optional, comma-separated event type filter)
+
+**Response:**
+```json
+{
+  "count": 42,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "evt-001",
+      "user_id": "pu-001",
+      "tenant_id": "tenant-savor-01",
+      "type": "order_placed",
+      "title": "Order placed at Downtown Branch",
+      "description": "3 items — Grilled Salmon, Caesar Salad, Sparkling Water",
+      "amount": 67.50,
+      "points": 68,
+      "branch_id": "br-001",
+      "reference_id": "ord-301",
+      "reference_type": "order",
+      "actor_id": null,
+      "actor_name": null,
+      "metadata": {},
+      "created_at": "2025-01-20T19:30:00Z"
+    }
+  ]
+}
+```
+
+**Event types (28 total):**
+`account_created`, `first_visit`, `order_placed`, `order_completed`, `order_cancelled`, `order_refunded`, `reservation_made`, `reservation_confirmed`, `reservation_completed`, `reservation_cancelled`, `reservation_no_show`, `points_earned`, `points_redeemed`, `reward_redeemed`, `tier_upgraded`, `tier_downgraded`, `coupon_received`, `coupon_redeemed`, `review_posted`, `payment_completed`, `refund_issued`, `admin_note`, `tag_added`, `tag_removed`, `marketing_email`, `marketing_sms`, `profile_updated`, `phone_verified`, `birthday`
+
+---
+
+### 35.2 Customer Notes
+
+Notes are private tenant-scoped annotations written by admin users about a customer. They are NEVER shown to the customer.
+
+```
+GET    /admin/customers/{userId}/notes/?tenant_id={tenantId}
+POST   /admin/customers/{userId}/notes/
+PATCH  /admin/customers/{userId}/notes/{noteId}/
+DELETE /admin/customers/{userId}/notes/{noteId}/
+```
+
+**GET response:**
+```json
+{
+  "count": 3,
+  "results": [
+    {
+      "id": "note-001",
+      "user_id": "pu-001",
+      "tenant_id": "tenant-savor-01",
+      "content": "Prefers window seats, allergic to shellfish.",
+      "author_id": "admin-001",
+      "author_name": "Sarah Admin",
+      "created_at": "2025-01-15T10:00:00Z",
+      "updated_at": "2025-01-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+**POST body:**
+```json
+{ "user_id": "pu-001", "tenant_id": "tenant-savor-01", "content": "Note text..." }
+```
+
+**PATCH body:** `{ "content": "Updated note text..." }`
+
+**Permissions:** `customers.notes.manage`. Admins can only delete their own notes unless they have `customers.notes.delete_any`.
+
+---
+
+### 35.3 Customer Tags
+
+Tags are tenant-specific labels that can be assigned to customers. Tags are created at the tenant level and then assigned to individual customers.
+
+```
+GET    /admin/tags/?tenant_id={tenantId}                        # list tag definitions
+GET    /admin/customers/{userId}/tags/?tenant_id={tenantId}     # get assigned tags
+PATCH  /admin/customers/{userId}/tags/                          # set assigned tags (replaces all)
+```
+
+**GET /admin/tags/ response:**
+```json
+{
+  "results": [
+    {
+      "id": "tag-vip",
+      "tenant_id": "tenant-savor-01",
+      "label": "VIP",
+      "color": "purple",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+**GET /admin/customers/{userId}/tags/ response:**
+```json
+{
+  "user_id": "pu-001",
+  "tenant_id": "tenant-savor-01",
+  "tags": [ { "id": "tag-vip", "label": "VIP", "color": "purple", "created_at": "..." } ]
+}
+```
+
+**PATCH /admin/customers/{userId}/tags/ body:**
+```json
+{ "tenant_id": "tenant-savor-01", "tag_ids": ["tag-vip", "tag-frequent"] }
+```
+
+Replaces the full set of assigned tags. Empty array removes all tags. Tags not belonging to the tenant MUST be rejected with 400.
+
+**Tag colors:** `gray`, `blue`, `green`, `yellow`, `red`, `purple`, `orange`
+
+---
+
+### 35.4 Customer Analytics
+
+Per-customer behavioural analytics, computed server-side (e.g., via a background job or DB view). Read-only.
+
+```
+GET /admin/customers/{userId}/analytics/?tenant_id={tenantId}
+```
+
+**Response:**
+```json
+{
+  "user_id": "pu-001",
+  "tenant_id": "tenant-savor-01",
+  "lifetime_value": 2847.50,
+  "avg_order_value": 52.25,
+  "avg_reservation_party_size": 2.8,
+  "visit_frequency_days": 12,
+  "days_since_last_visit": 4,
+  "favorite_branch_id": "br-001",
+  "favorite_branch_name": "Downtown Branch",
+  "favorite_weekday": "Friday",
+  "favorite_hour": 19,
+  "favorite_categories": ["Mains", "Desserts"],
+  "favorite_items": [
+    { "name": "Grilled Salmon", "count": 14 },
+    { "name": "Truffle Pasta", "count": 11 }
+  ],
+  "revenue_by_month": [
+    { "month": "2024-09", "revenue": 312.00 },
+    { "month": "2024-10", "revenue": 425.50 }
+  ],
+  "visits_by_month": [
+    { "month": "2024-09", "visits": 5 },
+    { "month": "2024-10", "visits": 7 }
+  ],
+  "points_by_month": [
+    { "month": "2024-09", "points": 312 },
+    { "month": "2024-10", "points": 426 }
+  ]
+}
+```
+
+Returns 404 if no analytics are available yet for this `(userId, tenantId)` pair.
+
+---
+
+### 35.5 Customer Marketing
+
+Marketing channel preferences, campaign history, and coupon usage summary.
+
+```
+GET /admin/customers/{userId}/marketing/?tenant_id={tenantId}
+```
+
+**Response:**
+```json
+{
+  "user_id": "pu-001",
+  "tenant_id": "tenant-savor-01",
+  "preferences": [
+    { "channel": "email", "subscribed": true, "subscribed_at": "2024-06-01T00:00:00Z", "unsubscribed_at": null },
+    { "channel": "sms", "subscribed": true, "subscribed_at": "2024-06-01T00:00:00Z", "unsubscribed_at": null },
+    { "channel": "push", "subscribed": false, "subscribed_at": null, "unsubscribed_at": "2024-09-15T00:00:00Z" },
+    { "channel": "whatsapp", "subscribed": false, "subscribed_at": null, "unsubscribed_at": null }
+  ],
+  "campaigns": [
+    {
+      "id": "camp-001",
+      "name": "Summer Loyalty Bonus",
+      "channel": "email",
+      "sent_at": "2025-01-10T09:00:00Z",
+      "opened": true,
+      "opened_at": "2025-01-10T11:30:00Z",
+      "clicked": true,
+      "clicked_at": "2025-01-10T11:32:00Z"
+    }
+  ],
+  "coupons_received": 4,
+  "coupons_redeemed": 2,
+  "last_campaign_at": "2025-01-10T09:00:00Z"
+}
+```
+
+**Channels:** `email`, `sms`, `push`, `whatsapp`
+
+---
+
+### 35.6 Customer Coupons
+
+```
+GET /admin/customers/{userId}/coupons/?tenant_id={tenantId}
+```
+
+**Query params:** `status` (optional: `available` | `redeemed` | `expired`)
+
+**Response:**
+```json
+{
+  "count": 4,
+  "results": [
+    {
+      "id": "coup-001",
+      "user_id": "pu-001",
+      "tenant_id": "tenant-savor-01",
+      "code": "ALICE10",
+      "description": "10% off your next order",
+      "discount_type": "percent",
+      "discount_value": 10.0,
+      "min_order_amount": 30.0,
+      "status": "available",
+      "redeemed_at": null,
+      "expires_at": "2025-06-30T23:59:59Z",
+      "created_at": "2025-01-10T09:00:00Z"
+    }
+  ]
+}
+```
+
+**Discount types:** `percent`, `fixed`
+**Statuses:** `available`, `redeemed`, `expired`
+
+---
+
+### 35.7 Customer Payments
+
+```
+GET /admin/customers/{userId}/payments/?tenant_id={tenantId}
+```
+
+**Query params:** `limit` (default 20), `offset` (default 0)
+
+**Response:**
+```json
+{
+  "count": 54,
+  "results": [
+    {
+      "id": "pay-001",
+      "user_id": "pu-001",
+      "tenant_id": "tenant-savor-01",
+      "order_id": "ord-301",
+      "amount": 67.50,
+      "currency": "USD",
+      "method": "card",
+      "status": "completed",
+      "refund_amount": null,
+      "processed_at": "2025-01-20T19:30:00Z"
+    }
+  ]
+}
+```
+
+**Methods:** `card`, `cash`, `wallet`, `gift_card`
+**Statuses:** `completed`, `refunded`, `partial_refund`, `failed`
+
+---
+
+### 35.8 Tenant Isolation Rules (CRM)
+
+All CRM data (notes, tags, analytics, marketing, coupons, payments, timeline) MUST be isolated per `(userId, tenantId)` pair:
+
+1. Notes written by tenant A's admin are NEVER accessible to tenant B's admin.
+2. Tag definitions are per-tenant; assigning tenant A's tag to a customer at tenant B MUST return 400.
+3. Analytics are computed separately per tenant — a customer's LTV at tenant A has no relation to their LTV at tenant B.
+4. Marketing preferences are per-channel per-tenant — a customer may be subscribed to email at tenant A but unsubscribed at tenant B.
+5. Coupons issued by tenant A are NEVER redeemable at tenant B.
+6. Timeline events are filtered by `tenant_id` — admins only see events for their own tenant.
+
+---
+
+### 35.9 Frontend Mock Coverage
+
+| Export | Count | Notes |
+|--------|-------|-------|
+| `MOCK_CUSTOMER_NOTES` | 7 | Notes for pu-001, pu-003, pu-005, pu-009, pu-015 at `tenant-savor-01` |
+| `MOCK_CUSTOMER_TAG_DEFINITIONS` | 9 | VIP, High Value, Frequent Visitor, Corporate, Allergy Alert, Birthday, Family, New Customer, Inactive |
+| `MOCK_CUSTOMER_TAG_ASSIGNMENTS` | 7 entries | Keyed by `"userId:tenantId"` |
+| `MOCK_CUSTOMER_ANALYTICS` | 3 | pu-001, pu-003, pu-005 at `tenant-savor-01` |
+| `MOCK_CUSTOMER_MARKETING` | 3 | pu-001, pu-003, pu-005 at `tenant-savor-01` |
+| `MOCK_CUSTOMER_COUPONS` | 8 | pu-001, pu-003, pu-005 at `tenant-savor-01` |
+| `MOCK_CUSTOMER_TIMELINE` | ~36 events | pu-001 (22 events), pu-003 (6), pu-005 (6) at `tenant-savor-01` |

@@ -1143,6 +1143,146 @@ export function useCustomerLoyalty(userId: string) {
   })
 }
 
+// ── P8.9.7 Customer 360° CRM Hooks ───────────────────────────────────────────
+
+export function useCustomerTimeline(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-timeline', tenantId, userId],
+    queryFn: () => adminService.getCustomerTimeline(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCustomerNotes(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-notes', tenantId, userId],
+    queryFn: () => adminService.getCustomerNotes(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: 0,
+  })
+}
+
+export function useCreateCustomerNote(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ content, authorId, authorName }: { content: string; authorId: string; authorName: string }) =>
+      adminService.createCustomerNote(userId, tenantId ?? '', content, authorId, authorName),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customer-notes', tenantId, userId] }),
+  })
+}
+
+export function useUpdateCustomerNote(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ noteId, content }: { noteId: string; content: string }) =>
+      adminService.updateCustomerNote(noteId, content),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customer-notes', tenantId, userId] }),
+  })
+}
+
+export function useDeleteCustomerNote(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (noteId: string) => adminService.deleteCustomerNote(noteId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customer-notes', tenantId, userId] }),
+  })
+}
+
+export function useCustomerTags(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-tags', tenantId, userId],
+    queryFn: () => adminService.getCustomerTags(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useTenantTagDefinitions() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['tenant-tags', tenantId],
+    queryFn: () => adminService.getTenantTagDefinitions(tenantId ?? ''),
+    enabled: !!tenantId,
+    staleTime: CACHE_TIME,
+  })
+}
+
+export function useUpdateCustomerTags(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (tagIds: string[]) => adminService.updateCustomerTags(userId, tenantId ?? '', tagIds),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['customer-tags', tenantId, userId] }),
+  })
+}
+
+export function useCustomerAnalytics(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-analytics', tenantId, userId],
+    queryFn: () => adminService.getCustomerAnalytics(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCustomerMarketing(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-marketing', tenantId, userId],
+    queryFn: () => adminService.getCustomerMarketing(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCustomerCoupons(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-coupons', tenantId, userId],
+    queryFn: () => adminService.getCustomerCoupons(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCustomerPayments(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-payments', tenantId, userId],
+    queryFn: () => adminService.getCustomerPayments(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCustomerOrders360(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-orders-360', tenantId, userId],
+    queryFn: () => adminService.getCustomerOrders(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCustomerReservations360(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-reservations-360', tenantId, userId],
+    queryFn: () => adminService.getCustomerReservations(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
 // ── Bulk Operation Hooks (P7.14) ──────────────────────────────────────────────
 
 export function useBulkUpdateOrderStatus() {

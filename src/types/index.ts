@@ -966,6 +966,161 @@ export interface BranchCustomer {
   lastOrder?: string
 }
 
+// ── P8.9.7 — Customer 360° CRM Types ─────────────────────────────────────────
+
+export type CustomerTimelineEventType =
+  | 'account_created'
+  | 'first_visit'
+  | 'order_placed'
+  | 'order_completed'
+  | 'order_cancelled'
+  | 'order_refunded'
+  | 'reservation_made'
+  | 'reservation_confirmed'
+  | 'reservation_completed'
+  | 'reservation_cancelled'
+  | 'reservation_no_show'
+  | 'points_earned'
+  | 'points_redeemed'
+  | 'reward_redeemed'
+  | 'tier_upgraded'
+  | 'tier_downgraded'
+  | 'coupon_received'
+  | 'coupon_redeemed'
+  | 'review_posted'
+  | 'payment_completed'
+  | 'refund_issued'
+  | 'admin_note'
+  | 'tag_added'
+  | 'tag_removed'
+  | 'marketing_email'
+  | 'marketing_sms'
+  | 'profile_updated'
+  | 'phone_verified'
+  | 'birthday'
+
+export interface CustomerTimelineEvent {
+  id: string
+  userId: string
+  tenantId: string
+  type: CustomerTimelineEventType
+  title: string
+  description?: string
+  amount?: number
+  points?: number
+  branchId?: string
+  referenceId?: string
+  referenceType?: 'order' | 'reservation' | 'review' | 'coupon' | 'reward' | 'note'
+  actorId?: string
+  actorName?: string
+  metadata?: Record<string, unknown>
+  createdAt: string
+}
+
+export interface CustomerNote {
+  id: string
+  userId: string
+  tenantId: string
+  content: string
+  authorId: string
+  authorName: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type CustomerTagColor = 'gray' | 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'orange'
+
+export interface CustomerTag {
+  id: string
+  tenantId: string
+  label: string
+  color: CustomerTagColor
+  createdAt: string
+}
+
+export interface CustomerTagAssignment {
+  userId: string
+  tenantId: string
+  tags: CustomerTag[]
+}
+
+export interface CustomerAnalytics {
+  userId: string
+  tenantId: string
+  lifetimeValue: number
+  avgOrderValue: number
+  avgReservationPartySize: number
+  visitFrequencyDays: number
+  daysSinceLastVisit: number
+  favoriteBranchId?: string
+  favoriteBranchName?: string
+  favoriteWeekday?: string
+  favoriteHour?: number
+  favoriteCategories: string[]
+  favoriteItems: Array<{ name: string; count: number }>
+  revenueByMonth: Array<{ month: string; revenue: number }>
+  visitsByMonth: Array<{ month: string; visits: number }>
+  pointsByMonth: Array<{ month: string; points: number }>
+}
+
+export type MarketingChannel = 'email' | 'sms' | 'push' | 'whatsapp'
+
+export interface CustomerMarketingPreference {
+  channel: MarketingChannel
+  subscribed: boolean
+  subscribedAt?: string
+  unsubscribedAt?: string
+}
+
+export interface CustomerMarketingCampaign {
+  id: string
+  name: string
+  channel: MarketingChannel
+  sentAt: string
+  opened: boolean
+  openedAt?: string
+  clicked: boolean
+  clickedAt?: string
+}
+
+export interface CustomerMarketing {
+  userId: string
+  tenantId: string
+  preferences: CustomerMarketingPreference[]
+  campaigns: CustomerMarketingCampaign[]
+  couponsReceived: number
+  couponsRedeemed: number
+  lastCampaignAt?: string
+}
+
+export interface CustomerCoupon {
+  id: string
+  userId: string
+  tenantId: string
+  code: string
+  description: string
+  discountType: 'percent' | 'fixed'
+  discountValue: number
+  minOrderAmount?: number
+  status: 'available' | 'redeemed' | 'expired'
+  redeemedAt?: string
+  expiresAt?: string
+  createdAt: string
+}
+
+export interface CustomerPayment {
+  id: string
+  userId: string
+  tenantId: string
+  orderId?: string
+  amount: number
+  currency: string
+  method: 'card' | 'cash' | 'wallet' | 'gift_card'
+  status: 'completed' | 'refunded' | 'partial_refund' | 'failed'
+  refundAmount?: number
+  processedAt: string
+}
+
 // ── Vendor Management Domain Types (P6.11) ────────────────────────────────────
 
 export type VendorStatus = 'active' | 'inactive' | 'pending' | 'suspended'
