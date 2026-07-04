@@ -259,7 +259,25 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
               )}
             >
               <LayoutDashboard className="h-4 w-4 shrink-0" />
-              <span>Dashboard</span>
+              <span>Console Home</span>
+            </Link>
+          </div>
+
+          {/* Customer Dashboard shortcut */}
+          <div className="px-2 mb-1">
+            <Link
+              href="/dashboard"
+              onClick={onClose}
+              aria-current={pathname === '/dashboard' ? 'page' : undefined}
+              className={cn(
+                'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 min-h-[44px]',
+                pathname === '/dashboard'
+                  ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
+                  : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
+              )}
+            >
+              <Home className="h-4 w-4 shrink-0" />
+              <span>Customer Dashboard</span>
             </Link>
           </div>
 

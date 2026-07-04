@@ -49,7 +49,7 @@ export function AdminHeader() {
             <Link
               href="/console"
               className="flex items-center gap-2 group"
-              aria-label={`${tenant?.name ?? 'Savor'} Admin — go to dashboard`}
+              aria-label={`${tenant?.name ?? 'Savor'} Admin — go to admin console`}
             >
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
                 <span className="text-white text-sm font-bold">S</span>
