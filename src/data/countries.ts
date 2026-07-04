@@ -21,14 +21,23 @@ export function getFlagEmoji(code: string): string {
     .join('')
 }
 
-/** Countries to pin at the top of the picker regardless of search. */
-export const PREFERRED_COUNTRY_CODES = ['US', 'GB', 'CA', 'AU', 'DE', 'FR', 'IN', 'BR', 'JP', 'AE']
+/**
+ * Globally common countries pinned at the top of the picker.
+ * Covers ~70% of app users statistically.
+ */
+export const PINNED_COUNTRY_CODES = ['US', 'GB', 'DE', 'FR', 'CA', 'AU', 'AE', 'TR', 'IR', 'AZ']
+
+/** @deprecated Use PINNED_COUNTRY_CODES. Kept for backward compatibility. */
+export const PREFERRED_COUNTRY_CODES = PINNED_COUNTRY_CODES
 
 /** localStorage key for persisting recently used countries. */
 export const RECENT_COUNTRIES_KEY = 'phone-input-recent-countries'
 
-/** Max number of recent countries to remember. */
-export const MAX_RECENT = 3
+/** localStorage key for the last explicitly selected country. */
+export const LAST_SELECTED_KEY = 'phone-input-last-selected'
+
+/** Max number of recent countries to show (excluding pinned). */
+export const MAX_RECENT = 5
 
 export const COUNTRIES: Country[] = [
   // ── Americas ──
@@ -224,18 +233,63 @@ export const COUNTRIES: Country[] = [
   { code: 'ST', name: 'São Tomé and Príncipe',   dialCode: '+239', placeholder: '981 2345' },
 ]
 
-/** Memoized sorted list: preferred countries first, then alphabetical. */
+/**
+ * Common informal aliases / abbreviations that users type but don't match ISO code or name.
+ * Maps alias → ISO alpha-2. Only covers genuinely common cases.
+ */
+export const COUNTRY_ALIASES: Record<string, string> = {
+  uk: 'GB', britain: 'GB', england: 'GB',
+  uae: 'AE', emirates: 'AE',
+  usa: 'US', america: 'US',
+  russia: 'RU',
+  korea: 'KR', 'south korea': 'KR',
+  china: 'CN',
+  taiwan: 'TW',
+  holland: 'NL', netherlands: 'NL',
+  eire: 'IE', ireland: 'IE',
+  persia: 'IR',
+}
+
+/** Memoized alphabetical list (no pinning). Used by getPinnedCountries + getRestCountries. */
+let _alphaCache: Country[] | null = null
+function getAlphaCountries(): Country[] {
+  if (_alphaCache) return _alphaCache
+  _alphaCache = [...COUNTRIES].sort((a, b) => a.name.localeCompare(b.name))
+  return _alphaCache
+}
+
+/** Memoized sorted list: pinned countries first, then alphabetical. */
 let _sortedCache: Country[] | null = null
 export function getSortedCountries(): Country[] {
   if (_sortedCache) return _sortedCache
-  const preferred = PREFERRED_COUNTRY_CODES
+  const pinned = PINNED_COUNTRY_CODES
     .map((c) => COUNTRIES.find((x) => x.code === c))
     .filter(Boolean) as Country[]
+  const pinnedSet = new Set(PINNED_COUNTRY_CODES)
   const rest = COUNTRIES
-    .filter((c) => !preferred.find((p) => p.code === c.code))
+    .filter((c) => !pinnedSet.has(c.code))
     .sort((a, b) => a.name.localeCompare(b.name))
-  _sortedCache = [...preferred, ...rest]
+  _sortedCache = [...pinned, ...rest]
   return _sortedCache
+}
+
+/** Pinned country objects in display order. Memoized. */
+let _pinnedCache: Country[] | null = null
+export function getPinnedCountries(): Country[] {
+  if (_pinnedCache) return _pinnedCache
+  _pinnedCache = PINNED_COUNTRY_CODES
+    .map((c) => COUNTRIES.find((x) => x.code === c))
+    .filter(Boolean) as Country[]
+  return _pinnedCache
+}
+
+/** All countries except pinned ones, sorted alphabetically. Memoized. */
+let _restCache: Country[] | null = null
+export function getRestCountries(): Country[] {
+  if (_restCache) return _restCache
+  const pinnedSet = new Set(PINNED_COUNTRY_CODES)
+  _restCache = getAlphaCountries().filter((c) => !pinnedSet.has(c.code))
+  return _restCache
 }
 
 /** Guess the user's country from browser locale. Returns null if uncertain. */
@@ -251,22 +305,73 @@ export function guessCountryFromLocale(): Country | null {
   }
 }
 
-/** Load recent countries from localStorage. */
+/**
+ * Lightweight timezone→country mapping for the most common zones.
+ * Uses Intl.DateTimeFormat().resolvedOptions().timeZone.
+ */
+export const TIMEZONE_COUNTRY_MAP: Record<string, string> = {
+  'America/New_York': 'US', 'America/Chicago': 'US', 'America/Denver': 'US',
+  'America/Los_Angeles': 'US', 'America/Phoenix': 'US', 'America/Anchorage': 'US',
+  'Pacific/Honolulu': 'US', 'America/Toronto': 'CA', 'America/Vancouver': 'CA',
+  'America/Montreal': 'CA', 'America/Sao_Paulo': 'BR', 'America/Buenos_Aires': 'AR',
+  'America/Bogota': 'CO', 'America/Mexico_City': 'MX', 'America/Lima': 'PE',
+  'America/Santiago': 'CL', 'America/Caracas': 'VE',
+  'Europe/London': 'GB', 'Europe/Berlin': 'DE', 'Europe/Paris': 'FR',
+  'Europe/Rome': 'IT', 'Europe/Madrid': 'ES', 'Europe/Amsterdam': 'NL',
+  'Europe/Brussels': 'BE', 'Europe/Zurich': 'CH', 'Europe/Vienna': 'AT',
+  'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO', 'Europe/Copenhagen': 'DK',
+  'Europe/Helsinki': 'FI', 'Europe/Warsaw': 'PL', 'Europe/Prague': 'CZ',
+  'Europe/Budapest': 'HU', 'Europe/Bucharest': 'RO', 'Europe/Athens': 'GR',
+  'Europe/Istanbul': 'TR', 'Europe/Kiev': 'UA', 'Europe/Moscow': 'RU',
+  'Asia/Tehran': 'IR', 'Asia/Dubai': 'AE', 'Asia/Riyadh': 'SA',
+  'Asia/Baghdad': 'IQ', 'Asia/Karachi': 'PK', 'Asia/Kolkata': 'IN',
+  'Asia/Dhaka': 'BD', 'Asia/Colombo': 'LK', 'Asia/Kathmandu': 'NP',
+  'Asia/Tashkent': 'UZ', 'Asia/Almaty': 'KZ', 'Asia/Baku': 'AZ',
+  'Asia/Tbilisi': 'GE', 'Asia/Yerevan': 'AM', 'Asia/Kabul': 'AF',
+  'Asia/Bangkok': 'TH', 'Asia/Jakarta': 'ID', 'Asia/Kuala_Lumpur': 'MY',
+  'Asia/Singapore': 'SG', 'Asia/Manila': 'PH', 'Asia/Hong_Kong': 'HK',
+  'Asia/Shanghai': 'CN', 'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR',
+  'Asia/Taipei': 'TW', 'Asia/Vladivostok': 'RU',
+  'Africa/Cairo': 'EG', 'Africa/Lagos': 'NG', 'Africa/Nairobi': 'KE',
+  'Africa/Johannesburg': 'ZA', 'Africa/Casablanca': 'MA', 'Africa/Accra': 'GH',
+  'Africa/Addis_Ababa': 'ET', 'Africa/Dar_es_Salaam': 'TZ',
+  'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU', 'Australia/Brisbane': 'AU',
+  'Australia/Perth': 'AU', 'Australia/Adelaide': 'AU',
+  'Pacific/Auckland': 'NZ', 'Pacific/Fiji': 'FJ',
+}
+
+/** Guess country from browser timezone. Returns null if not mappable. */
+export function guessCountryFromTimezone(): Country | null {
+  try {
+    const tz = typeof Intl !== 'undefined'
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone
+      : ''
+    if (!tz) return null
+    const code = TIMEZONE_COUNTRY_MAP[tz]
+    if (!code) return null
+    return COUNTRIES.find((c) => c.code === code) ?? null
+  } catch {
+    return null
+  }
+}
+
+/** Load recent countries from localStorage. Excludes pinned countries. */
 export function loadRecentCountries(): Country[] {
   try {
     if (typeof localStorage === 'undefined') return []
     const raw = localStorage.getItem(RECENT_COUNTRIES_KEY)
     if (!raw) return []
     const codes: string[] = JSON.parse(raw)
+    const pinnedSet = new Set(PINNED_COUNTRY_CODES)
     return codes
       .map((c) => COUNTRIES.find((x) => x.code === c))
-      .filter(Boolean) as Country[]
+      .filter((c): c is Country => !!c && !pinnedSet.has(c.code))
   } catch {
     return []
   }
 }
 
-/** Persist a selected country to the recent list. */
+/** Persist a selected country to the recent list (max MAX_RECENT, no duplicates). */
 export function saveRecentCountry(code: string): void {
   try {
     if (typeof localStorage === 'undefined') return
@@ -278,22 +383,80 @@ export function saveRecentCountry(code: string): void {
   }
 }
 
-/** Normalize a string for accent-insensitive comparison. */
-function normalize(s: string): string {
+/** Persist the last explicitly selected country. Used for detection priority. */
+export function saveLastSelected(code: string): void {
+  try {
+    if (typeof localStorage === 'undefined') return
+    localStorage.setItem(LAST_SELECTED_KEY, code)
+  } catch {}
+}
+
+/** Load the last explicitly selected country. */
+export function loadLastSelected(): Country | null {
+  try {
+    if (typeof localStorage === 'undefined') return null
+    const code = localStorage.getItem(LAST_SELECTED_KEY)
+    if (!code) return null
+    return COUNTRIES.find((c) => c.code === code) ?? null
+  } catch {
+    return null
+  }
+}
+
+/** Normalize a string for accent-insensitive, case-insensitive comparison. */
+export function normalizeQuery(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 }
 
-/** Filter countries by name, ISO code, or dial code. Accent-insensitive. */
-export function searchCountries(query: string): Country[] {
-  const q = normalize(query.trim())
-  if (!q) return getSortedCountries()
-  // Strip leading + so "44" and "+44" both match dial codes
+/**
+ * Score a country against a normalized query string.
+ * Returns 0 if no match. Higher = better match.
+ * Used for ranking search results.
+ */
+export function scoreCountry(country: Country, q: string): number {
+  if (!q) return 0
+  const name = normalizeQuery(country.name)
+  const code = country.code.toLowerCase()
+  const dial = country.dialCode.replace('+', '')
   const qDigits = q.replace(/^\+/, '')
-  return COUNTRIES.filter(
-    (c) =>
-      normalize(c.name).includes(q) ||
-      c.code.toLowerCase().includes(q) ||
-      c.dialCode.replace('+', '').startsWith(qDigits) ||
-      c.dialCode.includes(q),
-  ).sort((a, b) => a.name.localeCompare(b.name))
+
+  // Alias match (e.g. "uk" → GB, "uae" → AE)
+  const aliasCode = COUNTRY_ALIASES[q]
+  if (aliasCode && aliasCode === country.code) return 90
+
+  // Exact matches
+  if (name === q || code === q || dial === qDigits) return 100
+
+  // Starts-with matches
+  if (name.startsWith(q) || code.startsWith(q) || dial.startsWith(qDigits)) return 80
+
+  // Contains matches
+  if (name.includes(q) || code.includes(q)) return 60
+  if (dial.includes(qDigits) && qDigits.length >= 2) return 55
+
+  // Word-boundary match (e.g. "united" matches "United Arab Emirates")
+  const words = name.split(/\s+/)
+  if (words.some((w) => w.startsWith(q))) return 50
+
+  // Subsequence fuzzy match: all chars of q appear in order in name
+  let idx = 0
+  for (const ch of name) {
+    if (idx < q.length && ch === q[idx]) idx++
+    if (idx === q.length) return q.length >= 3 ? 20 : 0 // only for queries ≥3 chars
+  }
+
+  return 0
+}
+
+/** Search and rank countries by query. Accent-insensitive, fuzzy-tolerant. */
+export function searchCountries(query: string): Country[] {
+  const q = normalizeQuery(query.trim())
+  if (!q) return getSortedCountries()
+
+  const scored = COUNTRIES
+    .map((c) => ({ c, score: scoreCountry(c, q) }))
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score || a.c.name.localeCompare(b.c.name))
+
+  return scored.map((x) => x.c)
 }
