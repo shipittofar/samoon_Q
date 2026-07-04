@@ -2,6 +2,8 @@
 
 /**
  * P8.9.2 — International phone input component.
+ * P8.9.2.1 — Country picker UX fixes: scroll lock, focus trap, auto-scroll to
+ *             selected, accent-insensitive search, safe area, a11y improvements.
  *
  * Renders a flag + dial-code selector and a national-number field.
  * Outputs E.164 via onChange. Includes a searchable country picker
@@ -13,6 +15,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
   KeyboardEvent,
@@ -114,6 +117,66 @@ function parseE164(e164: string): { country: Country | null; national: string } 
   return { country: null, national: digits }
 }
 
+// ── Scroll lock ────────────────────────────────────────────────────────────────
+
+function lockBodyScroll(): () => void {
+  const el = document.documentElement
+  const body = document.body
+  const prevOverflow = el.style.overflow
+  const prevBodyOverflow = body.style.overflow
+  const prevTouchAction = body.style.touchAction
+  const scrollY = window.scrollY
+
+  el.style.overflow = 'hidden'
+  body.style.overflow = 'hidden'
+  // Prevent iOS rubber-band scroll while keeping position
+  body.style.position = 'fixed'
+  body.style.top = `-${scrollY}px`
+  body.style.width = '100%'
+  body.style.touchAction = 'none'
+
+  return () => {
+    el.style.overflow = prevOverflow
+    body.style.overflow = prevBodyOverflow
+    body.style.position = ''
+    body.style.top = ''
+    body.style.width = ''
+    body.style.touchAction = prevTouchAction
+    window.scrollTo(0, scrollY)
+  }
+}
+
+// ── Focus trap ─────────────────────────────────────────────────────────────────
+
+const FOCUSABLE = [
+  'a[href]', 'button:not([disabled])', 'input:not([disabled])',
+  'select:not([disabled])', 'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
+function useFocusTrap(containerRef: React.RefObject<HTMLElement | null>, active: boolean) {
+  useEffect(() => {
+    if (!active || !containerRef.current) return
+    const el = containerRef.current
+    const getFocusable = () => Array.from(el.querySelectorAll<HTMLElement>(FOCUSABLE))
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const focusable = getFocusable()
+      if (!focusable.length) { e.preventDefault(); return }
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus() }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus() }
+      }
+    }
+    el.addEventListener('keydown', handleKeyDown as unknown as EventListener)
+    return () => el.removeEventListener('keydown', handleKeyDown as unknown as EventListener)
+  }, [active, containerRef])
+}
+
 // ── Country Picker ─────────────────────────────────────────────────────────────
 
 interface CountryPickerProps {
@@ -121,29 +184,66 @@ interface CountryPickerProps {
   selected: Country
   onSelect: (country: Country) => void
   onClose: () => void
+  triggerRef: React.RefObject<HTMLButtonElement | null>
 }
 
-function CountryPicker({ isOpen, selected, onSelect, onClose }: CountryPickerProps) {
+function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: CountryPickerProps) {
   const prefersReducedMotion = useReducedMotion()
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
   const [recents, setRecents] = useState<Country[]>([])
   const searchRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const searchId = useId()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const dialogId = useId()
+  const titleId = `${dialogId}-title`
 
-  const results = query ? searchCountries(query) : getSortedCountries()
-  const preferreds = PREFERRED_COUNTRY_CODES.map((c) => COUNTRIES.find((x) => x.code === c)).filter(Boolean) as Country[]
+  const results = useMemo(
+    () => (query ? searchCountries(query) : getSortedCountries()),
+    [query],
+  )
+  const preferreds = useMemo(
+    () => PREFERRED_COUNTRY_CODES.map((c) => COUNTRIES.find((x) => x.code === c)).filter(Boolean) as Country[],
+    [],
+  )
 
+  // Scroll lock
   useEffect(() => {
-    if (isOpen) {
-      setQuery('')
-      setActiveIndex(-1)
-      setRecents(loadRecentCountries())
-      // Defer focus to after animation
-      setTimeout(() => searchRef.current?.focus(), 100)
-    }
+    if (!isOpen) return
+    const unlock = lockBodyScroll()
+    return unlock
   }, [isOpen])
+
+  // Open — reset state, focus search, scroll selected into view
+  useEffect(() => {
+    if (!isOpen) return
+    setQuery('')
+    setActiveIndex(-1)
+    setRecents(loadRecentCountries())
+
+    // Defer to after animation completes
+    const t = setTimeout(() => {
+      searchRef.current?.focus()
+      // Scroll selected country into view
+      if (listRef.current) {
+        const sel = listRef.current.querySelector('[data-selected="true"]') as HTMLElement
+        sel?.scrollIntoView({ block: 'center' })
+      }
+    }, 120)
+    return () => clearTimeout(t)
+  }, [isOpen])
+
+  // Restore focus to trigger button on close
+  useEffect(() => {
+    if (!isOpen) {
+      // Small delay to let animation finish
+      const t = setTimeout(() => triggerRef.current?.focus(), 50)
+      return () => clearTimeout(t)
+    }
+  }, [isOpen, triggerRef])
+
+  // Focus trap
+  useFocusTrap(containerRef, isOpen)
 
   const handleSelect = useCallback((country: Country) => {
     saveRecentCountry(country.code)
@@ -159,14 +259,22 @@ function CountryPicker({ isOpen, selected, onSelect, onClose }: CountryPickerPro
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setActiveIndex((i) => Math.max(i - 1, -1))
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      setActiveIndex(0)
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      setActiveIndex(total - 1)
     } else if (e.key === 'Enter' && activeIndex >= 0) {
       e.preventDefault()
       handleSelect(results[activeIndex])
     } else if (e.key === 'Escape') {
+      e.preventDefault()
       onClose()
     }
   }
 
+  // Scroll active item into view
   useEffect(() => {
     if (activeIndex >= 0 && listRef.current) {
       const item = listRef.current.querySelector(`[data-index="${activeIndex}"]`) as HTMLElement
@@ -176,51 +284,74 @@ function CountryPicker({ isOpen, selected, onSelect, onClose }: CountryPickerPro
 
   const listContent = (
     <div
+      ref={containerRef}
       className="flex flex-col h-full"
       onKeyDown={handleKeyDown}
       role="dialog"
-      aria-label="Select country"
+      aria-labelledby={titleId}
       aria-modal="true"
     >
-      {/* Header */}
+      {/* Header — sticky, never scrolls */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0">
-        <h2 className="text-base font-semibold text-[var(--fg)]">Select country</h2>
+        <h2 id={titleId} className="text-base font-semibold text-[var(--fg)]">Select country</h2>
         <button
           type="button"
           onClick={onClose}
-          className="p-1.5 rounded-lg hover:bg-[var(--card-hover)] text-[var(--fg-muted)] transition-colors"
+          className="p-1.5 rounded-lg hover:bg-[var(--card-hover)] text-[var(--fg-muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           aria-label="Close country picker"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Search */}
+      {/* Search — sticky, never scrolls */}
       <div className="px-4 pb-3 shrink-0">
         <div className="relative">
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)] pointer-events-none" aria-hidden="true" />
           <input
             ref={searchRef}
-            id={searchId}
             type="search"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setActiveIndex(-1) }}
-            placeholder="Search countries…"
+            placeholder="Search by name, code or +dial…"
             autoComplete="off"
             className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] ps-9 pe-3 py-2 text-sm text-[var(--fg)] placeholder:text-[var(--fg-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-shadow"
             aria-label="Search countries"
+            aria-controls={`${dialogId}-list`}
+            aria-autocomplete="list"
           />
         </div>
       </div>
 
-      {/* List */}
-      <div ref={listRef} className="flex-1 overflow-y-auto px-2 pb-4" role="listbox" aria-label="Countries">
+      {/* Country list — ONLY this scrolls */}
+      <div
+        ref={listRef}
+        id={`${dialogId}-list`}
+        role="listbox"
+        aria-label="Countries"
+        className={cn(
+          'flex-1 overflow-y-auto px-2 overscroll-contain',
+          // Safe-area bottom padding for iOS home indicator
+          'pb-[max(1rem,env(safe-area-inset-bottom))]',
+          // Custom scrollbar
+          'scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[var(--border)]',
+          // Momentum scrolling on iOS
+          '[--webkit-overflow-scrolling:touch]',
+        )}
+      >
         {/* Recent countries */}
         {!query && recents.length > 0 && (
           <div className="mb-2">
             <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">Recent</p>
             {recents.map((c) => (
-              <CountryRow key={`recent-${c.code}`} country={c} selected={selected} onSelect={handleSelect} index={-1} activeIndex={-1} />
+              <CountryRow
+                key={`recent-${c.code}`}
+                country={c}
+                selected={selected}
+                onSelect={handleSelect}
+                index={-1}
+                activeIndex={-1}
+              />
             ))}
           </div>
         )}
@@ -230,7 +361,14 @@ function CountryPicker({ isOpen, selected, onSelect, onClose }: CountryPickerPro
           <div className="mb-2">
             <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)]">Suggested</p>
             {preferreds.map((c) => (
-              <CountryRow key={`pref-${c.code}`} country={c} selected={selected} onSelect={handleSelect} index={-1} activeIndex={-1} />
+              <CountryRow
+                key={`pref-${c.code}`}
+                country={c}
+                selected={selected}
+                onSelect={handleSelect}
+                index={-1}
+                activeIndex={-1}
+              />
             ))}
             <div className="my-1 border-t border-[var(--border)]" />
           </div>
@@ -238,10 +376,20 @@ function CountryPicker({ isOpen, selected, onSelect, onClose }: CountryPickerPro
 
         {/* Full / search results */}
         {results.length === 0 ? (
-          <p className="px-2 py-6 text-center text-sm text-[var(--fg-muted)]">No countries found</p>
+          <div className="flex flex-col items-center justify-center py-10 gap-2">
+            <p className="text-sm text-[var(--fg-muted)]">No countries found</p>
+            <p className="text-xs text-[var(--fg-muted)]">Try searching by name, code (US), or dial code (+1)</p>
+          </div>
         ) : (
           results.map((c, i) => (
-            <CountryRow key={c.code} country={c} selected={selected} onSelect={handleSelect} index={i} activeIndex={activeIndex} />
+            <CountryRow
+              key={c.code}
+              country={c}
+              selected={selected}
+              onSelect={handleSelect}
+              index={i}
+              activeIndex={activeIndex}
+            />
           ))
         )}
       </div>
@@ -261,7 +409,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose }: CountryPickerPro
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={onClose}
             aria-hidden="true"
@@ -275,17 +423,20 @@ function CountryPicker({ isOpen, selected, onSelect, onClose }: CountryPickerPro
             exit={{ y: slideY, opacity: prefersReducedMotion ? 0 : 1 }}
             transition={{ type: 'spring', damping: 30, stiffness: 300, duration }}
             className={cn(
-              'fixed z-50 bg-[var(--bg)] shadow-2xl overflow-hidden',
+              // Base
+              'fixed z-50 bg-[var(--bg)] shadow-2xl',
+              // Force flex column so header/search stay sticky and list scrolls
+              'flex flex-col',
               // Mobile: bottom sheet
-              'bottom-0 start-0 end-0 rounded-t-2xl max-h-[85vh]',
+              'bottom-0 start-0 end-0 rounded-t-2xl max-h-[85dvh]',
               // Desktop: centered modal
               'md:bottom-auto md:start-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2',
-              'md:rounded-2xl md:w-[420px] md:max-h-[560px]',
+              'md:rounded-2xl md:w-[480px] md:max-h-[70vh]',
             )}
           >
             {/* Drag handle (mobile only) */}
-            <div className="flex justify-center pt-2 pb-0 md:hidden">
-              <div className="h-1 w-10 rounded-full bg-[var(--border)]" aria-hidden="true" />
+            <div className="flex justify-center pt-2 pb-0 md:hidden shrink-0" aria-hidden="true">
+              <div className="h-1 w-10 rounded-full bg-[var(--border)]" />
             </div>
             {listContent}
           </motion.div>
@@ -312,17 +463,45 @@ function CountryRow({ country, selected, onSelect, index, activeIndex }: Country
       role="option"
       aria-selected={isSelected}
       data-index={index}
+      data-selected={isSelected || undefined}
       onClick={() => onSelect(country)}
       className={cn(
-        'w-full flex items-center gap-3 px-2 py-2.5 rounded-xl text-sm transition-colors text-start',
-        isActive && 'bg-[var(--accent)]/10',
-        isSelected && !isActive && 'bg-orange-50 dark:bg-orange-950/20',
-        !isActive && !isSelected && 'hover:bg-[var(--card-hover)]',
+        // Touch-friendly: min 48px height
+        'w-full flex items-center gap-3 px-2 rounded-xl text-sm transition-colors text-start',
+        'min-h-[48px] py-2',
+        isActive
+          ? 'bg-[var(--accent)]/10 outline-none ring-2 ring-inset ring-[var(--accent)]/30'
+          : isSelected
+            ? 'bg-[var(--accent)]/8 dark:bg-[var(--accent)]/12'
+            : 'hover:bg-[var(--card-hover)] focus-visible:bg-[var(--card-hover)] focus:outline-none',
       )}
     >
-      <span className="text-xl leading-none w-7 shrink-0" aria-hidden="true">{getFlagEmoji(country.code)}</span>
-      <span className="flex-1 truncate text-[var(--fg)]">{country.name}</span>
-      <span className="shrink-0 text-[var(--fg-muted)] font-mono text-xs">{country.dialCode}</span>
+      {/* Flag */}
+      <span className="text-xl leading-none w-8 shrink-0 text-center" aria-hidden="true">
+        {getFlagEmoji(country.code)}
+      </span>
+
+      {/* Name */}
+      <span className="flex-1 truncate text-[var(--fg)] font-medium">{country.name}</span>
+
+      {/* ISO code + dial code */}
+      <span className="shrink-0 flex items-center gap-2">
+        <span className="text-[10px] font-mono text-[var(--fg-muted)] opacity-60 hidden sm:inline">
+          {country.code}
+        </span>
+        <span className="text-sm font-mono text-[var(--fg-muted)] min-w-[3rem] text-end">
+          {country.dialCode}
+        </span>
+      </span>
+
+      {/* Selected checkmark */}
+      {isSelected && (
+        <span className="shrink-0 text-[var(--accent)]" aria-hidden="true">
+          <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+          </svg>
+        </span>
+      )}
     </button>
   )
 }
@@ -349,6 +528,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
   const id = idProp ?? generatedId
   const errorId = `${id}-error`
   const hintId = `${id}-hint`
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   // Resolve initial country
   const resolveInitialCountry = (): Country => {
@@ -442,6 +622,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
       >
         {/* Country button */}
         <button
+          ref={triggerRef}
           type="button"
           onClick={() => setPickerOpen(true)}
           disabled={disabled}
@@ -502,6 +683,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
         selected={country}
         onSelect={handleCountrySelect}
         onClose={() => setPickerOpen(false)}
+        triggerRef={triggerRef}
       />
     </div>
   )

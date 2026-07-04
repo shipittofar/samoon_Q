@@ -224,15 +224,18 @@ export const COUNTRIES: Country[] = [
   { code: 'ST', name: 'São Tomé and Príncipe',   dialCode: '+239', placeholder: '981 2345' },
 ]
 
-/** Return a sorted copy with preferred countries first. */
+/** Memoized sorted list: preferred countries first, then alphabetical. */
+let _sortedCache: Country[] | null = null
 export function getSortedCountries(): Country[] {
+  if (_sortedCache) return _sortedCache
   const preferred = PREFERRED_COUNTRY_CODES
     .map((c) => COUNTRIES.find((x) => x.code === c))
     .filter(Boolean) as Country[]
   const rest = COUNTRIES
     .filter((c) => !preferred.find((p) => p.code === c.code))
     .sort((a, b) => a.name.localeCompare(b.name))
-  return [...preferred, ...rest]
+  _sortedCache = [...preferred, ...rest]
+  return _sortedCache
 }
 
 /** Guess the user's country from browser locale. Returns null if uncertain. */
@@ -275,14 +278,22 @@ export function saveRecentCountry(code: string): void {
   }
 }
 
-/** Filter countries by search query (name, code, or dial code). */
+/** Normalize a string for accent-insensitive comparison. */
+function normalize(s: string): string {
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+}
+
+/** Filter countries by name, ISO code, or dial code. Accent-insensitive. */
 export function searchCountries(query: string): Country[] {
-  const q = query.toLowerCase().trim()
+  const q = normalize(query.trim())
   if (!q) return getSortedCountries()
+  // Strip leading + so "44" and "+44" both match dial codes
+  const qDigits = q.replace(/^\+/, '')
   return COUNTRIES.filter(
     (c) =>
-      c.name.toLowerCase().includes(q) ||
+      normalize(c.name).includes(q) ||
       c.code.toLowerCase().includes(q) ||
+      c.dialCode.replace('+', '').startsWith(qDigits) ||
       c.dialCode.includes(q),
   ).sort((a, b) => a.name.localeCompare(b.name))
 }
