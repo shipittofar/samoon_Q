@@ -20,7 +20,7 @@
  */
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_MENU_ITEMS, MOCK_ORDERS, MOCK_PLATFORM_USERS, MOCK_BUSINESS_CUSTOMERS, MOCK_RESERVATIONS } from '@/lib/mock-data'
+import { MOCK_MENU_ITEMS, MOCK_ORDERS, MOCK_PLATFORM_USERS, MOCK_BUSINESS_CUSTOMERS, MOCK_BRANCH_CUSTOMERS, MOCK_RESERVATIONS } from '@/lib/mock-data'
 import type {
   AdminCustomer,
   AdminCustomerFilters,
@@ -28,6 +28,8 @@ import type {
   AdminOrderFilters,
   AdminReservationFilters,
   AdminStats,
+  BusinessCustomer,
+  BranchCustomer,
   MenuItem,
   Order,
   OrderStatus,
@@ -302,6 +304,33 @@ export const adminService = {
       ]
     }
     const { data } = await api.get<Review[]>(`/console/customers/${customerId}/reviews/`)
+    return data
+  },
+
+  // ⚠️ Backend blocker: GET /admin/business-customers/?userId=&tenantId= not yet deployed
+  async getBusinessCustomer(userId: string, tenantId: string): Promise<BusinessCustomer | null> {
+    if (USE_MOCK) {
+      await delay(300)
+      const bc = MOCK_BUSINESS_CUSTOMERS.find((b) => b.userId === userId && b.tenantId === tenantId)
+      return bc ?? null
+    }
+    const { data } = await api.get<BusinessCustomer | null>(`/admin/business-customers/`, {
+      params: { userId, tenantId },
+    })
+    return data
+  },
+
+  // ⚠️ Backend blocker: GET /admin/branches/{branchId}/customers/?userId= not yet deployed
+  async getBranchCustomers(userId: string, tenantId: string): Promise<BranchCustomer[]> {
+    if (USE_MOCK) {
+      await delay(300)
+      const bc = MOCK_BUSINESS_CUSTOMERS.find((b) => b.userId === userId && b.tenantId === tenantId)
+      if (!bc) return []
+      return MOCK_BRANCH_CUSTOMERS.filter((brc) => brc.businessCustomerId === bc.id)
+    }
+    const { data } = await api.get<BranchCustomer[]>(`/admin/business-customers/${userId}/branches/`, {
+      params: { tenantId },
+    })
     return data
   },
 }

@@ -1111,6 +1111,38 @@ export function useAdminCustomerReviews(id: string) {
   })
 }
 
+// ── P8.9.6 — BusinessCustomer / BranchCustomer hooks ─────────────────────────
+
+export function useBusinessCustomer(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['business-customer', tenantId, userId],
+    queryFn: () => adminService.getBusinessCustomer(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useBranchCustomers(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['branch-customers', tenantId, userId],
+    queryFn: () => adminService.getBranchCustomers(userId, tenantId ?? ''),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useCustomerLoyalty(userId: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  return useQuery({
+    queryKey: ['customer-loyalty', tenantId, userId],
+    queryFn: () => loyaltyService.getAccount(userId, tenantId ?? undefined),
+    enabled: !!userId && !!tenantId,
+    staleTime: STALE_TIME,
+  })
+}
+
 // ── Bulk Operation Hooks (P7.14) ──────────────────────────────────────────────
 
 export function useBulkUpdateOrderStatus() {

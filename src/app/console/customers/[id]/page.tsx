@@ -5,13 +5,14 @@ import Link from 'next/link'
 import {
   ArrowLeft, Mail, Phone, ShoppingBag, Star, TrendingUp,
   Calendar, Clock, Award, Loader2, AlertCircle, User, MessageSquare,
+  Gift, GitBranch,
 } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { Avatar } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { useAdminCustomer, useAdminCustomerStats } from '@/hooks'
+import { useAdminCustomer, useAdminCustomerStats, useBusinessCustomer, useBranchCustomers, useCustomerLoyalty } from '@/hooks'
 import { formatCurrency, formatDate } from '@/utils'
 import type { AdminCustomerTier } from '@/types'
 
@@ -47,6 +48,9 @@ function StatCard({ label, value, icon: Icon, color }: {
 function CustomerDetailContent({ id }: { id: string }) {
   const { data: customer, isLoading, isError } = useAdminCustomer(id)
   const { data: stats, isLoading: statsLoading } = useAdminCustomerStats(id)
+  const { data: businessCustomer } = useBusinessCustomer(id)
+  const { data: branchCustomers } = useBranchCustomers(id)
+  const { data: loyaltyAccount } = useCustomerLoyalty(id)
 
   if (isLoading) {
     return (
@@ -178,19 +182,19 @@ function CustomerDetailContent({ id }: { id: string }) {
         </div>
       )}
 
-      {/* Recent activity placeholder — links to order/reservation history */}
+      {/* Quick Links — scoped to customer id to avoid cross-tenant email search */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
         <h2 className="text-sm font-semibold text-[var(--fg)] mb-3">Quick Links</h2>
         <div className="flex flex-wrap gap-3 text-sm">
           <Link
-            href={`/console/orders?search=${encodeURIComponent(customer.email)}`}
+            href={`/console/orders?customer=${encodeURIComponent(customer.id)}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
             <ShoppingBag className="h-3.5 w-3.5" />
             View Orders
           </Link>
           <Link
-            href={`/console/reservations?search=${encodeURIComponent(customer.email)}`}
+            href={`/console/reservations?customer=${encodeURIComponent(customer.id)}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
             <Clock className="h-3.5 w-3.5" />
@@ -205,6 +209,73 @@ function CustomerDetailContent({ id }: { id: string }) {
           </Link>
         </div>
       </div>
+
+      {/* Loyalty — tenant-scoped account */}
+      {loyaltyAccount && (
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Gift className="h-4 w-4 text-[var(--fg-muted)]" />
+            <h2 className="text-sm font-semibold text-[var(--fg)]">Loyalty</h2>
+            <span className="ml-auto text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--fg-muted)] capitalize">
+              {loyaltyAccount.tier}
+            </span>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-end justify-between">
+              <span className="text-2xl font-bold text-[var(--fg)]">{loyaltyAccount.points.toLocaleString()}</span>
+              <span className="text-xs text-[var(--fg-muted)]">pts available</span>
+            </div>
+            {loyaltyAccount.lifetimePoints > 0 && (
+              <p className="text-xs text-[var(--fg-muted)]">
+                {loyaltyAccount.lifetimePoints.toLocaleString()} lifetime points
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Branch Activity — per-branch breakdown within this tenant */}
+      {branchCustomers && branchCustomers.length > 0 && (
+        <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <GitBranch className="h-4 w-4 text-[var(--fg-muted)]" />
+            <h2 className="text-sm font-semibold text-[var(--fg)]">Branch Activity</h2>
+          </div>
+          <div className="divide-y divide-[var(--border)]">
+            {branchCustomers.map((bc) => (
+              <div key={bc.id} className="py-3 first:pt-0 last:pb-0 flex items-center gap-3 text-sm">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-[var(--fg)] truncate">{bc.branchId}</span>
+                    {bc.favoriteBranch && (
+                      <Star className="h-3 w-3 text-orange-400 shrink-0" />
+                    )}
+                  </div>
+                  {bc.lastVisit && (
+                    <p className="text-xs text-[var(--fg-muted)] mt-0.5">Last visit {formatDate(bc.lastVisit)}</p>
+                  )}
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-medium text-[var(--fg)]">{bc.visits} visits</p>
+                  <p className="text-xs text-[var(--fg-muted)]">{bc.ordersCount} orders</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {businessCustomer && (
+            <div className="mt-4 pt-4 border-t border-[var(--border)] grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-[var(--fg-muted)] mb-0.5">First Interaction</p>
+                <p className="font-medium text-[var(--fg)]">{formatDate(businessCustomer.firstInteractionAt)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-[var(--fg-muted)] mb-0.5">Last Interaction</p>
+                <p className="font-medium text-[var(--fg)]">{formatDate(businessCustomer.lastInteractionAt)}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
