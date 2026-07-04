@@ -94,6 +94,8 @@ export type P7Permission =
   // ── Reviews (P8.8.5) ──────────────────────────────────────
   | 'reviews.view'
   | 'reviews.manage'
+  // ── Console access (legacy compat) ────────────────────────
+  | 'dashboard:access'
 
 /** A user's role assignment scoped to a specific tenant. */
 export interface UserTenantRole {

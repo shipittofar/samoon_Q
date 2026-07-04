@@ -7,12 +7,16 @@ import Link from 'next/link'
 import { CheckCircle2, Package, ArrowRight, Home, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { OrderTracker } from '@/components/order/OrderTracker'
+import { useTenantStore } from '@/stores'
+import { resolveBestMenu } from '@/utils/navigation-intelligence'
 import confetti from 'canvas-confetti'
 
 function SuccessContent() {
   const params = useSearchParams()
   const orderId = params.get('orderId') || ''
   const orderNumber = params.get('orderNumber') || '#0000'
+  const tenantSlug = useTenantStore((s) => s.tenant?.slug)
+  const menuHref = resolveBestMenu(tenantSlug)
 
   useEffect(() => {
     const fire = () => {
@@ -67,7 +71,7 @@ function SuccessContent() {
                   Track Order
                 </Button>
               </Link>
-              <Link href="/menu">
+              <Link href={menuHref}>
                 <Button className="w-full" rightIcon={<ArrowRight className="h-4 w-4" />}>
                   Order More
                 </Button>

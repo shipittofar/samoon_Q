@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Package, Heart, Calendar, MapPin, ArrowRight, Clock, TrendingUp, Star } from 'lucide-react'
-import { useAuthStore } from '@/stores'
+import { useAuthStore, useTenantStore } from '@/stores'
 import { useOrders, useReservations } from '@/hooks'
+import { resolveBestDashboardActions } from '@/utils/navigation-intelligence'
 import { Card } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
@@ -12,12 +13,6 @@ import { Skeleton } from '@/components/ui'
 import { formatCurrency, formatDate, formatRelativeTime } from '@/utils'
 import { ORDER_STATUS_COLORS } from '@/constants'
 
-const QUICK_ACTIONS = [
-  { label: 'Order Food', href: '/menu', icon: '🍕', color: 'from-orange-400 to-orange-600', desc: 'Browse our menu' },
-  { label: 'Reserve Table', href: '/reservation', icon: '🪑', color: 'from-purple-400 to-purple-600', desc: 'Book in advance' },
-  { label: 'Track Order', href: '/dashboard/orders', icon: '📦', color: 'from-blue-400 to-blue-600', desc: 'Live tracking' },
-  { label: 'Favorites', href: '/dashboard/favorites', icon: '❤️', color: 'from-red-400 to-red-600', desc: 'Saved dishes' },
-]
 
 const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple' | 'danger' | 'secondary'> = {
   delivered: 'success',
@@ -30,8 +25,10 @@ const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple'
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
+  const tenantSlug = useTenantStore((s) => s.tenant?.slug)
   const { data: ordersData, isLoading: ordersLoading } = useOrders()
   const { data: reservationsData, isLoading: resLoading } = useReservations()
+  const QUICK_ACTIONS = resolveBestDashboardActions(tenantSlug)
 
   const orders = ordersData?.results || []
   const reservations = reservationsData?.results || []

@@ -1,12 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import { useAuthStore } from '@/stores'
+import { resolveWorkspace } from '@/utils/navigation-intelligence'
 
 interface AccessDeniedProps {
   resource?: string
 }
 
 export function AccessDenied({ resource }: AccessDeniedProps) {
+  const user = useAuthStore((s) => s.user)
+  const primaryRole = user?.role ?? 'customer'
+  const workspace = resolveWorkspace(primaryRole)
+
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
@@ -34,10 +40,10 @@ export function AccessDenied({ resource }: AccessDeniedProps) {
         </p>
       </div>
       <Link
-        href="/console/orders"
+        href={workspace}
         className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
       >
-        Go to Orders
+        Go to My Workspace
       </Link>
     </div>
   )

@@ -6,13 +6,13 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Package, Heart, MapPin, Calendar, Settings,
-  User, LogOut, ChevronRight, type LucideIcon
+  User, LogOut, ChevronRight, Monitor, type LucideIcon
 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/stores'
-import { useLogout } from '@/hooks'
+import { useLogout, usePermission } from '@/hooks'
 import { cn } from '@/utils'
 import { getDashboardNav } from '@/modules/registry'
 import toast from 'react-hot-toast'
@@ -31,6 +31,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { mutate: logout } = useLogout()
+  const canAccessConsole = usePermission('dashboard:access')
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -92,6 +93,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </Link>
                   )
                 })}
+                {canAccessConsole && (
+                  <Link
+                    href="/console"
+                    className="flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors border-t border-[var(--border)]"
+                  >
+                    <Monitor className="h-4 w-4" />
+                    Business Console
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"

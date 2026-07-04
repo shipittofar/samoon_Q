@@ -245,24 +245,6 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-2" role="navigation" aria-label="Admin menu">
-          {/* Always-visible dashboard link */}
-          <div className="px-2 mb-1">
-            <Link
-              href="/console"
-              onClick={onClose}
-              aria-current={pathname === '/console' ? 'page' : undefined}
-              className={cn(
-                'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 min-h-[44px]',
-                pathname === '/console'
-                  ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
-                  : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
-              )}
-            >
-              <LayoutDashboard className="h-4 w-4 shrink-0" />
-              <span>Console Home</span>
-            </Link>
-          </div>
-
           {/* Customer Dashboard shortcut */}
           <div className="px-2 mb-1">
             <Link

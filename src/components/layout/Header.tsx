@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin } from 'lucide-react'
+import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin, Monitor } from 'lucide-react'
 import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
 import type { TenantTheme } from '@/types'
 import type { NavItem } from '@/types'
-import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
+import { useLogout, useSetLocale, useModuleNav, usePermission } from '@/hooks'
 
 // Platform-level nav shown on the root site (when no tenant is active).
 // Replaces restaurant-specific module nav on the public marketplace surface.
@@ -43,6 +43,7 @@ export function Header() {
   const { theme, setTheme } = useThemeStore()
   const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()
+  const canAccessConsole = usePermission('dashboard:access')
   // useModuleNav() returns header nav filtered by resolved feature flags (P6.8).
   // Items with featureFlagKey are hidden when the flag is false (e.g. reservations
   // disabled for food_truck, loyalty disabled for bar).
@@ -281,6 +282,7 @@ export function Header() {
                         { href: '/dashboard/favorites', icon: Heart, label: 'Favorites' },
                         { href: '/dashboard/addresses', icon: MapPin, label: 'Addresses' },
                         { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
+                        ...(canAccessConsole ? [{ href: '/console', icon: Monitor, label: 'Business Console' }] : []),
                       ].map((item) => (
                         <Link key={item.href} href={item.href} className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors">
                           <item.icon className="h-4 w-4 text-[var(--fg-muted)]" />

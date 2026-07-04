@@ -5,6 +5,8 @@
  * can be unit-tested without mounting the login page.
  */
 
+import { resolveWorkspace } from '@/utils/navigation-intelligence'
+
 /**
  * Maps demo phone (E.164) → email, so the mock OTP flow can resolve
  * the correct user from MOCK_CREDENTIALS after OTP verification.
@@ -46,8 +48,8 @@ export function getDemoRedirect(email: string): string {
 
 /**
  * Returns the post-login destination for a real (non-demo) user based on their role.
- * Customer → /dashboard; staff/console → /admin.
+ * Customer → /dashboard; staff roles → /console (or role-specific sub-path).
  */
 export function getPostLoginRedirect(role: string): string {
-  return role === 'customer' ? '/dashboard' : '/console'
+  return resolveWorkspace(role)
 }
