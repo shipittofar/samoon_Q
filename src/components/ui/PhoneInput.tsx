@@ -8,6 +8,8 @@
  *             aria-activedescendant, per-option IDs, RTL-safe dial codes,
  *             visual hierarchy, empty state with clear, scrollbar polish.
  * P8.9.2.3 — SVG flags, VisualViewport keyboard safety, production hardening.
+ * P8.9.2.4 — Native keyboard: sheet anchored at bottom:0; only list resizes.
+ * P8.9.2.5 — Layout rewrite: CSS Grid dialog, min-h-0 list, overflow-hidden sheet.
  */
 
 import {
@@ -497,10 +499,35 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
 
   const isSearching = query.length > 0
 
+  // ── Dialog layout (CSS Grid) ──────────────────────────────────────────────
+  //
+  // The dialog uses a 3-row CSS Grid so that only the list row can scroll.
+  // Row 1 (auto):           Header — fixed height, never scrolls
+  // Row 2 (auto):           Search — fixed height, never scrolls
+  // Row 3 (minmax(0,1fr)):  List   — fills remaining space, scrolls
+  //
+  // Key constraints:
+  //   • Dialog: flex-1 min-h-0  — fills sheet after drag handle; min-h-0
+  //     lets it shrink below its content (essential in flex parents)
+  //   • Dialog: overflow-hidden — clips content at sheet boundary
+  //   • List: min-h-0           — grid child must opt into shrinking;
+  //     without this the grid track expands to full content height and the
+  //     sheet itself scrolls instead of the list
+  //   • List: overflow-y-auto   — the one and only scroll container
+  //
+  // Removed constraints vs P8.9.2.4:
+  //   • h-full on dialog  → replaced by flex-1 (parent is flex-col)
+  //   • flex flex-col on dialog → replaced by grid
+  //   • shrink-0 on header/search → not needed; grid auto rows are intrinsic
+  //   • flex-1 on list    → not needed; list is the minmax(0,1fr) grid track
+
   const listContent = (
     <div
       ref={containerRef}
-      className="flex flex-col h-full"
+      // flex-1 min-h-0: fills sheet's flex layout and allows shrinking
+      // grid: 3-row layout so only the list row scrolls
+      // overflow-hidden: clips rounded corners; no overflow escapes the dialog
+      className="flex-1 min-h-0 grid grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden"
       onKeyDown={handleKeyDown}
       role="dialog"
       aria-labelledby={titleId}
@@ -509,8 +536,8 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
       {/* Announcer (sr-only) */}
       {announcer}
 
-      {/* ── Header — never scrolls ── */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2 shrink-0">
+      {/* ── Row 1: Header — auto height, never scrolls ── */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <h2 id={titleId} className="text-base font-semibold text-[var(--fg)]">
           Select country
         </h2>
@@ -524,8 +551,8 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
         </button>
       </div>
 
-      {/* ── Search — never scrolls ── */}
-      <div className="px-4 pb-2 shrink-0">
+      {/* ── Row 2: Search — auto height, never scrolls ── */}
+      <div className="px-4 pb-2">
         <div className="relative">
           <Search
             className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)] pointer-events-none"
@@ -564,7 +591,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
         </div>
       </div>
 
-      {/* ── Country list — ONLY this scrolls ── */}
+      {/* ── Row 3: Country list — minmax(0,1fr), ONLY this scrolls ── */}
       <div
         ref={listRef}
         id={listId}
@@ -572,10 +599,14 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
         aria-label="Countries"
         aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
         className={cn(
-          'flex-1 overflow-y-auto px-2 overscroll-contain',
-          // Safe area for iOS home indicator
+          // min-h-0: grid child must opt into shrinking (no implicit min-height:auto)
+          // overflow-y-auto: the single scroll container; nothing else scrolls
+          'min-h-0 overflow-y-auto px-2 overscroll-contain',
+          // iOS momentum scrolling (safe for modern + legacy WebKit)
+          '[WebkitOverflowScrolling:touch]',
+          // Safe area for iOS home indicator / Dynamic Island devices
           'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
-          // Thin themed scrollbar (WebKit)
+          // Thin themed scrollbar (WebKit/Blink)
           '[&::-webkit-scrollbar]:w-[5px]',
           '[&::-webkit-scrollbar-track]:bg-transparent',
           '[&::-webkit-scrollbar-thumb]:rounded-full',
@@ -704,15 +735,14 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             transition={{ type: 'spring', damping: 30, stiffness: 300, duration: motionDuration }}
             style={sheetMaxHeight ? { maxHeight: sheetMaxHeight } : undefined}
             className={cn(
-              // Base — sheet never moves; bottom:0 is always its anchor
-              'fixed z-50 bg-[var(--bg)] shadow-2xl flex flex-col',
-              // Mobile: bottom sheet anchored at bottom:0
-              // maxHeight caps to VisualViewport height when keyboard is open;
-              // the inner flex-1 list absorbs the resize (sheet never translates)
+              // Sheet: flex column so drag handle (shrink-0) + dialog (flex-1) stack correctly
+              // overflow-hidden: clips content at rounded corners; no content escapes
+              'fixed z-50 bg-[var(--bg)] shadow-2xl flex flex-col overflow-hidden',
+              // Mobile: anchored at bottom:0 — NEVER moves; maxHeight shrinks via VisualViewport
               'bottom-0 start-0 end-0 rounded-t-2xl max-h-[85dvh]',
-              // Smooth max-height transition as keyboard slides in/out
+              // Smooth max-height resize as keyboard slides in/out
               prefersReducedMotion ? '' : 'transition-[max-height] duration-200 ease-out',
-              // Desktop: centered modal (overrides bottom:0 with centering transform)
+              // Desktop: centered modal; bottom:auto unanchors from bottom edge
               'md:bottom-auto md:start-1/2 md:top-1/2',
               'md:-translate-x-1/2 md:-translate-y-1/2',
               'md:rounded-2xl md:w-[480px] md:max-h-[70vh]',
