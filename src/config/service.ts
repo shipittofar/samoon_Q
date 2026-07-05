@@ -185,6 +185,16 @@ function updateField(input: {
   return resolveField(input.fieldId, input.scope)
 }
 
+/**
+ * Exposes the raw per-level override layers behind a field's resolved value
+ * — e.g. an Inspector's Inheritance tab showing "Platform: X, Tenant:
+ * (none), Branch: Y" needs each level individually, not just which one won.
+ * Read-only; storage-agnostic like every other function here.
+ */
+function getFieldLayers(fieldId: string, scope: ConfigResolutionScope = {}): ConfigValueLayer {
+  return layersFor(fieldId, scope)
+}
+
 function canView(field: ConfigFieldDefinition, userPermissions: readonly string[]): boolean {
   return userPermissions.includes(field.permissions.view)
 }
@@ -207,6 +217,7 @@ export const configurationService = {
   resolveField,
   resolveModule,
   updateField,
+  getFieldLayers,
   canView,
   canEdit,
   __resetForTests,

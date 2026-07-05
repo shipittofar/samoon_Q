@@ -28,6 +28,8 @@ export interface ConfigurationFieldRowProps {
   onChange: (value: unknown) => void
   onReset: () => void
   auditEntries: ConfigAuditEntry[]
+  /** P9.3 Phase E — additionally notifies the Studio shell's Inspector panel which field is selected. Purely additive; the inline inspector toggle below is unchanged. */
+  onInspect?: (fieldId: string) => void
 }
 
 function formatTimestamp(iso: string): string {
@@ -39,7 +41,7 @@ function formatTimestamp(iso: string): string {
 }
 
 export function ConfigurationFieldRow({
-  field, resolved, currentValue, isDirty, canEdit, enabled, onChange, onReset, auditEntries,
+  field, resolved, currentValue, isDirty, canEdit, enabled, onChange, onReset, auditEntries, onInspect,
 }: ConfigurationFieldRowProps) {
   const [showInspector, setShowInspector] = useState(false)
   const state = deriveFieldState(field, resolved)
@@ -72,7 +74,7 @@ export function ConfigurationFieldRow({
         <div className="flex shrink-0 items-center gap-1.5">
           <button
             type="button"
-            onClick={() => setShowInspector((v) => !v)}
+            onClick={() => { setShowInspector((v) => !v); onInspect?.(field.id) }}
             aria-expanded={showInspector}
             aria-label="Audit history and details"
             className="rounded-lg p-1.5 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"

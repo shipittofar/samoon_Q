@@ -16,6 +16,7 @@ import { useMemo, useState } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { configCollection } from '@/config'
 import type { ConfigBulkActionKind, ConfigCollectionEntry, ConfigFieldDefinition } from '@/config'
 import { useConfigurationBulkActions } from '@/hooks/use-configuration-bulk-actions'
@@ -263,7 +264,13 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
             ))}
             {sortedEntries.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-3 py-8 text-center text-[var(--fg-muted)]">No matches.</td>
+                <td colSpan={4}>
+                  <EmptyState
+                    icon={<Search className="h-6 w-6" />}
+                    title="No matches"
+                    description={search || activeFilter ? 'Try a different search term or clear the active filter.' : 'This collection has no entries yet.'}
+                  />
+                </td>
               </tr>
             )}
           </tbody>

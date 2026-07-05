@@ -144,3 +144,19 @@
     border-radius: inherit;
   }
 }
+
+/* P9.3 Configuration Studio — Phase O motion system. Kept short (150-220ms),
+   used only via motion-safe: variants so prefers-reduced-motion disables
+   every one of these automatically (Tailwind's built-in behavior). */
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(12px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

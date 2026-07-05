@@ -1,29 +1,33 @@
 'use client'
 
 /**
- * Platform Configuration — generic module page (P9.1.3)
+ * Platform Configuration — Studio module route (P9.3)
  *
- * This route is the reusable Control Center shell for ANY registered
- * PlatformConfigurationRegistry module — `moduleId` comes straight from the
- * URL, so Authentication (P9.1.3) and every future module (Countries,
- * Themes, Payments, …) share this exact file. See
- * ConfigurationModulePage (src/components/admin/configuration/) for the
- * actual rendering logic; this file only wires routing + guards.
+ * Renders the Studio shell with `moduleId` (from the URL) as the active
+ * module. This route file only wires routing + guards, exactly as it did
+ * pre-P9.3 — `ConfigurationStudioLayout` (which wraps the unmodified
+ * `ConfigurationModulePage`) holds all the actual rendering logic, so
+ * Authentication (P9.1.3), Countries (P9.2), and any future module share
+ * this exact file with no per-module page code.
  */
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
-import { ConfigurationModulePage } from '@/components/admin/configuration/ConfigurationModulePage'
+import { ConfigurationStudioLayout } from '@/components/admin/configuration/ConfigurationStudioLayout'
 
 export default function ConfigurationModuleRoute() {
   const params = useParams<{ moduleId: string }>()
+  const router = useRouter()
   const moduleId = params.moduleId
 
   return (
     <ErrorBoundary feature={`Platform Configuration — ${moduleId}`}>
       <PermissionGuard permission="settings.view" fallback={<AccessDenied />}>
-        <ConfigurationModulePage moduleId={moduleId} />
+        <ConfigurationStudioLayout
+          activeModuleId={moduleId}
+          onNavigate={(nextModuleId) => router.push(`/console/settings/configuration/${nextModuleId}`)}
+        />
       </PermissionGuard>
     </ErrorBoundary>
   )

@@ -11,11 +11,12 @@
  */
 import { useMemo } from 'react'
 import { configurationService } from '@/config'
-import type { ConfigModuleDefinition, ConfigResolutionScope, ResolvedConfigValue } from '@/config'
+import type { ConfigFieldPreview, ConfigModuleDefinition, ConfigResolutionScope, ResolvedConfigValue } from '@/config'
 import { useAuthStore, useBranchStore, useTenantStore } from '@/stores'
 import { usePermissions } from '@/hooks'
 
-function useConfigScope(): ConfigResolutionScope {
+/** Exported (P9.3) so the Studio's Inspector/Inheritance components can resolve the same tenant/branch/user scope other hooks in this file use, without re-deriving it from the stores themselves. */
+export function useConfigScope(): ConfigResolutionScope {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   const branchId = useBranchStore((s) => s.adminActiveBranch?.id)
   const userId = useAuthStore((s) => s.user?.id)
@@ -87,7 +88,7 @@ export function useConfigurationPermissions(fieldId: string): { canView: boolean
  * font-sample, json, image) without hardcoding a switch per field.
  */
 export function useConfigurationPreview(fieldId: string): {
-  kind: 'none' | 'swatch' | 'font-sample' | 'json' | 'image'
+  kind: ConfigFieldPreview['kind']
   value: unknown
 } {
   const { field, resolved } = useConfigurationField(fieldId)

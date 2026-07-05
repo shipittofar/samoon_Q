@@ -43,5 +43,40 @@ export function ConfigurationFieldPreview({ field, value }: { field: ConfigField
     return <img src={src} alt="" className="h-16 w-16 rounded-lg border border-[var(--border)] object-cover" />
   }
 
+  if (kind === 'datetime') {
+    const raw = String(value ?? '')
+    if (!raw) return null
+    const formatted = formatDateTimePreview(raw)
+    return (
+      <p className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--fg)]">
+        {formatted}
+      </p>
+    )
+  }
+
+  // P9.3 Phase J — 'formatted' is a generic escape hatch: any module supplies
+  // its own `field.preview.format(value)` (phone number layout, currency
+  // display, address templates, …) instead of the framework hardcoding a
+  // fixed enum of "kinds of formatting" it would never fully cover.
+  if (kind === 'formatted' && field.preview.format) {
+    return (
+      <p className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--fg)]">
+        {field.preview.format(value)}
+      </p>
+    )
+  }
+
   return null
+}
+
+/** Renders an IANA timezone name as its current local time, or an ISO timestamp as a localized date/time — whichever `value` looks like. */
+function formatDateTimePreview(raw: string): string {
+  try {
+    if (/^[+-]?\d/.test(raw) || raw.includes('T')) {
+      return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(raw))
+    }
+    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone: raw }).format(new Date())
+  } catch {
+    return raw
+  }
 }

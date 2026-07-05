@@ -10,16 +10,16 @@
  * exact same component by passing a different `moduleId` — no per-module
  * page code, per the P9.1.3 "gold standard blueprint" goal.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import { ChevronDown, Loader2, RotateCcw, Save, Search, ShieldCheck } from 'lucide-react'
+import { ChevronDown, RotateCcw, Search, ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui'
-import { Button } from '@/components/ui/Button'
 import { configurationService, platformConfigurationRegistry } from '@/config'
 import { seedAuthenticationMockOverrides } from '@/config/mock-data'
 import { usePermission, usePermissions } from '@/hooks'
 import { useConfigurationDraft } from '@/hooks/use-configuration-draft'
 import { ConfigurationFieldRow } from './ConfigurationFieldRow'
+import { ConfigurationSaveBar } from './ConfigurationSaveBar'
 import { isFieldEnabled, isFieldVisible, matchesSearch } from './configUiHelpers'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -32,7 +32,17 @@ const LIFECYCLE_BADGE_VARIANT = {
   archived: 'outline',
 } as const
 
-export function ConfigurationModulePage({ moduleId }: { moduleId: string }) {
+export interface ConfigurationModulePageProps {
+  moduleId: string
+  /** P9.3 Phase E — notifies the Studio shell's Inspector panel which field to show. Optional so this component still works standalone (as in P9.1.3/P9.2's tests). */
+  onFieldSelect?: (fieldId: string) => void
+  /** P9.3 Phase D — reports dirty state upward so the Studio's global toolbar can show a live unsaved-changes indicator without owning a second save mechanism. */
+  onDraftStateChange?: (state: { isDirty: boolean; dirtyCount: number; isSaving: boolean }) => void
+  /** P9.3 Phase D — hands the Studio toolbar imperative save/discard handles; the toolbar invokes these rather than re-implementing save/discard itself (Rule 3 — one save pipeline). */
+  onActionsReady?: (actions: { save: () => void; discard: () => void }) => void
+}
+
+export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateChange, onActionsReady }: ConfigurationModulePageProps) {
   // P9.1.3 Phase N — seeds a handful of real (not merely displayed) config
   // overrides + audit history the first time the Authentication Console is
   // opened in mock mode, so the page has "Modified" fields and audit entries
@@ -95,6 +105,29 @@ export function ConfigurationModulePage({ moduleId }: { moduleId: string }) {
       })
       .filter(({ fields }) => fields.length > 0)
   }, [configModule, permissions, isPlatformAdmin, effectiveValues, search])
+
+  useEffect(() => {
+    onDraftStateChange?.({ isDirty, dirtyCount: dirtyFieldIds.length, isSaving })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDirty, dirtyFieldIds.length, isSaving])
+
+  // "Latest ref" pattern: `onActionsReady` fires exactly once (stable
+  // wrapper functions), never on every render — an effect with no
+  // dependency array here would call the parent's setState every commit,
+  // and since `actions` is a fresh object each time, that setState would
+  // never bail out, causing an infinite render loop. The refs below are
+  // updated every render (a plain assignment, not a state update) so the
+  // stable wrappers always dispatch to the latest handleSave/handleDiscard
+  // closures without needing to re-fire onActionsReady itself.
+  const handleSaveRef = useRef(handleSave)
+  handleSaveRef.current = handleSave
+  const handleDiscardRef = useRef(handleDiscard)
+  handleDiscardRef.current = handleDiscard
+
+  useEffect(() => {
+    onActionsReady?.({ save: () => { handleSaveRef.current() }, discard: () => handleDiscardRef.current() })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!configModule) {
     return (
@@ -228,6 +261,7 @@ export function ConfigurationModulePage({ moduleId }: { moduleId: string }) {
                         enabled={enabled}
                         onChange={(value) => setFieldDraft(field.id, value)}
                         onReset={() => resetField(field.id)}
+                        onInspect={onFieldSelect}
                         auditEntries={auditHistoryFor(field.id)}
                       />
                     )
@@ -239,32 +273,17 @@ export function ConfigurationModulePage({ moduleId }: { moduleId: string }) {
         })}
       </div>
 
-      {/* ── Save bar (Phase J) — appears only when dirty, per Shopify pattern ── */}
+      {/* ── Save bar (Phase J, extracted to ConfigurationSaveBar in P9.3 Phase G) ── */}
       {isDirty && (
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[var(--border)] bg-[var(--card)] shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
-          <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div className="flex items-center gap-3">
-              <Badge variant="warning">{dirtyFieldIds.length} unsaved change{dirtyFieldIds.length === 1 ? '' : 's'}</Badge>
-              {requiresReason && (
-                <input
-                  type="text"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Reason for this change (required)"
-                  className="w-64 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
-                />
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={handleDiscard} disabled={isSaving}>
-                Discard
-              </Button>
-              <Button size="sm" onClick={handleSave} disabled={isSaving} leftIcon={isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}>
-                {isSaving ? 'Saving…' : 'Save Changes'}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ConfigurationSaveBar
+          dirtyCount={dirtyFieldIds.length}
+          requiresReason={requiresReason}
+          reason={reason}
+          onReasonChange={setReason}
+          isSaving={isSaving}
+          onSave={handleSave}
+          onDiscard={handleDiscard}
+        />
       )}
     </div>
   )
