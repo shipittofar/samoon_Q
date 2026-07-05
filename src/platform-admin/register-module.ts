@@ -10,8 +10,23 @@
  * about how it resolves, renders, or audits is special-cased; it flows
  * through the exact same registry/service/Studio as Authentication or
  * Countries.
+ *
+ * P9.5.5.1 — imports `platformConfigurationRegistry` from the `'@/config'`
+ * barrel (`src/config/index.ts`), NOT `'@/config/registry'` directly. The
+ * barrel is what actually runs every core module's `import
+ * './modules/<name>'` side effect (countries, languages, authentication,
+ * …) before returning the registry object. Importing the bare registry
+ * module bypassed that guarantee: every file under `src/platform-admin/`
+ * transitively imports this file (`registerAdminModule` is how every
+ * Platform Administration module registers itself), so whichever one of
+ * them happened to load first determined whether core modules were
+ * registered yet — a race, not a dependency. Routing through the barrel
+ * here means importing ANY platform-admin module now *always* forces core
+ * module registration first, deterministically, the same way `register-
+ * module.ts` already forced `defineField`/types to resolve consistently.
+ * See docs/P9.5.5.1_RUNTIME_RECOVERY.md for the full incident writeup.
  */
-import { platformConfigurationRegistry } from '@/config/registry'
+import { platformConfigurationRegistry } from '@/config'
 import type { ConfigFieldDefinition, ConfigModuleDefinition, ConfigLifecycleState } from '@/config/types'
 import type { PlatformAdminGroup } from './nav-groups'
 

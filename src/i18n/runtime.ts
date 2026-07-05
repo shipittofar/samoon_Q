@@ -11,8 +11,25 @@
  *
  * Pure TypeScript, no React, no 'use client' — safe to import from both
  * server (`src/i18n/request.ts`) and client (`src/i18n/hooks.ts`) code.
+ *
+ * P9.5.5.1 — `configurationService` is imported from the `'@/config'`
+ * barrel, not `'@/config/service'` directly. This file is reached from
+ * `src/app/layout.tsx` (via `getDirection`), which every single route
+ * imports first — so this was, in practice, the most likely place in the
+ * whole app for `platformConfigurationRegistry.getField()` to run before
+ * the barrel's `import './modules/languages'` (and every other core
+ * module) had registered. `getField()` seals the registry as its first
+ * action (`src/config/registry.ts`), so once that happened here, (a)
+ * `languages.supported`/`languages.default`/`languages.rtl_locales` would
+ * report "unknown field" — because `./modules/languages` never ran — and
+ * (b) any later `import '@/config'` (e.g. loading `/platform-admin`) would
+ * throw `register("countries") called after the registry was sealed`,
+ * since `./modules/countries` runs first in the barrel and the registry
+ * was already sealed. Importing the barrel here forces every core module
+ * to register before this file's functions can ever call
+ * `resolveField()`. See docs/P9.5.5.1_RUNTIME_RECOVERY.md.
  */
-import { configurationService } from '@/config/service'
+import { configurationService } from '@/config'
 import {
   ALL_LANGUAGE_CODES,
   getLanguageMetadata,

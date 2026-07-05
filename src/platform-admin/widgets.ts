@@ -8,7 +8,12 @@
  * a real backend would replace `compute()` with a data hook.
  */
 import { platformDashboardRegistry } from './dashboard'
-import { configurationService } from '@/config/service'
+// P9.5.5.1 — import configurationService via the '@/config' barrel, not
+// '@/config/service' directly. See register-module.ts's doc comment for
+// why: only the barrel guarantees every core module (countries, languages,
+// authentication, …) has registered before this file's widgets are
+// defined, avoiding a "register after sealed" race.
+import { configurationService } from '@/config'
 import type { ConfigCollectionValue } from '@/config/collection'
 
 platformDashboardRegistry.register({
