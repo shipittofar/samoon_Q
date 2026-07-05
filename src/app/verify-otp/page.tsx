@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores'
 import toast from 'react-hot-toast'
 import { OTP_LIMIT } from '@/lib/rate-limit'
 import { useConfigurationField } from '@/hooks/use-platform-configuration'
+import { useTranslations } from 'next-intl'
 
 // P9.1.2 — fallback matches the platform default in src/config/modules/authentication.ts
 const FALLBACK_RESEND_SECONDS = 60
@@ -20,6 +21,9 @@ function OTPContent() {
   const params = useSearchParams()
   const phone = params.get('phone') || ''
   const { setUser } = useAuthStore()
+  const t = useTranslations('auth')
+  const tValidation = useTranslations('validation')
+  const tNotifications = useTranslations('notifications')
 
   // P9.1.2 — resend cooldown now resolves through the Platform Configuration
   // Foundation (authentication.otp.resend_cooldown_seconds) instead of a
@@ -73,7 +77,7 @@ function OTPContent() {
     if (code.length < 6) return
     const rateCheck = OTP_LIMIT.check(phone)
     if (!rateCheck.allowed) {
-      toast.error('Too many OTP attempts. Please request a new code.')
+      toast.error(tValidation('too_many_attempts'))
       return
     }
     setLoading(true)
@@ -81,10 +85,10 @@ function OTPContent() {
       const { user } = await authService.verifyOTP({ phone, otp: code })
       OTP_LIMIT.reset(phone)
       setUser(user)
-      toast.success('Phone verified! Welcome 🎉')
+      toast.success(`${tNotifications('phoneVerified')} 🎉`)
       router.push('/')
     } catch {
-      toast.error('Invalid OTP. Please try again.')
+      toast.error(t('invalidOtp'))
       setOtp(['', '', '', '', '', ''])
       inputRefs.current[0]?.focus()
     } finally {
@@ -97,9 +101,9 @@ function OTPContent() {
     try {
       await authService.sendOTP(phone)
       setCountdown(RESEND_SECONDS)
-      toast.success('New OTP sent!')
+      toast.success(t('otpResent'))
     } catch {
-      toast.error('Failed to resend OTP.')
+      toast.error(t('otpResendFailed'))
     } finally {
       setResending(false)
     }
@@ -132,10 +136,10 @@ function OTPContent() {
           </motion.div>
 
           <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
-            Verify your number
+            {t('verifyYourNumber')}
           </h1>
           <p className="text-[var(--fg-muted)] text-sm mb-1">
-            We sent a 6-digit code to
+            {t('weSentCodeTo')}
           </p>
           <p className="font-semibold text-[var(--fg)] mb-8">
             {phone || '+1 *** *** **00'}
@@ -161,7 +165,7 @@ function OTPContent() {
                     : 'border-[var(--border)] bg-[var(--input-bg)] text-[var(--fg)]'
                   }
                 `}
-                aria-label={`Digit ${index + 1}`}
+                aria-label={t('digitLabel', { position: index + 1 })}
                 disabled={loading}
               />
             ))}
@@ -186,13 +190,13 @@ function OTPContent() {
             disabled={filled < 6}
             onClick={() => handleVerify(otp.join(''))}
           >
-            {loading ? 'Verifying…' : 'Verify Code'}
+            {loading ? t('verifying') : t('verifyCode')}
           </Button>
 
           {/* Resend */}
           <div className="text-sm text-[var(--fg-muted)]">
             {countdown > 0 ? (
-              <p>Resend code in <span className="font-semibold text-orange-500">{countdown}s</span></p>
+              <p>{t('resendCodeIn')} <span className="font-semibold text-orange-500">{countdown}s</span></p>
             ) : (
               <button
                 onClick={handleResend}
@@ -200,7 +204,7 @@ function OTPContent() {
                 className="text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1.5 mx-auto transition-colors"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${resending ? 'animate-spin' : ''}`} />
-                {resending ? 'Sending…' : 'Resend Code'}
+                {resending ? t('sendingResend') : t('resendCode')}
               </button>
             )}
           </div>
@@ -210,7 +214,7 @@ function OTPContent() {
             className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors mt-6"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Back to sign in
+            {t('backToSignIn')}
           </Link>
         </div>
       </motion.div>

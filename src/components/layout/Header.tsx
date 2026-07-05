@@ -26,6 +26,7 @@ import { NotificationCenter } from '@/components/notification/NotificationCenter
 import { NotificationBell } from '@/components/layout/NotificationBell'
 import { BranchSelector } from '@/components/common/BranchSelector'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 import { resolveSupportedLocales, getLanguageInfo } from '@/i18n/runtime'
 
 // P9.5.1A Phase C: sourced from the config-driven supported-locale list +
@@ -47,6 +48,7 @@ export function Header() {
   const { theme, setTheme } = useThemeStore()
   const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()
+  const tAuth = useTranslations('auth')
   const canAccessConsole = usePermission('dashboard:access')
   // useModuleNav() returns header nav filtered by resolved feature flags (P6.8).
   // Items with featureFlagKey are hidden when the flag is false (e.g. reservations
@@ -80,7 +82,7 @@ export function Header() {
   }, [pathname])
 
   const handleLogout = () => {
-    logout(undefined, { onSuccess: () => toast.success('See you next time!') })
+    logout(undefined, { onSuccess: () => toast.success(tAuth('logoutSuccess')) })
   }
 
   return (

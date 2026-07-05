@@ -4,6 +4,7 @@ import { getLocale, getMessages } from 'next-intl/server'
 import { headers } from 'next/headers'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
 import { Providers } from '@/providers'
+import { getDirection } from '@/i18n/runtime'
 import './globals.css'
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-display', display: 'swap' })
@@ -35,14 +36,14 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale()
   const messages = await getMessages()
-  const isRTL = ['fa', 'ar'].includes(locale)
+  const direction = getDirection(locale)
   // P1B.3 — Read tenant slug injected by middleware and expose it to the client
   // bootstrapper via a <meta> tag. The bootstrapper calls readTenantSlug() which
   // queries this tag, so it knows which tenant to load without re-parsing the host.
   const headersList = await headers()
   const tenantSlug = headersList.get('x-tenant-slug') ?? ''
   return (
-    <html lang={locale} dir={isRTL ? 'rtl' : 'ltr'} suppressHydrationWarning>
+    <html lang={locale} dir={direction} suppressHydrationWarning>
       <head>
         {tenantSlug && <meta name="x-tenant-slug" content={tenantSlug} />}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

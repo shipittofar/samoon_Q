@@ -40,6 +40,7 @@ import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useHomepageLayout } from '@/hooks'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 import { resolveSupportedLocales, getLanguageInfo } from '@/i18n/runtime'
 
 // P9.5.1A Phase C: sourced from the config-driven supported-locale list +
@@ -61,6 +62,7 @@ export function TenantHeader() {
   const { tenant } = useTenantStore()
   const activeBranch = useBranchStore((s) => s.activeBranch)
   const { mutate: logout } = useLogout()
+  const tAuth = useTranslations('auth')
 
   // Feature-flag-filtered nav items from the active module.
   // useModuleNav() already applies feature flags — buildTenantNavigation receives
@@ -124,7 +126,7 @@ export function TenantHeader() {
   }, [pathname])
 
   const handleLogout = () => {
-    logout(undefined, { onSuccess: () => toast.success('See you next time!') })
+    logout(undefined, { onSuccess: () => toast.success(tAuth('logoutSuccess')) })
   }
 
   return (

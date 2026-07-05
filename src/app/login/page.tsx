@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useTranslations } from 'next-intl'
 import {
   Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles,
   ShieldCheck, User, Crown, ChefHat, Megaphone,
@@ -41,9 +42,12 @@ const DEMO_ACCOUNTS = [
 
 // ── Email fallback schema ──────────────────────────────────────────────────────
 
+// Schema messages are `validation` namespace keys, not literal English text
+// (Phase E — centralized validation messages) — resolved through
+// `tValidation()` wherever `errors.<field>.message` is rendered below.
 const emailSchema = z.object({
-  email: z.string().email('Valid email required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email('invalid_email'),
+  password: z.string().min(6, 'invalid_password'),
 })
 type EmailFormData = z.infer<typeof emailSchema>
 
@@ -54,6 +58,9 @@ export default function LoginPage() {
   const prefersReducedMotion = useReducedMotion()
   const { mutate: login, isPending: isEmailPending } = useLogin()
   const { mutate: sendOTP, isPending: isSendingOTP } = useSendOTP()
+  const t = useTranslations('auth')
+  const tCommon = useTranslations('common')
+  const tValidation = useTranslations('validation')
 
   // P9.1.2 — Runtime Integration: demo grid visibility now additionally gated
   // by authentication.demo_accounts_visible (platform-locked config), never
@@ -75,14 +82,14 @@ export default function LoginPage() {
   const handlePhoneContinue = () => {
     const rateCheck = LOGIN_LIMIT.check(phoneE164)
     if (!rateCheck.allowed) {
-      toast.error('Too many attempts. Please try again later.')
+      toast.error(t('tooManyAttempts'))
       return
     }
     sendOTP(phoneE164, {
       onSuccess: () => {
         router.push(`/verify?phone=${encodeURIComponent(phoneE164)}`)
       },
-      onError: () => toast.error('Could not send code. Please try again.'),
+      onError: () => toast.error(t('otpSendFailed')),
     })
   }
 
@@ -91,16 +98,16 @@ export default function LoginPage() {
   const loginAs = (email: string) => {
     const rateCheck = LOGIN_LIMIT.check(email)
     if (!rateCheck.allowed) {
-      toast.error('Too many login attempts. Please try again later.')
+      toast.error(t('tooManyLoginAttempts'))
       return
     }
     login({ email, password: 'password' }, {
       onSuccess: () => {
         LOGIN_LIMIT.reset(email)
-        toast.success('Welcome back!')
+        toast.success(t('loginSuccess'))
         router.push(getDemoRedirect(email))
       },
-      onError: () => toast.error('Login failed. Please try again.'),
+      onError: () => toast.error(t('loginFailed')),
     })
   }
 
@@ -109,16 +116,16 @@ export default function LoginPage() {
   const onEmailSubmit = (data: EmailFormData) => {
     const rateCheck = LOGIN_LIMIT.check(data.email)
     if (!rateCheck.allowed) {
-      toast.error('Too many login attempts. Please try again later.')
+      toast.error(t('tooManyLoginAttempts'))
       return
     }
     login(data, {
       onSuccess: (result) => {
         LOGIN_LIMIT.reset(data.email)
-        toast.success('Welcome back!')
+        toast.success(t('loginSuccess'))
         router.push(getPostLoginRedirect(result.user.role))
       },
-      onError: () => toast.error('Invalid credentials. Please try again.'),
+      onError: () => toast.error(t('invalidCredentials')),
     })
   }
 
@@ -150,21 +157,21 @@ export default function LoginPage() {
           {/* Heading */}
           <div className="mb-8">
             <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-2">
-              Welcome
+              {t('welcome')}
             </h1>
-            <p className="text-[var(--fg-muted)]">Enter your phone number to continue</p>
+            <p className="text-[var(--fg-muted)]">{t('enterPhoneToContinue')}</p>
           </div>
 
           {/* ── Primary: Phone entry ── */}
           <div className="mb-6 space-y-3">
             <PhoneInput
-              label="Phone number"
+              label={t('phoneNumber')}
               defaultCountry="US"
               onChange={(e164, meta) => {
                 setPhoneE164(e164)
                 setPhoneValid(meta.isValid)
               }}
-              hint="We'll send a 6-digit code to verify your number"
+              hint={t('phoneHint')}
               required
             />
             <Button
@@ -176,18 +183,18 @@ export default function LoginPage() {
               onClick={handlePhoneContinue}
               rightIcon={<ArrowRight className="h-4 w-4" />}
             >
-              Continue
+              {tCommon('continue')}
             </Button>
           </div>
 
           {/* ── Demo accounts ── */}
           {USE_MOCK && (
             <>
-              <Divider label="or try a demo account" className="mb-4" />
+              <Divider label={t('orTryDemo')} className="mb-4" />
               <div className="mb-6 space-y-2">
                 <p className="text-xs text-[var(--fg-muted)] flex items-center gap-1.5">
                   <Sparkles className="h-3 w-3 text-orange-500" aria-hidden="true" />
-                  One-click login — no OTP needed in demo mode
+                  {t('oneClickDemoHint')}
                 </p>
                 <div className="grid grid-cols-2 gap-1.5">
                   {DEMO_ACCOUNTS.map(({ label, email, phone, description, icon: Icon, color, bg, border }) => (
@@ -218,7 +225,7 @@ export default function LoginPage() {
               className="w-full text-center text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors py-2"
               aria-expanded={showEmailForm}
             >
-              {showEmailForm ? 'Hide email sign-in' : 'Sign in with email instead'}
+              {showEmailForm ? t('hideEmailSignIn') : t('signInWithEmailInstead')}
             </button>
 
             <AnimatePresence>
@@ -237,22 +244,22 @@ export default function LoginPage() {
                         onClick={fillDemo}
                         className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 text-sm hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
                       >
-                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> Fill demo credentials
+                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> {t('fillDemoCredentials')}
                       </button>
                     )}
                     <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
                       <Input
-                        label="Email"
+                        label={t('email')}
                         type="email"
                         required
                         leftIcon={<Mail className="h-3.5 w-3.5" />}
-                        placeholder="you@example.com"
+                        placeholder={t('emailPlaceholder')}
                         {...register('email')}
-                        error={errors.email?.message}
+                        error={errors.email?.message ? tValidation(errors.email.message) : undefined}
                         autoComplete="email"
                       />
                       <Input
-                        label="Password"
+                        label={t('password')}
                         type={showPassword ? 'text' : 'password'}
                         required
                         leftIcon={<Lock className="h-3.5 w-3.5" />}
@@ -260,19 +267,19 @@ export default function LoginPage() {
                           <button
                             type="button"
                             onClick={() => setShowPassword((v) => !v)}
-                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            aria-label={showPassword ? tCommon('hidePassword') : tCommon('showPassword')}
                           >
                             {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                           </button>
                         }
                         placeholder="••••••••"
                         {...register('password')}
-                        error={errors.password?.message}
+                        error={errors.password?.message ? tValidation(errors.password.message) : undefined}
                         autoComplete="current-password"
                       />
                       <div className="flex items-center justify-end text-sm">
                         <Link href="/forgot-password" className="text-orange-500 hover:text-orange-600 transition-colors">
-                          Forgot password?
+                          {t('forgotPasswordLink')}
                         </Link>
                       </div>
                       <Button
@@ -282,7 +289,7 @@ export default function LoginPage() {
                         loading={isEmailPending}
                         rightIcon={<ArrowRight className="h-4 w-4" />}
                       >
-                        Sign In with Email
+                        {t('signInWithEmail')}
                       </Button>
                     </form>
                   </div>
@@ -293,10 +300,10 @@ export default function LoginPage() {
 
           {/* Footer note */}
           <p className="text-center text-xs text-[var(--fg-muted)] mt-8">
-            By continuing you agree to our{' '}
-            <Link href="/terms" className="text-orange-500 hover:underline">Terms</Link>
-            {' '}and{' '}
-            <Link href="/privacy" className="text-orange-500 hover:underline">Privacy Policy</Link>
+            {t('agreeToTerms')}{' '}
+            <Link href="/terms" className="text-orange-500 hover:underline">{tCommon('termsOfService')}</Link>
+            {' '}{tCommon('and')}{' '}
+            <Link href="/privacy" className="text-orange-500 hover:underline">{tCommon('privacyPolicy')}</Link>
           </p>
         </motion.div>
       </div>

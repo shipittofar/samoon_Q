@@ -19,7 +19,14 @@
     "clear": "Clear",
     "viewAll": "View all",
     "noResults": "No results found",
-    "required": "This field is required"
+    "required": "This field is required",
+    "continue": "Continue",
+    "or": "or",
+    "and": "and",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "termsOfService": "Terms",
+    "privacyPolicy": "Privacy Policy"
   },
   "nav": {
     "menu": "Menu",
@@ -49,7 +56,61 @@
     "hasAccount": "Already have an account?",
     "loginSuccess": "Welcome back!",
     "registerSuccess": "Account created successfully!",
-    "logoutSuccess": "See you next time!"
+    "logoutSuccess": "See you next time!",
+    "welcome": "Welcome",
+    "enterPhoneToContinue": "Enter your phone number to continue",
+    "phoneNumber": "Phone number",
+    "phoneHint": "We'll send a 6-digit code to verify your number",
+    "orTryDemo": "or try a demo account",
+    "oneClickDemoHint": "One-click login — no OTP needed in demo mode",
+    "signInWithEmailInstead": "Sign in with email instead",
+    "hideEmailSignIn": "Hide email sign-in",
+    "fillDemoCredentials": "Fill demo credentials",
+    "forgotPasswordLink": "Forgot password?",
+    "signInWithEmail": "Sign In with Email",
+    "emailPlaceholder": "you@example.com",
+    "agreeToTerms": "By continuing you agree to our",
+    "tooManyAttempts": "Too many attempts. Please try again later.",
+    "tooManyLoginAttempts": "Too many login attempts. Please try again later.",
+    "otpSendFailed": "Could not send code. Please try again.",
+    "loginFailed": "Login failed. Please try again.",
+    "invalidCredentials": "Invalid credentials. Please try again.",
+    "forgotTitle": "Forgot your password?",
+    "forgotSubtitle": "No worries! Enter your email and we will send you a reset link.",
+    "emailAddress": "Email address",
+    "sendResetLink": "Send Reset Link",
+    "backToSignIn": "Back to sign in",
+    "backToSignInButton": "Back to Sign In",
+    "checkInbox": "Check your inbox",
+    "resetLinkSentTo": "We sent a password reset link to",
+    "didntReceiveIt": "Didn't receive it? Check your spam folder, or",
+    "tryAgain": "try again",
+    "tooManyResetAttempts": "Too many reset attempts. Please try again later.",
+    "verifyYourNumber": "Verify your number",
+    "weSentCodeTo": "We sent a 6-digit code to",
+    "digitLabel": "Digit {position}",
+    "verifying": "Verifying…",
+    "verifyCode": "Verify Code",
+    "resendCodeIn": "Resend code in",
+    "sendingResend": "Sending…",
+    "resendCode": "Resend Code",
+    "invalidOtp": "Invalid OTP. Please try again.",
+    "otpResent": "New OTP sent!",
+    "otpResendFailed": "Failed to resend OTP.",
+    "createAccountTitle": "Create account",
+    "joinThousands": "Join thousands of food lovers today",
+    "joinSavorFamily": "Join the Savor Family",
+    "joinSavorFamilySubtitle": "Create your account and unlock a world of culinary delights.",
+    "agreeToTermsCreate": "By creating an account you agree to our",
+    "createAccountButton": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "signInArrow": "Sign in →",
+    "togglePassword": "Toggle password",
+    "toggleConfirmPassword": "Toggle confirm password",
+    "minEightChars": "Min. 8 characters",
+    "repeatPassword": "Repeat password",
+    "registrationSuccess": "Account created! Welcome to Savor 🎉",
+    "registrationFailed": "Registration failed. Email may already be in use."
   },
   "menu": {
     "title": "Our Menu",
@@ -174,14 +235,61 @@
     "orderUpdate": "Order Update",
     "promotion": "Promotion",
     "reservation": "Reservation",
-    "system": "System"
+    "system": "System",
+    "resetEmailSent": "Reset email sent — check your inbox.",
+    "resetEmailFailed": "Failed to send reset email. Please try again.",
+    "phoneVerified": "Phone verified! Welcome",
+    "reviewSubmitted": "Review submitted!",
+    "reviewFailed": "Failed to submit review. Please try again.",
+    "itemAddedToCart": "{item} added to cart!",
+    "discountApplied": "Discount applied! You save {amount}",
+    "configurationSaved": "Configuration saved.",
+    "configurationRefreshed": "Configuration refreshed.",
+    "configurationSaveFailed": "Could not save configuration.",
+    "exported": "Exported {name}."
   },
   "errors": {
     "notFound": "Page Not Found",
     "notFoundDesc": "The page you're looking for doesn't exist.",
+    "notFoundPlayful": "Looks like this page went missing — just like the last slice of pizza. Let's get you back on track.",
+    "goHome": "Go Home",
+    "browse": "Browse",
     "serverError": "Server Error",
     "serverErrorDesc": "Something went wrong on our end. Please try again.",
     "offline": "You're Offline",
     "offlineDesc": "Check your internet connection and try again."
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalid_phone": "Enter a valid phone number",
+    "invalid_email": "Valid email required",
+    "invalid_password": "Password must be at least 6 characters",
+    "otp_expired": "This code has expired. Please request a new one.",
+    "too_many_attempts": "Too many attempts. Please try again later.",
+    "network_error": "Network error — please check your connection and try again.",
+    "permission_denied": "You don't have permission to do that.",
+    "unknown_error": "Something went wrong. Please try again.",
+    "passwords_do_not_match": "Passwords do not match"
+  },
+  "console": {
+    "title": "Console"
+  },
+  "platform": {
+    "title": "Platform Administration"
+  },
+  "countries": {
+    "title": "Countries"
+  },
+  "languages": {
+    "title": "Languages"
+  },
+  "marketing": {
+    "title": "Marketing"
+  },
+  "analytics": {
+    "title": "Analytics"
+  },
+  "system": {
+    "title": "System"
   }
 }

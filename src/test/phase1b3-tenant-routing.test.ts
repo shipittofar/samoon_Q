@@ -125,7 +125,10 @@ describe('app/layout.tsx — tenant meta tag', () => {
 
   it('preserves existing locale/RTL logic', () => {
     expect(src()).toContain('getLocale')
-    expect(src()).toContain('isRTL')
+    // P9.5.1B: RTL detection now goes through the Localization Runtime
+    // Service's getDirection() (config-driven) instead of a hardcoded
+    // ['fa', 'ar'].includes(locale) literal.
+    expect(src()).toContain('getDirection')
   })
 
   it('preserves existing font/theme script', () => {

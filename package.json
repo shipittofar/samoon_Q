@@ -12,7 +12,9 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "i18n:validate": "node scripts/validate-i18n.mjs",
+    "i18n:coverage": "node scripts/check-translation-coverage.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

@@ -12,9 +12,10 @@ import { Button } from '@/components/ui/Button'
 import { authService } from '@/services/auth.service'
 import toast from 'react-hot-toast'
 import { PASSWORD_RESET_LIMIT } from '@/lib/rate-limit'
+import { useTranslations } from 'next-intl'
 
 const forgotSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().email('invalid_email'),
 })
 type ForgotFormData = z.infer<typeof forgotSchema>
 
@@ -22,6 +23,9 @@ export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false)
   const [submittedEmail, setSubmittedEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const t = useTranslations('auth')
+  const tValidation = useTranslations('validation')
+  const tNotifications = useTranslations('notifications')
 
   const { register, handleSubmit, formState: { errors } } = useForm<ForgotFormData>({
     resolver: zodResolver(forgotSchema),
@@ -30,7 +34,7 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: ForgotFormData) => {
     const rateCheck = PASSWORD_RESET_LIMIT.check(data.email)
     if (!rateCheck.allowed) {
-      toast.error('Too many reset attempts. Please try again later.')
+      toast.error(t('tooManyResetAttempts'))
       return
     }
     setLoading(true)
@@ -39,7 +43,7 @@ export default function ForgotPasswordPage() {
       setSubmittedEmail(data.email)
       setSubmitted(true)
     } catch {
-      toast.error('Failed to send reset email. Please try again.')
+      toast.error(tNotifications('resetEmailFailed'))
     } finally {
       setLoading(false)
     }
@@ -72,22 +76,22 @@ export default function ForgotPasswordPage() {
               >
                 <div className="mb-6">
                   <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
-                    Forgot your password?
+                    {t('forgotTitle')}
                   </h1>
                   <p className="text-[var(--fg-muted)] text-sm">
-                    No worries! Enter your email and we will send you a reset link.
+                    {t('forgotSubtitle')}
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   <Input
-                    label="Email address"
+                    label={t('emailAddress')}
                     type="email"
                     required
                     leftIcon={<Mail className="h-3.5 w-3.5" />}
-                    placeholder="you@example.com"
+                    placeholder={t('emailPlaceholder')}
                     {...register('email')}
-                    error={errors.email?.message}
+                    error={errors.email?.message ? tValidation(errors.email.message) : undefined}
                     autoComplete="email"
                     autoFocus
                   />
@@ -98,7 +102,7 @@ export default function ForgotPasswordPage() {
                     loading={loading}
                     rightIcon={<ArrowRight className="h-4 w-4" />}
                   >
-                    Send Reset Link
+                    {t('sendResetLink')}
                   </Button>
                 </form>
 
@@ -107,7 +111,7 @@ export default function ForgotPasswordPage() {
                   className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors mt-6"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
-                  Back to sign in
+                  {t('backToSignIn')}
                 </Link>
               </motion.div>
             ) : (
@@ -127,25 +131,25 @@ export default function ForgotPasswordPage() {
                   <CheckCircle2 className="h-8 w-8 text-emerald-500" />
                 </motion.div>
                 <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
-                  Check your inbox
+                  {t('checkInbox')}
                 </h2>
                 <p className="text-[var(--fg-muted)] text-sm mb-2">
-                  We sent a password reset link to
+                  {t('resetLinkSentTo')}
                 </p>
                 <p className="font-semibold text-[var(--fg)] mb-6">{submittedEmail}</p>
                 <p className="text-xs text-[var(--fg-subtle)] mb-6">
-                  Didnt receive it? Check your spam folder, or{' '}
+                  {t('didntReceiveIt')}{' '}
                   <button
                     onClick={() => setSubmitted(false)}
                     className="text-orange-500 hover:text-orange-600 underline underline-offset-2"
                   >
-                    try again
+                    {t('tryAgain')}
                   </button>
                   .
                 </p>
                 <Link href="/login">
                   <Button variant="secondary" className="w-full" leftIcon={<ArrowLeft className="h-4 w-4" />}>
-                    Back to Sign In
+                    {t('backToSignInButton')}
                   </Button>
                 </Link>
               </motion.div>
