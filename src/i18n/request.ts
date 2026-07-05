@@ -31,7 +31,10 @@ export default getRequestConfig(async () => {
     },
     getMessageFallback({ namespace, key }) {
       recordMissingTranslation({ kind: 'missing-key', locale, namespace, key })
-      return namespace ? `${namespace}.${key}` : key
+      const dotted = namespace ? `${namespace}.${key}` : key
+      // Phase H — visibly flagged only in development; production keeps the
+      // exact same silent `namespace.key` fallback used since P9.5.0/P9.5.1B.
+      return process.env.NODE_ENV !== 'production' ? `⚠ Missing Translation: ${dotted}` : dotted
     },
   }
 })

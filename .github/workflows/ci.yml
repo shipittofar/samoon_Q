@@ -44,6 +44,8 @@ jobs:
       - run: npm run test
       - name: Validate i18n keys
         run: node scripts/validate-i18n.mjs
+      - name: Guard against new hardcoded strings in migrated Console/Studio directories
+        run: node scripts/check-hardcoded-strings.mjs
 
   build:
     name: Build

@@ -14,7 +14,7 @@ import { useTranslations } from 'next-intl'
 import { Clock, Pin, PinOff, Search } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { platformConfigurationRegistry } from '@/config'
+import { platformConfigurationRegistry, resolveConfigText } from '@/config'
 import type { ConfigModuleDefinition } from '@/config'
 import { usePlatformConfiguration } from '@/hooks/use-platform-configuration'
 import { useConfigurationStudioNav } from '@/hooks/use-configuration-studio-nav'
@@ -38,6 +38,8 @@ export interface ConfigurationStudioNavProps {
 
 export function ConfigurationStudioNav({ activeModuleId, onSelect }: ConfigurationStudioNavProps) {
   const t = useTranslations('console')
+  const tFields = useTranslations('configFields')
+  const moduleName = (mod: ConfigModuleDefinition) => resolveConfigText(tFields, mod.id, 'name', mod.name) ?? mod.name
   const allModules = usePlatformConfiguration()
   const { pinned, recent, togglePinned, isPinned } = useConfigurationStudioNav()
   const platformRole = usePlatformRole()
@@ -57,7 +59,12 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return modules
-    return modules.filter((m) => buildSearchHaystack([m.name, m.description, m.category]).includes(q))
+    return modules.filter((m) => buildSearchHaystack([
+      moduleName(m),
+      resolveConfigText(tFields, m.id, 'description', m.description),
+      m.category,
+    ]).includes(q))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modules, search])
 
   const pinnedModules = filtered.filter((m) => isPinned(m.id))
@@ -116,7 +123,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
           }`}
         >
           <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-          <span className="truncate">{mod.name}</span>
+          <span className="truncate">{moduleName(mod)}</span>
           {lifecycle !== 'published' && (
             <Badge variant={LIFECYCLE_BADGE_VARIANT[lifecycle]} className="ms-auto shrink-0 text-[10px]">{lifecycle}</Badge>
           )}
@@ -124,7 +131,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
         <button
           type="button"
           onClick={() => togglePinned(mod.id)}
-          aria-label={isPinned(mod.id) ? t('unpinAria', { name: mod.name }) : t('pinAria', { name: mod.name })}
+          aria-label={isPinned(mod.id) ? t('unpinAria', { name: moduleName(mod) }) : t('pinAria', { name: moduleName(mod) })}
           className="shrink-0 rounded-lg p-1.5 text-[var(--fg-muted)] opacity-0 hover:bg-[var(--card-hover)] hover:text-[var(--fg)] focus-visible:opacity-100 group-hover:opacity-100"
         >
           {isPinned(mod.id) ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}

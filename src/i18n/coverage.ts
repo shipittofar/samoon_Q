@@ -187,3 +187,66 @@ export function buildCoverageReport(usages: TranslationUsage[], referenceMessage
     orphanNamespaces: findOrphanNamespaces(usages, referenceMessages),
   }
 }
+
+/**
+ * P9.5.4 Phase I — per-namespace and global cross-locale coverage
+ * percentage: of the reference (en) locale's keys in a namespace, how
+ * many have a non-empty value in `targetMessages` (fa/ar). Parity is
+ * already enforced as a hard CI gate by `scripts/validate-i18n.mjs`, so
+ * this is expected to read 100% in a healthy repo — it exists to report
+ * the number, not to re-implement the gate.
+ */
+export interface NamespaceCoverage {
+  namespace: string
+  totalKeys: number
+  translatedKeys: number
+  percent: number
+}
+
+export function computeNamespaceCoverage(referenceMessages: Messages, targetMessages: Messages): NamespaceCoverage[] {
+  return getNamespaces(referenceMessages).map((namespace) => {
+    const refFlat = flattenMessages(referenceMessages[namespace], namespace)
+    const targetFlat = flattenMessages((targetMessages[namespace] as Messages) ?? {}, namespace)
+    const totalKeys = Object.keys(refFlat).length
+    const translatedKeys = Object.keys(refFlat).filter((k) => Boolean(targetFlat[k]?.trim())).length
+    return { namespace, totalKeys, translatedKeys, percent: totalKeys === 0 ? 100 : Math.round((translatedKeys / totalKeys) * 100) }
+  })
+}
+
+export function computeGlobalCoverage(namespaceCoverage: NamespaceCoverage[]): number {
+  const totalKeys = namespaceCoverage.reduce((sum, n) => sum + n.totalKeys, 0)
+  const translatedKeys = namespaceCoverage.reduce((sum, n) => sum + n.translatedKeys, 0)
+  return totalKeys === 0 ? 100 : Math.round((translatedKeys / totalKeys) * 100)
+}
+
+/**
+ * P9.5.4 Phase I/J — a best-effort, regex-based heuristic flagging literal
+ * JSX text content that looks like a user-facing English sentence/label
+ * rather than a `{t('...')}` expression. Like `extractTranslationUsagesFromSource`,
+ * this is explicitly NOT a parser — it cannot see every real hardcoded
+ * string, and it will have some false positives (e.g. a literal that is
+ * itself intentionally not localized, like a proper noun). It exists to
+ * catch regressions in already-migrated directories, not to be a complete
+ * audit tool on its own (`docs/P9.5.4_LOCALIZATION_AUDIT.md`'s Phase A
+ * numbers come from a manual, directory-by-directory review, not this
+ * scan).
+ */
+export interface HardcodedStringCandidate {
+  file: string
+  line: number
+  snippet: string
+}
+
+const JSX_TEXT_RE = />\s*([A-Z][A-Za-z][a-zA-Z0-9 ,.'!?-]{3,80}[a-zA-Z.!?])\s*</g
+
+export function findHardcodedJsxText(sourceText: string, file: string): HardcodedStringCandidate[] {
+  const found: HardcodedStringCandidate[] = []
+  const lines = sourceText.split('\n')
+  lines.forEach((lineText, i) => {
+    if (lineText.includes('{') || lineText.trim().startsWith('//') || lineText.trim().startsWith('*')) return
+    for (const m of lineText.matchAll(JSX_TEXT_RE)) {
+      found.push({ file, line: i + 1, snippet: m[1].trim() })
+    }
+  })
+  return found
+}

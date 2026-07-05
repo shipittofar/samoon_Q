@@ -11,6 +11,7 @@
  * write in the Studio (no second persistence mechanism for rollback).
  */
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { RotateCcw, Search } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
@@ -50,6 +51,7 @@ export interface ConfigurationHistoryTimelineProps {
 }
 
 export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolledBack }: ConfigurationHistoryTimelineProps) {
+  const t = useTranslations('console')
   const [query, setQuery] = useState('')
   const [rollingBackId, setRollingBackId] = useState<string | null>(null)
   const allEntries = configurationAudit.listForField(fieldId)
@@ -78,8 +80,8 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
     return (
       <EmptyState
         icon={<RotateCcw className="h-6 w-6" />}
-        title="No history yet"
-        description="Changes to this field will appear here as soon as they're saved."
+        title={t('noHistoryYetTitle')}
+        description={t('noHistoryYetFieldDesc')}
       />
     )
   }
@@ -92,14 +94,14 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Filter by actor, level, or reason…"
-          aria-label="Filter history"
+          placeholder={t('filterHistoryPlaceholder')}
+          aria-label={t('filterHistoryAria')}
           className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-1.5 pl-8 pr-3 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
         />
       </div>
 
       {entries.length === 0 ? (
-        <EmptyState title="No matching history" description={`Nothing matches "${query}".`} />
+        <EmptyState title={t('noMatchingHistoryTitle')} description={t('nothingMatchesQuery', { query })} />
       ) : (
         <ol className="space-y-2 border-l border-[var(--border)] pl-4">
           {entries.map((entry) => (
@@ -108,7 +110,7 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-[var(--fg)]">
-                    <span className="font-medium">{entry.actorName}</span> changed this at <span className="capitalize">{entry.level}</span> level
+                    <span className="font-medium">{entry.actorName}</span> {t('changedThisAt')} <span className="capitalize">{entry.level}</span> {t('levelSuffix')}
                   </p>
                   <p className="mt-0.5 font-mono text-[var(--fg-muted)]">
                     {JSON.stringify(entry.previousValue)} → {JSON.stringify(entry.newValue)}
@@ -122,7 +124,7 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
                     size="sm"
                     onClick={() => rollback(entry)}
                     disabled={rollingBackId === entry.id}
-                    aria-label={`Roll back to the value from ${formatTimestamp(entry.timestamp)}`}
+                    aria-label={t('rollbackToValueFromAria', { date: formatTimestamp(entry.timestamp) })}
                     className="shrink-0"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />

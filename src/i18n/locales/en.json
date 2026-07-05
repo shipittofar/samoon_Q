@@ -516,7 +516,210 @@
     "owningLevel": "Owning level",
     "modeLabel": "Mode",
     "noPreviewAvailable": "No preview is available for this {entity}.",
-    "defaultEntityLabelSingular": "entity"
+    "defaultEntityLabelSingular": "entity",
+    "inspectorTab_overview": "Overview",
+    "inspectorTab_inheritance": "Inheritance",
+    "inspectorTab_dependencies": "Dependencies",
+    "inspectorTab_validation": "Validation",
+    "inspectorTab_audit": "Audit",
+    "inspectorTab_history": "History",
+    "inspectorTab_preview": "Preview",
+    "inspectorTab_statistics": "Statistics",
+    "inspectorTab_documentation": "Documentation",
+    "noFieldSelectedTitle": "No field selected",
+    "noFieldSelectedDesc": "Click a setting's inspector icon to see its inheritance, dependencies, audit history, and more here.",
+    "configurationPath": "Configuration Path",
+    "typeLabel": "Type",
+    "categoryLabel": "Category",
+    "resolvedFrom": "Resolved From",
+    "noDependencyConditions": "This field declares no dependency conditions.",
+    "hiddenWhenLabel": "Hidden When",
+    "currentlyLabel": "currently",
+    "holdsHidden": "holds (hidden)",
+    "doesNotHoldVisible": "does not hold (visible)",
+    "enabledWhenLabel": "Enabled When",
+    "holdsEnabled": "holds (enabled)",
+    "doesNotHoldDisabled": "does not hold (disabled)",
+    "validLabel": "Valid",
+    "yesLabel": "Yes",
+    "noLabel": "No",
+    "minLabel": "Min",
+    "maxLabel": "Max",
+    "patternLabel": "Pattern",
+    "noAuditEntriesTitle": "No audit entries",
+    "noAuditEntriesFieldDesc": "No changes have been recorded for this field yet.",
+    "noPreviewConfigured": "No preview is configured for this field.",
+    "auditEntriesLabel": "Audit entries",
+    "lifecycleLabel": "Lifecycle",
+    "versionLabel": "Version",
+    "sensitiveLabel": "Sensitive",
+    "openDocumentation": "Open documentation",
+    "noDocumentationLink": "No documentation link is set for this field.",
+    "levelPlatform": "Platform",
+    "levelTenant": "Tenant",
+    "levelBranch": "Branch",
+    "levelUser": "User",
+    "inheritanceChainAria": "Inheritance chain",
+    "ownerLabel": "owner",
+    "inheritsFromAbove": "inherits from above",
+    "effectiveLabel": "Effective",
+    "blockedLabel": "Blocked",
+    "overriddenLabel": "Overridden",
+    "thenLabel": "then",
+    "currentEffective": "Current (Effective)",
+    "draftUnsaved": "Draft (Unsaved)",
+    "levelOverride": "{level} Override",
+    "schemaDefault": "Schema Default",
+    "notEnoughHistoryToCompare": "Not enough history yet to compare — this field only has its current value.",
+    "compareLeftAria": "Compare left snapshot",
+    "compareRightAria": "Compare right snapshot",
+    "snapshotsDiffer": "These two snapshots differ.",
+    "snapshotsIdentical": "These two snapshots are identical.",
+    "noHistoryYetFieldDesc": "Changes to this field will appear here as soon as they're saved.",
+    "filterHistoryPlaceholder": "Filter by actor, level, or reason…",
+    "filterHistoryAria": "Filter history",
+    "noMatchingHistoryTitle": "No matching history",
+    "changedThisAt": "changed this at",
+    "levelSuffix": "level",
+    "rollbackToValueFromAria": "Roll back to the value from {date}",
+    "unsavedBadge2": "Unsaved",
+    "fieldState_default": "Default",
+    "fieldState_modified": "Modified",
+    "fieldState_tenant_override": "Tenant Override",
+    "fieldState_branch_override": "Branch Override",
+    "fieldState_user_override": "User Override",
+    "draftBadge": "Draft",
+    "betaBadge": "Beta",
+    "deprecatedBadge": "Deprecated",
+    "archivedReadOnlyBadge": "Archived — read only",
+    "dangerousBadge": "Dangerous",
+    "experimentalBadge": "Experimental",
+    "internalOnlyBadge": "Internal Only",
+    "restartRequiredBadge": "Restart Required",
+    "publishRequiredBadge": "Publish Required",
+    "requiresApprovalBadge": "Requires Approval",
+    "securitySensitiveBadge": "Security-Sensitive",
+    "lockedBadge": "Locked",
+    "fontSamplePreview": "The quick brown fox jumps — {fontFamily}",
+    "hideValueAria": "Hide value",
+    "revealValueAria": "Reveal value",
+    "loadingConfigurationAria": "Loading configuration",
+    "selectModuleToBegin": "Select a module from the list to begin.",
+    "resizeModulesPanelAria": "Resize modules panel",
+    "showModulesPanelAria": "Show modules panel",
+    "hideModulesPanelAria": "Hide modules panel",
+    "modulesDrawerTitle": "Modules",
+    "resizeInspectorPanelAria": "Resize inspector panel",
+    "showInspectorPanelAria": "Show inspector panel",
+    "hideInspectorPanelAria": "Hide inspector panel",
+    "inspectorDrawerTitle": "Inspector",
+    "auditHistoryAndDetailsAria": "Audit history and details",
+    "resetFieldToSavedValueAria": "Reset {field} to its saved value",
+    "resetToSavedValueTitle": "Reset to saved value",
+    "disabledDependencyNotMet": "Disabled because a dependency isn't met.",
+    "noPermissionToEditField": "You don't have permission to edit this field.",
+    "archivedReadOnlyExplanation": "Archived — read only; resolves to its default regardless of any stored override.",
+    "minValueLabel": "Min {min}",
+    "maxValueLabel": "Max {max}",
+    "auditHistoryLabel": "Audit History",
+    "noChangesRecordedYet": "No changes recorded yet.",
+    "changedThisTo": "changed this to",
+    "onDateLabel": "on {date}",
+    "lastModifiedByOn": "Last modified by {actor} on {date}",
+    "escKey": "Esc",
+    "urlBasedUntilStorageWired": "URL-based until a Storage-backed upload is wired."
+  },
+  "configFields": {
+    "authentication": {
+      "name": "Authentication",
+      "description": "Phone/OTP login rules, registration policy, and account lockout thresholds.",
+      "core": {
+        "title": "Core Toggles"
+      },
+      "otp": {
+        "title": "OTP"
+      },
+      "lockout": {
+        "title": "Login Attempts & Lockout"
+      },
+      "demo": {
+        "title": "Demo / Mock"
+      }
+    },
+    "languages": {
+      "name": "Languages",
+      "description": "Supported locales, default locale, and RTL rendering rules.",
+      "locales": {
+        "title": "Locales"
+      },
+      "supported": {
+        "title": "Supported Locales",
+        "description": "Locales available in the language switcher."
+      },
+      "default": {
+        "title": "Default Locale",
+        "description": "Locale used when no user preference or tenant override is present."
+      },
+      "rtl_locales": {
+        "title": "RTL Locales",
+        "description": "Locales rendered right-to-left."
+      }
+    },
+    "platform": {
+      "overview": {
+        "name": "Platform Overview",
+        "description": "Top-level platform identity and default landing behavior for the Administration Center.",
+        "general": {
+          "title": "General"
+        },
+        "platform_name": {
+          "title": "Platform Name"
+        },
+        "default_landing_widget_set": {
+          "title": "Default Dashboard Widget Set"
+        }
+      },
+      "maintenance_mode": {
+        "name": "Maintenance Mode",
+        "description": "Platform-wide maintenance mode — blocks tenant-facing traffic when enabled.",
+        "general": {
+          "title": "General"
+        },
+        "enabled": {
+          "title": "Maintenance Mode Enabled"
+        },
+        "message": {
+          "title": "Maintenance Message"
+        },
+        "allow_platform_admin_access": {
+          "title": "Allow Platform Admin Access During Maintenance"
+        }
+      },
+      "system_status": {
+        "name": "System Status",
+        "description": "Public-facing system status page configuration.",
+        "general": {
+          "title": "General"
+        },
+        "status_page_enabled": {
+          "title": "Public Status Page Enabled"
+        },
+        "show_incident_history": {
+          "title": "Show Incident History"
+        }
+      },
+      "users": {
+        "name": "Platform Users",
+        "description": "Savor employees with access to the Platform Administration Center — distinct from any tenant's own staff.",
+        "general": {
+          "title": "General"
+        },
+        "registry": {
+          "title": "Platform Users",
+          "description": "Every internal platform user and their platform role."
+        }
+      }
+    }
   },
   "platform": {
     "title": "Platform Administration"
@@ -535,5 +738,12 @@
   },
   "system": {
     "title": "System"
+  },
+  "seo": {
+    "root": {
+      "title": "Savor — Hospitality Platform",
+      "description": "Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses on Savor.",
+      "keywords": "restaurant discovery, hospitality platform, food ordering, table booking, cafe, bar, food truck, local dining, marketplace, restaurant marketplace"
+    }
   }
 }

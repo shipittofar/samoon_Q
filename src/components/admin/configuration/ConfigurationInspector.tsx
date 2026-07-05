@@ -13,9 +13,10 @@
  * `ConfigurationCompareView` rather than re-implementing any of them.
  */
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Info } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { configurationAudit, configurationService, configurationValidator } from '@/config'
+import { configurationAudit, configurationService, configurationValidator, resolveConfigText } from '@/config'
 import type { ConfigActor } from '@/config'
 import { useConfigScope } from '@/hooks/use-platform-configuration'
 import { usePermissions } from '@/hooks'
@@ -27,17 +28,7 @@ import { deriveFieldState, evaluateCondition } from './configUiHelpers'
 
 type InspectorTab = 'overview' | 'inheritance' | 'dependencies' | 'validation' | 'audit' | 'history' | 'preview' | 'statistics' | 'documentation'
 
-const TABS: { id: InspectorTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'inheritance', label: 'Inheritance' },
-  { id: 'dependencies', label: 'Dependencies' },
-  { id: 'validation', label: 'Validation' },
-  { id: 'audit', label: 'Audit' },
-  { id: 'history', label: 'History' },
-  { id: 'preview', label: 'Preview' },
-  { id: 'statistics', label: 'Statistics' },
-  { id: 'documentation', label: 'Documentation' },
-]
+const TAB_IDS: InspectorTab[] = ['overview', 'inheritance', 'dependencies', 'validation', 'audit', 'history', 'preview', 'statistics', 'documentation']
 
 function formatTimestamp(iso: string): string {
   try {
@@ -53,6 +44,9 @@ export interface ConfigurationInspectorProps {
 }
 
 export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspectorProps) {
+  const t = useTranslations('console')
+  const tFields = useTranslations('configFields')
+  const TABS: { id: InspectorTab; label: string }[] = TAB_IDS.map((id) => ({ id, label: t(`inspectorTab_${id}`) }))
   const [tab, setTab] = useState<InspectorTab>('overview')
   const scope = useConfigScope()
   const permissions = usePermissions()
@@ -74,8 +68,8 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
       <div className="flex h-full items-center justify-center p-6">
         <EmptyState
           icon={<Info className="h-6 w-6" />}
-          title="No field selected"
-          description="Click a setting's inspector icon to see its inheritance, dependencies, audit history, and more here."
+          title={t('noFieldSelectedTitle')}
+          description={t('noFieldSelectedDesc')}
         />
       </div>
     )
@@ -86,7 +80,8 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
   const auditEntries = configurationAudit.listForField(fieldId)
   const canEdit = configurationService.canEdit(field, permissions)
   const state = deriveFieldState(field, resolved)
-  const title = field.display?.displayName ?? field.title
+  const title = field.display?.displayName ?? resolveConfigText(tFields, field.id, 'title', field.title)
+  const description = resolveConfigText(tFields, field.id, 'description', field.description)
 
   return (
     <div className="flex h-full flex-col" data-inspector-field-id={fieldId}>
@@ -95,7 +90,7 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
           <h2 className="text-sm font-semibold text-[var(--fg)]">{title}</h2>
           <ConfigurationFieldBadges field={field} state={state} isDirty={false} />
         </div>
-        {field.description && <p className="mt-1 text-xs text-[var(--fg-muted)]">{field.description}</p>}
+        {description && <p className="mt-1 text-xs text-[var(--fg-muted)]">{description}</p>}
       </div>
 
       <div className="flex flex-wrap gap-1 border-b border-[var(--border)] p-2">
@@ -117,13 +112,13 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
       <div className="flex-1 overflow-y-auto p-4 text-sm">
         {tab === 'overview' && (
           <div className="space-y-2">
-            <Row label="Configuration Path" value={field.id} mono />
-            <Row label="Type" value={field.type} />
-            <Row label="Category" value={field.category} />
-            <Row label="Owning Level" value={field.inheritance.level} />
-            <Row label="Resolved From" value={resolved.resolvedFrom} />
-            <Row label="Current Value" value={JSON.stringify(resolved.value)} mono />
-            <Row label="Default Value" value={JSON.stringify(field.default)} mono />
+            <Row label={t('configurationPath')} value={field.id} mono />
+            <Row label={t('typeLabel')} value={field.type} />
+            <Row label={t('categoryLabel')} value={field.category} />
+            <Row label={t('owningLevel')} value={field.inheritance.level} />
+            <Row label={t('resolvedFrom')} value={resolved.resolvedFrom} />
+            <Row label={t('currentLabel')} value={JSON.stringify(resolved.value)} mono />
+            <Row label={t('defaultLabel')} value={JSON.stringify(field.default)} mono />
           </div>
         )}
 
@@ -132,22 +127,22 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
         {tab === 'dependencies' && (
           <div className="space-y-2">
             {!field.dependency?.hiddenWhen && !field.dependency?.enabledWhen ? (
-              <p className="text-[var(--fg-muted)]">This field declares no dependency conditions.</p>
+              <p className="text-[var(--fg-muted)]">{t('noDependencyConditions')}</p>
             ) : (
               <>
                 {field.dependency?.hiddenWhen && (
                   <div className="rounded-lg border border-[var(--border)] p-2 text-xs">
-                    <p className="font-medium text-[var(--fg)]">Hidden When</p>
+                    <p className="font-medium text-[var(--fg)]">{t('hiddenWhenLabel')}</p>
                     <p className="text-[var(--fg-muted)]">
-                      {field.dependency.hiddenWhen.fieldId} — currently {evaluateCondition(field.dependency.hiddenWhen, moduleValues) ? 'holds (hidden)' : 'does not hold (visible)'}
+                      {field.dependency.hiddenWhen.fieldId} — {t('currentlyLabel')} {evaluateCondition(field.dependency.hiddenWhen, moduleValues) ? t('holdsHidden') : t('doesNotHoldVisible')}
                     </p>
                   </div>
                 )}
                 {field.dependency?.enabledWhen && (
                   <div className="rounded-lg border border-[var(--border)] p-2 text-xs">
-                    <p className="font-medium text-[var(--fg)]">Enabled When</p>
+                    <p className="font-medium text-[var(--fg)]">{t('enabledWhenLabel')}</p>
                     <p className="text-[var(--fg-muted)]">
-                      {field.dependency.enabledWhen.fieldId} — currently {evaluateCondition(field.dependency.enabledWhen, moduleValues) ? 'holds (enabled)' : 'does not hold (disabled)'}
+                      {field.dependency.enabledWhen.fieldId} — {t('currentlyLabel')} {evaluateCondition(field.dependency.enabledWhen, moduleValues) ? t('holdsEnabled') : t('doesNotHoldDisabled')}
                     </p>
                   </div>
                 )}
@@ -158,21 +153,21 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
 
         {tab === 'validation' && (
           <div className="space-y-2">
-            <Row label="Valid" value={validation.valid ? 'Yes' : 'No'} />
+            <Row label={t('validLabel')} value={validation.valid ? t('yesLabel') : t('noLabel')} />
             {validation.errors.length > 0 && (
               <ul className="list-inside list-disc text-red-500">
                 {validation.errors.map((e, i) => <li key={i}>{e.message}</li>)}
               </ul>
             )}
-            {field.validation?.min !== undefined && <Row label="Min" value={String(field.validation.min)} />}
-            {field.validation?.max !== undefined && <Row label="Max" value={String(field.validation.max)} />}
-            {field.validation?.pattern && <Row label="Pattern" value={field.validation.pattern} mono />}
+            {field.validation?.min !== undefined && <Row label={t('minLabel')} value={String(field.validation.min)} />}
+            {field.validation?.max !== undefined && <Row label={t('maxLabel')} value={String(field.validation.max)} />}
+            {field.validation?.pattern && <Row label={t('patternLabel')} value={field.validation.pattern} mono />}
           </div>
         )}
 
         {tab === 'audit' && (
           auditEntries.length === 0 ? (
-            <EmptyState title="No audit entries" description="No changes have been recorded for this field yet." />
+            <EmptyState title={t('noAuditEntriesTitle')} description={t('noAuditEntriesFieldDesc')} />
           ) : (
             <ul className="space-y-1.5 text-xs">
               {auditEntries.slice(0, 5).map((e) => (
@@ -189,16 +184,16 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
 
         {tab === 'preview' && (
           field.preview.kind === 'none'
-            ? <p className="text-[var(--fg-muted)]">No preview is configured for this field.</p>
+            ? <p className="text-[var(--fg-muted)]">{t('noPreviewConfigured')}</p>
             : <ConfigurationFieldPreview field={field} value={resolved.value} />
         )}
 
         {tab === 'statistics' && (
           <div className="space-y-2">
-            <Row label="Audit entries" value={String(auditEntries.length)} />
-            <Row label="Lifecycle" value={field.lifecycle} />
-            <Row label="Version" value={field.version} />
-            <Row label="Sensitive" value={field.audit.sensitive ? 'Yes' : 'No'} />
+            <Row label={t('auditEntriesLabel')} value={String(auditEntries.length)} />
+            <Row label={t('lifecycleLabel')} value={field.lifecycle} />
+            <Row label={t('versionLabel')} value={field.version} />
+            <Row label={t('sensitiveLabel')} value={field.audit.sensitive ? t('yesLabel') : t('noLabel')} />
           </div>
         )}
 
@@ -207,10 +202,10 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
             {field.helpText && <p className="text-[var(--fg-muted)]">{field.helpText}</p>}
             {field.display?.documentationLink ? (
               <a href={field.display.documentationLink} target="_blank" rel="noreferrer" className="text-orange-500 underline">
-                Open documentation
+                {t('openDocumentation')}
               </a>
             ) : (
-              <p className="text-[var(--fg-muted)]">No documentation link is set for this field.</p>
+              <p className="text-[var(--fg-muted)]">{t('noDocumentationLink')}</p>
             )}
           </div>
         )}

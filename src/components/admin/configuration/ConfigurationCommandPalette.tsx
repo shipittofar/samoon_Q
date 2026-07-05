@@ -16,7 +16,7 @@ import { useTranslations } from 'next-intl'
 import { ArrowRight, RotateCcw, Save, Search } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { platformConfigurationRegistry } from '@/config'
+import { platformConfigurationRegistry, resolveConfigText } from '@/config'
 import { platformSearchRegistry } from '@/platform-admin/search'
 import { buildSearchHaystack } from './configUiHelpers'
 import type { ConfigurationDraftStatus, ConfigurationModuleActions } from './ConfigurationStudioToolbar'
@@ -42,6 +42,7 @@ export function ConfigurationCommandPalette({
   open, onClose, onNavigateToModule, onNavigateToField, draftStatus, actions,
 }: ConfigurationCommandPaletteProps) {
   const t = useTranslations('console')
+  const tFields = useTranslations('configFields')
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -58,19 +59,21 @@ export function ConfigurationCommandPalette({
     }
 
     for (const mod of platformConfigurationRegistry.getModules()) {
+      const modName = resolveConfigText(tFields, mod.id, 'name', mod.name) ?? mod.name
       list.push({
         id: `module:${mod.id}`,
-        label: t('goToModule', { name: mod.name }),
+        label: t('goToModule', { name: modName }),
         hint: mod.category,
         icon: <ArrowRight className="h-4 w-4" />,
         run: () => { onNavigateToModule(mod.id); onClose() },
       })
       for (const section of mod.sections) {
+        const sectionTitle = resolveConfigText(tFields, section.id, 'title', section.title) ?? section.title
         for (const field of section.fields) {
           list.push({
             id: `field:${field.id}`,
-            label: field.display?.displayName ?? field.title,
-            hint: `${mod.name} · ${section.title}`,
+            label: field.display?.displayName ?? resolveConfigText(tFields, field.id, 'title', field.title) ?? field.title,
+            hint: `${modName} · ${sectionTitle}`,
             icon: <Search className="h-4 w-4" />,
             run: () => { onNavigateToField(mod.id, field.id); onClose() },
           })
@@ -129,7 +132,7 @@ export function ConfigurationCommandPalette({
             aria-controls="configuration-command-palette-list"
             className="w-full bg-transparent text-sm text-[var(--fg)] outline-none placeholder:text-[var(--fg-muted)]"
           />
-          <kbd className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--fg-muted)]">Esc</kbd>
+          <kbd className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--fg-muted)]">{t('escKey')}</kbd>
         </div>
         <div id="configuration-command-palette-list" role="listbox" className="max-h-80 overflow-y-auto p-2">
           {filtered.length === 0 ? (

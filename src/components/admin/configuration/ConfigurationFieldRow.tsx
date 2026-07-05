@@ -9,8 +9,9 @@
  * in this file references "authentication" or any other module by name.
  */
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { History, RotateCcw } from 'lucide-react'
-import { configurationValidator } from '@/config'
+import { configurationValidator, resolveConfigText } from '@/config'
 import type { ConfigAuditEntry, ConfigFieldDefinition, ResolvedConfigValue } from '@/config'
 import { ConfigurationFieldControl } from './ConfigurationFieldControl'
 import { ConfigurationFieldBadges } from './ConfigurationFieldBadges'
@@ -43,13 +44,16 @@ function formatTimestamp(iso: string): string {
 export function ConfigurationFieldRow({
   field, resolved, currentValue, isDirty, canEdit, enabled, onChange, onReset, auditEntries, onInspect,
 }: ConfigurationFieldRowProps) {
+  const t = useTranslations('console')
+  const tFields = useTranslations('configFields')
   const [showInspector, setShowInspector] = useState(false)
   const state = deriveFieldState(field, resolved)
   const validation = configurationValidator.validate(field, currentValue)
   const isArchived = field.lifecycle === 'archived'
   const editable = canEdit && enabled && !isArchived
 
-  const title = field.display?.displayName ?? field.title
+  const title = field.display?.displayName ?? resolveConfigText(tFields, field.id, 'title', field.title)
+  const description = resolveConfigText(tFields, field.id, 'description', field.description)
   const lastEntry = auditEntries[0]
 
   return (
@@ -60,8 +64,8 @@ export function ConfigurationFieldRow({
             <label htmlFor={field.id} className="text-sm font-semibold text-[var(--fg)]">{title}</label>
             <ConfigurationFieldBadges field={field} state={state} isDirty={isDirty} />
           </div>
-          {field.description && (
-            <p className="mt-1 text-xs text-[var(--fg-muted)]">{field.description}</p>
+          {description && (
+            <p className="mt-1 text-xs text-[var(--fg-muted)]">{description}</p>
           )}
           {field.helpText && (
             <p className="mt-1 text-xs text-[var(--fg-muted)] opacity-80">{field.helpText}</p>
@@ -76,9 +80,9 @@ export function ConfigurationFieldRow({
             type="button"
             onClick={() => { setShowInspector((v) => !v); onInspect?.(field.id) }}
             aria-expanded={showInspector}
-            aria-label="Audit history and details"
+            aria-label={t('auditHistoryAndDetailsAria')}
             className="rounded-lg p-1.5 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
-            title="Audit history and details"
+            title={t('auditHistoryAndDetailsAria')}
           >
             <History className="h-3.5 w-3.5" />
           </button>
@@ -86,9 +90,9 @@ export function ConfigurationFieldRow({
             <button
               type="button"
               onClick={onReset}
-              aria-label={`Reset ${title} to its saved value`}
+              aria-label={t('resetFieldToSavedValueAria', { field: title })}
               className="rounded-lg p-1.5 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
-              title="Reset to saved value"
+              title={t('resetToSavedValueTitle')}
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </button>
@@ -105,19 +109,19 @@ export function ConfigurationFieldRow({
           )}
         </div>
         {!enabled && (
-          <p className="mt-1 text-xs text-[var(--fg-muted)]">Disabled because a dependency isn&apos;t met.</p>
+          <p className="mt-1 text-xs text-[var(--fg-muted)]">{t('disabledDependencyNotMet')}</p>
         )}
         {!canEdit && enabled && (
-          <p className="mt-1 text-xs text-[var(--fg-muted)]">You don&apos;t have permission to edit this field.</p>
+          <p className="mt-1 text-xs text-[var(--fg-muted)]">{t('noPermissionToEditField')}</p>
         )}
         {isArchived && (
-          <p className="mt-1 text-xs text-[var(--fg-muted)]">Archived — read only; resolves to its default regardless of any stored override.</p>
+          <p className="mt-1 text-xs text-[var(--fg-muted)]">{t('archivedReadOnlyExplanation')}</p>
         )}
         {(field.validation?.min !== undefined || field.validation?.max !== undefined) && (
           <p className="mt-1 text-[11px] text-[var(--fg-muted)] opacity-70">
-            {field.validation?.min !== undefined && `Min ${field.validation.min}`}
+            {field.validation?.min !== undefined && t('minValueLabel', { min: field.validation.min })}
             {field.validation?.min !== undefined && field.validation?.max !== undefined && ' · '}
-            {field.validation?.max !== undefined && `Max ${field.validation.max}`}
+            {field.validation?.max !== undefined && t('maxValueLabel', { max: field.validation.max })}
           </p>
         )}
         {field.validation?.warningMessage && (
@@ -139,31 +143,31 @@ export function ConfigurationFieldRow({
       {showInspector && (
         <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg)] p-3 text-xs sm:grid-cols-4">
           <div>
-            <p className="text-[var(--fg-muted)]">Configuration Path</p>
+            <p className="text-[var(--fg-muted)]">{t('configurationPath')}</p>
             <p className="font-mono text-[var(--fg)]">{field.id}</p>
           </div>
           <div>
-            <p className="text-[var(--fg-muted)]">Default Value</p>
+            <p className="text-[var(--fg-muted)]">{t('defaultLabel')}</p>
             <p className="font-mono text-[var(--fg)]">{JSON.stringify(field.default)}</p>
           </div>
           <div>
-            <p className="text-[var(--fg-muted)]">Current Value</p>
+            <p className="text-[var(--fg-muted)]">{t('currentLabel')}</p>
             <p className="font-mono text-[var(--fg)]">{JSON.stringify(resolved.value)}</p>
           </div>
           <div>
-            <p className="text-[var(--fg-muted)]">Resolved From</p>
+            <p className="text-[var(--fg-muted)]">{t('resolvedFrom')}</p>
             <p className="font-mono capitalize text-[var(--fg)]">{resolved.resolvedFrom}</p>
           </div>
           <div className="col-span-2 sm:col-span-4">
-            <p className="mb-1 text-[var(--fg-muted)]">Audit History</p>
+            <p className="mb-1 text-[var(--fg-muted)]">{t('auditHistoryLabel')}</p>
             {auditEntries.length === 0 ? (
-              <p className="text-[var(--fg-muted)] opacity-70">No changes recorded yet.</p>
+              <p className="text-[var(--fg-muted)] opacity-70">{t('noChangesRecordedYet')}</p>
             ) : (
               <ul className="space-y-1">
                 {auditEntries.slice(0, 5).map((entry) => (
                   <li key={entry.id} className="text-[var(--fg)]">
-                    <span className="font-medium">{entry.actorName}</span> changed this to{' '}
-                    <span className="font-mono">{JSON.stringify(entry.newValue)}</span> on {formatTimestamp(entry.timestamp)}
+                    <span className="font-medium">{entry.actorName}</span> {t('changedThisTo')}{' '}
+                    <span className="font-mono">{JSON.stringify(entry.newValue)}</span> {t('onDateLabel', { date: formatTimestamp(entry.timestamp) })}
                     {entry.reason && <span className="text-[var(--fg-muted)]"> — &ldquo;{entry.reason}&rdquo;</span>}
                   </li>
                 ))}
@@ -171,7 +175,7 @@ export function ConfigurationFieldRow({
             )}
             {lastEntry && (
               <p className="mt-1 text-[var(--fg-muted)] opacity-70">
-                Last modified by {lastEntry.actorName} on {formatTimestamp(lastEntry.timestamp)}
+                {t('lastModifiedByOn', { actor: lastEntry.actorName, date: formatTimestamp(lastEntry.timestamp) })}
               </p>
             )}
           </div>

@@ -93,14 +93,29 @@ export function buildSearchHaystack(parts: Array<string | undefined | null>): st
     .toLowerCase()
 }
 
-/** Matches a field against a free-text query across every Phase G search surface. */
-export function matchesSearch(field: ConfigFieldDefinition, query: string): boolean {
+/**
+ * Matches a field against a free-text query across every Phase G search
+ * surface. `resolvedTitle`/`resolvedDescription` (P9.5.4 Phase E) let a
+ * caller pass the already-localized display text (via
+ * `resolveConfigText()`) so search matches translated content when a
+ * module has been migrated to `configFields` keys — this pure helper has
+ * no access to `useTranslations()` itself, so resolution happens at the
+ * call site and is threaded through here; omitting them falls back to the
+ * field's own literal `title`/`description`, unchanged from every prior
+ * phase.
+ */
+export function matchesSearch(
+  field: ConfigFieldDefinition,
+  query: string,
+  resolvedTitle?: string,
+  resolvedDescription?: string,
+): boolean {
   const q = query.trim().toLowerCase()
   if (!q) return true
   const haystack = buildSearchHaystack([
     field.display?.displayName,
-    field.title,
-    field.description,
+    resolvedTitle ?? field.title,
+    resolvedDescription ?? field.description,
     field.helpText,
     field.category,
     field.display?.subcategory,

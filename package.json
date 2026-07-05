@@ -14,7 +14,8 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "i18n:validate": "node scripts/validate-i18n.mjs",
-    "i18n:coverage": "node scripts/check-translation-coverage.mjs"
+    "i18n:coverage": "node scripts/check-translation-coverage.mjs",
+    "i18n:no-hardcoded": "node scripts/check-hardcoded-strings.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

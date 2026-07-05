@@ -13,6 +13,7 @@
  * are wired once, here, for every module — not re-implemented per page.
  */
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react'
 import { Drawer } from '@/components/ui/Modal'
 import { useAuthStore } from '@/stores'
@@ -53,6 +54,7 @@ export interface ConfigurationStudioLayoutProps {
 }
 
 export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWorkspace }: ConfigurationStudioLayoutProps) {
+  const t = useTranslations('console')
   const modules = usePlatformConfiguration()
   const activeModule = modules.find((m) => m.id === activeModuleId)
   const { recordVisit } = useConfigurationStudioNav()
@@ -114,7 +116,7 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
     <div className="mx-auto max-w-6xl p-4 sm:p-6">{emptyWorkspace}</div>
   ) : (
     <div className="flex h-full items-center justify-center text-sm text-[var(--fg-muted)]">
-      Select a module from the list to begin.
+      {t('selectModuleToBegin')}
     </div>
   )
 
@@ -142,21 +144,21 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
                   className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-orange-300/50"
                   role="separator"
                   aria-orientation="vertical"
-                  aria-label="Resize modules panel"
+                  aria-label={t('resizeModulesPanelAria')}
                 />
               </div>
             )}
             <button
               type="button"
               onClick={nav.toggleCollapsed}
-              aria-label={nav.collapsed ? 'Show modules panel' : 'Hide modules panel'}
+              aria-label={nav.collapsed ? t('showModulesPanelAria') : t('hideModulesPanelAria')}
               className="shrink-0 border-r border-[var(--border)] px-1 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
             >
               {nav.collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
             </button>
           </>
         ) : (
-          <Drawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} title="Modules" side="left">
+          <Drawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} title={t('modulesDrawerTitle')} side="left">
             <ConfigurationStudioNav
               activeModuleId={activeModuleId}
               onSelect={(id) => { onNavigate(id); setMobileNavOpen(false) }}
@@ -170,7 +172,7 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
               <button type="button" onClick={() => setMobileNavOpen(true)} className="rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
                 <PanelLeftOpen className="h-4 w-4" />
               </button>
-              <button type="button" onClick={() => setMobileInspectorOpen(true)} className="ml-auto rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
+              <button type="button" onClick={() => setMobileInspectorOpen(true)} className="ms-auto rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
                 <PanelRightOpen className="h-4 w-4" />
               </button>
             </div>
@@ -183,7 +185,7 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
             <button
               type="button"
               onClick={inspector.toggleCollapsed}
-              aria-label={inspector.collapsed ? 'Show inspector panel' : 'Hide inspector panel'}
+              aria-label={inspector.collapsed ? t('showInspectorPanelAria') : t('hideInspectorPanelAria')}
               className="shrink-0 border-l border-[var(--border)] px-1 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
             >
               {inspector.collapsed ? <PanelRightOpen className="h-4 w-4" /> : <PanelRightClose className="h-4 w-4" />}
@@ -195,14 +197,14 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
                   className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-orange-300/50"
                   role="separator"
                   aria-orientation="vertical"
-                  aria-label="Resize inspector panel"
+                  aria-label={t('resizeInspectorPanelAria')}
                 />
                 {inspectorPanel}
               </div>
             )}
           </>
         ) : (
-          <Drawer open={mobileInspectorOpen} onClose={() => setMobileInspectorOpen(false)} title="Inspector" side="right">
+          <Drawer open={mobileInspectorOpen} onClose={() => setMobileInspectorOpen(false)} title={t('inspectorDrawerTitle')} side="right">
             {inspectorPanel}
           </Drawer>
         )}

@@ -12,6 +12,7 @@
  * mode for free the moment it registers a field.
  */
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { ArrowLeftRight } from 'lucide-react'
 import { CONFIG_INHERITANCE_CHAIN, configurationAudit, configurationService } from '@/config'
 import type { ConfigFieldDefinition, ConfigResolutionScope } from '@/config'
@@ -22,8 +23,6 @@ interface CompareSnapshot {
   value: unknown
 }
 
-const LEVEL_LABEL: Record<string, string> = { platform: 'Platform', tenant: 'Tenant', branch: 'Branch', user: 'User' }
-
 function formatTimestamp(iso: string): string {
   try {
     return new Date(iso).toLocaleString()
@@ -32,17 +31,23 @@ function formatTimestamp(iso: string): string {
   }
 }
 
-function buildSnapshots(field: ConfigFieldDefinition, scope: ConfigResolutionScope, draftValue?: unknown): CompareSnapshot[] {
+function buildSnapshots(
+  field: ConfigFieldDefinition,
+  scope: ConfigResolutionScope,
+  draftValue: unknown | undefined,
+  t: (key: string, values?: Record<string, string | number>) => string,
+): CompareSnapshot[] {
+  const LEVEL_LABEL: Record<string, string> = { platform: t('levelPlatform'), tenant: t('levelTenant'), branch: t('levelBranch'), user: t('levelUser') }
   const snapshots: CompareSnapshot[] = []
   const resolved = configurationService.resolveField(field.id, scope)
-  snapshots.push({ id: 'current', label: 'Current (Effective)', value: resolved.value })
-  if (draftValue !== undefined) snapshots.push({ id: 'draft', label: 'Draft (Unsaved)', value: draftValue })
+  snapshots.push({ id: 'current', label: t('currentEffective'), value: resolved.value })
+  if (draftValue !== undefined) snapshots.push({ id: 'draft', label: t('draftUnsaved'), value: draftValue })
 
   const layers = configurationService.getFieldLayers(field.id, scope)
   for (const level of CONFIG_INHERITANCE_CHAIN) {
-    if (layers[level] !== undefined) snapshots.push({ id: `layer-${level}`, label: `${LEVEL_LABEL[level]} Override`, value: layers[level] })
+    if (layers[level] !== undefined) snapshots.push({ id: `layer-${level}`, label: t('levelOverride', { level: LEVEL_LABEL[level] }), value: layers[level] })
   }
-  snapshots.push({ id: 'default', label: 'Schema Default', value: field.default })
+  snapshots.push({ id: 'default', label: t('schemaDefault'), value: field.default })
 
   for (const entry of configurationAudit.listForField(field.id)) {
     snapshots.push({ id: `audit-${entry.id}`, label: `${formatTimestamp(entry.timestamp)} — ${entry.actorName}`, value: entry.newValue })
@@ -51,7 +56,8 @@ function buildSnapshots(field: ConfigFieldDefinition, scope: ConfigResolutionSco
 }
 
 export function ConfigurationCompareView({ field, scope, draftValue }: { field: ConfigFieldDefinition; scope: ConfigResolutionScope; draftValue?: unknown }) {
-  const snapshots = useMemo(() => buildSnapshots(field, scope, draftValue), [field, scope, draftValue])
+  const t = useTranslations('console')
+  const snapshots = useMemo(() => buildSnapshots(field, scope, draftValue, t), [field, scope, draftValue, t])
   const [leftId, setLeftId] = useState(snapshots[0]?.id)
   const [rightId, setRightId] = useState(snapshots[1]?.id ?? snapshots[0]?.id)
 
@@ -60,7 +66,7 @@ export function ConfigurationCompareView({ field, scope, draftValue }: { field: 
   const differ = JSON.stringify(left?.value) !== JSON.stringify(right?.value)
 
   if (snapshots.length < 2) {
-    return <p className="text-sm text-[var(--fg-muted)]">Not enough history yet to compare — this field only has its current value.</p>
+    return <p className="text-sm text-[var(--fg-muted)]">{t('notEnoughHistoryToCompare')}</p>
   }
 
   return (
@@ -69,7 +75,7 @@ export function ConfigurationCompareView({ field, scope, draftValue }: { field: 
         <select
           value={leftId}
           onChange={(e) => setLeftId(e.target.value)}
-          aria-label="Compare left snapshot"
+          aria-label={t('compareLeftAria')}
           className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 py-1.5 text-xs text-[var(--fg)]"
         >
           {snapshots.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -78,7 +84,7 @@ export function ConfigurationCompareView({ field, scope, draftValue }: { field: 
         <select
           value={rightId}
           onChange={(e) => setRightId(e.target.value)}
-          aria-label="Compare right snapshot"
+          aria-label={t('compareRightAria')}
           className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 py-1.5 text-xs text-[var(--fg)]"
         >
           {snapshots.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -99,9 +105,9 @@ export function ConfigurationCompareView({ field, scope, draftValue }: { field: 
         ))}
       </div>
       {differ ? (
-        <p className="text-xs text-amber-600 dark:text-amber-400">These two snapshots differ.</p>
+        <p className="text-xs text-amber-600 dark:text-amber-400">{t('snapshotsDiffer')}</p>
       ) : (
-        <p className="text-xs text-[var(--fg-muted)]">These two snapshots are identical.</p>
+        <p className="text-xs text-[var(--fg-muted)]">{t('snapshotsIdentical')}</p>
       )}
     </div>
   )

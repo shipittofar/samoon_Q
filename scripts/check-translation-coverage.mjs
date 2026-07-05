@@ -83,6 +83,34 @@ const referenceMessages = JSON.parse(readFileSync(EN_LOCALE, 'utf8'))
 const flat = flattenMessages(referenceMessages)
 const files = walk(SRC_DIR)
 
+// P9.5.4 Phase I — per-namespace + global cross-locale coverage percentage.
+function computeNamespaceCoverage(refMessages, targetMessages) {
+  return Object.keys(refMessages).map((namespace) => {
+    const refFlat = flattenMessages(refMessages[namespace], namespace)
+    const targetFlat = flattenMessages(targetMessages[namespace] ?? {}, namespace)
+    const totalKeys = Object.keys(refFlat).length
+    const translatedKeys = Object.keys(refFlat).filter((k) => Boolean(targetFlat[k]?.trim())).length
+    return { namespace, totalKeys, translatedKeys, percent: totalKeys === 0 ? 100 : Math.round((translatedKeys / totalKeys) * 100) }
+  })
+}
+
+// P9.5.4 Phase I/J — best-effort hardcoded-JSX-text heuristic (mirrors
+// src/i18n/coverage.ts's findHardcodedJsxText; kept in sync manually for
+// the same reason extractUsages() above is — this script runs standalone
+// via plain Node, no TS build step).
+const JSX_TEXT_RE = />\s*([A-Z][A-Za-z][a-zA-Z0-9 ,.'!?-]{3,80}[a-zA-Z.!?])\s*</g
+function findHardcodedJsxText(sourceText, file) {
+  const found = []
+  const lines = sourceText.split('\n')
+  lines.forEach((lineText, i) => {
+    if (lineText.includes('{') || lineText.trim().startsWith('//') || lineText.trim().startsWith('*')) return
+    for (const m of lineText.matchAll(JSX_TEXT_RE)) {
+      found.push({ file, line: i + 1, snippet: m[1].trim() })
+    }
+  })
+  return found
+}
+
 const allUsages = []
 for (const file of files) {
   const text = readFileSync(file, 'utf8')
@@ -161,6 +189,47 @@ if (duplicateGroups.length > 0) {
   for (const g of duplicateGroups) console.log(`  - [${g.namespace}] "${g.value}" used by: ${g.keys.join(', ')}`)
 } else {
   console.log('✓ No duplicate values within any namespace.')
+}
+console.log()
+
+// P9.5.4 Phase I — cross-locale coverage percentage, per namespace and global.
+const otherLocaleFiles = ['fa', 'ar']
+console.log('── Cross-locale coverage (Phase I) ──')
+for (const locale of otherLocaleFiles) {
+  const localePath = join(SRC_DIR, 'i18n', 'locales', `${locale}.json`)
+  const targetMessages = JSON.parse(readFileSync(localePath, 'utf8'))
+  const nsCoverage = computeNamespaceCoverage(referenceMessages, targetMessages)
+  const totalKeys = nsCoverage.reduce((sum, n) => sum + n.totalKeys, 0)
+  const translatedKeys = nsCoverage.reduce((sum, n) => sum + n.translatedKeys, 0)
+  const globalPercent = totalKeys === 0 ? 100 : Math.round((translatedKeys / totalKeys) * 100)
+  console.log(`  ${locale}: ${globalPercent}% global (${translatedKeys}/${totalKeys} keys)`)
+  const incomplete = nsCoverage.filter((n) => n.percent < 100)
+  if (incomplete.length > 0) {
+    for (const n of incomplete) console.log(`    - ${n.namespace}: ${n.percent}% (${n.translatedKeys}/${n.totalKeys})`)
+  }
+}
+console.log()
+
+// P9.5.4 Phase I/J — best-effort hardcoded-JSX-text heuristic, scoped to
+// already-migrated Console/Studio/Platform-admin directories so it
+// catches regressions there without drowning in the ~120 still-English
+// module-data files documented as remaining work in the audit doc.
+const MIGRATED_DIRS = [
+  join(SRC_DIR, 'components', 'admin', 'configuration'),
+  join(SRC_DIR, 'components', 'admin', 'platform-admin'),
+]
+const hardcodedCandidates = []
+for (const dir of MIGRATED_DIRS) {
+  for (const file of walk(dir)) {
+    hardcodedCandidates.push(...findHardcodedJsxText(readFileSync(file, 'utf8'), file))
+  }
+}
+console.log(`── Hardcoded-string heuristic scan (Phase I/J, migrated Console/Studio/Platform-admin dirs only) ──`)
+if (hardcodedCandidates.length > 0) {
+  console.log(`⚠ ${hardcodedCandidates.length} candidate(s) of literal JSX text found (heuristic — verify manually, may include false positives):`)
+  for (const c of hardcodedCandidates.slice(0, 40)) console.log(`  - ${c.file}:${c.line} "${c.snippet}"`)
+} else {
+  console.log('✓ No literal JSX text candidates found in migrated Console/Studio/Platform-admin directories.')
 }
 
 process.exit(0)

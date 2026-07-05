@@ -1,31 +1,41 @@
 import type { Metadata, Viewport } from 'next'
-import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import { headers } from 'next/headers'
 import { Playfair_Display, DM_Sans } from 'next/font/google'
 import { Providers } from '@/providers'
 import { getDirection } from '@/i18n/runtime'
+import { ClientIntlProvider } from '@/i18n/ClientIntlProvider'
+import { getLocalizedPageMetadata } from '@/lib/seo'
 import './globals.css'
 
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-display', display: 'swap' })
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: { default: 'Savor — Hospitality Platform', template: '%s | Savor' },
-  description: 'Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses on Savor.',
-  keywords: ['restaurant discovery', 'hospitality platform', 'food ordering', 'table booking', 'cafe', 'bar', 'food truck', 'local dining', 'marketplace', 'restaurant marketplace'],
-  openGraph: { type: 'website', siteName: 'Savor Platform', title: 'Savor — Hospitality Platform', description: 'Discover restaurants, cafés, and bars near you.', images: [{ url: '/og-image.jpg', width: 1200, height: 630 }] },
-  twitter: { card: 'summary_large_image', title: 'Savor — Hospitality Platform', images: ['/og-image.jpg'] },
-  robots: { index: true, follow: true },
-  manifest: '/manifest.json',
-  icons: {
-    icon: [
-      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-    ],
-    apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
-  },
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+// P9.5.4 Phase F/G — localized title/description/keywords/OpenGraph/Twitter/
+// canonical/hreflang, sourced from the `seo` namespace via
+// getLocalizedPageMetadata() (src/lib/seo.ts) instead of a hand-written
+// literal Metadata object. Static, locale-independent fields (icons,
+// manifest, images, metadataBase) stay exactly as they were.
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const localized = await getLocalizedPageMetadata({ locale, path: '/', namespaceKey: 'root', baseUrl: APP_URL })
+  return {
+    ...localized,
+    title: { default: String(localized.title), template: '%s | Savor' },
+    metadataBase: new URL(APP_URL),
+    openGraph: { ...localized.openGraph, images: [{ url: '/og-image.jpg', width: 1200, height: 630 }] },
+    twitter: { ...localized.twitter, images: ['/og-image.jpg'] },
+    manifest: '/manifest.json',
+    icons: {
+      icon: [
+        { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+      ],
+      apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    },
+  }
 }
 
 export const viewport: Viewport = {
@@ -54,9 +64,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: `try{const t=localStorage.getItem('savor-theme');const th=t?JSON.parse(t).state?.theme:'system';if(th==='dark'||(th==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}` }} />
       </head>
       <body className={`${playfair.variable} ${dmSans.variable} antialiased`}>
-        <NextIntlClientProvider messages={messages}>
+        <ClientIntlProvider locale={locale} messages={messages}>
           <Providers>{children}</Providers>
-        </NextIntlClientProvider>
+        </ClientIntlProvider>
       </body>
     </html>
   )

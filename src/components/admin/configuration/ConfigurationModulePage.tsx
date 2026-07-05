@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import { ChevronDown, RotateCcw, Search, ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui'
-import { configurationService, platformConfigurationRegistry } from '@/config'
+import { configurationService, platformConfigurationRegistry, resolveConfigText } from '@/config'
 import { seedAuthenticationMockOverrides } from '@/config/mock-data'
 import { usePermission, usePermissions } from '@/hooks'
 import { useConfigurationDraft } from '@/hooks/use-configuration-draft'
@@ -45,6 +45,7 @@ export interface ConfigurationModulePageProps {
 
 export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateChange, onActionsReady }: ConfigurationModulePageProps) {
   const t = useTranslations('console')
+  const tFields = useTranslations('configFields')
   // P9.1.3 Phase N — seeds a handful of real (not merely displayed) config
   // overrides + audit history the first time the Authentication Console is
   // opened in mock mode, so the page has "Modified" fields and audit entries
@@ -99,13 +100,19 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
             if (!configurationService.canView(field, permissions)) return false
             if (field.governance?.internalOnly && !isPlatformAdmin) return false
             if (!isFieldVisible(field, effectiveValues)) return false
-            if (!matchesSearch(field, search)) return false
+            if (!matchesSearch(
+              field,
+              search,
+              resolveConfigText(tFields, field.id, 'title', field.title),
+              resolveConfigText(tFields, field.id, 'description', field.description),
+            )) return false
             return true
           })
           .sort((a, b) => (a.display?.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.display?.displayOrder ?? Number.MAX_SAFE_INTEGER))
         return { section, fields }
       })
       .filter(({ fields }) => fields.length > 0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configModule, permissions, isPlatformAdmin, effectiveValues, search])
 
   useEffect(() => {
@@ -140,6 +147,8 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
   }
 
   const lifecycle = platformConfigurationRegistry.getModuleLifecycle(moduleId)
+  const moduleName = resolveConfigText(tFields, configModule.id, 'name', configModule.name) ?? configModule.name
+  const moduleDescription = resolveConfigText(tFields, configModule.id, 'description', configModule.description)
 
   function toggleSection(sectionId: string) {
     setCollapsed((prev) => {
@@ -180,9 +189,9 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
             <div>
               <h1 className="flex items-center gap-2 text-lg font-semibold text-[var(--fg)]">
                 <ShieldCheck className="h-5 w-5 text-orange-500" aria-hidden="true" />
-                {configModule.name}
+                {moduleName}
               </h1>
-              <p className="mt-0.5 text-sm text-[var(--fg-muted)]">{configModule.description}</p>
+              <p className="mt-0.5 text-sm text-[var(--fg-muted)]">{moduleDescription}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <Badge variant={LIFECYCLE_BADGE_VARIANT[lifecycle]}>{lifecycle}</Badge>
@@ -203,8 +212,8 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('searchSettingsPlaceholder', { module: configModule.name.toLowerCase() })}
-              aria-label={t('searchSettingsAria', { module: configModule.name })}
+              placeholder={t('searchSettingsPlaceholder', { module: moduleName.toLowerCase() })}
+              aria-label={t('searchSettingsAria', { module: moduleName })}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-2 pl-9 pr-3 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
             />
           </div>
@@ -221,6 +230,8 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
 
         {sectionsWithVisibleFields.map(({ section, fields }) => {
           const isCollapsed = collapsed.has(section.id)
+          const sectionTitle = resolveConfigText(tFields, section.id, 'title', section.title) ?? section.title
+          const sectionDescription = resolveConfigText(tFields, section.id, 'description', section.description)
           return (
             <section key={section.id} className="rounded-2xl border border-[var(--border)] bg-[var(--card)]">
               <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
@@ -231,14 +242,14 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
                   className="flex flex-1 items-center gap-2 text-left"
                 >
                   <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--fg-muted)] transition-transform ${isCollapsed ? '-rotate-90' : ''}`} aria-hidden="true" />
-                  <span className="text-sm font-semibold text-[var(--fg)]">{section.title}</span>
-                  {section.description && <span className="hidden text-xs text-[var(--fg-muted)] sm:inline">— {section.description}</span>}
+                  <span className="text-sm font-semibold text-[var(--fg)]">{sectionTitle}</span>
+                  {sectionDescription && <span className="hidden text-xs text-[var(--fg-muted)] sm:inline">— {sectionDescription}</span>}
                 </button>
                 <button
                   type="button"
                   onClick={() => resetSection(section.id)}
                   className="shrink-0 rounded-lg p-1.5 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
-                  aria-label={t('resetSectionAria', { section: section.title })}
+                  aria-label={t('resetSectionAria', { section: sectionTitle })}
                   title={t('resetSectionTitle')}
                 >
                   <RotateCcw className="h-3.5 w-3.5" />

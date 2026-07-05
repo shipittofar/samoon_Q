@@ -11,6 +11,7 @@
  * mapping written by hand.
  */
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Eye, EyeOff } from 'lucide-react'
 import { resolveUiControl } from './configUiHelpers'
 import type { ConfigFieldDefinition } from '@/config'
@@ -25,6 +26,7 @@ export interface ConfigurationFieldControlProps {
 const inputClass = 'w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
 
 export function ConfigurationFieldControl({ field, value, onChange, disabled }: ConfigurationFieldControlProps) {
+  const t = useTranslations('console')
   const control = resolveUiControl(field)
   const [secretVisible, setSecretVisible] = useState(false)
 
@@ -184,7 +186,7 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled }: 
           <button
             type="button"
             onClick={() => setSecretVisible((v) => !v)}
-            aria-label={secretVisible ? 'Hide value' : 'Reveal value'}
+            aria-label={secretVisible ? t('hideValueAria') : t('revealValueAria')}
             className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--fg-muted)] hover:text-[var(--fg)]"
           >
             {secretVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -227,7 +229,7 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled }: 
             placeholder={field.placeholder ?? 'https://…'}
             className={inputClass}
           />
-          <p className="text-xs text-[var(--fg-muted)]">URL-based until a Storage-backed upload is wired (docs/PLATFORM_ROADMAP.md).</p>
+          <p className="text-xs text-[var(--fg-muted)]">{t('urlBasedUntilStorageWired')}</p>
         </div>
       )
     }

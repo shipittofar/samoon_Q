@@ -13,6 +13,7 @@ import { useNotificationWebSocket, useFcmRegistration } from '@/hooks/client'
 import { STALE_TIME, CACHE_TIME } from '@/constants'
 import { ServiceWorkerUpdateBanner } from '@/components/pwa/ServiceWorkerUpdateBanner'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
+import { MissingTranslationInspector } from '@/components/dev/MissingTranslationInspector'
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import type { TenantTheme } from '@/types'
@@ -237,6 +238,7 @@ export function Providers({ children }: { children: ReactNode }) {
         </RTLProvider>
       </ThemeProvider>
       {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+      {process.env.NODE_ENV === 'development' && <MissingTranslationInspector />}
     </QueryClientProvider>
   )
 }

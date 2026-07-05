@@ -15,7 +15,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Drawer } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui'
-import { configCollection, configurationAudit } from '@/config'
+import { configCollection, configurationAudit, resolveConfigText } from '@/config'
 import type { ConfigCollectionEntry, ConfigFieldDefinition, ResolvedConfigValue } from '@/config'
 import { ConfigurationFieldControl } from './ConfigurationFieldControl'
 import { ConfigurationFieldBadges } from './ConfigurationFieldBadges'
@@ -44,6 +44,9 @@ function formatTimestamp(iso: string): string {
 
 export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onChangeEntity }: ConfigurationEntityDrawerProps) {
   const t = useTranslations('console')
+  const tFields = useTranslations('configFields')
+  const propTitle = (prop: ConfigFieldDefinition) => prop.display?.displayName ?? resolveConfigText(tFields, prop.id, 'title', prop.title)
+  const propDescription = (prop: ConfigFieldDefinition) => resolveConfigText(tFields, prop.id, 'description', prop.description)
   const [tab, setTab] = useState<DrawerTab>('configuration')
   const TABS: { id: DrawerTab; label: string }[] = TAB_IDS.map((id) => ({ id, label: t(`entityDrawerTab_${id}`) }))
   const schema = configCollection.getSchema(field)
@@ -106,7 +109,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
               <div key={prop.id}>
                 <div className="mb-1 flex flex-wrap items-center gap-2">
                   <label htmlFor={`${field.id}.${entry.entityId}.${prop.id}`} className="text-sm font-medium text-[var(--fg)]">
-                    {prop.display?.displayName ?? prop.title}
+                    {propTitle(prop)}
                   </label>
                   <ConfigurationFieldBadges
                     field={prop}
@@ -114,7 +117,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
                     isDirty={false}
                   />
                 </div>
-                {prop.description && <p className="mb-1 text-xs text-[var(--fg-muted)]">{prop.description}</p>}
+                {propDescription(prop) && <p className="mb-1 text-xs text-[var(--fg-muted)]">{propDescription(prop)}</p>}
                 <div id={`${field.id}.${entry.entityId}.${prop.id}`}>
                   <ConfigurationFieldControl
                     field={prop}
@@ -135,7 +138,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
             ) : (
               overriddenProps.map((prop) => (
                 <div key={prop.id} className="rounded-lg border border-[var(--border)] p-2">
-                  <p className="font-medium text-[var(--fg)]">{prop.display?.displayName ?? prop.title}</p>
+                  <p className="font-medium text-[var(--fg)]">{propTitle(prop)}</p>
                   <p className="text-xs text-[var(--fg-muted)]">
                     {t('defaultLabel')}: <span className="font-mono">{JSON.stringify(defaults[prop.id])}</span>
                     {' → '}
@@ -156,7 +159,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
                 .filter((p) => p.dependency?.hiddenWhen || p.dependency?.enabledWhen)
                 .map((prop) => (
                   <div key={prop.id} className="rounded-lg border border-[var(--border)] p-2 text-xs">
-                    <p className="font-medium text-[var(--fg)]">{prop.display?.displayName ?? prop.title}</p>
+                    <p className="font-medium text-[var(--fg)]">{propTitle(prop)}</p>
                     {prop.dependency?.hiddenWhen && (
                       <p className="text-[var(--fg-muted)]">
                         {t('hiddenUnless', { fieldId: prop.dependency.hiddenWhen.fieldId, state: isVisible(prop) ? t('visibleState') : t('hiddenState') })}
@@ -230,7 +233,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
             ))}
             {schema.filter((p) => p.preview.kind !== 'none').map((prop) => (
               <div key={prop.id}>
-                <p className="mb-1 text-xs text-[var(--fg-muted)]">{prop.display?.displayName ?? prop.title}</p>
+                <p className="mb-1 text-xs text-[var(--fg-muted)]">{propTitle(prop)}</p>
                 <ConfigurationFieldPreview field={prop} value={entry.values[prop.id]} />
               </div>
             ))}

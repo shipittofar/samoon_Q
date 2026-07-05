@@ -6,9 +6,11 @@
  * this matches the phase brief exactly ("Authentication fields without
  * preview simply render normally").
  */
+import { useTranslations } from 'next-intl'
 import type { ConfigFieldDefinition } from '@/config'
 
 export function ConfigurationFieldPreview({ field, value }: { field: ConfigFieldDefinition; value: unknown }) {
+  const t = useTranslations('console')
   const kind = field.preview.kind
 
   if (kind === 'swatch') {
@@ -23,7 +25,7 @@ export function ConfigurationFieldPreview({ field, value }: { field: ConfigField
   if (kind === 'font-sample') {
     return (
       <p className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm" style={{ fontFamily: String(value ?? '') }}>
-        The quick brown fox jumps — {String(value ?? '')}
+        {t('fontSamplePreview', { fontFamily: String(value ?? '') })}
       </p>
     )
   }

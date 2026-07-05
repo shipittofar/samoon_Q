@@ -516,12 +516,234 @@
     "owningLevel": "سطح مالکیت",
     "modeLabel": "حالت",
     "noPreviewAvailable": "پیش‌نمایشی برای این {entity} در دسترس نیست.",
-    "defaultEntityLabelSingular": "مورد"
+    "defaultEntityLabelSingular": "مورد",
+    "inspectorTab_overview": "بررسی اجمالی",
+    "inspectorTab_inheritance": "وراثت",
+    "inspectorTab_dependencies": "وابستگی‌ها",
+    "inspectorTab_validation": "اعتبارسنجی",
+    "inspectorTab_audit": "حسابرسی",
+    "inspectorTab_history": "تاریخچه",
+    "inspectorTab_preview": "پیش‌نمایش",
+    "inspectorTab_statistics": "آمار",
+    "inspectorTab_documentation": "مستندات",
+    "noFieldSelectedTitle": "هیچ فیلدی انتخاب نشده",
+    "noFieldSelectedDesc": "برای مشاهده وراثت، وابستگی‌ها، تاریخچه حسابرسی و موارد دیگر، روی نماد بازرسی یک تنظیم کلیک کنید.",
+    "configurationPath": "مسیر پیکربندی",
+    "typeLabel": "نوع",
+    "categoryLabel": "دسته‌بندی",
+    "resolvedFrom": "حل‌شده از",
+    "noDependencyConditions": "این فیلد هیچ شرط وابستگی‌ای تعریف نکرده است.",
+    "hiddenWhenLabel": "پنهان زمانی که",
+    "currentlyLabel": "در حال حاضر",
+    "holdsHidden": "برقرار است (پنهان)",
+    "doesNotHoldVisible": "برقرار نیست (نمایان)",
+    "enabledWhenLabel": "فعال زمانی که",
+    "holdsEnabled": "برقرار است (فعال)",
+    "doesNotHoldDisabled": "برقرار نیست (غیرفعال)",
+    "validLabel": "معتبر",
+    "yesLabel": "بله",
+    "noLabel": "خیر",
+    "minLabel": "حداقل",
+    "maxLabel": "حداکثر",
+    "patternLabel": "الگو",
+    "noAuditEntriesTitle": "بدون سوابق حسابرسی",
+    "noAuditEntriesFieldDesc": "هنوز هیچ تغییری برای این فیلد ثبت نشده است.",
+    "noPreviewConfigured": "پیش‌نمایشی برای این فیلد پیکربندی نشده است.",
+    "auditEntriesLabel": "سوابق حسابرسی",
+    "lifecycleLabel": "چرخه عمر",
+    "versionLabel": "نسخه",
+    "sensitiveLabel": "حساس",
+    "openDocumentation": "باز کردن مستندات",
+    "noDocumentationLink": "هیچ پیوند مستنداتی برای این فیلد تنظیم نشده است.",
+    "levelPlatform": "پلتفرم",
+    "levelTenant": "مستأجر",
+    "levelBranch": "شعبه",
+    "levelUser": "کاربر",
+    "inheritanceChainAria": "زنجیره وراثت",
+    "ownerLabel": "مالک",
+    "inheritsFromAbove": "از سطح بالاتر به ارث می‌رسد",
+    "effectiveLabel": "مؤثر",
+    "blockedLabel": "مسدود",
+    "overriddenLabel": "بازنویسی‌شده",
+    "thenLabel": "سپس",
+    "currentEffective": "فعلی (مؤثر)",
+    "draftUnsaved": "پیش‌نویس (ذخیره‌نشده)",
+    "levelOverride": "بازنویسی {level}",
+    "schemaDefault": "پیش‌فرض طرح‌واره",
+    "notEnoughHistoryToCompare": "هنوز تاریخچه کافی برای مقایسه وجود ندارد — این فیلد فقط مقدار فعلی خود را دارد.",
+    "compareLeftAria": "مقایسه نسخه چپ",
+    "compareRightAria": "مقایسه نسخه راست",
+    "snapshotsDiffer": "این دو نسخه متفاوت هستند.",
+    "snapshotsIdentical": "این دو نسخه یکسان هستند.",
+    "noHistoryYetFieldDesc": "تغییرات این فیلد به محض ذخیره شدن، اینجا نمایش داده می‌شوند.",
+    "filterHistoryPlaceholder": "فیلتر بر اساس عامل، سطح یا دلیل…",
+    "filterHistoryAria": "فیلتر تاریخچه",
+    "noMatchingHistoryTitle": "تاریخچه‌ای یافت نشد",
+    "changedThisAt": "این را در سطح",
+    "levelSuffix": "تغییر داد",
+    "rollbackToValueFromAria": "بازگشت به مقدار از {date}",
+    "unsavedBadge2": "ذخیره‌نشده",
+    "fieldState_default": "پیش‌فرض",
+    "fieldState_modified": "تغییریافته",
+    "fieldState_tenant_override": "بازنویسی مستأجر",
+    "fieldState_branch_override": "بازنویسی شعبه",
+    "fieldState_user_override": "بازنویسی کاربر",
+    "draftBadge": "پیش‌نویس",
+    "betaBadge": "بتا",
+    "deprecatedBadge": "منسوخ‌شده",
+    "archivedReadOnlyBadge": "بایگانی‌شده — فقط خواندنی",
+    "dangerousBadge": "خطرناک",
+    "experimentalBadge": "آزمایشی",
+    "internalOnlyBadge": "فقط داخلی",
+    "restartRequiredBadge": "نیاز به راه‌اندازی مجدد",
+    "publishRequiredBadge": "نیاز به انتشار",
+    "requiresApprovalBadge": "نیاز به تأیید",
+    "securitySensitiveBadge": "حساس امنیتی",
+    "lockedBadge": "قفل‌شده",
+    "fontSamplePreview": "روباه قهوه‌ای چابک می‌پرد — {fontFamily}",
+    "hideValueAria": "پنهان کردن مقدار",
+    "revealValueAria": "نمایش مقدار",
+    "loadingConfigurationAria": "در حال بارگذاری پیکربندی",
+    "selectModuleToBegin": "برای شروع، یک ماژول را از فهرست انتخاب کنید.",
+    "resizeModulesPanelAria": "تغییر اندازه پنل ماژول‌ها",
+    "showModulesPanelAria": "نمایش پنل ماژول‌ها",
+    "hideModulesPanelAria": "پنهان کردن پنل ماژول‌ها",
+    "modulesDrawerTitle": "ماژول‌ها",
+    "resizeInspectorPanelAria": "تغییر اندازه پنل بازرسی",
+    "showInspectorPanelAria": "نمایش پنل بازرسی",
+    "hideInspectorPanelAria": "پنهان کردن پنل بازرسی",
+    "inspectorDrawerTitle": "بازرسی",
+    "auditHistoryAndDetailsAria": "تاریخچه حسابرسی و جزئیات",
+    "resetFieldToSavedValueAria": "بازنشانی {field} به مقدار ذخیره‌شده",
+    "resetToSavedValueTitle": "بازنشانی به مقدار ذخیره‌شده",
+    "disabledDependencyNotMet": "غیرفعال است زیرا یک وابستگی برقرار نیست.",
+    "noPermissionToEditField": "شما اجازه ویرایش این فیلد را ندارید.",
+    "archivedReadOnlyExplanation": "بایگانی‌شده — فقط خواندنی؛ صرف‌نظر از هر بازنویسی ذخیره‌شده، به مقدار پیش‌فرض خود باز می‌گردد.",
+    "minValueLabel": "حداقل {min}",
+    "maxValueLabel": "حداکثر {max}",
+    "auditHistoryLabel": "تاریخچه حسابرسی",
+    "noChangesRecordedYet": "هنوز هیچ تغییری ثبت نشده است.",
+    "changedThisTo": "این را تغییر داد به",
+    "onDateLabel": "در {date}",
+    "lastModifiedByOn": "آخرین تغییر توسط {actor} در {date}",
+    "escKey": "Esc",
+    "urlBasedUntilStorageWired": "مبتنی بر URL تا زمانی که آپلود مبتنی بر ذخیره‌سازی راه‌اندازی شود."
   },
-  "platform": { "title": "مدیریت پلتفرم" },
-  "countries": { "title": "کشورها" },
-  "languages": { "title": "زبان‌ها" },
-  "marketing": { "title": "بازاریابی" },
-  "analytics": { "title": "تحلیل‌ها" },
-  "system": { "title": "سیستم" }
+  "configFields": {
+    "authentication": {
+      "name": "احراز هویت",
+      "description": "قوانین ورود با شماره تلفن/رمز یکبار مصرف، سیاست ثبت‌نام و آستانه‌های قفل حساب.",
+      "core": {
+        "title": "کلیدهای اصلی"
+      },
+      "otp": {
+        "title": "رمز یکبار مصرف"
+      },
+      "lockout": {
+        "title": "تلاش‌های ورود و قفل حساب"
+      },
+      "demo": {
+        "title": "نمایشی / شبیه‌سازی"
+      }
+    },
+    "languages": {
+      "name": "زبان‌ها",
+      "description": "زبان‌های پشتیبانی‌شده، زبان پیش‌فرض و قوانین نمایش راست‌به‌چپ.",
+      "locales": {
+        "title": "زبان‌ها"
+      },
+      "supported": {
+        "title": "زبان‌های پشتیبانی‌شده",
+        "description": "زبان‌های موجود در تعویض‌گر زبان."
+      },
+      "default": {
+        "title": "زبان پیش‌فرض",
+        "description": "زبانی که در نبود ترجیح کاربر یا بازنویسی مستأجر استفاده می‌شود."
+      },
+      "rtl_locales": {
+        "title": "زبان‌های راست‌به‌چپ",
+        "description": "زبان‌هایی که راست‌به‌چپ نمایش داده می‌شوند."
+      }
+    },
+    "platform": {
+      "overview": {
+        "name": "بررسی اجمالی پلتفرم",
+        "description": "هویت سطح‌بالای پلتفرم و رفتار پیش‌فرض صفحه ورود برای مرکز مدیریت.",
+        "general": {
+          "title": "عمومی"
+        },
+        "platform_name": {
+          "title": "نام پلتفرم"
+        },
+        "default_landing_widget_set": {
+          "title": "مجموعه ابزارک پیش‌فرض داشبورد"
+        }
+      },
+      "maintenance_mode": {
+        "name": "حالت تعمیر",
+        "description": "حالت تعمیر سراسری پلتفرم — ترافیک مستأجران را در صورت فعال بودن مسدود می‌کند.",
+        "general": {
+          "title": "عمومی"
+        },
+        "enabled": {
+          "title": "حالت تعمیر فعال است"
+        },
+        "message": {
+          "title": "پیام تعمیر"
+        },
+        "allow_platform_admin_access": {
+          "title": "اجازه دسترسی مدیر پلتفرم در حین تعمیر"
+        }
+      },
+      "system_status": {
+        "name": "وضعیت سامانه",
+        "description": "پیکربندی صفحه وضعیت عمومی سامانه.",
+        "general": {
+          "title": "عمومی"
+        },
+        "status_page_enabled": {
+          "title": "صفحه وضعیت عمومی فعال است"
+        },
+        "show_incident_history": {
+          "title": "نمایش تاریخچه حوادث"
+        }
+      },
+      "users": {
+        "name": "کاربران پلتفرم",
+        "description": "کارکنان ساوور با دسترسی به مرکز مدیریت پلتفرم — جدا از کارکنان هر مستأجر.",
+        "general": {
+          "title": "عمومی"
+        },
+        "registry": {
+          "title": "کاربران پلتفرم",
+          "description": "هر کاربر داخلی پلتفرم و نقش پلتفرمی او."
+        }
+      }
+    }
+  },
+  "platform": {
+    "title": "مدیریت پلتفرم"
+  },
+  "countries": {
+    "title": "کشورها"
+  },
+  "languages": {
+    "title": "زبان‌ها"
+  },
+  "marketing": {
+    "title": "بازاریابی"
+  },
+  "analytics": {
+    "title": "تحلیل‌ها"
+  },
+  "system": {
+    "title": "سیستم"
+  },
+  "seo": {
+    "root": {
+      "title": "ساوور — پلتفرم مهمان‌نوازی",
+      "description": "رستوران‌ها، کافه‌ها، بارها، فودتراک‌ها و بیشتر را کشف کنید. منوها را مرور کنید، میز رزرو کنید و از کسب‌وکارهای محلی در ساوور سفارش دهید.",
+      "keywords": "کشف رستوران, پلتفرم مهمان‌نوازی, سفارش غذا, رزرو میز, کافه, بار, فودتراک, غذاخوری محلی, بازارگاه, بازارگاه رستوران"
+    }
+  }
 }
