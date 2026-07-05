@@ -87,7 +87,7 @@ export function ConfigurationStudioToolbar({
   }
 
   return (
-    <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--card)] px-4">
+    <header aria-label="Configuration toolbar" className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--card)] px-4">
       <div className="flex min-w-0 items-center gap-1.5 text-sm">
         <span className="text-[var(--fg-muted)]">Configuration</span>
         {activeModule && (
@@ -168,6 +168,6 @@ export function ConfigurationStudioToolbar({
           )}
         </div>
       </Drawer>
-    </div>
+    </header>
   )
 }

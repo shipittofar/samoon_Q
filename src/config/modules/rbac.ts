@@ -14,6 +14,7 @@ export const RBAC_MODULE: ConfigModuleDefinition = {
   name: 'RBAC',
   description: 'Custom role limits and default role assigned to newly invited staff.',
   category: 'security',
+  group: 'Security',
   version: '1.0.0',
   icon: 'Shield',
   permissions: PERMISSIONS,

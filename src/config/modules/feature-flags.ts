@@ -19,6 +19,7 @@ export const FEATURE_FLAGS_MODULE: ConfigModuleDefinition = {
   name: 'Feature Flags',
   description: 'Platform-level rollout switches gating entire capabilities before tenants can enable them.',
   category: 'platform',
+  group: 'Configuration',
   version: '1.0.0',
   icon: 'Flag',
   permissions: PERMISSIONS,

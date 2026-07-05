@@ -4340,3 +4340,162 @@ All Platform Configuration endpoints share this permission model:
 
 No new permission strings are introduced by this contract — it reuses the
 existing catalog in `src/types/rbac.ts` (Rule 3 — Single Source of Truth).
+
+## 37. Platform Administration API (P9.4)
+
+> **Contract only — no backend implementation exists yet.** Generated from
+> `src/platform-admin/*` (P9.4 Platform Administration Center). Every
+> module registered in `src/platform-admin/modules/*` is an ordinary
+> `ConfigModuleDefinition` — its read/write/audit/rollback/version-history
+> endpoints are **exactly §36.1–§36.6 above**, not a new set of routes; a
+> backend implementing §36 already implements config-backed reads/writes
+> for Tenants, Platform Users, Billing, Plans, and every other registered
+> Platform Administration module for free. This section documents only the
+> genuinely new endpoints §36 has no equivalent for: the dashboard, the
+> platform permission model, platform-wide (cross-tenant) audit/activity,
+> cross-entity search, and monitoring/health/metrics readouts.
+>
+> Frontend reference implementation: `src/platform-admin/dashboard.ts`
+> (`platformDashboardRegistry`), `src/platform-admin/search.ts`
+> (`platformSearchRegistry`), `src/platform-admin/permissions.ts`. All three
+> currently compute/return illustrative mock values — see each file's own
+> doc comment for the extension point a real backend would replace.
+
+### 37.1 Platform Permission Model
+
+**Method:** `GET`
+**Path:** `/admin/platform/me/permissions/`
+
+Returns the authenticated platform user's `PlatformRole` and effective
+`PlatformPermission` grants (§`src/platform-admin/permissions.ts`) —
+**completely separate from** `/me/permissions` for tenant `P7Permission`s
+(§ existing RBAC contract). A platform user has exactly one `PlatformRole`;
+unlike tenant RBAC there are no per-resource overrides in this model.
+
+**Success Response `200`:**
+```json
+{
+  "userId": "u-owner-1",
+  "role": "platform_admin",
+  "permissions": [
+    "platform.dashboard.view",
+    "platform.users.view", "platform.users.manage",
+    "platform.businesses.view", "platform.businesses.manage"
+  ]
+}
+```
+
+**Errors:** `403` if the authenticated user has no platform role at all
+(i.e. a tenant-only user attempting to reach the Platform Administration
+Center — this must be checked **before** any tenant permission check, the
+two systems never combine).
+
+**Source:** `src/platform-admin/permissions.ts` (`PLATFORM_ROLE_PERMISSIONS`, `hasPlatformPermission`)
+
+### 37.2 Platform Dashboard Widgets
+
+**Method:** `GET`
+**Path:** `/admin/platform/dashboard/widgets/`
+
+Returns every widget the caller's platform role can see plus its current
+computed value — the backend equivalent of
+`platformDashboardRegistry.getWidgets()` filtered by
+`hasPlatformPermission()` and each widget's `compute()`.
+
+**Success Response `200`:**
+```json
+{
+  "results": [
+    { "id": "active_businesses", "title": "Active Businesses", "kind": "stat", "value": 6, "deltaPercent": 12 },
+    { "id": "server_health", "title": "Server Health", "kind": "status", "state": "operational", "label": "All systems operational" },
+    { "id": "top_countries", "title": "Top Countries", "kind": "list", "items": [{ "label": "United States", "value": "38%" }] }
+  ]
+}
+```
+
+A future widget (e.g. a CRM module's "Open Leads") requires no new endpoint
+— it is simply one more entry in this same response, exactly as a future
+Configuration module requires no new endpoint under §36.1.
+
+**Source:** `src/platform-admin/dashboard.ts`, `src/platform-admin/widgets.ts`
+
+### 37.3 Platform-Wide Audit & Activity
+
+**Method:** `GET`
+**Path:** `/admin/platform/audit/`
+
+**Query params:** `moduleId?`, `fieldId?`, `actorId?`, `level?`,
+`since?`, `until?`, `q?` (free-text over actorName/reason)
+
+Cross-tenant, cross-module audit trail — distinct from §36.4 (one field's
+own audit history) and from each tenant's own audit log (existing P7/P8
+contract, out of scope here). Backs the toolbar's module-wide History
+drawer (`ConfigurationStudioToolbar`, P9.3) when it's asked to show more
+than one field's history at once, and the `platform.audit_logs`/
+`platform.activity_logs` modules' own retention settings (§36, same
+endpoints as any other config module).
+
+**Success Response `200`:** paginated array of the same audit-entry shape
+as §36.4, with an added `fieldTitle`/`moduleId`/`moduleName` for display
+without a second round-trip.
+
+**Source:** `src/config/audit.ts` (`configurationAudit.listForField`, called once per field today — a real backend would index audit entries across fields instead of requiring N calls)
+
+### 37.4 Platform Search
+
+**Method:** `GET`
+**Path:** `/admin/platform/search/?q={query}`
+
+Cross-entity search backing the command palette's entity-hit results
+(`platformSearchRegistry.searchAll`, P9.4 Phase F) — Businesses, Platform
+Users, Countries today; any future registered provider (Subscriptions,
+Support Tickets, …) adds its results to this same endpoint's response, not
+a new one.
+
+**Success Response `200`:**
+```json
+{
+  "results": [
+    { "id": "platform.tenants.registry:brew-cafe", "label": "Brew Cafe", "hint": "brew-cafe", "moduleId": "platform.tenants" }
+  ]
+}
+```
+
+**Source:** `src/platform-admin/search.ts`, `src/platform-admin/search-providers.ts`
+
+### 37.5 Monitoring, Health & Metrics
+
+**Method:** `GET`
+**Path:** `/admin/platform/health/`
+
+Returns current service health (used by the `platform.health` module's
+settings *and* the `server_health`/`queue_status` dashboard widgets — the
+same underlying data, two presentations).
+
+**Success Response `200`:**
+```json
+{ "status": "operational", "services": [{ "name": "api", "status": "operational", "latencyMs": 42 }] }
+```
+
+**Method:** `GET`
+**Path:** `/admin/platform/metrics/?window={hourly|daily|weekly}`
+
+Returns the aggregated metrics backing the Monitoring-group dashboard
+widgets (Error Rate, API Usage, Storage Usage, …) at the configured
+`platform.metrics.sample_rate_percent` (§36, same field).
+
+**Source:** `src/platform-admin/modules/monitoring.ts`, `src/platform-admin/widgets.ts`
+
+### 37.6 Permission Summary
+
+| Action | Required permission |
+|---|---|
+| View platform dashboard | `platform.dashboard.view` |
+| Read/write a Platform Administration module's fields | That module's own `platformPermission` (§37.1) — falls back to `settings.view`/`settings.manage` (§36.7) for the field-level check, since every module is still an ordinary `ConfigFieldDefinition` underneath |
+| Platform-wide audit/activity | `platform.monitoring.view` |
+| Cross-entity search | Same permission as the underlying module for each result (a search hit for a Tenant is only returned if the caller holds `platform.businesses.view`) |
+| Monitoring/health/metrics | `platform.monitoring.view`; mutating thresholds requires `platform.monitoring.manage` |
+
+Platform permissions (`platform.*`) and tenant permissions (`P7Permission`,
+`src/types/rbac.ts`) are never combined in one check — see
+`docs/P9.4_PLATFORM_ADMIN_CENTER.md` for the full separation rationale.

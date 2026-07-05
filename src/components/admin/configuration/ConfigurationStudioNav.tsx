@@ -10,23 +10,17 @@
  * Payments, …) appears here automatically the moment it registers.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Activity, Bell, CreditCard, Flag, Globe2, HardDrive, LayoutTemplate, Languages,
-  Palette, Pin, PinOff, Search, Server, Shield, ShieldCheck, Type, Wallet, Webhook,
-  Clock, type LucideIcon,
-} from 'lucide-react'
+import { Clock, Pin, PinOff, Search } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { platformConfigurationRegistry } from '@/config'
 import type { ConfigModuleDefinition } from '@/config'
 import { usePlatformConfiguration } from '@/hooks/use-platform-configuration'
 import { useConfigurationStudioNav } from '@/hooks/use-configuration-studio-nav'
+import { usePlatformRole } from '@/platform-admin/hooks'
+import { hasPlatformPermission } from '@/platform-admin/permissions'
+import { resolvePlatformAdminIcon } from '@/platform-admin/icon-map'
 import { buildSearchHaystack } from './configUiHelpers'
-
-const MODULE_ICON_MAP: Record<string, LucideIcon> = {
-  Webhook, ShieldCheck, Globe2, Flag, Languages, Activity, Bell, Wallet,
-  Shield, HardDrive, CreditCard, Server, Palette, Type, LayoutTemplate,
-}
 
 const LIFECYCLE_BADGE_VARIANT = {
   draft: 'secondary',
@@ -42,11 +36,21 @@ export interface ConfigurationStudioNavProps {
 }
 
 export function ConfigurationStudioNav({ activeModuleId, onSelect }: ConfigurationStudioNavProps) {
-  const modules = usePlatformConfiguration()
+  const allModules = usePlatformConfiguration()
   const { pinned, recent, togglePinned, isPinned } = useConfigurationStudioNav()
+  const platformRole = usePlatformRole()
   const [search, setSearch] = useState('')
   const [focusedIndex, setFocusedIndex] = useState(0)
   const itemRefs = useRef<HTMLButtonElement[]>([])
+
+  // P9.4 Phase E — a module with no `platformPermission` (every pre-P9.4
+  // module) stays visible to every platform role, exactly as before;
+  // Platform Administration modules (Phase C) additionally gate on the
+  // separate platform permission model (src/platform-admin/permissions.ts).
+  const modules = useMemo(
+    () => allModules.filter((m) => !m.platformPermission || hasPlatformPermission(platformRole, m.platformPermission)),
+    [allModules, platformRole],
+  )
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -60,7 +64,12 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
     const map = new Map<string, ConfigModuleDefinition[]>()
     for (const m of filtered) {
       if (isPinned(m.id) || recent.includes(m.id)) continue
-      map.set(m.category, [...(map.get(m.category) ?? []), m])
+      // P9.4 Phase B — `group` (a top-level IA group) takes priority over
+      // the finer-grained `category` used since P9.0; modules that don't
+      // set `group` (every pre-P9.4 module) keep grouping by `category`
+      // exactly as before.
+      const key = m.group ?? m.category
+      map.set(key, [...(map.get(key) ?? []), m])
     }
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b))
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,7 +98,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
   }
 
   function renderModuleButton(mod: ConfigModuleDefinition, index: number) {
-    const Icon = (mod.icon && MODULE_ICON_MAP[mod.icon]) || ShieldCheck
+    const Icon = resolvePlatformAdminIcon(mod.icon)
     const lifecycle = platformConfigurationRegistry.getModuleLifecycle(mod.id)
     const isActive = mod.id === activeModuleId
     return (

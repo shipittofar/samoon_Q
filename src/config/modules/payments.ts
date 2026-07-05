@@ -12,6 +12,7 @@ export const PAYMENTS_MODULE: ConfigModuleDefinition = {
   name: 'Payments',
   description: 'Enabled payment providers, default currency, and processing fee policy.',
   category: 'commerce',
+  group: 'Subscriptions',
   version: '1.0.0',
   icon: 'Wallet',
   permissions: PERMISSIONS,

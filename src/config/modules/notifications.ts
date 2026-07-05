@@ -15,6 +15,7 @@ export const NOTIFICATIONS_MODULE: ConfigModuleDefinition = {
   name: 'Notifications',
   description: 'Delivery providers and default channel policy for platform notifications.',
   category: 'communications',
+  group: 'Automation',
   version: '1.0.0',
   icon: 'Bell',
   permissions: PERMISSIONS,

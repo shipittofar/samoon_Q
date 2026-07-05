@@ -111,6 +111,7 @@ export const COUNTRIES_MODULE: ConfigModuleDefinition = {
   name: 'Countries',
   description: 'The set of countries available across signup, checkout, and localization pickers, plus per-country configuration.',
   category: 'localization',
+  group: 'Configuration',
   version: '1.1.0',
   icon: 'Globe2',
   permissions: PERMISSIONS,

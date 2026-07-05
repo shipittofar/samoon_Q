@@ -20,6 +20,7 @@ export const TYPOGRAPHY_MODULE: ConfigModuleDefinition = {
   name: 'Typography',
   description: 'Platform default font stack and per-tenant font overrides.',
   category: 'branding',
+  group: 'Configuration',
   version: '1.0.0',
   icon: 'Type',
   permissions: PERMISSIONS,

@@ -51,9 +51,9 @@ describe('ConfigurationStudioLayout — shell (framework, generic)', () => {
   it('renders the nav, toolbar breadcrumb, and workspace for the active module', () => {
     render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
     expect(screen.getByRole('navigation', { name: 'Configuration modules' })).toBeInTheDocument()
-    expect(screen.getByText('Configuration')).toBeInTheDocument()
+    const toolbar = screen.getByRole('banner', { name: 'Configuration toolbar' })
+    expect(within(toolbar).getByText('Configuration')).toBeInTheDocument()
     // Breadcrumb + workspace both show the module name — scope to the toolbar to disambiguate.
-    const toolbar = screen.getByText('Configuration').closest('div')!
     expect(within(toolbar).getByText('Authentication')).toBeInTheDocument()
   })
 

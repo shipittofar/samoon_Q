@@ -428,6 +428,23 @@ export interface ConfigModuleDefinition {
   /** Omitted means 'published' — use registry.getModuleLifecycle(id) rather than reading this directly. */
   lifecycle?: ConfigLifecycleState
   sections: ConfigSectionDefinition[]
+  /**
+   * P9.4 Phase B — top-level Information Architecture group for the Studio
+   * nav (e.g. "Users", "Security", "Infrastructure"), distinct from
+   * `category` (a finer per-module grouping already used for other
+   * purposes since P9.0). Optional and purely additive: when omitted, nav
+   * grouping falls back to `category` exactly as it did before this field
+   * existed — every P9.0–P9.3 module keeps rendering identically.
+   */
+  group?: string
+  /**
+   * P9.4 Phase G — gates visibility/access in the Platform Administration
+   * Center via the separate platform permission model
+   * (src/platform-admin/permissions.ts), independent of `permissions`
+   * (tenant `P7Permission` keys, unchanged). Optional: a module without
+   * this is visible to any platform role (matching pre-P9.4 behavior).
+   */
+  platformPermission?: string
 }
 
 // ── Resolution / values ───────────────────────────────────────────────────────

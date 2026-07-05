@@ -13,6 +13,7 @@ export const API_MODULE: ConfigModuleDefinition = {
   name: 'API',
   description: 'Public API versioning, CORS allow-list, and webhook delivery policy.',
   category: 'platform',
+  group: 'Developer',
   version: '1.0.0',
   icon: 'Webhook',
   permissions: PERMISSIONS,

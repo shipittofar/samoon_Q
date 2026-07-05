@@ -12,6 +12,7 @@ export const MONITORING_MODULE: ConfigModuleDefinition = {
   name: 'Monitoring',
   description: 'Error tracking, uptime thresholds, and alert routing.',
   category: 'infrastructure',
+  group: 'Monitoring',
   version: '1.0.0',
   icon: 'Activity',
   permissions: PERMISSIONS,

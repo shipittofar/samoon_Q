@@ -20,6 +20,7 @@ export const LANGUAGES_MODULE: ConfigModuleDefinition = {
   name: 'Languages',
   description: 'Supported locales, default locale, and RTL rendering rules.',
   category: 'localization',
+  group: 'Configuration',
   version: '1.0.0',
   icon: 'Languages',
   permissions: PERMISSIONS,

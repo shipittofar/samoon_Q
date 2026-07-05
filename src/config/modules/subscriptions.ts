@@ -13,6 +13,7 @@ export const SUBSCRIPTIONS_MODULE: ConfigModuleDefinition = {
   name: 'Subscriptions',
   description: 'Billing plans, trial length, and grace-period policy for tenant subscriptions.',
   category: 'billing',
+  group: 'Subscriptions',
   version: '1.0.0',
   icon: 'CreditCard',
   permissions: PERMISSIONS,

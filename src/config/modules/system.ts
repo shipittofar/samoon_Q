@@ -13,6 +13,7 @@ export const SYSTEM_MODULE: ConfigModuleDefinition = {
   name: 'System',
   description: 'Maintenance mode, global rate limits, and data retention policy.',
   category: 'platform',
+  group: 'System',
   version: '1.0.0',
   icon: 'Server',
   permissions: PERMISSIONS,

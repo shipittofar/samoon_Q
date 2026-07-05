@@ -12,6 +12,7 @@ export const STORAGE_MODULE: ConfigModuleDefinition = {
   name: 'Storage',
   description: 'Media storage provider, upload limits, and CDN behavior.',
   category: 'infrastructure',
+  group: 'Infrastructure',
   version: '1.0.0',
   icon: 'HardDrive',
   permissions: PERMISSIONS,

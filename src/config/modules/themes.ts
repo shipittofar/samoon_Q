@@ -14,6 +14,7 @@ export const THEMES_MODULE: ConfigModuleDefinition = {
   name: 'Themes',
   description: 'Default brand palette and the CSS variables tenants are permitted to override.',
   category: 'branding',
+  group: 'Configuration',
   version: '1.0.0',
   icon: 'Palette',
   permissions: PERMISSIONS,

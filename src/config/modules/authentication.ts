@@ -21,6 +21,7 @@ export const AUTHENTICATION_MODULE: ConfigModuleDefinition = {
   name: 'Authentication',
   description: 'Phone/OTP login rules, registration policy, and account lockout thresholds.',
   category: 'security',
+  group: 'Security',
   version: '1.1.0',
   icon: 'ShieldCheck',
   permissions: PERMISSIONS,

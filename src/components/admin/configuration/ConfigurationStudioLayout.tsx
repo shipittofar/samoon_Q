@@ -42,9 +42,17 @@ function useIsDesktop(): boolean {
 export interface ConfigurationStudioLayoutProps {
   activeModuleId?: string
   onNavigate: (moduleId: string) => void
+  /**
+   * P9.4 Phase D/E — what the workspace pane shows when no module is
+   * selected. Optional; omitting it keeps the exact P9.1.3/P9.3 behavior
+   * (a plain "Select a module…" prompt), so the existing Configuration
+   * routes are unaffected. The Platform Administration Center route passes
+   * `<PlatformDashboard />` here instead of introducing a second shell.
+   */
+  emptyWorkspace?: React.ReactNode
 }
 
-export function ConfigurationStudioLayout({ activeModuleId, onNavigate }: ConfigurationStudioLayoutProps) {
+export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWorkspace }: ConfigurationStudioLayoutProps) {
   const modules = usePlatformConfiguration()
   const activeModule = modules.find((m) => m.id === activeModuleId)
   const { recordVisit } = useConfigurationStudioNav()
@@ -102,6 +110,8 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate }: Config
       onDraftStateChange={setDraftStatus}
       onActionsReady={setActions}
     />
+  ) : emptyWorkspace ? (
+    <div className="mx-auto max-w-6xl p-4 sm:p-6">{emptyWorkspace}</div>
   ) : (
     <div className="flex h-full items-center justify-center text-sm text-[var(--fg-muted)]">
       Select a module from the list to begin.

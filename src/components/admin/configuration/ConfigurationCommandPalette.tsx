@@ -16,6 +16,7 @@ import { ArrowRight, RotateCcw, Save, Search } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { platformConfigurationRegistry } from '@/config'
+import { platformSearchRegistry } from '@/platform-admin/search'
 import { buildSearchHaystack } from './configUiHelpers'
 import type { ConfigurationDraftStatus, ConfigurationModuleActions } from './ConfigurationStudioToolbar'
 
@@ -78,11 +79,29 @@ export function ConfigurationCommandPalette({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftStatus, actions])
 
+  // P9.4 Phase F — cross-entity search hits (Businesses/Platform Users/
+  // Countries, or any future registered provider) merge into the same
+  // result list rather than a second search surface. Empty registry (no
+  // provider registered, e.g. when this component renders without
+  // '@/platform-admin' ever having been imported) is a silent no-op.
+  const entityHits = useMemo(() => {
+    if (!query.trim()) return []
+    return platformSearchRegistry.searchAll(query).map((hit) => ({
+      id: `entity:${hit.id}`,
+      label: hit.label,
+      hint: hit.hint,
+      icon: <Search className="h-4 w-4" />,
+      run: () => { onNavigateToModule(hit.moduleId); onClose() },
+    }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return commands.slice(0, 20)
-    return commands.filter((c) => buildSearchHaystack([c.label, c.hint]).includes(q)).slice(0, 20)
-  }, [commands, query])
+    const matched = commands.filter((c) => buildSearchHaystack([c.label, c.hint]).includes(q))
+    return [...matched, ...entityHits].slice(0, 20)
+  }, [commands, entityHits, query])
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIndex((i) => Math.min(i + 1, filtered.length - 1)) }

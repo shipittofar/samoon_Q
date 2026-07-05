@@ -12,6 +12,7 @@ export const WEBSITE_BUILDER_MODULE: ConfigModuleDefinition = {
   name: 'Website Builder',
   description: 'Default block library, publishing rules, and section limits for the tenant website builder.',
   category: 'content',
+  group: 'Configuration',
   version: '1.0.0',
   icon: 'LayoutTemplate',
   permissions: PERMISSIONS,
