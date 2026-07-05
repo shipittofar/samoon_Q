@@ -4499,3 +4499,119 @@ widgets (Error Rate, API Usage, Storage Usage, …) at the configured
 Platform permissions (`platform.*`) and tenant permissions (`P7Permission`,
 `src/types/rbac.ts`) are never combined in one check — see
 `docs/P9.4_PLATFORM_ADMIN_CENTER.md` for the full separation rationale.
+
+## 38. Localization API (P9.5.0 — architecture only, no implementation)
+
+> **Contract only — no backend implementation exists, and no frontend code
+> was written for this section.** Generated from
+> `docs/P9.5.0_LOCALIZATION_ARCHITECTURE.md`,
+> `docs/P9.5.0_TRANSLATION_ARCHITECTURE.md`, and
+> `docs/P9.5.0_LANGUAGE_LIFECYCLE.md`. Every endpoint below is either (a) an
+> ordinary Platform Configuration endpoint (§36) applied to the new
+> `localization.languages`/`localization.fonts`/
+> `localization.translation_keys` collection fields, or (b) one of the few
+> genuinely new endpoints those documents identified (coverage, import/
+> export, fallback resolution). Requires `platform.localization.view` to
+> read, `platform.localization.manage` to write — **never** a tenant
+> `P7Permission`, per `P9.5.0_LANGUAGE_LIFECYCLE.md` §6.
+
+### 38.1 Language Registry
+
+Reuses §36.1–§36.6 verbatim against the `localization.languages`
+collection field — `GET /admin/config/modules/localization/`,
+`GET/PUT /admin/config/fields/localization.languages.registry/`, etc.
+already cover list/read/write/audit/rollback/version-history for every
+language entity, exactly as they do for `countries.registry` (P9.2) and
+`platform.tenants.registry` (P9.4). No new routes for basic CRUD.
+
+### 38.2 Translation Keys
+
+**Method:** `GET`
+**Path:** `/admin/localization/translation-keys/?namespace={ns}&language={lang}&status={status}`
+
+Returns `(namespace, key, language)` triples (§`P9.5.0_LOCALIZATION_ARCHITECTURE.md`
+§3) matching the filters — also reachable via the generic collection
+endpoints (§36) against `localization.translation_keys`, but exposed as
+its own path too since namespace/language filtering on a 150-language ×
+N-key collection is a common enough access pattern to warrant a dedicated,
+indexed query rather than requiring the client to filter a full collection
+dump.
+
+**Success Response `200`:**
+```json
+{
+  "results": [
+    { "id": "checkout.confirm_button.fa", "namespace": "checkout", "key": "confirm_button", "language": "fa", "value": "تأیید", "status": "reviewed" }
+  ]
+}
+```
+
+### 38.3 Coverage
+
+**Method:** `GET`
+**Path:** `/admin/localization/coverage/?language={lang}`
+
+Returns the computed coverage percentage (§`P9.5.0_LOCALIZATION_ARCHITECTURE.md`
+§3 — never manually stored) per namespace and overall, backing both each
+language entity's own `translation_coverage_percent` display and a future
+Platform Dashboard widget (reusing `platformDashboardRegistry`, P9.4).
+
+**Success Response `200`:**
+```json
+{ "language": "tr", "overall": 42, "byNamespace": { "checkout": 80, "dashboard": 10 } }
+```
+
+### 38.4 Import / Export
+
+**Method:** `POST`
+**Path:** `/admin/localization/export/`
+**Body:** `{ "languages": ["fa","ar"], "namespaces": ["checkout"] }` (omit for all enabled languages/namespaces)
+
+Returns one JSON file per `(language, namespace)` in the response
+(zipped for a multi-file response), in the exact shape
+`src/i18n/locales/en.json` already uses (§`P9.5.0_TRANSLATION_ARCHITECTURE.md`
+§4/§8 — chosen specifically so no change to `next-intl`'s loading code is
+required).
+
+**Method:** `POST`
+**Path:** `/admin/localization/import/`
+**Body:** one or more `(language, namespace)` JSON files, same shape.
+
+Runs the four detection checks (missing/unused/duplicate/conflict,
+§`P9.5.0_TRANSLATION_ARCHITECTURE.md` §7) before applying; a conflict
+(§4) returns `409` with the competing values rather than silently
+resolving one.
+
+### 38.5 Fallback Resolution
+
+**Method:** `GET`
+**Path:** `/admin/localization/resolve/?namespace={ns}&key={key}&language={lang}`
+
+Returns the resolved value for one key, walking the fallback chain
+(§`P9.5.0_TRANSLATION_ARCHITECTURE.md` §6) server-side — a debugging/
+verification endpoint, not the runtime hot path (the runtime hot path is
+still `next-intl`'s own per-request bundle load, §`P9.5.0_PERFORMANCE_STRATEGY.md`
+§2).
+
+**Success Response `200`:**
+```json
+{ "value": "تأیید", "resolvedFrom": "fa", "chain": ["fa"] }
+```
+or, for a key missing in the requested language:
+```json
+{ "value": "Confirm", "resolvedFrom": "en", "chain": ["fa-IR", "fa", "en"] }
+```
+
+### 38.6 Permission Summary
+
+| Action | Required permission |
+|---|---|
+| Read language registry, translation keys, coverage | `platform.localization.view` |
+| Write/enable/disable a language, edit a translation, import/export | `platform.localization.manage` |
+| Promote a language `beta` → `stable` | `platform.localization.manage` **and** the stable-promotion gate (`P9.5.0_LANGUAGE_LIFECYCLE.md` §5) passing |
+| Tenant override of `languages.default`, or a language's `default_currency`/`default_timezone` for that tenant only | The existing tenant `settings.manage` permission (§36.7) — unrelated to `platform.localization.*`, since this is an ordinary inheritance-chain override (Rule 4), not a platform-level change |
+
+`platform.localization.*` is never checked against a tenant `P7Permission`
+array, and `settings.manage` never grants access to enable/disable a
+language platform-wide — the same hard separation §37.6 already documents
+for the rest of the Platform Administration Center.
