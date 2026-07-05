@@ -15,26 +15,29 @@ import { Button } from '@/components/ui/Button'
 import { useCategories, useMenuItems } from '@/hooks'
 import { useRecentlyViewedStore, useCartStore, useTenantStore, useBranchStore } from '@/stores'
 import { cn, debounce } from '@/utils'
+import { useTranslations } from 'next-intl'
 import type { MenuItem } from '@/types'
 import type { MenuFilters } from '@/services/menu.service'
 
-const SORT_OPTIONS = [
-  { value: 'popular', label: 'Most Popular' },
-  { value: 'rating', label: 'Highest Rated' },
-  { value: 'price_asc', label: 'Price: Low to High' },
-  { value: 'price_desc', label: 'Price: High to Low' },
-  { value: 'newest', label: 'Newest' },
-]
-
-const DIETARY_TAGS = [
-  { label: '🌱 Vegan', tag: 'vegan' },
-  { label: '🥗 Vegetarian', tag: 'vegetarian' },
-  { label: '✡ Halal', tag: 'halal' },
-  { label: '🌾 Gluten-Free', tag: 'gluten-free' },
-  { label: '🌶 Spicy', tag: 'spicy' },
-]
-
 export function MenuContent() {
+  const t = useTranslations('menu')
+  const tCommon = useTranslations('common')
+
+  const SORT_OPTIONS = [
+    { value: 'popular', label: t('sortOptions.popular') },
+    { value: 'rating', label: t('sortOptions.rating') },
+    { value: 'price_asc', label: t('sortOptions.priceAsc') },
+    { value: 'price_desc', label: t('sortOptions.priceDesc') },
+    { value: 'newest', label: t('sortOptions.newest') },
+  ]
+
+  const DIETARY_TAGS = [
+    { label: t('dietaryVegan'), tag: 'vegan' },
+    { label: t('dietaryVegetarian'), tag: 'vegetarian' },
+    { label: t('dietaryHalal'), tag: 'halal' },
+    { label: t('dietaryGlutenFree'), tag: 'gluten-free' },
+    { label: t('dietarySpicy'), tag: 'spicy' },
+  ]
   const searchParams = useSearchParams()
   const router = useRouter()
   // C1: use pathname for correct relative URL building
@@ -139,10 +142,10 @@ export function MenuContent() {
 
   // H7: compose page heading
   const pageHeading = branchName
-    ? `${branchName} Menu`
+    ? t('branchMenu', { branch: branchName })
     : tenantName
-      ? `${tenantName} Menu`
-      : 'Our Full Menu'
+      ? t('tenantMenu', { tenant: tenantName })
+      : t('ourFullMenu')
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -154,13 +157,13 @@ export function MenuContent() {
       <div className="pt-16 bg-gradient-to-b from-orange-50/80 to-transparent dark:from-orange-950/20 dark:to-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="text-center mb-8">
-            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Explore</p>
+            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('explore')}</p>
             {/* H7: tenant/branch-aware heading */}
             <h1 className="font-[var(--font-display)] text-4xl sm:text-5xl font-bold text-[var(--fg)] mb-3">
               {pageHeading}
             </h1>
             <p className="text-[var(--fg-muted)] max-w-lg mx-auto">
-              Discover {data?.count || '...'} handcrafted dishes made with the finest ingredients.
+              {t('discoverDishes', { count: data?.count || '...' })}
             </p>
           </div>
 
@@ -172,15 +175,15 @@ export function MenuContent() {
                 type="search"
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Search dishes, ingredients…"
+                placeholder={t('searchPlaceholder')}
                 className="w-full h-14 ps-11 pe-14 rounded-2xl border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 shadow-[var(--shadow-soft)] transition-all"
-                aria-label="Search menu"
+                aria-label={t('searchAriaLabel')}
               />
               {search && (
                 <button
                   onClick={() => handleSearch('')}
                   className="absolute end-4 top-1/2 -translate-y-1/2 text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
-                  aria-label="Clear search"
+                  aria-label={t('clearSearch')}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -198,7 +201,7 @@ export function MenuContent() {
             ref={categoryBarRef}
             className="flex gap-2 overflow-x-auto scrollbar-hide py-3"
             role="tablist"
-            aria-label="Menu categories"
+            aria-label={t('categoriesAriaLabel')}
           >
             <button
               role="tab"
@@ -211,7 +214,7 @@ export function MenuContent() {
                   : 'bg-[var(--card)] text-[var(--fg-muted)] hover:text-[var(--fg)] border border-[var(--border)] hover:border-orange-200',
               )}
             >
-              ✨ All
+              ✨ {t('allCategories')}
               {data && <Badge variant="secondary" className="text-[10px]">{data.count}</Badge>}
             </button>
 
@@ -242,7 +245,7 @@ export function MenuContent() {
           </div>
 
           {/* H5: Dietary quick-filter chips */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2" role="group" aria-label="Dietary filters">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2" role="group" aria-label={t('dietaryFiltersAriaLabel')}>
             {DIETARY_TAGS.map(({ label, tag }) => (
               <button
                 key={tag}
@@ -270,7 +273,7 @@ export function MenuContent() {
                 onClick={() => setShowFilters((v) => !v)}
                 leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
               >
-                Filters
+                {t('filters')}
                 {/* H2 (filter count): show count of active non-dietary filters */}
                 {(priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || onlyAvailable) && (
                   <span className="ms-1 h-4 w-4 rounded-full bg-white/30 text-[10px] font-bold flex items-center justify-center">
@@ -280,7 +283,7 @@ export function MenuContent() {
               </Button>
               {hasActiveFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters} leftIcon={<X className="h-3.5 w-3.5" />}>
-                  Clear
+                  {tCommon('clear')}
                 </Button>
               )}
             </div>
@@ -292,7 +295,7 @@ export function MenuContent() {
                   value={sort}
                   onChange={(e) => setSort(e.target.value as MenuFilters['sort'])}
                   className="h-8 ps-3 pe-8 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 appearance-none cursor-pointer"
-                  aria-label="Sort by"
+                  aria-label={t('sortAriaLabel')}
                 >
                   {SORT_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -311,7 +314,7 @@ export function MenuContent() {
                       'h-8 w-8 flex items-center justify-center transition-colors',
                       viewMode === mode ? 'bg-orange-500 text-white' : 'bg-[var(--card)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
                     )}
-                    aria-label={`${mode} view`}
+                    aria-label={mode === 'grid' ? t('gridView') : t('listView')}
                     aria-pressed={viewMode === mode}
                   >
                     {mode === 'grid' ? <Grid3X3 className="h-3.5 w-3.5" /> : <List className="h-3.5 w-3.5" />}
@@ -337,18 +340,18 @@ export function MenuContent() {
                 {/* Price Range */}
                 <div>
                   <label className="text-sm font-medium text-[var(--fg)] mb-3 block">
-                    Price Range: ${priceRange[0]} – ${priceRange[1] >= 100 ? '100+' : priceRange[1]}
+                    {t('priceRangeLabel', { min: `$${priceRange[0]}`, max: priceRange[1] >= 100 ? '$100+' : `$${priceRange[1]}` })}
                   </label>
                   <div className="flex items-center gap-3">
-                    <input type="range" min={0} max={100} value={priceRange[0]} onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])} className="flex-1 accent-orange-500" aria-label="Minimum price" />
-                    <input type="range" min={0} max={100} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], +e.target.value])} className="flex-1 accent-orange-500" aria-label="Maximum price" />
+                    <input type="range" min={0} max={100} value={priceRange[0]} onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])} className="flex-1 accent-orange-500" aria-label={t('minPriceAria')} />
+                    <input type="range" min={0} max={100} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], +e.target.value])} className="flex-1 accent-orange-500" aria-label={t('maxPriceAria')} />
                   </div>
                 </div>
 
                 {/* Min Rating */}
                 <div>
                   <label className="text-sm font-medium text-[var(--fg)] mb-3 block">
-                    Minimum Rating: {minRating > 0 ? `${minRating}+` : 'Any'}
+                    {t('minRatingLabel', { rating: minRating > 0 ? `${minRating}+` : t('any') })}
                   </label>
                   <div className="flex gap-2">
                     {[0, 3, 3.5, 4, 4.5].map((r) => (
@@ -362,7 +365,7 @@ export function MenuContent() {
                             : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-300',
                         )}
                       >
-                        {r === 0 ? 'Any' : `${r}★`}
+                        {r === 0 ? t('any') : `${r}★`}
                       </button>
                     ))}
                   </div>
@@ -370,7 +373,7 @@ export function MenuContent() {
 
                 {/* Availability */}
                 <div>
-                  <label className="text-sm font-medium text-[var(--fg)] mb-3 block">Availability</label>
+                  <label className="text-sm font-medium text-[var(--fg)] mb-3 block">{t('availability')}</label>
                   <button
                     onClick={() => setOnlyAvailable((v) => !v)}
                     className={cn(
@@ -383,7 +386,7 @@ export function MenuContent() {
                     <span className={cn('h-4 w-4 rounded border-2 flex items-center justify-center', onlyAvailable ? 'border-white bg-white/20' : 'border-current')}>
                       {onlyAvailable && <span className="text-white text-[10px]">✓</span>}
                     </span>
-                    Available only
+                    {t('availableOnly')}
                   </button>
                 </div>
               </div>
@@ -399,7 +402,7 @@ export function MenuContent() {
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="h-4 w-4 text-orange-500" aria-hidden="true" />
-              <h2 className="text-sm font-semibold text-[var(--fg)]">Recently Viewed</h2>
+              <h2 className="text-sm font-semibold text-[var(--fg)]">{t('recentlyViewed')}</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {recentlyViewed.slice(0, 6).map((item) => (
@@ -412,7 +415,7 @@ export function MenuContent() {
         {/* Results */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-[var(--fg-muted)]" aria-live="polite" aria-atomic="true">
-            {isLoading ? 'Loading…' : `${items.length} ${items.length === 1 ? 'item' : 'items'} found`}
+            {isLoading ? tCommon('loading') : t('itemsFound', { count: items.length })}
           </p>
         </div>
 
@@ -423,16 +426,16 @@ export function MenuContent() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
             <span className="text-5xl" aria-hidden="true">🍽️</span>
-            <h3 className="font-[var(--font-display)] text-xl font-semibold text-[var(--fg)]">No dishes found</h3>
+            <h3 className="font-[var(--font-display)] text-xl font-semibold text-[var(--fg)]">{t('noDishesFound')}</h3>
             <p className="text-[var(--fg-muted)] max-w-sm">
               {debouncedSearch
-                ? `No results for "${debouncedSearch}". Try different keywords.`
-                : 'No items match your current filters.'}
+                ? t('noResultsFor', { query: debouncedSearch })
+                : t('noItemsMatchFilters')}
             </p>
             {/* H3: category shortcuts in empty state */}
             {debouncedSearch && categories && categories.length > 0 && (
               <div className="mt-2">
-                <p className="text-sm text-[var(--fg-muted)] mb-3">Browse by category instead:</p>
+                <p className="text-sm text-[var(--fg-muted)] mb-3">{t('browseByCategoryInstead')}</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {categories.slice(0, 4).map((cat) => (
                     <button
@@ -446,7 +449,7 @@ export function MenuContent() {
                 </div>
               </div>
             )}
-            <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
+            <Button variant="outline" onClick={clearFilters}>{t('clearFiltersButton')}</Button>
           </div>
         ) : (
           <motion.div

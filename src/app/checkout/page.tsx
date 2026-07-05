@@ -24,12 +24,15 @@ import { StripePaymentForm } from '@/components/checkout/StripePaymentForm'
 import toast from 'react-hot-toast'
 import type { OrderType, PaymentMethod } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { useTranslations } from 'next-intl'
 
+// Schema messages are `validation` namespace keys (Phase E), resolved via
+// `tValidation()` wherever `errors.<field>.message` is rendered below.
 const checkoutSchema = z.object({
-  first_name: z.string().min(2, 'First name is required'),
-  last_name: z.string().min(2, 'Last name is required'),
-  email: z.string().email('Valid email required'),
-  phone: z.string().min(10, 'Valid phone required'),
+  first_name: z.string().min(2, 'required'),
+  last_name: z.string().min(2, 'required'),
+  email: z.string().email('invalid_email'),
+  phone: z.string().min(10, 'invalid_phone'),
   street: z.string().optional(),
   city: z.string().optional(),
   table_number: z.string().optional(),
@@ -38,24 +41,29 @@ const checkoutSchema = z.object({
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>
 
-const ORDER_TYPES: { value: OrderType; label: string; icon: React.ElementType; desc: string }[] = [
-  { value: 'delivery', label: 'Delivery', icon: Package, desc: 'Delivered to your address' },
-  { value: 'pickup', label: 'Pickup', icon: UtensilsCrossed, desc: 'Pick up at the restaurant' },
-  { value: 'dine_in', label: 'Dine In', icon: UtensilsCrossed, desc: 'Order at your table' },
-]
-
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType; desc: string }[] = [
-  { value: 'card', label: 'Credit / Debit Card', icon: CreditCard, desc: 'Visa, Mastercard, Amex' },
-  { value: 'cash', label: 'Cash on Delivery', icon: Banknote, desc: 'Pay when you receive' },
-  { value: 'online', label: 'Online Payment', icon: Smartphone, desc: 'PayPal, Apple Pay, Google Pay' },
-  { value: 'wallet', label: 'Wallet Balance', icon: Wallet, desc: 'Use your Savor credits' },
-]
-
 const VALID_ORDER_TYPES = new Set<OrderType>(['delivery', 'pickup', 'dine_in'])
 
 function CheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations('checkout')
+  const tAuth = useTranslations('auth')
+  const tCommon = useTranslations('common')
+  const tCart = useTranslations('cart')
+  const tValidation = useTranslations('validation')
+
+  const ORDER_TYPES: { value: OrderType; label: string; icon: React.ElementType; desc: string }[] = [
+    { value: 'delivery', label: t('delivery'), icon: Package, desc: t('deliveryDesc') },
+    { value: 'pickup', label: t('pickup'), icon: UtensilsCrossed, desc: t('pickupDesc') },
+    { value: 'dine_in', label: t('dineIn'), icon: UtensilsCrossed, desc: t('dineInDesc') },
+  ]
+
+  const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType; desc: string }[] = [
+    { value: 'card', label: t('card'), icon: CreditCard, desc: t('cardDesc') },
+    { value: 'cash', label: t('cash'), icon: Banknote, desc: t('cashDesc') },
+    { value: 'online', label: t('online'), icon: Smartphone, desc: t('onlineDesc') },
+    { value: 'wallet', label: t('wallet'), icon: Wallet, desc: t('walletDesc') },
+  ]
 
   // P4.4 — Read QR / deep-link params and use as initial state
   const paramOrderType = searchParams.get('orderType') as OrderType | null
@@ -110,10 +118,10 @@ function CheckoutContent() {
         <Header />
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
           <span className="text-5xl">🛒</span>
-          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">Your cart is empty</h2>
-          <p className="text-[var(--fg-muted)]">Add some dishes before proceeding to checkout.</p>
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('emptyCartTitle')}</h2>
+          <p className="text-[var(--fg-muted)]">{t('emptyCartDesc')}</p>
           <Link href="/menu">
-            <Button leftIcon={<ArrowLeft className="h-4 w-4" />}>Browse Menu</Button>
+            <Button leftIcon={<ArrowLeft className="h-4 w-4" />}>{tCart('browseMenu')}</Button>
           </Link>
         </div>
       </div>
@@ -145,11 +153,11 @@ function CheckoutContent() {
     createOrder(payload as Parameters<typeof createOrder>[0], {
       onSuccess: (order) => {
         clearCart()
-        toast.success('Order placed successfully! 🎉')
+        toast.success(t('orderPlacedSuccess'))
         router.push(`/checkout/success?orderId=${order.id}&orderNumber=${order.order_number}`)
       },
       onError: () => {
-        toast.error('Failed to place order. Please try again.')
+        toast.error(t('orderPlaceFailed'))
         router.push('/checkout/failure')
       },
     })
@@ -173,8 +181,8 @@ function CheckoutContent() {
         })
         setClientSecret(intent.client_secret)
       } catch {
-        toast.error('Could not initialise payment. Please try again.')
-        setPaymentError('Failed to initialise payment session.')
+        toast.error(t('couldNotInitPayment'))
+        setPaymentError(t('couldNotInitPayment'))
       }
     } else {
       finaliseOrder(data)
@@ -201,23 +209,23 @@ function CheckoutContent() {
           {/* Header */}
           <div className="mb-8 flex items-center gap-4">
             <Link href="/menu">
-              <Button variant="ghost" size="icon-sm" aria-label="Back to menu">
+              <Button variant="ghost" size="icon-sm" aria-label={t('backToMenuAria')}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
             <div>
-              <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">Checkout</h1>
-              <p className="text-sm text-[var(--fg-muted)]">{items.length} items · {formatCurrency(total)}</p>
+              <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('title')}</h1>
+              <p className="text-sm text-[var(--fg-muted)]">{t('itemsCountTotal', { count: items.length, total: formatCurrency(total) })}</p>
             </div>
           </div>
 
           {/* Steps */}
           <div className="flex items-center gap-3 mb-8">
-            {['details', 'payment'].map((s, i) => (
+            {(['details', 'payment'] as const).map((s, i) => (
               <div key={s} className="flex items-center gap-3">
                 <div className={cn('flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all', step === s ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : i < ['details','payment'].indexOf(step) ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600' : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)]')}>
                   {i < ['details','payment'].indexOf(step) ? <CheckCircle2 className="h-3.5 w-3.5" /> : <span className="h-4 w-4 rounded-full border-2 border-current flex items-center justify-center text-[10px]">{i + 1}</span>}
-                  <span className="capitalize">{s}</span>
+                  <span>{s === 'details' ? t('stepDetails') : t('stepPayment')}</span>
                 </div>
                 {i < 1 && <ChevronRight className="h-4 w-4 text-[var(--fg-subtle)]" />}
               </div>
@@ -228,7 +236,7 @@ function CheckoutContent() {
           {initialOrderType === 'dine_in' && initialTableNumber && (
             <div className="mb-6 flex items-center gap-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl px-5 py-3 text-sm text-orange-700 dark:text-orange-300">
               <UtensilsCrossed className="h-4 w-4 shrink-0" />
-              <span>Ordering for <strong>Table {initialTableNumber}</strong> — dine-in order</span>
+              <span>{t('dineInBanner', { table: initialTableNumber })}</span>
             </div>
           )}
 
@@ -241,7 +249,7 @@ function CheckoutContent() {
                   <motion.div key="details" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
                     {/* Order Type */}
                     <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                      <h2 className="font-semibold text-[var(--fg)] mb-4">Order Type</h2>
+                      <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderType')}</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {ORDER_TYPES.map((type) => (
                           <button
@@ -265,12 +273,12 @@ function CheckoutContent() {
 
                     {/* Customer Info */}
                     <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                      <h2 className="font-semibold text-[var(--fg)] mb-4">Contact Information</h2>
+                      <h2 className="font-semibold text-[var(--fg)] mb-4">{t('contactInformation')}</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Input label="First Name" required {...register('first_name')} error={errors.first_name?.message} />
-                        <Input label="Last Name" required {...register('last_name')} error={errors.last_name?.message} />
-                        <Input label="Email" type="email" required {...register('email')} error={errors.email?.message} />
-                        <Input label="Phone" type="tel" required {...register('phone')} error={errors.phone?.message} />
+                        <Input label={tAuth('firstName')} required {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
+                        <Input label={tAuth('lastName')} required {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
+                        <Input label={tAuth('email')} type="email" required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
+                        <Input label={tAuth('phone')} type="tel" required {...register('phone')} error={errors.phone?.message ? tValidation(errors.phone.message) : undefined} />
                       </div>
                     </div>
 
@@ -279,37 +287,37 @@ function CheckoutContent() {
                       {orderType === 'delivery' && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
                           <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-orange-500" /> Delivery Address
+                            <MapPin className="h-4 w-4 text-orange-500" /> {t('deliveryAddress')}
                           </h2>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="sm:col-span-2">
-                              <Input label="Street Address" required={orderType === 'delivery'} {...register('street')} error={errors.street?.message} placeholder="123 Main St, Apt 4B" />
+                              <Input label={t('streetAddress')} required={orderType === 'delivery'} {...register('street')} error={errors.street?.message} placeholder={t('streetAddressPlaceholder')} />
                             </div>
-                            <Input label="City" required={orderType === 'delivery'} {...register('city')} error={errors.city?.message} />
+                            <Input label={t('city')} required={orderType === 'delivery'} {...register('city')} error={errors.city?.message} />
                           </div>
                         </motion.div>
                       )}
                       {orderType === 'dine_in' && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                          <h2 className="font-semibold text-[var(--fg)] mb-4">Table Number</h2>
-                          <Input label="Table Number" type="number" {...register('table_number')} placeholder="e.g. 5" />
+                          <h2 className="font-semibold text-[var(--fg)] mb-4">{t('tableNumber')}</h2>
+                          <Input label={t('tableNumber')} type="number" {...register('table_number')} placeholder={t('tableNumberPlaceholder')} />
                         </motion.div>
                       )}
                     </AnimatePresence>
 
                     {/* Notes */}
                     <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                      <h2 className="font-semibold text-[var(--fg)] mb-4">Order Notes</h2>
+                      <h2 className="font-semibold text-[var(--fg)] mb-4">{t('notes')}</h2>
                       <textarea
                         {...register('notes')}
                         rows={3}
-                        placeholder="Any special instructions for your order?"
+                        placeholder={t('notesPlaceholder')}
                         className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all"
                       />
                     </div>
 
                     <Button type="button" className="w-full" size="lg" rightIcon={<ChevronRight className="h-4 w-4" />} onClick={() => setStep('payment')}>
-                      Continue to Payment
+                      {t('continueToPayment')}
                     </Button>
                   </motion.div>
                 )}
@@ -320,7 +328,7 @@ function CheckoutContent() {
 
                     {!showStripeForm && (
                       <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                        <h2 className="font-semibold text-[var(--fg)] mb-4">Payment Method</h2>
+                        <h2 className="font-semibold text-[var(--fg)] mb-4">{t('paymentMethod')}</h2>
                         <div className="space-y-3">
                           {PAYMENT_METHODS.map((method) => (
                             <button
@@ -363,14 +371,14 @@ function CheckoutContent() {
                       >
                         <div className="flex items-center justify-between mb-4">
                           <h2 className="font-semibold text-[var(--fg)] flex items-center gap-2">
-                            <CreditCard className="h-4 w-4 text-orange-500" /> Card Payment
+                            <CreditCard className="h-4 w-4 text-orange-500" /> {t('cardPayment')}
                           </h2>
                           <button
                             type="button"
                             onClick={() => { setClientSecret(null); setPaymentError(null) }}
                             className="text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] underline"
                           >
-                            Change method
+                            {t('changeMethod')}
                           </button>
                         </div>
                         <StripePaymentForm
@@ -392,7 +400,7 @@ function CheckoutContent() {
                       <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="flex gap-3">
                           <Button type="button" variant="secondary" onClick={() => setStep('details')} leftIcon={<ArrowLeft className="h-4 w-4" />}>
-                            Back
+                            {tCommon('back')}
                           </Button>
                           <Button
                             type="submit"
@@ -402,8 +410,8 @@ function CheckoutContent() {
                             leftIcon={<Lock className="h-4 w-4" />}
                           >
                             {paymentMethod === 'card'
-                              ? isCreatingIntent ? 'Preparing payment…' : `Pay with Card · ${formatCurrency(total)}`
-                              : isPending ? 'Placing Order…' : `Place Order · ${formatCurrency(total)}`}
+                              ? isCreatingIntent ? t('preparingPayment') : t('payWithCard', { total: formatCurrency(total) })
+                              : isPending ? t('placingOrder') : t('placeOrderWithTotal', { total: formatCurrency(total) })}
                           </Button>
                         </div>
                       </form>
@@ -416,7 +424,7 @@ function CheckoutContent() {
             {/* Right: Order Summary */}
             <div className="space-y-4">
               <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 sticky top-24">
-                <h2 className="font-semibold text-[var(--fg)] mb-4">Order Summary</h2>
+                <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderSummary')}</h2>
 
                 <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
                   {items.map((item) => (
@@ -437,19 +445,19 @@ function CheckoutContent() {
                 <Divider className="my-4" />
 
                 <div className="space-y-2.5 text-sm">
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-                  {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>Discount</span><span>−{formatCurrency(discountAmount)}</span></div>}
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Tax (9%)</span><span>{formatCurrency(tax)}</span></div>
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Service (5%)</span><span>{formatCurrency(serviceCharge)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('subtotal')}</span><span>{formatCurrency(subtotal)}</span></div>
+                  {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>{tCart('discount')}</span><span>−{formatCurrency(discountAmount)}</span></div>}
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('tax')}</span><span>{formatCurrency(tax)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('serviceCharge')}</span><span>{formatCurrency(serviceCharge)}</span></div>
                   <Divider />
                   <div className="flex justify-between font-bold text-[var(--fg)] text-base">
-                    <span>Total</span><span>{formatCurrency(total)}</span>
+                    <span>{tCart('total')}</span><span>{formatCurrency(total)}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 flex items-center gap-2 text-xs text-[var(--fg-muted)] bg-[var(--card-hover)] rounded-xl p-3">
                   <Lock className="h-3.5 w-3.5 shrink-0" />
-                  <span>Your payment information is encrypted and secure.</span>
+                  <span>{t('secureNote')}</span>
                 </div>
               </div>
             </div>

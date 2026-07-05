@@ -14,6 +14,7 @@ import { FoodCard } from './FoodCard'
 import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
 import type { Extra, MenuItem } from '@/types'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 
 interface FoodDetailModalProps {
   item: MenuItem | null
@@ -24,6 +25,9 @@ interface FoodDetailModalProps {
 }
 
 export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDetailModalProps) {
+  const t = useTranslations('menu')
+  const tCommon = useTranslations('common')
+  const tNotifications = useTranslations('notifications')
   const { addItem } = useCartStore()
   const { isFavorite, toggleFavorite } = useFavoritesStore()
   const { mutate: toggleFav } = useToggleFavorite()
@@ -54,7 +58,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
 
   const handleAddToCart = () => {
     addItem({ ...item, discounted_price: discountedPrice }, quantity, selectedExtras, notes || undefined)
-    toast.success(`${item.name} added to cart!`, { icon: '🛒' })
+    toast.success(tNotifications('itemAddedToCart', { item: item.name }), { icon: '🛒' })
     setQuantity(1)
     setSelectedExtras([])
     setNotes('')
@@ -72,11 +76,11 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
       { rating: reviewRating, comment: reviewComment || undefined },
       {
         onSuccess: () => {
-          toast.success('Review submitted!')
+          toast.success(tNotifications('reviewSubmitted'))
           setReviewComment('')
           setReviewRating(5)
         },
-        onError: () => toast.error('Failed to submit review. Please try again.'),
+        onError: () => toast.error(tNotifications('reviewFailed')),
       },
     )
   }
@@ -98,9 +102,9 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
 
           {/* Badges overlay */}
           <div className="absolute top-3 start-3 flex flex-col gap-1.5">
-            {item.is_new && <Badge variant="info">New</Badge>}
-            {item.is_popular && <Badge variant="warning">Popular</Badge>}
-            {item.discount && <Badge variant="danger">{item.discount}% OFF</Badge>}
+            {item.is_new && <Badge variant="info">{t('new')}</Badge>}
+            {item.is_popular && <Badge variant="warning">{t('popular')}</Badge>}
+            {item.discount && <Badge variant="danger">{t('discount', { percent: item.discount })}</Badge>}
           </div>
 
           {/* Action buttons */}
@@ -111,14 +115,14 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
                 'h-9 w-9 rounded-full flex items-center justify-center transition-all shadow-lg',
                 favorited ? 'bg-red-500 text-white' : 'bg-white/80 backdrop-blur-sm text-gray-600 hover:bg-white',
               )}
-              aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+              aria-label={favorited ? t('removeFromFavorites') : t('addToFavorites')}
             >
               <Heart className={cn('h-4 w-4', favorited && 'fill-current')} />
             </button>
             <button
               onClick={onClose}
               className="h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:bg-white transition-all shadow-lg"
-              aria-label="Close"
+              aria-label={tCommon('close')}
             >
               <X className="h-4 w-4" />
             </button>
@@ -135,16 +139,16 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
                 <span className="flex items-center gap-1">
                   <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
                   <strong className="text-[var(--fg)]">{item.rating}</strong>
-                  <span>({item.rating_count} reviews)</span>
+                  <span>{t('reviewCount', { count: item.rating_count })}</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
-                  {item.preparation_time} min
+                  {t('prepTime', { min: item.preparation_time })}
                 </span>
                 {item.calories && (
                   <span className="flex items-center gap-1">
                     <Flame className="h-3.5 w-3.5" />
-                    {item.calories} cal
+                    {t('calories', { count: item.calories })}
                   </span>
                 )}
               </div>
@@ -167,7 +171,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
                   onClick={() => setShowNutrition((v) => !v)}
                   className="flex items-center gap-2 text-sm font-medium text-[var(--fg)] hover:text-orange-500 transition-colors"
                 >
-                  Nutritional Info
+                  {t('nutritionalInfo')}
                   {showNutrition ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </button>
                 {showNutrition && (
@@ -192,7 +196,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
             {/* Extras */}
             {item.extras && item.extras.length > 0 && (
               <div className="mb-4">
-                <h3 className="text-sm font-semibold text-[var(--fg)] mb-3">Add Extras</h3>
+                <h3 className="text-sm font-semibold text-[var(--fg)] mb-3">{t('addExtras')}</h3>
                 <div className="space-y-2">
                   {item.extras.map((extra) => {
                     const selected = selectedExtras.some((e) => e.id === extra.id)
@@ -226,8 +230,8 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
             {/* Notes */}
             <div className="mb-4">
               <Textarea
-                label="Special requests"
-                placeholder="Any special requests? (e.g. no onions, extra spicy…)"
+                label={t('specialRequests')}
+                placeholder={t('specialRequestsPlaceholder')}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
@@ -243,7 +247,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
                 className="flex items-center gap-2 text-sm font-medium text-[var(--fg)] hover:text-orange-500 transition-colors w-full"
               >
                 <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-                Reviews
+                {t('reviews')}
                 {reviewsData && (
                   <span className="text-[var(--fg-muted)] font-normal">
                     · {reviewsData.average_rating.toFixed(1)} ({reviewsData.count})
@@ -262,21 +266,21 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
                 >
                   {/* Submit a review */}
                   <div className="bg-[var(--card-hover)] rounded-xl p-4 space-y-3">
-                    <p className="text-xs font-semibold text-[var(--fg)]">Write a review</p>
+                    <p className="text-xs font-semibold text-[var(--fg)]">{t('writeReview')}</p>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <button
                           key={s}
                           onClick={() => setReviewRating(s)}
                           className={cn('text-xl transition-colors', s <= reviewRating ? 'text-amber-400' : 'text-[var(--border-strong)]')}
-                          aria-label={`Rate ${s} star${s > 1 ? 's' : ''}`}
+                          aria-label={t('rateStars', { count: s })}
                         >
                           ★
                         </button>
                       ))}
                     </div>
                     <Textarea
-                      placeholder="Share your experience…"
+                      placeholder={t('shareExperiencePlaceholder')}
                       value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value)}
                       rows={2}
@@ -287,7 +291,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
                       disabled={submittingReview}
                       leftIcon={<Send className="h-3.5 w-3.5" />}
                     >
-                      {submittingReview ? 'Submitting…' : 'Submit'}
+                      {submittingReview ? t('submitting') : tCommon('submit')}
                     </Button>
                   </div>
 
@@ -310,7 +314,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-[var(--fg-muted)] text-center py-2">No reviews yet. Be the first!</p>
+                    <p className="text-xs text-[var(--fg-muted)] text-center py-2">{t('noReviewsYet')}</p>
                   )}
                 </motion.div>
               )}
@@ -324,7 +328,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 className="h-10 w-10 flex items-center justify-center text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-                aria-label="Decrease quantity"
+                aria-label={t('decreaseQuantity')}
               >
                 <Minus className="h-4 w-4" />
               </button>
@@ -332,7 +336,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
               <button
                 onClick={() => setQuantity(quantity + 1)}
                 className="h-10 w-10 flex items-center justify-center text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-                aria-label="Increase quantity"
+                aria-label={t('increaseQuantity')}
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -344,7 +348,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
               onClick={handleAddToCart}
               disabled={!item.available}
             >
-              Add to Cart · {formatCurrency(totalPrice)}
+              {t('addToCartWithPrice', { price: formatCurrency(totalPrice) })}
             </Button>
           </div>
         </div>
@@ -353,7 +357,7 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
       {/* Related Items */}
       {related && related.length > 0 && (
         <div className="border-t border-[var(--border)] p-6">
-          <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] mb-4">You might also like</h3>
+          <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] mb-4">{t('related')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* C4/H9: wire onOpenRelated so related items open in the modal */}
             {related.slice(0, 4).map((rel) => (

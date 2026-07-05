@@ -67,7 +67,8 @@ describe('checkout/page.tsx — P4.4 source structure', () => {
   it('renders a dine-in context banner when arriving from QR', () => {
     expect(src()).toContain('initialOrderType === \'dine_in\'')
     expect(src()).toContain('initialTableNumber')
-    expect(src()).toContain('Ordering for')
+    // P9.5.2: localized via t('dineInBanner', { table }) instead of a literal string.
+    expect(src()).toContain("t('dineInBanner'")
   })
 
   it('still imports all non-card payment methods (no regression)', () => {

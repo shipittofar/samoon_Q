@@ -110,7 +110,8 @@ describe('FoodDetailModal.tsx — P4.3 reviews UI', () => {
   })
 
   it('renders review submission form', () => {
-    expect(src()).toContain('Write a review')
+    // P9.5.2: localized via t('writeReview') instead of a literal string.
+    expect(src()).toContain("t('writeReview')")
     expect(src()).toContain('reviewComment')
     expect(src()).toContain('reviewRating')
   })
@@ -135,7 +136,8 @@ describe('FoodDetailModal.tsx — P4.3 reviews UI', () => {
   })
 
   it('shows empty state when no reviews', () => {
-    expect(src()).toContain('No reviews yet')
+    // P9.5.2: localized via t('noReviewsYet') instead of a literal string.
+    expect(src()).toContain("t('noReviewsYet')")
   })
 
   it('uses RatingStars for review display', () => {

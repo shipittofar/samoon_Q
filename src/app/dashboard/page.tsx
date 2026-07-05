@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { formatCurrency, formatDate, formatRelativeTime } from '@/utils'
 import { ORDER_STATUS_COLORS } from '@/constants'
+import { useTranslations } from 'next-intl'
 
 
 const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple' | 'danger' | 'secondary'> = {
@@ -24,6 +25,8 @@ const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple'
 }
 
 export default function DashboardPage() {
+  const t = useTranslations('dashboard')
+  const tCommon = useTranslations('common')
   const { user } = useAuthStore()
   const tenantSlug = useTenantStore((s) => s.tenant?.slug)
   const { data: ordersData, isLoading: ordersLoading } = useOrders()
@@ -35,10 +38,10 @@ export default function DashboardPage() {
   const activeOrder = orders.find((o) => !['delivered', 'cancelled'].includes(o.status))
 
   const stats = [
-    { label: 'Total Orders', value: ordersData?.count || 0, icon: Package, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30' },
-    { label: 'Reservations', value: reservationsData?.count || 0, icon: Calendar, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/30' },
-    { label: 'Total Spent', value: formatCurrency(orders.reduce((s, o) => s + (o.total || 0), 0)), icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
-    { label: 'Avg Rating', value: '4.8★', icon: Star, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30' },
+    { label: t('totalOrders'), value: ordersData?.count || 0, icon: Package, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30' },
+    { label: t('reservations'), value: reservationsData?.count || 0, icon: Calendar, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/30' },
+    { label: t('totalSpent'), value: formatCurrency(orders.reduce((s, o) => s + (o.total || 0), 0)), icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
+    { label: t('avgRating'), value: '4.8★', icon: Star, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30' },
   ]
 
   return (
@@ -46,9 +49,9 @@ export default function DashboardPage() {
       {/* Welcome */}
       <div>
         <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">
-          Hello, {user?.first_name}! 👋
+          {t('greeting', { name: user?.first_name })}
         </h1>
-        <p className="text-[var(--fg-muted)] mt-1">Heres what is happening with your account.</p>
+        <p className="text-[var(--fg-muted)] mt-1">{t('subtitle')}</p>
       </div>
 
       {/* Active Order Banner */}
@@ -64,13 +67,13 @@ export default function DashboardPage() {
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="font-semibold">Active Order {activeOrder.order_number}</p>
-                <p className="text-white/80 text-sm capitalize">Status: {activeOrder.status?.replace('_', ' ')}</p>
+                <p className="font-semibold">{t('activeOrderLabel', { number: activeOrder.order_number })}</p>
+                <p className="text-white/80 text-sm capitalize">{t('statusLabel', { status: activeOrder.status?.replace('_', ' ') })}</p>
               </div>
             </div>
             <Link href={`/order/${activeOrder.id}`}>
               <Button variant="secondary" size="sm" className="bg-white text-orange-600 hover:bg-orange-50 border-transparent">
-                Track Now <ArrowRight className="h-3.5 w-3.5 ms-1" />
+                {t('trackNow')} <ArrowRight className="h-3.5 w-3.5 ms-1" />
               </Button>
             </Link>
           </div>
@@ -99,7 +102,7 @@ export default function DashboardPage() {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="font-semibold text-[var(--fg)] mb-4">Quick Actions</h2>
+        <h2 className="font-semibold text-[var(--fg)] mb-4">{t('quickActions')}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {QUICK_ACTIONS.map((action) => (
             <Link key={action.label} href={action.href}>
@@ -118,9 +121,9 @@ export default function DashboardPage() {
       {/* Recent Orders */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-[var(--fg)]">Recent Orders</h2>
+          <h2 className="font-semibold text-[var(--fg)]">{t('recentOrders')}</h2>
           <Link href="/dashboard/orders" className="text-sm text-orange-500 hover:text-orange-600 flex items-center gap-1">
-            View all <ArrowRight className="h-3.5 w-3.5" />
+            {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
         <Card padding="none">
@@ -131,8 +134,8 @@ export default function DashboardPage() {
           ) : orders.length === 0 ? (
             <div className="p-8 text-center">
               <Package className="h-8 w-8 text-[var(--fg-subtle)] mx-auto mb-2" />
-              <p className="text-sm text-[var(--fg-muted)]">No orders yet</p>
-              <Link href="/menu"><Button variant="outline" size="sm" className="mt-3">Order Now</Button></Link>
+              <p className="text-sm text-[var(--fg-muted)]">{t('noOrdersYet')}</p>
+              <Link href="/menu"><Button variant="outline" size="sm" className="mt-3">{t('orderNow')}</Button></Link>
             </div>
           ) : (
             <div className="divide-y divide-[var(--border)]">
@@ -162,9 +165,9 @@ export default function DashboardPage() {
       {reservations.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-[var(--fg)]">Upcoming Reservations</h2>
+            <h2 className="font-semibold text-[var(--fg)]">{t('upcomingReservations')}</h2>
             <Link href="/dashboard/reservations" className="text-sm text-orange-500 hover:text-orange-600 flex items-center gap-1">
-              View all <ArrowRight className="h-3.5 w-3.5" />
+              {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
           <div className="grid gap-4">
@@ -174,7 +177,7 @@ export default function DashboardPage() {
                   <Calendar className="h-6 w-6 text-purple-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-[var(--fg)]">{res.guests} guests · {res.time}</p>
+                  <p className="font-medium text-[var(--fg)]">{t('guestsTimeTemplate', { guests: res.guests, time: res.time })}</p>
                   <p className="text-sm text-[var(--fg-muted)]">{formatDate(res.date)}</p>
                 </div>
                 <Badge variant={res.status === 'confirmed' ? 'success' : res.status === 'cancelled' ? 'danger' : 'warning'} className="capitalize">

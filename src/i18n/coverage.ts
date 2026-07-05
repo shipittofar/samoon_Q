@@ -140,7 +140,10 @@ export function findImportConflicts(candidates: ConflictCandidate[]): Array<{ ke
 export function extractTranslationUsagesFromSource(sourceText: string, file?: string): TranslationUsage[] {
   const usages: TranslationUsage[] = []
 
-  const bindingRe = /const\s+(\w+)\s*=\s*use(?:Translations|Translation)\(\s*['"]([\w.-]+)['"]\s*\)/g
+  // Matches both the client hook (`useTranslations('ns')`) and the server
+  // helper (`await getTranslations('ns')`, `next-intl/server`) — a server
+  // component using only the latter must not be misreported as dead/orphan.
+  const bindingRe = /const\s+(\w+)\s*=\s*(?:await\s+)?(?:use|get)Translations?\(\s*['"]([\w.-]+)['"]\s*\)/g
   const namespaceByVar = new Map<string, string>()
   for (const m of sourceText.matchAll(bindingRe)) {
     namespaceByVar.set(m[1], m[2])
@@ -148,7 +151,7 @@ export function extractTranslationUsagesFromSource(sourceText: string, file?: st
   }
   // Fallback for the common unbound shape `useTranslations('ns')` with no
   // `const x =` (e.g. inline in JSX) — still records the namespace itself.
-  const bareNsRe = /use(?:Translations|Translation)\(\s*['"]([\w.-]+)['"]\s*\)/g
+  const bareNsRe = /(?:use|get)Translations?\(\s*['"]([\w.-]+)['"]\s*\)/g
   for (const m of sourceText.matchAll(bareNsRe)) {
     usages.push({ key: m[1], namespace: m[1], file })
   }
@@ -156,9 +159,13 @@ export function extractTranslationUsagesFromSource(sourceText: string, file?: st
   for (const [varName, namespace] of namespaceByVar) {
     const callRe = new RegExp(`(?<![\\w.])${varName}\\(\\s*['"]([\\w.-]+)['"]`, 'g')
     for (const m of sourceText.matchAll(callRe)) {
-      const raw = m[1]
-      const key = raw.includes('.') ? raw : `${namespace}.${raw}`
-      usages.push({ key, namespace: key.split('.')[0], file })
+      // A dot in the key is a nested path *within* the hook's bound
+      // namespace (e.g. `t('sortOptions.popular')` with `t =
+      // useTranslations('menu')` resolves to `menu.sortOptions.popular`,
+      // never a second top-level namespace) — always prefix with the
+      // hook's own namespace, regardless of dots in the raw key.
+      const key = `${namespace}.${m[1]}`
+      usages.push({ key, namespace, file })
     }
   }
 

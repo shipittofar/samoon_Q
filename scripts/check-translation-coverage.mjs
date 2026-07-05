@@ -55,22 +55,25 @@ function walk(dir, files = []) {
 // TS build step) and can't import the .ts module directly.
 function extractUsages(sourceText, file) {
   const usages = []
-  const bindingRe = /const\s+(\w+)\s*=\s*use(?:Translations|Translation)\(\s*['"]([\w.-]+)['"]\s*\)/g
+  // Matches both the client hook (`useTranslations`) and the server helper
+  // (`await getTranslations`, `next-intl/server`).
+  const bindingRe = /const\s+(\w+)\s*=\s*(?:await\s+)?(?:use|get)Translations?\(\s*['"]([\w.-]+)['"]\s*\)/g
   const namespaceByVar = new Map()
   for (const m of sourceText.matchAll(bindingRe)) {
     namespaceByVar.set(m[1], m[2])
     usages.push({ key: m[2], namespace: m[2], file })
   }
-  const bareNsRe = /use(?:Translations|Translation)\(\s*['"]([\w.-]+)['"]\s*\)/g
+  const bareNsRe = /(?:use|get)Translations?\(\s*['"]([\w.-]+)['"]\s*\)/g
   for (const m of sourceText.matchAll(bareNsRe)) {
     usages.push({ key: m[1], namespace: m[1], file })
   }
   for (const [varName, namespace] of namespaceByVar) {
     const callRe = new RegExp(`(?<![\\w.])${varName}\\(\\s*['"]([\\w.-]+)['"]`, 'g')
     for (const m of sourceText.matchAll(callRe)) {
-      const raw = m[1]
-      const key = raw.includes('.') ? raw : `${namespace}.${raw}`
-      usages.push({ key, namespace: key.split('.')[0], file })
+      // A dot in the key is a nested path within the hook's bound
+      // namespace, not a second top-level namespace — always prefix.
+      const key = `${namespace}.${m[1]}`
+      usages.push({ key, namespace, file })
     }
   }
   return usages
@@ -97,6 +100,26 @@ const unusedKeys = Object.keys(flat).filter((k) => {
 })
 const orphanNamespaces = [...usedNamespaces].filter((ns) => !definedNamespaces.has(ns))
 
+// P9.5.2 Phase P — dead namespaces (defined, zero detected call sites at
+// all — a stronger signal than "some unused keys") and duplicate values
+// (two keys under the same namespace sharing byte-identical English text,
+// a consolidation candidate per docs/P9.5.0_TRANSLATION_ARCHITECTURE.md §7).
+const deadNamespaces = [...definedNamespaces].filter((ns) => !usedNamespaces.has(ns))
+
+const duplicateGroups = []
+for (const ns of definedNamespaces) {
+  const nsFlat = flattenMessages(referenceMessages[ns], ns)
+  const byValue = new Map()
+  for (const [key, value] of Object.entries(nsFlat)) {
+    const list = byValue.get(value) ?? []
+    list.push(key)
+    byValue.set(value, list)
+  }
+  for (const [value, keys] of byValue) {
+    if (keys.length > 1) duplicateGroups.push({ namespace: ns, value, keys })
+  }
+}
+
 console.log(`[i18n coverage] scanned ${files.length} files, found ${allUsages.length} translation call sites.`)
 console.log(`[i18n coverage] reference (en) has ${Object.keys(flat).length} keys across ${definedNamespaces.size} namespaces.`)
 console.log()
@@ -122,6 +145,22 @@ if (orphanNamespaces.length > 0) {
   for (const ns of orphanNamespaces) console.log(`  - ${ns}`)
 } else {
   console.log('✓ No orphan namespaces.')
+}
+console.log()
+
+if (deadNamespaces.length > 0) {
+  console.log(`ℹ ${deadNamespaces.length} namespace(s) defined in en.json with zero detected call sites (dead — not yet consumed by any migrated UI):`)
+  for (const ns of deadNamespaces) console.log(`  - ${ns}`)
+} else {
+  console.log('✓ No dead namespaces — every defined namespace has at least one call site.')
+}
+console.log()
+
+if (duplicateGroups.length > 0) {
+  console.log(`ℹ ${duplicateGroups.length} duplicate-value group(s) — same English text under two+ keys in one namespace (consolidation candidates, not errors):`)
+  for (const g of duplicateGroups) console.log(`  - [${g.namespace}] "${g.value}" used by: ${g.keys.join(', ')}`)
+} else {
+  console.log('✓ No duplicate values within any namespace.')
 }
 
 process.exit(0)

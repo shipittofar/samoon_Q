@@ -294,7 +294,8 @@ describe('StripePaymentForm — source structure', () => {
 
   it('renders change-method link to reset clientSecret', () => {
     const checkoutSrc = readSrc('app/checkout/page.tsx')
-    expect(checkoutSrc).toContain('Change method')
+    // P9.5.2: localized via t('changeMethod') instead of a literal string.
+    expect(checkoutSrc).toContain("t('changeMethod')")
   })
 })
 

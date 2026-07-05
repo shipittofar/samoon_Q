@@ -16,17 +16,20 @@ import { useCreateReservation, useAvailableSlots, useBranches } from '@/hooks'
 import { useBranchStore } from '@/stores'
 import { formatCurrency, cn } from '@/utils'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 import type { Reservation } from '@/types'
 
+// Schema messages are `validation` namespace keys (Phase E), resolved via
+// `tValidation()` wherever `errors.<field>.message` is rendered below.
 const reservationSchema = z.object({
-  name: z.string().min(2, 'Full name is required'),
-  phone: z.string().min(10, 'Valid phone number required'),
-  email: z.string().email('Valid email required').optional().or(z.literal('')),
+  name: z.string().min(2, 'required'),
+  phone: z.string().min(10, 'invalid_phone'),
+  email: z.string().email('invalid_email').optional().or(z.literal('')),
   guests: z.number().min(1).max(20),
-  date: z.string().min(1, 'Date is required'),
-  time: z.string().min(1, 'Time is required'),
+  date: z.string().min(1, 'required'),
+  time: z.string().min(1, 'required'),
   notes: z.string().optional(),
-  branch_id: z.string().min(1, 'Branch is required'),
+  branch_id: z.string().min(1, 'required'),
 })
 
 type ReservationFormData = z.infer<typeof reservationSchema>
@@ -39,6 +42,8 @@ const minDate = tomorrow.toISOString().split('T')[0]
 
 export default function ReservationPage() {
   const router = useRouter()
+  const t = useTranslations('reservation')
+  const tValidation = useTranslations('validation')
   const activeBranchId = useBranchStore((s) => s.activeBranch?.id)
   const [confirmed, setConfirmed] = useState<Reservation | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
@@ -65,7 +70,7 @@ export default function ReservationPage() {
   const onSubmit = (data: ReservationFormData) => {
     createReservation(data, {
       onSuccess: (res) => {
-        toast.success('Reservation confirmed! 🎉')
+        toast.success(t('reservationConfirmedToast'))
         const branchName = branches?.find((b) => b.id === data.branch_id)?.name || ''
         const params = new URLSearchParams({
           code: res.confirmation_code ?? '',
@@ -80,7 +85,7 @@ export default function ReservationPage() {
         router.push(`/reservation/confirm?${params.toString()}`)
         setConfirmed(res)
       },
-      onError: () => toast.error('Failed to make reservation. Please try again.'),
+      onError: () => toast.error(t('reservationFailed')),
     })
   }
 
@@ -98,20 +103,20 @@ export default function ReservationPage() {
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: 'spring' }} className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-white/20 mb-4">
                 <CheckCircle2 className="h-10 w-10 text-white" />
               </motion.div>
-              <h2 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">Reservation Confirmed!</h2>
-              <p className="text-white/80 text-sm">We look forward to seeing you</p>
+              <h2 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">{t('confirmed')}</h2>
+              <p className="text-white/80 text-sm">{t('lookForwardToSeeing')}</p>
             </div>
             <div className="p-6 space-y-4">
               <div className="bg-[var(--card-hover)] rounded-2xl p-4 text-center">
-                <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider mb-1">Confirmation Code</p>
+                <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider mb-1">{t('confirmationCode')}</p>
                 <p className="font-[var(--font-display)] text-2xl font-bold text-orange-500">{confirmed.confirmation_code}</p>
               </div>
               <div className="space-y-3 text-sm">
                 {[
-                  { icon: User, label: 'Name', value: confirmed.name },
-                  { icon: Calendar, label: 'Date', value: confirmed.date },
-                  { icon: Clock, label: 'Time', value: confirmed.time },
-                  { icon: Users, label: 'Guests', value: `${confirmed.guests} people` },
+                  { icon: User, label: t('name'), value: confirmed.name },
+                  { icon: Calendar, label: t('date'), value: confirmed.date },
+                  { icon: Clock, label: t('time'), value: confirmed.time },
+                  { icon: Users, label: t('guests'), value: t('peopleSuffix', { count: confirmed.guests }) },
                 ].map(({ icon: Icon, label, value }) => (
                   <div key={label} className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center shrink-0">
@@ -125,9 +130,9 @@ export default function ReservationPage() {
                 ))}
               </div>
               <p className="text-xs text-[var(--fg-muted)] text-center bg-[var(--card-hover)] rounded-xl p-3">
-                A confirmation has been sent to {confirmed.email || confirmed.phone}
+                {t('confirmationSentTo', { contact: confirmed.email || confirmed.phone })}
               </p>
-              <Button className="w-full" onClick={() => setConfirmed(null)}>Make Another Reservation</Button>
+              <Button className="w-full" onClick={() => setConfirmed(null)}>{t('makeAnotherReservation')}</Button>
             </div>
           </motion.div>
         </div>
@@ -143,10 +148,10 @@ export default function ReservationPage() {
         {/* Hero */}
         <div className="bg-gradient-to-b from-orange-50/80 to-transparent dark:from-orange-950/20 dark:to-transparent py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Reservations</p>
-            <h1 className="font-[var(--font-display)] text-4xl sm:text-5xl font-bold text-[var(--fg)] mb-3">Reserve Your Table</h1>
+            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('reservationsLabel')}</p>
+            <h1 className="font-[var(--font-display)] text-4xl sm:text-5xl font-bold text-[var(--fg)] mb-3">{t('reserveYourTable')}</h1>
             <p className="text-[var(--fg-muted)] max-w-lg mx-auto">
-              Book your perfect dining experience. We will prepare everything for an unforgettable evening.
+              {t('bookPerfectExperience')}
             </p>
           </div>
         </div>
@@ -156,7 +161,7 @@ export default function ReservationPage() {
             {/* Branch */}
             <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
               <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-orange-500" /> Choose Branch
+                <MapPin className="h-4 w-4 text-orange-500" /> {t('chooseBranch')}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {(branches || []).map((branch) => (
@@ -181,12 +186,12 @@ export default function ReservationPage() {
             {/* Date, Time, Guests */}
             <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
               <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-orange-500" /> Date & Time
+                <Calendar className="h-4 w-4 text-orange-500" /> {t('dateTimeHeading')}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Date */}
                 <div>
-                  <label className="text-sm font-medium text-[var(--fg)] mb-1.5 block">Date <span className="text-orange-500">*</span></label>
+                  <label className="text-sm font-medium text-[var(--fg)] mb-1.5 block">{t('date')} <span className="text-orange-500">*</span></label>
                   <input
                     type="date"
                     min={minDate}
@@ -194,13 +199,13 @@ export default function ReservationPage() {
                     onChange={(e) => { setSelectedDate(e.target.value); register('date').onChange(e) }}
                     className="w-full h-10 px-4 rounded-xl border border-[var(--border)] bg-[var(--input-bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all"
                   />
-                  {errors.date && <p className="text-xs text-red-500 mt-1">⚠ {errors.date.message}</p>}
+                  {errors.date && <p className="text-xs text-red-500 mt-1">⚠ {tValidation(errors.date.message)}</p>}
                 </div>
 
                 {/* Guests */}
                 <div>
                   <label className="text-sm font-medium text-[var(--fg)] mb-1.5 block">
-                    Guests <span className="text-orange-500">*</span>
+                    {t('guests')} <span className="text-orange-500">*</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {GUEST_OPTIONS.map((n) => (
@@ -228,7 +233,7 @@ export default function ReservationPage() {
                           : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-300',
                       )}
                     >
-                      10+
+                      {t('moreGuests')}
                     </button>
                   </div>
                 </div>
@@ -238,11 +243,11 @@ export default function ReservationPage() {
               <div className="mt-6">
                 <label className="text-sm font-medium text-[var(--fg)] mb-3 flex items-center gap-2 block">
                   <Clock className="h-4 w-4 text-orange-500" />
-                  Available Time Slots {selectedDate && <span className="text-[var(--fg-muted)] font-normal">for {selectedDate}</span>}
+                  {t('availableTimeSlots')} {selectedDate && <span className="text-[var(--fg-muted)] font-normal">{t('availableTimeSlotsFor', { date: selectedDate })}</span>}
                   <span className="text-orange-500">*</span>
                 </label>
                 {!selectedDate ? (
-                  <p className="text-sm text-[var(--fg-muted)] italic">Please select a date first</p>
+                  <p className="text-sm text-[var(--fg-muted)] italic">{t('selectDateFirst')}</p>
                 ) : slotsLoading ? (
                   <div className="flex flex-wrap gap-2">
                     {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-9 w-20 rounded-xl" />)}
@@ -266,29 +271,29 @@ export default function ReservationPage() {
                     ))}
                   </div>
                 )}
-                {errors.time && <p className="text-xs text-red-500 mt-2">⚠ {errors.time.message}</p>}
+                {errors.time && <p className="text-xs text-red-500 mt-2">⚠ {tValidation(errors.time.message)}</p>}
               </div>
             </div>
 
             {/* Contact */}
             <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
               <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
-                <User className="h-4 w-4 text-orange-500" /> Contact Information
+                <User className="h-4 w-4 text-orange-500" /> {t('contactInformation')}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
-                  <Input label="Full Name" required {...register('name')} error={errors.name?.message} leftIcon={<User className="h-3.5 w-3.5" />} />
+                  <Input label={t('fullName')} required {...register('name')} error={errors.name?.message ? tValidation(errors.name.message) : undefined} leftIcon={<User className="h-3.5 w-3.5" />} />
                 </div>
-                <Input label="Phone" type="tel" required {...register('phone')} error={errors.phone?.message} leftIcon={<Phone className="h-3.5 w-3.5" />} />
-                <Input label="Email" type="email" {...register('email')} error={errors.email?.message} leftIcon={<Mail className="h-3.5 w-3.5" />} />
+                <Input label={t('phone')} type="tel" required {...register('phone')} error={errors.phone?.message ? tValidation(errors.phone.message) : undefined} leftIcon={<Phone className="h-3.5 w-3.5" />} />
+                <Input label={t('email')} type="email" {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} leftIcon={<Mail className="h-3.5 w-3.5" />} />
                 <div className="sm:col-span-2">
-                  <Textarea label="Special Requests" {...register('notes')} placeholder="Dietary restrictions, occasion, seating preferences…" rows={3} />
+                  <Textarea label={t('specialRequests')} {...register('notes')} placeholder={t('specialRequestsPlaceholder')} rows={3} />
                 </div>
               </div>
             </div>
 
             <Button type="submit" className="w-full" size="xl" loading={isPending} leftIcon={<CheckCircle2 className="h-5 w-5" />}>
-              {isPending ? 'Confirming Reservation…' : 'Confirm Reservation'}
+              {isPending ? t('confirmingReservation') : t('confirmReservationButton')}
             </Button>
           </form>
         </div>

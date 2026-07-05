@@ -14,9 +14,11 @@ import { Input } from '@/components/ui/Input'
 import { Divider } from '@/components/ui'
 import { formatCurrency } from '@/utils'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 import type { CartItem } from '@/types'
 
 function CartItemRow({ item }: { item: CartItem }) {
+  const t = useTranslations('cart')
   const { updateQuantity, removeItem } = useCartStore()
   return (
     <motion.div
@@ -44,7 +46,7 @@ function CartItemRow({ item }: { item: CartItem }) {
             <button
               onClick={() => updateQuantity(item.id, item.quantity - 1)}
               className="h-7 w-7 flex items-center justify-center text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label="Decrease quantity"
+              aria-label={t('decreaseQuantity')}
             >
               <Minus className="h-3 w-3" />
             </button>
@@ -52,7 +54,7 @@ function CartItemRow({ item }: { item: CartItem }) {
             <button
               onClick={() => updateQuantity(item.id, item.quantity + 1)}
               className="h-7 w-7 flex items-center justify-center text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label="Increase quantity"
+              aria-label={t('increaseQuantity')}
             >
               <Plus className="h-3 w-3" />
             </button>
@@ -64,7 +66,7 @@ function CartItemRow({ item }: { item: CartItem }) {
             <button
               onClick={() => removeItem(item.id)}
               className="p-1 text-[var(--fg-subtle)] hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20"
-              aria-label="Remove item"
+              aria-label={t('removeItemAria')}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
@@ -76,6 +78,8 @@ function CartItemRow({ item }: { item: CartItem }) {
 }
 
 export function CartDrawer() {
+  const t = useTranslations('cart')
+  const tNotifications = useTranslations('notifications')
   const { items, isOpen, setOpen, discountCode, discountAmount, setDiscount, clearCart, getSubtotal, getTax, getServiceCharge, getTotal } = useCartStore()
   const { mutate: validateDiscount, isPending: validating } = useValidateDiscount()
   const [codeInput, setCodeInput] = useState(discountCode || '')
@@ -107,18 +111,18 @@ export function CartDrawer() {
         onSuccess: (res) => {
           if (res.valid) {
             setDiscount(codeInput.trim(), res.discount_amount)
-            toast.success(`Discount applied! You save ${formatCurrency(res.discount_amount)}`)
+            toast.success(tNotifications('discountApplied', { amount: formatCurrency(res.discount_amount) }))
           } else {
-            toast.error(res.message || 'Invalid discount code')
+            toast.error(res.message || t('invalidCode'))
           }
         },
-        onError: () => toast.error('Failed to validate code'),
+        onError: () => toast.error(t('validateCodeFailed')),
       },
     )
   }
 
   return (
-    <Drawer open={isOpen} onClose={() => setOpen(false)} title="Your Cart" side="right" size="md">
+    <Drawer open={isOpen} onClose={() => setOpen(false)} title={t('title')} side="right" size="md">
       <div className="flex flex-col h-full">
         {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-4">
@@ -126,11 +130,11 @@ export function CartDrawer() {
               <ShoppingBag className="h-8 w-8 text-[var(--fg-subtle)]" />
             </div>
             <div>
-              <h3 className="font-semibold text-[var(--fg)] mb-1">Your cart is empty</h3>
-              <p className="text-sm text-[var(--fg-muted)]">Add some delicious items from our menu</p>
+              <h3 className="font-semibold text-[var(--fg)] mb-1">{t('empty')}</h3>
+              <p className="text-sm text-[var(--fg-muted)]">{t('emptyDesc')}</p>
             </div>
             <Button onClick={handleBrowseMenu} variant="outline">
-              Browse Menu
+              {t('browseMenu')}
             </Button>
           </div>
         ) : (
@@ -151,39 +155,39 @@ export function CartDrawer() {
                 <Input
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
-                  placeholder="Discount code"
+                  placeholder={t('discountCodePlaceholder')}
                   leftIcon={<Tag className="h-3.5 w-3.5" />}
                   className="flex-1 h-9 text-xs"
                   onKeyDown={(e) => e.key === 'Enter' && handleApplyCode()}
                 />
                 <Button variant="secondary" size="sm" onClick={handleApplyCode} loading={validating}>
-                  Apply
+                  {t('applyCode')}
                 </Button>
               </div>
 
               {/* Totals */}
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between text-[var(--fg-muted)]">
-                  <span>Subtotal</span>
+                  <span>{t('subtotal')}</span>
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-                    <span>Discount ({discountCode})</span>
+                    <span>{t('discountLabel', { code: discountCode })}</span>
                     <span>−{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-[var(--fg-muted)]">
-                  <span>Tax (9%)</span>
+                  <span>{t('tax')}</span>
                   <span>{formatCurrency(tax)}</span>
                 </div>
                 <div className="flex justify-between text-[var(--fg-muted)]">
-                  <span>Service (5%)</span>
+                  <span>{t('serviceCharge')}</span>
                   <span>{formatCurrency(serviceCharge)}</span>
                 </div>
                 <Divider />
                 <div className="flex justify-between font-bold text-[var(--fg)] text-base">
-                  <span>Total</span>
+                  <span>{t('total')}</span>
                   <span>{formatCurrency(total)}</span>
                 </div>
               </div>
@@ -191,14 +195,14 @@ export function CartDrawer() {
               {/* Checkout CTA */}
               <Link href="/checkout" onClick={() => setOpen(false)} className="block">
                 <Button className="w-full" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                  Proceed to Checkout
+                  {t('checkout')}
                 </Button>
               </Link>
               <button
                 onClick={clearCart}
                 className="w-full text-xs text-[var(--fg-subtle)] hover:text-red-500 transition-colors py-1"
               >
-                Clear cart
+                {t('clearCart')}
               </button>
             </div>
           </>
@@ -210,6 +214,7 @@ export function CartDrawer() {
 
 // ── Floating Cart Button ───────────────────────────────────────────────────────
 export function FloatingCart() {
+  const t = useTranslations('cart')
   const { getItemCount, setOpen, getTotal } = useCartStore()
   const count = getItemCount()
 
@@ -223,7 +228,7 @@ export function FloatingCart() {
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
           onClick={() => setOpen(true)}
           className="fixed bottom-6 inset-x-4 md:inset-x-auto md:end-6 md:w-auto z-30 bg-[var(--accent)] text-white rounded-2xl shadow-[var(--shadow-brand)] flex items-center justify-between md:justify-center gap-4 px-5 py-3.5 md:py-3 hover:bg-[var(--accent-hover)] transition-colors active:scale-[0.98]"
-          aria-label={`View cart — ${count} items`}
+          aria-label={t('viewCartAria', { count })}
         >
           <div className="flex items-center gap-2.5">
             <div className="relative">
@@ -232,7 +237,7 @@ export function FloatingCart() {
                 {count}
               </span>
             </div>
-            <span className="font-medium text-sm">View Cart</span>
+            <span className="font-medium text-sm">{t('viewCart')}</span>
           </div>
           <span className="font-bold text-sm md:ms-2">{formatCurrency(getTotal())}</span>
         </motion.button>
