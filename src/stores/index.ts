@@ -34,6 +34,7 @@ import type { Branch as AdminBranch } from '@/types/branch'
 import type { TenantRoleAssignment, UserPermissionOverride, BranchRoleAssignment, RoleAssignment, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
+import { getDirection } from '@/i18n/runtime'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
 interface AuthState {
@@ -183,7 +184,10 @@ export const useLangStore = create<LangState>()(
       setLocale: (locale) => {
         set({ locale })
         document.documentElement.lang = locale
-        document.documentElement.dir = ['fa', 'ar'].includes(locale) ? 'rtl' : 'ltr'
+        // P9.5.1A: RTL detection now goes through the Localization Runtime
+        // Service (config-driven `languages.rtl_locales`) instead of a
+        // hardcoded literal — see src/i18n/runtime.ts's isRTLLocale().
+        document.documentElement.dir = getDirection(locale)
         // Write NEXT_LOCALE cookie so server re-renders pick up the new locale.
         // SameSite=Lax; path=/ — readable by the next-intl request config on the server.
         document.cookie = `NEXT_LOCALE=${locale};path=/;SameSite=Lax`

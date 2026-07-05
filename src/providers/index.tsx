@@ -14,6 +14,7 @@ import { STALE_TIME, CACHE_TIME } from '@/constants'
 import { ServiceWorkerUpdateBanner } from '@/components/pwa/ServiceWorkerUpdateBanner'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
+import { getDirection } from '@/i18n/runtime'
 import type { TenantTheme } from '@/types'
 
 function makeQueryClient() {
@@ -73,7 +74,9 @@ function ThemeProvider({ children }: { children: ReactNode }) {
 function RTLProvider({ children }: { children: ReactNode }) {
   const { locale } = useLangStore()
   useEffect(() => {
-    document.documentElement.dir = ['fa', 'ar'].includes(locale) ? 'rtl' : 'ltr'
+    // P9.5.1A: config-driven RTL detection (Localization Runtime Service)
+    // instead of a hardcoded ['fa', 'ar'] literal.
+    document.documentElement.dir = getDirection(locale)
     document.documentElement.lang = locale
   }, [locale])
   return <>{children}</>

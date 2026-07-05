@@ -40,12 +40,16 @@ import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useHomepageLayout } from '@/hooks'
 import toast from 'react-hot-toast'
+import { resolveSupportedLocales, getLanguageInfo } from '@/i18n/runtime'
 
-const LANGUAGES = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'fa', label: 'فارسی', flag: '🇮🇷' },
-  { code: 'ar', label: 'العربية', flag: '🇸🇦' },
-]
+// P9.5.1A Phase C: sourced from the config-driven supported-locale list +
+// the language registry's native names, instead of a hardcoded literal.
+const FLAG_BY_CODE: Record<string, string> = { en: '🇺🇸', fa: '🇮🇷', ar: '🇸🇦', zh: '🇨🇳', it: '🇮🇹', tr: '🇹🇷' }
+const LANGUAGES = resolveSupportedLocales().map((code) => ({
+  code,
+  label: getLanguageInfo(code)?.nativeName ?? code,
+  flag: FLAG_BY_CODE[code] ?? '🌐',
+}))
 
 export function TenantHeader() {
   const pathname = usePathname()
