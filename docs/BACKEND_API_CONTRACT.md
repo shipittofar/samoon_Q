@@ -4668,3 +4668,98 @@ or, for a key missing in the requested language:
 array, and `settings.manage` never grants access to enable/disable a
 language platform-wide — the same hard separation §37.6 already documents
 for the rest of the Platform Administration Center.
+
+### 38.7 Language Administration Center additions (P9.5.6)
+
+Everything below composes the endpoints §36 (Collection Framework) and
+§38.1–38.6 already define — no new resource types, just concrete request/
+response shapes for capabilities added client-side this phase.
+
+**Cross-entity validation (`ConfigCollectionMeta.validateEntries`,
+`validateLanguageCollection`)** — a real backend must run the equivalent
+check server-side before persisting a write, not just client-side (the
+client-side hook is a UX convenience, never the source of truth):
+
+```
+POST /admin/config/fields/platform.languages.registry/validate
+Body: the full collection value being considered for write
+200: { "errors": [{ "code": "fa", "message": "..." }] }  // empty array = valid
+```
+
+**Publish gating** — `POST /admin/config/fields/platform.languages.registry/`
+(§36's existing write endpoint) with a `status: 'published'` patch on one or
+more entities MUST run the same validation above server-side and reject
+the whole batch (`400`) with the same `{ "errors": [...] }` shape on
+failure, matching the client's `useConfigurationBulkActions` behavior
+(reject-the-batch, not partial-apply).
+
+**Import/Export (Phase G — JSON implemented client-side today; other
+formats documented, not implemented anywhere yet):**
+
+- `GET /admin/config/fields/{fieldId}/export?format=json&entityIds=en,fa` →
+  `[{ "entityId": "en", "values": { ... } }]` — exactly what the client's
+  `'export'` bulk action already produces without a backend, so a real
+  backend's response shape must match byte-for-byte for round-trip import
+  to keep working.
+- `POST /admin/config/fields/{fieldId}/import` with the same JSON array
+  shape → validates each entity's values against the field's schema,
+  applies via the same merge-patch semantics as `buildMergedCollectionValue`
+  (unknown properties rejected, not silently dropped), runs
+  `validateEntries` before commit, returns `{ "imported": ["en", "fa"] }` or
+  `400` with per-entity errors.
+- **CSV / XLIFF / PO / YAML** — format contracts only, no implementation
+  exists client or server side:
+  - *CSV*: one row per entity, one column per schema property id (header
+    row = property ids), UTF-8, RFC 4180 quoting.
+  - *XLIFF* (1.2): one `<file>` per language, `source`/`target` = the
+    reference (`en`) and this language's value for every leaf translation
+    key (not schema properties — XLIFF is for the message bundles, not the
+    language metadata schema).
+  - *PO* (gettext): one `msgid`/`msgstr` pair per translation key,
+    `msgctxt` = the dotted namespace path.
+  - *YAML*: same shape as the JSON export, YAML-serialized.
+  A real implementation should reuse `src/i18n/quality.ts`'s
+  `flattenMessages`-style key flattening for the message-bundle formats
+  (XLIFF/PO) since that's already the correct key-path convention, and the
+  existing collection schema for the metadata format (CSV/YAML/JSON).
+
+**Translation Quality (Phase E/F — `src/i18n/quality.ts`)** — client-side
+today reads the actual bundled locale JSON files directly (no network
+call). A real backend equivalent:
+
+```
+GET /admin/localization/quality?locale={locale}
+200: {
+  "locale": "fa", "totalKeys": 754, "translatedKeys": 740, "missingKeys": 14,
+  "brokenIcuKeys": 0, "brokenPlaceholderKeys": 2, "brokenHtmlKeys": 0,
+  "completionPercent": 98
+}
+
+GET /admin/localization/quality/issues?locale={locale}&kind={missing|broken-icu|broken-placeholder|broken-html}
+200: { "issues": [{ "locale": "fa", "key": "checkout.confirm", "kind": "missing", "detail": "..." }] }
+```
+
+Deliberately NOT specified here (real, confirmed gaps — see
+`docs/P9.5.6_LANGUAGE_ADMIN_AUDIT.md`): duplicate-key detection (requires a
+raw-text/non-JSON-parsing scan a backend running a real database wouldn't
+need — duplicate keys are a JSON-authoring artifact specific to this
+mock's flat-file storage) and unused/deprecated-key detection (requires
+scanning application source for `t()` call sites — a build-time/CI
+concern, not a runtime API).
+
+**Runtime Sync (Audit gap #2 — `computeRuntimeSyncPlan`,
+`src/platform-admin/language-runtime-sync.ts`)** — derives what
+`languages.supported`/`languages.default`/`languages.rtl_locales` (§36's
+ordinary fields) *should* be from the `platform.languages.registry`
+collection's `enabled`/`default`/`rtl` flags. Not auto-applied (would
+silently override a tenant's own `languages.supported` override — a real
+runtime-behavior change this phase's own validation requirements forbid).
+An explicit admin action, once built:
+
+```
+POST /admin/localization/sync-runtime-fields
+200: { "supported": ["en","fa","ar","zh","it","tr"], "default": "en", "rtlLocales": ["fa","ar"] }
+```
+— which the client then writes via the ordinary §36 field-write endpoints
+for `languages.supported`/`languages.default`/`languages.rtl_locales`, not
+a new persistence path.

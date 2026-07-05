@@ -31,8 +31,28 @@ const ARCHIVED_STATUS_VALUE = 'archived'
 
 export interface ConfigBulkActionComputation {
   result: ConfigBulkActionResult
-  /** Present only when the action mutates the collection — `undefined` for read-only actions (export) or a failed/placeholder action (import). */
+  /** Present only when the action mutates the collection — `undefined` for read-only actions (export) or a rejected/failed action. */
   nextValue?: unknown
+}
+
+/** Shape one 'export' action produces and 'import' now accepts back — `[{ entityId, values }]`. */
+interface ImportedEntry {
+  entityId: string
+  values: Record<string, unknown>
+}
+
+function parseImportPayload(raw: string): ImportedEntry[] | null {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    return null
+  }
+  if (!Array.isArray(parsed)) return null
+  if (!parsed.every((e) => e && typeof e === 'object' && typeof (e as ImportedEntry).entityId === 'string' && typeof (e as ImportedEntry).values === 'object')) {
+    return null
+  }
+  return parsed as ImportedEntry[]
 }
 
 export function useConfigurationBulkActions(field: ConfigFieldDefinition | undefined) {
@@ -47,19 +67,25 @@ export function useConfigurationBulkActions(field: ConfigFieldDefinition | undef
     kind: ConfigBulkActionKind,
     currentValue: unknown,
     entityIds: string[],
+    /**
+     * Only meaningful for `kind === 'import'` — the raw JSON text an admin
+     * pasted/uploaded, in the exact shape `'export'` produces (P9.5.6 Phase
+     * G). Every other action ignores this parameter.
+     */
+    importPayload?: string,
   ): ConfigBulkActionComputation => {
     if (!field) {
       const result: ConfigBulkActionResult = { action: kind, affectedIds: [], ok: false, message: 'No collection field selected.' }
       setLastResult(result)
       return { result }
     }
-    if (entityIds.length === 0) {
-      const result: ConfigBulkActionResult = { action: kind, affectedIds: [], ok: false, message: 'Select at least one item first.' }
-      setLastResult(result)
-      return { result }
-    }
 
     if (kind === 'export') {
+      if (entityIds.length === 0) {
+        const result: ConfigBulkActionResult = { action: kind, affectedIds: [], ok: false, message: 'Select at least one item first.' }
+        setLastResult(result)
+        return { result }
+      }
       const entries = entityIds.map((entityId) => ({ entityId, values: configCollection.getEntityValues(field, currentValue, entityId) }))
       const result: ConfigBulkActionResult = { action: kind, affectedIds: entityIds, ok: true, message: JSON.stringify(entries, null, 2) }
       setLastResult(result)
@@ -67,7 +93,24 @@ export function useConfigurationBulkActions(field: ConfigFieldDefinition | undef
     }
 
     if (kind === 'import') {
-      const result: ConfigBulkActionResult = { action: kind, affectedIds: [], ok: false, message: 'Import is not implemented yet — placeholder for a future phase.' }
+      const entries = importPayload ? parseImportPayload(importPayload) : null
+      if (!entries) {
+        const result: ConfigBulkActionResult = { action: kind, affectedIds: [], ok: false, message: 'Invalid import payload — expected JSON matching the Export format: [{ "entityId": "...", "values": { ... } }].' }
+        setLastResult(result)
+        return { result }
+      }
+      let nextValue = currentValue
+      for (const entry of entries) {
+        nextValue = configCollection.buildMergedCollectionValue(nextValue, entry.entityId, entry.values)
+      }
+      const affectedIds = entries.map((e) => e.entityId)
+      const result: ConfigBulkActionResult = { action: kind, affectedIds, ok: true, message: `Imported ${affectedIds.length} ${affectedIds.length === 1 ? 'entry' : 'entries'}.` }
+      setLastResult(result)
+      return { result, nextValue }
+    }
+
+    if (entityIds.length === 0) {
+      const result: ConfigBulkActionResult = { action: kind, affectedIds: [], ok: false, message: 'Select at least one item first.' }
       setLastResult(result)
       return { result }
     }
@@ -84,6 +127,24 @@ export function useConfigurationBulkActions(field: ConfigFieldDefinition | undef
       if (kind === 'publish' && hasSchemaProperty(STATUS_PROPERTY_ID)) patch[STATUS_PROPERTY_ID] = PUBLISHED_STATUS_VALUE
       if (kind === 'archive' && hasSchemaProperty(STATUS_PROPERTY_ID)) patch[STATUS_PROPERTY_ID] = ARCHIVED_STATUS_VALUE
       nextValue = configCollection.buildMergedCollectionValue(nextValue, entityId, patch)
+    }
+
+    // P9.5.6 Phase H — a batch publish must not leave the collection in a
+    // state its own cross-entity validator rejects (e.g. two languages both
+    // marked default). Reject the whole batch rather than partially apply
+    // it, and report exactly why.
+    if (kind === 'publish' && field.collection?.validateEntries) {
+      const errors = field.collection.validateEntries(nextValue as Record<string, Record<string, unknown>>)
+      if (errors.length > 0) {
+        const result: ConfigBulkActionResult = {
+          action: kind,
+          affectedIds: [],
+          ok: false,
+          message: `Publish rejected — resolving validation issues first: ${errors.map((e) => e.message).join(' ')}`,
+        }
+        setLastResult(result)
+        return { result }
+      }
     }
 
     const result: ConfigBulkActionResult = { action: kind, affectedIds: entityIds, ok: true }

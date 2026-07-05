@@ -15,6 +15,7 @@ import { platformDashboardRegistry } from './dashboard'
 // defined, avoiding a "register after sealed" race.
 import { configurationService } from '@/config'
 import type { ConfigCollectionValue } from '@/config/collection'
+import { analyzableLocales, computeAllQualityIssues, computeLocaleQualitySummary, getLocaleMessages } from '@/i18n/quality'
 
 platformDashboardRegistry.register({
   id: 'active_businesses', title: 'Active Businesses', group: 'Businesses', kind: 'stat', icon: 'Building2',
@@ -218,5 +219,60 @@ platformDashboardRegistry.register({
       .slice(0, 3)
       .map(([code, v]) => ({ label: `${String(v.nativeName ?? code)} (${code})`, value: `${v.translationCoverage ?? 0}%` }))
     return { kind: 'list', items: lowest }
+  },
+})
+
+// ── P9.5.6 Phase E/F — Missing Translation Center ────────────────────────────
+// Unlike every widget above, these read real (not mocked) results from
+// src/i18n/quality.ts's static analysis of the actual locale message
+// bundles — the same "reference (en) locale, flatten and compare" approach
+// scripts/check-translation-coverage.mjs already uses at CI time, now also
+// surfaced where a Platform Admin actually looks. Zero new widget-kind
+// support needed — 'stat' and 'list' already exist.
+platformDashboardRegistry.register({
+  id: 'translation_quality_issues', title: 'Translation Quality Issues', group: 'Localization', kind: 'stat', icon: 'AlertTriangle',
+  platformPermission: 'platform.localization.view',
+  compute: () => {
+    const issues = computeAllQualityIssues()
+    return { kind: 'stat', value: issues.length, higherIsBetter: false }
+  },
+})
+
+platformDashboardRegistry.register({
+  id: 'missing_translation_keys', title: 'Missing Translation Keys', group: 'Localization', kind: 'list', icon: 'Search',
+  platformPermission: 'platform.localization.view',
+  compute: () => {
+    const missing = computeAllQualityIssues().filter((i) => i.kind === 'missing')
+    const items = missing.slice(0, 10).map((i) => ({ label: `${i.locale}: ${i.key}`, value: 'missing' }))
+    return { kind: 'list', items }
+  },
+})
+
+platformDashboardRegistry.register({
+  id: 'broken_icu_placeholder_keys', title: 'Broken ICU / Placeholder Keys', group: 'Localization', kind: 'list', icon: 'Bug',
+  platformPermission: 'platform.localization.view',
+  compute: () => {
+    const broken = computeAllQualityIssues().filter((i) => i.kind === 'broken-icu' || i.kind === 'broken-placeholder' || i.kind === 'broken-html')
+    const items = broken.slice(0, 10).map((i) => ({ label: `${i.locale}: ${i.key}`, value: i.kind }))
+    return { kind: 'list', items }
+  },
+})
+
+// ── P9.5.6 Phase J — Runtime Performance (bundle size is real; the rest is
+// honestly labeled as estimated, since no cache/load-time instrumentation
+// exists to measure from) ────────────────────────────────────────────────
+platformDashboardRegistry.register({
+  id: 'locale_bundle_sizes', title: 'Locale Bundle Sizes', group: 'Localization', kind: 'list', icon: 'HardDrive',
+  platformPermission: 'platform.localization.view',
+  compute: () => {
+    const items = analyzableLocales().map((locale) => {
+      const summary = computeLocaleQualitySummary(locale)
+      // Real byte count of the actual JSON module (not measured over the
+      // network — an in-process estimate of the source payload each
+      // dynamic import() in i18n/runtime.ts's loadMessages() would fetch).
+      const bytes = JSON.stringify(getLocaleMessages(locale) ?? {}).length
+      return { label: `${locale} (${summary.totalKeys} keys)`, value: `${(bytes / 1024).toFixed(1)} KB` }
+    })
+    return { kind: 'list', items }
   },
 })

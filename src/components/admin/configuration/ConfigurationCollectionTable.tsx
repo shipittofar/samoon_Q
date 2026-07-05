@@ -40,6 +40,10 @@ function summarizeBooleanProperty(entries: ConfigCollectionEntry[], propertyId: 
 export function ConfigurationCollectionTable({ field, value, onChange, disabled }: ConfigurationCollectionTableProps) {
   const t = useTranslations('console')
 
+  // 'import' is intentionally not in this list — unlike every other bulk
+  // action it doesn't operate on `selectedIds` (it patches whichever entity
+  // ids the imported payload names), so it gets its own standalone trigger
+  // below rather than being gated behind a non-empty selection.
   const BULK_ACTIONS: { kind: ConfigBulkActionKind; label: string }[] = [
     { kind: 'enable', label: t('bulkEnable') },
     { kind: 'disable', label: t('bulkDisable') },
@@ -47,7 +51,6 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
     { kind: 'archive', label: t('bulkArchive') },
     { kind: 'reset', label: t('bulkReset') },
     { kind: 'export', label: t('bulkExport') },
-    { kind: 'import', label: t('bulkImport') },
   ]
 
   const [search, setSearch] = useState('')
@@ -57,11 +60,23 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [openEntityId, setOpenEntityId] = useState<string | null>(null)
+  // P9.5.6 Phase G — 'import' needs a payload the admin pastes in, unlike
+  // every other bulk action which just needs the current selection.
+  const [showImportPanel, setShowImportPanel] = useState(false)
+  const [importText, setImportText] = useState('')
 
   const { computeBulkAction, lastResult } = useConfigurationBulkActions(field)
 
   const schema = configCollection.getSchema(field)
   const allEntries = useMemo(() => configCollection.getCollectionEntries(field, value), [field, value])
+  // P9.5.6 Phase H — any collection module can supply a cross-entity
+  // validator (see ConfigCollectionMeta.validateEntries); when it does, its
+  // errors are surfaced here generically rather than each module building
+  // its own banner UI.
+  const crossEntityErrors = useMemo(
+    () => field.collection?.validateEntries?.(value as Record<string, Record<string, unknown>>) ?? [],
+    [field, value],
+  )
   const filterOptions = useMemo(() => deriveCollectionFilterOptions(field), [field])
   const groupableProperties = schema.filter((p) => p.type === 'select' || p.type === 'string')
   const enabledProperty = schema.find((p) => p.id === 'enabled')
@@ -110,9 +125,23 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
   }
 
   function runBulk(kind: ConfigBulkActionKind) {
+    if (kind === 'import') {
+      setShowImportPanel(true)
+      return
+    }
     const { nextValue } = computeBulkAction(kind, value, Array.from(selectedIds))
     if (nextValue !== undefined) onChange(nextValue)
     if (kind !== 'export') setSelectedIds(new Set())
+  }
+
+  function applyImport() {
+    const { result, nextValue } = computeBulkAction('import', value, [], importText)
+    if (nextValue !== undefined) {
+      onChange(nextValue)
+      setShowImportPanel(false)
+      setImportText('')
+    }
+    return result
   }
 
   const openEntry = openEntityId ? allEntries.find((e) => e.entityId === openEntityId) : undefined
@@ -134,6 +163,18 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
         {filteredEntries.length !== allEntries.length && <Badge variant="info">{t('matchingFiltersCount', { count: filteredEntries.length })}</Badge>}
         {selectedIds.size > 0 && <Badge variant="warning">{t('selectedCount', { count: selectedIds.size })}</Badge>}
       </div>
+
+      {/* ── Cross-entity validation banner (P9.5.6 Phase H) ── */}
+      {crossEntityErrors.length > 0 && (
+        <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-xs text-red-500">
+          <p className="mb-1 font-semibold">{t('validationErrorsTitle', { count: crossEntityErrors.length })}</p>
+          <ul className="list-inside list-disc space-y-0.5">
+            {crossEntityErrors.map((err, i) => (
+              <li key={`${err.code}-${i}`}>{err.message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* ── Search + filter + group + sort (Phase E/F/G) ── */}
       <div className="flex flex-wrap items-center gap-2">
@@ -198,7 +239,32 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
         >
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${sortDir === 'asc' ? '' : 'rotate-180'}`} />
         </button>
+        {!disabled && (
+          <Button size="sm" variant="secondary" onClick={() => setShowImportPanel((s) => !s)}>
+            {t('bulkImport')}
+          </Button>
+        )}
       </div>
+
+      {/* ── Import panel (P9.5.6 Phase G) — pastes back the exact JSON shape
+          the Export action produces; see docs/BACKEND_API_CONTRACT.md for
+          the documented (not-yet-implemented) CSV/XLIFF/PO/YAML formats. ── */}
+      {showImportPanel && !disabled && (
+        <div className="space-y-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg)] p-3">
+          <textarea
+            value={importText}
+            onChange={(e) => setImportText(e.target.value)}
+            placeholder={t('importPlaceholder')}
+            rows={6}
+            aria-label={t('importTextareaAria')}
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] p-2 font-mono text-xs text-[var(--fg)]"
+          />
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={applyImport}>{t('importApply')}</Button>
+            <Button size="sm" variant="secondary" onClick={() => { setShowImportPanel(false); setImportText('') }}>{t('importCancel')}</Button>
+          </div>
+        </div>
+      )}
 
       {/* ── Bulk action toolbar (Phase D) ── */}
       {!disabled && selectedIds.size > 0 && (

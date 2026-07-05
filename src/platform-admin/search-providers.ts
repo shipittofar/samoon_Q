@@ -9,6 +9,7 @@
  * is composition, not a second search implementation.
  */
 import { configCollection, platformConfigurationRegistry } from '@/config'
+import { matchesCollectionEntrySearch } from '@/components/admin/configuration/configUiHelpers'
 import { platformSearchRegistry, type PlatformSearchHit } from './search'
 
 function searchCollectionField(fieldId: string, moduleId: string, query: string): PlatformSearchHit[] {
@@ -46,4 +47,31 @@ platformSearchRegistry.register({
   id: 'countries',
   label: 'Countries',
   search: (query) => searchCollectionField('countries.registry', 'countries', query),
+})
+
+// P9.5.6 Phase K — unlike the three providers above (label/id match only),
+// this one reuses `matchesCollectionEntrySearch` (the same haystack the
+// Collection Table's own search box builds) so a query matches ANY schema
+// property's value — native name, status, currency, font, locale code,
+// translator, etc. — not just the entity's display label. This is what the
+// phase brief's "search across ... translated text, native text, font,
+// status" actually needs; still zero new search logic, just reusing the
+// existing haystack builder from a different entry point.
+platformSearchRegistry.register({
+  id: 'languages',
+  label: 'Languages',
+  search: (query) => {
+    const field = platformConfigurationRegistry.getField('platform.languages.registry')
+    if (!field) return []
+    const entries = configCollection.getCollectionEntries(field, field.default)
+    return entries
+      .filter((entry) => matchesCollectionEntrySearch(field, entry, query))
+      .slice(0, 8)
+      .map((entry) => ({
+        id: `platform.languages.registry:${entry.entityId}`,
+        label: configCollection.getEntityLabel(field, entry.entityId),
+        hint: `${entry.entityId} — ${String(entry.values.status ?? '')}`,
+        moduleId: 'platform.languages',
+      }))
+  },
 })

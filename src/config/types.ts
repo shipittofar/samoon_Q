@@ -346,6 +346,19 @@ export interface ConfigCollectionMeta {
    * a collection with no natural aliases (e.g. Branches) simply omits it.
    */
   getEntitySearchTerms?: (entityId: string) => string[]
+  /**
+   * Cross-entity invariant checks (P9.5.6) — the existing per-field
+   * ConfigurationValidator only ever sees one property's own value in
+   * isolation (see `validateField(field, value)` in src/config/
+   * validator.ts), so it cannot express rules like "only one entity may be
+   * the default" or "this entity's fallback chain must terminate". A
+   * collection module that needs cross-entity checks supplies this one
+   * optional callback instead of the framework growing a bespoke second
+   * validation path per module. `ConfigurationCollectionTable` renders any
+   * returned errors as a banner, and `useConfigurationBulkActions`'s
+   * `'publish'` action runs it before committing a batch publish.
+   */
+  validateEntries?: (entries: Record<string, Record<string, unknown>>) => { code: string; message: string }[]
 }
 
 export interface ConfigFieldDefinition<T = unknown> {

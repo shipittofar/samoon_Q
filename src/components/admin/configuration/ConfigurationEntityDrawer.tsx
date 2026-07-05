@@ -222,6 +222,19 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
 
         {tab === 'preview' && (
           <div className="space-y-3">
+            {/* P9.5.6 Phase C/D — Device Preview. Generic: gated only on the
+                entity's OWN schema having 'fontFamily'/'direction' property
+                ids (any typography-bearing collection qualifies, not just
+                Languages), never on which collection module this is. This
+                is a simulated content preview (real font-family/direction
+                values from this entity, representative sample copy) — a
+                true live iframe of the six named pages would require
+                plumbing an explicit locale override through middleware and
+                request.ts, which this phase deliberately does not touch
+                (see the Final Report's honest scope statement). */}
+            {schema.some((p) => p.id === 'fontFamily') && schema.some((p) => p.id === 'direction') && (
+              <DevicePreview values={entry.values} sampleText={previewPairs['Sample (RTL-aware)']} />
+            )}
             {Object.keys(previewPairs).length === 0 && schema.every((p) => p.preview.kind === 'none') && (
               <p className="text-sm text-[var(--fg-muted)]">{t('noPreviewAvailable', { entity: field.collection?.entityLabel.toLowerCase() ?? t('defaultEntityLabelSingular') })}</p>
             )}
@@ -241,5 +254,54 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
         )}
       </div>
     </Drawer>
+  )
+}
+
+const DEVICE_FRAMES = [
+  { id: 'desktop', label: 'Desktop', width: '100%' },
+  { id: 'tablet', label: 'Tablet', width: '420px' },
+  { id: 'mobile', label: 'Mobile', width: '260px' },
+] as const
+
+/**
+ * Device Preview (P9.5.6 Phase C/D) — renders representative sample content
+ * (heading/body/button) at the entity's own font-family, direction, and
+ * font-scale, inside three fixed-width frames. Not a live iframe of a real
+ * route — see the doc comment at its call site for why that's out of
+ * scope for this phase.
+ */
+function DevicePreview({ values, sampleText }: { values: Record<string, unknown>; sampleText?: string }) {
+  const t = useTranslations('console')
+  const direction = values.direction === 'rtl' ? 'rtl' : 'ltr'
+  const fontFamily = typeof values.fontFamily === 'string' ? values.fontFamily : undefined
+  const headingFontFamily = typeof values.headingFontFamily === 'string' ? values.headingFontFamily : fontFamily
+  const fontScale = typeof values.fontScale === 'number' ? values.fontScale : 1
+  const body = sampleText || (direction === 'rtl' ? '← نص تجريبي' : 'Sample text →')
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-[var(--fg-muted)]">{t('devicePreviewTitle')}</p>
+      <div className="flex flex-wrap gap-3">
+        {DEVICE_FRAMES.map((frame) => (
+          <div key={frame.id} style={{ width: frame.width, maxWidth: '100%' }} className="space-y-1">
+            <p className="text-[10px] uppercase tracking-wide text-[var(--fg-muted)]">{frame.label}</p>
+            <div
+              dir={direction}
+              className="space-y-2 rounded-lg border border-[var(--border)] bg-[var(--card-bg,var(--bg))] p-3"
+            >
+              <p style={{ fontFamily: headingFontFamily, fontSize: `${1.1 * fontScale}rem` }} className="font-semibold text-[var(--fg)]">
+                {t('devicePreviewHeading')}
+              </p>
+              <p style={{ fontFamily, fontSize: `${0.9 * fontScale}rem` }} className="text-[var(--fg-muted)]">
+                {body}
+              </p>
+              <span style={{ fontFamily, fontSize: `${0.85 * fontScale}rem` }} className="inline-block rounded-md bg-orange-500 px-3 py-1.5 text-white">
+                {t('devicePreviewButton')}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

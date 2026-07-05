@@ -218,6 +218,7 @@ const LANGUAGE_SCHEMA: ConfigFieldDefinition[] = [
   defineField({ id: 'experimental', title: 'Experimental', category: 'lifecycle', type: 'boolean', default: false, permissions: PERMISSIONS, uiControl: 'switch' }),
   defineField({ id: 'lastUpdated', title: 'Last Updated', category: 'lifecycle', type: 'string', default: '', permissions: PERMISSIONS, uiControl: 'text', preview: { kind: 'datetime' } }),
   defineField({ id: 'translator', title: 'Translator / Owner', category: 'lifecycle', type: 'string', default: '', permissions: PERMISSIONS, uiControl: 'text' }),
+  defineField({ id: 'version', title: 'Version', description: 'Free-form revision marker for this language entry (e.g. "1.2.0"), bumped by an admin alongside published changes.', category: 'lifecycle', type: 'string', default: '0.1.0', permissions: PERMISSIONS, uiControl: 'text' }),
 
   // Coverage (Phase H)
   defineField({ id: 'translationCoverage', title: 'Translation Coverage %', description: 'Percentage of reference (en) keys with any value in this locale.', category: 'coverage', type: 'number', default: 0, validation: { min: 0, max: 100 }, permissions: PERMISSIONS, uiControl: 'slider' }),
@@ -282,6 +283,7 @@ const LANGUAGE_REGISTRY_DEFAULT: ConfigCollectionValue = Object.fromEntries(
       experimental: false,
       lastUpdated: '',
       translator: '',
+      version: isOperational ? '1.0.0' : '0.1.0',
       translationCoverage: 0,
       completionPercent: 0,
       machineTranslated: false,
@@ -344,6 +346,13 @@ registerAdminModule({
           Currency: String(values.currency ?? ''),
           'Fallback': String(values.fallbackLanguage ?? ''),
         }),
+        // P9.5.6 Phase H — wires the existing (previously unused by any UI
+        // path) validateLanguageCollection() into the generic collection
+        // framework's validateEntries hook, so its errors now surface as a
+        // banner in ConfigurationCollectionTable and gate the 'publish' bulk
+        // action (useConfigurationBulkActions). The function itself is
+        // unchanged from P9.5.5.
+        validateEntries: validateLanguageCollection,
       },
     }),
   ],
