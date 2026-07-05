@@ -10,6 +10,11 @@ import { describe, it, expect, vi } from 'vitest'
 /** Fresh module scope per test so the sealed registry doesn't bleed across tests. */
 async function freshConfig() {
   vi.resetModules()
+  // P9.5.5.2 — the registry singleton lives on `globalThis` (src/config/registry.ts)
+  // so it deliberately survives `vi.resetModules()`; reset it explicitly here so
+  // each test still gets an unsealed, empty registry before re-importing the barrel.
+  const { platformConfigurationRegistry } = await import('@/config/registry')
+  platformConfigurationRegistry.__resetForTests()
   return import('@/config')
 }
 

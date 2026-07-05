@@ -20,11 +20,18 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 describe('P9.5.5.1 — registration order independence', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Forces every module (including '@/config' and its core module side
     // effects) to re-evaluate from scratch, so each test can control which
     // module touches the registry first, exactly like a fresh server process.
     vi.resetModules()
+    // P9.5.5.2 — the registry singleton itself now lives on `globalThis`
+    // (see src/config/registry.ts) so it survives `vi.resetModules()` on
+    // purpose — that's the whole point of the fix (one true singleton
+    // across separately re-evaluated bundles). Test isolation between
+    // cases in this file/suite therefore needs an explicit reset too.
+    const { platformConfigurationRegistry } = await import('@/config/registry')
+    platformConfigurationRegistry.__resetForTests()
   })
 
   it('resolving a languages.* field via i18n/runtime.ts works even if it is the first thing to touch config', async () => {

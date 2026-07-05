@@ -28,6 +28,7 @@ import { recordMissingTranslation } from './runtime'
 export function ClientIntlProvider({ locale, messages, children }: { locale: string; messages: AbstractIntlMessages; children: ReactNode }) {
   return (
     <NextIntlClientProvider
+      locale={locale}
       messages={messages}
       onError={(error) => {
         if (process.env.NODE_ENV !== 'production') {
