@@ -81,6 +81,7 @@ export const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRole, readonly PlatformPe
     'platform.businesses.view', 'platform.businesses.manage',
     'platform.subscriptions.view', 'platform.subscriptions.manage',
     'platform.configuration.view', 'platform.configuration.manage',
+    'platform.localization.view', 'platform.localization.manage',
     'platform.security.view',
     'platform.monitoring.view',
     'platform.infrastructure.view',
@@ -131,6 +132,7 @@ export const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRole, readonly PlatformPe
     'platform.subscriptions.view',
     'platform.security.view',
     'platform.configuration.view',
+    'platform.localization.view',
     'platform.system.view',
   ],
   platform_read_only: [
@@ -139,6 +141,7 @@ export const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRole, readonly PlatformPe
     'platform.businesses.view',
     'platform.subscriptions.view',
     'platform.configuration.view',
+    'platform.localization.view',
     'platform.security.view',
     'platform.monitoring.view',
     'platform.infrastructure.view',

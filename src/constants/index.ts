@@ -10,10 +10,6 @@ export const JWT_REFRESH_KEY = 'refresh_token'
 export const CSRF_HEADER = 'X-CSRFToken'
 export const CSRF_COOKIE = 'csrftoken'
 
-export const DEFAULT_LOCALE = 'en'
-export const SUPPORTED_LOCALES = ['en', 'fa', 'ar'] as const
-export const RTL_LOCALES = ['fa', 'ar'] as const
-
 export const THEME_KEY = 'savor-theme'
 export const CART_KEY = 'savor-cart'
 export const BRANCH_KEY = 'savor-branch'

@@ -8,6 +8,8 @@
  * a real backend would replace `compute()` with a data hook.
  */
 import { platformDashboardRegistry } from './dashboard'
+import { configurationService } from '@/config/service'
+import type { ConfigCollectionValue } from '@/config/collection'
 
 platformDashboardRegistry.register({
   id: 'active_businesses', title: 'Active Businesses', group: 'Businesses', kind: 'stat', icon: 'Building2',
@@ -157,4 +159,59 @@ platformDashboardRegistry.register({
   id: 'push_delivery', title: 'Push Delivery', group: 'Automation', kind: 'stat', icon: 'BellRing',
   platformPermission: 'platform.automation.view',
   compute: () => ({ kind: 'stat', value: 95.1, unit: '%', deltaPercent: 1.2, higherIsBetter: true }),
+})
+
+// ── P9.5.5 Phase H — Language Coverage Dashboard ─────────────────────────────
+// Unlike every widget above (illustrative fixed mock numbers), these read
+// live from `platform.languages.registry`'s actual resolved collection
+// value — the same `configurationService.resolveField()` call any Console
+// page uses — so editing a language's coverage/status in the Language
+// Management Center immediately changes what these widgets report, with
+// no separate "dashboard data" copy to keep in sync.
+function languageEntries(): Record<string, Record<string, unknown>> {
+  const resolved = configurationService.resolveField('platform.languages.registry')
+  return (resolved.value ?? {}) as ConfigCollectionValue as Record<string, Record<string, unknown>>
+}
+
+platformDashboardRegistry.register({
+  id: 'operational_languages', title: 'Operational Languages', group: 'Localization', kind: 'stat', icon: 'Languages',
+  platformPermission: 'platform.localization.view',
+  compute: () => {
+    const entries = Object.values(languageEntries())
+    const enabled = entries.filter((v) => v.enabled).length
+    return { kind: 'stat', value: enabled, unit: `/ ${entries.length}`, higherIsBetter: true }
+  },
+})
+
+platformDashboardRegistry.register({
+  id: 'avg_translation_coverage', title: 'Avg. Translation Coverage', group: 'Localization', kind: 'stat', icon: 'Percent',
+  platformPermission: 'platform.localization.view',
+  compute: () => {
+    const enabled = Object.values(languageEntries()).filter((v) => v.enabled)
+    const avg = enabled.length === 0 ? 0 : Math.round(enabled.reduce((sum, v) => sum + Number(v.translationCoverage ?? 0), 0) / enabled.length)
+    return { kind: 'stat', value: avg, unit: '%', higherIsBetter: true }
+  },
+})
+
+platformDashboardRegistry.register({
+  id: 'human_reviewed_languages', title: 'Human-Reviewed Languages', group: 'Localization', kind: 'stat', icon: 'BadgeCheck',
+  platformPermission: 'platform.localization.view',
+  compute: () => {
+    const entries = Object.values(languageEntries())
+    const reviewed = entries.filter((v) => v.humanReviewed).length
+    return { kind: 'stat', value: reviewed, unit: `/ ${entries.filter((v) => v.enabled).length} enabled`, higherIsBetter: true }
+  },
+})
+
+platformDashboardRegistry.register({
+  id: 'lowest_coverage_languages', title: 'Lowest Coverage (Enabled)', group: 'Localization', kind: 'list', icon: 'AlertTriangle',
+  platformPermission: 'platform.localization.view',
+  compute: () => {
+    const entries = Object.entries(languageEntries()).filter(([, v]) => v.enabled)
+    const lowest = entries
+      .sort((a, b) => Number(a[1].translationCoverage ?? 0) - Number(b[1].translationCoverage ?? 0))
+      .slice(0, 3)
+      .map(([code, v]) => ({ label: `${String(v.nativeName ?? code)} (${code})`, value: `${v.translationCoverage ?? 0}%` }))
+    return { kind: 'list', items: lowest }
+  },
 })

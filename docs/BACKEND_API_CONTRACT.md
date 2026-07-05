@@ -4515,14 +4515,67 @@ Platform permissions (`platform.*`) and tenant permissions (`P7Permission`,
 > read, `platform.localization.manage` to write — **never** a tenant
 > `P7Permission`, per `P9.5.0_LANGUAGE_LIFECYCLE.md` §6.
 
-### 38.1 Language Registry
+### 38.1 Language Registry — implemented P9.5.5 as `platform.languages`
 
-Reuses §36.1–§36.6 verbatim against the `localization.languages`
-collection field — `GET /admin/config/modules/localization/`,
-`GET/PUT /admin/config/fields/localization.languages.registry/`, etc.
-already cover list/read/write/audit/rollback/version-history for every
-language entity, exactly as they do for `countries.registry` (P9.2) and
+> **Naming reconciliation**: this section originally anticipated a
+> `localization.languages` module id. When actually implemented (P9.5.5,
+> `src/platform-admin/modules/languages.ts`), the module was registered as
+> `platform.languages` (field id `platform.languages.registry`) instead —
+> matching how every other Platform-Admin-only module in this codebase is
+> named (`platform.tenants`, `platform.users`, …) and gated
+> (`platformPermission`, P9.4's mechanism, not a new one). The endpoint
+> shapes below are unchanged from what this section always specified;
+> only the module/field id segment differs from the original placeholder
+> name. Update any earlier integration planning that assumed
+> `localization.languages` to use `platform.languages` instead.
+
+Reuses §36.1–§36.6 verbatim against the `platform.languages.registry`
+collection field — `GET /admin/config/modules/platform.languages/`,
+`GET/PUT /admin/config/fields/platform.languages.registry/`, etc. already
+cover list/read/write/audit/rollback/version-history for every language
+entity, exactly as they do for `countries.registry` (P9.2) and
 `platform.tenants.registry` (P9.4). No new routes for basic CRUD.
+
+Requires `platform.localization.view` to read, `platform.localization.manage`
+to write (`src/platform-admin/permissions.ts`, P9.5.5 Phase K) — never a
+tenant `P7Permission`; no tenant, owner, or branch role can reach this
+module, matching this section's original permission requirement exactly.
+
+**Collection schema** (`~30` properties per language entity — see
+`docs/P9.5.5_LANGUAGE_MANAGEMENT.md` for the full table): identity
+(`nativeName`/`englishName`/`region`/`searchKeywords`/`notes`), lifecycle
+(`status`/`enabled`/`visibility`/`default`/`beta`/`experimental`/
+`lastUpdated`/`translator`), coverage (`translationCoverage`/
+`completionPercent`/`machineTranslated`/`humanReviewed`), formatting
+(`currency`/`timezone`/`dateStyle`/`hourCycle`/`numberNotation`/
+`pluralRules`/`fallbackLanguage`), direction (`direction`/`rtl`), and
+typography (`fontFamily`/`secondaryFontFamily`/`headingFontFamily`/
+`monoFontFamily`/`fontScale`/`lineHeight`/`letterSpacing`/`fontWeight`).
+
+**Cross-entity validation**: a backend implementing writes to this
+collection MUST additionally run the same checks
+`validateLanguageCollection()` (`src/platform-admin/modules/languages.ts`)
+performs client-side before persisting a write — at most one `default:
+true`, `direction`/`rtl` agreement, required metadata present before
+`status: 'published'`, and no `fallbackLanguage` cycle. These are
+cross-entity invariants the generic per-field validation contract (§36)
+cannot express (see `docs/P9.5.5_LANGUAGE_MANAGEMENT.md`'s "Activation
+workflow" section for why), so a real backend needs its own equivalent
+check at write time, not just client-side.
+
+### 38.1.1 Language Coverage Dashboard widgets — implemented P9.5.5
+
+Four `platformDashboardRegistry` widgets
+(`src/platform-admin/widgets.ts`) compute from the same
+`platform.languages.registry` collection value §36's generic read
+endpoint already returns — a backend needs no new endpoint for these,
+only for the underlying collection read `GET /admin/config/fields/platform.languages.registry/`
+each widget's `compute()` would call: `operational_languages` (enabled
+count / roster size), `avg_translation_coverage` (mean
+`translationCoverage` across enabled languages), `human_reviewed_languages`
+(count with `humanReviewed: true`), `lowest_coverage_languages` (3
+lowest-coverage enabled languages). All four require
+`platform.localization.view`.
 
 ### 38.2 Translation Keys
 

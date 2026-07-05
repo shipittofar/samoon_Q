@@ -1,7 +1,8 @@
 /**
  * Languages Module — P9.0 / Phase C+G, extended P9.5.1A Phase C
- * Replaces the hardcoded SUPPORTED_LOCALES / RTL_LOCALES / DEFAULT_LOCALE
- * constants in src/constants/index.ts with configuration-driven equivalents.
+ * Replaces the (P9.5.5-removed) hardcoded SUPPORTED_LOCALES / RTL_LOCALES /
+ * DEFAULT_LOCALE constants that used to live in src/constants/index.ts with
+ * configuration-driven equivalents.
  *
  * P9.5.1A: the option list and defaults are now sourced from
  * `src/i18n/language-registry.ts` (the single per-language metadata table)
