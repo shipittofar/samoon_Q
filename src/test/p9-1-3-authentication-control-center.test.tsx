@@ -12,7 +12,8 @@
  * registration-focused P9.0/P9.1.1 test files).
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { renderWithIntl as render } from './test-utils'
 import {
   configurationService,
   configurationAudit,

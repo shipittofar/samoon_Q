@@ -10,6 +10,7 @@
  * Payments, …) appears here automatically the moment it registers.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Clock, Pin, PinOff, Search } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -36,6 +37,7 @@ export interface ConfigurationStudioNavProps {
 }
 
 export function ConfigurationStudioNav({ activeModuleId, onSelect }: ConfigurationStudioNavProps) {
+  const t = useTranslations('console')
   const allModules = usePlatformConfiguration()
   const { pinned, recent, togglePinned, isPinned } = useConfigurationStudioNav()
   const platformRole = usePlatformRole()
@@ -116,13 +118,13 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
           <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="truncate">{mod.name}</span>
           {lifecycle !== 'published' && (
-            <Badge variant={LIFECYCLE_BADGE_VARIANT[lifecycle]} className="ml-auto shrink-0 text-[10px]">{lifecycle}</Badge>
+            <Badge variant={LIFECYCLE_BADGE_VARIANT[lifecycle]} className="ms-auto shrink-0 text-[10px]">{lifecycle}</Badge>
           )}
         </button>
         <button
           type="button"
           onClick={() => togglePinned(mod.id)}
-          aria-label={isPinned(mod.id) ? `Unpin ${mod.name}` : `Pin ${mod.name}`}
+          aria-label={isPinned(mod.id) ? t('unpinAria', { name: mod.name }) : t('pinAria', { name: mod.name })}
           className="shrink-0 rounded-lg p-1.5 text-[var(--fg-muted)] opacity-0 hover:bg-[var(--card-hover)] hover:text-[var(--fg)] focus-visible:opacity-100 group-hover:opacity-100"
         >
           {isPinned(mod.id) ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
@@ -132,7 +134,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
   }
 
   return (
-    <nav className="flex h-full flex-col" aria-label="Configuration modules" onKeyDown={onNavKeyDown}>
+    <nav className="flex h-full flex-col" aria-label={t('navAria')} onKeyDown={onNavKeyDown}>
       <div className="border-b border-[var(--border)] p-3">
         <div className="relative">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--fg-muted)]" aria-hidden="true" />
@@ -140,8 +142,8 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search modules…"
-            aria-label="Search modules"
+            placeholder={t('searchModulesPlaceholder')}
+            aria-label={t('searchModulesAria')}
             className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-1.5 pl-8 pr-3 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
           />
         </div>
@@ -149,13 +151,13 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
 
       <div className="flex-1 space-y-4 overflow-y-auto p-3">
         {flatOrder.length === 0 ? (
-          <EmptyState title="No modules match" description={`Nothing matches "${search}".`} />
+          <EmptyState title={t('noModulesMatch')} description={t('nothingMatchesQuery', { query: search })} />
         ) : (
           <>
             {pinnedModules.length > 0 && (
               <div>
                 <p className="mb-1 flex items-center gap-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--fg-muted)]">
-                  <Pin className="h-3 w-3" /> Pinned
+                  <Pin className="h-3 w-3" /> {t('pinned')}
                 </p>
                 <div className="space-y-0.5">{pinnedModules.map((m) => renderModuleButton(m, flatOrder.indexOf(m)))}</div>
               </div>
@@ -163,7 +165,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
             {recentModules.length > 0 && (
               <div>
                 <p className="mb-1 flex items-center gap-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--fg-muted)]">
-                  <Clock className="h-3 w-3" /> Recent
+                  <Clock className="h-3 w-3" /> {t('recent')}
                 </p>
                 <div className="space-y-0.5">{recentModules.map((m) => renderModuleButton(m, flatOrder.indexOf(m)))}</div>
               </div>

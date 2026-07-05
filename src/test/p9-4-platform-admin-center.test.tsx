@@ -8,7 +8,8 @@
  * unmodified through the same shell.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { renderWithIntl as render } from './test-utils'
 import {
   configurationService,
   configurationVersionManager,

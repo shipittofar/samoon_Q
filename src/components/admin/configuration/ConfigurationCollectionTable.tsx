@@ -13,6 +13,7 @@
  * component, per P9.2 Phase K.
  */
 import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { ChevronDown, Search } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -30,16 +31,6 @@ export interface ConfigurationCollectionTableProps {
   disabled?: boolean
 }
 
-const BULK_ACTIONS: { kind: ConfigBulkActionKind; label: string }[] = [
-  { kind: 'enable', label: 'Enable' },
-  { kind: 'disable', label: 'Disable' },
-  { kind: 'publish', label: 'Publish' },
-  { kind: 'archive', label: 'Archive' },
-  { kind: 'reset', label: 'Reset to Default' },
-  { kind: 'export', label: 'Export' },
-  { kind: 'import', label: 'Import' },
-]
-
 function summarizeBooleanProperty(entries: ConfigCollectionEntry[], propertyId: string): { on: number; off: number } {
   let on = 0
   for (const entry of entries) if (entry.values[propertyId]) on += 1
@@ -47,6 +38,18 @@ function summarizeBooleanProperty(entries: ConfigCollectionEntry[], propertyId: 
 }
 
 export function ConfigurationCollectionTable({ field, value, onChange, disabled }: ConfigurationCollectionTableProps) {
+  const t = useTranslations('console')
+
+  const BULK_ACTIONS: { kind: ConfigBulkActionKind; label: string }[] = [
+    { kind: 'enable', label: t('bulkEnable') },
+    { kind: 'disable', label: t('bulkDisable') },
+    { kind: 'publish', label: t('bulkPublish') },
+    { kind: 'archive', label: t('bulkArchive') },
+    { kind: 'reset', label: t('bulkReset') },
+    { kind: 'export', label: t('bulkExport') },
+    { kind: 'import', label: t('bulkImport') },
+  ]
+
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState<{ propertyId: string; value: unknown } | null>(null)
   const [groupBy, setGroupBy] = useState<string | undefined>(field.collection?.defaultGroupBy)
@@ -118,18 +121,18 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
     <div className="space-y-3">
       {/* ── Statistics (Phase C) ── */}
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <Badge variant="secondary">{allEntries.length} total</Badge>
+        <Badge variant="secondary">{t('totalCount', { count: allEntries.length })}</Badge>
         {enabledProperty && (() => {
           const { on, off } = summarizeBooleanProperty(allEntries, 'enabled')
           return (
             <>
-              <Badge variant="success">{on} enabled</Badge>
-              <Badge variant="outline">{off} disabled</Badge>
+              <Badge variant="success">{t('enabledCount', { count: on })}</Badge>
+              <Badge variant="outline">{t('disabledCount', { count: off })}</Badge>
             </>
           )
         })()}
-        {filteredEntries.length !== allEntries.length && <Badge variant="info">{filteredEntries.length} matching filters</Badge>}
-        {selectedIds.size > 0 && <Badge variant="warning">{selectedIds.size} selected</Badge>}
+        {filteredEntries.length !== allEntries.length && <Badge variant="info">{t('matchingFiltersCount', { count: filteredEntries.length })}</Badge>}
+        {selectedIds.size > 0 && <Badge variant="warning">{t('selectedCount', { count: selectedIds.size })}</Badge>}
       </div>
 
       {/* ── Search + filter + group + sort (Phase E/F/G) ── */}
@@ -140,8 +143,8 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={`Search ${field.collection?.entityLabel.toLowerCase() ?? 'items'}…`}
-            aria-label={`Search ${field.collection?.entityLabel ?? 'items'}`}
+            placeholder={t('searchEntityPlaceholder', { entity: (field.collection?.entityLabel ?? t('defaultEntityLabel')).toLowerCase() })}
+            aria-label={t('searchEntityAria', { entity: field.collection?.entityLabel ?? t('defaultEntityLabel') })}
             className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-2 pl-9 pr-3 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
           />
         </div>
@@ -153,10 +156,10 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
             const opt = filterOptions.find((o) => `${o.propertyId}=${String(o.value)}` === e.target.value)
             setActiveFilter(opt ? { propertyId: opt.propertyId, value: opt.value } : null)
           }}
-          aria-label="Filter"
+          aria-label={t('filterAria')}
           className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 py-2 text-xs text-[var(--fg)]"
         >
-          <option value="">All statuses</option>
+          <option value="">{t('allStatuses')}</option>
           {filterOptions.map((opt) => (
             <option key={`${opt.propertyId}=${String(opt.value)}`} value={`${opt.propertyId}=${String(opt.value)}`}>{opt.label}</option>
           ))}
@@ -166,12 +169,12 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
           <select
             value={groupBy ?? ''}
             onChange={(e) => setGroupBy(e.target.value || undefined)}
-            aria-label="Group by"
+            aria-label={t('groupByAria')}
             className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 py-2 text-xs text-[var(--fg)]"
           >
-            <option value="">No grouping</option>
+            <option value="">{t('noGrouping')}</option>
             {groupableProperties.map((prop) => (
-              <option key={prop.id} value={prop.id}>Group by {prop.display?.displayName ?? prop.title}</option>
+              <option key={prop.id} value={prop.id}>{t('groupByLabel', { property: prop.display?.displayName ?? prop.title })}</option>
             ))}
           </select>
         )}
@@ -179,18 +182,18 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          aria-label="Sort by"
+          aria-label={t('sortByAria')}
           className="rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-2 py-2 text-xs text-[var(--fg)]"
         >
-          <option value="__entity__">Sort by {field.collection?.entityIdLabel ?? 'ID'}</option>
+          <option value="__entity__">{t('sortByEntity', { entity: field.collection?.entityIdLabel ?? t('idColumnDefault') })}</option>
           {schema.map((prop) => (
-            <option key={prop.id} value={prop.id}>Sort by {prop.display?.displayName ?? prop.title}</option>
+            <option key={prop.id} value={prop.id}>{t('sortByProperty', { property: prop.display?.displayName ?? prop.title })}</option>
           ))}
         </select>
         <button
           type="button"
           onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
-          aria-label={`Sort direction: ${sortDir === 'asc' ? 'ascending' : 'descending'}`}
+          aria-label={t('sortDirectionAria', { direction: sortDir === 'asc' ? t('ascending') : t('descending') })}
           className="rounded-lg border border-[var(--border)] p-2 text-[var(--fg-muted)] hover:text-[var(--fg)]"
         >
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${sortDir === 'asc' ? '' : 'rotate-180'}`} />
@@ -221,12 +224,12 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
                   type="checkbox"
                   checked={selectedIds.size > 0 && selectedIds.size === sortedEntries.length}
                   onChange={toggleSelectAll}
-                  aria-label="Select all"
+                  aria-label={t('selectAllAria')}
                 />
               </th>
-              <th className="px-3 py-2">{field.collection?.entityIdLabel ?? 'ID'}</th>
-              {enabledProperty && <th className="px-3 py-2">Enabled</th>}
-              {statusProperty && <th className="px-3 py-2">Status</th>}
+              <th className="px-3 py-2">{field.collection?.entityIdLabel ?? t('idColumnDefault')}</th>
+              {enabledProperty && <th className="px-3 py-2">{t('enabledColumn')}</th>}
+              {statusProperty && <th className="px-3 py-2">{t('statusColumn')}</th>}
             </tr>
           </thead>
           <tbody>
@@ -243,16 +246,16 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
                         type="checkbox"
                         checked={selectedIds.has(entry.entityId)}
                         onChange={() => toggleSelected(entry.entityId)}
-                        aria-label={`Select ${configCollection.getEntityLabel(field, entry.entityId)}`}
+                        aria-label={t('selectEntityAria', { entity: configCollection.getEntityLabel(field, entry.entityId) })}
                       />
                     </td>
                     <td className="px-3 py-2 text-[var(--fg)]">
                       {configCollection.getEntityLabel(field, entry.entityId)}
-                      <span className="ml-1.5 font-mono text-xs text-[var(--fg-muted)]">{entry.entityId}</span>
+                      <span className="ms-1.5 font-mono text-xs text-[var(--fg-muted)]">{entry.entityId}</span>
                     </td>
                     {enabledProperty && (
                       <td className="px-3 py-2">
-                        <Badge variant={entry.values.enabled ? 'success' : 'outline'}>{entry.values.enabled ? 'Enabled' : 'Disabled'}</Badge>
+                        <Badge variant={entry.values.enabled ? 'success' : 'outline'}>{entry.values.enabled ? t('enabledBadge') : t('disabledBadge')}</Badge>
                       </td>
                     )}
                     {statusProperty && (
@@ -267,8 +270,8 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
                 <td colSpan={4}>
                   <EmptyState
                     icon={<Search className="h-6 w-6" />}
-                    title="No matches"
-                    description={search || activeFilter ? 'Try a different search term or clear the active filter.' : 'This collection has no entries yet.'}
+                    title={t('noMatchesTitle')}
+                    description={search || activeFilter ? t('noMatchesFilterDesc') : t('noEntriesDesc')}
                   />
                 </td>
               </tr>

@@ -12,6 +12,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { useTranslations } from 'next-intl'
 import { ChevronDown, RotateCcw, Search, ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { configurationService, platformConfigurationRegistry } from '@/config'
@@ -43,6 +44,7 @@ export interface ConfigurationModulePageProps {
 }
 
 export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateChange, onActionsReady }: ConfigurationModulePageProps) {
+  const t = useTranslations('console')
   // P9.1.3 Phase N — seeds a handful of real (not merely displayed) config
   // overrides + audit history the first time the Authentication Console is
   // opened in mock mode, so the page has "Modified" fields and audit entries
@@ -132,7 +134,7 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
   if (!configModule) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center text-sm text-[var(--fg-muted)]">
-        Unknown configuration module &ldquo;{moduleId}&rdquo;.
+        {t('unknownModule', { moduleId })}
       </div>
     )
   }
@@ -151,22 +153,22 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
   async function handleSave() {
     const result = await save(reason || undefined)
     if (result.ok) {
-      toast.success('Configuration saved.')
+      toast.success(t('configurationSaved'))
       setReason('')
     } else if (result.errors?._reason) {
       toast.error(result.errors._reason[0])
     } else if (result.errors) {
       const count = Object.keys(result.errors).length
-      toast.error(`${count} field${count === 1 ? '' : 's'} failed validation.`)
+      toast.error(t('fieldsFailedValidation', { count }))
     } else {
-      toast.error('Could not save configuration.')
+      toast.error(t('couldNotSave'))
     }
   }
 
   function handleDiscard() {
     resetModule()
     setReason('')
-    toast('Changes discarded.', { icon: '↩️' })
+    toast(t('changesDiscarded'), { icon: '↩️' })
   }
 
   return (
@@ -184,11 +186,11 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <Badge variant={LIFECYCLE_BADGE_VARIANT[lifecycle]}>{lifecycle}</Badge>
-              <Badge variant={USE_MOCK ? 'warning' : 'success'}>{USE_MOCK ? 'Mock Environment' : 'Live Environment'}</Badge>
+              <Badge variant={USE_MOCK ? 'warning' : 'success'}>{USE_MOCK ? t('mockEnvironment') : t('liveEnvironment')}</Badge>
               <Badge variant="secondary">v{configModule.version}</Badge>
               {lastModified && (
                 <span className="text-[var(--fg-muted)]">
-                  Last modified {new Date(lastModified.timestamp).toLocaleDateString()} by {lastModified.actorName}
+                  {t('lastModifiedBy', { date: new Date(lastModified.timestamp).toLocaleDateString(), actor: lastModified.actorName })}
                 </span>
               )}
             </div>
@@ -201,8 +203,8 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${configModule.name.toLowerCase()} settings…`}
-              aria-label={`Search ${configModule.name} settings`}
+              placeholder={t('searchSettingsPlaceholder', { module: configModule.name.toLowerCase() })}
+              aria-label={t('searchSettingsAria', { module: configModule.name })}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-2 pl-9 pr-3 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
             />
           </div>
@@ -213,7 +215,7 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
         {sectionsWithVisibleFields.length === 0 && (
           <p className="py-16 text-center text-sm text-[var(--fg-muted)]">
-            {search ? `No settings match "${search}".` : 'No settings are visible with your current permissions.'}
+            {search ? t('noSettingsMatch', { query: search }) : t('noSettingsVisible')}
           </p>
         )}
 
@@ -236,8 +238,8 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
                   type="button"
                   onClick={() => resetSection(section.id)}
                   className="shrink-0 rounded-lg p-1.5 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
-                  aria-label={`Reset ${section.title} section`}
-                  title="Reset this section's unsaved changes"
+                  aria-label={t('resetSectionAria', { section: section.title })}
+                  title={t('resetSectionTitle')}
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                 </button>

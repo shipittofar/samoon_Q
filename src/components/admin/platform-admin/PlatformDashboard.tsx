@@ -11,12 +11,14 @@
  */
 import { EmptyState } from '@/components/ui/EmptyState'
 import { LayoutDashboard } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { platformDashboardRegistry } from '@/platform-admin/dashboard'
 import { usePlatformPermission, usePlatformRole } from '@/platform-admin/hooks'
 import { hasPlatformPermission } from '@/platform-admin/permissions'
 import { PlatformDashboardWidgetCard } from './PlatformDashboardWidgetCard'
 
 export function PlatformDashboard() {
+  const t = useTranslations('console')
   const role = usePlatformRole()
   const canViewDashboard = usePlatformPermission('platform.dashboard.view')
 
@@ -28,8 +30,8 @@ export function PlatformDashboard() {
     return (
       <EmptyState
         icon={<LayoutDashboard className="h-6 w-6" />}
-        title="No dashboard access"
-        description="Your platform role doesn't include platform.dashboard.view."
+        title={t('noDashboardAccessTitle')}
+        description={t('noDashboardAccessDesc')}
       />
     )
   }
@@ -38,8 +40,8 @@ export function PlatformDashboard() {
     return (
       <EmptyState
         icon={<LayoutDashboard className="h-6 w-6" />}
-        title="No widgets available"
-        description="No dashboard widgets are visible to your platform role."
+        title={t('noWidgetsTitle')}
+        description={t('noWidgetsDesc')}
       />
     )
   }

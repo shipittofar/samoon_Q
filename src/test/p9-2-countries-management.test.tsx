@@ -9,8 +9,9 @@
  * mirroring how P9.1.3's test file used Authentication as its reference.
  */
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { renderHook, act } from '@testing-library/react'
+import { renderWithIntl as render } from './test-utils'
 import {
   configurationService,
   configurationVersionManager,

@@ -12,6 +12,7 @@
  * exact component, per P9.2 Phase K/H.
  */
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Drawer } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui'
 import { configCollection, configurationAudit } from '@/config'
@@ -31,15 +32,7 @@ export interface ConfigurationEntityDrawerProps {
 
 type DrawerTab = 'configuration' | 'overrides' | 'dependencies' | 'audit' | 'statistics' | 'inheritance' | 'preview'
 
-const TABS: { id: DrawerTab; label: string }[] = [
-  { id: 'configuration', label: 'Configuration' },
-  { id: 'overrides', label: 'Overrides' },
-  { id: 'dependencies', label: 'Dependencies' },
-  { id: 'audit', label: 'Audit' },
-  { id: 'statistics', label: 'Statistics' },
-  { id: 'inheritance', label: 'Inheritance' },
-  { id: 'preview', label: 'Preview' },
-]
+const TAB_IDS: DrawerTab[] = ['configuration', 'overrides', 'dependencies', 'audit', 'statistics', 'inheritance', 'preview']
 
 function formatTimestamp(iso: string): string {
   try {
@@ -50,7 +43,9 @@ function formatTimestamp(iso: string): string {
 }
 
 export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onChangeEntity }: ConfigurationEntityDrawerProps) {
+  const t = useTranslations('console')
   const [tab, setTab] = useState<DrawerTab>('configuration')
+  const TABS: { id: DrawerTab; label: string }[] = TAB_IDS.map((id) => ({ id, label: t(`entityDrawerTab_${id}`) }))
   const schema = configCollection.getSchema(field)
   const defaults = configCollection.getEntityDefaults(field)
   const label = configCollection.getEntityLabel(field, entry.entityId)
@@ -86,8 +81,8 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
     <Drawer open onClose={onClose} title={label} size="lg">
       <div className="flex flex-col gap-4 p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{field.collection?.entityIdLabel ?? 'ID'}: {entry.entityId}</Badge>
-          {overriddenProps.length > 0 && <Badge variant="info">{overriddenProps.length} overridden</Badge>}
+          <Badge variant="secondary">{field.collection?.entityIdLabel ?? t('idColumnDefault')}: {entry.entityId}</Badge>
+          {overriddenProps.length > 0 && <Badge variant="info">{t('overriddenCount', { count: overriddenProps.length })}</Badge>}
         </div>
 
         <div className="flex flex-wrap gap-1 border-b border-[var(--border)] pb-2">
@@ -136,15 +131,15 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
         {tab === 'overrides' && (
           <div className="space-y-2 text-sm">
             {overriddenProps.length === 0 ? (
-              <p className="text-[var(--fg-muted)]">No properties differ from the schema defaults.</p>
+              <p className="text-[var(--fg-muted)]">{t('noOverriddenProperties')}</p>
             ) : (
               overriddenProps.map((prop) => (
                 <div key={prop.id} className="rounded-lg border border-[var(--border)] p-2">
                   <p className="font-medium text-[var(--fg)]">{prop.display?.displayName ?? prop.title}</p>
                   <p className="text-xs text-[var(--fg-muted)]">
-                    Default: <span className="font-mono">{JSON.stringify(defaults[prop.id])}</span>
+                    {t('defaultLabel')}: <span className="font-mono">{JSON.stringify(defaults[prop.id])}</span>
                     {' → '}
-                    Current: <span className="font-mono">{JSON.stringify(entry.values[prop.id])}</span>
+                    {t('currentLabel')}: <span className="font-mono">{JSON.stringify(entry.values[prop.id])}</span>
                   </p>
                 </div>
               ))
@@ -155,7 +150,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
         {tab === 'dependencies' && (
           <div className="space-y-2 text-sm">
             {schema.filter((p) => p.dependency?.hiddenWhen || p.dependency?.enabledWhen).length === 0 ? (
-              <p className="text-[var(--fg-muted)]">No property in this schema declares a dependency.</p>
+              <p className="text-[var(--fg-muted)]">{t('noDependencies')}</p>
             ) : (
               schema
                 .filter((p) => p.dependency?.hiddenWhen || p.dependency?.enabledWhen)
@@ -163,10 +158,14 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
                   <div key={prop.id} className="rounded-lg border border-[var(--border)] p-2 text-xs">
                     <p className="font-medium text-[var(--fg)]">{prop.display?.displayName ?? prop.title}</p>
                     {prop.dependency?.hiddenWhen && (
-                      <p className="text-[var(--fg-muted)]">Hidden unless {prop.dependency.hiddenWhen.fieldId} condition fails — currently {isVisible(prop) ? 'visible' : 'hidden'}.</p>
+                      <p className="text-[var(--fg-muted)]">
+                        {t('hiddenUnless', { fieldId: prop.dependency.hiddenWhen.fieldId, state: isVisible(prop) ? t('visibleState') : t('hiddenState') })}
+                      </p>
                     )}
                     {prop.dependency?.enabledWhen && (
-                      <p className="text-[var(--fg-muted)]">Enabled when {prop.dependency.enabledWhen.fieldId} condition holds — currently {isEnabled(prop) ? 'enabled' : 'disabled'}.</p>
+                      <p className="text-[var(--fg-muted)]">
+                        {t('enabledWhen', { fieldId: prop.dependency.enabledWhen.fieldId, state: isEnabled(prop) ? t('enabledState') : t('disabledState') })}
+                      </p>
                     )}
                   </div>
                 ))
@@ -177,12 +176,12 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
         {tab === 'audit' && (
           <div className="space-y-2 text-sm">
             {auditEntries.length === 0 ? (
-              <p className="text-[var(--fg-muted)]">No changes recorded for this entity yet.</p>
+              <p className="text-[var(--fg-muted)]">{t('noAuditEntries')}</p>
             ) : (
               <ul className="space-y-1">
                 {auditEntries.slice(0, 10).map((e) => (
                   <li key={e.id} className="text-[var(--fg)]">
-                    <span className="font-medium">{e.actorName}</span> updated this on {formatTimestamp(e.timestamp)}
+                    <span className="font-medium">{e.actorName}</span> {t('updatedThisOn', { date: formatTimestamp(e.timestamp) })}
                     {e.reason && <span className="text-[var(--fg-muted)]"> — “{e.reason}”</span>}
                   </li>
                 ))}
@@ -194,15 +193,15 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
         {tab === 'statistics' && (
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <p className="text-[var(--fg-muted)]">Total properties</p>
+              <p className="text-[var(--fg-muted)]">{t('totalProperties')}</p>
               <p className="font-semibold text-[var(--fg)]">{schema.length}</p>
             </div>
             <div>
-              <p className="text-[var(--fg-muted)]">Overridden properties</p>
+              <p className="text-[var(--fg-muted)]">{t('overriddenProperties')}</p>
               <p className="font-semibold text-[var(--fg)]">{overriddenProps.length}</p>
             </div>
             <div>
-              <p className="text-[var(--fg-muted)]">Recorded changes</p>
+              <p className="text-[var(--fg-muted)]">{t('recordedChanges')}</p>
               <p className="font-semibold text-[var(--fg)]">{auditEntries.length}</p>
             </div>
           </div>
@@ -211,18 +210,17 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
         {tab === 'inheritance' && (
           <div className="space-y-2 text-sm">
             <p className="text-[var(--fg-muted)]">
-              Every entity in this collection is stored inside one field (<span className="font-mono">{field.id}</span>),
-              so inheritance is resolved once for the whole collection, not per entity.
+              {t('inheritanceExplainer', { fieldId: field.id })}
             </p>
-            <p><span className="text-[var(--fg-muted)]">Owning level:</span> <span className="font-medium capitalize text-[var(--fg)]">{field.inheritance.level}</span></p>
-            <p><span className="text-[var(--fg-muted)]">Mode:</span> <span className="font-medium capitalize text-[var(--fg)]">{field.inheritance.mode}</span></p>
+            <p><span className="text-[var(--fg-muted)]">{t('owningLevel')}:</span> <span className="font-medium capitalize text-[var(--fg)]">{field.inheritance.level}</span></p>
+            <p><span className="text-[var(--fg-muted)]">{t('modeLabel')}:</span> <span className="font-medium capitalize text-[var(--fg)]">{field.inheritance.mode}</span></p>
           </div>
         )}
 
         {tab === 'preview' && (
           <div className="space-y-3">
             {Object.keys(previewPairs).length === 0 && schema.every((p) => p.preview.kind === 'none') && (
-              <p className="text-sm text-[var(--fg-muted)]">No preview is available for this {field.collection?.entityLabel.toLowerCase() ?? 'entity'}.</p>
+              <p className="text-sm text-[var(--fg-muted)]">{t('noPreviewAvailable', { entity: field.collection?.entityLabel.toLowerCase() ?? t('defaultEntityLabelSingular') })}</p>
             )}
             {Object.entries(previewPairs).map(([label2, val]) => (
               <div key={label2} className="rounded-lg border border-[var(--border)] p-2 text-sm">

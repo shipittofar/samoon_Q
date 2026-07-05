@@ -12,6 +12,7 @@
  * focus-trap/Escape-to-close behavior rather than re-implementing either.
  */
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { ArrowRight, RotateCcw, Save, Search } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -40,6 +41,7 @@ export interface ConfigurationCommandPaletteProps {
 export function ConfigurationCommandPalette({
   open, onClose, onNavigateToModule, onNavigateToField, draftStatus, actions,
 }: ConfigurationCommandPaletteProps) {
+  const t = useTranslations('console')
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
 
@@ -51,14 +53,14 @@ export function ConfigurationCommandPalette({
     const list: PaletteCommand[] = []
 
     if (draftStatus?.isDirty && actions) {
-      list.push({ id: 'save', label: 'Save changes', hint: `${draftStatus.dirtyCount} unsaved`, icon: <Save className="h-4 w-4" />, run: () => { actions.save(); onClose() } })
-      list.push({ id: 'discard', label: 'Discard changes', icon: <RotateCcw className="h-4 w-4" />, run: () => { actions.discard(); onClose() } })
+      list.push({ id: 'save', label: t('saveChangesCommand'), hint: t('unsavedBadge', { count: draftStatus.dirtyCount }), icon: <Save className="h-4 w-4" />, run: () => { actions.save(); onClose() } })
+      list.push({ id: 'discard', label: t('discardChangesCommand'), icon: <RotateCcw className="h-4 w-4" />, run: () => { actions.discard(); onClose() } })
     }
 
     for (const mod of platformConfigurationRegistry.getModules()) {
       list.push({
         id: `module:${mod.id}`,
-        label: `Go to ${mod.name}`,
+        label: t('goToModule', { name: mod.name }),
         hint: mod.category,
         icon: <ArrowRight className="h-4 w-4" />,
         run: () => { onNavigateToModule(mod.id); onClose() },
@@ -120,8 +122,8 @@ export function ConfigurationCommandPalette({
             value={query}
             onChange={(e) => { setQuery(e.target.value); setActiveIndex(0) }}
             onKeyDown={onKeyDown}
-            placeholder="Go to a module, jump to a setting, or run a command…"
-            aria-label="Command palette"
+            placeholder={t('paletteSearchPlaceholder')}
+            aria-label={t('paletteAria')}
             role="combobox"
             aria-expanded="true"
             aria-controls="configuration-command-palette-list"
@@ -131,7 +133,7 @@ export function ConfigurationCommandPalette({
         </div>
         <div id="configuration-command-palette-list" role="listbox" className="max-h-80 overflow-y-auto p-2">
           {filtered.length === 0 ? (
-            <EmptyState title="No matches" description={`Nothing matches "${query}".`} className="py-8" />
+            <EmptyState title={t('noMatches')} description={t('nothingMatchesQuery', { query })} className="py-8" />
           ) : (
             filtered.map((cmd, i) => (
               <button
