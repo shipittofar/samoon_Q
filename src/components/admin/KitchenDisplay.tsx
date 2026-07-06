@@ -1,15 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { LiveOrder } from '@/types/realtime-operations'
 import { useKitchenStatus } from '@/hooks'
 
-const COLUMNS: { key: keyof ReturnType<typeof useOrderColumns>; label: string }[] = [
-  { key: 'pending', label: 'Pending' },
-  { key: 'preparing', label: 'Preparing' },
-  { key: 'ready', label: 'Ready' },
-  { key: 'delayed', label: 'Delayed' },
-  { key: 'priority', label: 'Priority' },
+const COLUMNS: { key: keyof ReturnType<typeof useOrderColumns>; labelKey: string }[] = [
+  { key: 'pending', labelKey: 'statusPending' },
+  { key: 'preparing', labelKey: 'statusPreparing' },
+  { key: 'ready', labelKey: 'statusReady' },
+  { key: 'delayed', labelKey: 'delayed' },
+  { key: 'priority', labelKey: 'priority' },
 ]
 
 function useOrderColumns(branchId: string, tenantId: string) {
@@ -39,6 +40,7 @@ interface KitchenCardProps {
 }
 
 function KitchenCard({ order }: KitchenCardProps) {
+  const t = useTranslations('console')
   const elapsed = order.preparingAt
     ? Math.round((Date.now() - new Date(order.preparingAt).getTime()) / 60_000)
     : null
@@ -46,12 +48,12 @@ function KitchenCard({ order }: KitchenCardProps) {
   return (
     <article
       role="article"
-      aria-label={`Order ${order.orderNumber}${order.slaBreached ? ', SLA breached' : ''}`}
+      aria-label={order.slaBreached ? t('orderSlaBreachedAria', { number: order.orderNumber }) : t('orderNumberAria', { number: order.orderNumber })}
       className={`bg-white rounded shadow p-3 mb-2 text-sm ${order.slaBreached ? 'border-l-4 border-red-500' : ''}`}
     >
       <div className="flex justify-between font-bold text-base">
         <span>#{order.orderNumber}</span>
-        {order.tableNumber && <span className="text-gray-500" aria-label={`Table ${order.tableNumber}`}>T{order.tableNumber}</span>}
+        {order.tableNumber && <span className="text-gray-500" aria-label={t('tableNumberLabel', { number: order.tableNumber })}>T{order.tableNumber}</span>}
       </div>
       <div className="mt-1 space-y-0.5">
         {order.items.map((it, i) => (
@@ -69,11 +71,11 @@ function KitchenCard({ order }: KitchenCardProps) {
         </div>
       )}
       <div className="flex justify-between mt-2 text-xs text-gray-500">
-        {elapsed !== null && <span>{elapsed}m elapsed</span>}
-        <span>~{order.estimatedPrepMinutes}m target</span>
+        {elapsed !== null && <span>{t('minutesElapsed', { minutes: elapsed })}</span>}
+        <span>{t('minutesTarget', { minutes: order.estimatedPrepMinutes })}</span>
       </div>
       {order.slaBreached && (
-        <div role="alert" className="text-xs font-bold text-red-600 mt-1">SLA BREACHED</div>
+        <div role="alert" className="text-xs font-bold text-red-600 mt-1">{t('slaBreached')}</div>
       )}
     </article>
   )
@@ -85,34 +87,36 @@ interface KitchenDisplayProps {
 }
 
 export function KitchenDisplay({ branchId, tenantId }: KitchenDisplayProps) {
+  const t = useTranslations('console')
   const { data, isLoading, isError } = useKitchenStatus(branchId, tenantId)
   const cols = useOrderColumns(branchId, tenantId)
 
-  if (isLoading) return <div className="text-sm text-gray-500 p-4">Loading kitchen queue…</div>
-  if (isError) return <div className="text-sm text-red-500 p-4">Failed to load kitchen status.</div>
+  if (isLoading) return <div className="text-sm text-gray-500 p-4">{t('loadingKitchenQueue')}</div>
+  if (isError) return <div className="text-sm text-red-500 p-4">{t('failedToLoadKitchenStatus')}</div>
 
   return (
     <div>
       <div className="flex gap-4 mb-4 text-sm">
         <span className="bg-gray-100 rounded px-3 py-1">
-          Queue: <strong>{data?.queueDepth ?? 0}</strong>
+          {t('queueDepthLabel', { depth: data?.queueDepth ?? 0 })}
         </span>
         <span className="bg-gray-100 rounded px-3 py-1">
-          Avg prep: <strong>{data?.averagePrepMinutes ?? 0}m</strong>
+          {t('avgPrepLabel', { minutes: data?.averagePrepMinutes ?? 0 })}
         </span>
         <span className={`rounded px-3 py-1 ${(data?.capacityPercent ?? 0) > 80 ? 'bg-red-100 text-red-700' : 'bg-gray-100'}`}>
-          Capacity: <strong>{data?.capacityPercent ?? 0}%</strong>
+          {t('capacityLabel', { percent: data?.capacityPercent ?? 0 })}
         </span>
       </div>
-      <div className="overflow-x-auto" role="region" aria-label="Kitchen order columns">
+      <div className="overflow-x-auto" role="region" aria-label={t('kitchenOrderColumnsAria')}>
         <div className="flex gap-3 min-w-max" role="list">
-          {COLUMNS.map(({ key, label }) => {
+          {COLUMNS.map(({ key, labelKey }) => {
             const orders = cols[key] as LiveOrder[]
+            const label = t(labelKey)
             return (
               <div
                 key={key}
                 role="listitem"
-                aria-label={`${label} column, ${orders.length} order${orders.length !== 1 ? 's' : ''}`}
+                aria-label={t('columnOrdersCountAria', { column: label, count: orders.length })}
                 className={`w-52 flex-shrink-0 border-t-4 ${COLUMN_COLOR[key]} bg-gray-50 rounded p-2`}
               >
                 <div className="flex justify-between items-center mb-2">
@@ -120,7 +124,7 @@ export function KitchenDisplay({ branchId, tenantId }: KitchenDisplayProps) {
                   <span className="text-xs bg-white border rounded-full px-2" aria-hidden="true">{orders.length}</span>
                 </div>
                 {orders.length === 0 ? (
-                  <div className="text-xs text-gray-400 italic" aria-label="No orders">Empty</div>
+                  <div className="text-xs text-gray-400 italic" aria-label={t('noOrdersAria')}>{t('empty')}</div>
                 ) : (
                   orders.map((o) => <KitchenCard key={o.id} order={o} />)
                 )}

@@ -1,19 +1,10 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import type { LiveOrder, OperationsScope } from '@/types/realtime-operations'
 import { useLiveOrders } from '@/hooks'
 
 const STATUS_COLUMNS: LiveOrder['status'][] = ['pending', 'accepted', 'preparing', 'ready', 'delivering', 'delivered', 'cancelled']
-
-const STATUS_LABEL: Record<LiveOrder['status'], string> = {
-  pending: 'Pending',
-  accepted: 'Accepted',
-  preparing: 'Preparing',
-  ready: 'Ready',
-  delivering: 'Delivering',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled',
-}
 
 const STATUS_COLOR: Record<LiveOrder['status'], string> = {
   pending: 'bg-yellow-50 border-yellow-200',
@@ -30,6 +21,7 @@ interface OrderCardProps {
 }
 
 function OrderCard({ order }: OrderCardProps) {
+  const t = useTranslations('console')
   return (
     <div
       className={`rounded border p-3 mb-2 text-sm ${STATUS_COLOR[order.status]} ${order.slaBreached ? 'ring-2 ring-red-400' : ''}`}
@@ -53,10 +45,10 @@ function OrderCard({ order }: OrderCardProps) {
         <span>{order.estimatedPrepMinutes}m</span>
       </div>
       {order.slaBreached && (
-        <div className="mt-1 text-xs font-semibold text-red-600">SLA BREACHED</div>
+        <div className="mt-1 text-xs font-semibold text-red-600">{t('slaBreached')}</div>
       )}
       {order.isDelayed && !order.slaBreached && (
-        <div className="mt-1 text-xs font-semibold text-orange-600">DELAYED</div>
+        <div className="mt-1 text-xs font-semibold text-orange-600">{t('delayed')}</div>
       )}
     </div>
   )
@@ -68,10 +60,12 @@ interface LiveOrderQueueProps {
 }
 
 export function LiveOrderQueue({ scope, visibleStatuses = STATUS_COLUMNS }: LiveOrderQueueProps) {
+  const t = useTranslations('console')
+  const tOrder = useTranslations('order')
   const { data: orders = [], isLoading, isError } = useLiveOrders(scope)
 
-  if (isLoading) return <div className="text-sm text-gray-500 p-4">Loading orders…</div>
-  if (isError) return <div className="text-sm text-red-500 p-4">Failed to load orders.</div>
+  if (isLoading) return <div className="text-sm text-gray-500 p-4">{t('loadingOrders')}</div>
+  if (isError) return <div className="text-sm text-red-500 p-4">{t('failedToLoadOrders')}</div>
 
   const byStatus = (status: LiveOrder['status']) => orders.filter((o) => o.status === status)
 
@@ -84,13 +78,13 @@ export function LiveOrderQueue({ scope, visibleStatuses = STATUS_COLUMNS }: Live
             <div key={status} className="w-48 flex-shrink-0">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">
-                  {STATUS_LABEL[status]}
+                  {status === 'delivering' ? t('statusDelivering') : tOrder(`status.${status}`)}
                 </span>
                 <span className="text-xs bg-gray-200 rounded-full px-2 py-0.5">{col.length}</span>
               </div>
               <div className="space-y-2">
                 {col.length === 0 ? (
-                  <div className="text-xs text-gray-400 italic">Empty</div>
+                  <div className="text-xs text-gray-400 italic">{t('empty')}</div>
                 ) : (
                   col.map((o) => <OrderCard key={o.id} order={o} />)
                 )}

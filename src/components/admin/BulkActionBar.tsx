@@ -1,6 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 
 interface BulkAction {
@@ -17,16 +18,17 @@ interface BulkActionBarProps {
 }
 
 export function BulkActionBar({ selectedCount, actions, onClearSelection }: BulkActionBarProps) {
+  const t = useTranslations('console')
   if (selectedCount === 0) return null
 
   return (
     <div
       role="toolbar"
-      aria-label="Bulk actions"
+      aria-label={t('bulkActionsAria')}
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[var(--fg)] text-[var(--bg)] shadow-2xl border border-[var(--border)]"
     >
       <span className="text-sm font-semibold whitespace-nowrap">
-        {selectedCount} selected
+        {t('selectedCount', { count: selectedCount })}
       </span>
       <div className="w-px h-5 bg-current opacity-30" />
       {actions.map((action) => (
@@ -48,7 +50,7 @@ export function BulkActionBar({ selectedCount, actions, onClearSelection }: Bulk
       <div className="w-px h-5 bg-current opacity-30" />
       <button
         onClick={onClearSelection}
-        aria-label="Clear selection"
+        aria-label={t('clearSelectionAria')}
         className="p-1 rounded-lg hover:bg-white/10 transition-colors"
       >
         <X className="h-4 w-4" />

@@ -1,16 +1,18 @@
 'use client'
 
 import { Bell, BellOff, BellRing } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useNotificationPermission } from '@/hooks'
 import { Button } from '@/components/ui/Button'
 
 export function PushNotificationSettings() {
+  const t = useTranslations('console')
   const { permission, request } = useNotificationPermission()
 
   const statusText = {
-    granted: 'Enabled',
-    denied: 'Blocked by browser',
-    default: 'Not enabled',
+    granted: t('pushEnabled'),
+    denied: t('pushBlockedByBrowser'),
+    default: t('pushNotEnabled'),
   }[permission]
 
   const StatusIcon = permission === 'granted' ? BellRing : permission === 'denied' ? BellOff : Bell
@@ -22,20 +24,20 @@ export function PushNotificationSettings() {
           <StatusIcon className="h-4 w-4" />
         </div>
         <div>
-          <p className="text-sm font-medium text-[var(--fg)]">Push Notifications</p>
+          <p className="text-sm font-medium text-[var(--fg)]">{t('pushNotifications')}</p>
           <p className="text-xs text-[var(--fg-muted)]">{statusText}</p>
         </div>
       </div>
       {permission === 'default' && (
         <Button size="sm" onClick={request}>
-          Enable
+          {t('enable')}
         </Button>
       )}
       {permission === 'denied' && (
-        <p className="text-xs text-[var(--fg-muted)]">Update in browser settings</p>
+        <p className="text-xs text-[var(--fg-muted)]">{t('updateInBrowserSettings')}</p>
       )}
       {permission === 'granted' && (
-        <span className="text-xs font-medium text-green-600">Active</span>
+        <span className="text-xs font-medium text-green-600">{t('active')}</span>
       )}
     </div>
   )

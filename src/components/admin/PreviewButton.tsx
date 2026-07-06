@@ -13,6 +13,7 @@
 
 import Link from 'next/link'
 import { ExternalLink } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { hrefToPublicUrl } from '@/utils/public-url'
 import { useTenantStore, useBranchStore } from '@/stores'
@@ -20,7 +21,7 @@ import { useTenantStore, useBranchStore } from '@/stores'
 export interface PreviewButtonProps {
   /** Flat module href (e.g. "/menu", "/reservation", "/"). Upgraded to context-aware URL. */
   href: string
-  /** Button label. Defaults to "Preview Public Site". */
+  /** Button label. Defaults to the translated "Preview Public Site". */
   label?: string
   /** Visual size. Defaults to "default". */
   size?: 'sm' | 'default'
@@ -30,10 +31,11 @@ export interface PreviewButtonProps {
 
 export function PreviewButton({
   href,
-  label = 'Preview Public Site',
+  label,
   size = 'default',
   className,
 }: PreviewButtonProps) {
+  const t = useTranslations('console')
   const tenantSlug = useTenantStore((s) => s.tenant?.slug)
   const branchSlug = useBranchStore((s) => s.adminActiveBranch?.slug)
 
@@ -51,7 +53,7 @@ export function PreviewButton({
       )}
     >
       <ExternalLink className={size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
-      {label}
+      {label ?? t('previewPublicSite')}
     </Link>
   )
 }

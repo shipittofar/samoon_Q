@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { operationsChannelManager } from '@/services/websocket.service'
 import type { OperationsScope } from '@/types/realtime-operations'
 import { useRealtimeStatistics, useSLAAlerts, useBranchStatus } from '@/hooks'
@@ -7,6 +8,7 @@ import { useRealtimeStatistics, useSLAAlerts, useBranchStatus } from '@/hooks'
 // ── RealtimeConnectionStatus ─────────────────────────────────────────────────
 
 export function RealtimeConnectionStatus() {
+  const t = useTranslations('console')
   const channels = ['admin.operations', 'orders.broadcast', 'reservations.broadcast']
   const healthMap = operationsChannelManager.getAllHealth()
 
@@ -14,7 +16,7 @@ export function RealtimeConnectionStatus() {
   const allConnected = statuses.every((s) => s === 'connected')
   const anyConnecting = statuses.some((s) => s === 'connecting' || s === 'reconnecting')
 
-  const label = allConnected ? 'Live' : anyConnecting ? 'Connecting…' : 'Offline'
+  const label = allConnected ? t('connectionLive') : anyConnecting ? t('connectionConnecting') : t('connectionOffline')
   const color = allConnected
     ? 'bg-green-500'
     : anyConnecting
@@ -36,10 +38,11 @@ interface ActiveUsersCounterProps {
 }
 
 export function ActiveUsersCounter({ scope }: ActiveUsersCounterProps) {
+  const t = useTranslations('console')
   const { data: stats } = useRealtimeStatistics(scope)
   return (
     <div className="flex items-center gap-1.5 text-xs text-gray-600">
-      <span>Active staff:</span>
+      <span>{t('activeStaffLabel')}</span>
       <strong>{stats?.activeStaff ?? '—'}</strong>
     </div>
   )
@@ -52,10 +55,11 @@ interface EventsPerMinuteProps {
 }
 
 export function EventsPerMinute({ scope }: EventsPerMinuteProps) {
+  const t = useTranslations('console')
   const { data: stats } = useRealtimeStatistics(scope)
   return (
     <div className="flex items-center gap-1.5 text-xs text-gray-600">
-      <span>Events/min:</span>
+      <span>{t('eventsPerMinuteLabel')}</span>
       <strong>{stats?.eventsPerMinute ?? '—'}</strong>
     </div>
   )
@@ -68,6 +72,7 @@ interface SystemHealthBadgeProps {
 }
 
 export function SystemHealthBadge({ scope }: SystemHealthBadgeProps) {
+  const t = useTranslations('console')
   const { data: branches = [] } = useBranchStatus(scope)
   const { data: alerts = [] } = useSLAAlerts(scope)
 
@@ -77,7 +82,7 @@ export function SystemHealthBadge({ scope }: SystemHealthBadgeProps) {
   const isHealthy = criticalAlerts === 0 && criticalBranches === 0
   const isDegraded = !isHealthy && criticalAlerts < 3 && criticalBranches < 2
 
-  const label = isHealthy ? 'Healthy' : isDegraded ? 'Degraded' : 'Critical'
+  const label = isHealthy ? t('healthHealthy') : isDegraded ? t('healthDegraded') : t('priorityCritical')
   const color = isHealthy
     ? 'bg-green-100 text-green-700 border-green-300'
     : isDegraded
@@ -86,7 +91,7 @@ export function SystemHealthBadge({ scope }: SystemHealthBadgeProps) {
 
   return (
     <span className={`text-xs rounded border px-2 py-0.5 font-medium ${color}`}>
-      System: {label}
+      {t('systemLabel', { label })}
     </span>
   )
 }
@@ -99,10 +104,11 @@ interface BranchContextIndicatorProps {
 }
 
 export function BranchContextIndicator({ branchId, branchName }: BranchContextIndicatorProps) {
+  const t = useTranslations('console')
   if (!branchId) {
     return (
       <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200 rounded px-2 py-0.5">
-        All Branches
+        {t('allBranches')}
       </span>
     )
   }

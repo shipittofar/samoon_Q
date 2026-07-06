@@ -1,13 +1,14 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import type { StaffPresence, StaffPresenceStatus, OperationsScope } from '@/types/realtime-operations'
 import { useStaffPresence } from '@/hooks'
 
-const STATUS_LABEL: Record<StaffPresenceStatus, string> = {
-  online: 'Online',
-  busy: 'Busy',
-  break: 'Break',
-  offline: 'Offline',
+const STATUS_KEY: Record<StaffPresenceStatus, string> = {
+  online: 'statusOnline',
+  busy: 'statusBusy',
+  break: 'statusBreak',
+  offline: 'statusOffline',
 }
 
 const STATUS_DOT: Record<StaffPresenceStatus, string> = {
@@ -24,9 +25,14 @@ interface StaffCardProps {
 }
 
 function StaffCard({ member }: StaffCardProps) {
+  const t = useTranslations('console')
   const lastActivity = new Date(member.lastActivity)
   const minutesAgo = Math.round((Date.now() - lastActivity.getTime()) / 60_000)
-  const activityStr = minutesAgo < 1 ? 'Just now' : minutesAgo < 60 ? `${minutesAgo}m ago` : `${Math.floor(minutesAgo / 60)}h ago`
+  const activityStr = minutesAgo < 1
+    ? t('justNow')
+    : minutesAgo < 60
+      ? t('minutesAgoShort', { minutes: minutesAgo })
+      : t('hoursAgoShort', { hours: Math.floor(minutesAgo / 60) })
 
   return (
     <div className="flex items-center gap-3 bg-white rounded border p-3 mb-2">
@@ -36,7 +42,7 @@ function StaffCard({ member }: StaffCardProps) {
         </div>
         <span
           className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${STATUS_DOT[member.status]}`}
-          title={STATUS_LABEL[member.status]}
+          title={t(STATUS_KEY[member.status])}
         />
       </div>
       <div className="flex-1 min-w-0">
@@ -50,7 +56,7 @@ function StaffCard({ member }: StaffCardProps) {
       </div>
       {member.activeOrderCount > 0 && (
         <div className="flex-shrink-0 text-xs bg-blue-100 text-blue-700 rounded-full px-2 py-0.5">
-          {member.activeOrderCount} orders
+          {t('ordersCount', { count: member.activeOrderCount })}
         </div>
       )}
     </div>
@@ -63,12 +69,13 @@ interface StaffPresenceBoardProps {
 }
 
 export function StaffPresenceBoard({ scope, filterBranchId }: StaffPresenceBoardProps) {
+  const t = useTranslations('console')
   const { data: staff = [], isLoading, isError } = useStaffPresence(scope)
 
   const filtered = filterBranchId ? staff.filter((s) => s.branchId === filterBranchId) : staff
 
-  if (isLoading) return <div className="text-sm text-gray-500 p-4">Loading staff…</div>
-  if (isError) return <div className="text-sm text-red-500 p-4">Failed to load staff presence.</div>
+  if (isLoading) return <div className="text-sm text-gray-500 p-4">{t('loadingStaff')}</div>
+  if (isError) return <div className="text-sm text-red-500 p-4">{t('failedToLoadStaffPresence')}</div>
 
   const byStatus = (status: StaffPresenceStatus) => filtered.filter((s) => s.status === status)
 
@@ -79,10 +86,10 @@ export function StaffPresenceBoard({ scope, filterBranchId }: StaffPresenceBoard
     <div>
       <div className="flex gap-4 mb-4 text-sm">
         <span className="bg-green-50 text-green-700 rounded px-3 py-1">
-          Online: <strong>{onlineCount}</strong>
+          {t('onlineCount', { count: onlineCount })}
         </span>
         <span className="bg-gray-100 rounded px-3 py-1">
-          Total: <strong>{totalCount}</strong>
+          {t('totalCount', { count: totalCount })}
         </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -93,12 +100,12 @@ export function StaffPresenceBoard({ scope, filterBranchId }: StaffPresenceBoard
               <div className="flex items-center gap-2 mb-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${STATUS_DOT[status]}`} />
                 <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">
-                  {STATUS_LABEL[status]}
+                  {t(STATUS_KEY[status])}
                 </span>
                 <span className="text-xs text-gray-400">({members.length})</span>
               </div>
               {members.length === 0 ? (
-                <div className="text-xs text-gray-400 italic">None</div>
+                <div className="text-xs text-gray-400 italic">{t('none')}</div>
               ) : (
                 members.map((m) => <StaffCard key={m.userId} member={m} />)
               )}

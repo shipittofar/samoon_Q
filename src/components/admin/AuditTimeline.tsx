@@ -1,12 +1,19 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import type { AuditLog, AuditTimelineItem, AuditSeverity } from '@/types/audit-log'
 
 const SEVERITY_STYLES: Record<AuditSeverity, string> = {
   info:     'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
   warning:  'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
   critical: 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+}
+
+const SEVERITY_KEY: Record<AuditSeverity, string> = {
+  info: 'severityInfo',
+  warning: 'severityWarning',
+  critical: 'priorityCritical',
 }
 
 const SEVERITY_DOT: Record<AuditSeverity, string> = {
@@ -20,6 +27,7 @@ interface AuditLogEntryProps {
 }
 
 function AuditLogEntry({ log }: AuditLogEntryProps) {
+  const t = useTranslations('console')
   const changedFields = log.changeset.changedFields ?? []
   return (
     <div className="flex gap-3 group">
@@ -33,7 +41,7 @@ function AuditLogEntry({ log }: AuditLogEntryProps) {
       <div className="pb-5 flex-1 min-w-0">
         <div className="flex items-start gap-2 flex-wrap">
           <span className={`px-2 py-0.5 rounded text-xs font-semibold ${SEVERITY_STYLES[log.severity]}`}>
-            {log.severity}
+            {t(SEVERITY_KEY[log.severity])}
           </span>
           <span className="text-xs font-mono text-[var(--fg-muted)] bg-[var(--card-hover)] px-1.5 py-0.5 rounded">
             {log.action}
@@ -53,11 +61,11 @@ function AuditLogEntry({ log }: AuditLogEntryProps) {
 
         <div className="mt-0.5 flex items-center gap-2 flex-wrap">
           <span className="text-xs text-[var(--fg-muted)]">
-            Target: <span className="font-medium text-[var(--fg)]">{log.target.displayName}</span>
+            {t('targetLabel')} <span className="font-medium text-[var(--fg)]">{log.target.displayName}</span>
           </span>
           {changedFields.length > 0 && (
             <span className="text-xs text-[var(--fg-muted)]">
-              Changed: {changedFields.join(', ')}
+              {t('changedLabel', { fields: changedFields.join(', ') })}
             </span>
           )}
           <span className="text-xs text-[var(--fg-subtle)]">
@@ -80,7 +88,8 @@ interface AuditTimelineProps {
   emptyMessage?: string
 }
 
-export function AuditTimeline({ items, isLoading = false, emptyMessage = 'No audit events found.' }: AuditTimelineProps) {
+export function AuditTimeline({ items, isLoading = false, emptyMessage }: AuditTimelineProps) {
+  const t = useTranslations('console')
   const totalEvents = useMemo(() => items.reduce((n, g) => n + g.events.length, 0), [items])
 
   if (isLoading) {
@@ -102,7 +111,7 @@ export function AuditTimeline({ items, isLoading = false, emptyMessage = 'No aud
   if (totalEvents === 0) {
     return (
       <div className="py-12 text-center text-[var(--fg-muted)] text-sm">
-        {emptyMessage}
+        {emptyMessage ?? t('noAuditEventsFound')}
       </div>
     )
   }
@@ -113,7 +122,7 @@ export function AuditTimeline({ items, isLoading = false, emptyMessage = 'No aud
         <div key={group.date}>
           <h3 className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider mb-3">
             {new Date(group.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            <span className="ml-2 normal-case font-normal">({group.events.length} events)</span>
+            <span className="ml-2 normal-case font-normal">{t('eventsCountParen', { count: group.events.length })}</span>
           </h3>
           <div>
             {group.events.map((log) => (

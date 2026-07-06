@@ -2,18 +2,9 @@
 
 import { useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useExportAnalytics } from '@/hooks'
 import type { ExportDomain, ExportFormat } from '@/hooks'
-
-const DOMAIN_LABELS: Record<ExportDomain, string> = {
-  summary:      'Analytics Summary',
-  revenue:      'Revenue',
-  reservations: 'Reservations',
-  loyalty:      'Loyalty',
-  promotions:   'Promotions',
-  vendors:      'Vendors',
-  menu:         'Menu Performance',
-}
 
 const DOMAINS: ExportDomain[] = ['summary', 'revenue', 'reservations', 'loyalty', 'promotions', 'vendors', 'menu']
 
@@ -22,6 +13,7 @@ interface AnalyticsExportProps {
 }
 
 export function AnalyticsExport({ className }: AnalyticsExportProps) {
+  const t = useTranslations('console')
   const [domain, setDomain] = useState<ExportDomain>('summary')
   const [format, setFormat] = useState<ExportFormat>('csv')
   const { mutate: exportData, isPending } = useExportAnalytics()
@@ -34,7 +26,7 @@ export function AnalyticsExport({ className }: AnalyticsExportProps) {
         className="text-sm border rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {DOMAINS.map((d) => (
-          <option key={d} value={d}>{DOMAIN_LABELS[d]}</option>
+          <option key={d} value={d}>{t(`exportDomains.${d}`)}</option>
         ))}
       </select>
 
@@ -58,7 +50,7 @@ export function AnalyticsExport({ className }: AnalyticsExportProps) {
         ) : (
           <Download className="w-3.5 h-3.5" />
         )}
-        Export
+        {t('export')}
       </button>
     </div>
   )
