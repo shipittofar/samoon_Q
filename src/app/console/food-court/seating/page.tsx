@@ -1,18 +1,20 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
 export default function FoodCourtSeatingPage() {
+  const t = useTranslations('console')
   return (
     <ErrorBoundary feature="Food Court Seating Management">
       <PermissionGuard permission="operations.view" fallback={<AccessDenied />}>
         <main className="p-6 max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold mb-2">Seating Management</h1>
-          <p className="text-gray-500 text-sm">Configure seating zones, capacity, and table assignments for food court tenants.</p>
+          <h1 className="text-2xl font-bold mb-2">{t('seatingManagement')}</h1>
+          <p className="text-gray-500 text-sm">{t('seatingManagementDescription')}</p>
           <div className="mt-8 rounded-lg border border-dashed border-gray-300 p-12 text-center text-gray-400">
-            Coming soon
+            {t('comingSoon')}
           </div>
         </main>
       </PermissionGuard>

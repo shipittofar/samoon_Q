@@ -2,6 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   ArrowLeft,
   Package,
@@ -22,23 +23,34 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { formatCurrency } from '@/utils'
 import { useOrder } from '@/hooks'
-import type { OrderStatus, OrderStatusHistory } from '@/types'
+import type { OrderStatus, OrderStatusHistory, OrderType, PaymentMethod, PaymentStatus } from '@/types'
 
 const STATUS_CONFIG: Record<
   OrderStatus,
-  { label: string; icon: React.ElementType; badge: 'warning' | 'info' | 'purple' | 'success' | 'danger' | 'secondary' }
+  { labelKey: string; icon: React.ElementType; badge: 'warning' | 'info' | 'purple' | 'success' | 'danger' | 'secondary' }
 > = {
-  pending:   { label: 'Pending',   icon: Clock,        badge: 'warning'   },
-  accepted:  { label: 'Accepted',  icon: CheckCircle,  badge: 'info'      },
-  preparing: { label: 'Preparing', icon: ChefHat,      badge: 'purple'    },
-  ready:     { label: 'Ready',     icon: Package,      badge: 'success'   },
-  delivered: { label: 'Delivered', icon: Truck,        badge: 'success'   },
-  cancelled: { label: 'Cancelled', icon: XCircle,      badge: 'danger'    },
+  pending:   { labelKey: 'pending',   icon: Clock,        badge: 'warning'   },
+  accepted:  { labelKey: 'accepted',  icon: CheckCircle,  badge: 'info'      },
+  preparing: { labelKey: 'preparing', icon: ChefHat,      badge: 'purple'    },
+  ready:     { labelKey: 'ready',     icon: Package,      badge: 'success'   },
+  delivered: { labelKey: 'delivered', icon: Truck,        badge: 'success'   },
+  cancelled: { labelKey: 'cancelled', icon: XCircle,      badge: 'danger'    },
+}
+
+const ORDER_TYPE_KEY: Record<OrderType, string> = { delivery: 'delivery', pickup: 'pickup', dine_in: 'dineIn' }
+const PAYMENT_METHOD_KEY: Record<PaymentMethod, string> = { card: 'card', cash: 'cash', online: 'online', wallet: 'wallet' }
+const PAYMENT_STATUS_KEY: Record<PaymentStatus, string> = {
+  pending: 'paymentStatusPending',
+  paid: 'paymentStatusPaid',
+  failed: 'paymentStatusFailed',
+  refunded: 'paymentStatusRefunded',
 }
 
 function TimelineItem({ entry, isLast }: { entry: OrderStatusHistory; isLast: boolean }) {
-  const cfg = STATUS_CONFIG[entry.status] ?? { label: entry.status, icon: Clock, badge: 'secondary' as const }
-  const Icon = cfg.icon
+  const tOrder = useTranslations('order')
+  const cfg = STATUS_CONFIG[entry.status]
+  const label = cfg ? tOrder(`status.${cfg.labelKey}`) : entry.status
+  const Icon = cfg?.icon ?? Clock
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
@@ -48,7 +60,7 @@ function TimelineItem({ entry, isLast }: { entry: OrderStatusHistory; isLast: bo
         {!isLast && <div className="w-px flex-1 bg-gray-200 my-1" />}
       </div>
       <div className="pb-4">
-        <div className="font-medium text-sm">{cfg.label}</div>
+        <div className="font-medium text-sm">{label}</div>
         <div className="text-xs text-gray-500">{new Date(entry.timestamp).toLocaleString()}</div>
         {entry.note && <div className="text-xs text-gray-600 mt-1">{entry.note}</div>}
       </div>
@@ -75,12 +87,15 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function OrderDetailContent({ id }: { id: string }) {
+  const t = useTranslations('console')
+  const tOrder = useTranslations('order')
+  const tCheckout = useTranslations('checkout')
   const { data: order, isLoading, isError } = useOrder(id)
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
-        Loading order…
+        {t('loadingOrder')}
       </div>
     )
   }
@@ -89,15 +104,16 @@ function OrderDetailContent({ id }: { id: string }) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-2">
         <XCircle className="w-8 h-8 text-red-400" />
-        <p className="text-sm text-gray-600">Order not found or failed to load.</p>
+        <p className="text-sm text-gray-600">{t('orderNotFoundOrFailedToLoad')}</p>
         <Link href="/console/orders" className="text-sm text-blue-600 hover:underline">
-          Back to orders
+          {t('backToOrders')}
         </Link>
       </div>
     )
   }
 
-  const statusCfg = STATUS_CONFIG[order.status] ?? { label: order.status, badge: 'secondary' as const }
+  const statusCfg = STATUS_CONFIG[order.status]
+  const statusLabel = statusCfg ? tOrder(`status.${statusCfg.labelKey}`) : order.status
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -108,8 +124,8 @@ function OrderDetailContent({ id }: { id: string }) {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex items-center gap-3 flex-1">
-            <h1 className="text-lg font-semibold">Order #{order.order_number}</h1>
-            <Badge variant={statusCfg.badge}>{statusCfg.label}</Badge>
+            <h1 className="text-lg font-semibold">{t('orderNumberHeading', { number: order.order_number })}</h1>
+            <Badge variant={statusCfg?.badge ?? 'secondary'}>{statusLabel}</Badge>
           </div>
           <span className="text-xs text-gray-400">{new Date(order.created_at).toLocaleString()}</span>
         </div>
@@ -117,24 +133,24 @@ function OrderDetailContent({ id }: { id: string }) {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
         {/* Summary */}
-        <Section title="Order Summary">
-          <Row label="Order Number" value={`#${order.order_number}`} />
-          <Row label="Order Type" value={<span className="capitalize">{order.order_type.replace('_', ' ')}</span>} />
-          <Row label="Branch" value={order.branch?.name ?? order.branch_id} />
-          {order.table_number != null && <Row label="Table" value={order.table_number} />}
-          <Row label="Created" value={new Date(order.created_at).toLocaleString()} />
-          <Row label="Updated" value={new Date(order.updated_at).toLocaleString()} />
-          {order.estimated_time != null && <Row label="Est. Prep Time" value={`${order.estimated_time} min`} />}
-          {order.notes && <Row label="Notes" value={order.notes} />}
+        <Section title={t('orderSummary')}>
+          <Row label={t('tableHeaders.order')} value={`#${order.order_number}`} />
+          <Row label={t('orderType')} value={<span className="capitalize">{tCheckout(ORDER_TYPE_KEY[order.order_type])}</span>} />
+          <Row label={t('breadcrumbs.branches')} value={order.branch?.name ?? order.branch_id} />
+          {order.table_number != null && <Row label={t('table')} value={order.table_number} />}
+          <Row label={t('created')} value={new Date(order.created_at).toLocaleString()} />
+          <Row label={t('updated')} value={new Date(order.updated_at).toLocaleString()} />
+          {order.estimated_time != null && <Row label={t('estPrepTime')} value={t('minutesShort', { minutes: order.estimated_time })} />}
+          {order.notes && <Row label={t('notes')} value={order.notes} />}
         </Section>
 
         {/* Items */}
-        <Section title="Items">
+        <Section title={t('tableHeaders.items')}>
           <div className="space-y-2">
             {order.items.map((item, i) => (
               <div key={i} className="flex justify-between text-sm py-1.5 border-b last:border-0">
                 <div>
-                  <span className="font-medium">{item.menu_item?.name ?? 'Item'}</span>
+                  <span className="font-medium">{item.menu_item?.name ?? t('item')}</span>
                   <span className="text-gray-400 ml-2">× {item.quantity}</span>
                   {item.notes && (
                     <div className="text-xs text-gray-500 mt-0.5">{item.notes}</div>
@@ -146,31 +162,31 @@ function OrderDetailContent({ id }: { id: string }) {
           </div>
           <div className="mt-3 space-y-1 text-sm">
             <div className="flex justify-between text-gray-500">
-              <span>Subtotal</span><span>{formatCurrency(order.subtotal)}</span>
+              <span>{t('subtotal')}</span><span>{formatCurrency(order.subtotal)}</span>
             </div>
             {order.discount_amount > 0 && (
               <div className="flex justify-between text-green-600">
-                <span>Discount {order.discount_code ? `(${order.discount_code})` : ''}</span>
+                <span>{t('discount')} {order.discount_code ? `(${order.discount_code})` : ''}</span>
                 <span>−{formatCurrency(order.discount_amount)}</span>
               </div>
             )}
             <div className="flex justify-between text-gray-500">
-              <span>Tax</span><span>{formatCurrency(order.tax)}</span>
+              <span>{t('tax')}</span><span>{formatCurrency(order.tax)}</span>
             </div>
             {order.service_charge > 0 && (
               <div className="flex justify-between text-gray-500">
-                <span>Service Charge</span><span>{formatCurrency(order.service_charge)}</span>
+                <span>{t('serviceCharge')}</span><span>{formatCurrency(order.service_charge)}</span>
               </div>
             )}
             <div className="flex justify-between font-semibold text-base pt-1 border-t">
-              <span>Total</span><span>{formatCurrency(order.total)}</span>
+              <span>{t('tableHeaders.total')}</span><span>{formatCurrency(order.total)}</span>
             </div>
           </div>
         </Section>
 
         {/* Customer */}
         {order.user && (
-          <Section title="Customer">
+          <Section title={t('tableHeaders.customer')}>
             <div className="flex items-start gap-3">
               <User className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
               <div className="text-sm space-y-0.5">
@@ -184,7 +200,7 @@ function OrderDetailContent({ id }: { id: string }) {
 
         {/* Delivery Address */}
         {order.delivery_address && (
-          <Section title="Delivery Address">
+          <Section title={tCheckout('deliveryAddress')}>
             <div className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
               <div className="text-sm">
@@ -198,19 +214,19 @@ function OrderDetailContent({ id }: { id: string }) {
         )}
 
         {/* Payment */}
-        <Section title="Payment">
+        <Section title={t('payment')}>
           <div className="flex items-center gap-3">
             <CreditCard className="w-5 h-5 text-gray-400 shrink-0" />
             <div className="text-sm space-y-0.5">
-              <Row label="Method" value={<span className="capitalize">{order.payment_method.replace('_', ' ')}</span>} />
-              <Row label="Status" value={<span className="capitalize">{order.payment_status.replace('_', ' ')}</span>} />
+              <Row label={t('method')} value={tCheckout(PAYMENT_METHOD_KEY[order.payment_method])} />
+              <Row label={t('tableHeaders.status')} value={t(PAYMENT_STATUS_KEY[order.payment_status])} />
             </div>
           </div>
         </Section>
 
         {/* Timeline */}
         {order.status_history.length > 0 && (
-          <Section title="Status History">
+          <Section title={t('statusHistory')}>
             <div className="mt-1">
               {order.status_history.map((entry, i) => (
                 <TimelineItem
@@ -230,7 +246,7 @@ function OrderDetailContent({ id }: { id: string }) {
             className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
           >
             <Hash className="w-3 h-3" />
-            View audit logs for this order
+            {t('viewAuditLogsForThisOrder')}
           </Link>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   ArrowLeft,
   Calendar,
@@ -24,12 +25,12 @@ import type { ReservationStatus } from '@/types'
 
 const STATUS_CONFIG: Record<
   ReservationStatus,
-  { label: string; badge: 'warning' | 'info' | 'success' | 'danger' }
+  { labelKey: string; badge: 'warning' | 'info' | 'success' | 'danger' }
 > = {
-  pending:   { label: 'Pending',   badge: 'warning' },
-  confirmed: { label: 'Confirmed', badge: 'success' },
-  cancelled: { label: 'Cancelled', badge: 'danger'  },
-  completed: { label: 'Completed', badge: 'info'    },
+  pending:   { labelKey: 'statusPending',   badge: 'warning' },
+  confirmed: { labelKey: 'statusConfirmed', badge: 'success' },
+  cancelled: { labelKey: 'statusCancelled', badge: 'danger'  },
+  completed: { labelKey: 'statusCompleted', badge: 'info'    },
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -52,13 +53,14 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
 }
 
 function ReservationDetailContent({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: reservation, isLoading, isError } = useAdminReservation(id)
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64 gap-2 text-gray-500 text-sm">
         <Loader2 className="w-4 h-4 animate-spin" />
-        Loading reservation…
+        {t('loadingReservation')}
       </div>
     )
   }
@@ -67,15 +69,16 @@ function ReservationDetailContent({ id }: { id: string }) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-2">
         <XCircle className="w-8 h-8 text-red-400" />
-        <p className="text-sm text-gray-600">Reservation not found or failed to load.</p>
+        <p className="text-sm text-gray-600">{t('reservationNotFoundOrFailedToLoad')}</p>
         <Link href="/console/reservations" className="text-sm text-blue-600 hover:underline">
-          Back to reservations
+          {t('backToReservations')}
         </Link>
       </div>
     )
   }
 
-  const statusCfg = STATUS_CONFIG[reservation.status] ?? { label: reservation.status, badge: 'info' as const }
+  const statusCfg = STATUS_CONFIG[reservation.status]
+  const statusLabel = statusCfg ? t(statusCfg.labelKey) : reservation.status
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,8 +89,8 @@ function ReservationDetailContent({ id }: { id: string }) {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex items-center gap-3 flex-1">
-            <h1 className="text-lg font-semibold">Reservation</h1>
-            <Badge variant={statusCfg.badge}>{statusCfg.label}</Badge>
+            <h1 className="text-lg font-semibold">{t('breadcrumbs.reservation')}</h1>
+            <Badge variant={statusCfg?.badge ?? 'info'}>{statusLabel}</Badge>
           </div>
           <span className="text-xs text-gray-400">{new Date(reservation.created_at).toLocaleString()}</span>
         </div>
@@ -95,30 +98,30 @@ function ReservationDetailContent({ id }: { id: string }) {
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
         {/* Booking Details */}
-        <Section title="Booking Details">
-          <InfoRow icon={Calendar} label="Date" value={reservation.date} />
-          <InfoRow icon={Clock} label="Time" value={reservation.time} />
-          <InfoRow icon={Users} label="Guests" value={reservation.guests} />
-          <InfoRow icon={Hash} label="Branch" value={reservation.branch?.name ?? reservation.branch_id} />
+        <Section title={t('bookingDetails')}>
+          <InfoRow icon={Calendar} label={t('date')} value={reservation.date} />
+          <InfoRow icon={Clock} label={t('time')} value={reservation.time} />
+          <InfoRow icon={Users} label={t('reservationTableHeaders.guests')} value={reservation.guests} />
+          <InfoRow icon={Hash} label={t('reservationTableHeaders.branch')} value={reservation.branch?.name ?? reservation.branch_id} />
           {reservation.confirmation_code && (
-            <InfoRow icon={CheckCircle} label="Confirmation" value={
+            <InfoRow icon={CheckCircle} label={t('confirmation')} value={
               <span className="font-mono text-green-700">{reservation.confirmation_code}</span>
             } />
           )}
           {reservation.notes && (
-            <InfoRow icon={Hash} label="Notes" value={reservation.notes} />
+            <InfoRow icon={Hash} label={t('notes')} value={reservation.notes} />
           )}
         </Section>
 
         {/* Guest Info */}
-        <Section title="Guest Information">
-          <InfoRow icon={User} label="Name" value={reservation.name} />
-          <InfoRow icon={Phone} label="Phone" value={reservation.phone} />
-          {reservation.email && <InfoRow icon={Mail} label="Email" value={reservation.email} />}
+        <Section title={t('guestInformation')}>
+          <InfoRow icon={User} label={t('name')} value={reservation.name} />
+          <InfoRow icon={Phone} label={t('phone')} value={reservation.phone} />
+          {reservation.email && <InfoRow icon={Mail} label={t('email')} value={reservation.email} />}
           {reservation.user && (
             <div className="mt-3 pt-3 border-t text-xs text-gray-500">
               <Link href={`/console/customers/${reservation.user.id}`} className="text-blue-600 hover:underline">
-                View customer profile →
+                {t('viewCustomerProfileArrow')}
               </Link>
             </div>
           )}
@@ -131,7 +134,7 @@ function ReservationDetailContent({ id }: { id: string }) {
             className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
           >
             <Hash className="w-3 h-3" />
-            View audit logs for this reservation
+            {t('viewAuditLogsForThisReservation')}
           </Link>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import {
   Calendar, Search, Users, Clock, Phone, Mail, Check, X,
   ChevronLeft, ChevronRight, Loader2, AlertCircle,
@@ -23,7 +24,13 @@ const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary
   confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'secondary',
 }
 
+const STATUS_KEY: Record<string, string> = {
+  confirmed: 'statusConfirmed', pending: 'statusPending', cancelled: 'statusCancelled', completed: 'statusCompleted',
+}
+
 export default function AdminReservationsPage() {
+  const t = useTranslations('console')
+  const tCommon = useTranslations('common')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<ReservationStatus | 'all'>('all')
   const [branchFilter, setBranchFilter] = useState<string>('all')
@@ -85,10 +92,10 @@ export default function AdminReservationsPage() {
           {/* Header */}
           <div className="py-6 flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">Reservations</h1>
-              <p className="text-[var(--fg-muted)] mt-1">Manage table bookings across all branches</p>
+              <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('breadcrumbs.reservations')}</h1>
+              <p className="text-[var(--fg-muted)] mt-1">{t('reservationsPageSubtitle')}</p>
             </div>
-            <PreviewButton href="/reservation" label="Preview Reservation Page" size="sm" />
+            <PreviewButton href="/reservation" label={t('previewReservationPage')} size="sm" />
             {/* Date navigator */}
             <div className="flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-xl p-1">
               <Button
@@ -112,10 +119,10 @@ export default function AdminReservationsPage() {
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
-              { label: 'Total',     value: counts.all,       color: 'text-[var(--fg)]',      bg: 'bg-[var(--card-hover)]' },
-              { label: 'Pending',   value: counts.pending,   color: 'text-amber-600',         bg: 'bg-amber-50 dark:bg-amber-950/20' },
-              { label: 'Confirmed', value: counts.confirmed, color: 'text-emerald-600',        bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
-              { label: 'Cancelled', value: counts.cancelled, color: 'text-red-500',            bg: 'bg-red-50 dark:bg-red-950/20' },
+              { label: t('totalLabel'),       value: counts.all,       color: 'text-[var(--fg)]',      bg: 'bg-[var(--card-hover)]' },
+              { label: t('statusPending'),   value: counts.pending,   color: 'text-amber-600',         bg: 'bg-amber-50 dark:bg-amber-950/20' },
+              { label: t('statusConfirmed'), value: counts.confirmed, color: 'text-emerald-600',        bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
+              { label: t('statusCancelled'), value: counts.cancelled, color: 'text-red-500',            bg: 'bg-red-50 dark:bg-red-950/20' },
             ].map(({ label, value, color, bg }) => (
               <div key={label} className={`${bg} rounded-xl p-4 border border-[var(--border)]`}>
                 <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -131,7 +138,7 @@ export default function AdminReservationsPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by name or phone…"
+                placeholder={t('searchReservationsPlaceholder')}
                 className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
               />
             </div>
@@ -140,9 +147,9 @@ export default function AdminReservationsPage() {
                 value={branchFilter}
                 onChange={(e) => setBranchFilter(e.target.value)}
                 className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
-                aria-label="Filter by branch"
+                aria-label={t('filterByBranchAria')}
               >
-                <option value="all">All Branches</option>
+                <option value="all">{t('allBranches')}</option>
                 {adminBranches.map((b) => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
@@ -155,7 +162,7 @@ export default function AdminReservationsPage() {
                   onClick={() => setStatusFilter(s)}
                   className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all capitalize ${statusFilter === s ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
                 >
-                  {s === 'all' ? 'All' : s}
+                  {s === 'all' ? t('allStatuses') : t(STATUS_KEY[s])}
                 </button>
               ))}
             </div>
@@ -165,7 +172,7 @@ export default function AdminReservationsPage() {
           {isLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm">Loading reservations…</span>
+              <span className="text-sm">{t('loadingReservations')}</span>
             </div>
           )}
 
@@ -173,8 +180,8 @@ export default function AdminReservationsPage() {
           {isError && !isLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <AlertCircle className="h-8 w-8 text-red-400" />
-              <p className="text-sm text-[var(--fg-muted)]">Failed to load reservations.</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>Retry</Button>
+              <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadReservations')}</p>
+              <Button variant="secondary" size="sm" onClick={() => refetch()}>{tCommon('retry')}</Button>
             </div>
           )}
 
@@ -188,14 +195,14 @@ export default function AdminReservationsPage() {
                       <th className="px-4 py-3 w-10">
                         <input
                           type="checkbox"
-                          aria-label="Select all reservations"
+                          aria-label={t('selectAllReservationsAria')}
                           checked={reservations.length > 0 && selectedIds.size === reservations.length}
                           onChange={toggleSelectAll}
                           className="rounded border-[var(--border)]"
                         />
                       </th>
-                      {['Guest', 'Date & Time', 'Guests', 'Branch', 'Contact', 'Notes', 'Status', 'Actions'].map((h) => (
-                        <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                      {['guest', 'dateTime', 'guests', 'branch', 'contact', 'notes', 'status', 'actions'].map((h) => (
+                        <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{t(`reservationTableHeaders.${h}`)}</th>
                       ))}
                     </tr>
                   </thead>
@@ -214,7 +221,7 @@ export default function AdminReservationsPage() {
                           <td className="px-4 py-3.5">
                             <input
                               type="checkbox"
-                              aria-label={`Select reservation for ${res.name}`}
+                              aria-label={t('selectReservationForAria', { name: res.name })}
                               checked={selectedIds.has(res.id)}
                               onChange={() => toggleSelect(res.id)}
                               className="rounded border-[var(--border)]"
@@ -255,7 +262,7 @@ export default function AdminReservationsPage() {
                           </td>
                           <td className="px-4 py-3.5">
                             <Badge variant={STATUS_BADGE[res.status] || 'secondary'} className="capitalize">
-                              {res.status}
+                              {STATUS_KEY[res.status] ? t(STATUS_KEY[res.status]) : res.status}
                             </Badge>
                           </td>
                           <td className="px-4 py-3.5">
@@ -266,7 +273,7 @@ export default function AdminReservationsPage() {
                                   onClick={() => confirmMutation.mutate(res.id)}
                                   disabled={isConfirming || isCancelling}
                                   className="bg-emerald-500 hover:bg-emerald-600"
-                                  aria-label="Confirm"
+                                  aria-label={t('confirm')}
                                 >
                                   {isConfirming
                                     ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -277,7 +284,7 @@ export default function AdminReservationsPage() {
                                   variant="destructive"
                                   onClick={() => cancelMutation.mutate(res.id)}
                                   disabled={isConfirming || isCancelling}
-                                  aria-label="Cancel"
+                                  aria-label={t('cancel')}
                                 >
                                   {isCancelling
                                     ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -296,7 +303,7 @@ export default function AdminReservationsPage() {
                 {reservations.length === 0 && (
                   <div className="py-16 text-center">
                     <Calendar className="h-10 w-10 text-[var(--fg-subtle)] mx-auto mb-3" />
-                    <p className="text-[var(--fg-muted)]">No reservations found.</p>
+                    <p className="text-[var(--fg-muted)]">{t('noReservationsFound')}</p>
                   </div>
                 )}
               </div>
@@ -310,13 +317,13 @@ export default function AdminReservationsPage() {
         onClearSelection={() => setSelectedIds(new Set())}
         actions={[
           {
-            label: 'Confirm Selected',
+            label: t('confirmSelected'),
             onClick: () => { bulkConfirm.mutate(selectedArr); setSelectedIds(new Set()) },
             variant: 'primary',
             disabled: bulkConfirm.isPending,
           },
           {
-            label: 'Cancel Selected',
+            label: t('cancelSelected'),
             onClick: () => { bulkCancelRes.mutate(selectedArr); setSelectedIds(new Set()) },
             variant: 'danger',
             disabled: bulkCancelRes.isPending,

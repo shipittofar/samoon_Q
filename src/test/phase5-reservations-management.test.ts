@@ -120,7 +120,7 @@ describe('Admin reservations page — empty state', () => {
   })
 
   it('F: empty state has user-facing message', () => {
-    expect(page).toMatch(/No reservations found/)
+    expect(page).toMatch(/t\('noReservationsFound'\)/)
   })
 })
 

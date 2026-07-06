@@ -3,13 +3,14 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Package, Clock, ChefHat, CheckCircle, Truck, XCircle, RefreshCw, AlertCircle, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatRelativeTime } from '@/utils'
 import { cn } from '@/utils'
 import { useAdminOrders, useUpdateOrderStatus, useAdminBranches, useBulkUpdateOrderStatus, useBulkCancelOrders } from '@/hooks'
 import { useTenantStore } from '@/stores'
-import type { Order, OrderStatus } from '@/types'
+import type { Order, OrderStatus, OrderType } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -18,18 +19,24 @@ import { PreviewButton } from '@/components/admin/PreviewButton'
 
 
 const STATUS_CONFIG: Record<OrderStatus, {
-  label: string
+  labelKey: string
   icon: React.ElementType
   color: string
   bg: string
   badge: 'warning' | 'info' | 'purple' | 'success' | 'danger' | 'secondary'
 }> = {
-  pending:   { label: 'Pending',   icon: Clock,        color: 'text-amber-500',   bg: 'bg-amber-50 dark:bg-amber-950/30',    badge: 'warning'   },
-  accepted:  { label: 'Accepted',  icon: CheckCircle,  color: 'text-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/30',      badge: 'info'      },
-  preparing: { label: 'Preparing', icon: ChefHat,      color: 'text-purple-500',  bg: 'bg-purple-50 dark:bg-purple-950/30',  badge: 'purple'    },
-  ready:     { label: 'Ready',     icon: Package,      color: 'text-green-500',   bg: 'bg-green-50 dark:bg-green-950/30',    badge: 'success'   },
-  delivered: { label: 'Delivered', icon: Truck,        color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', badge: 'success'  },
-  cancelled: { label: 'Cancelled', icon: XCircle,      color: 'text-red-500',     bg: 'bg-red-50 dark:bg-red-950/30',        badge: 'danger'    },
+  pending:   { labelKey: 'pending',   icon: Clock,        color: 'text-amber-500',   bg: 'bg-amber-50 dark:bg-amber-950/30',    badge: 'warning'   },
+  accepted:  { labelKey: 'accepted',  icon: CheckCircle,  color: 'text-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/30',      badge: 'info'      },
+  preparing: { labelKey: 'preparing', icon: ChefHat,      color: 'text-purple-500',  bg: 'bg-purple-50 dark:bg-purple-950/30',  badge: 'purple'    },
+  ready:     { labelKey: 'ready',     icon: Package,      color: 'text-green-500',   bg: 'bg-green-50 dark:bg-green-950/30',    badge: 'success'   },
+  delivered: { labelKey: 'delivered', icon: Truck,        color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', badge: 'success'  },
+  cancelled: { labelKey: 'cancelled', icon: XCircle,      color: 'text-red-500',     bg: 'bg-red-50 dark:bg-red-950/30',        badge: 'danger'    },
+}
+
+const ORDER_TYPE_KEY: Record<OrderType, string> = {
+  delivery: 'delivery',
+  pickup: 'pickup',
+  dine_in: 'dineIn',
 }
 
 const STATUS_NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
@@ -46,6 +53,10 @@ function orderItemNames(order: Order): string[] {
 }
 
 export default function AdminOrdersPage() {
+  const t = useTranslations('console')
+  const tOrder = useTranslations('order')
+  const tCheckout = useTranslations('checkout')
+  const tCommon = useTranslations('common')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [search, setSearch] = useState('')
   const [branchFilter, setBranchFilter] = useState<string>('all')
@@ -103,20 +114,20 @@ export default function AdminOrdersPage() {
           <div className="py-6 flex items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">Orders</h1>
-                <Badge variant="default">Live</Badge>
+                <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('breadcrumbs.orders')}</h1>
+                <Badge variant="default">{t('connectionLive')}</Badge>
               </div>
-              <p className="text-[var(--fg-muted)] mt-1">Manage and update incoming orders in real-time</p>
+              <p className="text-[var(--fg-muted)] mt-1">{t('ordersPageSubtitle')}</p>
             </div>
             <div className="flex items-center gap-2">
-              <PreviewButton href="/menu" label="Preview Menu" size="sm" />
+              <PreviewButton href="/menu" label={t('previewMenu')} size="sm" />
               <Button
                 variant="secondary"
                 size="sm"
                 leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
                 onClick={() => refetch()}
               >
-                Refresh
+                {t('refresh')}
               </Button>
             </div>
           </div>
@@ -136,7 +147,7 @@ export default function AdminOrdersPage() {
               >
                 <cfg.icon className={cn('h-4 w-4', cfg.color)} />
                 <span className="text-xs font-semibold text-[var(--fg)]">{statusCounts[status] ?? 0}</span>
-                <span className="text-[10px] text-[var(--fg-muted)]">{cfg.label}</span>
+                <span className="text-[10px] text-[var(--fg-muted)]">{tOrder(`status.${cfg.labelKey}`)}</span>
               </button>
             ))}
           </div>
@@ -148,7 +159,7 @@ export default function AdminOrdersPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by order # or customer name…"
+                placeholder={t('searchOrdersPlaceholder')}
                 className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
               />
             </div>
@@ -157,9 +168,9 @@ export default function AdminOrdersPage() {
                 value={branchFilter}
                 onChange={(e) => setBranchFilter(e.target.value)}
                 className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
-                aria-label="Filter by branch"
+                aria-label={t('filterByBranchAria')}
               >
-                <option value="all">All Branches</option>
+                <option value="all">{t('allBranches')}</option>
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
@@ -171,7 +182,7 @@ export default function AdminOrdersPage() {
           {isLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm">Loading orders…</span>
+              <span className="text-sm">{t('loadingOrders')}</span>
             </div>
           )}
 
@@ -179,8 +190,8 @@ export default function AdminOrdersPage() {
           {isError && !isLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <AlertCircle className="h-8 w-8 text-red-400" />
-              <p className="text-sm">Failed to load orders.</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>Retry</Button>
+              <p className="text-sm">{t('failedToLoadOrders')}</p>
+              <Button variant="secondary" size="sm" onClick={() => refetch()}>{tCommon('retry')}</Button>
             </div>
           )}
 
@@ -194,14 +205,14 @@ export default function AdminOrdersPage() {
                       <th className="px-4 py-3 w-10">
                         <input
                           type="checkbox"
-                          aria-label="Select all orders"
+                          aria-label={t('selectAllOrdersAria')}
                           checked={orders.length > 0 && selectedIds.size === orders.length}
                           onChange={toggleSelectAll}
                           className="rounded border-[var(--border)]"
                         />
                       </th>
-                      {['Order', 'Customer', 'Items', 'Type', 'Total', 'Status', 'Time', 'Actions'].map((h) => (
-                        <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                      {['order', 'customer', 'items', 'type', 'total', 'status', 'time', 'actions'].map((h) => (
+                        <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{t(`tableHeaders.${h}`)}</th>
                       ))}
                     </tr>
                   </thead>
@@ -221,7 +232,7 @@ export default function AdminOrdersPage() {
                           <td className="px-4 py-3.5">
                             <input
                               type="checkbox"
-                              aria-label={`Select order ${order.order_number}`}
+                              aria-label={t('selectOrderAria', { number: order.order_number })}
                               checked={selectedIds.has(order.id)}
                               onChange={() => toggleSelect(order.id)}
                               className="rounded border-[var(--border)]"
@@ -237,15 +248,15 @@ export default function AdminOrdersPage() {
                           <td className="px-4 py-3.5">
                             <Badge variant="secondary" className="capitalize text-xs">
                               {order.order_type === 'dine_in' && order.table_number
-                                ? `Table ${order.table_number}`
-                                : order.order_type.replace('_', ' ')}
+                                ? t('tableNumberLabel', { number: order.table_number })
+                                : tCheckout(ORDER_TYPE_KEY[order.order_type])}
                             </Badge>
                           </td>
                           <td className="px-4 py-3.5 font-semibold text-[var(--fg)] whitespace-nowrap">{formatCurrency(order.total)}</td>
                           <td className="px-4 py-3.5">
                             <Badge variant={cfg.badge} className="capitalize whitespace-nowrap">
                               <cfg.icon className="h-3 w-3 me-1" />
-                              {cfg.label}
+                              {tOrder(`status.${cfg.labelKey}`)}
                             </Badge>
                           </td>
                           <td className="px-4 py-3.5 text-[var(--fg-muted)] whitespace-nowrap">
@@ -262,7 +273,7 @@ export default function AdminOrdersPage() {
                               >
                                 {isPending
                                   ? <Loader2 className="h-3 w-3 animate-spin" />
-                                  : `→ ${STATUS_CONFIG[nextStatus]?.label}`}
+                                  : t('advanceToStatus', { status: tOrder(`status.${STATUS_CONFIG[nextStatus]?.labelKey}`) })}
                               </Button>
                             )}
                           </td>
@@ -276,7 +287,7 @@ export default function AdminOrdersPage() {
                 {orders.length === 0 && (
                   <div className="py-16 text-center">
                     <Package className="h-10 w-10 text-[var(--fg-subtle)] mx-auto mb-3" />
-                    <p className="text-[var(--fg-muted)]">No orders match your filter.</p>
+                    <p className="text-[var(--fg-muted)]">{t('noOrdersMatchFilter')}</p>
                   </div>
                 )}
               </div>
@@ -290,13 +301,13 @@ export default function AdminOrdersPage() {
         onClearSelection={() => setSelectedIds(new Set())}
         actions={[
           {
-            label: 'Accept Selected',
+            label: t('acceptSelected'),
             onClick: () => { bulkUpdateStatus.mutate({ ids: selectedArr, status: 'accepted' }); setSelectedIds(new Set()) },
             variant: 'primary',
             disabled: bulkUpdateStatus.isPending,
           },
           {
-            label: 'Cancel Selected',
+            label: t('cancelSelected'),
             onClick: () => { bulkCancel.mutate(selectedArr); setSelectedIds(new Set()) },
             variant: 'danger',
             disabled: bulkCancel.isPending,

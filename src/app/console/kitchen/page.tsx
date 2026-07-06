@@ -1,6 +1,7 @@
 'use client'
 
 import { use, useState, useEffect, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { KitchenDisplay } from '@/components/admin/KitchenDisplay'
 import { BranchSelector } from '@/components/common/BranchSelector'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -10,22 +11,24 @@ import { useTenantStore, useBranchStore } from '@/stores'
 import { Maximize2, Minimize2, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 
 const REFRESH_OPTIONS = [
-  { label: '5s',  ms: 5_000  },
-  { label: '10s', ms: 10_000 },
-  { label: '30s', ms: 30_000 },
-  { label: 'Off', ms: 0      },
+  { key: 'refresh5s',  ms: 5_000  },
+  { key: 'refresh10s', ms: 10_000 },
+  { key: 'refresh30s', ms: 30_000 },
+  { key: 'refreshOff', ms: 0      },
 ]
 
 function ConnectionStatus({ connected }: { connected: boolean }) {
+  const t = useTranslations('console')
   return (
     <div className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full ${connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
       {connected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-      {connected ? 'Live' : 'Disconnected'}
+      {connected ? t('connectionLive') : t('connectionOffline')}
     </div>
   )
 }
 
 function KitchenPageContent() {
+  const t = useTranslations('console')
   const { tenant } = useTenantStore()
   const activeBranch = useBranchStore((s) => s.activeBranch)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -72,17 +75,17 @@ function KitchenPageContent() {
         {/* Toolbar */}
         <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-[var(--fg)]">Kitchen Display</h1>
+            <h1 className="text-xl font-bold text-[var(--fg)]">{t('kitchenDisplay')}</h1>
             <ConnectionStatus connected={connected} />
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <BranchSelector />
             <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)]">
               <RefreshCw className="h-3 w-3" />
-              <span>Auto-refresh:</span>
-              {REFRESH_OPTIONS.map(({ label, ms }) => (
+              <span>{t('autoRefreshLabel')}</span>
+              {REFRESH_OPTIONS.map(({ key, ms }) => (
                 <button
-                  key={label}
+                  key={key}
                   onClick={() => setRefreshMs(ms)}
                   className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                     refreshMs === ms
@@ -90,21 +93,21 @@ function KitchenPageContent() {
                       : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)]'
                   }`}
                 >
-                  {label}
+                  {t(key)}
                 </button>
               ))}
             </div>
             <button
               onClick={refresh}
               className="p-1.5 rounded-lg border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
-              title="Refresh now"
+              title={t('refreshNow')}
             >
               <RefreshCw className="h-4 w-4" />
             </button>
             <button
               onClick={toggleFullscreen}
               className="p-1.5 rounded-lg border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
-              title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+              title={isFullscreen ? t('exitFullscreen') : t('fullscreen')}
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </button>
@@ -112,13 +115,13 @@ function KitchenPageContent() {
         </div>
 
         <p className="text-xs text-[var(--fg-muted)] mb-4">
-          Last updated: {new Date(lastRefresh).toLocaleTimeString()}
-          {activeBranch ? ` · ${activeBranch.name}` : ' · All Branches'}
+          {t('lastUpdatedLabel', { time: new Date(lastRefresh).toLocaleTimeString() })}
+          {activeBranch ? ` · ${activeBranch.name}` : ` · ${t('allBranches')}`}
         </p>
 
         {!branchId ? (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 text-center">
-            <p className="text-sm text-[var(--fg-muted)]">Select a branch to view kitchen queue.</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('selectBranchToViewKitchenQueue')}</p>
           </div>
         ) : (
           /* key={tick} forces remount on manual refresh */

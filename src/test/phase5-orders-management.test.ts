@@ -156,7 +156,7 @@ describe('Admin orders page — empty state', () => {
   })
 
   it('G: empty state has user-facing message', () => {
-    expect(page).toMatch(/No orders/)
+    expect(page).toMatch(/t\('noOrdersMatchFilter'\)/)
   })
 })
 

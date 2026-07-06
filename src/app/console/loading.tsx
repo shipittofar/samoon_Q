@@ -1,6 +1,8 @@
+import { getTranslations } from 'next-intl/server'
 import { SkeletonCard } from '@/components/ui/Skeleton'
 
-export default function AdminLoading() {
+export default async function AdminLoading() {
+  const t = await getTranslations('console')
   return (
     <div className="min-h-screen pt-32 px-4 max-w-7xl mx-auto">
       <div className="mb-6 space-y-2">
@@ -19,7 +21,7 @@ export default function AdminLoading() {
         <SkeletonCard showImage={false} bodyLines={5} />
         <SkeletonCard showImage={false} bodyLines={5} />
       </div>
-      <span className="sr-only" role="status" aria-live="polite">Loading admin page…</span>
+      <span className="sr-only" role="status" aria-live="polite">{t('loadingAdminPage')}</span>
     </div>
   )
 }
