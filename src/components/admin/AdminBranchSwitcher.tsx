@@ -13,6 +13,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Building2, GitBranch, Check, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { useTenantStore, useBranchStore } from '@/stores'
 import { useAdminBranches } from '@/hooks'
@@ -20,6 +21,7 @@ import type { Branch as AdminBranch } from '@/types/branch'
 import { useQueryClient } from '@tanstack/react-query'
 
 export function AdminBranchSwitcher() {
+  const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { adminActiveBranch, setAdminActiveBranch } = useBranchStore()
   const { data: branches = [], isLoading } = useAdminBranches(tenant?.id ?? '')
@@ -83,13 +85,13 @@ export function AdminBranchSwitcher() {
         )}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Switch branch"
+        aria-label={t('switchBranchAria')}
       >
         <GitBranch className="h-3.5 w-3.5 shrink-0 text-orange-500" />
         {isLoading ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
-          <span className="truncate max-w-[120px]">{activeBranch?.name ?? 'Select branch'}</span>
+          <span className="truncate max-w-[120px]">{activeBranch?.name ?? t('selectBranch')}</span>
         )}
         <ChevronDown className={cn('h-3 w-3 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
@@ -98,7 +100,7 @@ export function AdminBranchSwitcher() {
       {open && (
         <div
           role="listbox"
-          aria-label="Branches"
+          aria-label={t('breadcrumbs.branches')}
           className={cn(
             'absolute top-full left-0 z-50 mt-1 min-w-[220px] rounded-xl border border-[var(--border)]',
             'bg-[var(--card)] shadow-lg py-1',

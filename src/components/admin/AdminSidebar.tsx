@@ -15,6 +15,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   X,
   LayoutDashboard,
@@ -83,21 +84,22 @@ const ICON_MAP: Record<string, React.ElementType> = {
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
-  { label: 'New Menu Item', href: '/console/menu', icon: UtensilsCrossed },
-  { label: 'New Promotion', href: '/console/promotions', icon: Tag },
-  { label: 'New Reservation', href: '/console/reservations', icon: CalendarDays },
-  { label: 'Invite Staff', href: '/console/staff', icon: Users },
+  { key: 'newMenuItem', href: '/console/menu', icon: UtensilsCrossed },
+  { key: 'newPromotion', href: '/console/promotions', icon: Tag },
+  { key: 'newReservation', href: '/console/reservations', icon: CalendarDays },
+  { key: 'inviteStaff', href: '/console/staff', icon: Users },
 ] as const
 
 function QuickActions({ onClose }: { onClose: () => void }) {
+  const t = useTranslations('console')
   return (
     <div className="shrink-0 border-t border-[var(--border)] px-2 pt-2 pb-1">
       <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)] opacity-60 select-none flex items-center gap-1">
         <Zap className="h-3 w-3" />
-        Quick Actions
+        {t('quickActions')}
       </p>
       <div className="grid grid-cols-2 gap-1">
-        {QUICK_ACTIONS.map(({ label, href, icon: Icon }) => (
+        {QUICK_ACTIONS.map(({ key, href, icon: Icon }) => (
           <a
             key={href}
             href={href}
@@ -105,7 +107,7 @@ function QuickActions({ onClose }: { onClose: () => void }) {
             className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors min-h-[36px] border border-[var(--border)] border-dashed"
           >
             <Plus className="h-3 w-3 shrink-0 text-orange-500" />
-            <span className="truncate leading-tight">{label}</span>
+            <span className="truncate leading-tight">{t(`quickActionItems.${key}`)}</span>
           </a>
         ))}
       </div>
@@ -166,6 +168,7 @@ export interface AdminSidebarProps {
 export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const t = useTranslations('console')
   const navItems = useAdminModuleNav()
   const { mutate: logout, isPending: isLoggingOut } = useLogout()
   const sidebarRef = useRef<HTMLElement>(null)
@@ -223,14 +226,14 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           'fixed inset-y-0 start-0 z-40 flex w-60 flex-col bg-[var(--card)] border-e border-[var(--border)] pt-16 transition-transform duration-300 lg:static lg:translate-x-0 lg:z-auto lg:shrink-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
-        aria-label="Admin navigation"
+        aria-label={t('adminNavigationAria')}
       >
         {/* Header: identity */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] shrink-0 gap-2">
           <div className="flex flex-col gap-1 min-w-0">
             <span className="flex items-center gap-2 text-sm font-semibold text-[var(--fg)]">
               <LayoutDashboard className="h-4 w-4 text-orange-500 shrink-0" />
-              Admin Panel
+              {t('adminPanel')}
             </span>
             <RoleChip />
           </div>
@@ -239,14 +242,14 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
             size="icon-sm"
             onClick={onClose}
             className="lg:hidden shrink-0"
-            aria-label="Close sidebar"
+            aria-label={t('closeSidebarAria')}
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-2" role="navigation" aria-label="Admin menu">
+        <nav className="flex-1 overflow-y-auto py-2" role="navigation" aria-label={t('adminMenuAria')}>
           {/* Customer Dashboard shortcut */}
           <div className="px-2 mb-1">
             <Link
@@ -261,7 +264,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
               )}
             >
               <Home className="h-4 w-4 shrink-0" />
-              <span>Customer Dashboard</span>
+              <span>{t('customerDashboard')}</span>
             </Link>
           </div>
 
@@ -311,10 +314,10 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           <Link
             href="/"
             className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-all duration-150 min-h-[44px]"
-            aria-label="Return to the customer-facing public website"
+            aria-label={t('returnToPublicWebsiteAria')}
           >
             <Home className="h-4 w-4 shrink-0 text-orange-500" />
-            <span>Back to Public Site</span>
+            <span>{t('backToPublicSite')}</span>
           </Link>
           <button
             type="button"
@@ -323,7 +326,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
             className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-150 disabled:opacity-50 min-h-[44px]"
           >
             <LogOut className="h-4 w-4 shrink-0" />
-            <span>Log Out</span>
+            <span>{t('logOut')}</span>
           </button>
         </div>
       </aside>

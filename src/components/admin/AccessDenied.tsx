@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useAuthStore } from '@/stores'
 import { resolveWorkspace } from '@/utils/navigation-intelligence'
 
@@ -9,6 +10,7 @@ interface AccessDeniedProps {
 }
 
 export function AccessDenied({ resource }: AccessDeniedProps) {
+  const t = useTranslations('console')
   const user = useAuthStore((s) => s.user)
   const primaryRole = user?.role ?? 'customer'
   const workspace = resolveWorkspace(primaryRole)
@@ -32,18 +34,18 @@ export function AccessDenied({ resource }: AccessDeniedProps) {
         </svg>
       </div>
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Access denied</h2>
+        <h2 className="text-xl font-semibold text-gray-900">{t('accessDenied')}</h2>
         <p className="mt-1 text-sm text-gray-500">
           {resource
-            ? `You don't have permission to access ${resource}.`
-            : "You don't have permission to view this page."}
+            ? t('noPermissionToAccessResource', { resource })
+            : t('noPermissionToViewPage')}
         </p>
       </div>
       <Link
         href={workspace}
         className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
       >
-        Go to My Workspace
+        {t('goToMyWorkspace')}
       </Link>
     </div>
   )

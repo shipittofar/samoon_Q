@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import { Menu } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { AdminBreadcrumbs } from '@/components/admin/AdminBreadcrumbs'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
@@ -21,6 +22,7 @@ import { Button } from '@/components/ui/Button'
  */
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const t = useTranslations('console')
 
   return (
     <AuthGuard requiredPermission="dashboard:access" forbiddenPath="/">
@@ -37,7 +39,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               size="icon-sm"
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden shrink-0"
-              aria-label="Open admin menu"
+              aria-label={t('openAdminMenuAria')}
               aria-expanded={sidebarOpen}
               aria-controls="admin-sidebar"
             >

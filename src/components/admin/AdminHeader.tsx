@@ -15,6 +15,7 @@
 
 import Link from 'next/link'
 import { ExternalLink, Sun, Moon, Monitor } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useAuthStore, useThemeStore, useTenantStore } from '@/stores'
 import { Avatar } from '@/components/ui'
 import { cn } from '@/utils'
@@ -25,6 +26,8 @@ export function AdminHeader() {
   const user = useAuthStore((s) => s.user)
   const { theme, setTheme } = useThemeStore()
   const tenant = useTenantStore((s) => s.tenant)
+  const t = useTranslations('console')
+  const tHeader = useTranslations('header')
 
   const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
   const ThemeIcon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor
@@ -36,7 +39,7 @@ export function AdminHeader() {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
       >
-        Skip to main content
+        {tHeader('skipToMainContent')}
       </a>
 
       <header
@@ -49,7 +52,7 @@ export function AdminHeader() {
             <Link
               href="/console"
               className="flex items-center gap-2 group"
-              aria-label={`${tenant?.name ?? 'Savor'} Admin — go to admin console`}
+              aria-label={t('adminConsoleLinkAria', { name: tenant?.name ?? 'Savor' })}
             >
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
                 <span className="text-white text-sm font-bold">S</span>
@@ -59,7 +62,7 @@ export function AdminHeader() {
                   {tenant?.name ?? 'Savor'}
                 </span>
                 <span className="text-[10px] font-medium text-[var(--fg-muted)] uppercase tracking-wider">
-                  Admin
+                  {t('admin')}
                 </span>
               </div>
             </Link>
@@ -67,9 +70,9 @@ export function AdminHeader() {
             {IS_MOCK && (
               <span
                 className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
-                title="Mock mode: no real backend calls are made"
+                title={t('mockModeTitle')}
               >
-                Mock
+                {t('mockBadge')}
               </span>
             )}
           </div>
@@ -81,7 +84,7 @@ export function AdminHeader() {
               type="button"
               onClick={() => setTheme(nextTheme)}
               className="h-9 w-9 flex items-center justify-center rounded-xl text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label={`Switch to ${nextTheme} theme`}
+              aria-label={t('switchToThemeAria', { theme: nextTheme })}
             >
               <ThemeIcon className="h-4 w-4" />
             </button>
@@ -90,10 +93,10 @@ export function AdminHeader() {
             <Link
               href={tenant?.slug ? `/${tenant.slug}` : '/'}
               className="hidden sm:flex h-9 items-center gap-1.5 px-3 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label={tenant?.name ? `View ${tenant.name} public site` : 'Open public-facing website'}
+              aria-label={tenant?.name ? t('viewPublicSiteAria', { name: tenant.name }) : t('openPublicWebsiteAria')}
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">Public Site</span>
+              <span className="hidden md:inline">{t('publicSite')}</span>
             </Link>
 
             {/* User chip */}

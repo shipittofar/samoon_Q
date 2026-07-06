@@ -11,6 +11,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Layers, Check, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { useTenantStore, useBranchStore, useCartStore, useDineInStore, useFavoritesStore, useRecentlyViewedStore, useRbacStore, useAuthStore } from '@/stores'
 import { useTenants, usePermission } from '@/hooks'
@@ -27,6 +28,7 @@ const STATUS_DOT: Record<string, string> = {
 }
 
 export function AdminTenantSwitcher() {
+  const t = useTranslations('console')
   const canViewTenants = usePermission('tenant.view')
   const tenant = useTenantStore((s) => s.tenant)
   const loadTenant = useTenantStore((s) => s.loadTenant)
@@ -100,13 +102,13 @@ export function AdminTenantSwitcher() {
         )}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Switch tenant"
+        aria-label={t('switchTenantAria')}
       >
         <Layers className="h-3.5 w-3.5 shrink-0 text-orange-500" />
         {switching ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
-          <span className="truncate max-w-[120px]">{tenant?.name ?? 'Select tenant'}</span>
+          <span className="truncate max-w-[120px]">{tenant?.name ?? t('selectTenant')}</span>
         )}
         <ChevronDown className={cn('h-3 w-3 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
@@ -114,14 +116,14 @@ export function AdminTenantSwitcher() {
       {open && (
         <div
           role="listbox"
-          aria-label="Tenants"
+          aria-label={t('breadcrumbs.tenants')}
           className={cn(
             'absolute top-full left-0 z-50 mt-1 min-w-[220px] rounded-xl border border-[var(--border)]',
             'bg-[var(--card)] shadow-lg py-1',
           )}
         >
           <p className="px-3 py-1.5 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide">
-            Platform Tenants
+            {t('platformTenants')}
           </p>
           {tenants.map((t) => {
             const isActive = t.id === tenant?.id
