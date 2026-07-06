@@ -26,7 +26,10 @@
     "showPassword": "نمایش رمز عبور",
     "hidePassword": "پنهان کردن رمز عبور",
     "termsOfService": "شرایط استفاده",
-    "privacyPolicy": "حریم خصوصی"
+    "privacyPolicy": "حریم خصوصی",
+    "capabilityNotAvailableAria": "{capability} در دسترس نیست",
+    "featureNotAvailable": "این ویژگی در دسترس نیست",
+    "capabilityNotEnabled": "قابلیت {capability} برای طرح فعلی شما فعال نیست. برای فعال‌سازی آن با مدیر خود تماس بگیرید."
   },
   "nav": {
     "menu": "منو",
@@ -186,7 +189,13 @@
     "noReviewsYet": "هنوز نظری ثبت نشده. اولین نفر باشید!",
     "decreaseQuantity": "کاهش تعداد",
     "increaseQuantity": "افزایش تعداد",
-    "addToCartWithPrice": "افزودن به سبد · {price}"
+    "addToCartWithPrice": "افزودن به سبد · {price}",
+    "unavailableShort": "ناموجود",
+    "ratingCountShort": "({count})",
+    "prepTimeApprox": "~{min} دقیقه",
+    "add": "افزودن",
+    "added": "افزوده شد!",
+    "loadingMenuAria": "در حال بارگذاری منو"
   },
   "cart": {
     "title": "سبد خرید",
@@ -265,7 +274,13 @@
     "emptyCartDesc": "قبل از تکمیل خرید، غذاهایی اضافه کنید.",
     "couldNotInitPayment": "راه‌اندازی پرداخت ممکن نشد. دوباره تلاش کنید.",
     "orderPlacedSuccess": "سفارش با موفقیت ثبت شد! 🎉",
-    "orderPlaceFailed": "ثبت سفارش ناموفق بود. دوباره تلاش کنید."
+    "orderPlaceFailed": "ثبت سفارش ناموفق بود. دوباره تلاش کنید.",
+    "paymentFailedRetry": "پرداخت ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "paymentFailed": "پرداخت ناموفق بود.",
+    "payAmount": "پرداخت · {amount}",
+    "simulatedCardMockMode": "ورودی کارت شبیه‌سازی‌شده — حالت آزمایشی فعال است",
+    "paymentConfirmed": "پرداخت تأیید شد",
+    "paymentCouldNotBeProcessed": "پرداخت پردازش نشد"
   },
   "order": {
     "title": "پیگیری سفارش",
@@ -391,7 +406,51 @@
     "configurationSaved": "تنظیمات ذخیره شد.",
     "configurationRefreshed": "تنظیمات به‌روزرسانی شد.",
     "configurationSaveFailed": "ذخیره تنظیمات ممکن نشد.",
-    "exported": "{name} خروجی گرفته شد."
+    "exported": "{name} خروجی گرفته شد.",
+    "bellAria": "اعلان‌ها — {count} خوانده‌نشده",
+    "noNotificationsYet": "هنوز اعلانی وجود ندارد",
+    "bellWithUnreadAria": "اعلان‌ها، {count} خوانده‌نشده",
+    "unreadCount": "{count} خوانده‌نشده",
+    "urgentCount": "{count} فوری",
+    "noUnreadNotifications": "اعلان خوانده‌نشده‌ای وجود ندارد",
+    "viewAllNotifications": "مشاهده همه اعلان‌ها",
+    "view": "مشاهده",
+    "markRead": "علامت‌گذاری به‌عنوان خوانده‌شده",
+    "archive": "بایگانی",
+    "priority": {
+      "low": "کم",
+      "normal": "عادی",
+      "high": "بالا",
+      "urgent": "فوری"
+    },
+    "byActor": "توسط {name}",
+    "viewDetails": "مشاهده جزئیات",
+    "delete": "حذف",
+    "refresh": "بازخوانی",
+    "tabs": {
+      "unread": "خوانده‌نشده",
+      "read": "خوانده‌شده",
+      "archived": "بایگانی‌شده"
+    },
+    "searchNotificationsPlaceholder": "جستجوی اعلان‌ها…",
+    "categories": {
+      "all": "همه",
+      "orders": "سفارش‌ها",
+      "reservations": "رزروها",
+      "staff": "کارکنان",
+      "branches": "شعب",
+      "promotions": "تبلیغات",
+      "vendors": "فروشندگان",
+      "audit": "حسابرسی",
+      "system": "سیستم"
+    },
+    "noNotifications": "اعلانی وجود ندارد",
+    "allCaughtUp": "همه چیز به‌روز است!",
+    "nothingHereYet": "هنوز چیزی اینجا نیست.",
+    "previous": "قبلی",
+    "pageOfTotal": "صفحه {page} از {total}",
+    "next": "بعدی",
+    "openNotificationCenter": "باز کردن مرکز اعلان‌ها"
   },
   "errors": {
     "notFound": "صفحه یافت نشد",
@@ -402,7 +461,13 @@
     "serverError": "خطای سرور",
     "serverErrorDesc": "مشکلی از طرف ما پیش آمده. لطفاً دوباره تلاش کنید.",
     "offline": "اتصال قطع است",
-    "offlineDesc": "اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید."
+    "offlineDesc": "اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.",
+    "somethingWentWrong": "مشکلی پیش آمد",
+    "unexpectedErrorOccurred": "خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید.",
+    "tryAgain": "تلاش مجدد",
+    "home": "خانه",
+    "errorId": "شناسه خطا: {id}",
+    "browseCachedMenu": "مرور منوی ذخیره‌شده"
   },
   "validation": {
     "required": "این فیلد الزامی است",
@@ -783,6 +848,41 @@
       "title": "درباره ما — پلتفرم سیوار",
       "description": "درباره پلتفرم مهمان‌نوازی سیوار بیشتر بدانید — ارتباط مشتریان با کسب‌وکارهای محلی عالی.",
       "keywords": "درباره سیوار, پلتفرم مهمان‌نوازی, داستان ما, تماس با ما"
+    },
+    "discover": {
+      "title": "کشف کسب‌وکارها — پلتفرم Savor",
+      "description": "رستوران‌ها، کافه‌ها، بارها، فودتراک‌ها و موارد دیگر را مرور کنید. بر اساس نوع غذا، امکانات، قیمت و ساعات کاری فیلتر کنید و مکان مورد علاقه بعدی خود را پیدا کنید.",
+      "keywords": "کشف رستوران‌ها, یافتن کافه‌ها, غذا نزدیک من, جستجوی رستوران, بازارچه, فودکورت, یافتن بار, فودتراک, پلتفرم Savor"
+    },
+    "menu": {
+      "title": "منو — Savor",
+      "description": "منوی رستوران‌ها، کافه‌ها، بارها و موارد دیگر را در Savor مرور کنید. غذاها را بیابید، دسته‌ها را کاوش کنید و آنلاین سفارش دهید.",
+      "keywords": "منو, منوی رستوران, سفارش آنلاین, تحویل غذا, پلتفرم Savor"
+    },
+    "events": {
+      "title": "رویدادها | ساوور",
+      "description": "رویدادهای پیش رو و برنامه‌های زنده این مکان را کشف کنید.",
+      "keywords": "رویدادها, سرگرمی زنده, رویدادهای مکان"
+    },
+    "location": {
+      "title": "موقعیت زنده | ساوور",
+      "description": "موقعیت زنده این فودتراک یا کافه سیار را دنبال کنید.",
+      "keywords": "موقعیت زنده, ردیاب فودتراک, موقعیت کافه سیار"
+    },
+    "reviews": {
+      "title": "نظرات | ساوور",
+      "description": "نظرات و امتیازهای مشتریان این کسب‌وکار را بخوانید.",
+      "keywords": "نظرات, امتیازها, بازخورد مشتریان"
+    },
+    "promotions": {
+      "title": "تخفیف‌ها و پیشنهادها | ساوور",
+      "description": "تخفیف‌های فعال، پیشنهادهای ساعت شادی و معاملات آینده را مرور کنید.",
+      "keywords": "تخفیف‌ها, پیشنهادها, ساعت شادی, معاملات"
+    },
+    "vendors": {
+      "title": "فروشندگان | ساوور",
+      "description": "فروشندگان، غرفه‌ها و امتیازها، سفارش‌ها و تسویه‌های آنها را کاوش کنید.",
+      "keywords": "فروشندگان, غرفه‌ها, فروشندگان بازار"
     }
   },
   "home": {
@@ -818,6 +918,615 @@
       "locations": "مکان",
       "cities": "شهر",
       "customers": "مشتری"
+    },
+    "popular": "پرطرفدار",
+    "featured": "ویژه",
+    "orderNow": "اکنون سفارش دهید",
+    "handpicked": "منتخب",
+    "featuredDishes": "غذاهای ویژه",
+    "seeAll": "مشاهده همه",
+    "unableToLoadFeaturedDishes": "بارگذاری غذاهای ویژه ممکن نشد.",
+    "browseTheFullMenu": "منوی کامل را مرور کنید.",
+    "noFeaturedDishesAvailable": "در حال حاضر غذای ویژه‌ای موجود نیست.",
+    "exploreTheMenu": "منو را کاوش کنید.",
+    "exploreLabel": "کاوش",
+    "popularOnSavor": "پرطرفدار در Savor",
+    "popularOnSavorSubtitle": "رستوران‌ها، کافه‌ها، بارها و موارد دیگر — همه در Savor",
+    "browseAll500Businesses": "مرور بیش از ۵۰۰ کسب‌وکار",
+    "howItWorks": {
+      "eyebrow": "ساده",
+      "heading": "چگونه کار می‌کند",
+      "subtitle": "غذای بزرگ بعدی شما، تنها سه قدم فاصله دارد.",
+      "steps": {
+        "discover": {
+          "title": "کشف کنید",
+          "description": "رستوران‌ها، کافه‌ها، بارها، فودتراک‌ها و فودکورت‌ها را بر اساس دسته، مکان یا حس‌وحال مرور کنید.",
+          "cta": "شروع کاوش"
+        },
+        "pickLocation": {
+          "title": "انتخاب مکان",
+          "description": "نزدیک‌ترین مکان را انتخاب کنید، منو، ساعات کاری و موجودی میز را به‌صورت لحظه‌ای بررسی کنید.",
+          "cta": "مشاهده مکان‌ها"
+        },
+        "orderOrReserve": {
+          "title": "سفارش یا رزرو",
+          "description": "به‌صورت آنلاین برای تحویل یا دریافت حضوری سفارش دهید یا میز خود را رزرو کنید — همه از یک پلتفرم.",
+          "cta": "رزرو میز"
+        }
+      }
+    },
+    "forBusinessOwners": {
+      "eyebrow": "برای صاحبان کسب‌وکار",
+      "heading": "همه چیزی که برای اداره یک کسب‌وکار مهمان‌نوازی مدرن نیاز دارید",
+      "subtitle": "Savor به رستوران‌ها، کافه‌ها، بارها و فودتراک‌ها یک پلتفرم کامل عملیات دیجیتال می‌دهد — از سفارش آنلاین و رزرو تا تحلیل‌ها و برنامه‌های وفاداری.",
+      "registerYourBusiness": "ثبت کسب‌وکار شما",
+      "seeAllFeatures": "مشاهده همه ویژگی‌ها",
+      "benefits": {
+        "realtimeAnalytics": {
+          "title": "تحلیل‌های لحظه‌ای",
+          "description": "سفارش‌ها، درآمد و روند مشتریان را در همه شعب خود از یک داشبورد پیگیری کنید."
+        },
+        "qrTableOrdering": {
+          "title": "سفارش با QR روی میز",
+          "description": "به مهمانان اجازه دهید مستقیماً از روی میز اسکن و سفارش دهند — بدون نیاز به دانلود اپلیکیشن."
+        },
+        "teamManagement": {
+          "title": "مدیریت تیم",
+          "description": "دسترسی دقیق مبتنی بر نقش برای مدیران، سرآشپزها، صندوق‌داران و کارکنان."
+        },
+        "loyaltyPrograms": {
+          "title": "برنامه‌های وفاداری",
+          "description": "با امتیازها، رده‌ها و کمپین‌های وفاداری سفارشی، مشتریان دائمی خود را بسازید و پاداش دهید."
+        },
+        "multiBranchReady": {
+          "title": "آماده چند شعبه",
+          "description": "شعب نامحدود را با منو، ساعات کاری و موجودی مستقل هر یک مدیریت کنید."
+        },
+        "liveOrderDisplay": {
+          "title": "نمایش زنده سفارش‌ها",
+          "description": "سفارش‌های ورودی را مستقیماً و به‌صورت لحظه‌ای به نمایشگر آشپزخانه خود پخش کنید."
+        }
+      }
+    },
+    "platformFeatures": {
+      "eyebrow": "پلتفرم",
+      "heading": "همه چیز در یک پلتفرم",
+      "subtitle": "Savor یک پکیج دیجیتال کامل برای کسب‌وکارهای مهمان‌نوازی مدرن ارائه می‌دهد — بدون نیاز به ابزارهای پراکنده شخص ثالث.",
+      "getStartedFree": "رایگان شروع کنید",
+      "noCreditCardNote": "بدون نیاز به کارت اعتباری · راه‌اندازی در چند دقیقه",
+      "items": {
+        "onlineMenu": {
+          "label": "منوی آنلاین",
+          "description": "منوهای دیجیتال زیبا با عکس، توضیحات و برچسب‌های رژیمی."
+        },
+        "reservations": {
+          "label": "رزروها",
+          "description": "رزرو میز لحظه‌ای با تأیید و یادآوری."
+        },
+        "qrOrdering": {
+          "label": "سفارش با QR",
+          "description": "اسکن و سفارش روی میز. بدون اپلیکیشن، بدون انتظار."
+        },
+        "loyalty": {
+          "label": "وفاداری",
+          "description": "امتیازها، رده‌ها و جوایز سفارشی برای بازگشت مشتریان."
+        },
+        "analytics": {
+          "label": "تحلیل‌ها",
+          "description": "درآمد، روند سفارش‌ها و بینش مشتریان به‌صورت لحظه‌ای."
+        },
+        "kitchenDisplay": {
+          "label": "نمایشگر آشپزخانه",
+          "description": "پخش زنده سفارش‌ها به سیستم نمایشگر آشپزخانه شما."
+        },
+        "posIntegration": {
+          "label": "یکپارچگی با POS",
+          "description": "همگام‌سازی یکپارچه با سیستم فروش فعلی شما."
+        },
+        "multiBranch": {
+          "label": "چند شعبه",
+          "description": "شعب نامحدود، هر یک به‌طور مستقل قابل تنظیم."
+        },
+        "giftCards": {
+          "label": "کارت‌های هدیه",
+          "description": "فروش و استفاده از کارت‌های هدیه دیجیتال در همه شعب."
+        },
+        "events": {
+          "label": "رویدادها",
+          "description": "انتشار و مدیریت رویدادهای ویژه و تبلیغات."
+        }
+      }
+    },
+    "testimonials": {
+      "eyebrow": "محبوب مشتریان",
+      "heading": "نظر جامعه ما",
+      "subtitle": "هزاران عاشق غذا هر روز از Savor برای کشف، رزرو و سفارش از کسب‌وکارهای محلی استفاده می‌کنند.",
+      "items": {
+        "sarah": {
+          "quote": "با جستجوی دسته‌بندی سه رستوران جدید در محله خود پیدا کردم. میز رزرو کردم و سفارش دادم — همه از یک مکان.",
+          "name": "سارا م.",
+          "role": "کاوشگر غذا"
+        },
+        "james": {
+          "quote": "سفارش با QR در کافه مورد علاقه‌ام بی‌نقص است. بدون انتظار برای گارسون، و امتیازهای وفاداری من در هر بازدید جمع می‌شود.",
+          "name": "جیمز ت.",
+          "role": "مشتری دائمی"
+        },
+        "layla": {
+          "quote": "با Savor یک فودتراک پاپ‌آپ پیدا کردم که در غیر این صورت هرگز پیدا نمی‌کردم. حالا هر آخر هفته آن را بررسی می‌کنم.",
+          "name": "لیلا ک.",
+          "role": "علاقه‌مند به غذا"
+        }
+      },
+      "stats": {
+        "happyCustomers": "مشتریان راضی",
+        "avgAppRating": "میانگین امتیاز اپلیکیشن",
+        "businessesListed": "کسب‌وکارهای فهرست‌شده",
+        "satisfactionRate": "نرخ رضایت"
+      }
     }
+  },
+  "discover": {
+    "eyebrow": "کشف کنید",
+    "headingPrefix": "مکان مورد علاقه بعدی خود را",
+    "headingAccent": "پیدا کنید",
+    "subtitle": "جستجو · رزرو میز · سفارش آنلاین · کسب امتیاز — همه در یک مکان.",
+    "searchPlaceholder": "جستجو بر اساس نام، شهر، نوع غذا، امکانات یا دسته…",
+    "errorLoad": "بارگذاری کسب‌وکارها ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "loadingBusinesses": "در حال بارگذاری کسب‌وکارها…",
+    "resultsCount": "{count, plural, =0 {بدون نتیجه} one {# نتیجه} other {# نتیجه}}",
+    "resultsCountForQuery": "{count, plural, =0 {بدون نتیجه} one {# نتیجه} other {# نتیجه}} برای «{query}»",
+    "searchResultsAria": "نتایج جستجو",
+    "sectionFeatured": "ویژه",
+    "sectionPopular": "پرطرفدار همین حالا",
+    "sectionNewlyOpened": "به‌تازگی افتتاح شده",
+    "sectionTopRated": "برترین‌ها",
+    "sectionFamilyFriendly": "مناسب خانواده",
+    "sectionCoffeeShops": "کافی‌شاپ‌ها",
+    "allBusinesses": "همه کسب‌وکارها",
+    "listedCount": "{count} مورد فهرست‌شده",
+    "sortBusinesses": "مرتب‌سازی {count} کسب‌وکار",
+    "noBusinessesFound": "کسب‌وکاری یافت نشد",
+    "noMatchCategoryQuery": "هیچ کسب‌وکار {category} با «{query}» مطابقت ندارد. جستجو یا فیلترهای خود را تغییر دهید.",
+    "noMatchQuery": "هیچ کسب‌وکاری با «{query}» مطابقت ندارد. عبارت دیگری را امتحان کنید یا بر اساس دسته مرور کنید.",
+    "noMatchFilters": "هیچ کسب‌وکاری با فیلترهای فعال مطابقت ندارد. برخی از آن‌ها را حذف کنید.",
+    "noBusinessesCategory": "هنوز کسب‌وکاری در این دسته وجود ندارد.",
+    "clearAllFilters": "پاک‌کردن همه فیلترها",
+    "tryBrowsing": "مرور کنید",
+    "popularBusinessesYouMightLike": "کسب‌وکارهای پرطرفدار که ممکن است دوست داشته باشید"
+  },
+  "marketplace": {
+    "featured": "ویژه",
+    "new": "جدید",
+    "popular": "پرطرفدار",
+    "priceBudget": "اقتصادی",
+    "priceModerate": "متوسط",
+    "priceUpscale": "لوکس",
+    "priceFineDining": "فاین‌دایینینگ",
+    "explore": "کاوش",
+    "visit": "مشاهده",
+    "viewMenu": "مشاهده منو",
+    "openNow": "اکنون باز است",
+    "closed": "بسته",
+    "ratingAria": "امتیاز: {rating} از ۵",
+    "locationsCount": "{count} شعبه",
+    "cuisinesAria": "انواع غذا",
+    "featuresAndAmenitiesAria": "ویژگی‌ها و امکانات",
+    "reservations": "رزرو",
+    "loyalty": "باشگاه مشتریان",
+    "ctaAria": "{cta} — {name}",
+    "hideBranchesAria": "پنهان‌کردن شعب {name}",
+    "showBranchesAria": "نمایش شعب {name}",
+    "branches": "شعب",
+    "viewHomepageAria": "مشاهده صفحه اصلی {name}",
+    "businessTypes": {
+      "restaurant": "رستوران",
+      "cafe": "کافه",
+      "bar": "بار",
+      "food_court": "فودکورت",
+      "food_truck": "فودتراک",
+      "mobile_cafe": "کافه سیار",
+      "hotel": "هتل",
+      "other": "سایر"
+    },
+    "filterByBusinessTypeAria": "فیلتر بر اساس نوع کسب‌وکار",
+    "all": "همه",
+    "searchBusinesses": "جستجوی کسب‌وکارها",
+    "searchBusinessesPlaceholder": "جستجو بر اساس نام، شهر، نوع غذا یا دسته…",
+    "clearSearch": "پاک کردن جستجو",
+    "filters": "فیلترها",
+    "activeFiltersAria": "{count} فیلتر فعال",
+    "advancedFiltersAria": "فیلترهای پیشرفته",
+    "advancedFilters": "فیلترهای پیشرفته",
+    "clearAllFilters": "پاک‌کردن همه فیلترها",
+    "clearAllCount": "پاک‌کردن همه ({count})",
+    "openNowOnly": "فقط اکنون باز",
+    "priceLevel": "سطح قیمت",
+    "priceLevels": {
+      "1": "اقتصادی",
+      "2": "متوسط",
+      "3": "لوکس",
+      "4": "فاین‌دایینینگ"
+    },
+    "cuisine": "نوع غذا",
+    "city": "شهر",
+    "services": "خدمات",
+    "loyaltyProgram": "باشگاه مشتریان",
+    "amenities": "امکانات",
+    "businessesCount": "{count} کسب‌وکار",
+    "sortResults": "مرتب‌سازی نتایج",
+    "sortOptions": {
+      "recommended": "پیشنهادی",
+      "highestRated": "بیشترین امتیاز",
+      "mostReviewed": "بیشترین نظر",
+      "newest": "جدیدترین",
+      "alphabetical": "الف تا ی",
+      "priceLowToHigh": "قیمت: کم به زیاد",
+      "openNowFirst": "ابتدا باز‌ها"
+    },
+    "publicUrl": "آدرس عمومی",
+    "copyUrlAria": "کپی آدرس",
+    "copied": "کپی شد",
+    "copy": "کپی",
+    "openPublicUrlAria": "باز کردن آدرس عمومی",
+    "open": "باز کردن",
+    "qrCodeMobileNote": "تولید کد QR در اپلیکیشن موبایل در دسترس است.",
+    "branchLocationsAria": "مکان شعب",
+    "locations": "شعب",
+    "visitBranchAria": "مشاهده {name}",
+    "view": "مشاهده"
+  },
+  "tenant": {
+    "priceLevelAria": "سطح قیمت: {level}",
+    "breadcrumbAria": "مسیر ناوبری",
+    "discover": "کشف کنید",
+    "reviewsCount": "({count} نظر)",
+    "locationsCountLower": "{count} شعبه",
+    "allLocations": "همه شعب",
+    "shareThisBusinessAria": "اشتراک‌گذاری این کسب‌وکار",
+    "copiedExclaim": "کپی شد!",
+    "share": "اشتراک‌گذاری",
+    "quickActionsAria": "اقدامات سریع",
+    "amenitiesAria": "امکانات",
+    "about": "درباره ما",
+    "ourStory": "داستان ما",
+    "open": "باز",
+    "closed": "بسته",
+    "visitBranchAria": "مشاهده {name}",
+    "visitBranch": "مشاهده شعبه",
+    "ourLocations": "شعب ما",
+    "browseByCategory": "مرور بر اساس دسته",
+    "browseCategoryAria": "مرور {name}",
+    "itemsCount": "{count} مورد",
+    "popularItems": "محبوب‌ترین آیتم‌ها",
+    "viewFullMenu": "مشاهده منوی کامل",
+    "currentOffers": "پیشنهادهای فعلی",
+    "promoTypes": {
+      "discount": "تخفیف",
+      "fixedOff": "تخفیف ثابت",
+      "bogo": "یکی بخر یکی ببر",
+      "happyHour": "ساعت شاد"
+    },
+    "percentOff": "{percent}٪ تخفیف",
+    "amountOff": "{amount}$ تخفیف",
+    "useThisOffer": "استفاده از این پیشنهاد ←",
+    "gallery": "گالری",
+    "loadingPageContentAria": "در حال بارگذاری محتوای صفحه",
+    "loadingEllipsis": "در حال بارگذاری…",
+    "businessNotFound": "کسب‌وکار یافت نشد",
+    "businessNotFoundDesc": "کسب‌وکاری در این آدرس یافت نشد.",
+    "browseAllBusinesses": "مرور همه کسب‌وکارها",
+    "businessNotFoundLongDesc": "کسب‌وکاری در این آدرس یافت نشد. ممکن است جابه‌جا شده یا دیگر در Savor فهرست نشده باشد."
+  },
+  "branch": {
+    "openNow": "اکنون باز",
+    "closed": "بسته",
+    "directions": "مسیرها",
+    "quickActionsAria": "اقدامات سریع",
+    "call": "تماس",
+    "copiedExclaim": "کپی شد!",
+    "share": "اشتراک‌گذاری",
+    "linkCopiedToClipboard": "پیوند در کلیپ‌بورد کپی شد",
+    "branchInformation": "اطلاعات شعبه",
+    "todayHours": "امروز: {hours}",
+    "openInGoogleMapsAria": "باز کردن در گوگل مپ",
+    "viewOnMap": "مشاهده روی نقشه",
+    "locations": "شعب",
+    "youreHere": "شما اینجا هستید",
+    "open": "باز",
+    "popularItems": "محبوب‌ترین آیتم‌ها",
+    "fullMenu": "منوی کامل",
+    "categories": "دسته‌ها",
+    "allOffers": "همه پیشنهادها",
+    "thisLocation": "این شعبه",
+    "businessGallery": "گالری کسب‌وکار",
+    "loadingBranchPageAria": "در حال بارگذاری صفحه شعبه",
+    "loadingEllipsis": "در حال بارگذاری…",
+    "branchNotFound": "شعبه یافت نشد",
+    "branchNotFoundDesc": "این مکان یافت نشد. ممکن است جابه‌جا شده یا دیگر فهرست نشده باشد.",
+    "backToBusiness": "بازگشت به کسب‌وکار",
+    "loadingMenuEllipsis": "در حال بارگذاری منو…",
+    "loadingTableExperienceEllipsis": "در حال بارگذاری تجربه میز…",
+    "branchNotFoundLongDesc": "این مکان یافت نشد. ممکن است بسته یا جابه‌جا شده باشد. صفحه کسب‌وکار را مرور کنید تا همه شعب فعال را ببینید."
+  },
+  "orderDetail": {
+    "orderNotFound": "سفارش یافت نشد",
+    "myOrders": "سفارش‌های من",
+    "dateAtTime": "{date} در {time}",
+    "liveTracking": "پیگیری زنده",
+    "orderItems": "اقلام سفارش",
+    "unitPriceEach": "({price} هر عدد)",
+    "orderDetailsNotAvailable": "جزئیات سفارش در دسترس نیست.",
+    "orderSummary": "خلاصه سفارش",
+    "subtotal": "جمع جزئی",
+    "discount": "تخفیف",
+    "tax": "مالیات",
+    "service": "خدمات",
+    "total": "مجموع",
+    "printReceipt": "چاپ رسید",
+    "deliveryInfo": "اطلاعات تحویل",
+    "tableNumber": "میز #{number}",
+    "orderAgain": "دوباره سفارش دهید",
+    "newOrder": "سفارش جدید",
+    "backToOrderDetailsAria": "بازگشت به جزئیات سفارش",
+    "trackingNumber": "پیگیری #{number}",
+    "orderCancelled": "سفارش لغو شد",
+    "orderCancelledDesc": "این سفارش لغو شده است.",
+    "viewFullOrder": "مشاهده کامل سفارش",
+    "allOrders": "همه سفارش‌ها"
+  },
+  "orderTracker": {
+    "orderCancelled": "سفارش لغو شد",
+    "orderCancelledDesc": "سفارش شما لغو شده است.",
+    "estimatedTime": "زمان تخمینی",
+    "minutesCount": "{count} دقیقه",
+    "orderPlaced": "سفارش ثبت شد",
+    "orderPlacedDesc": "سفارش شما دریافت شد",
+    "accepted": "پذیرفته شد",
+    "acceptedDesc": "رستوران سفارش شما را پذیرفت",
+    "preparing": "در حال آماده‌سازی",
+    "preparingDesc": "سرآشپز در حال آماده‌سازی غذای شماست",
+    "ready": "آماده",
+    "readyDesc": "سفارش شما آماده است!",
+    "delivered": "تحویل داده شد",
+    "deliveredDesc": "از غذای خود لذت ببرید 🎉"
+  },
+  "checkoutResult": {
+    "orderConfirmed": "سفارش تأیید شد!",
+    "orderConfirmedDesc": "غذای خوشمزه شما در راه است",
+    "orderNumberLabel": "شماره سفارش",
+    "liveOrderTracking": "پیگیری زنده سفارش",
+    "trackOrder": "پیگیری سفارش",
+    "orderMore": "سفارش بیشتر",
+    "backToHome": "بازگشت به خانه",
+    "orderFailed": "سفارش ناموفق بود",
+    "orderFailedDesc": "مشکلی در سفارش شما پیش آمد",
+    "failureBody": "نگران نباشید — سبد خرید شما همچنان ذخیره شده است. لطفاً دوباره تلاش کنید یا در صورت ادامه مشکل با پشتیبانی تماس بگیرید.",
+    "tryAgain": "تلاش مجدد",
+    "backToMenu": "بازگشت به منو"
+  },
+  "loyalty": {
+    "loadingAccount": "در حال بارگذاری حساب باشگاه مشتریان شما…",
+    "noAccountFound": "حساب باشگاه مشتریان یافت نشد.",
+    "currentPoints": "امتیازهای فعلی",
+    "availablePoints": "امتیازهای موجود",
+    "lifetime": "مجموع کل:",
+    "tierStatus": "وضعیت رده",
+    "currentTier": "رده فعلی",
+    "tierExpires": "رده در {date} منقضی می‌شود",
+    "tiers": {
+      "bronze": "برنزی",
+      "silver": "نقره‌ای",
+      "gold": "طلایی",
+      "platinum": "پلاتینیوم"
+    },
+    "availableRewards": "جوایز موجود",
+    "loadingRewards": "در حال بارگذاری جوایز…",
+    "noRewardsAvailable": "جایزه‌ای موجود نیست.",
+    "requiresTier": "نیازمند رده: {tier}",
+    "pointsSuffix": "{count} امتیاز",
+    "redeemAria": "بازخرید {name}",
+    "redeeming": "در حال بازخرید…",
+    "redeem": "بازخرید",
+    "transactionHistory": "تاریخچه تراکنش‌ها",
+    "loadingTransactions": "در حال بارگذاری تراکنش‌ها…",
+    "noTransactionsYet": "هنوز تراکنشی وجود ندارد.",
+    "loyaltyProgram": "باشگاه مشتریان"
+  },
+  "header": {
+    "skipToMainContent": "پرش به محتوای اصلی",
+    "navDiscover": "کشف کنید",
+    "navReservations": "رزروها",
+    "navForBusiness": "برای کسب‌وکارها",
+    "mainNavigationAria": "ناوبری اصلی",
+    "toggleThemeAria": "تغییر پوسته",
+    "changeLanguageAria": "تغییر زبان",
+    "cartWithItemsAria": "سبد خرید با {count} کالا",
+    "userMenuAria": "منوی کاربر",
+    "myAccount": "حساب من",
+    "myOrders": "سفارش‌های من",
+    "favorites": "علاقه‌مندی‌ها",
+    "addresses": "آدرس‌ها",
+    "settings": "تنظیمات",
+    "businessConsole": "پنل کسب‌وکار",
+    "signOut": "خروج",
+    "signIn": "ورود",
+    "getStarted": "شروع کنید",
+    "toggleMenuAria": "تغییر وضعیت منو",
+    "mobileNavigationAria": "ناوبری موبایل",
+    "logoAlt": "لوگوی {name}",
+    "tenantHomeAria": "خانه {name}",
+    "poweredBySavorAria": "قدرت گرفته از Savor — مرور بازارچه",
+    "poweredBy": "قدرت گرفته از",
+    "tenantNavigationAria": "ناوبری {name}",
+    "tenantMobileNavigationAria": "ناوبری موبایل {name}",
+    "closeMenuAria": "بستن منو",
+    "openMenuAria": "باز کردن منو",
+    "switchToLanguageAria": "تغییر به {language}"
+  },
+  "footer": {
+    "brandDescription": "ارتباط مشتریان با رستوران‌ها، کافه‌ها، بارها و موارد دیگر عالی محلی. کشف کنید، سفارش دهید و رزرو کنید — همه در یک مکان.",
+    "sections": {
+      "explore": "کاوش",
+      "platform": "پلتفرم",
+      "company": "شرکت"
+    },
+    "links": {
+      "discoverBusinesses": "کشف کسب‌وکارها",
+      "restaurants": "رستوران‌ها",
+      "cafes": "کافه‌ها",
+      "barsAndVenues": "بارها و اماکن",
+      "foodTrucks": "فودتراک‌ها",
+      "orderOnline": "سفارش آنلاین",
+      "bookATable": "رزرو میز",
+      "trackOrder": "پیگیری سفارش",
+      "becomeAPartner": "شریک شوید",
+      "pricing": "قیمت‌گذاری",
+      "aboutSavor": "درباره Savor",
+      "support": "پشتیبانی",
+      "privacyPolicy": "سیاست حریم خصوصی",
+      "termsOfService": "شرایط استفاده"
+    },
+    "copyright": "© {year} پلتفرم Savor. تمامی حقوق محفوظ است."
+  },
+  "tenantFooter": {
+    "instagram": "اینستاگرام",
+    "twitterX": "توییتر / ایکس",
+    "quickLinks": "لینک‌های سریع",
+    "contact": "تماس",
+    "copyright": "© {year} {name}. تمامی حقوق محفوظ است.",
+    "poweredBy": "قدرت گرفته از",
+    "savorPlatform": "پلتفرم Savor"
+  },
+  "branchSelector": {
+    "selectBranch": "انتخاب شعبه",
+    "chooseLocation": "انتخاب مکان",
+    "openNow": "اکنون باز است",
+    "closed": "بسته"
+  },
+  "reviewCard": {
+    "starsOutOf5": "{rating} از ۵ ستاره",
+    "reviewByNameStars": "نظر توسط {name}، {rating} ستاره",
+    "verifiedVisit": "بازدید تأیید‌شده",
+    "verified": "تأیید‌شده",
+    "visitTypes": {
+      "dineIn": "حضوری",
+      "takeaway": "بیرون‌بر",
+      "delivery": "ارسال"
+    },
+    "showLess": "نمایش کمتر",
+    "readMore": "بیشتر بخوانید",
+    "reviewPhotosAria": "عکس‌های نظر",
+    "reviewPhotoAlt": "عکس نظر {index}",
+    "markHelpfulAria": "علامت‌گذاری نظر به‌عنوان مفید. {count} نفر این را مفید دانستند",
+    "helpfulCount": "مفید ({count})",
+    "helpfulSuffix": "{count} مفید",
+    "photosCount": "{count} عکس",
+    "reply": "پاسخ"
+  },
+  "vendorsPage": {
+    "vendors": "فروشندگان",
+    "noRatings": "بدون امتیاز",
+    "featured": "ویژه",
+    "statuses": {
+      "active": "فعال",
+      "inactive": "غیرفعال",
+      "pending": "در انتظار",
+      "suspended": "معلق"
+    },
+    "categories": {
+      "asian": "آسیایی",
+      "western": "غربی",
+      "mediterranean": "مدیترانه‌ای",
+      "mexican": "مکزیکی",
+      "indian": "هندی",
+      "desserts": "دسرها",
+      "beverages": "نوشیدنی‌ها",
+      "fastFood": "فست‌فود",
+      "healthy": "سالم",
+      "other": "سایر"
+    },
+    "stallNumber": "غرفه {number}",
+    "backToVendorListAria": "بازگشت به فهرست فروشندگان",
+    "backToVendors": "بازگشت به فروشندگان",
+    "stallLabel": "غرفه: {number}",
+    "stats": {
+      "orders": "سفارش‌ها",
+      "activeItems": "اقلام فعال",
+      "revenue": "درآمد",
+      "avgRating": "میانگین امتیاز"
+    },
+    "recentSettlements": "تسویه‌های اخیر",
+    "settlementAmount": "{amount} ({status})",
+    "settlementStatuses": {
+      "paid": "پرداخت شده",
+      "failed": "ناموفق",
+      "pending": "در انتظار"
+    },
+    "loadingVendors": "در حال بارگذاری فروشندگان…",
+    "featuredVendors": "فروشندگان ویژه",
+    "allVendors": "همه فروشندگان",
+    "all": "همه",
+    "noVendorsInCategory": "فروشنده‌ای در این دسته وجود ندارد."
+  },
+  "comingSoon": {
+    "events": "رویدادها",
+    "eventsContent": "محتوای رویدادها به‌زودی ارائه می‌شود.",
+    "liveLocation": "موقعیت زنده",
+    "liveLocationContent": "محتوای ردیابی موقعیت زنده به‌زودی ارائه می‌شود.",
+    "reviews": "نظرات",
+    "reviewsContent": "محتوای نظرات به‌زودی ارائه می‌شود."
+  },
+  "promotionsPage": {
+    "types": {
+      "percentageDiscount": "تخفیف درصدی",
+      "fixedDiscount": "تخفیف ثابت",
+      "buyOneGetOne": "یک بخر یکی رایگان ببر",
+      "happyHour": "ساعت شادی"
+    },
+    "weekdays": {
+      "mon": "دوشنبه",
+      "tue": "سه‌شنبه",
+      "wed": "چهارشنبه",
+      "thu": "پنجشنبه",
+      "fri": "جمعه",
+      "sat": "شنبه",
+      "sun": "یکشنبه"
+    },
+    "bogo": "یک بخر یکی رایگان",
+    "percentOff": "{percent}٪ تخفیف",
+    "amountOff": "${amount} تخفیف",
+    "untilDate": "تا {date}",
+    "allDayEveryDay": "تمام روز، هر روز",
+    "activeNow": "فعال هم‌اکنون",
+    "loadingPromotions": "در حال بارگذاری تخفیف‌ها…",
+    "activePromotions": "تخفیف‌های فعال",
+    "noActivePromotions": "در حال حاضر تخفیف فعالی وجود ندارد.",
+    "happyHourOffers": "پیشنهادهای ساعت شادی",
+    "noHappyHourOffers": "پیشنهاد ساعت شادی موجود نیست.",
+    "upcomingPromotions": "تخفیف‌های آینده",
+    "noUpcomingPromotions": "تخفیف آینده‌ای وجود ندارد.",
+    "promotionsAndOffers": "تخفیف‌ها و پیشنهادها"
+  },
+  "qrTable": {
+    "explore": "کاوش",
+    "browseMenu": "مشاهده منو",
+    "reservations": "رزروها",
+    "reviews": "نظرات",
+    "loyaltyRewards": "پاداش‌های وفاداری",
+    "events": "رویدادها",
+    "vendors": "فروشندگان",
+    "liveLocation": "موقعیت زنده",
+    "promotions": "تخفیف‌ها",
+    "invalidTable": "میز نامعتبر",
+    "invalidTableDesc": "این کد QR معتبر نیست.",
+    "tableNumberLabel": "میز {number}",
+    "dineInNoLoginRequired": "سفارش حضوری — بدون نیاز به ورود",
+    "checkout": "پرداخت",
+    "welcome": "خوش آمدید!",
+    "welcomeDesc": "شما از میز {number} سفارش می‌دهید. منوی کامل ما را مشاهده کنید و اقلام را به سبد خرید خود اضافه کنید.",
+    "loadingTableInfoEllipsis": "در حال بارگذاری اطلاعات میز…",
+    "seatsCount": "{count} نفره",
+    "serverLabel": "سرور: {name}"
   }
 }

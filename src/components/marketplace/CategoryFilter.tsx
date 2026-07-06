@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { BUSINESS_TYPE_LABELS } from '@/types/marketplace'
 
@@ -34,10 +35,11 @@ export function CategoryFilter({
   openNow,
   onOpenNowChange,
 }: CategoryFilterProps) {
+  const t = useTranslations('marketplace')
   if (categories.length === 0) return null
 
   return (
-    <nav aria-label="Filter by business type">
+    <nav aria-label={t('filterByBusinessTypeAria')}>
       <ul className="flex flex-wrap gap-2" role="list">
         {/* "All" chip */}
         <li>
@@ -52,7 +54,7 @@ export function CategoryFilter({
                 : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
             )}
           >
-            All
+            {t('all')}
           </button>
         </li>
 
@@ -70,7 +72,7 @@ export function CategoryFilter({
               )}
             >
               <span aria-hidden="true">{ICONS[cat] ?? '🍴'}</span>
-              {BUSINESS_TYPE_LABELS[cat] ?? cat}
+              {BUSINESS_TYPE_LABELS[cat] ? t(`businessTypes.${cat}`) : cat}
               {/* H6: show per-category count */}
               {counts && counts[cat] != null && (
                 <span className="text-xs opacity-60">({counts[cat]})</span>
@@ -94,7 +96,7 @@ export function CategoryFilter({
               )}
             >
               <span className={cn('h-1.5 w-1.5 rounded-full', openNow ? 'bg-white' : 'bg-emerald-500')} aria-hidden="true" />
-              Open Now
+              {t('openNow')}
             </button>
           </li>
         )}

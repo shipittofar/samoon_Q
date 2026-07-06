@@ -366,7 +366,7 @@ describe('P3.6.8 — UI regression guard', () => {
   it('OrderTracker still renders estimated time section', () => {
     const content = src('components/order/OrderTracker.tsx')
     expect(content).toContain('estimatedTime')
-    expect(content).toContain('Estimated time')
+    expect(content).toContain("t('estimatedTime')")
   })
 
   it('OrderTracker still renders progress bar', () => {
@@ -378,7 +378,7 @@ describe('P3.6.8 — UI regression guard', () => {
   it('OrderTracker still handles cancelled state', () => {
     const content = src('components/order/OrderTracker.tsx')
     expect(content).toContain('isCancelled')
-    expect(content).toContain('Order Cancelled')
+    expect(content).toContain("t('orderCancelled')")
   })
 
   it('OrderTracker still uses AnimatePresence', () => {

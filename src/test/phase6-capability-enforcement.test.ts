@@ -814,7 +814,7 @@ describe('S. Capability-guarded page stubs', () => {
   })
 
   it('/vendors page exists with CapabilityGuard', () => {
-    const src = readSrc('app/vendors/page.tsx')
+    const src = readSrc('app/vendors/VendorsClientPage.tsx')
     expect(src).toContain('CapabilityGuard')
   })
 

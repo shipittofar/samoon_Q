@@ -79,8 +79,8 @@ describe('components/home/FeaturedSection.tsx — structure', () => {
   it('handles empty items array', () =>
     expect(src()).toContain('items.length === 0'))
 
-  it('shows empty state message', () =>
-    expect(src()).toContain('No featured dishes'))
+  it('shows empty state message (P9.5.7A: localized via home.noFeaturedDishesAvailable)', () =>
+    expect(src()).toContain("t('noFeaturedDishesAvailable')"))
 
   it('renders FeaturedCard for each item', () =>
     expect(src()).toContain('FeaturedCard'))
@@ -88,11 +88,11 @@ describe('components/home/FeaturedSection.tsx — structure', () => {
   it('links "See all" to /menu?featured=true', () =>
     expect(src()).toContain('/menu?featured=true'))
 
-  it('preserves section heading "Featured Dishes"', () =>
-    expect(src()).toContain('Featured Dishes'))
+  it('preserves section heading (P9.5.7A: localized via home.featuredDishes)', () =>
+    expect(src()).toContain("t('featuredDishes')"))
 
-  it('preserves "Handpicked" label', () =>
-    expect(src()).toContain('Handpicked'))
+  it('preserves "Handpicked" label (P9.5.7A: localized via home.handpicked)', () =>
+    expect(src()).toContain("t('handpicked')"))
 
   it('uses formatCurrency for prices', () =>
     expect(src()).toContain('formatCurrency'))

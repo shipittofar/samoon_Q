@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Copy, Check, ExternalLink } from 'lucide-react'
 
 interface CopyUrlWidgetProps {
@@ -9,7 +10,8 @@ interface CopyUrlWidgetProps {
 }
 
 /** Public URL display with copy and open actions. Used in admin settings and tenant homepage. */
-export function CopyUrlWidget({ url, label = 'Public URL' }: CopyUrlWidgetProps) {
+export function CopyUrlWidget({ url, label }: CopyUrlWidgetProps) {
+  const t = useTranslations('marketplace')
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
@@ -20,7 +22,7 @@ export function CopyUrlWidget({ url, label = 'Public URL' }: CopyUrlWidgetProps)
 
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-      <p className="text-sm font-medium text-gray-700 mb-2">{label}</p>
+      <p className="text-sm font-medium text-gray-700 mb-2">{label ?? t('publicUrl')}</p>
       <div className="flex items-center gap-2">
         <code className="flex-1 text-xs bg-white border rounded px-2.5 py-1.5 text-gray-700 truncate font-mono">
           {url}
@@ -28,7 +30,7 @@ export function CopyUrlWidget({ url, label = 'Public URL' }: CopyUrlWidgetProps)
         <button
           type="button"
           onClick={handleCopy}
-          aria-label="Copy URL"
+          aria-label={t('copyUrlAria')}
           className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 border rounded hover:bg-gray-100 transition-colors"
         >
           {copied ? (
@@ -36,20 +38,20 @@ export function CopyUrlWidget({ url, label = 'Public URL' }: CopyUrlWidgetProps)
           ) : (
             <Copy className="w-3.5 h-3.5" />
           )}
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? t('copied') : t('copy')}
         </button>
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Open public URL"
+          aria-label={t('openPublicUrlAria')}
           className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 border rounded hover:bg-gray-100 transition-colors"
         >
           <ExternalLink className="w-3.5 h-3.5" />
-          Open
+          {t('open')}
         </a>
       </div>
-      <p className="text-xs text-gray-400 mt-2">QR code generation available in the mobile app.</p>
+      <p className="text-xs text-gray-400 mt-2">{t('qrCodeMobileNote')}</p>
     </div>
   )
 }

@@ -1,4 +1,9 @@
+'use client'
+
+import { useTranslations } from 'next-intl'
+
 export default function OfflinePage() {
+  const t = useTranslations('errors')
   return (
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
       <div className="text-center max-w-md">
@@ -11,23 +16,23 @@ export default function OfflinePage() {
           </div>
         </div>
         <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-3">
-          You are Offline
+          {t('offline')}
         </h1>
         <p className="text-[var(--fg-muted)] mb-8 leading-relaxed">
-          No internet connection detected. Some features may be unavailable, but you can still browse the cached menu.
+          {t('offlineDesc')}
         </p>
         <div className="space-y-3">
           <link
             href="/menu"
             className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-colors shadow-lg"
           >
-            Browse Cached Menu
+            {t('browseCachedMenu')}
           </link>
           <button
             onClick={() => window.location.reload()}
             className="flex items-center justify-center gap-2 w-full border border-[var(--border)] text-[var(--fg)] font-semibold px-6 py-3.5 rounded-2xl hover:bg-[var(--card-hover)] transition-colors"
           >
-            Try Again
+            {t('tryAgain')}
           </button>
         </div>
       </div>

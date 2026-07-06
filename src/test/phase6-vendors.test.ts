@@ -671,15 +671,15 @@ describe('P. Vendor hooks source-text', () => {
 // ── Q. Customer /vendors page ─────────────────────────────────────────────────
 
 describe('Q. /vendors/page.tsx source-text', () => {
-  const src = readSrc('app/vendors/page.tsx')
+  const src = readSrc('app/vendors/VendorsClientPage.tsx')
 
   it('is a client component', () => expect(src.trimStart()).toMatch(/^'use client'/))
   it('uses useVendors', () => expect(src).toContain('useVendors'))
   it('uses useVendorStats', () => expect(src).toContain('useVendorStats'))
   it('uses useVendorSettlements', () => expect(src).toContain('useVendorSettlements'))
   it('uses CapabilityGuard', () => expect(src).toContain('CapabilityGuard'))
-  it('shows featured vendor badge', () => expect(src).toContain('Featured'))
-  it('shows vendor category', () => expect(src).toContain('CATEGORY_LABELS'))
+  it('shows featured vendor badge', () => expect(src).toContain("t('featured')"))
+  it('shows vendor category', () => expect(src).toContain('CATEGORY_KEYS'))
   it('shows vendor rating', () => expect(src).toContain('rating'))
   it('has active status display', () => expect(src).toContain('active'))
   it('has vendor profile view', () => expect(src).toContain('VendorProfile'))

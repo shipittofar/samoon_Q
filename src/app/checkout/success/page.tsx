@@ -4,6 +4,7 @@ import { useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { CheckCircle2, Package, ArrowRight, Home, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { OrderTracker } from '@/components/order/OrderTracker'
@@ -12,6 +13,7 @@ import { resolveBestMenu } from '@/utils/navigation-intelligence'
 import confetti from 'canvas-confetti'
 
 function SuccessContent() {
+  const t = useTranslations('checkoutResult')
   const params = useSearchParams()
   const orderId = params.get('orderId') || ''
   const orderNumber = params.get('orderNumber') || '#0000'
@@ -45,21 +47,21 @@ function SuccessContent() {
             >
               <CheckCircle2 className="h-10 w-10 text-white" />
             </motion.div>
-            <h1 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">Order Confirmed!</h1>
-            <p className="text-white/80 text-sm">Your delicious meal is on its way</p>
+            <h1 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">{t('orderConfirmed')}</h1>
+            <p className="text-white/80 text-sm">{t('orderConfirmedDesc')}</p>
           </div>
 
           <div className="p-6 space-y-6">
             {/* Order Number */}
             <div className="text-center bg-[var(--card-hover)] rounded-2xl p-4">
-              <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider mb-1">Order Number</p>
+              <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider mb-1">{t('orderNumberLabel')}</p>
               <p className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{orderNumber}</p>
             </div>
 
             {/* Tracker */}
             <div>
               <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-orange-500" /> Live Order Tracking
+                <Clock className="h-4 w-4 text-orange-500" /> {t('liveOrderTracking')}
               </h2>
               <OrderTracker orderId={orderId} initialStatus="pending" useMockSimulation />
             </div>
@@ -68,17 +70,17 @@ function SuccessContent() {
             <div className="grid grid-cols-2 gap-3">
               <Link href={`/order/${orderId}`}>
                 <Button variant="secondary" className="w-full" leftIcon={<Package className="h-4 w-4" />}>
-                  Track Order
+                  {t('trackOrder')}
                 </Button>
               </Link>
               <Link href={menuHref}>
                 <Button className="w-full" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                  Order More
+                  {t('orderMore')}
                 </Button>
               </Link>
             </div>
             <Link href="/" className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors">
-              <Home className="h-3.5 w-3.5" /> Back to Home
+              <Home className="h-3.5 w-3.5" /> {t('backToHome')}
             </Link>
           </div>
         </motion.div>

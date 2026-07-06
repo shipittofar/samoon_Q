@@ -12,10 +12,10 @@ import { useLogout, useSetLocale, useModuleNav, usePermission } from '@/hooks'
 
 // Platform-level nav shown on the root site (when no tenant is active).
 // Replaces restaurant-specific module nav on the public marketplace surface.
-const PLATFORM_NAV: NavItem[] = [
-  { href: '/discover', label: 'Discover' },
-  { href: '/reservation', label: 'Reservations' },
-  { href: '/restaurant', label: 'For Business' },
+const PLATFORM_NAV: (NavItem & { labelKey: string })[] = [
+  { href: '/discover', label: 'Discover', labelKey: 'navDiscover' },
+  { href: '/reservation', label: 'Reservations', labelKey: 'navReservations' },
+  { href: '/restaurant', label: 'For Business', labelKey: 'navForBusiness' },
 ]
 import { cn, formatCurrency } from '@/utils'
 import { Avatar } from '@/components/ui'
@@ -39,6 +39,7 @@ const LANGUAGES = resolveSupportedLocales().map((code) => ({
 }))
 
 export function Header() {
+  const t = useTranslations('header')
   const pathname = usePathname()
   const { isAuthenticated, user } = useAuthStore()
   const { getItemCount, setOpen: setCartOpen, getTotal } = useCartStore()
@@ -92,7 +93,7 @@ export function Header() {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
       >
-        Skip to main content
+        {t('skipToMainContent')}
       </a>
     <header
       className={cn(
@@ -110,7 +111,7 @@ export function Header() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logoUrl}
-                alt={`${tenant.name} logo`}
+                alt={t('logoAlt', { name: tenant.name })}
                 width={120}
                 height={32}
                 className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
@@ -133,7 +134,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
+          <nav className="hidden md:flex items-center gap-1" aria-label={t('mainNavigationAria')}>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -149,7 +150,7 @@ export function Header() {
                       : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
                 )}
               >
-                {link.label}
+                {'labelKey' in link ? t((link as { labelKey: string }).labelKey) : link.label}
               </Link>
             ))}
           </nav>
@@ -161,7 +162,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              aria-label="Toggle theme"
+              aria-label={t('toggleThemeAria')}
               className={cn('hidden sm:flex', isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
             >
               <AnimatePresence mode="wait">
@@ -183,7 +184,7 @@ export function Header() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setLangMenuOpen((v) => !v)}
-                aria-label="Change language"
+                aria-label={t('changeLanguageAria')}
                 className={cn(isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
               >
                 <Globe className="h-4 w-4" />
@@ -240,7 +241,7 @@ export function Header() {
               size="icon"
               onClick={() => setCartOpen(true)}
               className={cn('relative', isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
-              aria-label={`Cart with ${cartCount} items`}
+              aria-label={t('cartWithItemsAria', { count: cartCount })}
             >
               <ShoppingCart className="h-4 w-4" />
               <AnimatePresence>
@@ -264,7 +265,7 @@ export function Header() {
                 <button
                   onClick={() => setUserMenuOpen((v) => !v)}
                   className="flex items-center gap-2 rounded-xl p-1 hover:bg-[var(--card-hover)] transition-colors"
-                  aria-label="User menu"
+                  aria-label={t('userMenuAria')}
                 >
                   <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="sm" />
                   <ChevronDown className={cn('h-3 w-3 text-[var(--fg-muted)] transition-transform hidden md:block', userMenuOpen && 'rotate-180')} />
@@ -283,22 +284,22 @@ export function Header() {
                         <p className="text-xs text-[var(--fg-muted)] truncate">{user?.email}</p>
                       </div>
                       {[
-                        { href: '/dashboard', icon: User, label: 'My Account' },
-                        { href: '/dashboard/orders', icon: Package, label: 'My Orders' },
-                        { href: '/dashboard/favorites', icon: Heart, label: 'Favorites' },
-                        { href: '/dashboard/addresses', icon: MapPin, label: 'Addresses' },
-                        { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
-                        ...(canAccessConsole ? [{ href: '/console', icon: Monitor, label: 'Business Console' }] : []),
+                        { href: '/dashboard', icon: User, labelKey: 'myAccount' },
+                        { href: '/dashboard/orders', icon: Package, labelKey: 'myOrders' },
+                        { href: '/dashboard/favorites', icon: Heart, labelKey: 'favorites' },
+                        { href: '/dashboard/addresses', icon: MapPin, labelKey: 'addresses' },
+                        { href: '/dashboard/settings', icon: Settings, labelKey: 'settings' },
+                        ...(canAccessConsole ? [{ href: '/console', icon: Monitor, labelKey: 'businessConsole' }] : []),
                       ].map((item) => (
                         <Link key={item.href} href={item.href} className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors">
                           <item.icon className="h-4 w-4 text-[var(--fg-muted)]" />
-                          {item.label}
+                          {t(item.labelKey)}
                         </Link>
                       ))}
                       <div className="border-t border-[var(--border)]">
                         <button onClick={handleLogout} className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-start">
                           <LogOut className="h-4 w-4" />
-                          Sign Out
+                          {t('signOut')}
                         </button>
                       </div>
                     </motion.div>
@@ -313,7 +314,7 @@ export function Header() {
                     size="sm"
                     className={cn(isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
                   >
-                    Sign In
+                    {t('signIn')}
                   </Button>
                 </Link>
                 <Link href="/register">
@@ -321,14 +322,14 @@ export function Header() {
                     size="sm"
                     className={cn(isTransparentHero && 'bg-white/15 border border-white/30 text-white hover:bg-white/25 shadow-none')}
                   >
-                    Get Started
+                    {t('getStarted')}
                   </Button>
                 </Link>
               </div>
             )}
 
             {/* Mobile toggle */}
-            <Button variant="ghost" size="icon" onClick={() => setMobileOpen((v) => !v)} className="md:hidden" aria-label="Toggle menu">
+            <Button variant="ghost" size="icon" onClick={() => setMobileOpen((v) => !v)} className="md:hidden" aria-label={t('toggleMenuAria')}>
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
@@ -344,7 +345,7 @@ export function Header() {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-[var(--card)] border-b border-[var(--border)] overflow-hidden"
           >
-            <nav className="px-4 py-3 flex flex-col gap-1" aria-label="Mobile navigation">
+            <nav className="px-4 py-3 flex flex-col gap-1" aria-label={t('mobileNavigationAria')}>
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -356,7 +357,7 @@ export function Header() {
                       : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
                   )}
                 >
-                  {link.label}
+                  {'labelKey' in link ? t((link as { labelKey: string }).labelKey) : link.label}
                 </Link>
               ))}
               {isAuthenticated && pathname.startsWith('/console') && (
@@ -376,8 +377,8 @@ export function Header() {
               </div>
               {!isAuthenticated && (
                 <div className="flex gap-2 pt-2">
-                  <Link href="/login" className="flex-1"><Button variant="secondary" size="sm" className="w-full">Sign In</Button></Link>
-                  <Link href="/register" className="flex-1"><Button size="sm" className="w-full">Get Started</Button></Link>
+                  <Link href="/login" className="flex-1"><Button variant="secondary" size="sm" className="w-full">{t('signIn')}</Button></Link>
+                  <Link href="/register" className="flex-1"><Button size="sm" className="w-full">{t('getStarted')}</Button></Link>
                 </div>
               )}
             </nav>

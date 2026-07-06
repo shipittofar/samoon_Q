@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Fragment, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Star, MapPin, Phone, Mail, Globe, Clock,
   UtensilsCrossed, Tag, Share2, Check, ExternalLink,
@@ -27,10 +28,11 @@ import type { Tenant, Category, MenuItem, PromotionRule } from '@/types'
 // ── Price level helper ────────────────────────────────────────────────────────
 
 function PriceLevel({ level }: { level?: number }) {
+  const t = useTranslations('tenant')
   if (!level) return null
   const labels = ['', '$', '$$', '$$$', '$$$$']
   return (
-    <span className="text-sm text-white/80" aria-label={`Price level: ${labels[level]}`}>
+    <span className="text-sm text-white/80" aria-label={t('priceLevelAria', { level: labels[level] })}>
       {labels[level]}
     </span>
   )
@@ -39,12 +41,13 @@ function PriceLevel({ level }: { level?: number }) {
 // ── Breadcrumb ────────────────────────────────────────────────────────────────
 
 function Breadcrumb({ name }: { name: string }) {
+  const t = useTranslations('tenant')
   return (
-    <nav aria-label="Breadcrumb" className="bg-[var(--bg)] border-b border-[var(--border)]">
+    <nav aria-label={t('breadcrumbAria')} className="bg-[var(--bg)] border-b border-[var(--border)]">
       <ol className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1.5 text-sm text-[var(--fg-muted)]">
         <li>
           <Link href="/discover" className="hover:text-[var(--fg)] transition-colors">
-            Discover
+            {t('discover')}
           </Link>
         </li>
         <li aria-hidden="true">
@@ -61,10 +64,12 @@ function Breadcrumb({ name }: { name: string }) {
 // ── Hero Section ──────────────────────────────────────────────────────────────
 
 function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }) {
+  const t = useTranslations('tenant')
+  const tMarketplace = useTranslations('marketplace')
   const accentColor =
     (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor ??
     'var(--accent)'
-  const label = tenant.businessTypes.map((t) => BUSINESS_TYPE_LABELS[t] ?? t).join(' · ')
+  const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
 
   const featureFlags = useTenantStore((s) => s.featureFlags)
   const cta = getSmartCTA({ tenantSlug: tenant.slug, branchSlug: undefined, featureFlags, meta })
@@ -98,21 +103,21 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
             meta.openNow ? 'bg-emerald-500 text-white' : 'bg-gray-800/90 text-gray-200',
           )}
         >
-          {meta.openNow ? 'Open now' : 'Closed'}
+          {meta.openNow ? tMarketplace('openNow') : tMarketplace('closed')}
         </span>
         {meta.featured && (
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-500 text-white shadow">
-            Featured
+            {tMarketplace('featured')}
           </span>
         )}
         {!meta.featured && meta.popular && (
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500 text-white shadow">
-            Popular
+            {tMarketplace('popular')}
           </span>
         )}
         {meta.isNew && (
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-600 text-white shadow">
-            New
+            {tMarketplace('new')}
           </span>
         )}
       </div>
@@ -146,7 +151,7 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
               <span className="flex items-center gap-1 text-sm text-white/80">
                 <Star className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
                 <strong className="text-white">{meta.rating.toFixed(1)}</strong>
-                <span>({meta.reviewCount.toLocaleString()} reviews)</span>
+                <span>{t('reviewsCount', { count: meta.reviewCount })}</span>
               </span>
               <span className="flex items-center gap-1 text-sm text-white/80">
                 <MapPin className="w-4 h-4" aria-hidden="true" />
@@ -155,7 +160,7 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
               {/* C4: MapPin instead of GitBranch */}
               <span className="flex items-center gap-1 text-sm text-white/80">
                 <MapPin className="w-4 h-4" aria-hidden="true" />
-                {meta.branchCount} {meta.branchCount === 1 ? 'location' : 'locations'}
+                {t('locationsCountLower', { count: meta.branchCount })}
               </span>
               <PriceLevel level={meta.priceLevel} />
             </div>
@@ -184,7 +189,7 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
                     className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
                   >
                     <MapPin className="w-4 h-4" aria-hidden="true" />
-                    All Locations
+                    {t('allLocations')}
                   </a>
                 )}
               </div>
@@ -199,6 +204,7 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
 // ── Share Button ──────────────────────────────────────────────────────────────
 
 function ShareButton({ tenant }: { tenant: Tenant }) {
+  const t = useTranslations('tenant')
   const [copied, setCopied] = useState(false)
   const url =
     typeof window !== 'undefined'
@@ -224,14 +230,14 @@ function ShareButton({ tenant }: { tenant: Tenant }) {
       type="button"
       onClick={handleShare}
       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border)] text-sm font-medium text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-      aria-label="Share this business"
+      aria-label={t('shareThisBusinessAria')}
     >
       {copied ? (
         <Check className="w-4 h-4 text-emerald-500" aria-hidden="true" />
       ) : (
         <Share2 className="w-4 h-4" aria-hidden="true" />
       )}
-      {copied ? 'Copied!' : 'Share'}
+      {copied ? t('copiedExclaim') : t('share')}
     </button>
   )
 }
@@ -253,12 +259,13 @@ function ctaIcon(href: string): React.ReactNode {
  * happen once in the parent, not in every sub-component.
  */
 function QuickActions({ journey, tenant }: { journey: CustomerJourney; tenant: Tenant }) {
+  const t = useTranslations('tenant')
   const allCTAs = [journey.primaryCTA, ...journey.secondaryCTAs].filter(
     (c): c is NonNullable<typeof c> => c !== null,
   )
 
   return (
-    <section aria-label="Quick actions">
+    <section aria-label={t('quickActionsAria')}>
       <div className="flex flex-wrap gap-2">
         {allCTAs.map((cta, i) => (
           <Link
@@ -290,9 +297,10 @@ const AMENITY_ICONS: Record<string, React.ReactNode> = {
 }
 
 function AmenitiesStrip({ amenities }: { amenities: string[] }) {
+  const t = useTranslations('tenant')
   if (amenities.length === 0) return null
   return (
-    <div className="flex flex-wrap gap-2 mt-4" role="list" aria-label="Amenities">
+    <div className="flex flex-wrap gap-2 mt-4" role="list" aria-label={t('amenitiesAria')}>
       {amenities.map((a) => (
         <span
           key={a}
@@ -310,6 +318,7 @@ function AmenitiesStrip({ amenities }: { amenities: string[] }) {
 // ── Business Info ─────────────────────────────────────────────────────────────
 
 function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
+  const t = useTranslations('tenant')
   return (
     <section aria-labelledby="about-heading">
       {/* H9: Upgraded section heading */}
@@ -317,7 +326,7 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
         id="about-heading"
         className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-4 pb-3 border-b border-[var(--border)]"
       >
-        About
+        {t('about')}
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Description + story + tags */}
@@ -327,7 +336,7 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
           {/* C2: Our Story block */}
           {meta.story && (
             <div className="mb-4 p-4 rounded-2xl bg-[var(--bg-secondary)] border border-[var(--border)]">
-              <h3 className="text-sm font-semibold text-[var(--fg)] mb-2">Our Story</h3>
+              <h3 className="text-sm font-semibold text-[var(--fg)] mb-2">{t('ourStory')}</h3>
               <p className="text-sm text-[var(--fg-muted)] leading-relaxed">{meta.story}</p>
             </div>
           )}
@@ -347,12 +356,12 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
 
           {meta.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {meta.tags.map((t) => (
+              {meta.tags.map((tag) => (
                 <span
-                  key={t}
+                  key={tag}
                   className="text-xs px-2.5 py-1 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20"
                 >
-                  #{t}
+                  #{tag}
                 </span>
               ))}
             </div>
@@ -403,6 +412,7 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
 // ── Branches Section ──────────────────────────────────────────────────────────
 
 function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSlug: string }) {
+  const t = useTranslations('tenant')
   return (
     <article className="flex flex-col bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden shadow-[var(--shadow-soft)] hover:shadow-md transition-shadow">
       {branch.image && (
@@ -422,7 +432,7 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
               branch.openNow ? 'bg-emerald-500/90 text-white' : 'bg-gray-800/80 text-gray-200',
             )}
           >
-            {branch.openNow ? 'Open' : 'Closed'}
+            {branch.openNow ? t('open') : t('closed')}
           </span>
         </div>
       )}
@@ -450,9 +460,9 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
         <Link
           href={`/${tenantSlug}/${branch.slug}`}
           className="mt-auto text-center text-sm font-medium px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-          aria-label={`Visit ${branch.name}`}
+          aria-label={t('visitBranchAria', { name: branch.name })}
         >
-          Visit Branch
+          {t('visitBranch')}
         </Link>
       </div>
     </article>
@@ -466,6 +476,7 @@ function BranchesSection({
   meta: MarketplaceMeta
   tenantSlug: string
 }) {
+  const t = useTranslations('tenant')
   const branches = meta.branches ?? []
   if (branches.length === 0) return null
 
@@ -476,7 +487,7 @@ function BranchesSection({
         id="branches-heading"
         className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
       >
-        Our Locations
+        {t('ourLocations')}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {branches.map((b) => (
@@ -498,6 +509,7 @@ function CategoriesSection({
   tenantSlug: string
   primaryBranchSlug: string
 }) {
+  const t = useTranslations('tenant')
   if (categories.length === 0) return null
   const CATEGORY_ICONS: Record<string, string> = {
     pizza: '🍕', burgers: '🍔', pasta: '🍝', drinks: '🥤', desserts: '🍰',
@@ -511,7 +523,7 @@ function CategoriesSection({
         id="categories-heading"
         className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
       >
-        Browse by Category
+        {t('browseByCategory')}
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {categories.slice(0, 10).map((cat) => {
@@ -522,14 +534,14 @@ function CategoriesSection({
               key={cat.id}
               href={`/${tenantSlug}/${primaryBranchSlug}/menu?category=${cat.slug ?? cat.id}`}
               className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--card-hover)] hover:border-[var(--accent)]/30 transition-colors"
-              aria-label={`Browse ${cat.name}`}
+              aria-label={t('browseCategoryAria', { name: cat.name })}
             >
               <span className="text-2xl" aria-hidden="true">
                 {icon}
               </span>
               <span className="text-sm font-medium text-[var(--fg)] text-center">{cat.name}</span>
               {cat.items_count != null && (
-                <span className="text-xs text-[var(--fg-muted)]">{cat.items_count} items</span>
+                <span className="text-xs text-[var(--fg-muted)]">{t('itemsCount', { count: cat.items_count })}</span>
               )}
             </Link>
           )
@@ -550,6 +562,7 @@ function FeaturedItemsSection({
   tenantSlug: string
   primaryBranchSlug: string
 }) {
+  const t = useTranslations('tenant')
   const featured = items.filter((i) => i.is_featured || i.is_popular).slice(0, 4)
   if (featured.length === 0) return null
 
@@ -561,13 +574,13 @@ function FeaturedItemsSection({
           id="featured-items-heading"
           className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]"
         >
-          Popular Items
+          {t('popularItems')}
         </h2>
         <Link
           href={`/${tenantSlug}/${primaryBranchSlug}/menu`}
           className="text-sm text-[var(--accent)] hover:underline font-medium"
         >
-          View full menu
+          {t('viewFullMenu')}
         </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -621,13 +634,14 @@ function PromotionsSection({
   tenantSlug: string
   primaryBranchSlug: string
 }) {
+  const t = useTranslations('tenant')
   if (promotions.length === 0) return null
 
-  const TYPE_LABELS: Record<string, string> = {
-    percentage_discount: 'Discount',
-    fixed_discount: 'Fixed off',
-    buy_one_get_one: 'BOGO',
-    happy_hour: 'Happy Hour',
+  const TYPE_LABEL_KEYS: Record<string, string> = {
+    percentage_discount: 'discount',
+    fixed_discount: 'fixedOff',
+    buy_one_get_one: 'bogo',
+    happy_hour: 'happyHour',
   }
 
   return (
@@ -637,7 +651,7 @@ function PromotionsSection({
         id="promotions-heading"
         className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
       >
-        Current Offers
+        {t('currentOffers')}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {promotions.slice(0, 3).map((promo) => (
@@ -646,18 +660,18 @@ function PromotionsSection({
             className="p-4 rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/5"
           >
             <span className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)] mb-2 block">
-              {TYPE_LABELS[promo.type] ?? promo.type}
+              {TYPE_LABEL_KEYS[promo.type] ? t(`promoTypes.${TYPE_LABEL_KEYS[promo.type]}`) : promo.type}
             </span>
             <h3 className="font-semibold text-[var(--fg)] mb-1">{promo.name}</h3>
             <p className="text-sm text-[var(--fg-muted)]">{promo.description}</p>
             {promo.discountPercent != null && (
               <p className="mt-2 text-xl font-bold text-[var(--accent)]">
-                {promo.discountPercent}% off
+                {t('percentOff', { percent: promo.discountPercent })}
               </p>
             )}
             {promo.discountAmount != null && (
               <p className="mt-2 text-xl font-bold text-[var(--accent)]">
-                ${promo.discountAmount} off
+                {t('amountOff', { amount: promo.discountAmount })}
               </p>
             )}
             {/* H6: Use this offer CTA */}
@@ -665,7 +679,7 @@ function PromotionsSection({
               href={`/${tenantSlug}/${primaryBranchSlug}/menu`}
               className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] hover:underline"
             >
-              Use this offer →
+              {t('useThisOffer')}
             </Link>
           </div>
         ))}
@@ -679,6 +693,7 @@ function PromotionsSection({
 // ── Gallery Section ───────────────────────────────────────────────────────────
 
 function GallerySection({ meta }: { meta: MarketplaceMeta }) {
+  const t = useTranslations('tenant')
   const images = [meta.coverImage, ...(meta.gallery ?? [])].filter(Boolean).slice(0, 6)
   // H5: Show gallery even with a single image (was <= 1)
   if (images.length === 0) return null
@@ -690,7 +705,7 @@ function GallerySection({ meta }: { meta: MarketplaceMeta }) {
         id="gallery-heading"
         className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
       >
-        Gallery
+        {t('gallery')}
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {images.map((src, i) => (
@@ -716,10 +731,11 @@ function GallerySection({ meta }: { meta: MarketplaceMeta }) {
 // ── Loading / Error states ────────────────────────────────────────────────────
 
 function LoadingSkeleton() {
+  const t = useTranslations('tenant')
   return (
     <>
       <TenantHeader />
-      <div role="status" aria-label="Loading page content" className="animate-pulse">
+      <div role="status" aria-label={t('loadingPageContentAria')} className="animate-pulse">
         <div className="h-[55vh] min-h-[340px] bg-[var(--card)]" aria-hidden="true" />
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
           {/* Quick actions row */}
@@ -750,7 +766,7 @@ function LoadingSkeleton() {
             <div className="h-4 w-full max-w-md bg-[var(--card-hover)] rounded-xl" />
           </div>
         </div>
-        <span className="sr-only">Loading…</span>
+        <span className="sr-only">{t('loadingEllipsis')}</span>
       </div>
       <Footer />
     </>
@@ -758,21 +774,22 @@ function LoadingSkeleton() {
 }
 
 function TenantNotFoundState() {
+  const t = useTranslations('tenant')
   return (
     <>
       <TenantHeader />
       <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
         <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6" aria-hidden="true" />
-        <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">Business not found</h1>
+        <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">{t('businessNotFound')}</h1>
         <p className="text-[var(--fg-muted)] max-w-sm mb-8">
-          We could not find a business at this URL.
+          {t('businessNotFoundDesc')}
         </p>
         <Link
           href="/discover"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] font-medium hover:bg-[var(--accent-hover)] transition-colors"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-          Browse all businesses
+          {t('browseAllBusinesses')}
         </Link>
       </main>
       <Footer />

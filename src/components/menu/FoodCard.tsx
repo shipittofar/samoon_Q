@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Heart, Plus, Clock, Flame, Star } from 'lucide-react'
 import { useCartStore, useFavoritesStore, useRecentlyViewedStore } from '@/stores'
 import { useToggleFavorite } from '@/hooks'
@@ -19,6 +20,7 @@ interface FoodCardProps {
 }
 
 export function FoodCard({ item, onOpenDetail, compact = false, className }: FoodCardProps) {
+  const t = useTranslations('menu')
   const { addItem } = useCartStore()
   const { isFavorite, toggleFavorite } = useFavoritesStore()
   const { mutate: toggleFav } = useToggleFavorite()
@@ -72,7 +74,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
           )}
           {!item.available && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <span className="text-white text-[10px] font-medium">Unavailable</span>
+              <span className="text-white text-[10px] font-medium">{t('unavailableShort')}</span>
             </div>
           )}
         </div>
@@ -86,7 +88,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
                 <span className="text-xs text-[var(--fg-subtle)] line-through ms-1">{formatCurrency(item.price)}</span>
               )}
             </div>
-            <Button size="icon-sm" onClick={handleAdd} disabled={!item.available} aria-label="Add to cart">
+            <Button size="icon-sm" onClick={handleAdd} disabled={!item.available} aria-label={t('addToCart')}>
               <Plus className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -126,11 +128,11 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
 
         {/* Badges */}
         <div className="absolute top-3 start-3 flex flex-col gap-1.5">
-          {item.is_new && <Badge variant="info" className="shadow-sm text-[10px]">New</Badge>}
-          {item.is_popular && <Badge variant="warning" className="shadow-sm text-[10px]">Popular</Badge>}
-          {item.is_featured && <Badge variant="default" className="shadow-sm text-[10px]">Featured</Badge>}
+          {item.is_new && <Badge variant="info" className="shadow-sm text-[10px]">{t('new')}</Badge>}
+          {item.is_popular && <Badge variant="warning" className="shadow-sm text-[10px]">{t('popular')}</Badge>}
+          {item.is_featured && <Badge variant="default" className="shadow-sm text-[10px]">{t('featured')}</Badge>}
           {item.discount && (
-            <Badge variant="danger" className="shadow-sm text-[10px]">{item.discount}% OFF</Badge>
+            <Badge variant="danger" className="shadow-sm text-[10px]">{t('discount', { percent: item.discount })}</Badge>
           )}
         </div>
 
@@ -143,7 +145,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
               ? 'bg-red-500 text-white scale-110'
               : 'bg-white/80 backdrop-blur-sm text-gray-500 hover:bg-white hover:text-red-500',
           )}
-          aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+          aria-label={favorited ? t('removeFromFavorites') : t('addToFavorites')}
         >
           <Heart className={cn('h-4 w-4', favorited && 'fill-current')} />
         </button>
@@ -151,7 +153,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
         {/* Not available overlay */}
         {!item.available && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Badge variant="secondary" className="text-xs">Currently Unavailable</Badge>
+            <Badge variant="secondary" className="text-xs">{t('unavailable')}</Badge>
           </div>
         )}
       </div>
@@ -171,18 +173,18 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
             <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
             {item.rating.toFixed(1)}
             {item.rating_count > 0 && (
-              <span className="text-[var(--fg-subtle)]">({item.rating_count})</span>
+              <span className="text-[var(--fg-subtle)]">{t('ratingCountShort', { count: item.rating_count })}</span>
             )}
           </span>
           {/* H6: friendlier prep time label */}
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" aria-hidden="true" />
-            ~{item.preparation_time} min
+            {t('prepTimeApprox', { min: item.preparation_time })}
           </span>
           {item.calories && (
             <span className="flex items-center gap-1">
               <Flame className="h-3 w-3" />
-              {item.calories} cal
+              {t('calories', { count: item.calories })}
             </span>
           )}
         </div>
@@ -206,7 +208,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
               className={cn(addedAnim && 'bg-emerald-500 hover:bg-emerald-500')}
             >
               {/* H4: "Add" label for all items — customization opens naturally in the modal */}
-              {addedAnim ? 'Added!' : 'Add'}
+              {addedAnim ? t('added') : t('add')}
             </Button>
           </motion.div>
         </div>

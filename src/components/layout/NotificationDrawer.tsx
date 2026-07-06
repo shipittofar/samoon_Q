@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { X, Bell, Search, Filter, Check, Archive, Trash2, ExternalLink, AlertTriangle, Info, AlertCircle, RefreshCw, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -14,6 +15,7 @@ import {
   useArchiveNotification,
   useDeleteNotification,
 } from '@/hooks'
+import { useLocalizedNumber } from '@/i18n/hooks'
 import type { RichNotification, NotificationFilter, NotificationStatus, NotificationPriority, NotificationCategory } from '@/types/notification'
 
 const PRIORITY_ICON: Record<NotificationPriority, React.ReactNode> = {
@@ -30,32 +32,32 @@ const PRIORITY_BADGE: Record<NotificationPriority, 'default' | 'info' | 'warning
   urgent: 'danger',
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, formatRelativeTime: ReturnType<typeof useLocalizedNumber>['formatRelativeTime']): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60_000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return formatRelativeTime(0, 'second')
+  if (mins < 60) return formatRelativeTime(-mins, 'minute')
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 24) return formatRelativeTime(-hours, 'hour')
+  return formatRelativeTime(-Math.floor(hours / 24), 'day')
 }
 
-const CATEGORIES: Array<{ value: NotificationCategory | 'all'; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'order', label: 'Orders' },
-  { value: 'reservation', label: 'Reservations' },
-  { value: 'staff', label: 'Staff' },
-  { value: 'branch', label: 'Branches' },
-  { value: 'promotion', label: 'Promotions' },
-  { value: 'vendor', label: 'Vendors' },
-  { value: 'audit', label: 'Audit' },
-  { value: 'system', label: 'System' },
+const CATEGORIES: Array<{ value: NotificationCategory | 'all'; labelKey: string }> = [
+  { value: 'all', labelKey: 'all' },
+  { value: 'order', labelKey: 'orders' },
+  { value: 'reservation', labelKey: 'reservations' },
+  { value: 'staff', labelKey: 'staff' },
+  { value: 'branch', labelKey: 'branches' },
+  { value: 'promotion', labelKey: 'promotions' },
+  { value: 'vendor', labelKey: 'vendors' },
+  { value: 'audit', labelKey: 'audit' },
+  { value: 'system', labelKey: 'system' },
 ]
 
-const TABS: Array<{ value: NotificationStatus | 'all'; label: string }> = [
-  { value: 'unread', label: 'Unread' },
-  { value: 'read', label: 'Read' },
-  { value: 'archived', label: 'Archived' },
+const TABS: Array<{ value: NotificationStatus | 'all'; labelKey: string }> = [
+  { value: 'unread', labelKey: 'unread' },
+  { value: 'read', labelKey: 'read' },
+  { value: 'archived', labelKey: 'archived' },
 ]
 
 interface DrawerNotifItemProps {
@@ -67,6 +69,8 @@ interface DrawerNotifItemProps {
 }
 
 function DrawerNotifItem({ notification, onRead, onArchive, onDelete, onClose }: DrawerNotifItemProps) {
+  const t = useTranslations('notifications')
+  const { formatRelativeTime } = useLocalizedNumber()
   return (
     <div
       className={cn(
@@ -82,15 +86,15 @@ function DrawerNotifItem({ notification, onRead, onArchive, onDelete, onClose }:
           </p>
           <div className="flex items-center gap-2 flex-shrink-0">
             <Badge variant={PRIORITY_BADGE[notification.priority]} className="text-xs capitalize">
-              {notification.priority}
+              {t(`priority.${notification.priority}`)}
             </Badge>
-            <span className="text-xs text-muted-foreground">{timeAgo(notification.createdAt)}</span>
+            <span className="text-xs text-muted-foreground">{timeAgo(notification.createdAt, formatRelativeTime)}</span>
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
         {notification.actor && (
           <p className="text-xs text-muted-foreground mt-0.5">
-            by {notification.actor.name}
+            {t('byActor', { name: notification.actor.name })}
           </p>
         )}
         {notification.deepLink && (
@@ -99,22 +103,22 @@ function DrawerNotifItem({ notification, onRead, onArchive, onDelete, onClose }:
             onClick={onClose}
             className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline"
           >
-            View details <ExternalLink className="w-3 h-3" />
+            {t('viewDetails')} <ExternalLink className="w-3 h-3" />
           </Link>
         )}
       </div>
       <div className="flex-shrink-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {notification.status === 'unread' && (
-          <button onClick={() => onRead(notification.id)} title="Mark read" className="p-1.5 rounded hover:bg-muted">
+          <button onClick={() => onRead(notification.id)} title={t('markRead')} className="p-1.5 rounded hover:bg-muted">
             <Check className="w-4 h-4" />
           </button>
         )}
         {notification.status !== 'archived' && (
-          <button onClick={() => onArchive(notification.id)} title="Archive" className="p-1.5 rounded hover:bg-muted">
+          <button onClick={() => onArchive(notification.id)} title={t('archive')} className="p-1.5 rounded hover:bg-muted">
             <Archive className="w-4 h-4" />
           </button>
         )}
-        <button onClick={() => onDelete(notification.id)} title="Delete" className="p-1.5 rounded hover:bg-muted text-destructive">
+        <button onClick={() => onDelete(notification.id)} title={t('delete')} className="p-1.5 rounded hover:bg-muted text-destructive">
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
@@ -130,6 +134,7 @@ interface NotificationDrawerProps {
 }
 
 export function NotificationDrawer({ open, onClose, tenantId, branchId }: NotificationDrawerProps) {
+  const t = useTranslations('notifications')
   const [tab, setTab] = useState<NotificationStatus | 'all'>('unread')
   const [category, setCategory] = useState<NotificationCategory | 'all'>('all')
   const [search, setSearch] = useState('')
@@ -186,11 +191,11 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div className="flex items-center gap-2">
                 <Bell className="w-5 h-5" />
-                <h2 className="font-semibold">Notifications</h2>
-                {unreadCount > 0 && <Badge variant="info">{unreadCount} unread</Badge>}
+                <h2 className="font-semibold">{t('title')}</h2>
+                {unreadCount > 0 && <Badge variant="info">{t('unreadCount', { count: unreadCount })}</Badge>}
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => refetch()} title="Refresh">
+                <Button variant="ghost" size="sm" onClick={() => refetch()} title={t('refresh')}>
                   <RefreshCw className="w-4 h-4" />
                 </Button>
                 {tab === 'unread' && unreadCount > 0 && (
@@ -199,7 +204,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
                     size="sm"
                     onClick={() => markAll.mutate({ tenantId, branchId })}
                   >
-                    Mark all read
+                    {t('markAllRead')}
                   </Button>
                 )}
                 <button onClick={onClose} className="p-1.5 rounded hover:bg-muted">
@@ -210,18 +215,18 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
 
             {/* Tabs */}
             <div className="flex gap-1 px-6 py-2 border-b border-border">
-              {TABS.map((t) => (
+              {TABS.map((tabItem) => (
                 <button
-                  key={t.value}
-                  onClick={() => handleTabChange(t.value)}
+                  key={tabItem.value}
+                  onClick={() => handleTabChange(tabItem.value)}
                   className={cn(
                     'px-3 py-1.5 rounded-md text-sm transition-colors',
-                    tab === t.value
+                    tab === tabItem.value
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:bg-muted',
                   )}
                 >
-                  {t.label}
+                  {t(`tabs.${tabItem.labelKey}`)}
                 </button>
               ))}
             </div>
@@ -232,7 +237,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search notifications…"
+                  placeholder={t('searchNotificationsPlaceholder')}
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                   className="w-full pl-9 pr-4 py-2 text-sm bg-muted/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
@@ -250,7 +255,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
                         : 'bg-muted text-muted-foreground hover:bg-muted/80',
                     )}
                   >
-                    {c.label}
+                    {t(`categories.${c.labelKey}`)}
                   </button>
                 ))}
               </div>
@@ -265,9 +270,9 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
               ) : notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                   <Bell className="w-10 h-10 mb-3 opacity-30" />
-                  <p className="font-medium">No notifications</p>
+                  <p className="font-medium">{t('noNotifications')}</p>
                   <p className="text-sm mt-1">
-                    {tab === 'unread' ? "You're all caught up!" : 'Nothing here yet.'}
+                    {tab === 'unread' ? t('allCaughtUp') : t('nothingHereYet')}
                   </p>
                 </div>
               ) : (
@@ -288,13 +293,13 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             {totalPages > 1 && (
               <div className="border-t border-border px-6 py-3 flex items-center justify-between">
                 <Button variant="outline" size="sm" onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>
-                  Previous
+                  {t('previous')}
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  Page {page} of {totalPages}
+                  {t('pageOfTotal', { page, total: totalPages })}
                 </span>
                 <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>
-                  Next
+                  {t('next')}
                 </Button>
               </div>
             )}
@@ -306,7 +311,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
                 onClick={onClose}
                 className="flex items-center justify-center gap-1.5 text-sm text-primary hover:underline"
               >
-                Open Notification Center <ExternalLink className="w-3.5 h-3.5" />
+                {t('openNotificationCenter')} <ExternalLink className="w-3.5 h-3.5" />
               </Link>
             </div>
           </motion.div>

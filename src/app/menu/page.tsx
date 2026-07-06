@@ -13,34 +13,31 @@
  */
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
+import { getLocale } from 'next-intl/server'
 import { menuService } from '@/services/menu.service'
 import { createServerQueryClient, dehydrateClient, HydrationBoundary } from '@/lib/react-query'
 import { MenuContent } from '@/components/menu/MenuContent'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { DEFAULT_MENU_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
+import { getLocalizedPageMetadata } from '@/lib/seo'
 import MenuLoading from './loading'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
-export const metadata: Metadata = {
-  title: 'Menu — Savor',
-  description:
-    'Browse menus from restaurants, cafés, bars, and more on Savor. Find dishes, explore categories, and order online.',
-  openGraph: {
-    title: 'Menu — Savor',
-    description: 'Browse menus from local businesses on Savor.',
-    url: `${BASE_URL}/menu`,
-    siteName: 'Savor Platform',
-    type: 'website',
-    images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Menu — Savor',
-    description: 'Browse menus from local businesses on Savor.',
-    images: [`${BASE_URL}/og-image.jpg`],
-  },
-  alternates: { canonical: `${BASE_URL}/menu` },
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const localized = await getLocalizedPageMetadata({ locale, path: '/menu', namespaceKey: 'menu', baseUrl: BASE_URL })
+  return {
+    ...localized,
+    openGraph: {
+      ...localized.openGraph,
+      images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor' }],
+    },
+    twitter: {
+      ...localized.twitter,
+      images: [`${BASE_URL}/og-image.jpg`],
+    },
+  }
 }
 
 export default async function MenuPage() {

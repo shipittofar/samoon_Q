@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Clock, ExternalLink } from 'lucide-react'
 import { cn } from '@/utils'
 import type { PublicBranchInfo } from '@/types/marketplace'
@@ -11,14 +12,15 @@ interface BranchPreviewProps {
 }
 
 export function BranchPreview({ branches, tenantSlug }: BranchPreviewProps) {
+  const t = useTranslations('marketplace')
   return (
     <div
       className="border-t border-[var(--border)] mt-3 pt-3"
       role="region"
-      aria-label="Branch locations"
+      aria-label={t('branchLocationsAria')}
     >
       <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider mb-2">
-        Locations
+        {t('locations')}
       </p>
       <ul className="space-y-2.5" role="list">
         {branches.map((b) => (
@@ -36,9 +38,9 @@ export function BranchPreview({ branches, tenantSlug }: BranchPreviewProps) {
                 <Link
                   href={`/${tenantSlug}/${b.slug}`}
                   className="shrink-0 text-xs text-[var(--accent)] hover:underline flex items-center gap-0.5"
-                  aria-label={`Visit ${b.name}`}
+                  aria-label={t('visitBranchAria', { name: b.name })}
                 >
-                  View
+                  {t('view')}
                   <ExternalLink className="w-2.5 h-2.5" aria-hidden="true" />
                 </Link>
               </div>
@@ -48,7 +50,7 @@ export function BranchPreview({ branches, tenantSlug }: BranchPreviewProps) {
                   <Clock className="w-2.5 h-2.5" aria-hidden="true" />
                   {b.todayHours} ·{' '}
                   <span className={b.openNow ? 'text-emerald-600 dark:text-emerald-400' : ''}>
-                    {b.openNow ? 'Open' : 'Closed'}
+                    {b.openNow ? t('openNow') : t('closed')}
                   </span>
                 </p>
               )}

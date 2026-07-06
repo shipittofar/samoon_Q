@@ -182,7 +182,7 @@ describe('P3.12.3 — NotificationCenter wrapped in Header', () => {
 
   it('NotificationCenter component handles empty notification list', () => {
     const content = src('components/notification/NotificationCenter.tsx')
-    expect(content).toContain('No notifications yet')
+    expect(content).toContain("t('noNotificationsYet')")
   })
 
   it('NotificationCenter component shows unread count badge', () => {

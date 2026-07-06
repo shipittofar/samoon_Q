@@ -2,18 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Check, Clock, ChefHat, Bell, Bike, X } from 'lucide-react'
 import { simulateOrderUpdates } from '@/services/websocket.service'
 import { useOrderWebSocket } from '@/hooks/client'
 import { cn } from '@/utils'
 import type { OrderStatus } from '@/types'
 
-const STEPS: { status: OrderStatus; label: string; icon: React.ElementType; description: string }[] = [
-  { status: 'pending', label: 'Order Placed', icon: Clock, description: 'Your order has been received' },
-  { status: 'accepted', label: 'Accepted', icon: Check, description: 'Restaurant accepted your order' },
-  { status: 'preparing', label: 'Preparing', icon: ChefHat, description: "Chef is crafting your meal" },
-  { status: 'ready', label: 'Ready', icon: Bell, description: 'Your order is ready!' },
-  { status: 'delivered', label: 'Delivered', icon: Bike, description: 'Enjoy your meal 🎉' },
+const STEPS: { status: OrderStatus; labelKey: string; icon: React.ElementType; descriptionKey: string }[] = [
+  { status: 'pending', labelKey: 'orderPlaced', icon: Clock, descriptionKey: 'orderPlacedDesc' },
+  { status: 'accepted', labelKey: 'accepted', icon: Check, descriptionKey: 'acceptedDesc' },
+  { status: 'preparing', labelKey: 'preparing', icon: ChefHat, descriptionKey: 'preparingDesc' },
+  { status: 'ready', labelKey: 'ready', icon: Bell, descriptionKey: 'readyDesc' },
+  { status: 'delivered', labelKey: 'delivered', icon: Bike, descriptionKey: 'deliveredDesc' },
 ]
 
 const STATUS_ORDER: OrderStatus[] = ['pending', 'accepted', 'preparing', 'ready', 'delivered']
@@ -25,6 +26,7 @@ interface OrderTrackerProps {
 }
 
 export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimulation = true }: OrderTrackerProps) {
+  const t = useTranslations('orderTracker')
   const [currentStatus, setCurrentStatus] = useState<OrderStatus>(initialStatus)
   const [estimatedTime, setEstimatedTime] = useState<number | null>(null)
   const [isCancelled, setIsCancelled] = useState(initialStatus === 'cancelled')
@@ -66,8 +68,8 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
           <X className="h-8 w-8 text-red-500" />
         </div>
         <div>
-          <h3 className="font-semibold text-[var(--fg)]">Order Cancelled</h3>
-          <p className="text-sm text-[var(--fg-muted)] mt-1">Your order has been cancelled.</p>
+          <h3 className="font-semibold text-[var(--fg)]">{t('orderCancelled')}</h3>
+          <p className="text-sm text-[var(--fg-muted)] mt-1">{t('orderCancelledDesc')}</p>
         </div>
       </div>
     )
@@ -88,8 +90,8 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
               <Clock className="h-5 w-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-sm font-medium text-[var(--fg)]">Estimated time</p>
-              <p className="text-lg font-bold text-orange-500">{estimatedTime} minutes</p>
+              <p className="text-sm font-medium text-[var(--fg)]">{t('estimatedTime')}</p>
+              <p className="text-lg font-bold text-orange-500">{t('minutesCount', { count: estimatedTime })}</p>
             </div>
           </motion.div>
         )}
@@ -140,7 +142,7 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
                 </motion.div>
                 <div className="text-center hidden sm:block">
                   <p className={cn('text-xs font-medium', active ? 'text-orange-500' : done ? 'text-[var(--fg)]' : 'text-[var(--fg-subtle)]')}>
-                    {step.label}
+                    {t(step.labelKey)}
                   </p>
                 </div>
               </div>
@@ -165,7 +167,7 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
                 return (
                   <>
                     <step.icon className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm font-medium text-[var(--fg)]">{step.description}</span>
+                    <span className="text-sm font-medium text-[var(--fg)]">{t(step.descriptionKey)}</span>
                   </>
                 )
               })()}

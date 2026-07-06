@@ -619,7 +619,7 @@ describe('N. Table page source-text checks', () => {
 
   it('still has table validation logic', () => {
     expect(page).toContain('isValid')
-    expect(page).toContain('Invalid Table')
+    expect(page).toContain("t('invalidTable')")
   })
 
   it('still has checkout link', () => {
@@ -627,7 +627,7 @@ describe('N. Table page source-text checks', () => {
   })
 
   it('renders Browse Menu link', () => {
-    expect(page).toContain('Browse Menu')
+    expect(page).toContain("t('browseMenu')")
   })
 })
 

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Mail, Phone, Globe, Instagram, Twitter, MapPin } from 'lucide-react'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import { useTenantStore } from '@/stores'
@@ -13,6 +14,7 @@ interface TenantFooterProps {
 }
 
 export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps) {
+  const t = useTranslations('tenantFooter')
   const featureFlags = useTenantStore((s) => s.featureFlags)
   const quickLinks = buildFooterLinks({ tenantSlug, featureFlags, meta })
 
@@ -55,7 +57,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                     href={meta.socialLinks.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="Instagram"
+                    aria-label={t('instagram')}
                     className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--fg-muted)] hover:text-orange-500 hover:bg-[var(--card-hover)] transition-all"
                   >
                     <Instagram className="h-4 w-4" />
@@ -66,7 +68,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                     href={meta.socialLinks.twitter}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="Twitter / X"
+                    aria-label={t('twitterX')}
                     className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--fg-muted)] hover:text-orange-500 hover:bg-[var(--card-hover)] transition-all"
                   >
                     <Twitter className="h-4 w-4" />
@@ -78,7 +80,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
 
           {/* Quick links — feature-flag-aware, branch-aware via buildFooterLinks() */}
           <div>
-            <h4 className="text-sm font-semibold text-[var(--fg)] mb-4">Quick Links</h4>
+            <h4 className="text-sm font-semibold text-[var(--fg)] mb-4">{t('quickLinks')}</h4>
             <ul className="space-y-3 text-sm text-[var(--fg-muted)]">
               {quickLinks.map((link) => (
                 <li key={link.href}>
@@ -93,7 +95,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
           {/* Contact */}
           {hasContact && (
             <div>
-              <h4 className="text-sm font-semibold text-[var(--fg)] mb-4">Contact</h4>
+              <h4 className="text-sm font-semibold text-[var(--fg)] mb-4">{t('contact')}</h4>
               <ul className="space-y-3">
                 {meta.city && (
                   <li className="flex items-start gap-2 text-sm text-[var(--fg-muted)]">
@@ -144,12 +146,12 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
         {/* Bottom bar */}
         <div className="py-5 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-[var(--fg-subtle)]">
-            © {year} {tenantName}. All rights reserved.
+            {t('copyright', { year, name: tenantName })}
           </p>
           <p className="text-xs text-[var(--fg-subtle)]">
-            Powered by{' '}
+            {t('poweredBy')}{' '}
             <Link href="/" className="hover:text-orange-500 transition-colors">
-              Savor Platform
+              {t('savorPlatform')}
             </Link>
           </p>
         </div>

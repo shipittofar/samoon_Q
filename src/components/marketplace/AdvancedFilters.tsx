@@ -1,12 +1,20 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { X, SlidersHorizontal } from 'lucide-react'
 import { cn } from '@/utils'
-import { type FilterState, PRICE_LEVEL_LABELS } from '@/types/marketplace'
+import { type FilterState } from '@/types/marketplace'
+
+const PRICE_LEVEL_SYMBOLS: Record<number, string> = {
+  1: '$',
+  2: '$$',
+  3: '$$$',
+  4: '$$$$',
+}
 
 const SERVICE_OPTIONS = [
-  { key: 'reservations.enabled', label: 'Reservations' },
-  { key: 'loyalty.enabled', label: 'Loyalty Program' },
+  { key: 'reservations.enabled', labelKey: 'reservations' },
+  { key: 'loyalty.enabled', labelKey: 'loyaltyProgram' },
 ]
 
 interface AdvancedFiltersProps {
@@ -63,6 +71,7 @@ export function AdvancedFilters({
   isOpen,
   onToggle,
 }: AdvancedFiltersProps) {
+  const t = useTranslations('marketplace')
   return (
     <div>
       {/* Toggle button */}
@@ -79,11 +88,11 @@ export function AdvancedFilters({
         )}
       >
         <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
-        Filters
+        {t('filters')}
         {activeCount > 0 && (
           <span
             className="h-5 w-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center"
-            aria-label={`${activeCount} active filters`}
+            aria-label={t('activeFiltersAria', { count: activeCount })}
           >
             {activeCount}
           </span>
@@ -96,19 +105,19 @@ export function AdvancedFilters({
           id="advanced-filters-panel"
           className="mt-3 p-5 rounded-2xl bg-[var(--card)] border border-[var(--border)] space-y-5"
           role="region"
-          aria-label="Advanced filters"
+          aria-label={t('advancedFiltersAria')}
         >
           <div className="flex items-center justify-between">
-            <p className="font-semibold text-[var(--fg)]">Advanced Filters</p>
+            <p className="font-semibold text-[var(--fg)]">{t('advancedFilters')}</p>
             {activeCount > 0 && (
               <button
                 type="button"
                 onClick={onReset}
                 className="flex items-center gap-1 text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
-                aria-label="Clear all filters"
+                aria-label={t('clearAllFilters')}
               >
                 <X className="w-3 h-3" aria-hidden="true" />
-                Clear all ({activeCount})
+                {t('clearAllCount', { count: activeCount })}
               </button>
             )}
           </div>
@@ -132,17 +141,17 @@ export function AdvancedFilters({
                   filters.openNow ? 'translate-x-4' : 'translate-x-0.5',
                 )}
               />
-              <span className="sr-only">Open Now</span>
+              <span className="sr-only">{t('openNow')}</span>
             </button>
-            <span className="text-sm text-[var(--fg-muted)]">Open Now only</span>
+            <span className="text-sm text-[var(--fg-muted)]">{t('openNowOnly')}</span>
           </div>
 
           {/* Price Level */}
-          <FilterSection title="Price Level">
+          <FilterSection title={t('priceLevel')}>
             {([1, 2, 3, 4] as const).map((p) => (
               <Chip
                 key={p}
-                label={PRICE_LEVEL_LABELS[p]}
+                label={`${PRICE_LEVEL_SYMBOLS[p]} · ${t(`priceLevels.${p}`)}`}
                 active={filters.priceLevels.includes(p)}
                 onClick={() => onChange({ ...filters, priceLevels: toggle(filters.priceLevels, p) })}
               />
@@ -151,7 +160,7 @@ export function AdvancedFilters({
 
           {/* Cuisines */}
           {availableCuisines.length > 0 && (
-            <FilterSection title="Cuisine">
+            <FilterSection title={t('cuisine')}>
               {availableCuisines.map((c) => (
                 <Chip
                   key={c}
@@ -165,7 +174,7 @@ export function AdvancedFilters({
 
           {/* Cities */}
           {availableCities.length > 1 && (
-            <FilterSection title="City">
+            <FilterSection title={t('city')}>
               {availableCities.map((c) => (
                 <Chip
                   key={c}
@@ -178,11 +187,11 @@ export function AdvancedFilters({
           )}
 
           {/* Services */}
-          <FilterSection title="Services">
-            {SERVICE_OPTIONS.map(({ key, label }) => (
+          <FilterSection title={t('services')}>
+            {SERVICE_OPTIONS.map(({ key, labelKey }) => (
               <Chip
                 key={key}
-                label={label}
+                label={t(labelKey)}
                 active={filters.services.includes(key)}
                 onClick={() => onChange({ ...filters, services: toggle(filters.services, key) })}
               />
@@ -191,7 +200,7 @@ export function AdvancedFilters({
 
           {/* Amenities */}
           {availableAmenities.length > 0 && (
-            <FilterSection title="Amenities">
+            <FilterSection title={t('amenities')}>
               {availableAmenities.map((a) => (
                 <Chip
                   key={a}

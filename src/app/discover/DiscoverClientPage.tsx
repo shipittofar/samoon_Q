@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Loader2, Store, SearchX, Sparkles, Star, Flame } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -107,25 +108,27 @@ function EmptyState({
   onClearAll: () => void
   topItems: TenantWithMeta[]
 }) {
+  const t = useTranslations('discover')
+  const tHome = useTranslations('home')
   const suggestions = [
-    { label: 'Restaurants', href: '/discover?category=restaurant' },
-    { label: 'Cafés', href: '/discover?category=cafe' },
-    { label: 'Bars', href: '/discover?category=bar' },
+    { label: tHome('categories.restaurants'), href: '/discover?category=restaurant' },
+    { label: tHome('categories.cafes'), href: '/discover?category=cafe' },
+    { label: tHome('categories.bars'), href: '/discover?category=bar' },
   ]
 
   return (
     <div className="py-16">
       <div className="flex flex-col items-center text-center mb-10">
         <SearchX className="w-12 h-12 text-[var(--fg-muted)] mb-4" aria-hidden="true" />
-        <h3 className="text-lg font-semibold text-[var(--fg)] mb-2">No businesses found</h3>
+        <h3 className="text-lg font-semibold text-[var(--fg)] mb-2">{t('noBusinessesFound')}</h3>
         <p className="text-[var(--fg-muted)] text-sm max-w-sm mb-6">
           {query && category
-            ? `No ${category} businesses match "${query}". Try adjusting your search or filters.`
+            ? t('noMatchCategoryQuery', { category, query })
             : query
-              ? `No businesses match "${query}". Try a different term or browse by category.`
+              ? t('noMatchQuery', { query })
               : hasFilters
-                ? 'No businesses match the active filters. Try removing some.'
-                : 'No businesses in this category yet.'}
+                ? t('noMatchFilters')
+                : t('noBusinessesCategory')}
         </p>
         {(query || category || hasFilters) && (
           <button
@@ -133,7 +136,7 @@ function EmptyState({
             onClick={onClearAll}
             className="px-4 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors"
           >
-            Clear all filters
+            {t('clearAllFilters')}
           </button>
         )}
       </div>
@@ -142,7 +145,7 @@ function EmptyState({
       {suggestions.length > 0 && (
         <div className="max-w-sm mx-auto">
           <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-widest mb-3 text-center">
-            Try browsing
+            {t('tryBrowsing')}
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {suggestions.map(({ label, href }) => (
@@ -162,7 +165,7 @@ function EmptyState({
       {topItems.length > 0 && (
         <div className="mt-12">
           <p className="text-sm font-semibold text-[var(--fg-muted)] mb-5 text-center">
-            Popular businesses you might like
+            {t('popularBusinessesYouMightLike')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {topItems.slice(0, 3).map(({ tenant, meta }) => (
@@ -178,6 +181,7 @@ function EmptyState({
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export function DiscoverClientPage() {
+  const t = useTranslations('discover')
   const { data: tenants = [], isLoading, isError } = usePublicTenants()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -327,25 +331,25 @@ export function DiscoverClientPage() {
         >
           <div className="max-w-4xl mx-auto text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-[var(--accent)] mb-2">
-              Discover
+              {t('eyebrow')}
             </p>
             <h1
               id="discover-heading"
               className="text-3xl sm:text-4xl font-bold text-[var(--fg)] mb-3"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Find Your Next{' '}
-              <span className="text-[var(--accent)]">Favourite Spot</span>
+              {t('headingPrefix')}{' '}
+              <span className="text-[var(--accent)]">{t('headingAccent')}</span>
             </h1>
             {/* H7: platform capability subtext */}
             <p className="text-[var(--fg-muted)] text-base mb-6 max-w-xl mx-auto">
-              Search · Book a table · Order online · Earn rewards — all in one place.
+              {t('subtitle')}
             </p>
 
             <BusinessSearch
               value={rawQuery}
               onChange={handleSearchChange}
-              placeholder="Search by name, city, cuisine, amenity, or type…"
+              placeholder={t('searchPlaceholder')}
             />
           </div>
         </section>
@@ -385,7 +389,7 @@ export function DiscoverClientPage() {
           {isError && (
             <div className="py-20 text-center" role="alert">
               <Store className="w-12 h-12 text-[var(--fg-muted)] mx-auto mb-4" aria-hidden="true" />
-              <p className="text-[var(--fg-muted)]">Failed to load businesses. Please try again.</p>
+              <p className="text-[var(--fg-muted)]">{t('errorLoad')}</p>
             </div>
           )}
 
@@ -394,7 +398,7 @@ export function DiscoverClientPage() {
             <div aria-live="polite" aria-busy="true">
               <div className="flex items-center gap-2 text-[var(--fg-muted)] mb-6">
                 <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                <span className="sr-only">Loading businesses…</span>
+                <span className="sr-only">{t('loadingBusinesses')}</span>
               </div>
               <LoadingSkeleton />
             </div>
@@ -412,15 +416,15 @@ export function DiscoverClientPage() {
                       onChange={setSortBy}
                       resultCount={filtered.length}
                       resultLabel={
-                        filtered.length === 0
-                          ? 'No results'
-                          : `${filtered.length} ${filtered.length === 1 ? 'result' : 'results'}${searchQuery ? ` for "${searchQuery}"` : ''}`
+                        searchQuery
+                          ? t('resultsCountForQuery', { count: filtered.length, query: searchQuery })
+                          : t('resultsCount', { count: filtered.length })
                       }
                     />
                   </div>
 
                   {filtered.length > 0 ? (
-                    <section aria-label="Search results">
+                    <section aria-label={t('searchResultsAria')}>
                       <BusinessGrid items={filtered} />
                     </section>
                   ) : (
@@ -438,12 +442,12 @@ export function DiscoverClientPage() {
                 /* H3: SortBar removed from discovery mode — it only affects "All Businesses"
                    at the bottom and misleads users into thinking it reorders the curated sections above. */
                 <>
-                  <Section title="Featured" items={featured} icon={<Sparkles className="w-5 h-5 text-orange-400" />} />
-                  <Section title="Popular Right Now" items={popular} icon={<Flame className="w-5 h-5 text-red-400" />} />
-                  <Section title="Newly Opened" items={newest} icon={<span>🆕</span>} />
-                  <Section title="Top Rated" items={topRated} icon={<Star className="w-5 h-5 text-amber-400" />} />
-                  <Section title="Family Friendly" items={familyFriendly} icon={<span>👨‍👩‍👧</span>} />
-                  <Section title="Coffee Shops" items={coffeeShops} icon={<span>☕</span>} />
+                  <Section title={t('sectionFeatured')} items={featured} icon={<Sparkles className="w-5 h-5 text-orange-400" />} />
+                  <Section title={t('sectionPopular')} items={popular} icon={<Flame className="w-5 h-5 text-red-400" />} />
+                  <Section title={t('sectionNewlyOpened')} items={newest} icon={<span>🆕</span>} />
+                  <Section title={t('sectionTopRated')} items={topRated} icon={<Star className="w-5 h-5 text-amber-400" />} />
+                  <Section title={t('sectionFamilyFriendly')} items={familyFriendly} icon={<span>👨‍👩‍👧</span>} />
+                  <Section title={t('sectionCoffeeShops')} items={coffeeShops} icon={<span>☕</span>} />
 
                   <section aria-labelledby="all-businesses-heading" className="mb-12">
                     <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[var(--border)]">
@@ -451,9 +455,9 @@ export function DiscoverClientPage() {
                         id="all-businesses-heading"
                         className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]"
                       >
-                        All Businesses
+                        {t('allBusinesses')}
                       </h2>
-                      <span className="text-sm text-[var(--fg-muted)] ml-auto">{allWithMeta.length} listed</span>
+                      <span className="text-sm text-[var(--fg-muted)] ml-auto">{t('listedCount', { count: allWithMeta.length })}</span>
                     </div>
                     {/* Sort bar only inside "All Businesses" section where it is accurate */}
                     {allWithMeta.length > 0 && (
@@ -462,7 +466,7 @@ export function DiscoverClientPage() {
                           value={sortBy}
                           onChange={setSortBy}
                           resultCount={allWithMeta.length}
-                          resultLabel={`Sort ${allWithMeta.length} ${allWithMeta.length === 1 ? 'business' : 'businesses'}`}
+                          resultLabel={t('sortBusinesses', { count: allWithMeta.length })}
                         />
                       </div>
                     )}

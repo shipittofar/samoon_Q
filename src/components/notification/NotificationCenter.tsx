@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Bell, Check, CheckCheck, Package, Calendar, Tag, Info, Trash2 } from 'lucide-react'
 import { useNotificationStore } from '@/stores'
 import { notificationService } from '@/services/combined.service'
@@ -52,6 +53,7 @@ function NotificationItem({ notification, onRead }: { notification: Notification
 }
 
 export function NotificationCenter() {
+  const t = useTranslations('notifications')
   const [open, setOpen] = useState(false)
   const { notifications, unreadCount, markRead, markAllRead } = useNotificationStore()
   const ref = useRef<HTMLDivElement>(null)
@@ -82,7 +84,7 @@ export function NotificationCenter() {
         size="icon"
         onClick={() => setOpen((v) => !v)}
         className="relative"
-        aria-label={`Notifications — ${unreadCount} unread`}
+        aria-label={t('bellAria', { count: unreadCount })}
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -111,19 +113,19 @@ export function NotificationCenter() {
             transition={{ duration: 0.15 }}
             className="absolute end-0 top-full mt-2 w-80 sm:w-96 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden z-50"
             role="dialog"
-            aria-label="Notifications"
+            aria-label={t('title')}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
               <h3 className="font-semibold text-[var(--fg)]">
-                Notifications
+                {t('title')}
                 {unreadCount > 0 && (
                   <Badge variant="default" className="ms-2">{unreadCount}</Badge>
                 )}
               </h3>
               {unreadCount > 0 && (
                 <Button variant="ghost" size="sm" onClick={handleMarkAllRead} leftIcon={<CheckCheck className="h-3.5 w-3.5" />}>
-                  Mark all read
+                  {t('markAllRead')}
                 </Button>
               )}
             </div>
@@ -133,7 +135,7 @@ export function NotificationCenter() {
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-12 text-center px-4">
                   <Bell className="h-8 w-8 text-[var(--fg-subtle)]" />
-                  <p className="text-sm text-[var(--fg-muted)]">No notifications yet</p>
+                  <p className="text-sm text-[var(--fg-muted)]">{t('noNotificationsYet')}</p>
                 </div>
               ) : (
                 <AnimatePresence initial={false}>

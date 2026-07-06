@@ -33,6 +33,7 @@
  */
 
 import type { ReactNode } from 'react'
+import { useTranslations } from 'next-intl'
 import { useCapabilityFlag } from '@/hooks'
 import type { Capability } from '@/types'
 
@@ -70,19 +71,19 @@ export function CapabilityGuard({
  * </CapabilityGuard>
  */
 export function CapabilityNotAvailable({ capability }: { capability: Capability }) {
+  const t = useTranslations('common')
   return (
     <div
       role="status"
-      aria-label={`${capability} not available`}
+      aria-label={t('capabilityNotAvailableAria', { capability })}
       className="flex flex-col items-center justify-center min-h-[40vh] gap-4 text-center px-4"
     >
       <div className="text-4xl" aria-hidden="true">🚫</div>
       <h2 className="text-xl font-semibold text-[var(--fg)]">
-        This feature is not available
+        {t('featureNotAvailable')}
       </h2>
       <p className="text-sm text-[var(--fg-muted)] max-w-sm">
-        The <strong>{capability}</strong> capability is not enabled for your current plan.
-        Contact your administrator to enable it.
+        {t('capabilityNotEnabled', { capability })}
       </p>
     </div>
   )

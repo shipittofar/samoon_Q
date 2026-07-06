@@ -9,6 +9,7 @@
 import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useBranchStore } from '@/stores'
 
 export default function TenantBranchTablePage({
@@ -16,6 +17,7 @@ export default function TenantBranchTablePage({
 }: {
   params: Promise<{ tenantSlug: string; branchSlug: string; code: string }>
 }) {
+  const t = useTranslations('branch')
   const { code } = use(params)
   const adminActiveBranch = useBranchStore((s) => s.adminActiveBranch)
   const router = useRouter()
@@ -27,7 +29,7 @@ export default function TenantBranchTablePage({
 
   return (
     <div className="flex items-center justify-center min-h-screen text-gray-400 text-sm">
-      Loading table experience…
+      {t('loadingTableExperienceEllipsis')}
     </div>
   )
 }

@@ -26,7 +26,10 @@
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور",
     "termsOfService": "الشروط",
-    "privacyPolicy": "سياسة الخصوصية"
+    "privacyPolicy": "سياسة الخصوصية",
+    "capabilityNotAvailableAria": "{capability} غير متوفر",
+    "featureNotAvailable": "هذه الميزة غير متوفرة",
+    "capabilityNotEnabled": "قدرة {capability} غير مفعّلة في خطتك الحالية. تواصل مع المسؤول لتفعيلها."
   },
   "nav": {
     "menu": "القائمة",
@@ -186,7 +189,13 @@
     "noReviewsYet": "لا توجد تقييمات بعد. كن أول من يقيّم!",
     "decreaseQuantity": "إنقاص الكمية",
     "increaseQuantity": "زيادة الكمية",
-    "addToCartWithPrice": "أضف إلى السلة · {price}"
+    "addToCartWithPrice": "أضف إلى السلة · {price}",
+    "unavailableShort": "غير متوفر",
+    "ratingCountShort": "({count})",
+    "prepTimeApprox": "~{min} دقيقة",
+    "add": "إضافة",
+    "added": "تمت الإضافة!",
+    "loadingMenuAria": "جارٍ تحميل القائمة"
   },
   "cart": {
     "title": "سلة التسوق",
@@ -265,7 +274,13 @@
     "emptyCartDesc": "أضف بعض الأطباق قبل المتابعة إلى الدفع.",
     "couldNotInitPayment": "تعذر تهيئة الدفع. حاول مرة أخرى.",
     "orderPlacedSuccess": "تم تقديم الطلب بنجاح! 🎉",
-    "orderPlaceFailed": "فشل تقديم الطلب. حاول مرة أخرى."
+    "orderPlaceFailed": "فشل تقديم الطلب. حاول مرة أخرى.",
+    "paymentFailedRetry": "فشل الدفع. يرجى المحاولة مرة أخرى.",
+    "paymentFailed": "فشل الدفع.",
+    "payAmount": "الدفع · {amount}",
+    "simulatedCardMockMode": "إدخال بطاقة محاكاة — وضع المحاكاة نشط",
+    "paymentConfirmed": "تم تأكيد الدفع",
+    "paymentCouldNotBeProcessed": "تعذرت معالجة الدفع"
   },
   "order": {
     "title": "تتبع الطلب",
@@ -391,7 +406,51 @@
     "configurationSaved": "تم حفظ الإعدادات.",
     "configurationRefreshed": "تم تحديث الإعدادات.",
     "configurationSaveFailed": "تعذر حفظ الإعدادات.",
-    "exported": "تم تصدير {name}."
+    "exported": "تم تصدير {name}.",
+    "bellAria": "الإشعارات — {count} غير مقروءة",
+    "noNotificationsYet": "لا توجد إشعارات حتى الآن",
+    "bellWithUnreadAria": "الإشعارات، {count} غير مقروءة",
+    "unreadCount": "{count} غير مقروءة",
+    "urgentCount": "{count} عاجلة",
+    "noUnreadNotifications": "لا توجد إشعارات غير مقروءة",
+    "viewAllNotifications": "عرض جميع الإشعارات",
+    "view": "عرض",
+    "markRead": "وضع علامة كمقروء",
+    "archive": "أرشفة",
+    "priority": {
+      "low": "منخفضة",
+      "normal": "عادية",
+      "high": "عالية",
+      "urgent": "عاجلة"
+    },
+    "byActor": "بواسطة {name}",
+    "viewDetails": "عرض التفاصيل",
+    "delete": "حذف",
+    "refresh": "تحديث",
+    "tabs": {
+      "unread": "غير مقروءة",
+      "read": "مقروءة",
+      "archived": "مؤرشفة"
+    },
+    "searchNotificationsPlaceholder": "البحث في الإشعارات…",
+    "categories": {
+      "all": "الكل",
+      "orders": "الطلبات",
+      "reservations": "الحجوزات",
+      "staff": "الموظفون",
+      "branches": "الفروع",
+      "promotions": "العروض الترويجية",
+      "vendors": "الموردون",
+      "audit": "التدقيق",
+      "system": "النظام"
+    },
+    "noNotifications": "لا توجد إشعارات",
+    "allCaughtUp": "أنت على اطلاع بكل شيء!",
+    "nothingHereYet": "لا يوجد شيء هنا بعد.",
+    "previous": "السابق",
+    "pageOfTotal": "صفحة {page} من {total}",
+    "next": "التالي",
+    "openNotificationCenter": "فتح مركز الإشعارات"
   },
   "errors": {
     "notFound": "الصفحة غير موجودة",
@@ -402,7 +461,13 @@
     "serverError": "خطأ في الخادم",
     "serverErrorDesc": "حدث خطأ. يرجى المحاولة.",
     "offline": "أنت غير متصل",
-    "offlineDesc": "تحقق من اتصالك."
+    "offlineDesc": "تحقق من اتصالك.",
+    "somethingWentWrong": "حدث خطأ ما",
+    "unexpectedErrorOccurred": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+    "tryAgain": "حاول مرة أخرى",
+    "home": "الرئيسية",
+    "errorId": "معرّف الخطأ: {id}",
+    "browseCachedMenu": "تصفح القائمة المخزّنة"
   },
   "validation": {
     "required": "هذا الحقل مطلوب",
@@ -783,6 +848,41 @@
       "title": "حول — منصة سيفور",
       "description": "تعرف على منصة الضيافة سيفور — نربط العملاء بأفضل الأعمال المحلية.",
       "keywords": "حول سيفور, منصة الضيافة, قصتنا, اتصل بنا"
+    },
+    "discover": {
+      "title": "اكتشف الأعمال — منصة Savor",
+      "description": "تصفح المطاعم والمقاهي والحانات وشاحنات الطعام وغيرها. صفِّ حسب نوع المطبخ والمرافق والسعر وساعات العمل، وابحث عن مكانك المفضل التالي.",
+      "keywords": "اكتشاف المطاعم, البحث عن مقاهي, طعام قريب مني, بحث المطاعم, سوق, ساحة طعام, البحث عن حانة, شاحنات الطعام, منصة Savor"
+    },
+    "menu": {
+      "title": "القائمة — Savor",
+      "description": "تصفح قوائم المطاعم والمقاهي والحانات وغيرها على Savor. اعثر على الأطباق، واستكشف الفئات، واطلب عبر الإنترنت.",
+      "keywords": "قائمة, قائمة مطعم, طلب عبر الإنترنت, توصيل الطعام, منصة Savor"
+    },
+    "events": {
+      "title": "الفعاليات | سيفور",
+      "description": "اكتشف الفعاليات القادمة والعروض الحية في هذا المكان.",
+      "keywords": "الفعاليات, العروض الحية, فعاليات المكان"
+    },
+    "location": {
+      "title": "الموقع المباشر | سيفور",
+      "description": "تتبّع الموقع المباشر لهذه الشاحنة أو المقهى المتنقل.",
+      "keywords": "الموقع المباشر, تتبع شاحنة الطعام, موقع المقهى المتنقل"
+    },
+    "reviews": {
+      "title": "التقييمات | سيفور",
+      "description": "اقرأ تقييمات وآراء العملاء لهذا النشاط التجاري.",
+      "keywords": "التقييمات, التقييمات النجمية, ملاحظات العملاء"
+    },
+    "promotions": {
+      "title": "العروض والتخفيضات | سيفور",
+      "description": "استعرض العروض النشطة وعروض ساعة السعادة والصفقات القادمة.",
+      "keywords": "العروض, الخصومات, ساعة السعادة, الصفقات"
+    },
+    "vendors": {
+      "title": "البائعون | سيفور",
+      "description": "استعرض البائعين والأكشاك وتقييماتهم وطلباتهم وتسوياتهم.",
+      "keywords": "البائعون, الأكشاك, بائعو السوق"
     }
   },
   "home": {
@@ -818,6 +918,615 @@
       "locations": "المواقع",
       "cities": "المدن",
       "customers": "العملاء"
+    },
+    "popular": "شائع",
+    "featured": "مميز",
+    "orderNow": "اطلب الآن",
+    "handpicked": "مختارة بعناية",
+    "featuredDishes": "الأطباق المميزة",
+    "seeAll": "عرض الكل",
+    "unableToLoadFeaturedDishes": "تعذر تحميل الأطباق المميزة.",
+    "browseTheFullMenu": "تصفح القائمة الكاملة.",
+    "noFeaturedDishesAvailable": "لا توجد أطباق مميزة متاحة حالياً.",
+    "exploreTheMenu": "استكشف القائمة.",
+    "exploreLabel": "استكشاف",
+    "popularOnSavor": "الأكثر شهرة على Savor",
+    "popularOnSavorSubtitle": "مطاعم ومقاهي وحانات وغيرها — كلها على Savor",
+    "browseAll500Businesses": "تصفح أكثر من 500 نشاط تجاري",
+    "howItWorks": {
+      "eyebrow": "بسيط",
+      "heading": "كيف يعمل",
+      "subtitle": "وجبتك الرائعة التالية على بعد ثلاث خطوات فقط.",
+      "steps": {
+        "discover": {
+          "title": "اكتشف",
+          "description": "تصفح المطاعم والمقاهي والحانات وشاحنات الطعام وساحات الطعام حسب الفئة أو الموقع أو المزاج.",
+          "cta": "ابدأ الاستكشاف"
+        },
+        "pickLocation": {
+          "title": "اختر موقعاً",
+          "description": "اختر أقرب مكان، وتحقق من القائمة وساعات العمل وتوفر الطاولات في الوقت الفعلي.",
+          "cta": "عرض المواقع"
+        },
+        "orderOrReserve": {
+          "title": "اطلب أو احجز",
+          "description": "اطلب عبر الإنترنت للتوصيل أو الاستلام، أو احجز طاولتك — كل ذلك من منصة واحدة.",
+          "cta": "احجز طاولة"
+        }
+      }
+    },
+    "forBusinessOwners": {
+      "eyebrow": "لأصحاب الأعمال",
+      "heading": "كل ما تحتاجه لتشغيل نشاط تجاري ضيافة حديث",
+      "subtitle": "يوفر Savor للمطاعم والمقاهي والحانات وشاحنات الطعام منصة تشغيل رقمية كاملة — من الطلب عبر الإنترنت والحجوزات إلى التحليلات وبرامج الولاء.",
+      "registerYourBusiness": "سجّل نشاطك التجاري",
+      "seeAllFeatures": "عرض جميع الميزات",
+      "benefits": {
+        "realtimeAnalytics": {
+          "title": "تحليلات فورية",
+          "description": "تتبع الطلبات والإيرادات واتجاهات العملاء في جميع فروعك من لوحة تحكم واحدة."
+        },
+        "qrTableOrdering": {
+          "title": "طلب عبر QR على الطاولة",
+          "description": "اجعل الضيوف يمسحون ويطلبون مباشرة من طاولتهم — دون الحاجة لتحميل تطبيق."
+        },
+        "teamManagement": {
+          "title": "إدارة الفريق",
+          "description": "وصول دقيق مبني على الأدوار للمديرين والطهاة وأمناء الصندوق والموظفين."
+        },
+        "loyaltyPrograms": {
+          "title": "برامج الولاء",
+          "description": "قم ببناء ومكافأة عملائك الدائمين بالنقاط والمستويات وحملات الولاء المخصصة."
+        },
+        "multiBranchReady": {
+          "title": "جاهز لتعدد الفروع",
+          "description": "أدر عدداً غير محدود من الفروع، كل منها بقائمته وساعاته ومخزونه الخاص."
+        },
+        "liveOrderDisplay": {
+          "title": "عرض الطلبات المباشر",
+          "description": "قم ببث الطلبات الواردة مباشرة إلى شاشة مطبخك في الوقت الفعلي."
+        }
+      }
+    },
+    "platformFeatures": {
+      "eyebrow": "المنصة",
+      "heading": "كل شيء في منصة واحدة",
+      "subtitle": "يوفر Savor حزمة رقمية كاملة للأعمال الضيافة الحديثة — دون الحاجة لأدوات متفرقة من جهات خارجية.",
+      "getStartedFree": "ابدأ مجاناً",
+      "noCreditCardNote": "لا حاجة لبطاقة ائتمان · الإعداد في دقائق",
+      "items": {
+        "onlineMenu": {
+          "label": "قائمة عبر الإنترنت",
+          "description": "قوائم رقمية جذابة بصور ووصف وعلامات غذائية."
+        },
+        "reservations": {
+          "label": "الحجوزات",
+          "description": "حجز طاولات فوري مع التأكيد والتذكيرات."
+        },
+        "qrOrdering": {
+          "label": "الطلب عبر QR",
+          "description": "مسح للطلب على الطاولة. بلا تطبيق، بلا انتظار."
+        },
+        "loyalty": {
+          "label": "الولاء",
+          "description": "نقاط ومستويات ومكافآت مخصصة لإبقاء العملاء يعودون."
+        },
+        "analytics": {
+          "label": "التحليلات",
+          "description": "الإيرادات واتجاهات الطلبات ورؤى العملاء في الوقت الفعلي."
+        },
+        "kitchenDisplay": {
+          "label": "شاشة المطبخ",
+          "description": "بث مباشر للطلبات إلى نظام شاشة مطبخك."
+        },
+        "posIntegration": {
+          "label": "التكامل مع نقاط البيع",
+          "description": "المزامنة السلسة مع نظام نقاط البيع الحالي لديك."
+        },
+        "multiBranch": {
+          "label": "متعدد الفروع",
+          "description": "فروع غير محدودة، كل منها قابل للتكوين بشكل مستقل."
+        },
+        "giftCards": {
+          "label": "بطاقات الهدايا",
+          "description": "بيع واستبدال بطاقات الهدايا الرقمية في جميع الفروع."
+        },
+        "events": {
+          "label": "الفعاليات",
+          "description": "نشر وإدارة الفعاليات الخاصة والعروض الترويجية."
+        }
+      }
+    },
+    "testimonials": {
+      "eyebrow": "محبوب لدى الزبائن",
+      "heading": "ماذا يقول مجتمعنا",
+      "subtitle": "يستخدم آلاف من عشاق الطعام Savor يومياً لاكتشاف الأعمال المحلية وحجزها والطلب منها.",
+      "items": {
+        "sarah": {
+          "quote": "وجدت ثلاثة مطاعم جديدة في حيي باستخدام بحث الفئات. حجزت طاولة وطلبت — كل ذلك من مكان واحد.",
+          "name": "سارة م.",
+          "role": "مستكشفة طعام"
+        },
+        "james": {
+          "quote": "الطلب عبر QR في مقهاي المفضل سلس تماماً. لا انتظار للنادل، ونقاط ولائي تتراكم في كل زيارة.",
+          "name": "جيمس ت.",
+          "role": "زبون دائم"
+        },
+        "layla": {
+          "quote": "اكتشفت شاحنة طعام مؤقتة عبر Savor لم كنت لأجدها بطريقة أخرى. الآن أتحقق منها كل عطلة أسبوع.",
+          "name": "ليلى ك.",
+          "role": "متحمسة للطعام"
+        }
+      },
+      "stats": {
+        "happyCustomers": "عملاء سعداء",
+        "avgAppRating": "متوسط تقييم التطبيق",
+        "businessesListed": "الأعمال المدرجة",
+        "satisfactionRate": "معدل الرضا"
+      }
     }
+  },
+  "discover": {
+    "eyebrow": "اكتشف",
+    "headingPrefix": "ابحث عن مكانك المفضل",
+    "headingAccent": "التالي",
+    "subtitle": "بحث · حجز طاولة · طلب عبر الإنترنت · كسب المكافآت — كل ذلك في مكان واحد.",
+    "searchPlaceholder": "البحث بالاسم أو المدينة أو المطبخ أو المرفق أو النوع…",
+    "errorLoad": "فشل تحميل الأعمال. يرجى المحاولة مرة أخرى.",
+    "loadingBusinesses": "جارٍ تحميل الأعمال…",
+    "resultsCount": "{count, plural, =0 {لا توجد نتائج} one {نتيجة واحدة} other {# نتيجة}}",
+    "resultsCountForQuery": "{count, plural, =0 {لا توجد نتائج} one {نتيجة واحدة} other {# نتيجة}} لـ \"{query}\"",
+    "searchResultsAria": "نتائج البحث",
+    "sectionFeatured": "مميز",
+    "sectionPopular": "شائع الآن",
+    "sectionNewlyOpened": "افتتح حديثاً",
+    "sectionTopRated": "الأعلى تقييماً",
+    "sectionFamilyFriendly": "مناسب للعائلات",
+    "sectionCoffeeShops": "المقاهي",
+    "allBusinesses": "جميع الأعمال",
+    "listedCount": "{count} مُدرج",
+    "sortBusinesses": "ترتيب {count} من الأعمال",
+    "noBusinessesFound": "لم يتم العثور على أعمال",
+    "noMatchCategoryQuery": "لا توجد أعمال {category} تطابق \"{query}\". حاول تعديل البحث أو الفلاتر.",
+    "noMatchQuery": "لا توجد أعمال تطابق \"{query}\". جرّب مصطلحاً آخر أو تصفح حسب الفئة.",
+    "noMatchFilters": "لا توجد أعمال تطابق الفلاتر الحالية. حاول إزالة بعضها.",
+    "noBusinessesCategory": "لا توجد أعمال في هذه الفئة حتى الآن.",
+    "clearAllFilters": "مسح كل الفلاتر",
+    "tryBrowsing": "جرّب التصفح",
+    "popularBusinessesYouMightLike": "أعمال شائعة قد تعجبك"
+  },
+  "marketplace": {
+    "featured": "مميز",
+    "new": "جديد",
+    "popular": "شائع",
+    "priceBudget": "اقتصادي",
+    "priceModerate": "متوسط",
+    "priceUpscale": "راقٍ",
+    "priceFineDining": "مطعم فاخر",
+    "explore": "استكشاف",
+    "visit": "زيارة",
+    "viewMenu": "عرض القائمة",
+    "openNow": "مفتوح الآن",
+    "closed": "مغلق",
+    "ratingAria": "التقييم: {rating} من 5",
+    "locationsCount": "{count} فرع",
+    "cuisinesAria": "أنواع المطابخ",
+    "featuresAndAmenitiesAria": "الميزات والمرافق",
+    "reservations": "الحجوزات",
+    "loyalty": "برنامج الولاء",
+    "ctaAria": "{cta} — {name}",
+    "hideBranchesAria": "إخفاء فروع {name}",
+    "showBranchesAria": "إظهار فروع {name}",
+    "branches": "الفروع",
+    "viewHomepageAria": "عرض الصفحة الرئيسية لـ {name}",
+    "businessTypes": {
+      "restaurant": "مطعم",
+      "cafe": "مقهى",
+      "bar": "حانة",
+      "food_court": "ساحة طعام",
+      "food_truck": "شاحنة طعام",
+      "mobile_cafe": "مقهى متنقل",
+      "hotel": "فندق",
+      "other": "أخرى"
+    },
+    "filterByBusinessTypeAria": "تصفية حسب نوع النشاط",
+    "all": "الكل",
+    "searchBusinesses": "البحث عن الأعمال",
+    "searchBusinessesPlaceholder": "البحث بالاسم أو المدينة أو المطبخ أو النوع…",
+    "clearSearch": "مسح البحث",
+    "filters": "الفلاتر",
+    "activeFiltersAria": "{count} فلتر نشط",
+    "advancedFiltersAria": "فلاتر متقدمة",
+    "advancedFilters": "فلاتر متقدمة",
+    "clearAllFilters": "مسح كل الفلاتر",
+    "clearAllCount": "مسح الكل ({count})",
+    "openNowOnly": "المفتوح الآن فقط",
+    "priceLevel": "مستوى السعر",
+    "priceLevels": {
+      "1": "اقتصادي",
+      "2": "متوسط",
+      "3": "راقٍ",
+      "4": "مطعم فاخر"
+    },
+    "cuisine": "المطبخ",
+    "city": "المدينة",
+    "services": "الخدمات",
+    "loyaltyProgram": "برنامج الولاء",
+    "amenities": "المرافق",
+    "businessesCount": "{count} من الأعمال",
+    "sortResults": "ترتيب النتائج",
+    "sortOptions": {
+      "recommended": "موصى به",
+      "highestRated": "الأعلى تقييماً",
+      "mostReviewed": "الأكثر تقييماً",
+      "newest": "الأحدث",
+      "alphabetical": "أ-ي",
+      "priceLowToHigh": "السعر: من الأقل إلى الأعلى",
+      "openNowFirst": "المفتوح الآن أولاً"
+    },
+    "publicUrl": "الرابط العام",
+    "copyUrlAria": "نسخ الرابط",
+    "copied": "تم النسخ",
+    "copy": "نسخ",
+    "openPublicUrlAria": "فتح الرابط العام",
+    "open": "فتح",
+    "qrCodeMobileNote": "توليد رمز QR متاح في تطبيق الجوال.",
+    "branchLocationsAria": "مواقع الفروع",
+    "locations": "المواقع",
+    "visitBranchAria": "زيارة {name}",
+    "view": "عرض"
+  },
+  "tenant": {
+    "priceLevelAria": "مستوى السعر: {level}",
+    "breadcrumbAria": "مسار التنقل",
+    "discover": "اكتشف",
+    "reviewsCount": "({count} تقييم)",
+    "locationsCountLower": "{count} فرع",
+    "allLocations": "جميع المواقع",
+    "shareThisBusinessAria": "مشاركة هذا النشاط",
+    "copiedExclaim": "تم النسخ!",
+    "share": "مشاركة",
+    "quickActionsAria": "إجراءات سريعة",
+    "amenitiesAria": "المرافق",
+    "about": "حول",
+    "ourStory": "قصتنا",
+    "open": "مفتوح",
+    "closed": "مغلق",
+    "visitBranchAria": "زيارة {name}",
+    "visitBranch": "زيارة الفرع",
+    "ourLocations": "مواقعنا",
+    "browseByCategory": "تصفح حسب الفئة",
+    "browseCategoryAria": "تصفح {name}",
+    "itemsCount": "{count} عنصر",
+    "popularItems": "الأصناف الشائعة",
+    "viewFullMenu": "عرض القائمة الكاملة",
+    "currentOffers": "العروض الحالية",
+    "promoTypes": {
+      "discount": "خصم",
+      "fixedOff": "خصم ثابت",
+      "bogo": "اشترِ واحصل على واحدة مجاناً",
+      "happyHour": "ساعة سعيدة"
+    },
+    "percentOff": "خصم {percent}%",
+    "amountOff": "خصم {amount}$",
+    "useThisOffer": "استخدم هذا العرض ←",
+    "gallery": "معرض الصور",
+    "loadingPageContentAria": "جارٍ تحميل محتوى الصفحة",
+    "loadingEllipsis": "جارٍ التحميل…",
+    "businessNotFound": "لم يتم العثور على النشاط",
+    "businessNotFoundDesc": "لم نتمكن من العثور على نشاط تجاري في هذا الرابط.",
+    "browseAllBusinesses": "تصفح جميع الأعمال",
+    "businessNotFoundLongDesc": "لم نتمكن من العثور على نشاط تجاري في هذا الرابط. ربما انتقل أو لم يعد مدرجاً في Savor."
+  },
+  "branch": {
+    "openNow": "مفتوح الآن",
+    "closed": "مغلق",
+    "directions": "الاتجاهات",
+    "quickActionsAria": "إجراءات سريعة",
+    "call": "اتصال",
+    "copiedExclaim": "تم النسخ!",
+    "share": "مشاركة",
+    "linkCopiedToClipboard": "تم نسخ الرابط إلى الحافظة",
+    "branchInformation": "معلومات الفرع",
+    "todayHours": "اليوم: {hours}",
+    "openInGoogleMapsAria": "فتح في خرائط جوجل",
+    "viewOnMap": "عرض على الخريطة",
+    "locations": "المواقع",
+    "youreHere": "أنت هنا",
+    "open": "مفتوح",
+    "popularItems": "الأصناف الشائعة",
+    "fullMenu": "القائمة الكاملة",
+    "categories": "الفئات",
+    "allOffers": "جميع العروض",
+    "thisLocation": "هذا الموقع",
+    "businessGallery": "معرض الأعمال",
+    "loadingBranchPageAria": "جارٍ تحميل صفحة الفرع",
+    "loadingEllipsis": "جارٍ التحميل…",
+    "branchNotFound": "لم يتم العثور على الفرع",
+    "branchNotFoundDesc": "لم نتمكن من العثور على هذا الموقع. ربما انتقل أو لم يعد مدرجاً.",
+    "backToBusiness": "العودة إلى النشاط",
+    "loadingMenuEllipsis": "جارٍ تحميل القائمة…",
+    "loadingTableExperienceEllipsis": "جارٍ تحميل تجربة الطاولة…",
+    "branchNotFoundLongDesc": "لم نتمكن من العثور على هذا الموقع. ربما أُغلق أو انتقل. تصفح صفحة النشاط للاطلاع على جميع المواقع النشطة."
+  },
+  "orderDetail": {
+    "orderNotFound": "لم يتم العثور على الطلب",
+    "myOrders": "طلباتي",
+    "dateAtTime": "{date} في {time}",
+    "liveTracking": "تتبع مباشر",
+    "orderItems": "عناصر الطلب",
+    "unitPriceEach": "({price} للقطعة)",
+    "orderDetailsNotAvailable": "تفاصيل الطلب غير متوفرة.",
+    "orderSummary": "ملخص الطلب",
+    "subtotal": "المجموع الفرعي",
+    "discount": "الخصم",
+    "tax": "الضريبة",
+    "service": "الخدمة",
+    "total": "الإجمالي",
+    "printReceipt": "طباعة الإيصال",
+    "deliveryInfo": "معلومات التوصيل",
+    "tableNumber": "طاولة #{number}",
+    "orderAgain": "اطلب مرة أخرى",
+    "newOrder": "طلب جديد",
+    "backToOrderDetailsAria": "العودة إلى تفاصيل الطلب",
+    "trackingNumber": "تتبع #{number}",
+    "orderCancelled": "تم إلغاء الطلب",
+    "orderCancelledDesc": "تم إلغاء هذا الطلب.",
+    "viewFullOrder": "عرض الطلب كاملاً",
+    "allOrders": "جميع الطلبات"
+  },
+  "orderTracker": {
+    "orderCancelled": "تم إلغاء الطلب",
+    "orderCancelledDesc": "تم إلغاء طلبك.",
+    "estimatedTime": "الوقت المقدر",
+    "minutesCount": "{count} دقيقة",
+    "orderPlaced": "تم تقديم الطلب",
+    "orderPlacedDesc": "تم استلام طلبك",
+    "accepted": "تم القبول",
+    "acceptedDesc": "قبل المطعم طلبك",
+    "preparing": "قيد التحضير",
+    "preparingDesc": "الشيف يُحضّر وجبتك",
+    "ready": "جاهز",
+    "readyDesc": "طلبك جاهز!",
+    "delivered": "تم التوصيل",
+    "deliveredDesc": "استمتع بوجبتك 🎉"
+  },
+  "checkoutResult": {
+    "orderConfirmed": "تم تأكيد الطلب!",
+    "orderConfirmedDesc": "وجبتك الشهية في طريقها إليك",
+    "orderNumberLabel": "رقم الطلب",
+    "liveOrderTracking": "تتبع الطلب المباشر",
+    "trackOrder": "تتبع الطلب",
+    "orderMore": "اطلب المزيد",
+    "backToHome": "العودة إلى الرئيسية",
+    "orderFailed": "فشل الطلب",
+    "orderFailedDesc": "حدث خطأ ما في طلبك",
+    "failureBody": "لا تقلق — سلة التسوق الخاصة بك لا تزال محفوظة. يرجى المحاولة مرة أخرى أو التواصل مع الدعم إذا استمرت المشكلة.",
+    "tryAgain": "حاول مرة أخرى",
+    "backToMenu": "العودة إلى القائمة"
+  },
+  "loyalty": {
+    "loadingAccount": "جارٍ تحميل حساب الولاء الخاص بك…",
+    "noAccountFound": "لم يتم العثور على حساب ولاء.",
+    "currentPoints": "النقاط الحالية",
+    "availablePoints": "النقاط المتاحة",
+    "lifetime": "الإجمالي مدى الحياة:",
+    "tierStatus": "حالة المستوى",
+    "currentTier": "المستوى الحالي",
+    "tierExpires": "تنتهي صلاحية المستوى في {date}",
+    "tiers": {
+      "bronze": "برونزي",
+      "silver": "فضي",
+      "gold": "ذهبي",
+      "platinum": "بلاتيني"
+    },
+    "availableRewards": "المكافآت المتاحة",
+    "loadingRewards": "جارٍ تحميل المكافآت…",
+    "noRewardsAvailable": "لا توجد مكافآت متاحة.",
+    "requiresTier": "يتطلب مستوى: {tier}",
+    "pointsSuffix": "{count} نقطة",
+    "redeemAria": "استبدال {name}",
+    "redeeming": "جارٍ الاستبدال…",
+    "redeem": "استبدال",
+    "transactionHistory": "سجل المعاملات",
+    "loadingTransactions": "جارٍ تحميل المعاملات…",
+    "noTransactionsYet": "لا توجد معاملات حتى الآن.",
+    "loyaltyProgram": "برنامج الولاء"
+  },
+  "header": {
+    "skipToMainContent": "الانتقال إلى المحتوى الرئيسي",
+    "navDiscover": "اكتشف",
+    "navReservations": "الحجوزات",
+    "navForBusiness": "للأعمال",
+    "mainNavigationAria": "التنقل الرئيسي",
+    "toggleThemeAria": "تبديل المظهر",
+    "changeLanguageAria": "تغيير اللغة",
+    "cartWithItemsAria": "السلة تحتوي على {count} عنصر",
+    "userMenuAria": "قائمة المستخدم",
+    "myAccount": "حسابي",
+    "myOrders": "طلباتي",
+    "favorites": "المفضلة",
+    "addresses": "العناوين",
+    "settings": "الإعدادات",
+    "businessConsole": "لوحة تحكم الأعمال",
+    "signOut": "تسجيل الخروج",
+    "signIn": "تسجيل الدخول",
+    "getStarted": "ابدأ الآن",
+    "toggleMenuAria": "تبديل القائمة",
+    "mobileNavigationAria": "التنقل عبر الجوال",
+    "logoAlt": "شعار {name}",
+    "tenantHomeAria": "الرئيسية لـ {name}",
+    "poweredBySavorAria": "مدعوم من Savor — تصفح السوق",
+    "poweredBy": "مدعوم من",
+    "tenantNavigationAria": "تنقل {name}",
+    "tenantMobileNavigationAria": "التنقل عبر الجوال لـ {name}",
+    "closeMenuAria": "إغلاق القائمة",
+    "openMenuAria": "فتح القائمة",
+    "switchToLanguageAria": "التبديل إلى {language}"
+  },
+  "footer": {
+    "brandDescription": "ربط العملاء بأفضل المطاعم والمقاهي والحانات المحلية وغيرها. اكتشف، اطلب، واحجز — كل ذلك في مكان واحد.",
+    "sections": {
+      "explore": "استكشاف",
+      "platform": "المنصة",
+      "company": "الشركة"
+    },
+    "links": {
+      "discoverBusinesses": "اكتشاف الأعمال",
+      "restaurants": "المطاعم",
+      "cafes": "المقاهي",
+      "barsAndVenues": "الحانات والأماكن",
+      "foodTrucks": "شاحنات الطعام",
+      "orderOnline": "اطلب عبر الإنترنت",
+      "bookATable": "احجز طاولة",
+      "trackOrder": "تتبع الطلب",
+      "becomeAPartner": "كن شريكاً",
+      "pricing": "التسعير",
+      "aboutSavor": "حول Savor",
+      "support": "الدعم",
+      "privacyPolicy": "سياسة الخصوصية",
+      "termsOfService": "شروط الخدمة"
+    },
+    "copyright": "© {year} منصة Savor. جميع الحقوق محفوظة."
+  },
+  "tenantFooter": {
+    "instagram": "إنستغرام",
+    "twitterX": "تويتر / إكس",
+    "quickLinks": "روابط سريعة",
+    "contact": "اتصل بنا",
+    "copyright": "© {year} {name}. جميع الحقوق محفوظة.",
+    "poweredBy": "مدعوم من",
+    "savorPlatform": "منصة Savor"
+  },
+  "branchSelector": {
+    "selectBranch": "اختر الفرع",
+    "chooseLocation": "اختر الموقع",
+    "openNow": "مفتوح الآن",
+    "closed": "مغلق"
+  },
+  "reviewCard": {
+    "starsOutOf5": "{rating} من 5 نجوم",
+    "reviewByNameStars": "تقييم بواسطة {name}، {rating} نجوم",
+    "verifiedVisit": "زيارة موثقة",
+    "verified": "موثق",
+    "visitTypes": {
+      "dineIn": "تناول في المطعم",
+      "takeaway": "طلبات خارجية",
+      "delivery": "توصيل"
+    },
+    "showLess": "عرض أقل",
+    "readMore": "قراءة المزيد",
+    "reviewPhotosAria": "صور التقييم",
+    "reviewPhotoAlt": "صورة التقييم {index}",
+    "markHelpfulAria": "وضع علامة على التقييم كمفيد. وجد {count} شخص هذا مفيداً",
+    "helpfulCount": "مفيد ({count})",
+    "helpfulSuffix": "{count} مفيد",
+    "photosCount": "{count} صورة",
+    "reply": "الرد"
+  },
+  "vendorsPage": {
+    "vendors": "البائعون",
+    "noRatings": "لا توجد تقييمات",
+    "featured": "مميز",
+    "statuses": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "pending": "قيد الانتظار",
+      "suspended": "معلّق"
+    },
+    "categories": {
+      "asian": "آسيوي",
+      "western": "غربي",
+      "mediterranean": "متوسطي",
+      "mexican": "مكسيكي",
+      "indian": "هندي",
+      "desserts": "الحلويات",
+      "beverages": "المشروبات",
+      "fastFood": "الوجبات السريعة",
+      "healthy": "صحي",
+      "other": "أخرى"
+    },
+    "stallNumber": "كشك {number}",
+    "backToVendorListAria": "الرجوع إلى قائمة البائعين",
+    "backToVendors": "الرجوع إلى البائعين",
+    "stallLabel": "كشك: {number}",
+    "stats": {
+      "orders": "الطلبات",
+      "activeItems": "العناصر النشطة",
+      "revenue": "الإيرادات",
+      "avgRating": "متوسط التقييم"
+    },
+    "recentSettlements": "التسويات الأخيرة",
+    "settlementAmount": "{amount} ({status})",
+    "settlementStatuses": {
+      "paid": "مدفوع",
+      "failed": "فاشل",
+      "pending": "قيد الانتظار"
+    },
+    "loadingVendors": "جارٍ تحميل البائعين…",
+    "featuredVendors": "البائعون المميزون",
+    "allVendors": "جميع البائعين",
+    "all": "الكل",
+    "noVendorsInCategory": "لا يوجد بائعون في هذه الفئة."
+  },
+  "comingSoon": {
+    "events": "الفعاليات",
+    "eventsContent": "محتوى الفعاليات قريبًا.",
+    "liveLocation": "الموقع المباشر",
+    "liveLocationContent": "محتوى تتبع الموقع المباشر قريبًا.",
+    "reviews": "التقييمات",
+    "reviewsContent": "محتوى التقييمات قريبًا."
+  },
+  "promotionsPage": {
+    "types": {
+      "percentageDiscount": "خصم بالنسبة",
+      "fixedDiscount": "خصم ثابت",
+      "buyOneGetOne": "اشترِ واحدًا واحصل على آخر",
+      "happyHour": "ساعة السعادة"
+    },
+    "weekdays": {
+      "mon": "الإثنين",
+      "tue": "الثلاثاء",
+      "wed": "الأربعاء",
+      "thu": "الخميس",
+      "fri": "الجمعة",
+      "sat": "السبت",
+      "sun": "الأحد"
+    },
+    "bogo": "اشترِ 1 واحصل على 1",
+    "percentOff": "خصم {percent}%",
+    "amountOff": "خصم ${amount}",
+    "untilDate": "حتى {date}",
+    "allDayEveryDay": "طوال اليوم، كل يوم",
+    "activeNow": "نشط الآن",
+    "loadingPromotions": "جارٍ تحميل العروض…",
+    "activePromotions": "العروض النشطة",
+    "noActivePromotions": "لا توجد عروض نشطة حاليًا.",
+    "happyHourOffers": "عروض ساعة السعادة",
+    "noHappyHourOffers": "لا توجد عروض ساعة سعادة متاحة.",
+    "upcomingPromotions": "العروض القادمة",
+    "noUpcomingPromotions": "لا توجد عروض قادمة.",
+    "promotionsAndOffers": "العروض والتخفيضات"
+  },
+  "qrTable": {
+    "explore": "استكشاف",
+    "browseMenu": "استعراض القائمة",
+    "reservations": "الحجوزات",
+    "reviews": "التقييمات",
+    "loyaltyRewards": "مكافآت الولاء",
+    "events": "الفعاليات",
+    "vendors": "البائعون",
+    "liveLocation": "الموقع المباشر",
+    "promotions": "العروض",
+    "invalidTable": "طاولة غير صالحة",
+    "invalidTableDesc": "رمز QR هذا غير صالح.",
+    "tableNumberLabel": "طاولة {number}",
+    "dineInNoLoginRequired": "الطلب داخل المطعم — لا حاجة لتسجيل الدخول",
+    "checkout": "الدفع",
+    "welcome": "مرحبًا!",
+    "welcomeDesc": "أنت تطلب من الطاولة {number}. استعرض قائمتنا الكاملة وأضف العناصر إلى سلتك.",
+    "loadingTableInfoEllipsis": "جارٍ تحميل معلومات الطاولة…",
+    "seatsCount": "يستوعب {count}",
+    "serverLabel": "النادل: {name}"
   }
 }

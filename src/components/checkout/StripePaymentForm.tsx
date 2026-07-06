@@ -15,6 +15,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js'
+import { useTranslations } from 'next-intl'
 import { Lock, CreditCard, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { getStripe } from '@/lib/stripe'
@@ -32,6 +33,7 @@ interface StripeInnerFormProps {
 }
 
 function StripeInnerForm({ clientSecret, total, onSuccess, onError, returnUrl }: StripeInnerFormProps) {
+  const t = useTranslations('checkout')
   const stripe = useStripe()
   const elements = useElements()
   const [confirming, setConfirming] = useState(false)
@@ -51,7 +53,7 @@ function StripeInnerForm({ clientSecret, total, onSuccess, onError, returnUrl }:
     if (result.status === 'succeeded') {
       onSuccess(result.payment_intent_id)
     } else {
-      const msg = result.error ?? 'Payment failed. Please try again.'
+      const msg = result.error ?? t('paymentFailedRetry')
       setFieldError(msg)
       onError(msg)
     }
@@ -81,7 +83,7 @@ function StripeInnerForm({ clientSecret, total, onSuccess, onError, returnUrl }:
         disabled={!stripe || !elements}
         leftIcon={<Lock className="h-4 w-4" />}
       >
-        {confirming ? 'Processing…' : `Pay · ${formatAmount(total)}`}
+        {confirming ? t('processing') : t('payAmount', { amount: formatAmount(total) })}
       </Button>
     </form>
   )
@@ -101,6 +103,7 @@ interface MockPaymentFormProps {
 }
 
 function MockPaymentForm({ total, onSuccess, onError, simulateFailure }: MockPaymentFormProps) {
+  const t = useTranslations('checkout')
   const [confirming, setConfirming] = useState(false)
   const [fieldError, setFieldError] = useState<string | null>(null)
 
@@ -116,7 +119,7 @@ function MockPaymentForm({ total, onSuccess, onError, simulateFailure }: MockPay
     if (result.status === 'succeeded') {
       onSuccess(result.payment_intent_id)
     } else {
-      const msg = result.error ?? 'Payment failed.'
+      const msg = result.error ?? t('paymentFailed')
       setFieldError(msg)
       onError(msg)
     }
@@ -128,7 +131,7 @@ function MockPaymentForm({ total, onSuccess, onError, simulateFailure }: MockPay
       <div className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--card-hover)] p-4 space-y-3">
         <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)] mb-2">
           <CreditCard className="h-3.5 w-3.5" />
-          <span>Simulated card input — mock mode active</span>
+          <span>{t('simulatedCardMockMode')}</span>
         </div>
         <div className="grid grid-cols-1 gap-2">
           <div className="h-10 rounded-lg bg-[var(--input-bg)] border border-[var(--border)] flex items-center px-3 text-sm text-[var(--fg-muted)]">
@@ -159,7 +162,7 @@ function MockPaymentForm({ total, onSuccess, onError, simulateFailure }: MockPay
         loading={confirming}
         leftIcon={<Lock className="h-4 w-4" />}
       >
-        {confirming ? 'Processing…' : `Pay · ${formatAmount(total)}`}
+        {confirming ? t('processing') : t('payAmount', { amount: formatAmount(total) })}
       </Button>
     </form>
   )
@@ -224,6 +227,7 @@ export function StripePaymentForm({
 
 // Re-export status indicator for use in checkout page
 export function PaymentStatusBadge({ status }: { status: 'idle' | 'loading' | 'success' | 'error' }) {
+  const t = useTranslations('checkout')
   if (status === 'idle' || status === 'loading') return null
   return (
     <div
@@ -235,9 +239,9 @@ export function PaymentStatusBadge({ status }: { status: 'idle' | 'loading' | 's
       )}
     >
       {status === 'success' ? (
-        <><CheckCircle2 className="h-4 w-4 shrink-0" /><span>Payment confirmed</span></>
+        <><CheckCircle2 className="h-4 w-4 shrink-0" /><span>{t('paymentConfirmed')}</span></>
       ) : (
-        <><AlertCircle className="h-4 w-4 shrink-0" /><span>Payment could not be processed</span></>
+        <><AlertCircle className="h-4 w-4 shrink-0" /><span>{t('paymentCouldNotBeProcessed')}</span></>
       )}
     </div>
   )

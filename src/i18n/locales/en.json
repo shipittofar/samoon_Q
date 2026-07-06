@@ -26,7 +26,10 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "termsOfService": "Terms",
-    "privacyPolicy": "Privacy Policy"
+    "privacyPolicy": "Privacy Policy",
+    "capabilityNotAvailableAria": "{capability} not available",
+    "featureNotAvailable": "This feature is not available",
+    "capabilityNotEnabled": "The {capability} capability is not enabled for your current plan. Contact your administrator to enable it."
   },
   "nav": {
     "menu": "Menu",
@@ -186,7 +189,13 @@
     "noReviewsYet": "No reviews yet. Be the first!",
     "decreaseQuantity": "Decrease quantity",
     "increaseQuantity": "Increase quantity",
-    "addToCartWithPrice": "Add to Cart · {price}"
+    "addToCartWithPrice": "Add to Cart · {price}",
+    "unavailableShort": "Unavailable",
+    "ratingCountShort": "({count})",
+    "prepTimeApprox": "~{min} min",
+    "add": "Add",
+    "added": "Added!",
+    "loadingMenuAria": "Loading menu"
   },
   "cart": {
     "title": "Your Cart",
@@ -265,7 +274,13 @@
     "emptyCartDesc": "Add some dishes before proceeding to checkout.",
     "couldNotInitPayment": "Could not initialise payment. Please try again.",
     "orderPlacedSuccess": "Order placed successfully! 🎉",
-    "orderPlaceFailed": "Failed to place order. Please try again."
+    "orderPlaceFailed": "Failed to place order. Please try again.",
+    "paymentFailedRetry": "Payment failed. Please try again.",
+    "paymentFailed": "Payment failed.",
+    "payAmount": "Pay · {amount}",
+    "simulatedCardMockMode": "Simulated card input — mock mode active",
+    "paymentConfirmed": "Payment confirmed",
+    "paymentCouldNotBeProcessed": "Payment could not be processed"
   },
   "order": {
     "title": "Order Tracking",
@@ -391,7 +406,51 @@
     "configurationSaved": "Configuration saved.",
     "configurationRefreshed": "Configuration refreshed.",
     "configurationSaveFailed": "Could not save configuration.",
-    "exported": "Exported {name}."
+    "exported": "Exported {name}.",
+    "bellAria": "Notifications — {count} unread",
+    "noNotificationsYet": "No notifications yet",
+    "bellWithUnreadAria": "Notifications, {count} unread",
+    "unreadCount": "{count} unread",
+    "urgentCount": "{count} urgent",
+    "noUnreadNotifications": "No unread notifications",
+    "viewAllNotifications": "View all notifications",
+    "view": "View",
+    "markRead": "Mark read",
+    "archive": "Archive",
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "byActor": "by {name}",
+    "viewDetails": "View details",
+    "delete": "Delete",
+    "refresh": "Refresh",
+    "tabs": {
+      "unread": "Unread",
+      "read": "Read",
+      "archived": "Archived"
+    },
+    "searchNotificationsPlaceholder": "Search notifications…",
+    "categories": {
+      "all": "All",
+      "orders": "Orders",
+      "reservations": "Reservations",
+      "staff": "Staff",
+      "branches": "Branches",
+      "promotions": "Promotions",
+      "vendors": "Vendors",
+      "audit": "Audit",
+      "system": "System"
+    },
+    "noNotifications": "No notifications",
+    "allCaughtUp": "You're all caught up!",
+    "nothingHereYet": "Nothing here yet.",
+    "previous": "Previous",
+    "pageOfTotal": "Page {page} of {total}",
+    "next": "Next",
+    "openNotificationCenter": "Open Notification Center"
   },
   "errors": {
     "notFound": "Page Not Found",
@@ -402,7 +461,13 @@
     "serverError": "Server Error",
     "serverErrorDesc": "Something went wrong on our end. Please try again.",
     "offline": "You're Offline",
-    "offlineDesc": "Check your internet connection and try again."
+    "offlineDesc": "Check your internet connection and try again.",
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedErrorOccurred": "An unexpected error occurred. Please try again.",
+    "tryAgain": "Try Again",
+    "home": "Home",
+    "errorId": "Error ID: {id}",
+    "browseCachedMenu": "Browse Cached Menu"
   },
   "validation": {
     "required": "This field is required",
@@ -783,6 +848,41 @@
       "title": "About — Savor Platform",
       "description": "Learn about the Savor hospitality platform — connecting customers with great local businesses.",
       "keywords": "about savor, hospitality platform, our story, contact us"
+    },
+    "discover": {
+      "title": "Discover Businesses — Savor Platform",
+      "description": "Browse restaurants, cafés, bars, food trucks, and more. Filter by cuisine, amenities, price, and opening hours. Find your next favourite spot.",
+      "keywords": "discover restaurants, find cafés, food near me, restaurant search, marketplace, food court, bar finder, food trucks, Savor platform"
+    },
+    "menu": {
+      "title": "Menu — Savor",
+      "description": "Browse menus from restaurants, cafés, bars, and more on Savor. Find dishes, explore categories, and order online.",
+      "keywords": "menu, restaurant menu, order online, food delivery, Savor platform"
+    },
+    "events": {
+      "title": "Events | Savor",
+      "description": "Discover upcoming events and live entertainment at this venue.",
+      "keywords": "events, live entertainment, venue events"
+    },
+    "location": {
+      "title": "Live Location | Savor",
+      "description": "Track the real-time location of this food truck or mobile café.",
+      "keywords": "live location, food truck tracker, mobile cafe location"
+    },
+    "reviews": {
+      "title": "Reviews | Savor",
+      "description": "Read customer reviews and ratings for this business.",
+      "keywords": "reviews, ratings, customer feedback"
+    },
+    "promotions": {
+      "title": "Promotions & Offers | Savor",
+      "description": "Browse active promotions, happy hour offers, and upcoming deals.",
+      "keywords": "promotions, discounts, happy hour, offers, deals"
+    },
+    "vendors": {
+      "title": "Vendors | Savor",
+      "description": "Explore vendors, stalls, and their ratings, orders, and settlements.",
+      "keywords": "vendors, stalls, marketplace vendors"
     }
   },
   "home": {
@@ -818,6 +918,615 @@
       "locations": "Locations",
       "cities": "Cities",
       "customers": "Customers"
+    },
+    "popular": "Popular",
+    "featured": "Featured",
+    "orderNow": "Order Now",
+    "handpicked": "Handpicked",
+    "featuredDishes": "Featured Dishes",
+    "seeAll": "See all",
+    "unableToLoadFeaturedDishes": "Unable to load featured dishes.",
+    "browseTheFullMenu": "Browse the full menu.",
+    "noFeaturedDishesAvailable": "No featured dishes available right now.",
+    "exploreTheMenu": "Explore the menu.",
+    "exploreLabel": "Explore",
+    "popularOnSavor": "Popular on Savor",
+    "popularOnSavorSubtitle": "Restaurants, cafés, bars, and more — all on Savor",
+    "browseAll500Businesses": "Browse All 500+ Businesses",
+    "howItWorks": {
+      "eyebrow": "Simple",
+      "heading": "How It Works",
+      "subtitle": "Your next great meal, three steps away.",
+      "steps": {
+        "discover": {
+          "title": "Discover",
+          "description": "Browse restaurants, cafés, bars, food trucks, and food courts by category, location, or mood.",
+          "cta": "Start Exploring"
+        },
+        "pickLocation": {
+          "title": "Pick a Location",
+          "description": "Choose the nearest spot, check the menu, opening hours, and table availability in real time.",
+          "cta": "See Locations"
+        },
+        "orderOrReserve": {
+          "title": "Order or Reserve",
+          "description": "Order online for delivery or pickup, or reserve your table — all from one platform.",
+          "cta": "Book a Table"
+        }
+      }
+    },
+    "forBusinessOwners": {
+      "eyebrow": "For Business Owners",
+      "heading": "Everything You Need to Run a Modern Hospitality Business",
+      "subtitle": "Savor gives restaurants, cafés, bars, and food trucks a complete digital operations platform — from online ordering and reservations to analytics and loyalty programs.",
+      "registerYourBusiness": "Register Your Business",
+      "seeAllFeatures": "See All Features",
+      "benefits": {
+        "realtimeAnalytics": {
+          "title": "Real-time Analytics",
+          "description": "Track orders, revenue, and customer trends across all your branches from one dashboard."
+        },
+        "qrTableOrdering": {
+          "title": "QR Table Ordering",
+          "description": "Let guests scan and order directly from their table — no app download required."
+        },
+        "teamManagement": {
+          "title": "Team Management",
+          "description": "Fine-grained role-based access for managers, chefs, cashiers, and staff."
+        },
+        "loyaltyPrograms": {
+          "title": "Loyalty Programs",
+          "description": "Build and reward your regulars with points, tiers, and custom loyalty campaigns."
+        },
+        "multiBranchReady": {
+          "title": "Multi-Branch Ready",
+          "description": "Manage unlimited branches, each with its own menu, hours, and inventory."
+        },
+        "liveOrderDisplay": {
+          "title": "Live Order Display",
+          "description": "Stream incoming orders directly to your kitchen display in real time."
+        }
+      }
+    },
+    "platformFeatures": {
+      "eyebrow": "Platform",
+      "heading": "Everything in One Platform",
+      "subtitle": "Savor provides the complete digital stack for modern hospitality businesses — no third-party patchwork required.",
+      "getStartedFree": "Get Started Free",
+      "noCreditCardNote": "No credit card required · Set up in minutes",
+      "items": {
+        "onlineMenu": {
+          "label": "Online Menu",
+          "description": "Beautiful digital menus with photos, descriptions, and dietary tags."
+        },
+        "reservations": {
+          "label": "Reservations",
+          "description": "Real-time table booking with confirmation and reminders."
+        },
+        "qrOrdering": {
+          "label": "QR Ordering",
+          "description": "Scan-to-order at the table. No app, no waiting."
+        },
+        "loyalty": {
+          "label": "Loyalty",
+          "description": "Points, tiers, and custom rewards to keep customers coming back."
+        },
+        "analytics": {
+          "label": "Analytics",
+          "description": "Revenue, order trends, and customer insights in real time."
+        },
+        "kitchenDisplay": {
+          "label": "Kitchen Display",
+          "description": "Live order stream to your kitchen display system."
+        },
+        "posIntegration": {
+          "label": "POS Integration",
+          "description": "Sync with your existing point-of-sale system seamlessly."
+        },
+        "multiBranch": {
+          "label": "Multi-Branch",
+          "description": "Unlimited branches, each independently configurable."
+        },
+        "giftCards": {
+          "label": "Gift Cards",
+          "description": "Sell and redeem digital gift cards across all branches."
+        },
+        "events": {
+          "label": "Events",
+          "description": "Publish and manage special events and promotions."
+        }
+      }
+    },
+    "testimonials": {
+      "eyebrow": "Loved by Diners",
+      "heading": "What Our Community Says",
+      "subtitle": "Thousands of food lovers use Savor every day to discover, book, and order from local businesses.",
+      "items": {
+        "sarah": {
+          "quote": "Found three new restaurants in my neighbourhood using the category search. Booked a table and ordered — all from one place.",
+          "name": "Sarah M.",
+          "role": "Food Explorer"
+        },
+        "james": {
+          "quote": "The QR ordering at my favourite café is seamless. No waiting for a waiter, and my loyalty points stack up every visit.",
+          "name": "James T.",
+          "role": "Regular Diner"
+        },
+        "layla": {
+          "quote": "Discovered a food truck pop-up through Savor that I would never have found otherwise. Now I check it every weekend.",
+          "name": "Layla K.",
+          "role": "Food Enthusiast"
+        }
+      },
+      "stats": {
+        "happyCustomers": "Happy Customers",
+        "avgAppRating": "Avg. App Rating",
+        "businessesListed": "Businesses Listed",
+        "satisfactionRate": "Satisfaction Rate"
+      }
     }
+  },
+  "discover": {
+    "eyebrow": "Discover",
+    "headingPrefix": "Find Your Next",
+    "headingAccent": "Favourite Spot",
+    "subtitle": "Search · Book a table · Order online · Earn rewards — all in one place.",
+    "searchPlaceholder": "Search by name, city, cuisine, amenity, or type…",
+    "errorLoad": "Failed to load businesses. Please try again.",
+    "loadingBusinesses": "Loading businesses…",
+    "resultsCount": "{count, plural, =0 {No results} one {# result} other {# results}}",
+    "resultsCountForQuery": "{count, plural, =0 {No results} one {# result} other {# results}} for \"{query}\"",
+    "searchResultsAria": "Search results",
+    "sectionFeatured": "Featured",
+    "sectionPopular": "Popular Right Now",
+    "sectionNewlyOpened": "Newly Opened",
+    "sectionTopRated": "Top Rated",
+    "sectionFamilyFriendly": "Family Friendly",
+    "sectionCoffeeShops": "Coffee Shops",
+    "allBusinesses": "All Businesses",
+    "listedCount": "{count} listed",
+    "sortBusinesses": "{count, plural, one {Sort # business} other {Sort # businesses}}",
+    "noBusinessesFound": "No businesses found",
+    "noMatchCategoryQuery": "No {category} businesses match \"{query}\". Try adjusting your search or filters.",
+    "noMatchQuery": "No businesses match \"{query}\". Try a different term or browse by category.",
+    "noMatchFilters": "No businesses match the active filters. Try removing some.",
+    "noBusinessesCategory": "No businesses in this category yet.",
+    "clearAllFilters": "Clear all filters",
+    "tryBrowsing": "Try browsing",
+    "popularBusinessesYouMightLike": "Popular businesses you might like"
+  },
+  "marketplace": {
+    "featured": "Featured",
+    "new": "New",
+    "popular": "Popular",
+    "priceBudget": "Budget",
+    "priceModerate": "Moderate",
+    "priceUpscale": "Upscale",
+    "priceFineDining": "Fine Dining",
+    "explore": "Explore",
+    "visit": "Visit",
+    "viewMenu": "View Menu",
+    "openNow": "Open now",
+    "closed": "Closed",
+    "ratingAria": "Rating: {rating} out of 5",
+    "locationsCount": "{count, plural, one {# Location} other {# Locations}}",
+    "cuisinesAria": "Cuisines",
+    "featuresAndAmenitiesAria": "Features and amenities",
+    "reservations": "Reservations",
+    "loyalty": "Loyalty",
+    "ctaAria": "{cta} — {name}",
+    "hideBranchesAria": "Hide branches for {name}",
+    "showBranchesAria": "Show branches for {name}",
+    "branches": "Branches",
+    "viewHomepageAria": "View {name} homepage",
+    "businessTypes": {
+      "restaurant": "Restaurant",
+      "cafe": "Café",
+      "bar": "Bar",
+      "food_court": "Food Court",
+      "food_truck": "Food Truck",
+      "mobile_cafe": "Mobile Café",
+      "hotel": "Hotel",
+      "other": "Other"
+    },
+    "filterByBusinessTypeAria": "Filter by business type",
+    "all": "All",
+    "searchBusinesses": "Search businesses",
+    "searchBusinessesPlaceholder": "Search by name, city, cuisine, or type…",
+    "clearSearch": "Clear search",
+    "filters": "Filters",
+    "activeFiltersAria": "{count} active filters",
+    "advancedFiltersAria": "Advanced filters",
+    "advancedFilters": "Advanced Filters",
+    "clearAllFilters": "Clear all filters",
+    "clearAllCount": "Clear all ({count})",
+    "openNowOnly": "Open Now only",
+    "priceLevel": "Price Level",
+    "priceLevels": {
+      "1": "Budget",
+      "2": "Moderate",
+      "3": "Upscale",
+      "4": "Fine Dining"
+    },
+    "cuisine": "Cuisine",
+    "city": "City",
+    "services": "Services",
+    "loyaltyProgram": "Loyalty Program",
+    "amenities": "Amenities",
+    "businessesCount": "{count, plural, one {# business} other {# businesses}}",
+    "sortResults": "Sort results",
+    "sortOptions": {
+      "recommended": "Recommended",
+      "highestRated": "Highest Rated",
+      "mostReviewed": "Most Reviewed",
+      "newest": "Newest",
+      "alphabetical": "A–Z",
+      "priceLowToHigh": "Price: Low to High",
+      "openNowFirst": "Open Now First"
+    },
+    "publicUrl": "Public URL",
+    "copyUrlAria": "Copy URL",
+    "copied": "Copied",
+    "copy": "Copy",
+    "openPublicUrlAria": "Open public URL",
+    "open": "Open",
+    "qrCodeMobileNote": "QR code generation available in the mobile app.",
+    "branchLocationsAria": "Branch locations",
+    "locations": "Locations",
+    "visitBranchAria": "Visit {name}",
+    "view": "View"
+  },
+  "tenant": {
+    "priceLevelAria": "Price level: {level}",
+    "breadcrumbAria": "Breadcrumb",
+    "discover": "Discover",
+    "reviewsCount": "({count} reviews)",
+    "locationsCountLower": "{count, plural, one {# location} other {# locations}}",
+    "allLocations": "All Locations",
+    "shareThisBusinessAria": "Share this business",
+    "copiedExclaim": "Copied!",
+    "share": "Share",
+    "quickActionsAria": "Quick actions",
+    "amenitiesAria": "Amenities",
+    "about": "About",
+    "ourStory": "Our Story",
+    "open": "Open",
+    "closed": "Closed",
+    "visitBranchAria": "Visit {name}",
+    "visitBranch": "Visit Branch",
+    "ourLocations": "Our Locations",
+    "browseByCategory": "Browse by Category",
+    "browseCategoryAria": "Browse {name}",
+    "itemsCount": "{count, plural, one {# item} other {# items}}",
+    "popularItems": "Popular Items",
+    "viewFullMenu": "View full menu",
+    "currentOffers": "Current Offers",
+    "promoTypes": {
+      "discount": "Discount",
+      "fixedOff": "Fixed off",
+      "bogo": "BOGO",
+      "happyHour": "Happy Hour"
+    },
+    "percentOff": "{percent}% off",
+    "amountOff": "${amount} off",
+    "useThisOffer": "Use this offer →",
+    "gallery": "Gallery",
+    "loadingPageContentAria": "Loading page content",
+    "loadingEllipsis": "Loading…",
+    "businessNotFound": "Business not found",
+    "businessNotFoundDesc": "We could not find a business at this URL.",
+    "browseAllBusinesses": "Browse all businesses",
+    "businessNotFoundLongDesc": "We could not find a business at this URL. It may have moved or no longer be listed on Savor."
+  },
+  "branch": {
+    "openNow": "Open Now",
+    "closed": "Closed",
+    "directions": "Directions",
+    "quickActionsAria": "Quick actions",
+    "call": "Call",
+    "copiedExclaim": "Copied!",
+    "share": "Share",
+    "linkCopiedToClipboard": "Link copied to clipboard",
+    "branchInformation": "Branch Information",
+    "todayHours": "Today: {hours}",
+    "openInGoogleMapsAria": "Open in Google Maps",
+    "viewOnMap": "View on Map",
+    "locations": "Locations",
+    "youreHere": "You're here",
+    "open": "Open",
+    "popularItems": "Popular Items",
+    "fullMenu": "Full Menu",
+    "categories": "Categories",
+    "allOffers": "All Offers",
+    "thisLocation": "This Location",
+    "businessGallery": "Business Gallery",
+    "loadingBranchPageAria": "Loading branch page",
+    "loadingEllipsis": "Loading…",
+    "branchNotFound": "Branch not found",
+    "branchNotFoundDesc": "We could not find this location. It may have moved or no longer be listed.",
+    "backToBusiness": "Back to Business",
+    "loadingMenuEllipsis": "Loading menu…",
+    "loadingTableExperienceEllipsis": "Loading table experience…",
+    "branchNotFoundLongDesc": "We could not find this location. It may have closed or moved. Browse the business page to find all active locations."
+  },
+  "orderDetail": {
+    "orderNotFound": "Order not found",
+    "myOrders": "My Orders",
+    "dateAtTime": "{date} at {time}",
+    "liveTracking": "Live Tracking",
+    "orderItems": "Order Items",
+    "unitPriceEach": "({price} each)",
+    "orderDetailsNotAvailable": "Order details not available.",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "tax": "Tax",
+    "service": "Service",
+    "total": "Total",
+    "printReceipt": "Print Receipt",
+    "deliveryInfo": "Delivery Info",
+    "tableNumber": "Table #{number}",
+    "orderAgain": "Order Again",
+    "newOrder": "New Order",
+    "backToOrderDetailsAria": "Back to order details",
+    "trackingNumber": "Tracking #{number}",
+    "orderCancelled": "Order Cancelled",
+    "orderCancelledDesc": "This order has been cancelled.",
+    "viewFullOrder": "View Full Order",
+    "allOrders": "All Orders"
+  },
+  "orderTracker": {
+    "orderCancelled": "Order Cancelled",
+    "orderCancelledDesc": "Your order has been cancelled.",
+    "estimatedTime": "Estimated time",
+    "minutesCount": "{count, plural, one {# minute} other {# minutes}}",
+    "orderPlaced": "Order Placed",
+    "orderPlacedDesc": "Your order has been received",
+    "accepted": "Accepted",
+    "acceptedDesc": "Restaurant accepted your order",
+    "preparing": "Preparing",
+    "preparingDesc": "Chef is crafting your meal",
+    "ready": "Ready",
+    "readyDesc": "Your order is ready!",
+    "delivered": "Delivered",
+    "deliveredDesc": "Enjoy your meal 🎉"
+  },
+  "checkoutResult": {
+    "orderConfirmed": "Order Confirmed!",
+    "orderConfirmedDesc": "Your delicious meal is on its way",
+    "orderNumberLabel": "Order Number",
+    "liveOrderTracking": "Live Order Tracking",
+    "trackOrder": "Track Order",
+    "orderMore": "Order More",
+    "backToHome": "Back to Home",
+    "orderFailed": "Order Failed",
+    "orderFailedDesc": "Something went wrong with your order",
+    "failureBody": "Don't worry — your cart is still saved. Please try again or contact support if the problem persists.",
+    "tryAgain": "Try Again",
+    "backToMenu": "Back to Menu"
+  },
+  "loyalty": {
+    "loadingAccount": "Loading your loyalty account…",
+    "noAccountFound": "No loyalty account found.",
+    "currentPoints": "Current Points",
+    "availablePoints": "Available points",
+    "lifetime": "Lifetime:",
+    "tierStatus": "Tier Status",
+    "currentTier": "Current tier",
+    "tierExpires": "Tier expires {date}",
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold",
+      "platinum": "Platinum"
+    },
+    "availableRewards": "Available Rewards",
+    "loadingRewards": "Loading rewards…",
+    "noRewardsAvailable": "No rewards available.",
+    "requiresTier": "Requires: {tier} tier",
+    "pointsSuffix": "{count} pts",
+    "redeemAria": "Redeem {name}",
+    "redeeming": "Redeeming…",
+    "redeem": "Redeem",
+    "transactionHistory": "Transaction History",
+    "loadingTransactions": "Loading transactions…",
+    "noTransactionsYet": "No transactions yet.",
+    "loyaltyProgram": "Loyalty Program"
+  },
+  "header": {
+    "skipToMainContent": "Skip to main content",
+    "navDiscover": "Discover",
+    "navReservations": "Reservations",
+    "navForBusiness": "For Business",
+    "mainNavigationAria": "Main navigation",
+    "toggleThemeAria": "Toggle theme",
+    "changeLanguageAria": "Change language",
+    "cartWithItemsAria": "Cart with {count} items",
+    "userMenuAria": "User menu",
+    "myAccount": "My Account",
+    "myOrders": "My Orders",
+    "favorites": "Favorites",
+    "addresses": "Addresses",
+    "settings": "Settings",
+    "businessConsole": "Business Console",
+    "signOut": "Sign Out",
+    "signIn": "Sign In",
+    "getStarted": "Get Started",
+    "toggleMenuAria": "Toggle menu",
+    "mobileNavigationAria": "Mobile navigation",
+    "logoAlt": "{name} logo",
+    "tenantHomeAria": "{name} home",
+    "poweredBySavorAria": "Powered by Savor — browse the marketplace",
+    "poweredBy": "Powered by",
+    "tenantNavigationAria": "{name} navigation",
+    "tenantMobileNavigationAria": "{name} mobile navigation",
+    "closeMenuAria": "Close menu",
+    "openMenuAria": "Open menu",
+    "switchToLanguageAria": "Switch to {language}"
+  },
+  "footer": {
+    "brandDescription": "Connecting customers with great local restaurants, cafés, bars, and more. Discover, order, and book — all in one place.",
+    "sections": {
+      "explore": "Explore",
+      "platform": "Platform",
+      "company": "Company"
+    },
+    "links": {
+      "discoverBusinesses": "Discover Businesses",
+      "restaurants": "Restaurants",
+      "cafes": "Cafés",
+      "barsAndVenues": "Bars & Venues",
+      "foodTrucks": "Food Trucks",
+      "orderOnline": "Order Online",
+      "bookATable": "Book a Table",
+      "trackOrder": "Track Order",
+      "becomeAPartner": "Become a Partner",
+      "pricing": "Pricing",
+      "aboutSavor": "About Savor",
+      "support": "Support",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service"
+    },
+    "copyright": "© {year} Savor Platform. All rights reserved."
+  },
+  "tenantFooter": {
+    "instagram": "Instagram",
+    "twitterX": "Twitter / X",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "copyright": "© {year} {name}. All rights reserved.",
+    "poweredBy": "Powered by",
+    "savorPlatform": "Savor Platform"
+  },
+  "branchSelector": {
+    "selectBranch": "Select Branch",
+    "chooseLocation": "Choose Location",
+    "openNow": "Open now",
+    "closed": "Closed"
+  },
+  "reviewCard": {
+    "starsOutOf5": "{rating} out of 5 stars",
+    "reviewByNameStars": "Review by {name}, {rating} stars",
+    "verifiedVisit": "Verified visit",
+    "verified": "Verified",
+    "visitTypes": {
+      "dineIn": "Dine In",
+      "takeaway": "Takeaway",
+      "delivery": "Delivery"
+    },
+    "showLess": "Show less",
+    "readMore": "Read more",
+    "reviewPhotosAria": "Review photos",
+    "reviewPhotoAlt": "Review photo {index}",
+    "markHelpfulAria": "Mark review as helpful. {count} people found this helpful",
+    "helpfulCount": "Helpful ({count})",
+    "helpfulSuffix": "{count, plural, one {# helpful} other {# helpful}}",
+    "photosCount": "{count, plural, one {# photo} other {# photos}}",
+    "reply": "Reply"
+  },
+  "vendorsPage": {
+    "vendors": "Vendors",
+    "noRatings": "No ratings",
+    "featured": "Featured",
+    "statuses": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "suspended": "Suspended"
+    },
+    "categories": {
+      "asian": "Asian",
+      "western": "Western",
+      "mediterranean": "Mediterranean",
+      "mexican": "Mexican",
+      "indian": "Indian",
+      "desserts": "Desserts",
+      "beverages": "Beverages",
+      "fastFood": "Fast Food",
+      "healthy": "Healthy",
+      "other": "Other"
+    },
+    "stallNumber": "Stall {number}",
+    "backToVendorListAria": "Back to vendor list",
+    "backToVendors": "Back to Vendors",
+    "stallLabel": "Stall: {number}",
+    "stats": {
+      "orders": "Orders",
+      "activeItems": "Active Items",
+      "revenue": "Revenue",
+      "avgRating": "Avg Rating"
+    },
+    "recentSettlements": "Recent Settlements",
+    "settlementAmount": "{amount} ({status})",
+    "settlementStatuses": {
+      "paid": "Paid",
+      "failed": "Failed",
+      "pending": "Pending"
+    },
+    "loadingVendors": "Loading vendors…",
+    "featuredVendors": "Featured Vendors",
+    "allVendors": "All Vendors",
+    "all": "All",
+    "noVendorsInCategory": "No vendors in this category."
+  },
+  "comingSoon": {
+    "events": "Events",
+    "eventsContent": "Events content coming soon.",
+    "liveLocation": "Live Location",
+    "liveLocationContent": "Live location tracking content coming soon.",
+    "reviews": "Reviews",
+    "reviewsContent": "Reviews content coming soon."
+  },
+  "promotionsPage": {
+    "types": {
+      "percentageDiscount": "Percentage Discount",
+      "fixedDiscount": "Fixed Discount",
+      "buyOneGetOne": "Buy One Get One",
+      "happyHour": "Happy Hour"
+    },
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "bogo": "Buy 1 Get 1",
+    "percentOff": "{percent}% off",
+    "amountOff": "${amount} off",
+    "untilDate": "until {date}",
+    "allDayEveryDay": "All day, every day",
+    "activeNow": "Active now",
+    "loadingPromotions": "Loading promotions…",
+    "activePromotions": "Active Promotions",
+    "noActivePromotions": "No active promotions right now.",
+    "happyHourOffers": "Happy Hour Offers",
+    "noHappyHourOffers": "No happy hour offers available.",
+    "upcomingPromotions": "Upcoming Promotions",
+    "noUpcomingPromotions": "No upcoming promotions.",
+    "promotionsAndOffers": "Promotions & Offers"
+  },
+  "qrTable": {
+    "explore": "Explore",
+    "browseMenu": "Browse Menu",
+    "reservations": "Reservations",
+    "reviews": "Reviews",
+    "loyaltyRewards": "Loyalty Rewards",
+    "events": "Events",
+    "vendors": "Vendors",
+    "liveLocation": "Live Location",
+    "promotions": "Promotions",
+    "invalidTable": "Invalid Table",
+    "invalidTableDesc": "This QR code is not valid.",
+    "tableNumberLabel": "Table {number}",
+    "dineInNoLoginRequired": "Dine-in ordering — no login required",
+    "checkout": "Checkout",
+    "welcome": "Welcome!",
+    "welcomeDesc": "You are ordering from Table {number}. Browse our full menu and add items to your cart.",
+    "loadingTableInfoEllipsis": "Loading table info…",
+    "seatsCount": "Seats {count}",
+    "serverLabel": "Server: {name}"
   }
 }

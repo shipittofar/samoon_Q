@@ -1,50 +1,46 @@
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Search, Store, ShoppingBag } from 'lucide-react'
 
 const STEPS = [
   {
     step: '01',
     icon: Search,
-    title: 'Discover',
-    description:
-      'Browse restaurants, cafés, bars, food trucks, and food courts by category, location, or mood.',
-    cta: { label: 'Start Exploring', href: '/discover' },
+    key: 'discover',
+    href: '/discover',
     color: 'bg-orange-50 dark:bg-orange-950/20 text-orange-500',
     border: 'border-orange-200 dark:border-orange-900',
   },
   {
     step: '02',
     icon: Store,
-    title: 'Pick a Location',
-    description:
-      'Choose the nearest spot, check the menu, opening hours, and table availability in real time.',
-    cta: { label: 'See Locations', href: '/discover' },
+    key: 'pickLocation',
+    href: '/discover',
     color: 'bg-blue-50 dark:bg-blue-950/20 text-blue-500',
     border: 'border-blue-200 dark:border-blue-900',
   },
   {
     step: '03',
     icon: ShoppingBag,
-    title: 'Order or Reserve',
-    description:
-      'Order online for delivery or pickup, or reserve your table — all from one platform.',
-    cta: { label: 'Book a Table', href: '/reservation' },
+    key: 'orderOrReserve',
+    href: '/reservation',
     color: 'bg-green-50 dark:bg-green-950/20 text-green-500',
     border: 'border-green-200 dark:border-green-900',
   },
 ]
 
 export function HowItWorks() {
+  const t = useTranslations('home')
   return (
     <section className="py-20 bg-[var(--bg-secondary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-3">Simple</p>
+          <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-3">{t('howItWorks.eyebrow')}</p>
           <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)] mb-4">
-            How It Works
+            {t('howItWorks.heading')}
           </h2>
           <p className="text-[var(--fg-muted)] max-w-xl mx-auto">
-            Your next great meal, three steps away.
+            {t('howItWorks.subtitle')}
           </p>
         </div>
 
@@ -65,16 +61,16 @@ export function HowItWorks() {
                   </span>
                 </div>
                 <h3 className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)] mb-3">
-                  {step.title}
+                  {t(`howItWorks.steps.${step.key}.title`)}
                 </h3>
                 <p className="text-sm text-[var(--fg-muted)] leading-relaxed mb-5 max-w-xs">
-                  {step.description}
+                  {t(`howItWorks.steps.${step.key}.description`)}
                 </p>
                 <Link
-                  href={step.cta.href}
+                  href={step.href}
                   className="text-sm font-medium text-orange-500 hover:text-orange-600 hover:underline transition-colors"
                 >
-                  {step.cta.label} →
+                  {t(`howItWorks.steps.${step.key}.cta`)} →
                 </Link>
               </div>
             )

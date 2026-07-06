@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Star, MapPin, Phone, Clock, ChevronRight,
   UtensilsCrossed, Tag, Share2, Check,
@@ -23,11 +24,12 @@ import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
 // ── Breadcrumb ────────────────────────────────────────────────────────────────
 
 function Breadcrumb({ tenantSlug, tenantName, branchName }: { tenantSlug: string; tenantName: string; branchName: string }) {
+  const t = useTranslations('tenant')
   return (
-    <nav aria-label="Breadcrumb" className="bg-[var(--bg)] border-b border-[var(--border)]">
+    <nav aria-label={t('breadcrumbAria')} className="bg-[var(--bg)] border-b border-[var(--border)]">
       <ol className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1.5 text-sm text-[var(--fg-muted)] flex-wrap">
         <li>
-          <Link href="/discover" className="hover:text-[var(--fg)] transition-colors">Discover</Link>
+          <Link href="/discover" className="hover:text-[var(--fg)] transition-colors">{t('discover')}</Link>
         </li>
         <li aria-hidden="true"><ChevronRight className="w-3.5 h-3.5" /></li>
         <li>
@@ -55,6 +57,7 @@ function HeroSection({
   tenantSlug: string
   branchSlug: string
 }) {
+  const t = useTranslations('branch')
   const featureFlags = useTenantStore((s) => s.featureFlags)
   const meta = getMarketplaceMeta(tenant.settings)
   const cta = getSmartCTA({ tenantSlug, branchSlug, featureFlags, meta })
@@ -107,7 +110,7 @@ function HeroSection({
                   branch.openNow ? 'bg-emerald-500 text-white' : 'bg-gray-500 text-white',
                 )}
               >
-                {branch.openNow ? 'Open Now' : 'Closed'}
+                {branch.openNow ? t('openNow') : t('closed')}
               </span>
               {branch.todayHours && (
                 <span className="text-white/70 text-xs flex items-center gap-1">
@@ -142,7 +145,7 @@ function HeroSection({
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
                 >
                   <MapPin className="w-4 h-4" aria-hidden="true" />
-                  Directions
+                  {t('directions')}
                 </a>
               </div>
             )}
@@ -175,6 +178,7 @@ function QuickActions({
   branchSlug: string
   journey: CustomerJourney
 }) {
+  const t = useTranslations('branch')
   const [copied, setCopied] = useState(false)
   const pageUrl = typeof window !== 'undefined' ? window.location.href : `/${tenantSlug}/${branchSlug}`
 
@@ -193,7 +197,7 @@ function QuickActions({
   }
 
   return (
-    <section className="bg-[var(--card)] border-b border-[var(--border)]" aria-label="Quick actions">
+    <section className="bg-[var(--card)] border-b border-[var(--border)]" aria-label={t('quickActionsAria')}>
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap gap-2">
         {/* Journey-ordered feature CTAs */}
         {allCTAs.map((cta, i) => (
@@ -217,7 +221,7 @@ function QuickActions({
             href={`tel:${branch.phone.replace(/\s/g, '')}`}
             className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
-            <Phone className="w-4 h-4" aria-hidden="true" />Call
+            <Phone className="w-4 h-4" aria-hidden="true" />{t('call')}
           </a>
         )}
         <a
@@ -226,7 +230,7 @@ function QuickActions({
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
         >
-          <MapPin className="w-4 h-4" aria-hidden="true" />Directions
+          <MapPin className="w-4 h-4" aria-hidden="true" />{t('directions')}
         </a>
         <button
           type="button"
@@ -234,9 +238,9 @@ function QuickActions({
           className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
         >
           {copied ? <Check className="w-4 h-4 text-emerald-500" aria-hidden="true" /> : <Share2 className="w-4 h-4" aria-hidden="true" />}
-          {copied ? 'Copied!' : 'Share'}
+          {copied ? t('copiedExclaim') : t('share')}
         </button>
-        <span role="status" aria-live="polite" className="sr-only">{copied ? 'Link copied to clipboard' : ''}</span>
+        <span role="status" aria-live="polite" className="sr-only">{copied ? t('linkCopiedToClipboard') : ''}</span>
       </div>
     </section>
   )
@@ -245,9 +249,10 @@ function QuickActions({
 // ── Branch Info ───────────────────────────────────────────────────────────────
 
 function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
+  const t = useTranslations('branch')
   return (
     <section aria-labelledby="branch-info-heading" className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 space-y-4">
-      <h2 id="branch-info-heading" className="font-semibold text-[var(--fg)]">Branch Information</h2>
+      <h2 id="branch-info-heading" className="font-semibold text-[var(--fg)]">{t('branchInformation')}</h2>
       <div className="space-y-3 text-sm">
         <div className="flex items-start gap-3 text-[var(--fg-muted)]">
           <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
@@ -265,7 +270,7 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
         {branch.todayHours && (
           <div className="flex items-center gap-3 text-[var(--fg-muted)]">
             <Clock className="w-4 h-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
-            <span>Today: {branch.todayHours}</span>
+            <span>{t('todayHours', { hours: branch.todayHours })}</span>
           </div>
         )}
       </div>
@@ -274,11 +279,11 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
         type="button"
         className="w-full h-48 rounded-xl bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[var(--fg-muted)] text-sm cursor-pointer hover:bg-[var(--card-hover)] transition-colors"
         onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`, '_blank')}
-        aria-label="Open in Google Maps"
+        aria-label={t('openInGoogleMapsAria')}
       >
         <div className="text-center">
           <MapPin className="w-8 h-8 mx-auto mb-1 text-[var(--accent)]" aria-hidden="true" />
-          <p className="font-medium">View on Map</p>
+          <p className="font-medium">{t('viewOnMap')}</p>
           <p className="text-xs text-[var(--fg-subtle)] mt-0.5">{branch.address}</p>
         </div>
       </button>
@@ -297,6 +302,7 @@ function BranchSwitcher({
   currentSlug: string
   tenantSlug: string
 }) {
+  const t = useTranslations('branch')
   if (branches.length <= 1) return null
 
   const currentBranch = branches.find((b) => b.slug === currentSlug)
@@ -304,7 +310,7 @@ function BranchSwitcher({
 
   return (
     <section aria-labelledby="branch-switcher-heading" className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5">
-      <h2 id="branch-switcher-heading" className="font-semibold text-[var(--fg)] mb-3">Locations</h2>
+      <h2 id="branch-switcher-heading" className="font-semibold text-[var(--fg)] mb-3">{t('locations')}</h2>
 
       {/* H2: Current branch indicator */}
       {currentBranch && (
@@ -316,7 +322,7 @@ function BranchSwitcher({
               <p className="text-xs text-[var(--fg-muted)] truncate">{currentBranch.todayHours}</p>
             )}
           </div>
-          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium shrink-0">You&apos;re here</span>
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium shrink-0">{t('youreHere')}</span>
         </div>
       )}
 
@@ -342,7 +348,7 @@ function BranchSwitcher({
                   b.openNow ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
                 )}
               >
-                {b.openNow ? 'Open' : 'Closed'}
+                {b.openNow ? t('open') : t('closed')}
               </span>
               <ChevronRight className="w-4 h-4 text-[var(--fg-muted)] group-hover:text-[var(--fg)]" aria-hidden="true" />
             </div>
@@ -356,6 +362,7 @@ function BranchSwitcher({
 // ── Featured Menu Items ───────────────────────────────────────────────────────
 
 function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuItem[]; tenantSlug: string; branchSlug: string }) {
+  const t = useTranslations('branch')
   const featured = items.filter((i) => i.is_featured || i.is_popular).slice(0, 6)
   if (!featured.length) return null
   return (
@@ -366,10 +373,10 @@ function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuIte
           id="featured-items-heading"
           className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]"
         >
-          Popular Items
+          {t('popularItems')}
         </h2>
         <Link href={`/${tenantSlug}/${branchSlug}/menu`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1 font-medium">
-          Full Menu <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+          {t('fullMenu')} <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
         </Link>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -404,13 +411,14 @@ function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuIte
 // ── Categories ────────────────────────────────────────────────────────────────
 
 function CategoriesSection({ categories, tenantSlug, branchSlug }: { categories: Category[]; tenantSlug: string; branchSlug: string }) {
+  const t = useTranslations('branch')
   if (!categories.length) return null
   return (
     <section aria-labelledby="categories-heading">
       <div className="mb-5 pb-3 border-b border-[var(--border)]">
         {/* H6: upgraded heading */}
         <h2 id="categories-heading" className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
-          Categories
+          {t('categories')}
         </h2>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -431,13 +439,15 @@ function CategoriesSection({ categories, tenantSlug, branchSlug }: { categories:
 // ── Promotions ────────────────────────────────────────────────────────────────
 
 function PromotionsSection({ promotions, tenantSlug, branchSlug }: { promotions: PromotionRule[]; tenantSlug: string; branchSlug: string }) {
+  const t = useTranslations('branch')
+  const tTenant = useTranslations('tenant')
   if (!promotions.length) return null
 
-  const TYPE_LABELS: Record<string, string> = {
-    percentage_discount: 'Discount',
-    fixed_discount: 'Fixed off',
-    buy_one_get_one: 'BOGO',
-    happy_hour: 'Happy Hour',
+  const TYPE_LABEL_KEYS: Record<string, string> = {
+    percentage_discount: 'discount',
+    fixed_discount: 'fixedOff',
+    buy_one_get_one: 'bogo',
+    happy_hour: 'happyHour',
   }
 
   return (
@@ -445,17 +455,17 @@ function PromotionsSection({ promotions, tenantSlug, branchSlug }: { promotions:
       <div className="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border)]">
         {/* H6: upgraded heading */}
         <h2 id="promotions-heading" className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
-          Current Offers
+          {tTenant('currentOffers')}
         </h2>
         <Link href={`/${tenantSlug}/${branchSlug}/promotions`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1 font-medium">
-          All Offers <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+          {t('allOffers')} <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
         </Link>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
         {promotions.slice(0, 4).map((promo) => (
           <div key={promo.id} className="bg-[var(--card)] rounded-2xl border border-[var(--accent)]/30 bg-[var(--accent)]/5 p-4">
             <span className="text-xs font-semibold uppercase tracking-wide text-[var(--accent)] mb-1 block">
-              {TYPE_LABELS[promo.type] ?? promo.type}
+              {TYPE_LABEL_KEYS[promo.type] ? tTenant(`promoTypes.${TYPE_LABEL_KEYS[promo.type]}`) : promo.type}
             </span>
             <p className="font-semibold text-[var(--fg)] text-sm mb-1">{promo.name}</p>
             {promo.description && (
@@ -463,17 +473,17 @@ function PromotionsSection({ promotions, tenantSlug, branchSlug }: { promotions:
             )}
             {/* H3: show discount value */}
             {promo.discountPercent != null && (
-              <p className="text-lg font-bold text-[var(--accent)] mb-2">{promo.discountPercent}% off</p>
+              <p className="text-lg font-bold text-[var(--accent)] mb-2">{tTenant('percentOff', { percent: promo.discountPercent })}</p>
             )}
             {promo.discountAmount != null && (
-              <p className="text-lg font-bold text-[var(--accent)] mb-2">${promo.discountAmount} off</p>
+              <p className="text-lg font-bold text-[var(--accent)] mb-2">{tTenant('amountOff', { amount: promo.discountAmount })}</p>
             )}
             {/* H3: Use this offer CTA */}
             <Link
               href={`/${tenantSlug}/${branchSlug}/menu`}
               className="inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] hover:underline"
             >
-              Use this offer →
+              {tTenant('useThisOffer')}
             </Link>
           </div>
         ))}
@@ -522,6 +532,7 @@ function GallerySection({ images, label }: { images: string[]; label: string }) 
 // ── Rating Summary ────────────────────────────────────────────────────────────
 
 function RatingSummary({ rating, reviewCount }: { rating?: number; reviewCount?: number }) {
+  const t = useTranslations('tenant')
   if (!rating) return null
   return (
     <div className="flex items-center gap-2 p-4 bg-[var(--card)] rounded-2xl border border-[var(--border)]">
@@ -529,7 +540,7 @@ function RatingSummary({ rating, reviewCount }: { rating?: number; reviewCount?:
       <div>
         <span className="font-bold text-[var(--fg)] text-lg">{rating.toFixed(1)}</span>
         {reviewCount != null && (
-          <span className="text-sm text-[var(--fg-muted)] ml-1.5">({reviewCount.toLocaleString()} reviews)</span>
+          <span className="text-sm text-[var(--fg-muted)] ml-1.5">{t('reviewsCount', { count: reviewCount })}</span>
         )}
       </div>
     </div>
@@ -539,10 +550,11 @@ function RatingSummary({ rating, reviewCount }: { rating?: number; reviewCount?:
 // ── Loading skeleton ──────────────────────────────────────────────────────────
 
 function BranchSkeleton() {
+  const t = useTranslations('branch')
   return (
     <>
       <TenantHeader />
-      <div role="status" aria-label="Loading branch page" className="animate-pulse">
+      <div role="status" aria-label={t('loadingBranchPageAria')} className="animate-pulse">
         <div className="h-[45vh] min-h-[300px] bg-[var(--card)]" aria-hidden="true" />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
@@ -576,7 +588,7 @@ function BranchSkeleton() {
             </div>
           </div>
         </div>
-        <span className="sr-only">Loading…</span>
+        <span className="sr-only">{t('loadingEllipsis')}</span>
       </div>
       <Footer />
     </>
@@ -586,14 +598,16 @@ function BranchSkeleton() {
 // ── Not found (client) ────────────────────────────────────────────────────────
 
 function BranchNotFound({ tenantSlug }: { tenantSlug: string }) {
+  const t = useTranslations('branch')
+  const tTenant = useTranslations('tenant')
   return (
     <>
       <TenantHeader />
       <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
         <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6" aria-hidden="true" />
-        <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">Branch not found</h1>
+        <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">{t('branchNotFound')}</h1>
         <p className="text-[var(--fg-muted)] max-w-sm mb-8">
-          We could not find this location. It may have moved or no longer be listed.
+          {t('branchNotFoundDesc')}
         </p>
         <div className="flex items-center gap-3">
           <Link
@@ -601,13 +615,13 @@ function BranchNotFound({ tenantSlug }: { tenantSlug: string }) {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] font-medium hover:bg-[var(--accent-hover)] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-            Back to Business
+            {t('backToBusiness')}
           </Link>
           <Link
             href="/discover"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[var(--border)] text-[var(--fg)] font-medium hover:bg-[var(--card-hover)] transition-colors"
           >
-            Browse all businesses
+            {tTenant('browseAllBusinesses')}
           </Link>
         </div>
       </main>
@@ -624,6 +638,7 @@ interface Props {
 }
 
 export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) {
+  const t = useTranslations('branch')
   const { data: tenant, isLoading: tenantLoading } = usePublicTenant(tenantSlug)
   const { data: branch, isLoading: branchLoading } = usePublicBranch(tenantSlug, branchSlug)
   const { data: categories = [] } = useCategories()
@@ -700,8 +715,8 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
                 // C4: Branch-specific photo first, then labeled tenant gallery
                 gallery: sections.gallery ? (
                   <>
-                    {branchPhotos.length > 0 && <GallerySection images={branchPhotos} label="This Location" />}
-                    {hasGallery && <GallerySection images={tenantGallery} label="Business Gallery" />}
+                    {branchPhotos.length > 0 && <GallerySection images={branchPhotos} label={t('thisLocation')} />}
+                    {hasGallery && <GallerySection images={tenantGallery} label={t('businessGallery')} />}
                   </>
                 ) : null,
                 promotions: sections.promotions ? (

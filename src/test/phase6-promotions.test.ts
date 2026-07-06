@@ -718,7 +718,7 @@ describe('Q. Promotion hooks source-text', () => {
 // ── R. Customer /promotions page ──────────────────────────────────────────────
 
 describe('R. /promotions/page.tsx source-text', () => {
-  const src = readSrc('app/promotions/page.tsx')
+  const src = readSrc('app/promotions/PromotionsClientPage.tsx')
 
   it('uses usePromotions', () => {
     expect(src).toContain('usePromotions')
@@ -729,15 +729,15 @@ describe('R. /promotions/page.tsx source-text', () => {
   })
 
   it('has Active Promotions section', () => {
-    expect(src).toContain('Active Promotions')
+    expect(src).toContain("t('activePromotions')")
   })
 
   it('has Happy Hour Offers section', () => {
-    expect(src).toContain('Happy Hour Offers')
+    expect(src).toContain("t('happyHourOffers')")
   })
 
   it('has Upcoming Promotions section', () => {
-    expect(src).toContain('Upcoming Promotions')
+    expect(src).toContain("t('upcomingPromotions')")
   })
 
   it('is a client component', () => {

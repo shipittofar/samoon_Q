@@ -3,6 +3,7 @@
 import { use } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { ArrowLeft, MapPin, Phone, Clock, Package, CheckCircle2 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { OrderTracker } from '@/components/order/OrderTracker'
@@ -19,6 +20,8 @@ const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple'
 }
 
 export default function OrderPage({ params }: { params: Promise<{ orderId: string }> }) {
+  const t = useTranslations('orderDetail')
+  const tOrder = useTranslations('order')
   const { orderId } = use(params)
   const { data: order, isLoading } = useOrder(orderId)
 
@@ -41,8 +44,8 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
         <Header />
         <div className="text-center pt-24">
           <Package className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4" />
-          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">Order not found</h2>
-          <Link href="/dashboard/orders"><Button>My Orders</Button></Link>
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">{t('orderNotFound')}</h2>
+          <Link href="/dashboard/orders"><Button>{t('myOrders')}</Button></Link>
         </div>
       </div>
     )
@@ -59,11 +62,11 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
               <Button variant="ghost" size="icon-sm"><ArrowLeft className="h-4 w-4" /></Button>
             </Link>
             <div>
-              <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">Order {order.order_number}</h1>
-              <p className="text-sm text-[var(--fg-muted)]">{formatDate(order.created_at)} at {formatTime(order.created_at)}</p>
+              <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{tOrder('orderNumber', { number: order.order_number })}</h1>
+              <p className="text-sm text-[var(--fg-muted)]">{t('dateAtTime', { date: formatDate(order.created_at), time: formatTime(order.created_at) })}</p>
             </div>
             <Badge variant={STATUS_BADGE_MAP[order.status] || 'secondary'} className="ms-auto capitalize text-sm py-1.5 px-3">
-              {order.status?.replace('_', ' ')}
+              {order.status && STATUS_BADGE_MAP[order.status] ? tOrder(`status.${order.status}`) : order.status?.replace('_', ' ')}
             </Badge>
           </div>
 
@@ -74,7 +77,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
               {order.status !== 'cancelled' && (
                 <Card>
                   <h2 className="font-semibold text-[var(--fg)] mb-6 flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-orange-500" /> Live Tracking
+                    <Clock className="h-4 w-4 text-orange-500" /> {t('liveTracking')}
                   </h2>
                   <OrderTracker
                     orderId={order.id}
@@ -86,7 +89,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
 
               {/* Items */}
               <Card>
-                <h2 className="font-semibold text-[var(--fg)] mb-4">Order Items</h2>
+                <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderItems')}</h2>
                 {order.items && order.items.length > 0 ? (
                   <div className="space-y-4">
                     {order.items.map((item) => (
@@ -101,17 +104,17 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                             ×{item.quantity}
                             {item.quantity > 1 && item.unit_price && (
                               <span className="ml-2">
-                                ({formatCurrency(item.unit_price)} each)
+                                {t('unitPriceEach', { price: formatCurrency(item.unit_price) })}
                               </span>
                             )}
-                          </p>                        
+                          </p>
                           </div>
                         <span className="font-semibold text-[var(--fg)] shrink-0">{formatCurrency(item.total_price)}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-[var(--fg-muted)]">Order details not available.</p>
+                  <p className="text-sm text-[var(--fg-muted)]">{t('orderDetailsNotAvailable')}</p>
                 )}
               </Card>
             </div>
@@ -119,21 +122,21 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
             {/* Right: Summary */}
             <div className="space-y-4">
               <Card>
-                <h2 className="font-semibold text-[var(--fg)] mb-4">Order Summary</h2>
+                <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderSummary')}</h2>
                 <div className="space-y-2.5 text-sm">
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Subtotal</span><span>{formatCurrency(order.subtotal || 0)}</span></div>
-                  {order.discount_amount > 0 && <div className="flex justify-between text-emerald-600"><span>Discount</span><span>−{formatCurrency(order.discount_amount)}</span></div>}
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Tax</span><span>{formatCurrency(order.tax || 0)}</span></div>
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>Service</span><span>{formatCurrency(order.service_charge || 0)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('subtotal')}</span><span>{formatCurrency(order.subtotal || 0)}</span></div>
+                  {order.discount_amount > 0 && <div className="flex justify-between text-emerald-600"><span>{t('discount')}</span><span>−{formatCurrency(order.discount_amount)}</span></div>}
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('tax')}</span><span>{formatCurrency(order.tax || 0)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('service')}</span><span>{formatCurrency(order.service_charge || 0)}</span></div>
                   <div className="flex justify-between font-bold text-[var(--fg)] text-base pt-2 border-t border-[var(--border)]">
-                    <span>Total</span><span>{formatCurrency(order.total)}</span>
+                    <span>{t('total')}</span><span>{formatCurrency(order.total)}</span>
                   </div>
-                  <Button className="w-full" size="sm" variant="secondary">Print Receipt</Button>
+                  <Button className="w-full" size="sm" variant="secondary">{t('printReceipt')}</Button>
                 </div>
               </Card>
 
               <Card>
-                <h2 className="font-semibold text-[var(--fg)] mb-4">Delivery Info</h2>
+                <h2 className="font-semibold text-[var(--fg)] mb-4">{t('deliveryInfo')}</h2>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-start gap-2 text-[var(--fg-muted)]">
                     <Package className="h-4 w-4 mt-0.5 shrink-0 text-orange-500" />
@@ -148,18 +151,18 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                   {order.table_number && (
                     <div className="flex items-center gap-2 text-[var(--fg-muted)]">
                       <CheckCircle2 className="h-4 w-4 text-orange-500" />
-                      <span>Table #{order.table_number}</span>
+                      <span>{t('tableNumber', { number: order.table_number })}</span>
                     </div>
                   )}
                 </div>
               </Card>
               <div className="font-semibold text-[var(--fg)] mb-4">
                 <Link href="/menu">
-                  <Button className="w-full" variant="outline">Order Again</Button>
+                  <Button className="w-full" variant="outline">{t('orderAgain')}</Button>
                 </Link>
               </div>
               <Link href="/menu">
-                <Button className="w-full" variant="outline">New Order</Button>
+                <Button className="w-full" variant="outline">{t('newOrder')}</Button>
               </Link>
             </div>
           </div>

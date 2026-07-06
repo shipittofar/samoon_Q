@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { Star, MapPin, Calendar, Award, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/utils'
 import type { Tenant } from '@/types'
@@ -16,19 +17,22 @@ interface BusinessCardProps {
 }
 
 function StatusBadge({ meta }: { meta: MarketplaceMeta }) {
-  if (meta.featured) return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500 text-white">Featured</span>
-  if (meta.isNew)    return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500 text-white">New</span>
-  if (meta.popular)  return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500 text-white">Popular</span>
+  const t = useTranslations('marketplace')
+  if (meta.featured) return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500 text-white">{t('featured')}</span>
+  if (meta.isNew)    return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500 text-white">{t('new')}</span>
+  if (meta.popular)  return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500 text-white">{t('popular')}</span>
   return null
 }
 
 function PriceDots({ level }: { level?: number }) {
+  const t = useTranslations('marketplace')
   if (!level) return null
   const symbol = '$'.repeat(level)
+  const labels = ['', t('priceBudget'), t('priceModerate'), t('priceUpscale'), t('priceFineDining')]
   return (
     <span
       className="text-xs font-medium text-[var(--fg-subtle)]"
-      aria-label={['', 'Budget', 'Moderate', 'Upscale', 'Fine Dining'][level]}
+      aria-label={labels[level]}
     >
       {symbol}
     </span>
@@ -36,9 +40,10 @@ function PriceDots({ level }: { level?: number }) {
 }
 
 export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
+  const t = useTranslations('marketplace')
   const [branchesOpen, setBranchesOpen] = useState(false)
 
-  const label = tenant.businessTypes.map((t) => BUSINESS_TYPE_LABELS[t] ?? t).join(' · ')
+  const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')
   const accentColor = (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor
   const featureFlags = (tenant.settings?.featureFlags as Record<string, boolean | undefined>) ?? {}
   const hasReservations = featureFlags['reservations.enabled'] === true
@@ -52,8 +57,8 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
   const hasBranches = (meta.branches?.length ?? 0) > 0
   // C3: Use a contextual CTA label based on business type and branch count
   const nonMenuTypes = ['bar', 'hotel', 'other']
-  const isNonMenuType = tenant.businessTypes.every((t) => nonMenuTypes.includes(t))
-  const ctaLabel = isMultiBranch ? 'Explore' : isNonMenuType ? 'Visit' : 'View Menu'
+  const isNonMenuType = tenant.businessTypes.every((bt) => nonMenuTypes.includes(bt))
+  const ctaLabel = isMultiBranch ? t('explore') : isNonMenuType ? t('visit') : t('viewMenu')
 
   return (
     <article
@@ -88,7 +93,7 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
             meta.openNow ? 'bg-emerald-500/90 text-white' : 'bg-gray-800/80 text-gray-200',
           )}
         >
-          {meta.openNow ? 'Open now' : 'Closed'}
+          {meta.openNow ? t('openNow') : t('closed')}
         </span>
         <StatusBadge meta={meta} />
       </div>
@@ -118,7 +123,7 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
 
         {/* Stats row */}
         <div className="flex items-center gap-3 text-xs text-[var(--fg-subtle)] mb-3 flex-wrap">
-          <span className="flex items-center gap-1" aria-label={`Rating: ${meta.rating} out of 5`}>
+          <span className="flex items-center gap-1" aria-label={t('ratingAria', { rating: meta.rating })}>
             <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" aria-hidden="true" />
             <span className="font-medium text-[var(--fg-muted)]">{meta.rating.toFixed(1)}</span>
             <span>({meta.reviewCount.toLocaleString()})</span>
@@ -127,15 +132,15 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
             <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
             {meta.city}
           </span>
-          <span className="flex items-center gap-1" aria-label={`${meta.branchCount} ${meta.branchCount === 1 ? 'location' : 'locations'}`}>
+          <span className="flex items-center gap-1" aria-label={t('locationsCount', { count: meta.branchCount })}>
             <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
-            {meta.branchCount} {meta.branchCount === 1 ? 'Location' : 'Locations'}
+            {t('locationsCount', { count: meta.branchCount })}
           </span>
         </div>
 
         {/* Cuisine tags */}
         {meta.cuisines.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2" role="list" aria-label="Cuisines">
+          <div className="flex flex-wrap gap-1 mb-2" role="list" aria-label={t('cuisinesAria')}>
             {meta.cuisines.slice(0, 3).map((c) => (
               <span
                 key={c}
@@ -150,14 +155,14 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
 
         {/* Service & amenity badges */}
         {(hasReservations || hasLoyalty || (meta.amenities ?? []).length > 0) && (
-          <div className="flex flex-wrap gap-1 mb-3" role="list" aria-label="Features and amenities">
+          <div className="flex flex-wrap gap-1 mb-3" role="list" aria-label={t('featuresAndAmenitiesAria')}>
             {hasReservations && (
               <span
                 role="listitem"
                 className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
               >
                 <Calendar className="w-2.5 h-2.5" aria-hidden="true" />
-                Reservations
+                {t('reservations')}
               </span>
             )}
             {hasLoyalty && (
@@ -166,7 +171,7 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
                 className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800"
               >
                 <Award className="w-2.5 h-2.5" aria-hidden="true" />
-                Loyalty
+                {t('loyalty')}
               </span>
             )}
             {(meta.amenities ?? []).slice(0, 2).map((a) => (
@@ -186,7 +191,7 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
           <Link
             href={viewHref}
             className="flex-1 text-center text-sm font-medium px-3 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] transition-colors"
-            aria-label={`${ctaLabel} — ${tenant.name}`}
+            aria-label={t('ctaAria', { cta: ctaLabel, name: tenant.name })}
           >
             {ctaLabel}
           </Link>
@@ -195,21 +200,21 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
               type="button"
               onClick={() => setBranchesOpen((o) => !o)}
               aria-expanded={branchesOpen}
-              aria-label={branchesOpen ? `Hide branches for ${tenant.name}` : `Show branches for ${tenant.name}`}
+              aria-label={branchesOpen ? t('hideBranchesAria', { name: tenant.name }) : t('showBranchesAria', { name: tenant.name })}
               className="text-sm font-medium px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors flex items-center gap-1.5"
             >
               {branchesOpen
                 ? <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
                 : <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />}
-              Branches
+              {t('branches')}
             </button>
           ) : (
             <Link
               href={tenantHref}
               className="text-sm font-medium px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label={`View ${tenant.name} homepage`}
+              aria-label={t('viewHomepageAria', { name: tenant.name })}
             >
-              Visit
+              {t('visit')}
             </Link>
           )}
         </div>

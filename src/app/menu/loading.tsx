@@ -1,8 +1,10 @@
+import { getTranslations } from 'next-intl/server'
 import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton'
 
-export default function MenuLoading() {
+export default async function MenuLoading() {
+  const t = await getTranslations('menu')
   return (
-    <div className="min-h-screen bg-[var(--bg)]" role="status" aria-busy="true" aria-label="Loading menu">
+    <div className="min-h-screen bg-[var(--bg)]" role="status" aria-busy="true" aria-label={t('loadingMenuAria')}>
       {/* Header placeholder */}
       <div className="h-16 bg-[var(--card)] border-b border-[var(--border)]" aria-hidden="true" />
 

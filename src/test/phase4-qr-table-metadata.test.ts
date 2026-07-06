@@ -186,7 +186,7 @@ describe('table/[tableId]/page.tsx — P4.4 source structure', () => {
     const content = src()
     const componentIdx = content.indexOf('function TablePage(')
     const hookIdx = content.indexOf('useTableInfo(', componentIdx)
-    const earlyReturnIdx = content.indexOf('Invalid Table', componentIdx)
+    const earlyReturnIdx = content.indexOf("t('invalidTable')", componentIdx)
     expect(hookIdx).toBeGreaterThan(componentIdx)
     expect(hookIdx).toBeLessThan(earlyReturnIdx)
   })

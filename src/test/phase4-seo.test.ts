@@ -214,10 +214,10 @@ describe('P4.4.4 — SEO metadata exports', () => {
     expect(src).toContain('canonical')
   })
 
-  it('menu page exports metadata with title', () => {
+  it('menu page exports metadata with title (P9.5.7A: localized via generateMetadata)', () => {
     const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
-    expect(src).toContain('export const metadata')
-    expect(src).toContain('title:')
+    expect(src).toContain('export async function generateMetadata')
+    expect(src).toContain('getLocalizedPageMetadata')
   })
 
   it('menu metadata includes openGraph and twitter', () => {

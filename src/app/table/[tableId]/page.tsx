@@ -7,6 +7,7 @@ import {
   CalendarDays, Star, Heart, Music, Store, Tag, Navigation,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Header } from '@/components/layout/Header'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -18,35 +19,36 @@ import type { QRExperience } from '@/types/qr-experience'
 
 interface QuickLink {
   href: string
-  label: string
+  labelKey: string
   icon: React.ReactNode
 }
 
 function buildQuickLinks(exp: QRExperience): QuickLink[] {
   const links: QuickLink[] = []
-  if (exp.showMenu)         links.push({ href: '/menu',         label: 'Browse Menu',     icon: <UtensilsCrossed className="h-5 w-5" /> })
-  if (exp.showReservations) links.push({ href: '/reservation',  label: 'Reservations',    icon: <CalendarDays className="h-5 w-5" /> })
-  if (exp.showReviews)      links.push({ href: '/reviews',      label: 'Reviews',         icon: <Star className="h-5 w-5" /> })
-  if (exp.showLoyalty)      links.push({ href: '/loyalty',      label: 'Loyalty Rewards', icon: <Heart className="h-5 w-5" /> })
-  if (exp.showEvents)       links.push({ href: '/events',       label: 'Events',          icon: <Music className="h-5 w-5" /> })
-  if (exp.showVendors)      links.push({ href: '/vendors',      label: 'Vendors',         icon: <Store className="h-5 w-5" /> })
-  if (exp.showLocation)     links.push({ href: '/location',     label: 'Live Location',   icon: <Navigation className="h-5 w-5" /> })
-  if (exp.showPromotions)   links.push({ href: '/promotions',   label: 'Promotions',      icon: <Tag className="h-5 w-5" /> })
+  if (exp.showMenu)         links.push({ href: '/menu',         labelKey: 'browseMenu',     icon: <UtensilsCrossed className="h-5 w-5" /> })
+  if (exp.showReservations) links.push({ href: '/reservation',  labelKey: 'reservations',   icon: <CalendarDays className="h-5 w-5" /> })
+  if (exp.showReviews)      links.push({ href: '/reviews',      labelKey: 'reviews',        icon: <Star className="h-5 w-5" /> })
+  if (exp.showLoyalty)      links.push({ href: '/loyalty',      labelKey: 'loyaltyRewards', icon: <Heart className="h-5 w-5" /> })
+  if (exp.showEvents)       links.push({ href: '/events',       labelKey: 'events',         icon: <Music className="h-5 w-5" /> })
+  if (exp.showVendors)      links.push({ href: '/vendors',      labelKey: 'vendors',        icon: <Store className="h-5 w-5" /> })
+  if (exp.showLocation)     links.push({ href: '/location',     labelKey: 'liveLocation',   icon: <Navigation className="h-5 w-5" /> })
+  if (exp.showPromotions)   links.push({ href: '/promotions',   labelKey: 'promotions',     icon: <Tag className="h-5 w-5" /> })
   return links
 }
 
 function QRExperienceQuickLinks({ experience }: { experience: QRExperience }) {
+  const t = useTranslations('qrTable')
   const links = buildQuickLinks(experience)
   if (links.length === 0) return null
   return (
     <div className="mt-6">
-      <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Explore</p>
+      <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">{t('explore')}</p>
       <div className="grid grid-cols-2 gap-2">
         {links.map((link) => (
           <Link key={link.href} href={link.href}
             className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 text-sm text-[var(--fg)] hover:border-[var(--primary)] transition-colors">
             <span className="text-[var(--primary)]">{link.icon}</span>
-            <span>{link.label}</span>
+            <span>{t(link.labelKey)}</span>
           </Link>
         ))}
       </div>
@@ -55,6 +57,7 @@ function QRExperienceQuickLinks({ experience }: { experience: QRExperience }) {
 }
 
 export default function TablePage({ params }: { params: Promise<{ tableId: string }> }) {
+  const t = useTranslations('qrTable')
   const { tableId } = use(params)
   const tableNumber = parseInt(tableId, 10) || 0
   const isValid = !(tableNumber < 1 || tableNumber > 100)
@@ -80,9 +83,9 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
       <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center text-center p-4">
         <div>
           <span className="text-5xl mb-4 block">❌</span>
-          <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">Invalid Table</h1>
-          <p className="text-[var(--fg-muted)] mb-4">This QR code is not valid.</p>
-          <Link href="/menu"><Button>Browse Menu</Button></Link>
+          <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">{t('invalidTable')}</h1>
+          <p className="text-[var(--fg-muted)] mb-4">{t('invalidTableDesc')}</p>
+          <Link href="/menu"><Button>{t('browseMenu')}</Button></Link>
         </div>
       </div>
     )
@@ -108,15 +111,15 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
               </div>
               <div>
                 <p className="font-semibold text-lg">
-                  Table {tableInfo?.number ?? tableNumber}
+                  {t('tableNumberLabel', { number: tableInfo?.number ?? tableNumber })}
                   {tableInfo?.section && <span className="font-normal text-white/80 text-sm ml-2">· {tableInfo.section}</span>}
                 </p>
-                <p className="text-white/80 text-sm">Dine-in ordering — no login required</p>
+                <p className="text-white/80 text-sm">{t('dineInNoLoginRequired')}</p>
               </div>
             </div>
             <Link href={`/checkout?orderType=dine_in&table=${tableNumber}`}>
               <Button className="bg-white text-orange-600 hover:bg-orange-50 border-transparent shrink-0">
-                Checkout <ArrowRight className="h-4 w-4 ms-1" />
+                {t('checkout')} <ArrowRight className="h-4 w-4 ms-1" />
               </Button>
             </Link>
           </div>
@@ -126,21 +129,21 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="bg-[var(--card)] rounded-3xl border border-[var(--border)] p-10 max-w-md mx-auto">
             <span className="text-6xl block mb-4">🍽️</span>
-            <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">Welcome!</h2>
-            <p className="text-[var(--fg-muted)] mb-6">You are ordering from <strong className="text-[var(--fg)]">Table {tableInfo?.number ?? tableNumber}</strong>. Browse our full menu and add items to your cart.</p>
+            <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">{t('welcome')}</h2>
+            <p className="text-[var(--fg-muted)] mb-6">{t('welcomeDesc', { number: tableInfo?.number ?? tableNumber })}</p>
 
             {/* Table metadata */}
             {tableLoading ? (
               <div className="flex items-center justify-center gap-2 text-sm text-[var(--fg-muted)] mb-6">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Loading table info…</span>
+                <span>{t('loadingTableInfoEllipsis')}</span>
               </div>
             ) : tableInfo && (
               <div className="flex flex-wrap justify-center gap-3 mb-6">
                 {tableInfo.capacity && (
                   <div className="flex items-center gap-1.5 text-sm text-[var(--fg-muted)] bg-[var(--bg)] rounded-xl px-3 py-1.5">
                     <Users className="h-3.5 w-3.5 text-orange-500" />
-                    <span>Seats {tableInfo.capacity}</span>
+                    <span>{t('seatsCount', { count: tableInfo.capacity })}</span>
                   </div>
                 )}
                 {tableInfo.section && (
@@ -152,7 +155,7 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
                 {tableInfo.server_name && (
                   <div className="flex items-center gap-1.5 text-sm text-[var(--fg-muted)] bg-[var(--bg)] rounded-xl px-3 py-1.5">
                     <User className="h-3.5 w-3.5 text-orange-500" />
-                    <span>Server: {tableInfo.server_name}</span>
+                    <span>{t('serverLabel', { name: tableInfo.server_name })}</span>
                   </div>
                 )}
               </div>
@@ -160,7 +163,7 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
 
             <Link href="/menu" className="block">
               <Button className="w-full" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                Browse Menu
+                {t('browseMenu')}
               </Button>
             </Link>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Star, ThumbsUp, ChevronDown, ChevronUp, BadgeCheck, MessageSquare, Camera } from 'lucide-react'
 import { cn } from '@/utils'
 import type { BusinessReview } from '@/types/business-review'
@@ -14,9 +15,10 @@ interface ReviewCardProps {
 }
 
 function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'xs' }) {
+  const t = useTranslations('reviewCard')
   const cls = size === 'xs' ? 'w-3 h-3' : 'w-3.5 h-3.5'
   return (
-    <div className="flex gap-0.5" aria-label={`${rating} out of 5 stars`} role="img">
+    <div className="flex gap-0.5" aria-label={t('starsOutOf5', { rating })} role="img">
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           // eslint-disable-next-line react/no-array-index-key
@@ -56,13 +58,14 @@ function Avatar({ name, avatar }: { name: string; avatar?: string }) {
   )
 }
 
-const VISIT_TYPE_LABELS: Record<NonNullable<BusinessReview['visitType']>, string> = {
-  dine_in: 'Dine In',
-  takeaway: 'Takeaway',
-  delivery: 'Delivery',
+const VISIT_TYPE_KEYS: Record<NonNullable<BusinessReview['visitType']>, string> = {
+  dine_in: 'dineIn',
+  takeaway: 'takeaway',
+  delivery: 'delivery',
 }
 
 export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = false, className }: ReviewCardProps) {
+  const t = useTranslations('reviewCard')
   const [expanded, setExpanded] = useState(false)
   const TRUNCATE_AT = 220
   const shouldTruncate = review.comment.length > TRUNCATE_AT
@@ -82,7 +85,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
         review.pinned && 'border-[var(--accent)]/40',
         className,
       )}
-      aria-label={`Review by ${review.customerName}, ${review.rating} stars`}
+      aria-label={t('reviewByNameStars', { name: review.customerName, rating: review.rating })}
     >
       {/* Header */}
       <div className="flex items-start gap-3">
@@ -93,10 +96,10 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             {review.verifiedVisit && (
               <span
                 className="inline-flex items-center gap-0.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium"
-                title="Verified visit"
+                title={t('verifiedVisit')}
               >
                 <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" />
-                Verified
+                {t('verified')}
               </span>
             )}
           </div>
@@ -104,7 +107,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             <StarRow rating={review.rating} />
             <span className="text-xs text-[var(--fg-muted)]">{dateStr}</span>
             {review.visitType && (
-              <span className="text-xs text-[var(--fg-muted)]">· {VISIT_TYPE_LABELS[review.visitType]}</span>
+              <span className="text-xs text-[var(--fg-muted)]">· {t(`visitTypes.${VISIT_TYPE_KEYS[review.visitType]}`)}</span>
             )}
           </div>
         </div>
@@ -126,9 +129,9 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             aria-expanded={expanded}
           >
             {expanded ? (
-              <><ChevronUp className="w-3 h-3" aria-hidden="true" />Show less</>
+              <><ChevronUp className="w-3 h-3" aria-hidden="true" />{t('showLess')}</>
             ) : (
-              <><ChevronDown className="w-3 h-3" aria-hidden="true" />Read more</>
+              <><ChevronDown className="w-3 h-3" aria-hidden="true" />{t('readMore')}</>
             )}
           </button>
         )}
@@ -136,12 +139,12 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
 
       {/* Photo thumbnails */}
       {(review.images?.length ?? 0) > 0 && (
-        <div className="flex gap-2 flex-wrap" role="list" aria-label="Review photos">
+        <div className="flex gap-2 flex-wrap" role="list" aria-label={t('reviewPhotosAria')}>
           {review.images!.map((src, i) => (
             <div key={src} role="listitem">
               <img
                 src={src}
-                alt={`Review photo ${i + 1}`}
+                alt={t('reviewPhotoAlt', { index: i + 1 })}
                 className="w-16 h-16 rounded-xl object-cover border border-[var(--border)]"
               />
             </div>
@@ -173,24 +176,24 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             type="button"
             onClick={() => onMarkHelpful(review.id)}
             className="inline-flex items-center gap-1 text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)] rounded"
-            aria-label={`Mark review as helpful. ${review.helpfulCount} people found this helpful`}
+            aria-label={t('markHelpfulAria', { count: review.helpfulCount })}
           >
             <ThumbsUp className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Helpful ({review.helpfulCount})</span>
+            <span>{t('helpfulCount', { count: review.helpfulCount })}</span>
           </button>
         )}
 
         {!onMarkHelpful && review.helpfulCount > 0 && (
           <span className="inline-flex items-center gap-1 text-xs text-[var(--fg-muted)]">
             <ThumbsUp className="w-3.5 h-3.5" aria-hidden="true" />
-            {review.helpfulCount} helpful
+            {t('helpfulSuffix', { count: review.helpfulCount })}
           </span>
         )}
 
         {review.images && review.images.length > 0 && !onMarkHelpful && (
           <span className="inline-flex items-center gap-1 text-xs text-[var(--fg-muted)]">
             <Camera className="w-3.5 h-3.5" aria-hidden="true" />
-            {review.images.length} {review.images.length === 1 ? 'photo' : 'photos'}
+            {t('photosCount', { count: review.images.length })}
           </span>
         )}
 
@@ -201,7 +204,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             className="ml-auto inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--accent)] rounded"
           >
             <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
-            Reply
+            {t('reply')}
           </button>
         )}
       </div>

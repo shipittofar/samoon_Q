@@ -53,6 +53,7 @@ const LANGUAGES = resolveSupportedLocales().map((code) => ({
 }))
 
 export function TenantHeader() {
+  const t = useTranslations('header')
   const pathname = usePathname()
   const { isAuthenticated, user } = useAuthStore()
   const { getItemCount, setOpen: setCartOpen } = useCartStore()
@@ -136,7 +137,7 @@ export function TenantHeader() {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
       >
-        Skip to main content
+        {t('skipToMainContent')}
       </a>
 
       <header
@@ -153,13 +154,13 @@ export function TenantHeader() {
               <Link
                 href={`/${tenant.slug}`}
                 className="flex items-center gap-2.5 group shrink-0"
-                aria-label={`${tenant.name} home`}
+                aria-label={t('tenantHomeAria', { name: tenant.name })}
               >
                 {logoUrl ? (
                   <div className="relative h-8 w-24">
                     <Image
                       src={logoUrl}
-                      alt={`${tenant.name} logo`}
+                      alt={t('logoAlt', { name: tenant.name })}
                       fill
                       className="object-contain dark:brightness-0 dark:invert"
                       sizes="96px"
@@ -191,9 +192,9 @@ export function TenantHeader() {
               <Link
                 href="/discover"
                 className="hidden sm:flex flex-col leading-none border-s border-[var(--border)] ps-3 text-[var(--fg-subtle)] hover:text-orange-500 transition-colors shrink-0"
-                aria-label="Powered by Savor — browse the marketplace"
+                aria-label={t('poweredBySavorAria')}
               >
-                <span className="text-[9px] uppercase tracking-wide">Powered by</span>
+                <span className="text-[9px] uppercase tracking-wide">{t('poweredBy')}</span>
                 <span className="text-[11px] font-semibold">Savor</span>
               </Link>
             </div>
@@ -201,7 +202,7 @@ export function TenantHeader() {
             {/* ── Phase B + H: Desktop navigation ──────────────────────── */}
             <nav
               className="hidden md:flex items-center gap-0.5"
-              aria-label={`${tenant.name} navigation`}
+              aria-label={t('tenantNavigationAria', { name: tenant.name })}
             >
               {navLinks.map((link) => (
                 <Link
@@ -230,7 +231,7 @@ export function TenantHeader() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                aria-label="Toggle theme"
+                aria-label={t('toggleThemeAria')}
                 className="hidden sm:flex"
               >
                 <AnimatePresence mode="wait">
@@ -252,7 +253,7 @@ export function TenantHeader() {
                   variant="ghost"
                   size="icon"
                   onClick={() => setLangMenuOpen((v) => !v)}
-                  aria-label="Change language"
+                  aria-label={t('changeLanguageAria')}
                   aria-expanded={langMenuOpen}
                 >
                   <Globe className="h-4 w-4" />
@@ -292,7 +293,7 @@ export function TenantHeader() {
                 size="icon"
                 onClick={() => setCartOpen(true)}
                 className="relative"
-                aria-label={`Cart, ${cartCount} item${cartCount !== 1 ? 's' : ''}`}
+                aria-label={t('cartWithItemsAria', { count: cartCount })}
               >
                 <ShoppingCart className="h-4 w-4" />
                 <AnimatePresence>
@@ -316,7 +317,7 @@ export function TenantHeader() {
                   <button
                     onClick={() => setUserMenuOpen((v) => !v)}
                     className="flex items-center gap-2 rounded-xl p-1 hover:bg-[var(--card-hover)] transition-colors"
-                    aria-label="User menu"
+                    aria-label={t('userMenuAria')}
                     aria-expanded={userMenuOpen}
                   >
                     <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="sm" />
@@ -336,11 +337,11 @@ export function TenantHeader() {
                           <p className="text-xs text-[var(--fg-muted)] truncate">{user?.email}</p>
                         </div>
                         {[
-                          { href: '/dashboard', icon: User, label: 'My Account' },
-                          { href: '/dashboard/orders', icon: Package, label: 'My Orders' },
-                          { href: '/dashboard/favorites', icon: Heart, label: 'Favorites' },
-                          { href: '/dashboard/addresses', icon: MapPin, label: 'Addresses' },
-                          { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
+                          { href: '/dashboard', icon: User, labelKey: 'myAccount' },
+                          { href: '/dashboard/orders', icon: Package, labelKey: 'myOrders' },
+                          { href: '/dashboard/favorites', icon: Heart, labelKey: 'favorites' },
+                          { href: '/dashboard/addresses', icon: MapPin, labelKey: 'addresses' },
+                          { href: '/dashboard/settings', icon: Settings, labelKey: 'settings' },
                         ].map((item) => (
                           <Link
                             key={item.href}
@@ -348,7 +349,7 @@ export function TenantHeader() {
                             className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
                           >
                             <item.icon className="h-4 w-4 text-[var(--fg-muted)]" />
-                            {item.label}
+                            {t(item.labelKey)}
                           </Link>
                         ))}
                         <div className="border-t border-[var(--border)]">
@@ -357,7 +358,7 @@ export function TenantHeader() {
                             className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-start"
                           >
                             <LogOut className="h-4 w-4" />
-                            Sign Out
+                            {t('signOut')}
                           </button>
                         </div>
                       </motion.div>
@@ -367,10 +368,10 @@ export function TenantHeader() {
               ) : (
                 <div className="hidden sm:flex items-center gap-2">
                   <Link href="/login">
-                    <Button variant="ghost" size="sm">Sign In</Button>
+                    <Button variant="ghost" size="sm">{t('signIn')}</Button>
                   </Link>
                   <Link href="/register">
-                    <Button size="sm">Get Started</Button>
+                    <Button size="sm">{t('getStarted')}</Button>
                   </Link>
                 </div>
               )}
@@ -381,7 +382,7 @@ export function TenantHeader() {
                 size="icon"
                 onClick={() => setMobileOpen((v) => !v)}
                 className="md:hidden"
-                aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                aria-label={mobileOpen ? t('closeMenuAria') : t('openMenuAria')}
                 aria-expanded={mobileOpen}
               >
                 {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -401,14 +402,14 @@ export function TenantHeader() {
             >
               <nav
                 className="px-4 py-3 flex flex-col gap-1"
-                aria-label={`${tenant.name} mobile navigation`}
+                aria-label={t('tenantMobileNavigationAria', { name: tenant.name })}
               >
                 {/* Platform signature — mobile */}
                 <Link
                   href="/discover"
                   className="flex items-center gap-1 px-4 py-2 text-xs text-[var(--fg-subtle)] hover:text-orange-500 transition-colors mb-1"
                 >
-                  Powered by <span className="font-semibold">Savor</span>
+                  {t('poweredBy')} <span className="font-semibold">Savor</span>
                 </Link>
 
                 {navLinks.map((link) => (
@@ -430,7 +431,7 @@ export function TenantHeader() {
                 ))}
 
                 <div className="flex items-center gap-2 pt-2 border-t border-[var(--border)] mt-2">
-                  <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle theme">
+                  <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={t('toggleThemeAria')}>
                     {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   </Button>
                   {LANGUAGES.map((lang) => (
@@ -438,7 +439,7 @@ export function TenantHeader() {
                       key={lang.code}
                       onClick={() => setLocale(lang.code)}
                       className={cn('text-lg transition-all', locale === lang.code && 'scale-125')}
-                      aria-label={`Switch to ${lang.label}`}
+                      aria-label={t('switchToLanguageAria', { language: lang.label })}
                     >
                       {lang.flag}
                     </button>
@@ -448,10 +449,10 @@ export function TenantHeader() {
                 {!isAuthenticated && (
                   <div className="flex gap-2 pt-2">
                     <Link href="/login" className="flex-1">
-                      <Button variant="secondary" size="sm" className="w-full">Sign In</Button>
+                      <Button variant="secondary" size="sm" className="w-full">{t('signIn')}</Button>
                     </Link>
                     <Link href="/register" className="flex-1">
-                      <Button size="sm" className="w-full">Get Started</Button>
+                      <Button size="sm" className="w-full">{t('getStarted')}</Button>
                     </Link>
                   </div>
                 )}

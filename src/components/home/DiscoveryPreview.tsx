@@ -1,14 +1,15 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { Star, MapPin, ChevronRight, ArrowRight } from 'lucide-react'
 
-const BUSINESS_TYPE_LABELS: Record<string, string> = {
-  restaurant: 'Restaurant',
-  cafe: 'Café',
-  bar: 'Bar',
-  food_truck: 'Food Truck',
-  food_court: 'Food Court',
-  mobile_cafe: 'Mobile Café',
+const BUSINESS_TYPE_KEYS: Record<string, string> = {
+  restaurant: 'restaurant',
+  cafe: 'cafe',
+  bar: 'bar',
+  food_truck: 'food_truck',
+  food_court: 'food_court',
+  mobile_cafe: 'mobile_cafe',
 }
 
 interface MockBusiness {
@@ -104,6 +105,7 @@ const MOCK_BUSINESSES: MockBusiness[] = [
 const PRICE_SYMBOLS = ['', '$', '$$', '$$$', '$$$$']
 
 function BusinessCard({ biz }: { biz: MockBusiness }) {
+  const tMarketplace = useTranslations('marketplace')
   return (
     <Link
       href={`/${biz.slug}`}
@@ -131,7 +133,7 @@ function BusinessCard({ biz }: { biz: MockBusiness }) {
               {biz.name}
             </h3>
             <span className="text-xs text-orange-500 font-medium">
-              {BUSINESS_TYPE_LABELS[biz.type] ?? biz.type}
+              {BUSINESS_TYPE_KEYS[biz.type] ? tMarketplace(`businessTypes.${BUSINESS_TYPE_KEYS[biz.type]}`) : biz.type}
             </span>
           </div>
           <span className="text-xs text-[var(--fg-subtle)] shrink-0 mt-0.5">{PRICE_SYMBOLS[biz.priceLevel]}</span>
@@ -154,22 +156,24 @@ function BusinessCard({ biz }: { biz: MockBusiness }) {
 }
 
 export function DiscoveryPreview() {
+  const t = useTranslations('home')
+  const tCommon = useTranslations('common')
   return (
     <section className="py-20 bg-[var(--bg)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Explore</p>
+            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('exploreLabel')}</p>
             <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">
-              Popular on Savor
+              {t('popularOnSavor')}
             </h2>
-            <p className="text-[var(--fg-muted)] mt-2">Restaurants, cafés, bars, and more — all on Savor</p>
+            <p className="text-[var(--fg-muted)] mt-2">{t('popularOnSavorSubtitle')}</p>
           </div>
           <Link
             href="/discover"
             className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors"
           >
-            View all <ChevronRight className="h-4 w-4" />
+            {tCommon('viewAll')} <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
 
@@ -184,7 +188,7 @@ export function DiscoveryPreview() {
             href="/discover"
             className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
           >
-            Browse All 500+ Businesses <ArrowRight className="h-4 w-4" />
+            {t('browseAll500Businesses')} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>

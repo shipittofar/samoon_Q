@@ -1,4 +1,9 @@
+import type { Metadata } from 'next'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { CapabilityGuard, CapabilityNotAvailable } from '@/components/guards/CapabilityGuard'
+import { getLocalizedPageMetadata } from '@/lib/seo'
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
 /**
  * Events page — bar-specific feature guarded by the `bar.events.enabled` flag (P6.8).
@@ -8,15 +13,21 @@ import { CapabilityGuard, CapabilityNotAvailable } from '@/components/guards/Cap
  * uses the FeatureFlagGuard pattern via CapabilityGuard with the nearest capability.
  * The nav item itself is already gated on `bar.events.enabled` in BAR_MODULE.navItems.
  */
-export default function EventsPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  return getLocalizedPageMetadata({ locale, path: '/events', namespaceKey: 'events', baseUrl: BASE_URL })
+}
+
+export default async function EventsPage() {
+  const t = await getTranslations('comingSoon')
   return (
     <CapabilityGuard
       capability="menu"
       fallback={<CapabilityNotAvailable capability="menu" />}
     >
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-[var(--fg)] mb-6">Events</h1>
-        <p className="text-[var(--fg-muted)]">Events content coming soon.</p>
+        <h1 className="text-2xl font-bold text-[var(--fg)] mb-6">{t('events')}</h1>
+        <p className="text-[var(--fg-muted)]">{t('eventsContent')}</p>
       </main>
     </CapabilityGuard>
   )

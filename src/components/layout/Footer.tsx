@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Instagram, Twitter, Facebook, Youtube, Mail } from 'lucide-react'
 
 // P8.8.1 — Footer rewritten to represent the Savor hospitality platform
@@ -6,25 +7,25 @@ import { Instagram, Twitter, Facebook, Youtube, Mail } from 'lucide-react'
 // labels, sections, and brand copy were updated.
 
 const LINKS = {
-  Explore: [
-    { label: 'Discover Businesses', href: '/discover' },
-    { label: 'Restaurants', href: '/discover?category=restaurant' },
-    { label: 'Cafés', href: '/discover?category=cafe' },
-    { label: 'Bars & Venues', href: '/discover?category=bar' },
-    { label: 'Food Trucks', href: '/discover?category=food_truck' },
+  explore: [
+    { labelKey: 'discoverBusinesses', href: '/discover' },
+    { labelKey: 'restaurants', href: '/discover?category=restaurant' },
+    { labelKey: 'cafes', href: '/discover?category=cafe' },
+    { labelKey: 'barsAndVenues', href: '/discover?category=bar' },
+    { labelKey: 'foodTrucks', href: '/discover?category=food_truck' },
   ],
-  Platform: [
-    { label: 'Order Online', href: '/menu' },
-    { label: 'Book a Table', href: '/reservation' },
-    { label: 'Track Order', href: '/dashboard/orders' },
-    { label: 'Become a Partner', href: '/restaurant' },
-    { label: 'Pricing', href: '/restaurant' },
+  platform: [
+    { labelKey: 'orderOnline', href: '/menu' },
+    { labelKey: 'bookATable', href: '/reservation' },
+    { labelKey: 'trackOrder', href: '/dashboard/orders' },
+    { labelKey: 'becomeAPartner', href: '/restaurant' },
+    { labelKey: 'pricing', href: '/restaurant' },
   ],
-  Company: [
-    { label: 'About Savor', href: '/restaurant' },
-    { label: 'Support', href: '/restaurant' },
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
+  company: [
+    { labelKey: 'aboutSavor', href: '/restaurant' },
+    { labelKey: 'support', href: '/restaurant' },
+    { labelKey: 'privacyPolicy', href: '/privacy' },
+    { labelKey: 'termsOfService', href: '/terms' },
   ],
 }
 
@@ -36,6 +37,7 @@ const SOCIALS = [
 ]
 
 export function Footer() {
+  const t = useTranslations('footer')
   return (
     <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +52,7 @@ export function Footer() {
               <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
             </Link>
             <p className="text-sm text-[var(--fg-muted)] leading-relaxed mb-6 max-w-xs">
-              Connecting customers with great local restaurants, cafés, bars, and more. Discover, order, and book — all in one place.
+              {t('brandDescription')}
             </p>
             <div className="space-y-3 text-sm text-[var(--fg-muted)]">
               <div className="flex items-center gap-2.5">
@@ -63,7 +65,7 @@ export function Footer() {
           {/* Links */}
           {Object.entries(LINKS).map(([section, links]) => (
             <div key={section}>
-              <h4 className="text-sm font-semibold text-[var(--fg)] mb-4">{section}</h4>
+              <h4 className="text-sm font-semibold text-[var(--fg)] mb-4">{t(`sections.${section}`)}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.href}>
@@ -71,7 +73,7 @@ export function Footer() {
                       href={link.href}
                       className="text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors"
                     >
-                      {link.label}
+                      {t(`links.${link.labelKey}`)}
                     </Link>
                   </li>
                 ))}
@@ -83,7 +85,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="py-6 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[var(--fg-subtle)]">
-            © {new Date().getFullYear()} Savor Platform. All rights reserved.
+            {t('copyright', { year: new Date().getFullYear() })}
           </p>
           <div className="flex items-center gap-1">
             {SOCIALS.map((social) => (
