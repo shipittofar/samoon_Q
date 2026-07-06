@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Sun, Moon, Monitor, Globe, Bell, Shield, User, ChevronRight, Camera, Upload, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui'
@@ -15,32 +16,39 @@ import { userService } from '@/services/combined.service'
 import { cn } from '@/utils'
 import toast from 'react-hot-toast'
 
+// Schema messages are `validation` namespace keys, resolved via
+// `tValidation()` wherever `errors.<field>.message` is rendered below.
 const profileSchema = z.object({
-  first_name: z.string().min(2),
-  last_name: z.string().min(2),
-  email: z.string().email(),
+  first_name: z.string().min(2, 'required'),
+  last_name: z.string().min(2, 'required'),
+  email: z.string().email('invalid_email'),
   phone: z.string().optional(),
 })
 type ProfileFormData = z.infer<typeof profileSchema>
 
 const THEMES = [
-  { value: 'light', label: 'Light', icon: Sun },
-  { value: 'dark', label: 'Dark', icon: Moon },
-  { value: 'system', label: 'System', icon: Monitor },
+  { value: 'light', key: 'themeLight', icon: Sun },
+  { value: 'dark', key: 'themeDark', icon: Moon },
+  { value: 'system', key: 'themeSystem', icon: Monitor },
 ] as const
 
+// Language names are endonyms (each language's name in its own script) —
+// left untranslated by convention, matching how language pickers universally
+// display them regardless of the active UI locale.
 const LANGUAGES = [
-  { code: 'en', label: 'English', flag: '🇺🇸', dir: 'LTR' },
-  { code: 'fa', label: 'فارسی', flag: '🇮🇷', dir: 'RTL' },
-  { code: 'ar', label: 'العربية', flag: '🇸🇦', dir: 'RTL' },
+  { code: 'en', label: 'English', flag: '🇺🇸', dirKey: 'directionLtr' },
+  { code: 'fa', label: 'فارسی', flag: '🇮🇷', dirKey: 'directionRtl' },
+  { code: 'ar', label: 'العربية', flag: '🇸🇦', dirKey: 'directionRtl' },
 ]
 
 const NOTIFICATION_PREFS = [
-  { id: 'order_updates', label: 'Order Updates', desc: 'Status changes and delivery notifications' },
-  { id: 'promotions', label: 'Promotions', desc: 'Deals, discounts and special offers' },
-  { id: 'reservation_reminders', label: 'Reservation Reminders', desc: 'Reminders before your booking' },
-  { id: 'system', label: 'System Notices', desc: 'Security and account notifications' },
+  { id: 'order_updates', key: 'orderUpdates' },
+  { id: 'promotions', key: 'notifPromotions' },
+  { id: 'reservation_reminders', key: 'reservationReminders' },
+  { id: 'system', key: 'systemNotices' },
 ]
+
+const SECURITY_ITEMS = ['changePassword', 'twoFactorAuth', 'activeSessions'] as const
 
 export default function SettingsPage() {
   const { user, setUser } = useAuthStore()
@@ -48,6 +56,9 @@ export default function SettingsPage() {
   const { locale } = useLangStore()
   const setLocale = useSetLocale()
   const [saving, setSaving] = useState(false)
+  const t = useTranslations('dashboard')
+  const tValidation = useTranslations('validation')
+  const tCommon = useTranslations('common')
   const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({
     order_updates: true, promotions: true, reservation_reminders: true, system: true,
   })
@@ -64,11 +75,11 @@ export default function SettingsPage() {
     if (!file) return
     const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
     if (!ALLOWED.includes(file.type)) {
-      setUploadError('Unsupported file type. Use JPEG, PNG, WebP, or GIF.')
+      setUploadError(t('unsupportedFileType'))
       return
     }
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError('File too large. Maximum 5 MB.')
+      setUploadError(t('fileTooLarge'))
       return
     }
     setUploadError(null)
@@ -92,13 +103,13 @@ export default function SettingsPage() {
     try {
       const { avatar_url } = await userService.uploadAvatar(pendingFile)
       setUser({ ...user!, avatar: avatar_url })
-      toast.success('Avatar updated!')
+      toast.success(t('avatarUpdated'))
       setUploadState('success')
       setPendingFile(null)
       setPreviewUrl(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Upload failed. Please try again.'
+      const msg = err instanceof Error ? err.message : t('uploadFailedRetry')
       setUploadError(msg)
       setUploadState('error')
     }
@@ -114,9 +125,9 @@ export default function SettingsPage() {
     try {
       const updated = await userService.updateProfile(data)
       setUser({ ...user!, ...updated })
-      toast.success('Profile updated!')
+      toast.success(t('profileUpdated'))
     } catch {
-      toast.error('Failed to update profile.')
+      toast.error(t('failedToUpdateProfile'))
     } finally {
       setSaving(false)
     }
@@ -125,8 +136,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">Settings</h1>
-        <p className="text-sm text-[var(--fg-muted)] mt-1">Manage your account preferences</p>
+        <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('settings')}</h1>
+        <p className="text-sm text-[var(--fg-muted)] mt-1">{t('manageAccountPreferences')}</p>
       </div>
 
       {/* Profile */}
@@ -135,7 +146,7 @@ export default function SettingsPage() {
           <div className="h-8 w-8 rounded-lg bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center">
             <User className="h-4 w-4 text-orange-500" />
           </div>
-          <h2 className="font-semibold text-[var(--fg)]">Profile Information</h2>
+          <h2 className="font-semibold text-[var(--fg)]">{t('profileInformation')}</h2>
         </div>
 
         <div className="flex items-center gap-4 mb-6 p-4 bg-[var(--card-hover)] rounded-xl">
@@ -151,7 +162,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                aria-label="Change profile photo"
+                aria-label={t('changeProfilePhotoAria')}
                 className="absolute -bottom-1 -end-1 h-6 w-6 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-md hover:bg-orange-600 transition-colors"
               >
                 <Camera className="h-3 w-3" />
@@ -169,7 +180,7 @@ export default function SettingsPage() {
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               className="sr-only"
-              aria-label="Select profile photo"
+              aria-label={t('selectProfilePhotoAria')}
               onChange={handleFileChange}
               data-testid="avatar-file-input"
             />
@@ -184,7 +195,7 @@ export default function SettingsPage() {
                   disabled={uploadState === 'uploading'}
                   leftIcon={<Upload className="h-3.5 w-3.5" />}
                 >
-                  {uploadState === 'uploading' ? 'Uploading…' : 'Upload'}
+                  {uploadState === 'uploading' ? t('uploadingEllipsis') : t('upload')}
                 </Button>
                 <Button
                   size="sm"
@@ -193,32 +204,32 @@ export default function SettingsPage() {
                   disabled={uploadState === 'uploading'}
                   leftIcon={<X className="h-3.5 w-3.5" />}
                 >
-                  Cancel
+                  {tCommon('cancel')}
                 </Button>
               </div>
             )}
 
             {/* Feedback messages */}
             {uploadState === 'success' && (
-              <p className="mt-1 text-xs text-emerald-600 font-medium">Avatar updated successfully.</p>
+              <p className="mt-1 text-xs text-emerald-600 font-medium">{t('avatarUpdatedSuccessfully')}</p>
             )}
             {uploadState === 'error' && uploadError && (
               <p className="mt-1 text-xs text-red-500" role="alert">{uploadError}</p>
             )}
             {!pendingFile && !uploadError && uploadState !== 'success' && (
-              <p className="mt-1 text-xs text-[var(--fg-muted)]">JPEG, PNG, WebP or GIF · max 5 MB</p>
+              <p className="mt-1 text-xs text-[var(--fg-muted)]">{t('avatarFormatHint')}</p>
             )}
           </div>
         </div>
 
         <form onSubmit={handleSubmit(onSaveProfile)} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="First Name" required {...register('first_name')} error={errors.first_name?.message} />
-            <Input label="Last Name" required {...register('last_name')} error={errors.last_name?.message} />
-            <Input label="Email" type="email" required {...register('email')} error={errors.email?.message} />
-            <Input label="Phone" type="tel" {...register('phone')} error={errors.phone?.message} />
+            <Input label={t('firstName')} required {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
+            <Input label={t('lastName')} required {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
+            <Input label={t('emailLabel')} type="email" required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
+            <Input label={t('phoneLabel')} type="tel" {...register('phone')} error={errors.phone?.message} />
           </div>
-          <Button type="submit" loading={saving} disabled={!isDirty}>Save Changes</Button>
+          <Button type="submit" loading={saving} disabled={!isDirty}>{t('saveChanges')}</Button>
         </form>
       </Card>
 
@@ -228,10 +239,10 @@ export default function SettingsPage() {
           <div className="h-8 w-8 rounded-lg bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center">
             <Sun className="h-4 w-4 text-purple-500" />
           </div>
-          <h2 className="font-semibold text-[var(--fg)]">Appearance</h2>
+          <h2 className="font-semibold text-[var(--fg)]">{t('appearance')}</h2>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          {THEMES.map(({ value, label, icon: Icon }) => (
+          {THEMES.map(({ value, key, icon: Icon }) => (
             <button
               key={value}
               onClick={() => setTheme(value)}
@@ -241,7 +252,7 @@ export default function SettingsPage() {
               )}
             >
               <Icon className={cn('h-5 w-5', theme === value ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
-              <span className={cn('text-sm font-medium', theme === value ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg-muted)]')}>{label}</span>
+              <span className={cn('text-sm font-medium', theme === value ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg-muted)]')}>{t(key)}</span>
             </button>
           ))}
         </div>
@@ -253,7 +264,7 @@ export default function SettingsPage() {
           <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
             <Globe className="h-4 w-4 text-blue-500" />
           </div>
-          <h2 className="font-semibold text-[var(--fg)]">Language & Region</h2>
+          <h2 className="font-semibold text-[var(--fg)]">{t('languageAndRegion')}</h2>
         </div>
         <div className="space-y-2">
           {LANGUAGES.map((lang) => (
@@ -269,7 +280,7 @@ export default function SettingsPage() {
                 <span className="text-xl">{lang.flag}</span>
                 <div>
                   <p className={cn('font-medium', locale === lang.code ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{lang.label}</p>
-                  <p className="text-xs text-[var(--fg-muted)]">{lang.dir}</p>
+                  <p className="text-xs text-[var(--fg-muted)]">{t(lang.dirKey)}</p>
                 </div>
               </div>
               {locale === lang.code && <span className="text-orange-500 text-sm">✓</span>}
@@ -284,14 +295,14 @@ export default function SettingsPage() {
           <div className="h-8 w-8 rounded-lg bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
             <Bell className="h-4 w-4 text-amber-500" />
           </div>
-          <h2 className="font-semibold text-[var(--fg)]">Notification Preferences</h2>
+          <h2 className="font-semibold text-[var(--fg)]">{t('notificationPreferences')}</h2>
         </div>
         <div className="space-y-1">
           {NOTIFICATION_PREFS.map((pref) => (
             <div key={pref.id} className="flex items-center justify-between px-4 py-3.5 rounded-xl hover:bg-[var(--card-hover)] transition-colors">
               <div>
-                <p className="text-sm font-medium text-[var(--fg)]">{pref.label}</p>
-                <p className="text-xs text-[var(--fg-muted)] mt-0.5">{pref.desc}</p>
+                <p className="text-sm font-medium text-[var(--fg)]">{t(`notifPrefs.${pref.key}.label`)}</p>
+                <p className="text-xs text-[var(--fg-muted)] mt-0.5">{t(`notifPrefs.${pref.key}.desc`)}</p>
               </div>
               <button
                 onClick={() => setNotifPrefs((p) => ({ ...p, [pref.id]: !p[pref.id] }))}
@@ -301,7 +312,7 @@ export default function SettingsPage() {
                 )}
                 role="switch"
                 aria-checked={notifPrefs[pref.id]}
-                aria-label={pref.label}
+                aria-label={t(`notifPrefs.${pref.key}.label`)}
               >
                 <span className={cn('absolute top-0.5 start-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200', notifPrefs[pref.id] ? 'translate-x-5' : 'translate-x-0')} />
               </button>
@@ -316,18 +327,14 @@ export default function SettingsPage() {
           <div className="h-8 w-8 rounded-lg bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
             <Shield className="h-4 w-4 text-red-500" />
           </div>
-          <h2 className="font-semibold text-[var(--fg)]">Security</h2>
+          <h2 className="font-semibold text-[var(--fg)]">{t('security')}</h2>
         </div>
         <div className="space-y-1">
-          {[
-            { label: 'Change Password', desc: 'Update your account password' },
-            { label: 'Two-Factor Authentication', desc: 'Add an extra layer of security' },
-            { label: 'Active Sessions', desc: 'Manage logged-in devices' },
-          ].map((item) => (
-            <button key={item.label} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl hover:bg-[var(--card-hover)] transition-colors text-start">
+          {SECURITY_ITEMS.map((key) => (
+            <button key={key} className="flex items-center justify-between w-full px-4 py-3.5 rounded-xl hover:bg-[var(--card-hover)] transition-colors text-start">
               <div>
-                <p className="text-sm font-medium text-[var(--fg)]">{item.label}</p>
-                <p className="text-xs text-[var(--fg-muted)]">{item.desc}</p>
+                <p className="text-sm font-medium text-[var(--fg)]">{t(`securityItems.${key}.label`)}</p>
+                <p className="text-xs text-[var(--fg-muted)]">{t(`securityItems.${key}.desc`)}</p>
               </div>
               <ChevronRight className="h-4 w-4 text-[var(--fg-subtle)]" />
             </button>
@@ -337,8 +344,8 @@ export default function SettingsPage() {
 
       {/* Danger zone */}
       <Card>
-        <h2 className="font-semibold text-red-500 mb-4">Danger Zone</h2>
-        <Button variant="destructive" size="sm">Delete Account</Button>
+        <h2 className="font-semibold text-red-500 mb-4">{t('dangerZone')}</h2>
+        <Button variant="destructive" size="sm">{t('deleteAccount')}</Button>
       </Card>
     </div>
   )

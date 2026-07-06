@@ -1,8 +1,10 @@
+import { getTranslations } from 'next-intl/server'
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
 
-export default function OrdersLoading() {
+export default async function OrdersLoading() {
+  const t = await getTranslations('dashboard')
   return (
-    <div className="space-y-6" role="status" aria-busy="true" aria-label="Loading orders">
+    <div className="space-y-6" role="status" aria-busy="true" aria-label={t('loadingOrdersAria')}>
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">

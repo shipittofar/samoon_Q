@@ -16,17 +16,20 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowRight, Phone } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useRegister } from '@/hooks'
 import toast from 'react-hot-toast'
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
+// Schema messages are `validation` namespace keys, resolved via
+// `tValidation()` wherever `errors.<field>.message` is rendered below.
 
 const schema = z.object({
-  first_name: z.string().min(1, 'First name is required').max(50),
-  last_name: z.string().min(1, 'Last name is required').max(50),
-  terms: z.literal(true, { errorMap: () => ({ message: 'You must accept the terms' }) }),
+  first_name: z.string().min(1, 'required').max(50),
+  last_name: z.string().min(1, 'required').max(50),
+  terms: z.literal(true, { errorMap: () => ({ message: 'must_accept_terms' }) }),
 })
 type FormData = z.infer<typeof schema>
 
@@ -38,6 +41,9 @@ function CompleteProfileInner() {
   const phone = params.get('phone') ?? ''
   const prefersReducedMotion = useReducedMotion()
   const { mutate: register, isPending } = useRegister()
+  const t = useTranslations('auth')
+  const tValidation = useTranslations('validation')
+  const tCommon = useTranslations('common')
 
   const { register: reg, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -55,10 +61,10 @@ function CompleteProfileInner() {
       },
       {
         onSuccess: () => {
-          toast.success('Account created!')
+          toast.success(t('completeProfileSuccess'))
           router.push('/dashboard')
         },
-        onError: () => toast.error('Could not create account. Please try again.'),
+        onError: () => toast.error(t('completeProfileFailed')),
       },
     )
   }
@@ -80,10 +86,10 @@ function CompleteProfileInner() {
         </div>
 
         <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
-          Create your account
+          {t('createYourAccount')}
         </h1>
         <p className="text-[var(--fg-muted)] mb-8 text-sm">
-          Just a few more details to get you started.
+          {t('justAFewMoreDetails')}
         </p>
 
         {/* Phone number — read-only, for context */}
@@ -91,28 +97,28 @@ function CompleteProfileInner() {
           <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)] mb-6">
             <Phone className="h-4 w-4 text-orange-500 shrink-0" aria-hidden="true" />
             <span className="text-sm text-[var(--fg)] font-mono">{phone}</span>
-            <span className="ms-auto text-xs text-green-500 font-medium">Verified</span>
+            <span className="ms-auto text-xs text-green-500 font-medium">{t('verified')}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="First name"
+              label={t('firstName')}
               placeholder="Alex"
               required
               autoComplete="given-name"
               autoFocus
               {...reg('first_name')}
-              error={errors.first_name?.message}
+              error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined}
             />
             <Input
-              label="Last name"
+              label={t('lastName')}
               placeholder="Kim"
               required
               autoComplete="family-name"
               {...reg('last_name')}
-              error={errors.last_name?.message}
+              error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined}
             />
           </div>
 
@@ -123,18 +129,18 @@ function CompleteProfileInner() {
               className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-orange-500 cursor-pointer"
             />
             <span className="text-sm text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors">
-              I agree to the{' '}
+              {t('agreeToTerms')}{' '}
               <Link href="/terms" className="text-orange-500 hover:underline" target="_blank">
-                Terms of Service
+                {tCommon('termsOfService')}
               </Link>{' '}
-              and{' '}
+              {tCommon('and')}{' '}
               <Link href="/privacy" className="text-orange-500 hover:underline" target="_blank">
-                Privacy Policy
+                {tCommon('privacyPolicy')}
               </Link>
             </span>
           </label>
           {errors.terms && (
-            <p role="alert" className="text-xs text-red-500">{errors.terms.message}</p>
+            <p role="alert" className="text-xs text-red-500">{errors.terms.message ? tValidation(errors.terms.message) : undefined}</p>
           )}
 
           <Button
@@ -144,7 +150,7 @@ function CompleteProfileInner() {
             loading={isPending}
             rightIcon={<ArrowRight className="h-4 w-4" />}
           >
-            Create Account
+            {t('createAccountButton')}
           </Button>
         </form>
       </motion.div>
@@ -154,13 +160,18 @@ function CompleteProfileInner() {
 
 // ── Wrapper with Suspense ──────────────────────────────────────────────────────
 
+function CompleteProfileFallback() {
+  const tCommon = useTranslations('common')
+  return (
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
+      <div className="h-8 w-8 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" aria-label={tCommon('loading')} />
+    </div>
+  )
+}
+
 export default function CompleteProfilePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" aria-label="Loading" />
-      </div>
-    }>
+    <Suspense fallback={<CompleteProfileFallback />}>
       <CompleteProfileInner />
     </Suspense>
   )

@@ -113,7 +113,74 @@
     "minEightChars": "8 أحرف على الأقل",
     "repeatPassword": "أعد كتابة كلمة المرور",
     "registrationSuccess": "تم إنشاء الحساب! مرحباً بك في سيفور 🎉",
-    "registrationFailed": "فشل التسجيل. قد يكون البريد الإلكتروني مستخدماً بالفعل."
+    "registrationFailed": "فشل التسجيل. قد يكون البريد الإلكتروني مستخدماً بالفعل.",
+    "verified": "تم التحقق!",
+    "takingYouToAccount": "جارٍ نقلك إلى حسابك…",
+    "phoneVerifiedRedirecting": "تم التحقق من الهاتف. جارٍ إعادة التوجيه.",
+    "tooManyAttemptsHeading": "عدد كبير جدًا من المحاولات",
+    "requestNewCodeToContinue": "اطلب رمزًا جديدًا للمتابعة.",
+    "sendNewCode": "إرسال رمز جديد",
+    "enterTheCode": "أدخل الرمز",
+    "wrongCodeAttemptsRemaining": "رمز خاطئ. تبقّى {count, plural, one {# محاولة} other {# محاولات}}.",
+    "verify": "تحقق",
+    "secondsRemainingAria": "تبقّى {seconds} ثانية",
+    "mockModeHint": "الوضع التجريبي: أي رمز يعمل باستثناء {code}",
+    "completeProfileSuccess": "تم إنشاء الحساب!",
+    "completeProfileFailed": "تعذّر إنشاء الحساب. يرجى المحاولة مرة أخرى.",
+    "createYourAccount": "أنشئ حسابك",
+    "justAFewMoreDetails": "بضع تفاصيل أخرى فقط لتبدأ.",
+    "demoAccounts": {
+      "customer": {
+        "label": "العميل",
+        "description": "القائمة، الطلبات، الحجوزات"
+      },
+      "staff": {
+        "label": "الموظفون",
+        "description": "مدير — العمليات الكاملة"
+      },
+      "cashier": {
+        "label": "أمين الصندوق",
+        "description": "الطلبات والعملاء"
+      },
+      "kitchen": {
+        "label": "المطبخ",
+        "description": "قائمة انتظار الطلبات وشاشة المطبخ"
+      },
+      "marketing": {
+        "label": "التسويق",
+        "description": "التحليلات والعروض"
+      },
+      "support": {
+        "label": "الدعم",
+        "description": "العملاء والحجوزات"
+      },
+      "admin": {
+        "label": "المسؤول",
+        "description": "لوحة تحكم كاملة"
+      },
+      "owner": {
+        "label": "المالك",
+        "description": "إدارة المستأجر وكل شيء"
+      },
+      "platformAdmin": {
+        "label": "مسؤول المنصة",
+        "description": "الوصول إلى المنصة عبر المستأجرين"
+      },
+      "multiRole": {
+        "label": "متعدد الأدوار",
+        "description": "أمين الصندوق والمطبخ (P8.5)"
+      }
+    },
+    "fineDining": "المأكولات الفاخرة,",
+    "delivered": "تم التوصيل.",
+    "heroCulinaryExcellence": "اختبر التميز الطهي — من البيتزا الحرفية إلى البرغر الفاخر، كل قضمة صُنعت بشغف.",
+    "joinedByFoodies": "انضم إليه أكثر من 50,000 من عشاق الطعام",
+    "perks": {
+      "exclusiveDeals": "عروض وخصومات حصرية للأعضاء",
+      "fasterCheckout": "دفع أسرع بالتفاصيل المحفوظة",
+      "realtimeTracking": "تتبع الطلب في الوقت الفعلي",
+      "priorityReservations": "حجوزات طاولات ذات أولوية"
+    }
   },
   "menu": {
     "title": "قائمتنا",
@@ -368,7 +435,119 @@
     "noOrdersYet": "لا توجد طلبات بعد",
     "orderNow": "اطلب الآن",
     "upcomingReservations": "الحجوزات القادمة",
-    "guestsTimeTemplate": "{guests} أشخاص · {time}"
+    "guestsTimeTemplate": "{guests} أشخاص · {time}",
+    "loggedOut": "تم تسجيل الخروج!",
+    "overview": "نظرة عامة",
+    "businessConsole": "لوحة تحكم الأعمال",
+    "signOut": "تسجيل الخروج",
+    "loadingDashboardAria": "جارٍ تحميل لوحة التحكم",
+    "loadingReservationsAria": "جارٍ تحميل الحجوزات",
+    "loadingOrdersAria": "جارٍ تحميل الطلبات",
+    "myOrders": "طلباتي",
+    "totalOrdersCount": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد إجمالي} other {# طلبات إجمالية}}",
+    "refresh": "تحديث",
+    "searchByOrderNumberPlaceholder": "البحث برقم الطلب…",
+    "startOrderingFromMenu": "ابدأ الطلب من قائمتنا!",
+    "writeAReview": "كتابة تقييم",
+    "reviewSubmitted": "تم إرسال التقييم ✓",
+    "shareYourExperiencePlaceholder": "شارك تجربتك…",
+    "submittingEllipsis": "جارٍ الإرسال…",
+    "savedDishesCount": "{count, plural, =0 {لا توجد أطباق محفوظة} one {طبق محفوظ واحد} other {# أطباق محفوظة}}",
+    "noFavoritesYet": "لا توجد مفضلات حتى الآن",
+    "heartDishesHint": "أضف علامة القلب للأطباق التي تحبها لحفظها هنا.",
+    "totalReservationsCount": "{count, plural, =0 {لا توجد حجوزات} one {حجز واحد إجمالي} other {# حجوزات إجمالية}}",
+    "newReservation": "حجز جديد",
+    "noReservationsYet": "لا توجد حجوزات حتى الآن",
+    "bookTableForNextVisit": "احجز طاولة لزيارتك القادمة.",
+    "bookATable": "حجز طاولة",
+    "codeLabel": "الرمز:",
+    "guestsCount": "{count, plural, one {ضيف واحد} other {# ضيوف}}",
+    "mainBranch": "الفرع الرئيسي",
+    "downtownBranch": "وسط المدينة",
+    "airportBranch": "المطار",
+    "streetAndCityRequired": "الشارع والمدينة مطلوبان.",
+    "addressAdded": "تمت إضافة العنوان!",
+    "failedToAddAddress": "فشلت إضافة العنوان.",
+    "addressRemoved": "تمت إزالة العنوان.",
+    "failedToDeleteAddress": "فشل حذف العنوان.",
+    "savedAddresses": "العناوين المحفوظة",
+    "addressesSavedCount": "{count, plural, =0 {لا توجد عناوين محفوظة} one {عنوان واحد محفوظ} other {# عناوين محفوظة}}",
+    "addAddress": "إضافة عنوان",
+    "noAddressesSaved": "لا توجد عناوين محفوظة",
+    "addDeliveryAddressHint": "أضف عنوان توصيل لتسريع الدفع.",
+    "addressFallbackLabel": "العنوان",
+    "defaultLabel": "افتراضي",
+    "setAsDefaultAria": "تعيين كافتراضي",
+    "addNewAddress": "إضافة عنوان جديد",
+    "label": "التصنيف",
+    "homeWorkOtherPlaceholder": "المنزل، العمل، أخرى…",
+    "streetAddress": "عنوان الشارع",
+    "city": "المدينة",
+    "state": "الولاية",
+    "zipCode": "الرمز البريدي",
+    "saveAddress": "حفظ العنوان",
+    "manageAccountPreferences": "إدارة تفضيلات حسابك",
+    "profileInformation": "معلومات الملف الشخصي",
+    "changeProfilePhotoAria": "تغيير صورة الملف الشخصي",
+    "selectProfilePhotoAria": "اختيار صورة الملف الشخصي",
+    "uploadingEllipsis": "جارٍ الرفع…",
+    "upload": "رفع",
+    "avatarUpdatedSuccessfully": "تم تحديث الصورة الرمزية بنجاح.",
+    "avatarFormatHint": "JPEG أو PNG أو WebP أو GIF · بحد أقصى 5 ميغابايت",
+    "unsupportedFileType": "نوع الملف غير مدعوم. استخدم JPEG أو PNG أو WebP أو GIF.",
+    "fileTooLarge": "الملف كبير جدًا. الحد الأقصى 5 ميغابايت.",
+    "avatarUpdated": "تم تحديث الصورة الرمزية!",
+    "uploadFailedRetry": "فشل الرفع. يرجى المحاولة مرة أخرى.",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "emailLabel": "البريد الإلكتروني",
+    "phoneLabel": "الهاتف",
+    "saveChanges": "حفظ التغييرات",
+    "profileUpdated": "تم تحديث الملف الشخصي!",
+    "failedToUpdateProfile": "فشل تحديث الملف الشخصي.",
+    "appearance": "المظهر",
+    "themeLight": "فاتح",
+    "themeDark": "غامق",
+    "themeSystem": "النظام",
+    "languageAndRegion": "اللغة والمنطقة",
+    "directionLtr": "من اليسار إلى اليمين",
+    "directionRtl": "من اليمين إلى اليسار",
+    "notificationPreferences": "تفضيلات الإشعارات",
+    "notifPrefs": {
+      "orderUpdates": {
+        "label": "تحديثات الطلب",
+        "desc": "تغييرات الحالة وإشعارات التوصيل"
+      },
+      "notifPromotions": {
+        "label": "العروض",
+        "desc": "الصفقات والخصومات والعروض الخاصة"
+      },
+      "reservationReminders": {
+        "label": "تذكيرات الحجز",
+        "desc": "تذكيرات قبل حجزك"
+      },
+      "systemNotices": {
+        "label": "إشعارات النظام",
+        "desc": "إشعارات الأمان والحساب"
+      }
+    },
+    "security": "الأمان",
+    "securityItems": {
+      "changePassword": {
+        "label": "تغيير كلمة المرور",
+        "desc": "تحديث كلمة مرور حسابك"
+      },
+      "twoFactorAuth": {
+        "label": "المصادقة الثنائية",
+        "desc": "أضف طبقة إضافية من الأمان"
+      },
+      "activeSessions": {
+        "label": "الجلسات النشطة",
+        "desc": "إدارة الأجهزة التي تم تسجيل الدخول منها"
+      }
+    },
+    "dangerZone": "منطقة الخطر",
+    "deleteAccount": "حذف الحساب"
   },
   "restaurant": {
     "title": "من نحن",
@@ -479,7 +658,8 @@
     "network_error": "خطأ في الشبكة — تحقق من اتصالك وحاول مرة أخرى.",
     "permission_denied": "ليس لديك إذن للقيام بذلك.",
     "unknown_error": "حدث خطأ ما. حاول مرة أخرى.",
-    "passwords_do_not_match": "كلمتا المرور غير متطابقتين"
+    "passwords_do_not_match": "كلمتا المرور غير متطابقتين",
+    "must_accept_terms": "يجب أن تقبل الشروط"
   },
   "console": {
     "title": "لوحة التحكم",
@@ -883,6 +1063,16 @@
       "title": "البائعون | سيفور",
       "description": "استعرض البائعين والأكشاك وتقييماتهم وطلباتهم وتسوياتهم.",
       "keywords": "البائعون, الأكشاك, بائعو السوق"
+    },
+    "login": {
+      "title": "تسجيل الدخول | سيفور",
+      "description": "سجّل الدخول إلى حسابك في سيفور للطلب وحجز الطاولات وتتبع طلباتك.",
+      "keywords": "تسجيل الدخول, حساب العميل"
+    },
+    "register": {
+      "title": "إنشاء حساب | سيفور",
+      "description": "أنشئ حسابًا مجانيًا في سيفور لدفع أسرع وتتبع الطلبات وعروض حصرية للأعضاء.",
+      "keywords": "إنشاء حساب, التسجيل, حساب العميل"
     }
   },
   "home": {
@@ -1528,5 +1718,23 @@
     "loadingTableInfoEllipsis": "جارٍ تحميل معلومات الطاولة…",
     "seatsCount": "يستوعب {count}",
     "serverLabel": "النادل: {name}"
+  },
+  "phoneInput": {
+    "countryPickerOpened": "تم فتح أداة اختيار البلد.",
+    "countriesFoundCount": "{count, plural, =0 {لم يتم العثور على بلد.} one {تم العثور على بلد واحد.} other {تم العثور على # بلد.}}",
+    "countrySelectedAnnounce": "تم اختيار {name}.",
+    "selectCountry": "اختر البلد",
+    "closeCountryPickerAria": "إغلاق أداة اختيار البلد",
+    "countrySearchPlaceholder": "اسم البلد أو الرمز أو مفتاح الاتصال (+44)…",
+    "searchCountriesAria": "البحث عن البلدان",
+    "clearSearchAria": "مسح البحث",
+    "countriesListAria": "البلدان",
+    "noCountriesFound": "لم يتم العثور على بلدان",
+    "tryAnotherSearchHint": "جرّب اسمًا أو رمزًا آخر (US) أو مفتاح اتصال آخر (+1)",
+    "clearSearch": "مسح البحث",
+    "pinned": "مثبّت",
+    "recent": "الأخيرة",
+    "allCountries": "جميع البلدان",
+    "phoneCountryAria": "بلد الهاتف: {name} {dialCode}"
   }
 }

@@ -113,7 +113,74 @@
     "minEightChars": "حداقل ۸ کاراکتر",
     "repeatPassword": "تکرار رمز عبور",
     "registrationSuccess": "حساب ایجاد شد! به ساور خوش آمدید 🎉",
-    "registrationFailed": "ثبت‌نام ناموفق بود. این ایمیل ممکن است قبلاً استفاده شده باشد."
+    "registrationFailed": "ثبت‌نام ناموفق بود. این ایمیل ممکن است قبلاً استفاده شده باشد.",
+    "verified": "تأیید شد!",
+    "takingYouToAccount": "در حال انتقال به حساب شما…",
+    "phoneVerifiedRedirecting": "شماره تلفن تأیید شد. در حال هدایت.",
+    "tooManyAttemptsHeading": "تعداد تلاش‌ها بیش از حد",
+    "requestNewCodeToContinue": "برای ادامه یک کد جدید درخواست کنید.",
+    "sendNewCode": "ارسال کد جدید",
+    "enterTheCode": "کد را وارد کنید",
+    "wrongCodeAttemptsRemaining": "کد اشتباه است. {count, plural, one {# تلاش} other {# تلاش}} باقی مانده است.",
+    "verify": "تأیید",
+    "secondsRemainingAria": "{seconds} ثانیه باقی مانده",
+    "mockModeHint": "حالت آزمایشی: هر کدی به‌جز {code} کار می‌کند",
+    "completeProfileSuccess": "حساب ایجاد شد!",
+    "completeProfileFailed": "ایجاد حساب ممکن نشد. لطفاً دوباره تلاش کنید.",
+    "createYourAccount": "حساب خود را بسازید",
+    "justAFewMoreDetails": "فقط چند جزئیات دیگر برای شروع.",
+    "demoAccounts": {
+      "customer": {
+        "label": "مشتری",
+        "description": "منو، سفارش‌ها، رزروها"
+      },
+      "staff": {
+        "label": "کارکنان",
+        "description": "مدیر — عملیات کامل"
+      },
+      "cashier": {
+        "label": "صندوق‌دار",
+        "description": "سفارش‌ها و مشتریان"
+      },
+      "kitchen": {
+        "label": "آشپزخانه",
+        "description": "صف سفارش‌ها و نمایشگر آشپزخانه"
+      },
+      "marketing": {
+        "label": "بازاریابی",
+        "description": "آنالیتیکس و تخفیف‌ها"
+      },
+      "support": {
+        "label": "پشتیبانی",
+        "description": "مشتریان و رزروها"
+      },
+      "admin": {
+        "label": "مدیر سیستم",
+        "description": "پنل مدیریت کامل"
+      },
+      "owner": {
+        "label": "مالک",
+        "description": "مدیریت مستأجر و همه چیز"
+      },
+      "platformAdmin": {
+        "label": "مدیر پلتفرم",
+        "description": "دسترسی پلتفرم بین‌مستأجری"
+      },
+      "multiRole": {
+        "label": "چند نقشی",
+        "description": "صندوق‌دار و آشپزخانه (P8.5)"
+      }
+    },
+    "fineDining": "غذای لوکس,",
+    "delivered": "تحویل داده شد.",
+    "heroCulinaryExcellence": "برتری آشپزی را تجربه کنید — از پیتزاهای هنری تا برگرهای گورمه، هر لقمه با اشتیاق ساخته شده است.",
+    "joinedByFoodies": "پیوسته توسط بیش از ۵۰,۰۰۰ علاقه‌مند به غذا",
+    "perks": {
+      "exclusiveDeals": "معاملات و تخفیف‌های ویژه اعضا",
+      "fasterCheckout": "پرداخت سریع‌تر با اطلاعات ذخیره‌شده",
+      "realtimeTracking": "پیگیری سفارش در زمان واقعی",
+      "priorityReservations": "رزرو میز با اولویت"
+    }
   },
   "menu": {
     "title": "منوی ما",
@@ -368,7 +435,119 @@
     "noOrdersYet": "هنوز سفارشی ثبت نشده",
     "orderNow": "سفارش دهید",
     "upcomingReservations": "رزروهای پیش رو",
-    "guestsTimeTemplate": "{guests} نفر · {time}"
+    "guestsTimeTemplate": "{guests} نفر · {time}",
+    "loggedOut": "خارج شدید!",
+    "overview": "نمای کلی",
+    "businessConsole": "کنسول کسب‌وکار",
+    "signOut": "خروج",
+    "loadingDashboardAria": "در حال بارگذاری داشبورد",
+    "loadingReservationsAria": "در حال بارگذاری رزروها",
+    "loadingOrdersAria": "در حال بارگذاری سفارش‌ها",
+    "myOrders": "سفارش‌های من",
+    "totalOrdersCount": "{count, plural, =0 {بدون سفارش} one {# سفارش کل} other {# سفارش کل}}",
+    "refresh": "به‌روزرسانی",
+    "searchByOrderNumberPlaceholder": "جستجو بر اساس شماره سفارش…",
+    "startOrderingFromMenu": "سفارش را از منوی ما شروع کنید!",
+    "writeAReview": "نوشتن نظر",
+    "reviewSubmitted": "نظر ارسال شد ✓",
+    "shareYourExperiencePlaceholder": "تجربه خود را به اشتراک بگذارید…",
+    "submittingEllipsis": "در حال ارسال…",
+    "savedDishesCount": "{count, plural, =0 {غذای ذخیره‌شده‌ای نیست} one {# غذای ذخیره‌شده} other {# غذای ذخیره‌شده}}",
+    "noFavoritesYet": "هنوز مورد علاقه‌ای وجود ندارد",
+    "heartDishesHint": "غذاهایی که دوست دارید را قلب بزنید تا اینجا ذخیره شوند.",
+    "totalReservationsCount": "{count, plural, =0 {بدون رزرو} one {# رزرو کل} other {# رزرو کل}}",
+    "newReservation": "رزرو جدید",
+    "noReservationsYet": "هنوز رزروی وجود ندارد",
+    "bookTableForNextVisit": "برای بازدید بعدی خود یک میز رزرو کنید.",
+    "bookATable": "رزرو میز",
+    "codeLabel": "کد:",
+    "guestsCount": "{count, plural, one {# مهمان} other {# مهمان}}",
+    "mainBranch": "شعبه اصلی",
+    "downtownBranch": "مرکز شهر",
+    "airportBranch": "فرودگاه",
+    "streetAndCityRequired": "خیابان و شهر الزامی است.",
+    "addressAdded": "آدرس اضافه شد!",
+    "failedToAddAddress": "افزودن آدرس ناموفق بود.",
+    "addressRemoved": "آدرس حذف شد.",
+    "failedToDeleteAddress": "حذف آدرس ناموفق بود.",
+    "savedAddresses": "آدرس‌های ذخیره‌شده",
+    "addressesSavedCount": "{count, plural, =0 {آدرسی ذخیره نشده} one {# آدرس ذخیره‌شده} other {# آدرس ذخیره‌شده}}",
+    "addAddress": "افزودن آدرس",
+    "noAddressesSaved": "آدرسی ذخیره نشده است",
+    "addDeliveryAddressHint": "برای سرعت بخشیدن به پرداخت، یک آدرس تحویل اضافه کنید.",
+    "addressFallbackLabel": "آدرس",
+    "defaultLabel": "پیش‌فرض",
+    "setAsDefaultAria": "تنظیم به‌عنوان پیش‌فرض",
+    "addNewAddress": "افزودن آدرس جدید",
+    "label": "برچسب",
+    "homeWorkOtherPlaceholder": "خانه، محل کار، سایر…",
+    "streetAddress": "آدرس خیابان",
+    "city": "شهر",
+    "state": "استان",
+    "zipCode": "کد پستی",
+    "saveAddress": "ذخیره آدرس",
+    "manageAccountPreferences": "ترجیحات حساب خود را مدیریت کنید",
+    "profileInformation": "اطلاعات پروفایل",
+    "changeProfilePhotoAria": "تغییر عکس پروفایل",
+    "selectProfilePhotoAria": "انتخاب عکس پروفایل",
+    "uploadingEllipsis": "در حال بارگذاری…",
+    "upload": "بارگذاری",
+    "avatarUpdatedSuccessfully": "آواتار با موفقیت به‌روزرسانی شد.",
+    "avatarFormatHint": "JPEG، PNG، WebP یا GIF · حداکثر ۵ مگابایت",
+    "unsupportedFileType": "نوع فایل پشتیبانی نمی‌شود. از JPEG، PNG، WebP یا GIF استفاده کنید.",
+    "fileTooLarge": "حجم فایل زیاد است. حداکثر ۵ مگابایت.",
+    "avatarUpdated": "آواتار به‌روزرسانی شد!",
+    "uploadFailedRetry": "بارگذاری ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "firstName": "نام",
+    "lastName": "نام خانوادگی",
+    "emailLabel": "ایمیل",
+    "phoneLabel": "تلفن",
+    "saveChanges": "ذخیره تغییرات",
+    "profileUpdated": "پروفایل به‌روزرسانی شد!",
+    "failedToUpdateProfile": "به‌روزرسانی پروفایل ناموفق بود.",
+    "appearance": "ظاهر",
+    "themeLight": "روشن",
+    "themeDark": "تاریک",
+    "themeSystem": "سیستم",
+    "languageAndRegion": "زبان و منطقه",
+    "directionLtr": "چپ‌به‌راست",
+    "directionRtl": "راست‌به‌چپ",
+    "notificationPreferences": "ترجیحات اعلان",
+    "notifPrefs": {
+      "orderUpdates": {
+        "label": "به‌روزرسانی‌های سفارش",
+        "desc": "تغییرات وضعیت و اعلان‌های تحویل"
+      },
+      "notifPromotions": {
+        "label": "تخفیف‌ها",
+        "desc": "معاملات، تخفیف‌ها و پیشنهادهای ویژه"
+      },
+      "reservationReminders": {
+        "label": "یادآوری رزرو",
+        "desc": "یادآوری قبل از رزرو شما"
+      },
+      "systemNotices": {
+        "label": "اعلان‌های سیستم",
+        "desc": "اعلان‌های امنیتی و حساب"
+      }
+    },
+    "security": "امنیت",
+    "securityItems": {
+      "changePassword": {
+        "label": "تغییر رمز عبور",
+        "desc": "رمز عبور حساب خود را به‌روزرسانی کنید"
+      },
+      "twoFactorAuth": {
+        "label": "احراز هویت دومرحله‌ای",
+        "desc": "یک لایه امنیتی دیگر اضافه کنید"
+      },
+      "activeSessions": {
+        "label": "نشست‌های فعال",
+        "desc": "دستگاه‌های وارد شده را مدیریت کنید"
+      }
+    },
+    "dangerZone": "منطقه خطر",
+    "deleteAccount": "حذف حساب"
   },
   "restaurant": {
     "title": "درباره ما",
@@ -479,7 +658,8 @@
     "network_error": "خطای شبکه — اتصال خود را بررسی و دوباره تلاش کنید.",
     "permission_denied": "شما مجوز انجام این کار را ندارید.",
     "unknown_error": "مشکلی پیش آمد. دوباره تلاش کنید.",
-    "passwords_do_not_match": "رمزهای عبور مطابقت ندارند"
+    "passwords_do_not_match": "رمزهای عبور مطابقت ندارند",
+    "must_accept_terms": "باید شرایط را بپذیرید"
   },
   "console": {
     "title": "کنسول",
@@ -883,6 +1063,16 @@
       "title": "فروشندگان | ساوور",
       "description": "فروشندگان، غرفه‌ها و امتیازها، سفارش‌ها و تسویه‌های آنها را کاوش کنید.",
       "keywords": "فروشندگان, غرفه‌ها, فروشندگان بازار"
+    },
+    "login": {
+      "title": "ورود | ساوور",
+      "description": "برای سفارش، رزرو میز و پیگیری سفارش‌های خود وارد حساب ساوور شوید.",
+      "keywords": "ورود, حساب کاربری, حساب مشتری"
+    },
+    "register": {
+      "title": "ایجاد حساب | ساوور",
+      "description": "یک حساب رایگان ساوور برای پرداخت سریع‌تر، پیگیری سفارش و معاملات ویژه اعضا ایجاد کنید.",
+      "keywords": "ایجاد حساب, ثبت‌نام, حساب مشتری"
     }
   },
   "home": {
@@ -1528,5 +1718,23 @@
     "loadingTableInfoEllipsis": "در حال بارگذاری اطلاعات میز…",
     "seatsCount": "{count} نفره",
     "serverLabel": "سرور: {name}"
+  },
+  "phoneInput": {
+    "countryPickerOpened": "انتخاب‌گر کشور باز شد.",
+    "countriesFoundCount": "{count, plural, =0 {کشوری یافت نشد.} one {# کشور یافت شد.} other {# کشور یافت شد.}}",
+    "countrySelectedAnnounce": "{name} انتخاب شد.",
+    "selectCountry": "انتخاب کشور",
+    "closeCountryPickerAria": "بستن انتخاب‌گر کشور",
+    "countrySearchPlaceholder": "نام کشور، کد یا شماره تلفن (+44)…",
+    "searchCountriesAria": "جستجوی کشورها",
+    "clearSearchAria": "پاک کردن جستجو",
+    "countriesListAria": "کشورها",
+    "noCountriesFound": "کشوری یافت نشد",
+    "tryAnotherSearchHint": "نام، کد (US) یا کد تلفن دیگری را امتحان کنید (+1)",
+    "clearSearch": "پاک کردن جستجو",
+    "pinned": "سنجاق‌شده",
+    "recent": "اخیر",
+    "allCountries": "همه کشورها",
+    "phoneCountryAria": "کشور تلفن: {name} {dialCode}"
   }
 }

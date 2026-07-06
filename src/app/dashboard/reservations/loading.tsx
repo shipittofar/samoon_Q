@@ -1,8 +1,10 @@
+import { getTranslations } from 'next-intl/server'
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
 
-export default function ReservationsLoading() {
+export default async function ReservationsLoading() {
+  const t = await getTranslations('dashboard')
   return (
-    <div className="space-y-6" role="status" aria-busy="true" aria-label="Loading reservations">
+    <div className="space-y-6" role="status" aria-busy="true" aria-label={t('loadingReservationsAria')}>
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">

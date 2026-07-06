@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Calendar, Plus, Clock, Users, MapPin, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Badge, Card, Skeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useReservations } from '@/hooks'
@@ -13,19 +14,25 @@ const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary
   confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'secondary',
 }
 
+const BRANCH_NAME_KEYS: Record<string, string> = {
+  '1': 'mainBranch',
+  '2': 'downtownBranch',
+}
+
 export default function ReservationsPage() {
   const { data, isLoading } = useReservations()
+  const t = useTranslations('dashboard')
   const reservations = data?.results || []
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">Reservations</h1>
-          <p className="text-sm text-[var(--fg-muted)] mt-1">{data?.count || 0} total reservations</p>
+          <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('reservations')}</h1>
+          <p className="text-sm text-[var(--fg-muted)] mt-1">{t('totalReservationsCount', { count: data?.count || 0 })}</p>
         </div>
         <Link href="/reservation">
-          <Button leftIcon={<Plus className="h-4 w-4" />}>New Reservation</Button>
+          <Button leftIcon={<Plus className="h-4 w-4" />}>{t('newReservation')}</Button>
         </Link>
       </div>
 
@@ -36,9 +43,9 @@ export default function ReservationsPage() {
       ) : reservations.length === 0 ? (
         <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-12 text-center">
           <Calendar className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4" />
-          <h3 className="font-semibold text-[var(--fg)] mb-2">No reservations yet</h3>
-          <p className="text-sm text-[var(--fg-muted)] mb-4">Book a table for your next visit.</p>
-          <Link href="/reservation"><Button>Book a Table</Button></Link>
+          <h3 className="font-semibold text-[var(--fg)] mb-2">{t('noReservationsYet')}</h3>
+          <p className="text-sm text-[var(--fg-muted)] mb-4">{t('bookTableForNextVisit')}</p>
+          <Link href="/reservation"><Button>{t('bookATable')}</Button></Link>
         </div>
       ) : (
         <div className="space-y-4">
@@ -54,7 +61,7 @@ export default function ReservationsPage() {
                         <Badge variant={STATUS_BADGE[res.status] || 'secondary'} className="capitalize">{res.status}</Badge>
                       </div>
                       {res.confirmation_code && (
-                        <p className="text-xs text-[var(--fg-muted)]">Code: <span className="font-mono font-semibold text-orange-500">{res.confirmation_code}</span></p>
+                        <p className="text-xs text-[var(--fg-muted)]">{t('codeLabel')} <span className="font-mono font-semibold text-orange-500">{res.confirmation_code}</span></p>
                       )}
                     </div>
                     {res.status !== 'cancelled' && res.status !== 'completed' && (
@@ -67,8 +74,8 @@ export default function ReservationsPage() {
                     {[
                       { icon: Calendar, label: formatDate(res.date) },
                       { icon: Clock, label: res.time },
-                      { icon: Users, label: `${res.guests} guests` },
-                      { icon: MapPin, label: res.branch_id === '1' ? 'Main Branch' : res.branch_id === '2' ? 'Downtown' : 'Airport' },
+                      { icon: Users, label: t('guestsCount', { count: res.guests }) },
+                      { icon: MapPin, label: t(BRANCH_NAME_KEYS[res.branch_id] ?? 'airportBranch') },
                     ].map(({ icon: Icon, label }) => (
                       <div key={label} className="flex items-center gap-2 text-[var(--fg-muted)]">
                         <Icon className="h-3.5 w-3.5 text-orange-500 shrink-0" />

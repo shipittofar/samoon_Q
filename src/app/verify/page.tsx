@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, CheckCircle2, Phone, RefreshCw } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { OTPInput } from '@/components/ui/OTPInput'
 import { Button } from '@/components/ui/Button'
 import { useVerifyOTP, useSendOTP } from '@/hooks'
@@ -70,6 +71,8 @@ function VerifyPageInner() {
   const params = useSearchParams()
   const phone = params.get('phone') ?? ''
   const prefersReducedMotion = useReducedMotion()
+  const t = useTranslations('auth')
+  const tCommon = useTranslations('common')
 
   const { mutate: verifyOTP } = useVerifyOTP()
   const { mutate: sendOTP, isPending: isResending } = useSendOTP()
@@ -136,13 +139,13 @@ function VerifyPageInner() {
   const handleResend = () => {
     sendOTP(phone, {
       onSuccess: () => {
-        toast.success('New code sent!')
+        toast.success(t('otpResent'))
         setOtp('')
         setAttempts(0)
         setState('pending')
         restartCountdown()
       },
-      onError: () => toast.error('Could not resend code. Please try again.'),
+      onError: () => toast.error(t('otpResendFailed')),
     })
   }
 
@@ -160,7 +163,7 @@ function VerifyPageInner() {
           className="inline-flex items-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors mb-8 group"
         >
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" aria-hidden="true" />
-          Back
+          {tCommon('back')}
         </Link>
 
         {/* Logo */}
@@ -189,10 +192,10 @@ function VerifyPageInner() {
                 <CheckCircle2 className="h-10 w-10 text-green-500" aria-hidden="true" />
               </motion.div>
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
-                Verified!
+                {t('verified')}
               </h1>
-              <p className="text-[var(--fg-muted)]">Taking you to your account…</p>
-              <span role="status" className="sr-only">Phone verified. Redirecting.</span>
+              <p className="text-[var(--fg-muted)]">{t('takingYouToAccount')}</p>
+              <span role="status" className="sr-only">{t('phoneVerifiedRedirecting')}</span>
             </motion.div>
           ) : state === 'tooManyAttempts' ? (
             /* ── Too many attempts ── */
@@ -201,10 +204,10 @@ function VerifyPageInner() {
                 <Phone className="h-8 w-8 text-red-500" aria-hidden="true" />
               </div>
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
-                Too many attempts
+                {t('tooManyAttemptsHeading')}
               </h1>
               <p className="text-[var(--fg-muted)] mb-6 text-sm">
-                Request a new code to continue.
+                {t('requestNewCodeToContinue')}
               </p>
               <Button
                 type="button"
@@ -214,17 +217,17 @@ function VerifyPageInner() {
                 className="w-full"
                 size="lg"
               >
-                Send new code
+                {t('sendNewCode')}
               </Button>
             </motion.div>
           ) : (
             /* ── Normal / verifying / invalid states ── */
             <motion.div key="entry" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
-                Enter the code
+                {t('enterTheCode')}
               </h1>
               <p className="text-[var(--fg-muted)] mb-8 text-sm">
-                We sent a 6-digit code to{' '}
+                {t('weSentCodeTo')}{' '}
                 <span className="font-medium text-[var(--fg)] font-mono">{maskedPhone}</span>
               </p>
 
@@ -251,7 +254,7 @@ function VerifyPageInner() {
                     role="alert"
                     className="text-center text-sm text-red-500 mb-4"
                   >
-                    Wrong code. {MAX_ATTEMPTS - attempts} attempt{MAX_ATTEMPTS - attempts !== 1 ? 's' : ''} remaining.
+                    {t('wrongCodeAttemptsRemaining', { count: MAX_ATTEMPTS - attempts })}
                   </motion.p>
                 )}
               </AnimatePresence>
@@ -265,7 +268,7 @@ function VerifyPageInner() {
                 disabled={otp.length < 6 || state === 'verifying'}
                 onClick={() => otp.length === 6 && handleComplete(otp)}
               >
-                {state === 'verifying' ? 'Verifying…' : 'Verify'}
+                {state === 'verifying' ? t('verifying') : t('verify')}
               </Button>
 
               {/* Resend section */}
@@ -278,15 +281,15 @@ function VerifyPageInner() {
                     className="inline-flex items-center gap-1.5 text-sm text-orange-500 hover:text-orange-600 transition-colors disabled:opacity-50"
                   >
                     <RefreshCw className={`h-3.5 w-3.5 ${isResending ? 'animate-spin' : ''}`} aria-hidden="true" />
-                    {isResending ? 'Sending…' : 'Resend code'}
+                    {isResending ? t('sendingResend') : t('resendCode')}
                   </button>
                 ) : (
                   <p className="text-sm text-[var(--fg-muted)]">
-                    Resend code in{' '}
+                    {t('resendCodeIn')}{' '}
                     <span
                       role="timer"
                       aria-live="polite"
-                      aria-label={`${seconds} seconds remaining`}
+                      aria-label={t('secondsRemainingAria', { seconds })}
                       className="font-mono tabular-nums text-[var(--fg)]"
                     >
                       {String(Math.floor(seconds / 60)).padStart(2, '0')}:{String(seconds % 60).padStart(2, '0')}
@@ -298,7 +301,7 @@ function VerifyPageInner() {
               {/* Dev hint (mock mode only) */}
               {mockHintVisible && (
                 <p className="mt-6 text-center text-[11px] text-[var(--fg-muted)] opacity-60">
-                  Mock mode: any code works except <code className="font-mono">000000</code>
+                  {t('mockModeHint', { code: '000000' })}
                 </p>
               )}
             </motion.div>
@@ -311,13 +314,18 @@ function VerifyPageInner() {
 
 // ── Wrapper with Suspense (required for useSearchParams in Next.js 15) ─────────
 
+function VerifyPageFallback() {
+  const tCommon = useTranslations('common')
+  return (
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
+      <div className="h-8 w-8 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" aria-label={tCommon('loading')} />
+    </div>
+  )
+}
+
 export default function VerifyPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" aria-label="Loading" />
-      </div>
-    }>
+    <Suspense fallback={<VerifyPageFallback />}>
       <VerifyPageInner />
     </Suspense>
   )

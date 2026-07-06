@@ -113,7 +113,74 @@
     "minEightChars": "Min. 8 characters",
     "repeatPassword": "Repeat password",
     "registrationSuccess": "Account created! Welcome to Savor 🎉",
-    "registrationFailed": "Registration failed. Email may already be in use."
+    "registrationFailed": "Registration failed. Email may already be in use.",
+    "verified": "Verified!",
+    "takingYouToAccount": "Taking you to your account…",
+    "phoneVerifiedRedirecting": "Phone verified. Redirecting.",
+    "tooManyAttemptsHeading": "Too many attempts",
+    "requestNewCodeToContinue": "Request a new code to continue.",
+    "sendNewCode": "Send new code",
+    "enterTheCode": "Enter the code",
+    "wrongCodeAttemptsRemaining": "Wrong code. {count, plural, one {# attempt} other {# attempts}} remaining.",
+    "verify": "Verify",
+    "secondsRemainingAria": "{seconds} seconds remaining",
+    "mockModeHint": "Mock mode: any code works except {code}",
+    "completeProfileSuccess": "Account created!",
+    "completeProfileFailed": "Could not create account. Please try again.",
+    "createYourAccount": "Create your account",
+    "justAFewMoreDetails": "Just a few more details to get you started.",
+    "demoAccounts": {
+      "customer": {
+        "label": "Customer",
+        "description": "Menu, orders, reservations"
+      },
+      "staff": {
+        "label": "Staff",
+        "description": "Manager — full ops"
+      },
+      "cashier": {
+        "label": "Cashier",
+        "description": "Orders + customers"
+      },
+      "kitchen": {
+        "label": "Kitchen",
+        "description": "Order queue + kitchen display"
+      },
+      "marketing": {
+        "label": "Marketing",
+        "description": "Analytics + promotions"
+      },
+      "support": {
+        "label": "Support",
+        "description": "Customers + reservations"
+      },
+      "admin": {
+        "label": "Admin",
+        "description": "Full admin panel"
+      },
+      "owner": {
+        "label": "Owner",
+        "description": "Tenant management + all"
+      },
+      "platformAdmin": {
+        "label": "Platform Admin",
+        "description": "Cross-tenant platform access"
+      },
+      "multiRole": {
+        "label": "Multi-Role",
+        "description": "Cashier + Kitchen (P8.5)"
+      }
+    },
+    "fineDining": "Fine Dining,",
+    "delivered": "Delivered.",
+    "heroCulinaryExcellence": "Experience culinary excellence — from artisan pizzas to gourmet burgers, every bite crafted with passion.",
+    "joinedByFoodies": "Joined by 50,000+ foodies",
+    "perks": {
+      "exclusiveDeals": "Exclusive member deals & discounts",
+      "fasterCheckout": "Faster checkout with saved details",
+      "realtimeTracking": "Real-time order tracking",
+      "priorityReservations": "Priority table reservations"
+    }
   },
   "menu": {
     "title": "Our Menu",
@@ -368,7 +435,119 @@
     "noOrdersYet": "No orders yet",
     "orderNow": "Order Now",
     "upcomingReservations": "Upcoming Reservations",
-    "guestsTimeTemplate": "{guests} guests · {time}"
+    "guestsTimeTemplate": "{guests} guests · {time}",
+    "loggedOut": "Logged out!",
+    "overview": "Overview",
+    "businessConsole": "Business Console",
+    "signOut": "Sign Out",
+    "loadingDashboardAria": "Loading dashboard",
+    "loadingReservationsAria": "Loading reservations",
+    "loadingOrdersAria": "Loading orders",
+    "myOrders": "My Orders",
+    "totalOrdersCount": "{count, plural, =0 {No total orders} one {# total order} other {# total orders}}",
+    "refresh": "Refresh",
+    "searchByOrderNumberPlaceholder": "Search by order number…",
+    "startOrderingFromMenu": "Start ordering from our menu!",
+    "writeAReview": "Write a Review",
+    "reviewSubmitted": "Review submitted ✓",
+    "shareYourExperiencePlaceholder": "Share your experience…",
+    "submittingEllipsis": "Submitting…",
+    "savedDishesCount": "{count, plural, =0 {No saved dishes} one {# saved dish} other {# saved dishes}}",
+    "noFavoritesYet": "No favorites yet",
+    "heartDishesHint": "Heart dishes you love to save them here.",
+    "totalReservationsCount": "{count, plural, =0 {No total reservations} one {# total reservation} other {# total reservations}}",
+    "newReservation": "New Reservation",
+    "noReservationsYet": "No reservations yet",
+    "bookTableForNextVisit": "Book a table for your next visit.",
+    "bookATable": "Book a Table",
+    "codeLabel": "Code:",
+    "guestsCount": "{count, plural, one {# guest} other {# guests}}",
+    "mainBranch": "Main Branch",
+    "downtownBranch": "Downtown",
+    "airportBranch": "Airport",
+    "streetAndCityRequired": "Street and city are required.",
+    "addressAdded": "Address added!",
+    "failedToAddAddress": "Failed to add address.",
+    "addressRemoved": "Address removed.",
+    "failedToDeleteAddress": "Failed to delete address.",
+    "savedAddresses": "Saved Addresses",
+    "addressesSavedCount": "{count, plural, =0 {No addresses saved} one {# address saved} other {# addresses saved}}",
+    "addAddress": "Add Address",
+    "noAddressesSaved": "No addresses saved",
+    "addDeliveryAddressHint": "Add a delivery address to speed up checkout.",
+    "addressFallbackLabel": "Address",
+    "defaultLabel": "Default",
+    "setAsDefaultAria": "Set as default",
+    "addNewAddress": "Add New Address",
+    "label": "Label",
+    "homeWorkOtherPlaceholder": "Home, Work, Other…",
+    "streetAddress": "Street Address",
+    "city": "City",
+    "state": "State",
+    "zipCode": "ZIP Code",
+    "saveAddress": "Save Address",
+    "manageAccountPreferences": "Manage your account preferences",
+    "profileInformation": "Profile Information",
+    "changeProfilePhotoAria": "Change profile photo",
+    "selectProfilePhotoAria": "Select profile photo",
+    "uploadingEllipsis": "Uploading…",
+    "upload": "Upload",
+    "avatarUpdatedSuccessfully": "Avatar updated successfully.",
+    "avatarFormatHint": "JPEG, PNG, WebP or GIF · max 5 MB",
+    "unsupportedFileType": "Unsupported file type. Use JPEG, PNG, WebP, or GIF.",
+    "fileTooLarge": "File too large. Maximum 5 MB.",
+    "avatarUpdated": "Avatar updated!",
+    "uploadFailedRetry": "Upload failed. Please try again.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "saveChanges": "Save Changes",
+    "profileUpdated": "Profile updated!",
+    "failedToUpdateProfile": "Failed to update profile.",
+    "appearance": "Appearance",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "languageAndRegion": "Language & Region",
+    "directionLtr": "LTR",
+    "directionRtl": "RTL",
+    "notificationPreferences": "Notification Preferences",
+    "notifPrefs": {
+      "orderUpdates": {
+        "label": "Order Updates",
+        "desc": "Status changes and delivery notifications"
+      },
+      "notifPromotions": {
+        "label": "Promotions",
+        "desc": "Deals, discounts and special offers"
+      },
+      "reservationReminders": {
+        "label": "Reservation Reminders",
+        "desc": "Reminders before your booking"
+      },
+      "systemNotices": {
+        "label": "System Notices",
+        "desc": "Security and account notifications"
+      }
+    },
+    "security": "Security",
+    "securityItems": {
+      "changePassword": {
+        "label": "Change Password",
+        "desc": "Update your account password"
+      },
+      "twoFactorAuth": {
+        "label": "Two-Factor Authentication",
+        "desc": "Add an extra layer of security"
+      },
+      "activeSessions": {
+        "label": "Active Sessions",
+        "desc": "Manage logged-in devices"
+      }
+    },
+    "dangerZone": "Danger Zone",
+    "deleteAccount": "Delete Account"
   },
   "restaurant": {
     "title": "About Us",
@@ -479,7 +658,8 @@
     "network_error": "Network error — please check your connection and try again.",
     "permission_denied": "You don't have permission to do that.",
     "unknown_error": "Something went wrong. Please try again.",
-    "passwords_do_not_match": "Passwords do not match"
+    "passwords_do_not_match": "Passwords do not match",
+    "must_accept_terms": "You must accept the terms"
   },
   "console": {
     "title": "Console",
@@ -883,6 +1063,16 @@
       "title": "Vendors | Savor",
       "description": "Explore vendors, stalls, and their ratings, orders, and settlements.",
       "keywords": "vendors, stalls, marketplace vendors"
+    },
+    "login": {
+      "title": "Sign In | Savor",
+      "description": "Sign in to your Savor account to order, reserve tables, and track your orders.",
+      "keywords": "sign in, login, customer account"
+    },
+    "register": {
+      "title": "Create Account | Savor",
+      "description": "Create a free Savor account for faster checkout, order tracking, and exclusive member deals.",
+      "keywords": "create account, register, sign up, customer account"
     }
   },
   "home": {
@@ -1528,5 +1718,23 @@
     "loadingTableInfoEllipsis": "Loading table info…",
     "seatsCount": "Seats {count}",
     "serverLabel": "Server: {name}"
+  },
+  "phoneInput": {
+    "countryPickerOpened": "Country picker opened.",
+    "countriesFoundCount": "{count, plural, =0 {No countries found.} one {# country found.} other {# countries found.}}",
+    "countrySelectedAnnounce": "{name} selected.",
+    "selectCountry": "Select country",
+    "closeCountryPickerAria": "Close country picker",
+    "countrySearchPlaceholder": "Country name, code or dial (+44)…",
+    "searchCountriesAria": "Search countries",
+    "clearSearchAria": "Clear search",
+    "countriesListAria": "Countries",
+    "noCountriesFound": "No countries found",
+    "tryAnotherSearchHint": "Try another name, code (US) or dial code (+1)",
+    "clearSearch": "Clear search",
+    "pinned": "Pinned",
+    "recent": "Recent",
+    "allCountries": "All countries",
+    "phoneCountryAria": "Phone country: {name} {dialCode}"
   }
 }

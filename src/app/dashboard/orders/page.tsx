@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Package, ArrowRight, RefreshCw, Search, Star } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Badge, Skeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useOrders, useCreateReview } from '@/hooks'
@@ -19,9 +20,11 @@ function WriteReviewButton({ orderId, itemId }: { orderId: string; itemId: strin
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
   const { mutate, isPending, isSuccess } = useCreateReview(itemId)
+  const t = useTranslations('dashboard')
+  const tCommon = useTranslations('common')
 
   if (isSuccess) {
-    return <span className="text-xs text-emerald-600 font-medium">Review submitted ✓</span>
+    return <span className="text-xs text-emerald-600 font-medium">{t('reviewSubmitted')}</span>
   }
 
   return (
@@ -32,7 +35,7 @@ function WriteReviewButton({ orderId, itemId }: { orderId: string; itemId: strin
           className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 font-medium transition-colors"
         >
           <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-          Write a Review
+          {t('writeAReview')}
         </button>
       ) : (
         <div className="mt-2 p-3 rounded-xl border border-[var(--border)] bg-[var(--card-hover)] space-y-2" onClick={(e) => e.preventDefault()}>
@@ -44,7 +47,7 @@ function WriteReviewButton({ orderId, itemId }: { orderId: string; itemId: strin
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Share your experience…"
+            placeholder={t('shareYourExperiencePlaceholder')}
             rows={2}
             className="w-full text-xs px-2 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-1 focus:ring-orange-500/40 resize-none"
           />
@@ -54,10 +57,10 @@ function WriteReviewButton({ orderId, itemId }: { orderId: string; itemId: strin
               disabled={isPending}
               className="text-xs px-3 py-1 rounded-lg bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 transition-colors font-medium"
             >
-              {isPending ? 'Submitting…' : 'Submit'}
+              {isPending ? t('submittingEllipsis') : tCommon('submit')}
             </button>
             <button onClick={() => setOpen(false)} className="text-xs px-3 py-1 rounded-lg border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card)] transition-colors">
-              Cancel
+              {tCommon('cancel')}
             </button>
           </div>
         </div>
@@ -69,6 +72,7 @@ function WriteReviewButton({ orderId, itemId }: { orderId: string; itemId: strin
 export default function OrdersPage() {
   const { data, isLoading, refetch } = useOrders()
   const [search, setSearch] = useState('')
+  const t = useTranslations('dashboard')
   const orders = (data?.results || []).filter((o) =>
     !search || o.order_number?.toLowerCase().includes(search.toLowerCase()),
   )
@@ -77,10 +81,10 @@ export default function OrdersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">My Orders</h1>
-          <p className="text-sm text-[var(--fg-muted)] mt-1">{data?.count || 0} total orders</p>
+          <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('myOrders')}</h1>
+          <p className="text-sm text-[var(--fg-muted)] mt-1">{t('totalOrdersCount', { count: data?.count || 0 })}</p>
         </div>
-        <Button variant="secondary" size="sm" onClick={() => refetch()} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>Refresh</Button>
+        <Button variant="secondary" size="sm" onClick={() => refetch()} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>{t('refresh')}</Button>
       </div>
 
       <div className="relative">
@@ -88,7 +92,7 @@ export default function OrdersPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by order number…"
+          placeholder={t('searchByOrderNumberPlaceholder')}
           className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
         />
       </div>
@@ -106,9 +110,9 @@ export default function OrdersPage() {
       ) : orders.length === 0 ? (
         <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-12 text-center">
           <Package className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4" />
-          <h3 className="font-semibold text-[var(--fg)] mb-2">No orders yet</h3>
-          <p className="text-sm text-[var(--fg-muted)] mb-4">Start ordering from our menu!</p>
-          <Link href="/menu"><Button>Browse Menu</Button></Link>
+          <h3 className="font-semibold text-[var(--fg)] mb-2">{t('noOrdersYet')}</h3>
+          <p className="text-sm text-[var(--fg-muted)] mb-4">{t('startOrderingFromMenu')}</p>
+          <Link href="/menu"><Button>{t('orderNow')}</Button></Link>
         </div>
       ) : (
         <div className="space-y-3">

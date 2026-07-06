@@ -8,6 +8,7 @@ import {
   LayoutDashboard, Package, Heart, MapPin, Calendar, Settings,
   User, LogOut, ChevronRight, Monitor, type LucideIcon
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Header } from '@/components/layout/Header'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -26,12 +27,26 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Settings,
 }
 
+// Maps DASHBOARD_MODULE.navItems (src/modules/registry.ts) hrefs to `dashboard`
+// namespace keys. The registry itself stays English-only (shared module
+// architecture, out of localization scope) — this local map is how the
+// customer-facing sidebar renders translated labels without touching it.
+const NAV_LABEL_KEYS: Record<string, string> = {
+  '/dashboard': 'overview',
+  '/dashboard/orders': 'orders',
+  '/dashboard/favorites': 'favorites',
+  '/dashboard/addresses': 'addresses',
+  '/dashboard/reservations': 'reservations',
+  '/dashboard/settings': 'settings',
+}
+
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuthStore()
   const router = useRouter()
   const pathname = usePathname()
   const { mutate: logout } = useLogout()
   const canAccessConsole = usePermission('dashboard:access')
+  const t = useTranslations('dashboard')
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -42,7 +57,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   if (isLoading || !isAuthenticated) return null
 
   const handleLogout = () => {
-    logout(undefined, { onSuccess: () => { toast.success('Logged out!'); router.push('/') } })
+    logout(undefined, { onSuccess: () => { toast.success(t('loggedOut')); router.push('/') } })
   }
 
   return (
@@ -64,7 +79,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </div>
                 <Link href="/dashboard/settings">
                   <Button variant="secondary" size="sm" className="w-full" leftIcon={<User className="h-3.5 w-3.5" />}>
-                    Edit Profile
+                    {t('editProfile')}
                   </Button>
                 </Link>
               </div>
@@ -74,6 +89,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 {getDashboardNav().map((item) => {
                   const active = item.exact ? pathname === item.href : pathname.startsWith(item.href)
                   const IconComponent = item.icon ? (ICON_MAP[item.icon] ?? null) : null
+                  const labelKey = NAV_LABEL_KEYS[item.href]
                   return (
                     <Link
                       key={item.href}
@@ -87,7 +103,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     >
                       <span className="flex items-center gap-3">
                         {IconComponent && <IconComponent className={cn('h-4 w-4', active ? 'text-orange-500' : 'text-[var(--fg-subtle)]')} />}
-                        {item.label}
+                        {labelKey ? t(labelKey) : item.label}
                       </span>
                       {active && <ChevronRight className="h-3.5 w-3.5 text-orange-500" />}
                     </Link>
@@ -99,7 +115,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     className="flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors border-t border-[var(--border)]"
                   >
                     <Monitor className="h-4 w-4" />
-                    Business Console
+                    {t('businessConsole')}
                   </Link>
                 )}
                 <button
@@ -107,7 +123,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  {t('signOut')}
                 </button>
               </nav>
             </aside>

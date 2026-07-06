@@ -25,6 +25,7 @@ import {
 } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Search, ChevronDown, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import {
   COUNTRIES,
@@ -336,6 +337,7 @@ interface CountryPickerProps {
 const PAGE_SIZE = 8 // rows per PageUp/PageDown jump
 
 function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: CountryPickerProps) {
+  const t = useTranslations('phoneInput')
   const prefersReducedMotion = useReducedMotion()
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -404,16 +406,16 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
     setActiveIndex(-1)
     setRecents(loadRecentCountries())
 
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       // Scroll selected row into view — but do NOT focus any input
       if (listRef.current) {
         const sel = listRef.current.querySelector('[data-selected="true"]') as HTMLElement
         sel?.scrollIntoView({ block: 'center' })
       }
-      announce('Country picker opened.')
+      announce(t('countryPickerOpened'))
     }, 120)
-    return () => clearTimeout(t)
-  }, [isOpen, announce])
+    return () => clearTimeout(timer)
+  }, [isOpen, announce, t])
 
   // ── Close: dismiss keyboard, restore focus to trigger ────────────────────────
   // Phase G: blur the search input so the soft keyboard dismisses when the picker
@@ -421,15 +423,15 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
   useEffect(() => {
     if (isOpen) return
     searchRef.current?.blur()
-    const t = setTimeout(() => triggerRef.current?.focus(), 50)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => triggerRef.current?.focus(), 50)
+    return () => clearTimeout(timer)
   }, [isOpen, triggerRef])
 
   // ── Announce search result count ─────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen || !query) return
     const count = results.length
-    announce(count === 0 ? 'No countries found.' : `${count} ${count === 1 ? 'country' : 'countries'} found.`)
+    announce(t('countriesFoundCount', { count }))
   }, [query, results, isOpen, announce])
 
   // ── Focus trap ───────────────────────────────────────────────────────────────
@@ -446,7 +448,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
     saveRecentCountry(country.code)
     saveLastSelected(country.code)
     onSelect(country)
-    announce(`${country.name} selected.`)
+    announce(t('countrySelectedAnnounce', { name: country.name }))
     onClose()
   }, [onSelect, onClose, announce])
 
@@ -546,13 +548,13 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
       {/* ── Row 1: Header — auto height, never scrolls ── */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <h2 id={titleId} className="text-base font-semibold text-[var(--fg)]">
-          Select country
+          {t('selectCountry')}
         </h2>
         <button
           type="button"
           onClick={onClose}
           className="p-1.5 rounded-lg hover:bg-[var(--card-hover)] text-[var(--fg-muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-          aria-label="Close country picker"
+          aria-label={t('closeCountryPickerAria')}
         >
           <X className="h-4 w-4" />
         </button>
@@ -570,7 +572,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             type="search"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setActiveIndex(-1) }}
-            placeholder="Country name, code or dial (+44)…"
+            placeholder={t('countrySearchPlaceholder')}
             autoComplete="off"
             className={cn(
               'w-full rounded-xl border bg-[var(--input-bg)]',
@@ -579,7 +581,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
               'focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-shadow',
               'border-[var(--border)]',
             )}
-            aria-label="Search countries"
+            aria-label={t('searchCountriesAria')}
             aria-controls={listId}
             aria-autocomplete="list"
             aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
@@ -590,7 +592,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
               type="button"
               onClick={() => { setQuery(''); setActiveIndex(-1); searchRef.current?.focus() }}
               className="absolute end-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label="Clear search"
+              aria-label={t('clearSearchAria')}
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -603,7 +605,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
         ref={listRef}
         id={listId}
         role="listbox"
-        aria-label="Countries"
+        aria-label={t('countriesListAria')}
         aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
         className={cn(
           // min-h-0: grid child must opt into shrinking (no implicit min-height:auto)
@@ -627,9 +629,9 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             <div className="flex flex-col items-center justify-center py-12 gap-3">
               <span className="text-3xl" aria-hidden="true">🔍</span>
               <div className="text-center">
-                <p className="text-sm font-medium text-[var(--fg)]">No countries found</p>
+                <p className="text-sm font-medium text-[var(--fg)]">{t('noCountriesFound')}</p>
                 <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-                  Try another name, code (US) or dial code (+1)
+                  {t('tryAnotherSearchHint')}
                 </p>
               </div>
               <button
@@ -637,7 +639,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
                 onClick={() => { setQuery(''); setActiveIndex(-1); searchRef.current?.focus() }}
                 className="mt-1 text-sm font-medium text-[var(--accent)] hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--accent)] rounded px-2 py-1"
               >
-                Clear search
+                {t('clearSearch')}
               </button>
             </div>
           ) : (
@@ -656,7 +658,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
           /* ── Not searching: Pinned → Recent → All ── */
           <>
             {/* Pinned */}
-            <SectionHeader label="Pinned" />
+            <SectionHeader label={t('pinned')} />
             {pinned.map((c, i) => (
               <CountryRow
                 key={`pin-${c.code}`}
@@ -671,7 +673,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             {/* Recent — only if non-empty */}
             {recentFiltered.length > 0 && (
               <>
-                <SectionHeader label="Recent" />
+                <SectionHeader label={t('recent')} />
                 {recentFiltered.map((c, i) => {
                   const navIdx = pinned.length + i
                   return (
@@ -692,7 +694,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             <div className="mx-3 my-2 border-t border-[var(--border)]" aria-hidden="true" />
 
             {/* All countries (excluding pinned + recent) */}
-            <SectionHeader label="All countries" />
+            <SectionHeader label={t('allCountries')} />
             {rest
               .filter((c) => !recentFiltered.some((r) => r.code === c.code))
               .map((c, i) => {
@@ -800,6 +802,8 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
    * 5. Browser timezone
    * 6. US default
    */
+  const t = useTranslations('phoneInput')
+
   const resolveInitialCountry = (): Country => {
     if (defaultCountry) {
       const c = COUNTRIES.find((x) => x.code === defaultCountry.toUpperCase())
@@ -893,7 +897,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
           type="button"
           onClick={() => setPickerOpen(true)}
           disabled={disabled}
-          aria-label={`Phone country: ${country.name} ${country.dialCode}`}
+          aria-label={t('phoneCountryAria', { name: country.name, dialCode: country.dialCode })}
           aria-haspopup="dialog"
           aria-expanded={pickerOpen}
           className={cn(

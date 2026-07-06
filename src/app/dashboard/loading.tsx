@@ -1,8 +1,10 @@
+import { getTranslations } from 'next-intl/server'
 import { Skeleton, SkeletonCard, SkeletonText } from '@/components/ui/Skeleton'
 
-export default function DashboardLoading() {
+export default async function DashboardLoading() {
+  const t = await getTranslations('dashboard')
   return (
-    <div className="space-y-6" aria-label="Loading dashboard" role="status" aria-busy="true">
+    <div className="space-y-6" aria-label={t('loadingDashboardAria')} role="status" aria-busy="true">
       {/* Welcome header */}
       <div className="space-y-2">
         <Skeleton className="h-8 w-56" />

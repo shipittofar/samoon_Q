@@ -106,7 +106,7 @@ describe('settings/page.tsx — avatar upload UI', () => {
   })
 
   it('shows success message after upload', () => {
-    expect(src()).toContain('Avatar updated successfully')
+    expect(src()).toContain("t('avatarUpdatedSuccessfully')")
   })
 
   it('shows error message on failure', () => {
@@ -128,7 +128,7 @@ describe('settings/page.tsx — avatar upload UI', () => {
   })
 
   it('has accessible aria-label on camera trigger button', () => {
-    expect(src()).toContain('aria-label="Change profile photo"')
+    expect(src()).toContain("t('changeProfilePhotoAria')")
   })
 
   it('preserves existing profile form', () => {
