@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { Settings, Palette, Clock, Plug, Bell, Shield, Save, CheckCircle, Loader2, Globe, ToggleLeft, ToggleRight, XCircle, Flag } from 'lucide-react'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -18,16 +19,17 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 const TABS = ['general', 'branding', 'hours', 'publicprofile', 'integrations', 'notifications', 'feature-flags'] as const
 type Tab = (typeof TABS)[number]
 
-const TAB_CONFIG: Record<Tab, { label: string; icon: React.ElementType }> = {
-  general:        { label: 'General',        icon: Settings     },
-  branding:       { label: 'Branding',       icon: Palette      },
-  hours:          { label: 'Business Hours', icon: Clock        },
-  publicprofile:  { label: 'Public Profile', icon: Globe        },
-  integrations:   { label: 'Integrations',   icon: Plug         },
-  notifications:  { label: 'Notifications',  icon: Bell         },
-  'feature-flags':{ label: 'Feature Flags',  icon: Flag         },
+const TAB_CONFIG: Record<Tab, { labelKey: string; icon: React.ElementType }> = {
+  general:        { labelKey: 'settingsTabGeneral',        icon: Settings     },
+  branding:       { labelKey: 'settingsTabBranding',       icon: Palette      },
+  hours:          { labelKey: 'settingsTabBusinessHours', icon: Clock        },
+  publicprofile:  { labelKey: 'settingsTabPublicProfile', icon: Globe        },
+  integrations:   { labelKey: 'settingsTabIntegrations',   icon: Plug         },
+  notifications:  { labelKey: 'breadcrumbs.notifications',  icon: Bell         },
+  'feature-flags':{ labelKey: 'settingsTabFeatureFlags',  icon: Flag         },
 }
 
+const DAY_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
 
 type DayKey = (typeof DAYS)[number]
@@ -44,11 +46,12 @@ function defaultHours(existing?: unknown): HoursMap {
 
 interface SaveBarProps { isPending: boolean; saved: boolean; onSave: () => void }
 function SaveBar({ isPending, saved, onSave }: SaveBarProps) {
+  const t = useTranslations('console')
   return (
     <div className="flex items-center justify-end gap-3 pt-5 mt-5 border-t">
       {saved && !isPending && (
         <span className="flex items-center gap-1 text-sm text-green-600">
-          <CheckCircle className="w-4 h-4" /> Saved
+          <CheckCircle className="w-4 h-4" /> {t('savedLabel')}
         </span>
       )}
       <button
@@ -58,13 +61,14 @@ function SaveBar({ isPending, saved, onSave }: SaveBarProps) {
         className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
       >
         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        {isPending ? 'Saving…' : 'Save Changes'}
+        {isPending ? t('savingEllipsis') : t('saveChanges')}
       </button>
     </div>
   )
 }
 
 function GeneralTab() {
+  const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
   const [contactEmail, setContactEmail] = useState(
@@ -81,17 +85,17 @@ function GeneralTab() {
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('businessNameLabel')}</label>
         <input
           type="text"
           value={tenant?.name ?? ''}
           readOnly
           className="w-full border rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
         />
-        <p className="text-xs text-gray-400 mt-1">Managed by your account settings.</p>
+        <p className="text-xs text-gray-400 mt-1">{t('managedByAccountSettings')}</p>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('businessTypeLabel')}</label>
         <input
           type="text"
           value={tenant?.businessTypes?.join(', ') ?? ''}
@@ -100,7 +104,7 @@ function GeneralTab() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Tenant ID</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('tenantIdLabel')}</label>
         <input
           type="text"
           value={tenant?.id ?? ''}
@@ -109,7 +113,7 @@ function GeneralTab() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('contactEmailLabel')}</label>
         <input
           type="email"
           value={contactEmail}
@@ -119,7 +123,7 @@ function GeneralTab() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('contactPhoneLabel')}</label>
         <input
           type="tel"
           value={contactPhone}
@@ -130,7 +134,7 @@ function GeneralTab() {
       </div>
       <CopyUrlWidget
         url={`${APP_URL}/${tenant?.slug ?? ''}`}
-        label="Public URL"
+        label={t('publicUrlLabel')}
       />
       <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
     </div>
@@ -138,6 +142,7 @@ function GeneralTab() {
 }
 
 function BrandingTab() {
+  const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
   const existingTheme = tenant?.settings?.theme as TenantTheme | undefined
@@ -146,11 +151,11 @@ function BrandingTab() {
   const [fontBody, setFontBody] = useState(existingTheme?.fontBody ?? '')
 
   useEffect(() => {
-    const t = tenant?.settings?.theme as TenantTheme | undefined
-    if (t) {
-      setPrimaryColor(t.primaryColor ?? '#2563eb')
-      setLogoUrl(t.logoUrl ?? '')
-      setFontBody(t.fontBody ?? '')
+    const theme = tenant?.settings?.theme as TenantTheme | undefined
+    if (theme) {
+      setPrimaryColor(theme.primaryColor ?? '#2563eb')
+      setLogoUrl(theme.logoUrl ?? '')
+      setFontBody(theme.fontBody ?? '')
     }
   }, [tenant?.slug])
 
@@ -167,7 +172,7 @@ function BrandingTab() {
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{t('primaryColorLabel')}</label>
         <div className="flex items-center gap-3">
           <input
             type="color"
@@ -184,7 +189,7 @@ function BrandingTab() {
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Logo URL</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('logoUrlLabel')}</label>
         <input
           type="url"
           value={logoUrl}
@@ -194,7 +199,7 @@ function BrandingTab() {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Body Font</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t('bodyFontLabel')}</label>
         <input
           type="text"
           value={fontBody}
@@ -209,6 +214,7 @@ function BrandingTab() {
 }
 
 function HoursTab() {
+  const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
   const [hours, setHours] = useState<HoursMap>(() =>
@@ -225,9 +231,9 @@ function HoursTab() {
 
   return (
     <div className="space-y-3">
-      {DAYS.map((day) => (
+      {DAYS.map((day, i) => (
         <div key={day} className="flex items-center gap-4 text-sm">
-          <span className="w-28 text-gray-600 shrink-0">{day}</span>
+          <span className="w-28 text-gray-600 shrink-0">{t(`weekday.${DAY_KEYS[i]}`)}</span>
           <input
             type="time"
             value={hours[day].open}
@@ -250,7 +256,7 @@ function HoursTab() {
               onChange={(e) => setDay(day, { isOpen: e.target.checked })}
               className="rounded"
             />
-            Open
+            {t('openLabel')}
           </label>
         </div>
       ))}
@@ -261,7 +267,19 @@ function HoursTab() {
 
 type NotifMatrix = Record<string, Record<string, boolean>>
 
+const NOTIF_CHANNEL_KEYS: Record<string, string> = {
+  Email: 'channelEmail', SMS: 'channelSms', Push: 'channelPush', 'In-App': 'notifChannelInApp',
+}
+const NOTIF_EVENT_KEYS: Record<string, string> = {
+  'New Order': 'notifEventNewOrder',
+  'Order Status Change': 'notifEventOrderStatusChange',
+  'New Reservation': 'notifEventNewReservation',
+  'SLA Breach': 'notifEventSlaBreach',
+  'Staff Clock-in': 'notifEventStaffClockIn',
+}
+
 function NotificationsTab() {
+  const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
 
@@ -300,16 +318,16 @@ function NotificationsTab() {
         <table className="min-w-full text-sm">
           <thead>
             <tr>
-              <th className="text-left font-medium text-gray-600 pb-3 w-48">Event</th>
+              <th className="text-left font-medium text-gray-600 pb-3 w-48">{t('eventLabel')}</th>
               {CHANNELS.map((c) => (
-                <th key={c} className="text-center font-medium text-gray-600 pb-3 px-4">{c}</th>
+                <th key={c} className="text-center font-medium text-gray-600 pb-3 px-4">{t(NOTIF_CHANNEL_KEYS[c])}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y">
             {EVENTS.map((evt) => (
               <tr key={evt}>
-                <td className="py-2.5 text-gray-700">{evt}</td>
+                <td className="py-2.5 text-gray-700">{t(NOTIF_EVENT_KEYS[evt])}</td>
                 {CHANNELS.map((ch) => (
                   <td key={ch} className="text-center py-2.5">
                     <input
@@ -331,6 +349,7 @@ function NotificationsTab() {
 }
 
 function PublicProfileTab() {
+  const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
   const existingMeta = getMarketplaceMeta(tenant?.settings)
@@ -404,81 +423,80 @@ function PublicProfileTab() {
   return (
     <div className="space-y-5">
       <p className="text-sm text-gray-500 mb-4">
-        This information is displayed publicly on your business page and discovery cards.
-        Changes take effect immediately after saving.
+        {t('publicProfileDescription')}
       </p>
 
       <div>
-        <label className={labelClass}>Tagline</label>
+        <label className={labelClass}>{t('taglineLabel')}</label>
         <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)}
-          placeholder="Your catchy one-liner" className={inputClass} maxLength={120} />
-        <p className={hintClass}>Shown below your business name. Max 120 characters.</p>
+          placeholder={t('taglinePlaceholder')} className={inputClass} maxLength={120} />
+        <p className={hintClass}>{t('taglineHint')}</p>
       </div>
 
       <div>
-        <label className={labelClass}>Short Description</label>
+        <label className={labelClass}>{t('shortDescriptionLabel')}</label>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-          placeholder="Brief pitch shown on discovery cards (max ~200 chars)" rows={3}
+          placeholder={t('shortDescriptionPlaceholder')} rows={3}
           className={inputClass} maxLength={200} />
-        <p className={hintClass}>Displayed on the marketplace discovery card.</p>
+        <p className={hintClass}>{t('shortDescriptionHint')}</p>
       </div>
 
       <div>
-        <label className={labelClass}>About / Story</label>
+        <label className={labelClass}>{t('aboutStoryLabel')}</label>
         <textarea value={story} onChange={(e) => setStory(e.target.value)}
-          placeholder="Tell your story — history, mission, what makes you special" rows={5}
+          placeholder={t('aboutStoryPlaceholder')} rows={5}
           className={inputClass} />
-        <p className={hintClass}>Shown on the public About section of your business page.</p>
+        <p className={hintClass}>{t('aboutStoryHint')}</p>
       </div>
 
       <div>
-        <label className={labelClass}>Cuisines / Specialties</label>
+        <label className={labelClass}>{t('cuisinesSpecialtiesLabel')}</label>
         <input type="text" value={cuisines} onChange={(e) => setCuisines(e.target.value)}
           placeholder="Mediterranean, Italian, Coffee" className={inputClass} />
-        <p className={hintClass}>Comma-separated. Used for search and filtering.</p>
+        <p className={hintClass}>{t('commaSeparatedSearchHint')}</p>
       </div>
 
       <div>
-        <label className={labelClass}>Discovery Tags</label>
+        <label className={labelClass}>{t('discoveryTagsLabel')}</label>
         <input type="text" value={tags} onChange={(e) => setTags(e.target.value)}
           placeholder="Date Night, Pet Friendly, Outdoor Seating" className={inputClass} />
-        <p className={hintClass}>Comma-separated tags that help customers find you.</p>
+        <p className={hintClass}>{t('discoveryTagsHint')}</p>
       </div>
 
       <div>
-        <label className={labelClass}>Amenities</label>
+        <label className={labelClass}>{t('amenitiesLabel')}</label>
         <input type="text" value={amenities} onChange={(e) => setAmenities(e.target.value)}
           placeholder="WiFi, Parking, Outdoor Seating, Takeaway" className={inputClass} />
-        <p className={hintClass}>Comma-separated amenities shown on your business page.</p>
+        <p className={hintClass}>{t('amenitiesHint')}</p>
       </div>
 
       <div>
-        <label className={labelClass}>Price Level</label>
+        <label className={labelClass}>{t('priceLevelLabel')}</label>
         <select value={priceLevel} onChange={(e) => setPriceLevel(e.target.value)}
           className={inputClass}>
-          <option value="">— Select —</option>
-          <option value="1">$ — Budget-friendly</option>
-          <option value="2">$$ — Moderate</option>
-          <option value="3">$$$ — Upscale</option>
-          <option value="4">$$$$ — Fine Dining</option>
+          <option value="">{t('selectDash')}</option>
+          <option value="1">{t('priceLevelBudget')}</option>
+          <option value="2">{t('priceLevelModerate')}</option>
+          <option value="3">{t('priceLevelUpscale')}</option>
+          <option value="4">{t('priceLevelFineDining')}</option>
         </select>
       </div>
 
       <div className="border-t pt-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Contact Information</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('contactInformationLabel')}</h3>
         <div className="space-y-4">
           <div>
-            <label className={labelClass}>Public Phone</label>
+            <label className={labelClass}>{t('publicPhoneLabel')}</label>
             <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
               placeholder="+1 555-000-0000" className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Public Email</label>
+            <label className={labelClass}>{t('publicEmailLabel')}</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
               placeholder="hello@yourbusiness.com" className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Website</label>
+            <label className={labelClass}>{t('websiteLabel')}</label>
             <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)}
               placeholder="https://yourbusiness.com" className={inputClass} />
           </div>
@@ -486,15 +504,15 @@ function PublicProfileTab() {
       </div>
 
       <div className="border-t pt-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Social Media</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('socialMediaLabel')}</h3>
         <div className="space-y-4">
           <div>
-            <label className={labelClass}>Instagram URL</label>
+            <label className={labelClass}>{t('instagramUrlLabel')}</label>
             <input type="url" value={instagram} onChange={(e) => setInstagram(e.target.value)}
               placeholder="https://instagram.com/yourbusiness" className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Twitter / X URL</label>
+            <label className={labelClass}>{t('twitterUrlLabel')}</label>
             <input type="url" value={twitter} onChange={(e) => setTwitter(e.target.value)}
               placeholder="https://twitter.com/yourbusiness" className={inputClass} />
           </div>
@@ -502,20 +520,20 @@ function PublicProfileTab() {
       </div>
 
       <div className="border-t pt-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Media</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('mediaLabel')}</h3>
         <div className="space-y-4">
           <div>
-            <label className={labelClass}>Cover Image URL</label>
+            <label className={labelClass}>{t('coverImageUrlLabel')}</label>
             <input type="url" value={coverImage} onChange={(e) => setCoverImage(e.target.value)}
               placeholder="https://example.com/cover.jpg" className={inputClass} />
-            <p className={hintClass}>Displayed as the hero image on your business card and page. Recommended: 1200×630px.</p>
+            <p className={hintClass}>{t('coverImageHint')}</p>
           </div>
           <div>
-            <label className={labelClass}>Gallery Image URLs</label>
+            <label className={labelClass}>{t('galleryImageUrlsLabel')}</label>
             <textarea value={gallery} onChange={(e) => setGallery(e.target.value)}
               placeholder={'https://example.com/image1.jpg\nhttps://example.com/image2.jpg'} rows={4}
               className={inputClass} />
-            <p className={hintClass}>One URL per line. Shown in the gallery section of your business page.</p>
+            <p className={hintClass}>{t('galleryImageUrlsHint')}</p>
           </div>
         </div>
       </div>
@@ -525,18 +543,19 @@ function PublicProfileTab() {
   )
 }
 
-function PlaceholderSection({ label }: { label: string }) {
+function PlaceholderSection({ labelKey }: { labelKey: string }) {
+  const t = useTranslations('console')
   return (
     <div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-2">
-      <p className="text-sm">{label} settings coming soon.</p>
+      <p className="text-sm">{t('settingsSectionComingSoon', { section: t(labelKey) })}</p>
     </div>
   )
 }
 
-const SOURCE_LABEL: Record<string, string> = {
-  module_default:  'Module Default',
-  capability:      'Capability',
-  tenant_override: 'Tenant Override',
+const SOURCE_KEY: Record<string, string> = {
+  module_default:  'sourceModuleDefault',
+  capability:      'sourceCapability',
+  tenant_override: 'sourceTenantOverride',
 }
 const SOURCE_BADGE_VARIANT: Record<string, 'secondary' | 'info' | 'success'> = {
   module_default:  'secondary',
@@ -545,6 +564,7 @@ const SOURCE_BADGE_VARIANT: Record<string, 'secondary' | 'info' | 'success'> = {
 }
 
 function FeatureFlagsTab() {
+  const t = useTranslations('console')
   const { data: flags, isLoading, isError } = useFeatureFlags()
   const { mutate: updateFlag, isPending } = useUpdateFeatureFlag()
 
@@ -552,7 +572,7 @@ function FeatureFlagsTab() {
     return (
       <div className="flex items-center justify-center h-48 gap-2 text-gray-500 text-sm">
         <Loader2 className="w-4 h-4 animate-spin" />
-        Loading feature flags…
+        {t('loadingFeatureFlags')}
       </div>
     )
   }
@@ -561,7 +581,7 @@ function FeatureFlagsTab() {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-2">
         <XCircle className="w-6 h-6 text-red-400" />
-        <p className="text-sm text-gray-600">Failed to load feature flags.</p>
+        <p className="text-sm text-gray-600">{t('failedToLoadFeatureFlags')}</p>
       </div>
     )
   }
@@ -569,7 +589,7 @@ function FeatureFlagsTab() {
   return (
     <div className="space-y-2">
       <p className="text-sm text-gray-500 mb-4">
-        Toggle capability flags for this tenant. Tenant overrides take precedence over module defaults.
+        {t('featureFlagsTabDescription')}
       </p>
       {flags.map((flag) => (
         <div
@@ -580,7 +600,7 @@ function FeatureFlagsTab() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-mono font-medium text-gray-800">{flag.key}</span>
               <Badge variant={SOURCE_BADGE_VARIANT[flag.source] ?? 'secondary'}>
-                {SOURCE_LABEL[flag.source] ?? flag.source}
+                {SOURCE_KEY[flag.source] ? t(SOURCE_KEY[flag.source]) : flag.source}
               </Badge>
             </div>
           </div>
@@ -588,7 +608,7 @@ function FeatureFlagsTab() {
             onClick={() => updateFlag({ key: flag.key, value: !flag.value })}
             disabled={isPending}
             className={`ml-4 shrink-0 transition-colors ${isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-            aria-label={`Toggle ${flag.key}`}
+            aria-label={t('toggleFlagAria', { key: flag.key })}
           >
             {flag.value ? (
               <ToggleRight className="w-8 h-8 text-blue-600" />
@@ -599,21 +619,22 @@ function FeatureFlagsTab() {
         </div>
       ))}
       {flags.length === 0 && (
-        <p className="text-sm text-gray-500 text-center py-8">No feature flags configured.</p>
+        <p className="text-sm text-gray-500 text-center py-8">{t('noFeatureFlagsConfigured')}</p>
       )}
     </div>
   )
 }
 
 function SettingsContent() {
+  const t = useTranslations('console')
   const [activeTab, setActiveTab] = useState<Tab>('general')
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-semibold">Settings</h1>
-          <PreviewButton href="/" label="Preview Public Site" size="sm" />
+          <h1 className="text-lg font-semibold">{t('settingsTitle')}</h1>
+          <PreviewButton href="/" label={t('previewPublicSite')} size="sm" />
         </div>
       </div>
 
@@ -621,7 +642,7 @@ function SettingsContent() {
         <div className="flex gap-6">
           <nav className="w-44 shrink-0 space-y-1">
             {TABS.map((tab) => {
-              const { label, icon: Icon } = TAB_CONFIG[tab]
+              const { labelKey, icon: Icon } = TAB_CONFIG[tab]
               return (
                 <button
                   key={tab}
@@ -633,20 +654,20 @@ function SettingsContent() {
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
-                  {label}
+                  {t(labelKey)}
                 </button>
               )
             })}
           </nav>
 
           <div className="flex-1 bg-white rounded-lg border p-6">
-            <h2 className="text-base font-semibold mb-5">{TAB_CONFIG[activeTab].label}</h2>
-            <ErrorBoundary feature={`Settings — ${TAB_CONFIG[activeTab].label}`}>
+            <h2 className="text-base font-semibold mb-5">{t(TAB_CONFIG[activeTab].labelKey)}</h2>
+            <ErrorBoundary feature={`Settings — ${TAB_CONFIG[activeTab].labelKey}`}>
               {activeTab === 'general'        && <GeneralTab />}
               {activeTab === 'branding'       && <BrandingTab />}
               {activeTab === 'hours'          && <HoursTab />}
               {activeTab === 'publicprofile'  && <PublicProfileTab />}
-              {activeTab === 'integrations'   && <PlaceholderSection label="Integrations" />}
+              {activeTab === 'integrations'   && <PlaceholderSection labelKey="settingsTabIntegrations" />}
               {activeTab === 'notifications'  && <NotificationsTab />}
               {activeTab === 'feature-flags'  && <FeatureFlagsTab />}
             </ErrorBoundary>

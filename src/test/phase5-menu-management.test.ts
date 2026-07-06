@@ -170,7 +170,7 @@ describe('Admin menu page — empty state', () => {
   })
 
   it('J: empty state has user-facing message', () => {
-    expect(page).toMatch(/No items found/)
+    expect(page).toMatch(/t\('noItemsFound'\)/)
   })
 })
 

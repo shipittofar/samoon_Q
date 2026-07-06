@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Layout, Image, Info, Phone, Palette, Eye,
   Globe, GitBranch, Save, Upload, RotateCcw, Loader2, CheckCircle2,
@@ -33,16 +34,16 @@ import {
 
 type Tab = 'theme' | 'layout' | 'templates' | 'hero' | 'content' | 'modules' | 'preview' | 'branches' | 'versions'
 
-const TABS: { value: Tab; label: string; icon: React.ElementType }[] = [
-  { value: 'theme',     label: 'Theme',      icon: Palette },
-  { value: 'layout',   label: 'Sections',   icon: Layout },
-  { value: 'templates', label: 'Templates',  icon: Layers },
-  { value: 'hero',     label: 'Hero',       icon: Image },
-  { value: 'content',  label: 'Content',    icon: Info },
-  { value: 'modules',  label: 'Modules',    icon: Cpu },
-  { value: 'preview',  label: 'Preview',    icon: Eye },
-  { value: 'branches', label: 'Branches',   icon: GitBranch },
-  { value: 'versions', label: 'Versions',   icon: RotateCcw },
+const TABS: { value: Tab; labelKey: string; icon: React.ElementType }[] = [
+  { value: 'theme',     labelKey: 'websiteTabTheme',      icon: Palette },
+  { value: 'layout',   labelKey: 'websiteTabSections',   icon: Layout },
+  { value: 'templates', labelKey: 'websiteTabTemplates',  icon: Layers },
+  { value: 'hero',     labelKey: 'websiteTabHero',       icon: Image },
+  { value: 'content',  labelKey: 'websiteTabContent',    icon: Info },
+  { value: 'modules',  labelKey: 'websiteTabModules',    icon: Cpu },
+  { value: 'preview',  labelKey: 'websiteTabPreview',    icon: Eye },
+  { value: 'branches', labelKey: 'breadcrumbs.branches', icon: GitBranch },
+  { value: 'versions', labelKey: 'websiteTabVersions',   icon: RotateCcw },
 ]
 
 // ── Shared field helpers ──────────────────────────────────────────────────────
@@ -158,10 +159,11 @@ function ThemeTab({
   brandTheme: BrandThemeName
   onChange: (t: BrandThemeName) => void
 }) {
+  const t = useTranslations('console')
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--fg-muted)]">
-        Choose a curated brand theme that sets your colors, fonts, and visual style.
+        {t('themeTabDescription')}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {BRAND_THEMES.map((theme) => {
@@ -207,6 +209,7 @@ function SectionsTab({
   sections: SectionConfig[]
   onChange: (s: SectionConfig[]) => void
 }) {
+  const t = useTranslations('console')
   const sorted = [...sections].sort((a, b) => a.order - b.order)
 
   function move(key: SectionKey, dir: -1 | 1) {
@@ -227,7 +230,7 @@ function SectionsTab({
   return (
     <div className="space-y-2">
       <p className="text-sm text-[var(--fg-muted)] mb-4">
-        Enable or disable sections and reorder them on your public homepage.
+        {t('sectionsTabDescription')}
       </p>
       {sorted.map((section, idx) => (
         <div
@@ -249,7 +252,7 @@ function SectionsTab({
               onClick={() => move(section.key, -1)}
               disabled={idx === 0}
               className="p-1 rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-30 transition-colors"
-              aria-label={`Move ${SECTION_LABELS[section.key]} up`}
+              aria-label={t('moveSectionUpAria', { section: SECTION_LABELS[section.key] })}
             >
               <ChevronUp className="w-4 h-4" />
             </button>
@@ -258,7 +261,7 @@ function SectionsTab({
               onClick={() => move(section.key, 1)}
               disabled={idx === sorted.length - 1}
               className="p-1 rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-30 transition-colors"
-              aria-label={`Move ${SECTION_LABELS[section.key]} down`}
+              aria-label={t('moveSectionDownAria', { section: SECTION_LABELS[section.key] })}
             >
               <ChevronDown className="w-4 h-4" />
             </button>
@@ -294,14 +297,15 @@ function TemplatesTab({
   templates: SectionTemplates
   onChange: (t: SectionTemplates) => void
 }) {
+  const t = useTranslations('console')
   return (
     <div className="space-y-6">
       <p className="text-sm text-[var(--fg-muted)]">
-        Choose the layout template for each section type.
+        {t('templatesTabDescription')}
       </p>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-[var(--fg)]">Gallery</p>
+        <p className="text-sm font-medium text-[var(--fg)]">{t('galleryLabel')}</p>
         <PillSelector<GalleryTemplate>
           value={templates.gallery}
           onChange={(v) => onChange({ ...templates, gallery: v })}
@@ -310,7 +314,7 @@ function TemplatesTab({
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-[var(--fg)]">Reviews</p>
+        <p className="text-sm font-medium text-[var(--fg)]">{t('breadcrumbs.reviews')}</p>
         <PillSelector<ReviewsTemplate>
           value={templates.reviews}
           onChange={(v) => onChange({ ...templates, reviews: v })}
@@ -319,7 +323,7 @@ function TemplatesTab({
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-[var(--fg)]">Contact</p>
+        <p className="text-sm font-medium text-[var(--fg)]">{t('contactLabel')}</p>
         <PillSelector<ContactTemplate>
           value={templates.contact}
           onChange={(v) => onChange({ ...templates, contact: v })}
@@ -328,7 +332,7 @@ function TemplatesTab({
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-[var(--fg)]">About</p>
+        <p className="text-sm font-medium text-[var(--fg)]">{t('aboutLabel')}</p>
         <PillSelector<AboutTemplate>
           value={templates.about}
           onChange={(v) => onChange({ ...templates, about: v })}
@@ -349,6 +353,7 @@ function HeroTab({
   onHeroChange: (h: HeroContent) => void
   onHeroConfigChange: (h: HeroConfig) => void
 }) {
+  const t = useTranslations('console')
   const setHero = <K extends keyof HeroContent>(k: K, v: HeroContent[K]) => onHeroChange({ ...hero, [k]: v })
   const setConfig = <K extends keyof HeroConfig>(k: K, v: HeroConfig[K]) => onHeroConfigChange({ ...heroConfig, [k]: v })
 
@@ -357,16 +362,16 @@ function HeroTab({
   ).map(([value, info]) => ({ value, label: info.label }))
 
   const bgTypes: { value: HeroBackgroundType; label: string }[] = [
-    { value: 'image', label: 'Image' },
-    { value: 'video', label: 'Video' },
-    { value: 'gradient', label: 'Gradient' },
-    { value: 'solid', label: 'Solid Color' },
+    { value: 'image', label: t('bgTypeImage') },
+    { value: 'video', label: t('bgTypeVideo') },
+    { value: 'gradient', label: t('bgTypeGradient') },
+    { value: 'solid', label: t('bgTypeSolidColor') },
   ]
 
   const alignments: { value: 'left' | 'center' | 'right'; label: string }[] = [
-    { value: 'left', label: 'Left' },
-    { value: 'center', label: 'Center' },
-    { value: 'right', label: 'Right' },
+    { value: 'left', label: t('alignLeft') },
+    { value: 'center', label: t('alignCenter') },
+    { value: 'right', label: t('alignRight') },
   ]
 
   const primaryCtaOptions = (
@@ -374,7 +379,7 @@ function HeroTab({
   ).map(([value, label]) => ({ value, label }))
 
   const secondaryCtaOptions = [
-    { value: '' as HeroSecondaryCtaType, label: '— None —' },
+    { value: '' as HeroSecondaryCtaType, label: t('noneOptionDash') },
     ...(Object.entries(HERO_SECONDARY_CTA_LABELS) as [HeroSecondaryCtaType, string][]).map(([value, label]) => ({ value, label })),
   ]
 
@@ -382,7 +387,7 @@ function HeroTab({
     <div className="space-y-6">
       {/* Layout variant picker */}
       <div className="space-y-3">
-        <p className="text-sm font-medium text-[var(--fg)]">Layout Variant</p>
+        <p className="text-sm font-medium text-[var(--fg)]">{t('layoutVariantLabel')}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {(Object.entries(HERO_LAYOUT_LABELS) as [HeroLayoutVariant, { label: string; description: string }][]).map(([key, info]) => (
             <button
@@ -404,7 +409,7 @@ function HeroTab({
       </div>
 
       {/* Background type */}
-      <Field label="Background Type">
+      <Field label={t('backgroundTypeLabel')}>
         <PillSelector<HeroBackgroundType>
           value={heroConfig.backgroundType}
           onChange={(v) => setConfig('backgroundType', v)}
@@ -414,7 +419,7 @@ function HeroTab({
 
       {/* Conditional background inputs */}
       {heroConfig.backgroundType === 'image' && (
-        <Field label="Background Image URL">
+        <Field label={t('backgroundImageUrlLabel')}>
           <TextInput
             value={heroConfig.backgroundImage}
             onChange={(v) => setConfig('backgroundImage', v)}
@@ -423,7 +428,7 @@ function HeroTab({
         </Field>
       )}
       {heroConfig.backgroundType === 'video' && (
-        <Field label="Background Video URL">
+        <Field label={t('backgroundVideoUrlLabel')}>
           <TextInput
             value={heroConfig.backgroundVideo}
             onChange={(v) => setConfig('backgroundVideo', v)}
@@ -432,7 +437,7 @@ function HeroTab({
         </Field>
       )}
       {heroConfig.backgroundType === 'gradient' && (
-        <Field label="CSS Gradient">
+        <Field label={t('cssGradientLabel')}>
           <TextInput
             value={heroConfig.backgroundGradient}
             onChange={(v) => setConfig('backgroundGradient', v)}
@@ -441,7 +446,7 @@ function HeroTab({
         </Field>
       )}
       {heroConfig.backgroundType === 'solid' && (
-        <Field label="Solid Color (hex)">
+        <Field label={t('solidColorHexLabel')}>
           <TextInput
             value={heroConfig.backgroundSolid}
             onChange={(v) => setConfig('backgroundSolid', v)}
@@ -451,7 +456,7 @@ function HeroTab({
       )}
 
       {/* Alignment */}
-      <Field label="Text Alignment">
+      <Field label={t('textAlignmentLabel')}>
         <PillSelector<'left' | 'center' | 'right'>
           value={heroConfig.alignment}
           onChange={(v) => setConfig('alignment', v)}
@@ -461,14 +466,14 @@ function HeroTab({
 
       {/* CTAs */}
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Primary CTA">
+        <Field label={t('primaryCtaLabel')}>
           <SelectInput<HeroPrimaryCtaType>
             value={heroConfig.primaryCta}
             onChange={(v) => setConfig('primaryCta', v)}
             options={primaryCtaOptions}
           />
         </Field>
-        <Field label="Secondary CTA (optional)">
+        <Field label={t('secondaryCtaOptionalLabel')}>
           <SelectInput<HeroSecondaryCtaType>
             value={heroConfig.secondaryCta ?? ('' as HeroSecondaryCtaType)}
             onChange={(v) => setConfig('secondaryCta', v || undefined)}
@@ -479,14 +484,14 @@ function HeroTab({
 
       {/* Content fields */}
       <div className="border-t border-[var(--border)] pt-5 space-y-4">
-        <p className="text-sm font-medium text-[var(--fg)]">Hero Content</p>
-        <Field label="Headline">
-          <TextInput value={hero.headline} onChange={(v) => setHero('headline', v)} placeholder="Welcome to our restaurant" />
+        <p className="text-sm font-medium text-[var(--fg)]">{t('heroContentLabel')}</p>
+        <Field label={t('headlineLabel')}>
+          <TextInput value={hero.headline} onChange={(v) => setHero('headline', v)} placeholder={t('welcomeToOurRestaurantPlaceholder')} />
         </Field>
-        <Field label="Subheadline">
-          <TextInput value={hero.subheadline} onChange={(v) => setHero('subheadline', v)} placeholder="Fresh food, great vibes" multiline />
+        <Field label={t('subheadlineLabel')}>
+          <TextInput value={hero.subheadline} onChange={(v) => setHero('subheadline', v)} placeholder={t('freshFoodGreatVibesPlaceholder')} multiline />
         </Field>
-        <Field label="Background Image URL (legacy)">
+        <Field label={t('backgroundImageUrlLegacyLabel')}>
           <TextInput value={hero.backgroundImage} onChange={(v) => setHero('backgroundImage', v)} placeholder="https://…" />
         </Field>
       </div>
@@ -504,6 +509,7 @@ function ContentTab({
   onAboutChange: (a: AboutContent) => void
   onContactChange: (c: ContactContent) => void
 }) {
+  const t = useTranslations('console')
   const setAbout = <K extends keyof AboutContent>(k: K, v: AboutContent[K]) => onAboutChange({ ...about, [k]: v })
   const setContact = <K extends keyof ContactContent>(k: K, v: ContactContent[K]) => onContactChange({ ...contact, [k]: v })
 
@@ -511,49 +517,49 @@ function ContentTab({
     <div className="space-y-8">
       {/* About section */}
       <div className="space-y-4">
-        <p className="text-sm font-semibold text-[var(--fg)] border-b border-[var(--border)] pb-2">About</p>
-        <Field label="Our Story">
-          <TextInput value={about.story} onChange={(v) => setAbout('story', v)} multiline placeholder="Tell your story…" />
+        <p className="text-sm font-semibold text-[var(--fg)] border-b border-[var(--border)] pb-2">{t('aboutLabel')}</p>
+        <Field label={t('ourStoryLabel')}>
+          <TextInput value={about.story} onChange={(v) => setAbout('story', v)} multiline placeholder={t('tellYourStoryPlaceholder')} />
         </Field>
-        <Field label="Mission">
-          <TextInput value={about.mission} onChange={(v) => setAbout('mission', v)} multiline placeholder="Our mission is…" />
+        <Field label={t('missionLabel')}>
+          <TextInput value={about.mission} onChange={(v) => setAbout('mission', v)} multiline placeholder={t('ourMissionIsPlaceholder')} />
         </Field>
-        <Field label="History">
-          <TextInput value={about.history} onChange={(v) => setAbout('history', v)} multiline placeholder="Founded in…" />
+        <Field label={t('historyLabel')}>
+          <TextInput value={about.history} onChange={(v) => setAbout('history', v)} multiline placeholder={t('foundedInPlaceholder')} />
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Founder Name">
+          <Field label={t('founderNameLabel')}>
             <TextInput value={about.founderName} onChange={(v) => setAbout('founderName', v)} placeholder="Jane Doe" />
           </Field>
-          <Field label="Founder Image URL">
+          <Field label={t('founderImageUrlLabel')}>
             <TextInput value={about.founderImage} onChange={(v) => setAbout('founderImage', v)} placeholder="https://…" />
           </Field>
         </div>
-        <Field label="Founder Bio">
-          <TextInput value={about.founderBio} onChange={(v) => setAbout('founderBio', v)} multiline placeholder="Bio…" />
+        <Field label={t('founderBioLabel')}>
+          <TextInput value={about.founderBio} onChange={(v) => setAbout('founderBio', v)} multiline placeholder={t('bioEllipsisPlaceholder')} />
         </Field>
       </div>
 
       {/* Contact section */}
       <div className="space-y-4">
-        <p className="text-sm font-semibold text-[var(--fg)] border-b border-[var(--border)] pb-2">Contact</p>
+        <p className="text-sm font-semibold text-[var(--fg)] border-b border-[var(--border)] pb-2">{t('contactLabel')}</p>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Phone"><TextInput value={contact.phone} onChange={(v) => setContact('phone', v)} placeholder="+1 555 000 0000" /></Field>
-          <Field label="Email"><TextInput value={contact.email} onChange={(v) => setContact('email', v)} placeholder="hello@restaurant.com" /></Field>
-          <Field label="Website"><TextInput value={contact.website} onChange={(v) => setContact('website', v)} placeholder="https://…" /></Field>
-          <Field label="WhatsApp"><TextInput value={contact.whatsapp} onChange={(v) => setContact('whatsapp', v)} placeholder="+1 555 000 0000" /></Field>
-          <Field label="Instagram"><TextInput value={contact.instagram} onChange={(v) => setContact('instagram', v)} placeholder="@handle" /></Field>
-          <Field label="Facebook"><TextInput value={contact.facebook} onChange={(v) => setContact('facebook', v)} placeholder="facebook.com/page" /></Field>
-          <Field label="TikTok"><TextInput value={contact.tiktok} onChange={(v) => setContact('tiktok', v)} placeholder="@handle" /></Field>
-          <Field label="YouTube"><TextInput value={contact.youtube} onChange={(v) => setContact('youtube', v)} placeholder="youtube.com/channel" /></Field>
-          <Field label="Telegram"><TextInput value={contact.telegram} onChange={(v) => setContact('telegram', v)} placeholder="t.me/channel" /></Field>
+          <Field label={t('phoneLabel')}><TextInput value={contact.phone} onChange={(v) => setContact('phone', v)} placeholder="+1 555 000 0000" /></Field>
+          <Field label={t('emailLabel')}><TextInput value={contact.email} onChange={(v) => setContact('email', v)} placeholder="hello@restaurant.com" /></Field>
+          <Field label={t('websiteLabel')}><TextInput value={contact.website} onChange={(v) => setContact('website', v)} placeholder="https://…" /></Field>
+          <Field label={t('whatsappLabel')}><TextInput value={contact.whatsapp} onChange={(v) => setContact('whatsapp', v)} placeholder="+1 555 000 0000" /></Field>
+          <Field label={t('instagramLabel')}><TextInput value={contact.instagram} onChange={(v) => setContact('instagram', v)} placeholder="@handle" /></Field>
+          <Field label={t('facebookLabel')}><TextInput value={contact.facebook} onChange={(v) => setContact('facebook', v)} placeholder="facebook.com/page" /></Field>
+          <Field label={t('tiktokLabel')}><TextInput value={contact.tiktok} onChange={(v) => setContact('tiktok', v)} placeholder="@handle" /></Field>
+          <Field label={t('youtubeLabel')}><TextInput value={contact.youtube} onChange={(v) => setContact('youtube', v)} placeholder="youtube.com/channel" /></Field>
+          <Field label={t('telegramLabel')}><TextInput value={contact.telegram} onChange={(v) => setContact('telegram', v)} placeholder="t.me/channel" /></Field>
         </div>
-        <Field label="Map Embed URL">
+        <Field label={t('mapEmbedUrlLabel')}>
           <TextInput value={contact.mapEmbedUrl} onChange={(v) => setContact('mapEmbedUrl', v)} placeholder="https://maps.google.com/embed?…" />
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Latitude"><NumberInput value={contact.latitude} onChange={(v) => setContact('latitude', v)} min={-90} max={90} step={0.000001} placeholder="40.7128" /></Field>
-          <Field label="Longitude"><NumberInput value={contact.longitude} onChange={(v) => setContact('longitude', v)} min={-180} max={180} step={0.000001} placeholder="-74.0060" /></Field>
+          <Field label={t('latitudeLabel')}><NumberInput value={contact.latitude} onChange={(v) => setContact('latitude', v)} min={-90} max={90} step={0.000001} placeholder="40.7128" /></Field>
+          <Field label={t('longitudeLabel')}><NumberInput value={contact.longitude} onChange={(v) => setContact('longitude', v)} min={-180} max={180} step={0.000001} placeholder="-74.0060" /></Field>
         </div>
       </div>
     </div>
@@ -563,23 +569,24 @@ function ContentTab({
 // ── Modules Tab ───────────────────────────────────────────────────────────────
 
 const MODULE_FEATURES = [
-  { key: 'reservations', label: 'Reservations', description: 'Table booking system' },
-  { key: 'online_ordering', label: 'Online Ordering', description: 'Order ahead / delivery' },
-  { key: 'loyalty', label: 'Loyalty Program', description: 'Points and rewards' },
-  { key: 'promotions', label: 'Promotions', description: 'Deals and discounts' },
-  { key: 'gallery', label: 'Photo Gallery', description: 'Image showcase' },
-  { key: 'events', label: 'Events', description: 'Upcoming events calendar' },
-  { key: 'reviews', label: 'Reviews', description: 'Customer testimonials' },
-  { key: 'branches', label: 'Multi-location', description: 'Multiple branch support' },
-  { key: 'faq', label: 'FAQ', description: 'Frequently asked questions' },
-  { key: 'website_builder', label: 'Website Builder', description: 'Public homepage editor' },
+  { key: 'reservations', labelKey: 'breadcrumbs.reservations', descKey: 'moduleFeatureReservationsDesc' },
+  { key: 'online_ordering', labelKey: 'moduleFeatureOnlineOrdering', descKey: 'moduleFeatureOnlineOrderingDesc' },
+  { key: 'loyalty', labelKey: 'moduleFeatureLoyaltyProgram', descKey: 'moduleFeatureLoyaltyProgramDesc' },
+  { key: 'promotions', labelKey: 'breadcrumbs.promotions', descKey: 'moduleFeaturePromotionsDesc' },
+  { key: 'gallery', labelKey: 'moduleFeaturePhotoGallery', descKey: 'moduleFeaturePhotoGalleryDesc' },
+  { key: 'events', labelKey: 'moduleFeatureEvents', descKey: 'moduleFeatureEventsDesc' },
+  { key: 'reviews', labelKey: 'breadcrumbs.reviews', descKey: 'moduleFeatureReviewsDesc' },
+  { key: 'branches', labelKey: 'moduleFeatureMultiLocation', descKey: 'moduleFeatureMultiLocationDesc' },
+  { key: 'faq', labelKey: 'moduleFeatureFaq', descKey: 'moduleFeatureFaqDesc' },
+  { key: 'website_builder', labelKey: 'websiteBuilderTitle', descKey: 'moduleFeatureWebsiteBuilderDesc' },
 ]
 
 function ModulesTab() {
+  const t = useTranslations('console')
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--fg-muted)]">
-        Overview of features and modules available in your plan. Contact support to enable or upgrade capabilities.
+        {t('modulesTabDescription')}
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {MODULE_FEATURES.map((feature) => (
@@ -589,14 +596,14 @@ function ModulesTab() {
           >
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 mt-1.5" aria-hidden />
             <div>
-              <p className="text-sm font-medium text-[var(--fg)]">{feature.label}</p>
-              <p className="text-xs text-[var(--fg-muted)]">{feature.description}</p>
+              <p className="text-sm font-medium text-[var(--fg)]">{t(feature.labelKey)}</p>
+              <p className="text-xs text-[var(--fg-muted)]">{t(feature.descKey)}</p>
             </div>
           </div>
         ))}
       </div>
       <p className="text-xs text-[var(--fg-muted)] pt-2">
-        All modules shown above are included in your current plan.
+        {t('allModulesIncludedInPlan')}
       </p>
     </div>
   )
@@ -605,6 +612,7 @@ function ModulesTab() {
 // ── Preview Tab ───────────────────────────────────────────────────────────────
 
 function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: HomepageLayout }) {
+  const t = useTranslations('console')
   const enabledSections = layout.sections
     .filter((s) => s.enabled)
     .sort((a, b) => a.order - b.order)
@@ -617,7 +625,7 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
       <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
         <Eye className="w-4 h-4 text-amber-600 flex-shrink-0" aria-hidden />
         <p className="text-sm text-amber-700 dark:text-amber-400">
-          Live preview — changes reflect after saving. Open the public URL to see the full experience.
+          {t('livePreviewNotice')}
         </p>
       </div>
 
@@ -638,7 +646,7 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
                 <div className="flex-1" style={{ backgroundColor: activeBrandTheme.tokens.primary }} />
                 <div className="flex-1" style={{ backgroundColor: activeBrandTheme.tokens.accent }} />
               </div>
-              <span className="text-xs text-[var(--fg-muted)]">Theme: <strong className="text-[var(--fg)]">{activeBrandTheme.label}</strong></span>
+              <span className="text-xs text-[var(--fg-muted)]">{t('themeColonLabel')} <strong className="text-[var(--fg)]">{activeBrandTheme.label}</strong></span>
             </div>
           )}
           {layout.hero.headline && (
@@ -653,7 +661,7 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
             </div>
           )}
           <div className="text-xs text-[var(--fg-muted)] space-y-1">
-            <p className="font-medium text-[var(--fg)] mb-2">Active sections (in order):</p>
+            <p className="font-medium text-[var(--fg)] mb-2">{t('activeSectionsInOrderLabel')}</p>
             {enabledSections.map((key, i) => (
               <div key={key} className="flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] text-xs flex items-center justify-center font-medium">
@@ -673,7 +681,7 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border)] text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
       >
         <Globe className="w-4 h-4" aria-hidden />
-        Open public page
+        {t('openPublicPage')}
       </a>
     </div>
   )
@@ -689,39 +697,40 @@ function VersionsTab({
   tenantSlug: string
   onRestore: (versionId: string) => void
 }) {
+  const t = useTranslations('console')
   const versions = layout.versions ?? []
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]">
-          <p className="text-xs text-[var(--fg-muted)] mb-1">Status</p>
+          <p className="text-xs text-[var(--fg-muted)] mb-1">{t('tableHeaders.status')}</p>
           <p className={cn('font-medium', layout.status === 'published' ? 'text-emerald-500' : 'text-amber-500')}>
-            {layout.status === 'published' ? 'Published' : 'Draft'}
+            {layout.status === 'published' ? t('publishedLabel') : t('draftLabel')}
           </p>
         </div>
         <div className="p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]">
-          <p className="text-xs text-[var(--fg-muted)] mb-1">Last saved</p>
+          <p className="text-xs text-[var(--fg-muted)] mb-1">{t('lastSavedLabel')}</p>
           <p className="font-medium text-[var(--fg)]">
             {layout.lastSavedAt ? new Date(layout.lastSavedAt).toLocaleString() : '—'}
           </p>
         </div>
         {layout.lastPublishedAt && (
           <div className="col-span-2 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]">
-            <p className="text-xs text-[var(--fg-muted)] mb-1">Last published</p>
+            <p className="text-xs text-[var(--fg-muted)] mb-1">{t('lastPublishedLabel')}</p>
             <p className="font-medium text-[var(--fg)]">{new Date(layout.lastPublishedAt).toLocaleString()}</p>
           </div>
         )}
       </div>
 
       {versions.length === 0 ? (
-        <p className="text-sm text-[var(--fg-muted)] py-4 text-center">No saved versions yet. Publish to create a version.</p>
+        <p className="text-sm text-[var(--fg-muted)] py-4 text-center">{t('noSavedVersionsYet')}</p>
       ) : (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-[var(--fg)]">Version History</p>
+          <p className="text-sm font-medium text-[var(--fg)]">{t('versionHistoryLabel')}</p>
           {versions.map((v) => (
             <div key={v.id} className="flex items-center justify-between p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]">
               <div>
-                <p className="text-sm font-medium text-[var(--fg)]">{v.label ?? `Version ${v.id}`}</p>
+                <p className="text-sm font-medium text-[var(--fg)]">{v.label ?? t('versionNumberLabel', { id: v.id })}</p>
                 <p className="text-xs text-[var(--fg-muted)]">{new Date(v.savedAt).toLocaleString()}</p>
               </div>
               <button
@@ -729,7 +738,7 @@ function VersionsTab({
                 onClick={() => onRestore(v.id)}
                 className="px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
               >
-                Restore
+                {t('restore')}
               </button>
             </div>
           ))}
@@ -747,6 +756,7 @@ function BranchOverridesForm({
   tenantSlug: string
   branchSlug: string
 }) {
+  const t = useTranslations('console')
   const { data: overrides = {}, isLoading } = useBranchOverrides(tenantSlug, branchSlug)
   const save = useSaveBranchOverrides(tenantSlug, branchSlug)
   const [local, setLocal] = useState<BranchContentOverrides | null>(null)
@@ -758,19 +768,19 @@ function BranchOverridesForm({
   if (isLoading) return (
     <div className="flex items-center gap-2 text-[var(--fg-muted)] py-4">
       <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
-      <span>Loading branch overrides…</span>
+      <span>{t('loadingBranchOverrides')}</span>
     </div>
   )
 
   return (
     <div className="space-y-4 mt-4">
       <div className="space-y-4">
-        <Field label="Hero Headline"><TextInput value={current.heroHeadline} onChange={(v) => set('heroHeadline', v)} placeholder="Branch-specific headline" /></Field>
-        <Field label="Hero Subheadline"><TextInput value={current.heroSubheadline} onChange={(v) => set('heroSubheadline', v)} placeholder="Branch-specific subheadline" /></Field>
-        <Field label="Hero Image URL"><TextInput value={current.heroImage} onChange={(v) => set('heroImage', v)} placeholder="https://…" /></Field>
-        <Field label="Branch Description"><TextInput value={current.description} onChange={(v) => set('description', v)} multiline placeholder="Located in…" /></Field>
-        <Field label="Branch Phone"><TextInput value={current.phone} onChange={(v) => set('phone', v)} placeholder="+1 555 000 0000" /></Field>
-        <Field label="About (branch-specific)"><TextInput value={current.about} onChange={(v) => set('about', v)} multiline placeholder="Our downtown location…" /></Field>
+        <Field label={t('heroHeadlineLabel')}><TextInput value={current.heroHeadline} onChange={(v) => set('heroHeadline', v)} placeholder={t('branchSpecificHeadlinePlaceholder')} /></Field>
+        <Field label={t('heroSubheadlineLabel')}><TextInput value={current.heroSubheadline} onChange={(v) => set('heroSubheadline', v)} placeholder={t('branchSpecificSubheadlinePlaceholder')} /></Field>
+        <Field label={t('heroImageUrlLabel')}><TextInput value={current.heroImage} onChange={(v) => set('heroImage', v)} placeholder="https://…" /></Field>
+        <Field label={t('branchDescriptionLabel')}><TextInput value={current.description} onChange={(v) => set('description', v)} multiline placeholder={t('locatedInPlaceholder')} /></Field>
+        <Field label={t('branchPhoneLabel')}><TextInput value={current.phone} onChange={(v) => set('phone', v)} placeholder="+1 555 000 0000" /></Field>
+        <Field label={t('aboutBranchSpecificLabel')}><TextInput value={current.about} onChange={(v) => set('about', v)} multiline placeholder={t('ourDowntownLocationPlaceholder')} /></Field>
       </div>
       <button
         type="button"
@@ -779,25 +789,26 @@ function BranchOverridesForm({
         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-medium hover:bg-[var(--accent-hover)] disabled:opacity-60 transition-colors"
       >
         {save.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        {save.isPending ? 'Saving…' : 'Save Branch Overrides'}
+        {save.isPending ? t('savingEllipsis') : t('saveBranchOverrides')}
       </button>
     </div>
   )
 }
 
 function BranchesTab({ tenantSlug }: { tenantSlug: string }) {
+  const t = useTranslations('console')
   const [selectedBranch, setSelectedBranch] = useState('')
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--fg-muted)]">
-        Override hero content, images, description, and phone number for a specific branch without changing the main website.
+        {t('branchesTabDescription')}
       </p>
-      <Field label="Branch Slug">
+      <Field label={t('branchSlugLabel')}>
         <TextInput
           value={selectedBranch}
           onChange={setSelectedBranch}
-          placeholder="e.g. downtown, westside"
+          placeholder={t('branchSlugPlaceholder')}
         />
       </Field>
       {selectedBranch.trim() && (
@@ -810,6 +821,7 @@ function BranchesTab({ tenantSlug }: { tenantSlug: string }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 function WebsiteBuilderContent() {
+  const t = useTranslations('console')
   const tenantSlug = useTenantStore((s) => s.tenant?.slug ?? '')
   const { data: layout, isLoading, error } = useHomepageLayout(tenantSlug)
   const saveLayout = useSaveLayout(tenantSlug)
@@ -846,19 +858,19 @@ function WebsiteBuilderContent() {
   }
 
   if (!tenantSlug) return (
-    <div className="flex items-center justify-center h-64 text-[var(--fg-muted)]">No tenant selected.</div>
+    <div className="flex items-center justify-center h-64 text-[var(--fg-muted)]">{t('noTenantSelected')}</div>
   )
 
   if (isLoading) return (
     <div className="flex items-center gap-2 justify-center h-64 text-[var(--fg-muted)]">
       <Loader2 className="w-5 h-5 animate-spin" />
-      Loading website builder…
+      {t('loadingWebsiteBuilder')}
     </div>
   )
 
   if (error || !current) return (
     <div className="flex items-center justify-center h-64 text-red-500 text-sm">
-      Failed to load website builder. Please refresh.
+      {t('failedToLoadWebsiteBuilder')}
     </div>
   )
 
@@ -874,15 +886,15 @@ function WebsiteBuilderContent() {
       {/* Header row */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--fg)]">Website Builder</h1>
+          <h1 className="text-2xl font-bold text-[var(--fg)]">{t('websiteBuilderTitle')}</h1>
           <p className="text-sm text-[var(--fg-muted)] mt-1">
-            Customize your public homepage — no code required.
+            {t('websiteBuilderSubtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {saved && (
             <span className="flex items-center gap-1.5 text-sm text-emerald-500">
-              <CheckCircle2 className="w-4 h-4" /> Saved
+              <CheckCircle2 className="w-4 h-4" /> {t('savedLabel')}
             </span>
           )}
           <span className={cn(
@@ -891,7 +903,7 @@ function WebsiteBuilderContent() {
               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
               : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
           )}>
-            {current.status === 'published' ? 'Published' : 'Draft'}
+            {current.status === 'published' ? t('publishedLabel') : t('draftLabel')}
           </span>
           <button
             type="button"
@@ -900,7 +912,7 @@ function WebsiteBuilderContent() {
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border)] text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] disabled:opacity-40 transition-colors"
           >
             {saveLayout.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save
+            {t('save')}
           </button>
           <button
             type="button"
@@ -909,7 +921,7 @@ function WebsiteBuilderContent() {
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-medium hover:bg-[var(--accent-hover)] disabled:opacity-60 transition-colors"
           >
             {publishLayout.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            Publish
+            {t('publish')}
           </button>
         </div>
       </div>
@@ -917,13 +929,13 @@ function WebsiteBuilderContent() {
       {isDirty && (
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-sm text-amber-700 dark:text-amber-400">
           <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
-          You have unsaved changes. Save before publishing.
+          {t('unsavedChangesNotice')}
         </div>
       )}
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[var(--border)] overflow-x-auto">
-        {TABS.map(({ value, label, icon: Icon }) => (
+        {TABS.map(({ value, labelKey, icon: Icon }) => (
           <button
             key={value}
             type="button"
@@ -936,7 +948,7 @@ function WebsiteBuilderContent() {
             )}
           >
             <Icon className="w-4 h-4" aria-hidden />
-            {label}
+            {t(labelKey)}
           </button>
         ))}
       </div>

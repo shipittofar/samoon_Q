@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   useVendors,
   useVendorStats,
@@ -21,10 +22,10 @@ const CATEGORIES: VendorCategory[] = [
   'desserts', 'beverages', 'fast_food', 'healthy', 'other',
 ]
 
-const CATEGORY_LABELS: Record<VendorCategory, string> = {
-  asian: 'Asian', western: 'Western', mediterranean: 'Mediterranean',
-  mexican: 'Mexican', indian: 'Indian', desserts: 'Desserts',
-  beverages: 'Beverages', fast_food: 'Fast Food', healthy: 'Healthy', other: 'Other',
+const CATEGORY_KEY: Record<VendorCategory, string> = {
+  asian: 'asian', western: 'western', mediterranean: 'mediterranean',
+  mexican: 'mexican', indian: 'indian', desserts: 'desserts',
+  beverages: 'beverages', fast_food: 'fastFood', healthy: 'healthy', other: 'other',
 }
 
 const STATUS_COLORS: Record<VendorStatus, string> = {
@@ -79,6 +80,8 @@ interface VendorFormModalProps {
 }
 
 function VendorFormModal({ title, form, onChange, onSubmit, onCancel, isPending, submitLabel }: VendorFormModalProps) {
+  const t = useTranslations('console')
+  const tVendorsPage = useTranslations('vendorsPage')
   const field = (label: string, node: React.ReactNode) => (
     <div>
       <label className="text-sm text-[var(--fg-muted)] block mb-1">{label}</label>
@@ -93,38 +96,38 @@ function VendorFormModal({ title, form, onChange, onSubmit, onCancel, isPending,
       <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--border)] p-6 space-y-4 my-8">
         <h2 id="vendor-modal-title" className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
         <div className="space-y-3">
-          {field('Name', <input value={form.name} onChange={(e) => onChange({ ...form, name: e.target.value })} className={inputCls} />)}
-          {field('Description', <textarea value={form.description} onChange={(e) => onChange({ ...form, description: e.target.value })} rows={2} className={inputCls} />)}
+          {field(t('name'), <input value={form.name} onChange={(e) => onChange({ ...form, name: e.target.value })} className={inputCls} />)}
+          {field(t('descriptionLabel'), <textarea value={form.description} onChange={(e) => onChange({ ...form, description: e.target.value })} rows={2} className={inputCls} />)}
           <div className="grid grid-cols-2 gap-3">
-            {field('Category', (
+            {field(t('category'), (
               <select value={form.category} onChange={(e) => onChange({ ...form, category: e.target.value as VendorCategory })} className={inputCls}>
-                {CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>)}
+                {CATEGORIES.map((c) => <option key={c} value={c}>{tVendorsPage(`categories.${CATEGORY_KEY[c]}`)}</option>)}
               </select>
             ))}
-            {field('Status', (
+            {field(t('tableHeaders.status'), (
               <select value={form.status} onChange={(e) => onChange({ ...form, status: e.target.value as VendorStatus })} className={inputCls}>
                 {(['active', 'inactive', 'pending', 'suspended'] as VendorStatus[]).map((s) => (
-                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                  <option key={s} value={s}>{tVendorsPage(`statuses.${s}`)}</option>
                 ))}
               </select>
             ))}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {field('Commission Rate (%)', <input type="number" min={0} max={100} value={form.commissionRate} onChange={(e) => onChange({ ...form, commissionRate: e.target.value })} className={inputCls} />)}
-            {field('Stall Number', <input value={form.stallNumber} onChange={(e) => onChange({ ...form, stallNumber: e.target.value })} className={inputCls} />)}
+            {field(t('commissionRatePercentLabel'), <input type="number" min={0} max={100} value={form.commissionRate} onChange={(e) => onChange({ ...form, commissionRate: e.target.value })} className={inputCls} />)}
+            {field(t('stallNumberLabelForm'), <input value={form.stallNumber} onChange={(e) => onChange({ ...form, stallNumber: e.target.value })} className={inputCls} />)}
           </div>
-          {field('Contact Email', <input type="email" value={form.contactEmail} onChange={(e) => onChange({ ...form, contactEmail: e.target.value })} className={inputCls} />)}
-          {field('Contact Phone', <input value={form.contactPhone} onChange={(e) => onChange({ ...form, contactPhone: e.target.value })} className={inputCls} />)}
+          {field(t('contactEmailLabel'), <input type="email" value={form.contactEmail} onChange={(e) => onChange({ ...form, contactEmail: e.target.value })} className={inputCls} />)}
+          {field(t('contactPhoneLabel'), <input value={form.contactPhone} onChange={(e) => onChange({ ...form, contactPhone: e.target.value })} className={inputCls} />)}
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.featured} onChange={(e) => onChange({ ...form, featured: e.target.checked })} className="rounded" />
-            <span className="text-sm text-[var(--fg)]">Featured vendor</span>
+            <span className="text-sm text-[var(--fg)]">{t('featuredVendorLabel')}</span>
           </label>
         </div>
         <div className="flex justify-end gap-3 pt-2">
-          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm text-[var(--fg-muted)] border border-[var(--border)]">Cancel</button>
+          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm text-[var(--fg-muted)] border border-[var(--border)]">{t('cancel')}</button>
           <button onClick={onSubmit} disabled={isPending || !form.name || !form.contactEmail}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white disabled:opacity-40">
-            {isPending ? 'Saving…' : submitLabel}
+            {isPending ? t('savingEllipsis') : submitLabel}
           </button>
         </div>
       </div>
@@ -133,6 +136,8 @@ function VendorFormModal({ title, form, onChange, onSubmit, onCancel, isPending,
 }
 
 function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: () => void }) {
+  const t = useTranslations('console')
+  const tVendorsPage = useTranslations('vendorsPage')
   const { data: stats, isLoading: statsLoading } = useVendorStats(vendorId)
   const { data: settlements, isLoading: settleLoading } = useVendorSettlements(vendorId)
   const createSettlement = useCreateSettlement()
@@ -143,19 +148,19 @@ function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: ()
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
       <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--border)] p-6 space-y-5 my-8">
         <div className="flex items-center justify-between">
-          <h2 id="stats-modal-title" className="text-lg font-semibold text-[var(--fg)]">Vendor Statistics</h2>
+          <h2 id="stats-modal-title" className="text-lg font-semibold text-[var(--fg)]">{t('vendorStatistics')}</h2>
           <button onClick={onClose} className="text-[var(--fg-muted)] text-xl leading-none">×</button>
         </div>
 
-        {statsLoading ? <p className="text-[var(--fg-muted)]">Loading stats…</p> : stats && (
+        {statsLoading ? <p className="text-[var(--fg-muted)]">{t('loadingStats')}</p> : stats && (
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Orders', value: stats.ordersCount.toLocaleString() },
-              { label: 'Revenue', value: `$${stats.revenue.toLocaleString()}` },
-              { label: 'Commission Paid', value: `$${stats.commissionPaid.toLocaleString()}` },
-              { label: 'Active Products', value: stats.activeProducts },
-              { label: 'Avg Rating', value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—' },
-              { label: 'Period', value: stats.period },
+              { label: t('customerTableHeaders.orders'), value: stats.ordersCount.toLocaleString() },
+              { label: t('vendorRevenue'), value: `$${stats.revenue.toLocaleString()}` },
+              { label: t('commissionPaidLabel'), value: `$${stats.commissionPaid.toLocaleString()}` },
+              { label: t('activeProductsLabel'), value: stats.activeProducts },
+              { label: t('avgRatingLabel'), value: stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—' },
+              { label: t('periodLabel'), value: stats.period },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-lg border border-[var(--border)] p-3">
                 <p className="text-sm font-semibold text-[var(--fg)]">{value}</p>
@@ -166,8 +171,8 @@ function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: ()
         )}
 
         <div>
-          <h3 className="text-sm font-semibold text-[var(--fg)] mb-2">Settlements</h3>
-          {settleLoading ? <p className="text-[var(--fg-muted)]">Loading…</p> : (
+          <h3 className="text-sm font-semibold text-[var(--fg)] mb-2">{t('settlements')}</h3>
+          {settleLoading ? <p className="text-[var(--fg-muted)]">{t('loadingEllipsis')}</p> : (
             <ul className="space-y-2 max-h-40 overflow-y-auto mb-3">
               {settlements?.length ? settlements.map((s) => (
                 <li key={s.id} className="flex items-center justify-between text-sm border-b border-[var(--border)] pb-2">
@@ -180,20 +185,20 @@ function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: ()
                     s.status === 'paid' ? 'bg-green-100 text-green-700' :
                     s.status === 'failed' ? 'bg-red-100 text-red-600' :
                     'bg-yellow-100 text-yellow-700'
-                  }`}>{s.status}</span>
+                  }`}>{tVendorsPage(`settlementStatuses.${s.status}`)}</span>
                 </li>
-              )) : <p className="text-[var(--fg-muted)] text-sm">No settlements yet.</p>}
+              )) : <p className="text-[var(--fg-muted)] text-sm">{t('noSettlementsYet')}</p>}
             </ul>
           )}
 
           <div className="flex gap-2">
             <input
               type="number"
-              placeholder="Gross revenue ($)"
+              placeholder={t('grossRevenuePlaceholder')}
               value={grossRevenue}
               onChange={(e) => setGrossRevenue(e.target.value)}
               className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--fg)]"
-              aria-label="Settlement gross revenue"
+              aria-label={t('settlementGrossRevenueAria')}
             />
             <button
               onClick={() => {
@@ -203,10 +208,10 @@ function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: ()
                 })
               }}
               disabled={createSettlement.isPending || !grossRevenue}
-              aria-label="Create settlement"
+              aria-label={t('createSettlementAria')}
               className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white disabled:opacity-40"
             >
-              {createSettlement.isPending ? 'Creating…' : 'Settle'}
+              {createSettlement.isPending ? t('creatingEllipsis') : t('settle')}
             </button>
           </div>
         </div>
@@ -216,6 +221,8 @@ function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: ()
 }
 
 export default function AdminVendorsPage() {
+  const t = useTranslations('console')
+  const tVendorsPage = useTranslations('vendorsPage')
   const { data: vendors, isLoading } = useVendors()
   const createMutation = useCreateVendor()
   const updateMutation = useUpdateVendor()
@@ -232,20 +239,20 @@ export default function AdminVendorsPage() {
     <PermissionGuard permission="vendors.view" fallback={<AccessDenied />}>
     <main className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[var(--fg)]">Vendor Management</h1>
+        <h1 className="text-2xl font-bold text-[var(--fg)]">{t('vendorManagement')}</h1>
         <button
           onClick={() => { setShowCreate(true); setCreateForm(DEFAULT_FORM) }}
           className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white"
-          aria-label="Create vendor"
+          aria-label={t('createVendorAria')}
         >
-          + Add Vendor
+          + {t('addVendor')}
         </button>
       </div>
 
       {isLoading ? (
-        <p className="text-[var(--fg-muted)]">Loading vendors…</p>
+        <p className="text-[var(--fg-muted)]">{tVendorsPage('loadingVendors')}</p>
       ) : !vendors?.length ? (
-        <p className="text-[var(--fg-muted)]">No vendors configured.</p>
+        <p className="text-[var(--fg-muted)]">{t('noVendorsConfigured')}</p>
       ) : (
         <ul className="space-y-3">
           {vendors.map((vendor) => (
@@ -254,44 +261,44 @@ export default function AdminVendorsPage() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[vendor.status]}`}>
-                    {vendor.status}
+                    {tVendorsPage(`statuses.${vendor.status}`)}
                   </span>
                   {vendor.featured && (
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--primary)] text-white">Featured</span>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--primary)] text-white">{t('featured')}</span>
                   )}
                   <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
-                    {CATEGORY_LABELS[vendor.category]}
+                    {tVendorsPage(`categories.${CATEGORY_KEY[vendor.category]}`)}
                   </span>
                 </div>
                 <p className="font-medium text-[var(--fg)] mt-1">{vendor.name}</p>
                 <p className="text-sm text-[var(--fg-muted)] truncate">{vendor.description}</p>
                 {vendor.stallNumber && (
-                  <p className="text-xs text-[var(--fg-muted)]">Stall {vendor.stallNumber} · ★ {vendor.rating > 0 ? vendor.rating.toFixed(1) : '—'}</p>
+                  <p className="text-xs text-[var(--fg-muted)]">{t('stallRatingLabel', { number: vendor.stallNumber, rating: vendor.rating > 0 ? vendor.rating.toFixed(1) : '—' })}</p>
                 )}
               </div>
               <div className="flex gap-2 shrink-0 flex-wrap justify-end">
                 <button
                   onClick={() => setStatsVendorId(vendor.id)}
-                  aria-label={`View stats for ${vendor.name}`}
+                  aria-label={t('viewStatsForAria', { name: vendor.name })}
                   className="px-3 py-1 rounded-lg text-sm border border-[var(--border)] text-[var(--fg)]"
                 >
-                  Stats
+                  {t('statsLabel')}
                 </button>
                 <button
                   onClick={() => { setEditTarget(vendor); setEditForm(vendorToForm(vendor)) }}
-                  aria-label={`Edit ${vendor.name}`}
+                  aria-label={t('editNameAria', { name: vendor.name })}
                   className="px-3 py-1 rounded-lg text-sm border border-[var(--border)] text-[var(--fg)]"
                 >
-                  Edit
+                  {t('edit')}
                 </button>
                 {vendor.status === 'active' && (
                   <button
                     onClick={() => disableMutation.mutate(vendor.id)}
                     disabled={disableMutation.isPending}
-                    aria-label={`Disable ${vendor.name}`}
+                    aria-label={t('disableNameAria', { name: vendor.name })}
                     className="px-3 py-1 rounded-lg text-sm border border-red-300 text-red-600 disabled:opacity-40"
                   >
-                    Disable
+                    {t('disable')}
                   </button>
                 )}
               </div>
@@ -302,7 +309,7 @@ export default function AdminVendorsPage() {
 
       {showCreate && (
         <VendorFormModal
-          title="Add Vendor"
+          title={t('addVendor')}
           form={createForm}
           onChange={setCreateForm}
           onSubmit={() => createMutation.mutate(formToPayload(createForm), {
@@ -310,13 +317,13 @@ export default function AdminVendorsPage() {
           })}
           onCancel={() => setShowCreate(false)}
           isPending={createMutation.isPending}
-          submitLabel="Add Vendor"
+          submitLabel={t('addVendor')}
         />
       )}
 
       {editTarget && (
         <VendorFormModal
-          title="Edit Vendor"
+          title={t('editVendor')}
           form={editForm}
           onChange={setEditForm}
           onSubmit={() => updateMutation.mutate(
@@ -325,7 +332,7 @@ export default function AdminVendorsPage() {
           )}
           onCancel={() => setEditTarget(null)}
           isPending={updateMutation.isPending}
-          submitLabel="Save"
+          submitLabel={t('save')}
         />
       )}
 
