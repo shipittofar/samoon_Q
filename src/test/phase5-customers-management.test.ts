@@ -153,7 +153,7 @@ describe('Admin customers page — empty state', () => {
   })
 
   it('G: empty state has user-facing message', () => {
-    expect(page).toMatch(/No customers found/)
+    expect(page).toMatch(/t\('noCustomersFound'\)/)
   })
 })
 

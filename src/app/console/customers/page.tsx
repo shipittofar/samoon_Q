@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useTranslations } from 'next-intl'
 import { Search, Users, Mail, Phone, ShoppingBag, Star, TrendingUp, Loader2, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { Avatar } from '@/components/ui'
@@ -20,9 +21,15 @@ const TIER_BADGE: Record<AdminCustomerTier, 'default' | 'success' | 'info' | 'se
   vip: 'default', regular: 'success', new: 'info',
 }
 
+const TIER_KEY: Record<AdminCustomerTier, string> = {
+  vip: 'tierVip', regular: 'tierRegular', new: 'tierNew',
+}
+
 const TIERS: Array<AdminCustomerTier | 'all'> = ['all', 'vip', 'regular', 'new']
 
 export default function AdminCustomersPage() {
+  const t = useTranslations('console')
+  const tCommon = useTranslations('common')
   const [search, setSearch] = useState('')
   const [tierFilter, setTierFilter] = useState<AdminCustomerTier | 'all'>('all')
 
@@ -70,17 +77,17 @@ export default function AdminCustomersPage() {
       <div className="pt-20 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
-            <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">Customers</h1>
-            <p className="text-[var(--fg-muted)] mt-1">Manage your customer base and loyalty</p>
+            <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('breadcrumbs.customers')}</h1>
+            <p className="text-[var(--fg-muted)] mt-1">{t('customersPageSubtitle')}</p>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
-              { label: 'Total Customers', value: isLoading ? '—' : stats.total, icon: Users,       color: 'text-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/30' },
-              { label: 'VIP Members',     value: isLoading ? '—' : stats.vipCount,  icon: Star,        color: 'text-orange-500',  bg: 'bg-orange-50 dark:bg-orange-950/30' },
-              { label: 'Total Revenue',   value: isLoading ? '—' : formatCurrency(stats.totalRevenue), icon: TrendingUp,  color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
-              { label: 'Avg Order Value', value: isLoading ? '—' : formatCurrency(stats.avgOrderValue), icon: ShoppingBag, color: 'text-purple-500',  bg: 'bg-purple-50 dark:bg-purple-950/30' },
+              { label: t('totalCustomers'), value: isLoading ? '—' : stats.total, icon: Users,       color: 'text-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/30' },
+              { label: t('vipMembers'),     value: isLoading ? '—' : stats.vipCount,  icon: Star,        color: 'text-orange-500',  bg: 'bg-orange-50 dark:bg-orange-950/30' },
+              { label: t('totalRevenue'),   value: isLoading ? '—' : formatCurrency(stats.totalRevenue), icon: TrendingUp,  color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
+              { label: t('avgOrderValue'), value: isLoading ? '—' : formatCurrency(stats.avgOrderValue), icon: ShoppingBag, color: 'text-purple-500',  bg: 'bg-purple-50 dark:bg-purple-950/30' },
             ].map(({ label, value, icon: Icon, color, bg }) => (
               <div key={label} className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4">
                 <div className={`inline-flex h-9 w-9 rounded-xl ${bg} items-center justify-center mb-3`}>
@@ -99,18 +106,18 @@ export default function AdminCustomersPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search customers…"
+                placeholder={t('searchCustomersPlaceholder')}
                 className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
               />
             </div>
             <div className="flex gap-2">
-              {TIERS.map((t) => (
+              {TIERS.map((tf) => (
                 <button
-                  key={t}
-                  onClick={() => setTierFilter(t)}
-                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all capitalize ${tierFilter === t ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
+                  key={tf}
+                  onClick={() => setTierFilter(tf)}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all capitalize ${tierFilter === tf ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
                 >
-                  {t === 'all' ? 'All' : t.toUpperCase()}
+                  {tf === 'all' ? t('allTiers') : t(TIER_KEY[tf]).toUpperCase()}
                 </button>
               ))}
             </div>
@@ -120,7 +127,7 @@ export default function AdminCustomersPage() {
           {isLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm">Loading customers…</span>
+              <span className="text-sm">{t('loadingCustomers')}</span>
             </div>
           )}
 
@@ -128,8 +135,8 @@ export default function AdminCustomersPage() {
           {isError && !isLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <AlertCircle className="h-8 w-8 text-red-400" />
-              <p className="text-sm text-[var(--fg-muted)]">Failed to load customers.</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>Retry</Button>
+              <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadCustomers')}</p>
+              <Button variant="secondary" size="sm" onClick={() => refetch()}>{tCommon('retry')}</Button>
             </div>
           )}
 
@@ -143,14 +150,14 @@ export default function AdminCustomersPage() {
                       <th className="px-4 py-3 w-10">
                         <input
                           type="checkbox"
-                          aria-label="Select all customers"
+                          aria-label={t('selectAllCustomersAria')}
                           checked={customers.length > 0 && selectedIds.size === customers.length}
                           onChange={toggleSelectAll}
                           className="rounded border-[var(--border)]"
                         />
                       </th>
-                      {['Customer', 'Contact', 'Orders', 'Total Spent', 'Avg Order', 'Joined', 'Tier'].map((h) => (
-                        <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                      {['customer', 'contact', 'orders', 'totalSpent', 'avgOrder', 'joined', 'tier'].map((h) => (
+                        <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{t(`customerTableHeaders.${h}`)}</th>
                       ))}
                     </tr>
                   </thead>
@@ -166,7 +173,7 @@ export default function AdminCustomersPage() {
                         <td className="px-4 py-3.5">
                           <input
                             type="checkbox"
-                            aria-label={`Select ${c.first_name} ${c.last_name}`}
+                            aria-label={t('selectCustomerAria', { name: `${c.first_name} ${c.last_name}` })}
                             checked={selectedIds.has(c.id)}
                             onChange={() => toggleSelect(c.id)}
                             className="rounded border-[var(--border)]"
@@ -198,7 +205,7 @@ export default function AdminCustomersPage() {
                 {customers.length === 0 && (
                   <div className="py-16 text-center">
                     <Users className="h-10 w-10 text-[var(--fg-subtle)] mx-auto mb-3" />
-                    <p className="text-[var(--fg-muted)]">No customers found.</p>
+                    <p className="text-[var(--fg-muted)]">{t('noCustomersFound')}</p>
                   </div>
                 )}
               </div>
@@ -212,7 +219,7 @@ export default function AdminCustomersPage() {
         onClearSelection={() => setSelectedIds(new Set())}
         actions={[
           {
-            label: 'Export Selected',
+            label: t('exportSelected'),
             onClick: () => { bulkExport.mutate(selectedArr); setSelectedIds(new Set()) },
             variant: 'primary',
             disabled: bulkExport.isPending,

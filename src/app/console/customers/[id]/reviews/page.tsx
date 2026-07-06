@@ -2,6 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { ArrowLeft, Star, MessageSquare, Loader2, AlertCircle } from 'lucide-react'
 import { Avatar } from '@/components/ui'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -24,6 +25,7 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 function ReviewsContent({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: customer, isLoading: customerLoading, isError: customerError } = useAdminCustomer(id)
   const { data: reviews = [], isLoading: reviewsLoading } = useAdminCustomerReviews(id)
 
@@ -31,7 +33,7 @@ function ReviewsContent({ id }: { id: string }) {
     return (
       <div className="flex items-center justify-center h-48 gap-2 text-[var(--fg-muted)]">
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm">Loading reviews…</span>
+        <span className="text-sm">{t('loadingReviews')}</span>
       </div>
     )
   }
@@ -40,9 +42,9 @@ function ReviewsContent({ id }: { id: string }) {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-3">
         <AlertCircle className="h-8 w-8 text-red-400" />
-        <p className="text-sm text-[var(--fg-muted)]">Customer not found.</p>
+        <p className="text-sm text-[var(--fg-muted)]">{t('customerNotFound')}</p>
         <Link href="/console/customers" className="text-sm text-blue-600 hover:underline">
-          Back to Customers
+          {t('backToCustomers')}
         </Link>
       </div>
     )
@@ -78,14 +80,14 @@ function ReviewsContent({ id }: { id: string }) {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
-          <p className="text-xs text-[var(--fg-muted)] mb-1">Total Reviews</p>
+          <p className="text-xs text-[var(--fg-muted)] mb-1">{t('totalReviews')}</p>
           <div className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4 text-blue-500" />
             <span className="text-xl font-bold text-[var(--fg)]">{reviews.length}</span>
           </div>
         </div>
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
-          <p className="text-xs text-[var(--fg-muted)] mb-1">Average Rating</p>
+          <p className="text-xs text-[var(--fg-muted)] mb-1">{t('averageRating')}</p>
           <div className="flex items-center gap-2">
             <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
             <span className="text-xl font-bold text-[var(--fg)]">
@@ -97,11 +99,11 @@ function ReviewsContent({ id }: { id: string }) {
 
       {/* Reviews list */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-[var(--fg)]">Reviews</h2>
+        <h2 className="text-sm font-semibold text-[var(--fg)]">{t('breadcrumbs.reviews')}</h2>
         {reviews.length === 0 ? (
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-8 flex flex-col items-center gap-3 text-center">
             <MessageSquare className="h-8 w-8 text-[var(--fg-muted)]" />
-            <p className="text-sm text-[var(--fg-muted)]">No reviews yet.</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('noReviewsYet')}</p>
           </div>
         ) : (
           reviews.map((review) => (
@@ -117,8 +119,8 @@ function ReviewsContent({ id }: { id: string }) {
                 <p className="text-sm text-[var(--fg)]">{review.comment}</p>
               )}
               <p className="text-xs text-[var(--fg-muted)] font-mono">
-                Item: {review.menu_item_id}
-                {review.order_id && ` · Order: ${review.order_id}`}
+                {t('itemLabel', { item: review.menu_item_id })}
+                {review.order_id && ` · ${t('orderLabel', { order: review.order_id })}`}
               </p>
             </div>
           ))

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Star, MessageSquare, Flag, Eye, EyeOff, Trash2, TrendingUp,
   ThumbsUp, BadgeCheck, BarChart2, Loader2,
@@ -16,12 +17,12 @@ import type { ReviewStatus, BusinessReview } from '@/types/business-review'
 
 type Tab = 'published' | 'pending' | 'hidden' | 'spam' | 'analytics'
 
-const STATUS_TABS: { value: Tab; label: string }[] = [
-  { value: 'published', label: 'Published' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'hidden', label: 'Hidden' },
-  { value: 'spam', label: 'Spam' },
-  { value: 'analytics', label: 'Analytics' },
+const STATUS_TABS: { value: Tab; labelKey: string }[] = [
+  { value: 'published', labelKey: 'reviewTabPublished' },
+  { value: 'pending', labelKey: 'statusPending' },
+  { value: 'hidden', labelKey: 'reviewTabHidden' },
+  { value: 'spam', labelKey: 'reviewTabSpam' },
+  { value: 'analytics', labelKey: 'customerTabAnalytics' },
 ]
 
 function ReplyModal({
@@ -33,25 +34,27 @@ function ReplyModal({
   onSubmit: (text: string) => void
   onClose: () => void
 }) {
+  const t = useTranslations('console')
+  const tNotifications = useTranslations('notifications')
   const [text, setText] = useState(review.ownerReply?.text ?? '')
   return (
     <div
       className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Reply to review"
+      aria-label={t('replyToReviewAria')}
     >
       <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 w-full max-w-lg shadow-xl">
-        <h3 className="text-lg font-semibold text-[var(--fg)] mb-1">Reply to review</h3>
-        <p className="text-sm text-[var(--fg-muted)] mb-4">by {review.customerName} · {review.rating}★</p>
+        <h3 className="text-lg font-semibold text-[var(--fg)] mb-1">{t('replyToReview')}</h3>
+        <p className="text-sm text-[var(--fg-muted)] mb-4">{tNotifications('byActor', { name: review.customerName })} · {review.rating}★</p>
         <p className="text-sm text-[var(--fg-muted)] italic mb-4 line-clamp-3">{review.comment}</p>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={4}
-          placeholder="Write a thoughtful response…"
+          placeholder={t('thoughtfulResponsePlaceholder')}
           className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--fg)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent)] mb-4"
-          aria-label="Reply text"
+          aria-label={t('replyTextAria')}
         />
         <div className="flex gap-3 justify-end">
           <button
@@ -59,7 +62,7 @@ function ReplyModal({
             onClick={onClose}
             className="px-4 py-2 rounded-xl border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             type="button"
@@ -67,7 +70,7 @@ function ReplyModal({
             disabled={!text.trim()}
             className="px-4 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-medium hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
           >
-            {review.ownerReply ? 'Update reply' : 'Post reply'}
+            {review.ownerReply ? t('updateReply') : t('postReply')}
           </button>
         </div>
       </div>
@@ -76,26 +79,30 @@ function ReplyModal({
 }
 
 function AnalyticsPanel({ tenantId }: { tenantId: string }) {
+  const t = useTranslations('console')
   const { data, isLoading } = useReviewAnalytics(tenantId)
 
   if (isLoading) return (
     <div className="flex items-center gap-2 py-10 text-[var(--fg-muted)]">
       <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-      <span>Loading analytics…</span>
+      <span>{t('loadingReviewAnalytics')}</span>
     </div>
   )
 
-  if (!data) return <p className="text-sm text-[var(--fg-muted)] py-10">No analytics data available.</p>
+  if (!data) return <p className="text-sm text-[var(--fg-muted)] py-10">{t('noAnalyticsDataAvailable')}</p>
+
+  const trendKey = data.trend === 'up' ? 'trendImproving' : data.trend === 'down' ? 'trendDeclining' : 'trendStable'
+  const trendSign = data.trend === 'up' ? '+' : data.trend === 'down' ? '-' : ''
 
   return (
     <div className="space-y-8">
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Average Rating', value: `${data.averageRating.toFixed(1)} ★`, icon: Star, color: 'text-amber-400' },
-          { label: 'Total Reviews', value: data.totalReviews.toLocaleString(), icon: MessageSquare, color: 'text-blue-500' },
-          { label: 'Reply Rate', value: `${Math.round(data.replyRate * 100)}%`, icon: ThumbsUp, color: 'text-emerald-500' },
-          { label: 'Avg Reply Time', value: `${data.avgReplyTimeHours}h`, icon: TrendingUp, color: 'text-purple-500' },
+          { label: t('averageRating'), value: `${data.averageRating.toFixed(1)} ★`, icon: Star, color: 'text-amber-400' },
+          { label: t('totalReviews'), value: data.totalReviews.toLocaleString(), icon: MessageSquare, color: 'text-blue-500' },
+          { label: t('replyRate'), value: `${Math.round(data.replyRate * 100)}%`, icon: ThumbsUp, color: 'text-emerald-500' },
+          { label: t('avgReplyTime'), value: t('hoursShort', { hours: data.avgReplyTimeHours }), icon: TrendingUp, color: 'text-purple-500' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4">
             <Icon className={cn('w-5 h-5 mb-2', color)} aria-hidden="true" />
@@ -110,10 +117,10 @@ function AnalyticsPanel({ tenantId }: { tenantId: string }) {
         <TrendingUp className={cn('w-5 h-5', data.trend === 'up' ? 'text-emerald-500' : data.trend === 'down' ? 'text-red-500' : 'text-[var(--fg-muted)]')} aria-hidden="true" />
         <div>
           <p className="text-sm font-semibold text-[var(--fg)]">
-            {data.trend === 'up' ? 'Improving' : data.trend === 'down' ? 'Declining' : 'Stable'} trend
+            {t('trendLabel', { trend: t(trendKey) })}
           </p>
           <p className="text-xs text-[var(--fg-muted)]">
-            Rating {data.trend === 'up' ? '+' : data.trend === 'down' ? '-' : ''}{data.trendDelta.toFixed(1)} over the past 3 months
+            {t('ratingDeltaOverMonths', { sign: trendSign, delta: data.trendDelta.toFixed(1) })}
           </p>
         </div>
       </div>
@@ -122,7 +129,7 @@ function AnalyticsPanel({ tenantId }: { tenantId: string }) {
       <div>
         <h3 className="text-sm font-semibold text-[var(--fg)] mb-3 flex items-center gap-2">
           <BarChart2 className="w-4 h-4 text-[var(--fg-muted)]" aria-hidden="true" />
-          Top keywords in reviews
+          {t('topKeywordsInReviews')}
         </h3>
         <div className="flex flex-wrap gap-2">
           {data.topKeywords.map(({ word, count }) => (
@@ -140,6 +147,7 @@ function AnalyticsPanel({ tenantId }: { tenantId: string }) {
 }
 
 export default function AdminReviewsPage() {
+  const t = useTranslations('console')
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const [activeTab, setActiveTab] = useState<Tab>('published')
   const [replyTarget, setReplyTarget] = useState<BusinessReview | null>(null)
@@ -161,7 +169,7 @@ export default function AdminReviewsPage() {
       <main id="main-content" className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex items-center gap-3 mb-8">
           <Star className="w-6 h-6 text-amber-400" aria-hidden="true" />
-          <h1 className="text-2xl font-bold text-[var(--fg)]">Review Management</h1>
+          <h1 className="text-2xl font-bold text-[var(--fg)]">{t('reviewManagement')}</h1>
         </div>
 
         {/* Summary bar */}
@@ -173,7 +181,7 @@ export default function AdminReviewsPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-6 border-b border-[var(--border)]" role="tablist">
-          {STATUS_TABS.map(({ value, label }) => {
+          {STATUS_TABS.map(({ value, labelKey }) => {
             const count = value === 'analytics' ? undefined : allReviews.filter((r) => r.status === value).length
             return (
               <button
@@ -189,7 +197,7 @@ export default function AdminReviewsPage() {
                     : 'border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]',
                 )}
               >
-                {label}
+                {t(labelKey)}
                 {count !== undefined && (
                   <span className="ml-1.5 text-xs bg-[var(--bg-secondary)] rounded-full px-1.5 py-0.5">
                     {count}
@@ -206,11 +214,11 @@ export default function AdminReviewsPage() {
         ) : isLoading ? (
           <div className="flex items-center gap-2 py-10 text-[var(--fg-muted)]">
             <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-            <span>Loading reviews…</span>
+            <span>{t('loadingReviews')}</span>
           </div>
         ) : filtered.length === 0 ? (
           <p className="text-sm text-[var(--fg-muted)] py-10 text-center">
-            No {activeTab} reviews.
+            {t('noStatusReviews', { status: t(STATUS_TABS.find((s) => s.value === activeTab)?.labelKey ?? '') })}
           </p>
         ) : (
           <div className="space-y-4">
@@ -230,7 +238,7 @@ export default function AdminReviewsPage() {
                       className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-100 transition-colors"
                     >
                       <Eye className="w-3.5 h-3.5" aria-hidden="true" />
-                      Approve
+                      {t('approve')}
                     </button>
                   )}
                   {review.status !== 'hidden' && (
@@ -240,7 +248,7 @@ export default function AdminReviewsPage() {
                       className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-[var(--fg-muted)] text-xs font-medium hover:bg-gray-200 transition-colors"
                     >
                       <EyeOff className="w-3.5 h-3.5" aria-hidden="true" />
-                      Hide
+                      {t('hideAction')}
                     </button>
                   )}
                   {review.status !== 'spam' && (
@@ -250,7 +258,7 @@ export default function AdminReviewsPage() {
                       className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 text-xs font-medium hover:bg-orange-100 transition-colors"
                     >
                       <Flag className="w-3.5 h-3.5" aria-hidden="true" />
-                      Mark spam
+                      {t('markSpam')}
                     </button>
                   )}
                   <button
@@ -259,7 +267,7 @@ export default function AdminReviewsPage() {
                     className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-100 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                    Delete
+                    {t('deleteAction')}
                   </button>
                   <button
                     type="button"
@@ -267,7 +275,7 @@ export default function AdminReviewsPage() {
                     className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs font-medium hover:bg-blue-100 transition-colors ml-auto"
                   >
                     <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
-                    {review.ownerReply ? 'Edit reply' : 'Reply'}
+                    {review.ownerReply ? t('editReply') : t('reply')}
                   </button>
                 </div>
               </div>

@@ -667,7 +667,7 @@ describe('P. /console/loyalty/page.tsx source-text', () => {
   })
 
   it('has create reward button', () => {
-    expect(adminSrc).toContain('Create Reward')
+    expect(adminSrc).toContain("t('createReward')")
   })
 
   it('has disable reward button', () => {

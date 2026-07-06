@@ -2,6 +2,7 @@
 
 import { use, useState, useRef } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   ArrowLeft, Mail, Phone, ShoppingBag, Star, TrendingUp,
   Calendar, Clock, Award, Loader2, AlertCircle, User, MessageSquare,
@@ -27,7 +28,7 @@ import {
 import { formatCurrency, formatDate } from '@/utils'
 import type {
   AdminCustomerTier, CustomerTimelineEvent, CustomerNote,
-  CustomerTagColor, CustomerPayment,
+  CustomerTagColor, CustomerPayment, OrderType, PaymentMethod,
 } from '@/types'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -38,10 +39,16 @@ const TIER_BADGE: Record<AdminCustomerTier, 'default' | 'success' | 'info'> = {
   new: 'info',
 }
 
-const TIER_LABEL: Record<AdminCustomerTier, string> = {
-  vip: 'VIP',
-  regular: 'Regular',
-  new: 'New',
+const TIER_KEY: Record<AdminCustomerTier, string> = {
+  vip: 'tierVip',
+  regular: 'tierRegular',
+  new: 'tierNew',
+}
+
+const ORDER_TYPE_KEY: Record<OrderType, string> = { delivery: 'delivery', pickup: 'pickup', dine_in: 'dineIn' }
+const PAYMENT_METHOD_KEY: Record<PaymentMethod, string> = { card: 'card', cash: 'cash', online: 'online', wallet: 'wallet' }
+const PAYMENT_STATUS_KEY: Record<string, string> = {
+  pending: 'paymentStatusPending', paid: 'paymentStatusPaid', failed: 'paymentStatusFailed', refunded: 'paymentStatusRefunded', completed: 'paymentStatusPaid',
 }
 
 const TAG_COLOR_CLASSES: Record<CustomerTagColor, string> = {
@@ -119,17 +126,17 @@ const TIMELINE_COLORS: Partial<Record<CustomerTimelineEvent['type'], string>> = 
 
 type TabId = 'overview' | 'timeline' | 'orders' | 'reservations' | 'loyalty' | 'reviews' | 'notes' | 'tags' | 'marketing' | 'analytics'
 
-const TABS: Array<{ id: TabId; label: string; icon: React.ElementType }> = [
-  { id: 'overview',      label: 'Overview',      icon: User },
-  { id: 'timeline',      label: 'Timeline',      icon: Clock },
-  { id: 'orders',        label: 'Orders',        icon: ShoppingBag },
-  { id: 'reservations',  label: 'Reservations',  icon: Calendar },
-  { id: 'loyalty',       label: 'Loyalty',       icon: Gift },
-  { id: 'reviews',       label: 'Reviews',       icon: MessageSquare },
-  { id: 'notes',         label: 'Notes',         icon: FileText },
-  { id: 'tags',          label: 'Tags',          icon: Tag },
-  { id: 'marketing',     label: 'Marketing',     icon: Megaphone },
-  { id: 'analytics',     label: 'Analytics',     icon: BarChart2 },
+const TABS: Array<{ id: TabId; labelKey: string; icon: React.ElementType }> = [
+  { id: 'overview',      labelKey: 'customerTabOverview',      icon: User },
+  { id: 'timeline',      labelKey: 'customerTabTimeline',      icon: Clock },
+  { id: 'orders',        labelKey: 'customerTabOrders',        icon: ShoppingBag },
+  { id: 'reservations',  labelKey: 'breadcrumbs.reservations', icon: Calendar },
+  { id: 'loyalty',       labelKey: 'breadcrumbs.loyalty',      icon: Gift },
+  { id: 'reviews',       labelKey: 'breadcrumbs.reviews',      icon: MessageSquare },
+  { id: 'notes',         labelKey: 'customerTabNotes',         icon: FileText },
+  { id: 'tags',          labelKey: 'customerTabTags',          icon: Tag },
+  { id: 'marketing',     labelKey: 'customerTabMarketing',     icon: Megaphone },
+  { id: 'analytics',     labelKey: 'customerTabAnalytics',     icon: BarChart2 },
 ]
 
 // ── Small shared components ────────────────────────────────────────────────────
@@ -175,6 +182,7 @@ function EmptyState({ message }: { message: string }) {
 // ── Tab panels ─────────────────────────────────────────────────────────────────
 
 function OverviewPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: stats }   = useAdminCustomerStats(id)
   const { data: bc }      = useBusinessCustomer(id)
   const { data: branches } = useBranchCustomers(id)
@@ -185,30 +193,30 @@ function OverviewPanel({ id }: { id: string }) {
     <div className="space-y-4">
       {/* KPI row */}
       <KpiRow items={[
-        { label: 'Lifetime Spend',   value: formatCurrency(bc?.totalSpent ?? 0) },
-        { label: 'Total Orders',     value: (bc?.ordersCount ?? 0).toString() },
-        { label: 'Reservations',     value: (bc?.reservationsCount ?? 0).toString() },
-        { label: 'Loyalty Points',   value: (loyalty?.points ?? 0).toLocaleString(), sub: loyalty?.tier ?? '' },
+        { label: t('lifetimeSpend'),   value: formatCurrency(bc?.totalSpent ?? 0) },
+        { label: t('totalOrders'),     value: (bc?.ordersCount ?? 0).toString() },
+        { label: t('breadcrumbs.reservations'), value: (bc?.reservationsCount ?? 0).toString() },
+        { label: t('loyaltyPoints'),   value: (loyalty?.points ?? 0).toLocaleString(), sub: loyalty?.tier ?? '' },
       ]} />
 
       {/* Activity summary */}
       {stats && (
-        <SectionCard title="Activity Summary">
+        <SectionCard title={t('activitySummary')}>
           <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
             {stats.favorite_item && (
               <div>
-                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">Favourite Item</dt>
+                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('favouriteItem')}</dt>
                 <dd className="font-medium text-[var(--fg)]">{stats.favorite_item}</dd>
               </div>
             )}
             {stats.last_order_at && (
               <div>
-                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">Last Order</dt>
+                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('lastOrder')}</dt>
                 <dd className="font-medium text-[var(--fg)]">{formatDate(stats.last_order_at)}</dd>
               </div>
             )}
             <div>
-              <dt className="text-[var(--fg-muted)] text-xs mb-0.5">Avg Order Value</dt>
+              <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('avgOrderValue')}</dt>
               <dd className="font-medium text-[var(--fg)]">{formatCurrency(stats.avg_order_value)}</dd>
             </div>
           </dl>
@@ -217,38 +225,38 @@ function OverviewPanel({ id }: { id: string }) {
 
       {/* Interaction timeline */}
       {bc && (
-        <SectionCard title="Relationship Details">
+        <SectionCard title={t('relationshipDetails')}>
           <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
             <div>
-              <dt className="text-[var(--fg-muted)] text-xs mb-0.5">First Interaction</dt>
+              <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('firstInteraction')}</dt>
               <dd className="font-medium text-[var(--fg)]">{formatDate(bc.firstInteractionAt)}</dd>
             </div>
             <div>
-              <dt className="text-[var(--fg-muted)] text-xs mb-0.5">Last Interaction</dt>
+              <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('lastInteraction')}</dt>
               <dd className="font-medium text-[var(--fg)]">{formatDate(bc.lastInteractionAt)}</dd>
             </div>
             {analytics && (
               <div>
-                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">Visit Frequency</dt>
-                <dd className="font-medium text-[var(--fg)]">every ~{analytics.visitFrequencyDays} days</dd>
+                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('visitFrequency')}</dt>
+                <dd className="font-medium text-[var(--fg)]">{t('everyNDays', { days: analytics.visitFrequencyDays })}</dd>
               </div>
             )}
             {analytics?.favoriteBranchName && (
               <div>
-                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">Favourite Branch</dt>
+                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('favouriteBranch')}</dt>
                 <dd className="font-medium text-[var(--fg)]">{analytics.favoriteBranchName}</dd>
               </div>
             )}
             {analytics?.favoriteWeekday && (
               <div>
-                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">Favourite Day</dt>
+                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('favouriteDay')}</dt>
                 <dd className="font-medium text-[var(--fg)]">{analytics.favoriteWeekday}</dd>
               </div>
             )}
             {analytics && (
               <div>
-                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">Days Since Last Visit</dt>
-                <dd className="font-medium text-[var(--fg)]">{analytics.daysSinceLastVisit} days</dd>
+                <dt className="text-[var(--fg-muted)] text-xs mb-0.5">{t('daysSinceLastVisit')}</dt>
+                <dd className="font-medium text-[var(--fg)]">{t('nDays', { days: analytics.daysSinceLastVisit })}</dd>
               </div>
             )}
           </dl>
@@ -257,7 +265,7 @@ function OverviewPanel({ id }: { id: string }) {
 
       {/* Branch breakdown */}
       {branches && branches.length > 0 && (
-        <SectionCard title="Branch Activity">
+        <SectionCard title={t('branchActivity')}>
           <div className="divide-y divide-[var(--border)]">
             {branches.map((brc) => (
               <div key={brc.id} className="py-3 first:pt-0 last:pb-0 flex items-center gap-3 text-sm">
@@ -268,12 +276,12 @@ function OverviewPanel({ id }: { id: string }) {
                     {brc.favoriteBranch && <Star className="h-3 w-3 text-orange-400 shrink-0" />}
                   </div>
                   {brc.lastVisit && (
-                    <p className="text-xs text-[var(--fg-muted)] mt-0.5 pl-5">Last visit {formatDate(brc.lastVisit)}</p>
+                    <p className="text-xs text-[var(--fg-muted)] mt-0.5 pl-5">{t('lastVisitLabel', { date: formatDate(brc.lastVisit) })}</p>
                   )}
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="font-medium text-[var(--fg)]">{brc.visits} visits</p>
-                  <p className="text-xs text-[var(--fg-muted)]">{brc.ordersCount} orders</p>
+                  <p className="font-medium text-[var(--fg)]">{t('visitsCount', { count: brc.visits })}</p>
+                  <p className="text-xs text-[var(--fg-muted)]">{t('ordersCount', { count: brc.ordersCount })}</p>
                 </div>
               </div>
             ))}
@@ -282,28 +290,28 @@ function OverviewPanel({ id }: { id: string }) {
       )}
 
       {/* Quick Links */}
-      <SectionCard title="Quick Links">
+      <SectionCard title={t('quickLinks')}>
         <div className="flex flex-wrap gap-3 text-sm">
           <Link
             href={`/console/orders?customer=${encodeURIComponent(id)}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
             <ShoppingBag className="h-3.5 w-3.5" />
-            View Orders
+            {t('viewOrders')}
           </Link>
           <Link
             href={`/console/reservations?customer=${encodeURIComponent(id)}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
             <Clock className="h-3.5 w-3.5" />
-            View Reservations
+            {t('viewReservations')}
           </Link>
           <Link
             href={`/console/customers/${id}/reviews`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
             <MessageSquare className="h-3.5 w-3.5" />
-            View Reviews
+            {t('viewReviews')}
           </Link>
         </div>
       </SectionCard>
@@ -312,11 +320,14 @@ function OverviewPanel({ id }: { id: string }) {
 }
 
 function TimelinePanel({ id }: { id: string }) {
+  const t = useTranslations('console')
+  const tNotifications = useTranslations('notifications')
+  const tLoyalty = useTranslations('loyalty')
   const { data: events, isLoading } = useCustomerTimeline(id)
   const [filterType, setFilterType] = useState<string>('all')
 
   if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
-  if (!events?.length) return <EmptyState message="No timeline events yet." />
+  if (!events?.length) return <EmptyState message={t('noTimelineEventsYet')} />
 
   const types = Array.from(new Set(events.map((e) => e.type)))
   const filtered = filterType === 'all' ? events : events.filter((e) => e.type === filterType)
@@ -337,15 +348,15 @@ function TimelinePanel({ id }: { id: string }) {
           onClick={() => setFilterType('all')}
           className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === 'all' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card-hover)] text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
         >
-          All ({events.length})
+          {t('allCountParen', { count: events.length })}
         </button>
-        {['order_placed', 'reservation_made', 'points_earned', 'coupon_received', 'review_posted', 'admin_note'].filter((t) => types.includes(t as CustomerTimelineEvent['type'])).map((t) => (
+        {(['order_placed', 'reservation_made', 'points_earned', 'coupon_received', 'review_posted', 'admin_note'] as const).filter((tt) => types.includes(tt as CustomerTimelineEvent['type'])).map((tt) => (
           <button
-            key={t}
-            onClick={() => setFilterType(t)}
-            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors capitalize ${filterType === t ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card-hover)] text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
+            key={tt}
+            onClick={() => setFilterType(tt)}
+            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors capitalize ${filterType === tt ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card-hover)] text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
           >
-            {t.replace(/_/g, ' ')}
+            {t(`timelineFilterTypes.${tt}`)}
           </button>
         ))}
       </div>
@@ -375,7 +386,7 @@ function TimelinePanel({ id }: { id: string }) {
                             <p className="text-xs text-[var(--fg-muted)] mt-0.5">{event.description}</p>
                           )}
                           {event.actorName && (
-                            <p className="text-xs text-[var(--fg-muted)] mt-0.5">by {event.actorName}</p>
+                            <p className="text-xs text-[var(--fg-muted)] mt-0.5">{tNotifications('byActor', { name: event.actorName })}</p>
                           )}
                         </div>
                         <div className="text-right shrink-0">
@@ -389,10 +400,10 @@ function TimelinePanel({ id }: { id: string }) {
                             <p className="text-xs font-medium text-red-400">{formatCurrency(event.amount)}</p>
                           )}
                           {event.points !== undefined && event.points > 0 && (
-                            <p className="text-xs font-medium text-yellow-500">+{event.points} pts</p>
+                            <p className="text-xs font-medium text-yellow-500">+{tLoyalty('pointsSuffix', { count: event.points })}</p>
                           )}
                           {event.points !== undefined && event.points < 0 && (
-                            <p className="text-xs font-medium text-orange-400">{event.points} pts</p>
+                            <p className="text-xs font-medium text-orange-400">{tLoyalty('pointsSuffix', { count: event.points })}</p>
                           )}
                         </div>
                       </div>
@@ -409,10 +420,13 @@ function TimelinePanel({ id }: { id: string }) {
 }
 
 function OrdersPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
+  const tOrder = useTranslations('order')
+  const tCheckout = useTranslations('checkout')
   const { data, isLoading } = useCustomerOrders360(id)
 
   if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
-  if (!data?.results.length) return <EmptyState message="No orders found for this customer." />
+  if (!data?.results.length) return <EmptyState message={t('noOrdersFoundForCustomer')} />
 
   const statusColor: Record<string, string> = {
     delivered: 'text-emerald-500', preparing: 'text-amber-500',
@@ -428,14 +442,14 @@ function OrdersPanel({ id }: { id: string }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-semibold text-[var(--fg)]">{order.order_number}</span>
                 <span className={`text-xs font-medium capitalize ${statusColor[order.status ?? ''] ?? 'text-[var(--fg-muted)]'}`}>
-                  {order.status?.replace(/_/g, ' ')}
+                  {order.status ? tOrder(`status.${order.status}`) : ''}
                 </span>
-                <span className="text-xs text-[var(--fg-muted)] capitalize">{order.order_type?.replace(/_/g, ' ')}</span>
+                <span className="text-xs text-[var(--fg-muted)] capitalize">{order.order_type ? tCheckout(ORDER_TYPE_KEY[order.order_type] ?? order.order_type) : ''}</span>
               </div>
               {order.items && (
                 <p className="text-xs text-[var(--fg-muted)] mt-1 truncate">
                   {order.items.slice(0, 3).map((i) => i.name || i.menu_item?.name).filter(Boolean).join(', ')}
-                  {order.items.length > 3 && ` +${order.items.length - 3} more`}
+                  {order.items.length > 3 && ` ${t('plusNMore', { count: order.items.length - 3 })}`}
                 </p>
               )}
               {order.created_at && (
@@ -444,7 +458,7 @@ function OrdersPanel({ id }: { id: string }) {
             </div>
             <div className="text-right shrink-0">
               <p className="text-sm font-bold text-[var(--fg)]">{formatCurrency(order.total ?? 0)}</p>
-              <p className="text-xs text-[var(--fg-muted)] capitalize">{order.payment_method}</p>
+              <p className="text-xs text-[var(--fg-muted)] capitalize">{order.payment_method ? tCheckout(PAYMENT_METHOD_KEY[order.payment_method as PaymentMethod] ?? order.payment_method) : ''}</p>
             </div>
           </div>
           <div className="mt-3 flex gap-2 flex-wrap">
@@ -453,7 +467,7 @@ function OrdersPanel({ id }: { id: string }) {
               className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
             >
               <ShoppingBag className="h-3 w-3" />
-              View Order
+              {t('viewOrder')}
             </Link>
           </div>
         </div>
@@ -462,11 +476,16 @@ function OrdersPanel({ id }: { id: string }) {
   )
 }
 
+const RESERVATION_STATUS_KEY: Record<string, string> = {
+  confirmed: 'statusConfirmed', pending: 'statusPending', cancelled: 'statusCancelled', completed: 'statusCompleted',
+}
+
 function ReservationsPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data, isLoading } = useCustomerReservations360(id)
 
   if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
-  if (!data?.results.length) return <EmptyState message="No reservations found for this customer." />
+  if (!data?.results.length) return <EmptyState message={t('noReservationsFoundForCustomer')} />
 
   const statusColor: Record<string, string> = {
     confirmed: 'text-emerald-500', pending: 'text-amber-500',
@@ -480,10 +499,10 @@ function ReservationsPanel({ id }: { id: string }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-semibold text-[var(--fg)]">{res.date} at {res.time}</span>
-                <span className={`text-xs font-medium capitalize ${statusColor[res.status] ?? 'text-[var(--fg-muted)]'}`}>{res.status}</span>
+                <span className="text-sm font-semibold text-[var(--fg)]">{t('dateAtTime', { date: res.date, time: res.time })}</span>
+                <span className={`text-xs font-medium capitalize ${statusColor[res.status] ?? 'text-[var(--fg-muted)]'}`}>{RESERVATION_STATUS_KEY[res.status] ? t(RESERVATION_STATUS_KEY[res.status]) : res.status}</span>
               </div>
-              <p className="text-xs text-[var(--fg-muted)] mt-1">{res.guests} guests · {res.name}</p>
+              <p className="text-xs text-[var(--fg-muted)] mt-1">{t('guestsCountAnd', { count: res.guests, name: res.name })}</p>
               {res.notes && <p className="text-xs text-[var(--fg-muted)] mt-1 italic">{res.notes}</p>}
               {res.confirmation_code && (
                 <p className="text-xs text-[var(--fg-muted)] mt-1 font-mono">{res.confirmation_code}</p>
@@ -497,17 +516,19 @@ function ReservationsPanel({ id }: { id: string }) {
 }
 
 function LoyaltyPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
+  const tLoyalty = useTranslations('loyalty')
   const { data: loyalty, isLoading } = useCustomerLoyalty(id)
   const { data: bc } = useBusinessCustomer(id)
 
   if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
-  if (!loyalty) return <EmptyState message="No loyalty account found for this customer at this business." />
+  if (!loyalty) return <EmptyState message={t('noLoyaltyAccountFound')} />
 
-  const tierProgress: Record<string, { next?: string; threshold?: number; label: string }> = {
-    bronze: { next: 'silver',   threshold: 500,  label: 'Bronze' },
-    silver: { next: 'gold',     threshold: 1500, label: 'Silver' },
-    gold:   { next: 'platinum', threshold: 4000, label: 'Gold' },
-    platinum: { label: 'Platinum' },
+  const tierProgress: Record<string, { next?: string; threshold?: number }> = {
+    bronze: { next: 'silver',   threshold: 500 },
+    silver: { next: 'gold',     threshold: 1500 },
+    gold:   { next: 'platinum', threshold: 4000 },
+    platinum: {},
   }
 
   const tierInfo = tierProgress[loyalty.tier]
@@ -521,22 +542,24 @@ function LoyaltyPanel({ id }: { id: string }) {
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs text-[var(--fg-muted)] mb-1">Current Tier</p>
+            <p className="text-xs text-[var(--fg-muted)] mb-1">{t('currentTier')}</p>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 text-sm font-semibold capitalize">
               <Award className="h-3.5 w-3.5" />
-              {tierInfo.label}
+              {tLoyalty(`tiers.${loyalty.tier}`)}
             </span>
           </div>
           <div className="text-right">
             <p className="text-3xl font-bold text-[var(--fg)]">{loyalty.points.toLocaleString()}</p>
-            <p className="text-xs text-[var(--fg-muted)]">redeemable points</p>
+            <p className="text-xs text-[var(--fg-muted)]">{t('redeemablePoints')}</p>
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-[var(--fg-muted)]">
-            <span>{loyalty.lifetimePoints.toLocaleString()} lifetime pts</span>
-            {tierInfo.threshold && <span>→ {tierInfo.next} at {tierInfo.threshold.toLocaleString()}</span>}
+            <span>{t('lifetimePtsCount', { count: loyalty.lifetimePoints.toLocaleString() })}</span>
+            {tierInfo.threshold && (
+              <span>{t('nextTierAtThreshold', { tier: tLoyalty(`tiers.${tierInfo.next}`), threshold: tierInfo.threshold.toLocaleString() })}</span>
+            )}
           </div>
           <div className="h-2 bg-[var(--card-hover)] rounded-full overflow-hidden">
             <div
@@ -550,16 +573,16 @@ function LoyaltyPanel({ id }: { id: string }) {
       {/* Business customer loyalty stats */}
       {bc && (
         <KpiRow items={[
-          { label: 'Loyalty Points',   value: bc.loyaltyPoints.toLocaleString() },
-          { label: 'Lifetime Value',   value: formatCurrency(bc.lifetimeValue) },
-          { label: 'Loyalty Tier',     value: bc.loyaltyTier.charAt(0).toUpperCase() + bc.loyaltyTier.slice(1) },
-          { label: 'Total Spent',      value: formatCurrency(bc.totalSpent) },
+          { label: t('loyaltyPoints'),   value: bc.loyaltyPoints.toLocaleString() },
+          { label: t('lifetimeValue'),   value: formatCurrency(bc.lifetimeValue) },
+          { label: t('loyaltyTier'),     value: tLoyalty(`tiers.${bc.loyaltyTier}`) },
+          { label: t('totalSpent'),      value: formatCurrency(bc.totalSpent) },
         ]} />
       )}
 
       {loyalty.tierExpiresAt && (
         <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-700 dark:text-amber-300">
-          Tier expires {formatDate(loyalty.tierExpiresAt)}
+          {t('tierExpiresLabel', { date: formatDate(loyalty.tierExpiresAt) })}
         </div>
       )}
     </div>
@@ -567,10 +590,11 @@ function LoyaltyPanel({ id }: { id: string }) {
 }
 
 function ReviewsPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: reviews, isLoading } = useAdminCustomerReviews(id)
 
   if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
-  if (!reviews?.length) return <EmptyState message="No reviews posted yet." />
+  if (!reviews?.length) return <EmptyState message={t('noReviewsPostedYet')} />
 
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
 
@@ -584,7 +608,7 @@ function ReviewsPanel({ id }: { id: string }) {
               <Star key={s} className={`h-4 w-4 ${s <= Math.round(avg) ? 'text-amber-400 fill-amber-400' : 'text-[var(--border)]'}`} />
             ))}
           </div>
-          <p className="text-xs text-[var(--fg-muted)] mt-1">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
+          <p className="text-xs text-[var(--fg-muted)] mt-1">{t('reviewsCount', { count: reviews.length })}</p>
         </div>
       </div>
       <div className="space-y-3">
@@ -607,6 +631,7 @@ function ReviewsPanel({ id }: { id: string }) {
 }
 
 function NotesPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: notes, isLoading } = useCustomerNotes(id)
   const createNote = useCreateCustomerNote(id)
   const updateNote = useUpdateCustomerNote(id)
@@ -646,12 +671,12 @@ function NotesPanel({ id }: { id: string }) {
     <div className="space-y-4">
       {/* New note input */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
-        <p className="text-sm font-medium text-[var(--fg)] mb-2">Add a note</p>
+        <p className="text-sm font-medium text-[var(--fg)] mb-2">{t('addANote')}</p>
         <textarea
           ref={textareaRef}
           value={newContent}
           onChange={(e) => setNewContent(e.target.value)}
-          placeholder="Private note visible only to your team..."
+          placeholder={t('privateNotePlaceholder')}
           rows={3}
           className="w-full text-sm bg-[var(--bg)] border border-[var(--border)] rounded-lg p-3 text-[var(--fg)] placeholder:text-[var(--fg-muted)] resize-none focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
         />
@@ -662,13 +687,13 @@ function NotesPanel({ id }: { id: string }) {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
           >
             {createNote.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-            Add Note
+            {t('addNote')}
           </button>
         </div>
       </div>
 
       {/* Existing notes */}
-      {!notes?.length && <EmptyState message="No notes yet. Add the first note above." />}
+      {!notes?.length && <EmptyState message={t('noNotesYet')} />}
       {notes?.map((note) => (
         <div key={note.id} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
           {editingId === note.id ? (
@@ -684,14 +709,14 @@ function NotesPanel({ id }: { id: string }) {
                   onClick={() => { setEditingId(null); setEditContent('') }}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--border)] text-xs text-[var(--fg-muted)] hover:text-[var(--fg)]"
                 >
-                  <X className="h-3 w-3" /> Cancel
+                  <X className="h-3 w-3" /> {t('cancel')}
                 </button>
                 <button
                   onClick={() => handleUpdate(note.id)}
                   disabled={updateNote.isPending}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--accent)] text-white text-xs font-medium disabled:opacity-50"
                 >
-                  <Check className="h-3 w-3" /> Save
+                  <Check className="h-3 w-3" /> {t('save')}
                 </button>
               </div>
             </div>
@@ -701,7 +726,7 @@ function NotesPanel({ id }: { id: string }) {
               <div className="flex items-center justify-between mt-3">
                 <div className="text-xs text-[var(--fg-muted)]">
                   {note.authorName} · {formatDate(note.createdAt)}
-                  {note.updatedAt !== note.createdAt && ' (edited)'}
+                  {note.updatedAt !== note.createdAt && ` ${t('editedParen')}`}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -728,13 +753,14 @@ function NotesPanel({ id }: { id: string }) {
 }
 
 function TagsPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: assignment, isLoading: tagsLoading } = useCustomerTags(id)
   const { data: allTags, isLoading: defsLoading } = useTenantTagDefinitions()
   const updateTags = useUpdateCustomerTags(id)
 
   if (tagsLoading || defsLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
 
-  const assignedIds = new Set(assignment?.tags.map((t) => t.id) ?? [])
+  const assignedIds = new Set(assignment?.tags.map((tag) => tag.id) ?? [])
 
   const toggle = (tagId: string) => {
     const next = assignedIds.has(tagId)
@@ -746,9 +772,9 @@ function TagsPanel({ id }: { id: string }) {
   return (
     <div className="space-y-4">
       {/* Current tags */}
-      <SectionCard title="Assigned Tags">
+      <SectionCard title={t('assignedTags')}>
         {!assignment?.tags.length
-          ? <EmptyState message="No tags assigned yet. Select tags below." />
+          ? <EmptyState message={t('noTagsAssignedYet')} />
           : (
             <div className="flex flex-wrap gap-2">
               {assignment.tags.map((tag) => (
@@ -757,7 +783,7 @@ function TagsPanel({ id }: { id: string }) {
                   <button
                     onClick={() => toggle(tag.id)}
                     className="hover:opacity-70"
-                    aria-label={`Remove ${tag.label}`}
+                    aria-label={t('removeTagAria', { label: tag.label })}
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -769,9 +795,9 @@ function TagsPanel({ id }: { id: string }) {
       </SectionCard>
 
       {/* All available tags */}
-      <SectionCard title="Available Tags">
+      <SectionCard title={t('availableTags')}>
         {!allTags?.length
-          ? <EmptyState message="No tags defined for this business yet." />
+          ? <EmptyState message={t('noTagsDefinedYet')} />
           : (
             <div className="flex flex-wrap gap-2">
               {allTags.map((tag) => {
@@ -801,27 +827,31 @@ function TagsPanel({ id }: { id: string }) {
 }
 
 function MarketingPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: marketing, isLoading } = useCustomerMarketing(id)
   const { data: coupons } = useCustomerCoupons(id)
 
   if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
-  if (!marketing) return <EmptyState message="No marketing data available for this customer." />
+  if (!marketing) return <EmptyState message={t('noMarketingDataAvailable')} />
 
-  const channelLabel: Record<string, string> = { email: 'Email', sms: 'SMS', push: 'Push', whatsapp: 'WhatsApp' }
+  const channelKey: Record<string, string> = { email: 'channelEmail', sms: 'channelSms', push: 'channelPush', whatsapp: 'channelWhatsapp' }
   const couponStatusColor: Record<string, string> = {
     available: 'text-emerald-500', redeemed: 'text-[var(--fg-muted)]', expired: 'text-red-400',
+  }
+  const couponStatusKey: Record<string, string> = {
+    available: 'couponStatusAvailable', redeemed: 'couponStatusRedeemed', expired: 'couponStatusExpired',
   }
 
   return (
     <div className="space-y-4">
       {/* Channel prefs */}
-      <SectionCard title="Channel Preferences">
+      <SectionCard title={t('channelPreferences')}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {marketing.preferences.map((pref) => (
             <div key={pref.channel} className={`rounded-xl border p-3 text-center ${pref.subscribed ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-900/10' : 'border-[var(--border)] opacity-60'}`}>
-              <p className="text-xs font-medium text-[var(--fg)]">{channelLabel[pref.channel]}</p>
+              <p className="text-xs font-medium text-[var(--fg)]">{t(channelKey[pref.channel])}</p>
               <p className={`text-xs mt-1 ${pref.subscribed ? 'text-emerald-600' : 'text-[var(--fg-muted)]'}`}>
-                {pref.subscribed ? 'Subscribed' : 'Unsubscribed'}
+                {pref.subscribed ? t('subscribed') : t('unsubscribed')}
               </p>
             </div>
           ))}
@@ -830,15 +860,15 @@ function MarketingPanel({ id }: { id: string }) {
 
       {/* KPIs */}
       <KpiRow items={[
-        { label: 'Coupons Received', value: marketing.couponsReceived.toString() },
-        { label: 'Coupons Redeemed', value: marketing.couponsRedeemed.toString() },
-        { label: 'Last Campaign',    value: marketing.lastCampaignAt ? formatDate(marketing.lastCampaignAt) : 'Never' },
-        { label: 'Campaign History', value: marketing.campaigns.length.toString() },
+        { label: t('couponsReceived'), value: marketing.couponsReceived.toString() },
+        { label: t('couponsRedeemed'), value: marketing.couponsRedeemed.toString() },
+        { label: t('lastCampaign'),    value: marketing.lastCampaignAt ? formatDate(marketing.lastCampaignAt) : t('never') },
+        { label: t('campaignHistory'), value: marketing.campaigns.length.toString() },
       ]} />
 
       {/* Campaign history */}
       {marketing.campaigns.length > 0 && (
-        <SectionCard title="Campaign History">
+        <SectionCard title={t('campaignHistory')}>
           <div className="divide-y divide-[var(--border)]">
             {marketing.campaigns.map((camp) => (
               <div key={camp.id} className="py-3 first:pt-0 last:pb-0 flex items-start justify-between gap-3 text-sm">
@@ -847,8 +877,8 @@ function MarketingPanel({ id }: { id: string }) {
                   <p className="text-xs text-[var(--fg-muted)] mt-0.5 capitalize">{camp.channel} · {formatDate(camp.sentAt)}</p>
                 </div>
                 <div className="flex gap-2 shrink-0 text-xs">
-                  <span className={camp.opened ? 'text-emerald-500' : 'text-[var(--fg-muted)]'}>Opened</span>
-                  <span className={camp.clicked ? 'text-blue-500' : 'text-[var(--fg-muted)]'}>Clicked</span>
+                  <span className={camp.opened ? 'text-emerald-500' : 'text-[var(--fg-muted)]'}>{t('opened')}</span>
+                  <span className={camp.clicked ? 'text-blue-500' : 'text-[var(--fg-muted)]'}>{t('clicked')}</span>
                 </div>
               </div>
             ))}
@@ -858,21 +888,21 @@ function MarketingPanel({ id }: { id: string }) {
 
       {/* Coupons */}
       {coupons && coupons.length > 0 && (
-        <SectionCard title="Coupons">
+        <SectionCard title={t('coupons')}>
           <div className="space-y-3">
             {coupons.map((coup) => (
               <div key={coup.id} className="flex items-start justify-between gap-3 text-sm">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs bg-[var(--card-hover)] px-2 py-0.5 rounded text-[var(--fg)]">{coup.code}</span>
-                    <span className={`text-xs capitalize ${couponStatusColor[coup.status]}`}>{coup.status}</span>
+                    <span className={`text-xs capitalize ${couponStatusColor[coup.status]}`}>{t(couponStatusKey[coup.status])}</span>
                   </div>
                   <p className="text-xs text-[var(--fg-muted)] mt-1">{coup.description}</p>
-                  {coup.expiresAt && <p className="text-xs text-[var(--fg-muted)]">Expires {formatDate(coup.expiresAt)}</p>}
+                  {coup.expiresAt && <p className="text-xs text-[var(--fg-muted)]">{t('expiresLabel', { date: formatDate(coup.expiresAt) })}</p>}
                 </div>
                 <div className="text-right shrink-0">
                   <p className="font-semibold text-[var(--fg)]">
-                    {coup.discountType === 'percent' ? `${coup.discountValue}%` : formatCurrency(coup.discountValue)} off
+                    {t('discountOff', { amount: coup.discountType === 'percent' ? `${coup.discountValue}%` : formatCurrency(coup.discountValue) })}
                   </p>
                 </div>
               </div>
@@ -885,50 +915,51 @@ function MarketingPanel({ id }: { id: string }) {
 }
 
 function AnalyticsPanel({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: analytics, isLoading } = useCustomerAnalytics(id)
   const { data: payments } = useCustomerPayments(id)
 
   if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
-  if (!analytics) return <EmptyState message="Analytics not yet available for this customer." />
+  if (!analytics) return <EmptyState message={t('analyticsNotYetAvailable')} />
 
   return (
     <div className="space-y-4">
       {/* Key metrics */}
       <KpiRow items={[
-        { label: 'Lifetime Value',      value: formatCurrency(analytics.lifetimeValue) },
-        { label: 'Avg Order Value',     value: formatCurrency(analytics.avgOrderValue) },
-        { label: 'Avg Party Size',      value: analytics.avgReservationPartySize.toFixed(1) },
-        { label: 'Days Since Last Visit', value: analytics.daysSinceLastVisit.toString() },
+        { label: t('lifetimeValue'),      value: formatCurrency(analytics.lifetimeValue) },
+        { label: t('avgOrderValue'),     value: formatCurrency(analytics.avgOrderValue) },
+        { label: t('avgPartySize'),      value: analytics.avgReservationPartySize.toFixed(1) },
+        { label: t('daysSinceLastVisit'), value: analytics.daysSinceLastVisit.toString() },
       ]} />
 
       {/* Behaviour patterns */}
-      <SectionCard title="Behaviour Patterns">
+      <SectionCard title={t('behaviourPatterns')}>
         <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
           <div>
-            <dt className="text-xs text-[var(--fg-muted)] mb-0.5">Visit Frequency</dt>
-            <dd className="font-medium text-[var(--fg)]">every ~{analytics.visitFrequencyDays} days</dd>
+            <dt className="text-xs text-[var(--fg-muted)] mb-0.5">{t('visitFrequency')}</dt>
+            <dd className="font-medium text-[var(--fg)]">{t('everyNDaysApprox', { days: analytics.visitFrequencyDays })}</dd>
           </div>
           {analytics.favoriteBranchName && (
             <div>
-              <dt className="text-xs text-[var(--fg-muted)] mb-0.5">Favourite Branch</dt>
+              <dt className="text-xs text-[var(--fg-muted)] mb-0.5">{t('favouriteBranch')}</dt>
               <dd className="font-medium text-[var(--fg)]">{analytics.favoriteBranchName}</dd>
             </div>
           )}
           {analytics.favoriteWeekday && (
             <div>
-              <dt className="text-xs text-[var(--fg-muted)] mb-0.5">Favourite Day</dt>
+              <dt className="text-xs text-[var(--fg-muted)] mb-0.5">{t('favouriteDay')}</dt>
               <dd className="font-medium text-[var(--fg)]">{analytics.favoriteWeekday}</dd>
             </div>
           )}
           {analytics.favoriteHour !== undefined && (
             <div>
-              <dt className="text-xs text-[var(--fg-muted)] mb-0.5">Favourite Hour</dt>
+              <dt className="text-xs text-[var(--fg-muted)] mb-0.5">{t('favouriteHour')}</dt>
               <dd className="font-medium text-[var(--fg)]">{analytics.favoriteHour}:00 – {analytics.favoriteHour + 1}:00</dd>
             </div>
           )}
           {analytics.favoriteCategories.length > 0 && (
             <div className="col-span-2">
-              <dt className="text-xs text-[var(--fg-muted)] mb-0.5">Favourite Categories</dt>
+              <dt className="text-xs text-[var(--fg-muted)] mb-0.5">{t('favouriteCategories')}</dt>
               <dd className="font-medium text-[var(--fg)]">{analytics.favoriteCategories.join(', ')}</dd>
             </div>
           )}
@@ -937,7 +968,7 @@ function AnalyticsPanel({ id }: { id: string }) {
 
       {/* Top items */}
       {analytics.favoriteItems.length > 0 && (
-        <SectionCard title="Favourite Items">
+        <SectionCard title={t('favouriteItems')}>
           <div className="space-y-2">
             {analytics.favoriteItems.map((item, idx) => (
               <div key={item.name} className="flex items-center gap-3">
@@ -962,7 +993,7 @@ function AnalyticsPanel({ id }: { id: string }) {
 
       {/* Revenue trend */}
       {analytics.revenueByMonth.length > 0 && (
-        <SectionCard title="Revenue Trend">
+        <SectionCard title={t('revenueTrend')}>
           <div className="flex items-end gap-1 h-24">
             {analytics.revenueByMonth.map((m) => {
               const max = Math.max(...analytics.revenueByMonth.map((x) => x.revenue))
@@ -984,7 +1015,7 @@ function AnalyticsPanel({ id }: { id: string }) {
 
       {/* Payments */}
       {payments && payments.length > 0 && (
-        <SectionCard title="Payment History">
+        <SectionCard title={t('paymentHistory')}>
           <div className="divide-y divide-[var(--border)]">
             {payments.map((pay: CustomerPayment) => (
               <div key={pay.id} className="py-3 first:pt-0 last:pb-0 flex justify-between items-center text-sm">
@@ -992,7 +1023,7 @@ function AnalyticsPanel({ id }: { id: string }) {
                   <p className="font-medium text-[var(--fg)]">{formatCurrency(pay.amount)}</p>
                   <p className="text-xs text-[var(--fg-muted)] capitalize">{pay.method} · {formatDate(pay.processedAt)}</p>
                 </div>
-                <span className={`text-xs capitalize ${pay.status === 'completed' ? 'text-emerald-500' : 'text-orange-400'}`}>{pay.status.replace(/_/g, ' ')}</span>
+                <span className={`text-xs capitalize ${pay.status === 'completed' ? 'text-emerald-500' : 'text-orange-400'}`}>{t(PAYMENT_STATUS_KEY[pay.status] ?? pay.status)}</span>
               </div>
             ))}
           </div>
@@ -1005,6 +1036,8 @@ function AnalyticsPanel({ id }: { id: string }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 function CustomerDetailContent({ id }: { id: string }) {
+  const t = useTranslations('console')
+  const tLoyalty = useTranslations('loyalty')
   const { data: customer, isLoading, isError } = useAdminCustomer(id)
   const { data: businessCustomer } = useBusinessCustomer(id)
   const { data: loyaltyAccount } = useCustomerLoyalty(id)
@@ -1016,7 +1049,7 @@ function CustomerDetailContent({ id }: { id: string }) {
     return (
       <div className="flex items-center justify-center h-48 gap-2 text-[var(--fg-muted)]">
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm">Loading customer…</span>
+        <span className="text-sm">{t('loadingCustomer')}</span>
       </div>
     )
   }
@@ -1025,9 +1058,9 @@ function CustomerDetailContent({ id }: { id: string }) {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-3">
         <AlertCircle className="h-8 w-8 text-red-400" />
-        <p className="text-sm text-[var(--fg-muted)]">Customer not found.</p>
+        <p className="text-sm text-[var(--fg-muted)]">{t('customerNotFound')}</p>
         <Link href="/console/customers" className="text-sm text-blue-600 hover:underline">
-          Back to Customers
+          {t('backToCustomers')}
         </Link>
       </div>
     )
@@ -1041,7 +1074,7 @@ function CustomerDetailContent({ id }: { id: string }) {
         className="inline-flex items-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)]"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
-        Customers
+        {t('breadcrumbs.customers')}
       </Link>
 
       {/* Profile header card */}
@@ -1055,14 +1088,14 @@ function CustomerDetailContent({ id }: { id: string }) {
               <h1 className="text-xl font-bold text-[var(--fg)]">
                 {customer.first_name} {customer.last_name}
               </h1>
-              <Badge variant={TIER_BADGE[customer.tier]}>{TIER_LABEL[customer.tier]}</Badge>
-              {!customer.is_verified && <Badge variant="secondary">Unverified</Badge>}
+              <Badge variant={TIER_BADGE[customer.tier]}>{t(TIER_KEY[customer.tier])}</Badge>
+              {!customer.is_verified && <Badge variant="secondary">{t('unverified')}</Badge>}
               {businessCustomer?.status === 'inactive' && (
-                <Badge variant="secondary">Inactive</Badge>
+                <Badge variant="secondary">{t('inactive')}</Badge>
               )}
               {businessCustomer?.favorite && (
                 <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                  <Star className="h-3 w-3 fill-current" /> VIP
+                  <Star className="h-3 w-3 fill-current" /> {t('tierVip')}
                 </span>
               )}
             </div>
@@ -1094,7 +1127,7 @@ function CustomerDetailContent({ id }: { id: string }) {
               )}
               <div className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
-                <span>Customer since {formatDate(customer.created_at)}</span>
+                <span>{t('customerSinceLabel', { date: formatDate(customer.created_at) })}</span>
               </div>
             </div>
           </div>
@@ -1103,15 +1136,15 @@ function CustomerDetailContent({ id }: { id: string }) {
           <div className="flex flex-col gap-2 text-right">
             <div>
               <p className="text-lg font-bold text-[var(--fg)]">{formatCurrency(customer.total_spent)}</p>
-              <p className="text-xs text-[var(--fg-muted)]">lifetime spend</p>
+              <p className="text-xs text-[var(--fg-muted)]">{t('lifetimeSpend')}</p>
             </div>
             <div>
-              <p className="text-base font-semibold text-[var(--fg)]">{customer.order_count} orders</p>
+              <p className="text-base font-semibold text-[var(--fg)]">{t('ordersCount', { count: customer.order_count })}</p>
             </div>
             {loyaltyAccount && (
               <div className="flex items-center gap-1 justify-end">
                 <Gift className="h-3 w-3 text-amber-500" />
-                <span className="text-sm font-medium text-[var(--fg)]">{loyaltyAccount.points.toLocaleString()} pts</span>
+                <span className="text-sm font-medium text-[var(--fg)]">{tLoyalty('pointsSuffix', { count: loyaltyAccount.points.toLocaleString() })}</span>
               </div>
             )}
           </div>
@@ -1123,12 +1156,12 @@ function CustomerDetailContent({ id }: { id: string }) {
           className="mt-4 flex items-center gap-1.5 text-xs text-[var(--fg-muted)] hover:text-[var(--fg)]"
         >
           {showFullId ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          {showFullId ? 'Hide IDs' : 'Show IDs'}
+          {showFullId ? t('hideIds') : t('showIds')}
         </button>
         {showFullId && (
           <div className="mt-2 p-3 bg-[var(--bg)] rounded-lg text-xs font-mono text-[var(--fg-muted)] space-y-1">
-            <p><span className="text-[var(--fg-muted)]">Platform User: </span>{customer.id}</p>
-            {businessCustomer && <p><span className="text-[var(--fg-muted)]">Business Customer: </span>{businessCustomer.id}</p>}
+            <p><span className="text-[var(--fg-muted)]">{t('platformUserLabel')} </span>{customer.id}</p>
+            {businessCustomer && <p><span className="text-[var(--fg-muted)]">{t('businessCustomerLabel')} </span>{businessCustomer.id}</p>}
           </div>
         )}
       </div>
@@ -1149,7 +1182,7 @@ function CustomerDetailContent({ id }: { id: string }) {
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
-                {tab.label}
+                {t(tab.labelKey)}
               </button>
             )
           })}

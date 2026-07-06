@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   usePromotions,
   useCreatePromotion,
@@ -14,21 +15,21 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 
-const PROMOTION_TYPES: { value: PromotionType; label: string }[] = [
-  { value: 'percentage_discount', label: '% Discount' },
-  { value: 'fixed_discount',      label: 'Fixed Discount' },
-  { value: 'buy_one_get_one',     label: 'Buy One Get One' },
-  { value: 'happy_hour',          label: 'Happy Hour' },
+const PROMOTION_TYPES: { value: PromotionType; labelKey: string }[] = [
+  { value: 'percentage_discount', labelKey: 'promoTypePercentDiscount' },
+  { value: 'fixed_discount',      labelKey: 'promoTypeFixedDiscount' },
+  { value: 'buy_one_get_one',     labelKey: 'promoTypeBogo' },
+  { value: 'happy_hour',          labelKey: 'promoTypeHappyHour' },
 ]
 
-const WEEKDAYS: { value: Weekday; label: string }[] = [
-  { value: 1, label: 'Mon' },
-  { value: 2, label: 'Tue' },
-  { value: 3, label: 'Wed' },
-  { value: 4, label: 'Thu' },
-  { value: 5, label: 'Fri' },
-  { value: 6, label: 'Sat' },
-  { value: 7, label: 'Sun' },
+const WEEKDAYS: { value: Weekday; labelKey: string }[] = [
+  { value: 1, labelKey: 'weekdayMonShort' },
+  { value: 2, labelKey: 'weekdayTueShort' },
+  { value: 3, labelKey: 'weekdayWedShort' },
+  { value: 4, labelKey: 'weekdayThuShort' },
+  { value: 5, labelKey: 'weekdayFriShort' },
+  { value: 6, labelKey: 'weekdaySatShort' },
+  { value: 7, labelKey: 'weekdaySunShort' },
 ]
 
 interface FormState {
@@ -106,6 +107,7 @@ interface PromotionModalProps {
 }
 
 function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, submitLabel }: PromotionModalProps) {
+  const t = useTranslations('console')
   const showPercent = ['percentage_discount', 'happy_hour'].includes(form.type)
   const showFixed = form.type === 'fixed_discount'
 
@@ -128,7 +130,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
 
         <div className="space-y-3">
           <div>
-            <label className="text-sm text-[var(--fg-muted)] block mb-1">Name</label>
+            <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('name')}</label>
             <input
               value={form.name}
               onChange={(e) => onChange({ ...form, name: e.target.value })}
@@ -137,7 +139,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
           </div>
 
           <div>
-            <label className="text-sm text-[var(--fg-muted)] block mb-1">Description</label>
+            <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('descriptionLabel')}</label>
             <textarea
               value={form.description}
               onChange={(e) => onChange({ ...form, description: e.target.value })}
@@ -147,21 +149,21 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
           </div>
 
           <div>
-            <label className="text-sm text-[var(--fg-muted)] block mb-1">Promotion Type</label>
+            <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('promotionType')}</label>
             <select
               value={form.type}
               onChange={(e) => onChange({ ...form, type: e.target.value as PromotionType })}
               className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--fg)]"
             >
-              {PROMOTION_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+              {PROMOTION_TYPES.map((pt) => (
+                <option key={pt.value} value={pt.value}>{t(pt.labelKey)}</option>
               ))}
             </select>
           </div>
 
           {showPercent && (
             <div>
-              <label className="text-sm text-[var(--fg-muted)] block mb-1">Discount %</label>
+              <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('discountPercentLabel')}</label>
               <input
                 type="number"
                 min={1}
@@ -175,7 +177,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
 
           {showFixed && (
             <div>
-              <label className="text-sm text-[var(--fg-muted)] block mb-1">Discount Amount ($)</label>
+              <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('discountAmountLabel')}</label>
               <input
                 type="number"
                 min={0.01}
@@ -189,7 +191,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm text-[var(--fg-muted)] block mb-1">Start</label>
+              <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('startLabel')}</label>
               <input
                 type="datetime-local"
                 value={form.startAt}
@@ -198,7 +200,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
               />
             </div>
             <div>
-              <label className="text-sm text-[var(--fg-muted)] block mb-1">End (optional)</label>
+              <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('endOptionalLabel')}</label>
               <input
                 type="datetime-local"
                 value={form.endAt}
@@ -209,7 +211,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
           </div>
 
           <div>
-            <label className="text-sm text-[var(--fg-muted)] block mb-2">Weekdays (optional)</label>
+            <label className="text-sm text-[var(--fg-muted)] block mb-2">{t('weekdaysOptionalLabel')}</label>
             <div className="flex gap-2 flex-wrap">
               {WEEKDAYS.map((d) => (
                 <button
@@ -222,7 +224,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
                       : 'border-[var(--border)] text-[var(--fg-muted)]'
                   }`}
                 >
-                  {d.label}
+                  {t(d.labelKey)}
                 </button>
               ))}
             </div>
@@ -230,7 +232,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm text-[var(--fg-muted)] block mb-1">Time from (optional)</label>
+              <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('timeFromOptionalLabel')}</label>
               <input
                 type="time"
                 value={form.timeWindowStart}
@@ -239,7 +241,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
               />
             </div>
             <div>
-              <label className="text-sm text-[var(--fg-muted)] block mb-1">Time to (optional)</label>
+              <label className="text-sm text-[var(--fg-muted)] block mb-1">{t('timeToOptionalLabel')}</label>
               <input
                 type="time"
                 value={form.timeWindowEnd}
@@ -255,14 +257,14 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
             onClick={onCancel}
             className="px-4 py-2 rounded-lg text-sm text-[var(--fg-muted)] border border-[var(--border)]"
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             onClick={onSubmit}
             disabled={isPending || !form.name || !form.description}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white disabled:opacity-40"
           >
-            {isPending ? 'Saving…' : submitLabel}
+            {isPending ? t('savingEllipsis') : submitLabel}
           </button>
         </div>
       </div>
@@ -270,14 +272,15 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
   )
 }
 
-const TYPE_LABELS: Record<PromotionType, string> = {
-  percentage_discount: '% Off',
-  fixed_discount:      'Fixed',
-  buy_one_get_one:     'BOGO',
-  happy_hour:          'Happy Hour',
+const TYPE_BADGE_KEY: Record<PromotionType, string> = {
+  percentage_discount: 'promoBadgePercentOff',
+  fixed_discount:      'promoBadgeFixed',
+  buy_one_get_one:     'promoBadgeBogo',
+  happy_hour:          'promoTypeHappyHour',
 }
 
 export default function AdminPromotionsPage() {
+  const t = useTranslations('console')
   const { data: promotions, isLoading } = usePromotions()
   const createMutation = useCreatePromotion()
   const updateMutation = useUpdatePromotion()
@@ -313,20 +316,20 @@ export default function AdminPromotionsPage() {
     <PermissionGuard permission="promotions.view" fallback={<AccessDenied />}>
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[var(--fg)]">Promotion Management</h1>
+        <h1 className="text-2xl font-bold text-[var(--fg)]">{t('promotionManagement')}</h1>
         <button
           onClick={() => { setShowCreate(true); setCreateForm(DEFAULT_FORM) }}
           className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white"
-          aria-label="Create promotion"
+          aria-label={t('createPromotion')}
         >
-          + Create Promotion
+          + {t('createPromotion')}
         </button>
       </div>
 
       {isLoading ? (
-        <p className="text-[var(--fg-muted)]">Loading promotions…</p>
+        <p className="text-[var(--fg-muted)]">{t('loadingPromotions')}</p>
       ) : !promotions?.length ? (
-        <p className="text-[var(--fg-muted)]">No promotions configured.</p>
+        <p className="text-[var(--fg-muted)]">{t('noPromotionsConfigured')}</p>
       ) : (
         <ul className="space-y-3">
           {promotions.map((promo) => (
@@ -337,11 +340,11 @@ export default function AdminPromotionsPage() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
-                    {TYPE_LABELS[promo.type]}
+                    {t(TYPE_BADGE_KEY[promo.type])}
                   </span>
                   {!promo.active && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">
-                      Disabled
+                      {t('disabled')}
                     </span>
                   )}
                 </div>
@@ -351,28 +354,28 @@ export default function AdminPromotionsPage() {
               <div className="flex gap-2 shrink-0">
                 <button
                   onClick={() => openEdit(promo)}
-                  aria-label={`Edit ${promo.name}`}
+                  aria-label={t('editNameAria', { name: promo.name })}
                   className="px-3 py-1 rounded-lg text-sm border border-[var(--border)] text-[var(--fg)]"
                 >
-                  Edit
+                  {t('edit')}
                 </button>
                 {promo.active ? (
                   <button
                     onClick={() => disableMutation.mutate(promo.id)}
                     disabled={disableMutation.isPending}
-                    aria-label={`Disable ${promo.name}`}
+                    aria-label={t('disableNameAria', { name: promo.name })}
                     className="px-3 py-1 rounded-lg text-sm border border-red-300 text-red-600 disabled:opacity-40"
                   >
-                    Disable
+                    {t('disable')}
                   </button>
                 ) : (
                   <button
                     onClick={() => activateMutation.mutate(promo.id)}
                     disabled={activateMutation.isPending}
-                    aria-label={`Activate ${promo.name}`}
+                    aria-label={t('activateNameAria', { name: promo.name })}
                     className="px-3 py-1 rounded-lg text-sm border border-green-300 text-green-700 disabled:opacity-40"
                   >
-                    Activate
+                    {t('activate')}
                   </button>
                 )}
               </div>
@@ -383,25 +386,25 @@ export default function AdminPromotionsPage() {
 
       {showCreate && (
         <PromotionModal
-          title="Create Promotion"
+          title={t('createPromotion')}
           form={createForm}
           onChange={setCreateForm}
           onSubmit={handleCreate}
           onCancel={() => setShowCreate(false)}
           isPending={createMutation.isPending}
-          submitLabel="Create"
+          submitLabel={t('create')}
         />
       )}
 
       {editTarget && (
         <PromotionModal
-          title="Edit Promotion"
+          title={t('editPromotion')}
           form={editForm}
           onChange={setEditForm}
           onSubmit={handleEdit}
           onCancel={() => setEditTarget(null)}
           isPending={updateMutation.isPending}
-          submitLabel="Save"
+          submitLabel={t('save')}
         />
       )}
     </main>

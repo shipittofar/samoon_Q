@@ -779,7 +779,7 @@ describe('S. /console/promotions/page.tsx source-text', () => {
   })
 
   it('has Create Promotion button', () => {
-    expect(src).toContain('Create Promotion')
+    expect(src).toContain("t('createPromotion')")
   })
 
   it('has Disable button', () => {
