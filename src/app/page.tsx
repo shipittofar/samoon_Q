@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { DEFAULT_PLATFORM_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
 import Image from 'next/image'
 import { ArrowRight, ChevronRight, Search, Building2 } from 'lucide-react'
@@ -13,60 +14,61 @@ import { HowItWorks } from '@/components/home/HowItWorks'
 import { ForBusinessOwners } from '@/components/home/ForBusinessOwners'
 import { PlatformFeatures } from '@/components/home/PlatformFeatures'
 import { PlatformTestimonials } from '@/components/home/PlatformTestimonials'
+import { getLocalizedPageMetadata } from '@/lib/seo'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
 
-export const metadata: Metadata = {
-  title: 'Savor — Discover Local Businesses',
-  description:
-    'Browse restaurants, cafés, bars, food trucks, and more. Discover local businesses, explore menus, and book tables on Savor.',
-  openGraph: {
-    title: 'Savor — Discover Local Businesses',
-    description: 'Discover local restaurants, cafés, and bars near you.',
-    url: BASE_URL,
-    siteName: 'Savor Platform',
-    type: 'website',
-    images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor Platform' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Savor — Discover Local Businesses',
-    description: 'Discover local restaurants, cafés, and bars near you.',
-    images: [`${BASE_URL}/og-image.jpg`],
-  },
-  alternates: { canonical: BASE_URL },
+// P9.5.7A — localized title/description/OpenGraph/Twitter/hreflang, sourced
+// from the `seo` namespace via getLocalizedPageMetadata() (the same helper
+// src/app/layout.tsx already uses), instead of a hand-written literal
+// Metadata object.
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const localized = await getLocalizedPageMetadata({ locale, path: '/', namespaceKey: 'home', baseUrl: BASE_URL })
+  return {
+    ...localized,
+    openGraph: { ...localized.openGraph, images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor Platform' }] },
+    twitter: { ...localized.twitter, images: [`${BASE_URL}/og-image.jpg`] },
+  }
 }
 
 // Platform-wide metrics — inline trust signal inside the hero section (H6).
 // "Branches" renamed to "Locations" so numbers read as marketplace scale, not
-// a restaurant chain count (audit finding H2).
+// a restaurant chain count (audit finding H2). Label text now resolved via
+// t(`stats.${key}`) inside the component — this array only carries the
+// locale-independent value + translation key.
 const STATS = [
-  { value: '500+', label: 'Businesses' },
-  { value: '50+', label: 'Locations' },
-  { value: '20+', label: 'Cities' },
-  { value: '50k+', label: 'Customers' },
+  { value: '500+', key: 'businesses' },
+  { value: '50+', key: 'locations' },
+  { value: '20+', key: 'cities' },
+  { value: '50k+', key: 'customers' },
 ]
 
 // Business-type discovery categories (Phase D).
 // Links to /discover?category=* (P8.8.2 — replaces single-restaurant /menu?category=* links).
+// `name` resolved via t(`categories.${key}`) inside the component.
 const CATEGORIES = [
-  { name: 'Restaurants', icon: '🍽️', href: '/discover?category=restaurant', color: 'from-red-400 to-orange-400' },
-  { name: 'Cafés', icon: '☕', href: '/discover?category=cafe', color: 'from-amber-400 to-yellow-400' },
-  { name: 'Bars', icon: '🍺', href: '/discover?category=bar', color: 'from-orange-400 to-amber-400' },
-  { name: 'Food Courts', icon: '🏪', href: '/discover?category=food_court', color: 'from-blue-400 to-cyan-400' },
-  { name: 'Food Trucks', icon: '🚚', href: '/discover?category=food_truck', color: 'from-pink-400 to-rose-400' },
+  { key: 'restaurants', icon: '🍽️', href: '/discover?category=restaurant', color: 'from-red-400 to-orange-400' },
+  { key: 'cafes', icon: '☕', href: '/discover?category=cafe', color: 'from-amber-400 to-yellow-400' },
+  { key: 'bars', icon: '🍺', href: '/discover?category=bar', color: 'from-orange-400 to-amber-400' },
+  { key: 'foodCourts', icon: '🏪', href: '/discover?category=food_court', color: 'from-blue-400 to-cyan-400' },
+  { key: 'foodTrucks', icon: '🚚', href: '/discover?category=food_truck', color: 'from-pink-400 to-rose-400' },
 ]
 
-// Category chips shown inside the hero search area.
+// Category chips shown inside the hero search area. `label` resolved via
+// t(`heroChips.${key}`) inside the component.
 const HERO_CHIPS = [
-  { label: 'Restaurant', href: '/discover?category=restaurant' },
-  { label: 'Café', href: '/discover?category=cafe' },
-  { label: 'Bar', href: '/discover?category=bar' },
-  { label: 'Food Truck', href: '/discover?category=food_truck' },
-  { label: 'Food Court', href: '/discover?category=food_court' },
+  { key: 'restaurant', href: '/discover?category=restaurant' },
+  { key: 'cafe', href: '/discover?category=cafe' },
+  { key: 'bar', href: '/discover?category=bar' },
+  { key: 'foodTruck', href: '/discover?category=food_truck' },
+  { key: 'foodCourt', href: '/discover?category=food_court' },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getTranslations('home')
+  const tCommon = await getTranslations('common')
+
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <script
@@ -82,7 +84,7 @@ export default function HomePage() {
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920&q=80"
-            alt="Vibrant marketplace of restaurants and cafés"
+            alt={t('heroImageAlt')}
             fill
             className="object-cover"
             priority
@@ -97,31 +99,30 @@ export default function HomePage() {
             {/* Pill */}
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
               <Building2 className="h-3.5 w-3.5 text-orange-400" />
-              <span className="text-sm text-white/90 font-medium">Search · Book · Order — one platform</span>
+              <span className="text-sm text-white/90 font-medium">{t('heroPill')}</span>
             </div>
 
             <h1 className="font-[var(--font-display)] text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-5">
-              Discover
-              <span className="block text-orange-400">Local Businesses</span>
-              Near You.
+              {t('heroHeadingLine1')}
+              <span className="block text-orange-400">{t('heroHeadingHighlight')}</span>
+              {t('heroHeadingLine2')}
             </h1>
 
             {/* Subheadline — leads with the differentiator, not a repeat of the headline (H3). */}
             <p className="text-lg text-white/70 mb-8 leading-relaxed max-w-lg">
-              One platform for restaurants, cafés, bars, food trucks, and more.
-              Browse menus, book tables, and order — all without switching apps.
+              {t('heroSubheadline')}
             </p>
 
             {/* Search form — GET /discover?q= */}
             <form action="/discover" method="GET" className="flex gap-2 mb-6 max-w-lg">
               <div className="flex-1 relative">
                 <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" aria-hidden="true" />
-                <label htmlFor="hero-search" className="sr-only">Search for restaurants, cafés, bars, and more</label>
+                <label htmlFor="hero-search" className="sr-only">{t('heroSearchAriaLabel')}</label>
                 <input
                   id="hero-search"
                   type="text"
                   name="q"
-                  placeholder="Search restaurants, cafés, bars…"
+                  placeholder={t('heroSearchPlaceholder')}
                   className="w-full bg-white/10 backdrop-blur-sm border border-white/25 text-white placeholder:text-white/50 rounded-2xl ps-9 pe-4 py-3.5 text-sm focus:outline-none focus:border-orange-400 focus:bg-white/15 transition-all"
                 />
               </div>
@@ -129,7 +130,7 @@ export default function HomePage() {
                 type="submit"
                 className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
               >
-                Search
+                {tCommon('search')}
               </button>
             </form>
 
@@ -137,11 +138,11 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-2 mb-8">
               {HERO_CHIPS.map((chip) => (
                 <Link
-                  key={chip.label}
+                  key={chip.key}
                   href={chip.href}
                   className="bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:border-orange-400 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-all"
                 >
-                  {chip.label}
+                  {t(`heroChips.${chip.key}`)}
                 </Link>
               ))}
             </div>
@@ -152,7 +153,7 @@ export default function HomePage() {
                 href="/discover"
                 className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 active:translate-y-0"
               >
-                Explore Businesses
+                {t('exploreBusinesses')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               {/* Business-owner path — text link so it doesn't compete with the customer CTA */}
@@ -160,16 +161,16 @@ export default function HomePage() {
                 href="/restaurant"
                 className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white/85 hover:text-white text-sm font-medium px-4 py-2.5 rounded-2xl transition-all"
               >
-                Are you a business owner?
+                {t('areYouBusinessOwner')}
               </Link>
             </div>
 
             {/* Stats — inline trust signal at hero bottom (H6: replaces standalone stats section). */}
             <div className="flex flex-wrap gap-x-8 gap-y-2 mt-10 pt-8 border-t border-white/15">
               {STATS.map((stat) => (
-                <div key={stat.label} className="flex items-baseline gap-1.5">
+                <div key={stat.key} className="flex items-baseline gap-1.5">
                   <span className="font-[var(--font-display)] text-2xl font-bold text-white">{stat.value}</span>
-                  <span className="text-sm text-white/60">{stat.label}</span>
+                  <span className="text-sm text-white/60">{t(`stats.${stat.key}`)}</span>
                 </div>
               ))}
             </div>
@@ -178,7 +179,7 @@ export default function HomePage() {
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
           <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/40" />
-          <span className="text-white/60 text-xs">Scroll</span>
+          <span className="text-white/60 text-xs">{t('scroll')}</span>
         </div>
       </section>
 
@@ -192,28 +193,28 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">Browse by Type</p>
-              <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">Business Categories</h2>
+              <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('browseByType')}</p>
+              <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">{t('businessCategories')}</h2>
             </div>
             <Link
               href="/discover"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 hover:text-orange-600 border border-orange-200 dark:border-orange-900 px-3 py-1.5 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-all"
             >
-              View all <ChevronRight className="h-4 w-4" />
+              {tCommon('viewAll')} <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
           {/* H4: last item spans 2 cols on mobile so the 5-item grid has no orphan. */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {CATEGORIES.map((cat, i) => (
               <Link
-                key={cat.name}
+                key={cat.key}
                 href={cat.href}
                 className={`group relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-center hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-lg transition-all duration-300 hover:-translate-y-1${i === CATEGORIES.length - 1 ? ' col-span-2 sm:col-span-1' : ''}`}
               >
                 <div className={`mx-auto mb-4 h-14 w-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <span className="text-2xl">{cat.icon}</span>
                 </div>
-                <h3 className="font-semibold text-[var(--fg)] group-hover:text-orange-500 transition-colors">{cat.name}</h3>
+                <h3 className="font-semibold text-[var(--fg)] group-hover:text-orange-500 transition-colors">{t(`categories.${cat.key}`)}</h3>
               </Link>
             ))}
           </div>

@@ -314,7 +314,19 @@
     "confirmationSentTo": "تأییدیه‌ای برای {contact} ارسال شد",
     "makeAnotherReservation": "رزرو جدید",
     "reservationConfirmedToast": "رزرو تأیید شد! 🎉",
-    "reservationFailed": "رزرو ناموفق بود. دوباره تلاش کنید."
+    "reservationFailed": "رزرو ناموفق بود. دوباره تلاش کنید.",
+    "noReservationFoundTitle": "رزروی یافت نشد",
+    "noReservationFoundDesc": "این صفحه جزئیات رزرو شما را بلافاصله پس از رزرو نمایش می‌دهد. اگر قبلاً رزروی دارید، می‌توانید آن را در داشبورد خود مشاهده کنید.",
+    "nameLabel": "نام",
+    "dateLabel": "تاریخ",
+    "timeLabel": "ساعت",
+    "branchLabel": "شعبه",
+    "addToCalendar": "افزودن به تقویم",
+    "downloadIcsAria": "دانلود فایل تقویم ICS",
+    "downloadIcsFile": "دانلود فایل .ics",
+    "addToGoogleCalendarAria": "افزودن به تقویم گوگل",
+    "addToGoogleCalendar": "افزودن به تقویم گوگل",
+    "backToHome": "بازگشت به خانه"
   },
   "dashboard": {
     "title": "حساب من",
@@ -350,7 +362,16 @@
     "gallery": "گالری",
     "branches": "شعبه‌های ما",
     "closed": "تعطیل",
-    "open": "باز"
+    "open": "باز",
+    "establishedBadge": "تأسیس {year}",
+    "ourStory": "داستان ما",
+    "craftedTagline": "با اشتیاق ساخته شده، با عشق سرو می‌شود",
+    "contactUsHeading": "تماس با ما",
+    "phoneLabel": "تلفن",
+    "emailLabel": "ایمیل",
+    "websiteLabel": "وب‌سایت",
+    "ourLocations": "مکان‌های ما",
+    "viewOnMaps": "مشاهده روی نقشه"
   },
   "notifications": {
     "title": "اعلان‌ها",
@@ -752,6 +773,51 @@
       "title": "ساوور — پلتفرم مهمان‌نوازی",
       "description": "رستوران‌ها، کافه‌ها، بارها، فودتراک‌ها و بیشتر را کشف کنید. منوها را مرور کنید، میز رزرو کنید و از کسب‌وکارهای محلی در ساوور سفارش دهید.",
       "keywords": "کشف رستوران, پلتفرم مهمان‌نوازی, سفارش غذا, رزرو میز, کافه, بار, فودتراک, غذاخوری محلی, بازارگاه, بازارگاه رستوران"
+    },
+    "home": {
+      "title": "سیوار — کشف کسب‌وکارهای محلی",
+      "description": "رستوران‌ها، کافه‌ها، بارها، فودتراک‌ها و بیشتر را مرور کنید. کسب‌وکارهای محلی را کشف کنید، منوها را ببینید و میز رزرو کنید.",
+      "keywords": "کشف رستوران, پلتفرم مهمان‌نوازی, سفارش غذا, رزرو میز, کافه, بار, فودتراک, غذاخوری محلی, بازارچه"
+    },
+    "restaurantAbout": {
+      "title": "درباره ما — پلتفرم سیوار",
+      "description": "درباره پلتفرم مهمان‌نوازی سیوار بیشتر بدانید — ارتباط مشتریان با کسب‌وکارهای محلی عالی.",
+      "keywords": "درباره سیوار, پلتفرم مهمان‌نوازی, داستان ما, تماس با ما"
+    }
+  },
+  "home": {
+    "heroImageAlt": "بازارچه‌ای پرجنب‌وجوش از رستوران‌ها و کافه‌ها",
+    "heroPill": "جست‌وجو · رزرو · سفارش — یک پلتفرم",
+    "heroHeadingLine1": "کشف",
+    "heroHeadingHighlight": "کسب‌وکارهای محلی",
+    "heroHeadingLine2": "نزدیک شما.",
+    "heroSubheadline": "یک پلتفرم برای رستوران‌ها، کافه‌ها، بارها، فودتراک‌ها و بیشتر. منوها را مرور کنید، میز رزرو کنید و سفارش دهید — بدون جابه‌جایی بین اپلیکیشن‌ها.",
+    "heroSearchAriaLabel": "جست‌وجوی رستوران‌ها، کافه‌ها، بارها و بیشتر",
+    "heroSearchPlaceholder": "جست‌وجوی رستوران‌ها، کافه‌ها، بارها…",
+    "heroChips": {
+      "restaurant": "رستوران",
+      "cafe": "کافه",
+      "bar": "بار",
+      "foodTruck": "فودتراک",
+      "foodCourt": "فودکورت"
+    },
+    "exploreBusinesses": "کاوش کسب‌وکارها",
+    "areYouBusinessOwner": "صاحب کسب‌وکار هستید؟",
+    "scroll": "اسکرول",
+    "browseByType": "مرور بر اساس نوع",
+    "businessCategories": "دسته‌بندی کسب‌وکارها",
+    "categories": {
+      "restaurants": "رستوران‌ها",
+      "cafes": "کافه‌ها",
+      "bars": "بارها",
+      "foodCourts": "فودکورت‌ها",
+      "foodTrucks": "فودتراک‌ها"
+    },
+    "stats": {
+      "businesses": "کسب‌وکار",
+      "locations": "مکان",
+      "cities": "شهر",
+      "customers": "مشتری"
     }
   }
 }

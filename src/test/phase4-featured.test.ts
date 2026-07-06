@@ -43,8 +43,8 @@ describe('app/page.tsx — no hardcoded FEATURED array', () => {
   it('still contains STATS (unchanged)', () =>
     expect(src()).toContain('const STATS'))
 
-  it('still exports metadata', () =>
-    expect(src()).toContain('export const metadata'))
+  it('still exports metadata (P9.5.7A: generateMetadata(), localized via getLocalizedPageMetadata)', () =>
+    expect(src()).toContain('export async function generateMetadata'))
 })
 
 // ── Source-structure: FeaturedSection component ───────────────────────────────

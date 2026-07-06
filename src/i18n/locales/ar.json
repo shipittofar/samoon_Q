@@ -314,7 +314,19 @@
     "confirmationSentTo": "تم إرسال تأكيد إلى {contact}",
     "makeAnotherReservation": "إجراء حجز آخر",
     "reservationConfirmedToast": "تم تأكيد الحجز! 🎉",
-    "reservationFailed": "فشل الحجز. حاول مرة أخرى."
+    "reservationFailed": "فشل الحجز. حاول مرة أخرى.",
+    "noReservationFoundTitle": "لم يتم العثور على حجز",
+    "noReservationFoundDesc": "تعرض هذه الصفحة تفاصيل حجزك مباشرة بعد الحجز. إذا كان لديك حجز بالفعل، يمكنك عرضه في لوحة التحكم الخاصة بك.",
+    "nameLabel": "الاسم",
+    "dateLabel": "التاريخ",
+    "timeLabel": "الوقت",
+    "branchLabel": "الفرع",
+    "addToCalendar": "إضافة إلى التقويم",
+    "downloadIcsAria": "تنزيل ملف تقويم ICS",
+    "downloadIcsFile": "تنزيل ملف .ics",
+    "addToGoogleCalendarAria": "إضافة إلى تقويم جوجل",
+    "addToGoogleCalendar": "إضافة إلى تقويم جوجل",
+    "backToHome": "العودة إلى الرئيسية"
   },
   "dashboard": {
     "title": "حسابي",
@@ -350,7 +362,16 @@
     "gallery": "المعرض",
     "branches": "فروعنا",
     "closed": "مغلق",
-    "open": "مفتوح الآن"
+    "open": "مفتوح الآن",
+    "establishedBadge": "تأسست عام {year}",
+    "ourStory": "قصتنا",
+    "craftedTagline": "صُنع بشغف، يُقدَّم بحب",
+    "contactUsHeading": "اتصل بنا",
+    "phoneLabel": "الهاتف",
+    "emailLabel": "البريد الإلكتروني",
+    "websiteLabel": "الموقع الإلكتروني",
+    "ourLocations": "مواقعنا",
+    "viewOnMaps": "عرض على الخريطة"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -752,6 +773,51 @@
       "title": "سافور — منصة الضيافة",
       "description": "اكتشف المطاعم والمقاهي والبارات وعربات الطعام والمزيد. تصفح القوائم، احجز الطاولات، واطلب من الأعمال المحلية على سافور.",
       "keywords": "اكتشاف المطاعم, منصة الضيافة, طلب الطعام, حجز الطاولات, مقهى, بار, عربة طعام, تناول الطعام المحلي, سوق, سوق المطاعم"
+    },
+    "home": {
+      "title": "سيفور — اكتشف الأعمال المحلية",
+      "description": "تصفح المطاعم والمقاهي والحانات وشاحنات الطعام والمزيد. اكتشف الأعمال المحلية، واستكشف القوائم، واحجز الطاولات على سيفور.",
+      "keywords": "اكتشاف المطاعم, منصة الضيافة, طلب الطعام, حجز الطاولات, مقهى, حانة, شاحنة طعام, تناول الطعام محليًا, سوق"
+    },
+    "restaurantAbout": {
+      "title": "حول — منصة سيفور",
+      "description": "تعرف على منصة الضيافة سيفور — نربط العملاء بأفضل الأعمال المحلية.",
+      "keywords": "حول سيفور, منصة الضيافة, قصتنا, اتصل بنا"
+    }
+  },
+  "home": {
+    "heroImageAlt": "سوق نابض بالحياة من المطاعم والمقاهي",
+    "heroPill": "ابحث · احجز · اطلب — منصة واحدة",
+    "heroHeadingLine1": "اكتشف",
+    "heroHeadingHighlight": "الأعمال المحلية",
+    "heroHeadingLine2": "بالقرب منك.",
+    "heroSubheadline": "منصة واحدة للمطاعم والمقاهي والحانات وشاحنات الطعام والمزيد. تصفح القوائم، احجز الطاولات، واطلب — كل ذلك دون التبديل بين التطبيقات.",
+    "heroSearchAriaLabel": "ابحث عن المطاعم والمقاهي والحانات والمزيد",
+    "heroSearchPlaceholder": "ابحث عن مطاعم، مقاهٍ، حانات…",
+    "heroChips": {
+      "restaurant": "مطعم",
+      "cafe": "مقهى",
+      "bar": "حانة",
+      "foodTruck": "شاحنة طعام",
+      "foodCourt": "ساحة طعام"
+    },
+    "exploreBusinesses": "استكشف الأعمال",
+    "areYouBusinessOwner": "هل أنت صاحب عمل؟",
+    "scroll": "مرر لأسفل",
+    "browseByType": "تصفح حسب النوع",
+    "businessCategories": "فئات الأعمال",
+    "categories": {
+      "restaurants": "مطاعم",
+      "cafes": "مقاهٍ",
+      "bars": "حانات",
+      "foodCourts": "ساحات طعام",
+      "foodTrucks": "شاحنات طعام"
+    },
+    "stats": {
+      "businesses": "الأعمال",
+      "locations": "المواقع",
+      "cities": "المدن",
+      "customers": "العملاء"
     }
   }
 }

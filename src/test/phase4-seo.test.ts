@@ -180,25 +180,36 @@ describe('P4.4.3 — Homepage static data audit', () => {
 // ── P4.4.4 — SEO Metadata ─────────────────────────────────────────────────────
 
 describe('P4.4.4 — SEO metadata exports', () => {
-  it('homepage exports metadata with title', () => {
+  // P9.5.7A — the homepage now exports an async generateMetadata() that
+  // delegates to getLocalizedPageMetadata() (src/lib/seo.ts, the same
+  // helper the root layout already uses) instead of a literal `export const
+  // metadata` object, so title/OpenGraph/Twitter/canonical are localized
+  // per-locale. `getLocalizedPageMetadata` itself can't be invoked here —
+  // next-intl/server resolves to its client stub under this vitest
+  // environment and throws ("not supported in Client Components") — so
+  // these assertions check the actual object construction in seo.ts (where
+  // openGraph/twitter/alternates.canonical are genuinely built) plus that
+  // page.tsx correctly delegates to it, rather than the pre-migration
+  // pattern of grepping page.tsx for a literal inline object.
+  it('homepage exports a generateMetadata function that delegates to getLocalizedPageMetadata', () => {
     const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
-    expect(src).toContain('export const metadata')
-    expect(src).toContain('title:')
+    expect(src).toContain('export async function generateMetadata')
+    expect(src).toContain('getLocalizedPageMetadata')
   })
 
-  it('homepage metadata includes openGraph', () => {
-    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+  it('getLocalizedPageMetadata (src/lib/seo.ts) builds openGraph', () => {
+    const src = readFileSync(join(SRC, 'lib', 'seo.ts'), 'utf-8')
     expect(src).toContain('openGraph')
   })
 
-  it('homepage metadata includes twitter card', () => {
-    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+  it('getLocalizedPageMetadata (src/lib/seo.ts) builds a twitter summary_large_image card', () => {
+    const src = readFileSync(join(SRC, 'lib', 'seo.ts'), 'utf-8')
     expect(src).toContain('twitter')
     expect(src).toContain('summary_large_image')
   })
 
-  it('homepage metadata includes canonical URL', () => {
-    const src = readFileSync(join(SRC, 'app', 'page.tsx'), 'utf-8')
+  it('getLocalizedPageMetadata (src/lib/seo.ts) builds alternates.canonical', () => {
+    const src = readFileSync(join(SRC, 'lib', 'seo.ts'), 'utf-8')
     expect(src).toContain('alternates')
     expect(src).toContain('canonical')
   })

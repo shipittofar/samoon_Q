@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { MapPin, Phone, Mail, Clock, Globe } from 'lucide-react'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
@@ -8,10 +9,13 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Badge } from '@/components/ui'
 import { tenantService } from '@/services/tenant.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
+import { getLocalizedPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'About — Savor Platform',
-  description: 'Learn about the Savor hospitality platform — connecting customers with great local businesses.',
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  return getLocalizedPageMetadata({ locale, path: '/restaurant', namespaceKey: 'restaurantAbout', baseUrl: BASE_URL })
 }
 
 // Fallback data used when the tenant service cannot be reached.
@@ -32,6 +36,7 @@ const FALLBACK_GALLERY = [
 const FALLBACK_STORY = 'Founded with a passion for extraordinary hospitality, we believe great food and warm service should be accessible to everyone. Our team works with local producers and time-honoured recipes to create experiences worth returning for.'
 
 export default async function RestaurantPage() {
+  const t = await getTranslations('restaurant')
   // Load the savor tenant data so all public content is driven by admin settings.
   const tenant = await tenantService.getTenant('savor').catch(() => null)
   const meta = tenant ? getMarketplaceMeta(tenant.settings) : undefined
@@ -73,8 +78,8 @@ export default async function RestaurantPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         <div className="absolute bottom-0 inset-x-0 p-8 sm:p-12 max-w-7xl mx-auto">
-          <Badge variant="default" className="mb-3">Est. 2018</Badge>
-          <h1 className="font-[var(--font-display)] text-4xl sm:text-6xl font-bold text-white mb-3">Our Story</h1>
+          <Badge variant="default" className="mb-3">{t('establishedBadge', { year: 2018 })}</Badge>
+          <h1 className="font-[var(--font-display)] text-4xl sm:text-6xl font-bold text-white mb-3">{t('ourStory')}</h1>
           <p className="text-white/80 text-lg max-w-xl">{tagline}</p>
         </div>
       </div>
@@ -83,8 +88,8 @@ export default async function RestaurantPage() {
         {/* About */}
         <section className="py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-3">About Us</p>
-            <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)] mb-6">Crafted With Passion, Served With Love</h2>
+            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-3">{t('title')}</p>
+            <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)] mb-6">{t('craftedTagline')}</h2>
             <div className="space-y-4 text-[var(--fg-muted)] leading-relaxed">
               {story.split('\n\n').map((paragraph, i) => (
                 <p key={i}>{paragraph}</p>
@@ -102,12 +107,12 @@ export default async function RestaurantPage() {
 
         {/* Contact */}
         <section className="py-12 border-t border-[var(--border)]">
-          <h2 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-8">Contact Us</h2>
+          <h2 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-8">{t('contactUsHeading')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              contactPhone ? { icon: Phone, label: 'Phone', value: contactPhone, href: `tel:${contactPhone}` } : null,
-              contactEmail ? { icon: Mail, label: 'Email', value: contactEmail, href: `mailto:${contactEmail}` } : null,
-              contactWebsite ? { icon: Globe, label: 'Website', value: contactWebsite.replace(/^https?:\/\//, ''), href: contactWebsite } : null,
+              contactPhone ? { icon: Phone, label: t('phoneLabel'), value: contactPhone, href: `tel:${contactPhone}` } : null,
+              contactEmail ? { icon: Mail, label: t('emailLabel'), value: contactEmail, href: `mailto:${contactEmail}` } : null,
+              contactWebsite ? { icon: Globe, label: t('websiteLabel'), value: contactWebsite.replace(/^https?:\/\//, ''), href: contactWebsite } : null,
             ].filter(Boolean).map((item) => {
               if (!item) return null
               const { icon: Icon, label, value, href } = item
@@ -128,13 +133,13 @@ export default async function RestaurantPage() {
 
         {/* Branches / Locations */}
         <section className="py-12 border-t border-[var(--border)]" id="branches">
-          <h2 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-8">Our Locations</h2>
+          <h2 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-8">{t('ourLocations')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {branches.map((branch) => (
               <div key={branch.name} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="font-[var(--font-display)] text-lg font-semibold text-[var(--fg)]">{branch.name}</h3>
-                  <Badge variant={branch.status === 'open' ? 'success' : 'danger'} dot className="capitalize">{branch.status}</Badge>
+                  <Badge variant={branch.status === 'open' ? 'success' : 'danger'} dot>{branch.status === 'open' ? t('open') : t('closed')}</Badge>
                 </div>
                 <div className="space-y-3 text-sm text-[var(--fg-muted)]">
                   <div className="flex items-start gap-2">
@@ -158,7 +163,7 @@ export default async function RestaurantPage() {
                 <div className="mt-4 h-24 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 flex items-center justify-center border border-orange-200 dark:border-orange-900">
                   <div className="text-center">
                     <MapPin className="h-5 w-5 text-orange-400 mx-auto mb-1" />
-                    <p className="text-xs text-orange-500">View on Maps</p>
+                    <p className="text-xs text-orange-500">{t('viewOnMaps')}</p>
                   </div>
                 </div>
               </div>
@@ -168,7 +173,7 @@ export default async function RestaurantPage() {
 
         {/* Gallery */}
         <section className="py-12 border-t border-[var(--border)]">
-          <h2 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-8">Gallery</h2>
+          <h2 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-8">{t('gallery')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {gallery.map((src, i) => (
               <div key={i} className="relative rounded-2xl overflow-hidden h-48 group">

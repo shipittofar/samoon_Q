@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/Button'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { downloadIcs, buildGoogleCalendarUrl } from '@/lib/calendar'
+import { useTranslations } from 'next-intl'
 
 function ReservationConfirmContent() {
+  const t = useTranslations('reservation')
   const params = useSearchParams()
 
   const code = params.get('code') || ''
@@ -30,13 +32,13 @@ function ReservationConfirmContent() {
         <div className="flex-1 flex items-center justify-center p-4 pt-24">
           <div className="max-w-md w-full bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-xl p-8 text-center">
             <Calendar className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4" />
-            <h1 className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)] mb-2">No reservation found</h1>
+            <h1 className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)] mb-2">{t('noReservationFoundTitle')}</h1>
             <p className="text-sm text-[var(--fg-muted)] mb-6">
-              This page shows your reservation details right after booking. If you already have a reservation, you can view it in your dashboard.
+              {t('noReservationFoundDesc')}
             </p>
             <div className="flex flex-col gap-3">
-              <Link href="/reservation"><Button className="w-full">Make a Reservation</Button></Link>
-              <Link href="/dashboard/reservations"><Button variant="secondary" className="w-full">My Reservations</Button></Link>
+              <Link href="/reservation"><Button className="w-full">{t('title')}</Button></Link>
+              <Link href="/dashboard/reservations"><Button variant="secondary" className="w-full">{t('myReservations')}</Button></Link>
             </div>
           </div>
         </div>
@@ -66,11 +68,11 @@ function ReservationConfirmContent() {
     : ''
 
   const details = [
-    { icon: User, label: 'Name', value: name },
-    { icon: Calendar, label: 'Date', value: displayDate || date },
-    { icon: Clock, label: 'Time', value: time },
-    { icon: Users, label: 'Guests', value: `${guests} ${Number(guests) === 1 ? 'person' : 'people'}` },
-    ...(branch ? [{ icon: MapPin, label: 'Branch', value: branch }] : []),
+    { icon: User, label: t('nameLabel'), value: name },
+    { icon: Calendar, label: t('dateLabel'), value: displayDate || date },
+    { icon: Clock, label: t('timeLabel'), value: time },
+    { icon: Users, label: t('guests'), value: t('peopleSuffix', { count: Number(guests) || 0 }) },
+    ...(branch ? [{ icon: MapPin, label: t('branchLabel'), value: branch }] : []),
   ].filter((d) => d.value)
 
   return (
@@ -94,8 +96,8 @@ function ReservationConfirmContent() {
               >
                 <CheckCircle2 className="h-10 w-10 text-white" />
               </motion.div>
-              <h1 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">Reservation Confirmed!</h1>
-              <p className="text-white/80 text-sm">We look forward to seeing you</p>
+              <h1 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">{t('confirmed')}</h1>
+              <p className="text-white/80 text-sm">{t('lookForwardToSeeing')}</p>
               {status && (
                 <span className="inline-block mt-2 px-3 py-0.5 rounded-full bg-white/20 text-white text-xs font-medium capitalize">
                   {status}
@@ -106,7 +108,7 @@ function ReservationConfirmContent() {
             <div className="p-6 space-y-5">
               {/* Confirmation code */}
               <div className="bg-[var(--card-hover)] rounded-2xl p-4 text-center">
-                <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider mb-1">Confirmation Code</p>
+                <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider mb-1">{t('confirmationCode')}</p>
                 <p className="font-[var(--font-display)] text-2xl font-bold text-orange-500 tracking-widest">{code}</p>
               </div>
 
@@ -129,35 +131,35 @@ function ReservationConfirmContent() {
               <div className="border border-[var(--border)] rounded-2xl p-4 space-y-2">
                 <p className="text-xs font-semibold text-[var(--fg)] flex items-center gap-1.5 mb-3">
                   <CalendarPlus className="h-3.5 w-3.5 text-orange-500" />
-                  Add to Calendar
+                  {t('addToCalendar')}
                 </p>
                 <button
                   onClick={handleDownloadIcs}
                   className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] hover:border-orange-300 transition-all text-start"
-                  aria-label="Download ICS calendar file"
+                  aria-label={t('downloadIcsAria')}
                 >
                   <Download className="h-4 w-4 text-orange-500 shrink-0" />
-                  Download .ics file
+                  {t('downloadIcsFile')}
                 </button>
                 <a
                   href={googleUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[var(--border)] text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] hover:border-orange-300 transition-all"
-                  aria-label="Add to Google Calendar"
+                  aria-label={t('addToGoogleCalendarAria')}
                 >
                   <ExternalLink className="h-4 w-4 text-orange-500 shrink-0" />
-                  Add to Google Calendar
+                  {t('addToGoogleCalendar')}
                 </a>
               </div>
 
               {/* Actions */}
               <div className="flex flex-col gap-3 pt-1">
                 <Link href="/reservation">
-                  <Button variant="secondary" className="w-full">Make Another Reservation</Button>
+                  <Button variant="secondary" className="w-full">{t('makeAnotherReservation')}</Button>
                 </Link>
                 <Link href="/" className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors">
-                  <Home className="h-3.5 w-3.5" /> Back to Home
+                  <Home className="h-3.5 w-3.5" /> {t('backToHome')}
                 </Link>
               </div>
             </div>
