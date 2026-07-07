@@ -47,7 +47,7 @@ export const MOCK_OWNER_USER: User = {
   first_name: 'Olivia',
   last_name: 'Owner',
   avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-  role: 'admin',
+  role: 'owner',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }

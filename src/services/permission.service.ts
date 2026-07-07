@@ -96,12 +96,81 @@ export const ALL_PERMISSIONS: readonly P7Permission[] = [
 
 export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>> = {
   /** Full access — every permission including tenant ownership actions. */
-  owner: ALL_PERMISSIONS.filter((p) => p !== 'customers.manage','customers.create'),
+  // owner: ALL_PERMISSIONS.filter((p) => p !== 'customers.manage','customers.create'),
   /**owner: ALL_PERMISSIONS,*/
 
   /** Everything except tenant ownership (tenant.manage). */
   admin: ALL_PERMISSIONS,
   /**admin: ALL_PERMISSIONS.filter((p) => p !== 'tenant.manage'),*/
+
+  /** Full access — every permission including tenant ownership actions. */
+  owner: [
+    // Orders
+    'orders.view',
+    'orders.manage',
+    'orders.create',
+    'orders.edit',
+    'orders.cancel',
+    'orders.delete',
+    // Menu
+    'menu.view',
+    'menu.manage',
+    // Reservations
+    'reservations.view',
+    'reservations.manage',
+    // Customers
+    'customers.view',
+    'customers.manage',
+    // Payments
+    'payments.process',
+    'payments.refund',
+    // Tables
+    'tables.view',
+    'tables.assign',
+    // Kitchen
+    'kitchen.view',
+    'kitchen.manage',
+    // Vendors
+    'vendors.view',
+    'vendors.manage',
+    // Promotions
+    'promotions.view',
+    'promotions.manage',
+    // Loyalty
+    'loyalty.view',
+    'loyalty.manage',
+    // Analytics
+    'analytics.view',
+    'analytics.export',
+    // Staff
+    'staff.view',
+    'staff.manage',
+    'staff.create',
+    'staff.edit',
+    'staff.delete',
+    // Branches
+    'branches.view',
+    'branches.manage',
+    // Settings
+    'settings.view',
+    'settings.manage',
+    'featureflags.manage',
+    // Tenant
+    'tenant.view',
+    'tenant.manage',
+    // Audit
+    'audit.view',
+    'audit.export',
+    'audit.manage',
+    // Notifications
+    'notifications.view',
+    'notifications.manage',
+    'notifications.preferences',
+    // Operations
+    'operations.view',
+    'operations.manage',
+  ],
+
 
   /** Operational management — runs the floor, staff, schedules, branches. */
   manager: [
@@ -252,7 +321,7 @@ export function getPermissionsForRole(
   const roles = Array.isArray(role) ? role : [role]
   const set = new Set<P7Permission>()
   roles.forEach((r) => {
-    ;(ROLE_PERMISSION_MAP[r] ?? []).forEach((p) => set.add(p))
+    ; (ROLE_PERMISSION_MAP[r] ?? []).forEach((p) => set.add(p))
   })
   return [...set]
 }
@@ -626,35 +695,35 @@ import type { PermissionDependency, DependencyValidationResult } from '@/types/r
  * and returns warnings, implied grants, and missing requirements.
  */
 export const PERMISSION_DEPENDENCIES: Readonly<Partial<Record<P7Permission, PermissionDependency>>> = {
-  'orders.manage':      { permission: 'orders.manage',      requires: ['orders.view'] },
-  'orders.create':      { permission: 'orders.create',      requires: ['orders.view'] },
-  'orders.edit':        { permission: 'orders.edit',        requires: ['orders.view'] },
-  'orders.cancel':      { permission: 'orders.cancel',      requires: ['orders.view'] },
-  'orders.delete':      { permission: 'orders.delete',      requires: ['orders.view', 'orders.manage'] },
-  'menu.manage':        { permission: 'menu.manage',        requires: ['menu.view'] },
-  'reservations.manage':{ permission: 'reservations.manage',requires: ['reservations.view'] },
-  'customers.manage':   { permission: 'customers.manage',   requires: ['customers.view'] },
-  'customers.create':   { permission: 'customers.create',   requires: ['customers.view'] },
-  'customers.edit':     { permission: 'customers.edit',     requires: ['customers.view'] },
-  'payments.refund':    { permission: 'payments.refund',    requires: ['payments.process'] },
-  'kitchen.manage':     { permission: 'kitchen.manage',     requires: ['kitchen.view'] },
-  'analytics.export':   { permission: 'analytics.export',   requires: ['analytics.view'] },
-  'staff.manage':       { permission: 'staff.manage',       requires: ['staff.view'],  implies: ['staff.view'] },
-  'staff.create':       { permission: 'staff.create',       requires: ['staff.view', 'staff.manage'] },
-  'staff.edit':         { permission: 'staff.edit',         requires: ['staff.view', 'staff.manage'] },
-  'staff.delete':       { permission: 'staff.delete',       requires: ['staff.view', 'staff.manage'] },
-  'branches.manage':    { permission: 'branches.manage',    requires: ['branches.view'] },
-  'settings.manage':    { permission: 'settings.manage',    requires: ['settings.view'] },
-  'featureflags.manage':{ permission: 'featureflags.manage',requires: ['settings.view', 'settings.manage'] },
-  'tenant.manage':      { permission: 'tenant.manage',      requires: ['tenant.view'] },
-  'audit.export':       { permission: 'audit.export',       requires: ['audit.view'] },
-  'audit.manage':       { permission: 'audit.manage',       requires: ['audit.view'] },
-  'notifications.manage':{ permission: 'notifications.manage', requires: ['notifications.view'] },
-  'operations.manage':  { permission: 'operations.manage',  requires: ['operations.view'] },
-  'vendors.manage':     { permission: 'vendors.manage',     requires: ['vendors.view'] },
-  'promotions.manage':  { permission: 'promotions.manage',  requires: ['promotions.view'] },
-  'loyalty.manage':     { permission: 'loyalty.manage',     requires: ['loyalty.view'] },
-  'tables.assign':      { permission: 'tables.assign',      requires: ['tables.view'] },
+  'orders.manage': { permission: 'orders.manage', requires: ['orders.view'] },
+  'orders.create': { permission: 'orders.create', requires: ['orders.view'] },
+  'orders.edit': { permission: 'orders.edit', requires: ['orders.view'] },
+  'orders.cancel': { permission: 'orders.cancel', requires: ['orders.view'] },
+  'orders.delete': { permission: 'orders.delete', requires: ['orders.view', 'orders.manage'] },
+  'menu.manage': { permission: 'menu.manage', requires: ['menu.view'] },
+  'reservations.manage': { permission: 'reservations.manage', requires: ['reservations.view'] },
+  'customers.manage': { permission: 'customers.manage', requires: ['customers.view'] },
+  'customers.create': { permission: 'customers.create', requires: ['customers.view'] },
+  'customers.edit': { permission: 'customers.edit', requires: ['customers.view'] },
+  'payments.refund': { permission: 'payments.refund', requires: ['payments.process'] },
+  'kitchen.manage': { permission: 'kitchen.manage', requires: ['kitchen.view'] },
+  'analytics.export': { permission: 'analytics.export', requires: ['analytics.view'] },
+  'staff.manage': { permission: 'staff.manage', requires: ['staff.view'], implies: ['staff.view'] },
+  'staff.create': { permission: 'staff.create', requires: ['staff.view', 'staff.manage'] },
+  'staff.edit': { permission: 'staff.edit', requires: ['staff.view', 'staff.manage'] },
+  'staff.delete': { permission: 'staff.delete', requires: ['staff.view', 'staff.manage'] },
+  'branches.manage': { permission: 'branches.manage', requires: ['branches.view'] },
+  'settings.manage': { permission: 'settings.manage', requires: ['settings.view'] },
+  'featureflags.manage': { permission: 'featureflags.manage', requires: ['settings.view', 'settings.manage'] },
+  'tenant.manage': { permission: 'tenant.manage', requires: ['tenant.view'] },
+  'audit.export': { permission: 'audit.export', requires: ['audit.view'] },
+  'audit.manage': { permission: 'audit.manage', requires: ['audit.view'] },
+  'notifications.manage': { permission: 'notifications.manage', requires: ['notifications.view'] },
+  'operations.manage': { permission: 'operations.manage', requires: ['operations.view'] },
+  'vendors.manage': { permission: 'vendors.manage', requires: ['vendors.view'] },
+  'promotions.manage': { permission: 'promotions.manage', requires: ['promotions.view'] },
+  'loyalty.manage': { permission: 'loyalty.manage', requires: ['loyalty.view'] },
+  'tables.assign': { permission: 'tables.assign', requires: ['tables.view'] },
 }
 
 /**
@@ -692,8 +761,8 @@ export function resolveWithDependencies(
   const toAdd = new Set<P7Permission>([toGrant])
   const dep = PERMISSION_DEPENDENCIES[toGrant]
   if (dep) {
-    ;(dep.requires ?? []).forEach((r) => toAdd.add(r))
-    ;(dep.implies ?? []).forEach((i) => toAdd.add(i))
+    ; (dep.requires ?? []).forEach((r) => toAdd.add(r))
+      ; (dep.implies ?? []).forEach((i) => toAdd.add(i))
   }
   return [...toAdd].filter((p) => !currentEffective.includes(p))
 }

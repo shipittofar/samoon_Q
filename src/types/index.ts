@@ -3,7 +3,7 @@
 // ============================================================
 
 /** Role assigned to an authenticated user. Matches the backend auth model. */
-export type UserRole = 'customer' | 'staff' | 'admin'
+export type UserRole = 'customer' | 'staff' | 'owner' | 'admin'
 
 export interface User {
   id: string
