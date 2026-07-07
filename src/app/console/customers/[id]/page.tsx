@@ -1067,7 +1067,7 @@ function CustomerDetailContent({ id }: { id: string }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
       {/* Back link */}
       <Link
         href="/console/customers"
@@ -1212,7 +1212,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
     <ErrorBoundary feature="Customer Detail">
       <PermissionGuard permission="customers.view" fallback={<AccessDenied />}>
         <div className="min-h-screen bg-[var(--bg)]">
-          <div className="pt-16">
+          <div className="pt-2">
             <CustomerDetailContent id={id} />
           </div>
         </div>
