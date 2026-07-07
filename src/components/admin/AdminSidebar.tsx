@@ -223,7 +223,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
         ref={sidebarRef}
         id="admin-sidebar"
         className={cn(
-          'fixed inset-y-0 start-0 z-40 flex w-60 flex-col bg-[var(--card)] border-e border-[var(--border)] pt-16 transition-transform duration-300 lg:static lg:translate-x-0 lg:z-auto lg:shrink-0',
+          'fixed inset-y-0 start-0 z-40 flex w-60 flex-col bg-[var(--card)] border-e border-[var(--border)] pt-1 transition-transform duration-300 lg:static lg:translate-x-0 lg:z-auto lg:shrink-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
         aria-label={t('adminNavigationAria')}

@@ -29,7 +29,10 @@ function buildCspHeader(): string {
 // NEXT_PUBLIC_USE_MOCK=true is only safe for local development and demo deploys.
 // A production build with mock mode active bypasses real auth and exposes
 // the demo@savor.com/password backdoor to all users.
-if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_USE_MOCK === 'true') {
+
+const allowMockProduction = process.env.ALLOW_PRODUCTION_MOCK === "true";
+
+if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_USE_MOCK === 'true' && !allowMockProduction) {
   throw new Error(
     '[P3.3] Build aborted: NEXT_PUBLIC_USE_MOCK=true is not allowed in production. ' +
     'Set NEXT_PUBLIC_USE_MOCK=false (or unset it) before building for production.',

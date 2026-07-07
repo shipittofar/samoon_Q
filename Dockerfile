@@ -1,3 +1,16 @@
+FROM node:22-alpine AS dev
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+CMD ["npm","run","dev"]
+
 FROM node:22-alpine AS builder
 
 WORKDIR /app

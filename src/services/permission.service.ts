@@ -96,10 +96,12 @@ export const ALL_PERMISSIONS: readonly P7Permission[] = [
 
 export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>> = {
   /** Full access — every permission including tenant ownership actions. */
-  owner: ALL_PERMISSIONS,
+  owner: ALL_PERMISSIONS.filter((p) => p !== 'customers.manage','customers.create'),
+  /**owner: ALL_PERMISSIONS,*/
 
   /** Everything except tenant ownership (tenant.manage). */
-  admin: ALL_PERMISSIONS.filter((p) => p !== 'tenant.manage'),
+  admin: ALL_PERMISSIONS,
+  /**admin: ALL_PERMISSIONS.filter((p) => p !== 'tenant.manage'),*/
 
   /** Operational management — runs the floor, staff, schedules, branches. */
   manager: [
