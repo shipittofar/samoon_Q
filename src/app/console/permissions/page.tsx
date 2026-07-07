@@ -12,14 +12,14 @@ import Link from 'next/link'
 import type { Role } from '@/types/rbac'
 
 const ROLE_COLORS: Record<Role, string> = {
-  owner:     'bg-purple-100 text-purple-700',
-  admin:     'bg-orange-100 text-orange-700',
-  manager:   'bg-green-100 text-green-700',
-  cashier:   'bg-cyan-100 text-cyan-700',
-  waiter:    'bg-blue-100 text-blue-700',
-  kitchen:   'bg-amber-100 text-amber-700',
+  owner: 'bg-purple-100 text-purple-700',
+  admin: 'bg-orange-100 text-orange-700',
+  manager: 'bg-green-100 text-green-700',
+  cashier: 'bg-cyan-100 text-cyan-700',
+  waiter: 'bg-blue-100 text-blue-700',
+  kitchen: 'bg-amber-100 text-amber-700',
   marketing: 'bg-pink-100 text-pink-700',
-  support:   'bg-indigo-100 text-indigo-700',
+  support: 'bg-indigo-100 text-indigo-700',
 }
 
 export default function PermissionsPage() {
@@ -28,11 +28,31 @@ export default function PermissionsPage() {
   const userOverrides = useRbacStore((s) => s.userOverrides)
   const [search, setSearch] = useState('')
 
-  const filtered = MOCK_RBAC_USERS.filter(
-    (u) =>
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
-      `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filtered = MOCK_RBAC_USERS
+    .filter(
+      (u) =>
+        u.email.toLowerCase().includes(search.toLowerCase()) ||
+        `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase()),
+    )
+    .sort((a, b) => {
+      const aAssignment = a.tenantAssignments.find(
+        (t) => t.tenantId === 'tenant-savor-01'
+      )
+      const bAssignment = b.tenantAssignments.find(
+        (t) => t.tenantId === 'tenant-savor-01'
+      )
+
+      const aCount = getPermissionsForRole(aAssignment?.roles ?? []).length
+      const bCount = getPermissionsForRole(bAssignment?.roles ?? []).length
+
+      return bCount - aCount
+    })
+
+  // const filtered = MOCK_RBAC_USERS.filter(
+  //   (u) =>
+  //     u.email.toLowerCase().includes(search.toLowerCase()) ||
+  //     `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase()),
+  // )
 
   return (
     <ErrorBoundary feature="Permission Management">
