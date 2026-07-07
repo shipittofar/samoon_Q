@@ -111,7 +111,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'orders.create',
     'orders.edit',
     'orders.cancel',
-    'orders.delete',
+    // 'orders.delete',
     // Menu
     'menu.view',
     'menu.manage',
@@ -120,7 +120,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'reservations.manage',
     // Customers
     'customers.view',
-    'customers.manage',
+    // 'customers.manage',
     // Payments
     'payments.process',
     'payments.refund',
@@ -141,7 +141,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'loyalty.manage',
     // Analytics
     'analytics.view',
-    'analytics.export',
+    // 'analytics.export',
     // Staff
     'staff.view',
     'staff.manage',
@@ -153,22 +153,22 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'branches.manage',
     // Settings
     'settings.view',
-    'settings.manage',
-    'featureflags.manage',
+    // 'settings.manage',
+    // 'featureflags.manage',
     // Tenant
     'tenant.view',
     'tenant.manage',
     // Audit
     'audit.view',
-    'audit.export',
-    'audit.manage',
+    // 'audit.export',
+    // 'audit.manage',
     // Notifications
     'notifications.view',
-    'notifications.manage',
-    'notifications.preferences',
+    // 'notifications.manage',
+    // 'notifications.preferences',
     // Operations
     'operations.view',
-    'operations.manage',
+    // 'operations.manage',
   ],
 
 

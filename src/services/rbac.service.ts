@@ -34,16 +34,22 @@ const STAFF_PERMISSIONS: readonly LegacyPermission[] = [
   'dashboard:access',
 ]
 
+const OWNER_PERMISSIONS: readonly LegacyPermission[] = [
+  ...STAFF_PERMISSIONS,
+  'users:manage',
+  'branches:manage',
+]
+
 const ADMIN_PERMISSIONS: readonly LegacyPermission[] = [
   ...STAFF_PERMISSIONS,
   'menu:manage',
-  'users:manage',
   'branches:manage',
 ]
 
 const ROLE_PERMISSIONS: Readonly<Record<UserRole, readonly LegacyPermission[]>> = {
   customer: CUSTOMER_PERMISSIONS,
   staff: STAFF_PERMISSIONS,
+  owner: OWNER_PERMISSIONS,
   admin: ADMIN_PERMISSIONS,
 }
 
