@@ -19,7 +19,8 @@ const FALLBACK_RESEND_SECONDS = 60
 function OTPContent() {
   const router = useRouter()
   const params = useSearchParams()
-  const phone = params.get('phone') || ''
+  const phone = params.get('phone') ?? ''
+  const dialCode = params.get('dialCode') ?? ''
   const { setUser } = useAuthStore()
   const t = useTranslations('auth')
   const tValidation = useTranslations('validation')
@@ -99,7 +100,7 @@ function OTPContent() {
   const handleResend = async () => {
     setResending(true)
     try {
-      await authService.sendOTP(phone)
+      await authService.sendOTP({ phone, dialCode, })
       setCountdown(RESEND_SECONDS)
       toast.success(t('otpResent'))
     } catch {
@@ -176,9 +177,8 @@ function OTPContent() {
             {otp.map((_, i) => (
               <div
                 key={i}
-                className={`h-1 flex-1 rounded-full transition-colors duration-200 ${
-                  i < filled ? 'bg-orange-500' : 'bg-[var(--border)]'
-                }`}
+                className={`h-1 flex-1 rounded-full transition-colors duration-200 ${i < filled ? 'bg-orange-500' : 'bg-[var(--border)]'
+                  }`}
               />
             ))}
           </div>

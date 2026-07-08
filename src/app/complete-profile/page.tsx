@@ -39,6 +39,7 @@ function CompleteProfileInner() {
   const router = useRouter()
   const params = useSearchParams()
   const phone = params.get('phone') ?? ''
+  const dialCode = params.get('dialCode') ?? ''
   const prefersReducedMotion = useReducedMotion()
   const { mutate: register, isPending } = useRegister()
   const t = useTranslations('auth')

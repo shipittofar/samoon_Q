@@ -69,6 +69,7 @@ export function LoginClientPage() {
   const USE_MOCK = USE_MOCK_ENV && (demoVisibleField?.value as boolean | undefined) !== false
 
   const [phoneE164, setPhoneE164] = useState('')
+  const [dialCode, setDialCode] = useState('')
   const [phoneValid, setPhoneValid] = useState(false)
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -85,12 +86,26 @@ export function LoginClientPage() {
       toast.error(t('tooManyAttempts'))
       return
     }
-    sendOTP(phoneE164, {
-      onSuccess: () => {
-        router.push(`/verify?phone=${encodeURIComponent(phoneE164)}`)
+    // sendOTP(phoneE164, {
+    //   onSuccess: () => {
+    //     router.push(`/verify?phone=${encodeURIComponent(phoneE164)}`)
+    //   },
+    //   onError: () => toast.error(t('otpSendFailed')),
+    // })
+    sendOTP(
+      {
+        phone: phoneE164,
+        dialCode,
       },
-      onError: () => toast.error(t('otpSendFailed')),
-    })
+      {
+        onSuccess: () => {
+          router.push(
+            `/verify?phone=${encodeURIComponent(phoneE164)}&dialCode=${encodeURIComponent(dialCode)}`
+          )
+        },
+        onError: () => toast.error(t('otpSendFailed')),
+      },
+    )
   }
 
   // ── Demo one-click login ──────────────────────────────────────────────────────
@@ -169,6 +184,7 @@ export function LoginClientPage() {
               defaultCountry="US"
               onChange={(e164, meta) => {
                 setPhoneE164(e164)
+                setDialCode(meta.dialCode)
                 setPhoneValid(meta.isValid)
               }}
               hint={t('phoneHint')}

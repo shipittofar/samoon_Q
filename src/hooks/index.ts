@@ -85,6 +85,7 @@ import type {
   ReservationStatus,
   SystemReadiness,
   TenantLifecycle,
+  SendOTPRequest,
 } from '@/types'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 
@@ -394,7 +395,8 @@ export function useRegister() {
 /** P8.9.2 — Send OTP to a phone number. */
 export function useSendOTP() {
   return useMutation({
-    mutationFn: (phone: string) => authService.sendOTP(phone),
+    mutationFn: (payload: SendOTPRequest) =>
+      authService.sendOTP(payload),
   })
 }
 

@@ -13,21 +13,43 @@
  *   - Link back to public site
  */
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ExternalLink, Sun, Moon, Monitor } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { ExternalLink, Sun, Moon, Monitor, Globe } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { useAuthStore, useThemeStore, useTenantStore } from '@/stores'
+import { useAuthStore, useThemeStore, useTenantStore, useLangStore } from '@/stores'
+import { useLogout, useSetLocale, useModuleNav, usePermission } from '@/hooks'
 import { Avatar } from '@/components/ui'
 import { cn } from '@/utils'
+import { Button } from '@/components/ui/Button'
+import { resolveSupportedLocales, getLanguageInfo } from '@/i18n/runtime'
+
+
 
 const IS_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+const FLAG_BY_CODE: Record<string, string> = { en: '🇺🇸', fa: '🇮🇷', ar: '🇸🇦', zh: '🇨🇳', it: '🇮🇹', tr: '🇹🇷' }
+const LANGUAGES = resolveSupportedLocales().map((code) => ({
+  code,
+  label: getLanguageInfo(code)?.nativeName ?? code,
+  flag: FLAG_BY_CODE[code] ?? '🌐',
+}))
 
 export function AdminHeader() {
+  const pathname = usePathname()
+  const setLocale = useSetLocale()
+  const { locale } = useLangStore()
   const user = useAuthStore((s) => s.user)
   const { theme, setTheme } = useThemeStore()
   const tenant = useTenantStore((s) => s.tenant)
   const t = useTranslations('console')
   const tHeader = useTranslations('header')
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const isTransparentHero = pathname === '/' && !scrolled
+
+
 
   const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
   const ThemeIcon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor
@@ -79,6 +101,47 @@ export function AdminHeader() {
 
           {/* Right: actions */}
           <div className="flex items-center gap-1">
+            {/* Language Switcher */}
+            <div className="relative block">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLangMenuOpen((v) => !v)}
+                aria-label={t('changeLanguageAria')}
+                className={cn(isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
+              >
+                <Globe className="h-4 w-4" />
+              </Button>
+              <AnimatePresence>
+                {langMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute end-0 top-full mt-2 w-36 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl overflow-hidden"
+                  >
+                    {LANGUAGES.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => { setLocale(lang.code); setLangMenuOpen(false) }}
+                        className={cn(
+                          'flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-start transition-colors',
+                          locale === lang.code
+                            ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
+                            : 'hover:bg-[var(--card-hover)] text-[var(--fg)]',
+                        )}
+                      >
+                        <span>{lang.flag}</span>
+                        <span>{lang.label}</span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+
             {/* Theme toggle */}
             <button
               type="button"

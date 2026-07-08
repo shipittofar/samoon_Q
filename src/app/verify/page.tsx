@@ -70,6 +70,7 @@ function VerifyPageInner() {
   const router = useRouter()
   const params = useSearchParams()
   const phone = params.get('phone') ?? ''
+  const dialCode = params.get('dialCode') ?? ''
   const prefersReducedMotion = useReducedMotion()
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
@@ -137,7 +138,12 @@ function VerifyPageInner() {
   }, [state, phone, otp, attempts, verifyOTP, router, prefersReducedMotion, MAX_ATTEMPTS])
 
   const handleResend = () => {
-    sendOTP(phone, {
+    sendOTP(
+      {
+        phone,
+        dialCode,
+      },
+      {
       onSuccess: () => {
         toast.success(t('otpResent'))
         setOtp('')

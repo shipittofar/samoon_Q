@@ -17,6 +17,7 @@ import { MOCK_DELAY } from '@/constants'
 import { configurationService } from '@/config'
 import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, User } from '@/types'
 import type { Role } from '@/types/rbac'
+import { SendOTPRequest } from '@/types'
 
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -177,18 +178,40 @@ export const authService = {
     return data
   },
 
-  async sendOTP(phone: string): Promise<{ message: string }> {
+  async sendOTP(payload: SendOTPRequest): Promise<{ message: string }> {
     if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
     if (!authFlag('authentication.otp.enabled')) throw new Error('otp_disabled')
     if (!authFlag('authentication.phone_login_enabled')) throw new Error('phone_login_disabled')
-
+  
     if (mockActive()) {
       await delay(MOCK_DELAY)
       return { message: 'OTP sent to your phone.' }
     }
-    const { data } = await api.post<{ message: string }>(ENDPOINTS.AUTH.SEND_OTP, { phone })
+  
+    const { data } = await api.post<{ message: string }>(
+      ENDPOINTS.AUTH.SEND_OTP,
+      {
+        country_code: payload.dialCode,
+        phone_number: payload.phone.replace(payload.dialCode, ''),
+      },
+    )
+  
     return data
   },
+
+
+  // async sendOTP(phone: string): Promise<{ message: string }> {
+  //   if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
+  //   if (!authFlag('authentication.otp.enabled')) throw new Error('otp_disabled')
+  //   if (!authFlag('authentication.phone_login_enabled')) throw new Error('phone_login_disabled')
+
+  //   if (mockActive()) {
+  //     await delay(MOCK_DELAY)
+  //     return { message: 'OTP sent to your phone.' }
+  //   }
+  //   const { data } = await api.post<{ message: string }>(ENDPOINTS.AUTH.SEND_OTP, { phone })
+  //   return data
+  // },
 
   /**
    * P8.9.2 — Extended mock: resolves phone → demo user.

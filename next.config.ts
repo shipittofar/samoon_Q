@@ -13,10 +13,10 @@ function buildCspHeader(): string {
   return [
     `default-src 'self'`,
     `script-src ${scriptSrc}`,
-    `style-src 'self' 'unsafe-inline'`,
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
     `img-src 'self' data: blob: https:`,
-    `font-src 'self'`,
-    `connect-src 'self' https: wss:`,
+    `font-src 'self' https://fonts.gstatic.com`,
+    `connect-src 'self' http: https: ws: wss:`,
     `media-src 'self'`,
     `object-src 'none'`,
     `frame-ancestors 'none'`,
@@ -24,6 +24,22 @@ function buildCspHeader(): string {
     `form-action 'self'`,
   ].join('; ')
 }
+
+// changeAfterDev
+
+// return [
+//   `default-src 'self'`,
+//   `script-src ${scriptSrc}`,
+//   `style-src 'self' 'unsafe-inline'`,
+//   `img-src 'self' data: blob: https:`,
+//   `font-src 'self'`,
+//   `connect-src 'self' https: wss:`,
+//   `media-src 'self'`,
+//   `object-src 'none'`,
+//   `frame-ancestors 'none'`,
+//   `base-uri 'self'`,
+//   `form-action 'self'`,
+// ].join('; ')
 
 // P3.3 — Mock mode safety: fail fast when production builds include mock data.
 // NEXT_PUBLIC_USE_MOCK=true is only safe for local development and demo deploys.

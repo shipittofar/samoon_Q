@@ -17,6 +17,11 @@ export interface User {
   created_at: string
 }
 
+export type SendOTPRequest = {
+  phone: string
+  dialCode: string
+}
+
 export interface AuthTokens {
   access: string
   refresh: string
