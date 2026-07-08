@@ -573,8 +573,8 @@ describe('J — P8.6 admin pages exist', () => {
 
   it('/console/users/page.tsx renders user list', () => {
     const content = src('src/app/console/users/page.tsx')
-    expect(content).toContain('User Management')
-    expect(content).toContain('Invite User')
+    expect(content).toContain('userManagementTitle')
+    expect(content).toContain('inviteUserLabel')
   })
 
   it('/console/users/[id]/page.tsx has tab navigation', () => {
@@ -587,15 +587,15 @@ describe('J — P8.6 admin pages exist', () => {
 
   it('/console/roles/new/page.tsx has Role Builder UI', () => {
     const content = src('src/app/console/roles/new/page.tsx')
-    expect(content).toContain('Role Builder')
-    expect(content).toContain('Save Role')
-    expect(content).toContain('Clone from role')
+    expect(content).toContain('roleBuilderTitle')
+    expect(content).toContain('saveRoleLabel')
+    expect(content).toContain('cloneFromRoleLabel')
   })
 
   it('/console/permissions/simulator/page.tsx has simulation UI', () => {
     const content = src('src/app/console/permissions/simulator/page.tsx')
-    expect(content).toContain('Permission Simulator')
-    expect(content).toContain('Run Simulation')
+    expect(content).toContain('permissionSimulatorTitle')
+    expect(content).toContain('runSimulationLabel')
   })
 })
 

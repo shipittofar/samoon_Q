@@ -1,6 +1,7 @@
 'use client'
 
 import { use } from 'react'
+import { useTranslations } from 'next-intl'
 import { useAdminBranch, useAdminBranchMetrics, useActivateBranch, useDeactivateBranch, useMaintenanceBranch } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -14,15 +15,22 @@ const STATUS_COLORS: Record<BranchStatus, string> = {
   maintenance: 'bg-amber-100 text-amber-800',
 }
 
+const BRANCH_STATUS_KEY: Record<BranchStatus, string> = {
+  active: 'statusActive',
+  inactive: 'statusInactive',
+  maintenance: 'maintenanceLabel',
+}
+
 function BranchDetailContent({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: branch, isLoading, error } = useAdminBranch(id)
   const { data: metrics } = useAdminBranchMetrics(id)
   const activate = useActivateBranch()
   const deactivate = useDeactivateBranch()
   const maintenance = useMaintenanceBranch()
 
-  if (isLoading) return <p className="p-6 text-gray-500">Loading branch…</p>
-  if (error || !branch) return <p className="p-6 text-red-500">Branch not found.</p>
+  if (isLoading) return <p className="p-6 text-gray-500">{t('loadingBranchEllipsis')}</p>
+  if (error || !branch) return <p className="p-6 text-red-500">{t('branchNotFoundPeriod')}</p>
 
   return (
     <div className="space-y-6 p-6">
@@ -32,41 +40,41 @@ function BranchDetailContent({ id }: { id: string }) {
           <p className="mt-1 text-sm text-gray-500">{branch.slug}</p>
         </div>
         <div className="flex items-center gap-2">
-          <PreviewButton href="/restaurant" label="Preview Branch" size="sm" />
+          <PreviewButton href="/restaurant" label={t('previewBranchLabel')} size="sm" />
           <span className={`rounded-full px-3 py-1 text-sm font-medium capitalize ${STATUS_COLORS[branch.status]}`}>
-            {branch.status}
+            {t(BRANCH_STATUS_KEY[branch.status])}
           </span>
         </div>
       </div>
 
       {/* Location */}
       <section className="rounded-lg border p-4">
-        <h2 className="mb-2 font-semibold">Location</h2>
+        <h2 className="mb-2 font-semibold">{t('locationLabel')}</h2>
         <p>{branch.location.address}</p>
         <p>{branch.location.city}, {branch.location.country}</p>
-        {branch.location.postalCode && <p>Postal: {branch.location.postalCode}</p>}
+        {branch.location.postalCode && <p>{t('postalColonValue', { code: branch.location.postalCode })}</p>}
       </section>
 
       {/* Contact */}
       {(branch.contact.phone || branch.contact.email || branch.contact.website) && (
         <section className="rounded-lg border p-4">
-          <h2 className="mb-2 font-semibold">Contact</h2>
-          {branch.contact.phone && <p>Phone: {branch.contact.phone}</p>}
-          {branch.contact.email && <p>Email: {branch.contact.email}</p>}
-          {branch.contact.website && <p>Website: {branch.contact.website}</p>}
+          <h2 className="mb-2 font-semibold">{t('contactLabel')}</h2>
+          {branch.contact.phone && <p>{t('phoneColonValue', { value: branch.contact.phone })}</p>}
+          {branch.contact.email && <p>{t('emailColonValue', { value: branch.contact.email })}</p>}
+          {branch.contact.website && <p>{t('websiteColonValue', { value: branch.contact.website })}</p>}
         </section>
       )}
 
       {/* Settings */}
       <section className="rounded-lg border p-4">
-        <h2 className="mb-2 font-semibold">Settings</h2>
+        <h2 className="mb-2 font-semibold">{t('settingsTitle')}</h2>
         <ul className="space-y-1 text-sm">
-          <li>Delivery: {branch.settings.deliveryEnabled ? 'Enabled' : 'Disabled'}</li>
-          <li>Pickup: {branch.settings.pickupEnabled ? 'Enabled' : 'Disabled'}</li>
-          <li>Table Ordering: {branch.settings.tableOrderingEnabled ? 'Enabled' : 'Disabled'}</li>
-          <li>Reservations: {branch.settings.reservationsEnabled ? 'Enabled' : 'Disabled'}</li>
+          <li>{t('deliveryColonValue', { value: branch.settings.deliveryEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('pickupColonValue', { value: branch.settings.pickupEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('tableOrderingColonValue', { value: branch.settings.tableOrderingEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('reservationsColonValue', { value: branch.settings.reservationsEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
           {branch.settings.maxCapacity !== undefined && (
-            <li>Max Capacity: {branch.settings.maxCapacity}</li>
+            <li>{t('maxCapacityColonValue', { value: branch.settings.maxCapacity })}</li>
           )}
         </ul>
       </section>
@@ -74,12 +82,12 @@ function BranchDetailContent({ id }: { id: string }) {
       {/* Business Hours */}
       {branch.businessHours.length > 0 && (
         <section className="rounded-lg border p-4">
-          <h2 className="mb-2 font-semibold">Business Hours</h2>
+          <h2 className="mb-2 font-semibold">{t('businessHoursLabel')}</h2>
           <ul className="space-y-1 text-sm">
             {branch.businessHours.map((h) => (
               <li key={h.day} className="flex gap-4">
                 <span className="w-24 font-medium">{h.day}</span>
-                <span>{h.isClosed ? 'Closed' : `${h.open} – ${h.close}`}</span>
+                <span>{h.isClosed ? t('closedLabel') : `${h.open} – ${h.close}`}</span>
               </li>
             ))}
           </ul>
@@ -89,14 +97,14 @@ function BranchDetailContent({ id }: { id: string }) {
       {/* Metrics */}
       {metrics && (
         <section className="rounded-lg border p-4">
-          <h2 className="mb-3 font-semibold">Metrics ({metrics.period})</h2>
+          <h2 className="mb-3 font-semibold">{t('metricsPeriodLabel', { period: metrics.period })}</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div><p className="text-xs text-gray-500">Total Orders</p><p className="font-semibold">{metrics.totalOrders}</p></div>
-            <div><p className="text-xs text-gray-500">Revenue</p><p className="font-semibold">${metrics.totalRevenue.toFixed(2)}</p></div>
-            <div><p className="text-xs text-gray-500">Customers</p><p className="font-semibold">{metrics.totalCustomers}</p></div>
-            <div><p className="text-xs text-gray-500">Reservations</p><p className="font-semibold">{metrics.totalReservations}</p></div>
-            <div><p className="text-xs text-gray-500">Staff</p><p className="font-semibold">{metrics.staffCount}</p></div>
-            <div><p className="text-xs text-gray-500">Avg Order</p><p className="font-semibold">${metrics.averageOrderValue.toFixed(2)}</p></div>
+            <div><p className="text-xs text-gray-500">{t('customerTableHeaders.orders')}</p><p className="font-semibold">{metrics.totalOrders}</p></div>
+            <div><p className="text-xs text-gray-500">{t('revenueLabel')}</p><p className="font-semibold">${metrics.totalRevenue.toFixed(2)}</p></div>
+            <div><p className="text-xs text-gray-500">{t('breadcrumbs.customers')}</p><p className="font-semibold">{metrics.totalCustomers}</p></div>
+            <div><p className="text-xs text-gray-500">{t('breadcrumbs.reservations')}</p><p className="font-semibold">{metrics.totalReservations}</p></div>
+            <div><p className="text-xs text-gray-500">{t('breadcrumbs.staff')}</p><p className="font-semibold">{metrics.staffCount}</p></div>
+            <div><p className="text-xs text-gray-500">{t('customerTableHeaders.avgOrder')}</p><p className="font-semibold">${metrics.averageOrderValue.toFixed(2)}</p></div>
           </div>
         </section>
       )}
@@ -104,7 +112,7 @@ function BranchDetailContent({ id }: { id: string }) {
       {/* Status Actions */}
       <PermissionGuard permission="branches.manage" fallback={<AccessDenied />}>
         <section className="rounded-lg border p-4">
-          <h2 className="mb-3 font-semibold">Status Actions</h2>
+          <h2 className="mb-3 font-semibold">{t('statusActionsLabel')}</h2>
           <div className="flex flex-wrap gap-2">
             {branch.status !== 'active' && (
               <button
@@ -112,7 +120,7 @@ function BranchDetailContent({ id }: { id: string }) {
                 disabled={activate.isPending}
                 className="rounded-md bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
               >
-                Activate
+                {t('activateLabel')}
               </button>
             )}
             {branch.status !== 'maintenance' && (
@@ -121,7 +129,7 @@ function BranchDetailContent({ id }: { id: string }) {
                 disabled={maintenance.isPending}
                 className="rounded-md bg-amber-500 px-3 py-1.5 text-sm text-white hover:bg-amber-600 disabled:opacity-50"
               >
-                Set Maintenance
+                {t('setMaintenanceLabel')}
               </button>
             )}
             {branch.status !== 'inactive' && (
@@ -130,7 +138,7 @@ function BranchDetailContent({ id }: { id: string }) {
                 disabled={deactivate.isPending}
                 className="rounded-md bg-gray-500 px-3 py-1.5 text-sm text-white hover:bg-gray-600 disabled:opacity-50"
               >
-                Deactivate
+                {t('deactivateLabel')}
               </button>
             )}
           </div>

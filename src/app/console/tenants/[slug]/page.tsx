@@ -2,6 +2,7 @@
 
 import { use } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
 import { useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -19,33 +20,43 @@ const STATUS_COLORS: Record<string, string> = {
   archived: 'text-red-700 bg-red-100',
 }
 
+const TENANT_STATUS_KEY: Record<string, string> = {
+  active: 'statusActive',
+  trial: 'tenantStatusTrial',
+  suspended: 'statusSuspended',
+  churned: 'tenantStatusChurned',
+  archived: 'tenantStatusArchived',
+}
+
 function ProfileSection({ tenant }: { tenant: Tenant }) {
+  const t = useTranslations('console')
   const statusClass = STATUS_COLORS[tenant.status] ?? 'text-gray-500 bg-gray-100'
   return (
-    <section aria-label="Tenant Profile" className="border rounded-lg p-6 mb-4">
-      <h2 className="text-lg font-semibold mb-4">Profile</h2>
+    <section aria-label={t('tenantProfileAria')} className="border rounded-lg p-6 mb-4">
+      <h2 className="text-lg font-semibold mb-4">{t('profileTabLabel')}</h2>
       <dl className="grid grid-cols-2 gap-3 text-sm">
-        <div><dt className="text-gray-500">Name</dt><dd className="font-medium">{tenant.name}</dd></div>
-        <div><dt className="text-gray-500">Slug</dt><dd className="font-mono">{tenant.slug}</dd></div>
-        <div><dt className="text-gray-500">ID</dt><dd className="font-mono text-xs">{tenant.id}</dd></div>
+        <div><dt className="text-gray-500">{t('nameLabel')}</dt><dd className="font-medium">{tenant.name}</dd></div>
+        <div><dt className="text-gray-500">{t('slugLabel')}</dt><dd className="font-mono">{tenant.slug}</dd></div>
+        <div><dt className="text-gray-500">{t('idLabel')}</dt><dd className="font-mono text-xs">{tenant.id}</dd></div>
         <div>
-          <dt className="text-gray-500">Status</dt>
+          <dt className="text-gray-500">{t('tableHeaders.status')}</dt>
           <dd>
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusClass}`}>
-              {tenant.status}
+              {t(TENANT_STATUS_KEY[tenant.status] ?? 'statusInactive')}
             </span>
           </dd>
         </div>
-        <div><dt className="text-gray-500">Created</dt><dd>{new Date(tenant.createdAt).toLocaleDateString()}</dd></div>
+        <div><dt className="text-gray-500">{t('createdLabel')}</dt><dd>{new Date(tenant.createdAt).toLocaleDateString()}</dd></div>
       </dl>
     </section>
   )
 }
 
 function BusinessTypeSection({ tenant }: { tenant: Tenant }) {
+  const t = useTranslations('console')
   return (
-    <section aria-label="Business Type" className="border rounded-lg p-6 mb-4">
-      <h2 className="text-lg font-semibold mb-4">Business Type & Module Configuration</h2>
+    <section aria-label={t('businessTypeLabel')} className="border rounded-lg p-6 mb-4">
+      <h2 className="text-lg font-semibold mb-4">{t('businessTypeAndModuleConfigLabel')}</h2>
       <div className="flex flex-wrap gap-2">
         {tenant.businessTypes?.map((bt) => (
           <span key={bt} className="px-3 py-1 bg-accent/10 text-accent rounded-full text-sm font-medium">
@@ -58,17 +69,18 @@ function BusinessTypeSection({ tenant }: { tenant: Tenant }) {
 }
 
 function BrandingSection({ tenant }: { tenant: Tenant }) {
+  const t = useTranslations('console')
   const theme = (tenant.settings?.theme ?? {}) as Record<string, string>
   const hasBranding = Object.keys(theme).length > 0
 
   return (
-    <section aria-label="Branding" className="border rounded-lg p-6 mb-4">
-      <h2 className="text-lg font-semibold mb-4">Branding</h2>
+    <section aria-label={t('brandingSectionAria')} className="border rounded-lg p-6 mb-4">
+      <h2 className="text-lg font-semibold mb-4">{t('brandingSectionAria')}</h2>
       {hasBranding ? (
         <dl className="grid grid-cols-2 gap-3 text-sm">
           {theme.primaryColor && (
             <div>
-              <dt className="text-gray-500">Primary Color</dt>
+              <dt className="text-gray-500">{t('primaryColorLabel')}</dt>
               <dd className="flex items-center gap-2">
                 <span
                   className="inline-block w-4 h-4 rounded border"
@@ -81,41 +93,42 @@ function BrandingSection({ tenant }: { tenant: Tenant }) {
           )}
           {theme.accentHoverColor && (
             <div>
-              <dt className="text-gray-500">Accent Hover Color</dt>
+              <dt className="text-gray-500">{t('accentHoverColorLabel')}</dt>
               <dd className="font-mono">{theme.accentHoverColor}</dd>
             </div>
           )}
           {theme.logoUrl && (
             <div className="col-span-2">
-              <dt className="text-gray-500">Logo URL</dt>
+              <dt className="text-gray-500">{t('logoUrlLabel')}</dt>
               <dd className="font-mono text-xs break-all">{theme.logoUrl}</dd>
             </div>
           )}
           {theme.fontBody && (
             <div>
-              <dt className="text-gray-500">Font Body</dt>
+              <dt className="text-gray-500">{t('bodyFontLabel')}</dt>
               <dd className="font-mono">{theme.fontBody}</dd>
             </div>
           )}
         </dl>
       ) : (
-        <p className="text-sm text-gray-400">No branding configured — using defaults.</p>
+        <p className="text-sm text-gray-400">{t('noBrandingConfiguredHint')}</p>
       )}
     </section>
   )
 }
 
 function CapabilitiesSection({ tenant }: { tenant: Tenant }) {
+  const t = useTranslations('console')
   const flags = (tenant.settings?.featureFlags ?? {}) as Record<string, boolean>
   const enabledFlags = Object.entries(flags).filter(([, v]) => v)
   const disabledFlags = Object.entries(flags).filter(([, v]) => !v)
 
   return (
-    <section aria-label="Capabilities" className="border rounded-lg p-6 mb-4">
-      <h2 className="text-lg font-semibold mb-4">Capabilities & Feature Flags</h2>
+    <section aria-label={t('capabilitiesAria')} className="border rounded-lg p-6 mb-4">
+      <h2 className="text-lg font-semibold mb-4">{t('capabilitiesAndFeatureFlagsLabel')}</h2>
       {enabledFlags.length > 0 && (
         <div className="mb-3">
-          <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-2">Enabled</p>
+          <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-2">{t('enabledLabel')}</p>
           <div className="flex flex-wrap gap-2">
             {enabledFlags.map(([key]) => (
               <span key={key} className="px-2 py-0.5 text-xs bg-green-50 text-green-700 rounded">
@@ -127,7 +140,7 @@ function CapabilitiesSection({ tenant }: { tenant: Tenant }) {
       )}
       {disabledFlags.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Disabled</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{t('disabledLabel')}</p>
           <div className="flex flex-wrap gap-2">
             {disabledFlags.map(([key]) => (
               <span key={key} className="px-2 py-0.5 text-xs bg-gray-50 text-gray-400 rounded">
@@ -138,27 +151,27 @@ function CapabilitiesSection({ tenant }: { tenant: Tenant }) {
         </div>
       )}
       {enabledFlags.length === 0 && disabledFlags.length === 0 && (
-        <p className="text-sm text-gray-400">No feature flags configured.</p>
+        <p className="text-sm text-gray-400">{t('noFeatureFlagsConfigured')}</p>
       )}
     </section>
   )
 }
 
 function StatusActionsSection({ tenant }: { tenant: Tenant }) {
+  const t = useTranslations('console')
   const activate = useActivateTenant()
   const suspend = useSuspendTenant()
   const archive = useArchiveTenant()
   const isArchived = tenant.status === 'archived'
 
   return (
-    <section aria-label="Status Management" className="border rounded-lg p-6 mb-4">
-      <h2 className="text-lg font-semibold mb-4">Status Management</h2>
+    <section aria-label={t('statusManagementLabel')} className="border rounded-lg p-6 mb-4">
+      <h2 className="text-lg font-semibold mb-4">{t('statusManagementLabel')}</h2>
       <p className="text-sm text-gray-600 mb-4">
-        Current status:{' '}
-        <span className="font-semibold capitalize">{tenant.status}</span>
+        {t('currentStatusColon', { status: t(TENANT_STATUS_KEY[tenant.status] ?? 'statusInactive') })}
       </p>
       {isArchived ? (
-        <p className="text-sm text-gray-400">This tenant is archived and cannot be modified.</p>
+        <p className="text-sm text-gray-400">{t('tenantArchivedCannotModifyHint')}</p>
       ) : (
         <div className="flex flex-wrap gap-3">
           {tenant.status !== 'active' && (
@@ -167,9 +180,9 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
               onClick={() => activate.mutate(tenant.slug)}
               disabled={activate.isPending}
               className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg disabled:opacity-50"
-              aria-label="Activate tenant"
+              aria-label={t('activateTenantAria')}
             >
-              {activate.isPending ? 'Activating…' : 'Activate'}
+              {activate.isPending ? t('activatingEllipsis') : t('activateLabel')}
             </button>
           )}
           {tenant.status === 'active' && (
@@ -178,9 +191,9 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
               onClick={() => suspend.mutate(tenant.slug)}
               disabled={suspend.isPending}
               className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg disabled:opacity-50"
-              aria-label="Suspend tenant"
+              aria-label={t('suspendTenantAria')}
             >
-              {suspend.isPending ? 'Suspending…' : 'Suspend'}
+              {suspend.isPending ? t('suspendingEllipsis') : t('suspendLabel')}
             </button>
           )}
           <button
@@ -188,9 +201,9 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
             onClick={() => archive.mutate(tenant.slug)}
             disabled={archive.isPending}
             className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg disabled:opacity-50"
-            aria-label="Archive tenant"
+            aria-label={t('archiveTenantAria')}
           >
-            {archive.isPending ? 'Archiving…' : 'Archive'}
+            {archive.isPending ? t('archivingEllipsis') : t('archiveTitle')}
           </button>
         </div>
       )}
@@ -199,6 +212,7 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
 }
 
 function TenantDetailContent({ slug }: { slug: string }) {
+  const t = useTranslations('console')
   const { data: tenant, isLoading, isError } = useQuery<Tenant>({
     queryKey: ['tenant', slug],
     queryFn: () => tenantService.getTenant(slug),
@@ -206,33 +220,33 @@ function TenantDetailContent({ slug }: { slug: string }) {
 
   if (isLoading) {
     return (
-      <main aria-label="Tenant Detail" className="p-6 max-w-3xl mx-auto">
-        <p className="text-gray-500">Loading tenant…</p>
+      <main aria-label={t('tenantDetailAria')} className="p-6 max-w-3xl mx-auto">
+        <p className="text-gray-500">{t('loadingTenantEllipsis')}</p>
       </main>
     )
   }
 
   if (isError || !tenant) {
     return (
-      <main aria-label="Tenant Detail" className="p-6 max-w-3xl mx-auto">
-        <p className="text-red-600">Tenant not found.</p>
+      <main aria-label={t('tenantDetailAria')} className="p-6 max-w-3xl mx-auto">
+        <p className="text-red-600">{t('tenantNotFoundPeriod')}</p>
         <Link href="/console/tenants" className="text-sm text-accent underline mt-2 block">
-          Back to Tenants
+          {t('backToTenantsLabel')}
         </Link>
       </main>
     )
   }
 
   return (
-    <main aria-label="Tenant Detail" className="p-6 max-w-3xl mx-auto">
+    <main aria-label={t('tenantDetailAria')} className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <Link href="/console/tenants" className="text-sm text-gray-500 hover:underline">
-            ← Tenants
+            {t('backArrowTenants')}
           </Link>
           <h1 className="text-2xl font-bold">{tenant.name}</h1>
         </div>
-        <PreviewButton href="/" label="Preview Tenant Site" size="sm" />
+        <PreviewButton href="/" label={t('previewTenantSiteLabel')} size="sm" />
       </div>
 
       <ProfileSection tenant={tenant} />

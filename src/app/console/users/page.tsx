@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Search, Filter, UserPlus, Shield, ChevronRight, CheckCircle, XCircle } from 'lucide-react'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -46,6 +47,7 @@ function formatDate(iso: string): string {
 }
 
 function UsersContent() {
+  const t = useTranslations('console')
   const { userOverrides } = useRbacStore()
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all')
@@ -74,12 +76,12 @@ function UsersContent() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage staff roles, permissions, and access</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('userManagementTitle')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('manageStaffRolesSubtitle')}</p>
         </div>
         <button className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
           <UserPlus className="w-4 h-4" />
-          Invite User
+          {t('inviteUserLabel')}
         </button>
       </div>
 
@@ -87,15 +89,15 @@ function UsersContent() {
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="text-2xl font-bold text-gray-900">{MOCK_USERS.length}</div>
-          <div className="text-sm text-gray-500">Total Users</div>
+          <div className="text-sm text-gray-500">{t('totalUsersLabel')}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="text-2xl font-bold text-green-600">{totalActive}</div>
-          <div className="text-sm text-gray-500">Active</div>
+          <div className="text-sm text-gray-500">{t('statusActive')}</div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="text-2xl font-bold text-indigo-600">{withOverrides}</div>
-          <div className="text-sm text-gray-500">With Overrides</div>
+          <div className="text-sm text-gray-500">{t('withOverridesLabel')}</div>
         </div>
       </div>
 
@@ -105,7 +107,7 @@ function UsersContent() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search users..."
+            placeholder={t('searchUsersEllipsisPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -118,10 +120,10 @@ function UsersContent() {
             onChange={(e) => setRoleFilter(e.target.value as Role | 'all')}
             className="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="all">All Roles</option>
-            {ROLE_TEMPLATES.map((t) => (
-              <option key={t.role} value={t.role}>
-                {t.label}
+            <option value="all">{t('allRolesOption')}</option>
+            {ROLE_TEMPLATES.map((rt) => (
+              <option key={rt.role} value={rt.role}>
+                {rt.label}
               </option>
             ))}
           </select>
@@ -130,9 +132,9 @@ function UsersContent() {
             onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
             className="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="all">{t('allStatusOption')}</option>
+            <option value="active">{t('statusActive')}</option>
+            <option value="inactive">{t('statusInactive')}</option>
           </select>
         </div>
       </div>
@@ -140,16 +142,16 @@ function UsersContent() {
       {/* User list */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">No users match your filters.</div>
+          <div className="p-8 text-center text-gray-400">{t('noUsersMatchFilters')}</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 font-medium text-gray-600">User</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Roles</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Last Login</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Overrides</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">{t('userColumnLabel')}</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">{t('rolesTabLabel')}</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">{t('tableHeaders.status')}</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">{t('lastLoginLabel')}</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-600">{t('overridesColumnLabel')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -186,12 +188,12 @@ function UsersContent() {
                       {active ? (
                         <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
                           <CheckCircle className="w-3.5 h-3.5" />
-                          Active
+                          {t('statusActive')}
                         </span>
                       ) : (
                         <span className="flex items-center gap-1 text-gray-400 text-xs font-medium">
                           <XCircle className="w-3.5 h-3.5" />
-                          Inactive
+                          {t('statusInactive')}
                         </span>
                       )}
                     </td>
@@ -200,11 +202,10 @@ function UsersContent() {
                       {hasOverride ? (
                         <span className="flex items-center gap-1 text-indigo-600 text-xs font-medium">
                           <Shield className="w-3.5 h-3.5" />
-                          {(override?.allow.length ?? 0) + (override?.deny.length ?? 0)} override
-                          {(override?.allow.length ?? 0) + (override?.deny.length ?? 0) !== 1 ? 's' : ''}
+                          {t('overrideCount', { count: (override?.allow.length ?? 0) + (override?.deny.length ?? 0) })}
                         </span>
                       ) : (
-                        <span className="text-gray-400 text-xs">None</span>
+                        <span className="text-gray-400 text-xs">{t('none')}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -212,7 +213,7 @@ function UsersContent() {
                         href={`/console/users/${user.id}`}
                         className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-xs font-medium"
                       >
-                        Manage
+                        {t('manageLabel')}
                         <ChevronRight className="w-3.5 h-3.5" />
                       </Link>
                     </td>

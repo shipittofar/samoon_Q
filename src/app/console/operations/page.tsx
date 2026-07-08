@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -40,14 +41,14 @@ const SECTIONS = [
 ] as const
 type Section = (typeof SECTIONS)[number]
 
-const SECTION_LABEL: Record<Section, string> = {
-  orders: 'Live Orders',
-  reservations: 'Live Reservations',
-  branches: 'Branch Status',
-  staff: 'Staff Presence',
-  kitchen: 'Kitchen Display',
-  sla: 'SLA Monitor',
-  activity: 'Activity Feed',
+const SECTION_LABEL_KEY: Record<Section, string> = {
+  orders: 'liveOrdersLabel',
+  reservations: 'liveReservationsLabel',
+  branches: 'branchStatusLabel',
+  staff: 'staffPresenceLabel',
+  kitchen: 'kitchenDisplayLabel',
+  sla: 'slaMonitorLabel',
+  activity: 'activityFeedLabel',
 }
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
@@ -61,6 +62,7 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 }
 
 function OperationsContent() {
+  const t = useTranslations('console')
   const [activeSection, setActiveSection] = useState<Section>('orders')
   const activeBranch = useBranchStore((s) => s.activeBranch)
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
@@ -86,7 +88,7 @@ function OperationsContent() {
         <div className="max-w-screen-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <h1 className="text-lg font-semibold">Operations Dashboard</h1>
+              <h1 className="text-lg font-semibold">{t('operationsDashboardTitle')}</h1>
               <BranchContextIndicator branchId={branchFilter} />
             </div>
             <div className="flex items-center gap-4 flex-wrap">
@@ -103,13 +105,13 @@ function OperationsContent() {
         {/* Stats row */}
         {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            <StatCard label="Active Orders" value={stats.ordersProcessedToday} sub="today" />
-            <StatCard label="Reservations" value={stats.reservationsToday} sub="today" />
-            <StatCard label="Active Staff" value={stats.activeStaff} />
-            <StatCard label="Events/min" value={stats.eventsPerMinute} />
-            <StatCard label="Avg Prep" value={`${stats.averageOrderPrepMinutes}m`} />
-            <StatCard label="SLA Compliance" value={`${stats.slaCompliancePercent}%`} />
-            <StatCard label="Events Today" value={stats.totalEventsToday} />
+            <StatCard label={t('activeOrdersLabel')} value={stats.ordersProcessedToday} sub={t('todayLabel')} />
+            <StatCard label={t('breadcrumbs.reservations')} value={stats.reservationsToday} sub={t('todayLabel')} />
+            <StatCard label={t('activeStaffLabel')} value={stats.activeStaff} />
+            <StatCard label={t('eventsPerMinLabel')} value={stats.eventsPerMinute} />
+            <StatCard label={t('avgPrepLabel2')} value={`${stats.averageOrderPrepMinutes}m`} />
+            <StatCard label={t('slaComplianceLabel2')} value={`${stats.slaCompliancePercent}%`} />
+            <StatCard label={t('eventsTodayLabel')} value={stats.totalEventsToday} />
           </div>
         )}
 
@@ -125,14 +127,14 @@ function OperationsContent() {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              {SECTION_LABEL[s]}
+              {t(SECTION_LABEL_KEY[s])}
             </button>
           ))}
         </div>
 
         {/* Section content */}
         <div className="bg-white rounded-lg border p-4">
-          <ErrorBoundary feature={SECTION_LABEL[activeSection]}>
+          <ErrorBoundary feature={t(SECTION_LABEL_KEY[activeSection])}>
             {activeSection === 'orders' && <LiveOrderQueue scope={scope} />}
             {activeSection === 'reservations' && <LiveReservationQueue scope={scope} />}
             {activeSection === 'branches' && <BranchStatusGrid scope={scope} />}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   Bell, Search, Filter, Check, Archive, Trash2, ExternalLink,
   AlertTriangle, Info, AlertCircle, RefreshCw, Loader2, BarChart2,
@@ -36,14 +37,14 @@ import { cn } from '@/utils'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: ReturnType<typeof useTranslations>): string {
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60_000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return t('justNow')
+  if (mins < 60) return t('minutesAgoShort', { minutes: mins })
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  return `${Math.floor(hours / 24)}d ago`
+  if (hours < 24) return t('hoursAgoShort', { hours })
+  return t('daysAgoShort', { days: Math.floor(hours / 24) })
 }
 
 const PRIORITY_ICON: Record<NotificationPriority, React.ReactNode> = {
@@ -60,13 +61,19 @@ const PRIORITY_BADGE: Record<NotificationPriority, 'default' | 'info' | 'warning
   urgent: 'danger',
 }
 
-const CATEGORIES: Array<{ value: NotificationCategory | 'all'; label: string }> = [
-  { value: 'all', label: 'All Categories' },
-  ...Object.entries(NOTIFICATION_CATEGORIES_WITH_LABELS).map(([value, label]) => ({
-    value: value as NotificationCategory,
-    label,
-  })),
-]
+const NOTIF_CATEGORY_KEY: Record<NotificationCategory, string> = {
+  order: 'breadcrumbs.orders',
+  reservation: 'breadcrumbs.reservations',
+  staff: 'breadcrumbs.staff',
+  branch: 'breadcrumbs.branches',
+  promotion: 'breadcrumbs.promotions',
+  tenant: 'notifCategoryTenant',
+  vendor: 'vendorsLabel',
+  loyalty: 'loyaltyLabel',
+  payment: 'notifCategoryPayments',
+  system: 'notifCategorySystem',
+  audit: 'notifCategoryAuditEvents',
+}
 
 type Tab = 'inbox' | 'archived' | 'statistics' | 'preferences'
 
@@ -77,6 +84,14 @@ interface InboxProps {
 }
 
 function InboxTab({ tenantId }: InboxProps) {
+  const t = useTranslations('console')
+  const CATEGORIES: Array<{ value: NotificationCategory | 'all'; label: string }> = [
+    { value: 'all', label: t('allCategories') },
+    ...(Object.keys(NOTIFICATION_CATEGORIES_WITH_LABELS) as NotificationCategory[]).map((value) => ({
+      value,
+      label: t(NOTIF_CATEGORY_KEY[value]),
+    })),
+  ]
   const [status, setStatus] = useState<NotificationStatus | 'all'>('unread')
   const [category, setCategory] = useState<NotificationCategory | 'all'>('all')
   const [priority, setPriority] = useState<NotificationPriority | 'all'>('all')
@@ -113,7 +128,7 @@ function InboxTab({ tenantId }: InboxProps) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-muted)]" />
           <input
             type="text"
-            placeholder="Search notifications…"
+            placeholder={t('searchNotificationsEllipsisPlaceholder')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="w-full pl-9 pr-4 py-2 text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
@@ -124,9 +139,9 @@ function InboxTab({ tenantId }: InboxProps) {
           onChange={(e) => { setStatus(e.target.value as NotificationStatus | 'all'); setPage(1) }}
           className="px-3 py-2 text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none"
         >
-          <option value="all">All Status</option>
-          <option value="unread">Unread</option>
-          <option value="read">Read</option>
+          <option value="all">{t('allStatusOption')}</option>
+          <option value="unread">{t('unreadOption')}</option>
+          <option value="read">{t('readOption')}</option>
         </select>
         <select
           value={category}
@@ -140,18 +155,18 @@ function InboxTab({ tenantId }: InboxProps) {
           onChange={(e) => { setPriority(e.target.value as NotificationPriority | 'all'); setPage(1) }}
           className="px-3 py-2 text-sm bg-[var(--card)] border border-[var(--border)] rounded-lg focus:outline-none"
         >
-          <option value="all">All Priority</option>
-          <option value="urgent">Urgent</option>
-          <option value="high">High</option>
-          <option value="normal">Normal</option>
-          <option value="low">Low</option>
+          <option value="all">{t('allPriorityOption')}</option>
+          <option value="urgent">{t('priorityUrgent')}</option>
+          <option value="high">{t('priorityHigh')}</option>
+          <option value="normal">{t('priorityNormal')}</option>
+          <option value="low">{t('priorityLow')}</option>
         </select>
         <Button variant="ghost" size="sm" onClick={() => refetch()}>
           <RefreshCw className="w-4 h-4" />
         </Button>
         {unreadCount > 0 && (
           <Button variant="outline" size="sm" onClick={() => markAll.mutate({ tenantId })}>
-            Mark all read ({unreadCount})
+            {t('markAllReadCount', { count: unreadCount })}
           </Button>
         )}
       </div>
@@ -165,13 +180,13 @@ function InboxTab({ tenantId }: InboxProps) {
         ) : isError ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <AlertCircle className="w-8 h-8 text-red-400" />
-            <p className="text-sm text-[var(--fg-muted)]">Failed to load notifications.</p>
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>Retry</Button>
+            <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadNotifications')}</p>
+            <Button variant="secondary" size="sm" onClick={() => refetch()}>{t('retry')}</Button>
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-[var(--fg-muted)]">
             <Bell className="w-10 h-10 opacity-30" />
-            <p className="font-medium">No notifications found</p>
+            <p className="font-medium">{t('noNotificationsFound')}</p>
           </div>
         ) : (
           <>
@@ -179,7 +194,7 @@ function InboxTab({ tenantId }: InboxProps) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--border)] bg-[var(--card-hover)]">
-                    {['Priority', 'Title', 'Category', 'Actor', 'Time', 'Actions'].map((h) => (
+                    {[t('priorityColumnLabel'), t('titleColumnLabel'), t('category'), t('actorColumnLabel'), t('tableHeaders.time'), t('tableHeaders.actions')].map((h) => (
                       <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">
                         {h}
                       </th>
@@ -203,7 +218,7 @@ function InboxTab({ tenantId }: InboxProps) {
                         <p className="text-xs text-[var(--fg-muted)] mt-0.5 max-w-xs truncate">{n.message}</p>
                         {n.deepLink && (
                           <Link href={n.deepLink.href} className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-0.5">
-                            View <ExternalLink className="w-3 h-3" />
+                            {t('viewLabel')} <ExternalLink className="w-3 h-3" />
                           </Link>
                         )}
                       </td>
@@ -214,19 +229,19 @@ function InboxTab({ tenantId }: InboxProps) {
                         {n.actor?.name ?? '—'}
                       </td>
                       <td className="px-4 py-3 text-xs text-[var(--fg-muted)] whitespace-nowrap">
-                        {timeAgo(n.createdAt)}
+                        {timeAgo(n.createdAt, t)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           {n.status === 'unread' && (
-                            <Button variant="ghost" size="sm" onClick={() => markRead.mutate(n.id)} title="Mark read">
+                            <Button variant="ghost" size="sm" onClick={() => markRead.mutate(n.id)} title={t('markReadTitle')}>
                               <Check className="w-3.5 h-3.5" />
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" onClick={() => archive.mutate(n.id)} title="Archive">
+                          <Button variant="ghost" size="sm" onClick={() => archive.mutate(n.id)} title={t('archiveTitle')}>
                             <Archive className="w-3.5 h-3.5" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => del.mutate(n.id)} title="Delete" className="text-destructive">
+                          <Button variant="ghost" size="sm" onClick={() => del.mutate(n.id)} title={t('deleteAction')} className="text-destructive">
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
                         </div>
@@ -239,11 +254,11 @@ function InboxTab({ tenantId }: InboxProps) {
             {totalPages > 1 && (
               <div className="border-t border-[var(--border)] px-4 py-3 flex items-center justify-between">
                 <span className="text-xs text-[var(--fg-muted)]">
-                  Page {page} of {totalPages} ({notifPage?.count ?? 0} total)
+                  {t('pageOfTotalCount', { page, totalPages, count: notifPage?.count ?? 0 })}
                 </span>
                 <div className="flex gap-2">
-                  <Button variant="secondary" size="sm" onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>Previous</Button>
-                  <Button variant="secondary" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>Next</Button>
+                  <Button variant="secondary" size="sm" onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>{t('previousLabel')}</Button>
+                  <Button variant="secondary" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>{t('nextLabel')}</Button>
                 </div>
               </div>
             )}
@@ -261,6 +276,7 @@ interface StatisticsTabProps {
 }
 
 function StatisticsTab({ tenantId }: StatisticsTabProps) {
+  const t = useTranslations('console')
   const filter: NotificationFilter = { tenantId, pageSize: 1000 }
   const { data: stats, isLoading } = useNotificationStatistics(filter)
 
@@ -282,10 +298,10 @@ function StatisticsTab({ tenantId }: StatisticsTabProps) {
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total', value: stats.totalNotifications },
-          { label: 'Unread', value: stats.unreadCount },
-          { label: 'Read', value: stats.readCount },
-          { label: 'Read Rate', value: `${readRate}%` },
+          { label: t('totalLabel'), value: stats.totalNotifications },
+          { label: t('unreadOption'), value: stats.unreadCount },
+          { label: t('readOption'), value: stats.readCount },
+          { label: t('readRateLabel'), value: `${readRate}%` },
         ].map((s) => (
           <div key={s.label} className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5">
             <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider">{s.label}</p>
@@ -296,7 +312,7 @@ function StatisticsTab({ tenantId }: StatisticsTabProps) {
 
       {/* By category */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6">
-        <h3 className="font-semibold mb-4">By Category</h3>
+        <h3 className="font-semibold mb-4">{t('byCategoryLabel')}</h3>
         <div className="space-y-3">
           {Object.entries(stats.notificationsByCategory)
             .sort(([, a], [, b]) => b - a)
@@ -317,7 +333,7 @@ function StatisticsTab({ tenantId }: StatisticsTabProps) {
 
       {/* By priority */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6">
-        <h3 className="font-semibold mb-4">By Priority</h3>
+        <h3 className="font-semibold mb-4">{t('byPriorityLabel')}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {Object.entries(stats.notificationsByPriority).map(([priority, count]) => (
             <div key={priority} className="bg-muted/40 rounded-xl p-4 text-center">
@@ -331,7 +347,7 @@ function StatisticsTab({ tenantId }: StatisticsTabProps) {
       {/* Top types */}
       {stats.topTypes.length > 0 && (
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6">
-          <h3 className="font-semibold mb-4">Top Notification Types</h3>
+          <h3 className="font-semibold mb-4">{t('topNotificationTypesLabel')}</h3>
           <div className="space-y-2">
             {stats.topTypes.slice(0, 5).map((t) => (
               <div key={t.type} className="flex items-center justify-between py-1 border-b border-[var(--border)] last:border-0">
@@ -354,6 +370,7 @@ interface PreferencesTabProps {
 }
 
 function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
+  const t = useTranslations('console')
   const { data: prefs, isLoading } = useNotificationPreferences(userId, tenantId)
   const updatePref = useUpdateNotificationPreference()
   const resetPrefs = useResetNotificationPreferences()
@@ -370,7 +387,7 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-sm text-[var(--fg-muted)]">
-          Configure which notifications you receive and how.
+          {t('configureNotificationsHint')}
         </p>
         <Button
           variant="outline"
@@ -378,7 +395,7 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
           onClick={() => resetPrefs.mutate({ userId, tenantId })}
           disabled={resetPrefs.isPending}
         >
-          {resetPrefs.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Reset to defaults'}
+          {resetPrefs.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('resetToDefaultsLabel')}
         </Button>
       </div>
 
@@ -386,7 +403,7 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--card-hover)]">
-              {['Category', 'Enabled', 'In-App', 'Push', 'Email', 'Min Priority'].map((h) => (
+              {[t('category'), t('enabledLabel'), t('notifChannelInApp'), t('channelPush'), t('channelEmail'), t('minPriorityLabel')].map((h) => (
                 <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider">
                   {h}
                 </th>
@@ -397,7 +414,7 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
             {(prefs ?? []).map((pref) => (
               <tr key={pref.id} className="hover:bg-[var(--card-hover)] transition-colors">
                 <td className="px-4 py-3 font-medium capitalize">
-                  {NOTIFICATION_CATEGORIES_WITH_LABELS[pref.category] ?? pref.category}
+                  {t(NOTIF_CATEGORY_KEY[pref.category] ?? '') || pref.category}
                 </td>
                 <td className="px-4 py-3">
                   <input
@@ -459,10 +476,10 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
                     }
                     className="text-xs bg-transparent border border-[var(--border)] rounded px-2 py-1 focus:outline-none"
                   >
-                    <option value="low">Low</option>
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">{t('priorityLow')}</option>
+                    <option value="normal">{t('priorityNormal')}</option>
+                    <option value="high">{t('priorityHigh')}</option>
+                    <option value="urgent">{t('priorityUrgent')}</option>
                   </select>
                 </td>
               </tr>
@@ -476,14 +493,20 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
-const TABS: Array<{ id: Tab; label: string; icon: React.ReactNode }> = [
-  { id: 'inbox', label: 'Inbox', icon: <Inbox className="w-4 h-4" /> },
-  { id: 'archived', label: 'Archived', icon: <Archive className="w-4 h-4" /> },
-  { id: 'statistics', label: 'Statistics', icon: <BarChart2 className="w-4 h-4" /> },
-  { id: 'preferences', label: 'Preferences', icon: <Settings className="w-4 h-4" /> },
-]
+const TAB_ICON: Record<Tab, React.ReactNode> = {
+  inbox: <Inbox className="w-4 h-4" />,
+  archived: <Archive className="w-4 h-4" />,
+  statistics: <BarChart2 className="w-4 h-4" />,
+  preferences: <Settings className="w-4 h-4" />,
+}
+const TAB_ORDER: Tab[] = ['inbox', 'archived', 'statistics', 'preferences']
 
 function NotificationsContent() {
+  const t = useTranslations('console')
+  const TAB_LABEL_KEY: Record<Tab, string> = {
+    inbox: 'inboxTabLabel', archived: 'archivedTabLabel',
+    statistics: 'statisticsTabLabel', preferences: 'preferencesTabLabel',
+  }
   const [tab, setTab] = useState<Tab>('inbox')
   const { user } = useAuthStore()
   const { tenant } = useTenantStore()
@@ -497,28 +520,28 @@ function NotificationsContent() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[var(--fg)] flex items-center gap-2">
             <Bell className="w-6 h-6" />
-            Notification Center
+            {t('notificationCenterTitle')}
           </h1>
           <p className="text-[var(--fg-muted)] text-sm mt-1">
-            Manage your notifications, preferences, and delivery settings.
+            {t('manageNotificationsSubtitle')}
           </p>
         </div>
 
         {/* Tab nav */}
         <div className="flex gap-1 mb-6 border-b border-[var(--border)]">
-          {TABS.map((t) => (
+          {TAB_ORDER.map((tabId) => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
+              key={tabId}
+              onClick={() => setTab(tabId)}
               className={cn(
                 'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px',
-                tab === t.id
+                tab === tabId
                   ? 'border-primary text-primary'
                   : 'border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]',
               )}
             >
-              {t.icon}
-              {t.label}
+              {TAB_ICON[tabId]}
+              {t(TAB_LABEL_KEY[tabId])}
             </button>
           ))}
         </div>
@@ -527,7 +550,7 @@ function NotificationsContent() {
         {tab === 'inbox' && <InboxTab tenantId={tenantId} />}
         {tab === 'archived' && (
           <div className="space-y-4">
-            <p className="text-sm text-[var(--fg-muted)]">Archived notifications are kept for 30 days.</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('archivedNotificationsKeptHint')}</p>
             <InboxTab tenantId={tenantId} />
           </div>
         )}

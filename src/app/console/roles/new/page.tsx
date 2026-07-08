@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Save, Search, ChevronDown, ChevronRight, Copy } from 'lucide-react'
@@ -16,6 +17,7 @@ const ROLE_COLORS = [
 ]
 
 function RoleBuilderContent() {
+  const t = useTranslations('console')
   const router = useRouter()
   const { addCustomRole } = useRbacStore()
 
@@ -101,8 +103,8 @@ function RoleBuilderContent() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Role Builder</h1>
-          <p className="text-sm text-gray-500">Create a custom role with specific permissions</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('roleBuilderTitle')}</h1>
+          <p className="text-sm text-gray-500">{t('createCustomRoleHint')}</p>
         </div>
       </div>
 
@@ -110,32 +112,32 @@ function RoleBuilderContent() {
         {/* Left: Role metadata */}
         <div className="col-span-1 space-y-4">
           <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h3 className="font-semibold text-gray-900">Role Details</h3>
+            <h3 className="font-semibold text-gray-900">{t('roleDetailsLabel')}</h3>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Name *</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('nameStarLabel')}</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Senior Cashier"
+                placeholder={t('seniorCashierPlaceholder')}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Description</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('descriptionLabel')}</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe this role's responsibilities..."
+                placeholder={t('describeRoleResponsibilitiesPlaceholder')}
                 rows={3}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">Color</label>
+              <label className="block text-xs font-medium text-gray-600 mb-2">{t('colorLabel')}</label>
               <div className="flex flex-wrap gap-2">
                 {ROLE_COLORS.map((c) => (
                   <button
@@ -149,20 +151,20 @@ function RoleBuilderContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">Clone from role</label>
+              <label className="block text-xs font-medium text-gray-600 mb-2">{t('cloneFromRoleLabel')}</label>
               <div className="flex flex-wrap gap-1.5">
-                {ROLE_TEMPLATES.map((t) => (
+                {ROLE_TEMPLATES.map((rt) => (
                   <button
-                    key={t.role}
-                    onClick={() => handleClone(t.role)}
+                    key={rt.role}
+                    onClick={() => handleClone(rt.role)}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                      cloneFrom === t.role
+                      cloneFrom === rt.role
                         ? 'bg-indigo-600 text-white border-indigo-600'
                         : 'border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600'
                     }`}
                   >
                     <Copy className="w-2.5 h-2.5" />
-                    {t.label}
+                    {rt.label}
                   </button>
                 ))}
               </div>
@@ -172,15 +174,13 @@ function RoleBuilderContent() {
           {/* Summary */}
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
             <div className="text-sm font-semibold text-indigo-700 mb-1">
-              {selectedPerms.size} / {ALL_PERMISSIONS.length} permissions selected
+              {t('permissionsSelectedCount', { selected: selectedPerms.size, total: ALL_PERMISSIONS.length })}
             </div>
             <div className="text-xs text-indigo-600">
               {name ? (
-                <span>
-                  Role: <strong>{name}</strong>
-                </span>
+                t('roleColonName', { name })
               ) : (
-                'Set a name to save'
+                t('setNameToSaveLabel')
               )}
             </div>
           </div>
@@ -191,7 +191,7 @@ function RoleBuilderContent() {
             className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Save className="w-4 h-4" />
-            {saved ? 'Saved! Redirecting...' : 'Save Role'}
+            {saved ? t('savedRedirectingEllipsis') : t('saveRoleLabel')}
           </button>
         </div>
 
@@ -202,7 +202,7 @@ function RoleBuilderContent() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search permissions..."
+                placeholder={t('searchPermissionsEllipsisPlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -241,7 +241,7 @@ function RoleBuilderContent() {
                               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
-                        {allSelected ? 'Deselect all' : 'Select all'}
+                        {allSelected ? t('deselectAllLabel') : t('selectAllLabel')}
                       </button>
                     </div>
                     {isExpanded && (

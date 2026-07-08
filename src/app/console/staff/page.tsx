@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useTenantStore, useBranchStore } from '@/stores'
 import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
@@ -29,6 +30,7 @@ export default function StaffManagementPage() {
 }
 
 function StaffManagementContent() {
+  const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const tenantId = tenant?.id ?? ''
   const activeBranch = useBranchStore((s) => s.activeBranch)
@@ -54,14 +56,14 @@ function StaffManagementContent() {
   const pendingInvites = invites.filter((i) => i.status === 'pending')
 
   if (staffLoading || invitesLoading) {
-    return <div className="p-6">Loading staff...</div>
+    return <div className="p-6">{t('loadingStaffEllipsis')}</div>
   }
 
   return (
     <div className="p-6 space-y-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Staff Management</h1>
+          <h1 className="text-2xl font-bold">{t('staffManagementTitle')}</h1>
           <BranchContextIndicator branchId={activeBranch?.id} branchName={activeBranch?.name} />
         </div>
         <PermissionGuard permission="staff.manage">
@@ -71,24 +73,24 @@ function StaffManagementContent() {
               inviteStaff.mutate({ email: '', roles: ['waiter'] })
             }
           >
-            Invite Staff
+            {t('inviteStaffLabel')}
           </button>
         </PermissionGuard>
       </div>
 
       {/* Analytics Summary */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label="Total Staff" value={analytics.totalStaff} />
-        <StatCard label="Active" value={analytics.activeStaff} />
-        <StatCard label="Pending Invites" value={analytics.pendingInvites} />
-        <StatCard label="Suspended" value={analytics.suspendedStaff} />
+        <StatCard label={t('totalStaffLabel')} value={analytics.totalStaff} />
+        <StatCard label={t('statusActive')} value={analytics.activeStaff} />
+        <StatCard label={t('pendingInvitesLabel')} value={analytics.pendingInvites} />
+        <StatCard label={t('statusSuspended')} value={analytics.suspendedStaff} />
       </div>
 
       {/* Active Staff */}
       <section>
-        <h2 className="text-lg font-semibold mb-3">Active Staff</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('activeStaffLabel')}</h2>
         <div className="space-y-2">
-          {activeStaff.length === 0 && <p className="text-sm text-gray-500">No active staff.</p>}
+          {activeStaff.length === 0 && <p className="text-sm text-gray-500">{t('noActiveStaffPeriod')}</p>}
           {activeStaff.map((member) => (
             <div
               key={member.id}
@@ -116,13 +118,13 @@ function StaffManagementContent() {
                     className="text-xs text-yellow-600 hover:underline"
                     onClick={() => suspendStaff.mutate(member.id)}
                   >
-                    Suspend
+                    {t('suspendLabel')}
                   </button>
                   <button
                     className="text-xs text-red-600 hover:underline"
                     onClick={() => removeStaff.mutate(member.id)}
                   >
-                    Remove
+                    {t('removeLabel')}
                   </button>
                   {!member.roles.includes('owner') && (
                     <button
@@ -134,7 +136,7 @@ function StaffManagementContent() {
                         })
                       }
                     >
-                      Transfer Ownership
+                      {t('transferOwnershipLabel')}
                     </button>
                   )}
                 </div>
@@ -146,10 +148,10 @@ function StaffManagementContent() {
 
       {/* Pending Invitations */}
       <section>
-        <h2 className="text-lg font-semibold mb-3">Pending Invitations</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('pendingInvitationsLabel')}</h2>
         <div className="space-y-2">
           {pendingInvites.length === 0 && (
-            <p className="text-sm text-gray-500">No pending invitations.</p>
+            <p className="text-sm text-gray-500">{t('noPendingInvitationsPeriod')}</p>
           )}
           {pendingInvites.map((invite) => (
             <div
@@ -159,7 +161,7 @@ function StaffManagementContent() {
               <div>
                 <p className="font-medium">{invite.email}</p>
                 <p className="text-sm text-gray-500">
-                  Expires {new Date(invite.expiresAt).toLocaleDateString()}
+                  {t('expiresDateLabel', { date: new Date(invite.expiresAt).toLocaleDateString() })}
                 </p>
               </div>
               <PermissionGuard permission="staff.manage">
@@ -168,13 +170,13 @@ function StaffManagementContent() {
                     className="text-xs text-blue-600 hover:underline"
                     onClick={() => resendInvite.mutate(invite.id)}
                   >
-                    Resend
+                    {t('resendLabel')}
                   </button>
                   <button
                     className="text-xs text-red-600 hover:underline"
                     onClick={() => cancelInvite.mutate(invite.id)}
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                 </div>
               </PermissionGuard>
@@ -186,7 +188,7 @@ function StaffManagementContent() {
       {/* Suspended Staff */}
       {suspendedStaff.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Suspended Staff</h2>
+          <h2 className="text-lg font-semibold mb-3">{t('suspendedStaffLabel')}</h2>
           <div className="space-y-2">
             {suspendedStaff.map((member) => (
               <div
@@ -204,7 +206,7 @@ function StaffManagementContent() {
                     className="text-xs text-green-600 hover:underline"
                     onClick={() => activateStaff.mutate(member.id)}
                   >
-                    Reactivate
+                    {t('reactivateLabel')}
                   </button>
                 </PermissionGuard>
               </div>

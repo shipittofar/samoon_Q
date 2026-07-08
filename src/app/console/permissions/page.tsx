@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Search, Users, Shield, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -23,6 +24,7 @@ const ROLE_COLORS: Record<Role, string> = {
 }
 
 export default function PermissionsPage() {
+  const t = useTranslations('console')
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const tenantRoles = useRbacStore((s) => s.tenantRoles)
   const userOverrides = useRbacStore((s) => s.userOverrides)
@@ -59,9 +61,9 @@ export default function PermissionsPage() {
       <PermissionGuard permission="staff.manage" fallback={<AccessDenied />}>
         <main className="p-6 space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Permission Management</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('permissionManagementTitle')}</h1>
             <p className="text-sm text-gray-500 mt-1">
-              Assign roles and configure per-user permission overrides for this tenant.
+              {t('assignRolesConfigureOverridesHint')}
             </p>
           </div>
 
@@ -72,7 +74,7 @@ export default function PermissionsPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search users…"
+              placeholder={t('searchUsersEllipsisPlaceholder')}
               className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
@@ -82,7 +84,7 @@ export default function PermissionsPage() {
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <Users className="h-8 w-8 mb-2 opacity-40" />
-                <p className="text-sm">No users match your search.</p>
+                <p className="text-sm">{t('noUsersMatchSearch')}</p>
               </div>
             ) : (
               filtered.map((user) => {
@@ -116,14 +118,14 @@ export default function PermissionsPage() {
                         {hasOverride && (
                           <span className="flex items-center gap-0.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
                             <AlertCircle className="h-3 w-3" />
-                            overrides
+                            {t('overridesLabel')}
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {roles.length === 0 ? (
-                          <span className="text-xs text-gray-400 italic">No roles assigned</span>
+                          <span className="text-xs text-gray-400 italic">{t('noRolesAssigned')}</span>
                         ) : (
                           roles.map((role) => (
                             <span
@@ -142,7 +144,7 @@ export default function PermissionsPage() {
                       <div className="flex items-center gap-1 text-sm text-gray-700">
                         <Shield className="h-3.5 w-3.5 text-gray-400" />
                         <span className="font-medium">{permissions.length}</span>
-                        <span className="text-gray-400 text-xs">permissions</span>
+                        <span className="text-gray-400 text-xs">{t('permissionsLowercaseLabel')}</span>
                       </div>
                       {override && (
                         <div className="flex items-center gap-2 text-xs mt-0.5">
@@ -167,11 +169,11 @@ export default function PermissionsPage() {
           <div className="flex items-center gap-6 text-xs text-gray-500">
             <div className="flex items-center gap-1.5">
               <CheckCircle className="h-3.5 w-3.5 text-green-500" />
-              Permission from role
+              {t('permissionFromRoleLabel')}
             </div>
             <div className="flex items-center gap-1.5">
               <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-              User has overrides applied
+              {t('userHasOverridesAppliedLabel')}
             </div>
           </div>
         </main>

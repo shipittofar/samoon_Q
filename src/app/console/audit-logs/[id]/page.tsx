@@ -1,6 +1,7 @@
 'use client'
 
 import { use } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import {
   ArrowLeft, AlertCircle, Info, AlertTriangle, Clock, User,
@@ -47,6 +48,7 @@ function TargetLink({ type, id }: { type: string; id: string }) {
 }
 
 function AuditLogDetailContent({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: log, isLoading, isError } = useAuditLog(id)
   const { data: timelineItems } = useAuditTimeline({ actorId: id, pageSize: 10 })
 
@@ -54,7 +56,7 @@ function AuditLogDetailContent({ id }: { id: string }) {
     return (
       <div className="flex items-center justify-center h-48 text-gray-500">
         <Loader2 className="w-5 h-5 animate-spin mr-2" />
-        Loading audit log…
+        {t('loadingAuditLogEllipsis')}
       </div>
     )
   }
@@ -63,7 +65,7 @@ function AuditLogDetailContent({ id }: { id: string }) {
     return (
       <div className="flex items-center gap-2 text-red-600 p-4">
         <AlertCircle className="w-5 h-5" />
-        <p>Audit log not found or failed to load.</p>
+        <p>{t('auditLogNotFoundOrFailed')}</p>
       </div>
     )
   }
@@ -78,7 +80,7 @@ function AuditLogDetailContent({ id }: { id: string }) {
       {/* Back */}
       <Link href="/console/audit-logs" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
         <ArrowLeft className="w-3.5 h-3.5" />
-        Audit Logs
+        {t('breadcrumbs.auditLogs')}
       </Link>
 
       {/* Header card */}
@@ -100,14 +102,14 @@ function AuditLogDetailContent({ id }: { id: string }) {
           <div className="flex items-start gap-2">
             <Clock className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
             <div>
-              <p className="text-gray-400 text-xs">Timestamp</p>
+              <p className="text-gray-400 text-xs">{t('timestampLabel')}</p>
               <p className="font-medium text-gray-800">{new Date(log.timestamp).toLocaleString()}</p>
             </div>
           </div>
           <div className="flex items-start gap-2">
             <User className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
             <div>
-              <p className="text-gray-400 text-xs">Actor</p>
+              <p className="text-gray-400 text-xs">{t('actorColumnLabel')}</p>
               <p className="font-medium text-gray-800">{log.actor?.name ?? '—'}</p>
               <p className="text-xs text-gray-400">{log.actor?.roles?.join(', ') ?? ''}</p>
             </div>
@@ -115,7 +117,7 @@ function AuditLogDetailContent({ id }: { id: string }) {
           <div className="flex items-start gap-2">
             <Tag className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
             <div>
-              <p className="text-gray-400 text-xs">Target</p>
+              <p className="text-gray-400 text-xs">{t('targetLabel')}</p>
               <p className="font-medium text-gray-800 capitalize">{log.target?.type ?? '—'}</p>
               {log.target?.id && (
                 <TargetLink type={log.target.type} id={log.target.id} />
@@ -125,7 +127,7 @@ function AuditLogDetailContent({ id }: { id: string }) {
           <div className="flex items-start gap-2">
             <FileText className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
             <div>
-              <p className="text-gray-400 text-xs">Log ID</p>
+              <p className="text-gray-400 text-xs">{t('logIdLabel')}</p>
               <p className="font-mono text-xs text-gray-600 break-all">{log.id}</p>
             </div>
           </div>
@@ -135,7 +137,7 @@ function AuditLogDetailContent({ id }: { id: string }) {
       {/* Changeset */}
       {changedKeys.length > 0 && (
         <div className="bg-white border rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Changes</h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('changesLabel')}</h2>
           <div className="divide-y text-sm">
             {changedKeys.map((key) => (
               <div key={key} className="py-2 grid grid-cols-3 gap-4">
@@ -146,7 +148,7 @@ function AuditLogDetailContent({ id }: { id: string }) {
             ))}
           </div>
           {changedKeys.length === 0 && (
-            <p className="text-gray-400 text-sm">No field-level changes recorded.</p>
+            <p className="text-gray-400 text-sm">{t('noFieldLevelChangesRecorded')}</p>
           )}
         </div>
       )}
@@ -154,7 +156,7 @@ function AuditLogDetailContent({ id }: { id: string }) {
       {/* Metadata */}
       {log.metadata && Object.keys(log.metadata).length > 0 && (
         <div className="bg-white border rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Metadata</h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('metadataLabel')}</h2>
           <pre className="text-xs bg-gray-50 p-3 rounded-lg overflow-x-auto text-gray-700">
             {JSON.stringify(log.metadata, null, 2)}
           </pre>
@@ -162,11 +164,11 @@ function AuditLogDetailContent({ id }: { id: string }) {
       )}
 
       {/* Recent actor activity */}
-      {(timelineItems ?? []).flatMap((t) => t.events).length > 0 && (
+      {(timelineItems ?? []).flatMap((tl) => tl.events).length > 0 && (
         <div className="bg-white border rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Recent Activity by {log.actor?.name}</h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('recentActivityByName', { name: log.actor?.name ?? '' })}</h2>
           <div className="space-y-2">
-            {(timelineItems ?? []).flatMap((t) => t.events).slice(0, 5).map((event) => (
+            {(timelineItems ?? []).flatMap((tl) => tl.events).slice(0, 5).map((event) => (
               <div key={event.id} className="flex items-center justify-between text-sm py-1.5 border-b last:border-0">
                 <div className="flex items-center gap-2">
                   <Badge variant={SEVERITY_BADGE[event.severity]} className="text-xs capitalize">{event.severity}</Badge>

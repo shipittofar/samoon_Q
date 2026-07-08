@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Shield, ChevronDown, ChevronRight, Lock, Search, CheckCircle, XCircle } from 'lucide-react'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -20,6 +21,7 @@ const ROLE_COLORS: Record<Role, { badge: string; ring: string; header: string }>
 }
 
 export default function RolesPage() {
+  const t = useTranslations('console')
   const [search, setSearch] = useState('')
   const [expandedRole, setExpandedRole] = useState<Role | null>(null)
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
@@ -40,19 +42,19 @@ export default function RolesPage() {
       <PermissionGuard permission="staff.manage" fallback={<AccessDenied />}>
         <main className="p-6 space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Role Management</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{t('roleManagementTitle')}</h1>
             <p className="text-sm text-gray-500 mt-1">
-              View system roles and their permission sets. All roles are system-managed and cannot be deleted.
+              {t('viewSystemRolesHint')}
             </p>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: 'Total Roles', value: ROLE_TEMPLATES.length },
-              { label: 'System Roles', value: ROLE_TEMPLATES.filter((r) => r.system).length },
-              { label: 'Total Permissions', value: ALL_PERMISSIONS.length },
-              { label: 'Avg Permissions/Role', value: Math.round(ROLE_TEMPLATES.reduce((a, r) => a + r.permissions.length, 0) / ROLE_TEMPLATES.length) },
+              { label: t('totalRolesLabel'), value: ROLE_TEMPLATES.length },
+              { label: t('systemRolesLabel'), value: ROLE_TEMPLATES.filter((r) => r.system).length },
+              { label: t('totalPermissionsLabel'), value: ALL_PERMISSIONS.length },
+              { label: t('avgPermissionsPerRoleLabel'), value: Math.round(ROLE_TEMPLATES.reduce((a, r) => a + r.permissions.length, 0) / ROLE_TEMPLATES.length) },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-xl border border-gray-200 p-4 text-center">
                 <div className="text-2xl font-bold text-gray-900">{value}</div>
@@ -68,7 +70,7 @@ export default function RolesPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search roles…"
+              placeholder={t('searchRolesEllipsisPlaceholder')}
               className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
@@ -95,7 +97,7 @@ export default function RolesPage() {
                           </span>
                           {template.system && (
                             <span className="flex items-center gap-0.5 text-[10px] text-gray-400 border border-gray-200 bg-white px-1.5 py-0.5 rounded-full">
-                              <Lock className="h-2.5 w-2.5" /> system
+                              <Lock className="h-2.5 w-2.5" /> {t('systemLowercaseLabel')}
                             </span>
                           )}
                         </div>
@@ -105,7 +107,7 @@ export default function RolesPage() {
                     <div className="flex items-center gap-3 flex-shrink-0">
                       <div className="text-right">
                         <div className="text-sm font-semibold text-gray-900">{template.permissions.length}</div>
-                        <div className="text-[10px] text-gray-400">permissions</div>
+                        <div className="text-[10px] text-gray-400">{t('permissionsLowercaseLabel')}</div>
                       </div>
                       {isExpanded ? (
                         <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -144,7 +146,7 @@ export default function RolesPage() {
                               </div>
                               {allGranted && (
                                 <span className="text-[10px] text-green-600 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">
-                                  full access
+                                  {t('fullAccessLabel')}
                                 </span>
                               )}
                             </button>

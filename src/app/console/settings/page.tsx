@@ -452,21 +452,21 @@ function PublicProfileTab() {
       <div>
         <label className={labelClass}>{t('cuisinesSpecialtiesLabel')}</label>
         <input type="text" value={cuisines} onChange={(e) => setCuisines(e.target.value)}
-          placeholder="Mediterranean, Italian, Coffee" className={inputClass} />
+          placeholder={t('cuisinesExamplePlaceholder')} className={inputClass} />
         <p className={hintClass}>{t('commaSeparatedSearchHint')}</p>
       </div>
 
       <div>
         <label className={labelClass}>{t('discoveryTagsLabel')}</label>
         <input type="text" value={tags} onChange={(e) => setTags(e.target.value)}
-          placeholder="Date Night, Pet Friendly, Outdoor Seating" className={inputClass} />
+          placeholder={t('tagsExamplePlaceholder')} className={inputClass} />
         <p className={hintClass}>{t('discoveryTagsHint')}</p>
       </div>
 
       <div>
         <label className={labelClass}>{t('amenitiesLabel')}</label>
         <input type="text" value={amenities} onChange={(e) => setAmenities(e.target.value)}
-          placeholder="WiFi, Parking, Outdoor Seating, Takeaway" className={inputClass} />
+          placeholder={t('amenitiesExamplePlaceholder')} className={inputClass} />
         <p className={hintClass}>{t('amenitiesHint')}</p>
       </div>
 

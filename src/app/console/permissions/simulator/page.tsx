@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { ArrowLeft, Play, ShieldCheck, ShieldX, Info } from 'lucide-react'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -15,6 +16,7 @@ import {
 import type { Role, P7Permission, SimulationResult } from '@/types/rbac'
 
 function SimulatorContent() {
+  const t = useTranslations('console')
   const { userOverrides } = useRbacStore()
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
   const [applyUserOverrideId, setApplyUserOverrideId] = useState<string>('')
@@ -46,7 +48,7 @@ function SimulatorContent() {
     const deniedPerms = ALL_PERMISSIONS.filter((p) => !effectiveSet.has(p))
 
     setResult({
-      label: selectedRoles.length > 0 ? selectedRoles.join(' + ') : 'No roles',
+      label: selectedRoles.length > 0 ? selectedRoles.join(' + ') : t('noRolesLabel'),
       roles: selectedRoles,
       effectivePermissions: effective,
       deniedPermissions: deniedPerms,
@@ -73,8 +75,8 @@ function SimulatorContent() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Permission Simulator</h1>
-          <p className="text-sm text-gray-500">Preview what a user would see under any role combination</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('permissionSimulatorTitle')}</h1>
+          <p className="text-sm text-gray-500">{t('previewUserRoleCombinationHint')}</p>
         </div>
       </div>
 
@@ -82,39 +84,39 @@ function SimulatorContent() {
         {/* Config panel */}
         <div className="col-span-1 space-y-4">
           <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h3 className="font-semibold text-gray-900">Simulate As</h3>
+            <h3 className="font-semibold text-gray-900">{t('simulateAsLabel')}</h3>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">Select Roles</label>
+              <label className="block text-xs font-medium text-gray-600 mb-2">{t('selectRolesLabel')}</label>
               <div className="space-y-2">
-                {ROLE_TEMPLATES.map((t) => (
-                  <label key={t.role} className="flex items-center gap-2.5 cursor-pointer group">
+                {ROLE_TEMPLATES.map((rt) => (
+                  <label key={rt.role} className="flex items-center gap-2.5 cursor-pointer group">
                     <input
                       type="checkbox"
-                      checked={selectedRoles.includes(t.role)}
-                      onChange={() => toggleRole(t.role)}
+                      checked={selectedRoles.includes(rt.role)}
+                      onChange={() => toggleRole(rt.role)}
                       className="accent-indigo-600"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-gray-900">{t.label}</span>
-                    <span className="text-xs text-gray-400 ml-auto">{t.permissions.length} perms</span>
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900">{rt.label}</span>
+                    <span className="text-xs text-gray-400 ml-auto">{t('permsCount', { count: rt.permissions.length })}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Apply User Override (optional)</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('applyUserOverrideOptionalLabel')}</label>
               <select
                 value={applyUserOverrideId}
                 onChange={(e) => setApplyUserOverrideId(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
-                <option value="">None</option>
+                <option value="">{t('none')}</option>
                 {userOverrides
                   .filter((o) => o.allow.length > 0 || o.deny.length > 0)
                   .map((o) => (
                     <option key={o.userId} value={o.userId}>
-                      User {o.userId} ({o.allow.length} grant, {o.deny.length} deny)
+                      {t('userGrantDenyLabel', { id: o.userId, grant: o.allow.length, deny: o.deny.length })}
                     </option>
                   ))}
               </select>
@@ -125,27 +127,27 @@ function SimulatorContent() {
               className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors"
             >
               <Play className="w-4 h-4" />
-              Run Simulation
+              {t('runSimulationLabel')}
             </button>
           </div>
 
           {result && (
             <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-              <h4 className="text-sm font-semibold text-gray-700">Summary</h4>
+              <h4 className="text-sm font-semibold text-gray-700">{t('summaryLabel')}</h4>
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="bg-green-50 rounded-lg p-2">
                   <div className="text-xl font-bold text-green-700">{result.permissionCount}</div>
-                  <div className="text-xs text-green-600">Effective</div>
+                  <div className="text-xs text-green-600">{t('effectiveLabel')}</div>
                 </div>
                 <div className="bg-red-50 rounded-lg p-2">
                   <div className="text-xl font-bold text-red-600">{result.deniedPermissions.length}</div>
-                  <div className="text-xs text-red-500">Denied</div>
+                  <div className="text-xs text-red-500">{t('deniedLabel')}</div>
                 </div>
               </div>
               {result.grantedByOverride.length > 0 && (
                 <div className="flex items-start gap-1.5 text-xs text-indigo-600 bg-indigo-50 rounded-lg p-2">
                   <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                  {result.grantedByOverride.length} permission(s) granted via user override
+                  {t('permissionsGrantedViaOverride', { count: result.grantedByOverride.length })}
                 </div>
               )}
             </div>
@@ -157,12 +159,12 @@ function SimulatorContent() {
           {!result ? (
             <div className="bg-white rounded-xl border border-dashed border-gray-200 p-12 text-center">
               <ShieldCheck className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">Select roles and run simulation to preview permissions</p>
+              <p className="text-gray-400 text-sm">{t('selectRolesRunSimulationHint')}</p>
             </div>
           ) : (
             <div className="space-y-3">
               <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 text-sm text-indigo-700">
-                Simulating: <strong>{result.label}</strong>
+                {t('simulatingColonLabel', { label: result.label })}
               </div>
               {categoryBreakdown.map((cat) => (
                 <div key={cat.label} className="bg-white rounded-xl border border-gray-200 overflow-hidden">

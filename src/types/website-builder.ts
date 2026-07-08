@@ -31,17 +31,21 @@ export const DEFAULT_SECTIONS: SectionConfig[] = [
   { key: 'contact',       enabled: true,  order: 9 },
 ]
 
+// Translation-key suffixes under the `console.*` namespace — resolve via
+// useTranslations('console') at render time, not raw English. Kept as string
+// values (not raw labels) so the Console can localize section chrome; see
+// docs/P9.5.7C_CONSOLE_LOCALIZATION.md for the P9.5.7C.5 migration notes.
 export const SECTION_LABELS: Record<SectionKey, string> = {
-  hero:          'Hero Banner',
-  featured_menu: 'Featured Menu',
-  about:         'About Us',
-  gallery:       'Gallery',
-  promotions:    'Promotions',
-  reviews:       'Reviews',
-  branches:      'Our Locations',
-  events:        'Events',
-  faq:           'FAQ',
-  contact:       'Contact',
+  hero:          'websiteSectionHero',
+  featured_menu: 'websiteSectionFeaturedMenu',
+  about:         'websiteSectionAboutUs',
+  gallery:       'galleryLabel',
+  promotions:    'promotionsLabel',
+  reviews:       'breadcrumbs.reviews',
+  branches:      'websiteSectionOurLocations',
+  events:        'moduleFeatureEvents',
+  faq:           'moduleFeatureFaq',
+  contact:       'contactLabel',
 }
 
 export type HeroAlignment = 'left' | 'center' | 'right'
@@ -317,27 +321,28 @@ export interface HeroConfig {
   secondaryCta?: HeroSecondaryCtaType
 }
 
+// Translation-key suffixes under `console.*` — resolve via useTranslations('console').
 export const HERO_LAYOUT_LABELS: Record<HeroLayoutVariant, { label: string; description: string }> = {
-  hero_a: { label: 'Hero A — Centered',      description: 'Full-bleed image, headline centred, single CTA below' },
-  hero_b: { label: 'Hero B — Left-aligned',  description: 'Image right, text left, two CTAs stacked' },
-  hero_c: { label: 'Hero C — Split',         description: '50/50 split: image left, text and CTA right' },
-  hero_d: { label: 'Hero D — Minimal',       description: 'No image, gradient background, large typography' },
-  hero_e: { label: 'Hero E — Cinematic',     description: 'Full-viewport video or image, overlay text, immersive' },
+  hero_a: { label: 'heroLayoutACenteredLabel',    description: 'heroLayoutACenteredDesc' },
+  hero_b: { label: 'heroLayoutBLeftAlignedLabel', description: 'heroLayoutBLeftAlignedDesc' },
+  hero_c: { label: 'heroLayoutCSplitLabel',       description: 'heroLayoutCSplitDesc' },
+  hero_d: { label: 'heroLayoutDMinimalLabel',     description: 'heroLayoutDMinimalDesc' },
+  hero_e: { label: 'heroLayoutECinematicLabel',   description: 'heroLayoutECinematicDesc' },
 }
 
 export const HERO_PRIMARY_CTA_LABELS: Record<HeroPrimaryCtaType, string> = {
-  reserve:      'Reserve a Table',
-  order_online: 'Order Online',
-  view_menu:    'View Menu',
-  contact:      'Contact Us',
-  directions:   'Get Directions',
+  reserve:      'ctaReserveATable',
+  order_online: 'ctaOrderOnline',
+  view_menu:    'ctaViewMenu',
+  contact:      'ctaContactUs',
+  directions:   'ctaGetDirections',
 }
 
 export const HERO_SECONDARY_CTA_LABELS: Record<HeroSecondaryCtaType, string> = {
-  promotions: 'See Promotions',
-  loyalty:    'Join Loyalty',
-  gallery:    'View Gallery',
-  reviews:    'Read Reviews',
+  promotions: 'ctaSeePromotions',
+  loyalty:    'ctaJoinLoyalty',
+  gallery:    'ctaViewGallery',
+  reviews:    'ctaReadReviews',
 }
 
 export type GalleryTemplate  = 'grid' | 'slider' | 'masonry' | 'compact'
@@ -353,31 +358,31 @@ export interface SectionTemplates {
 }
 
 export const GALLERY_TEMPLATE_LABELS: Record<GalleryTemplate, string> = {
-  grid:    'Grid',
-  slider:  'Slider',
-  masonry: 'Masonry',
-  compact: 'Compact',
+  grid:    'templateGrid',
+  slider:  'templateSlider',
+  masonry: 'templateMasonry',
+  compact: 'templateCompact',
 }
 
 export const REVIEWS_TEMPLATE_LABELS: Record<ReviewsTemplate, string> = {
-  cards:    'Cards',
-  carousel: 'Carousel',
-  minimal:  'Minimal',
-  compact:  'Compact',
+  cards:    'templateCards',
+  carousel: 'templateCarousel',
+  minimal:  'templateMinimal',
+  compact:  'templateCompact',
 }
 
 export const CONTACT_TEMPLATE_LABELS: Record<ContactTemplate, string> = {
-  map_left:  'Map Left',
-  map_right: 'Map Right',
-  card:      'Card',
-  minimal:   'Minimal',
+  map_left:  'templateMapLeft',
+  map_right: 'templateMapRight',
+  card:      'templateCard',
+  minimal:   'templateMinimal',
 }
 
 export const ABOUT_TEMPLATE_LABELS: Record<AboutTemplate, string> = {
-  story_left:  'Story Left',
-  story_right: 'Story Right',
-  wide:        'Wide',
-  compact:     'Compact',
+  story_left:  'templateStoryLeft',
+  story_right: 'templateStoryRight',
+  wide:        'templateWide',
+  compact:     'templateCompact',
 }
 
 export const DEFAULT_HERO_CONFIG: HeroConfig = {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { Search, Download, AlertCircle, Loader2, RefreshCw, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
@@ -20,7 +21,13 @@ const SEVERITY_BADGE: Record<AuditSeverity, 'info' | 'warning' | 'danger'> = {
 
 type ViewMode = 'timeline' | 'table'
 
+const VIEW_MODE_KEY: Record<ViewMode, string> = {
+  timeline: 'viewModeTimeline',
+  table: 'viewModeTable',
+}
+
 function AuditLogsContent() {
+  const t = useTranslations('console')
   const [view, setView] = useState<ViewMode>('timeline')
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState<AuditSeverity | 'all'>('all')
@@ -74,8 +81,8 @@ function AuditLogsContent() {
           {/* Header */}
           <div className="py-6 flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">Audit Logs</h1>
-              <p className="text-[var(--fg-muted)] mt-1">Complete activity history for compliance and debugging</p>
+              <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('breadcrumbs.auditLogs')}</h1>
+              <p className="text-[var(--fg-muted)] mt-1">{t('auditLogsSubtitle')}</p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -84,7 +91,7 @@ function AuditLogsContent() {
                 leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
                 onClick={() => refetch()}
               >
-                Refresh
+                {t('refreshLabel')}
               </Button>
               <Button
                 variant="secondary"
@@ -93,7 +100,7 @@ function AuditLogsContent() {
                 onClick={handleExport}
                 disabled={exportMutation.isPending}
               >
-                {exportMutation.isPending ? 'Exporting…' : 'Export CSV'}
+                {exportMutation.isPending ? t('exportingEllipsis') : t('exportCsvLabel')}
               </Button>
             </div>
           </div>
@@ -102,10 +109,10 @@ function AuditLogsContent() {
           {stats && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               {[
-                { label: 'Total Events', value: stats.totalEvents, color: 'text-[var(--fg)]', bg: 'bg-[var(--card-hover)]' },
-                { label: 'Critical', value: stats.criticalEvents, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950/20' },
-                { label: 'Warnings', value: stats.warningEvents, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/20' },
-                { label: 'Info', value: stats.infoEvents, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20' },
+                { label: t('totalEventsLabel'), value: stats.totalEvents, color: 'text-[var(--fg)]', bg: 'bg-[var(--card-hover)]' },
+                { label: t('criticalLabel'), value: stats.criticalEvents, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950/20' },
+                { label: t('warningsLabel'), value: stats.warningEvents, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/20' },
+                { label: t('infoLabel'), value: stats.infoEvents, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20' },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`${bg} rounded-xl p-4 border border-[var(--border)]`}>
                   <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -119,7 +126,7 @@ function AuditLogsContent() {
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 mb-6 space-y-3">
             <div className="flex items-center gap-2 text-sm font-medium text-[var(--fg-muted)]">
               <Filter className="h-4 w-4" />
-              Filters
+              {t('filtersLabel')}
             </div>
             <div className="flex gap-3 flex-wrap">
               <div className="relative flex-1 min-w-48">
@@ -127,7 +134,7 @@ function AuditLogsContent() {
                 <input
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-                  placeholder="Search actor, target, action…"
+                  placeholder={t('searchActorTargetActionEllipsisPlaceholder')}
                   className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
                 />
               </div>
@@ -135,20 +142,20 @@ function AuditLogsContent() {
                 value={severity}
                 onChange={(e) => { setSeverity(e.target.value as AuditSeverity | 'all'); setPage(1) }}
                 className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
-                aria-label="Filter by severity"
+                aria-label={t('filterBySeverityAria')}
               >
-                <option value="all">All Severities</option>
-                <option value="info">Info</option>
-                <option value="warning">Warning</option>
-                <option value="critical">Critical</option>
+                <option value="all">{t('allSeveritiesOption')}</option>
+                <option value="info">{t('infoLabel')}</option>
+                <option value="warning">{t('warningLabel')}</option>
+                <option value="critical">{t('criticalLabel')}</option>
               </select>
               <select
                 value={domain}
                 onChange={(e) => { setDomain(e.target.value); setPage(1) }}
                 className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
-                aria-label="Filter by domain"
+                aria-label={t('filterByDomainAria')}
               >
-                <option value="all">All Domains</option>
+                <option value="all">{t('allDomainsOption')}</option>
                 {AUDIT_DOMAINS.map((d) => (
                   <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
                 ))}
@@ -159,14 +166,14 @@ function AuditLogsContent() {
                   value={dateFrom}
                   onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
                   className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
-                  aria-label="From date"
+                  aria-label={t('fromDateAria')}
                 />
                 <input
                   type="date"
                   value={dateTo}
                   onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
                   className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
-                  aria-label="To date"
+                  aria-label={t('toDateAria')}
                 />
               </div>
             </div>
@@ -184,7 +191,7 @@ function AuditLogsContent() {
                     : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'
                 }`}
               >
-                {v}
+                {t(VIEW_MODE_KEY[v])}
               </button>
             ))}
           </div>
@@ -193,7 +200,7 @@ function AuditLogsContent() {
           {(logsLoading || timelineLoading) && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm">Loading audit logs…</span>
+              <span className="text-sm">{t('loadingAuditLogsEllipsis')}</span>
             </div>
           )}
 
@@ -201,8 +208,8 @@ function AuditLogsContent() {
           {logsError && !logsLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <AlertCircle className="h-8 w-8 text-red-400" />
-              <p className="text-sm text-[var(--fg-muted)]">Failed to load audit logs.</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>Retry</Button>
+              <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadAuditLogs')}</p>
+              <Button variant="secondary" size="sm" onClick={() => refetch()}>{t('retryLabel')}</Button>
             </div>
           )}
 
@@ -220,7 +227,7 @@ function AuditLogsContent() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[var(--border)] bg-[var(--card-hover)]">
-                      {['Timestamp', 'Action', 'Severity', 'Actor', 'Target', 'Branch', 'Description'].map((h) => (
+                      {[t('timestampLabel'), t('actionColumnLabel'), t('severityLabel'), t('actorColumnLabel'), t('targetLabel'), t('breadcrumbs.branches'), t('descriptionLabel')].map((h) => (
                         <th key={h} className="text-start px-4 py-3 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
@@ -249,7 +256,7 @@ function AuditLogsContent() {
                 </table>
                 {logs.length === 0 && (
                   <div className="py-16 text-center">
-                    <p className="text-[var(--fg-muted)]">No audit events match your filters.</p>
+                    <p className="text-[var(--fg-muted)]">{t('noAuditEventsMatchFilters')}</p>
                   </div>
                 )}
               </div>
@@ -258,7 +265,7 @@ function AuditLogsContent() {
               {logsPage && logsPage.totalPages > 1 && (
                 <div className="border-t border-[var(--border)] px-4 py-3 flex items-center justify-between">
                   <span className="text-xs text-[var(--fg-muted)]">
-                    Page {logsPage.page} of {logsPage.totalPages} ({logsPage.count} total)
+                    {t('pageOfTotalCount', { page: logsPage.page, totalPages: logsPage.totalPages, count: logsPage.count })}
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -267,7 +274,7 @@ function AuditLogsContent() {
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
                     >
-                      Previous
+                      {t('previousLabel')}
                     </Button>
                     <Button
                       variant="secondary"
@@ -275,7 +282,7 @@ function AuditLogsContent() {
                       onClick={() => setPage((p) => p + 1)}
                       disabled={page >= logsPage.totalPages}
                     >
-                      Next
+                      {t('nextLabel')}
                     </Button>
                   </div>
                 </div>

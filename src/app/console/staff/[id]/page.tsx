@@ -1,6 +1,7 @@
 'use client'
 
 import { use } from 'react'
+import { useTranslations } from 'next-intl'
 import { useStaffMember, useAdminBranch, useAdminBranches } from '@/hooks'
 import { getPermissionsForRole } from '@/services/permission.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -36,11 +37,12 @@ export default function StaffDetailPage({ params }: PageProps) {
 }
 
 function BranchAccessMatrix({ tenantId, assignedBranchIds }: { tenantId: string; assignedBranchIds: string[] }) {
+  const t = useTranslations('console')
   const { data: allBranches = [] } = useAdminBranches(tenantId)
   const assigned = new Set(assignedBranchIds)
   return (
     <section>
-      <h2 className="text-lg font-semibold mb-2">Branch Access Matrix</h2>
+      <h2 className="text-lg font-semibold mb-2">{t('branchAccessMatrixLabel')}</h2>
       <ul className="space-y-1 text-sm">
         {allBranches.map((b) => (
           <li key={b.id} className="flex items-center gap-2">
@@ -53,17 +55,25 @@ function BranchAccessMatrix({ tenantId, assignedBranchIds }: { tenantId: string;
             <span className="text-xs text-gray-400">{b.location.city}</span>
           </li>
         ))}
-        {allBranches.length === 0 && <li className="text-gray-500">No branches configured.</li>}
+        {allBranches.length === 0 && <li className="text-gray-500">{t('noBranchesConfigured')}</li>}
       </ul>
     </section>
   )
 }
 
+const STAFF_STATUS_KEY: Record<string, string> = {
+  active: 'statusActive',
+  suspended: 'statusSuspended',
+  removed: 'staffStatusRemoved',
+  pending: 'statusPending',
+}
+
 function StaffDetailContent({ id }: { id: string }) {
+  const t = useTranslations('console')
   const { data: member, isLoading } = useStaffMember(id)
 
-  if (isLoading) return <div className="p-6">Loading...</div>
-  if (!member) return <div className="p-6">Staff member not found.</div>
+  if (isLoading) return <div className="p-6">{t('loadingEllipsis')}</div>
+  if (!member) return <div className="p-6">{t('staffMemberNotFound')}</div>
 
   const derivedPermissions = getPermissionsForRole(member.roles)
 
@@ -94,12 +104,12 @@ function StaffDetailContent({ id }: { id: string }) {
                   : 'bg-gray-100 text-gray-700'
           }`}
         >
-          {member.status}
+          {t(STAFF_STATUS_KEY[member.status] ?? 'statusInactive')}
         </span>
       </div>
 
       <section>
-        <h2 className="text-lg font-semibold mb-2">Roles</h2>
+        <h2 className="text-lg font-semibold mb-2">{t('rolesTabLabel')}</h2>
         <div className="flex gap-2 flex-wrap">
           {member.roles.map((r) => (
             <span key={r} className="px-3 py-1 rounded bg-blue-100 text-blue-700 text-sm">
@@ -110,7 +120,7 @@ function StaffDetailContent({ id }: { id: string }) {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-2">Derived Permissions</h2>
+        <h2 className="text-lg font-semibold mb-2">{t('derivedPermissionsLabel')}</h2>
         <div className="flex gap-2 flex-wrap">
           {derivedPermissions.map((p) => (
             <span key={p} className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs font-mono">
@@ -121,21 +131,21 @@ function StaffDetailContent({ id }: { id: string }) {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-2">Membership</h2>
+        <h2 className="text-lg font-semibold mb-2">{t('membershipLabel')}</h2>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <dt className="text-gray-500">Tenant</dt>
+          <dt className="text-gray-500">{t('tenantLabelShort')}</dt>
           <dd>{member.tenantId}</dd>
-          <dt className="text-gray-500">Invited</dt>
+          <dt className="text-gray-500">{t('invitedLabel')}</dt>
           <dd>{new Date(member.invitedAt).toLocaleDateString()}</dd>
           {member.activatedAt && (
             <>
-              <dt className="text-gray-500">Activated</dt>
+              <dt className="text-gray-500">{t('activatedLabel')}</dt>
               <dd>{new Date(member.activatedAt).toLocaleDateString()}</dd>
             </>
           )}
           {member.lastSeenAt && (
             <>
-              <dt className="text-gray-500">Last Seen</dt>
+              <dt className="text-gray-500">{t('lastSeenLabel')}</dt>
               <dd>{new Date(member.lastSeenAt).toLocaleDateString()}</dd>
             </>
           )}
@@ -144,7 +154,7 @@ function StaffDetailContent({ id }: { id: string }) {
 
       {member.branchIds && member.branchIds.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold mb-2">Assigned Branches</h2>
+          <h2 className="text-lg font-semibold mb-2">{t('assignedBranchesLabel')}</h2>
           <div className="flex flex-wrap gap-2">
             {member.branchIds.map((bid) => (
               <BranchBadge key={bid} branchId={bid} />

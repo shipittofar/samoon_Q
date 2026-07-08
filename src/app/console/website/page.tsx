@@ -244,7 +244,7 @@ function SectionsTab({
         >
           <GripVertical className="w-4 h-4 text-[var(--fg-muted)] flex-shrink-0" aria-hidden />
           <span className="flex-1 text-sm font-medium text-[var(--fg)]">
-            {SECTION_LABELS[section.key]}
+            {t(SECTION_LABELS[section.key])}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -252,7 +252,7 @@ function SectionsTab({
               onClick={() => move(section.key, -1)}
               disabled={idx === 0}
               className="p-1 rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-30 transition-colors"
-              aria-label={t('moveSectionUpAria', { section: SECTION_LABELS[section.key] })}
+              aria-label={t('moveSectionUpAria', { section: t(SECTION_LABELS[section.key]) })}
             >
               <ChevronUp className="w-4 h-4" />
             </button>
@@ -261,7 +261,7 @@ function SectionsTab({
               onClick={() => move(section.key, 1)}
               disabled={idx === sorted.length - 1}
               className="p-1 rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-30 transition-colors"
-              aria-label={t('moveSectionDownAria', { section: SECTION_LABELS[section.key] })}
+              aria-label={t('moveSectionDownAria', { section: t(SECTION_LABELS[section.key]) })}
             >
               <ChevronDown className="w-4 h-4" />
             </button>
@@ -309,7 +309,7 @@ function TemplatesTab({
         <PillSelector<GalleryTemplate>
           value={templates.gallery}
           onChange={(v) => onChange({ ...templates, gallery: v })}
-          options={Object.entries(GALLERY_TEMPLATE_LABELS).map(([value, label]) => ({ value: value as GalleryTemplate, label }))}
+          options={Object.entries(GALLERY_TEMPLATE_LABELS).map(([value, labelKey]) => ({ value: value as GalleryTemplate, label: t(labelKey) }))}
         />
       </div>
 
@@ -318,7 +318,7 @@ function TemplatesTab({
         <PillSelector<ReviewsTemplate>
           value={templates.reviews}
           onChange={(v) => onChange({ ...templates, reviews: v })}
-          options={Object.entries(REVIEWS_TEMPLATE_LABELS).map(([value, label]) => ({ value: value as ReviewsTemplate, label }))}
+          options={Object.entries(REVIEWS_TEMPLATE_LABELS).map(([value, labelKey]) => ({ value: value as ReviewsTemplate, label: t(labelKey) }))}
         />
       </div>
 
@@ -327,7 +327,7 @@ function TemplatesTab({
         <PillSelector<ContactTemplate>
           value={templates.contact}
           onChange={(v) => onChange({ ...templates, contact: v })}
-          options={Object.entries(CONTACT_TEMPLATE_LABELS).map(([value, label]) => ({ value: value as ContactTemplate, label }))}
+          options={Object.entries(CONTACT_TEMPLATE_LABELS).map(([value, labelKey]) => ({ value: value as ContactTemplate, label: t(labelKey) }))}
         />
       </div>
 
@@ -336,7 +336,7 @@ function TemplatesTab({
         <PillSelector<AboutTemplate>
           value={templates.about}
           onChange={(v) => onChange({ ...templates, about: v })}
-          options={Object.entries(ABOUT_TEMPLATE_LABELS).map(([value, label]) => ({ value: value as AboutTemplate, label }))}
+          options={Object.entries(ABOUT_TEMPLATE_LABELS).map(([value, labelKey]) => ({ value: value as AboutTemplate, label: t(labelKey) }))}
         />
       </div>
     </div>
@@ -359,7 +359,7 @@ function HeroTab({
 
   const heroLayouts: { value: HeroLayoutVariant; label: string }[] = (
     Object.entries(HERO_LAYOUT_LABELS) as [HeroLayoutVariant, { label: string; description: string }][]
-  ).map(([value, info]) => ({ value, label: info.label }))
+  ).map(([value, info]) => ({ value, label: t(info.label) }))
 
   const bgTypes: { value: HeroBackgroundType; label: string }[] = [
     { value: 'image', label: t('bgTypeImage') },
@@ -376,11 +376,11 @@ function HeroTab({
 
   const primaryCtaOptions = (
     Object.entries(HERO_PRIMARY_CTA_LABELS) as [HeroPrimaryCtaType, string][]
-  ).map(([value, label]) => ({ value, label }))
+  ).map(([value, labelKey]) => ({ value, label: t(labelKey) }))
 
   const secondaryCtaOptions = [
     { value: '' as HeroSecondaryCtaType, label: t('noneOptionDash') },
-    ...(Object.entries(HERO_SECONDARY_CTA_LABELS) as [HeroSecondaryCtaType, string][]).map(([value, label]) => ({ value, label })),
+    ...(Object.entries(HERO_SECONDARY_CTA_LABELS) as [HeroSecondaryCtaType, string][]).map(([value, labelKey]) => ({ value, label: t(labelKey) })),
   ]
 
   return (
@@ -401,8 +401,8 @@ function HeroTab({
                   : 'border-[var(--border)] hover:border-[var(--accent)]',
               )}
             >
-              <p className="text-sm font-medium text-[var(--fg)]">{info.label}</p>
-              <p className="text-xs text-[var(--fg-muted)] mt-0.5">{info.description}</p>
+              <p className="text-sm font-medium text-[var(--fg)]">{t(info.label)}</p>
+              <p className="text-xs text-[var(--fg-muted)] mt-0.5">{t(info.description)}</p>
             </button>
           ))}
         </div>
@@ -529,7 +529,7 @@ function ContentTab({
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label={t('founderNameLabel')}>
-            <TextInput value={about.founderName} onChange={(v) => setAbout('founderName', v)} placeholder="Jane Doe" />
+            <TextInput value={about.founderName} onChange={(v) => setAbout('founderName', v)} placeholder={t('janeDoeExamplePlaceholder')} />
           </Field>
           <Field label={t('founderImageUrlLabel')}>
             <TextInput value={about.founderImage} onChange={(v) => setAbout('founderImage', v)} placeholder="https://…" />
@@ -667,7 +667,7 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
                 <span className="w-5 h-5 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] text-xs flex items-center justify-center font-medium">
                   {i + 1}
                 </span>
-                <span>{SECTION_LABELS[key]}</span>
+                <span>{t(SECTION_LABELS[key])}</span>
               </div>
             ))}
           </div>

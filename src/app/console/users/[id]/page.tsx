@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   ArrowLeft,
   User,
@@ -62,7 +63,13 @@ const ROLE_COLORS: Record<Role, string> = {
 const TABS = ['Profile', 'Roles', 'Branches', 'Permissions', 'Activity', 'Security'] as const
 type Tab = (typeof TABS)[number]
 
+const TAB_LABEL_KEYS: Record<Tab, string> = {
+  Profile: 'profileTabLabel', Roles: 'rolesTabLabel', Branches: 'breadcrumbs.branches',
+  Permissions: 'permissionsTabLabel', Activity: 'activityTabLabel', Security: 'securityTabLabel',
+}
+
 function UserDetailContent({ userId }: { userId: string }) {
+  const t = useTranslations('console')
   const entry = MOCK_USERS_MAP.find((e) => e.user.id === userId)
   const [activeTab, setActiveTab] = useState<Tab>('Profile')
   const [localRoles, setLocalRoles] = useState<Role[]>(entry?.p7Roles ?? [])
@@ -84,9 +91,9 @@ function UserDetailContent({ userId }: { userId: string }) {
     return (
       <div className="text-center py-12 text-gray-500">
         <User className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-        <p>User not found.</p>
+        <p>{t('userNotFound')}</p>
         <Link href="/console/users" className="text-indigo-600 hover:underline text-sm mt-2 block">
-          Back to Users
+          {t('backToUsers')}
         </Link>
       </div>
     )
@@ -150,12 +157,12 @@ function UserDetailContent({ userId }: { userId: string }) {
           {active ? (
             <span className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
               <CheckCircle className="w-3.5 h-3.5" />
-              Active
+              {t('statusActive')}
             </span>
           ) : (
             <span className="flex items-center gap-1.5 bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-medium">
               <XCircle className="w-3.5 h-3.5" />
-              Inactive
+              {t('statusInactive')}
             </span>
           )}
         </div>
@@ -173,7 +180,7 @@ function UserDetailContent({ userId }: { userId: string }) {
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            {tab}
+            {t(TAB_LABEL_KEYS[tab])}
           </button>
         ))}
       </div>
@@ -191,25 +198,25 @@ function UserDetailContent({ userId }: { userId: string }) {
                 {user.first_name} {user.last_name}
               </div>
               <div className="text-gray-500 text-sm">{user.email}</div>
-              <div className="text-gray-400 text-xs mt-1">ID: {user.id} - - -  Role: {user.role}</div>
+              <div className="text-gray-400 text-xs mt-1">{t('idColonValue', { id: user.id })} - - - {t('roleColonName', { name: user.role })}</div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
             <div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Phone</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{t('phoneLabel')}</div>
               <div className="text-sm text-gray-700">{user.phone ?? '—'}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Last Login</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{t('lastLoginLabel')}</div>
               <div className="text-sm text-gray-700">{new Date(lastLogin).toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Status</div>
-              <div className="text-sm text-gray-700">{active ? 'Active' : 'Inactive'}</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{t('tableHeaders.status')}</div>
+              <div className="text-sm text-gray-700">{active ? t('statusActive') : t('statusInactive')}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">Verified</div>
-              <div className="text-sm text-gray-700">{user.is_verified ? 'Yes' : 'No'}</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{t('verifiedLabel')}</div>
+              <div className="text-sm text-gray-700">{user.is_verified ? t('yesLabel') : t('noLabel')}</div>
             </div>
           </div>
         </div>
@@ -219,7 +226,7 @@ function UserDetailContent({ userId }: { userId: string }) {
       {activeTab === 'Roles' && (
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Assigned Roles</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">{t('assignedRolesLabel')}</h3>
             <div className="flex flex-wrap gap-2 mb-4">
               {localRoles.map((role) => (
                 <span
@@ -230,25 +237,25 @@ function UserDetailContent({ userId }: { userId: string }) {
                   <button
                     onClick={() => handleRemoveRole(role)}
                     className="hover:opacity-60 transition-opacity ml-1"
-                    aria-label={`Remove ${role}`}
+                    aria-label={t('removeRoleAria', { role })}
                   >
                     <XCircle className="w-3.5 h-3.5" />
                   </button>
                 </span>
               ))}
-              {localRoles.length === 0 && <span className="text-gray-400 text-sm">No roles assigned</span>}
+              {localRoles.length === 0 && <span className="text-gray-400 text-sm">{t('noRolesAssigned')}</span>}
             </div>
 
-            <h4 className="text-sm font-medium text-gray-600 mb-2">Add Role</h4>
+            <h4 className="text-sm font-medium text-gray-600 mb-2">{t('addRoleLabel')}</h4>
             <div className="flex flex-wrap gap-2">
-              {ROLE_TEMPLATES.filter((t) => !localRoles.includes(t.role)).map((t) => (
+              {ROLE_TEMPLATES.filter((rt) => !localRoles.includes(rt.role)).map((rt) => (
                 <button
-                  key={t.role}
-                  onClick={() => handleAddRole(t.role)}
+                  key={rt.role}
+                  onClick={() => handleAddRole(rt.role)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border border-dashed border-gray-300 text-gray-600 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  {t.label}
+                  {rt.label}
                 </button>
               ))}
             </div>
@@ -259,7 +266,7 @@ function UserDetailContent({ userId }: { userId: string }) {
                   onClick={handleSaveRoles}
                   className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
                 >
-                  Save Roles
+                  {t('saveRolesLabel')}
                 </button>
                 <button
                   onClick={() => {
@@ -268,7 +275,7 @@ function UserDetailContent({ userId }: { userId: string }) {
                   }}
                   className="text-gray-500 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors"
                 >
-                  Reset
+                  {t('resetLabel')}
                 </button>
               </div>
             )}
@@ -279,7 +286,7 @@ function UserDetailContent({ userId }: { userId: string }) {
       {/* Tab: Branches */}
       {activeTab === 'Branches' && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Branch Access</h3>
+          <h3 className="font-semibold text-gray-900 mb-4">{t('branchAccessLabel')}</h3>
           <div className="space-y-3">
             {MOCK_BRANCHES.map((branch) => (
               <div key={branch.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
@@ -291,7 +298,7 @@ function UserDetailContent({ userId }: { userId: string }) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400">Global roles apply</span>
+                  <span className="text-xs text-gray-400">{t('globalRolesApplyLabel')}</span>
                   <span
                     className={`w-2 h-2 rounded-full ${branch.is_active ? 'bg-green-500' : 'bg-gray-300'}`}
                   />
@@ -300,7 +307,7 @@ function UserDetailContent({ userId }: { userId: string }) {
             ))}
           </div>
           <p className="text-xs text-gray-400 mt-4">
-            Branch-specific role overrides can be configured per assignment. Currently using tenant-wide roles.
+            {t('branchRoleOverridesHint')}
           </p>
         </div>
       )}
@@ -309,9 +316,11 @@ function UserDetailContent({ userId }: { userId: string }) {
       {activeTab === 'Permissions' && (
         <div className="space-y-4">
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-700">
-            <strong>{effectivePermissions.filter((e) => e.effective).length}</strong> effective permissions •{' '}
-            <strong>{override.allow.length}</strong> granted by override •{' '}
-            <strong>{override.deny.length}</strong> denied by override
+            {t('permissionsSummaryLine', {
+              effective: effectivePermissions.filter((e) => e.effective).length,
+              granted: override.allow.length,
+              denied: override.deny.length,
+            })}
           </div>
           {Object.values(PERMISSION_CATEGORIES).map((cat) => {
             const catPerms = effectivePermissions.filter((e) => cat.permissions.includes(e.permission))
@@ -334,10 +343,10 @@ function UserDetailContent({ userId }: { userId: string }) {
                         )}
                         <span className="text-sm font-mono text-gray-700">{ep.permission}</span>
                         {ep.fromOverride && !ep.denied && (
-                          <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded">override</span>
+                          <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded">{t('overrideLabel')}</span>
                         )}
                         {ep.denied && (
-                          <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">denied</span>
+                          <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">{t('deniedLabel')}</span>
                         )}
                       </div>
                       <div className="flex items-center gap-1">
@@ -345,7 +354,7 @@ function UserDetailContent({ userId }: { userId: string }) {
                           onClick={() => handleGrantPermission(ep.permission)}
                           disabled={ep.effective && !ep.denied}
                           className="p-1 rounded hover:bg-green-100 text-green-600 disabled:opacity-30 transition-colors"
-                          title="Grant"
+                          title={t('grantLabel')}
                         >
                           <CheckCircle className="w-4 h-4" />
                         </button>
@@ -353,7 +362,7 @@ function UserDetailContent({ userId }: { userId: string }) {
                           onClick={() => handleDenyPermission(ep.permission)}
                           disabled={ep.denied}
                           className="p-1 rounded hover:bg-red-100 text-red-500 disabled:opacity-30 transition-colors"
-                          title="Deny"
+                          title={t('denyLabel')}
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
@@ -361,7 +370,7 @@ function UserDetailContent({ userId }: { userId: string }) {
                           onClick={() => handleResetPermission(ep.permission)}
                           disabled={!ep.fromOverride && !ep.denied}
                           className="p-1 rounded hover:bg-gray-100 text-gray-400 disabled:opacity-30 transition-colors"
-                          title="Reset to role default"
+                          title={t('resetToRoleDefaultLabel')}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -378,13 +387,13 @@ function UserDetailContent({ userId }: { userId: string }) {
       {/* Tab: Activity */}
       {activeTab === 'Activity' && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Activity Log</h3>
+          <h3 className="font-semibold text-gray-900 mb-4">{t('activityLogLabel')}</h3>
           <div className="space-y-3">
             {[
-              { action: 'Logged in', time: lastLogin, icon: '🔐' },
-              { action: 'Permission override applied', time: '2024-01-10T14:00:00Z', icon: '🛡️' },
-              { action: 'Role updated', time: '2024-01-05T09:00:00Z', icon: '👤' },
-              { action: 'Account created', time: user.created_at, icon: '✨' },
+              { action: t('activityLoggedIn'), time: lastLogin, icon: '🔐' },
+              { action: t('activityPermissionOverrideApplied'), time: '2024-01-10T14:00:00Z', icon: '🛡️' },
+              { action: t('activityRoleUpdated'), time: '2024-01-05T09:00:00Z', icon: '👤' },
+              { action: t('activityAccountCreated'), time: user.created_at, icon: '✨' },
             ].map((ev, i) => (
               <div key={i} className="flex items-start gap-3 text-sm">
                 <span className="text-base">{ev.icon}</span>
@@ -404,29 +413,29 @@ function UserDetailContent({ userId }: { userId: string }) {
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Lock className="w-4 h-4" />
-              Security Settings
+              {t('securitySettingsLabel')}
             </h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-700">Email verified</span>
+                <span className="text-gray-700">{t('emailVerifiedLabel')}</span>
                 <span className={user.is_verified ? 'text-green-600 font-medium' : 'text-red-500'}>
-                  {user.is_verified ? 'Yes' : 'No'}
+                  {user.is_verified ? t('yesLabel') : t('noLabel')}
                 </span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-700">Two-factor authentication</span>
-                <span className="text-gray-400">Not configured</span>
+                <span className="text-gray-700">{t('twoFactorAuthLabel')}</span>
+                <span className="text-gray-400">{t('notConfiguredLabel')}</span>
               </div>
               <div className="flex items-center justify-between py-2">
-                <span className="text-gray-700">Active sessions</span>
-                <span className="text-gray-700">1 session</span>
+                <span className="text-gray-700">{t('activeSessionsLabel')}</span>
+                <span className="text-gray-700">{t('sessionCount', { count: 1 })}</span>
               </div>
             </div>
           </div>
           <div className="bg-red-50 border border-red-100 rounded-xl p-4">
-            <h4 className="text-sm font-semibold text-red-700 mb-2">Danger Zone</h4>
+            <h4 className="text-sm font-semibold text-red-700 mb-2">{t('dangerZoneLabel')}</h4>
             <button className="text-sm text-red-600 hover:text-red-800 font-medium border border-red-200 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors">
-              Deactivate Account
+              {t('deactivateAccountLabel')}
             </button>
           </div>
         </div>

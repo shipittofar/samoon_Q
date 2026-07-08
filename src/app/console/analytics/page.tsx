@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { ChevronDown, ChevronUp, TrendingUp, TrendingDown } from 'lucide-react'
 import { useBranchStore } from '@/stores'
 import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
@@ -73,7 +74,8 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 function LoadingPlaceholder() {
-  return <p className="text-sm text-[var(--fg-muted)]">Loading…</p>
+  const t = useTranslations('console')
+  return <p className="text-sm text-[var(--fg-muted)]">{t('loadingEllipsis')}</p>
 }
 
 function DrillDownPanel({ children }: { children: React.ReactNode }) {
@@ -87,6 +89,7 @@ function DrillDownPanel({ children }: { children: React.ReactNode }) {
 // ── Revenue Section ───────────────────────────────────────────────────────────
 
 function RevenueSection() {
+  const t = useTranslations('console')
   const { data, isLoading } = useRevenueAnalytics()
   const [expanded, setExpanded] = useState<'revenue' | 'orders' | null>(null)
 
@@ -94,37 +97,37 @@ function RevenueSection() {
   if (!data) return null
 
   return (
-    <div className="space-y-3" aria-label="Revenue analytics">
+    <div className="space-y-3" aria-label={t('revenueAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard
-          label="Total Revenue" value={`$${data.totalRevenue.toLocaleString()}`}
+          label={t('totalRevenue')} value={`$${data.totalRevenue.toLocaleString()}`}
           changePct={data.revenueChangePct} expandable expanded={expanded === 'revenue'}
           onToggle={() => setExpanded(expanded === 'revenue' ? null : 'revenue')}
         />
         <KpiCard
-          label="Total Orders" value={data.totalOrders.toLocaleString()}
+          label={t('totalOrders')} value={data.totalOrders.toLocaleString()}
           expandable expanded={expanded === 'orders'}
           onToggle={() => setExpanded(expanded === 'orders' ? null : 'orders')}
         />
-        <KpiCard label="Avg Order Value" value={`$${data.averageOrderValue.toFixed(2)}`} />
+        <KpiCard label={t('avgOrderValue')} value={`$${data.averageOrderValue.toFixed(2)}`} />
       </div>
 
       {expanded === 'revenue' && (
         <DrillDownPanel>
-          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Daily Revenue (30 days)</p>
-          <MiniBarChart data={data.dailyRevenue} height={56} aria-label="Daily revenue bar chart" />
+          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">{t('dailyRevenue30Days')}</p>
+          <MiniBarChart data={data.dailyRevenue} height={56} aria-label={t('dailyRevenueBarChartAria')} />
         </DrillDownPanel>
       )}
 
       {expanded === 'orders' && (
         <DrillDownPanel>
-          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Items by Orders</p>
+          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">{t('topItemsByOrders')}</p>
           <ul className="space-y-2">
             {data.topItems.map((item) => (
               <li key={item.name} className="flex items-center justify-between text-sm">
                 <span className="text-[var(--fg)]">{item.name}</span>
                 <div className="flex items-center gap-4">
-                  <span className="text-[var(--fg-muted)]">{item.orderCount} orders</span>
+                  <span className="text-[var(--fg-muted)]">{t('ordersCount', { count: item.orderCount })}</span>
                   <span className="font-medium text-[var(--fg)]">${item.revenue.toLocaleString()}</span>
                   <Delta pct={item.trendPct} />
                 </div>
@@ -140,6 +143,7 @@ function RevenueSection() {
 // ── Reservations Section ──────────────────────────────────────────────────────
 
 function ReservationsSection() {
+  const t = useTranslations('console')
   const { data, isLoading } = useReservationAnalytics()
   const [expanded, setExpanded] = useState(false)
 
@@ -147,27 +151,27 @@ function ReservationsSection() {
   if (!data) return null
 
   const statusBreakdown = [
-    { label: 'Upcoming',  count: data.upcomingReservations,  color: 'bg-blue-400' },
-    { label: 'Cancelled', count: data.cancelledReservations, color: 'bg-red-400'  },
-    { label: 'Completed', count: data.totalReservations - data.upcomingReservations - data.cancelledReservations, color: 'bg-green-400' },
+    { label: t('statusUpcoming'),  count: data.upcomingReservations,  color: 'bg-blue-400' },
+    { label: t('statusCancelled'), count: data.cancelledReservations, color: 'bg-red-400'  },
+    { label: t('statusCompleted'), count: data.totalReservations - data.upcomingReservations - data.cancelledReservations, color: 'bg-green-400' },
   ]
 
   return (
-    <div className="space-y-3" aria-label="Reservation analytics">
+    <div className="space-y-3" aria-label={t('reservationAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard
-          label="Total Reservations" value={data.totalReservations.toLocaleString()}
+          label={t('totalReservationsLabel')} value={data.totalReservations.toLocaleString()}
           changePct={data.reservationsChangePct} expandable expanded={expanded}
           onToggle={() => setExpanded((v) => !v)}
         />
-        <KpiCard label="Upcoming" value={data.upcomingReservations.toLocaleString()} />
-        <KpiCard label="Cancelled" value={data.cancelledReservations.toLocaleString()} />
-        <KpiCard label="Occupancy Rate" value={`${data.occupancyRate}%`} />
+        <KpiCard label={t('upcoming')} value={data.upcomingReservations.toLocaleString()} />
+        <KpiCard label={t('breadcrumbs.cancelled')} value={data.cancelledReservations.toLocaleString()} />
+        <KpiCard label={t('occupancyRate')} value={`${data.occupancyRate}%`} />
       </div>
 
       {expanded && (
         <DrillDownPanel>
-          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Status Breakdown</p>
+          <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">{t('statusBreakdown')}</p>
           <div className="space-y-2 mb-4">
             {statusBreakdown.map(({ label, count, color }) => (
               <div key={label} className="flex items-center gap-3 text-sm">
@@ -178,13 +182,13 @@ function ReservationsSection() {
             ))}
           </div>
           <p className="text-xs text-[var(--fg-muted)] mb-1">
-            Table Occupancy: {data.tablesOccupied}/{data.tablesTotal}
+            {t('tableOccupancyRatio', { occupied: data.tablesOccupied, total: data.tablesTotal })}
           </p>
           <div className="h-2 rounded-full bg-[var(--border)] overflow-hidden mb-4">
             <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${data.occupancyRate}%` }} />
           </div>
-          <p className="text-xs text-[var(--fg-muted)] mb-2">Daily Reservations (30 days)</p>
-          <Sparkline data={data.dailyReservations} height={40} aria-label="Daily reservations sparkline" />
+          <p className="text-xs text-[var(--fg-muted)] mb-2">{t('dailyReservations30Days')}</p>
+          <Sparkline data={data.dailyReservations} height={40} aria-label={t('dailyReservationsSparklineAria')} />
         </DrillDownPanel>
       )}
     </div>
@@ -194,6 +198,7 @@ function ReservationsSection() {
 // ── Loyalty Section ───────────────────────────────────────────────────────────
 
 function LoyaltySection() {
+  const t = useTranslations('console')
   const { data, isLoading } = useLoyaltyAnalytics()
   const [expanded, setExpanded] = useState(false)
 
@@ -201,22 +206,22 @@ function LoyaltySection() {
   if (!data) return null
 
   return (
-    <div className="space-y-3" aria-label="Loyalty analytics">
+    <div className="space-y-3" aria-label={t('loyaltyAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard label="Total Members" value={data.totalMembers.toLocaleString()} />
+        <KpiCard label={t('totalMembers')} value={data.totalMembers.toLocaleString()} />
         <KpiCard
-          label="Active This Month" value={data.activeMembersThisMonth.toLocaleString()}
+          label={t('activeThisMonth')} value={data.activeMembersThisMonth.toLocaleString()}
           expandable expanded={expanded} onToggle={() => setExpanded((v) => !v)}
         />
-        <KpiCard label="Points Issued" value={data.pointsIssued.toLocaleString()} />
-        <KpiCard label="Redemption Rate" value={`${data.redemptionRate.toFixed(1)}%`} />
+        <KpiCard label={t('pointsIssued')} value={data.pointsIssued.toLocaleString()} />
+        <KpiCard label={t('redemptionRate')} value={`${data.redemptionRate.toFixed(1)}%`} />
       </div>
 
       {expanded && (
         <DrillDownPanel>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Tier Distribution</p>
+              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">{t('tierDistribution')}</p>
               <ul className="space-y-2">
                 {(Object.entries(data.tierDistribution) as [string, number][]).map(([tier, count]) => (
                   <li key={tier} className="flex justify-between text-sm capitalize">
@@ -227,12 +232,12 @@ function LoyaltySection() {
               </ul>
             </div>
             <div>
-              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Rewards</p>
+              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">{t('topRewards')}</p>
               <ul className="space-y-2">
                 {data.topRewards.map((r) => (
                   <li key={r.name} className="flex justify-between text-sm">
                     <span className="text-[var(--fg)]">{r.name}</span>
-                    <span className="font-medium text-[var(--fg)]">{r.redemptions} redemptions</span>
+                    <span className="font-medium text-[var(--fg)]">{t('redemptionsCount', { count: r.redemptions })}</span>
                   </li>
                 ))}
               </ul>
@@ -247,6 +252,7 @@ function LoyaltySection() {
 // ── Promotions Section ────────────────────────────────────────────────────────
 
 function PromotionsSection() {
+  const t = useTranslations('console')
   const { data, isLoading } = usePromotionAnalytics()
   const [expanded, setExpanded] = useState(false)
 
@@ -254,12 +260,12 @@ function PromotionsSection() {
   if (!data) return null
 
   return (
-    <div className="space-y-3" aria-label="Promotion analytics">
+    <div className="space-y-3" aria-label={t('promotionAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard label="Total Promotions" value={data.totalPromotions.toString()} />
-        <KpiCard label="Active Promotions" value={data.activePromotions.toString()} />
+        <KpiCard label={t('totalPromotions')} value={data.totalPromotions.toString()} />
+        <KpiCard label={t('activePromotions')} value={data.activePromotions.toString()} />
         <KpiCard
-          label="Total Discount Given" value={`$${data.totalDiscountGiven.toLocaleString()}`}
+          label={t('totalDiscountGiven')} value={`$${data.totalDiscountGiven.toLocaleString()}`}
           changePct={data.discountChangePct} expandable expanded={expanded}
           onToggle={() => setExpanded((v) => !v)}
         />
@@ -269,7 +275,7 @@ function PromotionsSection() {
         <DrillDownPanel>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Usage by Type</p>
+              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">{t('usageByType')}</p>
               <ul className="space-y-2">
                 {(Object.entries(data.usageByType) as [string, number][]).map(([type, count]) => (
                   <li key={type} className="flex justify-between text-sm">
@@ -280,7 +286,7 @@ function PromotionsSection() {
               </ul>
             </div>
             <div>
-              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">Top Promotions</p>
+              <p className="text-sm font-medium text-[var(--fg-muted)] mb-3">{t('topPromotions')}</p>
               <ul className="space-y-2">
                 {data.topPromotions.map((p) => (
                   <li key={p.name} className="flex justify-between text-sm">
@@ -300,29 +306,30 @@ function PromotionsSection() {
 // ── Vendors Section ───────────────────────────────────────────────────────────
 
 function VendorsSection() {
+  const t = useTranslations('console')
   const { data, isLoading } = useVendorAnalytics()
 
   if (isLoading) return <LoadingPlaceholder />
   if (!data) return null
 
   return (
-    <div className="space-y-4" aria-label="Vendor analytics">
+    <div className="space-y-4" aria-label={t('vendorAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <KpiCard label="Total Vendors" value={data.totalVendors.toString()} />
-        <KpiCard label="Active Vendors" value={data.activeVendors.toString()} />
-        <KpiCard label="Total Revenue" value={`$${data.totalRevenue.toLocaleString()}`} />
-        <KpiCard label="Total Commission" value={`$${data.totalCommission.toLocaleString()}`} />
+        <KpiCard label={t('totalVendorsLabel')} value={data.totalVendors.toString()} />
+        <KpiCard label={t('activeVendorsLabel')} value={data.activeVendors.toString()} />
+        <KpiCard label={t('totalRevenue')} value={`$${data.totalRevenue.toLocaleString()}`} />
+        <KpiCard label={t('totalCommission')} value={`$${data.totalCommission.toLocaleString()}`} />
       </div>
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--bg)]">
-              <th className="text-left px-4 py-2 text-[var(--fg-muted)] font-medium">Vendor</th>
-              <th className="text-right px-4 py-2 text-[var(--fg-muted)] font-medium">Orders</th>
-              <th className="text-right px-4 py-2 text-[var(--fg-muted)] font-medium">Revenue</th>
-              <th className="text-right px-4 py-2 text-[var(--fg-muted)] font-medium">Commission</th>
-              <th className="text-right px-4 py-2 text-[var(--fg-muted)] font-medium">Avg ★</th>
+              <th className="text-left px-4 py-2 text-[var(--fg-muted)] font-medium">{t('vendorLabel')}</th>
+              <th className="text-right px-4 py-2 text-[var(--fg-muted)] font-medium">{t('customerTableHeaders.orders')}</th>
+              <th className="text-right px-4 py-2 text-[var(--fg-muted)] font-medium">{t('revenueLabel')}</th>
+              <th className="text-right px-4 py-2 text-[var(--fg-muted)] font-medium">{t('commissionLabel')}</th>
+              <th className="text-right px-4 py-2 text-[var(--fg-muted)] font-medium">{t('avgRatingStarLabel')}</th>
             </tr>
           </thead>
           <tbody>
@@ -345,32 +352,37 @@ function VendorsSection() {
 // ── Menu Performance Section ──────────────────────────────────────────────────
 
 function MenuSection() {
+  const t = useTranslations('console')
   const { data, isLoading } = useMenuAnalytics()
   const [tab, setTab] = useState<'top' | 'slow' | 'category'>('top')
 
   if (isLoading) return <LoadingPlaceholder />
   if (!data) return null
 
+  const TAB_LABEL_KEY: Record<'top' | 'slow' | 'category', string> = {
+    top: 'topSellers', slow: 'slowMovers', category: 'byCategoryLabel',
+  }
+
   return (
-    <div className="space-y-4" aria-label="Menu performance analytics">
+    <div className="space-y-4" aria-label={t('menuPerformanceAnalyticsAria')}>
       <div className="grid grid-cols-2 gap-3">
-        <KpiCard label="Total Items Sold" value={data.totalItemsSold.toLocaleString()} />
-        <KpiCard label="Menu Revenue" value={`$${data.totalMenuRevenue.toLocaleString()}`} />
+        <KpiCard label={t('totalItemsSold')} value={data.totalItemsSold.toLocaleString()} />
+        <KpiCard label={t('menuRevenue')} value={`$${data.totalMenuRevenue.toLocaleString()}`} />
       </div>
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
         <div className="flex border-b border-[var(--border)]">
-          {(['top', 'slow', 'category'] as const).map((t) => (
+          {(['top', 'slow', 'category'] as const).map((tabKey) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={tabKey}
+              onClick={() => setTab(tabKey)}
               className={`px-4 py-2.5 text-sm font-medium transition-colors ${
-                tab === t
+                tab === tabKey
                   ? 'border-b-2 border-[var(--primary)] text-[var(--primary)]'
                   : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'
               }`}
             >
-              {t === 'top' ? 'Top Sellers' : t === 'slow' ? 'Slow Movers' : 'By Category'}
+              {t(TAB_LABEL_KEY[tabKey])}
             </button>
           ))}
         </div>
@@ -385,7 +397,7 @@ function MenuSection() {
                     <span className="ml-2 text-xs text-[var(--fg-muted)]">{item.category}</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-[var(--fg-muted)]">{item.orderCount} orders</span>
+                    <span className="text-[var(--fg-muted)]">{t('ordersCount', { count: item.orderCount })}</span>
                     <span className="font-medium text-[var(--fg)]">${item.revenue.toLocaleString()}</span>
                     <Delta pct={item.trendPct} />
                   </div>
@@ -403,7 +415,7 @@ function MenuSection() {
                     <span className="ml-2 text-xs text-[var(--fg-muted)]">{item.category}</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-[var(--fg-muted)]">{item.orderCount} orders</span>
+                    <span className="text-[var(--fg-muted)]">{t('ordersCount', { count: item.orderCount })}</span>
                     <span className="font-medium text-[var(--fg)]">${item.revenue.toLocaleString()}</span>
                     <Delta pct={item.trendPct} />
                   </div>
@@ -416,10 +428,10 @@ function MenuSection() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)]">
-                  <th className="text-left py-2 text-[var(--fg-muted)] font-medium">Category</th>
-                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">Items</th>
-                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">Orders</th>
-                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">Revenue</th>
+                  <th className="text-left py-2 text-[var(--fg-muted)] font-medium">{t('category')}</th>
+                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">{t('itemsLabel')}</th>
+                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">{t('customerTableHeaders.orders')}</th>
+                  <th className="text-right py-2 text-[var(--fg-muted)] font-medium">{t('revenueLabel')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -444,31 +456,37 @@ function MenuSection() {
 
 type ComparisonPeriodLabel = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
-const PERIOD_LABELS: Record<ComparisonPeriodLabel, string> = {
-  day:     'Today vs Yesterday',
-  week:    'This Week vs Last Week',
-  month:   'This Month vs Last Month',
-  quarter: 'This Quarter vs Last Quarter',
-  year:    'This Year vs Last Year',
+const PERIOD_LABEL_KEYS: Record<ComparisonPeriodLabel, string> = {
+  day:     'periodTodayVsYesterday',
+  week:    'periodThisWeekVsLastWeek',
+  month:   'periodThisMonthVsLastMonth',
+  quarter: 'periodThisQuarterVsLastQuarter',
+  year:    'periodThisYearVsLastYear',
 }
 
-const COMPARISON_FIELDS: Array<{ key: keyof AnalyticsSummary; label: string; format: (v: number) => string }> = [
-  { key: 'totalRevenue',      label: 'Revenue',        format: (v) => `$${v.toLocaleString()}` },
-  { key: 'totalOrders',       label: 'Orders',         format: (v) => v.toLocaleString() },
-  { key: 'totalReservations', label: 'Reservations',   format: (v) => v.toLocaleString() },
-  { key: 'newCustomers',      label: 'New Customers',  format: (v) => v.toLocaleString() },
+const PERIOD_TAB_KEYS: Record<ComparisonPeriodLabel, string> = {
+  day: 'periodTabDay', week: 'periodTabWeek', month: 'periodTabMonth',
+  quarter: 'periodTabQuarter', year: 'periodTabYear',
+}
+
+const COMPARISON_FIELDS: Array<{ key: keyof AnalyticsSummary; labelKey: string; format: (v: number) => string }> = [
+  { key: 'totalRevenue',      labelKey: 'revenueLabel',      format: (v) => `$${v.toLocaleString()}` },
+  { key: 'totalOrders',       labelKey: 'customerTableHeaders.orders', format: (v) => v.toLocaleString() },
+  { key: 'totalReservations', labelKey: 'breadcrumbs.reservations', format: (v) => v.toLocaleString() },
+  { key: 'newCustomers',      labelKey: 'newCustomersLabel', format: (v) => v.toLocaleString() },
 ]
 
 function ComparisonSection() {
+  const t = useTranslations('console')
   const [period, setPeriod] = useState<ComparisonPeriodLabel>('week')
   const { current, previous, isLoading } = useAnalyticsComparison(period)
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5" aria-label="Period comparison">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5" aria-label={t('periodComparisonAria')}>
       <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
-        <h3 className="text-sm font-semibold text-[var(--fg)]">Period Comparison</h3>
+        <h3 className="text-sm font-semibold text-[var(--fg)]">{t('periodComparison')}</h3>
         <div className="flex gap-1 flex-wrap">
-          {(Object.keys(PERIOD_LABELS) as ComparisonPeriodLabel[]).map((p) => (
+          {(Object.keys(PERIOD_LABEL_KEYS) as ComparisonPeriodLabel[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
@@ -478,7 +496,7 @@ function ComparisonSection() {
                   : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'
               }`}
             >
-              {p.charAt(0).toUpperCase() + p.slice(1)}
+              {t(PERIOD_TAB_KEYS[p])}
             </button>
           ))}
         </div>
@@ -488,9 +506,9 @@ function ComparisonSection() {
         <LoadingPlaceholder />
       ) : (
         <>
-          <p className="text-xs text-[var(--fg-muted)] mb-3">{PERIOD_LABELS[period]}</p>
+          <p className="text-xs text-[var(--fg-muted)] mb-3">{t(PERIOD_LABEL_KEYS[period])}</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {COMPARISON_FIELDS.map(({ key, label, format }) => {
+            {COMPARISON_FIELDS.map(({ key, labelKey, format }) => {
               const curr = current ? (current[key] as number | undefined) ?? 0 : null
               const prev = previous ? (previous[key] as number | undefined) ?? 0 : null
               const delta = curr !== null && prev !== null && prev !== 0
@@ -499,12 +517,12 @@ function ComparisonSection() {
               const isUp = delta !== null && delta >= 0
               return (
                 <div key={String(key)} className="bg-[var(--bg)] rounded-lg p-3">
-                  <p className="text-xs text-[var(--fg-muted)] mb-1">{label}</p>
+                  <p className="text-xs text-[var(--fg-muted)] mb-1">{t(labelKey)}</p>
                   <p className="text-lg font-bold text-[var(--fg)]">
                     {curr !== null ? format(curr) : '—'}
                   </p>
                   <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-                    prev: {prev !== null ? format(prev) : '—'}
+                    {t('prevColonValue', { value: prev !== null ? format(prev) : '—' })}
                   </p>
                   {delta !== null && (
                     <p className={`text-xs font-medium mt-1 ${isUp ? 'text-green-600' : 'text-red-500'}`}>
@@ -524,6 +542,7 @@ function ComparisonSection() {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function AdminAnalyticsPage() {
+  const t = useTranslations('console')
   const { data: summary, isLoading: summaryLoading } = useAnalyticsSummary()
   const activeBranch = useBranchStore((s) => s.activeBranch)
 
@@ -533,7 +552,7 @@ export default function AdminAnalyticsPage() {
     <main className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-[var(--fg)]">Analytics</h1>
+          <h1 className="text-2xl font-bold text-[var(--fg)]">{t('analyticsTitle')}</h1>
           <BranchContextIndicator branchId={activeBranch?.id} branchName={activeBranch?.name} />
         </div>
         <div className="flex items-center gap-3 flex-wrap">
@@ -542,7 +561,7 @@ export default function AdminAnalyticsPage() {
               href={`/console/branches/${activeBranch.id}/analytics`}
               className="text-sm text-blue-600 hover:underline"
             >
-              View branch analytics →
+              {t('viewBranchAnalyticsArrow')}
             </Link>
           )}
           <AnalyticsExport />
@@ -554,34 +573,34 @@ export default function AdminAnalyticsPage() {
         <LoadingPlaceholder />
       ) : summary && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
-          <KpiCard label="Revenue" value={`$${summary.totalRevenue.toLocaleString()}`} changePct={summary.revenueChangePct} />
-          <KpiCard label="Orders" value={summary.totalOrders.toLocaleString()} changePct={summary.ordersChangePct} />
-          <KpiCard label="Reservations" value={summary.totalReservations.toLocaleString()} changePct={summary.reservationsChangePct} />
-          <KpiCard label="New Customers" value={summary.newCustomers.toLocaleString()} changePct={summary.customersChangePct} />
-          <KpiCard label="Active Vendors" value={summary.activeVendors.toString()} />
-          <KpiCard label="Active Promotions" value={summary.activePromotions.toString()} />
+          <KpiCard label={t('revenueLabel')} value={`$${summary.totalRevenue.toLocaleString()}`} changePct={summary.revenueChangePct} />
+          <KpiCard label={t('customerTableHeaders.orders')} value={summary.totalOrders.toLocaleString()} changePct={summary.ordersChangePct} />
+          <KpiCard label={t('breadcrumbs.reservations')} value={summary.totalReservations.toLocaleString()} changePct={summary.reservationsChangePct} />
+          <KpiCard label={t('newCustomersLabel')} value={summary.newCustomers.toLocaleString()} changePct={summary.customersChangePct} />
+          <KpiCard label={t('activeVendorsLabel')} value={summary.activeVendors.toString()} />
+          <KpiCard label={t('activePromotions')} value={summary.activePromotions.toString()} />
         </div>
       )}
 
-      <SectionHeader title="Period Comparison" />
+      <SectionHeader title={t('periodComparison')} />
       <ComparisonSection />
 
-      <SectionHeader title="Revenue & Orders" />
+      <SectionHeader title={t('revenueAndOrders')} />
       <RevenueSection />
 
-      <SectionHeader title="Reservations" />
+      <SectionHeader title={t('breadcrumbs.reservations')} />
       <ReservationsSection />
 
-      <SectionHeader title="Menu Performance" />
+      <SectionHeader title={t('menuPerformance')} />
       <MenuSection />
 
-      <SectionHeader title="Loyalty" />
+      <SectionHeader title={t('loyaltyLabel')} />
       <LoyaltySection />
 
-      <SectionHeader title="Promotions" />
+      <SectionHeader title={t('promotionsLabel')} />
       <PromotionsSection />
 
-      <SectionHeader title="Vendors" />
+      <SectionHeader title={t('vendorsLabel')} />
       <VendorsSection />
     </main>
     </PermissionGuard>

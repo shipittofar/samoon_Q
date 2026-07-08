@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useProvisionTenant } from '@/hooks'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import type { ProvisionableBusinessType, TenantBrandingConfig } from '@/types/provisioning'
@@ -13,13 +14,13 @@ const BUSINESS_TYPES: ProvisionableBusinessType[] = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
 ]
 
-const BUSINESS_TYPE_LABELS: Record<ProvisionableBusinessType, string> = {
-  restaurant: 'Restaurant',
-  cafe: 'Cafe',
-  bar: 'Bar',
-  food_court: 'Food Court',
-  food_truck: 'Food Truck',
-  mobile_cafe: 'Mobile Cafe',
+const BUSINESS_TYPE_LABEL_KEYS: Record<ProvisionableBusinessType, string> = {
+  restaurant: 'businessTypeRestaurant',
+  cafe: 'businessTypeCafe',
+  bar: 'businessTypeBar',
+  food_court: 'businessTypeFoodCourt',
+  food_truck: 'businessTypeFoodTruck',
+  mobile_cafe: 'businessTypeMobileCafe',
 }
 
 const TOTAL_STEPS = 6
@@ -41,18 +42,19 @@ const STEP_ORDER: WizardStep[] = [
   'provision',
 ]
 
-const STEP_LABELS: Record<WizardStep, string> = {
-  'business-type': 'Business Type',
-  capabilities: 'Capabilities',
-  branding: 'Branding Defaults',
-  'feature-flags': 'Feature Flags',
-  review: 'Review',
-  provision: 'Provision',
+const STEP_LABEL_KEYS: Record<WizardStep, string> = {
+  'business-type': 'businessTypeLabel',
+  capabilities: 'capabilitiesAria',
+  branding: 'brandingDefaultsLabel',
+  'feature-flags': 'featureFlagsLabel',
+  review: 'reviewLabel',
+  provision: 'provisionLabel',
 }
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
+  const t = useTranslations('console')
   return (
-    <div className="flex items-center gap-2 mb-6" aria-label={`Step ${current} of ${total}`}>
+    <div className="flex items-center gap-2 mb-6" aria-label={t('stepOfTotalAria', { current, total })}>
       {Array.from({ length: total }, (_, i) => (
         <div
           key={i}
@@ -67,6 +69,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 }
 
 export default function NewTenantPage() {
+  const t = useTranslations('console')
   const router = useRouter()
   const { mutateAsync: provisionTenant } = useProvisionTenant()
 
@@ -116,47 +119,47 @@ export default function NewTenantPage() {
   return (
     <ErrorBoundary feature="New Tenant">
     <PermissionGuard permission="tenant.manage" fallback={<AccessDenied />}>
-    <main aria-label="New Tenant Wizard" className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-2">Create New Tenant</h1>
+    <main aria-label={t('newTenantWizardAria')} className="p-6 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-2">{t('createNewTenantTitle')}</h1>
       <StepIndicator current={stepIndex + 1} total={TOTAL_STEPS} />
 
-      <h2 className="text-lg font-semibold mb-4" aria-label={`Step: ${STEP_LABELS[currentStep]}`}>
-        Step {stepIndex + 1}: {STEP_LABELS[currentStep]}
+      <h2 className="text-lg font-semibold mb-4" aria-label={t('stepColonLabel', { label: t(STEP_LABEL_KEYS[currentStep]) })}>
+        {t('stepNumberColonLabel', { number: stepIndex + 1, label: t(STEP_LABEL_KEYS[currentStep]) })}
       </h2>
 
       {/* Step 1 — Business Type */}
       {currentStep === 'business-type' && (
-        <section aria-label="Step 1: Business Type">
+        <section aria-label={t('stepNumberColonLabel', { number: 1, label: t('businessTypeLabel') })}>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1" htmlFor="tenant-name">
-              Tenant Name
+              {t('tenantNameLabel')}
             </label>
             <input
               id="tenant-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Savor Restaurant"
+              placeholder={t('tenantNamePlaceholder')}
               className="w-full border rounded-lg px-3 py-2 text-sm"
             />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1" htmlFor="tenant-slug">
-              Slug
+              {t('slugLabel')}
             </label>
             <input
               id="tenant-slug"
               type="text"
               value={slug}
               onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-              placeholder="e.g. savor-restaurant"
+              placeholder={t('tenantSlugPlaceholder')}
               className="w-full border rounded-lg px-3 py-2 text-sm"
             />
-            <p className="text-xs text-gray-500 mt-1">2–63 lowercase letters, numbers, or hyphens</p>
+            <p className="text-xs text-gray-500 mt-1">{t('slugCharsHint')}</p>
           </div>
           <div>
-            <p className="block text-sm font-medium mb-2">Business Type</p>
-            <div className="grid grid-cols-2 gap-3" aria-label="Business type selection">
+            <p className="block text-sm font-medium mb-2">{t('businessTypeLabel')}</p>
+            <div className="grid grid-cols-2 gap-3" aria-label={t('businessTypeSelectionAria')}>
               {BUSINESS_TYPES.map((bt) => (
                 <button
                   key={bt}
@@ -167,7 +170,7 @@ export default function NewTenantPage() {
                   }`}
                   aria-pressed={businessType === bt}
                 >
-                  {BUSINESS_TYPE_LABELS[bt]}
+                  {t(BUSINESS_TYPE_LABEL_KEYS[bt])}
                   <span className="block text-xs text-gray-500 mt-1 font-normal">
                     {tenantProvisioningService.getTemplate(bt).enabledCapabilities.join(', ')}
                   </span>
@@ -180,22 +183,22 @@ export default function NewTenantPage() {
 
       {/* Step 2 — Capabilities */}
       {currentStep === 'capabilities' && (
-        <section aria-label="Step 2: Capabilities">
+        <section aria-label={t('stepNumberColonLabel', { number: 2, label: t('capabilitiesAria') })}>
           <p className="text-sm text-gray-600 mb-4">
-            Required capabilities are always enabled. Toggle optional capabilities below.
+            {t('requiredCapabilitiesHint')}
           </p>
           <div className="mb-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Required</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('requiredLabel')}</p>
             {preset.required.map((flag) => (
               <div key={flag} className="flex items-center gap-2 py-1 opacity-60">
                 <input type="checkbox" checked readOnly aria-label={flag} />
                 <span className="text-sm">{flag}</span>
-                <span className="text-xs text-gray-400">(always on)</span>
+                <span className="text-xs text-gray-400">{t('alwaysOnParenthetical')}</span>
               </div>
             ))}
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Optional</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('optionalLabel')}</p>
             {Object.entries(preset.optional).map(([flag, defaultVal]) => {
               const value = capabilityOverrides[flag] ?? defaultVal
               return (
@@ -219,19 +222,19 @@ export default function NewTenantPage() {
 
       {/* Step 3 — Branding */}
       {currentStep === 'branding' && (
-        <section aria-label="Step 3: Branding Defaults">
+        <section aria-label={t('stepNumberColonLabel', { number: 3, label: t('brandingDefaultsLabel') })}>
           <p className="text-sm text-gray-600 mb-4">
-            Defaults derived from the {BUSINESS_TYPE_LABELS[businessType]} template. Override as needed.
+            {t('defaultsDerivedFromTemplateHint', { type: t(BUSINESS_TYPE_LABEL_KEYS[businessType]) })}
           </p>
           {[
-            { label: 'Primary Color', key: 'primaryColor', placeholder: '#e85d04' },
-            { label: 'Accent Hover Color', key: 'accentHoverColor', placeholder: '#c24b00' },
-            { label: 'Logo URL', key: 'logoUrl', placeholder: 'https://…/logo.png' },
-            { label: 'Font Body', key: 'fontBody', placeholder: '"Inter", sans-serif' },
-          ].map(({ label, key, placeholder }) => (
+            { labelKey: 'primaryColorLabel', key: 'primaryColor', placeholder: '#e85d04' },
+            { labelKey: 'accentHoverColorLabel', key: 'accentHoverColor', placeholder: '#c24b00' },
+            { labelKey: 'logoUrlLabel', key: 'logoUrl', placeholder: 'https://…/logo.png' },
+            { labelKey: 'bodyFontLabel', key: 'fontBody', placeholder: '"Inter", sans-serif' },
+          ].map(({ labelKey, key, placeholder }) => (
             <div key={key} className="mb-4">
               <label className="block text-sm font-medium mb-1" htmlFor={`branding-${key}`}>
-                {label}
+                {t(labelKey)}
               </label>
               <input
                 id={`branding-${key}`}
@@ -250,9 +253,9 @@ export default function NewTenantPage() {
 
       {/* Step 4 — Feature Flags */}
       {currentStep === 'feature-flags' && (
-        <section aria-label="Step 4: Feature Flags">
+        <section aria-label={t('stepNumberColonLabel', { number: 4, label: t('featureFlagsLabel') })}>
           <p className="text-sm text-gray-600 mb-4">
-            Fine-tune individual feature flags. These override the template and capability selections.
+            {t('fineTuneFeatureFlagsHint')}
           </p>
           <div className="space-y-1 max-h-80 overflow-y-auto">
             {Object.entries(generatedFlags).map(([flag, val]) => {
@@ -279,30 +282,30 @@ export default function NewTenantPage() {
 
       {/* Step 5 — Review */}
       {currentStep === 'review' && (
-        <section aria-label="Step 5: Review">
+        <section aria-label={t('stepNumberColonLabel', { number: 5, label: t('reviewLabel') })}>
           <dl className="space-y-3 text-sm">
             <div>
-              <dt className="font-medium text-gray-500">Name</dt>
-              <dd>{name || <span className="text-red-500">Not set</span>}</dd>
+              <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
+              <dd>{name || <span className="text-red-500">{t('notSetLabel')}</span>}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">Slug</dt>
-              <dd className="font-mono">{slug || <span className="text-red-500">Not set</span>}</dd>
+              <dt className="font-medium text-gray-500">{t('slugLabel')}</dt>
+              <dd className="font-mono">{slug || <span className="text-red-500">{t('notSetLabel')}</span>}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">Business Type</dt>
-              <dd>{BUSINESS_TYPE_LABELS[businessType]}</dd>
+              <dt className="font-medium text-gray-500">{t('businessTypeLabel')}</dt>
+              <dd>{t(BUSINESS_TYPE_LABEL_KEYS[businessType])}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">Enabled Capabilities</dt>
+              <dt className="font-medium text-gray-500">{t('enabledCapabilitiesLabel')}</dt>
               <dd>{template.enabledCapabilities.join(', ')}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">Primary Color</dt>
+              <dt className="font-medium text-gray-500">{t('primaryColorLabel')}</dt>
               <dd>{branding.primaryColor ?? template.brandingDefaults.primaryColor ?? '—'}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">Feature Flags</dt>
+              <dt className="font-medium text-gray-500">{t('featureFlagsLabel')}</dt>
               <dd>
                 {Object.entries(generatedFlags)
                   .filter(([, v]) => v)
@@ -312,7 +315,7 @@ export default function NewTenantPage() {
             </div>
           </dl>
           {validationErrors.length > 0 && (
-            <ul className="mt-4 space-y-1" aria-label="Validation errors">
+            <ul className="mt-4 space-y-1" aria-label={t('validationErrorsAria')}>
               {validationErrors.map((e) => (
                 <li key={e} className="text-red-600 text-sm">• {e}</li>
               ))}
@@ -323,15 +326,14 @@ export default function NewTenantPage() {
 
       {/* Step 6 — Provision */}
       {currentStep === 'provision' && (
-        <section aria-label="Step 6: Provision">
+        <section aria-label={t('stepNumberColonLabel', { number: 6, label: t('provisionLabel') })}>
           {!provisionResult ? (
             <>
               <p className="text-sm text-gray-600 mb-6">
-                Ready to provision <strong>{name}</strong> as a{' '}
-                <strong>{BUSINESS_TYPE_LABELS[businessType]}</strong>.
+                {t('readyToProvisionAsType', { name, type: t(BUSINESS_TYPE_LABEL_KEYS[businessType]) })}
               </p>
               {validationErrors.length > 0 && (
-                <ul className="mb-4 space-y-1" aria-label="Validation errors">
+                <ul className="mb-4 space-y-1" aria-label={t('validationErrorsAria')}>
                   {validationErrors.map((e) => (
                     <li key={e} className="text-red-600 text-sm">• {e}</li>
                   ))}
@@ -342,28 +344,28 @@ export default function NewTenantPage() {
                 onClick={handleProvision}
                 disabled={isProvisioning}
                 className="w-full bg-accent text-white py-2 rounded-lg font-medium disabled:opacity-50"
-                aria-label="Confirm provision"
+                aria-label={t('confirmProvisionAria')}
               >
-                {isProvisioning ? 'Provisioning…' : 'Provision Tenant'}
+                {isProvisioning ? t('provisioningEllipsis') : t('provisionTenantLabel')}
               </button>
             </>
           ) : provisionResult.success ? (
-            <div aria-label="Provision success">
-              <p className="text-green-700 font-semibold mb-2">Tenant provisioned successfully!</p>
+            <div aria-label={t('provisionSuccessAria')}>
+              <p className="text-green-700 font-semibold mb-2">{t('tenantProvisionedSuccessfully')}</p>
               <p className="text-sm text-gray-600">
-                Tenant ID: <span className="font-mono">{provisionResult.tenantId}</span>
+                {t('tenantIdColonValue', { id: provisionResult.tenantId ?? '' })}
               </p>
               <button
                 type="button"
                 onClick={() => router.push('/console/tenants')}
                 className="mt-4 text-sm text-accent underline"
               >
-                Back to Tenants
+                {t('backToTenantsLabel')}
               </button>
             </div>
           ) : (
-            <div aria-label="Provision error">
-              <p className="text-red-700 font-semibold mb-2">Provisioning failed</p>
+            <div aria-label={t('provisionErrorAria')}>
+              <p className="text-red-700 font-semibold mb-2">{t('provisioningFailedLabel')}</p>
               <ul className="space-y-1">
                 {provisionResult.errors?.map((e) => (
                   <li key={e} className="text-red-600 text-sm">• {e}</li>
@@ -381,18 +383,18 @@ export default function NewTenantPage() {
           onClick={back}
           disabled={stepIndex === 0}
           className="px-4 py-2 text-sm border rounded-lg disabled:opacity-40"
-          aria-label="Previous step"
+          aria-label={t('previousStepAria')}
         >
-          Back
+          {t('backLabel')}
         </button>
         {currentStep !== 'provision' ? (
           <button
             type="button"
             onClick={next}
             className="px-4 py-2 text-sm bg-accent text-white rounded-lg"
-            aria-label="Next step"
+            aria-label={t('nextStepAria')}
           >
-            Next
+            {t('nextLabel')}
           </button>
         ) : null}
       </div>

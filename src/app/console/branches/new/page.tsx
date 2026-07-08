@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -11,6 +12,7 @@ import type { BranchType } from '@/types/branch'
 import toast from 'react-hot-toast'
 
 export default function NewBranchPage() {
+  const t = useTranslations('console')
   const router = useRouter()
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const { mutate: createBranch, isPending } = useCreateBranch(tenantId)
@@ -28,7 +30,7 @@ export default function NewBranchPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim() || !slug.trim() || !address.trim() || !city.trim() || !country.trim()) {
-      toast.error('Please fill in all required fields.')
+      toast.error(t('fillAllRequiredFieldsError'))
       return
     }
     createBranch(
@@ -41,10 +43,10 @@ export default function NewBranchPage() {
       },
       {
         onSuccess: () => {
-          toast.success('Branch created successfully.')
+          toast.success(t('branchCreatedSuccessfully'))
           router.push('/console/branches')
         },
-        onError: () => toast.error('Failed to create branch. Please try again.'),
+        onError: () => toast.error(t('failedToCreateBranchRetry')),
       },
     )
   }
@@ -54,18 +56,18 @@ export default function NewBranchPage() {
       <PermissionGuard permission="branches.manage" fallback={<AccessDenied />}>
         <main className="p-6 max-w-2xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold">Add Branch</h1>
-            <p className="text-sm text-gray-500 mt-1">Create a new branch for this tenant.</p>
+            <h1 className="text-2xl font-bold">{t('addBranchLabel')}</h1>
+            <p className="text-sm text-gray-500 mt-1">{t('createNewBranchHint')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Basic Info */}
             <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
-              <legend className="text-sm font-semibold text-gray-700 px-1">Basic Information</legend>
+              <legend className="text-sm font-semibold text-gray-700 px-1">{t('basicInformationLabel')}</legend>
 
               <div>
                 <label className="block text-sm font-medium mb-1" htmlFor="branch-name">
-                  Name <span className="text-red-500">*</span>
+                  {t('nameLabel')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="branch-name"
@@ -75,7 +77,7 @@ export default function NewBranchPage() {
                     setName(e.target.value)
                     setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))
                   }}
-                  placeholder="e.g. Downtown Branch"
+                  placeholder={t('downtownBranchPlaceholder')}
                   required
                   className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
@@ -83,34 +85,34 @@ export default function NewBranchPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1" htmlFor="branch-slug">
-                  Slug <span className="text-red-500">*</span>
+                  {t('slugLabel')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="branch-slug"
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="e.g. downtown-branch"
+                  placeholder={t('downtownBranchSlugPlaceholder')}
                   required
                   className="w-full border rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
-                <p className="text-xs text-gray-500 mt-1">Lowercase letters, numbers, and hyphens only.</p>
+                <p className="text-xs text-gray-500 mt-1">{t('lowercaseSlugHint')}</p>
               </div>
 
               <div>
-                <p className="block text-sm font-medium mb-2">Type <span className="text-red-500">*</span></p>
+                <p className="block text-sm font-medium mb-2">{t('tableHeaders.type')} <span className="text-red-500">*</span></p>
                 <div className="flex gap-3">
-                  {(['physical', 'mobile'] as BranchType[]).map((t) => (
+                  {(['physical', 'mobile'] as BranchType[]).map((bt) => (
                     <button
-                      key={t}
+                      key={bt}
                       type="button"
-                      onClick={() => setType(t)}
+                      onClick={() => setType(bt)}
                       className={`flex-1 border rounded-lg py-2 text-sm capitalize transition-colors ${
-                        type === t ? 'border-orange-500 bg-orange-50 text-orange-700 font-semibold' : 'border-gray-200 hover:border-gray-300'
+                        type === bt ? 'border-orange-500 bg-orange-50 text-orange-700 font-semibold' : 'border-gray-200 hover:border-gray-300'
                       }`}
-                      aria-pressed={type === t}
+                      aria-pressed={type === bt}
                     >
-                      {t}
+                      {bt === 'physical' ? t('branchTypePhysical') : t('branchTypeMobile')}
                     </button>
                   ))}
                 </div>
@@ -119,11 +121,11 @@ export default function NewBranchPage() {
 
             {/* Location */}
             <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
-              <legend className="text-sm font-semibold text-gray-700 px-1">Location</legend>
+              <legend className="text-sm font-semibold text-gray-700 px-1">{t('locationLabel')}</legend>
 
               <div>
                 <label className="block text-sm font-medium mb-1" htmlFor="branch-address">
-                  Address <span className="text-red-500">*</span>
+                  {t('addressLabel')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="branch-address"
@@ -139,21 +141,21 @@ export default function NewBranchPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="branch-city">
-                    City <span className="text-red-500">*</span>
+                    {t('cityLabel')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="branch-city"
                     type="text"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="New York"
+                    placeholder={t('newYorkExamplePlaceholder')}
                     required
                     className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="branch-country">
-                    Country <span className="text-red-500">*</span>
+                    {t('countryLabel')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="branch-country"
@@ -169,7 +171,7 @@ export default function NewBranchPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-1" htmlFor="branch-postal">
-                  Postal Code
+                  {t('postalCodeLabel')}
                 </label>
                 <input
                   id="branch-postal"
@@ -184,11 +186,11 @@ export default function NewBranchPage() {
 
             {/* Contact */}
             <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
-              <legend className="text-sm font-semibold text-gray-700 px-1">Contact (optional)</legend>
+              <legend className="text-sm font-semibold text-gray-700 px-1">{t('contactOptionalLabel')}</legend>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="branch-phone">Phone</label>
+                  <label className="block text-sm font-medium mb-1" htmlFor="branch-phone">{t('phoneLabel')}</label>
                   <input
                     id="branch-phone"
                     type="tel"
@@ -199,7 +201,7 @@ export default function NewBranchPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="branch-email">Email</label>
+                  <label className="block text-sm font-medium mb-1" htmlFor="branch-email">{t('emailLabel')}</label>
                   <input
                     id="branch-email"
                     type="email"
@@ -218,14 +220,14 @@ export default function NewBranchPage() {
                 onClick={() => router.push('/console/branches')}
                 className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 type="submit"
                 disabled={isPending}
                 className="px-6 py-2 text-sm bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50 transition-colors"
               >
-                {isPending ? 'Creating…' : 'Create Branch'}
+                {isPending ? t('creatingEllipsis') : t('createBranchLabel')}
               </button>
             </div>
           </form>

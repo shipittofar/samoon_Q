@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Shield, ShieldCheck, ShieldX, Plus, Minus, RotateCcw, Search, ChevronDown, ChevronRight, CheckCircle, XCircle, AlertCircle, User } from 'lucide-react'
 import Link from 'next/link'
@@ -31,6 +32,7 @@ const ROLE_COLORS: Record<Role, string> = {
 }
 
 export default function UserPermissionsPage() {
+  const t = useTranslations('console')
   const params = useParams()
   const router = useRouter()
   const userId = params.userId as string
@@ -62,11 +64,11 @@ export default function UserPermissionsPage() {
     return (
       <main className="p-6">
         <Link href="/console/permissions" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4">
-          <ArrowLeft className="h-4 w-4" /> Back to Permissions
+          <ArrowLeft className="h-4 w-4" /> {t('backToPermissionsLabel')}
         </Link>
         <div className="flex flex-col items-center justify-center py-16 text-gray-400">
           <User className="h-10 w-10 mb-3 opacity-40" />
-          <p className="font-medium">User not found</p>
+          <p className="font-medium">{t('userNotFoundNoPeriod')}</p>
         </div>
       </main>
     )
@@ -148,7 +150,7 @@ export default function UserPermissionsPage() {
           {/* Header */}
           <div>
             <Link href="/console/permissions" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-3 w-fit">
-              <ArrowLeft className="h-4 w-4" /> Back to Users
+              <ArrowLeft className="h-4 w-4" /> {t('backToUsers')}
             </Link>
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-base font-semibold text-gray-600 flex-shrink-0">
@@ -161,12 +163,12 @@ export default function UserPermissionsPage() {
               <div className="ml-auto flex items-center gap-3">
                 <div className="text-right">
                   <div className="text-sm font-semibold text-gray-900">{effectiveCount}</div>
-                  <div className="text-xs text-gray-400">effective permissions</div>
+                  <div className="text-xs text-gray-400">{t('effectivePermissionsLabel')}</div>
                 </div>
                 {overrideCount > 0 && (
                   <div className="text-right">
                     <div className="text-sm font-semibold text-amber-600">{overrideCount}</div>
-                    <div className="text-xs text-gray-400">overrides</div>
+                    <div className="text-xs text-gray-400">{t('overridesLabel')}</div>
                   </div>
                 )}
               </div>
@@ -177,10 +179,10 @@ export default function UserPermissionsPage() {
             {/* Left: Role assignment */}
             <div className="space-y-4">
               <div className="rounded-xl border border-gray-200 p-4 space-y-3">
-                <h2 className="text-sm font-semibold text-gray-900">Assigned Roles</h2>
+                <h2 className="text-sm font-semibold text-gray-900">{t('assignedRolesLabel')}</h2>
                 <div className="flex flex-wrap gap-1.5">
                   {currentRoles.length === 0 ? (
-                    <span className="text-xs text-gray-400 italic">No roles assigned</span>
+                    <span className="text-xs text-gray-400 italic">{t('noRolesAssigned')}</span>
                   ) : (
                     currentRoles.map((role) => (
                       <span key={role} className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium border ${ROLE_COLORS[role]}`}>
@@ -188,7 +190,7 @@ export default function UserPermissionsPage() {
                         <button
                           onClick={() => removeRole(role)}
                           className="ml-0.5 hover:opacity-60"
-                          aria-label={`Remove ${role} role`}
+                          aria-label={t('removeRoleRoleAria', { role })}
                         >
                           ×
                         </button>
@@ -197,7 +199,7 @@ export default function UserPermissionsPage() {
                   )}
                 </div>
                 <div className="pt-2 border-t border-gray-100">
-                  <p className="text-xs text-gray-400 mb-2">Add role</p>
+                  <p className="text-xs text-gray-400 mb-2">{t('addRoleLowercaseLabel')}</p>
                   <div className="flex flex-wrap gap-1">
                     {ALL_ROLES.filter((r) => !currentRoles.includes(r)).map((role) => (
                       <button
@@ -214,12 +216,12 @@ export default function UserPermissionsPage() {
 
               {/* Legend */}
               <div className="rounded-xl border border-gray-200 p-4 space-y-2">
-                <h2 className="text-sm font-semibold text-gray-900 mb-2">Legend</h2>
+                <h2 className="text-sm font-semibold text-gray-900 mb-2">{t('legendLabel')}</h2>
                 {[
-                  { icon: <CheckCircle className="h-3.5 w-3.5 text-green-500" />, label: 'From role' },
-                  { icon: <ShieldCheck className="h-3.5 w-3.5 text-blue-500" />, label: 'Granted override' },
-                  { icon: <ShieldX className="h-3.5 w-3.5 text-red-500" />, label: 'Denied override' },
-                  { icon: <XCircle className="h-3.5 w-3.5 text-gray-300" />, label: 'Not granted' },
+                  { icon: <CheckCircle className="h-3.5 w-3.5 text-green-500" />, label: t('fromRoleLabel') },
+                  { icon: <ShieldCheck className="h-3.5 w-3.5 text-blue-500" />, label: t('grantedOverrideLabel') },
+                  { icon: <ShieldX className="h-3.5 w-3.5 text-red-500" />, label: t('deniedOverrideLabel') },
+                  { icon: <XCircle className="h-3.5 w-3.5 text-gray-300" />, label: t('notGrantedLabel') },
                 ].map(({ icon, label }) => (
                   <div key={label} className="flex items-center gap-2 text-xs text-gray-600">
                     {icon} {label}
@@ -234,26 +236,26 @@ export default function UserPermissionsPage() {
                     onClick={saveChanges}
                     className="w-full py-2 px-4 rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 transition-colors"
                   >
-                    Save Changes
+                    {t('saveChanges')}
                   </button>
                 )}
                 {saved && !isDirty && (
                   <div className="flex items-center gap-1.5 text-xs text-green-600 justify-center">
-                    <CheckCircle className="h-3.5 w-3.5" /> Changes saved
+                    <CheckCircle className="h-3.5 w-3.5" /> {t('changesSavedLabel')}
                   </div>
                 )}
                 <button
                   onClick={resetAllOverrides}
                   className="w-full py-2 px-4 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
                 >
-                  <RotateCcw className="h-3.5 w-3.5" /> Reset All Overrides
+                  <RotateCcw className="h-3.5 w-3.5" /> {t('resetAllOverridesLabel')}
                 </button>
                 {savedOverride && (
                   <button
                     onClick={() => { clearUserOverride(userId, tenantId); setSaved(false) }}
                     className="w-full py-2 px-4 rounded-lg border border-red-200 text-sm text-red-600 hover:bg-red-50 transition-colors"
                   >
-                    Clear Saved Overrides
+                    {t('clearSavedOverridesLabel')}
                   </button>
                 )}
               </div>
@@ -267,7 +269,7 @@ export default function UserPermissionsPage() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search permissions…"
+                  placeholder={t('searchPermissionsEllipsisPlaceholder')}
                   className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
               </div>
@@ -315,17 +317,17 @@ export default function UserPermissionsPage() {
                                   )}
                                   <span className="text-xs font-mono text-gray-700">{permission}</span>
                                   {isAllow && (
-                                    <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-1 rounded">+override</span>
+                                    <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-200 px-1 rounded">{t('plusOverrideLabel')}</span>
                                   )}
                                   {isDeny && (
-                                    <span className="text-[10px] bg-red-50 text-red-600 border border-red-200 px-1 rounded">−denied</span>
+                                    <span className="text-[10px] bg-red-50 text-red-600 border border-red-200 px-1 rounded">{t('minusDeniedLabel')}</span>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => grantPermission(permission)}
                                     disabled={isAllow && !result?.fromRole}
-                                    title="Grant override"
+                                    title={t('grantOverrideTitle')}
                                     className="p-1 rounded hover:bg-blue-50 text-blue-500 disabled:opacity-30 transition-colors"
                                   >
                                     <Plus className="h-3 w-3" />
@@ -333,7 +335,7 @@ export default function UserPermissionsPage() {
                                   <button
                                     onClick={() => denyPermission(permission)}
                                     disabled={isDeny}
-                                    title="Deny override"
+                                    title={t('denyOverrideTitle')}
                                     className="p-1 rounded hover:bg-red-50 text-red-500 disabled:opacity-30 transition-colors"
                                   >
                                     <Minus className="h-3 w-3" />
@@ -341,7 +343,7 @@ export default function UserPermissionsPage() {
                                   {(isAllow || isDeny) && (
                                     <button
                                       onClick={() => resetPermission(permission)}
-                                      title="Reset to role default"
+                                      title={t('resetToRoleDefaultLabel')}
                                       className="p-1 rounded hover:bg-gray-100 text-gray-400 transition-colors"
                                     >
                                       <RotateCcw className="h-3 w-3" />

@@ -789,11 +789,11 @@ describe('O — admin tenants page source', () => {
   })
 
   it('renders tenant list', () => {
-    expect(src()).toContain('Tenant List')
+    expect(src()).toContain('tenantListAria')
   })
 
   it('has New Tenant button/link', () => {
-    expect(src()).toContain('New Tenant')
+    expect(src()).toContain('newTenantLabel')
   })
 })
 
@@ -808,7 +808,7 @@ describe('P — new tenant wizard source', () => {
   })
 
   it('has aria-label "New Tenant Wizard"', () => {
-    expect(src()).toContain('New Tenant Wizard')
+    expect(src()).toContain('newTenantWizardAria')
   })
 
   it('uses useProvisionTenant hook', () => {
@@ -857,20 +857,20 @@ describe('Q — wizard step labels', () => {
 
   it('has aria-label for each step section', () => {
     const content = src()
-    expect(content).toContain('Step 1: Business Type')
-    expect(content).toContain('Step 2: Capabilities')
-    expect(content).toContain('Step 3: Branding')
-    expect(content).toContain('Step 4: Feature Flags')
-    expect(content).toContain('Step 5: Review')
-    expect(content).toContain('Step 6: Provision')
+    expect(content).toContain("number: 1, label: t('businessTypeLabel')")
+    expect(content).toContain("number: 2, label: t('capabilitiesAria')")
+    expect(content).toContain("number: 3, label: t('brandingDefaultsLabel')")
+    expect(content).toContain("number: 4, label: t('featureFlagsLabel')")
+    expect(content).toContain("number: 5, label: t('reviewLabel')")
+    expect(content).toContain("number: 6, label: t('provisionLabel')")
   })
 
   it('has Back button', () => {
-    expect(src()).toContain('Back')
+    expect(src()).toContain('backLabel')
   })
 
   it('has Next button', () => {
-    expect(src()).toContain('Next')
+    expect(src()).toContain('nextLabel')
   })
 })
 

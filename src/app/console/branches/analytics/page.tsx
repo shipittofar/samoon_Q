@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useTenantStore } from '@/stores'
 import { useAdminBranches } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -7,7 +8,13 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Link from 'next/link'
 
-function BranchAnalyticsRow({ id, name, city, status }: { id: string; name: string; city: string; status: string }) {
+const BRANCH_STATUS_KEY: Record<string, string> = {
+  active: 'statusActive',
+  maintenance: 'maintenanceLabel',
+  inactive: 'statusInactive',
+}
+
+function BranchAnalyticsRow({ id, name, city, status, t }: { id: string; name: string; city: string; status: string; t: ReturnType<typeof useTranslations> }) {
   return (
     <tr className="border-b last:border-0">
       <td className="py-2 pr-4 font-medium">{name}</td>
@@ -18,7 +25,7 @@ function BranchAnalyticsRow({ id, name, city, status }: { id: string; name: stri
           status === 'maintenance' ? 'bg-amber-100 text-amber-800' :
           'bg-gray-100 text-gray-800'
         }`}>
-          {status}
+          {t(BRANCH_STATUS_KEY[status] ?? 'statusInactive')}
         </span>
       </td>
       <td className="py-2">
@@ -26,7 +33,7 @@ function BranchAnalyticsRow({ id, name, city, status }: { id: string; name: stri
           href={`/console/branches/${id}/analytics`}
           className="text-sm text-blue-600 hover:underline"
         >
-          View Analytics
+          {t('viewAnalyticsLabel')}
         </Link>
       </td>
     </tr>
@@ -34,6 +41,7 @@ function BranchAnalyticsRow({ id, name, city, status }: { id: string; name: stri
 }
 
 function BranchAnalyticsOverviewContent() {
+  const t = useTranslations('console')
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const { data: branches = [], isLoading } = useAdminBranches(tenantId)
 
@@ -41,32 +49,32 @@ function BranchAnalyticsOverviewContent() {
   const maintenance = branches.filter((b) => b.status === 'maintenance')
   const inactive = branches.filter((b) => b.status === 'inactive')
 
-  if (isLoading) return <p className="p-6 text-gray-500">Loading branches…</p>
+  if (isLoading) return <p className="p-6 text-gray-500">{t('loadingBranchesEllipsis')}</p>
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Branch Analytics</h1>
-          <p className="mt-1 text-sm text-gray-500">Select a branch to view its analytics</p>
+          <h1 className="text-2xl font-bold">{t('branchAnalyticsTitle')}</h1>
+          <p className="mt-1 text-sm text-gray-500">{t('selectBranchToViewAnalyticsHint')}</p>
         </div>
         <Link href="/console/branches" className="text-sm text-blue-600 hover:underline">
-          ← Branch Management
+          {t('backArrowBranchManagement')}
         </Link>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-gray-500">Active</p>
+          <p className="text-sm text-gray-500">{t('statusActive')}</p>
           <p className="mt-1 text-2xl font-semibold text-green-600">{active.length}</p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-gray-500">Maintenance</p>
+          <p className="text-sm text-gray-500">{t('maintenanceLabel')}</p>
           <p className="mt-1 text-2xl font-semibold text-amber-600">{maintenance.length}</p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-gray-500">Inactive</p>
+          <p className="text-sm text-gray-500">{t('statusInactive')}</p>
           <p className="mt-1 text-2xl font-semibold text-gray-400">{inactive.length}</p>
         </div>
       </div>
@@ -74,15 +82,15 @@ function BranchAnalyticsOverviewContent() {
       {/* Branch table */}
       {branches.length > 0 && (
         <section className="rounded-lg border p-4">
-          <h2 className="mb-3 font-semibold">All Branches</h2>
+          <h2 className="mb-3 font-semibold">{t('allBranchesLabel')}</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-gray-500">
-                  <th className="pb-2 pr-4">Name</th>
-                  <th className="pb-2 pr-4">City</th>
-                  <th className="pb-2 pr-4">Status</th>
-                  <th className="pb-2">Analytics</th>
+                  <th className="pb-2 pr-4">{t('nameLabel')}</th>
+                  <th className="pb-2 pr-4">{t('cityLabel')}</th>
+                  <th className="pb-2 pr-4">{t('tableHeaders.status')}</th>
+                  <th className="pb-2">{t('breadcrumbs.analytics')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -93,6 +101,7 @@ function BranchAnalyticsOverviewContent() {
                     name={b.name}
                     city={b.location.city}
                     status={b.status}
+                    t={t}
                   />
                 ))}
               </tbody>
@@ -102,7 +111,7 @@ function BranchAnalyticsOverviewContent() {
       )}
 
       {branches.length === 0 && (
-        <p className="text-gray-500">No branches found.</p>
+        <p className="text-gray-500">{t('noBranchesFoundPeriod')}</p>
       )}
     </div>
   )

@@ -545,15 +545,15 @@ describe('O — admin tenants page (/console/tenants)', () => {
   })
 
   it('shows tenant list table', () => {
-    expect(src()).toContain('Tenant List')
+    expect(src()).toContain('tenantListAria')
   })
 
   it('has analytics summary section', () => {
-    expect(src()).toContain('Tenant Analytics')
+    expect(src()).toContain('tenantAnalyticsAria')
   })
 
   it('shows Total Tenants KPI', () => {
-    expect(src()).toContain('Total Tenants')
+    expect(src()).toContain('totalTenantsLabel')
   })
 
   it('shows Active count KPI', () => {
@@ -565,7 +565,7 @@ describe('O — admin tenants page (/console/tenants)', () => {
   })
 
   it('shows business type distribution', () => {
-    expect(src()).toContain('Business Type')
+    expect(src()).toContain('businessTypeLabel')
   })
 
   it('has activate action', () => {
@@ -599,7 +599,7 @@ describe('P — tenant detail page (/console/tenants/[slug])', () => {
   })
 
   it('has Profile section', () => {
-    expect(src()).toContain('Tenant Profile')
+    expect(src()).toContain('tenantProfileAria')
   })
 
   it('has Branding section', () => {
@@ -611,11 +611,11 @@ describe('P — tenant detail page (/console/tenants/[slug])', () => {
   })
 
   it('has Business Type section', () => {
-    expect(src()).toContain('Business Type')
+    expect(src()).toContain('businessTypeLabel')
   })
 
   it('has Status Management section', () => {
-    expect(src()).toContain('Status Management')
+    expect(src()).toContain('statusManagementLabel')
   })
 
   it('has activate action', () => {
@@ -636,7 +636,7 @@ describe('P — tenant detail page (/console/tenants/[slug])', () => {
   })
 
   it('shows feature flags enabled/disabled', () => {
-    expect(src()).toContain('Feature Flags')
+    expect(src()).toContain('capabilitiesAndFeatureFlagsLabel')
   })
 
   it('has back link to /console/tenants', () => {
