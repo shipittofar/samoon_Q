@@ -64,6 +64,7 @@ import {
   buildBranchAccessContextFromAssignments,
   assertOwnershipBranchAccess,
   assertOwnershipTenantAccess,
+  getNextAssignmentExpiry,
 } from '@/services/ownership-resolution.service'
 import { staffAssignmentService } from '@/services/staff-assignment.service'
 import { ownerOwnsTenant } from '@/services/ownership.service'
@@ -190,6 +191,28 @@ export function usePermissions(): readonly P7Permission[] {
   const tenantId = tenant?.id
   const tenantRoles = useRbacStore((s) => s.tenantRoles)
   const userOverrides = useRbacStore((s) => s.userOverrides)
+
+  // P10.3 Phase I — a temporary StaffAssignment's effect on permissions
+  // previously only updated on an incidental re-render (P10.2.3 finding
+  // F-7). This schedules exactly one timer at the assignment's real
+  // `validUntil` moment — not a poll — to force the recompute below.
+  // Reuses getNextAssignmentExpiry(), which itself reuses
+  // getEffectiveAssignments(); no expiry logic is re-derived here.
+  const [expiryTick, setExpiryTick] = React.useState(0)
+  React.useEffect(() => {
+    const identity = resolveOwnershipIdentity(user?.email)
+    if (!identity.staffMember) return
+    const nextExpiry = getNextAssignmentExpiry(identity.staffMember.id)
+    if (!nextExpiry) return
+    const delay = nextExpiry.getTime() - Date.now()
+    if (delay <= 0) {
+      setExpiryTick((t) => t + 1)
+      return
+    }
+    const timer = setTimeout(() => setExpiryTick((t) => t + 1), delay)
+    return () => clearTimeout(timer)
+  }, [user?.email, tenantId])
+
   return useMemo(() => {
     const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
     const base = getPermissionsForRole(roles)
@@ -201,7 +224,7 @@ export function usePermissions(): readonly P7Permission[] {
 
     return [...new Set([...legacyEffective, ...ownershipDriven])]
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, user?.email, tenantId, tenant?.ownerId, tenantRoles, userOverrides])
+  }, [user?.id, user?.email, tenantId, tenant?.ownerId, tenant?.status, tenantRoles, userOverrides, expiryTick])
 }
 
 /**

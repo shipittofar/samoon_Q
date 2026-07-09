@@ -163,6 +163,25 @@ export function downgradeToReadOnly(permissions: readonly P7Permission[]): P7Per
 }
 
 /**
+ * P10.3 Phase I — the earliest `validUntil` among a Staff member's
+ * currently-effective assignments (across all tenants), or `null` when
+ * none are temporary. Reuses `staffAssignmentService.getEffectiveAssignments()`
+ * — the same source `resolveStaffAssignmentPermissions()` reads from —
+ * rather than re-deriving expiry logic. Callers (see `usePermissions()`
+ * in hooks/index.ts) use this to schedule a single timer at the exact
+ * expiry moment instead of polling.
+ */
+export function getNextAssignmentExpiry(staffId: string, now: Date = new Date()): Date | null {
+  const expiries = staffAssignmentService
+    .getEffectiveAssignments(staffId, now)
+    .map((a) => a.validUntil)
+    .filter((v): v is string => !!v)
+    .map((v) => new Date(v))
+  if (expiries.length === 0) return null
+  return expiries.reduce((min, d) => (d < min ? d : min))
+}
+
+/**
  * P10.1 §4.4 step 3 — resolves permissions granted by this Staff member's
  * active `StaffAssignment` rows scoped to `tenantId`, unioned across every
  * matching assignment (a staff member may hold more than one assignment
