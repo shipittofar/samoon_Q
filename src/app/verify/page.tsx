@@ -115,7 +115,7 @@ function VerifyPageInner() {
     verifyOTP({ phone, dialCode, otp: code }, {
       onSuccess: (result) => {
         setState('success')
-        const dest = result.isNewUser
+        const dest = result.is_new_user
           ? `/complete-profile?phone=${encodeURIComponent(phone)}`
           : result.user.role === 'customer'
             ? getPostLoginRedirect('customer')

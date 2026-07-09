@@ -214,13 +214,13 @@ export const authService = {
 
   /**
    * P8.9.2 — Extended mock: resolves phone → demo user.
-   * Returns { user, tokens, p7Roles, isNewUser }.
+   * Returns { user, tokens, p7Roles, is_new_user }.
    * Code '000000' is always rejected (for UX error-state demo).
    * Any other 6-digit code succeeds.
    */
   async verifyOTP(
     payload: VerifyOTPRequest,
-  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; isNewUser?: boolean }> {
+  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; is_new_user?: boolean }> {
     if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
     if (!authFlag('authentication.otp.enabled')) throw new Error('otp_disabled')
 
@@ -244,15 +244,15 @@ export const authService = {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem(MOCK_SESSION_KEY, email)
         }
-        return { user: entry.user, tokens, p7Roles: entry.p7Roles, isNewUser: false }
+        return { user: entry.user, tokens, p7Roles: entry.p7Roles, is_new_user: false }
       }
 
       // Unknown phone — treat as new user
       setTokens(tokens.access, tokens.refresh)
-      return { user: MOCK_USER, tokens, p7Roles: [], isNewUser: true }
+      return { user: MOCK_USER, tokens, p7Roles: [], is_new_user: true }
     }
 
-    const { data } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; isNewUser?: boolean }>(
+    const { data } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; is_new_user?: boolean }>(
       ENDPOINTS.AUTH.VERIFY_OTP,
     {
       country_code: payload.dialCode,

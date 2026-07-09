@@ -32,7 +32,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     expect(otp.message).toBeTruthy()
 
     const verify = await authService.verifyOTP({ phone: '+14155550101', otp: '123456' })
-    expect(verify.isNewUser).toBe(false)
+    expect(verify.is_new_user).toBe(false)
   })
 
   it('rejects every entry point when authentication.enabled is false', async () => {
@@ -87,7 +87,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
       fieldId: 'authentication.demo_login_enabled', value: false, level: 'platform', scope: {}, actor, reason: 'test',
     })
     const result = await authService.verifyOTP({ phone: '+14155550101', otp: '123456' })
-    expect(result.isNewUser).toBe(true)
+    expect(result.is_new_user).toBe(true)
   })
 
   it('falls through to the real-auth branch when authentication.mock_authentication_enabled is false', async () => {
