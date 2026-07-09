@@ -244,3 +244,57 @@ Before approving any PR that touches `src/config/*` or adds a new module:
   component, hook body, or API route handler** — the registry seals after
   first read; this throws, by design, the same way
   `src/modules/registry.ts` does.
+
+---
+
+## 18. Ownership & RBAC Principles (added P10.1)
+
+> Companion reading: `docs/P10.0_RBAC_OWNERSHIP_ACCESS_AUDIT.md` (audit),
+> `docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md` (full design), and
+> `docs/BACKEND_API_CONTRACT.md` §39 (endpoint contract). These are
+> **design-level, additive principles.** No code, mock data, or UI changed
+> to introduce them; §8 of the companion document maps each principle back
+> to the specific existing RBAC checks it constrains.
+
+18.1 **Ownership is a relationship, not a role.** `Owner` is a distinct
+entity from `Tenant` and from any value in the `Role`/`StaffRole` enum.
+"Owning a tenant" is expressed by `Tenant.ownerId`, never by a role
+assignment. A user can be an `Owner` without holding any P7 role at all.
+
+18.2 **Tenant and Branch are never roles.** A permission check must never
+branch on "is this user's role literally the string `'tenant'` or
+`'branch'`" — those are resources being scoped to, not identities a user
+holds. (P10.0 finding: this already holds today; §18.2 makes it a
+standing rule so it isn't reintroduced.)
+
+18.3 **Reuse the existing permission engine; do not fork it.** Staff
+access under the Owner/Tenant/Branch model is expressed as new *data*
+(`StaffAssignment` rows, §39.5) read by the *existing* `permission.service.ts`
+resolution path and the *existing* `branch-access.service.ts` branch-scoping
+primitives — not a second, parallel permission engine. A module that needs
+cross-tenant staff scoping extends the data the engine reads, never
+duplicates the engine.
+
+18.4 **Migration fields are additive and nullable.** Any field introduced
+to carry the new ownership model onto an existing entity (`Tenant.ownerId`,
+`StaffMember.ownerId`) must be optional/nullable at the type level and
+tolerate `null` at runtime for the lifetime of the migration window — a
+record without the new field must continue to behave exactly as it does
+today, never throw, never silently misbehave. Backfilling is a separate,
+explicit operation (§10.3 of the companion document), not a side effect of
+adding the field.
+
+18.5 **Ownership transfer moves state, not identity.** Transferring a
+tenant to a new owner (`docs/BACKEND_API_CONTRACT.md` §39.4) reassigns
+`Tenant.ownerId` and carries the tenant's branches, Configuration Registry
+settings, and historical data with it. It does not implicitly transfer,
+revoke, or grant any `StaffAssignment` — staff access is owned by the
+*staff member's owner*, not by the tenant, so a transfer is silent with
+respect to staff until the new owner acts.
+
+18.6 **A Customer's relationship to Tenant/Branch is earned through
+history, never through ownership structure.** `PlatformUser` →
+`BusinessCustomer` → `BranchCustomer` (`docs/BACKEND_API_CONTRACT.md` §34)
+is reused unmodified; nothing in the Owner/Tenant/Branch/Staff model
+above changes how a Customer relates to a business. Customers are never
+assigned, granted, or scoped the way Staff are.

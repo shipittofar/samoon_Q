@@ -4,7 +4,7 @@
 > Generated from frontend source code. All types, endpoints, and business rules are
 > derived from `src/types/index.ts`, `src/services/`, `src/hooks/`, and runtime service usage.
 >
-> Last updated: 2026-07-04 (P9.0: added §36 Platform Configuration API contract)
+> Last updated: 2026-07-09 (P10.1: added §39 Ownership & RBAC v2 Architecture — architecture only, no implementation)
 
 ---
 
@@ -40,6 +40,9 @@
 20. [Environment Variables](#20-environment-variables)
 21. [Endpoint Classification Summary](#21-endpoint-classification-summary)
 36. [Platform Configuration API](#36-platform-configuration-api-p90) *(added P9.0 — contract only, no backend yet)*
+37. [Platform Administration API](#37-platform-administration-api-p94) *(added P9.4)*
+38. [Localization API](#38-localization-api-p950--architecture-only-no-implementation) *(added P9.5.0 — architecture only)*
+39. [Ownership & RBAC v2 Architecture](#39-ownership--rbac-v2-architecture-p101--architecture-only-no-implementation) *(added P10.1 — architecture only, no implementation)*
 
 ---
 
@@ -4763,3 +4766,167 @@ POST /admin/localization/sync-runtime-fields
 — which the client then writes via the ordinary §36 field-write endpoints
 for `languages.supported`/`languages.default`/`languages.rtl_locales`, not
 a new persistence path.
+
+---
+
+## 39. Ownership & RBAC v2 Architecture (P10.1 — architecture only, no implementation)
+
+> Companion reading: `docs/P10.0_RBAC_OWNERSHIP_ACCESS_AUDIT.md` (audit,
+> read-only) and `docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md`
+> (`docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md` — full design with ER,
+> permission-resolution, lifecycle and transfer diagrams). This section is
+> the backend-contract counterpart of that document: it describes the
+> endpoints and payload shapes a real backend would need to expose to
+> implement the design. **Nothing in this section exists server-side or
+> client-side today.** No mock data, store, service, or component has been
+> changed to match it. It supersedes nothing in §18/§19 (legacy 3-tier
+> matrix, kept for historical reference against the still-live
+> `rbac.service.ts`) or §26.2/§27 (current P7 tenant-scoped RBAC, still the
+> live system) — those remain accurate descriptions of what exists today.
+> §34 (Platform Customer Identity) and §37.1 (Platform Permission Model)
+> are unchanged by this section; they are reused as-is.
+
+### 39.1 Why this section exists
+
+P10.0 found that "tenant" is never a role but "owner" is treated as one —
+the P7 `Role` enum (`src/types/rbac.ts`) includes `'owner'` as a
+tenant-scoped role value, so a tenant can currently have zero, one, or
+*multiple* users holding the `owner` role, and nothing stops the same
+person from being `owner` on many tenants with no formal relationship
+between those tenants. There is no `Owner` entity, no
+`Tenant.ownerId`, and no cross-tenant staff assignment — a staff member's
+access is entirely defined by which tenant's `roleAssignments` array they
+appear in (`src/store/rbac.store.ts`), which means "give this accountant
+read-only access to two branches in Tenant B while they manage all of
+Tenant A" cannot be expressed today. §39.2–§39.6 define the additive data
+model and endpoints that would remove this gap without breaking the
+existing P7 permission engine (`permission.service.ts`,
+`ROLE_PERMISSION_MAP`), which is reused unchanged.
+
+### 39.2 New entity: Owner
+
+```
+GET    /admin/platform/owners/                     -- list, paginated, filter by status/plan
+POST   /admin/platform/owners/                      -- create (platform admin only)
+GET    /admin/platform/owners/{ownerId}/             -- detail, includes tenant summaries
+PATCH  /admin/platform/owners/{ownerId}/             -- update status/plan/billing fields
+DELETE /admin/platform/owners/{ownerId}/             -- soft-delete, blocked while currentTenantCount > 0
+
+Owner {
+  id: string
+  userId: string            // FK -> existing User/PlatformUser record that authenticates as this owner
+  displayName: string
+  email: string
+  status: 'active' | 'suspended' | 'pending'
+  plan: string               // subscription plan id, cross-references §36 subscriptions module
+  maxTenants: number | null   // null = unlimited
+  currentTenantCount: number  // derived, read-only, computed server-side from Tenant.ownerId count
+  billing: { customerId: string | null, billingEmail: string }
+  createdAt: string
+  updatedAt: string
+}
+```
+
+Permission: all `/admin/platform/owners/*` endpoints require
+`platform.tenants.manage` (existing `PlatformPermission`, §37.1) — no new
+platform permission is introduced.
+
+### 39.3 Modified entity: Tenant
+
+`Tenant` (§10) gains one additive, nullable field:
+
+```
+Tenant {
+  ...existing fields unchanged...
+  ownerId: string | null      // FK -> Owner.id. Nullable during migration (§10.3 of the P10.1 doc);
+                                // required for all tenants created after this architecture ships.
+}
+```
+
+No existing `Tenant` endpoint changes shape. `GET /admin/tenants/{id}/`
+and `GET /tenants/{id}/` (§10) both gain `ownerId` in their response body;
+consumers that ignore unknown fields are unaffected.
+
+### 39.4 Ownership transfer
+
+```
+POST /admin/platform/owners/{ownerId}/tenants/{tenantId}/transfer/
+Body: { "toOwnerId": string, "reason"?: string }
+200: { "tenantId": string, "fromOwnerId": string, "toOwnerId": string, "transferredAt": string }
+403: current owner mismatch, target owner suspended, or target owner at maxTenants
+```
+
+Effect (matches the P10.1 design, §3.6 sequence diagram): `Tenant.ownerId`
+is reassigned; the tenant, its branches, its Configuration Registry
+settings (§36), and its historical data (orders, analytics, customer
+relationships per §34) move with it unchanged. Nothing else changes —
+staff `StaffAssignment` rows scoped to the transferred tenant are **not**
+auto-revoked or auto-transferred; the new owner must explicitly grant or
+revoke access via §39.5, since staff belong to an `Owner`, not a `Tenant`.
+An audit log entry is written (reuses the existing audit-log endpoint
+family, §17).
+
+### 39.5 New entity: StaffAssignment
+
+Replaces the implicit assumption in the current `roleAssignments`
+(`src/store/rbac.store.ts`) that a staff member's tenant scope is fixed
+and singular. `StaffMember` (§16) gains `ownerId` (nullable during
+migration, same rule as `Tenant.ownerId`) and loses reliance on a single
+`tenantId` as its identity anchor; a staff member's actual access is the
+union of their active `StaffAssignment` rows.
+
+```
+GET    /admin/staff/{staffId}/assignments/                       -- list all assignments for a staff member
+POST   /admin/staff/{staffId}/assignments/                        -- grant
+PATCH  /admin/staff/{staffId}/assignments/{assignmentId}/          -- modify branchIds/validUntil/mode
+DELETE /admin/staff/{staffId}/assignments/{assignmentId}/          -- revoke
+
+StaffAssignment {
+  id: string
+  staffId: string             // FK -> StaffMember.id
+  tenantId: string             // FK -> Tenant.id; must satisfy Tenant.ownerId === staff.ownerId
+  branchIds: string[] | 'all'  // 'all' = every branch under tenantId, current and future
+  role: StaffRole              // existing P7 Role enum minus 'owner' (src/types/rbac.ts) — unchanged
+  mode: 'read' | 'manage'      // orthogonal to role; 'read' downgrades all granted permissions to their .view equivalents
+  status: 'active' | 'revoked' | 'scheduled'
+  validFrom: string | null     // null = effective immediately
+  validUntil: string | null    // null = no expiry
+  grantedBy: string            // owner userId
+  grantedAt: string
+  revokedBy: string | null
+  revokedAt: string | null
+}
+```
+
+Validation (server-side, matches P10.1 §3.3 invariant): `POST`/`PATCH`
+reject with `400` if `tenantId`'s `Tenant.ownerId` does not equal the
+target staff member's `ownerId` — a staff member can only be assigned
+into tenants owned by their own owner. "Move" (P10.1 §3.6) is a client
+convenience that issues one `DELETE` (or lets the existing row transition
+to `status: 'revoked'`) followed by one `POST`, not a new endpoint —
+mirrors the existing pattern of favoring composition over new verbs used
+elsewhere in this contract (e.g. §15 Bulk Operations).
+
+Effective-permission resolution (P10.1 §4.4) is computed the same way
+existing branch-scoped permission checks are computed today —
+`branch-access.service.ts`'s `getAccessibleBranches`/`canAccessBranch`
+become the runtime engine for `StaffAssignment.branchIds`, unchanged in
+their own signatures; `StaffAssignment` rows are simply a new data source
+they read from instead of the flat `roleAssignments` array. No existing
+`PermissionGuard` or `useHasPermission()` call site changes shape.
+
+### 39.6 Unaffected sections (explicit cross-reference)
+
+- **§18/§19** (legacy customer/staff/admin matrix) — describes the
+  deprecated `rbac.service.ts` path, still live behind `AuthGuard` for
+  `/console` entry. Out of scope for this architecture; retirement path is
+  tracked as P10.4 in the P10.1 document, not here.
+- **§26.2/§27** (current P7 RBAC) — the `ROLE_PERMISSION_MAP` and
+  `P7Permission` set are reused as-is by `StaffAssignment.role`; no
+  permission string changes.
+- **§34** (Platform Customer Identity) — the three-layer
+  `PlatformUser`/`BusinessCustomer`/`BranchCustomer` model already matches
+  the P10.1 target Customer model and is reused unmodified.
+- **§37.1** (Platform Permission Model) — `PlatformRole`/`PlatformPermission`
+  are unchanged; `platform.tenants.manage` is reused for the new Owner
+  endpoints in §39.2 rather than introducing a new platform permission.

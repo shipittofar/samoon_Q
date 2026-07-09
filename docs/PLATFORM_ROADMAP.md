@@ -213,3 +213,50 @@ signal to extend the schema system itself (a new `ConfigFieldType`, a new
 `preview.kind`, a new manifest field per
 `docs/P9.0.1_ARCHITECTURE_HARDENING.md` §H) as its own reviewed change —
 never a one-off bypass for a single module.
+
+---
+
+## P10.x — Ownership & RBAC Track (parallel to the P9.x Configuration Registry track)
+
+The P9.x sequence above governs *what settings exist and how they're
+edited*. P10.x governs a different axis entirely: *who owns what, and who
+may act on it.* The two tracks are independent — a P10.x phase changes
+nothing about the Configuration Registry's schema/inheritance/versioning
+model, and every P9.x module continues to resolve fields, register
+metadata, and render Console UI exactly as documented above regardless of
+which P10.x phase has landed.
+
+### P10.0 — RBAC, Ownership & Access Model Audit (complete)
+
+Read-only architecture audit of the current authorization/ownership/
+visibility model. No code changed. See
+`docs/P10.0_RBAC_OWNERSHIP_ACCESS_AUDIT.md`.
+
+### P10.1 — Ownership & RBAC Architecture Rewrite (complete)
+
+Design-level rewrite of the ownership/RBAC model: new `Owner` entity,
+`Tenant.ownerId`, and `StaffAssignment` (multi-tenant, multi-branch,
+partial-branch staff scoping). No implementation — architecture only. See
+`docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md`,
+`docs/PLATFORM_ARCHITECTURE_PRINCIPLES.md` §18, and
+`docs/BACKEND_API_CONTRACT.md` §39.
+
+### P10.2 — Data Model & Resolution Engine (recommended next)
+
+Implement the additive, nullable `Tenant.ownerId`/`StaffMember.ownerId`
+fields and the `StaffAssignment` store/mock data; extend
+`branch-access.service.ts` to read `StaffAssignment.branchIds` as one of
+its data sources alongside the existing `roleAssignments` path. No UI.
+
+### P10.3 — Owner & Staff Management UI (recommended after P10.2)
+
+Console/platform-admin surfaces for creating Owners, transferring tenant
+ownership (§39.4), and granting/revoking/moving `StaffAssignment` rows
+(§39.5). Depends on P10.2's data layer existing first.
+
+### P10.4 — Legacy Retirement (recommended last)
+
+Retire `rbac.service.ts` and the legacy `UserRole` enum's use as the
+`/console` entry gate (§8.1/§8.2 of `docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md`),
+once P10.2/P10.3 have shipped and the new model has been the system of
+record for long enough to safely drop the compatibility shim.
