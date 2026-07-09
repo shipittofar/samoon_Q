@@ -492,7 +492,12 @@ export function useLogout() {
     mutationFn: () => authService.logout(),
     onSettled: () => {
       logout()
-      useRbacStore.getState().clearRoles()
+      // P10.3 Phase G — _resetStore() clears every persisted RBAC field
+      // (tenantRoles, userOverrides, branchRoles, roleAssignments,
+      // customRoles, rbacAuditLog); the previous clearRoles() only reset
+      // tenantRoles, leaving stale authorization state behind after
+      // logout (P10.2.3 finding F-5).
+      useRbacStore.getState()._resetStore()
       useBranchStore.getState().setAdminActiveBranch(null)
       useCartStore.getState().clearCart()
       useDineInStore.getState().clearTable()
