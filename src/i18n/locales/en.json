@@ -2185,7 +2185,20 @@
     "templateCard": "Card",
     "templateStoryLeft": "Story Left",
     "templateStoryRight": "Story Right",
-    "templateWide": "Wide"
+    "templateWide": "Wide",
+    "navGroupPlatform": "Platform",
+    "navGroupUsers": "Users",
+    "navGroupBusinesses": "Businesses",
+    "navGroupSubscriptions": "Subscriptions",
+    "navGroupConfiguration": "Configuration",
+    "navGroupLocalization": "Localization",
+    "navGroupSecurity": "Security",
+    "navGroupMonitoring": "Monitoring",
+    "navGroupInfrastructure": "Infrastructure",
+    "navGroupAutomation": "Automation",
+    "navGroupDeveloper": "Developer",
+    "navGroupSupport": "Support",
+    "navGroupSystem": "System"
   },
   "configFields": {
     "authentication": {
@@ -2195,13 +2208,74 @@
         "title": "Core Toggles"
       },
       "otp": {
-        "title": "OTP"
+        "title": "OTP",
+        "enabled": {
+          "title": "OTP Login Enabled"
+        },
+        "length": {
+          "title": "OTP Code Length"
+        },
+        "ttl_seconds": {
+          "title": "OTP Expiry (seconds)"
+        },
+        "resend_cooldown_seconds": {
+          "title": "Resend Cooldown (seconds)"
+        },
+        "max_verify_attempts": {
+          "title": "Max OTP Verify Attempts",
+          "description": "Distinct from Max Login Attempts (password login) — caps guesses against one issued OTP code."
+        }
       },
       "lockout": {
         "title": "Login Attempts & Lockout"
       },
       "demo": {
         "title": "Demo / Mock"
+      },
+      "group": "Security",
+      "enabled": {
+        "title": "Authentication Enabled",
+        "description": "Platform-wide kill switch for all login/registration/OTP entry points."
+      },
+      "phone_login_enabled": {
+        "title": "Phone Login Enabled",
+        "description": "Platform-owned setting resolved at platform scope only; tenant-level override is schema-ready but not yet wired."
+      },
+      "email_login_enabled": {
+        "title": "Email Login Enabled",
+        "description": "Platform-owned for the same reason as Phone Login Enabled."
+      },
+      "guest_checkout_enabled": {
+        "title": "Guest Checkout Enabled",
+        "description": "Registered for future checkout-flow integration — no runtime consumer yet."
+      },
+      "max_login_attempts": {
+        "title": "Max Login Attempts"
+      },
+      "lockout_duration_minutes": {
+        "title": "Lockout Duration (minutes)"
+      },
+      "registration_enabled": {
+        "title": "Self-Service Registration Enabled"
+      },
+      "jwt_access_ttl_minutes": {
+        "title": "Access Token TTL (minutes)"
+      },
+      "jwt_refresh_ttl_days": {
+        "title": "Refresh Token Lifetime (days)",
+        "description": "Drives the mirrored auth cookie max-age."
+      },
+      "demo_login_enabled": {
+        "title": "Demo Login Enabled",
+        "description": "Gates whether known demo credentials are honored for login/OTP-verify, distinct from Mock Authentication Enabled."
+      },
+      "demo_accounts_visible": {
+        "title": "Demo Accounts Visible in UI",
+        "description": "Governs whether the one-click demo account grid renders on the login page."
+      },
+      "mock_authentication_enabled": {
+        "title": "Mock Authentication Enabled",
+        "description": "Auditable master switch for the entire mock authentication service branch."
       }
     },
     "languages": {
@@ -2221,7 +2295,8 @@
       "rtl_locales": {
         "title": "RTL Locales",
         "description": "Locales rendered right-to-left."
-      }
+      },
+      "group": "Configuration"
     },
     "platform": {
       "overview": {
@@ -2235,7 +2310,8 @@
         },
         "default_landing_widget_set": {
           "title": "Default Dashboard Widget Set"
-        }
+        },
+        "group": "Platform"
       },
       "maintenance_mode": {
         "name": "Maintenance Mode",
@@ -2251,7 +2327,8 @@
         },
         "allow_platform_admin_access": {
           "title": "Allow Platform Admin Access During Maintenance"
-        }
+        },
+        "group": "Platform"
       },
       "system_status": {
         "name": "System Status",
@@ -2264,7 +2341,8 @@
         },
         "show_incident_history": {
           "title": "Show Incident History"
-        }
+        },
+        "group": "Platform"
       },
       "users": {
         "name": "Platform Users",
@@ -2275,8 +2353,1103 @@
         "registry": {
           "title": "Platform Users",
           "description": "Every internal platform user and their platform role."
+        },
+        "group": "Users"
+      },
+      "languages": {
+        "name": "Language Management",
+        "description": "Every platform language — activation, typography, formatting, fallback, and translation coverage.",
+        "group": "Localization",
+        "registry": {
+          "title": "Languages"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "support_tickets": {
+        "name": "Support Tickets",
+        "description": "Support ticket routing and SLA configuration.",
+        "group": "Support",
+        "default_sla_hours": {
+          "title": "Default First-Response SLA (hours)"
+        },
+        "auto_assign_enabled": {
+          "title": "Auto-Assign Tickets"
+        },
+        "escalation_threshold_hours": {
+          "title": "Escalate After (hours)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "tenants": {
+        "name": "Tenants",
+        "description": "Every business operating on the platform, with status, plan, and internal review flags.",
+        "group": "Businesses",
+        "registry": {
+          "title": "Tenants",
+          "description": "Every tenant business on the platform."
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "business_owners": {
+        "name": "Business Owners",
+        "description": "The primary owner account for each tenant business.",
+        "group": "Businesses",
+        "require_verified_email": {
+          "title": "Require Verified Email"
+        },
+        "require_verified_phone": {
+          "title": "Require Verified Phone"
+        },
+        "max_owned_businesses": {
+          "title": "Max Businesses per Owner"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "branches": {
+        "name": "Branches",
+        "description": "Platform-wide view of every branch/location across all tenants.",
+        "group": "Businesses",
+        "max_branches_per_tenant": {
+          "title": "Max Branches per Tenant"
+        },
+        "require_address_verification": {
+          "title": "Require Address Verification"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "plans": {
+        "name": "Plans",
+        "description": "Pricing plans available to tenants (Starter, Growth, Enterprise).",
+        "group": "Subscriptions",
+        "trial_days": {
+          "title": "Default Trial Length (days)"
+        },
+        "allow_plan_downgrade": {
+          "title": "Allow Self-Serve Downgrade"
+        },
+        "grace_period_days": {
+          "title": "Payment Grace Period (days)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "billing": {
+        "name": "Billing",
+        "description": "Platform-wide billing cycle and dunning configuration.",
+        "group": "Subscriptions",
+        "billing_cycle": {
+          "title": "Default Billing Cycle"
+        },
+        "dunning_retry_attempts": {
+          "title": "Failed Payment Retry Attempts"
+        },
+        "auto_suspend_on_failure": {
+          "title": "Auto-Suspend After Retries Exhausted"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "invoices": {
+        "name": "Invoices",
+        "description": "Invoice generation and numbering configuration.",
+        "group": "Subscriptions",
+        "invoice_prefix": {
+          "title": "Invoice Number Prefix"
+        },
+        "auto_send_on_issue": {
+          "title": "Auto-Send Invoice on Issue"
+        },
+        "include_tax_breakdown": {
+          "title": "Include Tax Breakdown"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "queues": {
+        "name": "Queues",
+        "description": "Background job queue configuration.",
+        "group": "Automation",
+        "max_queue_depth": {
+          "title": "Max Queue Depth"
+        },
+        "dead_letter_enabled": {
+          "title": "Dead-Letter Queue Enabled"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "jobs": {
+        "name": "Jobs",
+        "description": "Background job retry and timeout policy.",
+        "group": "Automation",
+        "max_retry_attempts": {
+          "title": "Max Retry Attempts"
+        },
+        "job_timeout_seconds": {
+          "title": "Job Timeout (seconds)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "scheduler": {
+        "name": "Scheduler",
+        "description": "Scheduled/cron job execution policy.",
+        "group": "Automation",
+        "scheduler_enabled": {
+          "title": "Scheduler Enabled"
+        },
+        "misfire_grace_seconds": {
+          "title": "Misfire Grace Period (seconds)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "email_providers": {
+        "name": "Email Providers",
+        "description": "Transactional email provider configuration and failover.",
+        "group": "Automation",
+        "primary_provider": {
+          "title": "Primary Provider"
+        },
+        "failover_enabled": {
+          "title": "Automatic Failover"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "sms_providers": {
+        "name": "SMS Providers",
+        "description": "SMS/OTP delivery provider configuration and failover.",
+        "group": "Automation",
+        "primary_provider": {
+          "title": "Primary Provider"
+        },
+        "failover_enabled": {
+          "title": "Automatic Failover"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "push_providers": {
+        "name": "Push Providers",
+        "description": "Push notification delivery provider configuration.",
+        "group": "Automation",
+        "provider": {
+          "title": "Provider"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "oauth_providers": {
+        "name": "OAuth Providers",
+        "description": "Third-party OAuth login providers available to tenants.",
+        "group": "Automation",
+        "google_enabled": {
+          "title": "Google"
+        },
+        "apple_enabled": {
+          "title": "Apple"
+        },
+        "facebook_enabled": {
+          "title": "Facebook"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "announcements": {
+        "name": "Announcements",
+        "description": "Platform-wide announcement banner configuration.",
+        "group": "Platform",
+        "banner_enabled": {
+          "title": "Announcement Banner Enabled"
+        },
+        "banner_message": {
+          "title": "Banner Message"
+        },
+        "banner_severity": {
+          "title": "Severity"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "media": {
+        "name": "Media",
+        "description": "Uploaded media limits and processing.",
+        "group": "Infrastructure",
+        "max_upload_size_mb": {
+          "title": "Max Upload Size (MB)"
+        },
+        "auto_generate_thumbnails": {
+          "title": "Auto-Generate Thumbnails"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "cdn": {
+        "name": "CDN",
+        "description": "CDN edge caching and purge policy.",
+        "group": "Infrastructure",
+        "default_cache_ttl_seconds": {
+          "title": "Default Cache TTL (seconds)"
+        },
+        "auto_purge_on_deploy": {
+          "title": "Auto-Purge on Deploy"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "cache": {
+        "name": "Cache",
+        "description": "Application-level cache configuration.",
+        "group": "Infrastructure",
+        "cache_provider": {
+          "title": "Cache Provider"
+        },
+        "default_ttl_seconds": {
+          "title": "Default TTL (seconds)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "backups": {
+        "name": "Backups",
+        "description": "Automated backup schedule and retention.",
+        "group": "Infrastructure",
+        "backup_frequency": {
+          "title": "Backup Frequency"
+        },
+        "backup_retention_days": {
+          "title": "Backup Retention (days)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "restore": {
+        "name": "Restore",
+        "description": "Restore-from-backup safeguards.",
+        "group": "Infrastructure",
+        "require_dual_approval": {
+          "title": "Require Dual Approval for Restore"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "database": {
+        "name": "Database",
+        "description": "Database connection pool and query safety limits.",
+        "group": "Infrastructure",
+        "max_connections": {
+          "title": "Max Connection Pool Size"
+        },
+        "slow_query_threshold_ms": {
+          "title": "Slow Query Threshold (ms)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "search_infra": {
+        "name": "Search",
+        "description": "Platform search index configuration (distinct from the Studio command palette).",
+        "group": "Infrastructure",
+        "reindex_frequency_hours": {
+          "title": "Reindex Frequency (hours)"
+        },
+        "fuzzy_matching_enabled": {
+          "title": "Fuzzy Matching Enabled"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "metrics": {
+        "name": "Metrics",
+        "description": "Platform-wide metrics collection and retention.",
+        "group": "Monitoring",
+        "metrics_retention_days": {
+          "title": "Metrics Retention (days)"
+        },
+        "sample_rate_percent": {
+          "title": "Sampling Rate (%)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "health": {
+        "name": "Health",
+        "description": "Service health-check configuration and thresholds.",
+        "group": "Monitoring",
+        "healthcheck_interval_seconds": {
+          "title": "Health-Check Interval (seconds)"
+        },
+        "degraded_latency_ms": {
+          "title": "Degraded Latency Threshold (ms)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "incidents": {
+        "name": "Incidents",
+        "description": "Incident severity levels and escalation policy.",
+        "group": "Monitoring",
+        "auto_page_on_sev1": {
+          "title": "Auto-Page On-Call for SEV-1"
+        },
+        "public_status_page_enabled": {
+          "title": "Public Status Page Enabled"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "errors": {
+        "name": "Errors",
+        "description": "Error tracking sample rate and alert thresholds.",
+        "group": "Monitoring",
+        "error_rate_alert_threshold": {
+          "title": "Error Rate Alert Threshold (%)"
+        },
+        "group_similar_errors": {
+          "title": "Group Similar Errors"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "activity_logs": {
+        "name": "Activity Logs",
+        "description": "Cross-tenant user activity feed retention and visibility.",
+        "group": "Monitoring",
+        "activity_log_retention_days": {
+          "title": "Activity Log Retention (days)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "analytics": {
+        "name": "Analytics",
+        "description": "Cross-tenant analytics aggregation configuration.",
+        "group": "Monitoring",
+        "aggregation_window": {
+          "title": "Default Aggregation Window"
+        },
+        "include_churned_tenants": {
+          "title": "Include Churned Tenants in Aggregates"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "audit_logs": {
+        "name": "Platform Audit Logs",
+        "description": "Platform-wide (cross-tenant) administrative audit trail.",
+        "group": "Monitoring",
+        "audit_log_retention_days": {
+          "title": "Audit Log Retention (days)"
+        },
+        "require_reason_for_destructive_actions": {
+          "title": "Require Reason for Destructive Actions"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "roles": {
+        "name": "Roles",
+        "description": "Platform-level roles (distinct from tenant RBAC) and what each grants.",
+        "group": "Security",
+        "allow_custom_roles": {
+          "title": "Allow Custom Platform Roles"
+        },
+        "require_approval_for_owner_grant": {
+          "title": "Require Approval to Grant Owner Role"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "permissions": {
+        "name": "Permissions",
+        "description": "The permission keys available to platform roles.",
+        "group": "Security",
+        "strict_wildcard_grants": {
+          "title": "Restrict Wildcard (*) Grants to Owner"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "security_center": {
+        "name": "Security Center",
+        "description": "Platform-wide security posture: login anomalies, suspicious activity, and lockdown controls.",
+        "group": "Security",
+        "anomaly_detection_enabled": {
+          "title": "Login Anomaly Detection"
+        },
+        "auto_lock_on_anomaly": {
+          "title": "Auto-Lock Account on Anomaly"
+        },
+        "platform_lockdown_mode": {
+          "title": "Platform Lockdown Mode",
+          "description": "Emergency switch — blocks all non-owner platform access."
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "compliance": {
+        "name": "Compliance",
+        "description": "SOC 2 / PCI / regulatory compliance posture tracking.",
+        "group": "Security",
+        "soc2_compliant": {
+          "title": "SOC 2 Type II Compliant"
+        },
+        "pci_dss_level": {
+          "title": "PCI DSS Level"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "gdpr": {
+        "name": "GDPR",
+        "description": "Data subject request handling and retention policy.",
+        "group": "Security",
+        "data_retention_days": {
+          "title": "Default Data Retention (days)"
+        },
+        "auto_fulfill_export_requests": {
+          "title": "Auto-Fulfill Data Export Requests"
+        },
+        "right_to_be_forgotten_enabled": {
+          "title": "Right to Be Forgotten Enabled"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "fraud": {
+        "name": "Fraud",
+        "description": "Fraud detection thresholds for signups and payments.",
+        "group": "Security",
+        "fraud_score_threshold": {
+          "title": "Auto-Flag Fraud Score Threshold"
+        },
+        "auto_suspend_high_risk": {
+          "title": "Auto-Suspend High-Risk Signups"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "abuse": {
+        "name": "Abuse",
+        "description": "Abuse report queue thresholds and auto-moderation.",
+        "group": "Security",
+        "auto_moderate_reports": {
+          "title": "Auto-Moderate Reported Content"
+        },
+        "reports_before_auto_review": {
+          "title": "Reports Before Auto-Review"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "rate_limits": {
+        "name": "Rate Limits",
+        "description": "Platform-wide API and auth rate limit defaults.",
+        "group": "Security",
+        "api_requests_per_minute": {
+          "title": "API Requests per Minute (per key)"
+        },
+        "login_attempts_per_hour": {
+          "title": "Login Attempts per Hour (per IP)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "session_management": {
+        "name": "Session Management",
+        "description": "Platform staff session lifetime and concurrency policy.",
+        "group": "Security",
+        "session_timeout_minutes": {
+          "title": "Session Timeout (minutes)"
+        },
+        "max_concurrent_sessions": {
+          "title": "Max Concurrent Sessions per User"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "device_management": {
+        "name": "Device Management",
+        "description": "Trusted-device policy for platform staff logins.",
+        "group": "Security",
+        "require_device_approval": {
+          "title": "Require New Device Approval"
+        },
+        "max_trusted_devices": {
+          "title": "Max Trusted Devices per User"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "api_keys": {
+        "name": "API Keys",
+        "description": "Platform and tenant API key issuance policy.",
+        "group": "Developer",
+        "max_keys_per_tenant": {
+          "title": "Max API Keys per Tenant"
+        },
+        "default_key_expiry_days": {
+          "title": "Default Key Expiry (days, 0 = never)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "webhooks": {
+        "name": "Webhooks",
+        "description": "Outbound webhook delivery and retry policy.",
+        "group": "Developer",
+        "max_endpoints_per_tenant": {
+          "title": "Max Webhook Endpoints per Tenant"
+        },
+        "retry_backoff_seconds": {
+          "title": "Retry Backoff (seconds)"
+        },
+        "sign_payloads": {
+          "title": "Sign Webhook Payloads"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "integrations": {
+        "name": "Integrations",
+        "description": "Available third-party integrations for tenants.",
+        "group": "Developer",
+        "allow_custom_integrations": {
+          "title": "Allow Custom Integrations"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "marketplace": {
+        "name": "Marketplace",
+        "description": "Third-party app marketplace listing policy.",
+        "group": "Developer",
+        "marketplace_enabled": {
+          "title": "Marketplace Enabled"
+        },
+        "require_review_before_listing": {
+          "title": "Require Review Before Listing"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "plugins": {
+        "name": "Plugins",
+        "description": "Installable platform plugin policy.",
+        "group": "Developer",
+        "plugins_enabled": {
+          "title": "Plugins Enabled"
+        },
+        "sandbox_untrusted_plugins": {
+          "title": "Sandbox Untrusted Plugins"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "ai_providers": {
+        "name": "AI Providers",
+        "description": "AI/LLM provider configuration for platform-powered features.",
+        "group": "Developer",
+        "primary_provider": {
+          "title": "Primary Provider"
+        },
+        "monthly_token_budget": {
+          "title": "Monthly Token Budget"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "developer_tools": {
+        "name": "Developer Tools",
+        "description": "Internal developer tooling access (debug panels, query inspectors).",
+        "group": "Developer",
+        "debug_mode_enabled": {
+          "title": "Debug Mode Enabled"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "environment": {
+        "name": "Environment",
+        "description": "Deployment environment identification and safeguards.",
+        "group": "Developer",
+        "environment_name": {
+          "title": "Environment Name"
+        },
+        "protect_production_writes": {
+          "title": "Extra Confirmation for Production Writes"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "secrets": {
+        "name": "Secrets",
+        "description": "Secret rotation policy — actual secret values are never stored in configuration.",
+        "group": "Developer",
+        "rotation_period_days": {
+          "title": "Secret Rotation Period (days)"
+        },
+        "alert_before_expiry_days": {
+          "title": "Alert Before Expiry (days)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "licenses": {
+        "name": "Licenses",
+        "description": "Third-party software license tracking.",
+        "group": "Developer",
+        "license_audit_enabled": {
+          "title": "License Compliance Audit Enabled"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "version_management": {
+        "name": "Version Management",
+        "description": "API/schema version support window.",
+        "group": "Developer",
+        "supported_api_versions": {
+          "title": "Supported API Versions"
+        },
+        "deprecation_notice_days": {
+          "title": "Deprecation Notice Period (days)"
+        },
+        "general": {
+          "title": "General"
+        }
+      },
+      "migration_center": {
+        "name": "Migration Center",
+        "description": "Data migration job safeguards.",
+        "group": "Developer",
+        "require_dry_run": {
+          "title": "Require Dry Run Before Execution"
+        },
+        "auto_backup_before_migration": {
+          "title": "Auto-Backup Before Migration"
+        },
+        "general": {
+          "title": "General"
         }
       }
+    },
+    "api": {
+      "name": "API",
+      "description": "Public API versioning, CORS allow-list, and webhook delivery policy.",
+      "group": "Developer",
+      "access": {
+        "title": "Access"
+      },
+      "current_version": {
+        "title": "Current API Version"
+      },
+      "cors_allowed_origins": {
+        "title": "CORS Allowed Origins"
+      },
+      "webhook_retry_attempts": {
+        "title": "Webhook Retry Attempts"
+      },
+      "public_api_enabled": {
+        "title": "Public API Enabled"
+      }
+    },
+    "countries": {
+      "name": "Countries",
+      "description": "The set of countries available across signup, checkout, and localization pickers, plus per-country configuration.",
+      "group": "Configuration",
+      "availability": {
+        "title": "Availability"
+      },
+      "enabled_codes": {
+        "title": "Enabled Countries",
+        "description": "ISO 3166-1 alpha-2 codes available platform-wide."
+      },
+      "pinned_codes": {
+        "title": "Pinned Countries",
+        "description": "Codes pinned to the top of country pickers, in display order."
+      },
+      "default_code": {
+        "title": "Default Country",
+        "description": "Country pre-selected when a tenant has no signal to infer one."
+      },
+      "registry": {
+        "title": "Country Management",
+        "description": "Per-country configuration — enablement, features, currency, locale, and governance status for all 176 countries."
+      }
+    },
+    "feature_flags": {
+      "name": "Feature Flags",
+      "description": "Platform-level rollout switches gating entire capabilities before tenants can enable them.",
+      "group": "Configuration",
+      "platform": {
+        "title": "Platform Capabilities"
+      },
+      "website_builder": {
+        "title": "Website Builder"
+      },
+      "ai_assistant": {
+        "title": "AI Assistant",
+        "description": "Master switch for AI-powered features (menu copy, review replies, insights)."
+      },
+      "billing_self_serve": {
+        "title": "Self-Serve Billing"
+      },
+      "rbac_custom_roles": {
+        "title": "Custom RBAC Roles"
+      }
+    },
+    "monitoring": {
+      "name": "Monitoring",
+      "description": "Error tracking, uptime thresholds, and alert routing.",
+      "group": "Monitoring",
+      "thresholds": {
+        "title": "Thresholds"
+      },
+      "sentry_enabled": {
+        "title": "Error Tracking Enabled"
+      },
+      "error_rate_alert_threshold_percent": {
+        "title": "Error Rate Alert Threshold (%)"
+      },
+      "api_latency_alert_ms": {
+        "title": "API Latency Alert Threshold (ms)"
+      },
+      "alert_channels": {
+        "title": "Alert Channels"
+      }
+    },
+    "notifications": {
+      "name": "Notifications",
+      "description": "Delivery providers and default channel policy for platform notifications.",
+      "group": "Automation",
+      "providers": {
+        "title": "Providers"
+      },
+      "email_provider": {
+        "title": "Email Provider"
+      },
+      "sms_provider": {
+        "title": "SMS Provider"
+      },
+      "push_enabled": {
+        "title": "Push Notifications Enabled"
+      },
+      "default_channels": {
+        "title": "Default Channels",
+        "description": "Channels enabled by default for a new user, before their own preferences apply."
+      }
+    },
+    "payments": {
+      "name": "Payments",
+      "description": "Enabled payment providers, default currency, and processing fee policy.",
+      "group": "Subscriptions",
+      "providers": {
+        "title": "Providers"
+      },
+      "enabled_providers": {
+        "title": "Enabled Providers"
+      },
+      "stripe_publishable_key": {
+        "title": "Stripe Publishable Key"
+      },
+      "stripe_secret_key": {
+        "title": "Stripe Secret Key"
+      },
+      "default_currency": {
+        "title": "Default Currency"
+      },
+      "platform_fee_percent": {
+        "title": "Platform Fee (%)"
+      }
+    },
+    "rbac": {
+      "name": "RBAC",
+      "description": "Custom role limits and default role assigned to newly invited staff.",
+      "group": "Security",
+      "roles": {
+        "title": "Roles"
+      },
+      "max_custom_roles_per_tenant": {
+        "title": "Max Custom Roles Per Tenant"
+      },
+      "default_invite_role": {
+        "title": "Default Invite Role"
+      },
+      "require_mfa_for_admin": {
+        "title": "Require MFA for Admin Role"
+      }
+    },
+    "storage": {
+      "name": "Storage",
+      "description": "Media storage provider, upload limits, and CDN behavior.",
+      "group": "Infrastructure",
+      "provider": {
+        "title": "Storage Provider"
+      },
+      "max_upload_mb": {
+        "title": "Max Upload Size (MB)"
+      },
+      "allowed_mime_types": {
+        "title": "Allowed File Types"
+      },
+      "cdn_base_url": {
+        "title": "CDN Base URL"
+      }
+    },
+    "subscriptions": {
+      "name": "Subscriptions",
+      "description": "Billing plans, trial length, and grace-period policy for tenant subscriptions.",
+      "group": "Subscriptions",
+      "plans": {
+        "title": "Plans"
+      },
+      "plans_catalog": {
+        "title": "Plan Catalog",
+        "description": "The platform-defined plans tenants may subscribe to."
+      },
+      "default_plan_id": {
+        "title": "Default Plan"
+      },
+      "trial_days": {
+        "title": "Trial Length (days)"
+      },
+      "grace_period_days": {
+        "title": "Payment Grace Period (days)",
+        "description": "Days a tenant retains access after a failed billing charge."
+      }
+    },
+    "system": {
+      "name": "System",
+      "description": "Maintenance mode, global rate limits, and data retention policy.",
+      "group": "System",
+      "operations": {
+        "title": "Operations"
+      },
+      "maintenance_mode": {
+        "title": "Maintenance Mode"
+      },
+      "api_rate_limit_per_minute": {
+        "title": "API Rate Limit (requests/min)"
+      },
+      "audit_log_retention_days": {
+        "title": "Audit Log Retention (days)"
+      },
+      "default_business_type": {
+        "title": "Default Business Type",
+        "description": "Business type pre-selected during tenant provisioning."
+      }
+    },
+    "themes": {
+      "name": "Themes",
+      "description": "Default brand palette and the CSS variables tenants are permitted to override.",
+      "group": "Configuration",
+      "palette": {
+        "title": "Palette"
+      },
+      "default_mode": {
+        "title": "Default Color Mode"
+      },
+      "primary_color": {
+        "title": "Primary Color",
+        "description": "Overrides the accent color. Tenants may customize; branches inherit the tenant value."
+      },
+      "accent_hover_color": {
+        "title": "Accent Hover Color",
+        "description": "Overrides the accent-hover color. Defaults to a darker shade of the primary color."
+      },
+      "logo_url": {
+        "title": "Logo URL"
+      }
+    },
+    "typography": {
+      "name": "Typography",
+      "description": "Platform default font stack and per-tenant font overrides.",
+      "group": "Configuration",
+      "fonts": {
+        "title": "Fonts"
+      },
+      "body_font": {
+        "title": "Body Font",
+        "description": "Default font-family for body text, overridable per tenant."
+      },
+      "heading_font": {
+        "title": "Heading Font",
+        "description": "Default font-family for headings, overridable per tenant."
+      },
+      "rtl_font": {
+        "title": "RTL Font",
+        "description": "Font-family used when the active locale renders right-to-left."
+      },
+      "base_size_px": {
+        "title": "Base Font Size (px)"
+      }
+    },
+    "website_builder": {
+      "name": "Website Builder",
+      "description": "Default block library, publishing rules, and section limits for the tenant website builder.",
+      "group": "Configuration",
+      "defaults": {
+        "title": "Defaults"
+      },
+      "enabled_blocks": {
+        "title": "Enabled Blocks"
+      },
+      "max_sections": {
+        "title": "Max Sections Per Page"
+      },
+      "custom_domain_enabled": {
+        "title": "Custom Domain Enabled"
+      }
+    },
+    "active_businesses": {
+      "title": "Active Businesses"
+    },
+    "online_users": {
+      "title": "Online Users"
+    },
+    "orders_today": {
+      "title": "Orders Today"
+    },
+    "reservations_today": {
+      "title": "Reservations Today"
+    },
+    "revenue_today": {
+      "title": "Revenue Today"
+    },
+    "mrr": {
+      "title": "MRR"
+    },
+    "arr": {
+      "title": "ARR"
+    },
+    "failed_payments": {
+      "title": "Failed Payments"
+    },
+    "new_signups": {
+      "title": "New Signups"
+    },
+    "server_health": {
+      "title": "Server Health"
+    },
+    "error_rate": {
+      "title": "Error Rate"
+    },
+    "queue_status": {
+      "title": "Queue Status"
+    },
+    "background_jobs": {
+      "title": "Background Jobs"
+    },
+    "platform_alerts": {
+      "title": "Platform Alerts"
+    },
+    "feature_rollouts": {
+      "title": "Feature Rollouts"
+    },
+    "abuse_reports": {
+      "title": "Abuse Reports"
+    },
+    "api_usage": {
+      "title": "API Usage"
+    },
+    "top_countries": {
+      "title": "Top Countries"
+    },
+    "top_businesses": {
+      "title": "Top Businesses"
+    },
+    "storage_usage": {
+      "title": "Storage Usage"
+    },
+    "email_success_rate": {
+      "title": "Email Success Rate"
+    },
+    "sms_success_rate": {
+      "title": "SMS Success Rate"
+    },
+    "push_delivery": {
+      "title": "Push Delivery"
+    },
+    "operational_languages": {
+      "title": "Operational Languages"
+    },
+    "avg_translation_coverage": {
+      "title": "Avg. Translation Coverage"
+    },
+    "human_reviewed_languages": {
+      "title": "Human-Reviewed Languages"
+    },
+    "lowest_coverage_languages": {
+      "title": "Lowest Coverage (Enabled)"
+    },
+    "translation_quality_issues": {
+      "title": "Translation Quality Issues"
+    },
+    "missing_translation_keys": {
+      "title": "Missing Translation Keys"
+    },
+    "broken_icu_placeholder_keys": {
+      "title": "Broken ICU / Placeholder Keys"
+    },
+    "locale_bundle_sizes": {
+      "title": "Locale Bundle Sizes"
     }
   },
   "platform": {

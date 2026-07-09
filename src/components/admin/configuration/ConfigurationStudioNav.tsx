@@ -31,6 +31,23 @@ const LIFECYCLE_BADGE_VARIANT = {
   archived: 'outline',
 } as const
 
+/** Translation-key suffixes for the Platform Administration IA groups (src/platform-admin/nav-groups.ts), resolved under the console.* namespace. Unmapped/legacy category values fall back to their raw string. */
+const NAV_GROUP_KEY: Record<string, string> = {
+  Platform: 'navGroupPlatform',
+  Users: 'navGroupUsers',
+  Businesses: 'navGroupBusinesses',
+  Subscriptions: 'navGroupSubscriptions',
+  Configuration: 'navGroupConfiguration',
+  Localization: 'navGroupLocalization',
+  Security: 'navGroupSecurity',
+  Monitoring: 'navGroupMonitoring',
+  Infrastructure: 'navGroupInfrastructure',
+  Automation: 'navGroupAutomation',
+  Developer: 'navGroupDeveloper',
+  Support: 'navGroupSupport',
+  System: 'navGroupSystem',
+}
+
 export interface ConfigurationStudioNavProps {
   activeModuleId?: string
   onSelect: (moduleId: string) => void
@@ -179,7 +196,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
             )}
             {grouped.map(([category, mods]) => (
               <div key={category}>
-                <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--fg-muted)]">{category}</p>
+                <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--fg-muted)]">{NAV_GROUP_KEY[category] ? t(NAV_GROUP_KEY[category]) : category}</p>
                 <div className="space-y-0.5">{mods.map((m) => renderModuleButton(m, flatOrder.indexOf(m)))}</div>
               </div>
             ))}

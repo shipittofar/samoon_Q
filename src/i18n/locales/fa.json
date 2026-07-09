@@ -2185,7 +2185,20 @@
     "templateCard": "کارتی",
     "templateStoryLeft": "روایت در چپ",
     "templateStoryRight": "روایت در راست",
-    "templateWide": "عریض"
+    "templateWide": "عریض",
+    "navGroupPlatform": "پلتفرم",
+    "navGroupUsers": "کاربران",
+    "navGroupBusinesses": "کسب‌وکارها",
+    "navGroupSubscriptions": "اشتراک‌ها",
+    "navGroupConfiguration": "پیکربندی",
+    "navGroupLocalization": "بومی‌سازی",
+    "navGroupSecurity": "امنیت",
+    "navGroupMonitoring": "پایش",
+    "navGroupInfrastructure": "زیرساخت",
+    "navGroupAutomation": "خودکارسازی",
+    "navGroupDeveloper": "توسعه‌دهنده",
+    "navGroupSupport": "پشتیبانی",
+    "navGroupSystem": "سیستم"
   },
   "configFields": {
     "authentication": {
@@ -2195,13 +2208,74 @@
         "title": "کلیدهای اصلی"
       },
       "otp": {
-        "title": "رمز یکبار مصرف"
+        "title": "رمز یکبار مصرف",
+        "enabled": {
+          "title": "ورود با رمز یک‌بارمصرف فعال"
+        },
+        "length": {
+          "title": "طول کد رمز یک‌بارمصرف"
+        },
+        "ttl_seconds": {
+          "title": "انقضای رمز یک‌بارمصرف (ثانیه)"
+        },
+        "resend_cooldown_seconds": {
+          "title": "زمان انتظار ارسال مجدد (ثانیه)"
+        },
+        "max_verify_attempts": {
+          "title": "حداکثر تلاش تأیید رمز یک‌بارمصرف",
+          "description": "متفاوت از حداکثر تلاش ورود (ورود با گذرواژه) — تعداد حدس‌ها برای یک کد صادرشده را محدود می‌کند."
+        }
       },
       "lockout": {
         "title": "تلاش‌های ورود و قفل حساب"
       },
       "demo": {
         "title": "نمایشی / شبیه‌سازی"
+      },
+      "group": "امنیت",
+      "enabled": {
+        "title": "احراز هویت فعال",
+        "description": "کلید خاموش‌کننده سراسری برای تمام نقاط ورود، ثبت‌نام و رمز یک‌بارمصرف."
+      },
+      "phone_login_enabled": {
+        "title": "ورود با شماره تلفن فعال",
+        "description": "تنظیمی متعلق به پلتفرم که فقط در سطح پلتفرم اعمال می‌شود؛ امکان بازنویسی در سطح مستأجر در طرح آماده است اما هنوز متصل نشده."
+      },
+      "email_login_enabled": {
+        "title": "ورود با ایمیل فعال",
+        "description": "به همان دلیل ورود با شماره تلفن، متعلق به پلتفرم است."
+      },
+      "guest_checkout_enabled": {
+        "title": "پرداخت مهمان فعال",
+        "description": "برای یکپارچه‌سازی آینده فرایند پرداخت ثبت شده — هنوز مصرف‌کننده‌ای در زمان اجرا ندارد."
+      },
+      "max_login_attempts": {
+        "title": "حداکثر تلاش ورود"
+      },
+      "lockout_duration_minutes": {
+        "title": "مدت قفل حساب (دقیقه)"
+      },
+      "registration_enabled": {
+        "title": "ثبت‌نام خودخدمت فعال"
+      },
+      "jwt_access_ttl_minutes": {
+        "title": "طول عمر توکن دسترسی (دقیقه)"
+      },
+      "jwt_refresh_ttl_days": {
+        "title": "طول عمر توکن تازه‌سازی (روز)",
+        "description": "طول عمر کوکی احراز هویت مرتبط را تعیین می‌کند."
+      },
+      "demo_login_enabled": {
+        "title": "ورود آزمایشی فعال",
+        "description": "تعیین می‌کند که آیا اعتبارنامه‌های آزمایشی شناخته‌شده برای ورود/تأیید رمز پذیرفته می‌شوند یا نه — متفاوت از فعال‌سازی احراز هویت آزمایشی."
+      },
+      "demo_accounts_visible": {
+        "title": "نمایش حساب‌های آزمایشی در رابط کاربری",
+        "description": "تعیین می‌کند که آیا شبکه حساب‌های آزمایشی تک‌کلیکی در صفحه ورود نمایش داده شود یا نه."
+      },
+      "mock_authentication_enabled": {
+        "title": "احراز هویت آزمایشی فعال",
+        "description": "کلید اصلی و قابل ممیزی برای کل شاخه سرویس احراز هویت آزمایشی."
       }
     },
     "languages": {
@@ -2221,7 +2295,8 @@
       "rtl_locales": {
         "title": "زبان‌های راست‌به‌چپ",
         "description": "زبان‌هایی که راست‌به‌چپ نمایش داده می‌شوند."
-      }
+      },
+      "group": "پیکربندی"
     },
     "platform": {
       "overview": {
@@ -2235,7 +2310,8 @@
         },
         "default_landing_widget_set": {
           "title": "مجموعه ابزارک پیش‌فرض داشبورد"
-        }
+        },
+        "group": "پلتفرم"
       },
       "maintenance_mode": {
         "name": "حالت تعمیر",
@@ -2251,7 +2327,8 @@
         },
         "allow_platform_admin_access": {
           "title": "اجازه دسترسی مدیر پلتفرم در حین تعمیر"
-        }
+        },
+        "group": "پلتفرم"
       },
       "system_status": {
         "name": "وضعیت سامانه",
@@ -2264,7 +2341,8 @@
         },
         "show_incident_history": {
           "title": "نمایش تاریخچه حوادث"
-        }
+        },
+        "group": "پلتفرم"
       },
       "users": {
         "name": "کاربران پلتفرم",
@@ -2275,8 +2353,1103 @@
         "registry": {
           "title": "کاربران پلتفرم",
           "description": "هر کاربر داخلی پلتفرم و نقش پلتفرمی او."
+        },
+        "group": "کاربران"
+      },
+      "languages": {
+        "name": "مدیریت زبان‌ها",
+        "description": "تمام زبان‌های پلتفرم — فعال‌سازی، تایپوگرافی، قالب‌بندی، زبان جایگزین و پوشش ترجمه.",
+        "group": "بومی‌سازی",
+        "registry": {
+          "title": "زبان‌ها"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "support_tickets": {
+        "name": "تیکت‌های پشتیبانی",
+        "description": "مسیریابی تیکت پشتیبانی و پیکربندی توافق‌نامه سطح خدمات.",
+        "group": "پشتیبانی",
+        "default_sla_hours": {
+          "title": "توافق‌نامه پیش‌فرض اولین پاسخ (ساعت)"
+        },
+        "auto_assign_enabled": {
+          "title": "تخصیص خودکار تیکت‌ها"
+        },
+        "escalation_threshold_hours": {
+          "title": "تشدید پس از (ساعت)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "tenants": {
+        "name": "مستأجران",
+        "description": "تمام کسب‌وکارهای فعال در پلتفرم، به‌همراه وضعیت، طرح و پرچم‌های بررسی داخلی.",
+        "group": "کسب‌وکارها",
+        "registry": {
+          "title": "مستأجران",
+          "description": "تمام کسب‌وکارهای مستأجر در پلتفرم."
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "business_owners": {
+        "name": "مالکان کسب‌وکار",
+        "description": "حساب مالک اصلی برای هر کسب‌وکار مستأجر.",
+        "group": "کسب‌وکارها",
+        "require_verified_email": {
+          "title": "الزام ایمیل تأییدشده"
+        },
+        "require_verified_phone": {
+          "title": "الزام شماره تلفن تأییدشده"
+        },
+        "max_owned_businesses": {
+          "title": "حداکثر کسب‌وکار برای هر مالک"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "branches": {
+        "name": "شعبه‌ها",
+        "description": "نمای سراسری پلتفرم از تمام شعبه‌ها/مکان‌های همه مستأجران.",
+        "group": "کسب‌وکارها",
+        "max_branches_per_tenant": {
+          "title": "حداکثر شعبه برای هر مستأجر"
+        },
+        "require_address_verification": {
+          "title": "الزام تأیید آدرس"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "plans": {
+        "name": "طرح‌ها",
+        "description": "طرح‌های قیمت‌گذاری در دسترس مستأجران (مقدماتی، رشد، سازمانی).",
+        "group": "اشتراک‌ها",
+        "trial_days": {
+          "title": "مدت آزمایشی پیش‌فرض (روز)"
+        },
+        "allow_plan_downgrade": {
+          "title": "اجازه کاهش رتبه خودخدمت"
+        },
+        "grace_period_days": {
+          "title": "دوره مهلت پرداخت (روز)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "billing": {
+        "name": "صورت‌حساب",
+        "description": "چرخه صورت‌حساب سراسری پلتفرم و پیکربندی پیگیری پرداخت.",
+        "group": "اشتراک‌ها",
+        "billing_cycle": {
+          "title": "چرخه صورت‌حساب پیش‌فرض"
+        },
+        "dunning_retry_attempts": {
+          "title": "تعداد تلاش مجدد پرداخت ناموفق"
+        },
+        "auto_suspend_on_failure": {
+          "title": "تعلیق خودکار پس از اتمام تلاش‌ها"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "invoices": {
+        "name": "فاکتورها",
+        "description": "پیکربندی صدور و شماره‌گذاری فاکتور.",
+        "group": "اشتراک‌ها",
+        "invoice_prefix": {
+          "title": "پیشوند شماره فاکتور"
+        },
+        "auto_send_on_issue": {
+          "title": "ارسال خودکار فاکتور هنگام صدور"
+        },
+        "include_tax_breakdown": {
+          "title": "افزودن ریز مالیات"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "queues": {
+        "name": "صف‌ها",
+        "description": "پیکربندی صف کارهای پس‌زمینه.",
+        "group": "خودکارسازی",
+        "max_queue_depth": {
+          "title": "حداکثر عمق صف"
+        },
+        "dead_letter_enabled": {
+          "title": "صف پیام‌های مرده فعال"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "jobs": {
+        "name": "کارها",
+        "description": "سیاست تلاش مجدد و زمان انتظار کارهای پس‌زمینه.",
+        "group": "خودکارسازی",
+        "max_retry_attempts": {
+          "title": "حداکثر تلاش مجدد"
+        },
+        "job_timeout_seconds": {
+          "title": "زمان انتظار کار (ثانیه)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "scheduler": {
+        "name": "زمان‌بند",
+        "description": "سیاست اجرای کارهای زمان‌بندی‌شده.",
+        "group": "خودکارسازی",
+        "scheduler_enabled": {
+          "title": "زمان‌بند فعال"
+        },
+        "misfire_grace_seconds": {
+          "title": "دوره مهلت اجرای دیرهنگام (ثانیه)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "email_providers": {
+        "name": "ارائه‌دهندگان ایمیل",
+        "description": "پیکربندی ارائه‌دهنده ایمیل تراکنشی و جایگزینی خودکار.",
+        "group": "خودکارسازی",
+        "primary_provider": {
+          "title": "ارائه‌دهنده اصلی"
+        },
+        "failover_enabled": {
+          "title": "جایگزینی خودکار"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "sms_providers": {
+        "name": "ارائه‌دهندگان پیامک",
+        "description": "پیکربندی ارائه‌دهنده ارسال پیامک/رمز یک‌بارمصرف و جایگزینی خودکار.",
+        "group": "خودکارسازی",
+        "primary_provider": {
+          "title": "ارائه‌دهنده اصلی"
+        },
+        "failover_enabled": {
+          "title": "جایگزینی خودکار"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "push_providers": {
+        "name": "ارائه‌دهندگان اعلان فوری",
+        "description": "پیکربندی ارائه‌دهنده ارسال اعلان فوری.",
+        "group": "خودکارسازی",
+        "provider": {
+          "title": "ارائه‌دهنده"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "oauth_providers": {
+        "name": "ارائه‌دهندگان OAuth",
+        "description": "ارائه‌دهندگان ورود OAuth شخص ثالث در دسترس مستأجران.",
+        "group": "خودکارسازی",
+        "google_enabled": {
+          "title": "گوگل"
+        },
+        "apple_enabled": {
+          "title": "اپل"
+        },
+        "facebook_enabled": {
+          "title": "فیس‌بوک"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "announcements": {
+        "name": "اعلامیه‌ها",
+        "description": "پیکربندی بنر اعلامیه سراسری پلتفرم.",
+        "group": "پلتفرم",
+        "banner_enabled": {
+          "title": "بنر اعلامیه فعال"
+        },
+        "banner_message": {
+          "title": "پیام بنر"
+        },
+        "banner_severity": {
+          "title": "شدت"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "media": {
+        "name": "رسانه",
+        "description": "محدودیت‌ها و پردازش رسانه بارگذاری‌شده.",
+        "group": "زیرساخت",
+        "max_upload_size_mb": {
+          "title": "حداکثر حجم بارگذاری (مگابایت)"
+        },
+        "auto_generate_thumbnails": {
+          "title": "ایجاد خودکار بندانگشتی"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "cdn": {
+        "name": "شبکه توزیع محتوا (CDN)",
+        "description": "سیاست کش لبه و پاک‌سازی CDN.",
+        "group": "زیرساخت",
+        "default_cache_ttl_seconds": {
+          "title": "عمر کش پیش‌فرض (ثانیه)"
+        },
+        "auto_purge_on_deploy": {
+          "title": "پاک‌سازی خودکار هنگام استقرار"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "cache": {
+        "name": "کش",
+        "description": "پیکربندی کش در سطح برنامه.",
+        "group": "زیرساخت",
+        "cache_provider": {
+          "title": "ارائه‌دهنده کش"
+        },
+        "default_ttl_seconds": {
+          "title": "عمر پیش‌فرض (ثانیه)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "backups": {
+        "name": "پشتیبان‌گیری‌ها",
+        "description": "زمان‌بندی و نگهداری پشتیبان‌گیری خودکار.",
+        "group": "زیرساخت",
+        "backup_frequency": {
+          "title": "دوره پشتیبان‌گیری"
+        },
+        "backup_retention_days": {
+          "title": "مدت نگهداری پشتیبان (روز)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "restore": {
+        "name": "بازیابی",
+        "description": "تدابیر ایمنی بازیابی از پشتیبان.",
+        "group": "زیرساخت",
+        "require_dual_approval": {
+          "title": "الزام تأیید دوگانه برای بازیابی"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "database": {
+        "name": "پایگاه داده",
+        "description": "استخر اتصال پایگاه داده و محدودیت‌های ایمنی پرس‌وجو.",
+        "group": "زیرساخت",
+        "max_connections": {
+          "title": "حداکثر اندازه استخر اتصال"
+        },
+        "slow_query_threshold_ms": {
+          "title": "آستانه پرس‌وجوی کند (میلی‌ثانیه)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "search_infra": {
+        "name": "جستجو",
+        "description": "پیکربندی نمایه جستجوی پلتفرم (متفاوت از پالت فرمان استودیو).",
+        "group": "زیرساخت",
+        "reindex_frequency_hours": {
+          "title": "دوره نمایه‌سازی مجدد (ساعت)"
+        },
+        "fuzzy_matching_enabled": {
+          "title": "تطبیق تقریبی فعال"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "metrics": {
+        "name": "معیارها",
+        "description": "جمع‌آوری و نگهداری معیارهای سراسری پلتفرم.",
+        "group": "پایش",
+        "metrics_retention_days": {
+          "title": "مدت نگهداری معیارها (روز)"
+        },
+        "sample_rate_percent": {
+          "title": "نرخ نمونه‌برداری (٪)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "health": {
+        "name": "سلامت",
+        "description": "پیکربندی و آستانه‌های بررسی سلامت سرویس.",
+        "group": "پایش",
+        "healthcheck_interval_seconds": {
+          "title": "فاصله بررسی سلامت (ثانیه)"
+        },
+        "degraded_latency_ms": {
+          "title": "آستانه تأخیر افت‌کیفیت (میلی‌ثانیه)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "incidents": {
+        "name": "حوادث",
+        "description": "سطوح شدت حادثه و سیاست تشدید.",
+        "group": "پایش",
+        "auto_page_on_sev1": {
+          "title": "اطلاع‌رسانی خودکار برای حوادث درجه یک"
+        },
+        "public_status_page_enabled": {
+          "title": "صفحه وضعیت عمومی فعال"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "errors": {
+        "name": "خطاها",
+        "description": "نرخ نمونه‌برداری ردیابی خطا و آستانه‌های هشدار.",
+        "group": "پایش",
+        "error_rate_alert_threshold": {
+          "title": "آستانه هشدار نرخ خطا (٪)"
+        },
+        "group_similar_errors": {
+          "title": "گروه‌بندی خطاهای مشابه"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "activity_logs": {
+        "name": "گزارش‌های فعالیت",
+        "description": "نگهداری و نمایش فید فعالیت کاربران در همه مستأجران.",
+        "group": "پایش",
+        "activity_log_retention_days": {
+          "title": "مدت نگهداری گزارش فعالیت (روز)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "analytics": {
+        "name": "تحلیل‌ها",
+        "description": "پیکربندی تجمیع تحلیل‌ها در همه مستأجران.",
+        "group": "پایش",
+        "aggregation_window": {
+          "title": "بازه تجمیع پیش‌فرض"
+        },
+        "include_churned_tenants": {
+          "title": "افزودن مستأجران خارج‌شده به تجمیع‌ها"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "audit_logs": {
+        "name": "گزارش‌های ممیزی پلتفرم",
+        "description": "ردپای ممیزی مدیریتی سراسری پلتفرم (بین‌مستأجری).",
+        "group": "پایش",
+        "audit_log_retention_days": {
+          "title": "مدت نگهداری گزارش ممیزی (روز)"
+        },
+        "require_reason_for_destructive_actions": {
+          "title": "الزام دلیل برای اقدامات مخرب"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "roles": {
+        "name": "نقش‌ها",
+        "description": "نقش‌های سطح پلتفرم (متفاوت از کنترل دسترسی مستأجر) و مجوزهای هر یک.",
+        "group": "امنیت",
+        "allow_custom_roles": {
+          "title": "اجازه نقش‌های سفارشی پلتفرم"
+        },
+        "require_approval_for_owner_grant": {
+          "title": "الزام تأیید برای اعطای نقش مالک"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "permissions": {
+        "name": "دسترسی‌ها",
+        "description": "کلیدهای دسترسی در دسترس نقش‌های پلتفرم.",
+        "group": "امنیت",
+        "strict_wildcard_grants": {
+          "title": "محدودسازی مجوز همه‌جانبه (*) به مالک"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "security_center": {
+        "name": "مرکز امنیت",
+        "description": "وضعیت امنیتی سراسری پلتفرم: ناهنجاری‌های ورود، فعالیت مشکوک و کنترل‌های قفل اضطراری.",
+        "group": "امنیت",
+        "anomaly_detection_enabled": {
+          "title": "تشخیص ناهنجاری ورود"
+        },
+        "auto_lock_on_anomaly": {
+          "title": "قفل خودکار حساب هنگام ناهنجاری"
+        },
+        "platform_lockdown_mode": {
+          "title": "حالت قفل اضطراری پلتفرم",
+          "description": "کلید اضطراری — دسترسی همه افراد به‌جز مالک به پلتفرم را مسدود می‌کند."
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "compliance": {
+        "name": "انطباق",
+        "description": "پیگیری وضعیت انطباق با SOC 2 / PCI و مقررات.",
+        "group": "امنیت",
+        "soc2_compliant": {
+          "title": "منطبق با SOC 2 نوع دوم"
+        },
+        "pci_dss_level": {
+          "title": "سطح PCI DSS"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "gdpr": {
+        "name": "مقررات حفاظت از داده عمومی (GDPR)",
+        "description": "رسیدگی به درخواست‌های صاحبان داده و سیاست نگهداری.",
+        "group": "امنیت",
+        "data_retention_days": {
+          "title": "مدت نگهداری پیش‌فرض داده (روز)"
+        },
+        "auto_fulfill_export_requests": {
+          "title": "انجام خودکار درخواست‌های خروجی داده"
+        },
+        "right_to_be_forgotten_enabled": {
+          "title": "حق فراموش شدن فعال"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "fraud": {
+        "name": "کلاهبرداری",
+        "description": "آستانه‌های تشخیص کلاهبرداری برای ثبت‌نام و پرداخت.",
+        "group": "امنیت",
+        "fraud_score_threshold": {
+          "title": "آستانه پرچم‌گذاری خودکار امتیاز کلاهبرداری"
+        },
+        "auto_suspend_high_risk": {
+          "title": "تعلیق خودکار ثبت‌نام‌های پرخطر"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "abuse": {
+        "name": "سوءاستفاده",
+        "description": "آستانه‌های صف گزارش سوءاستفاده و نظارت خودکار.",
+        "group": "امنیت",
+        "auto_moderate_reports": {
+          "title": "نظارت خودکار محتوای گزارش‌شده"
+        },
+        "reports_before_auto_review": {
+          "title": "تعداد گزارش قبل از بازبینی خودکار"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "rate_limits": {
+        "name": "محدودیت‌های نرخ",
+        "description": "محدودیت‌های نرخ پیش‌فرض API و احراز هویت در سراسر پلتفرم.",
+        "group": "امنیت",
+        "api_requests_per_minute": {
+          "title": "درخواست‌های API در دقیقه (به ازای هر کلید)"
+        },
+        "login_attempts_per_hour": {
+          "title": "تلاش‌های ورود در ساعت (به ازای هر IP)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "session_management": {
+        "name": "مدیریت نشست",
+        "description": "طول عمر نشست و سیاست همزمانی کارکنان پلتفرم.",
+        "group": "امنیت",
+        "session_timeout_minutes": {
+          "title": "زمان انقضای نشست (دقیقه)"
+        },
+        "max_concurrent_sessions": {
+          "title": "حداکثر نشست‌های همزمان هر کاربر"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "device_management": {
+        "name": "مدیریت دستگاه",
+        "description": "سیاست دستگاه‌های مورد اعتماد برای ورود کارکنان پلتفرم.",
+        "group": "امنیت",
+        "require_device_approval": {
+          "title": "الزام تأیید دستگاه جدید"
+        },
+        "max_trusted_devices": {
+          "title": "حداکثر دستگاه‌های مورد اعتماد هر کاربر"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "api_keys": {
+        "name": "کلیدهای API",
+        "description": "سیاست صدور کلید API برای پلتفرم و مستأجران.",
+        "group": "توسعه‌دهنده",
+        "max_keys_per_tenant": {
+          "title": "حداکثر کلید API هر مستأجر"
+        },
+        "default_key_expiry_days": {
+          "title": "انقضای پیش‌فرض کلید (روز، ۰ = هرگز)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "webhooks": {
+        "name": "وب‌هوک‌ها",
+        "description": "سیاست ارسال و تلاش مجدد وب‌هوک خروجی.",
+        "group": "توسعه‌دهنده",
+        "max_endpoints_per_tenant": {
+          "title": "حداکثر نقاط پایانی وب‌هوک هر مستأجر"
+        },
+        "retry_backoff_seconds": {
+          "title": "فاصله تلاش مجدد (ثانیه)"
+        },
+        "sign_payloads": {
+          "title": "امضای محموله‌های وب‌هوک"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "integrations": {
+        "name": "یکپارچه‌سازی‌ها",
+        "description": "یکپارچه‌سازی‌های شخص ثالث در دسترس مستأجران.",
+        "group": "توسعه‌دهنده",
+        "allow_custom_integrations": {
+          "title": "اجازه یکپارچه‌سازی سفارشی"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "marketplace": {
+        "name": "بازارچه",
+        "description": "سیاست فهرست‌بندی برنامه‌های بازارچه شخص ثالث.",
+        "group": "توسعه‌دهنده",
+        "marketplace_enabled": {
+          "title": "بازارچه فعال"
+        },
+        "require_review_before_listing": {
+          "title": "الزام بازبینی قبل از فهرست‌بندی"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "plugins": {
+        "name": "افزونه‌ها",
+        "description": "سیاست نصب افزونه‌های پلتفرم.",
+        "group": "توسعه‌دهنده",
+        "plugins_enabled": {
+          "title": "افزونه‌ها فعال"
+        },
+        "sandbox_untrusted_plugins": {
+          "title": "اجرای افزونه‌های نامعتبر در محیط ایزوله"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "ai_providers": {
+        "name": "ارائه‌دهندگان هوش مصنوعی",
+        "description": "پیکربندی ارائه‌دهنده هوش مصنوعی/مدل زبانی برای ویژگی‌های مبتنی بر پلتفرم.",
+        "group": "توسعه‌دهنده",
+        "primary_provider": {
+          "title": "ارائه‌دهنده اصلی"
+        },
+        "monthly_token_budget": {
+          "title": "بودجه ماهانه توکن"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "developer_tools": {
+        "name": "ابزارهای توسعه‌دهنده",
+        "description": "دسترسی ابزارهای داخلی توسعه‌دهنده (پنل‌های اشکال‌زدایی، بازرس پرس‌وجو).",
+        "group": "توسعه‌دهنده",
+        "debug_mode_enabled": {
+          "title": "حالت اشکال‌زدایی فعال"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "environment": {
+        "name": "محیط",
+        "description": "شناسایی و تدابیر ایمنی محیط استقرار.",
+        "group": "توسعه‌دهنده",
+        "environment_name": {
+          "title": "نام محیط"
+        },
+        "protect_production_writes": {
+          "title": "تأیید اضافی برای نوشتن در محیط تولید"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "secrets": {
+        "name": "اسرار",
+        "description": "سیاست چرخش اسرار — مقادیر واقعی اسرار هرگز در پیکربندی ذخیره نمی‌شوند.",
+        "group": "توسعه‌دهنده",
+        "rotation_period_days": {
+          "title": "دوره چرخش اسرار (روز)"
+        },
+        "alert_before_expiry_days": {
+          "title": "هشدار قبل از انقضا (روز)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "licenses": {
+        "name": "مجوزها",
+        "description": "پیگیری مجوزهای نرم‌افزار شخص ثالث.",
+        "group": "توسعه‌دهنده",
+        "license_audit_enabled": {
+          "title": "ممیزی انطباق مجوز فعال"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "version_management": {
+        "name": "مدیریت نسخه",
+        "description": "بازه پشتیبانی نسخه API/طرح.",
+        "group": "توسعه‌دهنده",
+        "supported_api_versions": {
+          "title": "نسخه‌های API پشتیبانی‌شده"
+        },
+        "deprecation_notice_days": {
+          "title": "دوره اطلاع‌رسانی منسوخ‌شدن (روز)"
+        },
+        "general": {
+          "title": "عمومی"
+        }
+      },
+      "migration_center": {
+        "name": "مرکز مهاجرت",
+        "description": "تدابیر ایمنی کارهای مهاجرت داده.",
+        "group": "توسعه‌دهنده",
+        "require_dry_run": {
+          "title": "الزام اجرای آزمایشی پیش از اجرای واقعی"
+        },
+        "auto_backup_before_migration": {
+          "title": "پشتیبان‌گیری خودکار قبل از مهاجرت"
+        },
+        "general": {
+          "title": "عمومی"
         }
       }
+    },
+    "api": {
+      "name": "رابط برنامه‌نویسی (API)",
+      "description": "نسخه‌بندی API عمومی، فهرست مجاز CORS و سیاست ارسال webhook.",
+      "group": "توسعه‌دهنده",
+      "access": {
+        "title": "دسترسی"
+      },
+      "current_version": {
+        "title": "نسخه فعلی API"
+      },
+      "cors_allowed_origins": {
+        "title": "مبداهای مجاز CORS"
+      },
+      "webhook_retry_attempts": {
+        "title": "تعداد تلاش مجدد Webhook"
+      },
+      "public_api_enabled": {
+        "title": "API عمومی فعال"
+      }
+    },
+    "countries": {
+      "name": "کشورها",
+      "description": "مجموعه کشورهای موجود در فرم‌های ثبت‌نام، پرداخت و انتخاب زبان، به‌همراه پیکربندی هر کشور.",
+      "group": "پیکربندی",
+      "availability": {
+        "title": "در دسترس بودن"
+      },
+      "enabled_codes": {
+        "title": "کشورهای فعال",
+        "description": "کدهای ISO 3166-1 دو حرفی در دسترس در کل پلتفرم."
+      },
+      "pinned_codes": {
+        "title": "کشورهای سنجاق‌شده",
+        "description": "کدهای سنجاق‌شده در بالای فهرست انتخاب کشور، به ترتیب نمایش."
+      },
+      "default_code": {
+        "title": "کشور پیش‌فرض",
+        "description": "کشوری که در نبود سرنخ مشخص، از پیش انتخاب می‌شود."
+      },
+      "registry": {
+        "title": "مدیریت کشورها",
+        "description": "پیکربندی هر کشور — فعال‌سازی، امکانات، ارز، زبان و وضعیت حاکمیتی برای ۱۷۶ کشور."
+      }
+    },
+    "feature_flags": {
+      "name": "پرچم‌های ویژگی",
+      "description": "کلیدهای انتشار سطح پلتفرم که کل قابلیت‌ها را پیش از فعال‌سازی توسط مستأجران کنترل می‌کنند.",
+      "group": "پیکربندی",
+      "platform": {
+        "title": "قابلیت‌های پلتفرم"
+      },
+      "website_builder": {
+        "title": "سازنده وب‌سایت"
+      },
+      "ai_assistant": {
+        "title": "دستیار هوش مصنوعی",
+        "description": "کلید اصلی ویژگی‌های مبتنی بر هوش مصنوعی (متن منو، پاسخ به نظرات، بینش‌ها)."
+      },
+      "billing_self_serve": {
+        "title": "صورت‌حساب خودخدمت"
+      },
+      "rbac_custom_roles": {
+        "title": "نقش‌های سفارشی کنترل دسترسی"
+      }
+    },
+    "monitoring": {
+      "name": "پایش",
+      "description": "ردیابی خطا، آستانه‌های زمان کارکرد و مسیریابی هشدارها.",
+      "group": "پایش",
+      "thresholds": {
+        "title": "آستانه‌ها"
+      },
+      "sentry_enabled": {
+        "title": "ردیابی خطا فعال"
+      },
+      "error_rate_alert_threshold_percent": {
+        "title": "آستانه هشدار نرخ خطا (٪)"
+      },
+      "api_latency_alert_ms": {
+        "title": "آستانه هشدار تأخیر API (میلی‌ثانیه)"
+      },
+      "alert_channels": {
+        "title": "کانال‌های هشدار"
+      }
+    },
+    "notifications": {
+      "name": "اعلان‌ها",
+      "description": "ارائه‌دهندگان ارسال و سیاست پیش‌فرض کانال برای اعلان‌های پلتفرم.",
+      "group": "خودکارسازی",
+      "providers": {
+        "title": "ارائه‌دهندگان"
+      },
+      "email_provider": {
+        "title": "ارائه‌دهنده ایمیل"
+      },
+      "sms_provider": {
+        "title": "ارائه‌دهنده پیامک"
+      },
+      "push_enabled": {
+        "title": "اعلان‌های فوری فعال"
+      },
+      "default_channels": {
+        "title": "کانال‌های پیش‌فرض",
+        "description": "کانال‌هایی که برای کاربر جدید پیش از اعمال تنظیمات شخصی، به‌طور پیش‌فرض فعال هستند."
+      }
+    },
+    "payments": {
+      "name": "پرداخت‌ها",
+      "description": "ارائه‌دهندگان پرداخت فعال، ارز پیش‌فرض و سیاست کارمزد پردازش.",
+      "group": "اشتراک‌ها",
+      "providers": {
+        "title": "ارائه‌دهندگان"
+      },
+      "enabled_providers": {
+        "title": "ارائه‌دهندگان فعال"
+      },
+      "stripe_publishable_key": {
+        "title": "کلید عمومی استرایپ"
+      },
+      "stripe_secret_key": {
+        "title": "کلید محرمانه استرایپ"
+      },
+      "default_currency": {
+        "title": "ارز پیش‌فرض"
+      },
+      "platform_fee_percent": {
+        "title": "کارمزد پلتفرم (٪)"
+      }
+    },
+    "rbac": {
+      "name": "کنترل دسترسی مبتنی بر نقش",
+      "description": "محدودیت نقش‌های سفارشی و نقش پیش‌فرض تخصیص‌یافته به کارکنان تازه‌دعوت‌شده.",
+      "group": "امنیت",
+      "roles": {
+        "title": "نقش‌ها"
+      },
+      "max_custom_roles_per_tenant": {
+        "title": "حداکثر نقش‌های سفارشی هر مستأجر"
+      },
+      "default_invite_role": {
+        "title": "نقش پیش‌فرض دعوت"
+      },
+      "require_mfa_for_admin": {
+        "title": "الزام احراز هویت دومرحله‌ای برای نقش مدیر"
+      }
+    },
+    "storage": {
+      "name": "فضای ذخیره‌سازی",
+      "description": "ارائه‌دهنده ذخیره‌سازی رسانه، محدودیت‌های بارگذاری و رفتار CDN.",
+      "group": "زیرساخت",
+      "provider": {
+        "title": "ارائه‌دهنده ذخیره‌سازی"
+      },
+      "max_upload_mb": {
+        "title": "حداکثر حجم بارگذاری (مگابایت)"
+      },
+      "allowed_mime_types": {
+        "title": "انواع فایل مجاز"
+      },
+      "cdn_base_url": {
+        "title": "آدرس پایه CDN"
+      }
+    },
+    "subscriptions": {
+      "name": "اشتراک‌ها",
+      "description": "طرح‌های صورت‌حساب، مدت آزمایشی و سیاست دوره مهلت برای اشتراک مستأجران.",
+      "group": "اشتراک‌ها",
+      "plans": {
+        "title": "طرح‌ها"
+      },
+      "plans_catalog": {
+        "title": "فهرست طرح‌ها",
+        "description": "طرح‌های تعریف‌شده توسط پلتفرم که مستأجران می‌توانند در آن‌ها مشترک شوند."
+      },
+      "default_plan_id": {
+        "title": "طرح پیش‌فرض"
+      },
+      "trial_days": {
+        "title": "مدت آزمایشی (روز)"
+      },
+      "grace_period_days": {
+        "title": "دوره مهلت پرداخت (روز)",
+        "description": "تعداد روزهایی که مستأجر پس از شکست در پرداخت، همچنان دسترسی دارد."
+      }
+    },
+    "system": {
+      "name": "سیستم",
+      "description": "حالت تعمیر و نگهداری، محدودیت‌های نرخ سراسری و سیاست نگهداری داده.",
+      "group": "سیستم",
+      "operations": {
+        "title": "عملیات"
+      },
+      "maintenance_mode": {
+        "title": "حالت تعمیر و نگهداری"
+      },
+      "api_rate_limit_per_minute": {
+        "title": "محدودیت نرخ API (درخواست/دقیقه)"
+      },
+      "audit_log_retention_days": {
+        "title": "مدت نگهداری گزارش ممیزی (روز)"
+      },
+      "default_business_type": {
+        "title": "نوع کسب‌وکار پیش‌فرض",
+        "description": "نوع کسب‌وکاری که در زمان راه‌اندازی مستأجر از پیش انتخاب می‌شود."
+      }
+    },
+    "themes": {
+      "name": "پوسته‌ها",
+      "description": "پالت پیش‌فرض برند و متغیرهای CSS که مستأجران مجاز به بازنویسی آن‌ها هستند.",
+      "group": "پیکربندی",
+      "palette": {
+        "title": "پالت رنگی"
+      },
+      "default_mode": {
+        "title": "حالت رنگی پیش‌فرض"
+      },
+      "primary_color": {
+        "title": "رنگ اصلی",
+        "description": "رنگ تأکیدی را بازنویسی می‌کند. مستأجران می‌توانند آن را سفارشی کنند؛ شعبه‌ها مقدار مستأجر را به ارث می‌برند."
+      },
+      "accent_hover_color": {
+        "title": "رنگ تأکیدی هنگام هاور",
+        "description": "رنگ تأکیدی هنگام هاور را بازنویسی می‌کند. به‌طور پیش‌فرض سایه تیره‌تری از رنگ اصلی است."
+      },
+      "logo_url": {
+        "title": "آدرس لوگو"
+      }
+    },
+    "typography": {
+      "name": "تایپوگرافی",
+      "description": "مجموعه فونت پیش‌فرض پلتفرم و بازنویسی فونت به ازای هر مستأجر.",
+      "group": "پیکربندی",
+      "fonts": {
+        "title": "فونت‌ها"
+      },
+      "body_font": {
+        "title": "فونت متن",
+        "description": "خانواده فونت پیش‌فرض برای متن اصلی، قابل بازنویسی به ازای هر مستأجر."
+      },
+      "heading_font": {
+        "title": "فونت عنوان",
+        "description": "خانواده فونت پیش‌فرض برای عناوین، قابل بازنویسی به ازای هر مستأجر."
+      },
+      "rtl_font": {
+        "title": "فونت راست‌به‌چپ",
+        "description": "خانواده فونتی که هنگام نمایش راست‌به‌چپ زبان فعال استفاده می‌شود."
+      },
+      "base_size_px": {
+        "title": "اندازه فونت پایه (پیکسل)"
+      }
+    },
+    "website_builder": {
+      "name": "سازنده وب‌سایت",
+      "description": "کتابخانه بلوک پیش‌فرض، قوانین انتشار و محدودیت بخش‌ها برای سازنده وب‌سایت مستأجر.",
+      "group": "پیکربندی",
+      "defaults": {
+        "title": "پیش‌فرض‌ها"
+      },
+      "enabled_blocks": {
+        "title": "بلوک‌های فعال"
+      },
+      "max_sections": {
+        "title": "حداکثر بخش‌ها در هر صفحه"
+      },
+      "custom_domain_enabled": {
+        "title": "دامنه سفارشی فعال"
+      }
+    },
+    "active_businesses": {
+      "title": "کسب‌وکارهای فعال"
+    },
+    "online_users": {
+      "title": "کاربران آنلاین"
+    },
+    "orders_today": {
+      "title": "سفارش‌های امروز"
+    },
+    "reservations_today": {
+      "title": "رزروهای امروز"
+    },
+    "revenue_today": {
+      "title": "درآمد امروز"
+    },
+    "mrr": {
+      "title": "درآمد ماهانه تکرارشونده"
+    },
+    "arr": {
+      "title": "درآمد سالانه تکرارشونده"
+    },
+    "failed_payments": {
+      "title": "پرداخت‌های ناموفق"
+    },
+    "new_signups": {
+      "title": "ثبت‌نام‌های جدید"
+    },
+    "server_health": {
+      "title": "سلامت سرور"
+    },
+    "error_rate": {
+      "title": "نرخ خطا"
+    },
+    "queue_status": {
+      "title": "وضعیت صف"
+    },
+    "background_jobs": {
+      "title": "کارهای پس‌زمینه"
+    },
+    "platform_alerts": {
+      "title": "هشدارهای پلتفرم"
+    },
+    "feature_rollouts": {
+      "title": "انتشار ویژگی‌ها"
+    },
+    "abuse_reports": {
+      "title": "گزارش‌های سوءاستفاده"
+    },
+    "api_usage": {
+      "title": "مصرف API"
+    },
+    "top_countries": {
+      "title": "برترین کشورها"
+    },
+    "top_businesses": {
+      "title": "برترین کسب‌وکارها"
+    },
+    "storage_usage": {
+      "title": "مصرف فضای ذخیره‌سازی"
+    },
+    "email_success_rate": {
+      "title": "نرخ موفقیت ایمیل"
+    },
+    "sms_success_rate": {
+      "title": "نرخ موفقیت پیامک"
+    },
+    "push_delivery": {
+      "title": "تحویل اعلان فوری"
+    },
+    "operational_languages": {
+      "title": "زبان‌های عملیاتی"
+    },
+    "avg_translation_coverage": {
+      "title": "میانگین پوشش ترجمه"
+    },
+    "human_reviewed_languages": {
+      "title": "زبان‌های بازبینی‌شده انسانی"
+    },
+    "lowest_coverage_languages": {
+      "title": "کمترین پوشش (فعال)"
+    },
+    "translation_quality_issues": {
+      "title": "مشکلات کیفیت ترجمه"
+    },
+    "missing_translation_keys": {
+      "title": "کلیدهای ترجمه گمشده"
+    },
+    "broken_icu_placeholder_keys": {
+      "title": "کلیدهای ICU/جای‌نگهدار خراب"
+    },
+    "locale_bundle_sizes": {
+      "title": "اندازه بسته‌های زبانی"
     }
   },
   "platform": {

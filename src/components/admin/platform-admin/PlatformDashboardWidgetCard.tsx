@@ -8,9 +8,11 @@
  * text itself always stays neutral ink, per the dataviz skill's "text
  * wears text tokens, never the series color" rule.
  */
+import { useTranslations } from 'next-intl'
 import { TrendingDown, TrendingUp } from 'lucide-react'
 import type { PlatformWidgetDefinition, PlatformWidgetValue } from '@/platform-admin/dashboard'
 import { resolvePlatformAdminIcon } from '@/platform-admin/icon-map'
+import { resolveConfigText } from '@/config'
 
 const STATUS_DOT: Record<'operational' | 'degraded' | 'down', string> = {
   operational: 'bg-emerald-500',
@@ -32,14 +34,16 @@ function formatStatValue(value: PlatformWidgetValue & { kind: 'stat' }): string 
 }
 
 export function PlatformDashboardWidgetCard({ widget }: { widget: PlatformWidgetDefinition }) {
+  const tFields = useTranslations('configFields')
   const value = widget.compute()
   const Icon = resolvePlatformAdminIcon(widget.icon)
+  const title = resolveConfigText(tFields, widget.id, 'title', widget.title)
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4" data-widget-id={widget.id}>
       <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)]">
         <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-        <span>{widget.title}</span>
+        <span>{title}</span>
       </div>
 
       {value.kind === 'stat' && (

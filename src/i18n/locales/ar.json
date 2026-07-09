@@ -2185,7 +2185,20 @@
     "templateCard": "بطاقة",
     "templateStoryLeft": "القصة يسار",
     "templateStoryRight": "القصة يمين",
-    "templateWide": "عريض"
+    "templateWide": "عريض",
+    "navGroupPlatform": "المنصة",
+    "navGroupUsers": "المستخدمون",
+    "navGroupBusinesses": "الأعمال",
+    "navGroupSubscriptions": "الاشتراكات",
+    "navGroupConfiguration": "الإعدادات",
+    "navGroupLocalization": "التوطين",
+    "navGroupSecurity": "الأمان",
+    "navGroupMonitoring": "المراقبة",
+    "navGroupInfrastructure": "البنية التحتية",
+    "navGroupAutomation": "الأتمتة",
+    "navGroupDeveloper": "المطورون",
+    "navGroupSupport": "الدعم",
+    "navGroupSystem": "النظام"
   },
   "configFields": {
     "authentication": {
@@ -2195,13 +2208,74 @@
         "title": "التبديلات الأساسية"
       },
       "otp": {
-        "title": "رمز التحقق"
+        "title": "رمز التحقق",
+        "enabled": {
+          "title": "تفعيل تسجيل الدخول برمز التحقق"
+        },
+        "length": {
+          "title": "طول رمز التحقق"
+        },
+        "ttl_seconds": {
+          "title": "مدة صلاحية رمز التحقق (بالثواني)"
+        },
+        "resend_cooldown_seconds": {
+          "title": "مهلة إعادة الإرسال (بالثواني)"
+        },
+        "max_verify_attempts": {
+          "title": "الحد الأقصى لمحاولات التحقق من الرمز",
+          "description": "يختلف عن الحد الأقصى لمحاولات تسجيل الدخول (بكلمة المرور) — يحدّ من المحاولات على رمز تحقق واحد صادر."
+        }
       },
       "lockout": {
         "title": "محاولات الدخول والقفل"
       },
       "demo": {
         "title": "تجريبي / محاكاة"
+      },
+      "group": "الأمان",
+      "enabled": {
+        "title": "تفعيل المصادقة",
+        "description": "مفتاح إيقاف على مستوى المنصة لجميع نقاط تسجيل الدخول والتسجيل ورمز التحقق."
+      },
+      "phone_login_enabled": {
+        "title": "تفعيل تسجيل الدخول بالهاتف",
+        "description": "إعداد خاص بالمنصة يُطبَّق على مستوى المنصة فقط؛ إمكانية التخصيص على مستوى المستأجر جاهزة في المخطط لكن لم تُفعَّل بعد."
+      },
+      "email_login_enabled": {
+        "title": "تفعيل تسجيل الدخول بالبريد الإلكتروني",
+        "description": "خاص بالمنصة لنفس سبب تسجيل الدخول بالهاتف."
+      },
+      "guest_checkout_enabled": {
+        "title": "تفعيل الدفع كضيف",
+        "description": "مسجّل لتكامل مستقبلي مع تدفق الدفع — لا يوجد مستهلك فعلي بعد."
+      },
+      "max_login_attempts": {
+        "title": "الحد الأقصى لمحاولات تسجيل الدخول"
+      },
+      "lockout_duration_minutes": {
+        "title": "مدة القفل (بالدقائق)"
+      },
+      "registration_enabled": {
+        "title": "تفعيل التسجيل الذاتي"
+      },
+      "jwt_access_ttl_minutes": {
+        "title": "مدة صلاحية رمز الوصول (بالدقائق)"
+      },
+      "jwt_refresh_ttl_days": {
+        "title": "مدة صلاحية رمز التحديث (بالأيام)",
+        "description": "يحدد العمر الأقصى لملف تعريف ارتباط المصادقة المطابق."
+      },
+      "demo_login_enabled": {
+        "title": "تفعيل تسجيل الدخول التجريبي",
+        "description": "يحدد ما إذا كانت بيانات الاعتماد التجريبية المعروفة مقبولة لتسجيل الدخول/التحقق — يختلف عن تفعيل المصادقة الوهمية."
+      },
+      "demo_accounts_visible": {
+        "title": "إظهار الحسابات التجريبية في الواجهة",
+        "description": "يحدد ما إذا كانت شبكة الحسابات التجريبية بنقرة واحدة تظهر في صفحة تسجيل الدخول."
+      },
+      "mock_authentication_enabled": {
+        "title": "تفعيل المصادقة الوهمية",
+        "description": "مفتاح رئيسي قابل للتدقيق لكامل فرع خدمة المصادقة الوهمية."
       }
     },
     "languages": {
@@ -2221,7 +2295,8 @@
       "rtl_locales": {
         "title": "لغات من اليمين لليسار",
         "description": "اللغات المعروضة من اليمين إلى اليسار."
-      }
+      },
+      "group": "الإعدادات"
     },
     "platform": {
       "overview": {
@@ -2235,7 +2310,8 @@
         },
         "default_landing_widget_set": {
           "title": "مجموعة أدوات لوحة التحكم الافتراضية"
-        }
+        },
+        "group": "المنصة"
       },
       "maintenance_mode": {
         "name": "وضع الصيانة",
@@ -2251,7 +2327,8 @@
         },
         "allow_platform_admin_access": {
           "title": "السماح بوصول مدير المنصة أثناء الصيانة"
-        }
+        },
+        "group": "المنصة"
       },
       "system_status": {
         "name": "حالة النظام",
@@ -2264,7 +2341,8 @@
         },
         "show_incident_history": {
           "title": "إظهار سجل الحوادث"
-        }
+        },
+        "group": "المنصة"
       },
       "users": {
         "name": "مستخدمو المنصة",
@@ -2275,8 +2353,1103 @@
         "registry": {
           "title": "مستخدمو المنصة",
           "description": "كل مستخدم داخلي في المنصة ودوره على مستوى المنصة."
+        },
+        "group": "المستخدمون"
+      },
+      "languages": {
+        "name": "إدارة اللغات",
+        "description": "جميع لغات المنصة — التفعيل والطباعة والتنسيق واللغة الاحتياطية وتغطية الترجمة.",
+        "group": "التوطين",
+        "registry": {
+          "title": "اللغات"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "support_tickets": {
+        "name": "تذاكر الدعم",
+        "description": "توجيه تذاكر الدعم وإعدادات اتفاقية مستوى الخدمة.",
+        "group": "الدعم",
+        "default_sla_hours": {
+          "title": "اتفاقية الرد الأول الافتراضية (ساعات)"
+        },
+        "auto_assign_enabled": {
+          "title": "تعيين التذاكر تلقائيًا"
+        },
+        "escalation_threshold_hours": {
+          "title": "التصعيد بعد (ساعات)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "tenants": {
+        "name": "المستأجرون",
+        "description": "جميع الأنشطة التجارية العاملة على المنصة، مع الحالة والخطة وعلامات المراجعة الداخلية.",
+        "group": "الأعمال",
+        "registry": {
+          "title": "المستأجرون",
+          "description": "جميع الأنشطة التجارية للمستأجرين على المنصة."
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "business_owners": {
+        "name": "أصحاب الأعمال",
+        "description": "حساب المالك الرئيسي لكل نشاط تجاري للمستأجر.",
+        "group": "الأعمال",
+        "require_verified_email": {
+          "title": "طلب بريد إلكتروني موثق"
+        },
+        "require_verified_phone": {
+          "title": "طلب هاتف موثق"
+        },
+        "max_owned_businesses": {
+          "title": "الحد الأقصى للأعمال لكل مالك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "branches": {
+        "name": "الفروع",
+        "description": "عرض شامل على مستوى المنصة لجميع الفروع/المواقع عبر جميع المستأجرين.",
+        "group": "الأعمال",
+        "max_branches_per_tenant": {
+          "title": "الحد الأقصى للفروع لكل مستأجر"
+        },
+        "require_address_verification": {
+          "title": "طلب التحقق من العنوان"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "plans": {
+        "name": "الخطط",
+        "description": "خطط التسعير المتاحة للمستأجرين (مبتدئ، نمو، مؤسسات).",
+        "group": "الاشتراكات",
+        "trial_days": {
+          "title": "مدة التجربة الافتراضية (بالأيام)"
+        },
+        "allow_plan_downgrade": {
+          "title": "السماح بالتخفيض الذاتي"
+        },
+        "grace_period_days": {
+          "title": "فترة سماح الدفع (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "billing": {
+        "name": "الفوترة",
+        "description": "دورة الفوترة على مستوى المنصة وإعدادات متابعة المدفوعات المتأخرة.",
+        "group": "الاشتراكات",
+        "billing_cycle": {
+          "title": "دورة الفوترة الافتراضية"
+        },
+        "dunning_retry_attempts": {
+          "title": "محاولات إعادة الدفع الفاشل"
+        },
+        "auto_suspend_on_failure": {
+          "title": "التعليق التلقائي بعد استنفاد المحاولات"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "invoices": {
+        "name": "الفواتير",
+        "description": "إعدادات إصدار الفواتير وترقيمها.",
+        "group": "الاشتراكات",
+        "invoice_prefix": {
+          "title": "بادئة رقم الفاتورة"
+        },
+        "auto_send_on_issue": {
+          "title": "إرسال الفاتورة تلقائيًا عند الإصدار"
+        },
+        "include_tax_breakdown": {
+          "title": "تضمين تفاصيل الضريبة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "queues": {
+        "name": "قوائم الانتظار",
+        "description": "إعدادات قائمة انتظار المهام الخلفية.",
+        "group": "الأتمتة",
+        "max_queue_depth": {
+          "title": "الحد الأقصى لعمق قائمة الانتظار"
+        },
+        "dead_letter_enabled": {
+          "title": "تفعيل قائمة الرسائل الميتة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "jobs": {
+        "name": "المهام",
+        "description": "سياسة إعادة المحاولة والمهلة للمهام الخلفية.",
+        "group": "الأتمتة",
+        "max_retry_attempts": {
+          "title": "الحد الأقصى لمحاولات الإعادة"
+        },
+        "job_timeout_seconds": {
+          "title": "مهلة المهمة (بالثواني)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "scheduler": {
+        "name": "المجدول",
+        "description": "سياسة تنفيذ المهام المجدولة.",
+        "group": "الأتمتة",
+        "scheduler_enabled": {
+          "title": "تفعيل المجدول"
+        },
+        "misfire_grace_seconds": {
+          "title": "فترة سماح التأخير (بالثواني)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "email_providers": {
+        "name": "مزودو البريد الإلكتروني",
+        "description": "إعدادات مزود البريد الإلكتروني التبادلي والتبديل الاحتياطي.",
+        "group": "الأتمتة",
+        "primary_provider": {
+          "title": "المزود الرئيسي"
+        },
+        "failover_enabled": {
+          "title": "التبديل التلقائي عند الفشل"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "sms_providers": {
+        "name": "مزودو الرسائل النصية",
+        "description": "إعدادات مزود تسليم الرسائل النصية/رمز التحقق والتبديل الاحتياطي.",
+        "group": "الأتمتة",
+        "primary_provider": {
+          "title": "المزود الرئيسي"
+        },
+        "failover_enabled": {
+          "title": "التبديل التلقائي عند الفشل"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "push_providers": {
+        "name": "مزودو الإشعارات الفورية",
+        "description": "إعدادات مزود تسليم الإشعارات الفورية.",
+        "group": "الأتمتة",
+        "provider": {
+          "title": "المزود"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "oauth_providers": {
+        "name": "مزودو OAuth",
+        "description": "مزودو تسجيل الدخول عبر OAuth من جهات خارجية المتاحون للمستأجرين.",
+        "group": "الأتمتة",
+        "google_enabled": {
+          "title": "غوغل"
+        },
+        "apple_enabled": {
+          "title": "آبل"
+        },
+        "facebook_enabled": {
+          "title": "فيسبوك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "announcements": {
+        "name": "الإعلانات",
+        "description": "إعدادات لافتة الإعلانات على مستوى المنصة.",
+        "group": "المنصة",
+        "banner_enabled": {
+          "title": "تفعيل لافتة الإعلان"
+        },
+        "banner_message": {
+          "title": "رسالة اللافتة"
+        },
+        "banner_severity": {
+          "title": "الخطورة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "media": {
+        "name": "الوسائط",
+        "description": "حدود ومعالجة الوسائط المرفوعة.",
+        "group": "البنية التحتية",
+        "max_upload_size_mb": {
+          "title": "الحد الأقصى لحجم الرفع (ميغابايت)"
+        },
+        "auto_generate_thumbnails": {
+          "title": "إنشاء صور مصغرة تلقائيًا"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "cdn": {
+        "name": "شبكة توصيل المحتوى",
+        "description": "سياسة التخزين المؤقت الطرفي والمسح لشبكة CDN.",
+        "group": "البنية التحتية",
+        "default_cache_ttl_seconds": {
+          "title": "مدة التخزين المؤقت الافتراضية (بالثواني)"
+        },
+        "auto_purge_on_deploy": {
+          "title": "المسح التلقائي عند النشر"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "cache": {
+        "name": "التخزين المؤقت",
+        "description": "إعدادات التخزين المؤقت على مستوى التطبيق.",
+        "group": "البنية التحتية",
+        "cache_provider": {
+          "title": "مزود التخزين المؤقت"
+        },
+        "default_ttl_seconds": {
+          "title": "المدة الافتراضية (بالثواني)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "backups": {
+        "name": "النسخ الاحتياطية",
+        "description": "جدولة النسخ الاحتياطي التلقائي والاحتفاظ به.",
+        "group": "البنية التحتية",
+        "backup_frequency": {
+          "title": "تكرار النسخ الاحتياطي"
+        },
+        "backup_retention_days": {
+          "title": "مدة الاحتفاظ بالنسخ الاحتياطية (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "restore": {
+        "name": "الاستعادة",
+        "description": "ضمانات الاستعادة من النسخة الاحتياطية.",
+        "group": "البنية التحتية",
+        "require_dual_approval": {
+          "title": "طلب موافقة مزدوجة للاستعادة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "database": {
+        "name": "قاعدة البيانات",
+        "description": "تجمع اتصالات قاعدة البيانات وحدود أمان الاستعلامات.",
+        "group": "البنية التحتية",
+        "max_connections": {
+          "title": "الحد الأقصى لحجم تجمع الاتصالات"
+        },
+        "slow_query_threshold_ms": {
+          "title": "حد الاستعلام البطيء (مللي ثانية)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "search_infra": {
+        "name": "البحث",
+        "description": "إعدادات فهرس البحث في المنصة (يختلف عن لوحة أوامر الاستوديو).",
+        "group": "البنية التحتية",
+        "reindex_frequency_hours": {
+          "title": "تكرار إعادة الفهرسة (ساعات)"
+        },
+        "fuzzy_matching_enabled": {
+          "title": "تفعيل المطابقة التقريبية"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "metrics": {
+        "name": "المقاييس",
+        "description": "جمع المقاييس على مستوى المنصة والاحتفاظ بها.",
+        "group": "المراقبة",
+        "metrics_retention_days": {
+          "title": "مدة الاحتفاظ بالمقاييس (بالأيام)"
+        },
+        "sample_rate_percent": {
+          "title": "معدل أخذ العينات (%)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "health": {
+        "name": "الصحة",
+        "description": "إعدادات وحدود فحص صحة الخدمة.",
+        "group": "المراقبة",
+        "healthcheck_interval_seconds": {
+          "title": "فاصل فحص الصحة (بالثواني)"
+        },
+        "degraded_latency_ms": {
+          "title": "حد زمن الاستجابة المتدهور (مللي ثانية)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "incidents": {
+        "name": "الحوادث",
+        "description": "مستويات خطورة الحوادث وسياسة التصعيد.",
+        "group": "المراقبة",
+        "auto_page_on_sev1": {
+          "title": "استدعاء تلقائي للحوادث من الدرجة الأولى"
+        },
+        "public_status_page_enabled": {
+          "title": "تفعيل صفحة الحالة العامة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "errors": {
+        "name": "الأخطاء",
+        "description": "معدل أخذ عينات تتبع الأخطاء وحدود التنبيه.",
+        "group": "المراقبة",
+        "error_rate_alert_threshold": {
+          "title": "حد تنبيه معدل الأخطاء (%)"
+        },
+        "group_similar_errors": {
+          "title": "تجميع الأخطاء المتشابهة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "activity_logs": {
+        "name": "سجلات النشاط",
+        "description": "الاحتفاظ برؤية موجز نشاط المستخدمين عبر المستأجرين.",
+        "group": "المراقبة",
+        "activity_log_retention_days": {
+          "title": "مدة الاحتفاظ بسجل النشاط (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "analytics": {
+        "name": "التحليلات",
+        "description": "إعدادات تجميع التحليلات عبر المستأجرين.",
+        "group": "المراقبة",
+        "aggregation_window": {
+          "title": "نافذة التجميع الافتراضية"
+        },
+        "include_churned_tenants": {
+          "title": "تضمين المستأجرين المغادرين في التجميعات"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "audit_logs": {
+        "name": "سجلات تدقيق المنصة",
+        "description": "سجل تدقيق إداري على مستوى المنصة (عبر المستأجرين).",
+        "group": "المراقبة",
+        "audit_log_retention_days": {
+          "title": "مدة الاحتفاظ بسجل التدقيق (بالأيام)"
+        },
+        "require_reason_for_destructive_actions": {
+          "title": "طلب سبب للإجراءات المدمرة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "roles": {
+        "name": "الأدوار",
+        "description": "أدوار على مستوى المنصة (تختلف عن التحكم بالوصول لدى المستأجر) وما يمنحه كل منها.",
+        "group": "الأمان",
+        "allow_custom_roles": {
+          "title": "السماح بأدوار مخصصة للمنصة"
+        },
+        "require_approval_for_owner_grant": {
+          "title": "طلب موافقة لمنح دور المالك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "permissions": {
+        "name": "الصلاحيات",
+        "description": "مفاتيح الصلاحيات المتاحة لأدوار المنصة.",
+        "group": "الأمان",
+        "strict_wildcard_grants": {
+          "title": "قصر منح الصلاحية الشاملة (*) على المالك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "security_center": {
+        "name": "مركز الأمان",
+        "description": "الوضع الأمني على مستوى المنصة: حالات دخول شاذة ونشاط مشبوه وضوابط الإغلاق الطارئ.",
+        "group": "الأمان",
+        "anomaly_detection_enabled": {
+          "title": "كشف حالات الدخول الشاذة"
+        },
+        "auto_lock_on_anomaly": {
+          "title": "قفل الحساب تلقائيًا عند اكتشاف حالة شاذة"
+        },
+        "platform_lockdown_mode": {
+          "title": "وضع الإغلاق الطارئ للمنصة",
+          "description": "مفتاح طوارئ — يحظر جميع الوصول للمنصة باستثناء المالك."
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "compliance": {
+        "name": "الامتثال",
+        "description": "تتبع وضع الامتثال لمعايير SOC 2 / PCI والتنظيمية.",
+        "group": "الأمان",
+        "soc2_compliant": {
+          "title": "متوافق مع SOC 2 النوع الثاني"
+        },
+        "pci_dss_level": {
+          "title": "مستوى PCI DSS"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "gdpr": {
+        "name": "اللائحة العامة لحماية البيانات",
+        "description": "معالجة طلبات أصحاب البيانات وسياسة الاحتفاظ.",
+        "group": "الأمان",
+        "data_retention_days": {
+          "title": "مدة الاحتفاظ الافتراضية بالبيانات (بالأيام)"
+        },
+        "auto_fulfill_export_requests": {
+          "title": "تنفيذ طلبات تصدير البيانات تلقائيًا"
+        },
+        "right_to_be_forgotten_enabled": {
+          "title": "تفعيل الحق في النسيان"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "fraud": {
+        "name": "الاحتيال",
+        "description": "حدود كشف الاحتيال للتسجيل والمدفوعات.",
+        "group": "الأمان",
+        "fraud_score_threshold": {
+          "title": "حد وضع علامة تلقائية على درجة الاحتيال"
+        },
+        "auto_suspend_high_risk": {
+          "title": "تعليق التسجيلات عالية الخطورة تلقائيًا"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "abuse": {
+        "name": "إساءة الاستخدام",
+        "description": "حدود قائمة انتظار بلاغات إساءة الاستخدام والإشراف التلقائي.",
+        "group": "الأمان",
+        "auto_moderate_reports": {
+          "title": "الإشراف التلقائي على المحتوى المُبلَّغ عنه"
+        },
+        "reports_before_auto_review": {
+          "title": "عدد البلاغات قبل المراجعة التلقائية"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "rate_limits": {
+        "name": "حدود المعدل",
+        "description": "حدود المعدل الافتراضية لواجهة برمجة التطبيقات والمصادقة على مستوى المنصة.",
+        "group": "الأمان",
+        "api_requests_per_minute": {
+          "title": "طلبات API في الدقيقة (لكل مفتاح)"
+        },
+        "login_attempts_per_hour": {
+          "title": "محاولات تسجيل الدخول في الساعة (لكل عنوان IP)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "session_management": {
+        "name": "إدارة الجلسات",
+        "description": "مدة جلسة موظفي المنصة وسياسة التزامن.",
+        "group": "الأمان",
+        "session_timeout_minutes": {
+          "title": "مهلة انتهاء الجلسة (بالدقائق)"
+        },
+        "max_concurrent_sessions": {
+          "title": "الحد الأقصى للجلسات المتزامنة لكل مستخدم"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "device_management": {
+        "name": "إدارة الأجهزة",
+        "description": "سياسة الأجهزة الموثوقة لتسجيل دخول موظفي المنصة.",
+        "group": "الأمان",
+        "require_device_approval": {
+          "title": "طلب موافقة على الجهاز الجديد"
+        },
+        "max_trusted_devices": {
+          "title": "الحد الأقصى للأجهزة الموثوقة لكل مستخدم"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "api_keys": {
+        "name": "مفاتيح API",
+        "description": "سياسة إصدار مفاتيح API للمنصة والمستأجرين.",
+        "group": "المطورون",
+        "max_keys_per_tenant": {
+          "title": "الحد الأقصى لمفاتيح API لكل مستأجر"
+        },
+        "default_key_expiry_days": {
+          "title": "انتهاء صلاحية المفتاح الافتراضي (بالأيام، 0 = أبدًا)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "webhooks": {
+        "name": "الويب هوك",
+        "description": "سياسة تسليم وإعادة محاولة الويب هوك الصادر.",
+        "group": "المطورون",
+        "max_endpoints_per_tenant": {
+          "title": "الحد الأقصى لنقاط نهاية الويب هوك لكل مستأجر"
+        },
+        "retry_backoff_seconds": {
+          "title": "مهلة إعادة المحاولة (بالثواني)"
+        },
+        "sign_payloads": {
+          "title": "توقيع حمولات الويب هوك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "integrations": {
+        "name": "التكاملات",
+        "description": "التكاملات الخارجية المتاحة للمستأجرين.",
+        "group": "المطورون",
+        "allow_custom_integrations": {
+          "title": "السماح بالتكاملات المخصصة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "marketplace": {
+        "name": "السوق",
+        "description": "سياسة إدراج تطبيقات السوق الخارجية.",
+        "group": "المطورون",
+        "marketplace_enabled": {
+          "title": "تفعيل السوق"
+        },
+        "require_review_before_listing": {
+          "title": "طلب مراجعة قبل الإدراج"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "plugins": {
+        "name": "الإضافات",
+        "description": "سياسة تثبيت إضافات المنصة.",
+        "group": "المطورون",
+        "plugins_enabled": {
+          "title": "تفعيل الإضافات"
+        },
+        "sandbox_untrusted_plugins": {
+          "title": "تشغيل الإضافات غير الموثوقة في بيئة معزولة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "ai_providers": {
+        "name": "مزودو الذكاء الاصطناعي",
+        "description": "إعدادات مزود الذكاء الاصطناعي/نموذج اللغة للميزات المدعومة من المنصة.",
+        "group": "المطورون",
+        "primary_provider": {
+          "title": "المزود الرئيسي"
+        },
+        "monthly_token_budget": {
+          "title": "الميزانية الشهرية للرموز"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "developer_tools": {
+        "name": "أدوات المطورين",
+        "description": "الوصول إلى أدوات المطورين الداخلية (لوحات التصحيح، فاحص الاستعلامات).",
+        "group": "المطورون",
+        "debug_mode_enabled": {
+          "title": "تفعيل وضع التصحيح"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "environment": {
+        "name": "البيئة",
+        "description": "تحديد بيئة النشر وضماناتها.",
+        "group": "المطورون",
+        "environment_name": {
+          "title": "اسم البيئة"
+        },
+        "protect_production_writes": {
+          "title": "تأكيد إضافي لعمليات الكتابة في بيئة الإنتاج"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "secrets": {
+        "name": "الأسرار",
+        "description": "سياسة تدوير الأسرار — لا تُخزَّن القيم الفعلية للأسرار في الإعدادات أبدًا.",
+        "group": "المطورون",
+        "rotation_period_days": {
+          "title": "فترة تدوير الأسرار (بالأيام)"
+        },
+        "alert_before_expiry_days": {
+          "title": "التنبيه قبل انتهاء الصلاحية (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "licenses": {
+        "name": "التراخيص",
+        "description": "تتبع تراخيص البرمجيات الخارجية.",
+        "group": "المطورون",
+        "license_audit_enabled": {
+          "title": "تفعيل تدقيق الامتثال للترخيص"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "version_management": {
+        "name": "إدارة الإصدارات",
+        "description": "نافذة دعم إصدار API/المخطط.",
+        "group": "المطورون",
+        "supported_api_versions": {
+          "title": "إصدارات API المدعومة"
+        },
+        "deprecation_notice_days": {
+          "title": "فترة إشعار الإهمال (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "migration_center": {
+        "name": "مركز الترحيل",
+        "description": "ضمانات مهام ترحيل البيانات.",
+        "group": "المطورون",
+        "require_dry_run": {
+          "title": "طلب تشغيل تجريبي قبل التنفيذ"
+        },
+        "auto_backup_before_migration": {
+          "title": "نسخ احتياطي تلقائي قبل الترحيل"
+        },
+        "general": {
+          "title": "عام"
         }
       }
+    },
+    "api": {
+      "name": "واجهة برمجة التطبيقات",
+      "description": "إصدارات واجهة برمجة التطبيقات العامة، قائمة CORS المسموح بها، وسياسة تسليم الويب هوك.",
+      "group": "المطورون",
+      "access": {
+        "title": "الوصول"
+      },
+      "current_version": {
+        "title": "إصدار API الحالي"
+      },
+      "cors_allowed_origins": {
+        "title": "أصول CORS المسموح بها"
+      },
+      "webhook_retry_attempts": {
+        "title": "عدد محاولات إعادة الويب هوك"
+      },
+      "public_api_enabled": {
+        "title": "تفعيل واجهة برمجة التطبيقات العامة"
+      }
+    },
+    "countries": {
+      "name": "الدول",
+      "description": "مجموعة الدول المتاحة في نماذج التسجيل والدفع واختيار اللغة، بالإضافة إلى إعدادات كل دولة.",
+      "group": "الإعدادات",
+      "availability": {
+        "title": "التوفر"
+      },
+      "enabled_codes": {
+        "title": "الدول المفعّلة",
+        "description": "رموز ISO 3166-1 المكونة من حرفين المتاحة على مستوى المنصة."
+      },
+      "pinned_codes": {
+        "title": "الدول المثبتة",
+        "description": "الرموز المثبتة أعلى قوائم اختيار الدول، حسب ترتيب العرض."
+      },
+      "default_code": {
+        "title": "الدولة الافتراضية",
+        "description": "الدولة المختارة مسبقًا عند عدم وجود مؤشر لتحديد دولة المستأجر."
+      },
+      "registry": {
+        "title": "إدارة الدول",
+        "description": "إعدادات كل دولة — التفعيل والميزات والعملة واللغة وحالة الحوكمة لجميع الدول الـ176."
+      }
+    },
+    "feature_flags": {
+      "name": "أعلام الميزات",
+      "description": "مفاتيح إطلاق على مستوى المنصة تتحكم بالقدرات الكاملة قبل تمكين المستأجرين من تفعيلها.",
+      "group": "الإعدادات",
+      "platform": {
+        "title": "قدرات المنصة"
+      },
+      "website_builder": {
+        "title": "منشئ الموقع"
+      },
+      "ai_assistant": {
+        "title": "المساعد الذكي",
+        "description": "المفتاح الرئيسي للميزات المدعومة بالذكاء الاصطناعي (نص القائمة، الردود على التقييمات، الرؤى)."
+      },
+      "billing_self_serve": {
+        "title": "الفوترة الذاتية"
+      },
+      "rbac_custom_roles": {
+        "title": "أدوار مخصصة للتحكم بالوصول"
+      }
+    },
+    "monitoring": {
+      "name": "المراقبة",
+      "description": "تتبع الأخطاء وحدود وقت التشغيل وتوجيه التنبيهات.",
+      "group": "المراقبة",
+      "thresholds": {
+        "title": "الحدود"
+      },
+      "sentry_enabled": {
+        "title": "تفعيل تتبع الأخطاء"
+      },
+      "error_rate_alert_threshold_percent": {
+        "title": "حد تنبيه معدل الأخطاء (%)"
+      },
+      "api_latency_alert_ms": {
+        "title": "حد تنبيه زمن استجابة API (مللي ثانية)"
+      },
+      "alert_channels": {
+        "title": "قنوات التنبيه"
+      }
+    },
+    "notifications": {
+      "name": "الإشعارات",
+      "description": "مزودو التسليم وسياسة القناة الافتراضية لإشعارات المنصة.",
+      "group": "الأتمتة",
+      "providers": {
+        "title": "المزودون"
+      },
+      "email_provider": {
+        "title": "مزود البريد الإلكتروني"
+      },
+      "sms_provider": {
+        "title": "مزود الرسائل النصية"
+      },
+      "push_enabled": {
+        "title": "تفعيل الإشعارات الفورية"
+      },
+      "default_channels": {
+        "title": "القنوات الافتراضية",
+        "description": "القنوات المفعّلة افتراضيًا للمستخدم الجديد قبل تطبيق تفضيلاته الخاصة."
+      }
+    },
+    "payments": {
+      "name": "المدفوعات",
+      "description": "مزودو الدفع المفعّلون والعملة الافتراضية وسياسة رسوم المعالجة.",
+      "group": "الاشتراكات",
+      "providers": {
+        "title": "المزودون"
+      },
+      "enabled_providers": {
+        "title": "المزودون المفعّلون"
+      },
+      "stripe_publishable_key": {
+        "title": "مفتاح Stripe العام"
+      },
+      "stripe_secret_key": {
+        "title": "مفتاح Stripe السري"
+      },
+      "default_currency": {
+        "title": "العملة الافتراضية"
+      },
+      "platform_fee_percent": {
+        "title": "رسوم المنصة (%)"
+      }
+    },
+    "rbac": {
+      "name": "التحكم بالوصول القائم على الأدوار",
+      "description": "حدود الأدوار المخصصة والدور الافتراضي المخصص للموظفين المدعوين حديثًا.",
+      "group": "الأمان",
+      "roles": {
+        "title": "الأدوار"
+      },
+      "max_custom_roles_per_tenant": {
+        "title": "الحد الأقصى للأدوار المخصصة لكل مستأجر"
+      },
+      "default_invite_role": {
+        "title": "دور الدعوة الافتراضي"
+      },
+      "require_mfa_for_admin": {
+        "title": "طلب المصادقة الثنائية لدور المسؤول"
+      }
+    },
+    "storage": {
+      "name": "التخزين",
+      "description": "مزود تخزين الوسائط وحدود الرفع وسلوك شبكة توصيل المحتوى.",
+      "group": "البنية التحتية",
+      "provider": {
+        "title": "مزود التخزين"
+      },
+      "max_upload_mb": {
+        "title": "الحد الأقصى لحجم الرفع (ميغابايت)"
+      },
+      "allowed_mime_types": {
+        "title": "أنواع الملفات المسموح بها"
+      },
+      "cdn_base_url": {
+        "title": "رابط URL الأساسي لشبكة CDN"
+      }
+    },
+    "subscriptions": {
+      "name": "الاشتراكات",
+      "description": "خطط الفوترة ومدة التجربة وسياسة فترة السماح لاشتراكات المستأجرين.",
+      "group": "الاشتراكات",
+      "plans": {
+        "title": "الخطط"
+      },
+      "plans_catalog": {
+        "title": "كتالوج الخطط",
+        "description": "الخطط المحددة من قبل المنصة والتي يمكن للمستأجرين الاشتراك فيها."
+      },
+      "default_plan_id": {
+        "title": "الخطة الافتراضية"
+      },
+      "trial_days": {
+        "title": "مدة التجربة (بالأيام)"
+      },
+      "grace_period_days": {
+        "title": "فترة سماح الدفع (بالأيام)",
+        "description": "عدد الأيام التي يحتفظ فيها المستأجر بالوصول بعد فشل عملية الدفع."
+      }
+    },
+    "system": {
+      "name": "النظام",
+      "description": "وضع الصيانة وحدود المعدل العامة وسياسة الاحتفاظ بالبيانات.",
+      "group": "النظام",
+      "operations": {
+        "title": "العمليات"
+      },
+      "maintenance_mode": {
+        "title": "وضع الصيانة"
+      },
+      "api_rate_limit_per_minute": {
+        "title": "حد معدل API (طلب/دقيقة)"
+      },
+      "audit_log_retention_days": {
+        "title": "مدة الاحتفاظ بسجل التدقيق (بالأيام)"
+      },
+      "default_business_type": {
+        "title": "نوع النشاط التجاري الافتراضي",
+        "description": "نوع النشاط التجاري المختار مسبقًا أثناء تهيئة المستأجر."
+      }
+    },
+    "themes": {
+      "name": "السمات",
+      "description": "لوحة العلامة التجارية الافتراضية ومتغيرات CSS المسموح للمستأجرين بتخصيصها.",
+      "group": "الإعدادات",
+      "palette": {
+        "title": "لوحة الألوان"
+      },
+      "default_mode": {
+        "title": "وضع الألوان الافتراضي"
+      },
+      "primary_color": {
+        "title": "اللون الأساسي",
+        "description": "يتجاوز لون التمييز. يمكن للمستأجرين تخصيصه؛ وترث الفروع قيمة المستأجر."
+      },
+      "accent_hover_color": {
+        "title": "لون التمييز عند التحويم",
+        "description": "يتجاوز لون التمييز عند التحويم. يكون افتراضيًا درجة أغمق من اللون الأساسي."
+      },
+      "logo_url": {
+        "title": "رابط URL للشعار"
+      }
+    },
+    "typography": {
+      "name": "الطباعة",
+      "description": "مجموعة الخطوط الافتراضية للمنصة وتخصيصات الخطوط لكل مستأجر.",
+      "group": "الإعدادات",
+      "fonts": {
+        "title": "الخطوط"
+      },
+      "body_font": {
+        "title": "خط النص",
+        "description": "عائلة الخط الافتراضية لنص المحتوى، قابلة للتخصيص لكل مستأجر."
+      },
+      "heading_font": {
+        "title": "خط العناوين",
+        "description": "عائلة الخط الافتراضية للعناوين، قابلة للتخصيص لكل مستأجر."
+      },
+      "rtl_font": {
+        "title": "خط الاتجاه من اليمين لليسار",
+        "description": "عائلة الخط المستخدمة عند عرض اللغة النشطة من اليمين لليسار."
+      },
+      "base_size_px": {
+        "title": "حجم الخط الأساسي (بكسل)"
+      }
+    },
+    "website_builder": {
+      "name": "منشئ الموقع",
+      "description": "مكتبة الكتل الافتراضية وقواعد النشر وحدود الأقسام لمنشئ موقع المستأجر.",
+      "group": "الإعدادات",
+      "defaults": {
+        "title": "الإعدادات الافتراضية"
+      },
+      "enabled_blocks": {
+        "title": "الكتل المفعّلة"
+      },
+      "max_sections": {
+        "title": "الحد الأقصى للأقسام لكل صفحة"
+      },
+      "custom_domain_enabled": {
+        "title": "تفعيل النطاق المخصص"
+      }
+    },
+    "active_businesses": {
+      "title": "الأعمال النشطة"
+    },
+    "online_users": {
+      "title": "المستخدمون المتصلون"
+    },
+    "orders_today": {
+      "title": "طلبات اليوم"
+    },
+    "reservations_today": {
+      "title": "حجوزات اليوم"
+    },
+    "revenue_today": {
+      "title": "إيرادات اليوم"
+    },
+    "mrr": {
+      "title": "الإيرادات الشهرية المتكررة"
+    },
+    "arr": {
+      "title": "الإيرادات السنوية المتكررة"
+    },
+    "failed_payments": {
+      "title": "المدفوعات الفاشلة"
+    },
+    "new_signups": {
+      "title": "التسجيلات الجديدة"
+    },
+    "server_health": {
+      "title": "صحة الخادم"
+    },
+    "error_rate": {
+      "title": "معدل الأخطاء"
+    },
+    "queue_status": {
+      "title": "حالة قائمة الانتظار"
+    },
+    "background_jobs": {
+      "title": "المهام الخلفية"
+    },
+    "platform_alerts": {
+      "title": "تنبيهات المنصة"
+    },
+    "feature_rollouts": {
+      "title": "طرح الميزات"
+    },
+    "abuse_reports": {
+      "title": "بلاغات إساءة الاستخدام"
+    },
+    "api_usage": {
+      "title": "استخدام API"
+    },
+    "top_countries": {
+      "title": "أفضل الدول"
+    },
+    "top_businesses": {
+      "title": "أفضل الأعمال"
+    },
+    "storage_usage": {
+      "title": "استخدام التخزين"
+    },
+    "email_success_rate": {
+      "title": "معدل نجاح البريد الإلكتروني"
+    },
+    "sms_success_rate": {
+      "title": "معدل نجاح الرسائل النصية"
+    },
+    "push_delivery": {
+      "title": "تسليم الإشعارات الفورية"
+    },
+    "operational_languages": {
+      "title": "اللغات التشغيلية"
+    },
+    "avg_translation_coverage": {
+      "title": "متوسط تغطية الترجمة"
+    },
+    "human_reviewed_languages": {
+      "title": "اللغات المراجَعة بشريًا"
+    },
+    "lowest_coverage_languages": {
+      "title": "أقل تغطية (مفعّلة)"
+    },
+    "translation_quality_issues": {
+      "title": "مشاكل جودة الترجمة"
+    },
+    "missing_translation_keys": {
+      "title": "مفاتيح الترجمة المفقودة"
+    },
+    "broken_icu_placeholder_keys": {
+      "title": "مفاتيح ICU/العناصر النائبة المعطوبة"
+    },
+    "locale_bundle_sizes": {
+      "title": "أحجام حزم اللغات"
     }
   },
   "platform": {
