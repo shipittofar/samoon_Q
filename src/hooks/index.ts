@@ -65,6 +65,9 @@ import {
   assertOwnershipBranchAccess,
   assertOwnershipTenantAccess,
   getNextAssignmentExpiry,
+  isOwnerEligible,
+  isStaffMemberEligible,
+  isTenantEligible,
 } from '@/services/ownership-resolution.service'
 import { staffAssignmentService } from '@/services/staff-assignment.service'
 import { ownerOwnsTenant } from '@/services/ownership.service'
@@ -367,16 +370,29 @@ export function useHasDashboardAccess(): boolean {
   const legacyGranted = rbacService.hasPermission(user?.role ?? null, 'dashboard:access')
   return useMemo(() => {
     if (legacyGranted) return true
+    // P10.3.1 audit — this hook is AuthGuard's actual /console gate but had
+    // never been updated to call the P10.3 Phase A/B/C eligibility
+    // predicates, so a suspended/pending Owner, a suspended/removed Staff
+    // member, or staff/owner of an archived tenant could still reach
+    // /console even though resolveOwnerPermissions()/
+    // resolveStaffAssignmentPermissions() would already return zero
+    // permissions for them. Fixed to reuse the same predicates, not
+    // re-derive the checks.
+    if (!tenant?.id || !isTenantEligible(tenant)) return false
     const identity = resolveOwnershipIdentity(user?.email)
-    if (identity.owner && tenant?.id && ownerOwnsTenant(identity.owner.ownerId, tenant.id, [tenant])) {
+    if (
+      identity.owner &&
+      isOwnerEligible(identity.owner) &&
+      ownerOwnsTenant(identity.owner.ownerId, tenant.id, [tenant])
+    ) {
       return true
     }
-    if (identity.staffMember) {
+    if (identity.staffMember && isStaffMemberEligible(identity.staffMember)) {
       return staffAssignmentService.getEffectiveAssignments(identity.staffMember.id).length > 0
     }
     return false
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [legacyGranted, user?.email, tenant?.id, tenant?.ownerId])
+  }, [legacyGranted, user?.email, tenant?.id, tenant?.ownerId, tenant?.status])
 }
 
 /**
@@ -1047,11 +1063,23 @@ export function useAdminStats() {
   })
 }
 
+/**
+ * P10.3.1 audit — this is the primary `/console/orders` admin read (not
+ * the branch-scoped `useBranchOrders()`, already guarded in P10.3 Phase
+ * D). It had no tenant-isolation enforcement at all: `getAdminOrders()`
+ * applies no tenant filter to `MOCK_ORDERS`, so any authenticated
+ * console session could read it regardless of tenant membership. Now
+ * validates via `assertOwnershipTenantAccess()`, the same guard
+ * `useStaff()`/`useAdminBranches()` already use.
+ */
 export function useAdminOrders(filters: AdminOrderFilters = {}) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
     queryKey: ['admin-orders', tenantId, filters],
-    queryFn: () => adminService.getAdminOrders(filters),
+    queryFn: async () => {
+      if (tenantId) await assertOwnershipTenantAccess(useAuthStore.getState().user?.email, tenantId)
+      return adminService.getAdminOrders(filters)
+    },
     staleTime: 30_000,
     enabled: !!tenantId,
   })
@@ -1092,11 +1120,18 @@ export function useUpdateOrderStatus() {
   })
 }
 
+/**
+ * P10.3.1 audit — same gap as `useAdminOrders()` above: the primary
+ * `/console/reservations` admin read had no tenant-isolation enforcement.
+ */
 export function useAdminReservations(filters: AdminReservationFilters = {}) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
     queryKey: ['admin-reservations', tenantId, filters],
-    queryFn: () => adminService.getAdminReservations(filters),
+    queryFn: async () => {
+      if (tenantId) await assertOwnershipTenantAccess(useAuthStore.getState().user?.email, tenantId)
+      return adminService.getAdminReservations(filters)
+    },
     staleTime: 30_000,
     enabled: !!tenantId,
   })
