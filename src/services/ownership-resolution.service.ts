@@ -182,6 +182,19 @@ export function getNextAssignmentExpiry(staffId: string, now: Date = new Date())
 }
 
 /**
+ * P10.3 Phase J — performance review: `resolveStaffAssignmentPermissions()`
+ * and `buildBranchAccessContextFromAssignments()` both called
+ * `getEffectiveAssignments(staffId, now)` (already O(n) over every
+ * assignment the staff member holds, across all tenants) and then
+ * filtered the result down to one tenant — the same two-step scan
+ * duplicated in two places. Factored out once here; behavior is
+ * unchanged, this only removes the duplicated `.filter()` expression.
+ */
+function getEffectiveTenantAssignments(staffId: string, tenantId: string, now: Date): StaffAssignment[] {
+  return staffAssignmentService.getEffectiveAssignments(staffId, now).filter((a) => a.tenantId === tenantId)
+}
+
+/**
  * P10.1 §4.4 step 3 — resolves permissions granted by this Staff member's
  * active `StaffAssignment` rows scoped to `tenantId`, unioned across every
  * matching assignment (a staff member may hold more than one assignment
@@ -199,9 +212,7 @@ export function resolveStaffAssignmentPermissions(
   if (!identity.staffMember || !activeTenant) return []
   if (!isStaffMemberEligible(identity.staffMember)) return []
   if (!isTenantEligible(activeTenant)) return []
-  const assignments = staffAssignmentService
-    .getEffectiveAssignments(identity.staffMember.id, now)
-    .filter((a) => a.tenantId === activeTenant.id)
+  const assignments = getEffectiveTenantAssignments(identity.staffMember.id, activeTenant.id, now)
 
   const result = new Set<P7Permission>()
   for (const assignment of assignments) {
@@ -256,9 +267,7 @@ export function buildBranchAccessContextFromAssignments(
   const identity = resolveOwnershipIdentity(email)
   if (!identity.staffMember) return null
 
-  const assignments = staffAssignmentService
-    .getEffectiveAssignments(identity.staffMember.id, now)
-    .filter((a) => a.tenantId === tenantId)
+  const assignments = getEffectiveTenantAssignments(identity.staffMember.id, tenantId, now)
   if (assignments.length === 0) return null
 
   const branchIds = new Set<string>()
@@ -373,10 +382,7 @@ export async function assertOwnershipTenantAccess(
   }
 
   if (identity.staffMember && isStaffMemberEligible(identity.staffMember)) {
-    const assignments = staffAssignmentService
-      .getEffectiveAssignments(identity.staffMember.id)
-      .filter((a) => a.tenantId === tenantId)
-    if (assignments.length > 0) return
+    if (getEffectiveTenantAssignments(identity.staffMember.id, tenantId, new Date()).length > 0) return
   }
 
   throw new TenantAccessError(tenantId, email ?? 'unknown')
