@@ -58,6 +58,13 @@ import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, 
 import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions, applyOverrides, resolveEffectivePermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions, EffectivePermissionResult } from '@/types/rbac'
 import { rbacService } from '@/services/rbac.service'
+import {
+  resolveOwnershipIdentity,
+  resolveOwnershipDrivenPermissions,
+  buildBranchAccessContextFromAssignments,
+} from '@/services/ownership-resolution.service'
+import { staffAssignmentService } from '@/services/staff-assignment.service'
+import { ownerOwnsTenant } from '@/services/ownership.service'
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
@@ -161,19 +168,38 @@ export function useHasPermission(permission: LegacyPermission): boolean {
  * Returns all P7 permissions effective for the current user in the active tenant.
  * Applies user-level allow/deny overrides on top of role-derived permissions.
  * Evaluation order: User Deny → User Allow → Role Permissions → Default Deny.
+ *
+ * P10.2.2 — EXTENDED (not replaced) with the ownership resolution engine
+ * (docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §4.4,
+ * src/services/ownership-resolution.service.ts): the legacy
+ * `tenantRoles`-based computation below is byte-for-byte unchanged and
+ * still runs first; ownership/StaffAssignment-derived permissions for the
+ * active tenant are UNIONED on top, never substituted, so every existing
+ * mock-login / PermissionGuard / test path keeps working exactly as
+ * before. This is the single source of truth for tenant-scoped
+ * permissions — `useAdminModuleNav()` below calls this hook instead of
+ * recomputing the base permission set itself (P10.2.2 Phase F fix; it
+ * previously duplicated the `tenantRoles.find(...) → getPermissionsForRole()`
+ * computation inline, which would have silently bypassed this extension).
  */
 export function usePermissions(): readonly P7Permission[] {
   const user = useAuthStore((s) => s.user)
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = tenant?.id
   const tenantRoles = useRbacStore((s) => s.tenantRoles)
   const userOverrides = useRbacStore((s) => s.userOverrides)
   return useMemo(() => {
     const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
     const base = getPermissionsForRole(roles)
     const override = userOverrides.find((o) => o.userId === user?.id && o.tenantId === tenantId)
-    return applyOverrides(base, override)
+    const legacyEffective = applyOverrides(base, override)
+
+    const ownershipDriven = resolveOwnershipDrivenPermissions(user?.email, tenant)
+    if (ownershipDriven.length === 0) return legacyEffective
+
+    return [...new Set([...legacyEffective, ...ownershipDriven])]
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, tenantId, tenantRoles, userOverrides])
+  }, [user?.id, user?.email, tenantId, tenant?.ownerId, tenantRoles, userOverrides])
 }
 
 /**
@@ -294,15 +320,51 @@ export function useModuleNav(): NavItem[] {
 }
 
 /**
+ * P10.2.2 — `dashboard:access` as a derived, computed boolean, per
+ * docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §8.1:
+ *
+ *   dashboard:access = (legacy rbacService grant, UNCHANGED — see below)
+ *                    OR (actor is an Owner with ≥1 owned Tenant)
+ *                    OR (actor has ≥1 active StaffAssignment, any tenant, any role)
+ *
+ * The legacy `rbacService.hasPermission(role, 'dashboard:access')` check
+ * is kept as the first OR-branch, not removed — several demo accounts
+ * (`staff@savor.com`, `multirole@savor.com`) have no matching
+ * `StaffMember` record in the mock fixtures (a pre-existing id-space gap,
+ * P10.0 J12/J13, not fixed by this phase), so replacing it outright would
+ * regress their console access. This is the single source of truth
+ * `AuthGuard` and `useDashboardNav()` both now read — no parallel
+ * implementation of the `dashboard:access` check exists anywhere else.
+ */
+export function useHasDashboardAccess(): boolean {
+  const user = useAuthStore((s) => s.user)
+  const tenant = useTenantStore((s) => s.tenant)
+  const legacyGranted = rbacService.hasPermission(user?.role ?? null, 'dashboard:access')
+  return useMemo(() => {
+    if (legacyGranted) return true
+    const identity = resolveOwnershipIdentity(user?.email)
+    if (identity.owner && tenant?.id && ownerOwnsTenant(identity.owner.ownerId, tenant.id, [tenant])) {
+      return true
+    }
+    if (identity.staffMember) {
+      return staffAssignmentService.getEffectiveAssignments(identity.staffMember.id).length > 0
+    }
+    return false
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [legacyGranted, user?.email, tenant?.id, tenant?.ownerId])
+}
+
+/**
  * Returns dashboard sidebar nav items, filtered by RBAC.
  *
- * - Returns empty array when user lacks `dashboard:access` permission.
+ * - Returns empty array when user lacks `dashboard:access` (see
+ *   `useHasDashboardAccess()` — now ownership/StaffAssignment-aware).
  * - Returns full dashboard nav for staff and admin.
- * - Safe for unauthenticated users (null role → no access → empty array).
+ * - Safe for unauthenticated users (no identity → no access → empty array).
  */
 export function useDashboardNav(): NavItem[] {
-  const role = useAuthStore((s) => s.user?.role ?? null)
-  if (!rbacService.hasPermission(role, 'dashboard:access')) return []
+  const hasAccess = useHasDashboardAccess()
+  if (!hasAccess) return []
   return getDashboardNav()
 }
 
@@ -350,17 +412,22 @@ export function useCapabilityFlag(cap: Capability): boolean {
  *
  * Canonical usage in admin layouts:
  *   const adminNav = useAdminModuleNav()
+ *
+ * P10.2.2 — now calls `usePermissions()` (the single source of truth,
+ * ownership/StaffAssignment-aware as of this phase) instead of
+ * recomputing `tenantRoles.find(...) → getPermissionsForRole()` inline.
+ * The inline recomputation was a duplicate implementation of exactly what
+ * `usePermissions()` already does (P10.2.2 Phase A/F finding) — it would
+ * have silently kept nav filtering on the pre-ownership permission set
+ * forever, since nothing routed StaffAssignment/Owner data through it.
  */
 export function useAdminModuleNav(): NavItem[] {
   const { canExecute } = useSystemReady()
   const tenant = useTenantStore((s) => s.tenant)
   const featureFlags = useTenantStore((s) => s.featureFlags)
-  const tenantId = useTenantStore((s) => s.tenant?.id)
-  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const permissions = usePermissions()
   const allAdminNav = getAdminNav(tenant.businessTypes)
   if (!canExecute) return allAdminNav
-  const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
-  const permissions = getPermissionsForRole(roles)
   return allAdminNav.filter((item) => {
     if (item.featureFlagKey && featureFlags[item.featureFlagKey] === false) return false
     if (item.permissionKey && !permissions.includes(item.permissionKey)) return false
@@ -2054,6 +2121,37 @@ export function useAccessibleBranches(
     queryKey: ['accessible-branches', context.tenantId, context.staffId, context.roles, context.branchIds],
     queryFn: () => Promise.resolve(branchAccessService.getAccessibleBranches(context, allBranches)),
   })
+}
+
+/**
+ * P10.2.2 Phase D — builds a `BranchAccessContext` for the current session
+ * from this Staff member's active `StaffAssignment` rows, via
+ * `ownership-resolution.service.ts`'s `buildBranchAccessContextFromAssignments()`.
+ * This is StaffAssignment's entry point into the existing, UNCHANGED
+ * branch-filtering engine: pass the result straight into
+ * `useAccessibleBranches()` / `branchAccessService.*` above — no branch
+ * filtering logic is duplicated here, only the context those functions
+ * already expected is now actually populated (P10.0 J20: previously
+ * "built but unpopulated").
+ *
+ * Returns `null` when the actor is an Owner of `tenantId` (an Owner needs
+ * no assignment-derived context — check `usePermission('branches.manage')`
+ * or ownership directly first) or has no assignments to this tenant.
+ *
+ * Canonical usage:
+ *   const branches = useBranches().data ?? []
+ *   const context = useOwnershipBranchAccessContext(tenantId, branches)
+ *   const { data: visible } = useAccessibleBranches(context ?? EMPTY_CONTEXT, branches)
+ */
+export function useOwnershipBranchAccessContext(
+  tenantId: string,
+  tenantBranches: BranchEntity[],
+): BranchAccessContext | null {
+  const user = useAuthStore((s) => s.user)
+  return useMemo(
+    () => buildBranchAccessContextFromAssignments(user?.email, tenantId, tenantBranches),
+    [user?.email, tenantId, tenantBranches],
+  )
 }
 
 /** Fetches orders for a specific branch. */

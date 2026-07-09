@@ -250,20 +250,22 @@ data-level resolution helpers (`ownership.service.ts`), and migration
 helpers (`ownership-migration.service.ts`). No UI, no permission-resolution
 rewiring — see `docs/P10.2.1_OWNERSHIP_DATA_MODEL_IMPLEMENTATION.md`.
 
-### P10.2.2 — Resolution Engine (recommended next)
+### P10.2.2 — Ownership Resolution Engine & Permission Integration (complete)
 
-Wire the effective-permission resolution algorithm (P10.1 §4.4 — the
+Wired the effective-permission resolution algorithm (P10.1 §4.4 — the
 ownership short-circuit + `StaffAssignment` lookup) into `usePermissions()`
-alongside (not replacing) today's algorithm; extend
-`branch-access.service.ts` to read `StaffAssignment.branchIds` (via
-`ownership.service.ts`'s `resolveAssignmentBranchIds()`) as one of its data
-sources alongside the existing `roleAssignments` path. No UI.
+alongside (not replacing) the existing algorithm; wired `StaffAssignment`
+into the existing branch-filtering engine via a new context builder;
+fixed the `admin`/`tenant.manage`/`tenant.view` over-grant (closing P10.0
+J1); eliminated two duplicated permission-check implementations
+(`useAdminModuleNav`, `useDashboardNav`). No UI, no pages. See
+`docs/P10.2.2_OWNERSHIP_RESOLUTION_ENGINE.md`.
 
-### P10.3 — Owner & Staff Management UI (recommended after P10.2.2)
+### P10.3 — Owner & Staff Management UI (recommended next)
 
 Console/platform-admin surfaces for creating Owners, transferring tenant
 ownership (§39.4), and granting/revoking/moving `StaffAssignment` rows
-(§39.5). Depends on P10.2.1's data layer (complete) and P10.2.2's
+(§39.5). Depends on P10.2.1's data layer and P10.2.2's resolution engine
 resolution engine.
 
 ### P10.4 — Legacy Retirement (recommended last)

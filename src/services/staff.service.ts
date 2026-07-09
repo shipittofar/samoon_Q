@@ -765,6 +765,25 @@ export const staffService = {
     }
   },
 
+  /**
+   * P10.2.2 — Synchronous staff lookup by email, mock-mode only.
+   *
+   * Bridges the session identity (`useAuthStore.user.email`, whose `id`
+   * space is disjoint from `StaffMember.userId`/`Owner.userId` — a
+   * pre-existing mock-data gap, P10.0 J12/J13, not fixed by this phase)
+   * to the Staff/Owner id space that `staff.service.ts`,
+   * `owner.service.ts`, and `staff-assignment.service.ts` already share.
+   * Synchronous (unlike every other lookup in this file) because it is
+   * called from `usePermissions()`, a plain memoized selector that cannot
+   * await a promise — follows the same synchronous-mock-read precedent as
+   * `getMembership()` above.
+   */
+  findStaffMemberByEmail(email: string): StaffMember | undefined {
+    if (!USE_MOCK) return undefined
+    const member = MOCK_STAFF_LIST.find((s) => s.email === email)
+    return member ? { ...member } : undefined
+  },
+
   // ── Test helpers ───────────────────────────────────────────────────────────
 
   _resetMockStore(): void {

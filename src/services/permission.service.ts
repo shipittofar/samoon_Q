@@ -99,9 +99,19 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
   // owner: ALL_PERMISSIONS.filter((p) => p !== 'customers.manage','customers.create'),
   /**owner: ALL_PERMISSIONS,*/
 
-  /** Everything except tenant ownership (tenant.manage). */
-  admin: ALL_PERMISSIONS,
-  /**admin: ALL_PERMISSIONS.filter((p) => p !== 'tenant.manage'),*/
+  /**
+   * P10.2.2 — everything except tenant ownership actions (`tenant.manage`,
+   * `tenant.view`). Per docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §4.2/§4.3
+   * (closing P10.0 finding J1): tenant-level ownership actions are
+   * Owner-exclusive, never delegable to any Staff role including `admin`.
+   * `admin` previously received these implicitly via `ALL_PERMISSIONS`
+   * with no structural way to say "only the actual owner can do this" —
+   * this was the exact bug the architecture rewrite exists to fix. An
+   * Owner still receives every permission, including both of these, via
+   * the ownership short-circuit in
+   * src/services/ownership-resolution.service.ts, not via this map.
+   */
+  admin: ALL_PERMISSIONS.filter((p) => p !== 'tenant.manage' && p !== 'tenant.view'),
 
   /** Full access — every permission including tenant ownership actions. */
   owner: [

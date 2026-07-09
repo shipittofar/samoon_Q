@@ -290,9 +290,13 @@ describe('P8 — Owner and admin unchanged', () => {
     const { ROLE_PERMISSION_MAP, ALL_PERMISSIONS } = await import('@/services/permission.service')
     expect(ROLE_PERMISSION_MAP.owner).toHaveLength(ALL_PERMISSIONS.length)
   })
-  it('admin still has all permissions except tenant.manage', async () => {
+  // P10.2.2 — updated from "-1" (tenant.manage only) to "-2": admin also
+  // loses tenant.view, per docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md
+  // §4.2/§7.2 — both are now owner-exclusive. Intentional architecture
+  // change, not a regression.
+  it('admin still has all permissions except tenant.manage and tenant.view', async () => {
     const { ROLE_PERMISSION_MAP, ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.admin).toHaveLength(ALL_PERMISSIONS.length - 1)
+    expect(ROLE_PERMISSION_MAP.admin).toHaveLength(ALL_PERMISSIONS.length - 2)
   })
   it('admin does NOT have tenant.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')

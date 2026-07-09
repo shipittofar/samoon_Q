@@ -181,13 +181,18 @@ describe('E — Admin permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('admin', 'tenant.manage')).toBe(false)
   })
-  it('admin has tenant.view', async () => {
+  // P10.2.2 — docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §4.2/§7.2: both
+  // tenant.manage AND tenant.view are now owner-exclusive, structurally
+  // unreachable via any Staff role including admin (closing P10.0 J1).
+  // Updated from "admin has tenant.view: true" — intentional architecture
+  // change, not a regression.
+  it('admin does NOT have tenant.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
-    expect(hasPermission('admin', 'tenant.view')).toBe(true)
+    expect(hasPermission('admin', 'tenant.view')).toBe(false)
   })
-  it('admin has all permissions except tenant.manage', async () => {
+  it('admin has all permissions except tenant.manage and tenant.view', async () => {
     const { ROLE_PERMISSION_MAP, ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.admin).toHaveLength(ALL_PERMISSIONS.length - 1)
+    expect(ROLE_PERMISSION_MAP.admin).toHaveLength(ALL_PERMISSIONS.length - 2)
   })
   it('admin has staff.manage', async () => {
     const { hasPermission } = await import('@/services/permission.service')

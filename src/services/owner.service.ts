@@ -135,6 +135,17 @@ export const ownerService = {
   },
 
   /**
+   * P10.2.2 — Synchronous counterpart to `getOwnerByUserId()`, mock-mode
+   * only. Called from `usePermissions()` (a plain memoized selector that
+   * cannot await a promise) via `ownership-resolution.service.ts`.
+   */
+  getOwnerByUserIdSync(userId: string): Owner | undefined {
+    if (!USE_MOCK) return undefined
+    const owner = _ownerStore.find((o) => o.userId === userId)
+    return owner ? { ...owner } : undefined
+  },
+
+  /**
    * Derived, not stored — P10.1 §1.1: "currentTenantCount ... derived,
    * not stored authoritatively (computed from Tenant.ownerId count)."
    */
