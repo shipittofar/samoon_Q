@@ -14,6 +14,7 @@
 
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
+import { MOCK_TENANT_OWNER_MAP } from './owner.service'
 import type {
   StaffMember,
   StaffInvite,
@@ -390,7 +391,39 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     lastSeenAt: daysAgo(30),
     createdBy: 'system',
   },
+
+  // ── P10.2.1 — cross-tenant Staff, realizing the Accountant example from
+  // docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §3.2 (see staff-assignment.service.ts
+  // for the two StaffAssignment rows this staff member holds: read-only
+  // access to all of Tenant A's branches, and read-only access to a single
+  // branch of Tenant B — both tenants owned by the same Owner, owner-001).
+  {
+    id: 'staff-accountant-01',
+    tenantId: MOCK_TENANT_ID,
+    userId: 'user-accountant-01',
+    email: 'accountant@savor.com',
+    firstName: 'Avery',
+    lastName: 'Accountant',
+    status: 'active',
+    roles: ['admin'],
+    invitedAt: daysAgo(40),
+    activatedAt: daysAgo(39),
+    lastSeenAt: daysAgo(1),
+    createdBy: MOCK_OWNER_ID,
+  },
 ]
+
+// P10.2.1 — backfill ownerId from the single source of truth
+// (owner.service.ts's MOCK_TENANT_OWNER_MAP), derived from each staff
+// member's existing `tenantId` — this is exactly the backfill rule
+// `ownership-migration.service.ts`'s `backfillTenantOwnership()` documents
+// and tests, applied here directly to the fixture set instead of at
+// runtime, since these fixtures are authored fresh for this phase rather
+// than migrated from a pre-existing "dirty" dataset.
+for (const member of INITIAL_MOCK_STAFF) {
+  const ownerId = MOCK_TENANT_OWNER_MAP[member.tenantId]
+  if (ownerId) member.ownerId = ownerId
+}
 
 const INITIAL_MOCK_INVITES: StaffInvite[] = [
   {

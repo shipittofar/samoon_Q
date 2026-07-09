@@ -1,6 +1,7 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { DEFAULT_TENANT } from '@/constants'
+import { MOCK_TENANT_OWNER_MAP } from './owner.service'
 import type { Tenant, TenantStatus } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -233,6 +234,16 @@ const MOCK_TENANTS: Record<string, Tenant> = {
       },
     },
   },
+}
+
+// P10.2.1 — backfill ownerId from the single source of truth
+// (owner.service.ts's MOCK_TENANT_OWNER_MAP) rather than hand-duplicating
+// the mapping on every tenant literal above. `default` (DEFAULT_TENANT)
+// intentionally has no owner — it is a pre-tenant fallback shape, not a
+// provisioned tenant (see docs/P10.2.1_OWNERSHIP_DATA_MODEL_IMPLEMENTATION.md).
+for (const tenant of Object.values(MOCK_TENANTS)) {
+  const ownerId = MOCK_TENANT_OWNER_MAP[tenant.id]
+  if (ownerId) tenant.ownerId = ownerId
 }
 
 const MOCK_TENANT_LIST: Tenant[] = Object.values(MOCK_TENANTS).map((t) => ({ ...t }))

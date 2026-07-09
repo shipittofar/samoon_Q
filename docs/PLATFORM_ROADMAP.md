@@ -241,22 +241,34 @@ partial-branch staff scoping). No implementation — architecture only. See
 `docs/PLATFORM_ARCHITECTURE_PRINCIPLES.md` §18, and
 `docs/BACKEND_API_CONTRACT.md` §39.
 
-### P10.2 — Data Model & Resolution Engine (recommended next)
+### P10.2.1 — Ownership & RBAC Data Model Implementation (complete)
 
-Implement the additive, nullable `Tenant.ownerId`/`StaffMember.ownerId`
-fields and the `StaffAssignment` store/mock data; extend
-`branch-access.service.ts` to read `StaffAssignment.branchIds` as one of
-its data sources alongside the existing `roleAssignments` path. No UI.
+Implemented the additive, nullable `Tenant.ownerId`/`StaffMember.ownerId`
+fields, the `Owner` and `StaffAssignment` entities (`src/types/ownership.ts`),
+their mock services (`owner.service.ts`, `staff-assignment.service.ts`),
+data-level resolution helpers (`ownership.service.ts`), and migration
+helpers (`ownership-migration.service.ts`). No UI, no permission-resolution
+rewiring — see `docs/P10.2.1_OWNERSHIP_DATA_MODEL_IMPLEMENTATION.md`.
 
-### P10.3 — Owner & Staff Management UI (recommended after P10.2)
+### P10.2.2 — Resolution Engine (recommended next)
+
+Wire the effective-permission resolution algorithm (P10.1 §4.4 — the
+ownership short-circuit + `StaffAssignment` lookup) into `usePermissions()`
+alongside (not replacing) today's algorithm; extend
+`branch-access.service.ts` to read `StaffAssignment.branchIds` (via
+`ownership.service.ts`'s `resolveAssignmentBranchIds()`) as one of its data
+sources alongside the existing `roleAssignments` path. No UI.
+
+### P10.3 — Owner & Staff Management UI (recommended after P10.2.2)
 
 Console/platform-admin surfaces for creating Owners, transferring tenant
 ownership (§39.4), and granting/revoking/moving `StaffAssignment` rows
-(§39.5). Depends on P10.2's data layer existing first.
+(§39.5). Depends on P10.2.1's data layer (complete) and P10.2.2's
+resolution engine.
 
 ### P10.4 — Legacy Retirement (recommended last)
 
 Retire `rbac.service.ts` and the legacy `UserRole` enum's use as the
 `/console` entry gate (§8.1/§8.2 of `docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md`),
-once P10.2/P10.3 have shipped and the new model has been the system of
+once P10.2.2/P10.3 have shipped and the new model has been the system of
 record for long enough to safely drop the compatibility shim.

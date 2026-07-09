@@ -325,6 +325,15 @@ export interface Tenant {
   status: TenantStatus
   createdAt: string
   settings?: Record<string, unknown>
+  /**
+   * P10.2.1 — FK to Owner.ownerId (src/types/ownership.ts). Additive and
+   * optional during the migration window described in
+   * docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §10.2/§10.3 — every existing
+   * reader of `Tenant` that doesn't know about `ownerId` keeps working
+   * unchanged. Backfilled via `ownership-migration.service.ts`. Becomes
+   * required only once a later phase enforces the non-nullable invariant.
+   */
+  ownerId?: string
 }
 
 // ============================================================
