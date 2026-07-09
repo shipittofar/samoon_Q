@@ -63,6 +63,7 @@ import {
   resolveOwnershipDrivenPermissions,
   buildBranchAccessContextFromAssignments,
   assertOwnershipBranchAccess,
+  assertOwnershipTenantAccess,
 } from '@/services/ownership-resolution.service'
 import { staffAssignmentService } from '@/services/staff-assignment.service'
 import { ownerOwnsTenant } from '@/services/ownership.service'
@@ -655,10 +656,18 @@ export function useBranch(id: string) {
 
 // ── Branch Management Hooks (P7.3) ────────────────────────────────────────────
 
+/**
+ * P10.3 Phase E — tenant isolation enforcement: validates the active
+ * identity belongs to `tenantId` before returning its branch list.
+ */
 export function useAdminBranches(tenantId: string) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['admin-branches', tenantId],
-    queryFn: () => branchManagementService.getBranches(tenantId),
+    queryFn: async () => {
+      await assertOwnershipTenantAccess(email, tenantId)
+      return branchManagementService.getBranches(tenantId)
+    },
     staleTime: STALE_TIME,
     enabled: !!tenantId,
   })
@@ -1898,10 +1907,19 @@ export function useArchiveTenant() {
 
 // ── Staff Management Hooks (P7.2) ─────────────────────────────────────────────
 
+/**
+ * P10.3 Phase E — tenant isolation enforcement: validates the active
+ * identity belongs to `tenantId` via `assertOwnershipTenantAccess()`
+ * before returning the tenant's Staff roster.
+ */
 export function useStaff(tenantId: string) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['staff', tenantId],
-    queryFn: () => staffService.getStaff(tenantId),
+    queryFn: async () => {
+      await assertOwnershipTenantAccess(email, tenantId)
+      return staffService.getStaff(tenantId)
+    },
     staleTime: STALE_TIME,
     enabled: !!tenantId,
   })

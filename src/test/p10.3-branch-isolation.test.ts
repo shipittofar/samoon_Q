@@ -2,7 +2,7 @@
 // P10.3 Phase D — Branch Isolation Enforcement — regression tests
 // ============================================================
 import { describe, it, expect, beforeEach } from 'vitest'
-import { assertOwnershipBranchAccess } from '@/services/ownership-resolution.service'
+import { assertOwnershipBranchAccess, assertOwnershipTenantAccess, TenantAccessError } from '@/services/ownership-resolution.service'
 import { BranchAccessError } from '@/services/branch-access.service'
 import { ownerService } from '@/services/owner.service'
 import { staffService } from '@/services/staff.service'
@@ -53,5 +53,40 @@ describe('P10.3 Phase D — assertOwnershipBranchAccess', () => {
 
   it('denies access for an unknown branch id', async () => {
     await expect(assertOwnershipBranchAccess('owner@savor.com', 'branch-does-not-exist')).rejects.toThrow()
+  })
+})
+
+describe('P10.3 Phase E — assertOwnershipTenantAccess', () => {
+  it('allows an eligible Owner to access a tenant they own', async () => {
+    await expect(assertOwnershipTenantAccess('owner@savor.com', 'tenant-savor-01')).resolves.toBeUndefined()
+  })
+
+  it('allows Staff with an effective assignment to access that tenant', async () => {
+    await expect(assertOwnershipTenantAccess('accountant@savor.com', 'tenant-brew-cafe-01')).resolves.toBeUndefined()
+  })
+
+  it('denies an Owner access to a tenant they do not own', async () => {
+    await expect(assertOwnershipTenantAccess('owner@savor.com', 'tenant-oak-bar-01')).rejects.toThrow(
+      TenantAccessError,
+    )
+  })
+
+  it('denies access for an identity with no Owner and no matching StaffAssignment', async () => {
+    await expect(assertOwnershipTenantAccess('john@example.com', 'tenant-savor-01')).rejects.toThrow(
+      TenantAccessError,
+    )
+  })
+
+  it('denies a suspended Owner access to a tenant they own (Phase A carried through)', async () => {
+    await expect(assertOwnershipTenantAccess('owner@roadbites.com', 'tenant-road-bites-01')).rejects.toThrow(
+      TenantAccessError,
+    )
+  })
+
+  it('denies access to an archived tenant (Phase C carried through)', async () => {
+    await tenantService.archiveTenant('tenant-savor-01')
+    await expect(assertOwnershipTenantAccess('owner@savor.com', 'tenant-savor-01')).rejects.toThrow(
+      TenantAccessError,
+    )
   })
 })

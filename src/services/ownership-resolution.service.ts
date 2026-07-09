@@ -306,5 +306,62 @@ export async function assertOwnershipBranchAccess(
   branchAccessService.assertBranchAccess(branchId, context, tenantBranches)
 }
 
+/**
+ * P10.3 Phase E — thrown by `assertOwnershipTenantAccess()` when the
+ * active identity does not belong to the tenant being read.
+ */
+export class TenantAccessError extends Error {
+  constructor(
+    public readonly tenantId: string,
+    public readonly identityKey: string,
+  ) {
+    super(`Identity ${identityKey} does not have access to tenant ${tenantId}`)
+    this.name = 'TenantAccessError'
+  }
+}
+
+/**
+ * P10.3 Phase E — tenant isolation enforcement. Validates that the active
+ * identity (Owner or Staff) actually belongs to `tenantId` before a
+ * tenant-scoped read is allowed to proceed. Reuses the same resolution
+ * primitives as everything else in this file —
+ * `resolveOwnershipIdentity`, `isOwnerEligible`, `isStaffMemberEligible`,
+ * `isTenantEligible`, `ownerOwnsTenant` — and does not introduce a
+ * parallel ownership check: an Owner passes exactly when
+ * `resolveOwnerPermissions()` would have granted permissions for this
+ * tenant, and Staff passes exactly when they hold at least one effective
+ * `StaffAssignment` scoped to this tenant (the same set
+ * `resolveStaffAssignmentPermissions()` reads from).
+ */
+export async function assertOwnershipTenantAccess(
+  email: string | null | undefined,
+  tenantId: string,
+): Promise<void> {
+  const tenants = await tenantService.getTenants()
+  const tenant = tenants.find((t) => t.id === tenantId)
+  if (!tenant || !isTenantEligible(tenant)) {
+    throw new TenantAccessError(tenantId, email ?? 'unknown')
+  }
+
+  const identity = resolveOwnershipIdentity(email)
+
+  if (
+    identity.owner &&
+    isOwnerEligible(identity.owner) &&
+    ownerOwnsTenant(identity.owner.ownerId, tenantId, tenants)
+  ) {
+    return
+  }
+
+  if (identity.staffMember && isStaffMemberEligible(identity.staffMember)) {
+    const assignments = staffAssignmentService
+      .getEffectiveAssignments(identity.staffMember.id)
+      .filter((a) => a.tenantId === tenantId)
+    if (assignments.length > 0) return
+  }
+
+  throw new TenantAccessError(tenantId, email ?? 'unknown')
+}
+
 /** Re-exported for tests/consumers that only need the type, not the logic. */
 export type { StaffAssignment }
