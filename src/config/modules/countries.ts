@@ -158,7 +158,15 @@ export const COUNTRIES_MODULE: ConfigModuleDefinition = {
       ],
     },
     {
-      id: 'countries.registry',
+      // P9.5.7D.1 — section id deliberately distinct from the collection
+      // field's own id below ('countries.registry'). They used to share
+      // the literal id 'countries.registry', which meant this section's
+      // title/description and its field's title/description collided
+      // under the same resolveConfigText lookup key — only one of the
+      // two could ever be translated. Section ids are never a stored
+      // configuration key (only field ids are — see registry.ts), so
+      // renaming this one is data-safe.
+      id: 'countries.registry_section',
       title: 'Country Management',
       description: 'Per-country configuration — enablement, features, currency, locale, and governance status for all 176 countries.',
       fields: [

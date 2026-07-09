@@ -11,8 +11,9 @@ import type {
   ConfigFieldDefinition,
   ConfigUIControlType,
   ResolvedConfigValue,
+  ConfigTextTranslator,
 } from '@/config'
-import { configCollection, type ConfigCollectionEntry, type ConfigCollectionFilterValue } from '@/config'
+import { configCollection, resolveConfigText, resolveConfigOptionText, type ConfigCollectionEntry, type ConfigCollectionFilterValue } from '@/config'
 
 // ── Phase C — control inference ───────────────────────────────────────────────
 
@@ -174,19 +175,34 @@ export interface ConfigCollectionFilterOption {
  * choice. This is the Phase F "generic filtering engine" — Countries is the
  * first consumer, but any future collection (Branches, Tenants, …) gets
  * working filters for free just by declaring its schema.
+ *
+ * `tFields`/`t` (P9.5.7D.1) are optional so this stays a pure, unit-testable
+ * function with no React dependency when omitted (every property/option
+ * falls back to its literal English text, exactly as before) — the real
+ * Console call site (`ConfigurationCollectionTable`) passes both so the
+ * derived labels resolve through the same scoped-id mechanism every other
+ * collection property uses, with zero collection-specific code.
  */
-export function deriveCollectionFilterOptions(field: ConfigFieldDefinition): ConfigCollectionFilterOption[] {
+export function deriveCollectionFilterOptions(
+  field: ConfigFieldDefinition,
+  tFields?: ConfigTextTranslator,
+  t?: ConfigTextTranslator,
+): ConfigCollectionFilterOption[] {
   const options: ConfigCollectionFilterOption[] = []
   for (const prop of configCollection.getSchema(field)) {
-    const label = prop.display?.displayName ?? prop.title
+    const scope = [field.id, 'schema', prop.id]
+    const label = prop.display?.displayName ?? (tFields ? resolveConfigText(tFields, scope, 'title', prop.title) : prop.title)
     if (prop.type === 'boolean') {
-      options.push({ propertyId: prop.id, label: `${label}: Enabled`, value: true })
-      options.push({ propertyId: prop.id, label: `${label}: Disabled`, value: false })
+      const enabledText = t?.has('enabledLabel') ? t('enabledLabel') : 'Enabled'
+      const disabledText = t?.has('disabledLabel') ? t('disabledLabel') : 'Disabled'
+      options.push({ propertyId: prop.id, label: `${label}: ${enabledText}`, value: true })
+      options.push({ propertyId: prop.id, label: `${label}: ${disabledText}`, value: false })
       continue
     }
     if (prop.type === 'select') {
       for (const opt of prop.options ?? []) {
-        options.push({ propertyId: prop.id, label: `${label}: ${opt.label}`, value: opt.value as ConfigCollectionFilterValue })
+        const optText = tFields ? resolveConfigOptionText(tFields, scope, opt, 'label', opt.label) : opt.label
+        options.push({ propertyId: prop.id, label: `${label}: ${optText}`, value: opt.value as ConfigCollectionFilterValue })
       }
     }
   }

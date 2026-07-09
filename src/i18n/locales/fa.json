@@ -2309,7 +2309,18 @@
           "title": "نام پلتفرم"
         },
         "default_landing_widget_set": {
-          "title": "مجموعه ابزارک پیش‌فرض داشبورد"
+          "title": "مجموعه ابزارک پیش‌فرض داشبورد",
+          "options": {
+            "standard": {
+              "label": "استاندارد"
+            },
+            "finance_focused": {
+              "label": "متمرکز بر مالی"
+            },
+            "ops_focused": {
+              "label": "متمرکز بر عملیات"
+            }
+          }
         },
         "group": "پلتفرم"
       },
@@ -2352,7 +2363,53 @@
         },
         "registry": {
           "title": "کاربران پلتفرم",
-          "description": "هر کاربر داخلی پلتفرم و نقش پلتفرمی او."
+          "description": "هر کاربر داخلی پلتفرم و نقش پلتفرمی او.",
+          "schema": {
+            "role": {
+              "title": "نقش پلتفرم",
+              "options": {
+                "platform_owner": {
+                  "label": "مالک"
+                },
+                "platform_super_admin": {
+                  "label": "مدیر ارشد"
+                },
+                "platform_admin": {
+                  "label": "مدیر"
+                },
+                "platform_support": {
+                  "label": "پشتیبانی"
+                },
+                "platform_operations": {
+                  "label": "عملیات"
+                },
+                "platform_finance": {
+                  "label": "مالی"
+                },
+                "platform_security": {
+                  "label": "امنیت"
+                },
+                "platform_developer": {
+                  "label": "توسعه‌دهنده"
+                },
+                "platform_auditor": {
+                  "label": "ممیز"
+                },
+                "platform_read_only": {
+                  "label": "فقط خواندنی"
+                }
+              }
+            },
+            "active": {
+              "title": "فعال"
+            },
+            "mfa_enabled": {
+              "title": "احراز هویت دومرحله‌ای فعال"
+            },
+            "last_login_note": {
+              "title": "یادداشت‌ها"
+            }
+          }
         },
         "group": "کاربران"
       },
@@ -2361,7 +2418,184 @@
         "description": "تمام زبان‌های پلتفرم — فعال‌سازی، تایپوگرافی، قالب‌بندی، زبان جایگزین و پوشش ترجمه.",
         "group": "بومی‌سازی",
         "registry": {
-          "title": "زبان‌ها"
+          "title": "زبان‌ها",
+          "schema": {
+            "nativeName": {
+              "title": "نام بومی",
+              "description": "نام زبان به خط خودش، مثلاً «فارسی»."
+            },
+            "englishName": {
+              "title": "نام انگلیسی"
+            },
+            "region": {
+              "title": "منطقه"
+            },
+            "searchKeywords": {
+              "title": "کلیدواژه‌های جستجو",
+              "description": "عبارات اضافی که این زبان باید با آن‌ها قابل‌جستجو باشد (نام‌های مستعار، املای جایگزین)."
+            },
+            "notes": {
+              "title": "یادداشت‌ها"
+            },
+            "status": {
+              "title": "وضعیت",
+              "options": {
+                "draft": {
+                  "label": "پیش‌نویس"
+                },
+                "testing": {
+                  "label": "آزمایشی"
+                },
+                "published": {
+                  "label": "منتشرشده"
+                },
+                "deprecated": {
+                  "label": "منسوخ"
+                },
+                "archived": {
+                  "label": "بایگانی‌شده"
+                }
+              }
+            },
+            "enabled": {
+              "title": "فعال",
+              "description": "کلید اصلی فعال/غیرفعال. فقط برای مدیریت پلتفرم."
+            },
+            "visibility": {
+              "title": "نمایش در تعویض‌گر زبان",
+              "description": "در تعویض‌گر زبان نمایش داده می‌شود. حالت فعال-اما-نامرئی فقط از طریق پیوند مستقیم قابل‌دسترس است."
+            },
+            "default": {
+              "title": "پیش‌فرض پلتفرم",
+              "description": "فقط یک زبان می‌تواند پیش‌فرض باشد."
+            },
+            "beta": {
+              "title": "نسخه آزمایشی"
+            },
+            "experimental": {
+              "title": "آزمایشی"
+            },
+            "lastUpdated": {
+              "title": "آخرین به‌روزرسانی"
+            },
+            "translator": {
+              "title": "مترجم / مسئول"
+            },
+            "version": {
+              "title": "نسخه",
+              "description": "نشانگر آزاد بازبینی برای این ورودی زبان، هم‌زمان با تغییرات منتشرشده افزایش می‌یابد."
+            },
+            "translationCoverage": {
+              "title": "درصد پوشش ترجمه",
+              "description": "درصد کلیدهای زبان مرجع (انگلیسی) که در این زبان مقداری دارند."
+            },
+            "completionPercent": {
+              "title": "درصد تکمیل",
+              "description": "درصد کلیدهای ترجمه‌شده که نهایی تلقی می‌شوند (بازبینی‌شده، نه فقط ماشینی)."
+            },
+            "machineTranslated": {
+              "title": "ترجمه ماشینی"
+            },
+            "humanReviewed": {
+              "title": "بازبینی‌شده توسط انسان"
+            },
+            "currency": {
+              "title": "ارز پیش‌فرض"
+            },
+            "timezone": {
+              "title": "منطقه زمانی پیش‌فرض"
+            },
+            "dateStyle": {
+              "title": "قالب تاریخ",
+              "description": "سبک تاریخ Intl.DateTimeFormat.",
+              "options": {
+                "short": {
+                  "label": "کوتاه"
+                },
+                "medium": {
+                  "label": "متوسط"
+                },
+                "long": {
+                  "label": "بلند"
+                },
+                "full": {
+                  "label": "کامل"
+                }
+              }
+            },
+            "hourCycle": {
+              "title": "قالب زمان",
+              "description": "چرخه ساعت Intl.DateTimeFormat.",
+              "options": {
+                "h12": {
+                  "label": "۱۲ ساعته"
+                },
+                "h23": {
+                  "label": "۲۴ ساعته"
+                }
+              }
+            },
+            "numberNotation": {
+              "title": "قالب عدد",
+              "description": "نماد Intl.NumberFormat.",
+              "options": {
+                "standard": {
+                  "label": "استاندارد (۱٬۲۳۴٬۵۶۷)"
+                },
+                "compact": {
+                  "label": "فشرده (۱.۲ میلیون)"
+                }
+              }
+            },
+            "pluralRules": {
+              "title": "زبان قواعد جمع",
+              "description": "برچسب BCP 47 که Intl.PluralRules باید با آن ساخته شود."
+            },
+            "fallbackLanguage": {
+              "title": "زبان جایگزین",
+              "description": "اشاره‌گر جایگزین تک‌مرحله‌ای؛ حل زنجیره یک پیمایش ساده است."
+            },
+            "direction": {
+              "title": "جهت",
+              "options": {
+                "ltr": {
+                  "label": "چپ‌به‌راست"
+                },
+                "rtl": {
+                  "label": "راست‌به‌چپ"
+                }
+              }
+            },
+            "rtl": {
+              "title": "راست‌به‌چپ",
+              "description": "باید با فیلد جهت هم‌خوانی داشته باشد."
+            },
+            "fontFamily": {
+              "title": "فونت اصلی"
+            },
+            "secondaryFontFamily": {
+              "title": "فونت ثانویه"
+            },
+            "headingFontFamily": {
+              "title": "فونت عنوان"
+            },
+            "monoFontFamily": {
+              "title": "فونت تک‌عرض"
+            },
+            "fontScale": {
+              "title": "مقیاس فونت",
+              "description": "ضریبی که به اندازه فونت پایه پلتفرم اعمال می‌شود."
+            },
+            "lineHeight": {
+              "title": "ارتفاع خط"
+            },
+            "letterSpacing": {
+              "title": "فاصله حروف (em)"
+            },
+            "fontWeight": {
+              "title": "وزن اصلی"
+            }
+          }
         },
         "general": {
           "title": "عمومی"
@@ -2390,7 +2624,52 @@
         "group": "کسب‌وکارها",
         "registry": {
           "title": "مستأجران",
-          "description": "تمام کسب‌وکارهای مستأجر در پلتفرم."
+          "description": "تمام کسب‌وکارهای مستأجر در پلتفرم.",
+          "schema": {
+            "status": {
+              "title": "وضعیت",
+              "options": {
+                "active": {
+                  "label": "فعال"
+                },
+                "trial": {
+                  "label": "آزمایشی"
+                },
+                "suspended": {
+                  "label": "معلق"
+                },
+                "churned": {
+                  "label": "خارج‌شده"
+                }
+              }
+            },
+            "plan": {
+              "title": "طرح",
+              "options": {
+                "starter": {
+                  "label": "مقدماتی"
+                },
+                "growth": {
+                  "label": "رشد"
+                },
+                "enterprise": {
+                  "label": "سازمانی"
+                }
+              }
+            },
+            "business_type": {
+              "title": "نوع کسب‌وکار"
+            },
+            "verified": {
+              "title": "کسب‌وکار تأییدشده"
+            },
+            "flagged_for_review": {
+              "title": "علامت‌گذاری‌شده برای بازبینی"
+            },
+            "notes": {
+              "title": "یادداشت‌های داخلی"
+            }
+          }
         },
         "general": {
           "title": "عمومی"
@@ -2449,7 +2728,15 @@
         "description": "چرخه صورت‌حساب سراسری پلتفرم و پیکربندی پیگیری پرداخت.",
         "group": "اشتراک‌ها",
         "billing_cycle": {
-          "title": "چرخه صورت‌حساب پیش‌فرض"
+          "title": "چرخه صورت‌حساب پیش‌فرض",
+          "options": {
+            "monthly": {
+              "label": "ماهانه"
+            },
+            "annual": {
+              "label": "سالانه"
+            }
+          }
         },
         "dunning_retry_attempts": {
           "title": "تعداد تلاش مجدد پرداخت ناموفق"
@@ -2525,7 +2812,21 @@
         "description": "پیکربندی ارائه‌دهنده ایمیل تراکنشی و جایگزینی خودکار.",
         "group": "خودکارسازی",
         "primary_provider": {
-          "title": "ارائه‌دهنده اصلی"
+          "title": "ارائه‌دهنده اصلی",
+          "options": {
+            "sendgrid": {
+              "label": "سندگرید"
+            },
+            "ses": {
+              "label": "آمازون SES"
+            },
+            "postmark": {
+              "label": "پست‌مارک"
+            },
+            "mailgun": {
+              "label": "میل‌گان"
+            }
+          }
         },
         "failover_enabled": {
           "title": "جایگزینی خودکار"
@@ -2539,7 +2840,18 @@
         "description": "پیکربندی ارائه‌دهنده ارسال پیامک/رمز یک‌بارمصرف و جایگزینی خودکار.",
         "group": "خودکارسازی",
         "primary_provider": {
-          "title": "ارائه‌دهنده اصلی"
+          "title": "ارائه‌دهنده اصلی",
+          "options": {
+            "twilio": {
+              "label": "تویلیو"
+            },
+            "vonage": {
+              "label": "ووناژ"
+            },
+            "sns": {
+              "label": "آمازون SNS"
+            }
+          }
         },
         "failover_enabled": {
           "title": "جایگزینی خودکار"
@@ -2553,7 +2865,18 @@
         "description": "پیکربندی ارائه‌دهنده ارسال اعلان فوری.",
         "group": "خودکارسازی",
         "provider": {
-          "title": "ارائه‌دهنده"
+          "title": "ارائه‌دهنده",
+          "options": {
+            "fcm": {
+              "label": "فایربیس کلود مسیجینگ"
+            },
+            "apns": {
+              "label": "سرویس اعلان فوری اپل"
+            },
+            "onesignal": {
+              "label": "وان‌سیگنال"
+            }
+          }
         },
         "general": {
           "title": "عمومی"
@@ -2587,7 +2910,18 @@
           "title": "پیام بنر"
         },
         "banner_severity": {
-          "title": "شدت"
+          "title": "شدت",
+          "options": {
+            "info": {
+              "label": "اطلاع‌رسانی"
+            },
+            "warning": {
+              "label": "هشدار"
+            },
+            "critical": {
+              "label": "بحرانی"
+            }
+          }
         },
         "general": {
           "title": "عمومی"
@@ -2626,7 +2960,18 @@
         "description": "پیکربندی کش در سطح برنامه.",
         "group": "زیرساخت",
         "cache_provider": {
-          "title": "ارائه‌دهنده کش"
+          "title": "ارائه‌دهنده کش",
+          "options": {
+            "in_memory": {
+              "label": "درون‌حافظه"
+            },
+            "redis": {
+              "label": "ردیس"
+            },
+            "memcached": {
+              "label": "مم‌کش"
+            }
+          }
         },
         "default_ttl_seconds": {
           "title": "عمر پیش‌فرض (ثانیه)"
@@ -2640,7 +2985,18 @@
         "description": "زمان‌بندی و نگهداری پشتیبان‌گیری خودکار.",
         "group": "زیرساخت",
         "backup_frequency": {
-          "title": "دوره پشتیبان‌گیری"
+          "title": "دوره پشتیبان‌گیری",
+          "options": {
+            "hourly": {
+              "label": "ساعتی"
+            },
+            "daily": {
+              "label": "روزانه"
+            },
+            "weekly": {
+              "label": "هفتگی"
+            }
+          }
         },
         "backup_retention_days": {
           "title": "مدت نگهداری پشتیبان (روز)"
@@ -2760,7 +3116,18 @@
         "description": "پیکربندی تجمیع تحلیل‌ها در همه مستأجران.",
         "group": "پایش",
         "aggregation_window": {
-          "title": "بازه تجمیع پیش‌فرض"
+          "title": "بازه تجمیع پیش‌فرض",
+          "options": {
+            "hourly": {
+              "label": "ساعتی"
+            },
+            "daily": {
+              "label": "روزانه"
+            },
+            "weekly": {
+              "label": "هفتگی"
+            }
+          }
         },
         "include_churned_tenants": {
           "title": "افزودن مستأجران خارج‌شده به تجمیع‌ها"
@@ -2834,7 +3201,24 @@
           "title": "منطبق با SOC 2 نوع دوم"
         },
         "pci_dss_level": {
-          "title": "سطح PCI DSS"
+          "title": "سطح PCI DSS",
+          "options": {
+            "not_applicable": {
+              "label": "غیرقابل‌اجرا"
+            },
+            "level_1": {
+              "label": "سطح ۱"
+            },
+            "level_2": {
+              "label": "سطح ۲"
+            },
+            "level_3": {
+              "label": "سطح ۳"
+            },
+            "level_4": {
+              "label": "سطح ۴"
+            }
+          }
         },
         "general": {
           "title": "عمومی"
@@ -3002,7 +3386,18 @@
         "description": "پیکربندی ارائه‌دهنده هوش مصنوعی/مدل زبانی برای ویژگی‌های مبتنی بر پلتفرم.",
         "group": "توسعه‌دهنده",
         "primary_provider": {
-          "title": "ارائه‌دهنده اصلی"
+          "title": "ارائه‌دهنده اصلی",
+          "options": {
+            "anthropic": {
+              "label": "انتروپیک"
+            },
+            "openai": {
+              "label": "اوپن‌ای‌آی"
+            },
+            "google": {
+              "label": "گوگل"
+            }
+          }
         },
         "monthly_token_budget": {
           "title": "بودجه ماهانه توکن"
@@ -3027,7 +3422,18 @@
         "description": "شناسایی و تدابیر ایمنی محیط استقرار.",
         "group": "توسعه‌دهنده",
         "environment_name": {
-          "title": "نام محیط"
+          "title": "نام محیط",
+          "options": {
+            "development": {
+              "label": "توسعه"
+            },
+            "staging": {
+              "label": "آزمایشی"
+            },
+            "production": {
+              "label": "تولید"
+            }
+          }
         },
         "protect_production_writes": {
           "title": "تأیید اضافی برای نوشتن در محیط تولید"
@@ -3130,6 +3536,141 @@
         "description": "کشوری که در نبود سرنخ مشخص، از پیش انتخاب می‌شود."
       },
       "registry": {
+        "title": "کشورها",
+        "description": "هر کشور پشتیبانی‌شده با ویژگی‌های قابل پیکربندی خاص خود.",
+        "schema": {
+          "enabled": {
+            "title": "فعال"
+          },
+          "visible": {
+            "title": "نمایش در انتخابگرها"
+          },
+          "supported": {
+            "title": "پشتیبانی کامل",
+            "description": "غیرفعال بودن این گزینه یعنی کشور به‌صورت جزئی پشتیبانی می‌شود (پوشش محدود ویژگی‌ها)."
+          },
+          "phone_login_enabled": {
+            "title": "ورود با تلفن"
+          },
+          "sms_enabled": {
+            "title": "پیامک"
+          },
+          "registration_enabled": {
+            "title": "ثبت‌نام"
+          },
+          "reservations_enabled": {
+            "title": "رزروها"
+          },
+          "ordering_enabled": {
+            "title": "سفارش‌دهی"
+          },
+          "payments_enabled": {
+            "title": "پرداخت‌ها"
+          },
+          "delivery_enabled": {
+            "title": "تحویل"
+          },
+          "pickup_enabled": {
+            "title": "دریافت حضوری"
+          },
+          "currency": {
+            "title": "ارز"
+          },
+          "timezone": {
+            "title": "منطقه زمانی نماینده"
+          },
+          "default_language": {
+            "title": "زبان پیش‌فرض"
+          },
+          "default_phone_prefix": {
+            "title": "پیش‌شماره تلفن"
+          },
+          "phone_example": {
+            "title": "نمونه شماره تلفن",
+            "description": "نمونه قالب داخلی که در جای‌نگهدار ورودی تلفن نمایش داده می‌شود."
+          },
+          "vat_supported": {
+            "title": "پشتیبانی مالیات بر ارزش افزوده"
+          },
+          "address_format": {
+            "title": "قالب آدرس",
+            "options": {
+              "street_city_state_zip": {
+                "label": "خیابان، شهر، ایالت، کد پستی (سبک آمریکا)"
+              },
+              "street_postal_city": {
+                "label": "خیابان، کد پستی، شهر (سبک اروپا)"
+              },
+              "street_city_postal": {
+                "label": "خیابان، شهر، کد پستی"
+              },
+              "street_district_city_postal": {
+                "label": "خیابان، محله، شهر، کد پستی"
+              },
+              "street_city_state_postal": {
+                "label": "خیابان، شهر، ایالت، کد پستی (سبک استرالیا/نیوزیلند)"
+              }
+            }
+          },
+          "postal_code_validation": {
+            "title": "اعتبارسنجی کد پستی"
+          },
+          "national_id_required": {
+            "title": "الزام کد ملی",
+            "description": "آماده برای آینده — هنوز در پرداخت/ثبت‌نام اعمال نمی‌شود."
+          },
+          "region": {
+            "title": "منطقه",
+            "options": {
+              "North_America": {
+                "label": "آمریکای شمالی"
+              },
+              "South_America": {
+                "label": "آمریکای جنوبی"
+              },
+              "Europe": {
+                "label": "اروپا"
+              },
+              "Middle_East": {
+                "label": "خاورمیانه"
+              },
+              "Asia": {
+                "label": "آسیا"
+              },
+              "Africa": {
+                "label": "آفریقا"
+              },
+              "Oceania": {
+                "label": "اقیانوسیه"
+              }
+            }
+          },
+          "status": {
+            "title": "وضعیت",
+            "options": {
+              "draft": {
+                "label": "پیش‌نویس"
+              },
+              "testing": {
+                "label": "آزمایشی"
+              },
+              "published": {
+                "label": "منتشرشده"
+              },
+              "deprecated": {
+                "label": "منسوخ"
+              },
+              "archived": {
+                "label": "بایگانی‌شده"
+              }
+            }
+          },
+          "notes": {
+            "title": "یادداشت‌ها"
+          }
+        }
+      },
+      "registry_section": {
         "title": "مدیریت کشورها",
         "description": "پیکربندی هر کشور — فعال‌سازی، امکانات، ارز، زبان و وضعیت حاکمیتی برای ۱۷۶ کشور."
       }
@@ -3172,7 +3713,21 @@
         "title": "آستانه هشدار تأخیر API (میلی‌ثانیه)"
       },
       "alert_channels": {
-        "title": "کانال‌های هشدار"
+        "title": "کانال‌های هشدار",
+        "options": {
+          "email": {
+            "label": "ایمیل"
+          },
+          "sms": {
+            "label": "پیامک"
+          },
+          "slack": {
+            "label": "اسلک"
+          },
+          "pagerduty": {
+            "label": "پیجردیوتی"
+          }
+        }
       }
     },
     "notifications": {
@@ -3183,17 +3738,47 @@
         "title": "ارائه‌دهندگان"
       },
       "email_provider": {
-        "title": "ارائه‌دهنده ایمیل"
+        "title": "ارائه‌دهنده ایمیل",
+        "options": {
+          "sendgrid": {
+            "label": "سندگرید"
+          },
+          "ses": {
+            "label": "آمازون SES"
+          },
+          "postmark": {
+            "label": "پست‌مارک"
+          }
+        }
       },
       "sms_provider": {
-        "title": "ارائه‌دهنده پیامک"
+        "title": "ارائه‌دهنده پیامک",
+        "options": {
+          "twilio": {
+            "label": "تویلیو"
+          },
+          "vonage": {
+            "label": "ووناژ"
+          }
+        }
       },
       "push_enabled": {
         "title": "اعلان‌های فوری فعال"
       },
       "default_channels": {
         "title": "کانال‌های پیش‌فرض",
-        "description": "کانال‌هایی که برای کاربر جدید پیش از اعمال تنظیمات شخصی، به‌طور پیش‌فرض فعال هستند."
+        "description": "کانال‌هایی که برای کاربر جدید پیش از اعمال تنظیمات شخصی، به‌طور پیش‌فرض فعال هستند.",
+        "options": {
+          "push": {
+            "label": "اعلان فوری"
+          },
+          "email": {
+            "label": "ایمیل"
+          },
+          "sms": {
+            "label": "پیامک"
+          }
+        }
       }
     },
     "payments": {
@@ -3204,7 +3789,21 @@
         "title": "ارائه‌دهندگان"
       },
       "enabled_providers": {
-        "title": "ارائه‌دهندگان فعال"
+        "title": "ارائه‌دهندگان فعال",
+        "options": {
+          "stripe": {
+            "label": "استرایپ"
+          },
+          "cash": {
+            "label": "پرداخت در محل"
+          },
+          "wallet": {
+            "label": "کیف پول پلتفرم"
+          },
+          "gift_card": {
+            "label": "کارت هدیه"
+          }
+        }
       },
       "stripe_publishable_key": {
         "title": "کلید عمومی استرایپ"
@@ -3213,7 +3812,21 @@
         "title": "کلید محرمانه استرایپ"
       },
       "default_currency": {
-        "title": "ارز پیش‌فرض"
+        "title": "ارز پیش‌فرض",
+        "options": {
+          "USD": {
+            "label": "دلار آمریکا"
+          },
+          "EUR": {
+            "label": "یورو"
+          },
+          "AED": {
+            "label": "درهم امارات"
+          },
+          "TRY": {
+            "label": "لیر ترکیه"
+          }
+        }
       },
       "platform_fee_percent": {
         "title": "کارمزد پلتفرم (٪)"
@@ -3230,7 +3843,15 @@
         "title": "حداکثر نقش‌های سفارشی هر مستأجر"
       },
       "default_invite_role": {
-        "title": "نقش پیش‌فرض دعوت"
+        "title": "نقش پیش‌فرض دعوت",
+        "options": {
+          "staff": {
+            "label": "کارکنان"
+          },
+          "manager": {
+            "label": "مدیر"
+          }
+        }
       },
       "require_mfa_for_admin": {
         "title": "الزام احراز هویت دومرحله‌ای برای نقش مدیر"
@@ -3241,13 +3862,38 @@
       "description": "ارائه‌دهنده ذخیره‌سازی رسانه، محدودیت‌های بارگذاری و رفتار CDN.",
       "group": "زیرساخت",
       "provider": {
-        "title": "ارائه‌دهنده ذخیره‌سازی"
+        "title": "ارائه‌دهنده ذخیره‌سازی",
+        "options": {
+          "s3": {
+            "label": "آمازون S3"
+          },
+          "gcs": {
+            "label": "گوگل کلود استوریج"
+          },
+          "local": {
+            "label": "دیسک محلی (فقط توسعه)"
+          }
+        }
       },
       "max_upload_mb": {
         "title": "حداکثر حجم بارگذاری (مگابایت)"
       },
       "allowed_mime_types": {
-        "title": "انواع فایل مجاز"
+        "title": "انواع فایل مجاز",
+        "options": {
+          "image_png": {
+            "label": "PNG"
+          },
+          "image_jpeg": {
+            "label": "JPEG"
+          },
+          "image_webp": {
+            "label": "WebP"
+          },
+          "application_pdf": {
+            "label": "PDF"
+          }
+        }
       },
       "cdn_base_url": {
         "title": "آدرس پایه CDN"
@@ -3265,7 +3911,18 @@
         "description": "طرح‌های تعریف‌شده توسط پلتفرم که مستأجران می‌توانند در آن‌ها مشترک شوند."
       },
       "default_plan_id": {
-        "title": "طرح پیش‌فرض"
+        "title": "طرح پیش‌فرض",
+        "options": {
+          "starter": {
+            "label": "مقدماتی"
+          },
+          "growth": {
+            "label": "رشد"
+          },
+          "enterprise": {
+            "label": "سازمانی"
+          }
+        }
       },
       "trial_days": {
         "title": "مدت آزمایشی (روز)"
@@ -3293,7 +3950,27 @@
       },
       "default_business_type": {
         "title": "نوع کسب‌وکار پیش‌فرض",
-        "description": "نوع کسب‌وکاری که در زمان راه‌اندازی مستأجر از پیش انتخاب می‌شود."
+        "description": "نوع کسب‌وکاری که در زمان راه‌اندازی مستأجر از پیش انتخاب می‌شود.",
+        "options": {
+          "restaurant": {
+            "label": "رستوران"
+          },
+          "cafe": {
+            "label": "کافه"
+          },
+          "bar": {
+            "label": "بار"
+          },
+          "food_court": {
+            "label": "فودکورت"
+          },
+          "food_truck": {
+            "label": "فودتراک"
+          },
+          "mobile_cafe": {
+            "label": "کافه سیار"
+          }
+        }
       }
     },
     "themes": {
@@ -3304,7 +3981,18 @@
         "title": "پالت رنگی"
       },
       "default_mode": {
-        "title": "حالت رنگی پیش‌فرض"
+        "title": "حالت رنگی پیش‌فرض",
+        "options": {
+          "light": {
+            "label": "روشن"
+          },
+          "dark": {
+            "label": "تیره"
+          },
+          "system": {
+            "label": "پیروی از سیستم"
+          }
+        }
       },
       "primary_color": {
         "title": "رنگ اصلی",
@@ -3349,7 +4037,30 @@
         "title": "پیش‌فرض‌ها"
       },
       "enabled_blocks": {
-        "title": "بلوک‌های فعال"
+        "title": "بلوک‌های فعال",
+        "options": {
+          "hero": {
+            "label": "بنر اصلی"
+          },
+          "menu_preview": {
+            "label": "پیش‌نمایش منو"
+          },
+          "gallery": {
+            "label": "گالری"
+          },
+          "testimonials": {
+            "label": "نظرات مشتریان"
+          },
+          "hours": {
+            "label": "ساعات کاری"
+          },
+          "map": {
+            "label": "نقشه"
+          },
+          "cta": {
+            "label": "دعوت به اقدام"
+          }
+        }
       },
       "max_sections": {
         "title": "حداکثر بخش‌ها در هر صفحه"

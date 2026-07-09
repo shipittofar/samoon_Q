@@ -2309,7 +2309,18 @@
           "title": "Platform Name"
         },
         "default_landing_widget_set": {
-          "title": "Default Dashboard Widget Set"
+          "title": "Default Dashboard Widget Set",
+          "options": {
+            "standard": {
+              "label": "Standard"
+            },
+            "finance_focused": {
+              "label": "Finance-Focused"
+            },
+            "ops_focused": {
+              "label": "Operations-Focused"
+            }
+          }
         },
         "group": "Platform"
       },
@@ -2352,7 +2363,53 @@
         },
         "registry": {
           "title": "Platform Users",
-          "description": "Every internal platform user and their platform role."
+          "description": "Every internal platform user and their platform role.",
+          "schema": {
+            "role": {
+              "title": "Platform Role",
+              "options": {
+                "platform_owner": {
+                  "label": "Owner"
+                },
+                "platform_super_admin": {
+                  "label": "Super Admin"
+                },
+                "platform_admin": {
+                  "label": "Admin"
+                },
+                "platform_support": {
+                  "label": "Support"
+                },
+                "platform_operations": {
+                  "label": "Operations"
+                },
+                "platform_finance": {
+                  "label": "Finance"
+                },
+                "platform_security": {
+                  "label": "Security"
+                },
+                "platform_developer": {
+                  "label": "Developer"
+                },
+                "platform_auditor": {
+                  "label": "Auditor"
+                },
+                "platform_read_only": {
+                  "label": "Read Only"
+                }
+              }
+            },
+            "active": {
+              "title": "Active"
+            },
+            "mfa_enabled": {
+              "title": "MFA Enabled"
+            },
+            "last_login_note": {
+              "title": "Notes"
+            }
+          }
         },
         "group": "Users"
       },
@@ -2361,7 +2418,184 @@
         "description": "Every platform language — activation, typography, formatting, fallback, and translation coverage.",
         "group": "Localization",
         "registry": {
-          "title": "Languages"
+          "title": "Languages",
+          "schema": {
+            "nativeName": {
+              "title": "Native Name",
+              "description": "The language name written in itself, e.g. \"فارسی\"."
+            },
+            "englishName": {
+              "title": "English Name"
+            },
+            "region": {
+              "title": "Region"
+            },
+            "searchKeywords": {
+              "title": "Search Keywords",
+              "description": "Extra terms this language should be findable by (aliases, alternate spellings)."
+            },
+            "notes": {
+              "title": "Notes"
+            },
+            "status": {
+              "title": "Status",
+              "options": {
+                "draft": {
+                  "label": "Draft"
+                },
+                "testing": {
+                  "label": "Testing"
+                },
+                "published": {
+                  "label": "Published"
+                },
+                "deprecated": {
+                  "label": "Deprecated"
+                },
+                "archived": {
+                  "label": "Archived"
+                }
+              }
+            },
+            "enabled": {
+              "title": "Enabled",
+              "description": "Master on/off switch. Platform Administration only."
+            },
+            "visibility": {
+              "title": "Visible in Switcher",
+              "description": "Shown in the language switcher. Enabled-but-invisible is reachable by direct link only."
+            },
+            "default": {
+              "title": "Platform Default",
+              "description": "Exactly one language may be the default."
+            },
+            "beta": {
+              "title": "Beta"
+            },
+            "experimental": {
+              "title": "Experimental"
+            },
+            "lastUpdated": {
+              "title": "Last Updated"
+            },
+            "translator": {
+              "title": "Translator / Owner"
+            },
+            "version": {
+              "title": "Version",
+              "description": "Free-form revision marker for this language entry, bumped alongside published changes."
+            },
+            "translationCoverage": {
+              "title": "Translation Coverage %",
+              "description": "Percentage of reference (en) keys with any value in this locale."
+            },
+            "completionPercent": {
+              "title": "Completion %",
+              "description": "Percentage of translated keys considered final (reviewed, not machine-only)."
+            },
+            "machineTranslated": {
+              "title": "Machine Translated"
+            },
+            "humanReviewed": {
+              "title": "Human Reviewed"
+            },
+            "currency": {
+              "title": "Default Currency"
+            },
+            "timezone": {
+              "title": "Default Timezone"
+            },
+            "dateStyle": {
+              "title": "Date Format",
+              "description": "Intl.DateTimeFormat dateStyle.",
+              "options": {
+                "short": {
+                  "label": "short"
+                },
+                "medium": {
+                  "label": "medium"
+                },
+                "long": {
+                  "label": "long"
+                },
+                "full": {
+                  "label": "full"
+                }
+              }
+            },
+            "hourCycle": {
+              "title": "Time Format",
+              "description": "Intl.DateTimeFormat hourCycle.",
+              "options": {
+                "h12": {
+                  "label": "12-hour"
+                },
+                "h23": {
+                  "label": "24-hour"
+                }
+              }
+            },
+            "numberNotation": {
+              "title": "Number Format",
+              "description": "Intl.NumberFormat notation.",
+              "options": {
+                "standard": {
+                  "label": "Standard (1,234,567)"
+                },
+                "compact": {
+                  "label": "Compact (1.2M)"
+                }
+              }
+            },
+            "pluralRules": {
+              "title": "Plural Rules Locale",
+              "description": "The BCP 47 tag Intl.PluralRules should be constructed with."
+            },
+            "fallbackLanguage": {
+              "title": "Fallback Language",
+              "description": "One-hop fallback pointer; chain resolution is a pure traversal."
+            },
+            "direction": {
+              "title": "Direction",
+              "options": {
+                "ltr": {
+                  "label": "Left-to-right"
+                },
+                "rtl": {
+                  "label": "Right-to-left"
+                }
+              }
+            },
+            "rtl": {
+              "title": "RTL",
+              "description": "Must agree with Direction."
+            },
+            "fontFamily": {
+              "title": "Primary Font"
+            },
+            "secondaryFontFamily": {
+              "title": "Secondary Font"
+            },
+            "headingFontFamily": {
+              "title": "Heading Font"
+            },
+            "monoFontFamily": {
+              "title": "Monospace Font"
+            },
+            "fontScale": {
+              "title": "Font Scale",
+              "description": "Multiplier applied to the platform base font size."
+            },
+            "lineHeight": {
+              "title": "Line Height"
+            },
+            "letterSpacing": {
+              "title": "Letter Spacing (em)"
+            },
+            "fontWeight": {
+              "title": "Primary Weight"
+            }
+          }
         },
         "general": {
           "title": "General"
@@ -2390,7 +2624,52 @@
         "group": "Businesses",
         "registry": {
           "title": "Tenants",
-          "description": "Every tenant business on the platform."
+          "description": "Every tenant business on the platform.",
+          "schema": {
+            "status": {
+              "title": "Status",
+              "options": {
+                "active": {
+                  "label": "Active"
+                },
+                "trial": {
+                  "label": "Trial"
+                },
+                "suspended": {
+                  "label": "Suspended"
+                },
+                "churned": {
+                  "label": "Churned"
+                }
+              }
+            },
+            "plan": {
+              "title": "Plan",
+              "options": {
+                "starter": {
+                  "label": "Starter"
+                },
+                "growth": {
+                  "label": "Growth"
+                },
+                "enterprise": {
+                  "label": "Enterprise"
+                }
+              }
+            },
+            "business_type": {
+              "title": "Business Type"
+            },
+            "verified": {
+              "title": "Verified Business"
+            },
+            "flagged_for_review": {
+              "title": "Flagged for Review"
+            },
+            "notes": {
+              "title": "Internal Notes"
+            }
+          }
         },
         "general": {
           "title": "General"
@@ -2449,7 +2728,15 @@
         "description": "Platform-wide billing cycle and dunning configuration.",
         "group": "Subscriptions",
         "billing_cycle": {
-          "title": "Default Billing Cycle"
+          "title": "Default Billing Cycle",
+          "options": {
+            "monthly": {
+              "label": "Monthly"
+            },
+            "annual": {
+              "label": "Annual"
+            }
+          }
         },
         "dunning_retry_attempts": {
           "title": "Failed Payment Retry Attempts"
@@ -2525,7 +2812,21 @@
         "description": "Transactional email provider configuration and failover.",
         "group": "Automation",
         "primary_provider": {
-          "title": "Primary Provider"
+          "title": "Primary Provider",
+          "options": {
+            "sendgrid": {
+              "label": "SendGrid"
+            },
+            "ses": {
+              "label": "Amazon SES"
+            },
+            "postmark": {
+              "label": "Postmark"
+            },
+            "mailgun": {
+              "label": "Mailgun"
+            }
+          }
         },
         "failover_enabled": {
           "title": "Automatic Failover"
@@ -2539,7 +2840,18 @@
         "description": "SMS/OTP delivery provider configuration and failover.",
         "group": "Automation",
         "primary_provider": {
-          "title": "Primary Provider"
+          "title": "Primary Provider",
+          "options": {
+            "twilio": {
+              "label": "Twilio"
+            },
+            "vonage": {
+              "label": "Vonage"
+            },
+            "sns": {
+              "label": "Amazon SNS"
+            }
+          }
         },
         "failover_enabled": {
           "title": "Automatic Failover"
@@ -2553,7 +2865,18 @@
         "description": "Push notification delivery provider configuration.",
         "group": "Automation",
         "provider": {
-          "title": "Provider"
+          "title": "Provider",
+          "options": {
+            "fcm": {
+              "label": "Firebase Cloud Messaging"
+            },
+            "apns": {
+              "label": "Apple Push Notification Service"
+            },
+            "onesignal": {
+              "label": "OneSignal"
+            }
+          }
         },
         "general": {
           "title": "General"
@@ -2587,7 +2910,18 @@
           "title": "Banner Message"
         },
         "banner_severity": {
-          "title": "Severity"
+          "title": "Severity",
+          "options": {
+            "info": {
+              "label": "Info"
+            },
+            "warning": {
+              "label": "Warning"
+            },
+            "critical": {
+              "label": "Critical"
+            }
+          }
         },
         "general": {
           "title": "General"
@@ -2626,7 +2960,18 @@
         "description": "Application-level cache configuration.",
         "group": "Infrastructure",
         "cache_provider": {
-          "title": "Cache Provider"
+          "title": "Cache Provider",
+          "options": {
+            "in_memory": {
+              "label": "In-Memory"
+            },
+            "redis": {
+              "label": "Redis"
+            },
+            "memcached": {
+              "label": "Memcached"
+            }
+          }
         },
         "default_ttl_seconds": {
           "title": "Default TTL (seconds)"
@@ -2640,7 +2985,18 @@
         "description": "Automated backup schedule and retention.",
         "group": "Infrastructure",
         "backup_frequency": {
-          "title": "Backup Frequency"
+          "title": "Backup Frequency",
+          "options": {
+            "hourly": {
+              "label": "Hourly"
+            },
+            "daily": {
+              "label": "Daily"
+            },
+            "weekly": {
+              "label": "Weekly"
+            }
+          }
         },
         "backup_retention_days": {
           "title": "Backup Retention (days)"
@@ -2760,7 +3116,18 @@
         "description": "Cross-tenant analytics aggregation configuration.",
         "group": "Monitoring",
         "aggregation_window": {
-          "title": "Default Aggregation Window"
+          "title": "Default Aggregation Window",
+          "options": {
+            "hourly": {
+              "label": "Hourly"
+            },
+            "daily": {
+              "label": "Daily"
+            },
+            "weekly": {
+              "label": "Weekly"
+            }
+          }
         },
         "include_churned_tenants": {
           "title": "Include Churned Tenants in Aggregates"
@@ -2834,7 +3201,24 @@
           "title": "SOC 2 Type II Compliant"
         },
         "pci_dss_level": {
-          "title": "PCI DSS Level"
+          "title": "PCI DSS Level",
+          "options": {
+            "not_applicable": {
+              "label": "Not Applicable"
+            },
+            "level_1": {
+              "label": "Level 1"
+            },
+            "level_2": {
+              "label": "Level 2"
+            },
+            "level_3": {
+              "label": "Level 3"
+            },
+            "level_4": {
+              "label": "Level 4"
+            }
+          }
         },
         "general": {
           "title": "General"
@@ -3002,7 +3386,18 @@
         "description": "AI/LLM provider configuration for platform-powered features.",
         "group": "Developer",
         "primary_provider": {
-          "title": "Primary Provider"
+          "title": "Primary Provider",
+          "options": {
+            "anthropic": {
+              "label": "Anthropic"
+            },
+            "openai": {
+              "label": "OpenAI"
+            },
+            "google": {
+              "label": "Google"
+            }
+          }
         },
         "monthly_token_budget": {
           "title": "Monthly Token Budget"
@@ -3027,7 +3422,18 @@
         "description": "Deployment environment identification and safeguards.",
         "group": "Developer",
         "environment_name": {
-          "title": "Environment Name"
+          "title": "Environment Name",
+          "options": {
+            "development": {
+              "label": "Development"
+            },
+            "staging": {
+              "label": "Staging"
+            },
+            "production": {
+              "label": "Production"
+            }
+          }
         },
         "protect_production_writes": {
           "title": "Extra Confirmation for Production Writes"
@@ -3130,6 +3536,141 @@
         "description": "Country pre-selected when a tenant has no signal to infer one."
       },
       "registry": {
+        "title": "Countries",
+        "description": "Every supported country with its own configurable properties.",
+        "schema": {
+          "enabled": {
+            "title": "Enabled"
+          },
+          "visible": {
+            "title": "Visible in pickers"
+          },
+          "supported": {
+            "title": "Fully Supported",
+            "description": "Off marks a country as partially supported (limited feature coverage)."
+          },
+          "phone_login_enabled": {
+            "title": "Phone Login"
+          },
+          "sms_enabled": {
+            "title": "SMS"
+          },
+          "registration_enabled": {
+            "title": "Registration"
+          },
+          "reservations_enabled": {
+            "title": "Reservations"
+          },
+          "ordering_enabled": {
+            "title": "Ordering"
+          },
+          "payments_enabled": {
+            "title": "Payments"
+          },
+          "delivery_enabled": {
+            "title": "Delivery"
+          },
+          "pickup_enabled": {
+            "title": "Pickup"
+          },
+          "currency": {
+            "title": "Currency"
+          },
+          "timezone": {
+            "title": "Representative Timezone"
+          },
+          "default_language": {
+            "title": "Default Language"
+          },
+          "default_phone_prefix": {
+            "title": "Phone Prefix"
+          },
+          "phone_example": {
+            "title": "Example Phone Number",
+            "description": "National-format example shown in phone input placeholders."
+          },
+          "vat_supported": {
+            "title": "VAT / Tax Support"
+          },
+          "address_format": {
+            "title": "Address Format",
+            "options": {
+              "street_city_state_zip": {
+                "label": "Street, City, State, ZIP (US-style)"
+              },
+              "street_postal_city": {
+                "label": "Street, Postal Code, City (EU-style)"
+              },
+              "street_city_postal": {
+                "label": "Street, City, Postal Code"
+              },
+              "street_district_city_postal": {
+                "label": "Street, District, City, Postal Code"
+              },
+              "street_city_state_postal": {
+                "label": "Street, City, State, Postal Code (AU/NZ-style)"
+              }
+            }
+          },
+          "postal_code_validation": {
+            "title": "Postal Code Validation"
+          },
+          "national_id_required": {
+            "title": "National ID Required",
+            "description": "Future-ready — not yet enforced at checkout/registration."
+          },
+          "region": {
+            "title": "Region",
+            "options": {
+              "North_America": {
+                "label": "North America"
+              },
+              "South_America": {
+                "label": "South America"
+              },
+              "Europe": {
+                "label": "Europe"
+              },
+              "Middle_East": {
+                "label": "Middle East"
+              },
+              "Asia": {
+                "label": "Asia"
+              },
+              "Africa": {
+                "label": "Africa"
+              },
+              "Oceania": {
+                "label": "Oceania"
+              }
+            }
+          },
+          "status": {
+            "title": "Status",
+            "options": {
+              "draft": {
+                "label": "Draft"
+              },
+              "testing": {
+                "label": "Experimental"
+              },
+              "published": {
+                "label": "Published"
+              },
+              "deprecated": {
+                "label": "Deprecated"
+              },
+              "archived": {
+                "label": "Archived"
+              }
+            }
+          },
+          "notes": {
+            "title": "Notes"
+          }
+        }
+      },
+      "registry_section": {
         "title": "Country Management",
         "description": "Per-country configuration — enablement, features, currency, locale, and governance status for all 176 countries."
       }
@@ -3172,7 +3713,21 @@
         "title": "API Latency Alert Threshold (ms)"
       },
       "alert_channels": {
-        "title": "Alert Channels"
+        "title": "Alert Channels",
+        "options": {
+          "email": {
+            "label": "Email"
+          },
+          "sms": {
+            "label": "SMS"
+          },
+          "slack": {
+            "label": "Slack"
+          },
+          "pagerduty": {
+            "label": "PagerDuty"
+          }
+        }
       }
     },
     "notifications": {
@@ -3183,17 +3738,47 @@
         "title": "Providers"
       },
       "email_provider": {
-        "title": "Email Provider"
+        "title": "Email Provider",
+        "options": {
+          "sendgrid": {
+            "label": "SendGrid"
+          },
+          "ses": {
+            "label": "Amazon SES"
+          },
+          "postmark": {
+            "label": "Postmark"
+          }
+        }
       },
       "sms_provider": {
-        "title": "SMS Provider"
+        "title": "SMS Provider",
+        "options": {
+          "twilio": {
+            "label": "Twilio"
+          },
+          "vonage": {
+            "label": "Vonage"
+          }
+        }
       },
       "push_enabled": {
         "title": "Push Notifications Enabled"
       },
       "default_channels": {
         "title": "Default Channels",
-        "description": "Channels enabled by default for a new user, before their own preferences apply."
+        "description": "Channels enabled by default for a new user, before their own preferences apply.",
+        "options": {
+          "push": {
+            "label": "Push"
+          },
+          "email": {
+            "label": "Email"
+          },
+          "sms": {
+            "label": "SMS"
+          }
+        }
       }
     },
     "payments": {
@@ -3204,7 +3789,21 @@
         "title": "Providers"
       },
       "enabled_providers": {
-        "title": "Enabled Providers"
+        "title": "Enabled Providers",
+        "options": {
+          "stripe": {
+            "label": "Stripe"
+          },
+          "cash": {
+            "label": "Cash on Delivery"
+          },
+          "wallet": {
+            "label": "Platform Wallet"
+          },
+          "gift_card": {
+            "label": "Gift Card"
+          }
+        }
       },
       "stripe_publishable_key": {
         "title": "Stripe Publishable Key"
@@ -3213,7 +3812,21 @@
         "title": "Stripe Secret Key"
       },
       "default_currency": {
-        "title": "Default Currency"
+        "title": "Default Currency",
+        "options": {
+          "USD": {
+            "label": "US Dollar"
+          },
+          "EUR": {
+            "label": "Euro"
+          },
+          "AED": {
+            "label": "UAE Dirham"
+          },
+          "TRY": {
+            "label": "Turkish Lira"
+          }
+        }
       },
       "platform_fee_percent": {
         "title": "Platform Fee (%)"
@@ -3230,7 +3843,15 @@
         "title": "Max Custom Roles Per Tenant"
       },
       "default_invite_role": {
-        "title": "Default Invite Role"
+        "title": "Default Invite Role",
+        "options": {
+          "staff": {
+            "label": "Staff"
+          },
+          "manager": {
+            "label": "Manager"
+          }
+        }
       },
       "require_mfa_for_admin": {
         "title": "Require MFA for Admin Role"
@@ -3241,13 +3862,38 @@
       "description": "Media storage provider, upload limits, and CDN behavior.",
       "group": "Infrastructure",
       "provider": {
-        "title": "Storage Provider"
+        "title": "Storage Provider",
+        "options": {
+          "s3": {
+            "label": "Amazon S3"
+          },
+          "gcs": {
+            "label": "Google Cloud Storage"
+          },
+          "local": {
+            "label": "Local Disk (dev only)"
+          }
+        }
       },
       "max_upload_mb": {
         "title": "Max Upload Size (MB)"
       },
       "allowed_mime_types": {
-        "title": "Allowed File Types"
+        "title": "Allowed File Types",
+        "options": {
+          "image_png": {
+            "label": "PNG"
+          },
+          "image_jpeg": {
+            "label": "JPEG"
+          },
+          "image_webp": {
+            "label": "WebP"
+          },
+          "application_pdf": {
+            "label": "PDF"
+          }
+        }
       },
       "cdn_base_url": {
         "title": "CDN Base URL"
@@ -3265,7 +3911,18 @@
         "description": "The platform-defined plans tenants may subscribe to."
       },
       "default_plan_id": {
-        "title": "Default Plan"
+        "title": "Default Plan",
+        "options": {
+          "starter": {
+            "label": "Starter"
+          },
+          "growth": {
+            "label": "Growth"
+          },
+          "enterprise": {
+            "label": "Enterprise"
+          }
+        }
       },
       "trial_days": {
         "title": "Trial Length (days)"
@@ -3293,7 +3950,27 @@
       },
       "default_business_type": {
         "title": "Default Business Type",
-        "description": "Business type pre-selected during tenant provisioning."
+        "description": "Business type pre-selected during tenant provisioning.",
+        "options": {
+          "restaurant": {
+            "label": "Restaurant"
+          },
+          "cafe": {
+            "label": "Cafe"
+          },
+          "bar": {
+            "label": "Bar"
+          },
+          "food_court": {
+            "label": "Food Court"
+          },
+          "food_truck": {
+            "label": "Food Truck"
+          },
+          "mobile_cafe": {
+            "label": "Mobile Cafe"
+          }
+        }
       }
     },
     "themes": {
@@ -3304,7 +3981,18 @@
         "title": "Palette"
       },
       "default_mode": {
-        "title": "Default Color Mode"
+        "title": "Default Color Mode",
+        "options": {
+          "light": {
+            "label": "Light"
+          },
+          "dark": {
+            "label": "Dark"
+          },
+          "system": {
+            "label": "Follow System"
+          }
+        }
       },
       "primary_color": {
         "title": "Primary Color",
@@ -3349,7 +4037,30 @@
         "title": "Defaults"
       },
       "enabled_blocks": {
-        "title": "Enabled Blocks"
+        "title": "Enabled Blocks",
+        "options": {
+          "hero": {
+            "label": "Hero"
+          },
+          "menu_preview": {
+            "label": "Menu Preview"
+          },
+          "gallery": {
+            "label": "Gallery"
+          },
+          "testimonials": {
+            "label": "Testimonials"
+          },
+          "hours": {
+            "label": "Hours"
+          },
+          "map": {
+            "label": "Map"
+          },
+          "cta": {
+            "label": "Call to Action"
+          }
+        }
       },
       "max_sections": {
         "title": "Max Sections Per Page"

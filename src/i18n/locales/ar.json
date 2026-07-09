@@ -2309,7 +2309,18 @@
           "title": "اسم المنصة"
         },
         "default_landing_widget_set": {
-          "title": "مجموعة أدوات لوحة التحكم الافتراضية"
+          "title": "مجموعة أدوات لوحة التحكم الافتراضية",
+          "options": {
+            "standard": {
+              "label": "قياسي"
+            },
+            "finance_focused": {
+              "label": "مركّز على المالية"
+            },
+            "ops_focused": {
+              "label": "مركّز على العمليات"
+            }
+          }
         },
         "group": "المنصة"
       },
@@ -2352,7 +2363,53 @@
         },
         "registry": {
           "title": "مستخدمو المنصة",
-          "description": "كل مستخدم داخلي في المنصة ودوره على مستوى المنصة."
+          "description": "كل مستخدم داخلي في المنصة ودوره على مستوى المنصة.",
+          "schema": {
+            "role": {
+              "title": "دور المنصة",
+              "options": {
+                "platform_owner": {
+                  "label": "المالك"
+                },
+                "platform_super_admin": {
+                  "label": "مسؤول متقدم"
+                },
+                "platform_admin": {
+                  "label": "مسؤول"
+                },
+                "platform_support": {
+                  "label": "الدعم"
+                },
+                "platform_operations": {
+                  "label": "العمليات"
+                },
+                "platform_finance": {
+                  "label": "المالية"
+                },
+                "platform_security": {
+                  "label": "الأمان"
+                },
+                "platform_developer": {
+                  "label": "المطور"
+                },
+                "platform_auditor": {
+                  "label": "المدقق"
+                },
+                "platform_read_only": {
+                  "label": "قراءة فقط"
+                }
+              }
+            },
+            "active": {
+              "title": "نشط"
+            },
+            "mfa_enabled": {
+              "title": "تفعيل المصادقة الثنائية"
+            },
+            "last_login_note": {
+              "title": "ملاحظات"
+            }
+          }
         },
         "group": "المستخدمون"
       },
@@ -2361,7 +2418,184 @@
         "description": "جميع لغات المنصة — التفعيل والطباعة والتنسيق واللغة الاحتياطية وتغطية الترجمة.",
         "group": "التوطين",
         "registry": {
-          "title": "اللغات"
+          "title": "اللغات",
+          "schema": {
+            "nativeName": {
+              "title": "الاسم الأصلي",
+              "description": "اسم اللغة مكتوبًا بها هي نفسها، مثلاً «فارسی»."
+            },
+            "englishName": {
+              "title": "الاسم بالإنجليزية"
+            },
+            "region": {
+              "title": "المنطقة"
+            },
+            "searchKeywords": {
+              "title": "كلمات البحث",
+              "description": "مصطلحات إضافية يجب أن تكون هذه اللغة قابلة للبحث بها (أسماء بديلة، تهجئات بديلة)."
+            },
+            "notes": {
+              "title": "ملاحظات"
+            },
+            "status": {
+              "title": "الحالة",
+              "options": {
+                "draft": {
+                  "label": "مسودة"
+                },
+                "testing": {
+                  "label": "قيد الاختبار"
+                },
+                "published": {
+                  "label": "منشور"
+                },
+                "deprecated": {
+                  "label": "مهمل"
+                },
+                "archived": {
+                  "label": "مؤرشف"
+                }
+              }
+            },
+            "enabled": {
+              "title": "مفعّل",
+              "description": "المفتاح الرئيسي للتفعيل/الإيقاف. لإدارة المنصة فقط."
+            },
+            "visibility": {
+              "title": "ظاهر في محول اللغة",
+              "description": "يظهر في محول اللغة. حالة مفعّل لكن غير مرئي يمكن الوصول إليها عبر رابط مباشر فقط."
+            },
+            "default": {
+              "title": "الافتراضي للمنصة",
+              "description": "لغة واحدة فقط يمكن أن تكون الافتراضية."
+            },
+            "beta": {
+              "title": "تجريبي مبكر"
+            },
+            "experimental": {
+              "title": "تجريبي"
+            },
+            "lastUpdated": {
+              "title": "آخر تحديث"
+            },
+            "translator": {
+              "title": "المترجم / المسؤول"
+            },
+            "version": {
+              "title": "الإصدار",
+              "description": "علامة مراجعة حرة لهذا الإدخال اللغوي، تُحدَّث مع التغييرات المنشورة."
+            },
+            "translationCoverage": {
+              "title": "نسبة تغطية الترجمة",
+              "description": "نسبة مفاتيح اللغة المرجعية (الإنجليزية) التي لها قيمة في هذه اللغة."
+            },
+            "completionPercent": {
+              "title": "نسبة الإنجاز",
+              "description": "نسبة المفاتيح المترجمة التي تُعتبر نهائية (تمت مراجعتها، وليست آلية فقط)."
+            },
+            "machineTranslated": {
+              "title": "مترجم آليًا"
+            },
+            "humanReviewed": {
+              "title": "تمت مراجعته بشريًا"
+            },
+            "currency": {
+              "title": "العملة الافتراضية"
+            },
+            "timezone": {
+              "title": "المنطقة الزمنية الافتراضية"
+            },
+            "dateStyle": {
+              "title": "تنسيق التاريخ",
+              "description": "نمط التاريخ Intl.DateTimeFormat.",
+              "options": {
+                "short": {
+                  "label": "قصير"
+                },
+                "medium": {
+                  "label": "متوسط"
+                },
+                "long": {
+                  "label": "طويل"
+                },
+                "full": {
+                  "label": "كامل"
+                }
+              }
+            },
+            "hourCycle": {
+              "title": "تنسيق الوقت",
+              "description": "دورة الساعة Intl.DateTimeFormat.",
+              "options": {
+                "h12": {
+                  "label": "12 ساعة"
+                },
+                "h23": {
+                  "label": "24 ساعة"
+                }
+              }
+            },
+            "numberNotation": {
+              "title": "تنسيق الأرقام",
+              "description": "ترميز Intl.NumberFormat.",
+              "options": {
+                "standard": {
+                  "label": "قياسي (1,234,567)"
+                },
+                "compact": {
+                  "label": "مضغوط (1.2M)"
+                }
+              }
+            },
+            "pluralRules": {
+              "title": "لغة قواعد الجمع",
+              "description": "علامة BCP 47 التي يجب إنشاء Intl.PluralRules بها."
+            },
+            "fallbackLanguage": {
+              "title": "اللغة الاحتياطية",
+              "description": "مؤشر احتياطي بخطوة واحدة؛ حل السلسلة هو اجتياز بسيط."
+            },
+            "direction": {
+              "title": "الاتجاه",
+              "options": {
+                "ltr": {
+                  "label": "من اليسار لليمين"
+                },
+                "rtl": {
+                  "label": "من اليمين لليسار"
+                }
+              }
+            },
+            "rtl": {
+              "title": "من اليمين لليسار",
+              "description": "يجب أن يتوافق مع حقل الاتجاه."
+            },
+            "fontFamily": {
+              "title": "الخط الأساسي"
+            },
+            "secondaryFontFamily": {
+              "title": "الخط الثانوي"
+            },
+            "headingFontFamily": {
+              "title": "خط العناوين"
+            },
+            "monoFontFamily": {
+              "title": "الخط أحادي التباعد"
+            },
+            "fontScale": {
+              "title": "مقياس الخط",
+              "description": "مضاعف يُطبَّق على حجم الخط الأساسي للمنصة."
+            },
+            "lineHeight": {
+              "title": "ارتفاع السطر"
+            },
+            "letterSpacing": {
+              "title": "تباعد الأحرف (em)"
+            },
+            "fontWeight": {
+              "title": "الوزن الأساسي"
+            }
+          }
         },
         "general": {
           "title": "عام"
@@ -2390,7 +2624,52 @@
         "group": "الأعمال",
         "registry": {
           "title": "المستأجرون",
-          "description": "جميع الأنشطة التجارية للمستأجرين على المنصة."
+          "description": "جميع الأنشطة التجارية للمستأجرين على المنصة.",
+          "schema": {
+            "status": {
+              "title": "الحالة",
+              "options": {
+                "active": {
+                  "label": "نشط"
+                },
+                "trial": {
+                  "label": "تجريبي"
+                },
+                "suspended": {
+                  "label": "معلّق"
+                },
+                "churned": {
+                  "label": "مغادر"
+                }
+              }
+            },
+            "plan": {
+              "title": "الخطة",
+              "options": {
+                "starter": {
+                  "label": "مبتدئ"
+                },
+                "growth": {
+                  "label": "نمو"
+                },
+                "enterprise": {
+                  "label": "مؤسسات"
+                }
+              }
+            },
+            "business_type": {
+              "title": "نوع النشاط التجاري"
+            },
+            "verified": {
+              "title": "نشاط تجاري موثق"
+            },
+            "flagged_for_review": {
+              "title": "معلّم للمراجعة"
+            },
+            "notes": {
+              "title": "ملاحظات داخلية"
+            }
+          }
         },
         "general": {
           "title": "عام"
@@ -2449,7 +2728,15 @@
         "description": "دورة الفوترة على مستوى المنصة وإعدادات متابعة المدفوعات المتأخرة.",
         "group": "الاشتراكات",
         "billing_cycle": {
-          "title": "دورة الفوترة الافتراضية"
+          "title": "دورة الفوترة الافتراضية",
+          "options": {
+            "monthly": {
+              "label": "شهري"
+            },
+            "annual": {
+              "label": "سنوي"
+            }
+          }
         },
         "dunning_retry_attempts": {
           "title": "محاولات إعادة الدفع الفاشل"
@@ -2525,7 +2812,21 @@
         "description": "إعدادات مزود البريد الإلكتروني التبادلي والتبديل الاحتياطي.",
         "group": "الأتمتة",
         "primary_provider": {
-          "title": "المزود الرئيسي"
+          "title": "المزود الرئيسي",
+          "options": {
+            "sendgrid": {
+              "label": "سندغريد"
+            },
+            "ses": {
+              "label": "أمازون SES"
+            },
+            "postmark": {
+              "label": "بوستمارك"
+            },
+            "mailgun": {
+              "label": "ميلغان"
+            }
+          }
         },
         "failover_enabled": {
           "title": "التبديل التلقائي عند الفشل"
@@ -2539,7 +2840,18 @@
         "description": "إعدادات مزود تسليم الرسائل النصية/رمز التحقق والتبديل الاحتياطي.",
         "group": "الأتمتة",
         "primary_provider": {
-          "title": "المزود الرئيسي"
+          "title": "المزود الرئيسي",
+          "options": {
+            "twilio": {
+              "label": "تويليو"
+            },
+            "vonage": {
+              "label": "فوناج"
+            },
+            "sns": {
+              "label": "أمازون SNS"
+            }
+          }
         },
         "failover_enabled": {
           "title": "التبديل التلقائي عند الفشل"
@@ -2553,7 +2865,18 @@
         "description": "إعدادات مزود تسليم الإشعارات الفورية.",
         "group": "الأتمتة",
         "provider": {
-          "title": "المزود"
+          "title": "المزود",
+          "options": {
+            "fcm": {
+              "label": "فايربيس للمراسلة السحابية"
+            },
+            "apns": {
+              "label": "خدمة إشعارات آبل الفورية"
+            },
+            "onesignal": {
+              "label": "ون سيغنال"
+            }
+          }
         },
         "general": {
           "title": "عام"
@@ -2587,7 +2910,18 @@
           "title": "رسالة اللافتة"
         },
         "banner_severity": {
-          "title": "الخطورة"
+          "title": "الخطورة",
+          "options": {
+            "info": {
+              "label": "معلومة"
+            },
+            "warning": {
+              "label": "تحذير"
+            },
+            "critical": {
+              "label": "حرج"
+            }
+          }
         },
         "general": {
           "title": "عام"
@@ -2626,7 +2960,18 @@
         "description": "إعدادات التخزين المؤقت على مستوى التطبيق.",
         "group": "البنية التحتية",
         "cache_provider": {
-          "title": "مزود التخزين المؤقت"
+          "title": "مزود التخزين المؤقت",
+          "options": {
+            "in_memory": {
+              "label": "في الذاكرة"
+            },
+            "redis": {
+              "label": "ريديس"
+            },
+            "memcached": {
+              "label": "ميمكاشد"
+            }
+          }
         },
         "default_ttl_seconds": {
           "title": "المدة الافتراضية (بالثواني)"
@@ -2640,7 +2985,18 @@
         "description": "جدولة النسخ الاحتياطي التلقائي والاحتفاظ به.",
         "group": "البنية التحتية",
         "backup_frequency": {
-          "title": "تكرار النسخ الاحتياطي"
+          "title": "تكرار النسخ الاحتياطي",
+          "options": {
+            "hourly": {
+              "label": "كل ساعة"
+            },
+            "daily": {
+              "label": "يومي"
+            },
+            "weekly": {
+              "label": "أسبوعي"
+            }
+          }
         },
         "backup_retention_days": {
           "title": "مدة الاحتفاظ بالنسخ الاحتياطية (بالأيام)"
@@ -2760,7 +3116,18 @@
         "description": "إعدادات تجميع التحليلات عبر المستأجرين.",
         "group": "المراقبة",
         "aggregation_window": {
-          "title": "نافذة التجميع الافتراضية"
+          "title": "نافذة التجميع الافتراضية",
+          "options": {
+            "hourly": {
+              "label": "كل ساعة"
+            },
+            "daily": {
+              "label": "يومي"
+            },
+            "weekly": {
+              "label": "أسبوعي"
+            }
+          }
         },
         "include_churned_tenants": {
           "title": "تضمين المستأجرين المغادرين في التجميعات"
@@ -2834,7 +3201,24 @@
           "title": "متوافق مع SOC 2 النوع الثاني"
         },
         "pci_dss_level": {
-          "title": "مستوى PCI DSS"
+          "title": "مستوى PCI DSS",
+          "options": {
+            "not_applicable": {
+              "label": "غير قابل للتطبيق"
+            },
+            "level_1": {
+              "label": "المستوى 1"
+            },
+            "level_2": {
+              "label": "المستوى 2"
+            },
+            "level_3": {
+              "label": "المستوى 3"
+            },
+            "level_4": {
+              "label": "المستوى 4"
+            }
+          }
         },
         "general": {
           "title": "عام"
@@ -3002,7 +3386,18 @@
         "description": "إعدادات مزود الذكاء الاصطناعي/نموذج اللغة للميزات المدعومة من المنصة.",
         "group": "المطورون",
         "primary_provider": {
-          "title": "المزود الرئيسي"
+          "title": "المزود الرئيسي",
+          "options": {
+            "anthropic": {
+              "label": "أنثروبيك"
+            },
+            "openai": {
+              "label": "أوبن إيه آي"
+            },
+            "google": {
+              "label": "غوغل"
+            }
+          }
         },
         "monthly_token_budget": {
           "title": "الميزانية الشهرية للرموز"
@@ -3027,7 +3422,18 @@
         "description": "تحديد بيئة النشر وضماناتها.",
         "group": "المطورون",
         "environment_name": {
-          "title": "اسم البيئة"
+          "title": "اسم البيئة",
+          "options": {
+            "development": {
+              "label": "التطوير"
+            },
+            "staging": {
+              "label": "التجريبي"
+            },
+            "production": {
+              "label": "الإنتاج"
+            }
+          }
         },
         "protect_production_writes": {
           "title": "تأكيد إضافي لعمليات الكتابة في بيئة الإنتاج"
@@ -3130,6 +3536,141 @@
         "description": "الدولة المختارة مسبقًا عند عدم وجود مؤشر لتحديد دولة المستأجر."
       },
       "registry": {
+        "title": "الدول",
+        "description": "كل دولة مدعومة بخصائصها القابلة للتكوين الخاصة.",
+        "schema": {
+          "enabled": {
+            "title": "مفعّل"
+          },
+          "visible": {
+            "title": "ظاهر في القوائم"
+          },
+          "supported": {
+            "title": "مدعوم بالكامل",
+            "description": "إيقاف هذا الخيار يعني أن الدولة مدعومة جزئيًا (تغطية محدودة للميزات)."
+          },
+          "phone_login_enabled": {
+            "title": "تسجيل الدخول بالهاتف"
+          },
+          "sms_enabled": {
+            "title": "الرسائل النصية"
+          },
+          "registration_enabled": {
+            "title": "التسجيل"
+          },
+          "reservations_enabled": {
+            "title": "الحجوزات"
+          },
+          "ordering_enabled": {
+            "title": "الطلب"
+          },
+          "payments_enabled": {
+            "title": "المدفوعات"
+          },
+          "delivery_enabled": {
+            "title": "التوصيل"
+          },
+          "pickup_enabled": {
+            "title": "الاستلام"
+          },
+          "currency": {
+            "title": "العملة"
+          },
+          "timezone": {
+            "title": "المنطقة الزمنية التمثيلية"
+          },
+          "default_language": {
+            "title": "اللغة الافتراضية"
+          },
+          "default_phone_prefix": {
+            "title": "بادئة الهاتف"
+          },
+          "phone_example": {
+            "title": "مثال رقم الهاتف",
+            "description": "مثال بالتنسيق المحلي يظهر في العنصر النائب لإدخال الهاتف."
+          },
+          "vat_supported": {
+            "title": "دعم ضريبة القيمة المضافة"
+          },
+          "address_format": {
+            "title": "تنسيق العنوان",
+            "options": {
+              "street_city_state_zip": {
+                "label": "الشارع، المدينة، الولاية، الرمز البريدي (نمط أمريكي)"
+              },
+              "street_postal_city": {
+                "label": "الشارع، الرمز البريدي، المدينة (نمط أوروبي)"
+              },
+              "street_city_postal": {
+                "label": "الشارع، المدينة، الرمز البريدي"
+              },
+              "street_district_city_postal": {
+                "label": "الشارع، الحي، المدينة، الرمز البريدي"
+              },
+              "street_city_state_postal": {
+                "label": "الشارع، المدينة، الولاية، الرمز البريدي (نمط أسترالي/نيوزيلندي)"
+              }
+            }
+          },
+          "postal_code_validation": {
+            "title": "التحقق من الرمز البريدي"
+          },
+          "national_id_required": {
+            "title": "طلب رقم الهوية الوطنية",
+            "description": "جاهز للمستقبل — لم يُفرض بعد عند الدفع/التسجيل."
+          },
+          "region": {
+            "title": "المنطقة",
+            "options": {
+              "North_America": {
+                "label": "أمريكا الشمالية"
+              },
+              "South_America": {
+                "label": "أمريكا الجنوبية"
+              },
+              "Europe": {
+                "label": "أوروبا"
+              },
+              "Middle_East": {
+                "label": "الشرق الأوسط"
+              },
+              "Asia": {
+                "label": "آسيا"
+              },
+              "Africa": {
+                "label": "أفريقيا"
+              },
+              "Oceania": {
+                "label": "أوقيانوسيا"
+              }
+            }
+          },
+          "status": {
+            "title": "الحالة",
+            "options": {
+              "draft": {
+                "label": "مسودة"
+              },
+              "testing": {
+                "label": "تجريبي"
+              },
+              "published": {
+                "label": "منشور"
+              },
+              "deprecated": {
+                "label": "مهمل"
+              },
+              "archived": {
+                "label": "مؤرشف"
+              }
+            }
+          },
+          "notes": {
+            "title": "ملاحظات"
+          }
+        }
+      },
+      "registry_section": {
         "title": "إدارة الدول",
         "description": "إعدادات كل دولة — التفعيل والميزات والعملة واللغة وحالة الحوكمة لجميع الدول الـ176."
       }
@@ -3172,7 +3713,21 @@
         "title": "حد تنبيه زمن استجابة API (مللي ثانية)"
       },
       "alert_channels": {
-        "title": "قنوات التنبيه"
+        "title": "قنوات التنبيه",
+        "options": {
+          "email": {
+            "label": "البريد الإلكتروني"
+          },
+          "sms": {
+            "label": "الرسائل النصية"
+          },
+          "slack": {
+            "label": "سلاك"
+          },
+          "pagerduty": {
+            "label": "بيجرديوتي"
+          }
+        }
       }
     },
     "notifications": {
@@ -3183,17 +3738,47 @@
         "title": "المزودون"
       },
       "email_provider": {
-        "title": "مزود البريد الإلكتروني"
+        "title": "مزود البريد الإلكتروني",
+        "options": {
+          "sendgrid": {
+            "label": "سندغريد"
+          },
+          "ses": {
+            "label": "أمازون SES"
+          },
+          "postmark": {
+            "label": "بوستمارك"
+          }
+        }
       },
       "sms_provider": {
-        "title": "مزود الرسائل النصية"
+        "title": "مزود الرسائل النصية",
+        "options": {
+          "twilio": {
+            "label": "تويليو"
+          },
+          "vonage": {
+            "label": "فوناج"
+          }
+        }
       },
       "push_enabled": {
         "title": "تفعيل الإشعارات الفورية"
       },
       "default_channels": {
         "title": "القنوات الافتراضية",
-        "description": "القنوات المفعّلة افتراضيًا للمستخدم الجديد قبل تطبيق تفضيلاته الخاصة."
+        "description": "القنوات المفعّلة افتراضيًا للمستخدم الجديد قبل تطبيق تفضيلاته الخاصة.",
+        "options": {
+          "push": {
+            "label": "إشعار فوري"
+          },
+          "email": {
+            "label": "البريد الإلكتروني"
+          },
+          "sms": {
+            "label": "الرسائل النصية"
+          }
+        }
       }
     },
     "payments": {
@@ -3204,7 +3789,21 @@
         "title": "المزودون"
       },
       "enabled_providers": {
-        "title": "المزودون المفعّلون"
+        "title": "المزودون المفعّلون",
+        "options": {
+          "stripe": {
+            "label": "سترايب"
+          },
+          "cash": {
+            "label": "الدفع عند الاستلام"
+          },
+          "wallet": {
+            "label": "محفظة المنصة"
+          },
+          "gift_card": {
+            "label": "بطاقة هدية"
+          }
+        }
       },
       "stripe_publishable_key": {
         "title": "مفتاح Stripe العام"
@@ -3213,7 +3812,21 @@
         "title": "مفتاح Stripe السري"
       },
       "default_currency": {
-        "title": "العملة الافتراضية"
+        "title": "العملة الافتراضية",
+        "options": {
+          "USD": {
+            "label": "الدولار الأمريكي"
+          },
+          "EUR": {
+            "label": "اليورو"
+          },
+          "AED": {
+            "label": "الدرهم الإماراتي"
+          },
+          "TRY": {
+            "label": "الليرة التركية"
+          }
+        }
       },
       "platform_fee_percent": {
         "title": "رسوم المنصة (%)"
@@ -3230,7 +3843,15 @@
         "title": "الحد الأقصى للأدوار المخصصة لكل مستأجر"
       },
       "default_invite_role": {
-        "title": "دور الدعوة الافتراضي"
+        "title": "دور الدعوة الافتراضي",
+        "options": {
+          "staff": {
+            "label": "الموظفون"
+          },
+          "manager": {
+            "label": "المدير"
+          }
+        }
       },
       "require_mfa_for_admin": {
         "title": "طلب المصادقة الثنائية لدور المسؤول"
@@ -3241,13 +3862,38 @@
       "description": "مزود تخزين الوسائط وحدود الرفع وسلوك شبكة توصيل المحتوى.",
       "group": "البنية التحتية",
       "provider": {
-        "title": "مزود التخزين"
+        "title": "مزود التخزين",
+        "options": {
+          "s3": {
+            "label": "أمازون S3"
+          },
+          "gcs": {
+            "label": "تخزين غوغل السحابي"
+          },
+          "local": {
+            "label": "قرص محلي (للتطوير فقط)"
+          }
+        }
       },
       "max_upload_mb": {
         "title": "الحد الأقصى لحجم الرفع (ميغابايت)"
       },
       "allowed_mime_types": {
-        "title": "أنواع الملفات المسموح بها"
+        "title": "أنواع الملفات المسموح بها",
+        "options": {
+          "image_png": {
+            "label": "PNG"
+          },
+          "image_jpeg": {
+            "label": "JPEG"
+          },
+          "image_webp": {
+            "label": "WebP"
+          },
+          "application_pdf": {
+            "label": "PDF"
+          }
+        }
       },
       "cdn_base_url": {
         "title": "رابط URL الأساسي لشبكة CDN"
@@ -3265,7 +3911,18 @@
         "description": "الخطط المحددة من قبل المنصة والتي يمكن للمستأجرين الاشتراك فيها."
       },
       "default_plan_id": {
-        "title": "الخطة الافتراضية"
+        "title": "الخطة الافتراضية",
+        "options": {
+          "starter": {
+            "label": "مبتدئ"
+          },
+          "growth": {
+            "label": "نمو"
+          },
+          "enterprise": {
+            "label": "مؤسسات"
+          }
+        }
       },
       "trial_days": {
         "title": "مدة التجربة (بالأيام)"
@@ -3293,7 +3950,27 @@
       },
       "default_business_type": {
         "title": "نوع النشاط التجاري الافتراضي",
-        "description": "نوع النشاط التجاري المختار مسبقًا أثناء تهيئة المستأجر."
+        "description": "نوع النشاط التجاري المختار مسبقًا أثناء تهيئة المستأجر.",
+        "options": {
+          "restaurant": {
+            "label": "مطعم"
+          },
+          "cafe": {
+            "label": "مقهى"
+          },
+          "bar": {
+            "label": "بار"
+          },
+          "food_court": {
+            "label": "ساحة الطعام"
+          },
+          "food_truck": {
+            "label": "شاحنة طعام"
+          },
+          "mobile_cafe": {
+            "label": "مقهى متنقل"
+          }
+        }
       }
     },
     "themes": {
@@ -3304,7 +3981,18 @@
         "title": "لوحة الألوان"
       },
       "default_mode": {
-        "title": "وضع الألوان الافتراضي"
+        "title": "وضع الألوان الافتراضي",
+        "options": {
+          "light": {
+            "label": "فاتح"
+          },
+          "dark": {
+            "label": "داكن"
+          },
+          "system": {
+            "label": "اتباع النظام"
+          }
+        }
       },
       "primary_color": {
         "title": "اللون الأساسي",
@@ -3349,7 +4037,30 @@
         "title": "الإعدادات الافتراضية"
       },
       "enabled_blocks": {
-        "title": "الكتل المفعّلة"
+        "title": "الكتل المفعّلة",
+        "options": {
+          "hero": {
+            "label": "شعار البطل"
+          },
+          "menu_preview": {
+            "label": "معاينة القائمة"
+          },
+          "gallery": {
+            "label": "المعرض"
+          },
+          "testimonials": {
+            "label": "آراء العملاء"
+          },
+          "hours": {
+            "label": "ساعات العمل"
+          },
+          "map": {
+            "label": "الخريطة"
+          },
+          "cta": {
+            "label": "دعوة لاتخاذ إجراء"
+          }
+        }
       },
       "max_sections": {
         "title": "الحد الأقصى للأقسام لكل صفحة"

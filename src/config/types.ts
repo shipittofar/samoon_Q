@@ -40,6 +40,15 @@ export type ConfigFieldType =
   | 'collection'
 
 export interface ConfigFieldOption {
+  /**
+   * Stable translation identity for this option, independent of `value`
+   * (P9.5.7D.1) — so a value can be renamed/re-typed without silently
+   * breaking its translation key. Optional: when omitted, a translation
+   * lookup derives a deterministic id from `value` itself (see
+   * `getConfigOptionId()` in `src/config/i18n.ts`), so every existing
+   * option definition keeps working unchanged with zero migration.
+   */
+  id?: string
   value: string | number | boolean
   label: string
   description?: string

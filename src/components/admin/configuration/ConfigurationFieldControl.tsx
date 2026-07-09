@@ -14,21 +14,35 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Eye, EyeOff } from 'lucide-react'
 import { resolveUiControl } from './configUiHelpers'
-import type { ConfigFieldDefinition } from '@/config'
+import { resolveConfigOptionText } from '@/config'
+import type { ConfigFieldDefinition, ConfigFieldOption } from '@/config'
 
 export interface ConfigurationFieldControlProps {
   field: ConfigFieldDefinition
   value: unknown
   onChange: (value: unknown) => void
   disabled?: boolean
+  /**
+   * Scope id path for resolving this field's OWN `options[].label`/
+   * `.description` (P9.5.7D.1) — defaults to `field.id`, correct for
+   * every ordinary module field (globally unique per Rule 3). Collection
+   * schema properties pass their parent collection field's scoped path
+   * (`[collectionFieldId, 'schema', propertyId]`) instead, so option
+   * labels don't collide across different collections that happen to
+   * reuse the same short property id — see `src/config/i18n.ts`.
+   */
+  optionScopeId?: string | string[]
 }
 
 const inputClass = 'w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
 
-export function ConfigurationFieldControl({ field, value, onChange, disabled }: ConfigurationFieldControlProps) {
+export function ConfigurationFieldControl({ field, value, onChange, disabled, optionScopeId }: ConfigurationFieldControlProps) {
   const t = useTranslations('console')
+  const tFields = useTranslations('configFields')
   const control = resolveUiControl(field)
   const [secretVisible, setSecretVisible] = useState(false)
+  const scopeId = optionScopeId ?? field.id
+  const optionLabel = (opt: ConfigFieldOption) => resolveConfigOptionText(tFields, scopeId, opt, 'label', opt.label)
 
   switch (control) {
     case 'switch':
@@ -64,7 +78,7 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled }: 
                   : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-300'
               }`}
             >
-              {opt.label}
+              {optionLabel(opt)}
             </button>
           ))}
         </div>
@@ -85,7 +99,7 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled }: 
           className={inputClass}
         >
           {options.map((opt) => (
-            <option key={String(opt.value)} value={String(opt.value)}>{opt.label}</option>
+            <option key={String(opt.value)} value={String(opt.value)}>{optionLabel(opt)}</option>
           ))}
         </select>
       )
@@ -102,7 +116,7 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled }: 
           className={inputClass}
         >
           {options.map((opt) => (
-            <option key={String(opt.value)} value={String(opt.value)} style={{ fontFamily: String(opt.value) }}>{opt.label}</option>
+            <option key={String(opt.value)} value={String(opt.value)} style={{ fontFamily: String(opt.value) }}>{optionLabel(opt)}</option>
           ))}
         </select>
       )

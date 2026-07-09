@@ -18,7 +18,7 @@ import { ChevronDown, Search } from 'lucide-react'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { configCollection } from '@/config'
+import { configCollection, resolveConfigText } from '@/config'
 import type { ConfigBulkActionKind, ConfigCollectionEntry, ConfigFieldDefinition } from '@/config'
 import { useConfigurationBulkActions } from '@/hooks/use-configuration-bulk-actions'
 import { deriveCollectionFilterOptions, matchesCollectionEntryFilters, matchesCollectionEntrySearch } from './configUiHelpers'
@@ -39,6 +39,8 @@ function summarizeBooleanProperty(entries: ConfigCollectionEntry[], propertyId: 
 
 export function ConfigurationCollectionTable({ field, value, onChange, disabled }: ConfigurationCollectionTableProps) {
   const t = useTranslations('console')
+  const tFields = useTranslations('configFields')
+  const propTitle = (prop: ConfigFieldDefinition) => prop.display?.displayName ?? resolveConfigText(tFields, [field.id, 'schema', prop.id], 'title', prop.title)
 
   // 'import' is intentionally not in this list — unlike every other bulk
   // action it doesn't operate on `selectedIds` (it patches whichever entity
@@ -77,7 +79,7 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
     () => field.collection?.validateEntries?.(value as Record<string, Record<string, unknown>>) ?? [],
     [field, value],
   )
-  const filterOptions = useMemo(() => deriveCollectionFilterOptions(field), [field])
+  const filterOptions = useMemo(() => deriveCollectionFilterOptions(field, tFields, t), [field, tFields, t])
   const groupableProperties = schema.filter((p) => p.type === 'select' || p.type === 'string')
   const enabledProperty = schema.find((p) => p.id === 'enabled')
   const statusProperty = schema.find((p) => p.id === 'status')
@@ -215,7 +217,7 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
           >
             <option value="">{t('noGrouping')}</option>
             {groupableProperties.map((prop) => (
-              <option key={prop.id} value={prop.id}>{t('groupByLabel', { property: prop.display?.displayName ?? prop.title })}</option>
+              <option key={prop.id} value={prop.id}>{t('groupByLabel', { property: propTitle(prop) })}</option>
             ))}
           </select>
         )}
@@ -228,7 +230,7 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
         >
           <option value="__entity__">{t('sortByEntity', { entity: field.collection?.entityIdLabel ?? t('idColumnDefault') })}</option>
           {schema.map((prop) => (
-            <option key={prop.id} value={prop.id}>{t('sortByProperty', { property: prop.display?.displayName ?? prop.title })}</option>
+            <option key={prop.id} value={prop.id}>{t('sortByProperty', { property: propTitle(prop) })}</option>
           ))}
         </select>
         <button

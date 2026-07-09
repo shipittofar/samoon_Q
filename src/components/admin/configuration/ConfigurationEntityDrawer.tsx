@@ -45,8 +45,16 @@ function formatTimestamp(iso: string): string {
 export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onChangeEntity }: ConfigurationEntityDrawerProps) {
   const t = useTranslations('console')
   const tFields = useTranslations('configFields')
-  const propTitle = (prop: ConfigFieldDefinition) => prop.display?.displayName ?? resolveConfigText(tFields, prop.id, 'title', prop.title)
-  const propDescription = (prop: ConfigFieldDefinition) => resolveConfigText(tFields, prop.id, 'description', prop.description)
+  // P9.5.7D.1 — collection schema property ids (e.g. 'enabled', 'status')
+  // are short and human-authored, never checked for uniqueness *across*
+  // different collections (they're never individually registered — see
+  // ConfigCollectionMeta's doc comment in types.ts). Scoping every lookup
+  // under this collection field's own globally-unique id + 'schema'
+  // namespaces each property so Countries' 'enabled' and Languages'
+  // 'enabled' resolve to independent translations instead of colliding.
+  const propScope = (prop: ConfigFieldDefinition) => [field.id, 'schema', prop.id]
+  const propTitle = (prop: ConfigFieldDefinition) => prop.display?.displayName ?? resolveConfigText(tFields, propScope(prop), 'title', prop.title)
+  const propDescription = (prop: ConfigFieldDefinition) => resolveConfigText(tFields, propScope(prop), 'description', prop.description)
   const [tab, setTab] = useState<DrawerTab>('configuration')
   const TABS: { id: DrawerTab; label: string }[] = TAB_IDS.map((id) => ({ id, label: t(`entityDrawerTab_${id}`) }))
   const schema = configCollection.getSchema(field)
@@ -123,6 +131,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
                     field={prop}
                     value={entry.values[prop.id]}
                     onChange={(v) => onChangeEntity({ [prop.id]: v })}
+                    optionScopeId={propScope(prop)}
                     disabled={!canEdit || !isEnabled(prop)}
                   />
                 </div>
