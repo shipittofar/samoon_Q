@@ -6,6 +6,7 @@
  */
 
 import { resolveWorkspace } from '@/utils/navigation-intelligence'
+import { resolveOwnershipIdentity } from '@/services/ownership-resolution.service'
 
 /**
  * Maps demo phone (E.164) → email, so the mock OTP flow can resolve
@@ -47,9 +48,29 @@ export function getDemoRedirect(email: string): string {
 }
 
 /**
- * Returns the post-login destination for a real (non-demo) user based on their role.
- * Customer → /dashboard; staff roles → /console (or role-specific sub-path).
+ * Returns the post-login destination for a real (non-demo) user based on
+ * their role. Customer → /dashboard; staff roles → /console (or
+ * role-specific sub-path).
+ *
+ * P10.3 Phase H — when `email` is available, the destination is first
+ * checked against `resolveOwnershipIdentity()` so routing reflects real
+ * ownership data rather than only the caller-supplied role string (a
+ * role string can be stale/legacy while the ownership model is
+ * authoritative — same precedent as `useHasDashboardAccess()` in
+ * hooks/index.ts). An eligible Owner or Staff member both currently
+ * resolve to `/console` — the same destination `resolveWorkspace('owner'
+ * | 'staff')` already gives — because no tenant-selector page exists yet
+ * to route an Owner of multiple tenants anywhere else; that case is
+ * deliberately deferred (see docs/P10.3_IMPLEMENTATION.md) rather than
+ * fabricated. No `email` or no ownership match falls through to the
+ * original `resolveWorkspace(role)` behavior unchanged.
  */
-export function getPostLoginRedirect(role: string): string {
+export function getPostLoginRedirect(role: string, email?: string | null): string {
+  if (email) {
+    const identity = resolveOwnershipIdentity(email)
+    if (identity.owner || identity.staffMember) {
+      return '/console'
+    }
+  }
   return resolveWorkspace(role)
 }

@@ -118,10 +118,10 @@ function VerifyPageInner() {
         const dest = result.is_new_user
           ? `/complete-profile?phone=${encodeURIComponent(phone)}`
           : result.user.role === 'customer'
-            ? getPostLoginRedirect('customer')
+            ? getPostLoginRedirect('customer', result.user.email)
             : getDemoRedirect(phone) !== '/console'
               ? getDemoRedirect(phone)
-              : getPostLoginRedirect(result.user.role)
+              : getPostLoginRedirect(result.user.role, result.user.email)
 
         // Brief pause for success animation, then redirect
         setTimeout(() => router.push(dest), prefersReducedMotion ? 100 : 1200)

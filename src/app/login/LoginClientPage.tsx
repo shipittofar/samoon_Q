@@ -138,7 +138,7 @@ export function LoginClientPage() {
       onSuccess: (result) => {
         LOGIN_LIMIT.reset(data.email)
         toast.success(t('loginSuccess'))
-        router.push(getPostLoginRedirect(result.user.role))
+        router.push(getPostLoginRedirect(result.user.role, result.user.email))
       },
       onError: () => toast.error(t('invalidCredentials')),
     })
