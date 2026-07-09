@@ -22,6 +22,10 @@ import { useVerifyOTP, useSendOTP } from '@/hooks'
 import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import { getDemoRedirect, getPostLoginRedirect } from '@/utils/auth-redirect'
 import toast from 'react-hot-toast'
+import type {
+  VerifyOTPRequest,
+} from '@/types'
+
 
 // P9.1.2 — fallback values match the platform defaults registered in
 // src/config/modules/authentication.ts, used only if the registry lookup
@@ -108,7 +112,7 @@ function VerifyPageInner() {
     if (state !== 'pending' && state !== 'invalid') return
     setState('verifying')
 
-    verifyOTP({ phone, otp: code }, {
+    verifyOTP({ phone, dialCode, otp: code }, {
       onSuccess: (result) => {
         setState('success')
         const dest = result.isNewUser

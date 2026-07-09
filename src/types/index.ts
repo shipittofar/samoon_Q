@@ -22,6 +22,12 @@ export type SendOTPRequest = {
   dialCode: string
 }
 
+export interface VerifyOTPRequest {
+  phone: string
+  dialCode: string
+  otp: string
+}
+
 export interface AuthTokens {
   access: string
   refresh: string

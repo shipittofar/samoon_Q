@@ -86,6 +86,7 @@ import type {
   SystemReadiness,
   TenantLifecycle,
   SendOTPRequest,
+  VerifyOTPRequest,
 } from '@/types'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 
@@ -404,7 +405,7 @@ export function useSendOTP() {
 export function useVerifyOTP() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
-    mutationFn: (payload: { phone: string; otp: string }) => authService.verifyOTP(payload),
+    mutationFn: (payload: VerifyOTPRequest) => authService.verifyOTP(payload),
     onSuccess: ({ user, p7Roles }) => {
       setUser(user)
       if (p7Roles && p7Roles.length > 0) {

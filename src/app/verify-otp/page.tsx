@@ -83,7 +83,7 @@ function OTPContent() {
     }
     setLoading(true)
     try {
-      const { user } = await authService.verifyOTP({ phone, otp: code })
+      const { user } = await authService.verifyOTP({ phone, dialCode, otp: code })
       OTP_LIMIT.reset(phone)
       setUser(user)
       toast.success(`${tNotifications('phoneVerified')} 🎉`)

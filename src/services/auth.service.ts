@@ -15,9 +15,8 @@ import {
 } from '@/lib/mock-data'
 import { MOCK_DELAY } from '@/constants'
 import { configurationService } from '@/config'
-import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, User } from '@/types'
+import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, SendOTPRequest, VerifyOTPRequest, User } from '@/types'
 import type { Role } from '@/types/rbac'
-import { SendOTPRequest } from '@/types'
 
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -220,7 +219,7 @@ export const authService = {
    * Any other 6-digit code succeeds.
    */
   async verifyOTP(
-    payload: OTPVerifyData,
+    payload: VerifyOTPRequest,
   ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; isNewUser?: boolean }> {
     if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
     if (!authFlag('authentication.otp.enabled')) throw new Error('otp_disabled')
@@ -255,7 +254,11 @@ export const authService = {
 
     const { data } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; isNewUser?: boolean }>(
       ENDPOINTS.AUTH.VERIFY_OTP,
-      payload,
+    {
+      country_code: payload.dialCode,
+      phone_number: payload.phone.slice(payload.dialCode.length),
+      code: payload.otp,
+    },
     )
     setTokens(data.tokens.access, data.tokens.refresh)
     return data
