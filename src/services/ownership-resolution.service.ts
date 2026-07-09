@@ -66,6 +66,40 @@ export interface OwnershipIdentity {
   staffMember?: StaffMember
 }
 
+// ── P10.3 — centralized eligibility predicates ───────────────────────────────
+//
+// Phase A/B/C: the resolution engine previously granted permissions purely
+// from ownership/assignment structure, never checking whether the Owner,
+// Staff, or Tenant record itself was in a state that should grant access
+// at all (P10.2.3 findings F-1, F-2, F-8). These three predicates are the
+// single, centralized place that decides "is this record eligible to
+// participate in permission resolution" — every function below calls
+// these instead of re-deriving `.status` checks inline, and any future
+// caller (e.g. the Phase D/E branch/tenant access guards) reuses the same
+// predicates rather than duplicating the check.
+
+/** P10.3 Phase A — an Owner only grants access while `status === 'active'`. */
+export function isOwnerEligible(owner: Owner): boolean {
+  return owner.status === 'active'
+}
+
+/** P10.3 Phase B — a Staff member only grants access while `status === 'active'`. */
+export function isStaffMemberEligible(staffMember: StaffMember): boolean {
+  return staffMember.status === 'active'
+}
+
+/**
+ * P10.3 Phase C — a Tenant only grants access while not `'archived'`.
+ * Scoped exactly to the verified finding (P10.2.3 F-8: "archived tenants
+ * don't lose access") — `'trial'`/`'suspended'`/`'churned'` tenants are
+ * unaffected by this phase; broadening the check to those states was not
+ * a verified finding and is left as documented remaining debt (see the
+ * P10.3 report).
+ */
+export function isTenantEligible(tenant: Pick<Tenant, 'status'>): boolean {
+  return tenant.status !== 'archived'
+}
+
 /**
  * Resolves the Owner/Staff identity for a session email. Synchronous,
  * mock-mode only (see file header for why) — returns `{}` for any email
@@ -92,9 +126,11 @@ export function resolveOwnershipIdentity(email: string | null | undefined): Owne
  */
 export function resolveOwnerPermissions(
   identity: OwnershipIdentity,
-  activeTenant: Pick<Tenant, 'id' | 'ownerId'> | undefined,
+  activeTenant: Pick<Tenant, 'id' | 'ownerId' | 'status'> | undefined,
 ): readonly P7Permission[] {
   if (!identity.owner || !activeTenant) return []
+  if (!isOwnerEligible(identity.owner)) return []
+  if (!isTenantEligible(activeTenant)) return []
   if (!ownerOwnsTenant(identity.owner.ownerId, activeTenant.id, [activeTenant as Tenant])) return []
   return ALL_PERMISSIONS
 }
@@ -135,13 +171,15 @@ export function downgradeToReadOnly(permissions: readonly P7Permission[]): P7Per
  */
 export function resolveStaffAssignmentPermissions(
   identity: OwnershipIdentity,
-  tenantId: string | undefined,
+  activeTenant: Pick<Tenant, 'id' | 'status'> | undefined,
   now: Date = new Date(),
 ): readonly P7Permission[] {
-  if (!identity.staffMember || !tenantId) return []
+  if (!identity.staffMember || !activeTenant) return []
+  if (!isStaffMemberEligible(identity.staffMember)) return []
+  if (!isTenantEligible(activeTenant)) return []
   const assignments = staffAssignmentService
     .getEffectiveAssignments(identity.staffMember.id, now)
-    .filter((a) => a.tenantId === tenantId)
+    .filter((a) => a.tenantId === activeTenant.id)
 
   const result = new Set<P7Permission>()
   for (const assignment of assignments) {
@@ -164,13 +202,13 @@ export function resolveStaffAssignmentPermissions(
  */
 export function resolveOwnershipDrivenPermissions(
   email: string | null | undefined,
-  activeTenant: Pick<Tenant, 'id' | 'ownerId'> | undefined,
+  activeTenant: Pick<Tenant, 'id' | 'ownerId' | 'status'> | undefined,
   now: Date = new Date(),
 ): readonly P7Permission[] {
   const identity = resolveOwnershipIdentity(email)
   const ownerPermissions = resolveOwnerPermissions(identity, activeTenant)
   if (ownerPermissions.length > 0) return ownerPermissions
-  return resolveStaffAssignmentPermissions(identity, activeTenant?.id, now)
+  return resolveStaffAssignmentPermissions(identity, activeTenant, now)
 }
 
 /**
