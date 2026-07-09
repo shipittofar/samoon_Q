@@ -54,6 +54,9 @@ import { ownerOwnsTenant, resolveAssignmentBranchIds } from './ownership.service
 import { ownerService } from './owner.service'
 import { staffAssignmentService } from './staff-assignment.service'
 import { staffService } from './staff.service'
+import { tenantService } from './tenant.service'
+import { branchManagementService } from './branch.service'
+import { branchAccessService, BranchAccessError } from './branch-access.service'
 import type { P7Permission, Role } from '@/types/rbac'
 import type { Owner, StaffAssignment } from '@/types/ownership'
 import type { StaffMember } from '@/types/staff'
@@ -252,6 +255,55 @@ export function buildBranchAccessContextFromAssignments(
     roles: [...roles],
     branchIds: [...branchIds],
   }
+}
+
+/**
+ * P10.3 Phase D — branch isolation enforcement (highest priority; P10.2.3
+ * finding F-4: `BranchAccessContext`/`branchAccessService` existed but no
+ * read path ever called them). This is the single reusable guard every
+ * branch-scoped read hook calls before returning data — it does not
+ * reimplement branch filtering, it only decides "may this identity see
+ * this branch" and reuses exactly the same building blocks §4.4 already
+ * established: `resolveOwnershipIdentity`, `isOwnerEligible`,
+ * `isTenantEligible`, `ownerOwnsTenant` (ownership.service.ts),
+ * `buildBranchAccessContextFromAssignments` (above), and
+ * `branchAccessService.assertBranchAccess` (branch-access.service.ts,
+ * P7.4 — previously built but never called from a live read path).
+ *
+ * An eligible Owner of the branch's tenant always passes (ownership grants
+ * full branch access, mirroring `resolveOwnerPermissions()`). Otherwise
+ * the caller must hold a StaffAssignment whose resolved `branchIds`
+ * include `branchId`. Throws `BranchAccessError` — imported and reused
+ * unchanged, not a new error type — on any denial, including an
+ * ineligible/archived tenant or a branch that doesn't exist.
+ */
+export async function assertOwnershipBranchAccess(
+  email: string | null | undefined,
+  branchId: string,
+): Promise<void> {
+  const branch = await branchManagementService.getBranch(branchId)
+  const tenants = await tenantService.getTenants()
+  const tenant = tenants.find((t) => t.id === branch.tenantId)
+  if (!tenant || !isTenantEligible(tenant)) {
+    throw new BranchAccessError(branchId, 'unknown')
+  }
+
+  const identity = resolveOwnershipIdentity(email)
+
+  if (
+    identity.owner &&
+    isOwnerEligible(identity.owner) &&
+    ownerOwnsTenant(identity.owner.ownerId, tenant.id, tenants)
+  ) {
+    return
+  }
+
+  const tenantBranches = await branchManagementService.getBranches(tenant.id)
+  const context = buildBranchAccessContextFromAssignments(email, tenant.id, tenantBranches)
+  if (!context) {
+    throw new BranchAccessError(branchId, identity.staffMember?.id ?? 'unknown')
+  }
+  branchAccessService.assertBranchAccess(branchId, context, tenantBranches)
 }
 
 /** Re-exported for tests/consumers that only need the type, not the logic. */

@@ -62,6 +62,7 @@ import {
   resolveOwnershipIdentity,
   resolveOwnershipDrivenPermissions,
   buildBranchAccessContextFromAssignments,
+  assertOwnershipBranchAccess,
 } from '@/services/ownership-resolution.service'
 import { staffAssignmentService } from '@/services/staff-assignment.service'
 import { ownerOwnsTenant } from '@/services/ownership.service'
@@ -2154,31 +2155,52 @@ export function useOwnershipBranchAccessContext(
   )
 }
 
-/** Fetches orders for a specific branch. */
+/**
+ * Fetches orders for a specific branch. P10.3 Phase D — validates the
+ * caller's branch access via `assertOwnershipBranchAccess()` before
+ * fetching; the query rejects (surfaced as `query.error`) for a branch
+ * outside the caller's assignment instead of silently returning data.
+ */
 export function useBranchOrders(branchId: string) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['branch-orders', branchId],
-    queryFn: () => adminService.getAdminOrders({ branch_id: branchId }),
+    queryFn: async () => {
+      await assertOwnershipBranchAccess(email, branchId)
+      return adminService.getAdminOrders({ branch_id: branchId })
+    },
     enabled: !!branchId,
   })
 }
 
-/** Fetches reservations for a specific branch. */
+/**
+ * Fetches reservations for a specific branch. P10.3 Phase D — same
+ * branch-access enforcement as `useBranchOrders()` above.
+ */
 export function useBranchReservations(branchId: string) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['branch-reservations', branchId],
-    queryFn: () => adminService.getAdminReservations({ branch_id: branchId }),
+    queryFn: async () => {
+      await assertOwnershipBranchAccess(email, branchId)
+      return adminService.getAdminReservations({ branch_id: branchId })
+    },
     enabled: !!branchId,
   })
 }
 
-/** Fetches branch-scoped analytics (revenue, orders, reservations). */
+/**
+ * Fetches branch-scoped analytics (revenue, orders, reservations).
+ * P10.3 Phase D — same branch-access enforcement as `useBranchOrders()`.
+ */
 export function useBranchAnalytics(branchId: string) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     enabled: !!branchId,
     staleTime: 30_000,
     queryKey: ['branch-analytics', branchId],
     queryFn: async () => {
+      await assertOwnershipBranchAccess(email, branchId)
       const [revenue, orders, reservations] = await Promise.all([
         branchAnalyticsService.getBranchRevenueAnalytics(branchId),
         branchAnalyticsService.getBranchOrderAnalytics(branchId),
@@ -2408,83 +2430,128 @@ import type {
   OperationsDashboard,
 } from '@/types/realtime-operations'
 
+/**
+ * P10.3 Phase D — `OperationsScope.branchId` is optional (a tenant-wide
+ * view omits it); enforcement only applies once a specific branch is in
+ * scope, mirroring how `useAccessibleBranches()` already treats "no
+ * branch filter" as "manage all" upstream of this. Not a second access
+ * model — delegates entirely to `assertOwnershipBranchAccess()`.
+ */
+async function assertOperationsScopeAccess(email: string | null | undefined, scope: OperationsScope): Promise<void> {
+  if (scope.branchId) await assertOwnershipBranchAccess(email, scope.branchId)
+}
+
 /** Full operations dashboard snapshot — polls every 15 s for freshness. */
 export function useOperationsDashboard(scope: OperationsScope) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['operations-dashboard', scope.tenantId, scope.branchId],
-    queryFn: () => realtimeOperationsService.getOperationsSnapshot(scope),
+    queryFn: async () => {
+      await assertOperationsScopeAccess(email, scope)
+      return realtimeOperationsService.getOperationsSnapshot(scope)
+    },
     refetchInterval: 15_000,
   })
 }
 
 /** Live orders — polls every 10 s; real-time updates supplement via websocket. */
 export function useLiveOrders(scope: OperationsScope) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['live-orders', scope.tenantId, scope.branchId],
-    queryFn: () => realtimeOperationsService.getLiveOrders(scope),
+    queryFn: async () => {
+      await assertOperationsScopeAccess(email, scope)
+      return realtimeOperationsService.getLiveOrders(scope)
+    },
     refetchInterval: 10_000,
   })
 }
 
 /** Live reservations — polls every 10 s. */
 export function useLiveReservations(scope: OperationsScope) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['live-reservations', scope.tenantId, scope.branchId],
-    queryFn: () => realtimeOperationsService.getLiveReservations(scope),
+    queryFn: async () => {
+      await assertOperationsScopeAccess(email, scope)
+      return realtimeOperationsService.getLiveReservations(scope)
+    },
     refetchInterval: 10_000,
   })
 }
 
 /** Branch status summary — polls every 20 s. */
 export function useBranchStatus(scope: OperationsScope) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['branch-status', scope.tenantId, scope.branchId],
-    queryFn: () => realtimeOperationsService.getBranchStatuses(scope),
+    queryFn: async () => {
+      await assertOperationsScopeAccess(email, scope)
+      return realtimeOperationsService.getBranchStatuses(scope)
+    },
     refetchInterval: 20_000,
   })
 }
 
 /** Kitchen queue per branch — polls every 8 s. */
 export function useKitchenStatus(branchId: string, tenantId: string) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['kitchen-status', tenantId, branchId],
-    queryFn: () => realtimeOperationsService.getKitchenStatus(branchId),
+    queryFn: async () => {
+      await assertOwnershipBranchAccess(email, branchId)
+      return realtimeOperationsService.getKitchenStatus(branchId)
+    },
     refetchInterval: 8_000,
   })
 }
 
 /** Staff presence board — polls every 30 s. */
 export function useStaffPresence(scope: OperationsScope) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['staff-presence', scope.tenantId, scope.branchId],
-    queryFn: () => realtimeOperationsService.getStaffPresence(scope),
+    queryFn: async () => {
+      await assertOperationsScopeAccess(email, scope)
+      return realtimeOperationsService.getStaffPresence(scope)
+    },
     refetchInterval: 30_000,
   })
 }
 
 /** Active SLA alerts — polls every 15 s. */
 export function useSLAAlerts(scope: OperationsScope) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['sla-alerts', scope.tenantId, scope.branchId],
-    queryFn: () => realtimeOperationsService.getSLAAlerts(scope),
+    queryFn: async () => {
+      await assertOperationsScopeAccess(email, scope)
+      return realtimeOperationsService.getSLAAlerts(scope)
+    },
     refetchInterval: 15_000,
   })
 }
 
 /** Realtime statistics — polls every 30 s. */
 export function useRealtimeStatistics(scope: OperationsScope) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['realtime-statistics', scope.tenantId, scope.branchId],
-    queryFn: () => realtimeOperationsService.getRealtimeStatistics(scope),
+    queryFn: async () => {
+      await assertOperationsScopeAccess(email, scope)
+      return realtimeOperationsService.getRealtimeStatistics(scope)
+    },
     refetchInterval: 30_000,
   })
 }
 
 /** Recent operations events — polls every 10 s. */
 export function useOperationsStream(scope: OperationsScope, limit = 50) {
+  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['operations-stream', scope.tenantId, scope.branchId, limit],
     queryFn: async () => {
+      await assertOperationsScopeAccess(email, scope)
       const snapshot = await realtimeOperationsService.getOperationsSnapshot(scope)
       return snapshot.recentEvents.slice(0, limit)
     },
