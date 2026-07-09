@@ -14,7 +14,8 @@
 
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_TENANT_OWNER_MAP } from './owner.service'
+import { MOCK_TENANT_OWNER_MAP, ownerService } from './owner.service'
+import { tenantService } from './tenant.service'
 import type {
   StaffMember,
   StaffInvite,
@@ -686,6 +687,24 @@ export const staffService = {
    *   - Target must be active
    *   - Source and target must be different
    * After transfer: target gains 'owner', source is downgraded to 'admin'.
+   *
+   * P10.3 Phase F — this is the ONE entry point for an ownership transfer;
+   * it is kept, not replaced, because it's the only place both the legacy
+   * P7 `'owner'` role swap AND (see below) the P10.1 `Tenant.ownerId`
+   * reassignment can be applied atomically. Previously this function only
+   * touched `StaffMember.roles` and never `Tenant.ownerId`/`Owner`,
+   * leaving two disconnected ownership mechanisms in sync only by
+   * coincidence (P10.2.3 finding F-6). Now: when `current` is the
+   * StaffMember that structurally backs this tenant's Owner record (i.e.
+   * `current.userId === owner.userId` for the Owner `tenant.ownerId`
+   * points at) AND `target` has its own Owner record (via
+   * `ownerService.getOwnerByUserIdSync`), `tenantService.transferOwnership()`
+   * is also called so `Tenant.ownerId` — the field every permission
+   * resolution actually reads — moves in the same operation. If `target`
+   * has no Owner record (the common case: an ordinary Staff member being
+   * promoted, not a second provisioned business owner), `Tenant.ownerId`
+   * is deliberately left unchanged — fabricating a new Owner record with
+   * invented billing/plan data is out of scope (see the P10.3 report).
    */
   async transferOwnership(
     currentOwnerId: string,
@@ -709,6 +728,15 @@ export const staffService = {
 
       // Upgrade target to owner (preserve other roles)
       target.roles = ['owner', ...target.roles.filter((r) => r !== 'owner')]
+
+      // P10.3 Phase F — synchronize Tenant.ownerId when both sides of the
+      // transfer are backed by real Owner records.
+      const currentOwnerRecord = current.ownerId ? ownerService.getOwnerByUserIdSync(current.userId) : undefined
+      const targetOwnerRecord = ownerService.getOwnerByUserIdSync(target.userId)
+      if (currentOwnerRecord && targetOwnerRecord) {
+        await tenantService.transferOwnership(current.tenantId, targetOwnerRecord.ownerId)
+        target.ownerId = targetOwnerRecord.ownerId
+      }
 
       emitAudit('staff.ownership_transferred', current.tenantId, {
         staffMemberId: targetMemberId,

@@ -101,6 +101,7 @@ export const ENDPOINTS = {
     SUSPEND: (slugOrId: string) => `/tenants/${slugOrId}/suspend/`,
     ARCHIVE: (slugOrId: string) => `/tenants/${slugOrId}/archive/`,
     SETTINGS: (slug: string) => `/tenants/${slug}/settings/`,
+    TRANSFER_OWNERSHIP: (slugOrId: string) => `/tenants/${slugOrId}/transfer-ownership/`,
   },
 
   // Reviews (menu-item level)

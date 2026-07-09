@@ -345,6 +345,27 @@ export const tenantService = {
   },
 
   /**
+   * P10.3 Phase F — the single source of truth for mutating `Tenant.ownerId`.
+   * Reassigns which Owner structurally owns a tenant; this is the field
+   * `ownerOwnsTenant()`/`resolveOwnerPermissions()` read from, so calling
+   * this is what actually moves ownership in the P10.1 model. Distinct
+   * from `staffService.transferOwnership()` (legacy — reassigns the
+   * `'owner'` P7 role between Staff within one tenant); see that
+   * function's JSDoc for how the two are kept in sync.
+   */
+  async transferOwnership(slugOrId: string, newOwnerId: string): Promise<Tenant> {
+    if (USE_MOCK) {
+      await delay(150)
+      const tenant = findInList(slugOrId)
+      if (!tenant) throw new Error(`Tenant not found: ${slugOrId}`)
+      tenant.ownerId = newOwnerId
+      return { ...tenant }
+    }
+    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.TRANSFER_OWNERSHIP(slugOrId), { newOwnerId })
+    return data
+  },
+
+  /**
    * Persist tenant settings (general, branding, hours, integrations, notifications).
    * In mock mode: patches the in-memory tenant record and returns the updated object.
    */
