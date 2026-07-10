@@ -83,9 +83,18 @@ function OTPContent() {
     }
     setLoading(true)
     try {
-      const { user } = await authService.verifyOTP({ phone_number, dialCode, otp: code })
+      const result = await authService.verifyOTP({ phone_number, dialCode, otp: code })
       OTP_LIMIT.reset(phone_number)
-      setUser(user)
+      // P10.8 — is_new_user: true means registration is NOT complete.
+      // authService.verifyOTP() already withheld tokens/session for this
+      // case (see docs/P10.8_OTP_AUTH_FLOW_SPLIT.md) — this page's only
+      // responsibility here is the redirect; it must not call setUser()
+      // or otherwise behave like a successful login.
+      if (result.is_new_user) {
+        router.push(`/complete-profile?phone_number=${encodeURIComponent(phone_number)}&dialCode=${encodeURIComponent(dialCode)}`)
+        return
+      }
+      setUser(result.user)
       toast.success(`${tNotifications('phoneVerified')} 🎉`)
       router.push('/')
     } catch {

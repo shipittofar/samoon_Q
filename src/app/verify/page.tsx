@@ -115,8 +115,13 @@ function VerifyPageInner() {
     verifyOTP({ phone_number, dialCode, otp: code }, {
       onSuccess: (result) => {
         setState('success')
+        // P10.8 — is_new_user: true means registration is NOT complete
+        // (no session was initialized by useVerifyOTP() for this case —
+        // see docs/P10.8_OTP_AUTH_FLOW_SPLIT.md). This page's only
+        // responsibility for a new user is the redirect below; dialCode
+        // is forwarded so /complete-profile never has to guess it.
         const dest = result.is_new_user
-          ? `/complete-profile?phone_number=${encodeURIComponent(phone_number)}`
+          ? `/complete-profile?phone_number=${encodeURIComponent(phone_number)}&dialCode=${encodeURIComponent(dialCode)}`
           : result.user.role === 'customer'
             ? getPostLoginRedirect('customer', result.user.email)
             : getDemoRedirect(phone_number) !== '/console'

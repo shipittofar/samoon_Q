@@ -517,16 +517,29 @@ export function useSendOTP() {
   })
 }
 
-/** P8.9.2 — Verify OTP and complete phone_number login / registration. */
+/**
+ * P8.9.2 — Verify OTP and complete phone_number login / registration.
+ * P10.8 — split into two completely different outcomes per the backend
+ * contract:
+ *   is_new_user: true  — registration is NOT complete. No session is
+ *     initialized here (no setUser, no RBAC hydration) — the caller
+ *     (VerifyPage) is solely responsible for redirecting to
+ *     /complete-profile, which establishes the real session via
+ *     useRegister() once the user finishes their profile.
+ *   is_new_user: false — a real login. Behaves exactly like
+ *     useLogin()/useVerifyOTP() always have: hydrate the authenticated
+ *     user and, if present, tenantRoles.
+ */
 export function useVerifyOTP() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (payload: VerifyOTPRequest) => authService.verifyOTP(payload),
-    onSuccess: ({ user, p7Roles }) => {
-      setUser(user)
-      if (p7Roles && p7Roles.length > 0) {
+    onSuccess: (result) => {
+      if (result.is_new_user) return
+      setUser(result.user)
+      if (result.p7Roles && result.p7Roles.length > 0) {
         const tenantId = useTenantStore.getState().tenant.id
-        useRbacStore.getState().setTenantRoles(tenantId, p7Roles)
+        useRbacStore.getState().setTenantRoles(tenantId, result.p7Roles)
       }
     },
   })
