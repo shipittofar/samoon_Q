@@ -13,7 +13,7 @@ import { Header } from '@/components/layout/Header'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/stores'
-import { useLogout, usePermission } from '@/hooks'
+import { useLogout, useHasDashboardAccess } from '@/hooks'
 import { cn } from '@/utils'
 import { getDashboardNav } from '@/modules/registry'
 import toast from 'react-hot-toast'
@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { mutate: logout } = useLogout()
-  const canAccessConsole = usePermission('dashboard:access')
+  const canAccessConsole = useHasDashboardAccess()
   const t = useTranslations('dashboard')
 
   useEffect(() => {

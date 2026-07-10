@@ -8,7 +8,7 @@ import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOu
 import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
 import type { TenantTheme } from '@/types'
 import type { NavItem } from '@/types'
-import { useLogout, useSetLocale, useModuleNav, usePermission } from '@/hooks'
+import { useLogout, useSetLocale, useModuleNav, useHasDashboardAccess } from '@/hooks'
 
 // Platform-level nav shown on the root site (when no tenant is active).
 // Replaces restaurant-specific module nav on the public marketplace surface.
@@ -50,7 +50,7 @@ export function Header() {
   const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()
   const tAuth = useTranslations('auth')
-  const canAccessConsole = usePermission('dashboard:access')
+  const canAccessConsole = useHasDashboardAccess()
   // useModuleNav() returns header nav filtered by resolved feature flags (P6.8).
   // Items with featureFlagKey are hidden when the flag is false (e.g. reservations
   // disabled for food_truck, loyalty disabled for bar).
