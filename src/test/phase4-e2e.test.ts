@@ -380,46 +380,12 @@ describe('E2E: Checkout Flow', () => {
 })
 
 // ── P4.10.2.5 — Dashboard / RBAC Flow ────────────────────────────────────────
-
-describe('E2E: Dashboard / RBAC Flow', () => {
-  it('customer role cannot access dashboard:manage permission', async () => {
-    const { rbacService } = await import('@/services/rbac.service')
-    expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
-    expect(rbacService.hasPermission('customer', 'menu:manage')).toBe(false)
-  })
-
-  it('staff role can access dashboard and manage orders', async () => {
-    const { rbacService } = await import('@/services/rbac.service')
-    expect(rbacService.hasPermission('staff', 'dashboard:access')).toBe(true)
-    expect(rbacService.hasPermission('staff', 'orders:manage')).toBe(true)
-  })
-
-  it('admin role has all permissions', async () => {
-    const { rbacService } = await import('@/services/rbac.service')
-    expect(rbacService.hasPermission('admin', 'dashboard:access')).toBe(true)
-    expect(rbacService.hasPermission('admin', 'menu:manage')).toBe(true)
-    expect(rbacService.hasPermission('admin', 'orders:manage')).toBe(true)
-  })
-
-  it('null role returns no permissions (unauthenticated)', async () => {
-    const { rbacService } = await import('@/services/rbac.service')
-    expect(rbacService.hasPermission(null, 'dashboard:access')).toBe(false)
-    expect(rbacService.hasPermission(null, 'orders:read')).toBe(false)
-  })
-
-  it('unknown role returns no permissions (safe default deny)', async () => {
-    const { rbacService } = await import('@/services/rbac.service')
-    // @ts-expect-error — intentional unknown role
-    expect(rbacService.hasPermission('unknown_role', 'dashboard:access')).toBe(false)
-  })
-
-  it('RBAC blocks menu:manage for customer even after state change', async () => {
-    const { rbacService } = await import('@/services/rbac.service')
-    // Simulates a privilege escalation attempt
-    const result = rbacService.hasPermission('customer', 'menu:manage')
-    expect(result).toBe(false)
-  })
-})
+// P10.4.12 — the `E2E: Dashboard / RBAC Flow` describe block (entirely
+// rbacService.hasPermission() assertions) was removed: the legacy engine
+// is deleted (src/services/rbac.service.ts) and dashboard/permission
+// authorization has flowed through useHasDashboardAccess()/usePermission()
+// since P10.4.10/P10.4.11 — see
+// docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md.
 
 // ── P4.10.2.6 — Offline Flow ─────────────────────────────────────────────────
 
@@ -534,15 +500,9 @@ describe('Critical path: cart persists state shape', () => {
   })
 })
 
-describe('Critical path: RBAC blocks unauthorized access', () => {
-  it('customer cannot access any admin-only routes by permission', async () => {
-    const { rbacService } = await import('@/services/rbac.service')
-    const adminOnlyPerms = ['menu:manage', 'dashboard:access', 'orders:manage'] as const
-    for (const perm of adminOnlyPerms) {
-      expect(rbacService.hasPermission('customer', perm)).toBe(false)
-    }
-  })
-})
+// P10.4.12 — the `Critical path: RBAC blocks unauthorized access` describe
+// block (rbacService.hasPermission()-only assertions) was removed — see
+// docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md.
 
 describe('Critical path: offline queue is replay-safe', () => {
   it('replayQueue after network restored processes all pending mutations', async () => {
@@ -631,11 +591,6 @@ describe('P4.10.7 — Regression guard: prior phases undisturbed', () => {
     expect(typeof menuService.getCategories).toBe('function')
     expect(typeof menuService.getItems).toBe('function')
     expect(typeof menuService.getFeatured).toBe('function')
-  })
-
-  it('rbacService.hasPermission returns boolean (P1B contract)', async () => {
-    const { rbacService } = await import('@/services/rbac.service')
-    expect(typeof rbacService.hasPermission('customer', 'orders:read')).toBe('boolean')
   })
 
   it('offlineQueue has enqueue/dequeue/replayQueue (P4.8 contract)', async () => {

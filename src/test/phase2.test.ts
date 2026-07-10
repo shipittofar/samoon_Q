@@ -18,7 +18,6 @@ import {
   FONT_TOKENS,
   TENANT_OVERRIDABLE_VARS,
 } from '@/lib/tokens'
-import { rbacService } from '@/services/rbac.service'
 import { getDashboardNav, getHeaderNav } from '@/modules/registry'
 import { useTenantStore, useAuthStore } from '@/stores'
 import type { TenantTheme } from '@/types'
@@ -175,23 +174,11 @@ describe('getDashboardNav registry', () => {
   })
 })
 
-describe('useDashboardNav RBAC logic (pure)', () => {
-  it('denies dashboard access for null role', () => {
-    expect(rbacService.hasPermission(null, 'dashboard:access')).toBe(false)
-  })
-
-  it('denies dashboard access for customer role', () => {
-    expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
-  })
-
-  it('grants dashboard access for staff role', () => {
-    expect(rbacService.hasPermission('staff', 'dashboard:access')).toBe(true)
-  })
-
-  it('grants dashboard access for admin role', () => {
-    expect(rbacService.hasPermission('admin', 'dashboard:access')).toBe(true)
-  })
-})
+// P10.4.12 — the legacy `useDashboardNav RBAC logic (pure)` describe block
+// (rbacService.hasPermission()-only assertions) was removed here:
+// src/services/rbac.service.ts is deleted, and useDashboardNav()/
+// useHasDashboardAccess() have not read from it since P10.4.10 — see
+// docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md.
 
 describe('useModuleNav feature-flag filtering logic (pure)', () => {
   beforeEach(() => {

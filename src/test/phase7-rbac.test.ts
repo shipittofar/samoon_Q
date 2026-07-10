@@ -1017,8 +1017,8 @@ describe('Regression — types/index.ts exports', () => {
     expect(src()).toContain('Role,')
     expect(src()).not.toContain('export type Role =')
   })
-  it('exports LegacyPermission type', () => {
-    expect(src()).toContain('LegacyPermission')
+  it('LegacyPermission is fully retired — no longer exported from types/index.ts (P10.4.12)', () => {
+    expect(src()).not.toContain('LegacyPermission')
   })
   it('P7Permission is the single authoritative permission type', () => {
     // The superseded `export type Permission = ...` dot-notation duplicate

@@ -417,12 +417,11 @@ describe('Regression: auth layer unchanged', () => {
 })
 
 // ── Regression: RBAC unchanged ────────────────────────────────────────────────
-
-describe('Regression: RBAC layer unchanged', () => {
-  it('rbac.service still exports hasPermission', () => {
-    expect(src('services/rbac.service.ts')).toContain('hasPermission')
-  })
-})
+// P10.4.12 — the `Regression: RBAC layer unchanged` describe block asserted
+// src/services/rbac.service.ts still exported hasPermission(); that file
+// was fully retired in this phase (see
+// docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md), so the assertion is gone,
+// not just its target.
 
 // ── Regression: safe missing field handling ───────────────────────────────────
 

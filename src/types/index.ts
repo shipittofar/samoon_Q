@@ -742,29 +742,6 @@ export interface Address {
 // RBAC TYPES  (Phase 1B — P1B.1 / P7.1)
 // ============================================================
 
-/**
- * Legacy permission strings (P1B.1 — colon-notation).
- * Used by the old rbacService and AuthGuard.
- * @deprecated Use P7Permission from @/types/rbac for new code.
- */
-export type LegacyPermission =
-  | 'orders:read'
-  | 'orders:write'
-  | 'orders:cancel'
-  | 'orders:manage'
-  | 'menu:read'
-  | 'menu:write'
-  | 'menu:manage'
-  | 'reservations:read'
-  | 'reservations:write'
-  | 'reservations:manage'
-  | 'users:read'
-  | 'users:manage'
-  | 'dashboard:access'
-  | 'branches:read'
-  | 'branches:manage'
-  | 'notifications:read'
-
 // Re-export P7 types from rbac module for consumers that import from '@/types'
 export type {
   Role,

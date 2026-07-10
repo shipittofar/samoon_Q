@@ -28,10 +28,16 @@
 // — which the phase specifies verbatim — is actually true rather than
 // silently failing for two of its seven entries.
 //
-// This is NOT a removal phase. rbacService.hasPermission(),
-// ROLE_PERMISSIONS, LegacyPermission, legacyGranted, and AuthGuard's
-// legacy fallback are all still present and unmodified — this file only
-// proves they are no longer the DECIDING factor for any demo account.
+// This was NOT a removal phase — at the time this file was written,
+// rbacService.hasPermission(), ROLE_PERMISSIONS, LegacyPermission,
+// legacyGranted, and AuthGuard's legacy fallback were all still present
+// and unmodified; this file only proved they were no longer the
+// DECIDING factor for any demo account. The legacy engine itself was
+// later fully retired in P10.4.12 (see
+// docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md) — this file's
+// rbacService-specific precondition assertions were removed then, since
+// there is no longer a legacy engine left to prove isolation from; the
+// substantive useHasDashboardAccess() coverage below is unchanged.
 // ============================================================
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
@@ -41,7 +47,6 @@ import { ownerService } from '@/services/owner.service'
 import { staffService } from '@/services/staff.service'
 import { staffAssignmentService } from '@/services/staff-assignment.service'
 import { tenantService } from '@/services/tenant.service'
-import { rbacService } from '@/services/rbac.service'
 import {
   resolveOwnershipIdentity,
   resolveOwnershipDrivenPermissions,
@@ -49,13 +54,16 @@ import {
 import type { User, Tenant } from '@/types'
 
 /**
- * Builds a User with `role: 'customer'` unless overridden. 'customer' is
- * the one legacy UserRole that `rbacService.hasPermission(role,
- * 'dashboard:access')` NEVER grants (CUSTOMER_PERMISSIONS in
- * rbac.service.ts excludes it) — so using it here forces
- * `legacyGranted` to `false` inside `useHasDashboardAccess()` without
- * touching (mocking, stubbing, or deleting) `rbacService` itself. Same
- * technique already established in
+ * Builds a User with `role: 'customer'` unless overridden. At the time
+ * this file was written, 'customer' was the one legacy UserRole that
+ * `rbacService.hasPermission(role, 'dashboard:access')` never granted,
+ * which forced `legacyGranted` to `false` inside `useHasDashboardAccess()`.
+ * `legacyGranted` was removed in P10.4.10 and the legacy engine itself
+ * was fully retired in P10.4.12 — `useHasDashboardAccess()` now has no
+ * legacy branch to isolate from at all, so this helper's role choice is
+ * kept for historical continuity with the rest of this test suite, not
+ * because it still needs to defeat a legacy check. Same technique
+ * originally established in
  * src/test/p10.3.1-dashboard-access-audit.test.ts for `accountant@savor.com`.
  */
 function customerRoleUserFor(email: string): User {
@@ -154,7 +162,7 @@ describe('P10.4.9 Phase B — fixture consistency audit', () => {
 
 // ── Phase C — Regression Test Before Future Removal ─────────────────────────
 
-describe('P10.4.9 Phase C — console access holds with legacyGranted forced false', () => {
+describe('P10.4.9 Phase C — console access holds independent of any legacy dashboard:access fallback', () => {
   const consoleCapableEmails = [
     'owner@savor.com',
     'admin@savor.com',
@@ -166,12 +174,7 @@ describe('P10.4.9 Phase C — console access holds with legacyGranted forced fal
   ]
 
   for (const email of consoleCapableEmails) {
-    it(`${email}: useHasDashboardAccess() returns true even though rbacService.hasPermission(role, 'dashboard:access') would return false for 'customer'`, async () => {
-      // Prove the precondition for every case, not just staff/multirole:
-      // 'customer' truly never gets legacy dashboard:access, so if the
-      // hook still returns true below, legacyGranted cannot be why.
-      expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
-
+    it(`${email}: useHasDashboardAccess() returns true via ownership/StaffAssignment resolution alone`, async () => {
       const savor = await savorTenant()
       useTenantStore.getState().setTenant(savor)
       useAuthStore.getState().setUser(customerRoleUserFor(email))
@@ -181,14 +184,11 @@ describe('P10.4.9 Phase C — console access holds with legacyGranted forced fal
     })
   }
 
-  it('staff@savor.com specifically no longer depends on rbacService.hasPermission()/ROLE_PERMISSIONS/the dashboard:access legacy fallback', async () => {
+  it('staff@savor.com specifically resolves via ownership resolution alone', async () => {
     const savor = await savorTenant()
     useTenantStore.getState().setTenant(savor)
     useAuthStore.getState().setUser(customerRoleUserFor('staff@savor.com'))
 
-    // The legacy path is provably closed for this identity...
-    expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
-    // ...yet the real gate still grants access, via ownership resolution alone.
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(true)
 
@@ -199,12 +199,11 @@ describe('P10.4.9 Phase C — console access holds with legacyGranted forced fal
     ).toBeGreaterThan(0)
   })
 
-  it('multirole@savor.com specifically no longer depends on rbacService.hasPermission()/ROLE_PERMISSIONS/the dashboard:access legacy fallback', async () => {
+  it('multirole@savor.com specifically resolves via ownership resolution alone', async () => {
     const savor = await savorTenant()
     useTenantStore.getState().setTenant(savor)
     useAuthStore.getState().setUser(customerRoleUserFor('multirole@savor.com'))
 
-    expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(true)
 

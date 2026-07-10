@@ -3,13 +3,12 @@
  * P1B.6 system readiness lifecycle with real initialization.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { rbacService } from '@/services/rbac.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useTenantStore } from '@/stores'
 import { useFeatureFlag } from '@/hooks'
 import { DEFAULT_TENANT } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
-import type { Tenant, UserRole } from '@/types'
+import type { Tenant } from '@/types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -29,144 +28,9 @@ async function bootstrap(slug = 'default') {
 }
 
 // ── P1B.1 — RBAC Service ─────────────────────────────────────────────────────
-
-describe('rbacService.hasPermission() — null / undefined role', () => {
-  it('returns false for null role', () => {
-    expect(rbacService.hasPermission(null, 'menu:read')).toBe(false)
-  })
-
-  it('returns false for undefined role', () => {
-    expect(rbacService.hasPermission(undefined, 'menu:read')).toBe(false)
-  })
-})
-
-describe('rbacService.hasPermission() — customer role', () => {
-  const role: UserRole = 'customer'
-
-  it('has menu:read', () => {
-    expect(rbacService.hasPermission(role, 'menu:read')).toBe(true)
-  })
-
-  it('has orders:read', () => {
-    expect(rbacService.hasPermission(role, 'orders:read')).toBe(true)
-  })
-
-  it('has orders:write', () => {
-    expect(rbacService.hasPermission(role, 'orders:write')).toBe(true)
-  })
-
-  it('has orders:cancel', () => {
-    expect(rbacService.hasPermission(role, 'orders:cancel')).toBe(true)
-  })
-
-  it('has reservations:read', () => {
-    expect(rbacService.hasPermission(role, 'reservations:read')).toBe(true)
-  })
-
-  it('has reservations:write', () => {
-    expect(rbacService.hasPermission(role, 'reservations:write')).toBe(true)
-  })
-
-  it('has notifications:read', () => {
-    expect(rbacService.hasPermission(role, 'notifications:read')).toBe(true)
-  })
-
-  it('has branches:read', () => {
-    expect(rbacService.hasPermission(role, 'branches:read')).toBe(true)
-  })
-
-  it('does NOT have dashboard:access', () => {
-    expect(rbacService.hasPermission(role, 'dashboard:access')).toBe(false)
-  })
-
-  it('does NOT have orders:manage', () => {
-    expect(rbacService.hasPermission(role, 'orders:manage')).toBe(false)
-  })
-
-  it('does NOT have menu:write', () => {
-    expect(rbacService.hasPermission(role, 'menu:write')).toBe(false)
-  })
-
-  it('does NOT have users:manage', () => {
-    expect(rbacService.hasPermission(role, 'users:manage')).toBe(false)
-  })
-
-  it('does NOT have branches:manage', () => {
-    expect(rbacService.hasPermission(role, 'branches:manage')).toBe(false)
-  })
-})
-
-describe('rbacService.hasPermission() — staff role', () => {
-  const role: UserRole = 'staff'
-
-  it('has dashboard:access', () => {
-    expect(rbacService.hasPermission(role, 'dashboard:access')).toBe(true)
-  })
-
-  it('has orders:manage', () => {
-    expect(rbacService.hasPermission(role, 'orders:manage')).toBe(true)
-  })
-
-  it('has menu:write', () => {
-    expect(rbacService.hasPermission(role, 'menu:write')).toBe(true)
-  })
-
-  it('has reservations:manage', () => {
-    expect(rbacService.hasPermission(role, 'reservations:manage')).toBe(true)
-  })
-
-  it('has users:read', () => {
-    expect(rbacService.hasPermission(role, 'users:read')).toBe(true)
-  })
-
-  it('inherits all customer permissions (menu:read)', () => {
-    expect(rbacService.hasPermission(role, 'menu:read')).toBe(true)
-  })
-
-  it('inherits all customer permissions (orders:read)', () => {
-    expect(rbacService.hasPermission(role, 'orders:read')).toBe(true)
-  })
-
-  it('does NOT have menu:manage', () => {
-    expect(rbacService.hasPermission(role, 'menu:manage')).toBe(false)
-  })
-
-  it('does NOT have users:manage', () => {
-    expect(rbacService.hasPermission(role, 'users:manage')).toBe(false)
-  })
-
-  it('does NOT have branches:manage', () => {
-    expect(rbacService.hasPermission(role, 'branches:manage')).toBe(false)
-  })
-})
-
-describe('rbacService.hasPermission() — admin role', () => {
-  const role: UserRole = 'admin'
-
-  it('has menu:manage', () => {
-    expect(rbacService.hasPermission(role, 'menu:manage')).toBe(true)
-  })
-
-  it('has users:manage', () => {
-    expect(rbacService.hasPermission(role, 'users:manage')).toBe(true)
-  })
-
-  it('has branches:manage', () => {
-    expect(rbacService.hasPermission(role, 'branches:manage')).toBe(true)
-  })
-
-  it('has dashboard:access', () => {
-    expect(rbacService.hasPermission(role, 'dashboard:access')).toBe(true)
-  })
-
-  it('inherits staff permissions (orders:manage)', () => {
-    expect(rbacService.hasPermission(role, 'orders:manage')).toBe(true)
-  })
-
-  it('inherits customer permissions (menu:read)', () => {
-    expect(rbacService.hasPermission(role, 'menu:read')).toBe(true)
-  })
-})
+// P10.4.12 — the legacy rbacService.hasPermission() engine this section
+// tested was fully retired (src/services/rbac.service.ts deleted); see
+// docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md.
 
 describe('hook contract — useFeatureFlag is an exported function', () => {
   it('useFeatureFlag is a function', () => {

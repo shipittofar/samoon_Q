@@ -14,10 +14,15 @@
 // console-capable demo account, using the same isolation technique as
 // p10.3.1-dashboard-access-audit.test.ts and
 // p10.4.9-rbac-migration.test.ts: construct the user with a legacy
-// UserRole of 'customer' (rbacService.hasPermission() never grants
-// 'dashboard:access' for 'customer' — proven inline below on every
-// account) so any pass can only be explained by the ownership/
-// StaffAssignment path, which is now the ONLY path in the hook.
+// UserRole of 'customer' so any pass can only be explained by the
+// ownership/StaffAssignment path, which is the ONLY path in the hook.
+//
+// P10.4.12 update: the legacy RBAC engine (src/services/rbac.service.ts)
+// this file originally used to prove 'customer' could never trigger the
+// (already-removed) legacyGranted branch has since been fully retired —
+// see docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md. The precondition
+// assertions that called it were removed; the substantive
+// useHasDashboardAccess() coverage below is unchanged.
 // ============================================================
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
@@ -27,7 +32,6 @@ import { ownerService } from '@/services/owner.service'
 import { staffService } from '@/services/staff.service'
 import { staffAssignmentService } from '@/services/staff-assignment.service'
 import { tenantService } from '@/services/tenant.service'
-import { rbacService } from '@/services/rbac.service'
 import { resolveOwnershipIdentity } from '@/services/ownership-resolution.service'
 import type { User, Tenant } from '@/types'
 
@@ -60,8 +64,6 @@ beforeEach(() => {
 
 describe('P10.4.10 — Owner access still passes with legacyGranted removed', () => {
   it('owner@savor.com: grants access via resolveOwnerPermissions()/ownerOwnsTenant(), no legacy fallback involved', async () => {
-    expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
-
     const savor = await savorTenant()
     useTenantStore.getState().setTenant(savor)
     useAuthStore.getState().setUser(customerRoleUserFor('owner@savor.com'))
@@ -102,36 +104,11 @@ describe('P10.4.10 — Staff assignment access still passes with legacyGranted r
   }
 })
 
-describe('P10.4.10 — legacy isolation proof (legacyGranted === false for every account)', () => {
-  const allConsoleCapableAccounts = [
-    'owner@savor.com',
-    'admin@savor.com',
-    'staff@savor.com',
-    'manager@savor.com',
-    'cashier@savor.com',
-    'kitchen@savor.com',
-    'multirole@savor.com',
-  ]
-
-  for (const email of allConsoleCapableAccounts) {
-    it(`${email}: useHasDashboardAccess() === true while rbacService.hasPermission('customer', 'dashboard:access') === false — access comes only from ownership`, async () => {
-      // The user is always constructed with role: 'customer' below
-      // (customerRoleUserFor). rbacService.hasPermission() never grants
-      // 'dashboard:access' to 'customer' — CUSTOMER_PERMISSIONS in
-      // rbac.service.ts excludes it — so this is what "legacyGranted
-      // === false" means for every account tested here, without
-      // needing to read a private variable that no longer exists.
-      expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
-
-      const savor = await savorTenant()
-      useTenantStore.getState().setTenant(savor)
-      useAuthStore.getState().setUser(customerRoleUserFor(email))
-
-      const { result } = renderHook(() => useHasDashboardAccess())
-      expect(result.current).toBe(true)
-    })
-  }
-})
+// P10.4.12 — the `legacy isolation proof (legacyGranted === false for
+// every account)` describe block was removed here: it duplicated the
+// "Staff assignment access" coverage above, plus a rbacService
+// precondition check that is now moot since rbacService no longer
+// exists — see docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md.
 
 describe('P10.4.10 — negative test: unknown account is still denied', () => {
   it('unknown@savor.com: useHasDashboardAccess() === false (no StaffMember, no Owner record, and no legacy fallback exists anymore)', async () => {
@@ -145,9 +122,5 @@ describe('P10.4.10 — negative test: unknown account is still denied', () => {
 
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(false)
-  })
-
-  it('unknown@savor.com would also fail the legacy check if it still existed (role: customer)', () => {
-    expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
   })
 })

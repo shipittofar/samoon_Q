@@ -16,7 +16,6 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { rbacService } from '@/services/rbac.service'
 import { readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 
@@ -77,21 +76,11 @@ describe('P3.1 — Middleware protected route logic', () => {
 // ── P3.2 Admin RBAC ───────────────────────────────────────────────────────────
 
 describe('P3.2 — Admin authorization (dashboard:access permission)', () => {
-  it('customer role is denied dashboard:access', () => {
-    expect(rbacService.hasPermission('customer', 'dashboard:access')).toBe(false)
-  })
-
-  it('null role is denied dashboard:access', () => {
-    expect(rbacService.hasPermission(null, 'dashboard:access')).toBe(false)
-  })
-
-  it('staff role is granted dashboard:access', () => {
-    expect(rbacService.hasPermission('staff', 'dashboard:access')).toBe(true)
-  })
-
-  it('admin role is granted dashboard:access', () => {
-    expect(rbacService.hasPermission('admin', 'dashboard:access')).toBe(true)
-  })
+  // P10.4.12 — the four rbacService.hasPermission()-only assertions that
+  // lived here were removed: src/services/rbac.service.ts is deleted, and
+  // AuthGuard has resolved dashboard:access through useHasDashboardAccess()
+  // (not rbacService) since P10.4.11 — see
+  // docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md.
 
   it('AuthGuard exports as a function', async () => {
     const mod = await import('@/components/auth/AuthGuard')
