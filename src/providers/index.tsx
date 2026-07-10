@@ -1,12 +1,13 @@
 'use client'
 
-import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryCache, useQueryClient } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
-import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenantStore, useRbacStore } from '@/stores'
+import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenantStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { authService } from '@/services/auth.service'
+import { getAccessToken, clearTokens } from '@/services/axios.instance'
 import { userService } from '@/services/combined.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useNotificationWebSocket, useFcmRegistration } from '@/hooks/client'
@@ -195,11 +196,50 @@ function FcmRegistrationProvider({ children }: { children: ReactNode }) {
 function AuthBootstrapper({ children }: { children: ReactNode }) {
   const { setUser, setLoading } = useAuthStore()
   const setFavorites = useFavoritesStore((s) => s.setFavorites)
+  const qc = useQueryClient()
   const booted = useRef(false)
+
+  // P10.9 — full session teardown, shared by both places a session can end
+  // outside an explicit useLogout() call: a failed getMe() below
+  // (invalid/expired token found at boot) and the 'auth:logout' event
+  // axios.instance.ts's response interceptor dispatches when a token
+  // refresh fails. Mirrors useLogout()'s onSettled cleanup exactly
+  // (src/hooks/index.ts) — previously this path only did `setUser(null)`,
+  // leaving RBAC/tenant/cart/query-cache state behind
+  // (docs/P10.9_AUTH_SESSION_HARDENING_AUDIT.md Phase D).
+  function clearSession() {
+    setUser(null)
+    clearSentryUser()
+    clearTokens()
+    useRbacStore.getState()._resetStore()
+    useBranchStore.getState().setAdminActiveBranch(null)
+    useCartStore.getState().clearCart()
+    useDineInStore.getState().clearTable()
+    useFavoritesStore.getState().setFavorites([])
+    useRecentlyViewedStore.getState().clear()
+    qc.clear()
+  }
+
+  // P10.9 — deliberately a SEPARATE effect from the one-time bootstrap
+  // below, with no `booted` guard. Previously the 'auth:logout' listener
+  // was registered inside the `booted`-guarded effect: under React 18
+  // StrictMode's dev-only double-invoke (mount → cleanup → mount), the
+  // first invocation's cleanup calls removeEventListener, but the second
+  // invocation immediately bails out on `if (booted.current) return`
+  // BEFORE reaching addEventListener — leaving the app with a permanently
+  // unattached listener, silently swallowing every subsequent
+  // token-refresh-failure event. A standard (unguarded) effect re-attaches
+  // correctly on every mount, including StrictMode's second one.
+  useEffect(() => {
+    window.addEventListener('auth:logout', clearSession)
+    return () => window.removeEventListener('auth:logout', clearSession)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qc])
+
   useEffect(() => {
     if (booted.current) return
     booted.current = true
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    const token = getAccessToken()
     if (!token) { setLoading(false); return }
     authService.getMe().then((user) => {
       setUser(user)
@@ -223,10 +263,16 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // state, which P10.7 also forbids. The fields exist on the
       // AuthSessionRbacPayload contract for forward compatibility only.
       userService.getFavorites().then(setFavorites).catch(() => {})
-    }).catch(() => setLoading(false))
-    const handleLogout = () => { setUser(null); clearSentryUser() }
-    window.addEventListener('auth:logout', handleLogout)
-    return () => window.removeEventListener('auth:logout', handleLogout)
+    }).catch(() => {
+      // P10.9 — a failed getMe() means the token found in storage is
+      // invalid/expired: the previous behavior only called
+      // setLoading(false), leaving that invalid token (and any stale
+      // RBAC/tenant/cart state) in place. Now performs the same full
+      // teardown as an explicit logout.
+      clearSession()
+      setLoading(false)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setUser, setLoading, setFavorites])
   return <>{children}</>
 }
