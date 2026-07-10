@@ -57,7 +57,6 @@ import type {
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { getPermissionsForRole, hasPermission, applyOverrides, resolveEffectivePermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions, EffectivePermissionResult } from '@/types/rbac'
-import { rbacService } from '@/services/rbac.service'
 import {
   resolveOwnershipIdentity,
   resolveOwnershipDrivenPermissions,
@@ -336,25 +335,25 @@ export function useModuleNav(): NavItem[] {
  * P10.2.2 — `dashboard:access` as a derived, computed boolean, per
  * docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §8.1:
  *
- *   dashboard:access = (legacy rbacService grant, UNCHANGED — see below)
- *                    OR (actor is an Owner with ≥1 owned Tenant)
+ *   dashboard:access = (actor is an Owner with ≥1 owned Tenant)
  *                    OR (actor has ≥1 active StaffAssignment, any tenant, any role)
  *
- * The legacy `rbacService.hasPermission(role, 'dashboard:access')` check
- * is kept as the first OR-branch, not removed — several demo accounts
- * (`staff@savor.com`, `multirole@savor.com`) have no matching
- * `StaffMember` record in the mock fixtures (a pre-existing id-space gap,
- * P10.0 J12/J13, not fixed by this phase), so replacing it outright would
- * regress their console access. This is the single source of truth
+ * P10.4.10 — the legacy `rbacService.hasPermission(role, 'dashboard:access')`
+ * fallback ('legacyGranted') was removed from this OR-expression.
+ * docs/P10.4.9_RBAC_MIGRATION_PREPARATION.md closed the id-space gap it
+ * existed for (`staff@savor.com`/`multirole@savor.com` — and
+ * `admin@savor.com`/`kitchen@savor.com`, found during that phase — now
+ * have real StaffMember/StaffAssignment fixtures), and
+ * docs/P10.4.10_REMOVE_LEGACY_DASHBOARD_FALLBACK.md proved every
+ * console-capable demo account resolves through this ownership/
+ * StaffAssignment path alone. This is the single source of truth
  * `AuthGuard` and `useDashboardNav()` both now read — no parallel
  * implementation of the `dashboard:access` check exists anywhere else.
  */
 export function useHasDashboardAccess(): boolean {
   const user = useAuthStore((s) => s.user)
   const tenant = useTenantStore((s) => s.tenant)
-  const legacyGranted = rbacService.hasPermission(user?.role ?? null, 'dashboard:access')
   return useMemo(() => {
-    if (legacyGranted) return true
     // P10.3.1 audit — this hook is AuthGuard's actual /console gate but had
     // never been updated to call the P10.3 Phase A/B/C eligibility
     // predicates, so a suspended/pending Owner, a suspended/removed Staff
@@ -377,7 +376,7 @@ export function useHasDashboardAccess(): boolean {
     }
     return false
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [legacyGranted, user?.email, tenant?.id, tenant?.ownerId, tenant?.status])
+  }, [user?.email, tenant?.id, tenant?.ownerId, tenant?.status])
 }
 
 /**
