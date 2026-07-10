@@ -138,7 +138,14 @@ export const authService = {
     return data
   },
 
-  async register(data: RegisterData): Promise<{ user: User; tokens: AuthTokens }> {
+  // P10.9 — register() now optionally returns p7Roles/ownership/
+  // staffAssignments too, matching login()/verifyOTP()'s contract, so
+  // useRegister() can hydrate RBAC state the same way after a successful
+  // registration (a brand-new customer typically has none, but the
+  // shape is consistent either way).
+  async register(
+    data: RegisterData,
+  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload> {
     if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
     if (!authFlag('authentication.registration_enabled')) throw new Error('registration_disabled')
 
@@ -146,10 +153,18 @@ export const authService = {
       await delay(MOCK_DELAY)
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
-      return { user: { ...MOCK_USER, email: data.email, first_name: data.first_name, last_name: data.last_name }, tokens }
+      return {
+        user: { ...MOCK_USER, email: data.email, first_name: data.first_name, last_name: data.last_name },
+        tokens,
+        p7Roles: [],
+      }
     }
 
-    const { data: res } = await api.post<{ user: User; tokens: AuthTokens }>(
+    // P10.9 — data.country_code/data.phone_number are sent exactly as
+    // the caller built them (never concatenated here) — see
+    // src/app/complete-profile/page.tsx for the phone-OTP registration
+    // flow's payload construction.
+    const { data: res } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload>(
       ENDPOINTS.AUTH.REGISTER,
       data,
     )

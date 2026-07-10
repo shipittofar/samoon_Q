@@ -501,11 +501,19 @@ export function useLogin() {
   })
 }
 
+// P10.9 — mirrors useLogin()/useVerifyOTP(): hydrates the authenticated
+// user and, if present, tenantRoles after a successful registration.
 export function useRegister() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (data: RegisterData) => authService.register(data),
-    onSuccess: ({ user }) => setUser(user),
+    onSuccess: ({ user, p7Roles }) => {
+      setUser(user)
+      if (p7Roles && p7Roles.length > 0) {
+        const tenantId = useTenantStore.getState().tenant.id
+        useRbacStore.getState().setTenantRoles(tenantId, p7Roles)
+      }
+    },
   })
 }
 

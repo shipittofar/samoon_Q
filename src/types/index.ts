@@ -40,9 +40,20 @@ export interface LoginCredentials {
 
 export interface RegisterData {
   email: string
+  /** Local phone number WITHOUT the country prefix — see country_code. */
   phone_number?: string
-  password: string
-  confirm_password: string
+  /** User's selected dial code (e.g. '+1'), never hardcoded. Sent
+   *  separately from phone_number, never concatenated — matches the
+   *  OTP request shape (SendOTPRequest/VerifyOTPRequest). */
+  country_code?: string
+  // P10.9 — password/confirm_password are temporarily NOT part of the
+  // phone-OTP registration flow (see src/app/complete-profile/page.tsx).
+  // Kept here (optional, not removed) so the existing email+password
+  // flow (/register, RegisterClientPage.tsx) keeps working unchanged,
+  // and so password support can be re-enabled for the phone flow later
+  // without another type change.
+  password?: string
+  confirm_password?: string
   first_name: string
   last_name: string
 }

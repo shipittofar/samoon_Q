@@ -51,14 +51,30 @@ function CompleteProfileInner() {
   })
 
   const onSubmit = (data: FormData) => {
+    // P10.9 — country_code and phone_number are sent as separate fields,
+    // matching the OTP request shape (auth.service.ts's sendOTP()/
+    // verifyOTP() already do the same phone_number.slice(dialCode.length)
+    // split) — never concatenated. country_code always comes from the
+    // dial code the user actually selected on /login, forwarded through
+    // via the /verify -> /complete-profile redirect (see
+    // src/app/verify/page.tsx), never hardcoded.
+    const localPhoneNumber = dialCode && phone_number.startsWith(dialCode)
+      ? phone_number.slice(dialCode.length)
+      : phone_number
+
     register(
       {
         email: `${phone_number.replace(/\D/g, '')}@phone_number.savor.local`,
-        phone_number,
-        password: 'mock-phone_number-auth',
-        confirm_password: 'mock-phone_number-auth',
+        country_code: dialCode,
+        phone_number: localPhoneNumber,
         first_name: data.first_name,
         last_name: data.last_name,
+        // P10.9 — password is not part of the phone-OTP registration
+        // flow for now. Re-enable by uncommenting these two lines (and
+        // restoring the corresponding form fields/schema entries) once
+        // password support returns to this flow.
+        // password: data.password,
+        // confirm_password: data.confirm_password,
       },
       {
         onSuccess: () => {
