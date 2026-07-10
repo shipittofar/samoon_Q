@@ -263,13 +263,20 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // state, which P10.7 also forbids. The fields exist on the
       // AuthSessionRbacPayload contract for forward compatibility only.
       userService.getFavorites().then(setFavorites).catch(() => {})
-    }).catch(() => {
-      // P10.9 — a failed getMe() means the token found in storage is
-      // invalid/expired: the previous behavior only called
-      // setLoading(false), leaving that invalid token (and any stale
-      // RBAC/tenant/cart state) in place. Now performs the same full
-      // teardown as an explicit logout.
-      clearSession()
+    }).catch((err: unknown) => {
+      // P10.10 — distinguish "session is actually invalid" from "backend
+      // is temporarily unreachable." Per docs/P10.10_AUTH_BACKEND_API_CONTRACT.md
+      // §4: a 401 (TOKEN_EXPIRED/TOKEN_INVALID) means the token itself is
+      // no good — clearSession() is correct (P10.9's fix). Any other
+      // failure (network error/timeout with no response, or a 5xx) is a
+      // transient backend problem, not proof the session is invalid — the
+      // task's own rule is explicit: "Do NOT logout users on temporary
+      // backend failures." Mock mode's getMe() never rejects, so this
+      // branch only affects real-backend mode.
+      const status = (err as { response?: { status?: number } } | undefined)?.response?.status
+      if (status === 401) {
+        clearSession()
+      }
       setLoading(false)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
