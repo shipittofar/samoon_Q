@@ -63,13 +63,4 @@ export const rbacService = {
     if (!role) return false
     return (ROLE_PERMISSIONS[role] ?? []).includes(permission)
   },
-
-  /**
-   * Legacy getter — returns all colon-notation permissions for a UserRole.
-   * @deprecated Use permissionService.getPermissionsForRole() with P7 roles.
-   */
-  getPermissions(role: UserRole | null | undefined): readonly LegacyPermission[] {
-    if (!role) return []
-    return ROLE_PERMISSIONS[role] ?? []
-  },
 }

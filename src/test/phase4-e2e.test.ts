@@ -396,8 +396,6 @@ describe('E2E: Dashboard / RBAC Flow', () => {
 
   it('admin role has all permissions', async () => {
     const { rbacService } = await import('@/services/rbac.service')
-    const adminPerms = rbacService.getPermissions('admin')
-    expect(adminPerms.length).toBeGreaterThan(0)
     expect(rbacService.hasPermission('admin', 'dashboard:access')).toBe(true)
     expect(rbacService.hasPermission('admin', 'menu:manage')).toBe(true)
     expect(rbacService.hasPermission('admin', 'orders:manage')).toBe(true)

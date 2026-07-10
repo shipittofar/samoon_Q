@@ -168,44 +168,6 @@ describe('rbacService.hasPermission() — admin role', () => {
   })
 })
 
-describe('rbacService.getPermissions()', () => {
-  it('returns non-empty array for customer', () => {
-    expect(rbacService.getPermissions('customer').length).toBeGreaterThan(0)
-  })
-
-  it('returns more permissions for staff than customer', () => {
-    expect(rbacService.getPermissions('staff').length).toBeGreaterThan(
-      rbacService.getPermissions('customer').length,
-    )
-  })
-
-  it('returns more permissions for admin than staff', () => {
-    expect(rbacService.getPermissions('admin').length).toBeGreaterThan(
-      rbacService.getPermissions('staff').length,
-    )
-  })
-
-  it('returns empty array for null', () => {
-    expect(rbacService.getPermissions(null)).toHaveLength(0)
-  })
-
-  it('returns empty array for undefined', () => {
-    expect(rbacService.getPermissions(undefined)).toHaveLength(0)
-  })
-
-  it('admin permissions include all staff permissions', () => {
-    const staff = rbacService.getPermissions('staff')
-    const admin = rbacService.getPermissions('admin')
-    staff.forEach((p) => expect(admin).toContain(p))
-  })
-
-  it('staff permissions include all customer permissions', () => {
-    const customer = rbacService.getPermissions('customer')
-    const staff = rbacService.getPermissions('staff')
-    customer.forEach((p) => expect(staff).toContain(p))
-  })
-})
-
 describe('hook contract — useFeatureFlag is an exported function', () => {
   it('useFeatureFlag is a function', () => {
     expect(typeof useFeatureFlag).toBe('function')
