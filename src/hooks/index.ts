@@ -55,7 +55,7 @@ import type {
   NotificationPriority,
 } from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
-import { getPermissionsForRole, hasPermission, hasAnyPermission, hasAllPermissions, applyOverrides, resolveEffectivePermissions } from '@/services/permission.service'
+import { getPermissionsForRole, hasPermission, applyOverrides, resolveEffectivePermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions, EffectivePermissionResult } from '@/types/rbac'
 import { rbacService } from '@/services/rbac.service'
 import {

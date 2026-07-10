@@ -10,7 +10,6 @@
  */
 import type { UserRole } from '@/types'
 import type { LegacyPermission } from '@/types'
-import { permissionService } from './permission.service'
 
 // ── Legacy permission sets (P1B.1 — unchanged for backward compat) ────────────
 
@@ -73,7 +72,4 @@ export const rbacService = {
     if (!role) return []
     return ROLE_PERMISSIONS[role] ?? []
   },
-
-  // Convenience re-exports for the P7 API
-  p7: permissionService,
 }
