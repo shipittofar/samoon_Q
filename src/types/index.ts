@@ -796,22 +796,9 @@ export type Permission =
   | 'tenant.manage'
   | 'audit.view'
 
-/**
- * P7 enterprise roles — always tenant-scoped.
- * Never use legacy UserRole for staff authorization; use Role instead.
- */
-export type Role =
-  | 'owner'
-  | 'admin'
-  | 'manager'
-  | 'cashier'
-  | 'waiter'
-  | 'kitchen'
-  | 'marketing'
-  | 'support'
-
 // Re-export P7 types from rbac module for consumers that import from '@/types'
 export type {
+  Role,
   P7Permission,
   UserTenantRole,
   TenantRoleAssignment,

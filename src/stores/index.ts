@@ -29,8 +29,9 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
     },
   }
 }
-import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User, Role } from '@/types'
+import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
 import type { Branch as AdminBranch } from '@/types/branch'
+import type { Role } from '@/types/rbac'
 import type { TenantRoleAssignment, UserPermissionOverride, BranchRoleAssignment, RoleAssignment, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'

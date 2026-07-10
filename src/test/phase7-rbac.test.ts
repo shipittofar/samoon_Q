@@ -1013,8 +1013,9 @@ describe('Regression — types/index.ts exports', () => {
   const src = () =>
     fs.readFileSync(path.join(ROOT, 'src/types/index.ts'), 'utf8')
 
-  it('exports Role type', () => {
-    expect(src()).toContain("export type Role =")
+  it('re-exports canonical Role type from rbac (no duplicate definition)', () => {
+    expect(src()).toContain('Role,')
+    expect(src()).not.toContain('export type Role =')
   })
   it('exports LegacyPermission type', () => {
     expect(src()).toContain('LegacyPermission')
