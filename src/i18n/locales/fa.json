@@ -2092,6 +2092,7 @@
     "userHasOverridesAppliedLabel": "کاربر دارای بازنویسی‌های اعمال‌شده است",
     "roleBuilderTitle": "سازنده نقش",
     "createCustomRoleHint": "نقش سفارشی با مجوزهای خاص ایجاد کنید",
+    "customRoleNotActiveWarning": "نقش‌های سفارشی ذخیره می‌شوند اما هنوز هیچ مجوزی اعطا نمی‌کنند و در فهرست نقش‌ها نمایش داده نمی‌شوند. این سازنده پیش‌نمایشی از یک قابلیت آینده است.",
     "roleDetailsLabel": "جزئیات نقش",
     "nameStarLabel": "نام *",
     "seniorCashierPlaceholder": "مثلاً صندوق‌دار ارشد",

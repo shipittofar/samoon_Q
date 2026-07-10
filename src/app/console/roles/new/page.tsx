@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Save, Search, ChevronDown, ChevronRight, Copy } from 'lucide-react'
+import { ArrowLeft, Save, Search, ChevronDown, ChevronRight, Copy, AlertTriangle } from 'lucide-react'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { useRbacStore } from '@/stores'
@@ -106,6 +106,16 @@ function RoleBuilderContent() {
           <h1 className="text-2xl font-bold text-gray-900">{t('roleBuilderTitle')}</h1>
           <p className="text-sm text-gray-500">{t('createCustomRoleHint')}</p>
         </div>
+      </div>
+
+      {/* P10.6 Phase F — customRoles has no authorization effect yet (see
+          docs/P10.5.5_PERMISSION_MODEL_FINALIZATION_AUDIT.md Phase C and
+          docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md Phase F). Disclosed
+          here rather than removing the builder, so it isn't a misleading
+          half-feature. */}
+      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+        <span>{t('customRoleNotActiveWarning')}</span>
       </div>
 
       <div className="grid grid-cols-3 gap-6">

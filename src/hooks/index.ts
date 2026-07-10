@@ -221,6 +221,28 @@ export function usePermissions(): readonly P7Permission[] {
   }, [user?.id, user?.email, tenantId, tenant?.ownerId, tenant?.status, tenantRoles, userOverrides, expiryTick])
 }
 
+// P10.6 Phase G — shared per-resource feature-flag gate, previously
+// duplicated inline in usePermission() only. useAnyPermission()/
+// useAllPermissions() now apply it too (see
+// docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md Phase G) so all three
+// permission hooks share identical Permission AND Capability AND
+// FeatureFlag semantics — closing the P10.5.5 documented inconsistency.
+const PERMISSION_FEATURE_FLAG_MAP: Record<string, string> = {
+  orders: 'ordering.enabled',
+  menu: 'menu.enabled',
+  reservations: 'reservations.enabled',
+  loyalty: 'loyalty.enabled',
+  promotions: 'promotions.enabled',
+  vendors: 'food_court.vendor_management.enabled',
+  reviews: 'reviews.enabled',
+}
+
+function isPermissionFeatureFlagGated(permission: P7Permission, featureFlags: Record<string, boolean>): boolean {
+  const resource = permission.split('.')[0]!
+  const flagKey = PERMISSION_FEATURE_FLAG_MAP[resource]
+  return !!flagKey && featureFlags[flagKey] === false
+}
+
 /**
  * Returns true if the current user holds the given P7 permission for the active tenant.
  * Respects: Permission AND Capability AND FeatureFlag AND UserOverrides.
@@ -232,18 +254,7 @@ export function usePermission(permission: P7Permission, opts?: PermissionCheckOp
     if (!permissions.includes(permission)) return false
     const resource = permission.split('.')[0]!
     if (opts?.capabilities?.[resource] === false) return false
-    // Feature flag gate
-    const FLAG_MAP: Record<string, string> = {
-      orders: 'ordering.enabled',
-      menu: 'menu.enabled',
-      reservations: 'reservations.enabled',
-      loyalty: 'loyalty.enabled',
-      promotions: 'promotions.enabled',
-      vendors: 'food_court.vendor_management.enabled',
-      reviews: 'reviews.enabled',
-    }
-    const flagKey = FLAG_MAP[resource]
-    if (flagKey && featureFlags[flagKey] === false) return false
+    if (isPermissionFeatureFlagGated(permission, featureFlags)) return false
     return true
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [permissions, permission, featureFlags])
@@ -251,12 +262,9 @@ export function usePermission(permission: P7Permission, opts?: PermissionCheckOp
 
 /**
  * Returns true if the current user holds AT LEAST ONE of the given permissions.
- * Respects user overrides and capability gates (opts.capabilities).
- * P10.5.5 — does NOT apply the per-resource feature-flag gate that
- * usePermission() applies (see docs/P10.5.5_PERMISSION_MODEL_FINALIZATION_AUDIT.md
- * Phase E); `featureFlags` is only a memo dependency, not consulted in the
- * body. Documented here rather than changed, since fixing it would alter
- * authorization behavior — out of scope for a naming/comment-only pass.
+ * Respects user overrides, capability gates (opts.capabilities), and — as
+ * of P10.6 Phase G — the same per-resource feature-flag gate usePermission()
+ * applies (previously a documented inconsistency, see P10.5.5).
  */
 export function useAnyPermission(permissions: P7Permission[], opts?: PermissionCheckOptions): boolean {
   const effectivePermissions = usePermissions()
@@ -267,6 +275,7 @@ export function useAnyPermission(permissions: P7Permission[], opts?: PermissionC
       if (!effectivePermissions.includes(p)) return false
       const resource = p.split('.')[0]!
       if (opts?.capabilities?.[resource] === false) return false
+      if (isPermissionFeatureFlagGated(p, featureFlags)) return false
       return true
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -275,9 +284,9 @@ export function useAnyPermission(permissions: P7Permission[], opts?: PermissionC
 
 /**
  * Returns true if the current user holds ALL of the given permissions.
- * Respects user overrides and capability gates (opts.capabilities).
- * P10.5.5 — does NOT apply the per-resource feature-flag gate that
- * usePermission() applies; see the note on useAnyPermission() above.
+ * Respects user overrides, capability gates (opts.capabilities), and — as
+ * of P10.6 Phase G — the same per-resource feature-flag gate usePermission()
+ * applies (previously a documented inconsistency, see P10.5.5).
  */
 export function useAllPermissions(permissions: P7Permission[], opts?: PermissionCheckOptions): boolean {
   const effectivePermissions = usePermissions()
@@ -288,6 +297,7 @@ export function useAllPermissions(permissions: P7Permission[], opts?: Permission
       if (!effectivePermissions.includes(p)) return false
       const resource = p.split('.')[0]!
       if (opts?.capabilities?.[resource] === false) return false
+      if (isPermissionFeatureFlagGated(p, featureFlags)) return false
       return true
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps

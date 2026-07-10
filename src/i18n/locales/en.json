@@ -2092,6 +2092,7 @@
     "userHasOverridesAppliedLabel": "User has overrides applied",
     "roleBuilderTitle": "Role Builder",
     "createCustomRoleHint": "Create a custom role with specific permissions",
+    "customRoleNotActiveWarning": "Custom roles are saved but do not yet grant any permissions or appear in the role list. This builder is a preview of an upcoming feature.",
     "roleDetailsLabel": "Role Details",
     "nameStarLabel": "Name *",
     "seniorCashierPlaceholder": "e.g. Senior Cashier",

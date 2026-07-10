@@ -2092,6 +2092,7 @@
     "userHasOverridesAppliedLabel": "المستخدم لديه تجاوزات مطبقة",
     "roleBuilderTitle": "منشئ الأدوار",
     "createCustomRoleHint": "أنشئ دورًا مخصصًا بأذونات محددة",
+    "customRoleNotActiveWarning": "يتم حفظ الأدوار المخصصة ولكنها لا تمنح أي أذونات بعد ولا تظهر في قائمة الأدوار. هذا المنشئ هو معاينة لميزة قادمة.",
     "roleDetailsLabel": "تفاصيل الدور",
     "nameStarLabel": "الاسم *",
     "seniorCashierPlaceholder": "مثال: أمين صندوق أول",
