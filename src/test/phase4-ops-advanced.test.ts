@@ -419,10 +419,6 @@ describe('Regression: auth layer unchanged', () => {
 // ── Regression: RBAC unchanged ────────────────────────────────────────────────
 
 describe('Regression: RBAC layer unchanged', () => {
-  it('useHasPermission still exported from hooks/index.ts', () => {
-    expect(src('hooks/index.ts')).toContain('export function useHasPermission')
-  })
-
   it('rbac.service still exports hasPermission', () => {
     expect(src('services/rbac.service.ts')).toContain('hasPermission')
   })

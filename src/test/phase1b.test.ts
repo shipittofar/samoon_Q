@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { rbacService } from '@/services/rbac.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useTenantStore } from '@/stores'
-import { useHasPermission, useFeatureFlag } from '@/hooks'
+import { useFeatureFlag } from '@/hooks'
 import { DEFAULT_TENANT } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
 import type { Permission, Tenant, UserRole } from '@/types'
@@ -206,11 +206,7 @@ describe('rbacService.getPermissions()', () => {
   })
 })
 
-describe('hook contract — useHasPermission and useFeatureFlag are exported functions', () => {
-  it('useHasPermission is a function', () => {
-    expect(typeof useHasPermission).toBe('function')
-  })
-
+describe('hook contract — useFeatureFlag is an exported function', () => {
   it('useFeatureFlag is a function', () => {
     expect(typeof useFeatureFlag).toBe('function')
   })

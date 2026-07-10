@@ -92,7 +92,6 @@ import type {
   Order,
   OrderStatus,
   PaginatedResponse,
-  LegacyPermission,
   RegisterData,
   Reservation,
   ReservationStatus,
@@ -152,20 +151,6 @@ export function useSystemReady(): SystemReadiness {
     isFallback,
     canExecute: !isLoading && rbacInitialized && featureFlagsInitialized,
   }
-}
-
-// ── RBAC Hook — P1B.1 ────────────────────────────────────────────────────────
-/**
- * Returns true if the currently authenticated user holds the given permission.
- * Returns false for unauthenticated users (safe default deny).
- *
- * Canonical usage:
- *   const canManageMenu = useHasPermission('menu:manage')
- *   if (!canManageMenu) return null
- */
-export function useHasPermission(permission: LegacyPermission): boolean {
-  const role = useAuthStore((s) => s.user?.role ?? null)
-  return rbacService.hasPermission(role, permission)
 }
 
 // ── P7.1 + P8.5 Permission Hooks ─────────────────────────────────────────────
