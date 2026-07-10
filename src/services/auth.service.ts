@@ -154,7 +154,8 @@ export const authService = {
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
       return {
-        user: { ...MOCK_USER, email: data.email, first_name: data.first_name, last_name: data.last_name },
+        // user: { ...MOCK_USER, email: data.email, first_name: data.first_name, last_name: data.last_name },
+        user: { ...MOCK_USER, first_name: data.first_name, last_name: data.last_name },
         tokens,
         p7Roles: [],
       }

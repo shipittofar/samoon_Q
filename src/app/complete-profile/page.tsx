@@ -64,7 +64,7 @@ function CompleteProfileInner() {
 
     register(
       {
-        email: `${phone_number.replace(/\D/g, '')}@samoon.local`,
+        // email: `${phone_number.replace(/\D/g, '')}@samoon.local`,
         country_code: dialCode,
         phone_number: localPhoneNumber,
         first_name: data.first_name,

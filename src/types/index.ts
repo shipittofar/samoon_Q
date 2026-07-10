@@ -39,7 +39,7 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData {
-  email: string
+  // email: string
   /** Local phone number WITHOUT the country prefix — see country_code. */
   phone_number?: string
   /** User's selected dial code (e.g. '+1'), never hardcoded. Sent
