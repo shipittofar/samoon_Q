@@ -445,6 +445,21 @@ export const useRecentlyViewedStore = create<RecentlyViewedState>()(
 
 interface RbacStoreState {
   // Tenant-scoped role assignments
+  //
+  // P10.7 Phase F — TRANSITIONAL PERSISTED FIELD. `tenantRoles` is still
+  // persisted to localStorage (see the `persist(..., { name: 'savor-rbac' })`
+  // call below — no `partialize` yet). This is a KNOWN, DOCUMENTED gap,
+  // not an oversight: docs/P10.5.5_RBAC_REAL_MODE_SECURITY.md §3 and
+  // docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md §3 both cover why it
+  // hasn't been removed yet — AuthBootstrapper's session-restore path
+  // (src/providers/index.tsx) now ALSO hydrates this field from
+  // authService.getMe() (P10.7 Phase A/D), which is the precondition
+  // that makes removing localStorage persistence safe. Once real-mode
+  // getMe()/login() reliably return `tenantRoles` from a trusted
+  // backend (not just mock mode, which this phase already covers), a
+  // future phase should add a `partialize` to the `persist()` config
+  // below excluding this field — do NOT do that yet; mock-mode session
+  // restore still depends on it until that precondition is fully met.
   tenantRoles: TenantRoleAssignment[]
   setTenantRoles: (tenantId: string, roles: Role[]) => void
   addRole: (tenantId: string, role: Role) => void
@@ -453,6 +468,13 @@ interface RbacStoreState {
   getRolesForTenant: (tenantId: string) => Role[]
 
   // P8.5: Per-user permission overrides (admin-managed)
+  //
+  // P10.7 Phase F — also a TRANSITIONAL PERSISTED FIELD, same rationale
+  // as `tenantRoles` above. Unlike `tenantRoles`, no session-restore path
+  // populates this from a backend yet — there is no backend endpoint for
+  // overrides at all (docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md §4
+  // proposes one). Remove from persistence in the same future phase that
+  // wires that endpoint in, not before.
   userOverrides: UserPermissionOverride[]
   setUserOverride: (userId: string, tenantId: string, allow: import('@/types/rbac').P7Permission[], deny: import('@/types/rbac').P7Permission[]) => void
   clearUserOverride: (userId: string, tenantId: string) => void
@@ -565,6 +587,10 @@ export const useRbacStore = create<RbacStoreState>()(
         rbacAuditLog: [],
       }),
     }),
+    // P10.7 Phase F — deliberately unchanged. No `partialize` yet: see
+    // the `tenantRoles`/`userOverrides` field comments above for why
+    // both are still fully persisted, and what precondition must be met
+    // before a future phase adds one.
     { name: 'savor-rbac' },
   ),
 )

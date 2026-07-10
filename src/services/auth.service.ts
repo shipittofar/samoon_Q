@@ -17,6 +17,7 @@ import { MOCK_DELAY } from '@/constants'
 import { configurationService } from '@/config'
 import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, SendOTPRequest, VerifyOTPRequest, User } from '@/types'
 import type { Role } from '@/types/rbac'
+import type { AuthSessionRbacPayload } from '@/types/ownership'
 
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -85,7 +86,9 @@ export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> =
 }
 
 export const authService = {
-  async login(credentials: LoginCredentials): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[] }> {
+  async login(
+    credentials: LoginCredentials,
+  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload> {
     if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
 
     if (mockActive()) {
@@ -107,7 +110,12 @@ export const authService = {
 
     if (!authFlag('authentication.email_login_enabled')) throw new Error('email_login_disabled')
 
-    const { data } = await api.post<{ user: User; tokens: AuthTokens }>(
+    // P10.7 — widened from `{ user, tokens }` so a real backend can
+    // optionally return `p7Roles`/`ownership`/`staffAssignments` on login,
+    // matching what mock mode has always returned. All three fields are
+    // optional — a backend that doesn't send them yet behaves exactly as
+    // before (see docs/P10.7_RBAC_SESSION_HYDRATION_IMPLEMENTATION.md).
+    const { data } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload>(
       ENDPOINTS.AUTH.LOGIN,
       credentials,
     )
@@ -143,16 +151,32 @@ export const authService = {
     }
   },
 
-  async getMe(): Promise<User> {
+  // P10.7 Phase A — widened from `Promise<User>` so session restore
+  // (AuthBootstrapper) can rehydrate `tenantRoles` the same way login()
+  // does, instead of relying entirely on useRbacStore's own localStorage
+  // persistence (docs/P10.5.5_RBAC_REAL_MODE_SECURITY.md §3,
+  // docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md §3). `User`'s own
+  // fields are unchanged and still directly readable (`user.id` etc.) —
+  // this is a structural widening (`User & {...}`), not a breaking
+  // reshape, so every existing consumer that reads `getMe()`'s result as
+  // a plain `User` keeps working unmodified.
+  async getMe(): Promise<User & AuthSessionRbacPayload & { tenantRoles?: Role[] }> {
     if (mockActive()) {
       await delay(300)
       if (typeof localStorage !== 'undefined') {
         const email = localStorage.getItem(MOCK_SESSION_KEY)
-        if (email && MOCK_CREDENTIALS[email]) return MOCK_CREDENTIALS[email].user
+        if (email && MOCK_CREDENTIALS[email]) {
+          const entry = MOCK_CREDENTIALS[email]
+          return { ...entry.user, tenantRoles: entry.p7Roles }
+        }
       }
-      return MOCK_USER
+      return { ...MOCK_USER, tenantRoles: [] }
     }
-    const { data } = await api.get<User>(ENDPOINTS.AUTH.ME)
+    // Real mode: `tenantRoles`/`ownership`/`staffAssignments` are all
+    // optional — a backend that doesn't send them yet returns exactly
+    // what it always has (`User`), and this call behaves identically to
+    // before this phase.
+    const { data } = await api.get<User & AuthSessionRbacPayload & { tenantRoles?: Role[] }>(ENDPOINTS.AUTH.ME)
     return data
   },
 
@@ -220,7 +244,7 @@ export const authService = {
    */
   async verifyOTP(
     payload: VerifyOTPRequest,
-  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; is_new_user?: boolean }> {
+  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; is_new_user?: boolean } & AuthSessionRbacPayload> {
     if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
     if (!authFlag('authentication.otp.enabled')) throw new Error('otp_disabled')
 
@@ -252,7 +276,7 @@ export const authService = {
       return { user: MOCK_USER, tokens, p7Roles: [], is_new_user: true }
     }
 
-    const { data } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; is_new_user?: boolean }>(
+    const { data } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[]; is_new_user?: boolean } & AuthSessionRbacPayload>(
       ENDPOINTS.AUTH.VERIFY_OTP,
     {
       country_code: payload.dialCode,

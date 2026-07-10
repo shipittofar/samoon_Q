@@ -5,7 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
-import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenantStore } from '@/stores'
+import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenantStore, useRbacStore } from '@/stores'
 import { authService } from '@/services/auth.service'
 import { userService } from '@/services/combined.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
@@ -204,6 +204,24 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     authService.getMe().then((user) => {
       setUser(user)
       setSentryUser({ id: user.id, email: user.email, role: user.role })
+      // P10.7 Phase D — session restore now hydrates tenantRoles the same
+      // way useLogin()/useVerifyOTP() already do, instead of relying
+      // entirely on useRbacStore's own localStorage persistence to
+      // survive a page reload (docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md
+      // §3). No new RBAC logic here — this only calls the store's
+      // existing setTenantRoles() action with whatever getMe() returned.
+      if (user.tenantRoles && user.tenantRoles.length > 0) {
+        const tenantId = useTenantStore.getState().tenant.id
+        useRbacStore.getState().setTenantRoles(tenantId, user.tenantRoles)
+      }
+      // `user.ownership`/`user.staffAssignments`, if a backend ever sends
+      // them here, are deliberately NOT hydrated into any store yet:
+      // Ownership Resolution and StaffAssignment are still synchronous,
+      // mock-service-backed reads (by this phase's own rule — converting
+      // them async is explicitly out of scope), so there is no client
+      // store for these facts to be written into without inventing new
+      // state, which P10.7 also forbids. The fields exist on the
+      // AuthSessionRbacPayload contract for forward compatibility only.
       userService.getFavorites().then(setFavorites).catch(() => {})
     }).catch(() => setLoading(false))
     const handleLogout = () => { setUser(null); clearSentryUser() }

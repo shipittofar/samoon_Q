@@ -85,6 +85,25 @@ export interface StaffAssignment {
   revokedAt?: string
 }
 
+/**
+ * P10.7 — RBAC facts optionally carried on an auth/session response
+ * (login, OTP verify, session restore via getMe()). All fields optional
+ * so a backend that doesn't send them yet — and mock mode, which never
+ * sends any of these three — cannot break any existing consumer.
+ *
+ * `tenantRoles` is deliberately NOT included here: `login()`/`verifyOTP()`
+ * already carry that fact under the pre-existing `p7Roles` field name
+ * (see auth.service.ts) and this phase keeps that name rather than
+ * introducing a second, differently-named field for the same fact — see
+ * docs/P10.7_RBAC_SESSION_HYDRATION_IMPLEMENTATION.md "Naming" for the
+ * full rationale. `getMe()` has no legacy field to preserve, so it uses
+ * `tenantRoles` directly.
+ */
+export interface AuthSessionRbacPayload {
+  ownership?: Owner[]
+  staffAssignments?: StaffAssignment[]
+}
+
 // ── DTOs — mirror docs/BACKEND_API_CONTRACT.md §39.5 ─────────────────────────
 
 export interface GrantStaffAssignmentPayload {
