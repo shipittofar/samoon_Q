@@ -204,12 +204,19 @@ export function usePermissions(): readonly P7Permission[] {
     const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
     const base = getPermissionsForRole(roles)
     const override = userOverrides.find((o) => o.userId === user?.id && o.tenantId === tenantId)
-    const legacyEffective = applyOverrides(base, override)
+    // P10.5.3 — renamed from `legacyEffective`: this is the live
+    // useRbacStore.tenantRoles-based permission set (seeded at login from
+    // the mock auth response's p7Roles, editable via the Console's
+    // per-user override UI), not a reference to the retired
+    // rbacService/ROLE_PERMISSIONS engine (fully removed in P10.4.12).
+    // See docs/P10.5.1_AUTHORIZATION_ARCHITECTURE_AUDIT.md "Naming
+    // inconsistency" and docs/P10.5.3_PERMISSION_MODEL_CONSOLIDATION.md.
+    const tenantRolePermissions = applyOverrides(base, override)
 
     const ownershipDriven = resolveOwnershipDrivenPermissions(user?.email, tenant)
-    if (ownershipDriven.length === 0) return legacyEffective
+    if (ownershipDriven.length === 0) return tenantRolePermissions
 
-    return [...new Set([...legacyEffective, ...ownershipDriven])]
+    return [...new Set([...tenantRolePermissions, ...ownershipDriven])]
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, user?.email, tenantId, tenant?.ownerId, tenant?.status, tenantRoles, userOverrides, expiryTick])
 }
