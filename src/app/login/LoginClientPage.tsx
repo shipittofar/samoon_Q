@@ -28,16 +28,16 @@ const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 // ── Demo accounts ──────────────────────────────────────────────────────────────
 
 const DEMO_ACCOUNTS = [
-  { key: 'customer',      email: 'demo@savor.com',      phone: '+1 415 555 0101', icon: User,           color: 'text-blue-600 dark:text-blue-400',     bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',     border: 'border-blue-200 dark:border-blue-800' },
-  { key: 'staff',         email: 'staff@savor.com',     phone: '+1 415 555 0102', icon: ShieldCheck,    color: 'text-green-600 dark:text-green-400',   bg: 'hover:bg-green-50 dark:hover:bg-green-950/20',   border: 'border-green-200 dark:border-green-800' },
-  { key: 'cashier',       email: 'cashier@savor.com',   phone: '+1 415 555 0103', icon: CreditCard,     color: 'text-cyan-600 dark:text-cyan-400',     bg: 'hover:bg-cyan-50 dark:hover:bg-cyan-950/20',     border: 'border-cyan-200 dark:border-cyan-800' },
-  { key: 'kitchen',       email: 'kitchen@savor.com',   phone: '+1 415 555 0104', icon: ChefHat,        color: 'text-amber-600 dark:text-amber-400',   bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20',   border: 'border-amber-200 dark:border-amber-800' },
-  { key: 'marketing',     email: 'marketing@savor.com', phone: '+1 415 555 0105', icon: Megaphone,      color: 'text-pink-600 dark:text-pink-400',     bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20',     border: 'border-pink-200 dark:border-pink-800' },
-  { key: 'support',       email: 'support@savor.com',   phone: '+1 415 555 0106', icon: HeadphonesIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
-  { key: 'admin',         email: 'admin@savor.com',     phone: '+1 415 555 0107', icon: ShieldCheck,    color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
-  { key: 'owner',         email: 'owner@savor.com',     phone: '+1 415 555 0108', icon: Crown,          color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
-  { key: 'platformAdmin', email: 'platform@savor.com',  phone: '+1 415 555 0109', icon: Building2,      color: 'text-rose-600 dark:text-rose-400',     bg: 'hover:bg-rose-50 dark:hover:bg-rose-950/20',     border: 'border-rose-200 dark:border-rose-800' },
-  { key: 'multiRole',     email: 'multirole@savor.com', phone: '+1 415 555 0110', icon: Layers,         color: 'text-teal-600 dark:text-teal-400',     bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',     border: 'border-teal-200 dark:border-teal-800' },
+  { key: 'customer',      email: 'demo@savor.com',      phone_number: '+1 415 555 0101', icon: User,           color: 'text-blue-600 dark:text-blue-400',     bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',     border: 'border-blue-200 dark:border-blue-800' },
+  { key: 'staff',         email: 'staff@savor.com',     phone_number: '+1 415 555 0102', icon: ShieldCheck,    color: 'text-green-600 dark:text-green-400',   bg: 'hover:bg-green-50 dark:hover:bg-green-950/20',   border: 'border-green-200 dark:border-green-800' },
+  { key: 'cashier',       email: 'cashier@savor.com',   phone_number: '+1 415 555 0103', icon: CreditCard,     color: 'text-cyan-600 dark:text-cyan-400',     bg: 'hover:bg-cyan-50 dark:hover:bg-cyan-950/20',     border: 'border-cyan-200 dark:border-cyan-800' },
+  { key: 'kitchen',       email: 'kitchen@savor.com',   phone_number: '+1 415 555 0104', icon: ChefHat,        color: 'text-amber-600 dark:text-amber-400',   bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20',   border: 'border-amber-200 dark:border-amber-800' },
+  { key: 'marketing',     email: 'marketing@savor.com', phone_number: '+1 415 555 0105', icon: Megaphone,      color: 'text-pink-600 dark:text-pink-400',     bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20',     border: 'border-pink-200 dark:border-pink-800' },
+  { key: 'support',       email: 'support@savor.com',   phone_number: '+1 415 555 0106', icon: HeadphonesIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
+  { key: 'admin',         email: 'admin@savor.com',     phone_number: '+1 415 555 0107', icon: ShieldCheck,    color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
+  { key: 'owner',         email: 'owner@savor.com',     phone_number: '+1 415 555 0108', icon: Crown,          color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
+  { key: 'platformAdmin', email: 'platform@savor.com',  phone_number: '+1 415 555 0109', icon: Building2,      color: 'text-rose-600 dark:text-rose-400',     bg: 'hover:bg-rose-50 dark:hover:bg-rose-950/20',     border: 'border-rose-200 dark:border-rose-800' },
+  { key: 'multiRole',     email: 'multirole@savor.com', phone_number: '+1 415 555 0110', icon: Layers,         color: 'text-teal-600 dark:text-teal-400',     bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',     border: 'border-teal-200 dark:border-teal-800' },
 ]
 
 // ── Email fallback schema ──────────────────────────────────────────────────────
@@ -88,19 +88,19 @@ export function LoginClientPage() {
     }
     // sendOTP(phoneE164, {
     //   onSuccess: () => {
-    //     router.push(`/verify?phone=${encodeURIComponent(phoneE164)}`)
+    //     router.push(`/verify?phone_number=${encodeURIComponent(phoneE164)}`)
     //   },
     //   onError: () => toast.error(t('otpSendFailed')),
     // })
     sendOTP(
       {
-        phone: phoneE164,
+        phone_number: phoneE164,
         dialCode,
       },
       {
         onSuccess: () => {
           router.push(
-            `/verify?phone=${encodeURIComponent(phoneE164)}&dialCode=${encodeURIComponent(dialCode)}`
+            `/verify?phone_number=${encodeURIComponent(phoneE164)}&dialCode=${encodeURIComponent(dialCode)}`
           )
         },
         onError: () => toast.error(t('otpSendFailed')),
@@ -213,7 +213,7 @@ export function LoginClientPage() {
                   {t('oneClickDemoHint')}
                 </p>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {DEMO_ACCOUNTS.map(({ key, email, phone, icon: Icon, color, bg, border }) => (
+                  {DEMO_ACCOUNTS.map(({ key, email, phone_number, icon: Icon, color, bg, border }) => (
                     <button
                       key={email}
                       type="button"
@@ -225,7 +225,7 @@ export function LoginClientPage() {
                         <Icon className="h-3.5 w-3.5" aria-hidden="true" />{t(`demoAccounts.${key}.label`)}
                       </span>
                       <span className="text-[11px] text-[var(--fg-muted)] leading-tight">{t(`demoAccounts.${key}.description`)}</span>
-                      <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{phone}</span>
+                      <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{phone_number}</span>
                     </button>
                   ))}
                 </div>

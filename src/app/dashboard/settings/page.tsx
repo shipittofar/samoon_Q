@@ -22,7 +22,7 @@ const profileSchema = z.object({
   first_name: z.string().min(2, 'required'),
   last_name: z.string().min(2, 'required'),
   email: z.string().email('invalid_email'),
-  phone: z.string().optional(),
+  phone_number: z.string().optional(),
 })
 type ProfileFormData = z.infer<typeof profileSchema>
 
@@ -117,7 +117,7 @@ export default function SettingsPage() {
 
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { first_name: user?.first_name || '', last_name: user?.last_name || '', email: user?.email || '', phone: user?.phone || '' },
+    defaultValues: { first_name: user?.first_name || '', last_name: user?.last_name || '', email: user?.email || '', phone_number: user?.phone_number || '' },
   })
 
   const onSaveProfile = async (data: ProfileFormData) => {
@@ -227,7 +227,7 @@ export default function SettingsPage() {
             <Input label={t('firstName')} required {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
             <Input label={t('lastName')} required {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
             <Input label={t('emailLabel')} type="email" required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
-            <Input label={t('phoneLabel')} type="tel" {...register('phone')} error={errors.phone?.message} />
+            <Input label={t('phoneLabel')} type="tel" {...register('phone_number')} error={errors.phone_number?.message} />
           </div>
           <Button type="submit" loading={saving} disabled={!isDirty}>{t('saveChanges')}</Button>
         </form>

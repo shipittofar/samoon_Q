@@ -57,7 +57,7 @@ export function ConfigurationFieldPreview({ field, value }: { field: ConfigField
   }
 
   // P9.3 Phase J — 'formatted' is a generic escape hatch: any module supplies
-  // its own `field.preview.format(value)` (phone number layout, currency
+  // its own `field.preview.format(value)` (phone_number number layout, currency
   // display, address templates, …) instead of the framework hardcoding a
   // fixed enum of "kinds of formatting" it would never fully cover.
   if (kind === 'formatted' && field.preview.format) {

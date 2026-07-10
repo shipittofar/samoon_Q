@@ -24,7 +24,7 @@ export default function NewBranchPage() {
   const [city, setCity] = useState('')
   const [country, setCountry] = useState('')
   const [postalCode, setPostalCode] = useState('')
-  const [phone, setPhone] = useState('')
+  const [phone_number, setPhone] = useState('')
   const [email, setEmail] = useState('')
 
   function handleSubmit(e: React.FormEvent) {
@@ -39,7 +39,7 @@ export default function NewBranchPage() {
         slug: slug.trim(),
         type,
         location: { address: address.trim(), city: city.trim(), country: country.trim(), postalCode: postalCode.trim() || undefined },
-        contact: { phone: phone.trim() || undefined, email: email.trim() || undefined },
+        contact: { phone_number: phone_number.trim() || undefined, email: email.trim() || undefined },
       },
       {
         onSuccess: () => {
@@ -190,11 +190,11 @@ export default function NewBranchPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="branch-phone">{t('phoneLabel')}</label>
+                  <label className="block text-sm font-medium mb-1" htmlFor="branch-phone_number">{t('phoneLabel')}</label>
                   <input
-                    id="branch-phone"
+                    id="branch-phone_number"
                     type="tel"
-                    value={phone}
+                    value={phone_number}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+1 212 555 0100"
                     className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"

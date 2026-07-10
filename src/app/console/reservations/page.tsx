@@ -249,7 +249,7 @@ export default function AdminReservationsPage() {
                           </td>
                           <td className="px-4 py-3.5">
                             <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)]">
-                              <Phone className="h-3 w-3" />{res.phone}
+                              <Phone className="h-3 w-3" />{res.phone_number}
                             </div>
                             {res.email && (
                               <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)] mt-0.5">

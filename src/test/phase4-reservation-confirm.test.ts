@@ -210,7 +210,7 @@ describe('reservationService — create unaffected (regression)', () => {
     const { reservationService } = await import('@/services/combined.service')
     const p = reservationService.create({
       branch_id: '1', date: '2025-07-01', time: '19:00',
-      guests: 2, name: 'Alice', phone: '555-0100',
+      guests: 2, name: 'Alice', phone_number: '555-0100',
     })
     await vi.runAllTimersAsync()
     const res = await p

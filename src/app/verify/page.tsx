@@ -3,7 +3,7 @@
 /**
  * P8.9.2 — OTP verification page (/verify).
  *
- * Full phone-auth verification screen. Mock behavior:
+ * Full phone_number-auth verification screen. Mock behavior:
  *  - Code '000000' always fails (error-state UX demo)
  *  - Any other 6-digit code succeeds
  *  - Known demo phones → login as demo user → role-aware redirect
@@ -73,7 +73,7 @@ type VerifyState = 'pending' | 'verifying' | 'invalid' | 'tooManyAttempts' | 'su
 function VerifyPageInner() {
   const router = useRouter()
   const params = useSearchParams()
-  const phone = params.get('phone') ?? ''
+  const phone_number = params.get('phone_number') ?? ''
   const dialCode = params.get('dialCode') ?? ''
   const prefersReducedMotion = useReducedMotion()
   const t = useTranslations('auth')
@@ -98,29 +98,29 @@ function VerifyPageInner() {
   const [attempts, setAttempts] = useState(0)
   const { seconds, expired: resendReady, start: restartCountdown } = useCountdown(RESEND_SECONDS)
 
-  // Redirect if no phone provided
+  // Redirect if no phone_number provided
   useEffect(() => {
-    if (!phone) router.replace('/login')
-  }, [phone, router])
+    if (!phone_number) router.replace('/login')
+  }, [phone_number, router])
 
-  // Mask phone for display: e.g. +1 •••• 0101
-  const maskedPhone = phone.length > 6
-    ? `${phone.slice(0, 3)} ${'•'.repeat(phone.length - 6)} ${phone.slice(-4)}`
-    : phone
+  // Mask phone_number for display: e.g. +1 •••• 0101
+  const maskedPhone = phone_number.length > 6
+    ? `${phone_number.slice(0, 3)} ${'•'.repeat(phone_number.length - 6)} ${phone_number.slice(-4)}`
+    : phone_number
 
   const handleComplete = useCallback((code: string) => {
     if (state !== 'pending' && state !== 'invalid') return
     setState('verifying')
 
-    verifyOTP({ phone, dialCode, otp: code }, {
+    verifyOTP({ phone_number, dialCode, otp: code }, {
       onSuccess: (result) => {
         setState('success')
         const dest = result.is_new_user
-          ? `/complete-profile?phone=${encodeURIComponent(phone)}`
+          ? `/complete-profile?phone_number=${encodeURIComponent(phone_number)}`
           : result.user.role === 'customer'
             ? getPostLoginRedirect('customer', result.user.email)
-            : getDemoRedirect(phone) !== '/console'
-              ? getDemoRedirect(phone)
+            : getDemoRedirect(phone_number) !== '/console'
+              ? getDemoRedirect(phone_number)
               : getPostLoginRedirect(result.user.role, result.user.email)
 
         // Brief pause for success animation, then redirect
@@ -139,12 +139,12 @@ function VerifyPageInner() {
         }
       },
     })
-  }, [state, phone, otp, attempts, verifyOTP, router, prefersReducedMotion, MAX_ATTEMPTS])
+  }, [state, phone_number, otp, attempts, verifyOTP, router, prefersReducedMotion, MAX_ATTEMPTS])
 
   const handleResend = () => {
     sendOTP(
       {
-        phone,
+        phone_number,
         dialCode,
       },
       {

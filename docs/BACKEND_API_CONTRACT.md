@@ -69,14 +69,14 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
 ## 2. Authentication Endpoints
 
 > **P8.9.3 Contract** — Phone-first auth with backward-compatible legacy endpoints.
-> All new endpoints are under `/auth/phone/` prefix to avoid breaking changes.
+> All new endpoints are under `/auth/phone_number/` prefix to avoid breaking changes.
 
 ---
 
 ### 2.0 Design Principles
 
-1. **Phone-first, email-optional** — phone-only accounts are fully supported; `email` is nullable
-2. **Challenge-bound OTPs** — OTPs are tied to a `challenge_id`, not just a phone number
+1. **Phone-first, email-optional** — phone_number-only accounts are fully supported; `email` is nullable
+2. **Challenge-bound OTPs** — OTPs are tied to a `challenge_id`, not just a phone_number number
 3. **Refresh token rotation** — every refresh issues a new token pair; stolen tokens are detected via family revocation
 4. **Device sessions** — each login is tracked per device; users can view and revoke sessions
 5. **`next_step` extension point** — the verify response carries a `next_step` field for future MFA without a new endpoint
@@ -105,7 +105,7 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
 {
   "id": "u1",
   "email": "user@example.com",
-  "phone": "+14155550101",
+  "phone_number": "+14155550101",
   "first_name": "Alice",
   "last_name": "Johnson",
   "avatar": null,
@@ -117,8 +117,8 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
 }
 ```
 
-> `email` is `null` for phone-only accounts. `phone` is `null` for email-only accounts.
-> At least one of `email` or `phone` must be non-null.
+> `email` is `null` for phone_number-only accounts. `phone_number` is `null` for email-only accounts.
+> At least one of `email` or `phone_number` must be non-null.
 
 #### JWT Payload (updated)
 ```json
@@ -127,7 +127,7 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
   "exp": 1234567890,
   "iat": 1234567890,
   "jti": "uuid-v4",
-  "phone": "+14155550101",
+  "phone_number": "+14155550101",
   "email": null,
   "role": "customer",
   "tenant": "savor",
@@ -148,15 +148,15 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
 
 ---
 
-### 2.1 POST /auth/phone/start
+### 2.1 POST /auth/phone_number/start
 
-Initiate phone authentication. Sends an OTP and returns a `challenge_id`.
+Initiate phone_number authentication. Sends an OTP and returns a `challenge_id`.
 
 **Authentication:** Public
 
 **Request Body:**
 ```json
-{ "phone": "+14155550101" }
+{ "phone_number": "+14155550101" }
 ```
 
 **Success Response `200`:**
@@ -171,12 +171,12 @@ Initiate phone authentication. Sends an OTP and returns a `challenge_id`.
 **Error Responses:**
 | Status | Code | Meaning |
 |---|---|---|
-| 400 | `PHONE_INVALID` | Not a valid E.164 phone number |
+| 400 | `PHONE_INVALID` | Not a valid E.164 phone_number number |
 | 429 | `RATE_LIMITED` | Too many OTP requests; `retry_after` set |
 
 ---
 
-### 2.2 POST /auth/phone/verify
+### 2.2 POST /auth/phone_number/verify
 
 Verify the OTP code. Returns full auth response or profile completion token for new users.
 
@@ -186,7 +186,7 @@ Verify the OTP code. Returns full auth response or profile completion token for 
 ```json
 {
   "challenge_id": "chal_uuid",
-  "phone": "+14155550101",
+  "phone_number": "+14155550101",
   "otp": "123456"
 }
 ```
@@ -225,7 +225,7 @@ Verify the OTP code. Returns full auth response or profile completion token for 
 
 ---
 
-### 2.3 POST /auth/phone/resend
+### 2.3 POST /auth/phone_number/resend
 
 Request a new OTP for an existing challenge (respects cooldown).
 
@@ -233,7 +233,7 @@ Request a new OTP for an existing challenge (respects cooldown).
 
 **Request Body:**
 ```json
-{ "challenge_id": "chal_uuid", "phone": "+14155550101" }
+{ "challenge_id": "chal_uuid", "phone_number": "+14155550101" }
 ```
 
 **Success Response `200`:**
@@ -257,7 +257,7 @@ Request a new OTP for an existing challenge (respects cooldown).
 
 ### 2.4 POST /auth/complete-profile
 
-Complete registration for new phone users. Requires `profile_token` from verify step.
+Complete registration for new phone_number users. Requires `profile_token` from verify step.
 
 **Authentication:** `profile_token` in `Authorization: Bearer` header
 
@@ -410,9 +410,9 @@ Silent token refresh with rotation. Implements token family revocation.
 
 ---
 
-### 2.12 POST /auth/change-phone
+### 2.12 POST /auth/change-phone_number
 
-Initiate a phone number change. Sends OTP to the new number.
+Initiate a phone_number number change. Sends OTP to the new number.
 
 **Authentication:** Customer / Staff / Admin
 
@@ -428,9 +428,9 @@ Initiate a phone number change. Sends OTP to the new number.
 
 ---
 
-### 2.13 POST /auth/verify-phone-change
+### 2.13 POST /auth/verify-phone_number-change
 
-Confirm the new phone number with the OTP.
+Confirm the new phone_number number with the OTP.
 
 **Authentication:** Customer / Staff / Admin
 
@@ -441,7 +441,7 @@ Confirm the new phone number with the OTP.
 
 **Success Response `200`:**
 ```json
-{ "phone": "+14155550199", "phone_verified_at": "2024-01-15T00:05:00Z" }
+{ "phone_number": "+14155550199", "phone_verified_at": "2024-01-15T00:05:00Z" }
 ```
 
 ---
@@ -499,7 +499,7 @@ Soft-delete the account. 30-day recovery window before permanent deletion.
 ```json
 {
   "email": "new@example.com",
-  "phone": "+1234567890",
+  "phone_number": "+1234567890",
   "password": "Secret123!",
   "confirm_password": "Secret123!",
   "first_name": "John",
@@ -514,20 +514,20 @@ Soft-delete the account. 30-day recovery window before permanent deletion.
 ### 2.17 POST /auth/send-otp (legacy — preserved)
 
 **Path:** `/auth/send-otp/`  
-**Request Body:** `{ "phone": "+1234567890" }`  
+**Request Body:** `{ "phone_number": "+1234567890" }`  
 **Success Response `200`:** `{ "message": "OTP sent" }`
 
-> Deprecated in favour of `/auth/phone/start`. Preserved for clients that haven't migrated.
+> Deprecated in favour of `/auth/phone_number/start`. Preserved for clients that haven't migrated.
 
 ---
 
 ### 2.18 POST /auth/verify-otp (legacy — preserved)
 
 **Path:** `/auth/verify-otp/`  
-**Request Body:** `{ "phone": "+1234567890", "otp": "123456" }`  
+**Request Body:** `{ "phone_number": "+1234567890", "otp": "123456" }`  
 **Success Response `200`:** `AuthResponse` (with `p7_roles`, `is_new_user`).
 
-> Deprecated in favour of `/auth/phone/verify`. Preserved for clients that haven't migrated.
+> Deprecated in favour of `/auth/phone_number/verify`. Preserved for clients that haven't migrated.
 
 ---
 
@@ -545,22 +545,22 @@ Unchanged from original contract. See original sections 2.6–2.10.
 | Expiry | 10 minutes |
 | Max attempts per challenge | 5 |
 | Cooldown between resends | 60 seconds |
-| Daily resend cap per phone | 10 |
+| Daily resend cap per phone_number | 10 |
 | Storage | HMAC-SHA256 of OTP, never plaintext |
-| Binding | `challenge_id` + phone (not phone alone) |
+| Binding | `challenge_id` + phone_number (not phone_number alone) |
 
 **PhoneChallenge SQL schema:**
 ```sql
 CREATE TABLE phone_challenges (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  phone       VARCHAR(20) NOT NULL,
+  phone_number       VARCHAR(20) NOT NULL,
   otp_hash    VARCHAR(64) NOT NULL,
   attempts    SMALLINT NOT NULL DEFAULT 0,
   max_attempts SMALLINT NOT NULL DEFAULT 5,
   expires_at  TIMESTAMPTZ NOT NULL,
   used_at     TIMESTAMPTZ,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-  INDEX (phone, created_at),
+  INDEX (phone_number, created_at),
   INDEX (expires_at)
 );
 ```
@@ -600,7 +600,7 @@ CREATE TABLE refresh_sessions (
 
 ### 2.F Phone Normalization
 
-All phone numbers MUST be stored and compared in E.164 format (`+{country_code}{number}`).
+All phone_number numbers MUST be stored and compared in E.164 format (`+{country_code}{number}`).
 
 | Input | Normalized |
 |---|---|
@@ -611,7 +611,7 @@ All phone numbers MUST be stored and compared in E.164 format (`+{country_code}{
 
 Backend MUST use `libphonenumber` (or `google-libphonenumber` for Node) for normalization and validation before storing or comparing.
 
-Duplicate detection: if a normalized phone already exists when creating a new account, return the existing account's auth flow (no enumeration).
+Duplicate detection: if a normalized phone_number already exists when creating a new account, return the existing account's auth flow (no enumeration).
 
 ---
 
@@ -620,8 +620,8 @@ Duplicate detection: if a normalized phone already exists when creating a new ac
 | Threat | Control |
 |---|---|
 | OTP brute force | 5 attempts per challenge; exponential backoff 1s→2s→4s→8s→16s |
-| SMS flooding | 60s resend cooldown, 10/day cap per phone, 20/day cap per IP |
-| Phone enumeration | `send-otp` always returns `200` regardless of whether phone is registered |
+| SMS flooding | 60s resend cooldown, 10/day cap per phone_number, 20/day cap per IP |
+| Phone enumeration | `send-otp` always returns `200` regardless of whether phone_number is registered |
 | Token theft | Refresh family revocation kills all sessions on reuse detection |
 | Replay | `challenge_id` single-use; `jti` blocklist for access tokens |
 | Account takeover | `logout-all` with `token_revoke_version` increment |
@@ -639,7 +639,7 @@ Duplicate detection: if a normalized phone already exists when creating a new ac
 | `CHALLENGE_NOT_FOUND` | 400 | Unknown `challenge_id` |
 | `TOO_MANY_ATTEMPTS` | 429 | Max OTP attempts exceeded |
 | `RESEND_TOO_SOON` | 429 | Within cooldown window |
-| `RATE_LIMITED` | 429 | IP or phone rate limit hit |
+| `RATE_LIMITED` | 429 | IP or phone_number rate limit hit |
 | `PROFILE_TOKEN_INVALID` | 401 | `profile_token` invalid or expired |
 | `REFRESH_INVALID` | 401 | Refresh token not found |
 | `REFRESH_EXPIRED` | 401 | Refresh token past `exp` |
@@ -1115,7 +1115,7 @@ any     → cancelled (admin only)
   "time": "19:00",
   "guests": 4,
   "name": "Alice Johnson",
-  "phone": "+1234567890",
+  "phone_number": "+1234567890",
   "email": "alice@example.com",
   "notes": "Anniversary dinner, window table preferred"
 }
@@ -1262,7 +1262,7 @@ any     → cancelled (admin only)
     "type": "restaurant_branch",
     "address": "123 Main St",
     "city": "New York",
-    "phone": "+12125551234",
+    "phone_number": "+12125551234",
     "email": "downtown@savor.com",
     "lat": 40.7128,
     "lng": -74.0060,
@@ -1324,7 +1324,7 @@ any     → cancelled (admin only)
 **Request Body:** Any subset of `User` fields (excluding `id`, `role`, `created_at`, `is_verified`).
 
 ```json
-{ "first_name": "Alice", "phone": "+1234567890" }
+{ "first_name": "Alice", "phone_number": "+1234567890" }
 ```
 
 **Success Response `200`:** Updated `User` object.
@@ -1724,7 +1724,7 @@ or
 | `status` | `ReservationStatus` | Filter by status |
 | `branch_id` | `string` | Filter by branch |
 | `date` | `string` | Filter by date (ISO date: `YYYY-MM-DD`) |
-| `search` | `string` | Search by name or phone |
+| `search` | `string` | Search by name or phone_number |
 | `page` | `number` | Page number |
 | `page_size` | `number` | Results per page |
 
@@ -1762,7 +1762,7 @@ or
       "email": "alice@example.com",
       "first_name": "Alice",
       "last_name": "Johnson",
-      "phone": "+1234567890",
+      "phone_number": "+1234567890",
       "role": "customer",
       "is_verified": true,
       "created_at": "2024-01-15T00:00:00Z",
@@ -2645,7 +2645,7 @@ All error responses follow a consistent JSON envelope.
 | `token_invalid` | Malformed or tampered token |
 | `refresh_expired` | Refresh token has expired — user must re-login |
 | `account_suspended` | User account is suspended |
-| `not_verified` | Email/phone not yet verified |
+| `not_verified` | Email/phone_number not yet verified |
 | `otp_invalid` | Submitted OTP is wrong or expired |
 
 ---
@@ -2688,7 +2688,7 @@ The frontend axios instance reads the `csrftoken` cookie (set by Django on first
 | Endpoint Group | Recommended Limit |
 |---------------|------------------|
 | `POST /auth/login/` | 10 req/min per IP |
-| `POST /auth/send-otp/` | 3 req/min per phone |
+| `POST /auth/send-otp/` | 3 req/min per phone_number |
 | `POST /auth/forgot-password/` | 5 req/min per email |
 | All other endpoints | 200 req/min per authenticated user |
 
@@ -3131,7 +3131,7 @@ The `settings.marketplace` object is returned as part of the tenant response. Fr
     "tags": ["string"],
     "amenities": ["string"],
     "priceLevel": 1,
-    "phone": "string",
+    "phone_number": "string",
     "email": "string",
     "website": "string",
     "coverImage": "string",
@@ -3167,7 +3167,7 @@ interface MarketplaceMeta {
   priceLevel?: 1 | 2 | 3 | 4
 
   // Contact
-  phone?: string
+  phone_number?: string
   email?: string
   website?: string
   city?: string
@@ -3196,7 +3196,7 @@ interface MarketplaceMeta {
 
 ### 30.4 Branch Scope
 
-Branch-level overrides are not currently supported at the `marketplace` level. Branch-specific data (hours, address, phone) is stored in `Branch` records and aggregated into `meta.branches[]` by the backend when returning the tenant.
+Branch-level overrides are not currently supported at the `marketplace` level. Branch-specific data (hours, address, phone_number) is stored in `Branch` records and aggregated into `meta.branches[]` by the backend when returning the tenant.
 
 ### 30.5 Validation Rules
 
@@ -3592,7 +3592,7 @@ interface BranchContentOverrides {
   heroSubheadline?: string
   heroImage?: string
   description?: string
-  phone?: string
+  phone_number?: string
   gallery?: string[]
   about?: string
 }
@@ -3642,7 +3642,7 @@ PlatformUser (1)
 ```typescript
 interface PlatformUser {
   id: string           // UUID, platform-wide unique
-  phone: string        // E.164 format, primary identifier, unique across platform
+  phone_number: string        // E.164 format, primary identifier, unique across platform
   name: string         // Full display name
   avatar?: string      // URL to avatar image
   email?: string       // Optional — many customers never provide email
@@ -3661,7 +3661,7 @@ interface PlatformUser {
 | `PATCH` | `/admin/platform-users/{id}/` | Platform Admin | Update name/status/language |
 | `GET` | `/admin/platform-users/{id}/businesses/` | Platform Admin | All BusinessCustomer records for this user |
 
-**Query params for list:** `?search=` (matches phone, name, email), `?status=active|inactive|suspended`, `?page=`, `?page_size=`
+**Query params for list:** `?search=` (matches phone_number, name, email), `?status=active|inactive|suspended`, `?page=`, `?page_size=`
 
 ---
 
@@ -3740,7 +3740,7 @@ The `AdminCustomer` type used in the console customer list/detail pages is a **r
 interface AdminCustomer {
   id: string              // = PlatformUser.id
   email: string           // = PlatformUser.email ?? ''
-  phone: string           // = PlatformUser.phone
+  phone_number: string           // = PlatformUser.phone_number
   first_name: string      // derived from PlatformUser.name
   last_name: string       // derived from PlatformUser.name
   avatar?: string
@@ -3805,7 +3805,7 @@ For development/QA, the frontend provides pre-built mock data in `src/lib/mock-d
 
 | Export | Count | Notes |
 |--------|-------|-------|
-| `MOCK_PLATFORM_USERS` | 32 | pu-001 through pu-032; phone-primary; varied statuses |
+| `MOCK_PLATFORM_USERS` | 32 | pu-001 through pu-032; phone_number-primary; varied statuses |
 | `MOCK_BUSINESS_CUSTOMERS` | 48 | Distributed across 6 tenants; cross-tenant users demonstrated |
 | `MOCK_BRANCH_CUSTOMERS` | 40 | Per-branch breakdown for MOCK_BUSINESS_CUSTOMERS |
 | `MOCK_LOYALTY_ACCOUNTS` | 15 | All include `tenantId`; independently scoped per tenant |

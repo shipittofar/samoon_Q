@@ -2,7 +2,7 @@
  * P9.1.2 — Authentication Runtime Integration tests
  *
  * Covers: auth.service.ts gates now reading from ConfigurationService
- * (authentication.enabled, otp.enabled, phone/email login enabled,
+ * (authentication.enabled, otp.enabled, phone_number/email login enabled,
  * registration_enabled, demo_login_enabled, mock_authentication_enabled),
  * rate-limit.ts defaults matching config, and axios.instance.ts cookie
  * lifetime matching config. Default-value behavior must be identical to
@@ -31,7 +31,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     const otp = await authService.sendOTP('+14155550101')
     expect(otp.message).toBeTruthy()
 
-    const verify = await authService.verifyOTP({ phone: '+14155550101', otp: '123456' })
+    const verify = await authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })
     expect(verify.is_new_user).toBe(false)
   })
 
@@ -43,7 +43,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     await expect(authService.login({ email: 'demo@savor.com', password: 'password' })).rejects.toThrow('authentication_disabled')
     await expect(authService.register({ email: 'a@b.com', password: 'password', confirm_password: 'password', first_name: 'A', last_name: 'B' })).rejects.toThrow('authentication_disabled')
     await expect(authService.sendOTP('+14155550101')).rejects.toThrow('authentication_disabled')
-    await expect(authService.verifyOTP({ phone: '+14155550101', otp: '123456' })).rejects.toThrow('authentication_disabled')
+    await expect(authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })).rejects.toThrow('authentication_disabled')
   })
 
   it('rejects sendOTP/verifyOTP when authentication.otp.enabled is false', async () => {
@@ -52,7 +52,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
       fieldId: 'authentication.otp.enabled', value: false, level: 'platform', scope: {}, actor,
     })
     await expect(authService.sendOTP('+14155550101')).rejects.toThrow('otp_disabled')
-    await expect(authService.verifyOTP({ phone: '+14155550101', otp: '123456' })).rejects.toThrow('otp_disabled')
+    await expect(authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })).rejects.toThrow('otp_disabled')
   })
 
   it('rejects sendOTP when authentication.phone_login_enabled is false', async () => {
@@ -81,12 +81,12 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     await expect(authService.login({ email: 'demo@savor.com', password: 'password' })).rejects.toThrow('Invalid credentials')
   })
 
-  it('treats a known demo phone as a new user when authentication.demo_login_enabled is false', async () => {
+  it('treats a known demo phone_number as a new user when authentication.demo_login_enabled is false', async () => {
     const { configurationService, authService } = await freshAuth()
     configurationService.updateField({
       fieldId: 'authentication.demo_login_enabled', value: false, level: 'platform', scope: {}, actor, reason: 'test',
     })
-    const result = await authService.verifyOTP({ phone: '+14155550101', otp: '123456' })
+    const result = await authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })
     expect(result.is_new_user).toBe(true)
   })
 

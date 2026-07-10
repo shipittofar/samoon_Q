@@ -116,7 +116,7 @@ function ReservationDetailContent({ id }: { id: string }) {
         {/* Guest Info */}
         <Section title={t('guestInformation')}>
           <InfoRow icon={User} label={t('name')} value={reservation.name} />
-          <InfoRow icon={Phone} label={t('phone')} value={reservation.phone} />
+          <InfoRow icon={Phone} label={t('phone_number')} value={reservation.phone_number} />
           {reservation.email && <InfoRow icon={Mail} label={t('email')} value={reservation.email} />}
           {reservation.user && (
             <div className="mt-3 pt-3 border-t text-xs text-gray-500">

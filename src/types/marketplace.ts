@@ -17,8 +17,8 @@ export interface PublicBranchInfo {
   address: string
   /** City. */
   city: string
-  /** Public phone number. */
-  phone?: string
+  /** Public phone_number number. */
+  phone_number?: string
   /** Whether the branch is open right now. */
   openNow: boolean
   /** Today's opening hours string, e.g. "10:00–23:00" or "Closed today". */
@@ -60,8 +60,8 @@ export interface MarketplaceMeta {
   tagline?: string
   /** Price level indicator: 1 = $, 2 = $$, 3 = $$$, 4 = $$$$ */
   priceLevel?: 1 | 2 | 3 | 4
-  /** Public contact phone. */
-  phone?: string
+  /** Public contact phone_number. */
+  phone_number?: string
   /** Public contact email. */
   email?: string
   /** Public website URL. */

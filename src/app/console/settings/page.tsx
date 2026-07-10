@@ -360,7 +360,7 @@ function PublicProfileTab() {
   const [cuisines, setCuisines] = useState(existingMeta?.cuisines?.join(', ') ?? '')
   const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
   const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
-  const [phone, setPhone] = useState(existingMeta?.phone ?? '')
+  const [phone_number, setPhone] = useState(existingMeta?.phone_number ?? '')
   const [email, setEmail] = useState(existingMeta?.email ?? '')
   const [website, setWebsite] = useState(existingMeta?.website ?? '')
   const [coverImage, setCoverImage] = useState(existingMeta?.coverImage ?? '')
@@ -378,7 +378,7 @@ function PublicProfileTab() {
       setCuisines(m.cuisines?.join(', ') ?? '')
       setTags(m.tags?.join(', ') ?? '')
       setPriceLevel(String(m.priceLevel ?? ''))
-      setPhone(m.phone ?? '')
+      setPhone(m.phone_number ?? '')
       setEmail(m.email ?? '')
       setWebsite(m.website ?? '')
       setCoverImage(m.coverImage ?? '')
@@ -401,7 +401,7 @@ function PublicProfileTab() {
         cuisines: cuisines ? toArr(cuisines) : (existingMeta?.cuisines ?? []),
         tags: tags ? toArr(tags) : (existingMeta?.tags ?? []),
         priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
-        phone: phone || undefined,
+        phone_number: phone_number || undefined,
         email: email || undefined,
         website: website || undefined,
         coverImage: coverImage || existingMeta?.coverImage || '',
@@ -487,7 +487,7 @@ function PublicProfileTab() {
         <div className="space-y-4">
           <div>
             <label className={labelClass}>{t('publicPhoneLabel')}</label>
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+            <input type="tel" value={phone_number} onChange={(e) => setPhone(e.target.value)}
               placeholder="+1 555-000-0000" className={inputClass} />
           </div>
           <div>

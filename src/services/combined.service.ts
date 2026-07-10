@@ -13,7 +13,7 @@ export interface CreateReservationPayload {
   time: string
   guests: number
   name: string
-  phone: string
+  phone_number: string
   email?: string
   notes?: string
 }

@@ -509,7 +509,7 @@ export function useRegister() {
   })
 }
 
-/** P8.9.2 — Send OTP to a phone number. */
+/** P8.9.2 — Send OTP to a phone_number number. */
 export function useSendOTP() {
   return useMutation({
     mutationFn: (payload: SendOTPRequest) =>
@@ -517,7 +517,7 @@ export function useSendOTP() {
   })
 }
 
-/** P8.9.2 — Verify OTP and complete phone login / registration. */
+/** P8.9.2 — Verify OTP and complete phone_number login / registration. */
 export function useVerifyOTP() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({

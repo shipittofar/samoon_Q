@@ -204,7 +204,7 @@ function UserDetailContent({ userId }: { userId: string }) {
           <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">
             <div>
               <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{t('phoneLabel')}</div>
-              <div className="text-sm text-gray-700">{user.phone ?? '—'}</div>
+              <div className="text-sm text-gray-700">{user.phone_number ?? '—'}</div>
             </div>
             <div>
               <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">{t('lastLoginLabel')}</div>

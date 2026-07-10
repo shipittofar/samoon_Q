@@ -182,8 +182,8 @@ describe('DEMO_PHONE_TO_EMAIL', () => {
   })
 
   it('all keys are E.164 format', () => {
-    for (const phone of Object.keys(DEMO_PHONE_TO_EMAIL)) {
-      expect(phone, phone).toMatch(/^\+\d{10,15}$/)
+    for (const phone_number of Object.keys(DEMO_PHONE_TO_EMAIL)) {
+      expect(phone_number, phone_number).toMatch(/^\+\d{10,15}$/)
     }
   })
 
@@ -202,20 +202,20 @@ describe('DEMO_PHONE_TO_EMAIL', () => {
   })
 })
 
-// ── getDemoRedirect via phone → email chain ────────────────────────────────────
+// ── getDemoRedirect via phone_number → email chain ────────────────────────────────────
 
-describe('getDemoRedirect (via phone→email chain)', () => {
-  it('kitchen phone eventually maps to /console/kitchen', () => {
+describe('getDemoRedirect (via phone_number→email chain)', () => {
+  it('kitchen phone_number eventually maps to /console/kitchen', () => {
     const email = DEMO_PHONE_TO_EMAIL['+14155550104']
     expect(getDemoRedirect(email)).toBe('/console/kitchen')
   })
 
-  it('marketing phone eventually maps to /console/analytics', () => {
+  it('marketing phone_number eventually maps to /console/analytics', () => {
     const email = DEMO_PHONE_TO_EMAIL['+14155550105']
     expect(getDemoRedirect(email)).toBe('/console/analytics')
   })
 
-  it('platform phone eventually maps to /console/tenants', () => {
+  it('platform phone_number eventually maps to /console/tenants', () => {
     const email = DEMO_PHONE_TO_EMAIL['+14155550109']
     expect(getDemoRedirect(email)).toBe('/console/tenants')
   })

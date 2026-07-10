@@ -19,7 +19,7 @@ const FALLBACK_RESEND_SECONDS = 60
 function OTPContent() {
   const router = useRouter()
   const params = useSearchParams()
-  const phone = params.get('phone') ?? ''
+  const phone_number = params.get('phone_number') ?? ''
   const dialCode = params.get('dialCode') ?? ''
   const { setUser } = useAuthStore()
   const t = useTranslations('auth')
@@ -76,15 +76,15 @@ function OTPContent() {
 
   const handleVerify = async (code: string) => {
     if (code.length < 6) return
-    const rateCheck = OTP_LIMIT.check(phone)
+    const rateCheck = OTP_LIMIT.check(phone_number)
     if (!rateCheck.allowed) {
       toast.error(tValidation('too_many_attempts'))
       return
     }
     setLoading(true)
     try {
-      const { user } = await authService.verifyOTP({ phone, dialCode, otp: code })
-      OTP_LIMIT.reset(phone)
+      const { user } = await authService.verifyOTP({ phone_number, dialCode, otp: code })
+      OTP_LIMIT.reset(phone_number)
       setUser(user)
       toast.success(`${tNotifications('phoneVerified')} 🎉`)
       router.push('/')
@@ -100,7 +100,7 @@ function OTPContent() {
   const handleResend = async () => {
     setResending(true)
     try {
-      await authService.sendOTP({ phone, dialCode, })
+      await authService.sendOTP({ phone_number, dialCode, })
       setCountdown(RESEND_SECONDS)
       toast.success(t('otpResent'))
     } catch {
@@ -143,7 +143,7 @@ function OTPContent() {
             {t('weSentCodeTo')}
           </p>
           <p className="font-semibold text-[var(--fg)] mb-8">
-            {phone || '+1 *** *** **00'}
+            {phone_number || '+1 *** *** **00'}
           </p>
 
           {/* OTP Input */}

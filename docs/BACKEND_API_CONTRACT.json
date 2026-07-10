@@ -74,7 +74,7 @@
       "status": "READY",
       "request_body": {
         "email": "string",
-        "phone": "string (optional)",
+        "phone_number": "string (optional)",
         "password": "string",
         "confirm_password": "string",
         "first_name": "string",
@@ -135,7 +135,7 @@
       "path": "/auth/send-otp/",
       "auth": "public",
       "status": "READY",
-      "request_body": { "phone": "string" },
+      "request_body": { "phone_number": "string" },
       "response_200": { "message": "string" }
     },
     {
@@ -144,7 +144,7 @@
       "path": "/auth/verify-otp/",
       "auth": "public",
       "status": "READY",
-      "request_body": { "phone": "string", "otp": "string" },
+      "request_body": { "phone_number": "string", "otp": "string" },
       "response_200": { "user": "User", "tokens": "AuthTokens" },
       "frontend_types": ["OTPVerifyData"],
       "type_source": "src/types/index.ts:39"
@@ -434,7 +434,7 @@
         "time": "string (HH:MM)",
         "guests": "number",
         "name": "string",
-        "phone": "string",
+        "phone_number": "string",
         "email": "string (optional)",
         "notes": "string (optional)"
       },
@@ -745,7 +745,7 @@
         "status": "ReservationStatus (optional)",
         "branch_id": "string (optional)",
         "date": "string YYYY-MM-DD (optional)",
-        "search": "string (optional, matches name or phone)",
+        "search": "string (optional, matches name or phone_number)",
         "page": "number",
         "page_size": "number"
       },

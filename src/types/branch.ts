@@ -23,7 +23,7 @@ export interface BranchBusinessHours {
 }
 
 export interface BranchContact {
-  phone?: string
+  phone_number?: string
   email?: string
   website?: string
 }

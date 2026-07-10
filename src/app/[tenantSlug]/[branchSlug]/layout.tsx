@@ -26,7 +26,7 @@ function publicBranchToLocation(b: PublicBranchInfo, tenantId: string): Location
     slug: b.slug,
     address: b.address,
     city: b.city,
-    phone: b.phone ?? '',
+    phone_number: b.phone_number ?? '',
     lat: 0,
     lng: 0,
     working_hours: [],

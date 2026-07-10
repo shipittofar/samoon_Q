@@ -8,7 +8,7 @@ export type UserRole = 'customer' | 'staff' | 'owner' | 'admin'
 export interface User {
   id: string
   email: string
-  phone?: string
+  phone_number?: string
   first_name: string
   last_name: string
   avatar?: string
@@ -18,12 +18,12 @@ export interface User {
 }
 
 export type SendOTPRequest = {
-  phone: string
+  phone_number: string
   dialCode: string
 }
 
 export interface VerifyOTPRequest {
-  phone: string
+  phone_number: string
   dialCode: string
   otp: string
 }
@@ -40,7 +40,7 @@ export interface LoginCredentials {
 
 export interface RegisterData {
   email: string
-  phone?: string
+  phone_number?: string
   password: string
   confirm_password: string
   first_name: string
@@ -48,7 +48,7 @@ export interface RegisterData {
 }
 
 export interface OTPVerifyData {
-  phone: string
+  phone_number: string
   otp: string
 }
 
@@ -224,7 +224,7 @@ export interface Reservation {
   guests: number
   notes?: string
   name: string
-  phone: string
+  phone_number: string
   email?: string
   status: ReservationStatus
   confirmation_code?: string
@@ -368,7 +368,7 @@ export interface Location {
   type?: LocationType
   address: string
   city: string
-  phone: string
+  phone_number: string
   email?: string
   lat: number
   lng: number
@@ -866,12 +866,12 @@ export interface AdminCustomerFilters {
 
 /**
  * Platform-wide customer identity. Created once at account registration.
- * Phone is the primary identifier (phone-first auth per P8.9.3).
+ * Phone is the primary identifier (phone_number-first auth per P8.9.3).
  * A single PlatformUser may have BusinessCustomer relationships at many tenants.
  */
 export interface PlatformUser {
   id: string
-  phone: string
+  phone_number: string
   name: string
   avatar?: string
   email?: string

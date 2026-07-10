@@ -20,7 +20,7 @@ const registerSchema = z.object({
   first_name: z.string().min(2, 'required'),
   last_name: z.string().min(2, 'required'),
   email: z.string().email('invalid_email'),
-  phone: z.string().min(10, 'invalid_phone').optional().or(z.literal('')),
+  phone_number: z.string().min(10, 'invalid_phone').optional().or(z.literal('')),
   password: z.string().min(8, 'invalid_password'),
   confirm_password: z.string(),
 }).refine((d) => d.password === d.confirm_password, {
@@ -100,7 +100,7 @@ export function RegisterClientPage() {
               <Input label={t('lastName')} required placeholder="Doe" {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
             </div>
             <Input label={t('email')} type="email" required leftIcon={<Mail className="h-3.5 w-3.5" />} placeholder={t('emailPlaceholder')} {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
-            <Input label={t('phone')} type="tel" leftIcon={<Phone className="h-3.5 w-3.5" />} placeholder="+1 234 567 8900" {...register('phone')} error={errors.phone?.message ? tValidation(errors.phone.message) : undefined} />
+            <Input label={t('phone_number')} type="tel" leftIcon={<Phone className="h-3.5 w-3.5" />} placeholder="+1 234 567 8900" {...register('phone_number')} error={errors.phone_number?.message ? tValidation(errors.phone_number.message) : undefined} />
             <Input
               label={t('password')} type={showPw ? 'text' : 'password'} required
               leftIcon={<Lock className="h-3.5 w-3.5" />}

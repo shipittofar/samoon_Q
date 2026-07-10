@@ -369,7 +369,7 @@ Change `.env.example` default to `NEXT_PUBLIC_USE_MOCK=false`. Add CI step to re
 **Estimated Effort:** 4 hours
 
 Generate icon files for all 8 sizes declared in `manifest.json`. Create `public/og-image.jpg`. Create `public/screenshots/menu.png` (referenced in manifest). Verify PWA install flow end-to-end.
-- Verify install/usability on a tablet/phone form factor specifically for `/console/*` routes, not just customer-facing pages — admin and staff users are expected to install and run this PWA on point-of-service hardware (P7.3 builds on this). Native iOS/Android apps are explicitly out of scope for this roadmap; PWA is the sole mobile strategy unless a future revision states otherwise.
+- Verify install/usability on a tablet/phone_number form factor specifically for `/console/*` routes, not just customer-facing pages — admin and staff users are expected to install and run this PWA on point-of-service hardware (P7.3 builds on this). Native iOS/Android apps are explicitly out of scope for this roadmap; PWA is the sole mobile strategy unless a future revision states otherwise.
 
 ---
 

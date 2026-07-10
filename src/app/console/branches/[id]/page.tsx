@@ -56,10 +56,10 @@ function BranchDetailContent({ id }: { id: string }) {
       </section>
 
       {/* Contact */}
-      {(branch.contact.phone || branch.contact.email || branch.contact.website) && (
+      {(branch.contact.phone_number || branch.contact.email || branch.contact.website) && (
         <section className="rounded-lg border p-4">
           <h2 className="mb-2 font-semibold">{t('contactLabel')}</h2>
-          {branch.contact.phone && <p>{t('phoneColonValue', { value: branch.contact.phone })}</p>}
+          {branch.contact.phone_number && <p>{t('phoneColonValue', { value: branch.contact.phone_number })}</p>}
           {branch.contact.email && <p>{t('emailColonValue', { value: branch.contact.email })}</p>}
           {branch.contact.website && <p>{t('websiteColonValue', { value: branch.contact.website })}</p>}
         </section>

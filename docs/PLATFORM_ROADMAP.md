@@ -42,7 +42,7 @@ Tests                  — resolver/validator/service coverage + Console E2E
 ## P9.2 — Countries ✅ (registered)
 
 - **Registry**: done — `countries` module, built on the existing `src/data/countries.ts` list.
-- **Console UI**: multi-select country picker reusing the existing phone-input country UI components where possible.
+- **Console UI**: multi-select country picker reusing the existing phone_number-input country UI components where possible.
 - **Backend**: implement §36; the enabled/pinned country lists become tenant-configurable instead of a static export.
 - **Tests**: verify `countries.enabled_codes` changes actually affect the signup/checkout country pickers once wired.
 

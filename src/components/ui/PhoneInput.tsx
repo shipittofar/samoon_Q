@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * P8.9.2  — International phone input with E.164 output.
+ * P8.9.2  — International phone_number input with E.164 output.
  * P8.9.2.1 — Scroll lock, focus trap, auto-scroll, a11y.
  * P8.9.2.2 — Premium UX polish: pinned section, recent×5, timezone detection,
  *             fuzzy search, PageUp/PageDown, type-to-search, aria-live,

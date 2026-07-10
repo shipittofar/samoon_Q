@@ -23,7 +23,7 @@ import type { Reservation } from '@/types'
 // `tValidation()` wherever `errors.<field>.message` is rendered below.
 const reservationSchema = z.object({
   name: z.string().min(2, 'required'),
-  phone: z.string().min(10, 'invalid_phone'),
+  phone_number: z.string().min(10, 'invalid_phone'),
   email: z.string().email('invalid_email').optional().or(z.literal('')),
   guests: z.number().min(1).max(20),
   date: z.string().min(1, 'required'),
@@ -130,7 +130,7 @@ export default function ReservationPage() {
                 ))}
               </div>
               <p className="text-xs text-[var(--fg-muted)] text-center bg-[var(--card-hover)] rounded-xl p-3">
-                {t('confirmationSentTo', { contact: confirmed.email || confirmed.phone })}
+                {t('confirmationSentTo', { contact: confirmed.email || confirmed.phone_number })}
               </p>
               <Button className="w-full" onClick={() => setConfirmed(null)}>{t('makeAnotherReservation')}</Button>
             </div>
@@ -284,7 +284,7 @@ export default function ReservationPage() {
                 <div className="sm:col-span-2">
                   <Input label={t('fullName')} required {...register('name')} error={errors.name?.message ? tValidation(errors.name.message) : undefined} leftIcon={<User className="h-3.5 w-3.5" />} />
                 </div>
-                <Input label={t('phone')} type="tel" required {...register('phone')} error={errors.phone?.message ? tValidation(errors.phone.message) : undefined} leftIcon={<Phone className="h-3.5 w-3.5" />} />
+                <Input label={t('phone_number')} type="tel" required {...register('phone_number')} error={errors.phone_number?.message ? tValidation(errors.phone_number.message) : undefined} leftIcon={<Phone className="h-3.5 w-3.5" />} />
                 <Input label={t('email')} type="email" {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} leftIcon={<Mail className="h-3.5 w-3.5" />} />
                 <div className="sm:col-span-2">
                   <Textarea label={t('specialRequests')} {...register('notes')} placeholder={t('specialRequestsPlaceholder')} rows={3} />

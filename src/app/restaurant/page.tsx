@@ -20,8 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Fallback data used when the tenant service cannot be reached.
 const FALLBACK_BRANCHES = [
-  { name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York, NY 10001', phone: '+1 (212) 555-0100', hours: 'Mon–Fri 10am–11pm · Sat–Sun 9am–midnight', status: 'open' },
-  { name: 'Downtown', address: '456 Urban Street', city: 'New York, NY 10013', phone: '+1 (212) 555-0200', hours: 'Mon–Fri 11am–10pm · Sat–Sun 10am–11pm', status: 'open' },
+  { name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York, NY 10001', phone_number: '+1 (212) 555-0100', hours: 'Mon–Fri 10am–11pm · Sat–Sun 9am–midnight', status: 'open' },
+  { name: 'Downtown', address: '456 Urban Street', city: 'New York, NY 10013', phone_number: '+1 (212) 555-0200', hours: 'Mon–Fri 11am–10pm · Sat–Sun 10am–11pm', status: 'open' },
 ]
 
 const FALLBACK_GALLERY = [
@@ -44,7 +44,7 @@ export default async function RestaurantPage() {
   const story = meta?.story || FALLBACK_STORY
   const tagline = meta?.tagline || 'Where every dish tells a story.'
   const gallery = meta?.gallery?.length ? meta.gallery : FALLBACK_GALLERY
-  const contactPhone = meta?.phone || tenant?.settings?.contactPhone as string | undefined
+  const contactPhone = meta?.phone_number || tenant?.settings?.contactPhone as string | undefined
   const contactEmail = meta?.email || tenant?.settings?.contactEmail as string | undefined
   const contactWebsite = meta?.website
 
@@ -54,7 +54,7 @@ export default async function RestaurantPage() {
         name: b.name,
         address: b.address,
         city: b.city,
-        phone: b.phone,
+        phone_number: b.phone_number,
         hours: b.todayHours ?? '',
         status: b.openNow ? 'open' : 'closed',
       }))
@@ -146,10 +146,10 @@ export default async function RestaurantPage() {
                     <MapPin className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
                     <span>{branch.address}<br />{branch.city}</span>
                   </div>
-                  {branch.phone && (
+                  {branch.phone_number && (
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-orange-500" />
-                      <a href={`tel:${branch.phone}`} className="hover:text-orange-500 transition-colors">{branch.phone}</a>
+                      <a href={`tel:${branch.phone_number}`} className="hover:text-orange-500 transition-colors">{branch.phone_number}</a>
                     </div>
                   )}
                   {branch.hours && (

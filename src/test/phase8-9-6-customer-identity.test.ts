@@ -27,8 +27,8 @@ describe('P8.9.6 — PlatformUser integrity', () => {
     expect(unique.size).toBe(ids.length)
   })
 
-  it('platform users have unique phone numbers', () => {
-    const phones = MOCK_PLATFORM_USERS.map((u) => u.phone)
+  it('platform users have unique phone_number numbers', () => {
+    const phones = MOCK_PLATFORM_USERS.map((u) => u.phone_number)
     const unique = new Set(phones)
     expect(unique.size).toBe(phones.length)
   })
@@ -332,12 +332,12 @@ describe('P8.9.6 — AdminCustomer view derivation correctness', () => {
     })
   })
 
-  it('AdminCustomer has phone derived from PlatformUser', async () => {
+  it('AdminCustomer has phone_number derived from PlatformUser', async () => {
     const customers = await adminService.getCustomers({ tenantId: SAVOR })
     customers.results.forEach((c) => {
       const pu = MOCK_PLATFORM_USERS.find((u) => u.id === c.id)
       if (pu) {
-        expect(c.phone).toBe(pu.phone)
+        expect(c.phone_number).toBe(pu.phone_number)
       }
     })
   })

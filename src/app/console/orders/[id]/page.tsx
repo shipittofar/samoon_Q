@@ -192,7 +192,7 @@ function OrderDetailContent({ id }: { id: string }) {
               <div className="text-sm space-y-0.5">
                 <div className="font-medium">{order.user.first_name} {order.user.last_name}</div>
                 {order.user.email && <div className="text-gray-500">{order.user.email}</div>}
-                {order.user.phone && <div className="text-gray-500">{order.user.phone}</div>}
+                {order.user.phone_number && <div className="text-gray-500">{order.user.phone_number}</div>}
               </div>
             </div>
           </Section>

@@ -103,7 +103,7 @@ describe('E2E: Auth Flow', () => {
       confirm_password: 'pass123',
       first_name: 'New',
       last_name: 'User',
-      phone: '+1000000000',
+      phone_number: '+1000000000',
     })
     await vi.runAllTimersAsync()
     const result = await promise

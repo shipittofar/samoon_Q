@@ -9,7 +9,7 @@ import { resolveWorkspace } from '@/utils/navigation-intelligence'
 import { resolveOwnershipIdentity } from '@/services/ownership-resolution.service'
 
 /**
- * Maps demo phone (E.164) → email, so the mock OTP flow can resolve
+ * Maps demo phone_number (E.164) → email, so the mock OTP flow can resolve
  * the correct user from MOCK_CREDENTIALS after OTP verification.
  */
 export const DEMO_PHONE_TO_EMAIL: Record<string, string> = {

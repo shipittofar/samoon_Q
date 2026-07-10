@@ -187,7 +187,7 @@ export default function AdminCustomersPage() {
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)]"><Mail className="h-3 w-3" />{c.email}</div>
-                          {c.phone && <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)] mt-0.5"><Phone className="h-3 w-3" />{c.phone}</div>}
+                          {c.phone_number && <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)] mt-0.5"><Phone className="h-3 w-3" />{c.phone_number}</div>}
                         </td>
                         <td className="px-4 py-3.5 font-medium text-[var(--fg)]">{c.order_count}</td>
                         <td className="px-4 py-3.5 font-semibold text-[var(--fg)]">{formatCurrency(c.total_spent)}</td>

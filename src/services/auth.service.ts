@@ -208,14 +208,14 @@ export const authService = {
   
     if (mockActive()) {
       await delay(MOCK_DELAY)
-      return { message: 'OTP sent to your phone.' }
+      return { message: 'OTP sent to your phone_number.' }
     }
   
     const { data } = await api.post<{ message: string }>(
       ENDPOINTS.AUTH.SEND_OTP,
       {
         country_code: payload.dialCode,
-        phone_number: payload.phone.replace(payload.dialCode, ''),
+        phone_number: payload.phone_number.replace(payload.dialCode, ''),
       },
     )
   
@@ -223,21 +223,21 @@ export const authService = {
   },
 
 
-  // async sendOTP(phone: string): Promise<{ message: string }> {
+  // async sendOTP(phone_number: string): Promise<{ message: string }> {
   //   if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
   //   if (!authFlag('authentication.otp.enabled')) throw new Error('otp_disabled')
   //   if (!authFlag('authentication.phone_login_enabled')) throw new Error('phone_login_disabled')
 
   //   if (mockActive()) {
   //     await delay(MOCK_DELAY)
-  //     return { message: 'OTP sent to your phone.' }
+  //     return { message: 'OTP sent to your phone_number.' }
   //   }
-  //   const { data } = await api.post<{ message: string }>(ENDPOINTS.AUTH.SEND_OTP, { phone })
+  //   const { data } = await api.post<{ message: string }>(ENDPOINTS.AUTH.SEND_OTP, { phone_number })
   //   return data
   // },
 
   /**
-   * P8.9.2 — Extended mock: resolves phone → demo user.
+   * P8.9.2 — Extended mock: resolves phone_number → demo user.
    * Returns { user, tokens, p7Roles, is_new_user }.
    * Code '000000' is always rejected (for UX error-state demo).
    * Any other 6-digit code succeeds.
@@ -258,10 +258,10 @@ export const authService = {
 
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
 
-      // Look up demo phone → email → MOCK_CREDENTIALS entry
+      // Look up demo phone_number → email → MOCK_CREDENTIALS entry
       // P9.1.2 — gated by demoLoginEnabled() so disabling demo login forces
-      // every phone down the "unknown → new user" path below.
-      const email = demoLoginEnabled() ? DEMO_PHONE_TO_EMAIL[payload.phone] : undefined
+      // every phone_number down the "unknown → new user" path below.
+      const email = demoLoginEnabled() ? DEMO_PHONE_TO_EMAIL[payload.phone_number] : undefined
       if (email && MOCK_CREDENTIALS[email]) {
         const entry = MOCK_CREDENTIALS[email]
         setTokens(tokens.access, tokens.refresh)
@@ -271,7 +271,7 @@ export const authService = {
         return { user: entry.user, tokens, p7Roles: entry.p7Roles, is_new_user: false }
       }
 
-      // Unknown phone — treat as new user
+      // Unknown phone_number — treat as new user
       setTokens(tokens.access, tokens.refresh)
       return { user: MOCK_USER, tokens, p7Roles: [], is_new_user: true }
     }
@@ -280,7 +280,7 @@ export const authService = {
       ENDPOINTS.AUTH.VERIFY_OTP,
     {
       country_code: payload.dialCode,
-      phone_number: payload.phone.slice(payload.dialCode.length),
+      phone_number: payload.phone_number.slice(payload.dialCode.length),
       code: payload.otp,
     },
     )

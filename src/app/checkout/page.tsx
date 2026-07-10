@@ -32,7 +32,7 @@ const checkoutSchema = z.object({
   first_name: z.string().min(2, 'required'),
   last_name: z.string().min(2, 'required'),
   email: z.string().email('invalid_email'),
-  phone: z.string().min(10, 'invalid_phone'),
+  phone_number: z.string().min(10, 'invalid_phone'),
   street: z.string().optional(),
   city: z.string().optional(),
   table_number: z.string().optional(),
@@ -101,7 +101,7 @@ function CheckoutContent() {
       first_name: user?.first_name || '',
       last_name: user?.last_name || '',
       email: user?.email || '',
-      phone: user?.phone || '',
+      phone_number: user?.phone_number || '',
       // P4.4 — Pre-populate table number from QR URL param
       table_number: initialTableNumber,
     },
@@ -278,7 +278,7 @@ function CheckoutContent() {
                         <Input label={tAuth('firstName')} required {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
                         <Input label={tAuth('lastName')} required {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
                         <Input label={tAuth('email')} type="email" required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
-                        <Input label={tAuth('phone')} type="tel" required {...register('phone')} error={errors.phone?.message ? tValidation(errors.phone.message) : undefined} />
+                        <Input label={tAuth('phone_number')} type="tel" required {...register('phone_number')} error={errors.phone_number?.message ? tValidation(errors.phone_number.message) : undefined} />
                       </div>
                     </div>
 

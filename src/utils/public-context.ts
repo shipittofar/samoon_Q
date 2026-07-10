@@ -65,7 +65,7 @@ export interface PublicCTALink {
  * Full set of feature-flag-gated page CTAs.
  *
  * Null means the feature is disabled — do not render the link.
- * Does NOT include branch-data CTAs (phone, directions) — those depend on
+ * Does NOT include branch-data CTAs (phone_number, directions) — those depend on
  * branch-specific data and are rendered directly by the calling component.
  *
  * Use getSmartCTA() from @/utils/navigation for the priority-ordered hero pair.
@@ -262,7 +262,7 @@ export function buildBranchMetadata(opts: {
 export function buildTenantJsonLd(opts: {
   tenantName: string
   tenantSlug: string
-  meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'phone' | 'coverImage' | 'cuisines'> | null
+  meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'phone_number' | 'coverImage' | 'cuisines'> | null
   /** Resolved feature flags. When absent, reviews default to enabled (safe for SEO). */
   featureFlags?: Record<string, boolean>
 }): string | null {
@@ -275,7 +275,7 @@ export function buildTenantJsonLd(opts: {
     name: tenantName,
     url: `${PUBLIC_BASE_URL}/${tenantSlug}`,
     description: meta.description,
-    telephone: meta.phone,
+    telephone: meta.phone_number,
     image: meta.coverImage,
     servesCuisine: meta.cuisines,
   })

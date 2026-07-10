@@ -1,5 +1,5 @@
 /**
- * P8.9.2 — Country data for the international phone input.
+ * P8.9.2 — Country data for the international phone_number input.
  *
  * Each entry: ISO 3166-1 alpha-2 code, English name, E.164 dial code,
  * and an example national-format placeholder for the number input.
@@ -31,10 +31,10 @@ export const PINNED_COUNTRY_CODES = ['US', 'GB', 'DE', 'FR', 'CA', 'AU', 'AE', '
 export const PREFERRED_COUNTRY_CODES = PINNED_COUNTRY_CODES
 
 /** localStorage key for persisting recently used countries. */
-export const RECENT_COUNTRIES_KEY = 'phone-input-recent-countries'
+export const RECENT_COUNTRIES_KEY = 'phone_number-input-recent-countries'
 
 /** localStorage key for the last explicitly selected country. */
-export const LAST_SELECTED_KEY = 'phone-input-last-selected'
+export const LAST_SELECTED_KEY = 'phone_number-input-last-selected'
 
 /** Max number of recent countries to show (excluding pinned). */
 export const MAX_RECENT = 5

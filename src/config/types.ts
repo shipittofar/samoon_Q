@@ -149,7 +149,7 @@ export interface ConfigFieldPreview {
    * 'datetime' formats the value with `Intl.DateTimeFormat` (interprets an
    * IANA timezone string or an ISO timestamp); 'formatted' calls
    * `field.preview.format(value)` — a plain, provider-style escape hatch
-   * for anything else (phone numbers, currency, country address layouts, …)
+   * for anything else (phone_number numbers, currency, country address layouts, …)
    * so new preview needs never require a new hardcoded `kind` (P9.3 Phase J).
    */
   kind: 'none' | 'swatch' | 'font-sample' | 'json' | 'image' | 'datetime' | 'formatted'

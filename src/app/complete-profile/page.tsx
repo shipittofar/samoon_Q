@@ -3,7 +3,7 @@
 /**
  * P8.9.2 — Registration completion page (/complete-profile).
  *
- * Shown after OTP verification when the phone number belongs to a new user.
+ * Shown after OTP verification when the phone_number number belongs to a new user.
  * Collects only the minimum information needed: first name, last name, terms acceptance.
  * Phone number is pre-filled from the query param and is NOT editable.
  */
@@ -38,7 +38,7 @@ type FormData = z.infer<typeof schema>
 function CompleteProfileInner() {
   const router = useRouter()
   const params = useSearchParams()
-  const phone = params.get('phone') ?? ''
+  const phone_number = params.get('phone_number') ?? ''
   const dialCode = params.get('dialCode') ?? ''
   const prefersReducedMotion = useReducedMotion()
   const { mutate: register, isPending } = useRegister()
@@ -53,10 +53,10 @@ function CompleteProfileInner() {
   const onSubmit = (data: FormData) => {
     register(
       {
-        email: `${phone.replace(/\D/g, '')}@phone.savor.local`,
-        phone,
-        password: 'mock-phone-auth',
-        confirm_password: 'mock-phone-auth',
+        email: `${phone_number.replace(/\D/g, '')}@phone_number.savor.local`,
+        phone_number,
+        password: 'mock-phone_number-auth',
+        confirm_password: 'mock-phone_number-auth',
         first_name: data.first_name,
         last_name: data.last_name,
       },
@@ -94,10 +94,10 @@ function CompleteProfileInner() {
         </p>
 
         {/* Phone number — read-only, for context */}
-        {phone && (
+        {phone_number && (
           <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)] mb-6">
             <Phone className="h-4 w-4 text-orange-500 shrink-0" aria-hidden="true" />
-            <span className="text-sm text-[var(--fg)] font-mono">{phone}</span>
+            <span className="text-sm text-[var(--fg)] font-mono">{phone_number}</span>
             <span className="ms-auto text-xs text-green-500 font-medium">{t('verified')}</span>
           </div>
         )}

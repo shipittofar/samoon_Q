@@ -21,7 +21,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
   const year = new Date().getFullYear()
 
   const hasSocial = meta.socialLinks?.instagram || meta.socialLinks?.twitter
-  const hasContact = meta.phone || meta.email || meta.website
+  const hasContact = meta.phone_number || meta.email || meta.website
 
   return (
     <footer className="bg-[var(--bg-secondary)] border-t border-[var(--border)]">
@@ -103,14 +103,14 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                     {meta.city}
                   </li>
                 )}
-                {meta.phone && (
+                {meta.phone_number && (
                   <li>
                     <a
-                      href={`tel:${meta.phone}`}
+                      href={`tel:${meta.phone_number}`}
                       className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors"
                     >
                       <Phone className="h-4 w-4 text-orange-500 shrink-0" />
-                      {meta.phone}
+                      {meta.phone_number}
                     </a>
                   </li>
                 )}

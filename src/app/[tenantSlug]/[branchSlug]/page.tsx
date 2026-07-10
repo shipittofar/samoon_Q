@@ -80,7 +80,7 @@ export default async function BranchPage({
     branchSlug,
     branchAddress: branch.address,
     branchCity: branch.city,
-    branchPhone: branch.phone,
+    branchPhone: branch.phone_number,
     branchImage: branch.image,
     meta,
   })

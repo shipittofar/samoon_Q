@@ -1119,10 +1119,10 @@ function CustomerDetailContent({ id }: { id: string }) {
                   <span>{customer.email}</span>
                 </div>
               )}
-              {customer.phone && (
+              {customer.phone_number && (
                 <div className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">
                   <Phone className="h-3.5 w-3.5 shrink-0" />
-                  <span>{customer.phone}</span>
+                  <span>{customer.phone_number}</span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">

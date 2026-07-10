@@ -9,7 +9,7 @@
  * P9.2 aside from the additive props wired below), and a resizable
  * Inspector panel. Below the `lg` breakpoint, the nav and Inspector move
  * into slide-over `Drawer`s (Phase P) so the workspace stays usable on a
- * tablet/phone. Command palette (Ctrl/Cmd+K) and the Ctrl/Cmd+S shortcut
+ * tablet/phone_number. Command palette (Ctrl/Cmd+K) and the Ctrl/Cmd+S shortcut
  * are wired once, here, for every module — not re-implemented per page.
  */
 import { useCallback, useEffect, useState } from 'react'

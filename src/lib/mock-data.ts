@@ -4,7 +4,7 @@ import type { Branch, BusinessCustomer, BranchCustomer, Category, CustomerAnalyt
 export const MOCK_USER: User = {
   id: '1',
   email: 'john@example.com',
-  phone: '+1234567890',
+  phone_number: '+1234567890',
   first_name: 'John',
   last_name: 'Doe',
   avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
@@ -19,7 +19,7 @@ export const MOCK_USER: User = {
 export const MOCK_STAFF_USER: User = {
   id: '2',
   email: 'staff@savor.com',
-  phone: '+1234567891',
+  phone_number: '+1234567891',
   first_name: 'Sam',
   last_name: 'Staff',
   avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
@@ -31,7 +31,7 @@ export const MOCK_STAFF_USER: User = {
 export const MOCK_ADMIN_USER: User = {
   id: '3',
   email: 'admin@savor.com',
-  phone: '+1234567892',
+  phone_number: '+1234567892',
   first_name: 'Alex',
   last_name: 'Admin',
   avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
@@ -43,7 +43,7 @@ export const MOCK_ADMIN_USER: User = {
 export const MOCK_OWNER_USER: User = {
   id: '4',
   email: 'owner@savor.com',
-  phone: '+1234567893',
+  phone_number: '+1234567893',
   first_name: 'Olivia',
   last_name: 'Owner',
   avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
@@ -55,7 +55,7 @@ export const MOCK_OWNER_USER: User = {
 export const MOCK_CASHIER_USER: User = {
   id: '5',
   email: 'cashier@savor.com',
-  phone: '+1234567894',
+  phone_number: '+1234567894',
   first_name: 'Casey',
   last_name: 'Cashier',
   avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
@@ -67,7 +67,7 @@ export const MOCK_CASHIER_USER: User = {
 export const MOCK_KITCHEN_USER: User = {
   id: '6',
   email: 'kitchen@savor.com',
-  phone: '+1234567895',
+  phone_number: '+1234567895',
   first_name: 'Kai',
   last_name: 'Kitchen',
   avatar: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=100&h=100&fit=crop',
@@ -79,7 +79,7 @@ export const MOCK_KITCHEN_USER: User = {
 export const MOCK_MARKETING_USER: User = {
   id: '7',
   email: 'marketing@savor.com',
-  phone: '+1234567896',
+  phone_number: '+1234567896',
   first_name: 'Morgan',
   last_name: 'Marketing',
   avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop',
@@ -91,7 +91,7 @@ export const MOCK_MARKETING_USER: User = {
 export const MOCK_SUPPORT_USER: User = {
   id: '8',
   email: 'support@savor.com',
-  phone: '+1234567897',
+  phone_number: '+1234567897',
   first_name: 'Sam',
   last_name: 'Support',
   avatar: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100&fit=crop',
@@ -104,7 +104,7 @@ export const MOCK_SUPPORT_USER: User = {
 export const MOCK_PLATFORM_ADMIN_USER: User = {
   id: '10',
   email: 'platform@savor.com',
-  phone: '+14155550109',
+  phone_number: '+14155550109',
   first_name: 'Pat',
   last_name: 'Platform',
   role: 'admin',
@@ -116,7 +116,7 @@ export const MOCK_PLATFORM_ADMIN_USER: User = {
 export const MOCK_MULTI_ROLE_USER: User = {
   id: '9',
   email: 'multirole@savor.com',
-  phone: '+1234567898',
+  phone_number: '+1234567898',
   first_name: 'Max',
   last_name: 'MultiRole',
   avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
@@ -133,7 +133,7 @@ export const MOCK_BRANCHES: Branch[] = [
     slug: 'main',
     address: '123 Culinary Avenue',
     city: 'New York',
-    phone: '+1 (212) 555-0100',
+    phone_number: '+1 (212) 555-0100',
     email: 'main@savor.com',
     lat: 40.7128,
     lng: -74.006,
@@ -159,7 +159,7 @@ export const MOCK_BRANCHES: Branch[] = [
     slug: 'downtown',
     address: '456 Urban Street',
     city: 'New York',
-    phone: '+1 (212) 555-0200',
+    phone_number: '+1 (212) 555-0200',
     lat: 40.72,
     lng: -73.99,
     is_active: true,
@@ -181,7 +181,7 @@ export const MOCK_BRANCHES: Branch[] = [
     slug: 'airport',
     address: 'JFK International Airport, Terminal 4',
     city: 'New York',
-    phone: '+1 (212) 555-0300',
+    phone_number: '+1 (212) 555-0300',
     lat: 40.6413,
     lng: -73.7781,
     is_active: true,
@@ -203,7 +203,7 @@ export const MOCK_BRANCHES: Branch[] = [
     slug: 'moscow',
     address: 'Moscow, Russia',
     city: 'Moscow',
-    phone: '+7 (999) 999-9999',
+    phone_number: '+7 (999) 999-9999',
     lat: 55.7558,
     lng: 37.6173,
     is_active: true,
@@ -226,7 +226,7 @@ export const MOCK_BRANCHES: Branch[] = [
 // shows branches that belong to the active tenant and whose ids match activeBranch.id.
 export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
   'tenant-savor-01': [
-    { id: 'main', slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone: '+1 (212) 555-0100', lat: 40.7128, lng: -74.006, is_active: true, working_hours: [
+    { id: 'main', slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone_number: '+1 (212) 555-0100', lat: 40.7128, lng: -74.006, is_active: true, working_hours: [
       { day: 'Monday', open: '10:00', close: '23:00', is_closed: false },
       { day: 'Tuesday', open: '10:00', close: '23:00', is_closed: false },
       { day: 'Wednesday', open: '10:00', close: '23:00', is_closed: false },
@@ -235,7 +235,7 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
       { day: 'Saturday', open: '09:00', close: '00:00', is_closed: false },
       { day: 'Sunday', open: '11:00', close: '22:00', is_closed: false },
     ] },
-    { id: 'downtown', slug: 'downtown', name: 'Downtown Branch', address: '456 Urban Street', city: 'New York', phone: '+1 (212) 555-0200', lat: 40.72, lng: -73.99, is_active: true, working_hours: [
+    { id: 'downtown', slug: 'downtown', name: 'Downtown Branch', address: '456 Urban Street', city: 'New York', phone_number: '+1 (212) 555-0200', lat: 40.72, lng: -73.99, is_active: true, working_hours: [
       { day: 'Monday', open: '11:00', close: '22:00', is_closed: false },
       { day: 'Tuesday', open: '11:00', close: '22:00', is_closed: false },
       { day: 'Wednesday', open: '11:00', close: '22:00', is_closed: false },
@@ -244,7 +244,7 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
       { day: 'Saturday', open: '10:00', close: '23:00', is_closed: false },
       { day: 'Sunday', open: '12:00', close: '21:00', is_closed: false },
     ] },
-    { id: 'airport', slug: 'airport', name: 'Airport Branch', address: 'JFK Terminal 4', city: 'New York', phone: '+1 (212) 555-0300', lat: 40.6413, lng: -73.7781, is_active: true, working_hours: [
+    { id: 'airport', slug: 'airport', name: 'Airport Branch', address: 'JFK Terminal 4', city: 'New York', phone_number: '+1 (212) 555-0300', lat: 40.6413, lng: -73.7781, is_active: true, working_hours: [
       { day: 'Monday', open: '06:00', close: '23:00', is_closed: false },
       { day: 'Tuesday', open: '06:00', close: '23:00', is_closed: false },
       { day: 'Wednesday', open: '06:00', close: '23:00', is_closed: false },
@@ -255,7 +255,7 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
     ] },
   ],
   'tenant-brew-cafe-01': [
-    { id: 'main', slug: 'main', name: 'Midtown Cafe', address: '789 Coffee Lane', city: 'New York', phone: '+1 (212) 555-0400', lat: 40.754, lng: -73.984, is_active: true, working_hours: [
+    { id: 'main', slug: 'main', name: 'Midtown Cafe', address: '789 Coffee Lane', city: 'New York', phone_number: '+1 (212) 555-0400', lat: 40.754, lng: -73.984, is_active: true, working_hours: [
       { day: 'Monday', open: '07:00', close: '20:00', is_closed: false },
       { day: 'Tuesday', open: '07:00', close: '20:00', is_closed: false },
       { day: 'Wednesday', open: '07:00', close: '20:00', is_closed: false },
@@ -264,7 +264,7 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
       { day: 'Saturday', open: '08:00', close: '21:00', is_closed: false },
       { day: 'Sunday', open: '09:00', close: '18:00', is_closed: false },
     ] },
-    { id: 'brooklyn-cafe', slug: 'brooklyn-cafe', name: 'Brooklyn Cafe', address: '321 Brew Boulevard', city: 'Brooklyn', phone: '+1 (718) 555-0500', lat: 40.678, lng: -73.944, is_active: true, working_hours: [
+    { id: 'brooklyn-cafe', slug: 'brooklyn-cafe', name: 'Brooklyn Cafe', address: '321 Brew Boulevard', city: 'Brooklyn', phone_number: '+1 (718) 555-0500', lat: 40.678, lng: -73.944, is_active: true, working_hours: [
       { day: 'Monday', open: '08:00', close: '19:00', is_closed: false },
       { day: 'Tuesday', open: '08:00', close: '19:00', is_closed: false },
       { day: 'Wednesday', open: '08:00', close: '19:00', is_closed: false },
@@ -275,7 +275,7 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
     ] },
   ],
   'tenant-oak-bar-01': [
-    { id: 'main', slug: 'main', name: 'The Oak Bar', address: '789 Oak Street', city: 'Chicago', phone: '+1 (312) 555-0600', lat: 41.8781, lng: -87.6298, is_active: true, working_hours: [
+    { id: 'main', slug: 'main', name: 'The Oak Bar', address: '789 Oak Street', city: 'Chicago', phone_number: '+1 (312) 555-0600', lat: 41.8781, lng: -87.6298, is_active: true, working_hours: [
       { day: 'Monday', open: '16:00', close: '02:00', is_closed: false },
       { day: 'Tuesday', open: '16:00', close: '02:00', is_closed: false },
       { day: 'Wednesday', open: '16:00', close: '02:00', is_closed: false },
@@ -286,7 +286,7 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
     ] },
   ],
   'tenant-central-fc-01': [
-    { id: 'main', slug: 'main', name: 'Central Food Court', address: '500 Mall Drive', city: 'Los Angeles', phone: '+1 (323) 555-0700', lat: 34.0522, lng: -118.2437, is_active: true, working_hours: [
+    { id: 'main', slug: 'main', name: 'Central Food Court', address: '500 Mall Drive', city: 'Los Angeles', phone_number: '+1 (323) 555-0700', lat: 34.0522, lng: -118.2437, is_active: true, working_hours: [
       { day: 'Monday', open: '10:00', close: '22:00', is_closed: false },
       { day: 'Tuesday', open: '10:00', close: '22:00', is_closed: false },
       { day: 'Wednesday', open: '10:00', close: '22:00', is_closed: false },
@@ -297,7 +297,7 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
     ] },
   ],
   'tenant-wheels-brews-01': [
-    { id: 'main', slug: 'main', name: 'Wheels & Brews HQ', address: '100 Roaster Road', city: 'Austin', phone: '+1 (512) 555-0800', lat: 30.2672, lng: -97.7431, is_active: true, working_hours: [
+    { id: 'main', slug: 'main', name: 'Wheels & Brews HQ', address: '100 Roaster Road', city: 'Austin', phone_number: '+1 (512) 555-0800', lat: 30.2672, lng: -97.7431, is_active: true, working_hours: [
       { day: 'Monday', open: '08:00', close: '18:00', is_closed: false },
       { day: 'Tuesday', open: '08:00', close: '18:00', is_closed: false },
       { day: 'Wednesday', open: '08:00', close: '18:00', is_closed: false },
@@ -308,7 +308,7 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
     ] },
   ],
   'tenant-road-bites-01': [
-    { id: 'main', slug: 'main', name: 'Road Bites HQ', address: '200 Food Truck Row', city: 'Miami', phone: '+1 (305) 555-0900', lat: 25.7617, lng: -80.1918, is_active: true, working_hours: [
+    { id: 'main', slug: 'main', name: 'Road Bites HQ', address: '200 Food Truck Row', city: 'Miami', phone_number: '+1 (305) 555-0900', lat: 25.7617, lng: -80.1918, is_active: true, working_hours: [
       { day: 'Monday', open: '11:00', close: '21:00', is_closed: false },
       { day: 'Tuesday', open: '11:00', close: '21:00', is_closed: false },
       { day: 'Wednesday', open: '11:00', close: '21:00', is_closed: false },
@@ -583,7 +583,7 @@ export const MOCK_RESERVATIONS: Reservation[] = [
     time: '19:30',
     guests: 4,
     name: 'John Doe',
-    phone: '+1234567890',
+    phone_number: '+1234567890',
     email: 'john@example.com',
     status: 'confirmed',
     confirmation_code: 'SAV-8472',
@@ -595,7 +595,7 @@ export const MOCK_RESERVATIONS: Reservation[] = [
 // ── P8.9.6 — Platform Customer Identity ──────────────────────────────────────
 //
 // PlatformUser = one record per real person, created at registration.
-// Phone is the primary identifier (phone-first auth per P8.9.3).
+// Phone is the primary identifier (phone_number-first auth per P8.9.3).
 // These users are NOT customers of any specific business until they interact.
 //
 // Tenant IDs used below:
@@ -608,40 +608,40 @@ export const MOCK_RESERVATIONS: Reservation[] = [
 
 export const MOCK_PLATFORM_USERS: PlatformUser[] = [
   // ── Regular cross-business users ──
-  { id: 'pu-001', phone: '+12125550101', name: 'Alice Johnson',   email: 'alice@example.com',   avatar: undefined, language: 'en', createdAt: '2023-06-15T10:00:00Z', status: 'active' },
-  { id: 'pu-002', phone: '+12125550102', name: 'Bob Smith',       email: 'bob@example.com',     avatar: undefined, language: 'en', createdAt: '2023-07-20T09:30:00Z', status: 'active' },
-  { id: 'pu-003', phone: '+12125550103', name: 'Carol Davis',     email: 'carol@example.com',   avatar: undefined, language: 'en', createdAt: '2023-04-10T14:00:00Z', status: 'active' },
-  { id: 'pu-004', phone: '+12125550104', name: 'David Wilson',    email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-01-05T11:00:00Z', status: 'active' },
-  { id: 'pu-005', phone: '+12125550105', name: 'Emma Brown',      email: 'emma@example.com',    avatar: undefined, language: 'en', createdAt: '2023-03-01T08:00:00Z', status: 'active' },
-  { id: 'pu-006', phone: '+12125550106', name: 'Frank Garcia',    email: 'frank@example.com',   avatar: undefined, language: 'es', createdAt: '2023-09-12T13:00:00Z', status: 'active' },
-  { id: 'pu-007', phone: '+12125550107', name: 'Grace Lee',       email: 'grace@example.com',   avatar: undefined, language: 'en', createdAt: '2023-11-08T16:00:00Z', status: 'active' },
-  { id: 'pu-008', phone: '+12125550108', name: 'Henry Martinez',  email: undefined,             avatar: undefined, language: 'es', createdAt: '2024-02-14T10:30:00Z', status: 'active' },
-  { id: 'pu-009', phone: '+12125550109', name: 'Iris Chen',       email: 'iris@example.com',    avatar: undefined, language: 'zh', createdAt: '2023-08-25T15:00:00Z', status: 'active' },
-  { id: 'pu-010', phone: '+12125550110', name: 'James Taylor',    email: 'james@example.com',   avatar: undefined, language: 'en', createdAt: '2023-05-30T12:00:00Z', status: 'active' },
-  { id: 'pu-011', phone: '+12125550111', name: 'Karen White',     email: 'karen@example.com',   avatar: undefined, language: 'en', createdAt: '2023-10-17T09:00:00Z', status: 'active' },
-  { id: 'pu-012', phone: '+12125550112', name: 'Liam Anderson',   email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-03-22T14:00:00Z', status: 'active' },
-  { id: 'pu-013', phone: '+12125550113', name: 'Mia Jackson',     email: 'mia@example.com',     avatar: undefined, language: 'en', createdAt: '2023-12-01T10:00:00Z', status: 'active' },
-  { id: 'pu-014', phone: '+12125550114', name: 'Noah Harris',     email: 'noah@example.com',    avatar: undefined, language: 'en', createdAt: '2023-07-07T11:00:00Z', status: 'active' },
-  { id: 'pu-015', phone: '+12125550115', name: 'Olivia Thomas',   email: 'olivia@example.com',  avatar: undefined, language: 'en', createdAt: '2023-02-20T08:30:00Z', status: 'active' },
-  { id: 'pu-016', phone: '+12125550116', name: 'Peter Robinson',  email: 'peter@example.com',   avatar: undefined, language: 'en', createdAt: '2024-04-10T13:00:00Z', status: 'active' },
-  { id: 'pu-017', phone: '+12125550117', name: 'Quinn Walker',    email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-01-18T16:00:00Z', status: 'active' },
-  { id: 'pu-018', phone: '+12125550118', name: 'Rachel Hall',     email: 'rachel@example.com',  avatar: undefined, language: 'en', createdAt: '2023-06-30T09:30:00Z', status: 'active' },
-  { id: 'pu-019', phone: '+12125550119', name: 'Samuel Young',    email: 'samuel@example.com',  avatar: undefined, language: 'en', createdAt: '2023-09-05T10:00:00Z', status: 'active' },
-  { id: 'pu-020', phone: '+12125550120', name: 'Tina King',       email: 'tina@example.com',    avatar: undefined, language: 'en', createdAt: '2023-04-15T14:30:00Z', status: 'active' },
+  { id: 'pu-001', phone_number: '+12125550101', name: 'Alice Johnson',   email: 'alice@example.com',   avatar: undefined, language: 'en', createdAt: '2023-06-15T10:00:00Z', status: 'active' },
+  { id: 'pu-002', phone_number: '+12125550102', name: 'Bob Smith',       email: 'bob@example.com',     avatar: undefined, language: 'en', createdAt: '2023-07-20T09:30:00Z', status: 'active' },
+  { id: 'pu-003', phone_number: '+12125550103', name: 'Carol Davis',     email: 'carol@example.com',   avatar: undefined, language: 'en', createdAt: '2023-04-10T14:00:00Z', status: 'active' },
+  { id: 'pu-004', phone_number: '+12125550104', name: 'David Wilson',    email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-01-05T11:00:00Z', status: 'active' },
+  { id: 'pu-005', phone_number: '+12125550105', name: 'Emma Brown',      email: 'emma@example.com',    avatar: undefined, language: 'en', createdAt: '2023-03-01T08:00:00Z', status: 'active' },
+  { id: 'pu-006', phone_number: '+12125550106', name: 'Frank Garcia',    email: 'frank@example.com',   avatar: undefined, language: 'es', createdAt: '2023-09-12T13:00:00Z', status: 'active' },
+  { id: 'pu-007', phone_number: '+12125550107', name: 'Grace Lee',       email: 'grace@example.com',   avatar: undefined, language: 'en', createdAt: '2023-11-08T16:00:00Z', status: 'active' },
+  { id: 'pu-008', phone_number: '+12125550108', name: 'Henry Martinez',  email: undefined,             avatar: undefined, language: 'es', createdAt: '2024-02-14T10:30:00Z', status: 'active' },
+  { id: 'pu-009', phone_number: '+12125550109', name: 'Iris Chen',       email: 'iris@example.com',    avatar: undefined, language: 'zh', createdAt: '2023-08-25T15:00:00Z', status: 'active' },
+  { id: 'pu-010', phone_number: '+12125550110', name: 'James Taylor',    email: 'james@example.com',   avatar: undefined, language: 'en', createdAt: '2023-05-30T12:00:00Z', status: 'active' },
+  { id: 'pu-011', phone_number: '+12125550111', name: 'Karen White',     email: 'karen@example.com',   avatar: undefined, language: 'en', createdAt: '2023-10-17T09:00:00Z', status: 'active' },
+  { id: 'pu-012', phone_number: '+12125550112', name: 'Liam Anderson',   email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-03-22T14:00:00Z', status: 'active' },
+  { id: 'pu-013', phone_number: '+12125550113', name: 'Mia Jackson',     email: 'mia@example.com',     avatar: undefined, language: 'en', createdAt: '2023-12-01T10:00:00Z', status: 'active' },
+  { id: 'pu-014', phone_number: '+12125550114', name: 'Noah Harris',     email: 'noah@example.com',    avatar: undefined, language: 'en', createdAt: '2023-07-07T11:00:00Z', status: 'active' },
+  { id: 'pu-015', phone_number: '+12125550115', name: 'Olivia Thomas',   email: 'olivia@example.com',  avatar: undefined, language: 'en', createdAt: '2023-02-20T08:30:00Z', status: 'active' },
+  { id: 'pu-016', phone_number: '+12125550116', name: 'Peter Robinson',  email: 'peter@example.com',   avatar: undefined, language: 'en', createdAt: '2024-04-10T13:00:00Z', status: 'active' },
+  { id: 'pu-017', phone_number: '+12125550117', name: 'Quinn Walker',    email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-01-18T16:00:00Z', status: 'active' },
+  { id: 'pu-018', phone_number: '+12125550118', name: 'Rachel Hall',     email: 'rachel@example.com',  avatar: undefined, language: 'en', createdAt: '2023-06-30T09:30:00Z', status: 'active' },
+  { id: 'pu-019', phone_number: '+12125550119', name: 'Samuel Young',    email: 'samuel@example.com',  avatar: undefined, language: 'en', createdAt: '2023-09-05T10:00:00Z', status: 'active' },
+  { id: 'pu-020', phone_number: '+12125550120', name: 'Tina King',       email: 'tina@example.com',    avatar: undefined, language: 'en', createdAt: '2023-04-15T14:30:00Z', status: 'active' },
   // ── Additional users for realistic list density ──
-  { id: 'pu-021', phone: '+12125550121', name: 'Uma Scott',       email: 'uma@example.com',     avatar: undefined, language: 'en', createdAt: '2024-05-01T11:00:00Z', status: 'active' },
-  { id: 'pu-022', phone: '+12125550122', name: 'Victor Green',    email: undefined,             avatar: undefined, language: 'pt', createdAt: '2024-02-28T09:00:00Z', status: 'active' },
-  { id: 'pu-023', phone: '+12125550123', name: 'Wendy Adams',     email: 'wendy@example.com',   avatar: undefined, language: 'en', createdAt: '2023-11-20T15:00:00Z', status: 'active' },
-  { id: 'pu-024', phone: '+12125550124', name: 'Xavier Baker',    email: 'xavier@example.com',  avatar: undefined, language: 'en', createdAt: '2023-08-14T10:00:00Z', status: 'active' },
-  { id: 'pu-025', phone: '+12125550125', name: 'Yara Nelson',     email: 'yara@example.com',    avatar: undefined, language: 'ar', createdAt: '2024-01-30T12:00:00Z', status: 'active' },
-  { id: 'pu-026', phone: '+12125550126', name: 'Zoe Carter',      email: 'zoe@example.com',     avatar: undefined, language: 'en', createdAt: '2023-10-05T09:30:00Z', status: 'active' },
-  { id: 'pu-027', phone: '+12125550127', name: 'Aaron Mitchell',  email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-03-08T14:00:00Z', status: 'active' },
-  { id: 'pu-028', phone: '+12125550128', name: 'Bella Perez',     email: 'bella@example.com',   avatar: undefined, language: 'es', createdAt: '2023-12-18T11:00:00Z', status: 'active' },
-  { id: 'pu-029', phone: '+12125550129', name: 'Carlos Rivera',   email: 'carlos@example.com',  avatar: undefined, language: 'es', createdAt: '2023-05-22T10:30:00Z', status: 'active' },
-  { id: 'pu-030', phone: '+12125550130', name: 'Diana Evans',     email: 'diana@example.com',   avatar: undefined, language: 'en', createdAt: '2023-07-11T08:00:00Z', status: 'active' },
+  { id: 'pu-021', phone_number: '+12125550121', name: 'Uma Scott',       email: 'uma@example.com',     avatar: undefined, language: 'en', createdAt: '2024-05-01T11:00:00Z', status: 'active' },
+  { id: 'pu-022', phone_number: '+12125550122', name: 'Victor Green',    email: undefined,             avatar: undefined, language: 'pt', createdAt: '2024-02-28T09:00:00Z', status: 'active' },
+  { id: 'pu-023', phone_number: '+12125550123', name: 'Wendy Adams',     email: 'wendy@example.com',   avatar: undefined, language: 'en', createdAt: '2023-11-20T15:00:00Z', status: 'active' },
+  { id: 'pu-024', phone_number: '+12125550124', name: 'Xavier Baker',    email: 'xavier@example.com',  avatar: undefined, language: 'en', createdAt: '2023-08-14T10:00:00Z', status: 'active' },
+  { id: 'pu-025', phone_number: '+12125550125', name: 'Yara Nelson',     email: 'yara@example.com',    avatar: undefined, language: 'ar', createdAt: '2024-01-30T12:00:00Z', status: 'active' },
+  { id: 'pu-026', phone_number: '+12125550126', name: 'Zoe Carter',      email: 'zoe@example.com',     avatar: undefined, language: 'en', createdAt: '2023-10-05T09:30:00Z', status: 'active' },
+  { id: 'pu-027', phone_number: '+12125550127', name: 'Aaron Mitchell',  email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-03-08T14:00:00Z', status: 'active' },
+  { id: 'pu-028', phone_number: '+12125550128', name: 'Bella Perez',     email: 'bella@example.com',   avatar: undefined, language: 'es', createdAt: '2023-12-18T11:00:00Z', status: 'active' },
+  { id: 'pu-029', phone_number: '+12125550129', name: 'Carlos Rivera',   email: 'carlos@example.com',  avatar: undefined, language: 'es', createdAt: '2023-05-22T10:30:00Z', status: 'active' },
+  { id: 'pu-030', phone_number: '+12125550130', name: 'Diana Evans',     email: 'diana@example.com',   avatar: undefined, language: 'en', createdAt: '2023-07-11T08:00:00Z', status: 'active' },
   // ── Suspended / inactive users (edge case testing) ──
-  { id: 'pu-031', phone: '+12125550131', name: 'Ethan Collins',   email: 'ethan@example.com',   avatar: undefined, language: 'en', createdAt: '2023-09-29T13:00:00Z', status: 'suspended' },
-  { id: 'pu-032', phone: '+12125550132', name: 'Fiona Stewart',   email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-04-20T10:00:00Z', status: 'inactive' },
+  { id: 'pu-031', phone_number: '+12125550131', name: 'Ethan Collins',   email: 'ethan@example.com',   avatar: undefined, language: 'en', createdAt: '2023-09-29T13:00:00Z', status: 'suspended' },
+  { id: 'pu-032', phone_number: '+12125550132', name: 'Fiona Stewart',   email: undefined,             avatar: undefined, language: 'en', createdAt: '2024-04-20T10:00:00Z', status: 'inactive' },
 ]
 
 // ── BusinessCustomer — per-tenant relationships ───────────────────────────────
@@ -961,7 +961,7 @@ export const MOCK_CUSTOMER_COUPONS: CustomerCoupon[] = [
 // Customer Timeline Events (per user per tenant — chronological interaction log)
 export const MOCK_CUSTOMER_TIMELINE: CustomerTimelineEvent[] = [
   // ── Alice (pu-001) at tenant-savor-01 ──
-  { id: 'tl-a001', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'account_created',    title: 'Account created',                   description: 'Platform account registered via phone', createdAt: '2023-06-15T10:00:00Z' },
+  { id: 'tl-a001', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'account_created',    title: 'Account created',                   description: 'Platform account registered via phone_number', createdAt: '2023-06-15T10:00:00Z' },
   { id: 'tl-a002', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'first_visit',        title: 'First visit at Savor',              description: 'First interaction at Downtown Branch',   branchId: 'downtown',  createdAt: '2023-06-20T12:00:00Z' },
   { id: 'tl-a003', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'order_placed',       title: 'Order placed',                      description: 'Wagyu Smash × 2, Carbonara × 1',         amount: 68.97, points: 207, branchId: 'downtown',  referenceId: 'ord-a-001', referenceType: 'order',   createdAt: '2023-06-20T12:05:00Z' },
   { id: 'tl-a004', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'points_earned',      title: '207 points earned',                 description: 'From order #A-001',                      points: 207,  createdAt: '2023-06-20T12:30:00Z' },

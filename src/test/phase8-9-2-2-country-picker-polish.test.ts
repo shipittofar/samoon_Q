@@ -5,8 +5,8 @@
  * fuzzy search, scoring, timezone detection, localStorage functions,
  * data integrity, RTL safety, no duplication between sections.
  *
- * Does NOT test authentication, OTP, or phone formatting (covered in
- * phase8-9-2-phone-auth.test.ts).
+ * Does NOT test authentication, OTP, or phone_number formatting (covered in
+ * phase8-9-2-phone_number-auth.test.ts).
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'

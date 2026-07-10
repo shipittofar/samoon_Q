@@ -155,7 +155,7 @@ describe('platform keyboard simulations', () => {
     expect(mh).toBe(`${Math.round(380 * 0.92)}px`)
   })
 
-  it('landscape phone — very short viewport above keyboard', () => {
+  it('landscape phone_number — very short viewport above keyboard', () => {
     // Landscape orientation: window.innerHeight=375, keyboard≈215, vv.height≈160
     const state = computeViewportState(375, 160, 0)
     expect(state.keyboardHeight).toBe(215)
@@ -230,7 +230,7 @@ describe('selected row visibility contract', () => {
       [350, 494],  // iPhone keyboard open
       [380, 470],  // Android with nav
       [430, 380],  // iPad landscape
-      [215, 160],  // landscape phone
+      [215, 160],  // landscape phone_number
     ]
     for (const [kh, vh] of cases) {
       const state: ViewportState = { keyboardHeight: kh, viewportHeight: vh }

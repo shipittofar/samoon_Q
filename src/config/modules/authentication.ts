@@ -58,7 +58,7 @@ export const AUTHENTICATION_MODULE: ConfigModuleDefinition = {
           display: { icon: 'Phone', displayOrder: 2 },
           governance: { securityLevel: 'medium', runtimeReloadable: true },
           dependency: { hiddenWhen: { fieldId: 'authentication.enabled', equals: false } },
-          search: { keywords: ['phone', 'sms login'] },
+          search: { keywords: ['phone_number', 'sms login'] },
         }),
         defineField({
           id: 'authentication.email_login_enabled',

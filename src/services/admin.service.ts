@@ -88,7 +88,7 @@ function buildAdminCustomers(tenantId: string): AdminCustomer[] {
     return {
       id: bc.userId,
       email: pu?.email ?? '',
-      phone: pu?.phone ?? '',
+      phone_number: pu?.phone_number ?? '',
       first_name: pu?.name.split(' ')[0] ?? '',
       last_name: pu?.name.split(' ').slice(1).join(' ') ?? '',
       avatar: pu?.avatar,
@@ -130,7 +130,7 @@ function applyReservationFilters(
   if (filters.search) {
     const q = filters.search.toLowerCase()
     result = result.filter(
-      (r) => r.name.toLowerCase().includes(q) || r.phone.includes(filters.search!),
+      (r) => r.name.toLowerCase().includes(q) || r.phone_number.includes(filters.search!),
     )
   }
   return result

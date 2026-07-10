@@ -39,7 +39,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         tagline: 'Where every dish tells a story.',
         priceLevel: 3,
         amenities: ['WiFi', 'Parking', 'Outdoor Seating', 'Accessible'],
-        phone: '+1 (212) 555-0100',
+        phone_number: '+1 (212) 555-0100',
         email: 'hello@savor.com',
         website: 'https://www.savor.com',
         gallery: [
@@ -50,9 +50,9 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone: '+1 212 555 0100', openNow: true, todayHours: '10:00–23:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
-          { slug: 'downtown', name: 'Downtown Branch', address: '456 Urban Street', city: 'New York', phone: '+1 212 555 0200', openNow: true, todayHours: '11:00–22:00', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80' },
-          { slug: 'airport', name: 'Airport Branch', address: 'JFK Terminal 4', city: 'New York', phone: '+1 212 555 0300', openNow: false, todayHours: '06:00–23:00', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80' },
+          { slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone_number: '+1 212 555 0100', openNow: true, todayHours: '10:00–23:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
+          { slug: 'downtown', name: 'Downtown Branch', address: '456 Urban Street', city: 'New York', phone_number: '+1 212 555 0200', openNow: true, todayHours: '11:00–22:00', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80' },
+          { slug: 'airport', name: 'Airport Branch', address: 'JFK Terminal 4', city: 'New York', phone_number: '+1 212 555 0300', openNow: false, todayHours: '06:00–23:00', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80' },
         ],
       },
     },
@@ -82,7 +82,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         tagline: 'Your daily ritual, elevated.',
         priceLevel: 2,
         amenities: ['WiFi', 'Outdoor Seating'],
-        phone: '+1 (212) 555-0400',
+        phone_number: '+1 (212) 555-0400',
         email: 'hello@brewcafe.com',
         gallery: [
           'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
@@ -90,8 +90,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'Midtown Cafe', address: '789 Coffee Lane', city: 'New York', phone: '+1 212 555 0400', openNow: true, todayHours: '07:00–20:00', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=80' },
-          { slug: 'brooklyn-cafe', name: 'Brooklyn Cafe', address: '321 Brew Boulevard', city: 'Brooklyn', phone: '+1 718 555 0500', openNow: true, todayHours: '08:00–19:00', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80' },
+          { slug: 'main', name: 'Midtown Cafe', address: '789 Coffee Lane', city: 'New York', phone_number: '+1 212 555 0400', openNow: true, todayHours: '07:00–20:00', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=80' },
+          { slug: 'brooklyn-cafe', name: 'Brooklyn Cafe', address: '321 Brew Boulevard', city: 'Brooklyn', phone_number: '+1 718 555 0500', openNow: true, todayHours: '08:00–19:00', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80' },
         ],
       },
     },
@@ -121,7 +121,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         tagline: 'Craft cocktails. Live music. Good company.',
         priceLevel: 2,
         amenities: ['Parking', 'Pet Friendly'],
-        phone: '+1 (212) 555-0600',
+        phone_number: '+1 (212) 555-0600',
         email: 'hello@theoakbar.com',
         gallery: [
           'https://images.unsplash.com/photo-1543007631-283050bb3e8c?w=800&q=80',
@@ -129,7 +129,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1514362453360-8f94243c9996?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'East Village', address: '555 Tap Street', city: 'New York', phone: '+1 212 555 0600', openNow: false, todayHours: '16:00–02:00', image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&q=80' },
+          { slug: 'main', name: 'East Village', address: '555 Tap Street', city: 'New York', phone_number: '+1 212 555 0600', openNow: false, todayHours: '16:00–02:00', image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&q=80' },
         ],
       },
     },
@@ -159,7 +159,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         tagline: 'Every cuisine under one roof.',
         priceLevel: 1,
         amenities: ['Parking', 'Accessible', 'Family Area'],
-        phone: '+1 (212) 555-0700',
+        phone_number: '+1 (212) 555-0700',
         email: 'hello@centralfoodcourt.com',
         gallery: [
           'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
@@ -167,7 +167,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'Westside Food Court', address: '100 Market Street', city: 'New York', phone: '+1 212 555 0700', openNow: true, todayHours: '10:00–21:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
+          { slug: 'main', name: 'Westside Food Court', address: '100 Market Street', city: 'New York', phone_number: '+1 212 555 0700', openNow: true, todayHours: '10:00–21:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
         ],
       },
     },
@@ -221,7 +221,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         tagline: 'Good coffee wherever life takes you.',
         priceLevel: 1,
         amenities: ['Outdoor Seating', 'Pet Friendly'],
-        phone: '+1 (212) 555-1000',
+        phone_number: '+1 (212) 555-1000',
         email: 'hello@wheelsandbrews.com',
         gallery: [
           'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80',
@@ -229,7 +229,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'Brew Cart (Central Park)', address: 'Central Park South Entrance', city: 'New York', phone: '+1 212 555 1000', openNow: true, todayHours: '07:00–17:00', image: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=400&q=80' },
+          { slug: 'main', name: 'Brew Cart (Central Park)', address: 'Central Park South Entrance', city: 'New York', phone_number: '+1 212 555 1000', openNow: true, todayHours: '07:00–17:00', image: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=400&q=80' },
         ],
       },
     },

@@ -544,7 +544,7 @@ function ContentTab({
       <div className="space-y-4">
         <p className="text-sm font-semibold text-[var(--fg)] border-b border-[var(--border)] pb-2">{t('contactLabel')}</p>
         <div className="grid grid-cols-2 gap-4">
-          <Field label={t('phoneLabel')}><TextInput value={contact.phone} onChange={(v) => setContact('phone', v)} placeholder="+1 555 000 0000" /></Field>
+          <Field label={t('phoneLabel')}><TextInput value={contact.phone_number} onChange={(v) => setContact('phone_number', v)} placeholder="+1 555 000 0000" /></Field>
           <Field label={t('emailLabel')}><TextInput value={contact.email} onChange={(v) => setContact('email', v)} placeholder="hello@restaurant.com" /></Field>
           <Field label={t('websiteLabel')}><TextInput value={contact.website} onChange={(v) => setContact('website', v)} placeholder="https://…" /></Field>
           <Field label={t('whatsappLabel')}><TextInput value={contact.whatsapp} onChange={(v) => setContact('whatsapp', v)} placeholder="+1 555 000 0000" /></Field>
@@ -779,7 +779,7 @@ function BranchOverridesForm({
         <Field label={t('heroSubheadlineLabel')}><TextInput value={current.heroSubheadline} onChange={(v) => set('heroSubheadline', v)} placeholder={t('branchSpecificSubheadlinePlaceholder')} /></Field>
         <Field label={t('heroImageUrlLabel')}><TextInput value={current.heroImage} onChange={(v) => set('heroImage', v)} placeholder="https://…" /></Field>
         <Field label={t('branchDescriptionLabel')}><TextInput value={current.description} onChange={(v) => set('description', v)} multiline placeholder={t('locatedInPlaceholder')} /></Field>
-        <Field label={t('branchPhoneLabel')}><TextInput value={current.phone} onChange={(v) => set('phone', v)} placeholder="+1 555 000 0000" /></Field>
+        <Field label={t('branchPhoneLabel')}><TextInput value={current.phone_number} onChange={(v) => set('phone_number', v)} placeholder="+1 555 000 0000" /></Field>
         <Field label={t('aboutBranchSpecificLabel')}><TextInput value={current.about} onChange={(v) => set('about', v)} multiline placeholder={t('ourDowntownLocationPlaceholder')} /></Field>
       </div>
       <button

@@ -53,7 +53,7 @@
     "confirmPassword": "Confirm Password",
     "firstName": "First Name",
     "lastName": "Last Name",
-    "phone": "Phone Number",
+    "phone_number": "Phone Number",
     "rememberMe": "Remember me",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
@@ -61,7 +61,7 @@
     "registerSuccess": "Account created successfully!",
     "logoutSuccess": "See you next time!",
     "welcome": "Welcome",
-    "enterPhoneToContinue": "Enter your phone number to continue",
+    "enterPhoneToContinue": "Enter your phone_number number to continue",
     "phoneNumber": "Phone number",
     "phoneHint": "We'll send a 6-digit code to verify your number",
     "orTryDemo": "or try a demo account",
@@ -369,7 +369,7 @@
     "time": "Time",
     "guests": "Number of Guests",
     "name": "Full Name",
-    "phone": "Phone Number",
+    "phone_number": "Phone Number",
     "email": "Email",
     "notes": "Special Requests",
     "confirm": "Book Table",
@@ -650,7 +650,7 @@
   },
   "validation": {
     "required": "This field is required",
-    "invalid_phone": "Enter a valid phone number",
+    "invalid_phone": "Enter a valid phone_number number",
     "invalid_email": "Valid email required",
     "invalid_password": "Password must be at least 6 characters",
     "otp_expired": "This code has expired. Please request a new one.",
@@ -1162,7 +1162,7 @@
     "reservationsPageSubtitle": "Manage table bookings across all branches",
     "previewReservationPage": "Preview Reservation Page",
     "totalLabel": "Total",
-    "searchReservationsPlaceholder": "Search by name or phone…",
+    "searchReservationsPlaceholder": "Search by name or phone_number…",
     "reservationTableHeaders": {
       "guest": "Guest",
       "dateTime": "Date & Time",
@@ -1188,7 +1188,7 @@
     "confirmation": "Confirmation",
     "guestInformation": "Guest Information",
     "name": "Name",
-    "phone": "Phone",
+    "phone_number": "Phone",
     "email": "Email",
     "viewCustomerProfileArrow": "View customer profile →",
     "viewAuditLogsForThisReservation": "View audit logs for this reservation",
@@ -1602,7 +1602,7 @@
     "aboutBranchSpecificLabel": "About (branch-specific)",
     "ourDowntownLocationPlaceholder": "Our downtown location…",
     "saveBranchOverrides": "Save Branch Overrides",
-    "branchesTabDescription": "Override hero content, images, description, and phone number for a specific branch without changing the main website.",
+    "branchesTabDescription": "Override hero content, images, description, and phone_number number for a specific branch without changing the main website.",
     "branchSlugLabel": "Branch Slug",
     "branchSlugPlaceholder": "e.g. downtown, westside",
     "noTenantSelected": "No tenant selected.",
@@ -3588,7 +3588,7 @@
           },
           "phone_example": {
             "title": "Example Phone Number",
-            "description": "National-format example shown in phone input placeholders."
+            "description": "National-format example shown in phone_number input placeholders."
           },
           "vat_supported": {
             "title": "VAT / Tax Support"

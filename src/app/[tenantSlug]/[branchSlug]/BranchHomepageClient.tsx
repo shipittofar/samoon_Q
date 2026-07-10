@@ -216,9 +216,9 @@ function QuickActions({
         ))}
 
         {/* Branch-specific CTAs — not feature-flag-gated; always shown when available */}
-        {branch.phone && (
+        {branch.phone_number && (
           <a
-            href={`tel:${branch.phone.replace(/\s/g, '')}`}
+            href={`tel:${branch.phone_number.replace(/\s/g, '')}`}
             className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
             <Phone className="w-4 h-4" aria-hidden="true" />{t('call')}
@@ -261,10 +261,10 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
             <p>{branch.city}</p>
           </div>
         </div>
-        {branch.phone && (
+        {branch.phone_number && (
           <div className="flex items-center gap-3 text-[var(--fg-muted)]">
             <Phone className="w-4 h-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
-            <a href={`tel:${branch.phone.replace(/\s/g, '')}`} className="hover:text-[var(--fg)] transition-colors">{branch.phone}</a>
+            <a href={`tel:${branch.phone_number.replace(/\s/g, '')}`} className="hover:text-[var(--fg)] transition-colors">{branch.phone_number}</a>
           </div>
         )}
         {branch.todayHours && (

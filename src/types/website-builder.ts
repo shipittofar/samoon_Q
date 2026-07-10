@@ -81,7 +81,7 @@ export interface AboutContent {
 }
 
 export interface ContactContent {
-  phone?: string
+  phone_number?: string
   email?: string
   website?: string
   whatsapp?: string
@@ -146,7 +146,7 @@ export interface BranchContentOverrides {
   heroSubheadline?: string
   heroImage?: string
   description?: string
-  phone?: string
+  phone_number?: string
   gallery?: string[]
   about?: string
 }

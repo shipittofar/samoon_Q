@@ -17,7 +17,7 @@
 interface User {
   id: string               // UUID or string PK
   email: string            // Unique, required
-  phone?: string           // Optional E.164 format
+  phone_number?: string           // Optional E.164 format
   first_name: string       // Required
   last_name: string        // Required
   avatar?: string          // URL to avatar image
@@ -57,7 +57,7 @@ interface AuthTokens {
 ```typescript
 interface RegisterData {
   email: string
-  phone?: string
+  phone_number?: string
   password: string
   confirm_password: string
   first_name: string
@@ -75,7 +75,7 @@ interface RegisterData {
 
 ```typescript
 interface OTPVerifyData {
-  phone: string   // E.164 format
+  phone_number: string   // E.164 format
   otp: string     // Numeric OTP string
 }
 ```
@@ -332,7 +332,7 @@ interface Reservation {
   guests: number            // Positive integer
   notes?: string
   name: string              // Guest name
-  phone: string             // Guest phone
+  phone_number: string             // Guest phone_number
   email?: string            // Guest email
   status: ReservationStatus
   confirmation_code?: string // e.g. 'SAV-4521' (set on confirm)
@@ -371,7 +371,7 @@ interface Location {
   type?: LocationType
   address: string
   city: string
-  phone: string
+  phone_number: string
   email?: string
   lat: number
   lng: number
@@ -661,7 +661,7 @@ interface AdminReservationFilters {
   status?: ReservationStatus
   branch_id?: string
   date?: string       // ISO date: 'YYYY-MM-DD'
-  search?: string     // Matches name or phone
+  search?: string     // Matches name or phone_number
   page?: number
   page_size?: number
 }
@@ -739,7 +739,7 @@ interface CreateReservationPayload {
   time: string     // 'HH:MM' (24-hour)
   guests: number
   name: string
-  phone: string
+  phone_number: string
   email?: string
   notes?: string
 }
@@ -989,7 +989,7 @@ interface StaffMember {
   firstName: string
   lastName: string
   email: string
-  phone?: string
+  phone_number?: string
   role: 'branch_manager' | 'chef' | 'waiter' | 'cashier' | 'delivery'
   branchId: string
   tenantId: string

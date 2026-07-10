@@ -373,13 +373,13 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
 
         {/* Contact info */}
         <div className="space-y-3">
-          {meta.phone && (
+          {meta.phone_number && (
             <a
-              href={`tel:${meta.phone}`}
+              href={`tel:${meta.phone_number}`}
               className="flex items-center gap-3 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
             >
               <Phone className="w-4 h-4 shrink-0" aria-hidden="true" />
-              {meta.phone}
+              {meta.phone_number}
             </a>
           )}
           {meta.email && (
@@ -448,13 +448,13 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
             {branch.todayHours}
           </p>
         )}
-        {branch.phone && (
+        {branch.phone_number && (
           <a
-            href={`tel:${branch.phone}`}
+            href={`tel:${branch.phone_number}`}
             className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] flex items-center gap-1.5 mb-3"
           >
             <Phone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            {branch.phone}
+            {branch.phone_number}
           </a>
         )}
         <Link
