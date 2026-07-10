@@ -251,7 +251,12 @@ export function usePermission(permission: P7Permission, opts?: PermissionCheckOp
 
 /**
  * Returns true if the current user holds AT LEAST ONE of the given permissions.
- * Respects user overrides and feature flags.
+ * Respects user overrides and capability gates (opts.capabilities).
+ * P10.5.5 — does NOT apply the per-resource feature-flag gate that
+ * usePermission() applies (see docs/P10.5.5_PERMISSION_MODEL_FINALIZATION_AUDIT.md
+ * Phase E); `featureFlags` is only a memo dependency, not consulted in the
+ * body. Documented here rather than changed, since fixing it would alter
+ * authorization behavior — out of scope for a naming/comment-only pass.
  */
 export function useAnyPermission(permissions: P7Permission[], opts?: PermissionCheckOptions): boolean {
   const effectivePermissions = usePermissions()
@@ -270,7 +275,9 @@ export function useAnyPermission(permissions: P7Permission[], opts?: PermissionC
 
 /**
  * Returns true if the current user holds ALL of the given permissions.
- * Respects user overrides and feature flags.
+ * Respects user overrides and capability gates (opts.capabilities).
+ * P10.5.5 — does NOT apply the per-resource feature-flag gate that
+ * usePermission() applies; see the note on useAnyPermission() above.
  */
 export function useAllPermissions(permissions: P7Permission[], opts?: PermissionCheckOptions): boolean {
   const effectivePermissions = usePermissions()
