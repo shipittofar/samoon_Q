@@ -202,6 +202,47 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     createdBy: MOCK_OWNER_ID,
   },
   {
+    // P10.4.9 — closes the P10.0 J12/J13 id-space gap for the
+    // `staff@savor.com` MOCK_CREDENTIALS demo login (auth.service.ts),
+    // which previously had no matching StaffMember record, so
+    // resolveOwnershipIdentity() returned {} and only the legacy
+    // rbacService.hasPermission() fallback (`legacyGranted`) granted it
+    // /console access. See docs/P10.4.8_LEGACY_COMPATIBILITY_AUDIT.md
+    // Phase H and docs/P10.4.9_RBAC_MIGRATION_PREPARATION.md.
+    id: 'staff-staffdemo-01',
+    tenantId: MOCK_TENANT_ID,
+    userId: 'user-staffdemo-01',
+    email: 'staff@savor.com',
+    firstName: 'Stevie',
+    lastName: 'Staffdemo',
+    status: 'active',
+    roles: ['manager'],
+    invitedAt: daysAgo(110),
+    activatedAt: daysAgo(109),
+    lastSeenAt: daysAgo(0),
+    createdBy: MOCK_OWNER_ID,
+  },
+  {
+    // P10.4.9 — same id-space gap as staff-staffdemo-01 above, for the
+    // `multirole@savor.com` demo login. This account holds two roles
+    // (cashier + kitchen), realized as two separate active
+    // StaffAssignment rows in staff-assignment.service.ts — not
+    // collapsed into one — matching its MOCK_CREDENTIALS p7Roles:
+    // ['cashier', 'kitchen'].
+    id: 'staff-multirole-01',
+    tenantId: MOCK_TENANT_ID,
+    userId: 'user-multirole-01',
+    email: 'multirole@savor.com',
+    firstName: 'Multi',
+    lastName: 'Rolestaff',
+    status: 'active',
+    roles: ['cashier', 'kitchen'],
+    invitedAt: daysAgo(65),
+    activatedAt: daysAgo(64),
+    lastSeenAt: daysAgo(0),
+    createdBy: MOCK_OWNER_ID,
+  },
+  {
     id: 'staff-cashier-02',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-cashier-02',

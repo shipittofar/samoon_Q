@@ -190,6 +190,90 @@ const MOCK_STAFF_ASSIGNMENTS: StaffAssignment[] = [
     grantedBy: 'user-centralfc-owner-01',
     grantedAt: daysAgo(89),
   },
+
+  // ── P10.4.9 — staff@savor.com (staff-staffdemo-01) ────────────────────────
+  // Closes the P10.0 J12/J13 id-space gap: this demo login previously had
+  // no StaffMember/StaffAssignment fixture, so only the legacy
+  // rbacService.hasPermission() fallback ('legacyGranted') granted it
+  // /console access. See docs/P10.4.8_LEGACY_COMPATIBILITY_AUDIT.md
+  // Phase H and docs/P10.4.9_RBAC_MIGRATION_PREPARATION.md.
+  {
+    assignmentId: 'assign-011',
+    staffId: 'staff-staffdemo-01',
+    tenantId: 'tenant-savor-01',
+    branchIds: 'all',
+    role: 'manager',
+    mode: 'manage',
+    status: 'active',
+    grantedBy: 'user-owner-01',
+    grantedAt: daysAgo(109),
+  },
+
+  // ── P10.4.9 — multirole@savor.com (staff-multirole-01) ────────────────────
+  // Same id-space gap as assign-011, for the multirole@savor.com demo
+  // login. Two separate active assignments (cashier AND kitchen) — not
+  // collapsed into one — matching its MOCK_CREDENTIALS p7Roles:
+  // ['cashier', 'kitchen'].
+  {
+    assignmentId: 'assign-012',
+    staffId: 'staff-multirole-01',
+    tenantId: 'tenant-savor-01',
+    branchIds: ['branch-rest-01'],
+    role: 'cashier',
+    mode: 'manage',
+    status: 'active',
+    grantedBy: 'user-owner-01',
+    grantedAt: daysAgo(64),
+  },
+  {
+    assignmentId: 'assign-013',
+    staffId: 'staff-multirole-01',
+    tenantId: 'tenant-savor-01',
+    branchIds: ['branch-rest-01'],
+    role: 'kitchen',
+    mode: 'manage',
+    status: 'active',
+    grantedBy: 'user-owner-01',
+    grantedAt: daysAgo(64),
+  },
+
+  // ── P10.4.9 Phase B finding — admin@savor.com / kitchen@savor.com ─────────
+  // Discovered while verifying the Phase C regression test: staff-admin-01
+  // and staff-kitchen-01 (distinct from staff-kitchen-02, which already has
+  // assign-008) are role-named demo accounts with a real StaffMember
+  // record but, unlike manager@savor.com/cashier@savor.com, no
+  // StaffAssignment row at all — so useHasDashboardAccess()'s Staff branch
+  // (`staffAssignmentService.getEffectiveAssignments(...).length > 0`)
+  // returned false for both, and they too depended entirely on
+  // legacyGranted for /console access. Same class of gap as
+  // staff@savor.com/multirole@savor.com above; closed the same way so the
+  // Phase C proof (every console-capable demo account resolves without
+  // legacy RBAC) holds for the full account set, not just the two named in
+  // this phase's Phase A instructions. See
+  // docs/P10.4.9_RBAC_MIGRATION_PREPARATION.md "Diff Safety" for why this
+  // is still fixture-only, not a runtime-logic change.
+  {
+    assignmentId: 'assign-014',
+    staffId: 'staff-admin-01',
+    tenantId: 'tenant-savor-01',
+    branchIds: 'all',
+    role: 'admin',
+    mode: 'manage',
+    status: 'active',
+    grantedBy: 'user-owner-01',
+    grantedAt: daysAgo(149),
+  },
+  {
+    assignmentId: 'assign-015',
+    staffId: 'staff-kitchen-01',
+    tenantId: 'tenant-savor-01',
+    branchIds: ['branch-rest-01'],
+    role: 'kitchen',
+    mode: 'manage',
+    status: 'active',
+    grantedBy: 'user-manager-01',
+    grantedAt: daysAgo(79),
+  },
 ]
 
 let _assignmentStore: StaffAssignment[] = MOCK_STAFF_ASSIGNMENTS.map((a) => ({ ...a }))
