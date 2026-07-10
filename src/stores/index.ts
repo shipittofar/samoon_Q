@@ -32,7 +32,7 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
 import type { Branch as AdminBranch } from '@/types/branch'
 import type { Role } from '@/types/rbac'
-import type { TenantRoleAssignment, UserPermissionOverride, BranchRoleAssignment, RoleAssignment, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
+import type { TenantRoleAssignment, UserPermissionOverride, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
 import { getDirection } from '@/i18n/runtime'
@@ -458,20 +458,6 @@ interface RbacStoreState {
   clearUserOverride: (userId: string, tenantId: string) => void
   getUserOverride: (userId: string, tenantId: string) => UserPermissionOverride | undefined
 
-  // P8.5: Branch-scoped role assignments
-  branchRoles: BranchRoleAssignment[]
-  setBranchRoles: (tenantId: string, branchId: string, roles: Role[]) => void
-  getRolesForBranch: (tenantId: string, branchId: string) => Role[]
-  clearBranchRoles: (tenantId: string, branchId: string) => void
-
-  // P8.6: Extended role assignments with metadata
-  roleAssignments: RoleAssignment[]
-  addRoleAssignment: (assignment: RoleAssignment) => void
-  removeRoleAssignment: (assignmentId: string) => void
-  updateRoleAssignment: (assignmentId: string, updates: Partial<Omit<RoleAssignment, 'id'>>) => void
-  getRoleAssignmentsForUser: (userId: string, tenantId: string) => RoleAssignment[]
-  getActiveRoleAssignmentsForUser: (userId: string, tenantId: string) => RoleAssignment[]
-
   // P8.6: Custom role templates (tenant-admin managed)
   customRoles: CustomRoleTemplate[]
   addCustomRole: (role: CustomRoleTemplate) => void
@@ -493,8 +479,6 @@ export const useRbacStore = create<RbacStoreState>()(
     (set, get) => ({
       tenantRoles: [],
       userOverrides: [],
-      branchRoles: [],
-      roleAssignments: [],
       customRoles: [],
       rbacAuditLog: [],
 
@@ -550,51 +534,6 @@ export const useRbacStore = create<RbacStoreState>()(
       getUserOverride: (userId, tenantId) =>
         get().userOverrides.find((o) => o.userId === userId && o.tenantId === tenantId),
 
-      // Branch roles
-      setBranchRoles: (tenantId, branchId, roles) =>
-        set((s) => {
-          const filtered = s.branchRoles.filter(
-            (b) => !(b.tenantId === tenantId && b.branchId === branchId),
-          )
-          return { branchRoles: [...filtered, { tenantId, branchId, roles: [...new Set(roles)] }] }
-        }),
-
-      getRolesForBranch: (tenantId, branchId) =>
-        get().branchRoles.find((b) => b.tenantId === tenantId && b.branchId === branchId)?.roles ?? [],
-
-      clearBranchRoles: (tenantId, branchId) =>
-        set((s) => ({
-          branchRoles: s.branchRoles.filter(
-            (b) => !(b.tenantId === tenantId && b.branchId === branchId),
-          ),
-        })),
-
-      // P8.6: Extended role assignments
-      addRoleAssignment: (assignment) =>
-        set((s) => ({
-          roleAssignments: [...s.roleAssignments.filter((r) => r.id !== assignment.id), assignment],
-        })),
-      removeRoleAssignment: (assignmentId) =>
-        set((s) => ({ roleAssignments: s.roleAssignments.filter((r) => r.id !== assignmentId) })),
-      updateRoleAssignment: (assignmentId, updates) =>
-        set((s) => ({
-          roleAssignments: s.roleAssignments.map((r) =>
-            r.id === assignmentId ? { ...r, ...updates } : r,
-          ),
-        })),
-      getRoleAssignmentsForUser: (userId, tenantId) =>
-        get().roleAssignments.filter((r) => r.userId === userId && r.tenantId === tenantId),
-      getActiveRoleAssignmentsForUser: (userId, tenantId) => {
-        const now = new Date().toISOString()
-        return get().roleAssignments.filter(
-          (r) =>
-            r.userId === userId &&
-            r.tenantId === tenantId &&
-            r.enabled &&
-            (!r.expiresAt || r.expiresAt > now),
-        )
-      },
-
       // P8.6: Custom role templates
       addCustomRole: (role) =>
         set((s) => ({
@@ -622,8 +561,6 @@ export const useRbacStore = create<RbacStoreState>()(
       _resetStore: () => set({
         tenantRoles: [],
         userOverrides: [],
-        branchRoles: [],
-        roleAssignments: [],
         customRoles: [],
         rbacAuditLog: [],
       }),

@@ -155,16 +155,6 @@ export interface UserPermissionOverride {
   deny: P7Permission[]
 }
 
-/**
- * Role assignment scoped to a specific branch within a tenant.
- * Effective permissions in a branch context = union of tenant roles + branch roles.
- */
-export interface BranchRoleAssignment {
-  tenantId: string
-  branchId: string
-  roles: Role[]
-}
-
 /** Resolved effective permissions with source breakdown for the admin UI. */
 export interface EffectivePermissionResult {
   permission: P7Permission
@@ -189,26 +179,6 @@ export interface RoleTemplate {
 }
 
 // ── P8.6 Enterprise Extensions ────────────────────────────────────────────────
-
-/**
- * Extended role assignment with metadata for enterprise RBAC.
- * Supports branch-scoped assignments, expiry, priority, and audit trail.
- */
-export interface RoleAssignment {
-  id: string
-  userId: string
-  tenantId: string
-  role: Role
-  /** undefined = all branches (tenant-wide) */
-  branchId?: string
-  enabled: boolean
-  /** Higher number = evaluated first when resolving conflicts */
-  priority: number
-  /** ISO timestamp; undefined = no expiry */
-  expiresAt?: string
-  assignedBy: string
-  assignedAt: string
-}
 
 /**
  * Custom role template created by a tenant admin.

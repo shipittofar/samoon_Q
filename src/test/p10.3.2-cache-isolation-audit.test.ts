@@ -29,8 +29,6 @@ function populateTenantAState(qc: QueryClient) {
   useRbacStore.setState({
     tenantRoles: [{ tenantId: 'tenant-A', roles: ['owner'] }],
     userOverrides: [{ userId: 'u1', tenantId: 'tenant-A', grant: [], revoke: [] }],
-    branchRoles: [{ userId: 'u1', tenantId: 'tenant-A', branchId: 'branch-A-01', roles: ['manager'] }],
-    roleAssignments: [{ id: 'a1', userId: 'u1', tenantId: 'tenant-A', roleId: 'r1', assignedBy: 'u2', assignedAt: new Date().toISOString() }],
     customRoles: [{ id: 'r1', tenantId: 'tenant-A', name: 'Custom', permissions: [], createdBy: 'u2', createdAt: new Date().toISOString() }],
     rbacAuditLog: [{ id: 'e1', tenantId: 'tenant-A', actorId: 'u2', action: 'role.assigned', timestamp: new Date().toISOString() }],
   } as never)
@@ -89,8 +87,6 @@ describe('P10.3.2 Phase J — Cache Isolation Proof: Scenario 1 (Tenant A → lo
     expect(useBranchStore.getState().adminActiveBranch).toBeNull()
     expect(useRbacStore.getState().tenantRoles).toEqual([])
     expect(useRbacStore.getState().userOverrides).toEqual([])
-    expect(useRbacStore.getState().branchRoles).toEqual([])
-    expect(useRbacStore.getState().roleAssignments).toEqual([])
     expect(useRbacStore.getState().customRoles).toEqual([])
     expect(useRbacStore.getState().rbacAuditLog).toEqual([])
   })

@@ -2,7 +2,6 @@
  * P8.6 — Enterprise Permission Management (Advanced RBAC) — Test Suite
  *
  * Covers:
- *  A  — RoleAssignment store (metadata-rich assignments)
  *  B  — CustomRoleTemplate store
  *  C  — RbacAuditEvent store
  *  D  — PERMISSION_DEPENDENCIES
@@ -20,165 +19,9 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { useRbacStore } from '@/stores'
 import { PERMISSION_DEPENDENCIES, validatePermissionGrant, resolveWithDependencies, ALL_PERMISSIONS } from '@/services/permission.service'
-import type { RoleAssignment, CustomRoleTemplate, RbacAuditEvent, P7Permission } from '@/types/rbac'
+import type { CustomRoleTemplate, RbacAuditEvent, P7Permission } from '@/types/rbac'
 
 const src = (rel: string) => readFileSync(resolve(__dirname, '../../', rel), 'utf-8')
-
-// ── A — RoleAssignment store ──────────────────────────────────────────────────
-
-describe('A — RoleAssignment store', () => {
-  beforeEach(() => {
-    useRbacStore.getState()._resetStore()
-  })
-
-  it('starts with empty roleAssignments', () => {
-    expect(useRbacStore.getState().roleAssignments).toHaveLength(0)
-  })
-
-  it('addRoleAssignment appends an assignment', () => {
-    const assignment: RoleAssignment = {
-      id: 'ra-1',
-      userId: 'u1',
-      tenantId: 't1',
-      role: 'cashier',
-      enabled: true,
-      priority: 1,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    }
-    useRbacStore.getState().addRoleAssignment(assignment)
-    expect(useRbacStore.getState().roleAssignments).toHaveLength(1)
-    expect(useRbacStore.getState().roleAssignments[0].role).toBe('cashier')
-  })
-
-  it('removeRoleAssignment removes by id', () => {
-    const assignment: RoleAssignment = {
-      id: 'ra-2',
-      userId: 'u2',
-      tenantId: 't1',
-      role: 'kitchen',
-      enabled: true,
-      priority: 1,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    }
-    useRbacStore.getState().addRoleAssignment(assignment)
-    useRbacStore.getState().removeRoleAssignment('ra-2')
-    expect(useRbacStore.getState().roleAssignments).toHaveLength(0)
-  })
-
-  it('updateRoleAssignment patches fields', () => {
-    const assignment: RoleAssignment = {
-      id: 'ra-3',
-      userId: 'u3',
-      tenantId: 't1',
-      role: 'waiter',
-      enabled: true,
-      priority: 1,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    }
-    useRbacStore.getState().addRoleAssignment(assignment)
-    useRbacStore.getState().updateRoleAssignment('ra-3', { enabled: false, priority: 5 })
-    const updated = useRbacStore.getState().roleAssignments.find((a) => a.id === 'ra-3')
-    expect(updated?.enabled).toBe(false)
-    expect(updated?.priority).toBe(5)
-    expect(updated?.role).toBe('waiter')
-  })
-
-  it('getRoleAssignmentsForUser returns user assignments', () => {
-    useRbacStore.getState().addRoleAssignment({
-      id: 'ra-u1a',
-      userId: 'u1',
-      tenantId: 't1',
-      role: 'cashier',
-      enabled: true,
-      priority: 1,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    })
-    useRbacStore.getState().addRoleAssignment({
-      id: 'ra-u1b',
-      userId: 'u1',
-      tenantId: 't1',
-      role: 'kitchen',
-      enabled: false,
-      priority: 2,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    })
-    useRbacStore.getState().addRoleAssignment({
-      id: 'ra-u2',
-      userId: 'u2',
-      tenantId: 't1',
-      role: 'waiter',
-      enabled: true,
-      priority: 1,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    })
-    const u1 = useRbacStore.getState().getRoleAssignmentsForUser('u1', 't1')
-    expect(u1).toHaveLength(2)
-  })
-
-  it('getActiveRoleAssignmentsForUser returns only enabled assignments', () => {
-    useRbacStore.getState().addRoleAssignment({
-      id: 'ra-active',
-      userId: 'u1',
-      tenantId: 't1',
-      role: 'cashier',
-      enabled: true,
-      priority: 1,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    })
-    useRbacStore.getState().addRoleAssignment({
-      id: 'ra-disabled',
-      userId: 'u1',
-      tenantId: 't1',
-      role: 'kitchen',
-      enabled: false,
-      priority: 2,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    })
-    const active = useRbacStore.getState().getActiveRoleAssignmentsForUser('u1', 't1')
-    expect(active).toHaveLength(1)
-    expect(active[0].role).toBe('cashier')
-  })
-
-  it('getActiveRoleAssignmentsForUser filters expired assignments', () => {
-    const past = new Date(Date.now() - 1000).toISOString()
-    useRbacStore.getState().addRoleAssignment({
-      id: 'ra-expired',
-      userId: 'u1',
-      tenantId: 't1',
-      role: 'cashier',
-      enabled: true,
-      priority: 1,
-      expiresAt: past,
-      assignedBy: 'admin',
-      assignedAt: new Date().toISOString(),
-    })
-    const active = useRbacStore.getState().getActiveRoleAssignmentsForUser('u1', 't1')
-    expect(active).toHaveLength(0)
-  })
-
-  it('_resetStore clears roleAssignments', () => {
-    useRbacStore.getState().addRoleAssignment({
-      id: 'ra-x',
-      userId: 'ux',
-      tenantId: 'tx',
-      role: 'owner',
-      enabled: true,
-      priority: 0,
-      assignedBy: 'system',
-      assignedAt: new Date().toISOString(),
-    })
-    useRbacStore.getState()._resetStore()
-    expect(useRbacStore.getState().roleAssignments).toHaveLength(0)
-  })
-})
 
 // ── B — CustomRoleTemplate store ──────────────────────────────────────────────
 
@@ -608,7 +451,6 @@ describe('R — Regression', () => {
 
   it('rbac types file defines all P8.6 interfaces', () => {
     const rbacTypes = src('src/types/rbac.ts')
-    expect(rbacTypes).toContain('interface RoleAssignment')
     expect(rbacTypes).toContain('interface CustomRoleTemplate')
     expect(rbacTypes).toContain('interface PermissionDependency')
     expect(rbacTypes).toContain('interface RbacAuditEvent')
@@ -618,8 +460,6 @@ describe('R — Regression', () => {
 
   it('stores index exports all P8.6 store actions', () => {
     const storesSrc = src('src/stores/index.ts')
-    expect(storesSrc).toContain('roleAssignments')
-    expect(storesSrc).toContain('addRoleAssignment')
     expect(storesSrc).toContain('customRoles')
     expect(storesSrc).toContain('addCustomRole')
     expect(storesSrc).toContain('rbacAuditLog')
@@ -637,12 +477,10 @@ describe('R — Regression', () => {
     useRbacStore.getState()._resetStore()
   })
 
-  it('_resetStore clears all 6 state arrays', () => {
+  it('_resetStore clears all 4 state arrays', () => {
     const s = useRbacStore.getState()
     expect(s.tenantRoles).toHaveLength(0)
     expect(s.userOverrides).toHaveLength(0)
-    expect(s.branchRoles).toHaveLength(0)
-    expect(s.roleAssignments).toHaveLength(0)
     expect(s.customRoles).toHaveLength(0)
     expect(s.rbacAuditLog).toHaveLength(0)
   })

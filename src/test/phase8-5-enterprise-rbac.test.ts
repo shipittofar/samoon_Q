@@ -10,7 +10,6 @@
  * G = ROLE_TEMPLATES completeness
  * H = PERMISSION_CATEGORIES completeness
  * I = UserPermissionOverride type structure
- * J = BranchRoleAssignment type structure
  * K = EffectivePermissionResult type structure
  * L = useRbacStore P8.5 extensions
  */
@@ -311,21 +310,6 @@ describe('I — UserPermissionOverride type structure', () => {
   })
 })
 
-// ── J — BranchRoleAssignment type ─────────────────────────────────────────────
-
-describe('J — BranchRoleAssignment type structure', () => {
-  it('has tenantId, branchId, roles fields', () => {
-    const assignment: import('@/types/rbac').BranchRoleAssignment = {
-      tenantId: 't1',
-      branchId: 'branch-01',
-      roles: ['cashier', 'waiter'],
-    }
-    expect(assignment.tenantId).toBe('t1')
-    expect(assignment.branchId).toBe('branch-01')
-    expect(assignment.roles).toContain('cashier')
-  })
-})
-
 // ── K — EffectivePermissionResult type ────────────────────────────────────────
 
 describe('K — EffectivePermissionResult type structure', () => {
@@ -346,7 +330,7 @@ describe('K — EffectivePermissionResult type structure', () => {
 
 // ── L — useRbacStore P8.5 extensions ─────────────────────────────────────────
 
-describe('L — useRbacStore P8.5 overrides & branch roles', () => {
+describe('L — useRbacStore P8.5 overrides', () => {
   beforeEach(async () => {
     const { useRbacStore } = await import('@/stores')
     useRbacStore.getState()._resetStore()
@@ -393,43 +377,10 @@ describe('L — useRbacStore P8.5 overrides & branch roles', () => {
     expect(useRbacStore.getState().userOverrides).toHaveLength(0)
   })
 
-  it('initial branchRoles is empty', async () => {
-    const { useRbacStore } = await import('@/stores')
-    expect(useRbacStore.getState().branchRoles).toHaveLength(0)
-  })
-
-  it('setBranchRoles adds a branch role assignment', async () => {
-    const { useRbacStore } = await import('@/stores')
-    useRbacStore.getState().setBranchRoles('t1', 'branch-01', ['cashier'])
-    expect(useRbacStore.getState().branchRoles).toHaveLength(1)
-  })
-
-  it('getRolesForBranch returns roles for known branch', async () => {
-    const { useRbacStore } = await import('@/stores')
-    useRbacStore.getState().setBranchRoles('t1', 'branch-01', ['waiter', 'cashier'])
-    const roles = useRbacStore.getState().getRolesForBranch('t1', 'branch-01')
-    expect(roles).toContain('waiter')
-    expect(roles).toContain('cashier')
-  })
-
-  it('getRolesForBranch returns [] for unknown branch', async () => {
-    const { useRbacStore } = await import('@/stores')
-    expect(useRbacStore.getState().getRolesForBranch('t1', 'unknown')).toHaveLength(0)
-  })
-
-  it('clearBranchRoles removes branch assignment', async () => {
-    const { useRbacStore } = await import('@/stores')
-    useRbacStore.getState().setBranchRoles('t1', 'branch-01', ['cashier'])
-    useRbacStore.getState().clearBranchRoles('t1', 'branch-01')
-    expect(useRbacStore.getState().branchRoles).toHaveLength(0)
-  })
-
-  it('_resetStore clears overrides and branchRoles', async () => {
+  it('_resetStore clears overrides', async () => {
     const { useRbacStore } = await import('@/stores')
     useRbacStore.getState().setUserOverride('u1', 't1', ['analytics.view'], [])
-    useRbacStore.getState().setBranchRoles('t1', 'b1', ['cashier'])
     useRbacStore.getState()._resetStore()
     expect(useRbacStore.getState().userOverrides).toHaveLength(0)
-    expect(useRbacStore.getState().branchRoles).toHaveLength(0)
   })
 })

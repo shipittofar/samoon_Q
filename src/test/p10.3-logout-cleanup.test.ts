@@ -23,10 +23,6 @@ describe('P10.3 Phase G — useLogout clears full RBAC state', () => {
     useRbacStore.setState({
       tenantRoles: [{ tenantId: 't1', roles: ['owner'] }],
       userOverrides: [{ userId: 'u1', tenantId: 't1', grant: [], revoke: [] }],
-      branchRoles: [{ userId: 'u1', tenantId: 't1', branchId: 'b1', roles: ['manager'] }],
-      roleAssignments: [
-        { id: 'a1', userId: 'u1', tenantId: 't1', roleId: 'r1', assignedBy: 'u2', assignedAt: new Date().toISOString() },
-      ],
       customRoles: [
         { id: 'r1', tenantId: 't1', name: 'Custom', permissions: [], createdBy: 'u2', createdAt: new Date().toISOString() },
       ],
@@ -40,8 +36,6 @@ describe('P10.3 Phase G — useLogout clears full RBAC state', () => {
     const state = useRbacStore.getState()
     expect(state.tenantRoles).toEqual([])
     expect(state.userOverrides).toEqual([])
-    expect(state.branchRoles).toEqual([])
-    expect(state.roleAssignments).toEqual([])
     expect(state.customRoles).toEqual([])
     expect(state.rbacAuditLog).toEqual([])
   })
