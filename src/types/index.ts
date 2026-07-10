@@ -765,37 +765,6 @@ export type LegacyPermission =
   | 'branches:manage'
   | 'notifications:read'
 
-/**
- * P7 permission strings (P7.1 — dot-notation).
- * Authorization formula: Permission AND Capability AND FeatureFlag.
- * This is the canonical Permission type going forward.
- */
-export type Permission =
-  | 'orders.view'
-  | 'orders.manage'
-  | 'menu.view'
-  | 'menu.manage'
-  | 'reservations.view'
-  | 'reservations.manage'
-  | 'customers.view'
-  | 'customers.manage'
-  | 'vendors.view'
-  | 'vendors.manage'
-  | 'promotions.view'
-  | 'promotions.manage'
-  | 'loyalty.view'
-  | 'loyalty.manage'
-  | 'analytics.view'
-  | 'staff.view'
-  | 'staff.manage'
-  | 'branches.view'
-  | 'branches.manage'
-  | 'settings.view'
-  | 'settings.manage'
-  | 'tenant.view'
-  | 'tenant.manage'
-  | 'audit.view'
-
 // Re-export P7 types from rbac module for consumers that import from '@/types'
 export type {
   Role,

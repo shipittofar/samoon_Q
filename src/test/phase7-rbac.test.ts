@@ -1020,8 +1020,14 @@ describe('Regression — types/index.ts exports', () => {
   it('exports LegacyPermission type', () => {
     expect(src()).toContain('LegacyPermission')
   })
-  it('new Permission type uses dot-notation', () => {
-    expect(src()).toContain("'orders.view'")
+  it('P7Permission is the single authoritative permission type', () => {
+    // The superseded `export type Permission = ...` dot-notation duplicate
+    // is gone — types/index.ts re-exports P7Permission from rbac.ts instead.
+    expect(src()).not.toContain('export type Permission =')
+    expect(src()).toContain('P7Permission')
+    const rbacSrc = fs.readFileSync(path.join(ROOT, 'src/types/rbac.ts'), 'utf8')
+    expect(rbacSrc).toContain('export type P7Permission')
+    expect(rbacSrc).toContain("'orders.view'")
   })
   it('exports UserTenantRole re-export', () => {
     expect(src()).toContain('UserTenantRole')

@@ -9,7 +9,7 @@ import { useTenantStore } from '@/stores'
 import { useFeatureFlag } from '@/hooks'
 import { DEFAULT_TENANT } from '@/constants'
 import { tenantService } from '@/services/tenant.service'
-import type { Permission, Tenant, UserRole } from '@/types'
+import type { Tenant, UserRole } from '@/types'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
