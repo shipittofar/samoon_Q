@@ -129,6 +129,7 @@ function VerifyPageInner() {
               : getPostLoginRedirect(result.user.role, result.user.email)
 
         // Brief pause for success animation, then redirect
+        
         setTimeout(() => router.push(dest), prefersReducedMotion ? 100 : 1200)
       },
       onError: () => {
