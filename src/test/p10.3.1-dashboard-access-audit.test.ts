@@ -1,6 +1,4 @@
-// ============================================================
 // P10.3.1 — Enterprise Ownership Enforcement Verification Audit
-//
 // Finding: useHasDashboardAccess() (src/hooks/index.ts) is the ACTUAL
 // gate AuthGuard uses for the entire /console route tree
 // (app/console/layout.tsx: <AuthGuard requiredPermission="dashboard:access">),
@@ -12,7 +10,7 @@
 // suspended/removed Staff member, or anyone on an archived tenant could
 // still pass AuthGuard and reach /console. Fixed by wiring the same
 // eligibility predicates into useHasDashboardAccess().
-// ============================================================
+
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useHasDashboardAccess } from '@/hooks'
@@ -87,6 +85,66 @@ describe('P10.3.1 — useHasDashboardAccess honors Owner/Staff/Tenant eligibilit
     // and no matching legacy MOCK_CREDENTIALS entry, so this exercises the
     // Staff branch specifically, not the legacyGranted short-circuit.
     useAuthStore.getState().setUser(userFor('accountant@savor.com', 'customer'))
+
+    const { result } = renderHook(() => useHasDashboardAccess())
+    expect(result.current).toBe(true)
+  })
+})
+
+// ============================================================
+// Issue investigation fix — real-backend role fallback.
+//
+// staffService.findStaffMemberByEmail() / ownerService.getOwnerByUserIdSync()
+// are hard-gated `if (!USE_MOCK) return undefined`, so in real-backend mode
+// resolveOwnershipIdentity() always returns `{}` regardless of the email
+// queried. An email with no matching mock fixture reproduces exactly that
+// "identity not found" state from useHasDashboardAccess()'s point of view,
+// without needing to flip NEXT_PUBLIC_USE_MOCK (which is read once at
+// module load and can't be toggled mid-test-run) — so these tests use
+// emails that are guaranteed absent from the mock Owner/Staff fixtures to
+// exercise the same code path a real production user hits.
+// ============================================================
+describe('P10.3.1 fix — real-backend role fallback in useHasDashboardAccess()', () => {
+  it('grants access to a real-backend admin with no matching mock identity', async () => {
+    const savor = await tenantById('tenant-savor-01')
+    useTenantStore.getState().setTenant(savor)
+    useAuthStore.getState().setUser(userFor('real-admin@production.example', 'admin'))
+
+    const { result } = renderHook(() => useHasDashboardAccess())
+    expect(result.current).toBe(true)
+  })
+
+  it('grants access to a real-backend owner with no matching mock identity', async () => {
+    const savor = await tenantById('tenant-savor-01')
+    useTenantStore.getState().setTenant(savor)
+    useAuthStore.getState().setUser(userFor('real-owner@production.example', 'owner'))
+
+    const { result } = renderHook(() => useHasDashboardAccess())
+    expect(result.current).toBe(true)
+  })
+
+  it('grants access to a real-backend staff member with no matching mock identity', async () => {
+    const savor = await tenantById('tenant-savor-01')
+    useTenantStore.getState().setTenant(savor)
+    useAuthStore.getState().setUser(userFor('real-staff@production.example', 'staff'))
+
+    const { result } = renderHook(() => useHasDashboardAccess())
+    expect(result.current).toBe(true)
+  })
+
+  it('denies access to a real-backend customer with no matching mock identity', async () => {
+    const savor = await tenantById('tenant-savor-01')
+    useTenantStore.getState().setTenant(savor)
+    useAuthStore.getState().setUser(userFor('real-customer@production.example', 'customer'))
+
+    const { result } = renderHook(() => useHasDashboardAccess())
+    expect(result.current).toBe(false)
+  })
+
+  it('role fallback is case-insensitive', async () => {
+    const savor = await tenantById('tenant-savor-01')
+    useTenantStore.getState().setTenant(savor)
+    useAuthStore.getState().setUser(userFor('real-admin-caps@production.example', 'ADMIN' as User['role']))
 
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(true)
