@@ -71,6 +71,7 @@ import {
 import { staffAssignmentService } from '@/services/staff-assignment.service'
 import { ownerOwnsTenant } from '@/services/ownership.service'
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
+import { resolveWorkspace } from '@/utils/navigation-intelligence'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
 import { reviewService } from '@/services/review.service'
@@ -373,6 +374,23 @@ export function useModuleNav(): NavItem[] {
  * StaffAssignment path alone. This is the single source of truth
  * `AuthGuard` and `useDashboardNav()` both now read — no parallel
  * implementation of the `dashboard:access` check exists anywhere else.
+ *
+ * Issue investigation fix (real-backend admin/owner/staff lockout) — the
+ * ownership/StaffAssignment path above is backed by mock-only lookups
+ * (`staffService.findStaffMemberByEmail`/`ownerService.getOwnerByUserIdSync`,
+ * both hard-gated `if (!USE_MOCK) return undefined`). In real-backend mode
+ * `identity` is therefore always `{}`, and — before this fix — this hook
+ * always returned `false`, locking every real-backend user out of
+ * /console regardless of role. The role-based fallback below only runs
+ * when NO mock fixture was found at all (`!identity.owner &&
+ * !identity.staffMember`) — an identity that WAS found but failed an
+ * eligibility check (suspended/archived) still falls through to `false`
+ * unchanged, so existing mock-mode denials are preserved. The fallback
+ * reuses `resolveWorkspace()` (src/utils/navigation-intelligence.ts) —
+ * the same role→workspace mapping AuthGuard's post-login redirect
+ * already trusts — instead of inventing a second role list: any role
+ * that resolves to a console workspace (not `/dashboard`, which is
+ * `customer`'s destination) is granted dashboard access.
  */
 export function useHasDashboardAccess(): boolean {
   const user = useAuthStore((s) => s.user)
@@ -398,9 +416,13 @@ export function useHasDashboardAccess(): boolean {
     if (identity.staffMember && isStaffMemberEligible(identity.staffMember)) {
       return staffAssignmentService.getEffectiveAssignments(identity.staffMember.id).length > 0
     }
-    return false
+    if (identity.owner || identity.staffMember) return false
+
+    const role = user?.role?.toLowerCase()
+    if (!role) return false
+    return resolveWorkspace(role) !== '/dashboard'
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email, tenant?.id, tenant?.ownerId, tenant?.status])
+  }, [user?.email, user?.role, tenant?.id, tenant?.ownerId, tenant?.status])
 }
 
 /**
