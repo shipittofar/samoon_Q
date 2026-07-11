@@ -10,7 +10,6 @@
  */
 
 // ── Workspace resolution ────────────────────────────────────────────────────
-
 /**
  * Maps a user's primary role to their best console workspace destination.
  * Returns `/dashboard` for customer roles; `/console` sub-paths for staff.
