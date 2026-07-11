@@ -18,15 +18,15 @@
  * Priority is first-match: the most specific role wins in multi-role scenarios.
  */
 const ROLE_WORKSPACE_MAP: Record<string, string> = {
-  platform:  '/console/tenants',
-  owner:     '/console',
-  admin:     '/console',
+  platform: '/console/tenants',
+  owner: '/console',
+  admin: '/console',
   marketing: '/console/analytics',
-  support:   '/console/customers',
-  cashier:   '/console/orders',
-  kitchen:   '/console/kitchen',
-  staff:     '/console',
-  customer:  '/dashboard',
+  support: '/console/customers',
+  cashier: '/console/orders',
+  kitchen: '/console/kitchen',
+  staff: '/console',
+  customer: '/dashboard',
 }
 
 const ROLE_PRIORITY = ['platform', 'owner', 'admin', 'marketing', 'support', 'cashier', 'kitchen', 'staff', 'customer']
@@ -37,7 +37,8 @@ const ROLE_PRIORITY = ['platform', 'owner', 'admin', 'marketing', 'support', 'ca
  * highest-priority role (per ROLE_PRIORITY) determines the destination.
  */
 export function resolveWorkspace(role: string | string[]): string {
-  const roles = Array.isArray(role) ? role : [role]
+  const roles = (Array.isArray(role) ? role : [role])
+    .map((r) => r.toLowerCase())
   for (const r of ROLE_PRIORITY) {
     if (roles.includes(r)) {
       return ROLE_WORKSPACE_MAP[r] ?? '/console'
@@ -98,31 +99,31 @@ export function resolveBestDashboardActions(tenantSlug?: string | null): Dashboa
   return [
     {
       label: 'Order Food',
-      href:  resolveBestMenu(tenantSlug),
-      icon:  '🍕',
+      href: resolveBestMenu(tenantSlug),
+      icon: '🍕',
       color: 'from-orange-400 to-orange-600',
-      desc:  'Browse our menu',
+      desc: 'Browse our menu',
     },
     {
       label: 'Reserve Table',
-      href:  resolveBestReservation(tenantSlug),
-      icon:  '🪑',
+      href: resolveBestReservation(tenantSlug),
+      icon: '🪑',
       color: 'from-purple-400 to-purple-600',
-      desc:  'Book in advance',
+      desc: 'Book in advance',
     },
     {
       label: 'Track Order',
-      href:  '/dashboard/orders',
-      icon:  '📦',
+      href: '/dashboard/orders',
+      icon: '📦',
       color: 'from-blue-400 to-blue-600',
-      desc:  'Live tracking',
+      desc: 'Live tracking',
     },
     {
       label: 'Favorites',
-      href:  '/dashboard/favorites',
-      icon:  '❤️',
+      href: '/dashboard/favorites',
+      icon: '❤️',
       color: 'from-red-400 to-red-600',
-      desc:  'Saved dishes',
+      desc: 'Saved dishes',
     },
   ]
 }
