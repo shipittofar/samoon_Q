@@ -63,14 +63,25 @@ const nextConfig: NextConfig = {
     "http://77.221.156.197:3000",
     "http://localhost:3000",
   ],
+  // images: {
+  //   remotePatterns: [
+  //     { protocol: 'https', hostname: 'images.unsplash.com' },
+  //     { protocol: 'https', hostname: 'res.cloudinary.com' },
+  //     { protocol: 'http', hostname: 'localhost' },
+  //     { protocol: 'https', hostname: '*.amazonaws.com' },
+  //   ],
+  // },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'res.cloudinary.com' },
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: '*.amazonaws.com' },
+  
+      // Arvan Storage
+      { protocol: 'https', hostname: 'hot.ir-central1.arvanstorage.ir' },
     ],
-  },
+  },  
   experimental: {
     optimizeCss: true,
   },

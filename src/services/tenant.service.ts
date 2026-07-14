@@ -2,7 +2,7 @@ import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { DEFAULT_TENANT } from '@/constants'
 import { MOCK_TENANT_OWNER_MAP } from './owner.service'
-import type { Tenant, TenantStatus } from '@/types'
+import type { Tenant, TenantStatus, PaginatedResponse } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms))
@@ -270,8 +270,8 @@ export const tenantService = {
     }
 
     try {
-      const { data } = await api.get<Tenant>(ENDPOINTS.TENANTS.DETAIL(resolvedSlug))
-      return data
+      const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.DETAIL(resolvedSlug))
+      return data.results[0]
     } catch {
       return DEFAULT_TENANT
     }
@@ -301,8 +301,8 @@ export const tenantService = {
     }
 
     try {
-      const { data } = await api.get<Tenant[]>(ENDPOINTS.TENANTS.LIST)
-      return data
+      const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.LIST)
+      return data.results
     } catch {
       return []
     }
