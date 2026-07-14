@@ -801,8 +801,13 @@ function TenantNotFoundState() {
 
 export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const { data: tenant, isLoading } = usePublicTenant(tenantSlug)
-  const { data: categories = [] } = useCategories()
-  const { data: menuItemsPage } = useMenuItems()
+  // The tenant homepage previews the tenant's primary branch's menu — there is
+  // no single "tenant menu"; each branch (including the primary one) owns its
+  // own independent categories/items. See docs/BRANCH_MENU_ANALYSIS.md.
+  const meta = tenant ? getMarketplaceMeta(tenant.settings) : undefined
+  const primaryBranchSlug = meta?.primaryBranchSlug
+  const { data: categories = [] } = useCategories(primaryBranchSlug)
+  const { data: menuItemsPage } = useMenuItems(primaryBranchSlug)
   const menuItems = menuItemsPage?.results ?? []
   const { data: promotions = [] } = useActivePromotions()
   // Website Builder section config — optional, fails open to DEFAULT_SECTIONS
@@ -811,8 +816,6 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
 
   if (isLoading) return <LoadingSkeleton />
   if (!tenant) return <TenantNotFoundState />
-
-  const meta = getMarketplaceMeta(tenant.settings)
   if (!meta) return <TenantNotFoundState />
 
   // Section visibility: Website Builder config or DEFAULT_SECTIONS

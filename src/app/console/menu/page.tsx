@@ -14,6 +14,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
 import { useMenuItems, useCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem } from '@/hooks'
+import { useBranchStore } from '@/stores'
 import type { MenuItem } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
@@ -90,12 +91,18 @@ export default function AdminMenuPage() {
   const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch } = useMenuItems()
-  const { data: categories, isLoading: catsLoading } = useCategories()
+  // Console operates on whichever branch the admin has selected via
+  // AdminBranchSwitcher — menu items/categories/mutations are all scoped to
+  // it, never to a tenant-wide "all branches" collection (there is no such
+  // thing; see docs/BRANCH_MENU_ANALYSIS.md).
+  const adminBranchId = useBranchStore((s) => s.adminActiveBranch?.slug)
 
-  const createMutation = useCreateMenuItem()
-  const updateMutation = useUpdateMenuItem()
-  const deleteMutation = useDeleteMenuItem()
+  const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch } = useMenuItems(adminBranchId)
+  const { data: categories, isLoading: catsLoading } = useCategories(adminBranchId)
+
+  const createMutation = useCreateMenuItem(adminBranchId ?? '')
+  const updateMutation = useUpdateMenuItem(adminBranchId ?? '')
+  const deleteMutation = useDeleteMenuItem(adminBranchId ?? '')
 
   const allItems: MenuItem[] = itemsData?.results ?? []
 

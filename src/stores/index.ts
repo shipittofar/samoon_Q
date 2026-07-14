@@ -86,7 +86,14 @@ export const useCartStore = create<CartState>()(
 
       addItem: (menuItem, quantity = 1, extras = [], notes) => {
         set((state) => {
-          const existingId = state.items.find(
+          // Branch isolation: a cart can only ever hold one branch's items.
+          // Adding an item from a different branch than what's currently in
+          // the cart starts a fresh cart instead of mixing branches together.
+          const items = state.items.length > 0 && state.items[0].branch_id !== menuItem.branch_id
+            ? []
+            : state.items
+
+          const existingId = items.find(
             (i) =>
               i.menu_item.id === menuItem.id &&
               JSON.stringify(i.extras.map((e) => e.id).sort()) ===
@@ -95,7 +102,7 @@ export const useCartStore = create<CartState>()(
 
           if (existingId) {
             return {
-              items: state.items.map((i) =>
+              items: items.map((i) =>
                 i.id === existingId ? { ...i, quantity: i.quantity + quantity } : i,
               ),
             }
@@ -105,6 +112,7 @@ export const useCartStore = create<CartState>()(
           const unitPrice = (menuItem.discounted_price ?? menuItem.price) + extraTotal
           const newItem: CartItem = {
             id: `${menuItem.id}-${Date.now()}`,
+            branch_id: menuItem.branch_id,
             menu_item: menuItem,
             quantity,
             extras,
@@ -112,7 +120,7 @@ export const useCartStore = create<CartState>()(
             unit_price: unitPrice,
             total_price: unitPrice * quantity,
           }
-          return { items: [...state.items, newItem] }
+          return { items: [...items, newItem] }
         })
       },
 
@@ -324,9 +332,18 @@ interface BranchState {
 
 export const useBranchStore = create<BranchState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       activeBranch: null,
-      setActiveBranch: (activeBranch) => set({ activeBranch }),
+      setActiveBranch: (activeBranch) => {
+        const previous = get().activeBranch
+        // Switching to a different branch must never carry over another
+        // branch's cached cart — the menu (and therefore valid item ids,
+        // prices, extras) is entirely different per branch.
+        if (previous && previous.slug !== activeBranch.slug) {
+          useCartStore.getState().clearCart()
+        }
+        set({ activeBranch })
+      },
       adminActiveBranch: null,
       setAdminActiveBranch: (adminActiveBranch) => set({ adminActiveBranch }),
     }),

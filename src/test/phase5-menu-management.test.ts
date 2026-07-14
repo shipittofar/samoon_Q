@@ -177,16 +177,19 @@ describe('Admin menu page — empty state', () => {
 // ── K. Query invalidation in hooks ────────────────────────────────────────────
 
 describe('Hooks — query invalidation', () => {
-  it('K: useCreateMenuItem invalidates menu-items', () => {
-    expect(hooks).toMatch(/useCreateMenuItem[\s\S]{0,300}invalidateQueries.*menu-items/)
+  // Branch-scoped invalidation (docs/BRANCH_MENU_IMPLEMENTATION.md): mutations
+  // invalidate only the active branch's cached menu-items via a predicate
+  // keyed on branchId, never a blanket ['menu-items'] prefix.
+  it('K: useCreateMenuItem invalidates menu-items scoped to the branch', () => {
+    expect(hooks).toMatch(/export function useCreateMenuItem[\s\S]{0,400}invalidateQueries[\s\S]{0,100}menuItemsQueryPredicate\(branchId\)/)
   })
 
-  it('K: useUpdateMenuItem invalidates menu-items', () => {
-    expect(hooks).toMatch(/useUpdateMenuItem[\s\S]{0,1200}invalidateQueries.*menu-items/)
+  it('K: useUpdateMenuItem invalidates menu-items scoped to the branch', () => {
+    expect(hooks).toMatch(/export function useUpdateMenuItem[\s\S]{0,1200}invalidateQueries[\s\S]{0,100}menuItemsQueryPredicate\(branchId\)/)
   })
 
-  it('K: useDeleteMenuItem invalidates menu-items', () => {
-    expect(hooks).toMatch(/useDeleteMenuItem[\s\S]{0,1000}invalidateQueries.*menu-items/)
+  it('K: useDeleteMenuItem invalidates menu-items scoped to the branch', () => {
+    expect(hooks).toMatch(/export function useDeleteMenuItem[\s\S]{0,1000}invalidateQueries[\s\S]{0,100}menuItemsQueryPredicate\(branchId\)/)
   })
 })
 
@@ -233,7 +236,7 @@ describe('Mock mode compatibility', () => {
   it('menuService.createItem works in mock mode', async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true'
     const { menuService } = await import('@/services/menu.service')
-    const item = await menuService.createItem({ name: 'Test Burger', price: 9.99 })
+    const item = await menuService.createItem('main', { name: 'Test Burger', price: 9.99 })
     expect(item.name).toBe('Test Burger')
     expect(item.price).toBe(9.99)
     expect(item.id).toBeTruthy()
@@ -242,20 +245,20 @@ describe('Mock mode compatibility', () => {
   it('menuService.updateItem works in mock mode', async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true'
     const { menuService } = await import('@/services/menu.service')
-    const item = await menuService.updateItem('1', { available: false })
+    const item = await menuService.updateItem('main', '1', { available: false })
     expect(item.available).toBe(false)
   })
 
   it('menuService.deleteItem resolves in mock mode', async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true'
     const { menuService } = await import('@/services/menu.service')
-    await expect(menuService.deleteItem('1')).resolves.toBeUndefined()
+    await expect(menuService.deleteItem('main', '1')).resolves.toBeUndefined()
   })
 
   it('menuService.getItems returns paginated results in mock mode', async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true'
     const { menuService } = await import('@/services/menu.service')
-    const result = await menuService.getItems()
+    const result = await menuService.getItems('main')
     expect(result).toHaveProperty('results')
     expect(Array.isArray(result.results)).toBe(true)
     expect(result.count).toBeGreaterThan(0)
@@ -270,9 +273,15 @@ describe('Regression — customer menu pages', () => {
     expect(menuPage.length).toBeGreaterThan(0)
   })
 
-  it('customer menu page uses useMenuItems', () => {
+  it('customer menu page renders MenuContent, which uses useMenuItems', () => {
+    // src/app/menu/page.tsx is branch-agnostic (no [branchSlug] segment), so it
+    // no longer prefetches menu data itself — it delegates to MenuContent,
+    // which resolves branch scope from useBranchStore. See
+    // docs/BRANCH_MENU_IMPLEMENTATION.md.
     const menuPage = src('src/app/menu/page.tsx')
-    expect(menuPage).toMatch(/useMenuItems|menuService/)
+    expect(menuPage).toMatch(/MenuContent/)
+    const menuContent = src('src/components/menu/MenuContent.tsx')
+    expect(menuContent).toMatch(/useMenuItems|menuService/)
   })
 })
 

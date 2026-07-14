@@ -18,6 +18,11 @@ export default function FavoritesPage() {
   const { favorites } = useFavoritesStore()
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  // KNOWN LIMITATION (see docs/BRANCH_MENU_IMPLEMENTATION.md "Remaining TODOs"):
+  // favorites are stored as bare item ids with no branch association, so this
+  // only resolves favorites belonging to the customer's currently active
+  // branch (useMenuItems' store fallback) — a favorite saved at a different
+  // branch will not appear here until that branch is active again.
   const { data, isLoading } = useMenuItems()
   const t = useTranslations('dashboard')
   const allItems = data?.results || []

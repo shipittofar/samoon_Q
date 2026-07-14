@@ -122,7 +122,7 @@ describe('E2E: Menu Flow', () => {
 
   it('getCategories returns a non-empty category list', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const promise = menuService.getCategories()
+    const promise = menuService.getCategories('main')
     await vi.runAllTimersAsync()
     const categories = await promise
     expect(Array.isArray(categories)).toBe(true)
@@ -133,7 +133,7 @@ describe('E2E: Menu Flow', () => {
 
   it('getItems returns paginated menu items', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const promise = menuService.getItems()
+    const promise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     const result = await promise
     expect(Array.isArray(result.results)).toBe(true)
@@ -144,14 +144,14 @@ describe('E2E: Menu Flow', () => {
 
   it('getItems with category filter returns filtered results', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const allPromise = menuService.getItems()
+    const allPromise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     const all = await allPromise
 
     const catId = typeof all.results[0].category === 'string'
       ? all.results[0].category
       : (all.results[0].category as { id: string } | undefined)?.id
-    const filteredPromise = menuService.getItems({ category: catId })
+    const filteredPromise = menuService.getItems('main', { category: catId })
     await vi.runAllTimersAsync()
     const filtered = await filteredPromise
     // All filtered items should belong to the requested category
@@ -162,12 +162,12 @@ describe('E2E: Menu Flow', () => {
 
   it('getItem returns a single menu item by id', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const listPromise = menuService.getItems()
+    const listPromise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     const list = await listPromise
     const targetId = list.results[0].id
 
-    const itemPromise = menuService.getItem(targetId)
+    const itemPromise = menuService.getItem('main', targetId)
     await vi.runAllTimersAsync()
     const item = await itemPromise
     expect(item.id).toBe(targetId)
@@ -175,7 +175,7 @@ describe('E2E: Menu Flow', () => {
 
   it('getFeatured returns featured menu items', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const promise = menuService.getFeatured()
+    const promise = menuService.getFeatured('main')
     await vi.runAllTimersAsync()
     const items = await promise
     expect(Array.isArray(items)).toBe(true)
@@ -183,7 +183,7 @@ describe('E2E: Menu Flow', () => {
 
   it('search returns results matching query', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const promise = menuService.search('burger')
+    const promise = menuService.search('main', 'burger')
     await vi.runAllTimersAsync()
     const results = await promise
     expect(Array.isArray(results)).toBe(true)
@@ -203,7 +203,7 @@ describe('E2E: Cart Flow', () => {
     const { useCartStore } = await import('@/stores')
     const { menuService } = await import('@/services/menu.service')
     vi.useFakeTimers()
-    const listPromise = menuService.getItems()
+    const listPromise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     vi.useRealTimers()
     const items = (await listPromise).results
@@ -216,7 +216,7 @@ describe('E2E: Cart Flow', () => {
     const { useCartStore } = await import('@/stores')
     const { menuService } = await import('@/services/menu.service')
     vi.useFakeTimers()
-    const promise = menuService.getItems()
+    const promise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     vi.useRealTimers()
     const item = (await promise).results[0]
@@ -231,7 +231,7 @@ describe('E2E: Cart Flow', () => {
     const { useCartStore } = await import('@/stores')
     const { menuService } = await import('@/services/menu.service')
     vi.useFakeTimers()
-    const promise = menuService.getItems()
+    const promise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     vi.useRealTimers()
     const item = (await promise).results[0]
@@ -246,7 +246,7 @@ describe('E2E: Cart Flow', () => {
     const { useCartStore } = await import('@/stores')
     const { menuService } = await import('@/services/menu.service')
     vi.useFakeTimers()
-    const promise = menuService.getItems()
+    const promise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     vi.useRealTimers()
     const item = (await promise).results[0]
@@ -261,7 +261,7 @@ describe('E2E: Cart Flow', () => {
     const { useCartStore } = await import('@/stores')
     const { menuService } = await import('@/services/menu.service')
     vi.useFakeTimers()
-    const promise = menuService.getItems()
+    const promise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     vi.useRealTimers()
     const item = (await promise).results[0]
@@ -275,7 +275,7 @@ describe('E2E: Cart Flow', () => {
     const { useCartStore } = await import('@/stores')
     const { menuService } = await import('@/services/menu.service')
     vi.useFakeTimers()
-    const promise = menuService.getItems()
+    const promise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     vi.useRealTimers()
     const item = (await promise).results[0]
@@ -291,7 +291,7 @@ describe('E2E: Cart Flow', () => {
     const { useCartStore } = await import('@/stores')
     const { menuService } = await import('@/services/menu.service')
     vi.useFakeTimers()
-    const promise = menuService.getItems()
+    const promise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     vi.useRealTimers()
     const item = (await promise).results[0]
@@ -487,7 +487,7 @@ describe('Critical path: cart persists state shape', () => {
     const { menuService } = await import('@/services/menu.service')
     useCartStore.getState().clearCart()
     vi.useFakeTimers()
-    const promise = menuService.getItems()
+    const promise = menuService.getItems('main')
     await vi.runAllTimersAsync()
     vi.useRealTimers()
     const item = (await promise).results[0]

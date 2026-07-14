@@ -322,18 +322,18 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
 
 // ── Categories ────────────────────────────────────────────────────────────────
 export const MOCK_CATEGORIES: Category[] = [
-  { id: '1', name: 'Pizza', slug: 'pizza', icon: '🍕', order: 1, items_count: 8 },
-  { id: '2', name: 'Burger', slug: 'burger', icon: '🍔', order: 2, items_count: 6 },
-  { id: '3', name: 'Pasta', slug: 'pasta', icon: '🍝', order: 3, items_count: 5 },
-  { id: '4', name: 'Drinks', slug: 'drinks', icon: '🥤', order: 4, items_count: 7 },
-  { id: '5', name: 'Desserts', slug: 'desserts', icon: '🍰', order: 5, items_count: 6 },
+  { id: '1', branch_id: 'main', name: 'Pizza', slug: 'pizza', icon: '🍕', order: 1, items_count: 8 },
+  { id: '2', branch_id: 'main', name: 'Burger', slug: 'burger', icon: '🍔', order: 2, items_count: 6 },
+  { id: '3', branch_id: 'main', name: 'Pasta', slug: 'pasta', icon: '🍝', order: 3, items_count: 5 },
+  { id: '4', branch_id: 'main', name: 'Drinks', slug: 'drinks', icon: '🥤', order: 4, items_count: 7 },
+  { id: '5', branch_id: 'main', name: 'Desserts', slug: 'desserts', icon: '🍰', order: 5, items_count: 6 },
 ]
 
 // ── Menu Items ────────────────────────────────────────────────────────────────
 export const MOCK_MENU_ITEMS: MenuItem[] = [
   // PIZZA
   {
-    id: '1', category_id: '1', name: 'Margherita Classic',
+    id: '1', branch_id: 'main', category_id: '1', name: 'Margherita Classic',
     slug: 'margherita-classic',
     description: 'San Marzano tomatoes, fresh mozzarella di bufala, hand-torn basil, extra virgin olive oil on our signature 72-hour cold-fermented dough.',
     price: 18.99, discount: 0,
@@ -347,7 +347,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     ],
   },
   {
-    id: '2', category_id: '1', name: 'Diavola',
+    id: '2', branch_id: 'main', category_id: '1', name: 'Diavola',
     slug: 'diavola',
     description: 'Spicy Calabrian salami, fresh chili, smoked mozzarella, and a drizzle of chili-infused olive oil.',
     price: 22.99, discount: 10,
@@ -358,7 +358,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [{ id: 'e1', name: 'Extra Cheese', price: 2.50, available: true }],
   },
   {
-    id: '3', category_id: '1', name: 'Quattro Stagioni',
+    id: '3', branch_id: 'main', category_id: '1', name: 'Quattro Stagioni',
     slug: 'quattro-stagioni',
     description: 'Four seasons pizza: artichokes, ham, mushrooms, and olives — each quadrant celebrating a unique flavor.',
     price: 24.99, discount: 0,
@@ -369,7 +369,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [],
   },
   {
-    id: '4', category_id: '1', name: 'Truffle Mushroom',
+    id: '4', branch_id: 'main', category_id: '1', name: 'Truffle Mushroom',
     slug: 'truffle-mushroom',
     description: 'Wild mushroom medley, black truffle shavings, taleggio cheese, and fresh thyme on white sauce.',
     price: 28.99, discount: 0,
@@ -382,7 +382,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 
   // BURGERS
   {
-    id: '5', category_id: '2', name: 'Wagyu Smash',
+    id: '5', branch_id: 'main', category_id: '2', name: 'Wagyu Smash',
     slug: 'wagyu-smash',
     description: 'Double wagyu beef smash patty, aged cheddar, caramelized onions, pickles, house sauce on brioche bun.',
     price: 24.99, discount: 15,
@@ -397,7 +397,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     ],
   },
   {
-    id: '6', category_id: '2', name: 'Crispy Chicken',
+    id: '6', branch_id: 'main', category_id: '2', name: 'Crispy Chicken',
     slug: 'crispy-chicken',
     description: 'Buttermilk-brined fried chicken, jalapeño slaw, honey hot sauce, dill pickles on potato bun.',
     price: 19.99, discount: 0,
@@ -408,7 +408,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [{ id: 'e4', name: 'Avocado', price: 1.50, available: true }],
   },
   {
-    id: '7', category_id: '2', name: 'Black Bean Royale',
+    id: '7', branch_id: 'main', category_id: '2', name: 'Black Bean Royale',
     slug: 'black-bean-royale',
     description: 'Spiced black bean patty, cashew cheese, roasted peppers, arugula, chipotle mayo on whole grain bun.',
     price: 17.99, discount: 0,
@@ -421,7 +421,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 
   // PASTA
   {
-    id: '8', category_id: '3', name: 'Carbonara Autentica',
+    id: '8', branch_id: 'main', category_id: '3', name: 'Carbonara Autentica',
     slug: 'carbonara-autentica',
     description: 'Rigatoni, guanciale, Pecorino Romano, Parmigiano-Reggiano, free-range egg yolk. The Roman way, no cream.',
     price: 21.99, discount: 0,
@@ -432,7 +432,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [{ id: 'e6', name: 'Extra Guanciale', price: 3.00, available: true }],
   },
   {
-    id: '9', category_id: '3', name: 'Lobster Linguine',
+    id: '9', branch_id: 'main', category_id: '3', name: 'Lobster Linguine',
     slug: 'lobster-linguine',
     description: 'Fresh Maine lobster, cherry tomatoes, garlic, white wine, chili, and parsley in olive oil sauce.',
     price: 38.99, discount: 0,
@@ -445,7 +445,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 
   // DRINKS
   {
-    id: '10', category_id: '4', name: 'Cold Brew Coffee',
+    id: '10', branch_id: 'main', category_id: '4', name: 'Cold Brew Coffee',
     slug: 'cold-brew-coffee',
     description: 'Single-origin Ethiopian beans, 24-hour cold extraction, served over crystal-clear ice.',
     price: 7.99, discount: 0,
@@ -459,7 +459,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     ],
   },
   {
-    id: '11', category_id: '4', name: 'Mango Lassi',
+    id: '11', branch_id: 'main', category_id: '4', name: 'Mango Lassi',
     slug: 'mango-lassi',
     description: 'Alphonso mangoes, whole-milk yogurt, cardamom, and a hint of rose water.',
     price: 6.99, discount: 0,
@@ -472,7 +472,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 
   // DESSERTS
   {
-    id: '12', category_id: '5', name: 'Crème Brûlée',
+    id: '12', branch_id: 'main', category_id: '5', name: 'Crème Brûlée',
     slug: 'creme-brulee',
     description: 'Classic French custard with Madagascar vanilla, torched caramel crust, served with fresh berries.',
     price: 11.99, discount: 0,
@@ -483,7 +483,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [],
   },
   {
-    id: '13', category_id: '5', name: 'Molten Lava Cake',
+    id: '13', branch_id: 'main', category_id: '5', name: 'Molten Lava Cake',
     slug: 'molten-lava-cake',
     description: '72% Valrhona chocolate, salted caramel core, served warm with vanilla bean gelato.',
     price: 13.99, discount: 20,
@@ -494,6 +494,74 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [{ id: 'e9', name: 'Extra Ice Cream', price: 2.00, available: true }],
   },
 ]
+
+// ── Branch-scoped menu data ───────────────────────────────────────────────────
+// tenant-savor-01 has three branches (main/downtown/airport, see
+// MOCK_TENANT_BRANCHES above). `main` uses MOCK_CATEGORIES/MOCK_MENU_ITEMS
+// above; the other branches get their own, entirely independent category and
+// item objects — never the same object references — so editing one branch's
+// menu can never mutate another branch's data.
+export const MOCK_DOWNTOWN_CATEGORIES: Category[] = [
+  { id: 'dt-1', branch_id: 'downtown', name: 'Express Bowls', slug: 'express-bowls', icon: '🥗', order: 1, items_count: 1 },
+  { id: 'dt-2', branch_id: 'downtown', name: 'Coffee', slug: 'coffee', icon: '☕', order: 2, items_count: 1 },
+]
+
+export const MOCK_DOWNTOWN_ITEMS: MenuItem[] = [
+  {
+    id: 'dt-item-1', branch_id: 'downtown', category_id: 'dt-1', name: 'Downtown Power Bowl',
+    slug: 'downtown-power-bowl',
+    description: 'Quinoa, grilled chicken, avocado, lime dressing — built for a fast lunch break.',
+    price: 13.50, discount: 0,
+    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600',
+    calories: 540, preparation_time: 8, rating: 4.6, rating_count: 54,
+    available: true, is_popular: true,
+    tags: ['healthy'],
+    extras: [{ id: 'dt-e1', name: 'Extra Chicken', price: 3.00, available: true }],
+  },
+  {
+    id: 'dt-item-2', branch_id: 'downtown', category_id: 'dt-2', name: 'Downtown Espresso',
+    slug: 'downtown-espresso',
+    description: 'Double shot, locally roasted beans.',
+    price: 3.50, discount: 0,
+    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600',
+    calories: 5, preparation_time: 3, rating: 4.7, rating_count: 88,
+    available: true,
+    tags: ['coffee'],
+    extras: [],
+  },
+]
+
+export const MOCK_AIRPORT_CATEGORIES: Category[] = [
+  { id: 'ap-1', branch_id: 'airport', name: 'Grab & Go', slug: 'grab-and-go', icon: '🥪', order: 1, items_count: 1 },
+]
+
+export const MOCK_AIRPORT_ITEMS: MenuItem[] = [
+  {
+    id: 'ap-item-1', branch_id: 'airport', category_id: 'ap-1', name: 'Terminal Club Sandwich',
+    slug: 'terminal-club-sandwich',
+    description: 'Turkey, bacon, swiss, sourdough — packaged for security lines.',
+    price: 11.00, discount: 0,
+    image: 'https://images.unsplash.com/photo-1553909489-cd47e0ef937f?w=600',
+    calories: 610, preparation_time: 2, rating: 4.2, rating_count: 31,
+    available: true,
+    tags: ['grab-and-go'],
+    extras: [],
+  },
+]
+
+/** Resolves a branch's independent category set in mock/dev mode. Defaults to `main`'s data for any unlisted branch id so single-branch tenants keep working unchanged. */
+export const MOCK_BRANCH_CATEGORIES: Record<string, Category[]> = {
+  main: MOCK_CATEGORIES,
+  downtown: MOCK_DOWNTOWN_CATEGORIES,
+  airport: MOCK_AIRPORT_CATEGORIES,
+}
+
+/** Resolves a branch's independent item set in mock/dev mode. Defaults to `main`'s data for any unlisted branch id so single-branch tenants keep working unchanged. */
+export const MOCK_BRANCH_ITEMS: Record<string, MenuItem[]> = {
+  main: MOCK_MENU_ITEMS,
+  downtown: MOCK_DOWNTOWN_ITEMS,
+  airport: MOCK_AIRPORT_ITEMS,
+}
 
 // ── Orders ────────────────────────────────────────────────────────────────────
 export const MOCK_ORDERS: Partial<Order>[] = [

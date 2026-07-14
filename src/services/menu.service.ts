@@ -1,6 +1,6 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_CATEGORIES, MOCK_MENU_ITEMS } from '@/lib/mock-data'
+import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS } from '@/lib/mock-data'
 import type { Category, MenuItem, PaginatedResponse } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -18,23 +18,34 @@ export interface MenuFilters {
   page_size?: number
 }
 
+/** Every menu-domain request is branch-scoped — there is no global/shared menu. */
+function mockCategories(branchId: string): Category[] {
+  return MOCK_BRANCH_CATEGORIES[branchId] ?? MOCK_BRANCH_CATEGORIES.main
+}
+
+function mockItems(branchId: string): MenuItem[] {
+  return MOCK_BRANCH_ITEMS[branchId] ?? MOCK_BRANCH_ITEMS.main
+}
+
 export const menuService = {
-  async getCategories(): Promise<Category[]> {
+  async getCategories(branchId: string): Promise<Category[]> {
     if (USE_MOCK) {
       await delay(400)
-      return MOCK_CATEGORIES
+      return mockCategories(branchId)
     }
-    const { data } = await api.get<Category[]>(ENDPOINTS.MENU.CATEGORIES)
+    const { data } = await api.get<Category[]>(ENDPOINTS.MENU.CATEGORIES, {
+      params: { branch_id: branchId },
+    })
     return data
   },
 
-  async getItems(filters?: MenuFilters): Promise<PaginatedResponse<MenuItem>> {
+  async getItems(branchId: string, filters?: MenuFilters): Promise<PaginatedResponse<MenuItem>> {
     if (USE_MOCK) {
       await delay(600)
-      let items = [...MOCK_MENU_ITEMS]
+      let items = [...mockItems(branchId)]
 
       if (filters?.category) {
-        const cat = MOCK_CATEGORIES.find(
+        const cat = mockCategories(branchId).find(
           (c) => c.slug === filters.category || c.id === filters.category,
         )
         if (cat) items = items.filter((i) => i.category_id === cat.id)
@@ -67,75 +78,88 @@ export const menuService = {
     }
 
     const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.ITEMS, {
-      params: filters,
+      params: { branch_id: branchId, ...filters },
     })
     return data
   },
 
-  async getItem(id: string): Promise<MenuItem> {
+  async getItem(branchId: string, id: string): Promise<MenuItem> {
     if (USE_MOCK) {
       await delay(400)
-      const item = MOCK_MENU_ITEMS.find((i) => i.id === id || i.slug === id)
+      const item = mockItems(branchId).find((i) => i.id === id || i.slug === id)
       if (!item) throw new Error('Item not found')
       return item
     }
-    const { data } = await api.get<MenuItem>(ENDPOINTS.MENU.ITEM(id))
+    const { data } = await api.get<MenuItem>(ENDPOINTS.MENU.ITEM(id), {
+      params: { branch_id: branchId },
+    })
     return data
   },
 
-  async getFeatured(): Promise<MenuItem[]> {
+  async getFeatured(branchId: string): Promise<MenuItem[]> {
     if (USE_MOCK) {
       await delay(400)
-      return MOCK_MENU_ITEMS.filter((i) => i.is_featured)
+      return mockItems(branchId).filter((i) => i.is_featured)
     }
-    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.FEATURED)
+    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.FEATURED, {
+      params: { branch_id: branchId },
+    })
     return data
   },
 
-  async getPopular(): Promise<MenuItem[]> {
+  async getPopular(branchId: string): Promise<MenuItem[]> {
     if (USE_MOCK) {
       await delay(400)
-      return MOCK_MENU_ITEMS.filter((i) => i.is_popular)
+      return mockItems(branchId).filter((i) => i.is_popular)
     }
-    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.POPULAR)
+    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.POPULAR, {
+      params: { branch_id: branchId },
+    })
     return data
   },
 
-  async getRelated(id: string): Promise<MenuItem[]> {
+  async getRelated(branchId: string, id: string): Promise<MenuItem[]> {
     if (USE_MOCK) {
       await delay(400)
-      const item = MOCK_MENU_ITEMS.find((i) => i.id === id)
+      const items = mockItems(branchId)
+      const item = items.find((i) => i.id === id)
       if (!item) return []
-      return MOCK_MENU_ITEMS.filter(
+      return items.filter(
         (i) => i.category_id === item.category_id && i.id !== id,
       ).slice(0, 4)
     }
-    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.RELATED(id))
+    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.RELATED(id), {
+      params: { branch_id: branchId },
+    })
     return data
   },
 
-  async search(query: string): Promise<MenuItem[]> {
+  async search(branchId: string, query: string): Promise<MenuItem[]> {
     if (USE_MOCK) {
       await delay(300)
       const q = query.toLowerCase()
-      return MOCK_MENU_ITEMS.filter(
+      return mockItems(branchId).filter(
         (i) =>
           i.name.toLowerCase().includes(q) ||
           i.description.toLowerCase().includes(q) ||
           i.tags?.some((t) => t.toLowerCase().includes(q)),
       )
     }
-    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.SEARCH, { params: { q: query } })
+    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.SEARCH, {
+      params: { branch_id: branchId, q: query },
+    })
     return data
   },
 
   // ── Admin CRUD (P5.1) ──────────────────────────────────────────────────────
 
-  async createItem(payload: Partial<MenuItem>): Promise<MenuItem> {
+  async createItem(branchId: string, payload: Partial<MenuItem>): Promise<MenuItem> {
+    const scopedPayload = { ...payload, branch_id: branchId }
     if (USE_MOCK) {
       await delay(800)
       const newItem: MenuItem = {
         id: `item-${Date.now()}`,
+        branch_id: branchId,
         name: payload.name ?? 'New Item',
         slug: payload.slug ?? `new-item-${Date.now()}`,
         description: payload.description ?? '',
@@ -154,25 +178,27 @@ export const menuService = {
       }
       return newItem
     }
-    const { data } = await api.post<MenuItem>(ENDPOINTS.MENU.ITEMS, payload)
+    const { data } = await api.post<MenuItem>(ENDPOINTS.MENU.ITEMS, scopedPayload)
     return data
   },
 
-  async updateItem(id: string, payload: Partial<MenuItem>): Promise<MenuItem> {
+  async updateItem(branchId: string, id: string, payload: Partial<MenuItem>): Promise<MenuItem> {
     if (USE_MOCK) {
       await delay(600)
-      const existing = MOCK_MENU_ITEMS.find((i) => i.id === id)
-      return { ...(existing as MenuItem), ...payload, id }
+      const existing = mockItems(branchId).find((i) => i.id === id)
+      return { ...(existing as MenuItem), ...payload, id, branch_id: branchId }
     }
-    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(id), payload)
+    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(id), payload, {
+      params: { branch_id: branchId },
+    })
     return data
   },
 
-  async deleteItem(id: string): Promise<void> {
+  async deleteItem(branchId: string, id: string): Promise<void> {
     if (USE_MOCK) {
       await delay(400)
       return
     }
-    await api.delete(ENDPOINTS.MENU.ITEM(id))
+    await api.delete(ENDPOINTS.MENU.ITEM(id), { params: { branch_id: branchId } })
   },
 }

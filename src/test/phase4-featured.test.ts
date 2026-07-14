@@ -115,7 +115,7 @@ describe('menuService.getFeatured — mock mode', () => {
 
   it('returns an array of MenuItem', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const p = menuService.getFeatured()
+    const p = menuService.getFeatured('main')
     await vi.runAllTimersAsync()
     const items = await p
     expect(Array.isArray(items)).toBe(true)
@@ -123,7 +123,7 @@ describe('menuService.getFeatured — mock mode', () => {
 
   it('returns only items with is_featured=true', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const p = menuService.getFeatured()
+    const p = menuService.getFeatured('main')
     await vi.runAllTimersAsync()
     const items = await p
     expect(items.every((i) => i.is_featured === true)).toBe(true)
@@ -131,7 +131,7 @@ describe('menuService.getFeatured — mock mode', () => {
 
   it('returns at least one featured item', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const p = menuService.getFeatured()
+    const p = menuService.getFeatured('main')
     await vi.runAllTimersAsync()
     const items = await p
     expect(items.length).toBeGreaterThan(0)
@@ -139,7 +139,7 @@ describe('menuService.getFeatured — mock mode', () => {
 
   it('each item has id, name, image, price, rating, preparation_time', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const p = menuService.getFeatured()
+    const p = menuService.getFeatured('main')
     await vi.runAllTimersAsync()
     const items = await p
     for (const item of items) {

@@ -38,7 +38,9 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
   const [showReviews, setShowReviews] = useState(false)
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewComment, setReviewComment] = useState('')
-  const { data: related } = useRelatedItems(item?.id || '')
+  // Related items must come from the same branch as the item being viewed —
+  // never fall back to whatever branch happens to be active in the store.
+  const { data: related } = useRelatedItems(item?.branch_id, item?.id || '')
   const { data: reviewsData } = useItemReviews(item?.id || '')
   const { mutate: submitReview, isPending: submittingReview } = useCreateReview(item?.id || '')
 

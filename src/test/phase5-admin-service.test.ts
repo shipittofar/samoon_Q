@@ -334,7 +334,7 @@ describe('menuService — CRUD (mock mode)', () => {
 
   it('createItem returns item with provided name', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const item = await menuService.createItem({ name: 'Test Burger', price: 12.99 })
+    const item = await menuService.createItem('main', { name: 'Test Burger', price: 12.99 })
     expect(item.name).toBe('Test Burger')
     expect(item.price).toBe(12.99)
     expect(item.id).toBeTruthy()
@@ -342,13 +342,13 @@ describe('menuService — CRUD (mock mode)', () => {
 
   it('createItem defaults available to true', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const item = await menuService.createItem({ name: 'X' })
+    const item = await menuService.createItem('main', { name: 'X' })
     expect(item.available).toBe(true)
   })
 
   it('updateItem merges payload onto existing item', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const item = await menuService.updateItem('1', { name: 'Updated', price: 99 })
+    const item = await menuService.updateItem('main', '1', { name: 'Updated', price: 99 })
     expect(item.name).toBe('Updated')
     expect(item.price).toBe(99)
     expect(item.id).toBe('1')
@@ -356,7 +356,7 @@ describe('menuService — CRUD (mock mode)', () => {
 
   it('deleteItem resolves without error', async () => {
     const { menuService } = await import('@/services/menu.service')
-    await expect(menuService.deleteItem('1')).resolves.toBeUndefined()
+    await expect(menuService.deleteItem('main', '1')).resolves.toBeUndefined()
   })
 })
 
@@ -458,18 +458,21 @@ describe('hooks/index.ts — P5.1 admin hooks source', () => {
     expect(block.slice(0, 1200)).toContain("'reservations'")
   })
 
-  it('useCreateMenuItem invalidates menu-items', () => {
-    const block = src().slice(src().indexOf('useCreateMenuItem'))
-    expect(block.slice(0, 400)).toContain("'menu-items'")
+  // Branch-scoped invalidation (docs/BRANCH_MENU_IMPLEMENTATION.md): mutations
+  // invalidate only the active branch's cached menu-items via a predicate,
+  // not a blanket ['menu-items'] prefix that would touch every branch's cache.
+  it('useCreateMenuItem invalidates menu-items scoped to the branch', () => {
+    const block = src().slice(src().indexOf('export function useCreateMenuItem'))
+    expect(block.slice(0, 600)).toContain('menuItemsQueryPredicate(branchId)')
   })
 
-  it('useDeleteMenuItem invalidates menu-items', () => {
-    const block = src().slice(src().indexOf('useDeleteMenuItem'))
-    expect(block.slice(0, 400)).toContain("'menu-items'")
+  it('useDeleteMenuItem invalidates menu-items scoped to the branch', () => {
+    const block = src().slice(src().indexOf('export function useDeleteMenuItem'))
+    expect(block.slice(0, 600)).toContain('menuItemsQueryPredicate(branchId)')
   })
 
   it('useUpdateMenuItem invalidates specific menu-item query', () => {
-    const block = src().slice(src().indexOf('useUpdateMenuItem'))
+    const block = src().slice(src().indexOf('export function useUpdateMenuItem'))
     expect(block.slice(0, 1200)).toContain("'menu-item'")
   })
 })
@@ -535,19 +538,19 @@ describe('Regression — existing service behaviour preserved', () => {
 
   it('menuService.getItems still works', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const result = await menuService.getItems()
+    const result = await menuService.getItems('main')
     expect(result.results.length).toBeGreaterThan(0)
   })
 
   it('menuService.getCategories still works', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const cats = await menuService.getCategories()
+    const cats = await menuService.getCategories('main')
     expect(cats.length).toBeGreaterThan(0)
   })
 
   it('menuService.search still works', async () => {
     const { menuService } = await import('@/services/menu.service')
-    const results = await menuService.search('burger')
+    const results = await menuService.search('main', 'burger')
     expect(Array.isArray(results)).toBe(true)
   })
 })

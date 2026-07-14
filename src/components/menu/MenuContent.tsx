@@ -19,7 +19,12 @@ import { useTranslations } from 'next-intl'
 import type { MenuItem } from '@/types'
 import type { MenuFilters } from '@/services/menu.service'
 
-export function MenuContent() {
+interface MenuContentProps {
+  /** Branch slug to scope the menu to. Falls back to the customer's active branch (useBranchStore) when omitted — see docs/BRANCH_MENU_ANALYSIS.md. */
+  branchId?: string
+}
+
+export function MenuContent({ branchId }: MenuContentProps = {}) {
   const t = useTranslations('menu')
   const tCommon = useTranslations('common')
 
@@ -75,7 +80,7 @@ export function MenuContent() {
     debouncedSetSearch(v)
   }
 
-  const { data: categories, isLoading: catsLoading } = useCategories()
+  const { data: categories, isLoading: catsLoading } = useCategories(branchId)
 
   const filters: MenuFilters = {
     category: activeCategory || undefined,
@@ -87,7 +92,7 @@ export function MenuContent() {
     available: onlyAvailable ? true : undefined,
   }
 
-  const { data, isLoading } = useMenuItems(filters)
+  const { data, isLoading } = useMenuItems(branchId, filters)
   const allItems = data?.results || []
 
   // C2: filter by dietary tags client-side (item.tags)

@@ -120,24 +120,16 @@ describe('P4.4.2 — Menu page SSR prefetch', () => {
     expect(src.trimStart()).not.toMatch(/^['"]use client['"]/)
   })
 
-  it('menu/page.tsx imports createServerQueryClient', () => {
+  // P-branch-menu: /menu has no [tenantSlug]/[branchSlug] segment, so the
+  // server has no branch identity to scope a prefetch to (menus are
+  // branch-scoped — see docs/BRANCH_MENU_ANALYSIS.md). Server-side
+  // prefetching was removed rather than left in place with a cache key that
+  // could never match the client's branch-scoped keys. See
+  // docs/BRANCH_MENU_IMPLEMENTATION.md.
+  it('menu/page.tsx no longer prefetches branch-scoped menu data server-side', () => {
     const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
-    expect(src).toContain('createServerQueryClient')
-  })
-
-  it('menu/page.tsx uses prefetchQuery', () => {
-    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
-    expect(src).toContain('prefetchQuery')
-  })
-
-  it('menu/page.tsx uses dehydrateClient', () => {
-    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
-    expect(src).toContain('dehydrateClient')
-  })
-
-  it('menu/page.tsx wraps output in HydrationBoundary', () => {
-    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
-    expect(src).toContain('HydrationBoundary')
+    expect(src).not.toContain('prefetchQuery')
+    expect(src).not.toContain('HydrationBoundary')
   })
 
   it('MenuContent client component exists', () => {
@@ -155,10 +147,6 @@ describe('P4.4.2 — Menu page SSR prefetch', () => {
     expect(src).toContain('useMenuItems')
   })
 
-  it('prefetch uses Promise.allSettled for graceful failure', () => {
-    const src = readFileSync(join(SRC, 'app', 'menu', 'page.tsx'), 'utf-8')
-    expect(src).toContain('Promise.allSettled')
-  })
 })
 
 // ── P4.4.3 — Homepage (static — no client fetches) ───────────────────────────

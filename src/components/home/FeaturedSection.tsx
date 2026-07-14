@@ -82,9 +82,9 @@ function FeaturedCardSkeleton() {
   )
 }
 
-export function FeaturedSection() {
+export function FeaturedSection({ branchId }: { branchId?: string } = {}) {
   const t = useTranslations('home')
-  const { data: items, isLoading, isError } = useFeaturedItems()
+  const { data: items, isLoading, isError } = useFeaturedItems(branchId)
 
   return (
     <section className="py-20 bg-[var(--bg-secondary)]">

@@ -68,6 +68,8 @@ export interface OTPVerifyData {
 // ============================================================
 export interface Category {
   id: string
+  /** Branch that owns this category. Same convention as Order.branch_id below. */
+  branch_id: string
   name: string
   slug: string
   description?: string
@@ -86,6 +88,8 @@ export interface Extra {
 
 export interface MenuItem {
   id: string
+  /** Branch that owns this item. Menus are branch-scoped — no item is shared across branches. */
+  branch_id: string
   category_id: string
   category?: Category
   name: string
@@ -132,6 +136,8 @@ export interface TableInfo {
 // ============================================================
 export interface CartItem {
   id: string
+  /** Branch the item was added from. Cart isolation is enforced against this field — see useCartStore. */
+  branch_id: string
   menu_item: MenuItem
   quantity: number
   notes?: string

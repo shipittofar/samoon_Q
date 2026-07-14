@@ -1,12 +1,16 @@
 /**
  * Menu Page — Phase 4 (P4.4.2 / P4.4.4)
  *
- * Server Component wrapper that:
- *  1. Exports SEO metadata (P4.4.4)
- *  2. Prefetches categories and the default menu listing on the server (P4.4.2)
- *  3. Dehydrates the QueryClient and wraps the client component in
- *     HydrationBoundary so useCategories() / useMenuItems() do not issue
- *     duplicate requests on first client render.
+ * Server Component wrapper that exports SEO metadata (P4.4.4).
+ *
+ * This route carries no [tenantSlug]/[branchSlug] segment, so the server has
+ * no branch identity to scope a prefetch to (menus are branch-scoped — see
+ * docs/BRANCH_MENU_ANALYSIS.md / docs/BRANCH_MENU_IMPLEMENTATION.md).
+ * Server-side prefetching of categories/menu-items was removed rather than
+ * left in place with a mismatched cache key: it previously prefetched
+ * ['categories'] / ['menu-items', undefined], which never matched the
+ * client's branch-scoped keys and was silently discarded on hydration. The
+ * client component now resolves its own branch from useBranchStore.
  *
  * The interactive UI lives in MenuContent (client component). This file is
  * intentionally kept thin — no business logic, no UI.
@@ -14,8 +18,6 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { getLocale } from 'next-intl/server'
-import { menuService } from '@/services/menu.service'
-import { createServerQueryClient, dehydrateClient, HydrationBoundary } from '@/lib/react-query'
 import { MenuContent } from '@/components/menu/MenuContent'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { DEFAULT_MENU_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
@@ -41,36 +43,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function MenuPage() {
-  const queryClient = createServerQueryClient()
-
-  // Prefetch the default view (all categories, default sort).
-  // Failures are intentionally swallowed — the client will re-fetch on mount.
-  await Promise.allSettled([
-    queryClient.prefetchQuery({
-      queryKey: ['categories'],
-      queryFn: () => menuService.getCategories(),
-    }),
-    queryClient.prefetchQuery({
-      queryKey: ['menu-items', undefined],
-      queryFn: () => menuService.getItems(),
-    }),
-  ])
-
-  const dehydrated = dehydrateClient(queryClient)
-
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(DEFAULT_MENU_JSON_LD) }}
       />
-      <HydrationBoundary state={dehydrated}>
-        <ErrorBoundary feature="MenuContent">
-          <Suspense fallback={<MenuLoading />}>
-            <MenuContent />
-          </Suspense>
-        </ErrorBoundary>
-      </HydrationBoundary>
+      <ErrorBoundary feature="MenuContent">
+        <Suspense fallback={<MenuLoading />}>
+          <MenuContent />
+        </Suspense>
+      </ErrorBoundary>
     </>
   )
 }

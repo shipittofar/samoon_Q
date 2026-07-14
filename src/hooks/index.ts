@@ -609,59 +609,97 @@ export function useMe() {
 }
 
 // ── Menu Hooks ────────────────────────────────────────────────────────────────
-export function useCategories() {
+// Menus are branch-scoped: every hook here requires a branch identity before
+// it will fetch anything. The identity is the branch's `slug` (the only
+// stable identifier the public-facing branch representation — PublicBranchInfo
+// — actually carries; see docs/BRANCH_MENU_ANALYSIS.md). Callers that already
+// know which branch they're rendering (e.g. a `[tenantSlug]/[branchSlug]`
+// route) should pass it explicitly; callers with no route-level branch context
+// fall back to the customer's currently active branch in useBranchStore.
+export function useActiveBranchId(): string | undefined {
+  return useBranchStore((s) => s.activeBranch?.slug)
+}
+
+export function useCategories(branchId?: string) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
-    queryKey: ['categories', tenantId],
-    queryFn: () => menuService.getCategories(),
+    queryKey: ['categories', tenantId, scopedBranchId],
+    queryFn: () => menuService.getCategories(scopedBranchId!),
+    enabled: !!scopedBranchId,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   })
 }
 
-export function useMenuItems(filters?: MenuFilters) {
+export function useMenuItems(branchId?: string, filters?: MenuFilters) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
-    queryKey: ['menu-items', tenantId, filters],
-    queryFn: () => menuService.getItems(filters),
+    queryKey: ['menu-items', tenantId, scopedBranchId, filters],
+    queryFn: () => menuService.getItems(scopedBranchId!, filters),
+    enabled: !!scopedBranchId,
     staleTime: STALE_TIME,
   })
 }
 
-export function useMenuItem(id: string) {
+export function useMenuItem(branchId: string | undefined, id: string) {
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
-    queryKey: ['menu-item', id],
-    queryFn: () => menuService.getItem(id),
+    queryKey: ['menu-item', scopedBranchId, id],
+    queryFn: () => menuService.getItem(scopedBranchId!, id),
     staleTime: STALE_TIME,
-    enabled: !!id,
+    enabled: !!scopedBranchId && !!id,
   })
 }
 
-export function useFeaturedItems() {
+export function useFeaturedItems(branchId?: string) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
-    queryKey: ['featured-items', tenantId],
-    queryFn: () => menuService.getFeatured(),
+    queryKey: ['featured-items', tenantId, scopedBranchId],
+    queryFn: () => menuService.getFeatured(scopedBranchId!),
+    enabled: !!scopedBranchId,
     staleTime: STALE_TIME,
   })
 }
 
-export function useRelatedItems(id: string) {
+export function usePopularItems(branchId?: string) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
-    queryKey: ['related-items', tenantId, id],
-    queryFn: () => menuService.getRelated(id),
+    queryKey: ['popular-items', tenantId, scopedBranchId],
+    queryFn: () => menuService.getPopular(scopedBranchId!),
+    enabled: !!scopedBranchId,
     staleTime: STALE_TIME,
-    enabled: !!id,
   })
 }
 
-export function useMenuSearch(query: string) {
+export function useRelatedItems(branchId: string | undefined, id: string) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
-    queryKey: ['menu-search', tenantId, query],
-    queryFn: () => menuService.search(query),
-    enabled: query.length >= 2,
+    queryKey: ['related-items', tenantId, scopedBranchId, id],
+    queryFn: () => menuService.getRelated(scopedBranchId!, id),
+    staleTime: STALE_TIME,
+    enabled: !!scopedBranchId && !!id,
+  })
+}
+
+export function useMenuSearch(query: string, branchId?: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  return useQuery({
+    queryKey: ['menu-search', tenantId, scopedBranchId, query],
+    queryFn: () => menuService.search(scopedBranchId!, query),
+    enabled: !!scopedBranchId && query.length >= 2,
     staleTime: 30_000,
   })
 }
@@ -1562,27 +1600,42 @@ export function useNotificationPermission() {
 
 // ── Menu Admin Hooks (P5.1) ───────────────────────────────────────────────────
 
-export function useCreateMenuItem() {
+/** Matches only this branch's cached `menu-items` entries, regardless of which tenantId/filters partitioned them — never touches another branch's cache. */
+function menuItemsQueryPredicate(branchId: string) {
+  return (query: { queryKey: readonly unknown[] }) =>
+    query.queryKey[0] === 'menu-items' && query.queryKey[2] === branchId
+}
+
+/** Matches only this branch's cached `categories` entries. */
+function categoriesQueryPredicate(branchId: string) {
+  return (query: { queryKey: readonly unknown[] }) =>
+    query.queryKey[0] === 'categories' && query.queryKey[2] === branchId
+}
+
+export function useCreateMenuItem(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: Partial<MenuItem>) => menuService.createItem(payload),
+    mutationFn: (payload: Partial<MenuItem>) => menuService.createItem(branchId, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['menu-items'] })
-      qc.invalidateQueries({ queryKey: ['categories'] })
+      // Scoped invalidation: only the active branch's cached menu-items/categories
+      // are refetched — other branches' cached queries are left untouched.
+      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+      qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
     },
   })
 }
 
-export function useUpdateMenuItem() {
+export function useUpdateMenuItem(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<MenuItem> }) =>
-      menuService.updateItem(id, payload),
+      menuService.updateItem(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
-      await qc.cancelQueries({ queryKey: ['menu-items'] })
-      const snapshots = qc.getQueriesData<PaginatedResponse<MenuItem>>({ queryKey: ['menu-items'] })
+      const predicate = menuItemsQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<PaginatedResponse<MenuItem>>({ predicate })
       qc.setQueriesData<PaginatedResponse<MenuItem>>(
-        { queryKey: ['menu-items'] },
+        { predicate },
         (old) => old
           ? { ...old, results: old.results.map((i) => i.id === id ? { ...i, ...payload } : i) }
           : old,
@@ -1593,8 +1646,8 @@ export function useUpdateMenuItem() {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
     onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ queryKey: ['menu-items'] })
-      qc.invalidateQueries({ queryKey: ['menu-item', id] })
+      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+      qc.invalidateQueries({ queryKey: ['menu-item', branchId, id] })
     },
   })
 }
@@ -1830,15 +1883,16 @@ export function useAdminDisableReward() {
 
 // ── Menu Admin Hooks (P5.1) ───────────────────────────────────────────────────
 
-export function useDeleteMenuItem() {
+export function useDeleteMenuItem(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => menuService.deleteItem(id),
+    mutationFn: (id: string) => menuService.deleteItem(branchId, id),
     onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['menu-items'] })
-      const snapshots = qc.getQueriesData<PaginatedResponse<MenuItem>>({ queryKey: ['menu-items'] })
+      const predicate = menuItemsQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<PaginatedResponse<MenuItem>>({ predicate })
       qc.setQueriesData<PaginatedResponse<MenuItem>>(
-        { queryKey: ['menu-items'] },
+        { predicate },
         (old) => old
           ? { ...old, results: old.results.filter((i) => i.id !== id), count: old.count - 1 }
           : old,
@@ -1849,7 +1903,7 @@ export function useDeleteMenuItem() {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['menu-items'] })
+      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
     },
   })
 }
