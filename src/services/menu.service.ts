@@ -201,4 +201,73 @@ export const menuService = {
     }
     await api.delete(ENDPOINTS.MENU.ITEM(id), { params: { branch_id: branchId } })
   },
+
+  // ── Category Admin CRUD ────────────────────────────────────────────────────
+  // Same conventions as the MenuItem admin CRUD above: branch-scoped, and in
+  // mock mode returns a plausible response object without mutating the
+  // underlying MOCK_BRANCH_CATEGORIES array (the caller's optimistic cache
+  // update is what makes the change visible — identical to createItem/
+  // updateItem/deleteItem's existing mock behavior).
+
+  async createCategory(branchId: string, payload: Partial<Category>): Promise<Category> {
+    const scopedPayload = { ...payload, branch_id: branchId }
+    if (USE_MOCK) {
+      await delay(600)
+      const existing = mockCategories(branchId)
+      const newCategory: Category = {
+        id: `cat-${Date.now()}`,
+        branch_id: branchId,
+        name: payload.name ?? 'New Category',
+        slug: payload.slug ?? `new-category-${Date.now()}`,
+        description: payload.description,
+        image: payload.image,
+        icon: payload.icon,
+        order: payload.order ?? existing.length + 1,
+        is_active: payload.is_active ?? true,
+        created_at: new Date().toISOString(),
+        ...payload,
+      }
+      return newCategory
+    }
+    const { data } = await api.post<Category>(ENDPOINTS.MENU.CATEGORIES, scopedPayload)
+    return data
+  },
+
+  async updateCategory(branchId: string, id: string, payload: Partial<Category>): Promise<Category> {
+    if (USE_MOCK) {
+      await delay(500)
+      const existing = mockCategories(branchId).find((c) => c.id === id)
+      return { ...(existing as Category), ...payload, id, branch_id: branchId }
+    }
+    const { data } = await api.patch<Category>(ENDPOINTS.MENU.CATEGORY(id), payload, {
+      params: { branch_id: branchId },
+    })
+    return data
+  },
+
+  async deleteCategory(branchId: string, id: string): Promise<void> {
+    if (USE_MOCK) {
+      await delay(400)
+      return
+    }
+    await api.delete(ENDPOINTS.MENU.CATEGORY(id), { params: { branch_id: branchId } })
+  },
+
+  /** Persists a new sort order for a branch's categories (drag/up-down reorder in the Console). */
+  async reorderCategories(branchId: string, orderedIds: string[]): Promise<Category[]> {
+    if (USE_MOCK) {
+      await delay(500)
+      const byId = new Map(mockCategories(branchId).map((c) => [c.id, c]))
+      return orderedIds
+        .map((id, index) => {
+          const cat = byId.get(id)
+          return cat ? { ...cat, order: index + 1 } : undefined
+        })
+        .filter((c): c is Category => !!c)
+    }
+    const { data } = await api.patch<Category[]>(ENDPOINTS.MENU.CATEGORIES, { order: orderedIds }, {
+      params: { branch_id: branchId },
+    })
+    return data
+  },
 }

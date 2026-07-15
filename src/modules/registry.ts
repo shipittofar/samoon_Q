@@ -231,6 +231,15 @@ const MENU_NAV_ITEM = {
   permissionKey: 'menu.view',
 } as const
 
+const CATEGORIES_NAV_ITEM = {
+  href: '/console/categories',
+  label: 'Categories',
+  icon: 'Layers',
+  group: 'Content',
+  featureFlagKey: 'menu.enabled',
+  permissionKey: 'category.view',
+} as const
+
 const LOYALTY_NAV_ITEM = {
   href: '/console/loyalty',
   label: 'Loyalty',
@@ -341,6 +350,7 @@ export const RESTAURANT_MODULE: Module = {
     OPERATIONS_NAV_ITEM,
     // Content
     MENU_NAV_ITEM,
+    CATEGORIES_NAV_ITEM,
     PROMOTIONS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
     LOYALTY_NAV_ITEM,
@@ -430,6 +440,7 @@ export const CAFE_MODULE: Module = {
     ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
+    CATEGORIES_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
     { href: '/console/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
@@ -508,6 +519,7 @@ export const BAR_MODULE: Module = {
     ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
+    CATEGORIES_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
@@ -586,6 +598,7 @@ export const FOOD_COURT_MODULE: Module = {
     ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
+    CATEGORIES_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
@@ -664,6 +677,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
+    CATEGORIES_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
     { href: '/console/food-truck/routes', label: 'Route Management', featureFlagKey: 'food_truck.route_tracking.enabled', permissionKey: 'operations.view' },
@@ -745,6 +759,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     ANALYTICS_NAV_ITEM,
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
+    CATEGORIES_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
     { href: '/console/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled', permissionKey: 'operations.view' },

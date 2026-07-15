@@ -923,12 +923,12 @@ describe('P7.6 — Navigation Integration', () => {
 
   it('RESTAURANT_MODULE adminNavItems count is 7', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(22)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(23)
   })
 
   it('CAFE_MODULE adminNavItems count is 10', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(22)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(23)
   })
 })
 
@@ -1124,7 +1124,7 @@ describe('P7.6 — Regression Guard', () => {
 
   it('ALL_PERMISSIONS has 31 entries after P7.6 and P7.7 additions', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(48)
+    expect(ALL_PERMISSIONS).toHaveLength(52)
   })
 
   it('notification permissions do not overlap with audit permissions', async () => {

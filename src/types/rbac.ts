@@ -35,6 +35,11 @@ export type P7Permission =
   // ── Menu ──────────────────────────────────────────────────
   | 'menu.view'
   | 'menu.manage'
+  // ── Categories (sub-resource of Menu) ─────────────────────
+  | 'category.view'
+  | 'category.create'
+  | 'category.update'
+  | 'category.delete'
   // ── Reservations ──────────────────────────────────────────
   | 'reservations.view'
   | 'reservations.manage'

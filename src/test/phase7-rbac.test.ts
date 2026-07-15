@@ -139,9 +139,11 @@ describe('C — ROLE_PERMISSION_MAP completeness', () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
     expect(Object.keys(ROLE_PERMISSION_MAP)).toHaveLength(8)
   })
-  it('ALL_PERMISSIONS has 48 entries', async () => {
+  // Category Management added category.view/create/update/delete
+  // (docs/CATEGORY_MANAGEMENT_IMPLEMENTATION.md): 48 + 4 = 52.
+  it('ALL_PERMISSIONS has 52 entries', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(48)
+    expect(ALL_PERMISSIONS).toHaveLength(52)
   })
 })
 

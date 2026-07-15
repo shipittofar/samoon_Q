@@ -77,6 +77,9 @@ export interface Category {
   icon?: string
   order: number
   items_count?: number
+  /** Whether the category is shown on the customer-facing menu. Console-managed. */
+  is_active: boolean
+  created_at: string
 }
 
 export interface Extra {

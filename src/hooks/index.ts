@@ -85,6 +85,7 @@ import type {
   AdminOrderFilters,
   AdminReservationFilters,
   Capability,
+  Category,
   LoginCredentials,
   LoyaltyReward,
   MenuItem,
@@ -1610,6 +1611,102 @@ function menuItemsQueryPredicate(branchId: string) {
 function categoriesQueryPredicate(branchId: string) {
   return (query: { queryKey: readonly unknown[] }) =>
     query.queryKey[0] === 'categories' && query.queryKey[2] === branchId
+}
+
+// ── Category Admin Hooks ─────────────────────────────────────────────────────
+// Same pattern as the Menu Item admin hooks below: branchId is required (no
+// store fallback for mutations — the Console always acts on the branch the
+// admin has explicitly selected), and invalidation is scoped to that branch's
+// cached queries via categoriesQueryPredicate, never a blanket ['categories']
+// prefix that would touch every branch's cache.
+
+export function useCreateCategory(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Partial<Category>) => menuService.createCategory(branchId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
+    },
+  })
+}
+
+export function useUpdateCategory(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<Category> }) =>
+      menuService.updateCategory(branchId, id, payload),
+    onMutate: async ({ id, payload }) => {
+      const predicate = categoriesQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<Category[]>({ predicate })
+      qc.setQueriesData<Category[]>(
+        { predicate },
+        (old) => old ? old.map((c) => c.id === id ? { ...c, ...payload } : c) : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
+    },
+  })
+}
+
+export function useDeleteCategory(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => menuService.deleteCategory(branchId, id),
+    onMutate: async (id) => {
+      const predicate = categoriesQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<Category[]>({ predicate })
+      qc.setQueriesData<Category[]>(
+        { predicate },
+        (old) => old ? old.filter((c) => c.id !== id) : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
+    },
+  })
+}
+
+export function useReorderCategories(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (orderedIds: string[]) => menuService.reorderCategories(branchId, orderedIds),
+    onMutate: async (orderedIds) => {
+      const predicate = categoriesQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<Category[]>({ predicate })
+      qc.setQueriesData<Category[]>(
+        { predicate },
+        (old) => {
+          if (!old) return old
+          const byId = new Map(old.map((c) => [c.id, c]))
+          return orderedIds
+            .map((id, index) => {
+              const c = byId.get(id)
+              return c ? { ...c, order: index + 1 } : undefined
+            })
+            .filter((c): c is Category => !!c)
+        },
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
+    },
+  })
 }
 
 export function useCreateMenuItem(branchId: string) {

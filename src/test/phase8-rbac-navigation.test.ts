@@ -89,9 +89,11 @@ describe('P8 — Manager tightened permissions', () => {
     const { hasPermission } = await import('@/services/permission.service')
     expect(hasPermission('manager', 'operations.manage')).toBe(false)
   })
-  it('manager has exactly 24 permissions', async () => {
+  // Category Management: manager gained category.view/create/update/delete
+  // alongside its existing menu.view/menu.manage (docs/CATEGORY_MANAGEMENT_IMPLEMENTATION.md).
+  it('manager has exactly 28 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.manager).toHaveLength(24)
+    expect(ROLE_PERMISSION_MAP.manager).toHaveLength(28)
   })
 })
 
@@ -315,9 +317,11 @@ describe('P8 — Owner and admin unchanged', () => {
 // ── Waiter unchanged ──────────────────────────────────────────────────────────
 
 describe('P8 — Waiter permissions unchanged', () => {
-  it('waiter still has 14 permissions', async () => {
+  // Category Management: waiter gained read-only category.view alongside its
+  // existing menu.view (docs/CATEGORY_MANAGEMENT_IMPLEMENTATION.md).
+  it('waiter still has 15 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.waiter).toHaveLength(14)
+    expect(ROLE_PERMISSION_MAP.waiter).toHaveLength(15)
   })
   it('waiter has menu.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
