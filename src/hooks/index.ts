@@ -986,6 +986,27 @@ export function useAssignBranchManager() {
   })
 }
 
+export function useDeleteBranch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => branchManagementService.deleteBranch(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    },
+  })
+}
+
+export function useSetDefaultBranch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => branchManagementService.setDefaultBranch(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-branch'] })
+      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    },
+  })
+}
+
 // ── Reservation Hooks ─────────────────────────────────────────────────────────
 export function useReservations() {
   const tenantId = useTenantStore((s) => s.tenant?.id)

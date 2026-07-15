@@ -1,13 +1,22 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useAdminBranch, useAdminBranchMetrics, useActivateBranch, useDeactivateBranch, useMaintenanceBranch } from '@/hooks'
+import {
+  useAdminBranch, useAdminBranches, useAdminBranchMetrics,
+  useActivateBranch, useDeactivateBranch, useMaintenanceBranch,
+  useDeleteBranch, useSetDefaultBranch,
+} from '@/hooks'
+import { useBranchStore, useTenantStore } from '@/stores'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
+import { Modal } from '@/components/ui/Modal'
 import type { BranchStatus } from '@/types/branch'
+import toast from 'react-hot-toast'
 
 const STATUS_COLORS: Record<BranchStatus, string> = {
   active: 'bg-green-100 text-green-800',
@@ -23,20 +32,50 @@ const BRANCH_STATUS_KEY: Record<BranchStatus, string> = {
 
 function BranchDetailContent({ id }: { id: string }) {
   const t = useTranslations('console')
+  const router = useRouter()
+  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const { data: branch, isLoading, error } = useAdminBranch(id)
+  const { data: siblingBranches = [] } = useAdminBranches(tenantId)
   const { data: metrics } = useAdminBranchMetrics(id)
   const activate = useActivateBranch()
   const deactivate = useDeactivateBranch()
   const maintenance = useMaintenanceBranch()
+  const deleteBranch = useDeleteBranch()
+  const setDefault = useSetDefaultBranch()
+  const adminActiveBranch = useBranchStore((s) => s.adminActiveBranch)
+
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   if (isLoading) return <p className="p-6 text-gray-500">{t('loadingBranchEllipsis')}</p>
   if (error || !branch) return <p className="p-6 text-red-500">{t('branchNotFoundPeriod')}</p>
+
+  const isOnlyBranch = siblingBranches.length <= 1
+  const isActiveBranch = adminActiveBranch?.id === branch.id
+
+  const confirmDelete = () => {
+    if (deleteBranch.isPending) return
+    deleteBranch.mutate(id, {
+      onSuccess: () => {
+        toast.success(t('branchDeletedSuccessfully'))
+        setDeleteOpen(false)
+        router.push('/console/branches')
+      },
+      onError: (err) => {
+        toast.error(err instanceof Error && err.message === 'last_branch' ? t('cannotDeleteLastBranch') : t('failedToDeleteBranchRetry'))
+      },
+    })
+  }
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{branch.name}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-2xl font-bold">{branch.name}</h1>
+            {branch.isDefault && (
+              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">{t('defaultBadge')}</span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-gray-500">{branch.slug}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -47,9 +86,43 @@ function BranchDetailContent({ id }: { id: string }) {
         </div>
       </div>
 
+      {/* Edit / Default / Delete */}
+      <div className="flex flex-wrap gap-2">
+        <PermissionGuard permission="branches.update">
+          <Link
+            href={`/console/branches/${id}/edit`}
+            className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            {t('editBranchLabel')}
+          </Link>
+        </PermissionGuard>
+        {!branch.isDefault && (
+          <PermissionGuard permission="branches.update">
+            <button
+              onClick={() => setDefault.mutate(id, { onSuccess: () => toast.success(t('defaultBranchUpdated')) })}
+              disabled={setDefault.isPending}
+              className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              {t('setAsDefaultLabel')}
+            </button>
+          </PermissionGuard>
+        )}
+        <PermissionGuard permission="branches.delete">
+          <button
+            onClick={() => setDeleteOpen(true)}
+            disabled={isOnlyBranch}
+            title={isOnlyBranch ? t('cannotDeleteLastBranch') : undefined}
+            className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {t('deleteBranchLabel')}
+          </button>
+        </PermissionGuard>
+      </div>
+
       {/* Location */}
       <section className="rounded-lg border p-4">
         <h2 className="mb-2 font-semibold">{t('locationLabel')}</h2>
+        {branch.description && <p className="text-sm text-gray-600 mb-2">{branch.description}</p>}
         <p>{branch.location.address}</p>
         <p>{branch.location.city}, {branch.location.country}</p>
         {branch.location.postalCode && <p>{t('postalColonValue', { code: branch.location.postalCode })}</p>}
@@ -65,14 +138,26 @@ function BranchDetailContent({ id }: { id: string }) {
         </section>
       )}
 
+      {/* Locale */}
+      {(branch.timeZone || branch.currency || branch.language) && (
+        <section className="rounded-lg border p-4">
+          <h2 className="mb-2 font-semibold">{t('localeLabel')}</h2>
+          {branch.timeZone && <p>{t('timeZoneColonValue', { value: branch.timeZone })}</p>}
+          {branch.currency && <p>{t('currencyColonValue', { value: branch.currency })}</p>}
+          {branch.language && <p>{t('languageColonValue', { value: branch.language })}</p>}
+        </section>
+      )}
+
       {/* Settings */}
       <section className="rounded-lg border p-4">
         <h2 className="mb-2 font-semibold">{t('settingsTitle')}</h2>
         <ul className="space-y-1 text-sm">
+          <li>{t('orderingColonValue', { value: branch.settings.orderingEnabled !== false ? t('enabledLabel') : t('disabledLabel') })}</li>
           <li>{t('deliveryColonValue', { value: branch.settings.deliveryEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
           <li>{t('pickupColonValue', { value: branch.settings.pickupEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
           <li>{t('tableOrderingColonValue', { value: branch.settings.tableOrderingEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
           <li>{t('reservationsColonValue', { value: branch.settings.reservationsEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('marketplaceVisibleColonValue', { value: branch.settings.marketplaceVisible !== false ? t('enabledLabel') : t('disabledLabel') })}</li>
           {branch.settings.maxCapacity !== undefined && (
             <li>{t('maxCapacityColonValue', { value: branch.settings.maxCapacity })}</li>
           )}
@@ -144,6 +229,31 @@ function BranchDetailContent({ id }: { id: string }) {
           </div>
         </section>
       </PermissionGuard>
+
+      {/* Delete Confirmation */}
+      <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title={t('deleteBranchLabel')} size="sm">
+        <p className="text-[var(--fg-muted)] mb-3">{t('confirmDeleteBranch', { name: branch.name })}</p>
+        {isActiveBranch && (
+          <p className="text-sm text-amber-600 mb-3">{t('deleteActiveBranchWarning')}</p>
+        )}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setDeleteOpen(false)}
+            className="flex-1 rounded-md border px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
+          >
+            {t('cancel')}
+          </button>
+          <button
+            type="button"
+            onClick={confirmDelete}
+            disabled={deleteBranch.isPending}
+            className="flex-1 rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+          >
+            {deleteBranch.isPending ? t('deletingEllipsis') : t('deleteAction')}
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

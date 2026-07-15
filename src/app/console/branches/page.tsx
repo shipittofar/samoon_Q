@@ -35,13 +35,23 @@ function BranchTable({ branches, t }: { branches: Branch[]; t: ReturnType<typeof
         <tbody>
           {branches.map((b) => (
             <tr key={b.id} className="border-b last:border-0">
-              <td className="py-2 pr-4 font-medium">{b.name}</td>
+              <td className="py-2 pr-4 font-medium">
+                {b.name}
+                {b.isDefault && (
+                  <span className="ms-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">{t('defaultBadge')}</span>
+                )}
+              </td>
               <td className="py-2 pr-4 capitalize">{b.type}</td>
               <td className="py-2 pr-4">{b.location.city}</td>
-              <td className="py-2">
+              <td className="py-2 flex gap-3">
                 <Link href={`/console/branches/${b.id}`} className="text-blue-600 hover:underline">
                   {t('viewLabel')}
                 </Link>
+                <PermissionGuard permission="branches.update">
+                  <Link href={`/console/branches/${b.id}/edit`} className="text-blue-600 hover:underline">
+                    {t('editBranchLabel')}
+                  </Link>
+                </PermissionGuard>
               </td>
             </tr>
           ))}
@@ -116,7 +126,7 @@ function BranchManagementContent() {
         <h1 className="text-2xl font-bold">{t('branchManagementTitle')}</h1>
         <div className="flex items-center gap-2">
           <PreviewButton href="/restaurant" label={t('previewBranchLabel')} size="sm" />
-        <PermissionGuard permission="branches.manage" fallback={<AccessDenied />}>
+        <PermissionGuard permission="branches.create">
           <Link
             href="/console/branches/new"
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"

@@ -56,6 +56,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     tenantId: MOCK_TENANT_ID,
     name: 'Main Branch',
     slug: 'main',
+    isDefault: true,
     status: 'active',
     type: 'physical',
     location: { address: '123 Culinary Avenue', city: 'New York', country: 'US', latitude: 40.7128, longitude: -74.006 },
@@ -233,6 +234,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     tenantId: TENANT_BREW_CAFE,
     name: 'Midtown Cafe',
     slug: 'main',
+    isDefault: true,
     status: 'active',
     type: 'physical',
     location: { address: '789 Coffee Lane', city: 'New York', country: 'US', latitude: 40.754, longitude: -73.984 },
@@ -263,6 +265,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     tenantId: TENANT_OAK_BAR,
     name: 'East Village Bar',
     slug: 'main',
+    isDefault: true,
     status: 'active',
     type: 'physical',
     location: { address: '555 Tap Street', city: 'New York', country: 'US', latitude: 40.726, longitude: -73.983 },
@@ -279,6 +282,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     tenantId: TENANT_CENTRAL_FC,
     name: 'Westside Food Court',
     slug: 'main',
+    isDefault: true,
     status: 'active',
     type: 'physical',
     location: { address: '100 Market Street', city: 'New York', country: 'US', latitude: 40.76, longitude: -73.99 },
@@ -295,6 +299,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     tenantId: TENANT_WHEELS_BREWS,
     name: 'Mobile Brew Cart',
     slug: 'main',
+    isDefault: true,
     status: 'active',
     type: 'mobile',
     location: { address: 'Central Park South Entrance', city: 'New York', country: 'US', latitude: 40.767, longitude: -73.977 },
@@ -311,6 +316,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     tenantId: TENANT_ROAD_BITES,
     name: 'Road Bites Truck',
     slug: 'main',
+    isDefault: true,
     status: 'inactive',
     type: 'mobile',
     location: { address: 'Various Locations', city: 'New York', country: 'US', latitude: 40.7128, longitude: -74.006 },
@@ -354,6 +360,14 @@ function setBranchStatus(id: string, status: BranchStatus): Branch {
   branch.status = status
   branch.updatedAt = new Date().toISOString()
   return { ...branch }
+}
+
+/** Throws if another branch in the same tenant already uses this slug. */
+function assertSlugAvailable(tenantId: string, slug: string, excludeId?: string): void {
+  const conflict = MOCK_BRANCH_LIST.find(
+    (b) => b.tenantId === tenantId && b.slug === slug && b.id !== excludeId,
+  )
+  if (conflict) throw new Error('duplicate_slug')
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -405,12 +419,15 @@ export const branchManagementService = {
   async createBranch(tenantId: string, payload: CreateBranchPayload): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
+      assertSlugAvailable(tenantId, payload.slug)
       _branchCounter += 1
+      const isFirstBranch = MOCK_BRANCH_LIST.every((b) => b.tenantId !== tenantId)
       const branch: Branch = {
         id: `branch-new-${_branchCounter}`,
         tenantId,
         name: payload.name,
         slug: payload.slug,
+        description: payload.description,
         status: 'inactive',
         type: payload.type,
         location: payload.location,
@@ -422,10 +439,22 @@ export const branchManagementService = {
           pickupEnabled: true,
           tableOrderingEnabled: false,
           reservationsEnabled: false,
+          orderingEnabled: true,
+          marketplaceVisible: true,
           ...payload.settings,
         },
+        image: payload.image,
+        coverImage: payload.coverImage,
+        // The tenant's first branch is always the default, regardless of the payload.
+        isDefault: isFirstBranch || payload.isDefault,
+        timeZone: payload.timeZone,
+        currency: payload.currency,
+        language: payload.language,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+      }
+      if (branch.isDefault) {
+        MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === tenantId) b.isDefault = false })
       }
       MOCK_BRANCH_LIST.push(branch)
       return { ...branch }
@@ -439,16 +468,68 @@ export const branchManagementService = {
       await delay()
       const branch = findBranch(id)
       if (!branch) throw new Error(`Branch not found: ${id}`)
+      if (payload.slug && payload.slug !== branch.slug) {
+        assertSlugAvailable(branch.tenantId, payload.slug, branch.id)
+        branch.slug = payload.slug
+      }
       if (payload.name) branch.name = payload.name
+      if (payload.description !== undefined) branch.description = payload.description
       if (payload.location) branch.location = { ...branch.location, ...payload.location }
       if (payload.contact) branch.contact = { ...branch.contact, ...payload.contact }
       if (payload.managerId !== undefined) branch.managerId = payload.managerId
       if (payload.businessHours) branch.businessHours = payload.businessHours
       if (payload.settings) branch.settings = { ...branch.settings, ...payload.settings }
+      if (payload.image !== undefined) branch.image = payload.image
+      if (payload.coverImage !== undefined) branch.coverImage = payload.coverImage
+      if (payload.timeZone !== undefined) branch.timeZone = payload.timeZone
+      if (payload.currency !== undefined) branch.currency = payload.currency
+      if (payload.language !== undefined) branch.language = payload.language
+      if (payload.isDefault) {
+        MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === branch.tenantId) b.isDefault = b.id === branch.id })
+      }
       branch.updatedAt = new Date().toISOString()
       return { ...branch }
     }
     const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), payload)
+    return res.data
+  },
+
+  /**
+   * Deletes a branch. Refuses to delete a tenant's only remaining branch —
+   * a tenant must always have at least one branch to operate. Deleting the
+   * currently active branch is allowed here (that confirmation/warning is a
+   * Console UI concern — see console/branches/[id]/page.tsx) but never the
+   * last one, since there would be nothing left to fall back to.
+   */
+  async deleteBranch(id: string): Promise<void> {
+    if (USE_MOCK) {
+      await delay()
+      const branch = findBranch(id)
+      if (!branch) throw new Error(`Branch not found: ${id}`)
+      const siblingCount = MOCK_BRANCH_LIST.filter((b) => b.tenantId === branch.tenantId).length
+      if (siblingCount <= 1) throw new Error('last_branch')
+      MOCK_BRANCH_LIST = MOCK_BRANCH_LIST.filter((b) => b.id !== branch.id)
+      // If the deleted branch was the default, promote the next remaining one.
+      if (branch.isDefault) {
+        const next = MOCK_BRANCH_LIST.find((b) => b.tenantId === branch.tenantId)
+        if (next) next.isDefault = true
+      }
+      return
+    }
+    await api.delete(ENDPOINTS.BRANCHES.DELETE(id))
+  },
+
+  /** Sets this branch as the tenant's default, unsetting the previous default. */
+  async setDefaultBranch(id: string): Promise<Branch> {
+    if (USE_MOCK) {
+      await delay()
+      const branch = findBranch(id)
+      if (!branch) throw new Error(`Branch not found: ${id}`)
+      MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === branch.tenantId) b.isDefault = b.id === branch.id })
+      branch.updatedAt = new Date().toISOString()
+      return { ...branch }
+    }
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.SET_DEFAULT(id))
     return res.data
   },
 

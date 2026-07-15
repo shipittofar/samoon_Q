@@ -82,6 +82,9 @@ export const ALL_PERMISSIONS: readonly P7Permission[] = [
   // Branches
   'branches.view',
   'branches.manage',
+  'branches.create',
+  'branches.update',
+  'branches.delete',
   // Settings
   'settings.view',
   'settings.manage',
@@ -181,6 +184,9 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     // Branches
     'branches.view',
     'branches.manage',
+    'branches.create',
+    'branches.update',
+    'branches.delete',
     // Settings
     'settings.view',
     // 'settings.manage',
@@ -689,7 +695,7 @@ export const PERMISSION_CATEGORIES: Record<string, { label: string; permissions:
   },
   branches: {
     label: 'Branches',
-    permissions: ['branches.view', 'branches.manage'],
+    permissions: ['branches.view', 'branches.manage', 'branches.create', 'branches.update', 'branches.delete'],
   },
   analytics: {
     label: 'Analytics',
@@ -763,6 +769,9 @@ export const PERMISSION_DEPENDENCIES: Readonly<Partial<Record<P7Permission, Perm
   'staff.edit': { permission: 'staff.edit', requires: ['staff.view', 'staff.manage'] },
   'staff.delete': { permission: 'staff.delete', requires: ['staff.view', 'staff.manage'] },
   'branches.manage': { permission: 'branches.manage', requires: ['branches.view'] },
+  'branches.create': { permission: 'branches.create', requires: ['branches.view'] },
+  'branches.update': { permission: 'branches.update', requires: ['branches.view'] },
+  'branches.delete': { permission: 'branches.delete', requires: ['branches.view', 'branches.update'] },
   'settings.manage': { permission: 'settings.manage', requires: ['settings.view'] },
   'featureflags.manage': { permission: 'featureflags.manage', requires: ['settings.view', 'settings.manage'] },
   'tenant.manage': { permission: 'tenant.manage', requires: ['tenant.view'] },

@@ -83,6 +83,9 @@ export type P7Permission =
   // ── Branches ──────────────────────────────────────────────
   | 'branches.view'
   | 'branches.manage'
+  | 'branches.create'
+  | 'branches.update'
+  | 'branches.delete'
   // ── Settings ──────────────────────────────────────────────
   | 'settings.view'
   | 'settings.manage'

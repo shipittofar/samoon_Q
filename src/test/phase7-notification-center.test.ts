@@ -1124,7 +1124,7 @@ describe('P7.6 — Regression Guard', () => {
 
   it('ALL_PERMISSIONS has 31 entries after P7.6 and P7.7 additions', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(56)
+    expect(ALL_PERMISSIONS).toHaveLength(59)
   })
 
   it('notification permissions do not overlap with audit permissions', async () => {

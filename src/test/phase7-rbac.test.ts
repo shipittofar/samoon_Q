@@ -141,10 +141,12 @@ describe('C — ROLE_PERMISSION_MAP completeness', () => {
   })
   // Category Management added category.view/create/update/delete (48 + 4 = 52,
   // docs/CATEGORY_MANAGEMENT_IMPLEMENTATION.md); Extras Management added
-  // extras.view/create/update/delete (52 + 4 = 56, docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md).
-  it('ALL_PERMISSIONS has 56 entries', async () => {
+  // extras.view/create/update/delete (52 + 4 = 56, docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md);
+  // Branch Management added branches.create/update/delete (56 + 3 = 59,
+  // docs/BRANCH_MANAGEMENT_IMPLEMENTATION.md).
+  it('ALL_PERMISSIONS has 59 entries', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(56)
+    expect(ALL_PERMISSIONS).toHaveLength(59)
   })
 })
 

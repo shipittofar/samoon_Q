@@ -72,6 +72,8 @@ export const ENDPOINTS = {
     MAINTENANCE: (id: string) => `/branches/${id}/maintenance/`,
     ASSIGN_MANAGER: (id: string) => `/branches/${id}/manager/`,
     METRICS: (id: string) => `/branches/${id}/metrics/`,
+    DELETE: (id: string) => `/branches/${id}/`,
+    SET_DEFAULT: (id: string) => `/branches/${id}/default/`,
   },
 
   // Notifications
