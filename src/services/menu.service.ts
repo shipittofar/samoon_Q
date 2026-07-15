@@ -1,7 +1,7 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS } from '@/lib/mock-data'
-import type { Category, MenuItem, PaginatedResponse } from '@/types'
+import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS, MOCK_BRANCH_EXTRA_GROUPS, MOCK_BRANCH_EXTRAS } from '@/lib/mock-data'
+import type { Category, Extra, ExtraGroup, MenuItem, PaginatedResponse } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms))
@@ -25,6 +25,14 @@ function mockCategories(branchId: string): Category[] {
 
 function mockItems(branchId: string): MenuItem[] {
   return MOCK_BRANCH_ITEMS[branchId] ?? MOCK_BRANCH_ITEMS.main
+}
+
+function mockExtraGroups(branchId: string): ExtraGroup[] {
+  return MOCK_BRANCH_EXTRA_GROUPS[branchId] ?? MOCK_BRANCH_EXTRA_GROUPS.main
+}
+
+function mockExtras(branchId: string): Extra[] {
+  return MOCK_BRANCH_EXTRAS[branchId] ?? MOCK_BRANCH_EXTRAS.main
 }
 
 export const menuService = {
@@ -266,6 +274,170 @@ export const menuService = {
         .filter((c): c is Category => !!c)
     }
     const { data } = await api.patch<Category[]>(ENDPOINTS.MENU.CATEGORIES, { order: orderedIds }, {
+      params: { branch_id: branchId },
+    })
+    return data
+  },
+
+  // ── Extra Group Admin CRUD ─────────────────────────────────────────────────
+  // Same conventions as Category/MenuItem admin CRUD: branch-scoped, mock mode
+  // returns a plausible response object without mutating the underlying
+  // MOCK_BRANCH_EXTRA_GROUPS array.
+
+  async getExtraGroups(branchId: string): Promise<ExtraGroup[]> {
+    if (USE_MOCK) {
+      await delay(400)
+      return mockExtraGroups(branchId)
+    }
+    const { data } = await api.get<ExtraGroup[]>(ENDPOINTS.MENU.EXTRA_GROUPS, {
+      params: { branch_id: branchId },
+    })
+    return data
+  },
+
+  async createExtraGroup(branchId: string, payload: Partial<ExtraGroup>): Promise<ExtraGroup> {
+    const scopedPayload = { ...payload, branch_id: branchId }
+    if (USE_MOCK) {
+      await delay(600)
+      const existing = mockExtraGroups(branchId)
+      const newGroup: ExtraGroup = {
+        id: `grp-${Date.now()}`,
+        branch_id: branchId,
+        name: payload.name ?? 'New Group',
+        description: payload.description,
+        selection_type: payload.selection_type ?? 'multiple',
+        required: payload.required ?? false,
+        min_selection: payload.min_selection ?? 0,
+        max_selection: payload.max_selection ?? 1,
+        order: payload.order ?? existing.length + 1,
+        is_active: payload.is_active ?? true,
+        created_at: new Date().toISOString(),
+        ...payload,
+      }
+      return newGroup
+    }
+    const { data } = await api.post<ExtraGroup>(ENDPOINTS.MENU.EXTRA_GROUPS, scopedPayload)
+    return data
+  },
+
+  async updateExtraGroup(branchId: string, id: string, payload: Partial<ExtraGroup>): Promise<ExtraGroup> {
+    if (USE_MOCK) {
+      await delay(500)
+      const existing = mockExtraGroups(branchId).find((g) => g.id === id)
+      return { ...(existing as ExtraGroup), ...payload, id, branch_id: branchId }
+    }
+    const { data } = await api.patch<ExtraGroup>(ENDPOINTS.MENU.EXTRA_GROUP(id), payload, {
+      params: { branch_id: branchId },
+    })
+    return data
+  },
+
+  async deleteExtraGroup(branchId: string, id: string): Promise<void> {
+    if (USE_MOCK) {
+      await delay(400)
+      return
+    }
+    await api.delete(ENDPOINTS.MENU.EXTRA_GROUP(id), { params: { branch_id: branchId } })
+  },
+
+  /** Persists a new sort order for a branch's Extra Groups. */
+  async reorderExtraGroups(branchId: string, orderedIds: string[]): Promise<ExtraGroup[]> {
+    if (USE_MOCK) {
+      await delay(500)
+      const byId = new Map(mockExtraGroups(branchId).map((g) => [g.id, g]))
+      return orderedIds
+        .map((id, index) => {
+          const grp = byId.get(id)
+          return grp ? { ...grp, order: index + 1 } : undefined
+        })
+        .filter((g): g is ExtraGroup => !!g)
+    }
+    const { data } = await api.patch<ExtraGroup[]>(ENDPOINTS.MENU.EXTRA_GROUPS, { order: orderedIds }, {
+      params: { branch_id: branchId },
+    })
+    return data
+  },
+
+  // ── Extra Admin CRUD ───────────────────────────────────────────────────────
+
+  async getExtras(branchId: string, groupId?: string): Promise<Extra[]> {
+    if (USE_MOCK) {
+      await delay(400)
+      const all = mockExtras(branchId)
+      return groupId ? all.filter((e) => e.group_id === groupId) : all
+    }
+    const { data } = await api.get<Extra[]>(ENDPOINTS.MENU.EXTRAS, {
+      params: { branch_id: branchId, group_id: groupId },
+    })
+    return data
+  },
+
+  async createExtra(branchId: string, payload: Partial<Extra> & { group_id: string }): Promise<Extra> {
+    const scopedPayload = { ...payload, branch_id: branchId }
+    if (USE_MOCK) {
+      await delay(600)
+      const existing = mockExtras(branchId).filter((e) => e.group_id === payload.group_id)
+      const newExtra: Extra = {
+        id: `ext-${Date.now()}`,
+        branch_id: branchId,
+        name: payload.name ?? 'New Extra',
+        description: payload.description,
+        image: payload.image,
+        price: payload.price ?? 0,
+        available: payload.available ?? true,
+        order: payload.order ?? existing.length + 1,
+        created_at: new Date().toISOString(),
+        ...payload,
+      }
+      return newExtra
+    }
+    const { data } = await api.post<Extra>(ENDPOINTS.MENU.EXTRAS, scopedPayload)
+    return data
+  },
+
+  async updateExtra(branchId: string, id: string, payload: Partial<Extra>): Promise<Extra> {
+    if (USE_MOCK) {
+      await delay(500)
+      const existing = mockExtras(branchId).find((e) => e.id === id)
+      return { ...(existing as Extra), ...payload, id, branch_id: branchId }
+    }
+    const { data } = await api.patch<Extra>(ENDPOINTS.MENU.EXTRA(id), payload, {
+      params: { branch_id: branchId },
+    })
+    return data
+  },
+
+  async deleteExtra(branchId: string, id: string): Promise<void> {
+    if (USE_MOCK) {
+      await delay(400)
+      return
+    }
+    await api.delete(ENDPOINTS.MENU.EXTRA(id), { params: { branch_id: branchId } })
+  },
+
+  // ── Menu Item ↔ Extra Group assignment ────────────────────────────────────
+
+  /**
+   * Attaches/detaches Extra Groups on a menu item and re-materializes the
+   * item's flat `extras` field from the active extras across all currently
+   * assigned groups — the exact shape FoodDetailModal/CartDrawer/checkout/
+   * useCartStore already consume, so none of those need to change.
+   */
+  async assignExtraGroupsToItem(branchId: string, itemId: string, groupIds: string[]): Promise<MenuItem> {
+    if (USE_MOCK) {
+      await delay(500)
+      const item = mockItems(branchId).find((i) => i.id === itemId)
+      const allExtras = mockExtras(branchId)
+      const materializedExtras = allExtras.filter((e) => groupIds.includes(e.group_id ?? '') && e.available)
+      return {
+        ...(item as MenuItem),
+        id: itemId,
+        branch_id: branchId,
+        extra_group_ids: groupIds,
+        extras: materializedExtras,
+      }
+    }
+    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(itemId), { extra_group_ids: groupIds }, {
       params: { branch_id: branchId },
     })
     return data

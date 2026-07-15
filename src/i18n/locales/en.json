@@ -2233,6 +2233,65 @@
     "categoryFormError": {
       "nameRequired": "Category name is required.",
       "invalidSortOrder": "Sort order must be a positive whole number."
+    },
+    "extrasManagement": "Extras Management",
+    "extraGroupsCount": "{count} extra groups",
+    "extrasPageSubtitle": "Manage extras for {branch}",
+    "selectBranchToManageExtras": "Select a branch to manage its extras",
+    "extrasPageNoBranchHint": "Choose an active branch from the branch switcher to view and manage its Extra Groups.",
+    "addExtraGroup": "Add Extra Group",
+    "searchExtrasPlaceholder": "Search groups or extras...",
+    "loadingExtras": "Loading extras...",
+    "failedToLoadExtras": "Failed to load extras.",
+    "noExtraGroupsFound": "No extra groups yet",
+    "noExtraGroupsHint": "Create your first Extra Group (e.g. Size, Sauces, Toppings) to start adding extras.",
+    "noExtrasMatchSearch": "No groups or extras match your search",
+    "toggleGroupAria": "Toggle {name} group",
+    "requiredBadge": "Required",
+    "minMaxBadge": "Min {min} / Max {max}",
+    "editExtraGroupAria": "Edit extra group",
+    "deleteExtraGroupAria": "Delete extra group",
+    "noExtrasInGroup": "No extras in this group yet",
+    "addExtra": "Add Extra",
+    "priceColumn": "Price",
+    "editExtraAria": "Edit extra",
+    "deleteExtraAria": "Delete extra",
+    "editExtraGroup": "Edit Extra Group",
+    "deleteExtraGroup": "Delete Extra Group",
+    "confirmDeleteExtraGroup": "Are you sure you want to delete {name}? Its extras will also be removed. This action cannot be undone.",
+    "failedToCreateExtraGroupRetry": "Failed to create extra group. Please try again.",
+    "failedToDeleteExtraGroupRetry": "Failed to delete extra group. Please try again.",
+    "editExtra": "Edit Extra",
+    "deleteExtra": "Delete Extra",
+    "confirmDeleteExtra": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "failedToCreateExtraRetry": "Failed to create extra. Please try again.",
+    "failedToDeleteExtraRetry": "Failed to delete extra. Please try again.",
+    "extraGroupNameLabel": "Group Name",
+    "selectionTypeLabel": "Selection Type",
+    "minSelectionLabel": "Minimum Selection",
+    "maxSelectionLabel": "Maximum Selection",
+    "extraNameLabel": "Extra Name",
+    "extraGroupsLabel": "Extra Groups",
+    "noExtraGroupsAvailable": "No extra groups available for this branch yet.",
+    "assignedGroupsPreview": "Assigned:",
+    "selectionType": {
+      "single": "Single Choice",
+      "multiple": "Multiple Choice"
+    },
+    "extrasStatusFilter": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "extraGroupFormError": {
+      "nameRequired": "Group name is required.",
+      "duplicateName": "A group with this name already exists in this branch.",
+      "invalidLimits": "Minimum/maximum selection must be valid (min ≤ max, and at least 1 if required)."
+    },
+    "extraFormError": {
+      "nameRequired": "Extra name is required.",
+      "duplicateName": "An extra with this name already exists in this branch.",
+      "negativePrice": "Price cannot be negative."
     }
   },
   "configFields": {

@@ -87,6 +87,43 @@ export interface Extra {
   name: string
   price: number
   available: boolean
+  /**
+   * Console-managed extras carry these; legacy inline extras embedded
+   * directly in mock MenuItem.extras arrays do not, and remain valid —
+   * see docs/EXTRAS_MANAGEMENT_ANALYSIS.md's "Design decision" section.
+   */
+  branch_id?: string
+  /** Owning ExtraGroup, when managed through the Extras console. */
+  group_id?: string
+  description?: string
+  image?: string
+  order?: number
+  created_at?: string
+}
+
+/**
+ * Selection rules for an Extra Group (e.g. "Size", "Sauces", "Toppings").
+ * A group owns a branch-scoped set of Extras and dictates how a customer
+ * may choose among them.
+ */
+export type ExtraGroupSelectionType = 'single' | 'multiple'
+
+export interface ExtraGroup {
+  id: string
+  /** Branch that owns this group. Every Extra Group belongs to exactly one Branch. */
+  branch_id: string
+  name: string
+  description?: string
+  selection_type: ExtraGroupSelectionType
+  /** Whether a customer must choose from this group before adding the item to cart. */
+  required: boolean
+  /** Minimum number of extras a customer must select from this group. */
+  min_selection: number
+  /** Maximum number of extras a customer may select from this group. */
+  max_selection: number
+  order: number
+  is_active: boolean
+  created_at: string
 }
 
 export interface MenuItem {
@@ -112,7 +149,16 @@ export interface MenuItem {
   is_new?: boolean
   is_popular?: boolean
   tags?: string[]
+  /**
+   * Materialized, flat list of active extras for cart/checkout display —
+   * unchanged shape, consumed by FoodDetailModal/CartDrawer/checkout/
+   * useCartStore. Derived from extra_group_ids when Extra Groups are
+   * attached through the Console; legacy items may embed extras directly
+   * with no groups at all. See docs/EXTRAS_MANAGEMENT_ANALYSIS.md.
+   */
   extras?: Extra[]
+  /** Extra Groups attached to this item via the Console. Zero, one, or many. */
+  extra_group_ids?: string[]
   allergens?: string[]
   nutritional_info?: NutritionalInfo
 }

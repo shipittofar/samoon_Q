@@ -39,6 +39,11 @@ export const ALL_PERMISSIONS: readonly P7Permission[] = [
   'category.create',
   'category.update',
   'category.delete',
+  // Extras (sub-resource of Menu)
+  'extras.view',
+  'extras.create',
+  'extras.update',
+  'extras.delete',
   // Reservations
   'reservations.view',
   'reservations.manage',
@@ -135,6 +140,11 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'category.create',
     'category.update',
     'category.delete',
+    // Extras
+    'extras.view',
+    'extras.create',
+    'extras.update',
+    'extras.delete',
     // Reservations
     'reservations.view',
     'reservations.manage',
@@ -205,6 +215,10 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'category.create',
     'category.update',
     'category.delete',
+    'extras.view',
+    'extras.create',
+    'extras.update',
+    'extras.delete',
     'reservations.view',
     'reservations.manage',
     'customers.view',
@@ -247,6 +261,7 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
     'orders.edit',
     'menu.view',
     'category.view',
+    'extras.view',
     'reservations.view',
     'reservations.manage',
     'customers.view',
@@ -297,6 +312,8 @@ const PERMISSION_RESOURCE_FLAG: Partial<Record<string, string>> = {
   menu: 'menu.enabled',
   // Categories are a sub-resource of Menu — gated by the same capability flag.
   category: 'menu.enabled',
+  // Extras are a sub-resource of Menu — gated by the same capability flag.
+  extras: 'menu.enabled',
   reservations: 'reservations.enabled',
   loyalty: 'loyalty.enabled',
   promotions: 'promotions.enabled',
@@ -731,6 +748,9 @@ export const PERMISSION_DEPENDENCIES: Readonly<Partial<Record<P7Permission, Perm
   'category.create': { permission: 'category.create', requires: ['category.view'] },
   'category.update': { permission: 'category.update', requires: ['category.view'] },
   'category.delete': { permission: 'category.delete', requires: ['category.view', 'category.update'] },
+  'extras.create': { permission: 'extras.create', requires: ['extras.view'] },
+  'extras.update': { permission: 'extras.update', requires: ['extras.view'] },
+  'extras.delete': { permission: 'extras.delete', requires: ['extras.view', 'extras.update'] },
   'reservations.manage': { permission: 'reservations.manage', requires: ['reservations.view'] },
   'customers.manage': { permission: 'customers.manage', requires: ['customers.view'] },
   'customers.create': { permission: 'customers.create', requires: ['customers.view'] },

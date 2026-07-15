@@ -86,6 +86,8 @@ import type {
   AdminReservationFilters,
   Capability,
   Category,
+  Extra,
+  ExtraGroup,
   LoginCredentials,
   LoyaltyReward,
   MenuItem,
@@ -628,6 +630,32 @@ export function useCategories(branchId?: string) {
   return useQuery({
     queryKey: ['categories', tenantId, scopedBranchId],
     queryFn: () => menuService.getCategories(scopedBranchId!),
+    enabled: !!scopedBranchId,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useExtraGroups(branchId?: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  return useQuery({
+    queryKey: ['extra-groups', tenantId, scopedBranchId],
+    queryFn: () => menuService.getExtraGroups(scopedBranchId!),
+    enabled: !!scopedBranchId,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useExtras(branchId?: string, groupId?: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  return useQuery({
+    queryKey: ['extras', tenantId, scopedBranchId, groupId],
+    queryFn: () => menuService.getExtras(scopedBranchId!, groupId),
     enabled: !!scopedBranchId,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
@@ -1705,6 +1733,189 @@ export function useReorderCategories(branchId: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
+    },
+  })
+}
+
+// ── Extra Group Admin Hooks ───────────────────────────────────────────────────
+// Same pattern as the Category admin hooks above: branchId required (no store
+// fallback for mutations), invalidation scoped to the active branch's cached
+// queries via a predicate, optimistic update + rollback on read-then-write ops.
+
+/** Matches only this branch's cached `extra-groups` entries. */
+function extraGroupsQueryPredicate(branchId: string) {
+  return (query: { queryKey: readonly unknown[] }) =>
+    query.queryKey[0] === 'extra-groups' && query.queryKey[2] === branchId
+}
+
+/** Matches only this branch's cached `extras` entries, across every group filter. */
+function extrasQueryPredicate(branchId: string) {
+  return (query: { queryKey: readonly unknown[] }) =>
+    query.queryKey[0] === 'extras' && query.queryKey[2] === branchId
+}
+
+export function useCreateExtraGroup(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Partial<ExtraGroup>) => menuService.createExtraGroup(branchId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: extraGroupsQueryPredicate(branchId) })
+    },
+  })
+}
+
+export function useUpdateExtraGroup(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<ExtraGroup> }) =>
+      menuService.updateExtraGroup(branchId, id, payload),
+    onMutate: async ({ id, payload }) => {
+      const predicate = extraGroupsQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<ExtraGroup[]>({ predicate })
+      qc.setQueriesData<ExtraGroup[]>(
+        { predicate },
+        (old) => old ? old.map((g) => g.id === id ? { ...g, ...payload } : g) : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: extraGroupsQueryPredicate(branchId) })
+    },
+  })
+}
+
+export function useDeleteExtraGroup(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => menuService.deleteExtraGroup(branchId, id),
+    onMutate: async (id) => {
+      const predicate = extraGroupsQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<ExtraGroup[]>({ predicate })
+      qc.setQueriesData<ExtraGroup[]>(
+        { predicate },
+        (old) => old ? old.filter((g) => g.id !== id) : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: extraGroupsQueryPredicate(branchId) })
+      // A deleted group can no longer be assigned to any item — its menu-item
+      // assignments/materialized extras may need to be refreshed too.
+      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+    },
+  })
+}
+
+export function useReorderExtraGroups(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (orderedIds: string[]) => menuService.reorderExtraGroups(branchId, orderedIds),
+    onMutate: async (orderedIds) => {
+      const predicate = extraGroupsQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<ExtraGroup[]>({ predicate })
+      qc.setQueriesData<ExtraGroup[]>(
+        { predicate },
+        (old) => {
+          if (!old) return old
+          const byId = new Map(old.map((g) => [g.id, g]))
+          return orderedIds
+            .map((id, index) => {
+              const g = byId.get(id)
+              return g ? { ...g, order: index + 1 } : undefined
+            })
+            .filter((g): g is ExtraGroup => !!g)
+        },
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: extraGroupsQueryPredicate(branchId) })
+    },
+  })
+}
+
+// ── Extra Admin Hooks ──────────────────────────────────────────────────────────
+
+export function useCreateExtra(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Partial<Extra> & { group_id: string }) => menuService.createExtra(branchId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: extrasQueryPredicate(branchId) })
+    },
+  })
+}
+
+export function useUpdateExtra(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<Extra> }) =>
+      menuService.updateExtra(branchId, id, payload),
+    onMutate: async ({ id, payload }) => {
+      const predicate = extrasQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<Extra[]>({ predicate })
+      qc.setQueriesData<Extra[]>(
+        { predicate },
+        (old) => old ? old.map((e) => e.id === id ? { ...e, ...payload } : e) : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: extrasQueryPredicate(branchId) })
+      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+    },
+  })
+}
+
+export function useDeleteExtra(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => menuService.deleteExtra(branchId, id),
+    onMutate: async (id) => {
+      const predicate = extrasQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<Extra[]>({ predicate })
+      qc.setQueriesData<Extra[]>(
+        { predicate },
+        (old) => old ? old.filter((e) => e.id !== id) : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ predicate: extrasQueryPredicate(branchId) })
+      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+    },
+  })
+}
+
+/** Attaches/detaches Extra Groups on a menu item from the Menu Item editor. */
+export function useAssignExtraGroupsToItem(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ itemId, groupIds }: { itemId: string; groupIds: string[] }) =>
+      menuService.assignExtraGroupsToItem(branchId, itemId, groupIds),
+    onSuccess: (_data, { itemId }) => {
+      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+      qc.invalidateQueries({ queryKey: ['menu-item', branchId, itemId] })
     },
   })
 }

@@ -40,6 +40,11 @@ export type P7Permission =
   | 'category.create'
   | 'category.update'
   | 'category.delete'
+  // ── Extras (sub-resource of Menu) ─────────────────────────
+  | 'extras.view'
+  | 'extras.create'
+  | 'extras.update'
+  | 'extras.delete'
   // ── Reservations ──────────────────────────────────────────
   | 'reservations.view'
   | 'reservations.manage'

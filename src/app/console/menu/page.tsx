@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
-import { useMenuItems, useCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem } from '@/hooks'
+import { useMenuItems, useCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useExtraGroups, useAssignExtraGroupsToItem } from '@/hooks'
 import { useBranchStore } from '@/stores'
 import type { MenuItem } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -33,12 +33,14 @@ interface MenuItemForm {
   available: boolean
   is_featured: boolean
   is_popular: boolean
+  /** Extra Groups attached to this item — zero, one, or many. */
+  extra_group_ids: string[]
 }
 
 const EMPTY_FORM: MenuItemForm = {
   name: '', description: '', price: '', discount: '', calories: '',
   preparation_time: '', image: '', category_id: '', available: true,
-  is_featured: false, is_popular: false,
+  is_featured: false, is_popular: false, extra_group_ids: [],
 }
 
 function itemToForm(item: MenuItem): MenuItemForm {
@@ -54,6 +56,7 @@ function itemToForm(item: MenuItem): MenuItemForm {
     available: item.available,
     is_featured: item.is_featured ?? false,
     is_popular: item.is_popular ?? false,
+    extra_group_ids: item.extra_group_ids ?? [],
   }
 }
 
@@ -99,10 +102,12 @@ export default function AdminMenuPage() {
 
   const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch } = useMenuItems(adminBranchId)
   const { data: categories, isLoading: catsLoading } = useCategories(adminBranchId)
+  const { data: extraGroups } = useExtraGroups(adminBranchId)
 
   const createMutation = useCreateMenuItem(adminBranchId ?? '')
   const updateMutation = useUpdateMenuItem(adminBranchId ?? '')
   const deleteMutation = useDeleteMenuItem(adminBranchId ?? '')
+  const assignGroupsMutation = useAssignExtraGroupsToItem(adminBranchId ?? '')
 
   const allItems: MenuItem[] = itemsData?.results ?? []
 
@@ -121,7 +126,15 @@ export default function AdminMenuPage() {
 
   const submitCreate = () => {
     createMutation.mutate(formToPayload(createForm), {
-      onSuccess: () => { setCreateOpen(false); setCreateForm(EMPTY_FORM) },
+      onSuccess: (created) => {
+        setCreateOpen(false)
+        setCreateForm(EMPTY_FORM)
+        // Attach the selected Extra Groups now that the item has an id — this
+        // also materializes the item's flat `extras` for cart/checkout.
+        if (createForm.extra_group_ids.length > 0) {
+          assignGroupsMutation.mutate({ itemId: created.id, groupIds: createForm.extra_group_ids })
+        }
+      },
     })
   }
 
@@ -134,7 +147,12 @@ export default function AdminMenuPage() {
   const submitEdit = () => {
     if (!editItem) return
     updateMutation.mutate({ id: editItem.id, payload: formToPayload(editForm) }, {
-      onSuccess: () => { setEditOpen(false); setEditItem(null) },
+      onSuccess: () => {
+        setEditOpen(false)
+        // Attach/detach Extra Groups and re-materialize `extras` for cart/checkout.
+        assignGroupsMutation.mutate({ itemId: editItem.id, groupIds: editForm.extra_group_ids })
+        setEditItem(null)
+      },
     })
   }
 
@@ -313,6 +331,7 @@ export default function AdminMenuPage() {
           form={createForm}
           onChange={setCreateForm}
           categories={categories ?? []}
+          extraGroups={extraGroups ?? []}
         />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary" onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
@@ -340,6 +359,7 @@ export default function AdminMenuPage() {
           form={editForm}
           onChange={setEditForm}
           categories={categories ?? []}
+          extraGroups={extraGroups ?? []}
         />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary" onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
@@ -390,7 +410,7 @@ export default function AdminMenuPage() {
 
 // ── Shared form fields component ──────────────────────────────────────────────
 
-import type { Category } from '@/types'
+import type { Category, ExtraGroup } from '@/types'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 
@@ -398,14 +418,25 @@ function MenuItemFormFields({
   form,
   onChange,
   categories,
+  extraGroups,
 }: {
   form: MenuItemForm
   onChange: (f: MenuItemForm) => void
   categories: Category[]
+  extraGroups: ExtraGroup[]
 }) {
   const t = useTranslations('console')
   const set = (field: keyof MenuItemForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
+
+  const toggleExtraGroup = (groupId: string) => {
+    const selected = form.extra_group_ids.includes(groupId)
+      ? form.extra_group_ids.filter((id) => id !== groupId)
+      : [...form.extra_group_ids, groupId]
+    onChange({ ...form, extra_group_ids: selected })
+  }
+
+  const assignedGroups = extraGroups.filter((g) => form.extra_group_ids.includes(g.id))
 
   return (
     <div className="space-y-4 mb-4">
@@ -445,6 +476,38 @@ function MenuItemFormFields({
           <input type="checkbox" checked={form.is_popular} onChange={set('is_popular')} className="rounded" />
           {t('popular')}
         </label>
+      </div>
+
+      {/* Extra Groups attach/detach — see docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md */}
+      <div>
+        <label className="block text-sm font-medium text-[var(--fg)] mb-1">{t('extraGroupsLabel')}</label>
+        {extraGroups.length === 0 ? (
+          <p className="text-xs text-[var(--fg-muted)]">{t('noExtraGroupsAvailable')}</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {extraGroups.map((group) => {
+              const selected = form.extra_group_ids.includes(group.id)
+              return (
+                <button
+                  key={group.id}
+                  type="button"
+                  onClick={() => toggleExtraGroup(group.id)}
+                  aria-pressed={selected}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${selected ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
+                >
+                  {group.name}
+                </button>
+              )
+            })}
+          </div>
+        )}
+        {/* Preview of assigned groups */}
+        {assignedGroups.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span className="text-xs text-[var(--fg-muted)]">{t('assignedGroupsPreview')}</span>
+            {assignedGroups.map((g) => <Badge key={g.id} variant="secondary" className="text-[10px]">{g.name}</Badge>)}
+          </div>
+        )}
       </div>
     </div>
   )

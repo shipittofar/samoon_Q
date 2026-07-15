@@ -1,4 +1,4 @@
-import type { Branch, BusinessCustomer, BranchCustomer, Category, CustomerAnalytics, CustomerCoupon, CustomerMarketing, CustomerNote, CustomerTag, CustomerTimelineEvent, LoyaltyAccount, MenuItem, Notification, Order, PlatformUser, Reservation, User } from '@/types'
+import type { Branch, BusinessCustomer, BranchCustomer, Category, CustomerAnalytics, CustomerCoupon, CustomerMarketing, CustomerNote, CustomerTag, CustomerTimelineEvent, Extra, ExtraGroup, LoyaltyAccount, MenuItem, Notification, Order, PlatformUser, Reservation, User } from '@/types'
 
 // ── Users ────────────────────────────────────────────────────────────────────
 export const MOCK_USER: User = {
@@ -345,6 +345,9 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
       { id: 'e1', name: 'Extra Cheese', price: 2.50, available: true },
       { id: 'e2', name: 'Truffle Oil', price: 3.00, available: true },
     ],
+    // Demonstrates Console-managed Extra Group assignment (see
+    // MOCK_MAIN_EXTRA_GROUPS) alongside the legacy inline `extras` above.
+    extra_group_ids: ['grp-size', 'grp-sauces'],
   },
   {
     id: '2', branch_id: 'main', category_id: '1', name: 'Diavola',
@@ -561,6 +564,63 @@ export const MOCK_BRANCH_ITEMS: Record<string, MenuItem[]> = {
   main: MOCK_MENU_ITEMS,
   downtown: MOCK_DOWNTOWN_ITEMS,
   airport: MOCK_AIRPORT_ITEMS,
+}
+
+// ── Extra Groups & Extras ──────────────────────────────────────────────────────
+// Branch-scoped, independent of both Category and MenuItem — a group belongs to
+// exactly one branch, and its Extras belong to exactly one group. `main`'s data
+// below is the working example from the task ("Size", "Sauces", "Toppings",
+// "Drinks"); `downtown`/`airport` get their own, separate groups/extras — never
+// the same object references — so branch isolation is provable in mock/dev mode
+// exactly like MOCK_DOWNTOWN_CATEGORIES/MOCK_AIRPORT_CATEGORIES already are.
+
+export const MOCK_MAIN_EXTRA_GROUPS: ExtraGroup[] = [
+  { id: 'grp-size', branch_id: 'main', name: 'Size', description: 'Choose one size', selection_type: 'single', required: true, min_selection: 1, max_selection: 1, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-sauces', branch_id: 'main', name: 'Sauces', description: 'Add extra sauces', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 3, order: 2, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-toppings', branch_id: 'main', name: 'Toppings', description: 'Customize with toppings', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 5, order: 3, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-drinks', branch_id: 'main', name: 'Drinks', description: 'Add a drink', selection_type: 'single', required: false, min_selection: 0, max_selection: 1, order: 4, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+]
+
+export const MOCK_MAIN_EXTRAS: Extra[] = [
+  { id: 'ext-size-reg', branch_id: 'main', group_id: 'grp-size', name: 'Regular', price: 0, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-size-lg', branch_id: 'main', group_id: 'grp-size', name: 'Large', price: 3.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-sauce-cheese', branch_id: 'main', group_id: 'grp-sauces', name: 'Extra Cheese', description: 'Extra mozzarella', price: 2.50, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-sauce-truffle', branch_id: 'main', group_id: 'grp-sauces', name: 'Truffle Oil', price: 3.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-topping-bacon', branch_id: 'main', group_id: 'grp-toppings', name: 'Bacon', price: 2.00, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-topping-avocado', branch_id: 'main', group_id: 'grp-toppings', name: 'Avocado', price: 1.50, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-drink-cola', branch_id: 'main', group_id: 'grp-drinks', name: 'Cola', price: 2.99, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-drink-lemonade', branch_id: 'main', group_id: 'grp-drinks', name: 'Lemonade', price: 3.49, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+]
+
+export const MOCK_DOWNTOWN_EXTRA_GROUPS: ExtraGroup[] = [
+  { id: 'grp-dt-milk', branch_id: 'downtown', name: 'Milk Options', description: 'Choose your milk', selection_type: 'single', required: true, min_selection: 1, max_selection: 1, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+]
+
+export const MOCK_DOWNTOWN_EXTRAS: Extra[] = [
+  { id: 'ext-dt-oat', branch_id: 'downtown', group_id: 'grp-dt-milk', name: 'Oat Milk', price: 1.00, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-dt-almond', branch_id: 'downtown', group_id: 'grp-dt-milk', name: 'Almond Milk', price: 1.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+]
+
+export const MOCK_AIRPORT_EXTRA_GROUPS: ExtraGroup[] = [
+  { id: 'grp-ap-sides', branch_id: 'airport', name: 'Sides', description: 'Add a side', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 2, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+]
+
+export const MOCK_AIRPORT_EXTRAS: Extra[] = [
+  { id: 'ext-ap-chips', branch_id: 'airport', group_id: 'grp-ap-sides', name: 'Chips', price: 1.50, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+]
+
+/** Resolves a branch's independent Extra Group set in mock/dev mode. Defaults to `main`'s data for any unlisted branch id. */
+export const MOCK_BRANCH_EXTRA_GROUPS: Record<string, ExtraGroup[]> = {
+  main: MOCK_MAIN_EXTRA_GROUPS,
+  downtown: MOCK_DOWNTOWN_EXTRA_GROUPS,
+  airport: MOCK_AIRPORT_EXTRA_GROUPS,
+}
+
+/** Resolves a branch's independent Extra set in mock/dev mode. Defaults to `main`'s data for any unlisted branch id. */
+export const MOCK_BRANCH_EXTRAS: Record<string, Extra[]> = {
+  main: MOCK_MAIN_EXTRAS,
+  downtown: MOCK_DOWNTOWN_EXTRAS,
+  airport: MOCK_AIRPORT_EXTRAS,
 }
 
 // ── Orders ────────────────────────────────────────────────────────────────────

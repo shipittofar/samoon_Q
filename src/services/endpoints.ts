@@ -24,6 +24,10 @@ export const ENDPOINTS = {
     POPULAR: '/menu/items/popular/',
     SEARCH: '/menu/items/search/',
     RELATED: (id: string) => `/menu/items/${id}/related/`,
+    EXTRA_GROUPS: '/menu/extra-groups/',
+    EXTRA_GROUP: (id: string) => `/menu/extra-groups/${id}/`,
+    EXTRAS: '/menu/extras/',
+    EXTRA: (id: string) => `/menu/extras/${id}/`,
   },
 
   // Orders

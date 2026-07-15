@@ -2233,6 +2233,65 @@
     "categoryFormError": {
       "nameRequired": "نام دسته الزامی است.",
       "invalidSortOrder": "ترتیب نمایش باید یک عدد صحیح مثبت باشد."
+    },
+    "extrasManagement": "مدیریت افزودنی‌ها",
+    "extraGroupsCount": "{count} گروه افزودنی",
+    "extrasPageSubtitle": "مدیریت افزودنی‌های {branch}",
+    "selectBranchToManageExtras": "یک شعبه را برای مدیریت افزودنی‌هایش انتخاب کنید",
+    "extrasPageNoBranchHint": "یک شعبه فعال را از انتخاب‌گر شعبه انتخاب کنید تا گروه‌های افزودنی آن را مشاهده و مدیریت کنید.",
+    "addExtraGroup": "افزودن گروه افزودنی",
+    "searchExtrasPlaceholder": "جستجوی گروه‌ها یا افزودنی‌ها...",
+    "loadingExtras": "در حال بارگذاری افزودنی‌ها...",
+    "failedToLoadExtras": "بارگذاری افزودنی‌ها ناموفق بود.",
+    "noExtraGroupsFound": "هنوز گروه افزودنی وجود ندارد",
+    "noExtraGroupsHint": "اولین گروه افزودنی (مانند اندازه، سس‌ها، تاپینگ‌ها) را ایجاد کنید.",
+    "noExtrasMatchSearch": "هیچ گروه یا افزودنی با جستجوی شما مطابقت ندارد",
+    "toggleGroupAria": "تغییر وضعیت گروه {name}",
+    "requiredBadge": "الزامی",
+    "minMaxBadge": "حداقل {min} / حداکثر {max}",
+    "editExtraGroupAria": "ویرایش گروه افزودنی",
+    "deleteExtraGroupAria": "حذف گروه افزودنی",
+    "noExtrasInGroup": "هنوز افزودنی‌ای در این گروه وجود ندارد",
+    "addExtra": "افزودن مورد افزودنی",
+    "priceColumn": "قیمت",
+    "editExtraAria": "ویرایش افزودنی",
+    "deleteExtraAria": "حذف افزودنی",
+    "editExtraGroup": "ویرایش گروه افزودنی",
+    "deleteExtraGroup": "حذف گروه افزودنی",
+    "confirmDeleteExtraGroup": "آیا مطمئن هستید که می‌خواهید {name} را حذف کنید؟ افزودنی‌های آن نیز حذف خواهند شد. این عمل قابل بازگشت نیست.",
+    "failedToCreateExtraGroupRetry": "ایجاد گروه افزودنی ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "failedToDeleteExtraGroupRetry": "حذف گروه افزودنی ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "editExtra": "ویرایش افزودنی",
+    "deleteExtra": "حذف افزودنی",
+    "confirmDeleteExtra": "آیا مطمئن هستید که می‌خواهید {name} را حذف کنید؟ این عمل قابل بازگشت نیست.",
+    "failedToCreateExtraRetry": "ایجاد افزودنی ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "failedToDeleteExtraRetry": "حذف افزودنی ناموفق بود. لطفاً دوباره تلاش کنید.",
+    "extraGroupNameLabel": "نام گروه",
+    "selectionTypeLabel": "نوع انتخاب",
+    "minSelectionLabel": "حداقل انتخاب",
+    "maxSelectionLabel": "حداکثر انتخاب",
+    "extraNameLabel": "نام افزودنی",
+    "extraGroupsLabel": "گروه‌های افزودنی",
+    "noExtraGroupsAvailable": "هنوز گروه افزودنی برای این شعبه موجود نیست.",
+    "assignedGroupsPreview": "تخصیص‌یافته:",
+    "selectionType": {
+      "single": "انتخاب تکی",
+      "multiple": "انتخاب چندگانه"
+    },
+    "extrasStatusFilter": {
+      "all": "همه",
+      "active": "فعال",
+      "inactive": "غیرفعال"
+    },
+    "extraGroupFormError": {
+      "nameRequired": "نام گروه الزامی است.",
+      "duplicateName": "گروهی با این نام از قبل در این شعبه وجود دارد.",
+      "invalidLimits": "حداقل/حداکثر انتخاب باید معتبر باشد (حداقل ≤ حداکثر، و اگر الزامی است حداقل ۱)."
+    },
+    "extraFormError": {
+      "nameRequired": "نام افزودنی الزامی است.",
+      "duplicateName": "افزودنی با این نام از قبل در این شعبه وجود دارد.",
+      "negativePrice": "قیمت نمی‌تواند منفی باشد."
     }
   },
   "configFields": {
