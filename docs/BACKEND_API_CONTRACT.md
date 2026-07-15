@@ -1,4 +1,4 @@
-# Backend API Contract — Savor Restaurant SaaS
+# Backend API Contract — Samoon Restaurant SaaS
 
 > **Single source of truth for backend development.**
 > Generated from frontend source code. All types, endpoints, and business rules are
@@ -130,7 +130,7 @@ The axios interceptor automatically calls `POST /auth/token/refresh/` on any 401
   "phone_number": "+14155550101",
   "email": null,
   "role": "customer",
-  "tenant": "savor",
+  "tenant": "samoon",
   "device": "device_uuid"
 }
 ```
@@ -1263,7 +1263,7 @@ any     → cancelled (admin only)
     "address": "123 Main St",
     "city": "New York",
     "phone_number": "+12125551234",
-    "email": "downtown@savor.com",
+    "email": "downtown@samoon.com",
     "lat": 40.7128,
     "lng": -74.0060,
     "working_hours": [
@@ -1533,8 +1533,8 @@ or
 ```json
 {
   "id": "t1",
-  "name": "Savor Restaurant",
-  "slug": "savor",
+  "name": "Samoon Restaurant",
+  "slug": "samoon",
   "businessTypes": ["restaurant"],
   "status": "active",
   "createdAt": "2023-01-01T00:00:00Z",
@@ -2044,7 +2044,7 @@ NEXT_PUBLIC_WS_BASE_URL=ws://localhost:8000/ws
 NEXT_PUBLIC_SENTRY_DSN=https://...@sentry.io/...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 NEXT_PUBLIC_FIREBASE_API_KEY=AIza...
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=savor-...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=samoon-...
 NEXT_PUBLIC_FIREBASE_APP_ID=1:...
 NEXT_PUBLIC_FIREBASE_VAPID_KEY=BK...
 NEXT_PUBLIC_TENANT_SLUG=default    # Dev override — bypasses middleware resolution
@@ -2660,7 +2660,7 @@ All error responses follow a consistent JSON envelope.
 | `Content-Type` | POST / PATCH with JSON body | `application/json` |
 | `Content-Type` | Avatar upload | `multipart/form-data` |
 | `X-CSRFToken` | Mutating requests (when using session auth) | Value from `csrftoken` cookie |
-| `X-Tenant-Slug` | All tenant-scoped endpoints | e.g. `savor` |
+| `X-Tenant-Slug` | All tenant-scoped endpoints | e.g. `samoon` |
 
 ### 25.2 CORS
 
@@ -3218,7 +3218,7 @@ The following public (unauthenticated) read paths expose marketplace content:
 |------|------------|
 | `/{tenantSlug}` | `meta.tagline`, `meta.coverImage`, `meta.branches` |
 | `/{tenantSlug}/{branchSlug}` | Branch-scoped, falls back to tenant meta |
-| `/restaurant` | `tenantService.getTenant('savor')` → full meta |
+| `/restaurant` | `tenantService.getTenant('samoon')` → full meta |
 | `/discover` | Aggregated across tenants — `tagline`, `coverImage`, `cuisines`, `rating` |
 
 ---
@@ -3811,11 +3811,11 @@ For development/QA, the frontend provides pre-built mock data in `src/lib/mock-d
 | `MOCK_LOYALTY_ACCOUNTS` | 15 | All include `tenantId`; independently scoped per tenant |
 
 **Cross-tenant user example (pu-001 / Alice Johnson):**
-- `tenant-savor-01`: 14 orders, gold tier, 2,840 pts
+- `tenant-samoon-01`: 14 orders, gold tier, 2,840 pts
 - `tenant-brew-cafe-01`: 31 orders, gold tier, 1,580 pts
 - `tenant-wheels-brews-01`: 25 orders, gold tier, 3,200 pts
 
-These three records are completely independent; Alice's loyalty at Savor never affects Brew Café.
+These three records are completely independent; Alice's loyalty at Samoon never affects Brew Café.
 
 
 ---
@@ -3844,7 +3844,7 @@ Returns a chronological list of all customer interactions for the given `(userId
     {
       "id": "evt-001",
       "user_id": "pu-001",
-      "tenant_id": "tenant-savor-01",
+      "tenant_id": "tenant-samoon-01",
       "type": "order_placed",
       "title": "Order placed at Downtown Branch",
       "description": "3 items — Grilled Salmon, Caesar Salad, Sparkling Water",
@@ -3886,7 +3886,7 @@ DELETE /admin/customers/{userId}/notes/{noteId}/
     {
       "id": "note-001",
       "user_id": "pu-001",
-      "tenant_id": "tenant-savor-01",
+      "tenant_id": "tenant-samoon-01",
       "content": "Prefers window seats, allergic to shellfish.",
       "author_id": "admin-001",
       "author_name": "Sarah Admin",
@@ -3899,7 +3899,7 @@ DELETE /admin/customers/{userId}/notes/{noteId}/
 
 **POST body:**
 ```json
-{ "user_id": "pu-001", "tenant_id": "tenant-savor-01", "content": "Note text..." }
+{ "user_id": "pu-001", "tenant_id": "tenant-samoon-01", "content": "Note text..." }
 ```
 
 **PATCH body:** `{ "content": "Updated note text..." }`
@@ -3924,7 +3924,7 @@ PATCH  /admin/customers/{userId}/tags/                          # set assigned t
   "results": [
     {
       "id": "tag-vip",
-      "tenant_id": "tenant-savor-01",
+      "tenant_id": "tenant-samoon-01",
       "label": "VIP",
       "color": "purple",
       "created_at": "2024-01-01T00:00:00Z"
@@ -3937,14 +3937,14 @@ PATCH  /admin/customers/{userId}/tags/                          # set assigned t
 ```json
 {
   "user_id": "pu-001",
-  "tenant_id": "tenant-savor-01",
+  "tenant_id": "tenant-samoon-01",
   "tags": [ { "id": "tag-vip", "label": "VIP", "color": "purple", "created_at": "..." } ]
 }
 ```
 
 **PATCH /admin/customers/{userId}/tags/ body:**
 ```json
-{ "tenant_id": "tenant-savor-01", "tag_ids": ["tag-vip", "tag-frequent"] }
+{ "tenant_id": "tenant-samoon-01", "tag_ids": ["tag-vip", "tag-frequent"] }
 ```
 
 Replaces the full set of assigned tags. Empty array removes all tags. Tags not belonging to the tenant MUST be rejected with 400.
@@ -3965,7 +3965,7 @@ GET /admin/customers/{userId}/analytics/?tenant_id={tenantId}
 ```json
 {
   "user_id": "pu-001",
-  "tenant_id": "tenant-savor-01",
+  "tenant_id": "tenant-samoon-01",
   "lifetime_value": 2847.50,
   "avg_order_value": 52.25,
   "avg_reservation_party_size": 2.8,
@@ -4011,7 +4011,7 @@ GET /admin/customers/{userId}/marketing/?tenant_id={tenantId}
 ```json
 {
   "user_id": "pu-001",
-  "tenant_id": "tenant-savor-01",
+  "tenant_id": "tenant-samoon-01",
   "preferences": [
     { "channel": "email", "subscribed": true, "subscribed_at": "2024-06-01T00:00:00Z", "unsubscribed_at": null },
     { "channel": "sms", "subscribed": true, "subscribed_at": "2024-06-01T00:00:00Z", "unsubscribed_at": null },
@@ -4056,7 +4056,7 @@ GET /admin/customers/{userId}/coupons/?tenant_id={tenantId}
     {
       "id": "coup-001",
       "user_id": "pu-001",
-      "tenant_id": "tenant-savor-01",
+      "tenant_id": "tenant-samoon-01",
       "code": "ALICE10",
       "description": "10% off your next order",
       "discount_type": "percent",
@@ -4092,7 +4092,7 @@ GET /admin/customers/{userId}/payments/?tenant_id={tenantId}
     {
       "id": "pay-001",
       "user_id": "pu-001",
-      "tenant_id": "tenant-savor-01",
+      "tenant_id": "tenant-samoon-01",
       "order_id": "ord-301",
       "amount": 67.50,
       "currency": "USD",
@@ -4127,13 +4127,13 @@ All CRM data (notes, tags, analytics, marketing, coupons, payments, timeline) MU
 
 | Export | Count | Notes |
 |--------|-------|-------|
-| `MOCK_CUSTOMER_NOTES` | 7 | Notes for pu-001, pu-003, pu-005, pu-009, pu-015 at `tenant-savor-01` |
+| `MOCK_CUSTOMER_NOTES` | 7 | Notes for pu-001, pu-003, pu-005, pu-009, pu-015 at `tenant-samoon-01` |
 | `MOCK_CUSTOMER_TAG_DEFINITIONS` | 9 | VIP, High Value, Frequent Visitor, Corporate, Allergy Alert, Birthday, Family, New Customer, Inactive |
 | `MOCK_CUSTOMER_TAG_ASSIGNMENTS` | 7 entries | Keyed by `"userId:tenantId"` |
-| `MOCK_CUSTOMER_ANALYTICS` | 3 | pu-001, pu-003, pu-005 at `tenant-savor-01` |
-| `MOCK_CUSTOMER_MARKETING` | 3 | pu-001, pu-003, pu-005 at `tenant-savor-01` |
-| `MOCK_CUSTOMER_COUPONS` | 8 | pu-001, pu-003, pu-005 at `tenant-savor-01` |
-| `MOCK_CUSTOMER_TIMELINE` | ~36 events | pu-001 (22 events), pu-003 (6), pu-005 (6) at `tenant-savor-01` |
+| `MOCK_CUSTOMER_ANALYTICS` | 3 | pu-001, pu-003, pu-005 at `tenant-samoon-01` |
+| `MOCK_CUSTOMER_MARKETING` | 3 | pu-001, pu-003, pu-005 at `tenant-samoon-01` |
+| `MOCK_CUSTOMER_COUPONS` | 8 | pu-001, pu-003, pu-005 at `tenant-samoon-01` |
+| `MOCK_CUSTOMER_TIMELINE` | ~36 events | pu-001 (22 events), pu-003 (6), pu-005 (6) at `tenant-samoon-01` |
 
 ---
 
@@ -4238,7 +4238,7 @@ override attempt was blocked by a locked field.
 {
   "value": "#0ea5e9",
   "level": "tenant",
-  "tenant_id": "tenant-savor-01",
+  "tenant_id": "tenant-samoon-01",
   "reason": "Rebrand to match new signage"
 }
 ```
@@ -4280,7 +4280,7 @@ recomputed after the write.
     {
       "id": "cfg-audit-1",
       "fieldId": "themes.primary_color",
-      "scope": { "tenantId": "tenant-savor-01" },
+      "scope": { "tenantId": "tenant-samoon-01" },
       "level": "tenant",
       "actorId": "staff-001",
       "actorName": "Alice Chen",

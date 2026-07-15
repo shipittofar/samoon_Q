@@ -3,7 +3,7 @@ import { getLocale } from 'next-intl/server'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 import { LoginClientPage } from './LoginClientPage'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()

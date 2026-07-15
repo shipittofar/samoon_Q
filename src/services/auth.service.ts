@@ -78,7 +78,7 @@ export const MOCK_REFRESH_TOKEN =
  * P8.4.3 — Mock demo credential registry.
  *
  * Maps accepted email → { user, p7Roles } for mock mode login.
- * All passwords are 'password'. The demo@savor.com credential is the
+ * All passwords are 'password'. The demo@samoon.com credential is the
  * original customer demo preserved for backward compat + security tests.
  * Staff/console/owner credentials give access to /console/* routes.
  *
@@ -86,18 +86,18 @@ export const MOCK_REFRESH_TOKEN =
  * useLogin() on successful mock login. They cover all PermissionGuard checks.
  */
 export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> = {
-  'demo@savor.com':      { user: MOCK_USER,           p7Roles: [] },
-  'staff@savor.com':     { user: MOCK_STAFF_USER,     p7Roles: ['manager'] },
-  'cashier@savor.com':   { user: MOCK_CASHIER_USER,   p7Roles: ['cashier'] },
-  'kitchen@savor.com':   { user: MOCK_KITCHEN_USER,   p7Roles: ['kitchen'] },
-  'marketing@savor.com': { user: MOCK_MARKETING_USER, p7Roles: ['marketing'] },
-  'support@savor.com':   { user: MOCK_SUPPORT_USER,   p7Roles: ['support'] },
-  'admin@savor.com':     { user: MOCK_ADMIN_USER,     p7Roles: ['admin'] },
-  'owner@savor.com':     { user: MOCK_OWNER_USER,     p7Roles: ['owner'] },
+  'demo@samoon.com':      { user: MOCK_USER,           p7Roles: [] },
+  'staff@samoon.com':     { user: MOCK_STAFF_USER,     p7Roles: ['manager'] },
+  'cashier@samoon.com':   { user: MOCK_CASHIER_USER,   p7Roles: ['cashier'] },
+  'kitchen@samoon.com':   { user: MOCK_KITCHEN_USER,   p7Roles: ['kitchen'] },
+  'marketing@samoon.com': { user: MOCK_MARKETING_USER, p7Roles: ['marketing'] },
+  'support@samoon.com':   { user: MOCK_SUPPORT_USER,   p7Roles: ['support'] },
+  'admin@samoon.com':     { user: MOCK_ADMIN_USER,     p7Roles: ['admin'] },
+  'owner@samoon.com':     { user: MOCK_OWNER_USER,     p7Roles: ['owner'] },
   // P8.5 — Multi-role demo: Cashier + Kitchen combined (orders + kitchen display + payments)
-  'multirole@savor.com': { user: MOCK_MULTI_ROLE_USER, p7Roles: ['cashier', 'kitchen'] },
+  'multirole@samoon.com': { user: MOCK_MULTI_ROLE_USER, p7Roles: ['cashier', 'kitchen'] },
   // P8.9.1 — Platform Admin: cross-tenant management (owner P7 role grants full platform access)
-  'platform@savor.com':  { user: MOCK_PLATFORM_ADMIN_USER, p7Roles: ['owner'] },
+  'platform@samoon.com':  { user: MOCK_PLATFORM_ADMIN_USER, p7Roles: ['owner'] },
 }
 
 export const authService = {

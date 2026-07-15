@@ -1,6 +1,6 @@
 # Platform Architecture Principles
 
-> **Permanent engineering standard for Savor.** Not phase-scoped documentation
+> **Permanent engineering standard for Samoon.** Not phase-scoped documentation
 > — this file governs how every future module (P9.1+, and anything beyond)
 > is built. If a change conflicts with this document, the change is wrong,
 > not the document (propose an amendment here first).

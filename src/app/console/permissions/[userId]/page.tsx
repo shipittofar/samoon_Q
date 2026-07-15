@@ -36,7 +36,7 @@ export default function UserPermissionsPage() {
   const params = useParams()
   const router = useRouter()
   const userId = params.userId as string
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? 'tenant-savor-01')
+  const tenantId = useTenantStore((s) => s.tenant?.id ?? 'tenant-samoon-01')
   const { userOverrides, setUserOverride, clearUserOverride } = useRbacStore()
 
   const [search, setSearch] = useState('')
@@ -47,7 +47,7 @@ export default function UserPermissionsPage() {
   const [saved, setSaved] = useState(false)
 
   const user = MOCK_RBAC_USERS.find((u) => u.id === userId)
-  const mockAssignment = user?.tenantAssignments.find((a) => a.tenantId === 'tenant-savor-01')
+  const mockAssignment = user?.tenantAssignments.find((a) => a.tenantId === 'tenant-samoon-01')
   const baseRoles: Role[] = mockAssignment?.roles ?? []
   const currentRoles = pendingRoles ?? baseRoles
 

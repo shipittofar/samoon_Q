@@ -27,7 +27,7 @@ describe('P4.1.1 — env.ts zod schema', () => {
 
   it('accepts valid env values', () => {
     const result = envSchema.safeParse({
-      NEXT_PUBLIC_API_BASE_URL: 'https://api.savor.com',
+      NEXT_PUBLIC_API_BASE_URL: 'https://api.samoon.com',
       NEXT_PUBLIC_USE_MOCK: 'false',
       NODE_ENV: 'production',
     })
@@ -60,7 +60,7 @@ describe('P4.1.1 — env.ts zod schema', () => {
 
   it('rejects NEXT_PUBLIC_USE_MOCK values other than "true" or "false"', () => {
     const result = envSchema.safeParse({
-      NEXT_PUBLIC_API_BASE_URL: 'https://api.savor.com',
+      NEXT_PUBLIC_API_BASE_URL: 'https://api.samoon.com',
       NEXT_PUBLIC_USE_MOCK: 'yes',
       NODE_ENV: 'development',
     })
@@ -77,7 +77,7 @@ describe('P4.1.1 — env.ts zod schema', () => {
 
   it('defaults NODE_ENV to "development" when omitted', () => {
     const result = envSchema.safeParse({
-      NEXT_PUBLIC_API_BASE_URL: 'https://api.savor.com',
+      NEXT_PUBLIC_API_BASE_URL: 'https://api.samoon.com',
       NEXT_PUBLIC_USE_MOCK: 'false',
     })
     expect(result.success).toBe(true)

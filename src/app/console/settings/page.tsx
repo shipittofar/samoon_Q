@@ -14,7 +14,7 @@ import { useTenantStore } from '@/stores'
 import { useUpdateTenantSettings, useFeatureFlags, useUpdateFeatureFlag } from '@/hooks'
 import type { TenantTheme } from '@/types'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
 const TABS = ['general', 'branding', 'hours', 'publicprofile', 'integrations', 'notifications', 'feature-flags'] as const
 type Tab = (typeof TABS)[number]

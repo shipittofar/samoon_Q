@@ -26,7 +26,7 @@ const readSrc = (rel: string) => fs.readFileSync(path.join(ROOT, 'src', rel), 'u
 // Force mock mode for all service calls
 vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
 // Prevent real API calls
-vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.savor.test')
+vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.samoon.test')
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ describe('E2E: Auth Flow', () => {
 
   it('login with demo credentials returns user and tokens', async () => {
     const { authService } = await import('@/services/auth.service')
-    const promise = authService.login({ email: 'demo@savor.com', password: 'password' })
+    const promise = authService.login({ email: 'demo@samoon.com', password: 'password' })
     await vi.runAllTimersAsync()
     const result = await promise
     expect(result.user.email).toBe('john@example.com')
@@ -69,7 +69,7 @@ describe('E2E: Auth Flow', () => {
     const { authService } = await import('@/services/auth.service')
     const { setTokens } = await import('@/services/axios.instance')
     const spy = vi.spyOn({ setTokens }, 'setTokens')
-    const promise = authService.login({ email: 'demo@savor.com', password: 'password' })
+    const promise = authService.login({ email: 'demo@samoon.com', password: 'password' })
     await vi.runAllTimersAsync()
     await promise
     // Mock mode calls setTokens internally; verify token field is present

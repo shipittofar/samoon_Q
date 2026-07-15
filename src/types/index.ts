@@ -827,7 +827,7 @@ export type {
  * Per-tenant visual overrides applied as CSS variable mutations at runtime.
  * Stored in Tenant.settings.theme — consumed by TenantThemeProvider in providers.
  *
- * All fields are optional: absent fields fall back to the default Savor theme.
+ * All fields are optional: absent fields fall back to the default Samoon theme.
  * Overrides are applied to CSS vars only — no style injection, no runtime deps.
  *
  * Supported override targets: --accent, --accent-hover, --font-body.

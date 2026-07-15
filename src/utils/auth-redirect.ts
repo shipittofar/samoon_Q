@@ -13,30 +13,30 @@ import { resolveOwnershipIdentity } from '@/services/ownership-resolution.servic
  * the correct user from MOCK_CREDENTIALS after OTP verification.
  */
 export const DEMO_PHONE_TO_EMAIL: Record<string, string> = {
-  '+14155550101': 'demo@savor.com',
-  '+14155550102': 'staff@savor.com',
-  '+14155550103': 'cashier@savor.com',
-  '+14155550104': 'kitchen@savor.com',
-  '+14155550105': 'marketing@savor.com',
-  '+14155550106': 'support@savor.com',
-  '+14155550107': 'admin@savor.com',
-  '+14155550108': 'owner@savor.com',
-  '+14155550109': 'platform@savor.com',
-  '+14155550110': 'multirole@savor.com',
+  '+14155550101': 'demo@samoon.com',
+  '+14155550102': 'staff@samoon.com',
+  '+14155550103': 'cashier@samoon.com',
+  '+14155550104': 'kitchen@samoon.com',
+  '+14155550105': 'marketing@samoon.com',
+  '+14155550106': 'support@samoon.com',
+  '+14155550107': 'admin@samoon.com',
+  '+14155550108': 'owner@samoon.com',
+  '+14155550109': 'platform@samoon.com',
+  '+14155550110': 'multirole@samoon.com',
 }
 
 /** Maps demo account email → the frontend route the user should land on after login. */
 export const DEMO_EMAIL_REDIRECTS: Record<string, string> = {
-  'demo@savor.com':      '/dashboard',
-  'staff@savor.com':     '/console/orders',
-  'cashier@savor.com':   '/console/orders',
-  'kitchen@savor.com':   '/console/kitchen',
-  'marketing@savor.com': '/console/analytics',
-  'support@savor.com':   '/console/customers',
-  'admin@savor.com':     '/console',
-  'owner@savor.com':     '/console',
-  'platform@savor.com':  '/console/tenants',
-  'multirole@savor.com': '/console/orders',
+  'demo@samoon.com':      '/dashboard',
+  'staff@samoon.com':     '/console/orders',
+  'cashier@samoon.com':   '/console/orders',
+  'kitchen@samoon.com':   '/console/kitchen',
+  'marketing@samoon.com': '/console/analytics',
+  'support@samoon.com':   '/console/customers',
+  'admin@samoon.com':     '/console',
+  'owner@samoon.com':     '/console',
+  'platform@samoon.com':  '/console/tenants',
+  'multirole@samoon.com': '/console/orders',
 }
 
 /**

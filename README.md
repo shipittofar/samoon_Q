@@ -1,4 +1,4 @@
-# Savor — Hospitality SaaS Platform Frontend
+# Samoon — Hospitality SaaS Platform Frontend
 
 > Next.js 15 frontend for a multi-tenant hospitality ordering and operations platform.
 
@@ -23,7 +23,7 @@
 
 ## Project Overview
 
-**Savor** is the frontend for a hospitality SaaS platform built to support multiple business types (restaurant, cafe, bar, hotel, and others) across multiple tenants and locations. The frontend communicates with a Django REST Framework + Django Channels backend over HTTPS (REST) and WSS (WebSocket).
+**Samoon** is the frontend for a hospitality SaaS platform built to support multiple business types (restaurant, cafe, bar, hotel, and others) across multiple tenants and locations. The frontend communicates with a Django REST Framework + Django Channels backend over HTTPS (REST) and WSS (WebSocket).
 
 The current deployment is a single-tenant restaurant application. The roadmap direction is toward a configurable Tenant / Location / Module architecture that allows onboarding additional tenants and business types without forking the codebase.
 
@@ -119,7 +119,7 @@ cp .env.example .env.local
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `NEXT_PUBLIC_APP_NAME` | No | `Savor` | Application display name |
+| `NEXT_PUBLIC_APP_NAME` | No | `Samoon` | Application display name |
 | `NEXT_PUBLIC_APP_URL` | Yes (prod) | `http://localhost:3000` | Canonical URL for metadata & sitemap |
 | `NEXT_PUBLIC_API_BASE_URL` | Yes (prod) | `http://localhost:8000/api` | Django REST API base URL |
 | `NEXT_PUBLIC_WS_BASE_URL` | Yes (prod) | `ws://localhost:8000/ws` | Django Channels WebSocket base URL |
@@ -189,7 +189,7 @@ docker volume create backend_static_volume
 docker compose up -d
 ```
 
-The production stack runs `savor-app` (Next.js, port 3000 internal) behind `savor-nginx` (ports 80/443). Nginx proxies `/api/` and `/ws/` to the Django backend and serves `/_next/static/` with a 1-year cache.
+The production stack runs `samoon-app` (Next.js, port 3000 internal) behind `samoon-nginx` (ports 80/443). Nginx proxies `/api/` and `/ws/` to the Django backend and serves `/_next/static/` with a 1-year cache.
 
 ---
 
@@ -201,7 +201,7 @@ npm start
 ```
 
 ```bash
-docker build -t savor-frontend .   # multi-stage: Node 22 Alpine builder → runner
+docker build -t samoon-frontend .   # multi-stage: Node 22 Alpine builder → runner
 ```
 
 ### Deployment Checklist

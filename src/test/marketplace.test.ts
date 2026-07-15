@@ -29,14 +29,14 @@ const mockMeta: MarketplaceMeta = {
 
 describe('matchesSearch', () => {
   it('returns true for empty query', () => {
-    expect(matchesSearch('Savor', mockMeta, ['restaurant'], '')).toBe(true)
-    expect(matchesSearch('Savor', mockMeta, ['restaurant'], '   ')).toBe(true)
+    expect(matchesSearch('Samoon', mockMeta, ['restaurant'], '')).toBe(true)
+    expect(matchesSearch('Samoon', mockMeta, ['restaurant'], '   ')).toBe(true)
   })
 
   it('matches by tenant name (case-insensitive)', () => {
-    expect(matchesSearch('Savor Restaurant', mockMeta, ['restaurant'], 'savor')).toBe(true)
-    expect(matchesSearch('Savor Restaurant', mockMeta, ['restaurant'], 'SAVOR')).toBe(true)
-    expect(matchesSearch('Brew Cafe', mockMeta, ['cafe'], 'savor')).toBe(false)
+    expect(matchesSearch('Samoon Restaurant', mockMeta, ['restaurant'], 'samoon')).toBe(true)
+    expect(matchesSearch('Samoon Restaurant', mockMeta, ['restaurant'], 'SAMOON')).toBe(true)
+    expect(matchesSearch('Brew Cafe', mockMeta, ['cafe'], 'samoon')).toBe(false)
   })
 
   it('matches by city', () => {
@@ -164,8 +164,8 @@ describe('Tenant marketplace metadata', () => {
 
   it('featured tenants are correctly marked', async () => {
     const tenants = await tenantService.getTenants()
-    const savor = tenants.find((t) => t.slug === 'savor')!
-    const meta = getMarketplaceMeta(savor.settings)
+    const samoon = tenants.find((t) => t.slug === 'samoon')!
+    const meta = getMarketplaceMeta(samoon.settings)
     expect(meta?.featured).toBe(true)
   })
 

@@ -33,7 +33,7 @@ import type { Role } from '@/types/rbac'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
-const MOCK_TENANT_ID      = 'tenant-savor-01'
+const MOCK_TENANT_ID      = 'tenant-samoon-01'
 const TENANT_BREW_CAFE    = 'tenant-brew-cafe-01'
 const TENANT_OAK_BAR      = 'tenant-oak-bar-01'
 const TENANT_CENTRAL_FC   = 'tenant-central-fc-01'
@@ -93,7 +93,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-owner-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-owner-01',
-    email: 'owner@savor.com',
+    email: 'owner@samoon.com',
     firstName: 'Olivia',
     lastName: 'Owner',
     status: 'active',
@@ -107,7 +107,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-admin-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-admin-01',
-    email: 'admin@savor.com',
+    email: 'admin@samoon.com',
     firstName: 'Alex',
     lastName: 'Admin',
     status: 'active',
@@ -121,7 +121,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-manager-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-manager-01',
-    email: 'manager@savor.com',
+    email: 'manager@samoon.com',
     firstName: 'Maria',
     lastName: 'Manager',
     status: 'active',
@@ -135,7 +135,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-cashier-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-cashier-01',
-    email: 'cashier@savor.com',
+    email: 'cashier@samoon.com',
     firstName: 'Casey',
     lastName: 'Cashier',
     status: 'active',
@@ -149,7 +149,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-waiter-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-waiter-01',
-    email: 'waiter@savor.com',
+    email: 'waiter@samoon.com',
     firstName: 'Will',
     lastName: 'Waiter',
     status: 'active',
@@ -163,7 +163,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-kitchen-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-kitchen-01',
-    email: 'kitchen@savor.com',
+    email: 'kitchen@samoon.com',
     firstName: 'Kai',
     lastName: 'Kitchen',
     status: 'active',
@@ -177,7 +177,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-marketing-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-marketing-01',
-    email: 'marketing@savor.com',
+    email: 'marketing@samoon.com',
     firstName: 'Morgan',
     lastName: 'Marketing',
     status: 'active',
@@ -191,7 +191,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-support-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-support-01',
-    email: 'support@savor.com',
+    email: 'support@samoon.com',
     firstName: 'Sam',
     lastName: 'Support',
     status: 'active',
@@ -203,7 +203,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
   },
   {
     // P10.4.9 — closes the P10.0 J12/J13 id-space gap for the
-    // `staff@savor.com` MOCK_CREDENTIALS demo login (auth.service.ts),
+    // `staff@samoon.com` MOCK_CREDENTIALS demo login (auth.service.ts),
     // which previously had no matching StaffMember record, so
     // resolveOwnershipIdentity() returned {} and only the legacy
     // rbacService.hasPermission() fallback (`legacyGranted`) granted it
@@ -212,7 +212,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-staffdemo-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-staffdemo-01',
-    email: 'staff@savor.com',
+    email: 'staff@samoon.com',
     firstName: 'Stevie',
     lastName: 'Staffdemo',
     status: 'active',
@@ -224,7 +224,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
   },
   {
     // P10.4.9 — same id-space gap as staff-staffdemo-01 above, for the
-    // `multirole@savor.com` demo login. This account holds two roles
+    // `multirole@samoon.com` demo login. This account holds two roles
     // (cashier + kitchen), realized as two separate active
     // StaffAssignment rows in staff-assignment.service.ts — not
     // collapsed into one — matching its MOCK_CREDENTIALS p7Roles:
@@ -232,7 +232,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-multirole-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-multirole-01',
-    email: 'multirole@savor.com',
+    email: 'multirole@samoon.com',
     firstName: 'Multi',
     lastName: 'Rolestaff',
     status: 'active',
@@ -246,7 +246,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-cashier-02',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-cashier-02',
-    email: 'drew.dollars@savor.com',
+    email: 'drew.dollars@samoon.com',
     firstName: 'Drew',
     lastName: 'Dollars',
     status: 'active',
@@ -260,7 +260,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-waiter-02',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-waiter-02',
-    email: 'sage.server@savor.com',
+    email: 'sage.server@samoon.com',
     firstName: 'Sage',
     lastName: 'Server',
     status: 'active',
@@ -274,7 +274,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-kitchen-02',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-kitchen-02',
-    email: 'lee.line@savor.com',
+    email: 'lee.line@samoon.com',
     firstName: 'Lee',
     lastName: 'Line',
     status: 'active',
@@ -288,7 +288,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-manager-02',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-manager-02',
-    email: 'reese.roster@savor.com',
+    email: 'reese.roster@samoon.com',
     firstName: 'Reese',
     lastName: 'Roster',
     status: 'suspended',
@@ -303,7 +303,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-marketing-02',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-marketing-02',
-    email: 'quinn.promo@savor.com',
+    email: 'quinn.promo@samoon.com',
     firstName: 'Quinn',
     lastName: 'Promo',
     status: 'suspended',
@@ -317,7 +317,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-pending-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-pending-01',
-    email: 'pat.pending@savor.com',
+    email: 'pat.pending@samoon.com',
     firstName: 'Pat',
     lastName: 'Pending',
     status: 'pending',
@@ -329,7 +329,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-removed-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-removed-01',
-    email: 'jordan.gone@savor.com',
+    email: 'jordan.gone@samoon.com',
     firstName: 'Jordan',
     lastName: 'Gone',
     status: 'removed',
@@ -343,7 +343,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-cashier-03',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-cashier-03',
-    email: 'avery.a@savor.com',
+    email: 'avery.a@samoon.com',
     firstName: 'Avery',
     lastName: 'A',
     status: 'active',
@@ -443,7 +443,7 @@ const INITIAL_MOCK_STAFF: StaffMember[] = [
     id: 'staff-accountant-01',
     tenantId: MOCK_TENANT_ID,
     userId: 'user-accountant-01',
-    email: 'accountant@savor.com',
+    email: 'accountant@samoon.com',
     firstName: 'Avery',
     lastName: 'Accountant',
     status: 'active',
@@ -471,7 +471,7 @@ const INITIAL_MOCK_INVITES: StaffInvite[] = [
   {
     id: 'invite-001',
     tenantId: MOCK_TENANT_ID,
-    email: 'pat.pending@savor.com',
+    email: 'pat.pending@samoon.com',
     roles: ['manager'],
     invitedBy: MOCK_OWNER_ID,
     expiresAt: daysFromNow(5),
@@ -480,7 +480,7 @@ const INITIAL_MOCK_INVITES: StaffInvite[] = [
   {
     id: 'invite-002',
     tenantId: MOCK_TENANT_ID,
-    email: 'new.staff@savor.com',
+    email: 'new.staff@samoon.com',
     roles: ['cashier'],
     invitedBy: 'user-manager-01',
     expiresAt: daysFromNow(6),
@@ -489,7 +489,7 @@ const INITIAL_MOCK_INVITES: StaffInvite[] = [
   {
     id: 'invite-003',
     tenantId: MOCK_TENANT_ID,
-    email: 'expired.person@savor.com',
+    email: 'expired.person@samoon.com',
     roles: ['support'],
     invitedBy: MOCK_OWNER_ID,
     expiresAt: daysAgo(2),
@@ -498,7 +498,7 @@ const INITIAL_MOCK_INVITES: StaffInvite[] = [
   {
     id: 'invite-004',
     tenantId: MOCK_TENANT_ID,
-    email: 'cancelled.person@savor.com',
+    email: 'cancelled.person@samoon.com',
     roles: ['waiter'],
     invitedBy: 'user-manager-01',
     expiresAt: daysAgo(1),

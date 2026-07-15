@@ -89,23 +89,23 @@ describe('generateIcs — unit tests', () => {
   afterEach(() => vi.resetModules())
 
   const baseEvent = {
-    title: 'Dinner at Savor',
+    title: 'Dinner at Samoon',
     date: '2025-03-15',
     time: '19:00',
     durationMinutes: 120,
     description: 'Confirmation: SAV-1234',
     location: 'Main Branch',
-    uid: 'test-uid@savor',
+    uid: 'test-uid@samoon',
   }
 
   it('contains BEGIN:VCALENDAR', () => expect(generateIcs(baseEvent)).toContain('BEGIN:VCALENDAR'))
   it('contains END:VCALENDAR', () => expect(generateIcs(baseEvent)).toContain('END:VCALENDAR'))
   it('contains BEGIN:VEVENT', () => expect(generateIcs(baseEvent)).toContain('BEGIN:VEVENT'))
   it('contains END:VEVENT', () => expect(generateIcs(baseEvent)).toContain('END:VEVENT'))
-  it('contains the event title in SUMMARY', () => expect(generateIcs(baseEvent)).toContain('SUMMARY:Dinner at Savor'))
+  it('contains the event title in SUMMARY', () => expect(generateIcs(baseEvent)).toContain('SUMMARY:Dinner at Samoon'))
   it('contains DTSTART with correct date and time', () => expect(generateIcs(baseEvent)).toContain('DTSTART:20250315T190000'))
   it('contains DTEND 2 hours later by default', () => expect(generateIcs(baseEvent)).toContain('DTEND:20250315T210000'))
-  it('contains UID', () => expect(generateIcs(baseEvent)).toContain('UID:test-uid@savor'))
+  it('contains UID', () => expect(generateIcs(baseEvent)).toContain('UID:test-uid@samoon'))
   it('contains DESCRIPTION when provided', () => expect(generateIcs(baseEvent)).toContain('DESCRIPTION:'))
   it('contains LOCATION when provided', () => expect(generateIcs(baseEvent)).toContain('LOCATION:Main Branch'))
   it('uses CRLF line endings', () => expect(generateIcs(baseEvent)).toContain('\r\n'))
@@ -153,12 +153,12 @@ describe('buildGoogleCalendarUrl — unit tests', () => {
   afterEach(() => vi.resetModules())
 
   const baseEvent = {
-    title: 'Dinner Reservation at Savor',
+    title: 'Dinner Reservation at Samoon',
     date: '2025-06-20',
     time: '19:30',
     durationMinutes: 120,
     description: 'Code: SAV-5678',
-    location: 'Savor Main Branch',
+    location: 'Samoon Main Branch',
   }
 
   it('returns a Google Calendar URL', () => {
@@ -172,7 +172,7 @@ describe('buildGoogleCalendarUrl — unit tests', () => {
   it('URL includes the event title', () => {
     // URLSearchParams encodes spaces as + rather than %20
     const url = buildGoogleCalendarUrl(baseEvent)
-    expect(url).toMatch(/text=Dinner[+%20]Reservation[+%20]at[+%20]Savor/)
+    expect(url).toMatch(/text=Dinner[+%20]Reservation[+%20]at[+%20]Samoon/)
   })
 
   it('URL includes dates param', () => {

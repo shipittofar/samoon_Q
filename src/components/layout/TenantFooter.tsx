@@ -151,7 +151,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
           <p className="text-xs text-[var(--fg-subtle)]">
             {t('poweredBy')}{' '}
             <Link href="/" className="hover:text-orange-500 transition-colors">
-              {t('savorPlatform')}
+              {t('samoonPlatform')}
             </Link>
           </p>
         </div>

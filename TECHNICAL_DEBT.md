@@ -1,6 +1,6 @@
-# Technical Debt Audit — Savor Frontend
+# Technical Debt Audit — Samoon Frontend
 
-> A critical audit of the Savor frontend codebase. Every item below is supported by specific file and line evidence. This document is intended for use in sprint planning, risk assessment, and pre-production hardening.
+> A critical audit of the Samoon frontend codebase. Every item below is supported by specific file and line evidence. This document is intended for use in sprint planning, risk assessment, and pre-production hardening.
 
 ---
 
@@ -162,11 +162,11 @@ wc -l src/i18n/locales/fa.json  → 187
 
 ### H-05 — Mock Login Always Succeeds for Any Credentials
 
-**Description:** In `authService.login()` mock mode, a code comment says "if credentials.email !== 'demo@savor.com' && credentials.password !== 'password'" but the condition block returns the same result regardless — login always succeeds.
+**Description:** In `authService.login()` mock mode, a code comment says "if credentials.email !== 'demo@samoon.com' && credentials.password !== 'password'" but the condition block returns the same result regardless — login always succeeds.
 
 **Evidence:** `src/services/auth.service.ts` lines 15–22:
 ```typescript
-if (credentials.email !== 'demo@savor.com' && credentials.password !== 'password') {
+if (credentials.email !== 'demo@samoon.com' && credentials.password !== 'password') {
   // This block runs for non-demo credentials...
   const tokens = { access: 'mock_access_token', refresh: 'mock_refresh_token' }
   setTokens(tokens.access, tokens.refresh)
@@ -177,12 +177,12 @@ if (credentials.email !== 'demo@savor.com' && credentials.password !== 'password
 
 **Impact:** Misleading behavior in demo/development — any email/password works. Not a production risk if `USE_MOCK=false`, but confusing for testers and demo users.
 
-**Recommendation:** Fix mock to only succeed for `demo@savor.com` / `password`:
+**Recommendation:** Fix mock to only succeed for `demo@samoon.com` / `password`:
 
 ```typescript
 if (USE_MOCK) {
   await delay(MOCK_DELAY)
-  if (credentials.email !== 'demo@savor.com' || credentials.password !== 'password') {
+  if (credentials.email !== 'demo@samoon.com' || credentials.password !== 'password') {
     throw new Error('Invalid credentials')
   }
   // ...return mock user
@@ -450,7 +450,7 @@ max_price: priceRange[1] < 100 ? priceRange[1] : undefined,
 
 ### L-04 — Inline Script in `layout.tsx` for Theme Detection
 
-**Description:** A `dangerouslySetInnerHTML` inline script in `layout.tsx` reads `savor-theme` from localStorage to prevent flash of unstyled content. This is a common pattern but uses `dangerouslySetInnerHTML` which bypasses React's XSS protection.
+**Description:** A `dangerouslySetInnerHTML` inline script in `layout.tsx` reads `samoon-theme` from localStorage to prevent flash of unstyled content. This is a common pattern but uses `dangerouslySetInnerHTML` which bypasses React's XSS protection.
 
 **Evidence:** `src/app/layout.tsx` lines 28–30.
 

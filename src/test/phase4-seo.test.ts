@@ -332,7 +332,7 @@ describe('P4.4.6 — JSON-LD generation', () => {
   it('DEFAULT_RESTAURANT_JSON_LD is exported and has correct type', async () => {
     const { DEFAULT_RESTAURANT_JSON_LD } = await import('@/lib/json-ld')
     expect(DEFAULT_RESTAURANT_JSON_LD['@type']).toContain('Restaurant')
-    expect(DEFAULT_RESTAURANT_JSON_LD['name']).toBe('Savor')
+    expect(DEFAULT_RESTAURANT_JSON_LD['name']).toBe('Samoon')
   })
 
   it('DEFAULT_MENU_JSON_LD is exported and references /menu', async () => {

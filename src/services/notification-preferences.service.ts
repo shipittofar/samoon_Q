@@ -76,7 +76,7 @@ function buildDefaultPreferences(userId: string, tenantId: string, branchId?: st
 // ── Mock store ────────────────────────────────────────────────────────────────
 
 const MOCK_USER_ID = 'user-owner-01'
-const MOCK_TENANT_ID = 'tenant-savor-01'
+const MOCK_TENANT_ID = 'tenant-samoon-01'
 
 let _prefStore: NotificationPreference[] = buildDefaultPreferences(MOCK_USER_ID, MOCK_TENANT_ID)
 

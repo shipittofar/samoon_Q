@@ -1,6 +1,6 @@
 {
-  "name": "Savor — Fine Dining & Delivery",
-  "short_name": "Savor",
+  "name": "Samoon — Fine Dining & Delivery",
+  "short_name": "Samoon",
   "description": "Order food online, reserve tables, and track your orders in real time.",
   "start_url": "/",
   "display": "standalone",
@@ -21,7 +21,7 @@
   "shortcuts": [
     { "name": "Order Food", "short_name": "Order", "description": "Browse and order from our menu", "url": "/menu", "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }] },
     { "name": "My Orders", "short_name": "Orders", "description": "Track your current orders", "url": "/dashboard/orders", "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }] },
-    { "name": "Reserve Table", "short_name": "Reserve", "description": "Book a table at Savor", "url": "/reservation", "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }] }
+    { "name": "Reserve Table", "short_name": "Reserve", "description": "Book a table at Samoon", "url": "/reservation", "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }] }
   ],
   "screenshots": [
     { "src": "/screenshots/menu.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide" }

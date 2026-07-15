@@ -40,12 +40,12 @@ export function generateIcs(event: CalendarEvent): string {
   const dtStart = toIcsDateTime(event.date, event.time)
   const dtEnd = addMinutes(event.date, event.time, duration)
   const dtstamp = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z'
-  const uid = event.uid ?? `${Date.now()}@savor`
+  const uid = event.uid ?? `${Date.now()}@samoon`
 
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Savor//Reservation//EN',
+    'PRODID:-//Samoon//Reservation//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

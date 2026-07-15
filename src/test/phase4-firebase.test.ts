@@ -118,7 +118,7 @@ describe('FIREBASE_CONFIGURED — true when all env vars present', () => {
 
   it('is true when all required Firebase env vars are set', async () => {
     vi.stubEnv('NEXT_PUBLIC_FIREBASE_API_KEY', 'AIzaMock')
-    vi.stubEnv('NEXT_PUBLIC_FIREBASE_PROJECT_ID', 'savor-test')
+    vi.stubEnv('NEXT_PUBLIC_FIREBASE_PROJECT_ID', 'samoon-test')
     vi.stubEnv('NEXT_PUBLIC_FIREBASE_APP_ID', '1:123:web:abc')
     vi.stubEnv('NEXT_PUBLIC_FIREBASE_VAPID_KEY', 'BKd_mock_vapid_key')
     const { FIREBASE_CONFIGURED } = await import('@/lib/firebase')
@@ -425,7 +425,7 @@ describe('authService regression — login/register still function', () => {
   })
 
   it('login returns user and tokens', async () => {
-    const p = authService.login({ email: 'demo@savor.com', password: 'password' })
+    const p = authService.login({ email: 'demo@samoon.com', password: 'password' })
     await vi.runAllTimersAsync()
     const result = await p
     expect(result.user).toBeDefined()
@@ -434,7 +434,7 @@ describe('authService regression — login/register still function', () => {
 
   it('register returns user and tokens', async () => {
     const p = authService.register({
-      email: 'new@savor.app',
+      email: 'new@samoon.app',
       password: 'demo1234',
       confirm_password: 'demo1234',
       first_name: 'Test',

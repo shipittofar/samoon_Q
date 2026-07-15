@@ -16,7 +16,7 @@
  *   offlineQueue.replayQueue(async (m) => await apiClient.post(...))
  */
 
-const STORAGE_KEY = 'savor-offline-queue'
+const STORAGE_KEY = 'samoon-offline-queue'
 
 export interface OfflineMutation {
   /** Unique identifier — used for deduplication. */

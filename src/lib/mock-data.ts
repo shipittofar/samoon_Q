@@ -18,7 +18,7 @@ export const MOCK_USER: User = {
 // that MOCK_USER.role === 'customer'.
 export const MOCK_STAFF_USER: User = {
   id: '2',
-  email: 'staff@savor.com',
+  email: 'staff@samoon.com',
   phone_number: '+1234567891',
   first_name: 'Sam',
   last_name: 'Staff',
@@ -30,7 +30,7 @@ export const MOCK_STAFF_USER: User = {
 
 export const MOCK_ADMIN_USER: User = {
   id: '3',
-  email: 'admin@savor.com',
+  email: 'admin@samoon.com',
   phone_number: '+1234567892',
   first_name: 'Alex',
   last_name: 'Admin',
@@ -42,7 +42,7 @@ export const MOCK_ADMIN_USER: User = {
 
 export const MOCK_OWNER_USER: User = {
   id: '4',
-  email: 'owner@savor.com',
+  email: 'owner@samoon.com',
   phone_number: '+1234567893',
   first_name: 'Olivia',
   last_name: 'Owner',
@@ -54,7 +54,7 @@ export const MOCK_OWNER_USER: User = {
 
 export const MOCK_CASHIER_USER: User = {
   id: '5',
-  email: 'cashier@savor.com',
+  email: 'cashier@samoon.com',
   phone_number: '+1234567894',
   first_name: 'Casey',
   last_name: 'Cashier',
@@ -66,7 +66,7 @@ export const MOCK_CASHIER_USER: User = {
 
 export const MOCK_KITCHEN_USER: User = {
   id: '6',
-  email: 'kitchen@savor.com',
+  email: 'kitchen@samoon.com',
   phone_number: '+1234567895',
   first_name: 'Kai',
   last_name: 'Kitchen',
@@ -78,7 +78,7 @@ export const MOCK_KITCHEN_USER: User = {
 
 export const MOCK_MARKETING_USER: User = {
   id: '7',
-  email: 'marketing@savor.com',
+  email: 'marketing@samoon.com',
   phone_number: '+1234567896',
   first_name: 'Morgan',
   last_name: 'Marketing',
@@ -90,7 +90,7 @@ export const MOCK_MARKETING_USER: User = {
 
 export const MOCK_SUPPORT_USER: User = {
   id: '8',
-  email: 'support@savor.com',
+  email: 'support@samoon.com',
   phone_number: '+1234567897',
   first_name: 'Sam',
   last_name: 'Support',
@@ -103,7 +103,7 @@ export const MOCK_SUPPORT_USER: User = {
 // P8.9.1 — Platform Admin: cross-tenant visibility (owner P7 role)
 export const MOCK_PLATFORM_ADMIN_USER: User = {
   id: '10',
-  email: 'platform@savor.com',
+  email: 'platform@samoon.com',
   phone_number: '+14155550109',
   first_name: 'Pat',
   last_name: 'Platform',
@@ -115,7 +115,7 @@ export const MOCK_PLATFORM_ADMIN_USER: User = {
 // P8.5 — Multi-role demo user: Cashier + Kitchen combined
 export const MOCK_MULTI_ROLE_USER: User = {
   id: '9',
-  email: 'multirole@savor.com',
+  email: 'multirole@samoon.com',
   phone_number: '+1234567898',
   first_name: 'Max',
   last_name: 'MultiRole',
@@ -134,7 +134,7 @@ export const MOCK_BRANCHES: Branch[] = [
     address: '123 Culinary Avenue',
     city: 'New York',
     phone_number: '+1 (212) 555-0100',
-    email: 'main@savor.com',
+    email: 'main@samoon.com',
     lat: 40.7128,
     lng: -74.006,
     is_active: true,
@@ -225,7 +225,7 @@ export const MOCK_BRANCHES: Branch[] = [
 // P8.7.7.10 — used by branchService.getBranches(tenantId) so the reservation form
 // shows branches that belong to the active tenant and whose ids match activeBranch.id.
 export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
-  'tenant-savor-01': [
+  'tenant-samoon-01': [
     { id: 'main', slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone_number: '+1 (212) 555-0100', lat: 40.7128, lng: -74.006, is_active: true, working_hours: [
       { day: 'Monday', open: '10:00', close: '23:00', is_closed: false },
       { day: 'Tuesday', open: '10:00', close: '23:00', is_closed: false },
@@ -499,7 +499,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 ]
 
 // ── Branch-scoped menu data ───────────────────────────────────────────────────
-// tenant-savor-01 has three branches (main/downtown/airport, see
+// tenant-samoon-01 has three branches (main/downtown/airport, see
 // MOCK_TENANT_BRANCHES above). `main` uses MOCK_CATEGORIES/MOCK_MENU_ITEMS
 // above; the other branches get their own, entirely independent category and
 // item objects — never the same object references — so editing one branch's
@@ -695,7 +695,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: 'n4',
     type: 'system',
-    title: 'Welcome to Savor!',
+    title: 'Welcome to Samoon!',
     message: 'Thanks for joining us. Explore our menu and enjoy 10% off your first order.',
     is_read: true,
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
@@ -727,7 +727,7 @@ export const MOCK_RESERVATIONS: Reservation[] = [
 // These users are NOT customers of any specific business until they interact.
 //
 // Tenant IDs used below:
-//   tenant-savor-01         (restaurant — 3 branches: main, downtown, airport)
+//   tenant-samoon-01         (restaurant — 3 branches: main, downtown, airport)
 //   tenant-brew-cafe-01     (cafe       — 2 branches: main/midtown, brooklyn-cafe)
 //   tenant-oak-bar-01       (bar        — 1 branch:   main)
 //   tenant-central-fc-01    (food court — 1 branch:   main)
@@ -776,25 +776,25 @@ export const MOCK_PLATFORM_USERS: PlatformUser[] = [
 //
 // Each BusinessCustomer links one PlatformUser to one tenant.
 // Metrics (ordersCount, totalSpent, loyaltyPoints) are SCOPED to this tenant only.
-// A user visiting both savor-01 and brew-cafe-01 gets two separate BusinessCustomer records.
+// A user visiting both samoon-01 and brew-cafe-01 gets two separate BusinessCustomer records.
 
 export const MOCK_BUSINESS_CUSTOMERS: BusinessCustomer[] = [
-  // ── tenant-savor-01 (restaurant, 3 branches) ──
-  { id: 'bc-s01-001', userId: 'pu-001', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-06-20T12:00:00Z', lastInteractionAt: '2024-05-10T19:30:00Z', ordersCount: 14, reservationsCount: 3, totalSpent: 420.50, favorite: true,  lifetimeValue: 420.50, lastBranchId: 'downtown', loyaltyPoints: 1240, loyaltyTier: 'gold',     status: 'active' },
-  { id: 'bc-s01-002', userId: 'pu-002', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-08-05T13:00:00Z', lastInteractionAt: '2024-04-20T20:00:00Z', ordersCount: 6,  reservationsCount: 1, totalSpent: 180.00, favorite: false, lifetimeValue: 180.00, lastBranchId: 'main',     loyaltyPoints: 420,  loyaltyTier: 'silver',   status: 'active' },
-  { id: 'bc-s01-003', userId: 'pu-003', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-04-12T18:00:00Z', lastInteractionAt: '2024-05-15T20:30:00Z', ordersCount: 22, reservationsCount: 6, totalSpent: 890.75, favorite: true,  lifetimeValue: 890.75, lastBranchId: 'airport',  loyaltyPoints: 2680, loyaltyTier: 'platinum', status: 'active' },
-  { id: 'bc-s01-004', userId: 'pu-004', tenantId: 'tenant-savor-01', firstInteractionAt: '2024-01-10T12:30:00Z', lastInteractionAt: '2024-01-10T12:30:00Z', ordersCount: 1,  reservationsCount: 0, totalSpent: 29.99,  favorite: false, lifetimeValue: 29.99,  lastBranchId: 'main',     loyaltyPoints: 90,   loyaltyTier: 'bronze',   status: 'active' },
-  { id: 'bc-s01-005', userId: 'pu-005', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-03-05T19:00:00Z', lastInteractionAt: '2024-05-18T21:00:00Z', ordersCount: 18, reservationsCount: 4, totalSpent: 650.00, favorite: true,  lifetimeValue: 650.00, lastBranchId: 'downtown', loyaltyPoints: 1950, loyaltyTier: 'gold',     status: 'active' },
-  { id: 'bc-s01-006', userId: 'pu-006', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-09-18T13:30:00Z', lastInteractionAt: '2024-03-30T20:00:00Z', ordersCount: 9,  reservationsCount: 2, totalSpent: 310.25, favorite: false, lifetimeValue: 310.25, lastBranchId: 'main',     loyaltyPoints: 930,  loyaltyTier: 'silver',   status: 'active' },
-  { id: 'bc-s01-007', userId: 'pu-007', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-11-12T18:30:00Z', lastInteractionAt: '2024-04-25T19:30:00Z', ordersCount: 7,  reservationsCount: 1, totalSpent: 245.00, favorite: false, lifetimeValue: 245.00, lastBranchId: 'airport',  loyaltyPoints: 735,  loyaltyTier: 'silver',   status: 'active' },
-  { id: 'bc-s01-008', userId: 'pu-008', tenantId: 'tenant-savor-01', firstInteractionAt: '2024-02-20T20:00:00Z', lastInteractionAt: '2024-04-05T19:00:00Z', ordersCount: 3,  reservationsCount: 1, totalSpent: 89.50,  favorite: false, lifetimeValue: 89.50,  lastBranchId: 'main',     loyaltyPoints: 270,  loyaltyTier: 'bronze',   status: 'active' },
-  { id: 'bc-s01-009', userId: 'pu-009', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-08-28T12:00:00Z', lastInteractionAt: '2024-05-08T13:00:00Z', ordersCount: 11, reservationsCount: 2, totalSpent: 380.00, favorite: true,  lifetimeValue: 380.00, lastBranchId: 'downtown', loyaltyPoints: 1140, loyaltyTier: 'gold',     status: 'active' },
-  { id: 'bc-s01-010', userId: 'pu-010', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-06-02T19:30:00Z', lastInteractionAt: '2024-05-01T20:00:00Z', ordersCount: 15, reservationsCount: 3, totalSpent: 510.00, favorite: false, lifetimeValue: 510.00, lastBranchId: 'main',     loyaltyPoints: 1530, loyaltyTier: 'gold',     status: 'active' },
-  { id: 'bc-s01-011', userId: 'pu-011', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-10-20T18:00:00Z', lastInteractionAt: '2024-04-15T19:00:00Z', ordersCount: 8,  reservationsCount: 2, totalSpent: 275.00, favorite: false, lifetimeValue: 275.00, lastBranchId: 'downtown', loyaltyPoints: 825,  loyaltyTier: 'silver',   status: 'active' },
-  { id: 'bc-s01-012', userId: 'pu-013', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-12-05T20:00:00Z', lastInteractionAt: '2024-03-20T21:00:00Z', ordersCount: 5,  reservationsCount: 1, totalSpent: 165.00, favorite: false, lifetimeValue: 165.00, lastBranchId: 'main',     loyaltyPoints: 495,  loyaltyTier: 'bronze',   status: 'active' },
-  { id: 'bc-s01-013', userId: 'pu-015', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-02-25T19:00:00Z', lastInteractionAt: '2024-05-12T20:30:00Z', ordersCount: 28, reservationsCount: 7, totalSpent: 1120.00, favorite: true, lifetimeValue: 1120.00, lastBranchId: 'downtown', loyaltyPoints: 3360, loyaltyTier: 'platinum', status: 'active' },
-  { id: 'bc-s01-014', userId: 'pu-018', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-07-05T18:30:00Z', lastInteractionAt: '2024-04-28T19:30:00Z', ordersCount: 12, reservationsCount: 2, totalSpent: 420.00, favorite: false, lifetimeValue: 420.00, lastBranchId: 'airport',  loyaltyPoints: 1260, loyaltyTier: 'gold',     status: 'active' },
-  { id: 'bc-s01-015', userId: 'pu-020', tenantId: 'tenant-savor-01', firstInteractionAt: '2023-04-18T13:00:00Z', lastInteractionAt: '2024-05-05T12:30:00Z', ordersCount: 16, reservationsCount: 4, totalSpent: 555.00, favorite: true,  lifetimeValue: 555.00, lastBranchId: 'main',     loyaltyPoints: 1665, loyaltyTier: 'gold',     status: 'active' },
+  // ── tenant-samoon-01 (restaurant, 3 branches) ──
+  { id: 'bc-s01-001', userId: 'pu-001', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-06-20T12:00:00Z', lastInteractionAt: '2024-05-10T19:30:00Z', ordersCount: 14, reservationsCount: 3, totalSpent: 420.50, favorite: true,  lifetimeValue: 420.50, lastBranchId: 'downtown', loyaltyPoints: 1240, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-002', userId: 'pu-002', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-08-05T13:00:00Z', lastInteractionAt: '2024-04-20T20:00:00Z', ordersCount: 6,  reservationsCount: 1, totalSpent: 180.00, favorite: false, lifetimeValue: 180.00, lastBranchId: 'main',     loyaltyPoints: 420,  loyaltyTier: 'silver',   status: 'active' },
+  { id: 'bc-s01-003', userId: 'pu-003', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-04-12T18:00:00Z', lastInteractionAt: '2024-05-15T20:30:00Z', ordersCount: 22, reservationsCount: 6, totalSpent: 890.75, favorite: true,  lifetimeValue: 890.75, lastBranchId: 'airport',  loyaltyPoints: 2680, loyaltyTier: 'platinum', status: 'active' },
+  { id: 'bc-s01-004', userId: 'pu-004', tenantId: 'tenant-samoon-01', firstInteractionAt: '2024-01-10T12:30:00Z', lastInteractionAt: '2024-01-10T12:30:00Z', ordersCount: 1,  reservationsCount: 0, totalSpent: 29.99,  favorite: false, lifetimeValue: 29.99,  lastBranchId: 'main',     loyaltyPoints: 90,   loyaltyTier: 'bronze',   status: 'active' },
+  { id: 'bc-s01-005', userId: 'pu-005', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-03-05T19:00:00Z', lastInteractionAt: '2024-05-18T21:00:00Z', ordersCount: 18, reservationsCount: 4, totalSpent: 650.00, favorite: true,  lifetimeValue: 650.00, lastBranchId: 'downtown', loyaltyPoints: 1950, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-006', userId: 'pu-006', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-09-18T13:30:00Z', lastInteractionAt: '2024-03-30T20:00:00Z', ordersCount: 9,  reservationsCount: 2, totalSpent: 310.25, favorite: false, lifetimeValue: 310.25, lastBranchId: 'main',     loyaltyPoints: 930,  loyaltyTier: 'silver',   status: 'active' },
+  { id: 'bc-s01-007', userId: 'pu-007', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-11-12T18:30:00Z', lastInteractionAt: '2024-04-25T19:30:00Z', ordersCount: 7,  reservationsCount: 1, totalSpent: 245.00, favorite: false, lifetimeValue: 245.00, lastBranchId: 'airport',  loyaltyPoints: 735,  loyaltyTier: 'silver',   status: 'active' },
+  { id: 'bc-s01-008', userId: 'pu-008', tenantId: 'tenant-samoon-01', firstInteractionAt: '2024-02-20T20:00:00Z', lastInteractionAt: '2024-04-05T19:00:00Z', ordersCount: 3,  reservationsCount: 1, totalSpent: 89.50,  favorite: false, lifetimeValue: 89.50,  lastBranchId: 'main',     loyaltyPoints: 270,  loyaltyTier: 'bronze',   status: 'active' },
+  { id: 'bc-s01-009', userId: 'pu-009', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-08-28T12:00:00Z', lastInteractionAt: '2024-05-08T13:00:00Z', ordersCount: 11, reservationsCount: 2, totalSpent: 380.00, favorite: true,  lifetimeValue: 380.00, lastBranchId: 'downtown', loyaltyPoints: 1140, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-010', userId: 'pu-010', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-06-02T19:30:00Z', lastInteractionAt: '2024-05-01T20:00:00Z', ordersCount: 15, reservationsCount: 3, totalSpent: 510.00, favorite: false, lifetimeValue: 510.00, lastBranchId: 'main',     loyaltyPoints: 1530, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-011', userId: 'pu-011', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-10-20T18:00:00Z', lastInteractionAt: '2024-04-15T19:00:00Z', ordersCount: 8,  reservationsCount: 2, totalSpent: 275.00, favorite: false, lifetimeValue: 275.00, lastBranchId: 'downtown', loyaltyPoints: 825,  loyaltyTier: 'silver',   status: 'active' },
+  { id: 'bc-s01-012', userId: 'pu-013', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-12-05T20:00:00Z', lastInteractionAt: '2024-03-20T21:00:00Z', ordersCount: 5,  reservationsCount: 1, totalSpent: 165.00, favorite: false, lifetimeValue: 165.00, lastBranchId: 'main',     loyaltyPoints: 495,  loyaltyTier: 'bronze',   status: 'active' },
+  { id: 'bc-s01-013', userId: 'pu-015', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-02-25T19:00:00Z', lastInteractionAt: '2024-05-12T20:30:00Z', ordersCount: 28, reservationsCount: 7, totalSpent: 1120.00, favorite: true, lifetimeValue: 1120.00, lastBranchId: 'downtown', loyaltyPoints: 3360, loyaltyTier: 'platinum', status: 'active' },
+  { id: 'bc-s01-014', userId: 'pu-018', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-07-05T18:30:00Z', lastInteractionAt: '2024-04-28T19:30:00Z', ordersCount: 12, reservationsCount: 2, totalSpent: 420.00, favorite: false, lifetimeValue: 420.00, lastBranchId: 'airport',  loyaltyPoints: 1260, loyaltyTier: 'gold',     status: 'active' },
+  { id: 'bc-s01-015', userId: 'pu-020', tenantId: 'tenant-samoon-01', firstInteractionAt: '2023-04-18T13:00:00Z', lastInteractionAt: '2024-05-05T12:30:00Z', ordersCount: 16, reservationsCount: 4, totalSpent: 555.00, favorite: true,  lifetimeValue: 555.00, lastBranchId: 'main',     loyaltyPoints: 1665, loyaltyTier: 'gold',     status: 'active' },
 
   // ── tenant-brew-cafe-01 (cafe, 2 branches) ──
   // Note: pu-001 (Alice) also visits the cafe — she has TWO BusinessCustomer records across the platform
@@ -836,10 +836,10 @@ export const MOCK_BUSINESS_CUSTOMERS: BusinessCustomer[] = [
 //
 // Each BranchCustomer links one BusinessCustomer to one branch.
 // For tenants with a single branch, each BusinessCustomer has exactly one BranchCustomer.
-// For multi-branch tenants (savor-01, brew-cafe-01) customers may have records at multiple branches.
+// For multi-branch tenants (samoon-01, brew-cafe-01) customers may have records at multiple branches.
 
 export const MOCK_BRANCH_CUSTOMERS: BranchCustomer[] = [
-  // ── tenant-savor-01 — main branch ──
+  // ── tenant-samoon-01 — main branch ──
   { id: 'brc-s01-main-001', businessCustomerId: 'bc-s01-001', branchId: 'main',     ordersCount: 4,  reservationsCount: 1, visits: 5,  favoriteBranch: false, lastVisit: '2024-03-15T19:30:00Z', lastOrder: '2024-03-15T19:45:00Z' },
   { id: 'brc-s01-main-002', businessCustomerId: 'bc-s01-002', branchId: 'main',     ordersCount: 6,  reservationsCount: 1, visits: 7,  favoriteBranch: true,  lastVisit: '2024-04-20T20:00:00Z', lastOrder: '2024-04-20T20:15:00Z' },
   { id: 'brc-s01-main-003', businessCustomerId: 'bc-s01-004', branchId: 'main',     ordersCount: 1,  reservationsCount: 0, visits: 1,  favoriteBranch: true,  lastVisit: '2024-01-10T12:30:00Z', lastOrder: '2024-01-10T12:30:00Z' },
@@ -848,14 +848,14 @@ export const MOCK_BRANCH_CUSTOMERS: BranchCustomer[] = [
   { id: 'brc-s01-main-006', businessCustomerId: 'bc-s01-010', branchId: 'main',     ordersCount: 8,  reservationsCount: 2, visits: 10, favoriteBranch: true,  lastVisit: '2024-05-01T20:00:00Z', lastOrder: '2024-05-01T20:05:00Z' },
   { id: 'brc-s01-main-007', businessCustomerId: 'bc-s01-012', branchId: 'main',     ordersCount: 5,  reservationsCount: 1, visits: 6,  favoriteBranch: true,  lastVisit: '2024-03-20T21:00:00Z', lastOrder: '2024-03-20T21:05:00Z' },
   { id: 'brc-s01-main-008', businessCustomerId: 'bc-s01-015', branchId: 'main',     ordersCount: 10, reservationsCount: 2, visits: 12, favoriteBranch: true,  lastVisit: '2024-05-05T12:30:00Z', lastOrder: '2024-05-05T12:40:00Z' },
-  // ── tenant-savor-01 — downtown branch ──
+  // ── tenant-samoon-01 — downtown branch ──
   { id: 'brc-s01-dt-001',  businessCustomerId: 'bc-s01-001', branchId: 'downtown', ordersCount: 10, reservationsCount: 2, visits: 12, favoriteBranch: true,  lastVisit: '2024-05-10T19:30:00Z', lastOrder: '2024-05-10T19:45:00Z' },
   { id: 'brc-s01-dt-002',  businessCustomerId: 'bc-s01-005', branchId: 'downtown', ordersCount: 12, reservationsCount: 3, visits: 15, favoriteBranch: true,  lastVisit: '2024-05-18T21:00:00Z', lastOrder: '2024-05-18T21:10:00Z' },
   { id: 'brc-s01-dt-003',  businessCustomerId: 'bc-s01-009', branchId: 'downtown', ordersCount: 7,  reservationsCount: 1, visits: 8,  favoriteBranch: true,  lastVisit: '2024-05-08T13:00:00Z', lastOrder: '2024-05-08T13:05:00Z' },
   { id: 'brc-s01-dt-004',  businessCustomerId: 'bc-s01-011', branchId: 'downtown', ordersCount: 5,  reservationsCount: 2, visits: 7,  favoriteBranch: true,  lastVisit: '2024-04-15T19:00:00Z', lastOrder: '2024-04-15T19:10:00Z' },
   { id: 'brc-s01-dt-005',  businessCustomerId: 'bc-s01-013', branchId: 'downtown', ordersCount: 20, reservationsCount: 5, visits: 25, favoriteBranch: true,  lastVisit: '2024-05-12T20:30:00Z', lastOrder: '2024-05-12T20:45:00Z' },
   { id: 'brc-s01-dt-006',  businessCustomerId: 'bc-s01-015', branchId: 'downtown', ordersCount: 6,  reservationsCount: 2, visits: 8,  favoriteBranch: false, lastVisit: '2024-04-28T13:00:00Z', lastOrder: '2024-04-28T13:10:00Z' },
-  // ── tenant-savor-01 — airport branch ──
+  // ── tenant-samoon-01 — airport branch ──
   { id: 'brc-s01-ap-001',  businessCustomerId: 'bc-s01-003', branchId: 'airport',  ordersCount: 22, reservationsCount: 6, visits: 28, favoriteBranch: true,  lastVisit: '2024-05-15T20:30:00Z', lastOrder: '2024-05-15T20:45:00Z' },
   { id: 'brc-s01-ap-002',  businessCustomerId: 'bc-s01-007', branchId: 'airport',  ordersCount: 7,  reservationsCount: 1, visits: 8,  favoriteBranch: true,  lastVisit: '2024-04-25T19:30:00Z', lastOrder: '2024-04-25T19:40:00Z' },
   { id: 'brc-s01-ap-003',  businessCustomerId: 'bc-s01-014', branchId: 'airport',  ordersCount: 12, reservationsCount: 2, visits: 14, favoriteBranch: true,  lastVisit: '2024-04-28T19:30:00Z', lastOrder: '2024-04-28T19:45:00Z' },
@@ -900,15 +900,15 @@ export const MOCK_BRANCH_CUSTOMERS: BranchCustomer[] = [
 // carry over to another.
 
 export const MOCK_LOYALTY_ACCOUNTS: LoyaltyAccount[] = [
-  // tenant-savor-01
-  { id: 'la-s01-001', userId: 'pu-001', tenantId: 'tenant-savor-01', points: 1240, lifetimePoints: 2080, tier: 'gold',     createdAt: '2023-06-20T12:00:00Z', updatedAt: '2024-05-10T19:30:00Z' },
-  { id: 'la-s01-002', userId: 'pu-002', tenantId: 'tenant-savor-01', points: 420,  lifetimePoints: 680,  tier: 'silver',   createdAt: '2023-08-05T13:00:00Z', updatedAt: '2024-04-20T20:00:00Z' },
-  { id: 'la-s01-003', userId: 'pu-003', tenantId: 'tenant-savor-01', points: 2680, lifetimePoints: 4450, tier: 'platinum', createdAt: '2023-04-12T18:00:00Z', updatedAt: '2024-05-15T20:30:00Z' },
-  { id: 'la-s01-004', userId: 'pu-004', tenantId: 'tenant-savor-01', points: 90,   lifetimePoints: 90,   tier: 'bronze',   createdAt: '2024-01-10T12:30:00Z', updatedAt: '2024-01-10T12:30:00Z' },
-  { id: 'la-s01-005', userId: 'pu-005', tenantId: 'tenant-savor-01', points: 1950, lifetimePoints: 3250, tier: 'gold',     createdAt: '2023-03-05T19:00:00Z', updatedAt: '2024-05-18T21:00:00Z' },
-  { id: 'la-s01-009', userId: 'pu-009', tenantId: 'tenant-savor-01', points: 1140, lifetimePoints: 1900, tier: 'gold',     createdAt: '2023-08-28T12:00:00Z', updatedAt: '2024-05-08T13:00:00Z' },
-  { id: 'la-s01-010', userId: 'pu-010', tenantId: 'tenant-savor-01', points: 1530, lifetimePoints: 2550, tier: 'gold',     createdAt: '2023-06-02T19:30:00Z', updatedAt: '2024-05-01T20:00:00Z' },
-  { id: 'la-s01-013', userId: 'pu-015', tenantId: 'tenant-savor-01', points: 3360, lifetimePoints: 5600, tier: 'platinum', createdAt: '2023-02-25T19:00:00Z', updatedAt: '2024-05-12T20:30:00Z' },
+  // tenant-samoon-01
+  { id: 'la-s01-001', userId: 'pu-001', tenantId: 'tenant-samoon-01', points: 1240, lifetimePoints: 2080, tier: 'gold',     createdAt: '2023-06-20T12:00:00Z', updatedAt: '2024-05-10T19:30:00Z' },
+  { id: 'la-s01-002', userId: 'pu-002', tenantId: 'tenant-samoon-01', points: 420,  lifetimePoints: 680,  tier: 'silver',   createdAt: '2023-08-05T13:00:00Z', updatedAt: '2024-04-20T20:00:00Z' },
+  { id: 'la-s01-003', userId: 'pu-003', tenantId: 'tenant-samoon-01', points: 2680, lifetimePoints: 4450, tier: 'platinum', createdAt: '2023-04-12T18:00:00Z', updatedAt: '2024-05-15T20:30:00Z' },
+  { id: 'la-s01-004', userId: 'pu-004', tenantId: 'tenant-samoon-01', points: 90,   lifetimePoints: 90,   tier: 'bronze',   createdAt: '2024-01-10T12:30:00Z', updatedAt: '2024-01-10T12:30:00Z' },
+  { id: 'la-s01-005', userId: 'pu-005', tenantId: 'tenant-samoon-01', points: 1950, lifetimePoints: 3250, tier: 'gold',     createdAt: '2023-03-05T19:00:00Z', updatedAt: '2024-05-18T21:00:00Z' },
+  { id: 'la-s01-009', userId: 'pu-009', tenantId: 'tenant-samoon-01', points: 1140, lifetimePoints: 1900, tier: 'gold',     createdAt: '2023-08-28T12:00:00Z', updatedAt: '2024-05-08T13:00:00Z' },
+  { id: 'la-s01-010', userId: 'pu-010', tenantId: 'tenant-samoon-01', points: 1530, lifetimePoints: 2550, tier: 'gold',     createdAt: '2023-06-02T19:30:00Z', updatedAt: '2024-05-01T20:00:00Z' },
+  { id: 'la-s01-013', userId: 'pu-015', tenantId: 'tenant-samoon-01', points: 3360, lifetimePoints: 5600, tier: 'platinum', createdAt: '2023-02-25T19:00:00Z', updatedAt: '2024-05-12T20:30:00Z' },
   // tenant-brew-cafe-01
   { id: 'la-bc01-001', userId: 'pu-001', tenantId: 'tenant-brew-cafe-01', points: 744,  lifetimePoints: 1240, tier: 'gold',   createdAt: '2023-07-01T08:30:00Z', updatedAt: '2024-05-12T09:00:00Z' },
   { id: 'la-bc01-002', userId: 'pu-003', tenantId: 'tenant-brew-cafe-01', points: 1080, lifetimePoints: 1800, tier: 'gold',   createdAt: '2023-05-10T07:45:00Z', updatedAt: '2024-05-14T08:30:00Z' },
@@ -924,43 +924,43 @@ export const MOCK_LOYALTY_ACCOUNTS: LoyaltyAccount[] = [
 
 // Customer Notes (tenant-scoped, private to business owner)
 export const MOCK_CUSTOMER_NOTES: CustomerNote[] = [
-  { id: 'cn-001', userId: 'pu-001', tenantId: 'tenant-savor-01', content: 'Prefers window seat. Always orders the Wagyu Smash — mention when there\'s a new beef special.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2024-02-10T10:00:00Z', updatedAt: '2024-02-10T10:00:00Z' },
-  { id: 'cn-002', userId: 'pu-001', tenantId: 'tenant-savor-01', content: 'Called ahead for anniversary dinner on March 15. Send complimentary dessert.', authorId: '2', authorName: 'Sam Staff', createdAt: '2024-03-10T14:30:00Z', updatedAt: '2024-03-10T14:30:00Z' },
-  { id: 'cn-003', userId: 'pu-003', tenantId: 'tenant-savor-01', content: 'VIP customer — Carol flies in from LA monthly. Always 6+ guests. Reserve private dining.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2023-06-01T09:00:00Z', updatedAt: '2024-01-15T11:00:00Z' },
-  { id: 'cn-004', userId: 'pu-003', tenantId: 'tenant-savor-01', content: 'Severe peanut allergy. Kitchen must be notified on every order. Red flag on account.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2023-06-05T10:00:00Z', updatedAt: '2023-06-05T10:00:00Z' },
-  { id: 'cn-005', userId: 'pu-005', tenantId: 'tenant-savor-01', content: 'Corporate account — Emma books team lunches every Thursday. Invoice sent monthly.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2023-05-01T09:00:00Z', updatedAt: '2024-03-01T09:00:00Z' },
-  { id: 'cn-006', userId: 'pu-009', tenantId: 'tenant-savor-01', content: 'Regular lunch customer at Downtown. Usually arrives at 1pm. Prefers corner table.', authorId: '2', authorName: 'Sam Staff', createdAt: '2023-10-15T13:00:00Z', updatedAt: '2023-10-15T13:00:00Z' },
-  { id: 'cn-007', userId: 'pu-015', tenantId: 'tenant-savor-01', content: 'Platinum VIP. Influencer with 50k followers. Comped desserts on every visit.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2023-04-01T10:00:00Z', updatedAt: '2024-02-20T10:00:00Z' },
+  { id: 'cn-001', userId: 'pu-001', tenantId: 'tenant-samoon-01', content: 'Prefers window seat. Always orders the Wagyu Smash — mention when there\'s a new beef special.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2024-02-10T10:00:00Z', updatedAt: '2024-02-10T10:00:00Z' },
+  { id: 'cn-002', userId: 'pu-001', tenantId: 'tenant-samoon-01', content: 'Called ahead for anniversary dinner on March 15. Send complimentary dessert.', authorId: '2', authorName: 'Sam Staff', createdAt: '2024-03-10T14:30:00Z', updatedAt: '2024-03-10T14:30:00Z' },
+  { id: 'cn-003', userId: 'pu-003', tenantId: 'tenant-samoon-01', content: 'VIP customer — Carol flies in from LA monthly. Always 6+ guests. Reserve private dining.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2023-06-01T09:00:00Z', updatedAt: '2024-01-15T11:00:00Z' },
+  { id: 'cn-004', userId: 'pu-003', tenantId: 'tenant-samoon-01', content: 'Severe peanut allergy. Kitchen must be notified on every order. Red flag on account.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2023-06-05T10:00:00Z', updatedAt: '2023-06-05T10:00:00Z' },
+  { id: 'cn-005', userId: 'pu-005', tenantId: 'tenant-samoon-01', content: 'Corporate account — Emma books team lunches every Thursday. Invoice sent monthly.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2023-05-01T09:00:00Z', updatedAt: '2024-03-01T09:00:00Z' },
+  { id: 'cn-006', userId: 'pu-009', tenantId: 'tenant-samoon-01', content: 'Regular lunch customer at Downtown. Usually arrives at 1pm. Prefers corner table.', authorId: '2', authorName: 'Sam Staff', createdAt: '2023-10-15T13:00:00Z', updatedAt: '2023-10-15T13:00:00Z' },
+  { id: 'cn-007', userId: 'pu-015', tenantId: 'tenant-samoon-01', content: 'Platinum VIP. Influencer with 50k followers. Comped desserts on every visit.', authorId: '4', authorName: 'Olivia Owner', createdAt: '2023-04-01T10:00:00Z', updatedAt: '2024-02-20T10:00:00Z' },
 ]
 
 // Customer Tags (tenant-scoped labelling system)
 export const MOCK_CUSTOMER_TAG_DEFINITIONS: CustomerTag[] = [
-  { id: 'tag-vip',      tenantId: 'tenant-savor-01', label: 'VIP',              color: 'purple', createdAt: '2023-01-01T00:00:00Z' },
-  { id: 'tag-hv',       tenantId: 'tenant-savor-01', label: 'High Value',       color: 'green',  createdAt: '2023-01-01T00:00:00Z' },
-  { id: 'tag-freq',     tenantId: 'tenant-savor-01', label: 'Frequent Visitor', color: 'blue',   createdAt: '2023-01-01T00:00:00Z' },
-  { id: 'tag-corp',     tenantId: 'tenant-savor-01', label: 'Corporate',        color: 'gray',   createdAt: '2023-01-01T00:00:00Z' },
-  { id: 'tag-allergy',  tenantId: 'tenant-savor-01', label: 'Allergy Alert',    color: 'red',    createdAt: '2023-01-01T00:00:00Z' },
-  { id: 'tag-birthday', tenantId: 'tenant-savor-01', label: 'Birthday',         color: 'yellow', createdAt: '2023-01-01T00:00:00Z' },
-  { id: 'tag-family',   tenantId: 'tenant-savor-01', label: 'Family',           color: 'orange', createdAt: '2023-01-01T00:00:00Z' },
-  { id: 'tag-new',      tenantId: 'tenant-savor-01', label: 'New Customer',     color: 'blue',   createdAt: '2023-01-01T00:00:00Z' },
-  { id: 'tag-inactive', tenantId: 'tenant-savor-01', label: 'Inactive',         color: 'gray',   createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-vip',      tenantId: 'tenant-samoon-01', label: 'VIP',              color: 'purple', createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-hv',       tenantId: 'tenant-samoon-01', label: 'High Value',       color: 'green',  createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-freq',     tenantId: 'tenant-samoon-01', label: 'Frequent Visitor', color: 'blue',   createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-corp',     tenantId: 'tenant-samoon-01', label: 'Corporate',        color: 'gray',   createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-allergy',  tenantId: 'tenant-samoon-01', label: 'Allergy Alert',    color: 'red',    createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-birthday', tenantId: 'tenant-samoon-01', label: 'Birthday',         color: 'yellow', createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-family',   tenantId: 'tenant-samoon-01', label: 'Family',           color: 'orange', createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-new',      tenantId: 'tenant-samoon-01', label: 'New Customer',     color: 'blue',   createdAt: '2023-01-01T00:00:00Z' },
+  { id: 'tag-inactive', tenantId: 'tenant-samoon-01', label: 'Inactive',         color: 'gray',   createdAt: '2023-01-01T00:00:00Z' },
 ]
 
 // Customer tag assignments per user
 export const MOCK_CUSTOMER_TAG_ASSIGNMENTS: Record<string, string[]> = {
-  'pu-001:tenant-savor-01': ['tag-vip', 'tag-hv', 'tag-freq'],
-  'pu-003:tenant-savor-01': ['tag-vip', 'tag-hv', 'tag-allergy', 'tag-freq'],
-  'pu-004:tenant-savor-01': ['tag-new'],
-  'pu-005:tenant-savor-01': ['tag-corp', 'tag-hv', 'tag-freq'],
-  'pu-007:tenant-savor-01': ['tag-freq'],
-  'pu-009:tenant-savor-01': ['tag-freq'],
-  'pu-015:tenant-savor-01': ['tag-vip', 'tag-hv', 'tag-freq', 'tag-birthday'],
+  'pu-001:tenant-samoon-01': ['tag-vip', 'tag-hv', 'tag-freq'],
+  'pu-003:tenant-samoon-01': ['tag-vip', 'tag-hv', 'tag-allergy', 'tag-freq'],
+  'pu-004:tenant-samoon-01': ['tag-new'],
+  'pu-005:tenant-samoon-01': ['tag-corp', 'tag-hv', 'tag-freq'],
+  'pu-007:tenant-samoon-01': ['tag-freq'],
+  'pu-009:tenant-samoon-01': ['tag-freq'],
+  'pu-015:tenant-samoon-01': ['tag-vip', 'tag-hv', 'tag-freq', 'tag-birthday'],
 }
 
 // Customer Analytics (per user per tenant)
 export const MOCK_CUSTOMER_ANALYTICS: CustomerAnalytics[] = [
   {
-    userId: 'pu-001', tenantId: 'tenant-savor-01',
+    userId: 'pu-001', tenantId: 'tenant-samoon-01',
     lifetimeValue: 420.50, avgOrderValue: 30.04, avgReservationPartySize: 2.3,
     visitFrequencyDays: 11, daysSinceLastVisit: 24,
     favoriteBranchId: 'downtown', favoriteBranchName: 'Downtown Branch',
@@ -981,7 +981,7 @@ export const MOCK_CUSTOMER_ANALYTICS: CustomerAnalytics[] = [
     ],
   },
   {
-    userId: 'pu-003', tenantId: 'tenant-savor-01',
+    userId: 'pu-003', tenantId: 'tenant-samoon-01',
     lifetimeValue: 890.75, avgOrderValue: 40.49, avgReservationPartySize: 4.2,
     visitFrequencyDays: 7, daysSinceLastVisit: 9,
     favoriteBranchId: 'airport', favoriteBranchName: 'Airport Branch',
@@ -1002,7 +1002,7 @@ export const MOCK_CUSTOMER_ANALYTICS: CustomerAnalytics[] = [
     ],
   },
   {
-    userId: 'pu-005', tenantId: 'tenant-savor-01',
+    userId: 'pu-005', tenantId: 'tenant-samoon-01',
     lifetimeValue: 650.00, avgOrderValue: 36.11, avgReservationPartySize: 5.5,
     visitFrequencyDays: 9, daysSinceLastVisit: 6,
     favoriteBranchId: 'downtown', favoriteBranchName: 'Downtown Branch',
@@ -1027,7 +1027,7 @@ export const MOCK_CUSTOMER_ANALYTICS: CustomerAnalytics[] = [
 // Customer Marketing (per user per tenant)
 export const MOCK_CUSTOMER_MARKETING: CustomerMarketing[] = [
   {
-    userId: 'pu-001', tenantId: 'tenant-savor-01',
+    userId: 'pu-001', tenantId: 'tenant-samoon-01',
     preferences: [
       { channel: 'email',    subscribed: true,  subscribedAt: '2023-06-20T12:00:00Z' },
       { channel: 'sms',      subscribed: true,  subscribedAt: '2023-06-20T12:00:00Z' },
@@ -1044,7 +1044,7 @@ export const MOCK_CUSTOMER_MARKETING: CustomerMarketing[] = [
     lastCampaignAt: '2024-04-01T10:00:00Z',
   },
   {
-    userId: 'pu-003', tenantId: 'tenant-savor-01',
+    userId: 'pu-003', tenantId: 'tenant-samoon-01',
     preferences: [
       { channel: 'email',    subscribed: true,  subscribedAt: '2023-04-12T18:00:00Z' },
       { channel: 'sms',      subscribed: false, unsubscribedAt: '2023-09-01T00:00:00Z' },
@@ -1059,7 +1059,7 @@ export const MOCK_CUSTOMER_MARKETING: CustomerMarketing[] = [
     lastCampaignAt: '2024-03-01T10:00:00Z',
   },
   {
-    userId: 'pu-005', tenantId: 'tenant-savor-01',
+    userId: 'pu-005', tenantId: 'tenant-samoon-01',
     preferences: [
       { channel: 'email',    subscribed: true,  subscribedAt: '2023-03-05T19:00:00Z' },
       { channel: 'sms',      subscribed: true,  subscribedAt: '2023-03-05T19:00:00Z' },
@@ -1076,55 +1076,55 @@ export const MOCK_CUSTOMER_MARKETING: CustomerMarketing[] = [
 
 // Customer Coupons (per user per tenant)
 export const MOCK_CUSTOMER_COUPONS: CustomerCoupon[] = [
-  { id: 'coup-001', userId: 'pu-001', tenantId: 'tenant-savor-01', code: 'ALICE15', description: '15% off your next order', discountType: 'percent', discountValue: 15, minOrderAmount: 30, status: 'redeemed', redeemedAt: '2024-02-15T20:00:00Z', expiresAt: '2024-03-01T00:00:00Z', createdAt: '2024-02-01T00:00:00Z' },
-  { id: 'coup-002', userId: 'pu-001', tenantId: 'tenant-savor-01', code: 'BDAY2024', description: 'Birthday month — $10 off', discountType: 'fixed', discountValue: 10, status: 'available', expiresAt: '2024-05-31T23:59:59Z', createdAt: '2024-04-01T00:00:00Z' },
-  { id: 'coup-003', userId: 'pu-001', tenantId: 'tenant-savor-01', code: 'SPRING24', description: '20% off spring menu items', discountType: 'percent', discountValue: 20, status: 'redeemed', redeemedAt: '2024-03-15T19:30:00Z', expiresAt: '2024-04-30T23:59:59Z', createdAt: '2024-03-01T00:00:00Z' },
-  { id: 'coup-004', userId: 'pu-001', tenantId: 'tenant-savor-01', code: 'LOYAL50', description: '$5 off as loyalty bonus', discountType: 'fixed', discountValue: 5, status: 'expired', expiresAt: '2024-01-31T23:59:59Z', createdAt: '2024-01-01T00:00:00Z' },
-  { id: 'coup-005', userId: 'pu-003', tenantId: 'tenant-savor-01', code: 'CAROL10', description: '10% off for platinum tier', discountType: 'percent', discountValue: 10, status: 'redeemed', redeemedAt: '2024-04-01T20:00:00Z', expiresAt: '2024-05-01T00:00:00Z', createdAt: '2024-03-01T00:00:00Z' },
-  { id: 'coup-006', userId: 'pu-003', tenantId: 'tenant-savor-01', code: 'VIP2024', description: 'VIP $20 off order $100+', discountType: 'fixed', discountValue: 20, minOrderAmount: 100, status: 'available', expiresAt: '2024-12-31T23:59:59Z', createdAt: '2024-01-01T00:00:00Z' },
-  { id: 'coup-007', userId: 'pu-005', tenantId: 'tenant-savor-01', code: 'CORP15', description: '15% corporate discount', discountType: 'percent', discountValue: 15, status: 'redeemed', redeemedAt: '2024-03-07T13:00:00Z', expiresAt: '2024-04-01T00:00:00Z', createdAt: '2024-03-01T00:00:00Z' },
-  { id: 'coup-008', userId: 'pu-005', tenantId: 'tenant-savor-01', code: 'Q2CORP', description: 'Q2 corporate lunch deal — $15 off', discountType: 'fixed', discountValue: 15, minOrderAmount: 80, status: 'available', expiresAt: '2024-06-30T23:59:59Z', createdAt: '2024-04-01T00:00:00Z' },
+  { id: 'coup-001', userId: 'pu-001', tenantId: 'tenant-samoon-01', code: 'ALICE15', description: '15% off your next order', discountType: 'percent', discountValue: 15, minOrderAmount: 30, status: 'redeemed', redeemedAt: '2024-02-15T20:00:00Z', expiresAt: '2024-03-01T00:00:00Z', createdAt: '2024-02-01T00:00:00Z' },
+  { id: 'coup-002', userId: 'pu-001', tenantId: 'tenant-samoon-01', code: 'BDAY2024', description: 'Birthday month — $10 off', discountType: 'fixed', discountValue: 10, status: 'available', expiresAt: '2024-05-31T23:59:59Z', createdAt: '2024-04-01T00:00:00Z' },
+  { id: 'coup-003', userId: 'pu-001', tenantId: 'tenant-samoon-01', code: 'SPRING24', description: '20% off spring menu items', discountType: 'percent', discountValue: 20, status: 'redeemed', redeemedAt: '2024-03-15T19:30:00Z', expiresAt: '2024-04-30T23:59:59Z', createdAt: '2024-03-01T00:00:00Z' },
+  { id: 'coup-004', userId: 'pu-001', tenantId: 'tenant-samoon-01', code: 'LOYAL50', description: '$5 off as loyalty bonus', discountType: 'fixed', discountValue: 5, status: 'expired', expiresAt: '2024-01-31T23:59:59Z', createdAt: '2024-01-01T00:00:00Z' },
+  { id: 'coup-005', userId: 'pu-003', tenantId: 'tenant-samoon-01', code: 'CAROL10', description: '10% off for platinum tier', discountType: 'percent', discountValue: 10, status: 'redeemed', redeemedAt: '2024-04-01T20:00:00Z', expiresAt: '2024-05-01T00:00:00Z', createdAt: '2024-03-01T00:00:00Z' },
+  { id: 'coup-006', userId: 'pu-003', tenantId: 'tenant-samoon-01', code: 'VIP2024', description: 'VIP $20 off order $100+', discountType: 'fixed', discountValue: 20, minOrderAmount: 100, status: 'available', expiresAt: '2024-12-31T23:59:59Z', createdAt: '2024-01-01T00:00:00Z' },
+  { id: 'coup-007', userId: 'pu-005', tenantId: 'tenant-samoon-01', code: 'CORP15', description: '15% corporate discount', discountType: 'percent', discountValue: 15, status: 'redeemed', redeemedAt: '2024-03-07T13:00:00Z', expiresAt: '2024-04-01T00:00:00Z', createdAt: '2024-03-01T00:00:00Z' },
+  { id: 'coup-008', userId: 'pu-005', tenantId: 'tenant-samoon-01', code: 'Q2CORP', description: 'Q2 corporate lunch deal — $15 off', discountType: 'fixed', discountValue: 15, minOrderAmount: 80, status: 'available', expiresAt: '2024-06-30T23:59:59Z', createdAt: '2024-04-01T00:00:00Z' },
 ]
 
 // Customer Timeline Events (per user per tenant — chronological interaction log)
 export const MOCK_CUSTOMER_TIMELINE: CustomerTimelineEvent[] = [
-  // ── Alice (pu-001) at tenant-savor-01 ──
-  { id: 'tl-a001', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'account_created',    title: 'Account created',                   description: 'Platform account registered via phone_number', createdAt: '2023-06-15T10:00:00Z' },
-  { id: 'tl-a002', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'first_visit',        title: 'First visit at Savor',              description: 'First interaction at Downtown Branch',   branchId: 'downtown',  createdAt: '2023-06-20T12:00:00Z' },
-  { id: 'tl-a003', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'order_placed',       title: 'Order placed',                      description: 'Wagyu Smash × 2, Carbonara × 1',         amount: 68.97, points: 207, branchId: 'downtown',  referenceId: 'ord-a-001', referenceType: 'order',   createdAt: '2023-06-20T12:05:00Z' },
-  { id: 'tl-a004', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'points_earned',      title: '207 points earned',                 description: 'From order #A-001',                      points: 207,  createdAt: '2023-06-20T12:30:00Z' },
-  { id: 'tl-a005', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'reservation_made',   title: 'Reservation made',                  description: '2 guests · Downtown · Jul 4 7:30 PM',    branchId: 'downtown',  referenceId: 'res-a-001', referenceType: 'reservation', createdAt: '2023-07-01T14:00:00Z' },
-  { id: 'tl-a006', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'reservation_completed', title: 'Reservation completed',            description: '2 guests · 90 min visit',               branchId: 'downtown',  referenceId: 'res-a-001', referenceType: 'reservation', createdAt: '2023-07-04T21:00:00Z' },
-  { id: 'tl-a007', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'coupon_received',    title: 'Coupon received',                   description: 'LOYAL50 — $5 off loyalty bonus',                        referenceId: 'coup-004', referenceType: 'coupon', createdAt: '2024-01-01T00:00:00Z' },
-  { id: 'tl-a008', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'tier_upgraded',      title: 'Tier upgraded to Gold',             description: 'Reached 1,000 lifetime points',          points: 1000,  createdAt: '2024-01-10T09:00:00Z' },
-  { id: 'tl-a009', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'marketing_email',    title: 'Email campaign received',           description: 'Loyalty Tier Upgrade notification',                     referenceId: 'camp-003', createdAt: '2024-01-15T12:00:00Z' },
-  { id: 'tl-a010', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'order_placed',       title: 'Order placed',                      description: 'Truffle Mushroom Pizza, Crème Brûlée',   amount: 40.98, points: 123, branchId: 'downtown',  referenceId: 'ord-a-002', referenceType: 'order',   createdAt: '2024-02-08T19:30:00Z' },
-  { id: 'tl-a011', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'coupon_received',    title: 'Coupon received',                   description: 'ALICE15 — 15% off next order',                          referenceId: 'coup-001', referenceType: 'coupon', createdAt: '2024-02-01T00:00:00Z' },
-  { id: 'tl-a012', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'coupon_redeemed',    title: 'Coupon redeemed',                   description: 'ALICE15 — saved $6.15',                  amount: -6.15,         referenceId: 'coup-001', referenceType: 'coupon', createdAt: '2024-02-15T20:00:00Z' },
-  { id: 'tl-a013', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'review_posted',      title: 'Review posted',                     description: '⭐⭐⭐⭐⭐ — "Excellent food and service!"',              referenceId: 'rev-a-001', referenceType: 'review', createdAt: '2024-02-16T10:00:00Z' },
-  { id: 'tl-a014', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'admin_note',         title: 'Note added',                        description: 'Prefers window seat. Anniversary dinner booked.', actorId: '4', actorName: 'Olivia Owner', createdAt: '2024-03-10T14:30:00Z' },
-  { id: 'tl-a015', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'coupon_received',    title: 'Coupon received',                   description: 'SPRING24 — 20% off spring menu',                        referenceId: 'coup-003', referenceType: 'coupon', createdAt: '2024-03-01T00:00:00Z' },
-  { id: 'tl-a016', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'reservation_made',   title: 'Reservation made',                  description: '2 guests · Downtown · Mar 15 8:00 PM',  branchId: 'downtown',  referenceId: 'res-a-002', referenceType: 'reservation', createdAt: '2024-03-10T10:00:00Z' },
-  { id: 'tl-a017', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'tag_added',          title: 'Tag added: VIP',                    actorId: '4', actorName: 'Olivia Owner', createdAt: '2024-03-12T09:00:00Z' },
-  { id: 'tl-a018', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'points_redeemed',    title: '200 points redeemed',               description: 'Reward: Free Latte',                     points: -200,          referenceId: 'reward-free-latte', referenceType: 'reward', createdAt: '2024-04-01T19:00:00Z' },
-  { id: 'tl-a019', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'coupon_redeemed',    title: 'Coupon redeemed',                   description: 'SPRING24 — saved $8.20',                 amount: -8.20,         referenceId: 'coup-003', referenceType: 'coupon', createdAt: '2024-03-15T19:30:00Z' },
-  { id: 'tl-a020', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'coupon_received',    title: 'Coupon received',                   description: 'BDAY2024 — Birthday $10 off',                           referenceId: 'coup-002', referenceType: 'coupon', createdAt: '2024-04-01T00:00:00Z' },
-  { id: 'tl-a021', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'order_placed',       title: 'Order placed',                      description: 'Lobster Linguine, Mango Lassi',          amount: 45.98, points: 138, branchId: 'airport',   referenceId: 'ord-a-003', referenceType: 'order',   createdAt: '2024-04-22T12:15:00Z' },
-  { id: 'tl-a022', userId: 'pu-001', tenantId: 'tenant-savor-01', type: 'order_placed',       title: 'Order placed',                      description: 'Wagyu Smash, Crème Brûlée, Cold Brew',   amount: 44.97, points: 135, branchId: 'downtown',  referenceId: 'ord-a-004', referenceType: 'order',   createdAt: '2024-05-10T19:45:00Z' },
+  // ── Alice (pu-001) at tenant-samoon-01 ──
+  { id: 'tl-a001', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'account_created',    title: 'Account created',                   description: 'Platform account registered via phone_number', createdAt: '2023-06-15T10:00:00Z' },
+  { id: 'tl-a002', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'first_visit',        title: 'First visit at Samoon',              description: 'First interaction at Downtown Branch',   branchId: 'downtown',  createdAt: '2023-06-20T12:00:00Z' },
+  { id: 'tl-a003', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'order_placed',       title: 'Order placed',                      description: 'Wagyu Smash × 2, Carbonara × 1',         amount: 68.97, points: 207, branchId: 'downtown',  referenceId: 'ord-a-001', referenceType: 'order',   createdAt: '2023-06-20T12:05:00Z' },
+  { id: 'tl-a004', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'points_earned',      title: '207 points earned',                 description: 'From order #A-001',                      points: 207,  createdAt: '2023-06-20T12:30:00Z' },
+  { id: 'tl-a005', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'reservation_made',   title: 'Reservation made',                  description: '2 guests · Downtown · Jul 4 7:30 PM',    branchId: 'downtown',  referenceId: 'res-a-001', referenceType: 'reservation', createdAt: '2023-07-01T14:00:00Z' },
+  { id: 'tl-a006', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'reservation_completed', title: 'Reservation completed',            description: '2 guests · 90 min visit',               branchId: 'downtown',  referenceId: 'res-a-001', referenceType: 'reservation', createdAt: '2023-07-04T21:00:00Z' },
+  { id: 'tl-a007', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'coupon_received',    title: 'Coupon received',                   description: 'LOYAL50 — $5 off loyalty bonus',                        referenceId: 'coup-004', referenceType: 'coupon', createdAt: '2024-01-01T00:00:00Z' },
+  { id: 'tl-a008', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'tier_upgraded',      title: 'Tier upgraded to Gold',             description: 'Reached 1,000 lifetime points',          points: 1000,  createdAt: '2024-01-10T09:00:00Z' },
+  { id: 'tl-a009', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'marketing_email',    title: 'Email campaign received',           description: 'Loyalty Tier Upgrade notification',                     referenceId: 'camp-003', createdAt: '2024-01-15T12:00:00Z' },
+  { id: 'tl-a010', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'order_placed',       title: 'Order placed',                      description: 'Truffle Mushroom Pizza, Crème Brûlée',   amount: 40.98, points: 123, branchId: 'downtown',  referenceId: 'ord-a-002', referenceType: 'order',   createdAt: '2024-02-08T19:30:00Z' },
+  { id: 'tl-a011', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'coupon_received',    title: 'Coupon received',                   description: 'ALICE15 — 15% off next order',                          referenceId: 'coup-001', referenceType: 'coupon', createdAt: '2024-02-01T00:00:00Z' },
+  { id: 'tl-a012', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'coupon_redeemed',    title: 'Coupon redeemed',                   description: 'ALICE15 — saved $6.15',                  amount: -6.15,         referenceId: 'coup-001', referenceType: 'coupon', createdAt: '2024-02-15T20:00:00Z' },
+  { id: 'tl-a013', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'review_posted',      title: 'Review posted',                     description: '⭐⭐⭐⭐⭐ — "Excellent food and service!"',              referenceId: 'rev-a-001', referenceType: 'review', createdAt: '2024-02-16T10:00:00Z' },
+  { id: 'tl-a014', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'admin_note',         title: 'Note added',                        description: 'Prefers window seat. Anniversary dinner booked.', actorId: '4', actorName: 'Olivia Owner', createdAt: '2024-03-10T14:30:00Z' },
+  { id: 'tl-a015', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'coupon_received',    title: 'Coupon received',                   description: 'SPRING24 — 20% off spring menu',                        referenceId: 'coup-003', referenceType: 'coupon', createdAt: '2024-03-01T00:00:00Z' },
+  { id: 'tl-a016', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'reservation_made',   title: 'Reservation made',                  description: '2 guests · Downtown · Mar 15 8:00 PM',  branchId: 'downtown',  referenceId: 'res-a-002', referenceType: 'reservation', createdAt: '2024-03-10T10:00:00Z' },
+  { id: 'tl-a017', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'tag_added',          title: 'Tag added: VIP',                    actorId: '4', actorName: 'Olivia Owner', createdAt: '2024-03-12T09:00:00Z' },
+  { id: 'tl-a018', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'points_redeemed',    title: '200 points redeemed',               description: 'Reward: Free Latte',                     points: -200,          referenceId: 'reward-free-latte', referenceType: 'reward', createdAt: '2024-04-01T19:00:00Z' },
+  { id: 'tl-a019', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'coupon_redeemed',    title: 'Coupon redeemed',                   description: 'SPRING24 — saved $8.20',                 amount: -8.20,         referenceId: 'coup-003', referenceType: 'coupon', createdAt: '2024-03-15T19:30:00Z' },
+  { id: 'tl-a020', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'coupon_received',    title: 'Coupon received',                   description: 'BDAY2024 — Birthday $10 off',                           referenceId: 'coup-002', referenceType: 'coupon', createdAt: '2024-04-01T00:00:00Z' },
+  { id: 'tl-a021', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'order_placed',       title: 'Order placed',                      description: 'Lobster Linguine, Mango Lassi',          amount: 45.98, points: 138, branchId: 'airport',   referenceId: 'ord-a-003', referenceType: 'order',   createdAt: '2024-04-22T12:15:00Z' },
+  { id: 'tl-a022', userId: 'pu-001', tenantId: 'tenant-samoon-01', type: 'order_placed',       title: 'Order placed',                      description: 'Wagyu Smash, Crème Brûlée, Cold Brew',   amount: 44.97, points: 135, branchId: 'downtown',  referenceId: 'ord-a-004', referenceType: 'order',   createdAt: '2024-05-10T19:45:00Z' },
 
-  // ── Carol (pu-003) at tenant-savor-01 ──
-  { id: 'tl-c001', userId: 'pu-003', tenantId: 'tenant-savor-01', type: 'first_visit',        title: 'First visit at Savor',              description: 'First interaction at Airport Branch',    branchId: 'airport',   createdAt: '2023-04-12T18:00:00Z' },
-  { id: 'tl-c002', userId: 'pu-003', tenantId: 'tenant-savor-01', type: 'order_placed',       title: 'Order placed',                      description: 'Truffle Mushroom × 2, Lobster Linguine', amount: 96.97, points: 291, branchId: 'airport',   referenceId: 'ord-c-001', referenceType: 'order',   createdAt: '2023-04-12T18:10:00Z' },
-  { id: 'tl-c003', userId: 'pu-003', tenantId: 'tenant-savor-01', type: 'admin_note',         title: 'Note added',                        description: 'Severe peanut allergy. Alert kitchen.', actorId: '4', actorName: 'Olivia Owner', createdAt: '2023-06-05T10:00:00Z' },
-  { id: 'tl-c004', userId: 'pu-003', tenantId: 'tenant-savor-01', type: 'tier_upgraded',      title: 'Tier upgraded to Platinum',         description: 'Reached 4,000 lifetime points',          points: 4000, createdAt: '2024-01-20T09:00:00Z' },
-  { id: 'tl-c005', userId: 'pu-003', tenantId: 'tenant-savor-01', type: 'review_posted',      title: 'Review posted',                     description: '⭐⭐⭐⭐⭐ — "Best airport dining ever!"',               referenceId: 'rev-c-001', referenceType: 'review', createdAt: '2024-02-01T10:00:00Z' },
-  { id: 'tl-c006', userId: 'pu-003', tenantId: 'tenant-savor-01', type: 'reservation_made',   title: 'Private dining reserved',           description: '8 guests · Airport · May 15',            branchId: 'airport',   referenceId: 'res-c-001', referenceType: 'reservation', createdAt: '2024-05-10T11:00:00Z' },
+  // ── Carol (pu-003) at tenant-samoon-01 ──
+  { id: 'tl-c001', userId: 'pu-003', tenantId: 'tenant-samoon-01', type: 'first_visit',        title: 'First visit at Samoon',              description: 'First interaction at Airport Branch',    branchId: 'airport',   createdAt: '2023-04-12T18:00:00Z' },
+  { id: 'tl-c002', userId: 'pu-003', tenantId: 'tenant-samoon-01', type: 'order_placed',       title: 'Order placed',                      description: 'Truffle Mushroom × 2, Lobster Linguine', amount: 96.97, points: 291, branchId: 'airport',   referenceId: 'ord-c-001', referenceType: 'order',   createdAt: '2023-04-12T18:10:00Z' },
+  { id: 'tl-c003', userId: 'pu-003', tenantId: 'tenant-samoon-01', type: 'admin_note',         title: 'Note added',                        description: 'Severe peanut allergy. Alert kitchen.', actorId: '4', actorName: 'Olivia Owner', createdAt: '2023-06-05T10:00:00Z' },
+  { id: 'tl-c004', userId: 'pu-003', tenantId: 'tenant-samoon-01', type: 'tier_upgraded',      title: 'Tier upgraded to Platinum',         description: 'Reached 4,000 lifetime points',          points: 4000, createdAt: '2024-01-20T09:00:00Z' },
+  { id: 'tl-c005', userId: 'pu-003', tenantId: 'tenant-samoon-01', type: 'review_posted',      title: 'Review posted',                     description: '⭐⭐⭐⭐⭐ — "Best airport dining ever!"',               referenceId: 'rev-c-001', referenceType: 'review', createdAt: '2024-02-01T10:00:00Z' },
+  { id: 'tl-c006', userId: 'pu-003', tenantId: 'tenant-samoon-01', type: 'reservation_made',   title: 'Private dining reserved',           description: '8 guests · Airport · May 15',            branchId: 'airport',   referenceId: 'res-c-001', referenceType: 'reservation', createdAt: '2024-05-10T11:00:00Z' },
 
-  // ── Emma (pu-005) at tenant-savor-01 ──
-  { id: 'tl-e001', userId: 'pu-005', tenantId: 'tenant-savor-01', type: 'first_visit',        title: 'First visit at Savor',              description: 'Corporate lunch at Downtown',             branchId: 'downtown',  createdAt: '2023-03-05T19:00:00Z' },
-  { id: 'tl-e002', userId: 'pu-005', tenantId: 'tenant-savor-01', type: 'tag_added',          title: 'Tag added: Corporate',             actorId: '4', actorName: 'Olivia Owner', createdAt: '2023-05-01T09:00:00Z' },
-  { id: 'tl-e003', userId: 'pu-005', tenantId: 'tenant-savor-01', type: 'order_placed',       title: 'Order placed',                      description: 'Team lunch — 12 items',                  amount: 248.00, points: 744, branchId: 'downtown',  referenceId: 'ord-e-001', referenceType: 'order', createdAt: '2024-03-07T13:00:00Z' },
-  { id: 'tl-e004', userId: 'pu-005', tenantId: 'tenant-savor-01', type: 'coupon_redeemed',    title: 'Coupon redeemed',                   description: 'CORP15 — saved $37.20',                  amount: -37.20,        referenceId: 'coup-007', referenceType: 'coupon', createdAt: '2024-03-07T13:00:00Z' },
-  { id: 'tl-e005', userId: 'pu-005', tenantId: 'tenant-savor-01', type: 'order_placed',       title: 'Order placed',                      description: 'Team lunch — 8 items',                   amount: 175.00, points: 525, branchId: 'downtown',  referenceId: 'ord-e-002', referenceType: 'order', createdAt: '2024-04-04T13:00:00Z' },
-  { id: 'tl-e006', userId: 'pu-005', tenantId: 'tenant-savor-01', type: 'review_posted',      title: 'Review posted',                     description: '⭐⭐⭐⭐ — "Great for corporate events!"',               referenceId: 'rev-e-001', referenceType: 'review', createdAt: '2024-04-06T10:00:00Z' },
+  // ── Emma (pu-005) at tenant-samoon-01 ──
+  { id: 'tl-e001', userId: 'pu-005', tenantId: 'tenant-samoon-01', type: 'first_visit',        title: 'First visit at Samoon',              description: 'Corporate lunch at Downtown',             branchId: 'downtown',  createdAt: '2023-03-05T19:00:00Z' },
+  { id: 'tl-e002', userId: 'pu-005', tenantId: 'tenant-samoon-01', type: 'tag_added',          title: 'Tag added: Corporate',             actorId: '4', actorName: 'Olivia Owner', createdAt: '2023-05-01T09:00:00Z' },
+  { id: 'tl-e003', userId: 'pu-005', tenantId: 'tenant-samoon-01', type: 'order_placed',       title: 'Order placed',                      description: 'Team lunch — 12 items',                  amount: 248.00, points: 744, branchId: 'downtown',  referenceId: 'ord-e-001', referenceType: 'order', createdAt: '2024-03-07T13:00:00Z' },
+  { id: 'tl-e004', userId: 'pu-005', tenantId: 'tenant-samoon-01', type: 'coupon_redeemed',    title: 'Coupon redeemed',                   description: 'CORP15 — saved $37.20',                  amount: -37.20,        referenceId: 'coup-007', referenceType: 'coupon', createdAt: '2024-03-07T13:00:00Z' },
+  { id: 'tl-e005', userId: 'pu-005', tenantId: 'tenant-samoon-01', type: 'order_placed',       title: 'Order placed',                      description: 'Team lunch — 8 items',                   amount: 175.00, points: 525, branchId: 'downtown',  referenceId: 'ord-e-002', referenceType: 'order', createdAt: '2024-04-04T13:00:00Z' },
+  { id: 'tl-e006', userId: 'pu-005', tenantId: 'tenant-samoon-01', type: 'review_posted',      title: 'Review posted',                     description: '⭐⭐⭐⭐ — "Great for corporate events!"',               referenceId: 'rev-e-001', referenceType: 'review', createdAt: '2024-04-06T10:00:00Z' },
 ]

@@ -18,7 +18,7 @@ const delay = (ms = 200) => new Promise<void>((r) => setTimeout(r, ms))
 // Kept here so the provisioning service is self-contained for tests.
 const SEED_MOCK_TENANTS: ReadonlyArray<Pick<Tenant, 'id' | 'slug' | 'businessTypes' | 'settings'>> = [
   { id: 'default', slug: 'default', businessTypes: ['restaurant'], settings: undefined },
-  { id: 'tenant-savor-01', slug: 'savor', businessTypes: ['restaurant'], settings: { featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#e85d04' } } },
+  { id: 'tenant-samoon-01', slug: 'samoon', businessTypes: ['restaurant'], settings: { featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#e85d04' } } },
   { id: 'tenant-brew-cafe-01', slug: 'brew-cafe', businessTypes: ['cafe'], settings: { featureFlags: { 'menu.enabled': true, 'cafe.loyalty.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#6f4e37' } } },
   { id: 'tenant-oak-bar-01', slug: 'the-oak-bar', businessTypes: ['bar'], settings: { featureFlags: { 'menu.enabled': true, 'promotions.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#1a1a2e' } } },
   { id: 'tenant-central-fc-01', slug: 'central-food-court', businessTypes: ['food_court'], settings: { featureFlags: { 'menu.enabled': true, 'food_court.vendor_management.enabled': true, 'analytics.enabled': true }, theme: { primaryColor: '#2d6a4f' } } },
@@ -36,7 +36,7 @@ const SLUG_RE = /^[a-z0-9-]{2,63}$/
 
 // ── In-memory mock tenant store (provisioning adds to this) ──────────────────
 
-const MOCK_EXISTING_SLUGS = new Set<string>(['default', 'savor'])
+const MOCK_EXISTING_SLUGS = new Set<string>(['default', 'samoon'])
 
 // ── Template definitions ──────────────────────────────────────────────────────
 
@@ -473,6 +473,6 @@ export const tenantProvisioningService = {
   _resetMockSlugs(): void {
     MOCK_EXISTING_SLUGS.clear()
     MOCK_EXISTING_SLUGS.add('default')
-    MOCK_EXISTING_SLUGS.add('savor')
+    MOCK_EXISTING_SLUGS.add('samoon')
   },
 }

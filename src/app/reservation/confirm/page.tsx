@@ -48,19 +48,19 @@ function ReservationConfirmContent() {
   }
 
   const calendarEvent = {
-    title: `Dinner Reservation at ${branch || 'Savor'}`,
+    title: `Dinner Reservation at ${branch || 'Samoon'}`,
     date,
     time,
     durationMinutes: 120,
     description: `Confirmation code: ${code} · Guests: ${guests} · Name: ${name}`,
-    location: branch || 'Savor Platform',
-    uid: id ? `${id}@savor` : undefined,
+    location: branch || 'Samoon Platform',
+    uid: id ? `${id}@samoon` : undefined,
   }
 
   const googleUrl = buildGoogleCalendarUrl(calendarEvent)
 
   const handleDownloadIcs = () => {
-    downloadIcs(calendarEvent, `reservation-${code || 'savor'}.ics`)
+    downloadIcs(calendarEvent, `reservation-${code || 'samoon'}.ics`)
   }
 
   const displayDate = date

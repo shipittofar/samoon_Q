@@ -23,7 +23,7 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
-const TENANT_A = 'tenant-savor-01'
+const TENANT_A = 'tenant-samoon-01'
 const TENANT_B = 'tenant-brew-cafe-01'
 const BRANCH_1 = 'branch-rest-01'
 const BRANCH_2 = 'branch-rest-02'
@@ -32,7 +32,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-001',
     action: 'STAFF_CREATED',
-    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@savor.com', roles: ['owner'] },
+    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@samoon.com', roles: ['owner'] },
     target: { type: 'staff', id: 'staff-waiter-01', displayName: 'Will Waiter' },
     scope: { tenantId: TENANT_A, branchId: BRANCH_1 },
     severity: 'info',
@@ -44,7 +44,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-002',
     action: 'STAFF_SUSPENDED',
-    actor: { id: 'user-admin-01', name: 'Alex Admin', email: 'admin@savor.com', roles: ['admin'] },
+    actor: { id: 'user-admin-01', name: 'Alex Admin', email: 'admin@samoon.com', roles: ['admin'] },
     target: { type: 'staff', id: 'staff-cashier-01', displayName: 'Casey Cashier' },
     scope: { tenantId: TENANT_A, branchId: BRANCH_1 },
     severity: 'warning',
@@ -56,7 +56,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-003',
     action: 'BRANCH_CREATED',
-    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@savor.com', roles: ['owner'] },
+    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@samoon.com', roles: ['owner'] },
     target: { type: 'branch', id: BRANCH_2, displayName: 'Downtown Branch' },
     scope: { tenantId: TENANT_A },
     severity: 'info',
@@ -68,7 +68,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-004',
     action: 'ORDER_STATUS_CHANGED',
-    actor: { id: 'user-kitchen-01', name: 'Kai Kitchen', email: 'kitchen@savor.com', roles: ['kitchen'] },
+    actor: { id: 'user-kitchen-01', name: 'Kai Kitchen', email: 'kitchen@samoon.com', roles: ['kitchen'] },
     target: { type: 'order', id: 'order-001', displayName: 'Order #0001' },
     scope: { tenantId: TENANT_A, branchId: BRANCH_1 },
     severity: 'info',
@@ -80,7 +80,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-005',
     action: 'OWNERSHIP_TRANSFERRED',
-    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@savor.com', roles: ['owner'] },
+    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@samoon.com', roles: ['owner'] },
     target: { type: 'staff', id: 'user-admin-01', displayName: 'Alex Admin' },
     scope: { tenantId: TENANT_A },
     severity: 'critical',
@@ -92,7 +92,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-006',
     action: 'PROMOTION_CREATED',
-    actor: { id: 'user-manager-01', name: 'Maria Manager', email: 'manager@savor.com', roles: ['manager'] },
+    actor: { id: 'user-manager-01', name: 'Maria Manager', email: 'manager@samoon.com', roles: ['manager'] },
     target: { type: 'promotion', id: 'promo-001', displayName: 'Summer Sale 20%' },
     scope: { tenantId: TENANT_A, branchId: BRANCH_1 },
     severity: 'info',
@@ -104,7 +104,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-007',
     action: 'TENANT_SUSPENDED',
-    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@savor.com', roles: ['owner'] },
+    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@samoon.com', roles: ['owner'] },
     target: { type: 'tenant', id: TENANT_B, displayName: 'Brew Cafe' },
     scope: { tenantId: TENANT_B },
     severity: 'critical',
@@ -116,7 +116,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-008',
     action: 'VENDOR_CREATED',
-    actor: { id: 'user-manager-01', name: 'Maria Manager', email: 'manager@savor.com', roles: ['manager'] },
+    actor: { id: 'user-manager-01', name: 'Maria Manager', email: 'manager@samoon.com', roles: ['manager'] },
     target: { type: 'vendor', id: 'vendor-001', displayName: 'Spicy Noodles' },
     scope: { tenantId: TENANT_A, branchId: BRANCH_1 },
     severity: 'info',
@@ -128,7 +128,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-009',
     action: 'MENU_ITEM_DELETED',
-    actor: { id: 'user-manager-01', name: 'Maria Manager', email: 'manager@savor.com', roles: ['manager'] },
+    actor: { id: 'user-manager-01', name: 'Maria Manager', email: 'manager@samoon.com', roles: ['manager'] },
     target: { type: 'menu_item', id: 'item-005', displayName: 'Stale Soup' },
     scope: { tenantId: TENANT_A, branchId: BRANCH_1 },
     severity: 'warning',
@@ -140,7 +140,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-010',
     action: 'RESERVATION_CANCELLED',
-    actor: { id: 'user-waiter-01', name: 'Will Waiter', email: 'waiter@savor.com', roles: ['waiter'] },
+    actor: { id: 'user-waiter-01', name: 'Will Waiter', email: 'waiter@samoon.com', roles: ['waiter'] },
     target: { type: 'reservation', id: 'res-001', displayName: 'Reservation for Smith (4)' },
     scope: { tenantId: TENANT_A, branchId: BRANCH_2 },
     severity: 'warning',
@@ -152,7 +152,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-011',
     action: 'BRANCH_DEACTIVATED',
-    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@savor.com', roles: ['owner'] },
+    actor: { id: 'user-owner-01', name: 'Olivia Owner', email: 'owner@samoon.com', roles: ['owner'] },
     target: { type: 'branch', id: BRANCH_2, displayName: 'Downtown Branch' },
     scope: { tenantId: TENANT_A },
     severity: 'warning',
@@ -164,7 +164,7 @@ const MOCK_LOGS: AuditLog[] = [
   {
     id: 'audit-012',
     action: 'PAYMENT_REFUNDED',
-    actor: { id: 'user-admin-01', name: 'Alex Admin', email: 'admin@savor.com', roles: ['admin'] },
+    actor: { id: 'user-admin-01', name: 'Alex Admin', email: 'admin@samoon.com', roles: ['admin'] },
     target: { type: 'payment', id: 'pay-001', displayName: 'Payment #PAY-0001' },
     scope: { tenantId: TENANT_A, branchId: BRANCH_1 },
     severity: 'critical',

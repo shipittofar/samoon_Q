@@ -4,8 +4,8 @@
 // useHasDashboardAccess() (src/hooks/index.ts) previously computed:
 //   legacyGranted || ownerAccess || staffAccess
 // docs/P10.4.9_RBAC_MIGRATION_PREPARATION.md closed the demo-account
-// id-space gap `legacyGranted` existed for (staff@savor.com,
-// multirole@savor.com, admin@savor.com, kitchen@savor.com all now have
+// id-space gap `legacyGranted` existed for (staff@samoon.com,
+// multirole@samoon.com, admin@samoon.com, kitchen@samoon.com all now have
 // real StaffMember/StaffAssignment fixtures). This phase removed the
 // `legacyGranted` branch entirely — the hook is now just:
 //   ownerAccess || staffAccess
@@ -47,10 +47,10 @@ function customerRoleUserFor(email: string): User {
   }
 }
 
-async function savorTenant(): Promise<Tenant> {
+async function samoonTenant(): Promise<Tenant> {
   const tenants = await tenantService.getTenants()
-  const tenant = tenants.find((t) => t.id === 'tenant-savor-01')
-  if (!tenant) throw new Error('tenant-savor-01 not found in fixtures')
+  const tenant = tenants.find((t) => t.id === 'tenant-samoon-01')
+  if (!tenant) throw new Error('tenant-samoon-01 not found in fixtures')
   return tenant
 }
 
@@ -63,33 +63,33 @@ beforeEach(() => {
 })
 
 describe('P10.4.10 — Owner access still passes with legacyGranted removed', () => {
-  it('owner@savor.com: grants access via resolveOwnerPermissions()/ownerOwnsTenant(), no legacy fallback involved', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('owner@savor.com'))
+  it('owner@samoon.com: grants access via resolveOwnerPermissions()/ownerOwnsTenant(), no legacy fallback involved', async () => {
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('owner@samoon.com'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(true)
 
-    const identity = resolveOwnershipIdentity('owner@savor.com')
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
     expect(identity.owner).toBeTruthy()
   })
 })
 
 describe('P10.4.10 — Staff assignment access still passes with legacyGranted removed', () => {
   const staffAccounts = [
-    'admin@savor.com',
-    'staff@savor.com',
-    'manager@savor.com',
-    'cashier@savor.com',
-    'kitchen@savor.com',
-    'multirole@savor.com',
+    'admin@samoon.com',
+    'staff@samoon.com',
+    'manager@samoon.com',
+    'cashier@samoon.com',
+    'kitchen@samoon.com',
+    'multirole@samoon.com',
   ]
 
   for (const email of staffAccounts) {
     it(`${email}: passes through StaffMember + StaffAssignment + ownership resolution`, async () => {
-      const savor = await savorTenant()
-      useTenantStore.getState().setTenant(savor)
+      const samoon = await samoonTenant()
+      useTenantStore.getState().setTenant(samoon)
       useAuthStore.getState().setUser(customerRoleUserFor(email))
 
       const { result } = renderHook(() => useHasDashboardAccess())
@@ -111,12 +111,12 @@ describe('P10.4.10 — Staff assignment access still passes with legacyGranted r
 // exists — see docs/P10.4.12_LEGACY_RBAC_ENGINE_REMOVAL.md.
 
 describe('P10.4.10 — negative test: unknown account is still denied', () => {
-  it('unknown@savor.com: useHasDashboardAccess() === false (no StaffMember, no Owner record, and no legacy fallback exists anymore)', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('unknown@savor.com'))
+  it('unknown@samoon.com: useHasDashboardAccess() === false (no StaffMember, no Owner record, and no legacy fallback exists anymore)', async () => {
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('unknown@samoon.com'))
 
-    const identity = resolveOwnershipIdentity('unknown@savor.com')
+    const identity = resolveOwnershipIdentity('unknown@samoon.com')
     expect(identity.owner).toBeUndefined()
     expect(identity.staffMember).toBeUndefined()
 

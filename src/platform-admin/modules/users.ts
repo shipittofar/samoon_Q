@@ -4,7 +4,7 @@
  * `platform.users.registry` is a real `'collection'` field — a third
  * concrete demonstration (after Countries and Tenants) that the P9.2
  * Collection Framework is genuinely domain-agnostic. Entities here are
- * *platform staff* (Savor employees with a `PlatformRole`, src/platform-
+ * *platform staff* (Samoon employees with a `PlatformRole`, src/platform-
  * admin/permissions.ts), never tenant end-users or tenant staff — those
  * remain exactly where they already are (tenant-scoped, P6/P7/P8).
  */
@@ -43,7 +43,7 @@ const PLATFORM_USER_SCHEMA: ConfigFieldDefinition[] = [
 registerAdminModule({
   id: 'platform.users',
   name: 'Platform Users',
-  description: 'Savor employees with access to the Platform Administration Center — distinct from any tenant’s own staff.',
+  description: 'Samoon employees with access to the Platform Administration Center — distinct from any tenant’s own staff.',
   group: 'Users',
   icon: 'Users',
   platformPermission: 'platform.users.view',

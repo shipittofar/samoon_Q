@@ -57,10 +57,10 @@ function customerRoleUserFor(email: string): User {
   }
 }
 
-async function savorTenant(): Promise<Tenant> {
+async function samoonTenant(): Promise<Tenant> {
   const tenants = await tenantService.getTenants()
-  const tenant = tenants.find((t) => t.id === 'tenant-savor-01')
-  if (!tenant) throw new Error('tenant-savor-01 not found in fixtures')
+  const tenant = tenants.find((t) => t.id === 'tenant-samoon-01')
+  if (!tenant) throw new Error('tenant-samoon-01 not found in fixtures')
   return tenant
 }
 
@@ -78,9 +78,9 @@ beforeEach(() => {
 
 describe('P10.6 Phase G — usePermission/useAnyPermission/useAllPermissions share the feature-flag gate', () => {
   it('usePermission denies a permission whose feature flag is off (baseline, unchanged)', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('owner@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('owner@samoon.com'))
     useTenantStore.getState().setFeatureFlags({ 'ordering.enabled': false })
 
     const { result } = renderHook(() => usePermission('orders.view'))
@@ -88,9 +88,9 @@ describe('P10.6 Phase G — usePermission/useAnyPermission/useAllPermissions sha
   })
 
   it('useAnyPermission now also denies when the only matching permission is feature-flag gated off', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('owner@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('owner@samoon.com'))
     useTenantStore.getState().setFeatureFlags({ 'ordering.enabled': false })
 
     const { result: permsResult } = renderHook(() => usePermissions())
@@ -101,9 +101,9 @@ describe('P10.6 Phase G — usePermission/useAnyPermission/useAllPermissions sha
   })
 
   it('useAllPermissions now also denies when one of the required permissions is feature-flag gated off', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('owner@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('owner@samoon.com'))
     useTenantStore.getState().setFeatureFlags({ 'ordering.enabled': false })
 
     const { result } = renderHook(() => useAllPermissions(['orders.view', 'staff.manage']))
@@ -111,9 +111,9 @@ describe('P10.6 Phase G — usePermission/useAnyPermission/useAllPermissions sha
   })
 
   it('useAnyPermission still grants when a flag-gated permission is denied but another passes', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('owner@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('owner@samoon.com'))
     useTenantStore.getState().setFeatureFlags({ 'ordering.enabled': false })
 
     const { result } = renderHook(() => useAnyPermission(['orders.view', 'staff.manage']))
@@ -121,9 +121,9 @@ describe('P10.6 Phase G — usePermission/useAnyPermission/useAllPermissions sha
   })
 
   it('all three hooks agree when no feature flag is disabled (no regression for the common case)', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('owner@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('owner@samoon.com'))
 
     const { result: single } = renderHook(() => usePermission('orders.view'))
     const { result: any } = renderHook(() => useAnyPermission(['orders.view']))
@@ -138,16 +138,16 @@ describe('P10.6 Phase G — usePermission/useAnyPermission/useAllPermissions sha
 
 describe('P10.6 Phase H — LocalStorage tampering (documents current unmitigated risk)', () => {
   it('a directly-tampered tenantRoles entry IS currently trusted by usePermissions() (no server re-validation exists yet)', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(customerRoleUserFor('nobody@example.com'))
 
-    // Simulate what a devtools-tampered `savor-rbac` localStorage value
+    // Simulate what a devtools-tampered `samoon-rbac` localStorage value
     // would rehydrate into: this is exactly what setTenantRoles() does at
     // login, but here it models an attacker-authored entry, not a real
     // login response — see docs/P10.5.5_RBAC_REAL_MODE_SECURITY.md §3.
     act(() => {
-      useRbacStore.getState().setTenantRoles(savor.id, ['owner'])
+      useRbacStore.getState().setTenantRoles(samoon.id, ['owner'])
     })
 
     const { result } = renderHook(() => usePermissions())
@@ -165,8 +165,8 @@ describe('P10.6 Phase H — LocalStorage tampering (documents current unmitigate
 
 describe('P10.6 Phase H — Missing backend RBAC payload', () => {
   it('usePermissions() does not throw and resolves to an empty/ownership-only set when tenantRoles was never populated', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
     // Simulate a real-mode login/session-restore response with no RBAC
     // data at all (docs/P10.5.5_RBAC_REAL_MODE_SECURITY.md §4) — a
     // customer-role user with zero StaffAssignment/Owner record.
@@ -179,8 +179,8 @@ describe('P10.6 Phase H — Missing backend RBAC payload', () => {
   })
 
   it('useHasDashboardAccess() falls back cleanly to false (not a crash) with no RBAC payload and no Owner/Staff record', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(customerRoleUserFor('nobody@example.com'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -188,9 +188,9 @@ describe('P10.6 Phase H — Missing backend RBAC payload', () => {
   })
 
   it('useHasDashboardAccess() still grants access via Ownership/StaffAssignment even with zero tenantRoles (proves sources are independent)', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('owner@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('owner@samoon.com'))
     expect(useRbacStore.getState().tenantRoles).toEqual([])
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -199,15 +199,15 @@ describe('P10.6 Phase H — Missing backend RBAC payload', () => {
 })
 
 describe('P10.6 Phase H — Suspended Staff (StaffAssignment revoked)', () => {
-  it('revoking cashier@savor.com\'s StaffAssignment removes console access immediately', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('cashier@savor.com'))
+  it('revoking cashier@samoon.com\'s StaffAssignment removes console access immediately', async () => {
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('cashier@samoon.com'))
 
     const before = renderHook(() => useHasDashboardAccess())
     expect(before.result.current).toBe(true)
 
-    const identity = resolveOwnershipIdentity('cashier@savor.com')
+    const identity = resolveOwnershipIdentity('cashier@samoon.com')
     expect(identity.staffMember).toBeTruthy()
     const [assignment] = staffAssignmentService.getEffectiveAssignments(identity.staffMember!.id)
     expect(assignment).toBeTruthy()
@@ -225,14 +225,14 @@ describe('P10.6 Phase H — Suspended Staff (StaffAssignment revoked)', () => {
 
 describe('P10.6 Phase H — Archived Tenant (Staff case)', () => {
   it('an active Staff member loses console access when the active tenant becomes archived', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('cashier@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('cashier@samoon.com'))
 
     const before = renderHook(() => useHasDashboardAccess())
     expect(before.result.current).toBe(true)
 
-    const archived: Tenant = { ...savor, status: 'archived' as Tenant['status'] }
+    const archived: Tenant = { ...samoon, status: 'archived' as Tenant['status'] }
     act(() => {
       useTenantStore.getState().setTenant(archived)
     })

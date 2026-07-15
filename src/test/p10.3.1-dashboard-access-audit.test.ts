@@ -51,9 +51,9 @@ beforeEach(() => {
 
 describe('P10.3.1 — useHasDashboardAccess honors Owner/Staff/Tenant eligibility (AuthGuard /console gate)', () => {
   it('grants access to an active Owner of the active tenant', async () => {
-    const savor = await tenantById('tenant-savor-01')
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(userFor('owner@savor.com', 'customer'))
+    const samoon = await tenantById('tenant-samoon-01')
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(userFor('owner@samoon.com', 'customer'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(true)
@@ -69,22 +69,22 @@ describe('P10.3.1 — useHasDashboardAccess honors Owner/Staff/Tenant eligibilit
   })
 
   it('denies access when the active tenant is archived, even for its real Owner', async () => {
-    await tenantService.archiveTenant('tenant-savor-01')
-    const savor = await tenantById('tenant-savor-01')
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(userFor('owner@savor.com', 'customer'))
+    await tenantService.archiveTenant('tenant-samoon-01')
+    const samoon = await tenantById('tenant-samoon-01')
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(userFor('owner@samoon.com', 'customer'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(false)
   })
 
   it('grants access to an active Staff member holding an effective assignment', async () => {
-    const savor = await tenantById('tenant-savor-01')
-    useTenantStore.getState().setTenant(savor)
-    // accountant@savor.com (staff-accountant-01) has effective assignments
+    const samoon = await tenantById('tenant-samoon-01')
+    useTenantStore.getState().setTenant(samoon)
+    // accountant@samoon.com (staff-accountant-01) has effective assignments
     // and no matching legacy MOCK_CREDENTIALS entry, so this exercises the
     // Staff branch specifically, not the legacyGranted short-circuit.
-    useAuthStore.getState().setUser(userFor('accountant@savor.com', 'customer'))
+    useAuthStore.getState().setUser(userFor('accountant@samoon.com', 'customer'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(true)
@@ -106,8 +106,8 @@ describe('P10.3.1 — useHasDashboardAccess honors Owner/Staff/Tenant eligibilit
 // ============================================================
 describe('P10.3.1 fix — real-backend role fallback in useHasDashboardAccess()', () => {
   it('grants access to a real-backend admin with no matching mock identity', async () => {
-    const savor = await tenantById('tenant-savor-01')
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await tenantById('tenant-samoon-01')
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('real-admin@production.example', 'admin'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -115,8 +115,8 @@ describe('P10.3.1 fix — real-backend role fallback in useHasDashboardAccess()'
   })
 
   it('grants access to a real-backend owner with no matching mock identity', async () => {
-    const savor = await tenantById('tenant-savor-01')
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await tenantById('tenant-samoon-01')
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('real-owner@production.example', 'owner'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -124,8 +124,8 @@ describe('P10.3.1 fix — real-backend role fallback in useHasDashboardAccess()'
   })
 
   it('grants access to a real-backend staff member with no matching mock identity', async () => {
-    const savor = await tenantById('tenant-savor-01')
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await tenantById('tenant-samoon-01')
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('real-staff@production.example', 'staff'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -133,8 +133,8 @@ describe('P10.3.1 fix — real-backend role fallback in useHasDashboardAccess()'
   })
 
   it('denies access to a real-backend customer with no matching mock identity', async () => {
-    const savor = await tenantById('tenant-savor-01')
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await tenantById('tenant-samoon-01')
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('real-customer@production.example', 'customer'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -142,8 +142,8 @@ describe('P10.3.1 fix — real-backend role fallback in useHasDashboardAccess()'
   })
 
   it('role fallback is case-insensitive', async () => {
-    const savor = await tenantById('tenant-savor-01')
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await tenantById('tenant-samoon-01')
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('real-admin-caps@production.example', 'ADMIN' as User['role']))
 
     const { result } = renderHook(() => useHasDashboardAccess())

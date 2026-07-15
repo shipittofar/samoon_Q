@@ -25,19 +25,19 @@ describe('A — BranchStatus type', () => {
 
   it('A2: BranchStatus includes active', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(branches.some((b) => b.status === 'active')).toBe(true)
   })
 
   it('A3: BranchStatus includes inactive', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(branches.some((b) => b.status === 'inactive')).toBe(true)
   })
 
   it('A4: BranchStatus includes maintenance', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(branches.some((b) => b.status === 'maintenance')).toBe(true)
   })
 })
@@ -54,13 +54,13 @@ describe('B — BranchType', () => {
 
   it('B2: BranchType includes physical', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(branches.some((b) => b.type === 'physical')).toBe(true)
   })
 
   it('B3: BranchType includes mobile', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(branches.some((b) => b.type === 'mobile')).toBe(true)
   })
 })
@@ -118,19 +118,19 @@ describe('D — Mock data', () => {
 
   it('D1: at least 12 mock branches exist', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(branches.length).toBeGreaterThanOrEqual(12)
   })
 
-  it('D2: branches belong to tenant-savor-01', async () => {
+  it('D2: branches belong to tenant-samoon-01', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
-    expect(branches.every((b) => b.tenantId === 'tenant-savor-01')).toBe(true)
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
+    expect(branches.every((b) => b.tenantId === 'tenant-samoon-01')).toBe(true)
   })
 
   it('D3: mock branches include physical and mobile types', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const types = new Set(branches.map((b) => b.type))
     expect(types.has('physical')).toBe(true)
     expect(types.has('mobile')).toBe(true)
@@ -138,7 +138,7 @@ describe('D — Mock data', () => {
 
   it('D4: mock branches include all three statuses', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const statuses = new Set(branches.map((b) => b.status))
     expect(statuses.has('active')).toBe(true)
     expect(statuses.has('inactive')).toBe(true)
@@ -147,7 +147,7 @@ describe('D — Mock data', () => {
 
   it('D5: branches have required fields', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     for (const b of branches) {
       expect(typeof b.id).toBe('string')
       expect(typeof b.name).toBe('string')
@@ -165,7 +165,7 @@ describe('E — getBranches', () => {
 
   it('E1: getBranches returns array', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    expect(Array.isArray(await branchManagementService.getBranches('tenant-savor-01'))).toBe(true)
+    expect(Array.isArray(await branchManagementService.getBranches('tenant-samoon-01'))).toBe(true)
   })
 
   it('E2: getBranches filters by tenantId', async () => {
@@ -175,8 +175,8 @@ describe('E — getBranches', () => {
 
   it('E3: getBranches returns copies (not same reference)', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const r1 = await branchManagementService.getBranches('tenant-savor-01')
-    const r2 = await branchManagementService.getBranches('tenant-savor-01')
+    const r1 = await branchManagementService.getBranches('tenant-samoon-01')
+    const r2 = await branchManagementService.getBranches('tenant-samoon-01')
     expect(r1).not.toBe(r2)
   })
 })
@@ -189,7 +189,7 @@ describe('F — getBranch', () => {
 
   it('F1: getBranch returns branch by id', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const first = branches[0]
     const found = await branchManagementService.getBranch(first.id)
     expect(found.id).toBe(first.id)
@@ -208,7 +208,7 @@ describe('G — createBranch', () => {
 
   it('G1: createBranch returns new branch with id', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branch = await branchManagementService.createBranch('tenant-savor-01', {
+    const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
       slug: 'new-branch',
       type: 'physical',
@@ -220,18 +220,18 @@ describe('G — createBranch', () => {
 
   it('G2: createBranch sets tenantId', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branch = await branchManagementService.createBranch('tenant-savor-01', {
+    const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
       slug: 'new-branch',
       type: 'physical',
       location: { address: '123 Test St', city: 'Testville', country: 'US' },
     })
-    expect(branch.tenantId).toBe('tenant-savor-01')
+    expect(branch.tenantId).toBe('tenant-samoon-01')
   })
 
   it('G3: createBranch sets status to inactive by default', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branch = await branchManagementService.createBranch('tenant-savor-01', {
+    const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
       slug: 'new-branch',
       type: 'physical',
@@ -242,20 +242,20 @@ describe('G — createBranch', () => {
 
   it('G4: createBranch adds to the store', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const before = (await branchManagementService.getBranches('tenant-savor-01')).length
-    await branchManagementService.createBranch('tenant-savor-01', {
+    const before = (await branchManagementService.getBranches('tenant-samoon-01')).length
+    await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
       slug: 'new-branch',
       type: 'physical',
       location: { address: '123 Test St', city: 'Testville', country: 'US' },
     })
-    const after = (await branchManagementService.getBranches('tenant-savor-01')).length
+    const after = (await branchManagementService.getBranches('tenant-samoon-01')).length
     expect(after).toBe(before + 1)
   })
 
   it('G5: createBranch sets createdAt and updatedAt', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branch = await branchManagementService.createBranch('tenant-savor-01', {
+    const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
       slug: 'new-branch',
       type: 'physical',
@@ -273,14 +273,14 @@ describe('H — updateBranch', () => {
 
   it('H1: updateBranch updates name', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const updated = await branchManagementService.updateBranch(branches[0].id, { name: 'Updated Name' })
     expect(updated.name).toBe('Updated Name')
   })
 
   it('H2: updateBranch merges partial location', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const target = branches[0]
     const originalCity = target.location.city
     const updated = await branchManagementService.updateBranch(target.id, {
@@ -292,7 +292,7 @@ describe('H — updateBranch', () => {
 
   it('H3: updateBranch updates updatedAt', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const target = branches[0]
     const originalUpdatedAt = target.updatedAt
     const updated = await branchManagementService.updateBranch(target.id, { name: 'Updated Name' })
@@ -312,7 +312,7 @@ describe('I — activateBranch', () => {
 
   it('I1: activateBranch sets status to active', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const inactive = branches.find((b) => b.status !== 'active')
     expect(inactive).toBeDefined()
     const updated = await branchManagementService.activateBranch(inactive!.id)
@@ -332,7 +332,7 @@ describe('J — deactivateBranch', () => {
 
   it('J1: deactivateBranch sets status to inactive', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const active = branches.find((b) => b.status === 'active')
     expect(active).toBeDefined()
     const updated = await branchManagementService.deactivateBranch(active!.id)
@@ -352,7 +352,7 @@ describe('K — setMaintenanceMode', () => {
 
   it('K1: setMaintenanceMode sets status to maintenance', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const active = branches.find((b) => b.status === 'active')
     expect(active).toBeDefined()
     const updated = await branchManagementService.setMaintenanceMode(active!.id)
@@ -372,7 +372,7 @@ describe('L — assignManager', () => {
 
   it('L1: assignManager sets managerId', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const updated = await branchManagementService.assignManager(branches[0].id, { managerId: 'user-manager-01' })
     expect(updated.managerId).toBe('user-manager-01')
   })
@@ -390,26 +390,26 @@ describe('M — getBranchMetrics', () => {
 
   it('M1: getBranchMetrics returns metrics object', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(await branchManagementService.getBranchMetrics(branches[0].id)).toBeDefined()
   })
 
   it('M2: metrics has branchId matching the branch', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const branch = branches[0]
     expect((await branchManagementService.getBranchMetrics(branch.id)).branchId).toBe(branch.id)
   })
 
   it('M3: metrics has numeric totalOrders', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(typeof (await branchManagementService.getBranchMetrics(branches[0].id)).totalOrders).toBe('number')
   })
 
   it('M4: metrics has period field', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(['day', 'week', 'month', 'all']).toContain((await branchManagementService.getBranchMetrics(branches[0].id)).period)
   })
 })
@@ -421,34 +421,34 @@ describe('N — computeAnalytics', () => {
 
   it('N1: computeAnalytics returns totalBranches count', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     expect(branchManagementService.computeAnalytics(branches).totalBranches).toBe(branches.length)
   })
 
   it('N2: computeAnalytics counts active branches', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const analytics = branchManagementService.computeAnalytics(branches)
     expect(analytics.activeBranches).toBe(branches.filter((b) => b.status === 'active').length)
   })
 
   it('N3: computeAnalytics counts inactive branches', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const analytics = branchManagementService.computeAnalytics(branches)
     expect(analytics.inactiveBranches).toBe(branches.filter((b) => b.status === 'inactive').length)
   })
 
   it('N4: computeAnalytics counts maintenance branches', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const analytics = branchManagementService.computeAnalytics(branches)
     expect(analytics.maintenanceBranches).toBe(branches.filter((b) => b.status === 'maintenance').length)
   })
 
   it('N5: computeAnalytics has byType with physical and mobile', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const analytics = branchManagementService.computeAnalytics(branches)
     expect(typeof analytics.byType.physical).toBe('number')
     expect(typeof analytics.byType.mobile).toBe('number')
@@ -456,7 +456,7 @@ describe('N — computeAnalytics', () => {
 
   it('N6: status counts add up to total', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const analytics = branchManagementService.computeAnalytics(branches)
     expect(analytics.activeBranches + analytics.inactiveBranches + analytics.maintenanceBranches)
       .toBe(analytics.totalBranches)
@@ -477,14 +477,14 @@ describe('O — _resetMockStore', () => {
 
   it('O1: _resetMockStore restores initial 12+ branches after mutation', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    branchManagementService.createBranch('tenant-savor-01', {
+    branchManagementService.createBranch('tenant-samoon-01', {
       name: 'Temp',
       slug: 'temp',
       type: 'physical',
       location: { address: '1 St', city: 'City', country: 'US' },
     })
     branchManagementService._resetMockStore()
-    expect((await branchManagementService.getBranches('tenant-savor-01')).length).toBeGreaterThanOrEqual(12)
+    expect((await branchManagementService.getBranches('tenant-samoon-01')).length).toBeGreaterThanOrEqual(12)
   })
 })
 

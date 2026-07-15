@@ -52,10 +52,10 @@ function userFor(email: string | null): User | null {
   }
 }
 
-async function savorTenant(): Promise<Tenant> {
+async function samoonTenant(): Promise<Tenant> {
   const tenants = await tenantService.getTenants()
-  const tenant = tenants.find((t) => t.id === 'tenant-savor-01')
-  if (!tenant) throw new Error('tenant-savor-01 not found in fixtures')
+  const tenant = tenants.find((t) => t.id === 'tenant-samoon-01')
+  if (!tenant) throw new Error('tenant-samoon-01 not found in fixtures')
   return tenant
 }
 
@@ -103,7 +103,7 @@ describe('P10.4.11 — public routes (no requiredPermission)', () => {
 
 describe('P10.4.11 — protected routes (authenticated, no requiredPermission)', () => {
   it('authenticated with no requiredPermission: renders children — auth alone is sufficient', () => {
-    useAuthStore.getState().setUser(userFor('owner@savor.com'))
+    useAuthStore.getState().setUser(userFor('owner@samoon.com'))
     renderGuard({ content: 'Protected Content' })
     expect(screen.getByText('Protected Content')).toBeTruthy()
     expect(screen.queryByText('Fallback')).toBeNull()
@@ -115,19 +115,19 @@ describe('P10.4.11 — dashboard:access permission routes resolve through the P7
   // (or, for Owner, a structural ownership grant) — these must still pass
   // with AuthGuard's legacy fallback removed.
   const consoleCapableAccounts = [
-    { email: 'owner@savor.com', label: 'Owner' },
-    { email: 'admin@savor.com', label: 'Staff (admin role)' },
-    { email: 'manager@savor.com', label: 'Manager' },
-    { email: 'cashier@savor.com', label: 'Cashier' },
-    { email: 'kitchen@savor.com', label: 'Kitchen' },
-    { email: 'support@savor.com', label: 'Support' },
-    { email: 'multirole@savor.com', label: 'Multirole (cashier + kitchen)' },
+    { email: 'owner@samoon.com', label: 'Owner' },
+    { email: 'admin@samoon.com', label: 'Staff (admin role)' },
+    { email: 'manager@samoon.com', label: 'Manager' },
+    { email: 'cashier@samoon.com', label: 'Cashier' },
+    { email: 'kitchen@samoon.com', label: 'Kitchen' },
+    { email: 'support@samoon.com', label: 'Support' },
+    { email: 'multirole@samoon.com', label: 'Multirole (cashier + kitchen)' },
   ]
 
   for (const { email, label } of consoleCapableAccounts) {
     it(`${label} (${email}): requiredPermission="dashboard:access" grants access`, async () => {
-      const savor = await savorTenant()
-      useTenantStore.getState().setTenant(savor)
+      const samoon = await samoonTenant()
+      useTenantStore.getState().setTenant(samoon)
       useAuthStore.getState().setUser(userFor(email))
 
       renderGuard({ requiredPermission: 'dashboard:access', content: 'Console Content' })
@@ -137,8 +137,8 @@ describe('P10.4.11 — dashboard:access permission routes resolve through the P7
   }
 
   it('unauthorized: an account with no Owner/StaffMember record is denied dashboard:access and sees the fallback', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('nobody@example.com'))
 
     renderGuard({ requiredPermission: 'dashboard:access', content: 'Console Content' })
@@ -148,21 +148,21 @@ describe('P10.4.11 — dashboard:access permission routes resolve through the P7
 
   // Pre-existing fixture gap, discovered while writing this test, NOT
   // introduced or caused by this phase's AuthGuard.tsx change: unlike
-  // marketing@savor.com's mock user, its StaffMember record
+  // marketing@samoon.com's mock user, its StaffMember record
   // (staff-marketing-01) has zero StaffAssignment rows in
   // staff-assignment.service.ts (the only marketing-tagged assignment,
   // assign-009 on staff-marketing-02, is status: 'revoked'). This is the
-  // same class of gap P10.4.9 closed for admin@savor.com/kitchen@savor.com
+  // same class of gap P10.4.9 closed for admin@samoon.com/kitchen@samoon.com
   // — but P10.4.9's explicit scope only named those two accounts, so
-  // marketing@savor.com was never covered. Fixing it would mean editing
+  // marketing@samoon.com was never covered. Fixing it would mean editing
   // src/services/staff-assignment.service.ts, which is outside this
   // phase's explicit scope ("Modify only: src/components/auth/AuthGuard.tsx").
   // Documented in docs/P10.4.11_AUTHGUARD_MODERNIZATION.md rather than
   // silently fixed or silently dropped from coverage.
-  it('KNOWN GAP (pre-existing, out of scope): marketing@savor.com has no active StaffAssignment fixture, so dashboard:access currently resolves to false for it — unrelated to this phase\'s AuthGuard change', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(userFor('marketing@savor.com'))
+  it('KNOWN GAP (pre-existing, out of scope): marketing@samoon.com has no active StaffAssignment fixture, so dashboard:access currently resolves to false for it — unrelated to this phase\'s AuthGuard change', async () => {
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(userFor('marketing@samoon.com'))
 
     renderGuard({ requiredPermission: 'dashboard:access', content: 'Console Content' })
     expect(screen.queryByText('Console Content')).toBeNull()
@@ -172,9 +172,9 @@ describe('P10.4.11 — dashboard:access permission routes resolve through the P7
 
 describe('P10.4.11 — non-dashboard permission routes resolve through usePermission() (P7 engine)', () => {
   it('an Owner (full P7 permission set via ownership short-circuit) is granted a generic P7 permission', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(userFor('owner@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(userFor('owner@samoon.com'))
 
     renderGuard({ requiredPermission: 'orders.view', content: 'Orders Content' })
     expect(screen.getByText('Orders Content')).toBeTruthy()
@@ -182,9 +182,9 @@ describe('P10.4.11 — non-dashboard permission routes resolve through usePermis
   })
 
   it('unauthorized: a Cashier lacking a manager-only P7 permission is denied and sees the fallback', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(userFor('cashier@savor.com'))
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(userFor('cashier@samoon.com'))
 
     // 'tenant.manage' is Owner-only in ROLE_PERMISSION_MAP (P10.2.2) — a
     // Cashier's StaffAssignment-derived permission set never includes it.

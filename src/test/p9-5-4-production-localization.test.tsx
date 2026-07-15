@@ -183,7 +183,7 @@ describe('Localized page metadata helper (Phase F/G)', () => {
   it('the seo namespace has real nested root.title/description/keywords in en and fa', () => {
     const enSeo = (en as { seo: { root: { title: string; description: string; keywords: string } } }).seo
     const faSeo = (fa as { seo: { root: { title: string; description: string; keywords: string } } }).seo
-    expect(enSeo.root.title).toBe('Savor — Hospitality Platform')
+    expect(enSeo.root.title).toBe('Samoon — Hospitality Platform')
     expect(faSeo.root.title).not.toBe(enSeo.root.title)
   })
 })

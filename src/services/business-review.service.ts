@@ -50,11 +50,11 @@ function applyFilters(reviews: BusinessReview[], filters: Partial<BusinessReview
 // ── Mock store ────────────────────────────────────────────────────────────────
 
 const MOCK_STORE: Record<string, BusinessReview[]> = {
-  'tenant-savor-01': [
+  'tenant-samoon-01': [
     {
-      id: 'br-savor-1',
-      tenantId: 'tenant-savor-01',
-      branchId: 'branch-savor-main',
+      id: 'br-samoon-1',
+      tenantId: 'tenant-samoon-01',
+      branchId: 'branch-samoon-main',
       customerName: 'Sarah M.',
       rating: 5,
       title: 'Outstanding fine dining experience',
@@ -69,16 +69,16 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       language: 'en',
       pinned: true,
       ownerReply: {
-        id: 'reply-savor-1',
+        id: 'reply-samoon-1',
         text: 'Thank you so much, Sarah! We are delighted you enjoyed your evening with us. We look forward to welcoming you back.',
-        authorName: 'The Savor Team',
+        authorName: 'The Samoon Team',
         createdAt: '2025-12-17T09:00:00.000Z',
       },
     },
     {
-      id: 'br-savor-2',
-      tenantId: 'tenant-savor-01',
-      branchId: 'branch-savor-main',
+      id: 'br-samoon-2',
+      tenantId: 'tenant-samoon-01',
+      branchId: 'branch-samoon-main',
       customerName: 'James K.',
       rating: 5,
       title: 'Best meal of the year',
@@ -93,9 +93,9 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       language: 'en',
     },
     {
-      id: 'br-savor-3',
-      tenantId: 'tenant-savor-01',
-      branchId: 'branch-savor-uptown',
+      id: 'br-samoon-3',
+      tenantId: 'tenant-samoon-01',
+      branchId: 'branch-samoon-uptown',
       customerName: 'Aisha T.',
       rating: 4,
       comment: 'Great food and friendly staff. A couple of dishes were slow to arrive but the quality made it worthwhile. Highly recommend the signature dishes.',
@@ -109,8 +109,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       language: 'en',
     },
     {
-      id: 'br-savor-4',
-      tenantId: 'tenant-savor-01',
+      id: 'br-samoon-4',
+      tenantId: 'tenant-samoon-01',
       customerName: 'Marco R.',
       rating: 5,
       comment: 'The truffle pasta alone is worth the trip. Superb wine selection and knowledgeable sommelier. A true gem in the city.',
@@ -124,8 +124,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       language: 'en',
     },
     {
-      id: 'br-savor-5',
-      tenantId: 'tenant-savor-01',
+      id: 'br-samoon-5',
+      tenantId: 'tenant-samoon-01',
       customerName: 'Priya L.',
       rating: 3,
       comment: 'Food was good but the noise level was quite high for a fine dining experience. Would try again on a quieter night.',

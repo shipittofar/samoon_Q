@@ -23,7 +23,7 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
-const TENANT_A = 'tenant-savor-01'
+const TENANT_A = 'tenant-samoon-01'
 const TENANT_B = 'tenant-brew-cafe-01'
 const BRANCH_1 = 'branch-rest-01'
 const BRANCH_2 = 'branch-rest-02'

@@ -369,7 +369,7 @@ describe('C2 — RealtimeOperationsService runtime', () => {
 
   it('getOperationsSnapshot returns dashboard with all sections', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const snapshot = await realtimeOperationsService.getOperationsSnapshot({ tenantId: 'tenant-savor-01' })
+    const snapshot = await realtimeOperationsService.getOperationsSnapshot({ tenantId: 'tenant-samoon-01' })
     expect(snapshot.liveOrders).toBeInstanceOf(Array)
     expect(snapshot.liveReservations).toBeInstanceOf(Array)
     expect(snapshot.branchStatuses).toBeInstanceOf(Array)
@@ -383,7 +383,7 @@ describe('C2 — RealtimeOperationsService runtime', () => {
 
   it('getLiveOrders returns array of LiveOrder', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const orders = await realtimeOperationsService.getLiveOrders({ tenantId: 'tenant-savor-01' })
+    const orders = await realtimeOperationsService.getLiveOrders({ tenantId: 'tenant-samoon-01' })
     expect(orders.length).toBeGreaterThan(0)
     const o = orders[0]!
     expect(o).toHaveProperty('id')
@@ -396,7 +396,7 @@ describe('C2 — RealtimeOperationsService runtime', () => {
 
   it('getLiveReservations returns array of LiveReservation', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const reservations = await realtimeOperationsService.getLiveReservations({ tenantId: 'tenant-savor-01' })
+    const reservations = await realtimeOperationsService.getLiveReservations({ tenantId: 'tenant-samoon-01' })
     expect(reservations.length).toBeGreaterThan(0)
     const r = reservations[0]!
     expect(r).toHaveProperty('id')
@@ -407,7 +407,7 @@ describe('C2 — RealtimeOperationsService runtime', () => {
 
   it('getBranchStatus returns array of BranchStatus', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const branches = await realtimeOperationsService.getBranchStatuses({ tenantId: 'tenant-savor-01' })
+    const branches = await realtimeOperationsService.getBranchStatuses({ tenantId: 'tenant-samoon-01' })
     expect(branches.length).toBeGreaterThan(0)
     const b = branches[0]!
     expect(b).toHaveProperty('branchId')
@@ -427,7 +427,7 @@ describe('C2 — RealtimeOperationsService runtime', () => {
 
   it('getStaffPresence returns array of StaffPresence', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-savor-01' })
+    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-samoon-01' })
     expect(staff.length).toBeGreaterThan(0)
     const s = staff[0]!
     expect(s).toHaveProperty('userId')
@@ -438,7 +438,7 @@ describe('C2 — RealtimeOperationsService runtime', () => {
 
   it('getSLAAlerts returns array of SLAAlert', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-savor-01' })
+    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-samoon-01' })
     expect(alerts).toBeInstanceOf(Array)
     if (alerts.length > 0) {
       const a = alerts[0]!
@@ -451,7 +451,7 @@ describe('C2 — RealtimeOperationsService runtime', () => {
 
   it('getRealtimeStatistics returns statistics', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-savor-01' })
+    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-samoon-01' })
     expect(stats).toHaveProperty('eventsPerMinute')
     expect(stats).toHaveProperty('slaCompliancePercent')
     expect(stats).toHaveProperty('activeStaff')
@@ -472,7 +472,7 @@ describe('C2 — RealtimeOperationsService runtime', () => {
     expect(() => realtimeOperationsService.emit({
       type: 'LIVE_ORDER_UPDATED',
       priority: 'normal',
-      scope: { tenantId: 'tenant-savor-01' },
+      scope: { tenantId: 'tenant-samoon-01' },
       payload: {},
       occurredAt: new Date().toISOString(),
     })).not.toThrow()
@@ -862,21 +862,21 @@ describe('H — Branch isolation', () => {
 
   it('getLiveOrders filters by branchId', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const all = await realtimeOperationsService.getLiveOrders({ tenantId: 'tenant-savor-01' })
-    const main = await realtimeOperationsService.getLiveOrders({ tenantId: 'tenant-savor-01', branchId: 'branch-rest-01' })
+    const all = await realtimeOperationsService.getLiveOrders({ tenantId: 'tenant-samoon-01' })
+    const main = await realtimeOperationsService.getLiveOrders({ tenantId: 'tenant-samoon-01', branchId: 'branch-rest-01' })
     expect(main.length).toBeLessThanOrEqual(all.length)
     main.forEach((o) => expect(o.scope.branchId).toBe('branch-rest-01'))
   })
 
   it('getLiveReservations filters by branchId', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const main = await realtimeOperationsService.getLiveReservations({ tenantId: 'tenant-savor-01', branchId: 'branch-rest-01' })
+    const main = await realtimeOperationsService.getLiveReservations({ tenantId: 'tenant-samoon-01', branchId: 'branch-rest-01' })
     main.forEach((r) => expect(r.scope.branchId).toBe('branch-rest-01'))
   })
 
   it('getStaffPresence filters by branchId', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const main = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-savor-01', branchId: 'branch-rest-01' })
+    const main = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-samoon-01', branchId: 'branch-rest-01' })
     main.forEach((s) => expect(s.branchId).toBe('branch-rest-01'))
   })
 
@@ -889,8 +889,8 @@ describe('H — Branch isolation', () => {
 
   it('getBranchStatus filters by tenantId', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const branches = await realtimeOperationsService.getBranchStatuses({ tenantId: 'tenant-savor-01' })
-    branches.forEach((b) => expect(b.tenantId).toBe('tenant-savor-01'))
+    const branches = await realtimeOperationsService.getBranchStatuses({ tenantId: 'tenant-samoon-01' })
+    branches.forEach((b) => expect(b.tenantId).toBe('tenant-samoon-01'))
   })
 })
 
@@ -901,14 +901,14 @@ describe('I — Tenant isolation', () => {
 
   it('getOperationsSnapshot scoped to tenant', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const snap = await realtimeOperationsService.getOperationsSnapshot({ tenantId: 'tenant-savor-01' })
-    expect(snap.scope.tenantId).toBe('tenant-savor-01')
+    const snap = await realtimeOperationsService.getOperationsSnapshot({ tenantId: 'tenant-samoon-01' })
+    expect(snap.scope.tenantId).toBe('tenant-samoon-01')
   })
 
   it('getRealtimeStatistics returns scope', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-savor-01' })
-    expect(stats.scope.tenantId).toBe('tenant-savor-01')
+    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-samoon-01' })
+    expect(stats.scope.tenantId).toBe('tenant-samoon-01')
   })
 
   it('getBranchStatus for tenant B returns only tenant B branches', async () => {
@@ -919,9 +919,9 @@ describe('I — Tenant isolation', () => {
 
   it('getOperationsSnapshot for different tenants returns different data', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const snapA = await realtimeOperationsService.getOperationsSnapshot({ tenantId: 'tenant-savor-01' })
+    const snapA = await realtimeOperationsService.getOperationsSnapshot({ tenantId: 'tenant-samoon-01' })
     const snapB = await realtimeOperationsService.getOperationsSnapshot({ tenantId: 'tenant-brew-cafe-01' })
-    expect(snapA.scope.tenantId).toBe('tenant-savor-01')
+    expect(snapA.scope.tenantId).toBe('tenant-samoon-01')
     expect(snapB.scope.tenantId).toBe('tenant-brew-cafe-01')
   })
 })
@@ -933,35 +933,35 @@ describe('J — SLA alert logic', () => {
 
   it('active SLA alerts have isActive=true', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-savor-01' })
+    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-samoon-01' })
     const active = alerts.filter((a) => a.isActive)
     active.forEach((a) => expect(a.resolvedAt).toBeUndefined())
   })
 
   it('SLA alert has elapsedMinutes > thresholdMinutes when active', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-savor-01' })
+    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-samoon-01' })
     const active = alerts.filter((a) => a.isActive)
     active.forEach((a) => expect(a.elapsedMinutes).toBeGreaterThan(a.thresholdMinutes))
   })
 
   it('SLA alerts have valid priority', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-savor-01' })
+    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-samoon-01' })
     const validPriorities = new Set(['low', 'normal', 'high', 'critical'])
     alerts.forEach((a) => expect(validPriorities.has(a.priority)).toBe(true))
   })
 
   it('SLA alerts have valid entityType', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-savor-01' })
+    const alerts = await realtimeOperationsService.getSLAAlerts({ tenantId: 'tenant-samoon-01' })
     const validTypes = new Set(['order', 'reservation', 'branch', 'staff'])
     alerts.forEach((a) => expect(validTypes.has(a.entityType)).toBe(true))
   })
 
   it('slaBreached orders have slaBreached=true', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const orders = await realtimeOperationsService.getLiveOrders({ tenantId: 'tenant-savor-01' })
+    const orders = await realtimeOperationsService.getLiveOrders({ tenantId: 'tenant-samoon-01' })
     const breached = orders.filter((o) => o.slaBreached)
     breached.forEach((o) => expect(o.slaBreached).toBe(true))
   })
@@ -974,7 +974,7 @@ describe('K — RealtimeStatistics', () => {
 
   it('statistics have valid numeric fields', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-savor-01' })
+    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-samoon-01' })
     expect(stats.eventsPerMinute).toBeGreaterThanOrEqual(0)
     expect(stats.totalEventsToday).toBeGreaterThanOrEqual(0)
     expect(stats.activeConnections).toBeGreaterThanOrEqual(0)
@@ -984,7 +984,7 @@ describe('K — RealtimeStatistics', () => {
 
   it('branchHealthSummary has healthy/degraded/critical/offline', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-savor-01' })
+    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-samoon-01' })
     expect(stats.branchHealthSummary).toHaveProperty('healthy')
     expect(stats.branchHealthSummary).toHaveProperty('degraded')
     expect(stats.branchHealthSummary).toHaveProperty('critical')
@@ -993,7 +993,7 @@ describe('K — RealtimeStatistics', () => {
 
   it('statistics updatedAt is valid ISO string', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-savor-01' })
+    const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-samoon-01' })
     expect(() => new Date(stats.updatedAt)).not.toThrow()
   })
 })
@@ -1044,27 +1044,27 @@ describe('M — Staff presence', () => {
 
   it('staff have valid status values', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-savor-01' })
+    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-samoon-01' })
     const valid = new Set(['online', 'busy', 'break', 'offline'])
     staff.forEach((s) => expect(valid.has(s.status)).toBe(true))
   })
 
   it('staff have valid role values', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-savor-01' })
+    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-samoon-01' })
     const validRoles = new Set(['owner', 'admin', 'manager', 'cashier', 'waiter', 'kitchen', 'marketing', 'support'])
     staff.forEach((s) => expect(validRoles.has(s.role)).toBe(true))
   })
 
   it('staff lastActivity is valid ISO string', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-savor-01' })
+    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-samoon-01' })
     staff.forEach((s) => expect(() => new Date(s.lastActivity)).not.toThrow())
   })
 
   it('activeOrderCount is non-negative', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
-    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-savor-01' })
+    const staff = await realtimeOperationsService.getStaffPresence({ tenantId: 'tenant-samoon-01' })
     staff.forEach((s) => expect(s.activeOrderCount).toBeGreaterThanOrEqual(0))
   })
 })

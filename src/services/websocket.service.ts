@@ -83,7 +83,7 @@ export class DjangoChannelsWebSocket {
   private readonly _onOffline: () => void
 
   constructor(options: WebSocketServiceOptions = {}) {
-    this.channelName = options.channelName ?? 'savor-websocket'
+    this.channelName = options.channelName ?? 'samoon-websocket'
     this.wsFactory = options.wsFactory ?? ((url) => new WebSocket(url))
 
     this._onVisibilityChange = this.handleVisibilityChange.bind(this)
@@ -500,10 +500,10 @@ export class OperationsChannelManager {
 
 // ── Singleton instances ───────────────────────────────────────────────────────
 export const orderWebSocket = new DjangoChannelsWebSocket({
-  channelName: 'savor-orders',
+  channelName: 'samoon-orders',
 })
 export const notificationWebSocket = new DjangoChannelsWebSocket({
-  channelName: 'savor-notifications',
+  channelName: 'samoon-notifications',
 })
 
 // ── Admin broadcast channel singletons (P7.7 Step 5) ─────────────────────────

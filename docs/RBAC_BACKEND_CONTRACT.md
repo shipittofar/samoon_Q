@@ -1228,7 +1228,7 @@ stated otherwise. All error bodies follow:
 ```json
 {
   "id": "usr_123",
-  "email": "manager@savor.com",
+  "email": "manager@samoon.com",
   "phone_number": "+14255552222",
   "first_name": "Maria",
   "last_name": "Manager",
@@ -1237,12 +1237,12 @@ stated otherwise. All error bodies follow:
   "is_verified": true,
   "created_at": "2025-01-15T00:00:00Z",
   "tenantRoles": [
-    { "tenant_id": "tnt_savor01", "tenant_slug": "savor-downtown", "role": "manager", "permissions": ["orders.view", "orders.manage"] }
+    { "tenant_id": "tnt_samoon01", "tenant_slug": "samoon-downtown", "role": "manager", "permissions": ["orders.view", "orders.manage"] }
   ],
   "ownership": [],
   "staffAssignments": [
     {
-      "assignmentId": "sa_1", "staffId": "usr_123", "tenantId": "tnt_savor01",
+      "assignmentId": "sa_1", "staffId": "usr_123", "tenantId": "tnt_samoon01",
       "branchIds": ["loc_downtown"], "role": "manager", "mode": "manage",
       "status": "active", "validFrom": null, "validUntil": null,
       "grantedBy": "usr_owner_1", "grantedAt": "2025-01-15T00:00:00Z"
@@ -1357,7 +1357,7 @@ stated otherwise. All error bodies follow:
   "assignment": {
     "id": "sa_42",
     "userId": "usr_123",
-    "tenantId": "tnt_savor01",
+    "tenantId": "tnt_samoon01",
     "locationIds": ["loc_downtown"],
     "allLocations": false,
     "role": "manager",
@@ -1403,7 +1403,7 @@ stated otherwise. All error bodies follow:
   "previous": null,
   "results": [
     {
-      "id": "sa_42", "userId": "usr_123", "tenantId": "tnt_savor01",
+      "id": "sa_42", "userId": "usr_123", "tenantId": "tnt_samoon01",
       "locationIds": ["loc_downtown"], "allLocations": false,
       "role": "manager", "mode": "manage", "status": "active",
       "validFrom": null, "validUntil": null,
@@ -1528,7 +1528,7 @@ Full field documentation for every field below is in
 {
   "user": {
     "id": "usr_owner_1",
-    "email": "owner@savor.com",
+    "email": "owner@samoon.com",
     "phone_number": null,
     "first_name": "Olivia",
     "last_name": "Owner",
@@ -1539,13 +1539,13 @@ Full field documentation for every field below is in
   },
   "tokens": { "access": "eyJhbGciOi...", "refresh": "eyJhbGciOi..." },
   "tenantRoles": [
-    { "tenant_id": "tnt_savor01", "tenant_slug": "savor-downtown", "role": "owner", "permissions": ["orders.view", "orders.manage", "..."] }
+    { "tenant_id": "tnt_samoon01", "tenant_slug": "samoon-downtown", "role": "owner", "permissions": ["orders.view", "orders.manage", "..."] }
   ],
   "ownership": [
     {
       "ownerId": "own_1", "userId": "usr_owner_1", "status": "active",
       "plan": "pro", "maxTenants": 5,
-      "billing": { "customerId": "cus_1", "billingEmail": "billing@savor.com" },
+      "billing": { "customerId": "cus_1", "billingEmail": "billing@samoon.com" },
       "createdAt": "2024-06-01T00:00:00Z", "verifiedAt": "2024-06-02T00:00:00Z"
     }
   ],
@@ -1589,8 +1589,8 @@ shape).
 
 | Field | Type | Required | Description | Example |
 |---|---|---|---|---|
-| `tenantRoles[].tenant_id` | string | yes | Tenant this role applies to | `"tnt_savor01"` |
-| `tenantRoles[].tenant_slug` | string | yes | URL slug | `"savor-downtown"` |
+| `tenantRoles[].tenant_id` | string | yes | Tenant this role applies to | `"tnt_samoon01"` |
+| `tenantRoles[].tenant_slug` | string | yes | URL slug | `"samoon-downtown"` |
 | `tenantRoles[].role` | string | yes | One of the 8 role slugs | `"owner"` |
 | `tenantRoles[].permissions` | string[] | recommended | Pre-resolved effective permissions | `["orders.view", "..."]` |
 | `ownership[].ownerId` | string | yes | | `"own_1"` |
@@ -1599,12 +1599,12 @@ shape).
 | `ownership[].plan` | string | yes | | `"pro"` |
 | `ownership[].maxTenants` | number \| null | yes | `null` = unlimited | `5` |
 | `ownership[].billing.customerId` | string \| null | yes | | `"cus_1"` |
-| `ownership[].billing.billingEmail` | string | yes | | `"billing@savor.com"` |
+| `ownership[].billing.billingEmail` | string | yes | | `"billing@samoon.com"` |
 | `ownership[].createdAt` | string (ISO 8601) | yes | | `"2024-06-01T00:00:00Z"` |
 | `ownership[].verifiedAt` | string (ISO 8601) \| undefined | no | | `"2024-06-02T00:00:00Z"` |
 | `staffAssignments[].assignmentId` | string | yes | | `"sa_1"` |
 | `staffAssignments[].staffId` | string | yes | | `"usr_123"` |
-| `staffAssignments[].tenantId` | string | yes | | `"tnt_savor01"` |
+| `staffAssignments[].tenantId` | string | yes | | `"tnt_samoon01"` |
 | `staffAssignments[].branchIds` | string[] \| `"all"` | yes | Frontend field name for `location_ids`/`all_locations` | `["loc_downtown"]` |
 | `staffAssignments[].role` | string | yes | Never `"owner"` | `"manager"` |
 | `staffAssignments[].mode` | `"read"` \| `"manage"` | yes | | `"manage"` |
@@ -1918,13 +1918,13 @@ class TenantContextMiddleware:
 
 ### What frontend caches
 
-- `tenantRoles`, `ownership`, `staffAssignments` — held in `useRbacStore` (Zustand, `src/stores/index.ts`), persisted to `localStorage` under key `savor-rbac` for UX responsiveness across reloads, but **re-synced from `GET /me` on every app boot** (not trusted as the sole source after a reload — see `docs/P10.7_RBAC_SESSION_HYDRATION_IMPLEMENTATION.md`).
+- `tenantRoles`, `ownership`, `staffAssignments` — held in `useRbacStore` (Zustand, `src/stores/index.ts`), persisted to `localStorage` under key `samoon-rbac` for UX responsiveness across reloads, but **re-synced from `GET /me` on every app boot** (not trusted as the sole source after a reload — see `docs/P10.7_RBAC_SESSION_HYDRATION_IMPLEMENTATION.md`).
 - Resolved effective permissions are recomputed client-side via `usePermissions()` (memoized on user/tenant/tenantRoles/overrides) rather than cached as a flat array — this is a derived value, not separately persisted.
 
 ### What backend must NEVER trust
 
 - **Any RBAC field in an incoming request body** (`permissions`, `role`, `tenantRoles`, etc.) as an authorization input. These fields, wherever they appear in a request, are informational/display-only from an already-authorized action (e.g. showing a role name in a form) — the backend must independently derive the caller's actual role/permissions from `user_tenant_roles`/`staff_assignments`/`user_permission_overrides` looked up by the authenticated user's ID, never from anything the client asserts about itself.
-- `localStorage`'s `savor-rbac` cache — assume it is arbitrarily readable/writable by anyone with access to the browser's dev tools; it is a UX cache, not a credential.
+- `localStorage`'s `samoon-rbac` cache — assume it is arbitrarily readable/writable by anyone with access to the browser's dev tools; it is a UX cache, not a credential.
 - The presence/absence of a 403 in the frontend's own client-side permission check as proof the backend would also deny — client-side `PermissionGuard`/`usePermission()` failing to render a button does not mean the corresponding API call is safe to skip authorization on; **every** API endpoint independently re-checks per Phase 5/6.
 
 **Explicit statement (per task requirement):** Frontend RBAC

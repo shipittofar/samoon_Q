@@ -3,7 +3,7 @@
 // Identity Gap
 //
 // docs/P10.4.8_LEGACY_COMPATIBILITY_AUDIT.md Phase H found that
-// staff@savor.com and multirole@savor.com had no matching StaffMember
+// staff@samoon.com and multirole@samoon.com had no matching StaffMember
 // fixture, so useHasDashboardAccess()'s ownership/StaffAssignment branch
 // always returned false for them — only the legacy
 // `rbacService.hasPermission(role, 'dashboard:access')` fallback
@@ -19,9 +19,9 @@
 //
 // While verifying the fixture set (Phase B — "For every MOCK_CREDENTIALS
 // entry... StaffAssignment resolution succeeds"), this phase also found
-// that admin@savor.com (staff-admin-01) and kitchen@savor.com
+// that admin@samoon.com (staff-admin-01) and kitchen@samoon.com
 // (staff-kitchen-01) had a StaffMember record but ZERO StaffAssignment
-// rows — the same class of gap as staff@savor.com/multirole@savor.com,
+// rows — the same class of gap as staff@samoon.com/multirole@samoon.com,
 // just not named in this phase's Phase A instructions because P10.4.8
 // didn't audit it (P10.4.8 only flagged accounts with no StaffMember at
 // all). Closed identically (fixture-only) so this file's own proof list
@@ -64,7 +64,7 @@ import type { User, Tenant } from '@/types'
  * kept for historical continuity with the rest of this test suite, not
  * because it still needs to defeat a legacy check. Same technique
  * originally established in
- * src/test/p10.3.1-dashboard-access-audit.test.ts for `accountant@savor.com`.
+ * src/test/p10.3.1-dashboard-access-audit.test.ts for `accountant@samoon.com`.
  */
 function customerRoleUserFor(email: string): User {
   return {
@@ -78,10 +78,10 @@ function customerRoleUserFor(email: string): User {
   }
 }
 
-async function savorTenant(): Promise<Tenant> {
+async function samoonTenant(): Promise<Tenant> {
   const tenants = await tenantService.getTenants()
-  const tenant = tenants.find((t) => t.id === 'tenant-savor-01')
-  if (!tenant) throw new Error('tenant-savor-01 not found in fixtures')
+  const tenant = tenants.find((t) => t.id === 'tenant-samoon-01')
+  if (!tenant) throw new Error('tenant-samoon-01 not found in fixtures')
   return tenant
 }
 
@@ -125,18 +125,18 @@ function auditFixtureConsistency(
 
 describe('P10.4.9 Phase B — fixture consistency audit', () => {
   const expectations: FixtureAuditExpectation[] = [
-    { email: 'owner@savor.com', kind: 'owner' },
-    { email: 'admin@savor.com', kind: 'staff' },
-    { email: 'manager@savor.com', kind: 'staff' },
-    { email: 'cashier@savor.com', kind: 'staff' },
-    { email: 'kitchen@savor.com', kind: 'staff' },
-    { email: 'staff@savor.com', kind: 'staff' },
-    { email: 'multirole@savor.com', kind: 'staff' },
+    { email: 'owner@samoon.com', kind: 'owner' },
+    { email: 'admin@samoon.com', kind: 'staff' },
+    { email: 'manager@samoon.com', kind: 'staff' },
+    { email: 'cashier@samoon.com', kind: 'staff' },
+    { email: 'kitchen@samoon.com', kind: 'staff' },
+    { email: 'staff@samoon.com', kind: 'staff' },
+    { email: 'multirole@samoon.com', kind: 'staff' },
   ]
 
   for (const expectation of expectations) {
     it(`${expectation.email}: StaffMember resolves, has an effective assignment (or is Owner), and P7 permissions resolve`, async () => {
-      const tenant = await savorTenant()
+      const tenant = await samoonTenant()
       const audit = auditFixtureConsistency(expectation, tenant)
       expect(audit.staffMemberFound).toBe(true)
       expect(audit.hasEffectiveAssignment).toBe(true)
@@ -144,16 +144,16 @@ describe('P10.4.9 Phase B — fixture consistency audit', () => {
     })
   }
 
-  it('multirole@savor.com resolves TWO distinct effective assignments (cashier AND kitchen, not collapsed)', async () => {
-    const identity = resolveOwnershipIdentity('multirole@savor.com')
+  it('multirole@samoon.com resolves TWO distinct effective assignments (cashier AND kitchen, not collapsed)', async () => {
+    const identity = resolveOwnershipIdentity('multirole@samoon.com')
     expect(identity.staffMember).toBeTruthy()
     const assignments = staffAssignmentService.getEffectiveAssignments(identity.staffMember!.id)
     const roles = assignments.map((a) => a.role).sort()
     expect(roles).toEqual(['cashier', 'kitchen'])
   })
 
-  it('staff@savor.com resolves to the manager role via its StaffAssignment', async () => {
-    const identity = resolveOwnershipIdentity('staff@savor.com')
+  it('staff@samoon.com resolves to the manager role via its StaffAssignment', async () => {
+    const identity = resolveOwnershipIdentity('staff@samoon.com')
     expect(identity.staffMember).toBeTruthy()
     const assignments = staffAssignmentService.getEffectiveAssignments(identity.staffMember!.id)
     expect(assignments.map((a) => a.role)).toEqual(['manager'])
@@ -164,19 +164,19 @@ describe('P10.4.9 Phase B — fixture consistency audit', () => {
 
 describe('P10.4.9 Phase C — console access holds independent of any legacy dashboard:access fallback', () => {
   const consoleCapableEmails = [
-    'owner@savor.com',
-    'admin@savor.com',
-    'manager@savor.com',
-    'cashier@savor.com',
-    'kitchen@savor.com',
-    'staff@savor.com',
-    'multirole@savor.com',
+    'owner@samoon.com',
+    'admin@samoon.com',
+    'manager@samoon.com',
+    'cashier@samoon.com',
+    'kitchen@samoon.com',
+    'staff@samoon.com',
+    'multirole@samoon.com',
   ]
 
   for (const email of consoleCapableEmails) {
     it(`${email}: useHasDashboardAccess() returns true via ownership/StaffAssignment resolution alone`, async () => {
-      const savor = await savorTenant()
-      useTenantStore.getState().setTenant(savor)
+      const samoon = await samoonTenant()
+      useTenantStore.getState().setTenant(samoon)
       useAuthStore.getState().setUser(customerRoleUserFor(email))
 
       const { result } = renderHook(() => useHasDashboardAccess())
@@ -184,39 +184,39 @@ describe('P10.4.9 Phase C — console access holds independent of any legacy das
     })
   }
 
-  it('staff@savor.com specifically resolves via ownership resolution alone', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('staff@savor.com'))
+  it('staff@samoon.com specifically resolves via ownership resolution alone', async () => {
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('staff@samoon.com'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(true)
 
-    const identity = resolveOwnershipIdentity('staff@savor.com')
-    expect(identity.staffMember?.email).toBe('staff@savor.com')
+    const identity = resolveOwnershipIdentity('staff@samoon.com')
+    expect(identity.staffMember?.email).toBe('staff@samoon.com')
     expect(
       staffAssignmentService.getEffectiveAssignments(identity.staffMember!.id).length,
     ).toBeGreaterThan(0)
   })
 
-  it('multirole@savor.com specifically resolves via ownership resolution alone', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
-    useAuthStore.getState().setUser(customerRoleUserFor('multirole@savor.com'))
+  it('multirole@samoon.com specifically resolves via ownership resolution alone', async () => {
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
+    useAuthStore.getState().setUser(customerRoleUserFor('multirole@samoon.com'))
 
     const { result } = renderHook(() => useHasDashboardAccess())
     expect(result.current).toBe(true)
 
-    const identity = resolveOwnershipIdentity('multirole@savor.com')
-    expect(identity.staffMember?.email).toBe('multirole@savor.com')
+    const identity = resolveOwnershipIdentity('multirole@samoon.com')
+    expect(identity.staffMember?.email).toBe('multirole@samoon.com')
     const assignments = staffAssignmentService.getEffectiveAssignments(identity.staffMember!.id)
     expect(assignments.length).toBe(2)
     expect(assignments.map((a) => a.role).sort()).toEqual(['cashier', 'kitchen'])
   })
 
   it('sanity check: a real Customer (no StaffMember, no Owner record) is still denied — the fixture additions did not broaden access', async () => {
-    const savor = await savorTenant()
-    useTenantStore.getState().setTenant(savor)
+    const samoon = await samoonTenant()
+    useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(customerRoleUserFor('nobody@example.com'))
 
     const { result } = renderHook(() => useHasDashboardAccess())

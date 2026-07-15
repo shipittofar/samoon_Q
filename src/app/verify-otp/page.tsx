@@ -132,7 +132,7 @@ function OTPContent() {
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
             <span className="text-white font-bold">S</span>
           </div>
-          <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
+          <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Samoon</span>
         </Link>
 
         <div className="bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-xl p-8 text-center">

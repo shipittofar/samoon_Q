@@ -15,7 +15,7 @@ const __dirname = dirname(__filename)
 
 describe('Bug 1 / Bug 6 — RBAC role availability for all tenants', () => {
   it('getMockRoles returns roles for the multi-tenant user in both tenants', () => {
-    const managerRoles = getMockRoles('user-multi-01', 'tenant-savor-01')
+    const managerRoles = getMockRoles('user-multi-01', 'tenant-samoon-01')
     expect(managerRoles).toContain('manager')
 
     const cashierRoles = getMockRoles('user-multi-01', 'tenant-brew-cafe-01')
@@ -23,13 +23,13 @@ describe('Bug 1 / Bug 6 — RBAC role availability for all tenants', () => {
   })
 
   it('getMockRoles returns empty array for tenant with no explicit assignment', () => {
-    // owner-01 is only assigned to savor; brew-cafe has no explicit assignment
+    // owner-01 is only assigned to samoon; brew-cafe has no explicit assignment
     const roles = getMockRoles('user-owner-01', 'tenant-brew-cafe-01')
     expect(roles).toEqual([])
   })
 
   it('every known tenant can be resolved by getTenant', async () => {
-    const slugs = ['savor', 'brew-cafe', 'the-oak-bar', 'central-food-court', 'wheels-and-brews', 'road-bites']
+    const slugs = ['samoon', 'brew-cafe', 'the-oak-bar', 'central-food-court', 'wheels-and-brews', 'road-bites']
     for (const slug of slugs) {
       const tenant = await tenantService.getTenant(slug)
       expect(tenant.slug).toBe(slug)
@@ -52,7 +52,7 @@ describe('Bug 2 / Bug 3 — Branch ownership and selector availability', () => {
 
   it('no cross-tenant branch contamination — each tenant only has its own branches', async () => {
     const tenantIds = [
-      'tenant-savor-01',
+      'tenant-samoon-01',
       'tenant-brew-cafe-01',
       'tenant-oak-bar-01',
       'tenant-central-fc-01',
@@ -69,7 +69,7 @@ describe('Bug 2 / Bug 3 — Branch ownership and selector availability', () => {
 
   it('all tenants have at least 1 branch record', async () => {
     const tenantIds = [
-      'tenant-savor-01',
+      'tenant-samoon-01',
       'tenant-brew-cafe-01',
       'tenant-oak-bar-01',
       'tenant-central-fc-01',
@@ -85,13 +85,13 @@ describe('Bug 2 / Bug 3 — Branch ownership and selector availability', () => {
 
 describe('Bug 5 — PreviewButton URL generation', () => {
   it('hrefToPublicUrl generates tenant homepage for "/" href', () => {
-    expect(hrefToPublicUrl('/', 'savor', 'main')).toBe('/savor')
+    expect(hrefToPublicUrl('/', 'samoon', 'main')).toBe('/samoon')
     expect(hrefToPublicUrl('/', 'brew-cafe', 'main')).toBe('/brew-cafe')
     expect(hrefToPublicUrl('/', 'the-oak-bar', 'main')).toBe('/the-oak-bar')
   })
 
   it('hrefToPublicUrl generates branch-scoped menu URL', () => {
-    expect(hrefToPublicUrl('/menu', 'savor', 'main')).toBe('/savor/main/menu')
+    expect(hrefToPublicUrl('/menu', 'samoon', 'main')).toBe('/samoon/main/menu')
     expect(hrefToPublicUrl('/menu', 'brew-cafe', 'brooklyn-cafe')).toBe('/brew-cafe/brooklyn-cafe/menu')
   })
 
@@ -101,14 +101,14 @@ describe('Bug 5 — PreviewButton URL generation', () => {
   })
 
   it('hrefToPublicUrl falls back to tenant-level when no branch context', () => {
-    const url = hrefToPublicUrl('/menu', 'savor', null)
-    expect(url).toBe('/savor/menu')
+    const url = hrefToPublicUrl('/menu', 'samoon', null)
+    expect(url).toBe('/samoon/menu')
   })
 
   it('hrefToPublicUrl never returns bare "/" for known tenant', () => {
-    const url = hrefToPublicUrl('/restaurant', 'savor', 'main')
+    const url = hrefToPublicUrl('/restaurant', 'samoon', 'main')
     expect(url).not.toBe('/')
-    expect(url).toBe('/savor')
+    expect(url).toBe('/samoon')
   })
 })
 
@@ -123,7 +123,7 @@ describe('Bug 7 — Public context initialization', () => {
   })
 
   it('usePublicBranch equivalent: unknown branch returns undefined from marketplace meta', async () => {
-    const tenant = await tenantService.getTenant('savor')
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b) => b.slug === 'nonexistent-branch')
     expect(branch).toBeUndefined()
@@ -154,8 +154,8 @@ describe('R-06 — CapabilityGuard loyalty flag consistency (P8.7.7.8)', () => {
     expect(flags['loyalty.enabled']).not.toBe(false)
   })
 
-  it('savor tenant does not explicitly enable loyalty.enabled', async () => {
-    const tenant = await tenantService.getTenant('savor')
+  it('samoon tenant does not explicitly enable loyalty.enabled', async () => {
+    const tenant = await tenantService.getTenant('samoon')
     const flags = (tenant.settings?.featureFlags ?? {}) as Record<string, boolean>
     expect(flags['loyalty.enabled']).toBeUndefined()
   })
@@ -165,7 +165,7 @@ describe('R-07 — Reservation branch list is tenant-scoped (P8.7.7.10)', () => 
   it('MOCK_TENANT_BRANCHES contains entries for all 6 tenants', async () => {
     const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
     const expectedTenants = [
-      'tenant-savor-01',
+      'tenant-samoon-01',
       'tenant-brew-cafe-01',
       'tenant-oak-bar-01',
       'tenant-central-fc-01',
@@ -187,7 +187,7 @@ describe('R-07 — Reservation branch list is tenant-scoped (P8.7.7.10)', () => 
     }
   })
 
-  it('brew-cafe branches are Midtown Cafe and Brooklyn Cafe — not savor branches', async () => {
+  it('brew-cafe branches are Midtown Cafe and Brooklyn Cafe — not samoon branches', async () => {
     const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
     const brewBranches = MOCK_TENANT_BRANCHES['tenant-brew-cafe-01']
     const names = brewBranches.map((b) => b.name)
@@ -200,9 +200,9 @@ describe('R-07 — Reservation branch list is tenant-scoped (P8.7.7.10)', () => 
 
   it('branchService.getBranches(tenantId) returns tenant-specific branches', async () => {
     const { branchService } = await import('@/services/combined.service')
-    const savorBranches = await branchService.getBranches('tenant-savor-01')
-    expect(savorBranches.length).toBe(3)
-    expect(savorBranches.map((b) => b.slug)).toContain('airport')
+    const samoonBranches = await branchService.getBranches('tenant-samoon-01')
+    expect(samoonBranches.length).toBe(3)
+    expect(samoonBranches.map((b) => b.slug)).toContain('airport')
 
     const brewBranches = await branchService.getBranches('tenant-brew-cafe-01')
     expect(brewBranches.length).toBe(2)
@@ -228,11 +228,11 @@ describe('R-07 — Reservation branch list is tenant-scoped (P8.7.7.10)', () => 
 describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
   it('MOCK_TENANT_BRANCHES has no cross-tenant branch contamination', async () => {
     const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
-    const savor = MOCK_TENANT_BRANCHES['tenant-savor-01'].map((b) => b.slug)
+    const samoon = MOCK_TENANT_BRANCHES['tenant-samoon-01'].map((b) => b.slug)
     const brew = MOCK_TENANT_BRANCHES['tenant-brew-cafe-01'].map((b) => b.slug)
-    // brooklyn-cafe belongs only to brew-cafe, not savor
-    expect(savor).not.toContain('brooklyn-cafe')
-    // airport belongs only to savor, not brew-cafe
+    // brooklyn-cafe belongs only to brew-cafe, not samoon
+    expect(samoon).not.toContain('brooklyn-cafe')
+    // airport belongs only to samoon, not brew-cafe
     expect(brew).not.toContain('airport')
   })
 
@@ -285,7 +285,7 @@ describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
   it('all 6 tenants have isolated MOCK_TENANT_BRANCHES entries with at least 1 branch', async () => {
     const { MOCK_TENANT_BRANCHES } = await import('@/lib/mock-data')
     const tenants = [
-      'tenant-savor-01',
+      'tenant-samoon-01',
       'tenant-brew-cafe-01',
       'tenant-oak-bar-01',
       'tenant-central-fc-01',

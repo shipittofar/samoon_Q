@@ -220,7 +220,7 @@ describe('E — activateTenant()', () => {
 describe('F — suspendTenant()', () => {
   it('sets active tenant to suspended', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.suspendTenant('savor')
+    const updated = await svc.suspendTenant('samoon')
     expect(updated.status).toBe('suspended')
   })
 
@@ -232,9 +232,9 @@ describe('F — suspendTenant()', () => {
 
   it('status persists in subsequent getTenants()', async () => {
     const svc = await freshTenantService()
-    await svc.suspendTenant('savor')
+    await svc.suspendTenant('samoon')
     const tenants = await svc.getTenants()
-    const t = tenants.find((x) => x.slug === 'savor')
+    const t = tenants.find((x) => x.slug === 'samoon')
     expect(t?.status).toBe('suspended')
   })
 })
@@ -244,7 +244,7 @@ describe('F — suspendTenant()', () => {
 describe('G — archiveTenant()', () => {
   it('sets active tenant to archived', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.archiveTenant('savor')
+    const updated = await svc.archiveTenant('samoon')
     expect(updated.status).toBe('archived')
   })
 
@@ -338,7 +338,7 @@ describe('I — cloneTenant preserves source businessType', () => {
 
   it('clone of restaurant tenant has restaurant businessType', async () => {
     const svc = await freshProvisioningService()
-    const result = await svc.cloneTenant('tenant-savor-01', 'rest-clone', 'Rest Clone')
+    const result = await svc.cloneTenant('tenant-samoon-01', 'rest-clone', 'Rest Clone')
     expect(result.success).toBe(true)
     expect(result.tenant?.businessTypes).toContain('restaurant')
   })
@@ -402,7 +402,7 @@ describe('K — cloneTenant preserves branding', () => {
 
   it('clone uses newName not source name', async () => {
     const svc = await freshProvisioningService()
-    const result = await svc.cloneTenant('tenant-savor-01', 'named-clone-01', 'Brand New Name')
+    const result = await svc.cloneTenant('tenant-samoon-01', 'named-clone-01', 'Brand New Name')
     expect(result.tenant?.name).toBe('Brand New Name')
   })
 })
@@ -430,8 +430,8 @@ describe('L — cloneTenant validation', () => {
 
   it('second clone of same source with different slug succeeds', async () => {
     const svc = await freshProvisioningService()
-    const r1 = await svc.cloneTenant('tenant-savor-01', 'clone-a', 'Clone A')
-    const r2 = await svc.cloneTenant('tenant-savor-01', 'clone-b', 'Clone B')
+    const r1 = await svc.cloneTenant('tenant-samoon-01', 'clone-a', 'Clone A')
+    const r2 = await svc.cloneTenant('tenant-samoon-01', 'clone-b', 'Clone B')
     expect(r1.success).toBe(true)
     expect(r2.success).toBe(true)
   })
@@ -720,7 +720,7 @@ describe('S — status management resolves in mock mode without network', () => 
 
   it('suspendTenant resolves', async () => {
     const svc = await freshTenantService()
-    await expect(svc.suspendTenant('savor')).resolves.toBeTruthy()
+    await expect(svc.suspendTenant('samoon')).resolves.toBeTruthy()
   })
 
   it('archiveTenant resolves', async () => {
@@ -775,9 +775,9 @@ describe('U — copy semantics', () => {
 
   it('getTenant returns copy of tenant object', async () => {
     const svc = await freshTenantService()
-    const t1 = await svc.getTenant('savor')
+    const t1 = await svc.getTenant('samoon')
     t1.name = 'MUTATED'
-    const t2 = await svc.getTenant('savor')
+    const t2 = await svc.getTenant('samoon')
     expect(t2.name).not.toBe('MUTATED')
   })
 })

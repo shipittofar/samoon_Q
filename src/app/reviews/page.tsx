@@ -3,7 +3,7 @@ import { getTranslations, getLocale } from 'next-intl/server'
 import { CapabilityGuard, CapabilityNotAvailable } from '@/components/guards/CapabilityGuard'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
 /**
  * Reviews page — guarded by the `reviews` capability (P6.8).

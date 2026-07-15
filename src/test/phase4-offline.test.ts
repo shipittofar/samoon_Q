@@ -90,7 +90,7 @@ describe('P4.8.2 — SW version injection', () => {
   it('public/sw.js contains a real version string after build', () => {
     const content = file('public/sw.js')
     // Should contain 1.0.0 or a git SHA or "unknown" — not the placeholder
-    expect(content).toMatch(/savor-cache-v([\d.]+|[0-9a-f]{7,8}|unknown)/)
+    expect(content).toMatch(/samoon-cache-v([\d.]+|[0-9a-f]{7,8}|unknown)/)
   })
 
   it('package.json has build:sw script', () => {
@@ -116,11 +116,11 @@ describe('P4.8.2 — SW version injection', () => {
 
 describe('P4.8.3 — Versioned cache names', () => {
   it('sw-source.js uses SW_VERSION in CACHE_NAME', () => {
-    expect(file('scripts/sw-source.js')).toContain('savor-cache-v${SW_VERSION}')
+    expect(file('scripts/sw-source.js')).toContain('samoon-cache-v${SW_VERSION}')
   })
 
   it('sw-source.js uses SW_VERSION in API_CACHE', () => {
-    expect(file('scripts/sw-source.js')).toContain('savor-api-v${SW_VERSION}')
+    expect(file('scripts/sw-source.js')).toContain('samoon-api-v${SW_VERSION}')
   })
 
   it('sw-source.js defines KNOWN_CACHES array', () => {
@@ -135,17 +135,17 @@ describe('P4.8.3 — Versioned cache names', () => {
   })
 
   it('public/sw.js has versioned CACHE_NAME after build', () => {
-    expect(file('public/sw.js')).toContain('savor-cache-v')
+    expect(file('public/sw.js')).toContain('samoon-cache-v')
   })
 
   it('public/sw.js has versioned API_CACHE after build', () => {
-    expect(file('public/sw.js')).toContain('savor-api-v')
+    expect(file('public/sw.js')).toContain('samoon-api-v')
   })
 
-  it('both old hardcoded "savor-v1" names are gone', () => {
-    // The old sw.js used 'savor-v1' — verify the new format replaces it
-    expect(file('public/sw.js')).not.toContain("'savor-v1'")
-    expect(file('public/sw.js')).not.toContain("'savor-api-v1'")
+  it('both old hardcoded "samoon-v1" names are gone', () => {
+    // The old sw.js used 'samoon-v1' — verify the new format replaces it
+    expect(file('public/sw.js')).not.toContain("'samoon-v1'")
+    expect(file('public/sw.js')).not.toContain("'samoon-api-v1'")
   })
 })
 
@@ -485,12 +485,12 @@ describe('P4.8.8 — Registration safety & regression checks', () => {
 
   it('manifest.json is unchanged (no PWA asset regressions)', () => {
     const manifest = JSON.parse(file('public/manifest.json'))
-    expect(manifest.name).toBe('Savor — Fine Dining & Delivery')
+    expect(manifest.name).toBe('Samoon — Fine Dining & Delivery')
     expect(manifest.icons).toHaveLength(8)
   })
 
   it('offline-queue handles corrupt localStorage gracefully', async () => {
-    const store: Record<string, string> = { 'savor-offline-queue': 'INVALID_JSON' }
+    const store: Record<string, string> = { 'samoon-offline-queue': 'INVALID_JSON' }
     vi.stubGlobal('localStorage', {
       getItem: (k: string) => store[k] ?? null,
       setItem: (k: string, v: string) => { store[k] = v },

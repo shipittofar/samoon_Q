@@ -24,7 +24,7 @@ import { DEFAULT_MENU_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 import MenuLoading from './loading'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
     ...localized,
     openGraph: {
       ...localized.openGraph,
-      images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor' }],
+      images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Samoon' }],
     },
     twitter: {
       ...localized.twitter,

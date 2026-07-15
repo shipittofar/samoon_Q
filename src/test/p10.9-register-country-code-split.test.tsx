@@ -30,7 +30,7 @@ import { useAuthStore, useTenantStore, useRbacStore } from '@/stores'
 import { useRegister } from '@/hooks'
 
 vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
-vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.savor.test')
+vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.samoon.test')
 
 vi.mock('@/constants', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/constants')>()
@@ -63,7 +63,7 @@ afterEach(() => {
 describe('P10.9 — authService.register() accepts country_code/phone_number, no password required', () => {
   it('registers successfully with only country_code, phone_number, first_name, last_name, email', async () => {
     const promise = authService.register({
-      email: 'new-phone-user@phone_number.savor.local',
+      email: 'new-phone-user@phone_number.samoon.local',
       country_code: '+1',
       phone_number: '4255552222',
       first_name: 'Ali',
@@ -82,7 +82,7 @@ describe('P10.9 — useRegister() hydrates session after successful registration
   it('calls setUser() with the returned user', async () => {
     const { result } = renderHook(() => useRegister(), { wrapper })
     const mutatePromise = result.current.mutateAsync({
-      email: 'hydrate-test@phone_number.savor.local',
+      email: 'hydrate-test@phone_number.samoon.local',
       country_code: '+44',
       phone_number: '7911123456',
       first_name: 'Jane',
@@ -98,7 +98,7 @@ describe('P10.9 — useRegister() hydrates session after successful registration
   it('does not throw and leaves tenantRoles empty for a brand-new customer (p7Roles: [])', async () => {
     const { result } = renderHook(() => useRegister(), { wrapper })
     const mutatePromise = result.current.mutateAsync({
-      email: 'hydrate-test-2@phone_number.savor.local',
+      email: 'hydrate-test-2@phone_number.samoon.local',
       country_code: '+61',
       phone_number: '412345678',
       first_name: 'Sam',

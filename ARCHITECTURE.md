@@ -1,6 +1,6 @@
-# Architecture — Savor Frontend
+# Architecture — Samoon Frontend
 
-> Comprehensive architecture documentation for the Savor restaurant web application. All diagrams and descriptions are derived from actual source code analysis.
+> Comprehensive architecture documentation for the Samoon restaurant web application. All diagrams and descriptions are derived from actual source code analysis.
 
 ---
 
@@ -28,7 +28,7 @@
 
 ## System Overview
 
-Savor is a **Next.js 15 App Router** frontend for a hospitality SaaS platform. The current codebase is deployed as a single-tenant restaurant application; the roadmap direction is toward a multi-tenant platform supporting multiple hospitality business types (restaurant, cafe, bar, hotel, and others) through a configurable Tenant / Location / Module architecture. See [ROADMAP.md](./ROADMAP.md) for the full platform direction and completion status.
+Samoon is a **Next.js 15 App Router** frontend for a hospitality SaaS platform. The current codebase is deployed as a single-tenant restaurant application; the roadmap direction is toward a multi-tenant platform supporting multiple hospitality business types (restaurant, cafe, bar, hotel, and others) through a configurable Tenant / Location / Module architecture. See [ROADMAP.md](./ROADMAP.md) for the full platform direction and completion status.
 
 The frontend communicates with a Django REST Framework + Django Channels backend over HTTPS (REST) and WSS (WebSocket). A built-in **mock mode** allows the entire application to run without a backend by returning simulated data with artificial delays.
 
@@ -659,13 +659,13 @@ graph LR
 │                         Docker Host                             │
 │                                                                 │
 │  ┌──────────────────────┐    ┌──────────────────────────────┐   │
-│  │    savor-nginx       │    │        savor-app             │   │
+│  │    samoon-nginx       │    │        samoon-app             │   │
 │  │  (nginx:alpine)      │    │  (node:22-alpine)            │   │
 │  │  ports: 80, 443      │    │  port: 3000 (internal)       │   │
 │  │  ./nginx.conf        │    │  NODE_ENV=production         │   │
 │  │  cache: nginx-cache  │    │  user: nextjs (uid 1001)     │   │
 │  └──────────┬───────────┘    └──────────────────────────────┘   │
-│             │ savor-net                                          │
+│             │ samoon-net                                          │
 │  ┌──────────┴──────────────────────────────────────────────┐    │
 │  │                   shared-net (external)                  │    │
 │  │              Django backend service lives here           │    │
@@ -678,7 +678,7 @@ graph LR
 ```
 
 **Network topology:**
-- `savor-net` — internal bridge for Next.js ↔ Nginx
+- `samoon-net` — internal bridge for Next.js ↔ Nginx
 - `shared-net` — external bridge shared with Django backend service
 - `static_volume` — external volume mounted from the Django container, served by Nginx at `/static/`
 

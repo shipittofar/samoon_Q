@@ -26,7 +26,7 @@ import {
 import { resolveOwnershipIdentity } from '@/services/ownership-resolution.service'
 
 vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
-vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.savor.test')
+vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.samoon.test')
 
 vi.mock('@/constants', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/constants')>()
@@ -89,10 +89,10 @@ afterEach(() => {
 })
 
 describe('P10.9 Scenario 1 — User A login, logout, User B login: no User A data remains', () => {
-  it('cart/RBAC state does not leak from owner@savor.com into cashier@savor.com', async () => {
+  it('cart/RBAC state does not leak from owner@samoon.com into cashier@samoon.com', async () => {
     const qc = new QueryClient()
 
-    const loginA = loginAs('owner@savor.com')
+    const loginA = loginAs('owner@samoon.com')
     await vi.runAllTimersAsync()
     await loginA
     useCartStore.getState().addItem({ id: 'item-a', name: 'A', price: 10, category: 'x', description: '', image: '' } as never, 1)
@@ -105,11 +105,11 @@ describe('P10.9 Scenario 1 — User A login, logout, User B login: no User A dat
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual([])
     expect(useAuthStore.getState().user).toBeNull()
 
-    const loginB = loginAs('cashier@savor.com')
+    const loginB = loginAs('cashier@samoon.com')
     await vi.runAllTimersAsync()
     await loginB
 
-    expect(useAuthStore.getState().user?.email).toBe('cashier@savor.com')
+    expect(useAuthStore.getState().user?.email).toBe('cashier@samoon.com')
     expect(useCartStore.getState().items).toEqual([])
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['cashier'])
   })
@@ -117,27 +117,27 @@ describe('P10.9 Scenario 1 — User A login, logout, User B login: no User A dat
 
 describe('P10.9 Scenario 2 — Owner login, refresh: owner access restored', () => {
   it('getMe() after an owner login returns the same tenantRoles the login itself did', async () => {
-    localStorage.setItem(MOCK_SESSION_KEY, 'owner@savor.com')
+    localStorage.setItem(MOCK_SESSION_KEY, 'owner@samoon.com')
     const mePromise = authService.getMe()
     await vi.runAllTimersAsync()
     const meResult = await mePromise
     expect(meResult.tenantRoles).toEqual(['owner'])
 
-    const identity = resolveOwnershipIdentity('owner@savor.com')
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
     expect(identity.owner).toBeTruthy()
   })
 })
 
 describe('P10.9 Scenario 3 — Staff login, refresh: staff assignment restored', () => {
   it('getMe() after a cashier login returns the same role set the login itself did', async () => {
-    localStorage.setItem(MOCK_SESSION_KEY, 'cashier@savor.com')
+    localStorage.setItem(MOCK_SESSION_KEY, 'cashier@samoon.com')
     const mePromise = authService.getMe()
     await vi.runAllTimersAsync()
     const meResult = await mePromise
     expect(meResult.tenantRoles).toEqual(['cashier'])
 
-    const identity = resolveOwnershipIdentity('cashier@savor.com')
-    expect(identity.staffMember?.email).toBe('cashier@savor.com')
+    const identity = resolveOwnershipIdentity('cashier@samoon.com')
+    expect(identity.staffMember?.email).toBe('cashier@samoon.com')
   })
 })
 
@@ -160,7 +160,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
     // Reproduces the pre-fix behavior directly, to make the contrast
     // explicit: this is what AuthBootstrapper's 'auth:logout' handler
     // used to do — setUser(null) and nothing else.
-    const loginA = loginAs('owner@savor.com')
+    const loginA = loginAs('owner@samoon.com')
     await vi.runAllTimersAsync()
     await loginA
     useCartStore.getState().addItem({ id: 'item-x', name: 'X', price: 5, category: 'x', description: '', image: '' } as never, 1)
@@ -178,7 +178,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
 
   it('AFTER the fix, clearSession() (the new handler) removes tokens, RBAC, cart, tenant, and query cache state', async () => {
     const qc = new QueryClient()
-    const loginA = loginAs('owner@savor.com')
+    const loginA = loginAs('owner@samoon.com')
     await vi.runAllTimersAsync()
     await loginA
     useCartStore.getState().addItem({ id: 'item-y', name: 'Y', price: 5, category: 'x', description: '', image: '' } as never, 1)
@@ -198,7 +198,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
 
 describe('P10.9 — token storage: single source, no duplicates', () => {
   it('setTokens()/clearTokens() operate on exactly one localStorage key pair (no sessionStorage, no duplicate keys)', async () => {
-    const loginA = loginAs('demo@savor.com')
+    const loginA = loginAs('demo@samoon.com')
     await vi.runAllTimersAsync()
     await loginA
     expect(getAccessToken()).toBeTruthy()

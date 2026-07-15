@@ -11,15 +11,15 @@
 import { configurationService } from './service'
 import type { ConfigResolutionScope, ConfigValueLayer } from './types'
 
-export const MOCK_TENANT_ID = 'tenant-savor-01'
-export const MOCK_BRANCH_ID = 'branch-savor-downtown'
+export const MOCK_TENANT_ID = 'tenant-samoon-01'
+export const MOCK_BRANCH_ID = 'branch-samoon-downtown'
 export const MOCK_USER_ID = 'pu-001'
 
 /** Example override layers keyed by field id — feeds ConfigurationService in demo/storybook contexts. */
 export const MOCK_CONFIG_OVERRIDES: Record<string, ConfigValueLayer> = {
   'themes.primary_color': { tenant: '#0ea5e9' },
   'themes.accent_hover_color': { tenant: '#0284c7' },
-  'themes.logo_url': { tenant: 'https://cdn.savor.app/tenants/savor-01/logo.png' },
+  'themes.logo_url': { tenant: 'https://cdn.samoon.app/tenants/samoon-01/logo.png' },
   'typography.body_font': { tenant: 'Poppins' },
   'languages.default': { tenant: 'en' },
   'countries.default_code': { tenant: 'US' },
@@ -55,7 +55,7 @@ export const MOCK_CONFIG_AUDIT_SEED = [
     scope: {},
     level: 'platform' as const,
     actorId: 'platform-admin-001',
-    actorName: 'Savor Platform Team',
+    actorName: 'Samoon Platform Team',
     reason: 'Extend trial for Q3 growth promotion',
     previousValue: 14,
     newValue: 21,
@@ -84,7 +84,7 @@ export function seedAuthenticationMockOverrides(): void {
   if (authenticationMockSeeded) return
   authenticationMockSeeded = true
 
-  const actor = { id: 'platform-admin-001', name: 'Savor Platform Team' }
+  const actor = { id: 'platform-admin-001', name: 'Samoon Platform Team' }
 
   configurationService.updateField({
     fieldId: 'authentication.otp.resend_cooldown_seconds',

@@ -36,7 +36,7 @@ export const API_MODULE: ConfigModuleDefinition = {
           title: 'CORS Allowed Origins',
           category: 'platform',
           type: 'array',
-          default: ['https://savor.app'],
+          default: ['https://samoon.app'],
           permissions: PERMISSIONS,
           inheritance: { level: 'platform', canOverride: true, mode: 'merge', fallback: 'inherit' },
         }),

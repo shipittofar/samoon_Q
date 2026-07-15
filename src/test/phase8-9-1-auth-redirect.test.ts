@@ -15,16 +15,16 @@ import {
 describe('DEMO_EMAIL_REDIRECTS', () => {
   it('covers all 10 demo accounts', () => {
     const expected = [
-      'demo@savor.com',
-      'staff@savor.com',
-      'cashier@savor.com',
-      'kitchen@savor.com',
-      'marketing@savor.com',
-      'support@savor.com',
-      'admin@savor.com',
-      'owner@savor.com',
-      'platform@savor.com',
-      'multirole@savor.com',
+      'demo@samoon.com',
+      'staff@samoon.com',
+      'cashier@samoon.com',
+      'kitchen@samoon.com',
+      'marketing@samoon.com',
+      'support@samoon.com',
+      'admin@samoon.com',
+      'owner@samoon.com',
+      'platform@samoon.com',
+      'multirole@samoon.com',
     ]
     for (const email of expected) {
       expect(DEMO_EMAIL_REDIRECTS).toHaveProperty(email)
@@ -34,43 +34,43 @@ describe('DEMO_EMAIL_REDIRECTS', () => {
 
 describe('getDemoRedirect', () => {
   it('sends customer demo to /dashboard', () => {
-    expect(getDemoRedirect('demo@savor.com')).toBe('/dashboard')
+    expect(getDemoRedirect('demo@samoon.com')).toBe('/dashboard')
   })
 
   it('sends staff to /console/orders', () => {
-    expect(getDemoRedirect('staff@savor.com')).toBe('/console/orders')
+    expect(getDemoRedirect('staff@samoon.com')).toBe('/console/orders')
   })
 
   it('sends cashier to /console/orders', () => {
-    expect(getDemoRedirect('cashier@savor.com')).toBe('/console/orders')
+    expect(getDemoRedirect('cashier@samoon.com')).toBe('/console/orders')
   })
 
   it('sends kitchen to /console/kitchen', () => {
-    expect(getDemoRedirect('kitchen@savor.com')).toBe('/console/kitchen')
+    expect(getDemoRedirect('kitchen@samoon.com')).toBe('/console/kitchen')
   })
 
   it('sends marketing to /console/analytics', () => {
-    expect(getDemoRedirect('marketing@savor.com')).toBe('/console/analytics')
+    expect(getDemoRedirect('marketing@samoon.com')).toBe('/console/analytics')
   })
 
   it('sends support to /console/customers', () => {
-    expect(getDemoRedirect('support@savor.com')).toBe('/console/customers')
+    expect(getDemoRedirect('support@samoon.com')).toBe('/console/customers')
   })
 
   it('sends admin to /console', () => {
-    expect(getDemoRedirect('admin@savor.com')).toBe('/console')
+    expect(getDemoRedirect('admin@samoon.com')).toBe('/console')
   })
 
   it('sends owner to /console', () => {
-    expect(getDemoRedirect('owner@savor.com')).toBe('/console')
+    expect(getDemoRedirect('owner@samoon.com')).toBe('/console')
   })
 
   it('sends platform admin to /console/tenants', () => {
-    expect(getDemoRedirect('platform@savor.com')).toBe('/console/tenants')
+    expect(getDemoRedirect('platform@samoon.com')).toBe('/console/tenants')
   })
 
   it('sends multi-role to /console/orders', () => {
-    expect(getDemoRedirect('multirole@savor.com')).toBe('/console/orders')
+    expect(getDemoRedirect('multirole@samoon.com')).toBe('/console/orders')
   })
 
   it('falls back to /console for unknown email', () => {

@@ -10,7 +10,7 @@ import { adminService } from '@/services/admin.service'
 import { loyaltyService } from '@/services/loyalty.service'
 import { MOCK_PLATFORM_USERS, MOCK_BUSINESS_CUSTOMERS, MOCK_BRANCH_CUSTOMERS, MOCK_LOYALTY_ACCOUNTS } from '@/lib/mock-data'
 
-const SAVOR = 'tenant-savor-01'
+const SAMOON = 'tenant-samoon-01'
 const BREW = 'tenant-brew-cafe-01'
 const OAK = 'tenant-oak-bar-01'
 const CENTRAL = 'tenant-central-fc-01'
@@ -68,7 +68,7 @@ describe('P8.9.6 — BusinessCustomer integrity', () => {
   })
 
   it('each tenant has at least 3 BusinessCustomers', () => {
-    const tenants = [SAVOR, BREW, OAK, CENTRAL, WHEELS, ROAD]
+    const tenants = [SAMOON, BREW, OAK, CENTRAL, WHEELS, ROAD]
     tenants.forEach((tid) => {
       const count = MOCK_BUSINESS_CUSTOMERS.filter((bc) => bc.tenantId === tid).length
       expect(count, `Tenant ${tid} has only ${count} BusinessCustomers`).toBeGreaterThanOrEqual(3)
@@ -116,38 +116,38 @@ describe('P8.9.6 — Cross-tenant user isolation', () => {
   })
 
   it('getCustomers for tenant A does not return customers only at tenant B', async () => {
-    const savorCustomers = await adminService.getCustomers({ tenantId: SAVOR })
+    const samoonCustomers = await adminService.getCustomers({ tenantId: SAMOON })
     const brewCustomers = await adminService.getCustomers({ tenantId: BREW })
 
-    const savorIds = new Set(savorCustomers.results.map((c) => c.id))
+    const samoonIds = new Set(samoonCustomers.results.map((c) => c.id))
     const brewIds = new Set(brewCustomers.results.map((c) => c.id))
 
-    // Get user IDs that are ONLY in brew (no savor business customer)
+    // Get user IDs that are ONLY in brew (no samoon business customer)
     const brewOnlyUserIds = MOCK_BUSINESS_CUSTOMERS
       .filter((bc) => bc.tenantId === BREW)
       .map((bc) => bc.userId)
-      .filter((uid) => !MOCK_BUSINESS_CUSTOMERS.some((bc) => bc.tenantId === SAVOR && bc.userId === uid))
+      .filter((uid) => !MOCK_BUSINESS_CUSTOMERS.some((bc) => bc.tenantId === SAMOON && bc.userId === uid))
 
     brewOnlyUserIds.forEach((uid) => {
-      expect(savorIds.has(uid), `User ${uid} (brew-only) incorrectly appears in savor customer list`).toBe(false)
+      expect(samoonIds.has(uid), `User ${uid} (brew-only) incorrectly appears in samoon customer list`).toBe(false)
     })
   })
 
-  it('getCustomer for savor returns savor-scoped metrics not brew metrics', async () => {
-    const aliceSavor = MOCK_BUSINESS_CUSTOMERS.find(
-      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAVOR
+  it('getCustomer for samoon returns samoon-scoped metrics not brew metrics', async () => {
+    const aliceSamoon = MOCK_BUSINESS_CUSTOMERS.find(
+      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAMOON
     )
     const aliceBrew = MOCK_BUSINESS_CUSTOMERS.find(
       (bc) => bc.userId === ALICE_ID && bc.tenantId === BREW
     )
-    if (!aliceSavor || !aliceBrew) return
+    if (!aliceSamoon || !aliceBrew) return
 
-    const customer = await adminService.getCustomer(ALICE_ID, SAVOR)
-    expect(customer.order_count).toBe(aliceSavor.ordersCount)
-    expect(customer.total_spent).toBe(aliceSavor.totalSpent)
+    const customer = await adminService.getCustomer(ALICE_ID, SAMOON)
+    expect(customer.order_count).toBe(aliceSamoon.ordersCount)
+    expect(customer.total_spent).toBe(aliceSamoon.totalSpent)
 
-    // Savor metrics should differ from brew metrics (proving isolation)
-    if (aliceSavor.ordersCount !== aliceBrew.ordersCount) {
+    // Samoon metrics should differ from brew metrics (proving isolation)
+    if (aliceSamoon.ordersCount !== aliceBrew.ordersCount) {
       const brewCustomer = await adminService.getCustomer(ALICE_ID, BREW)
       expect(brewCustomer.order_count).not.toBe(customer.order_count)
     }
@@ -172,71 +172,71 @@ describe('P8.9.6 — BranchCustomer integrity', () => {
   })
 
   it('getBranchCustomers returns only branches for the given user within the tenant', async () => {
-    const aliceSavorBC = MOCK_BUSINESS_CUSTOMERS.find(
-      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAVOR
+    const aliceSamoonBC = MOCK_BUSINESS_CUSTOMERS.find(
+      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAMOON
     )
-    if (!aliceSavorBC) return
+    if (!aliceSamoonBC) return
 
-    const branches = await adminService.getBranchCustomers(ALICE_ID, SAVOR)
+    const branches = await adminService.getBranchCustomers(ALICE_ID, SAMOON)
     branches.forEach((brc) => {
-      expect(brc.businessCustomerId).toBe(aliceSavorBC.id)
+      expect(brc.businessCustomerId).toBe(aliceSamoonBC.id)
     })
   })
 
   it('getBranchCustomers returns empty array for unknown user-tenant pair', async () => {
-    const result = await adminService.getBranchCustomers('nonexistent-user', SAVOR)
+    const result = await adminService.getBranchCustomers('nonexistent-user', SAMOON)
     expect(result).toEqual([])
   })
 })
 
 describe('P8.9.6 — adminService tenant scoping', () => {
   it('getCustomers paginates correctly', async () => {
-    const page1 = await adminService.getCustomers({ tenantId: SAVOR, page: 1, page_size: 5 })
+    const page1 = await adminService.getCustomers({ tenantId: SAMOON, page: 1, page_size: 5 })
     expect(page1.results.length).toBeLessThanOrEqual(5)
     expect(page1.count).toBeGreaterThan(0)
   })
 
   it('getCustomer throws for a user not in the given tenant', async () => {
-    // Find a user who only has a BusinessCustomer at BREW, not SAVOR
+    // Find a user who only has a BusinessCustomer at BREW, not SAMOON
     const brewOnlyUser = MOCK_BUSINESS_CUSTOMERS.find(
       (bc) =>
         bc.tenantId === BREW &&
-        !MOCK_BUSINESS_CUSTOMERS.some((b) => b.tenantId === SAVOR && b.userId === bc.userId)
+        !MOCK_BUSINESS_CUSTOMERS.some((b) => b.tenantId === SAMOON && b.userId === bc.userId)
     )
     if (!brewOnlyUser) return
 
-    await expect(adminService.getCustomer(brewOnlyUser.userId, SAVOR)).rejects.toThrow()
+    await expect(adminService.getCustomer(brewOnlyUser.userId, SAMOON)).rejects.toThrow()
   })
 
   it('getBusinessCustomer returns null for unknown user-tenant pair', async () => {
-    const result = await adminService.getBusinessCustomer('nonexistent', SAVOR)
+    const result = await adminService.getBusinessCustomer('nonexistent', SAMOON)
     expect(result).toBeNull()
   })
 
   it('getBusinessCustomer returns correct record for known pair', async () => {
-    const aliceSavor = MOCK_BUSINESS_CUSTOMERS.find(
-      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAVOR
+    const aliceSamoon = MOCK_BUSINESS_CUSTOMERS.find(
+      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAMOON
     )
-    if (!aliceSavor) return
+    if (!aliceSamoon) return
 
-    const result = await adminService.getBusinessCustomer(ALICE_ID, SAVOR)
+    const result = await adminService.getBusinessCustomer(ALICE_ID, SAMOON)
     expect(result).not.toBeNull()
     expect(result!.userId).toBe(ALICE_ID)
-    expect(result!.tenantId).toBe(SAVOR)
-    expect(result!.id).toBe(aliceSavor.id)
+    expect(result!.tenantId).toBe(SAMOON)
+    expect(result!.id).toBe(aliceSamoon.id)
   })
 
   it('getCustomerStats returns tenant-scoped stats', async () => {
-    const stats = await adminService.getCustomerStats(ALICE_ID, SAVOR)
+    const stats = await adminService.getCustomerStats(ALICE_ID, SAMOON)
     expect(stats.customer_id).toBe(ALICE_ID)
-    expect(stats.tenant_id).toBe(SAVOR)
+    expect(stats.tenant_id).toBe(SAMOON)
 
-    const aliceSavor = MOCK_BUSINESS_CUSTOMERS.find(
-      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAVOR
+    const aliceSamoon = MOCK_BUSINESS_CUSTOMERS.find(
+      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAMOON
     )
-    if (aliceSavor) {
-      expect(stats.order_count).toBe(aliceSavor.ordersCount)
-      expect(stats.total_spent).toBe(aliceSavor.totalSpent)
+    if (aliceSamoon) {
+      expect(stats.order_count).toBe(aliceSamoon.ordersCount)
+      expect(stats.total_spent).toBe(aliceSamoon.totalSpent)
     }
   })
 })
@@ -253,56 +253,56 @@ describe('P8.9.6 — Loyalty isolation', () => {
   })
 
   it('earning points at one tenant does not affect account at another', async () => {
-    const aliceSavorBC = MOCK_BUSINESS_CUSTOMERS.find(
-      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAVOR
+    const aliceSamoonBC = MOCK_BUSINESS_CUSTOMERS.find(
+      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAMOON
     )
     const aliceBrewBC = MOCK_BUSINESS_CUSTOMERS.find(
       (bc) => bc.userId === ALICE_ID && bc.tenantId === BREW
     )
-    if (!aliceSavorBC || !aliceBrewBC) return
+    if (!aliceSamoonBC || !aliceBrewBC) return
 
     const brewBefore = await loyaltyService.getAccount(ALICE_ID, BREW)
-    await loyaltyService.earnPoints({ orderId: 'test-order', amount: 500 }, ALICE_ID, SAVOR)
+    await loyaltyService.earnPoints({ orderId: 'test-order', amount: 500 }, ALICE_ID, SAMOON)
     const brewAfter = await loyaltyService.getAccount(ALICE_ID, BREW)
 
     expect(brewAfter.points).toBe(brewBefore.points)
   })
 
   it('getAccount with different tenantIds returns different accounts', async () => {
-    const aliceSavorBC = MOCK_BUSINESS_CUSTOMERS.find(
-      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAVOR
+    const aliceSamoonBC = MOCK_BUSINESS_CUSTOMERS.find(
+      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAMOON
     )
     const aliceBrewBC = MOCK_BUSINESS_CUSTOMERS.find(
       (bc) => bc.userId === ALICE_ID && bc.tenantId === BREW
     )
-    if (!aliceSavorBC || !aliceBrewBC) return
+    if (!aliceSamoonBC || !aliceBrewBC) return
 
-    const savorAccount = await loyaltyService.getAccount(ALICE_ID, SAVOR)
+    const samoonAccount = await loyaltyService.getAccount(ALICE_ID, SAMOON)
     const brewAccount = await loyaltyService.getAccount(ALICE_ID, BREW)
 
-    expect(savorAccount.tenantId).toBe(SAVOR)
+    expect(samoonAccount.tenantId).toBe(SAMOON)
     expect(brewAccount.tenantId).toBe(BREW)
-    expect(savorAccount.id).not.toBe(brewAccount.id)
+    expect(samoonAccount.id).not.toBe(brewAccount.id)
   })
 
   it('redeeming reward at one tenant does not affect the other tenant balance', async () => {
-    const aliceSavorBC = MOCK_BUSINESS_CUSTOMERS.find(
-      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAVOR
+    const aliceSamoonBC = MOCK_BUSINESS_CUSTOMERS.find(
+      (bc) => bc.userId === ALICE_ID && bc.tenantId === SAMOON
     )
-    if (!aliceSavorBC) return
+    if (!aliceSamoonBC) return
 
-    // Ensure alice has enough points at savor
-    await loyaltyService.earnPoints({ orderId: 'boost', amount: 1000 }, ALICE_ID, SAVOR)
+    // Ensure alice has enough points at samoon
+    await loyaltyService.earnPoints({ orderId: 'boost', amount: 1000 }, ALICE_ID, SAMOON)
 
     const brewBefore = await loyaltyService.getAccount(ALICE_ID, BREW)
     const rewards = await loyaltyService.getRewards()
     const cheapReward = rewards.find((r) => r.pointsCost <= 300)
     if (!cheapReward) return
 
-    const savorAccount = await loyaltyService.getAccount(ALICE_ID, SAVOR)
-    if (savorAccount.points < cheapReward.pointsCost) return
+    const samoonAccount = await loyaltyService.getAccount(ALICE_ID, SAMOON)
+    if (samoonAccount.points < cheapReward.pointsCost) return
 
-    await loyaltyService.redeemReward(cheapReward.id, ALICE_ID, SAVOR)
+    await loyaltyService.redeemReward(cheapReward.id, ALICE_ID, SAMOON)
     const brewAfter = await loyaltyService.getAccount(ALICE_ID, BREW)
 
     expect(brewAfter.points).toBe(brewBefore.points)
@@ -311,7 +311,7 @@ describe('P8.9.6 — Loyalty isolation', () => {
 
 describe('P8.9.6 — AdminCustomer view derivation correctness', () => {
   it('AdminCustomer.id equals PlatformUser.id (not a separate entity)', async () => {
-    const customers = await adminService.getCustomers({ tenantId: SAVOR })
+    const customers = await adminService.getCustomers({ tenantId: SAMOON })
     const platformIds = new Set(MOCK_PLATFORM_USERS.map((u) => u.id))
     customers.results.forEach((c) => {
       expect(platformIds.has(c.id), `AdminCustomer ${c.id} not found in PlatformUsers`).toBe(true)
@@ -319,12 +319,12 @@ describe('P8.9.6 — AdminCustomer view derivation correctness', () => {
   })
 
   it('AdminCustomer metrics match the BusinessCustomer source for that tenant', async () => {
-    const customers = await adminService.getCustomers({ tenantId: SAVOR })
+    const customers = await adminService.getCustomers({ tenantId: SAMOON })
     customers.results.forEach((c) => {
       const bc = MOCK_BUSINESS_CUSTOMERS.find(
-        (b) => b.userId === c.id && b.tenantId === SAVOR
+        (b) => b.userId === c.id && b.tenantId === SAMOON
       )
-      expect(bc, `No BusinessCustomer found for AdminCustomer ${c.id} at ${SAVOR}`).toBeDefined()
+      expect(bc, `No BusinessCustomer found for AdminCustomer ${c.id} at ${SAMOON}`).toBeDefined()
       if (bc) {
         expect(c.order_count).toBe(bc.ordersCount)
         expect(c.total_spent).toBe(bc.totalSpent)
@@ -333,7 +333,7 @@ describe('P8.9.6 — AdminCustomer view derivation correctness', () => {
   })
 
   it('AdminCustomer has phone_number derived from PlatformUser', async () => {
-    const customers = await adminService.getCustomers({ tenantId: SAVOR })
+    const customers = await adminService.getCustomers({ tenantId: SAMOON })
     customers.results.forEach((c) => {
       const pu = MOCK_PLATFORM_USERS.find((u) => u.id === c.id)
       if (pu) {
@@ -343,13 +343,13 @@ describe('P8.9.6 — AdminCustomer view derivation correctness', () => {
   })
 
   it('tier mapping: bronze→new, silver→regular, gold→vip, platinum→vip', async () => {
-    const customers = await adminService.getCustomers({ tenantId: SAVOR })
+    const customers = await adminService.getCustomers({ tenantId: SAMOON })
     const tierMap: Record<string, 'new' | 'regular' | 'vip'> = {
       bronze: 'new', silver: 'regular', gold: 'vip', platinum: 'vip',
     }
     customers.results.forEach((c) => {
       const bc = MOCK_BUSINESS_CUSTOMERS.find(
-        (b) => b.userId === c.id && b.tenantId === SAVOR
+        (b) => b.userId === c.id && b.tenantId === SAMOON
       )
       if (bc) {
         expect(c.tier).toBe(tierMap[bc.loyaltyTier])

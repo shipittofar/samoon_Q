@@ -75,10 +75,10 @@ describe('P10.2.1 — Tenant.ownerId (additive, nullable)', () => {
   })
 
   it('reading a tenant without knowledge of ownerId is unaffected (backward compatibility)', async () => {
-    const tenant = await tenantService.getTenant('savor')
+    const tenant = await tenantService.getTenant('samoon')
     // Every field that existed before P10.2.1 is still present and typed the same.
-    expect(tenant.id).toBe('tenant-savor-01')
-    expect(tenant.slug).toBe('savor')
+    expect(tenant.id).toBe('tenant-samoon-01')
+    expect(tenant.slug).toBe('samoon')
     expect(tenant.status).toBeDefined()
   })
 })
@@ -91,16 +91,16 @@ describe('P10.2.1 — StaffMember.ownerId (additive, nullable)', () => {
   it('every seeded staff member has an ownerId matching their tenantId\'s owner', async () => {
     const tenants = await tenantService.getTenants()
     const tenantOwnerById = new Map(tenants.map((t) => [t.id, t.ownerId]))
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     for (const member of staff) {
       expect(member.ownerId).toBe(tenantOwnerById.get(member.tenantId))
     }
   })
 
   it('existing StaffMember fields (tenantId, roles, status) are unchanged', async () => {
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     const owner = staff.find((s) => s.roles.includes('owner'))
-    expect(owner?.tenantId).toBe('tenant-savor-01')
+    expect(owner?.tenantId).toBe('tenant-samoon-01')
     expect(owner?.status).toBe('active')
   })
 })
@@ -119,7 +119,7 @@ describe('P10.2.1 — StaffAssignment', () => {
 
   it('has at least one future, one temporary, and one revoked assignment', async () => {
     const all = [
-      ...(await staffAssignmentService.getAssignmentsForTenant('tenant-savor-01')),
+      ...(await staffAssignmentService.getAssignmentsForTenant('tenant-samoon-01')),
       ...(await staffAssignmentService.getAssignmentsForTenant('tenant-brew-cafe-01')),
     ]
     expect(all.some((a) => a.status === 'future')).toBe(true)
@@ -128,19 +128,19 @@ describe('P10.2.1 — StaffAssignment', () => {
   })
 
   it('has at least one branchIds: "all" and one explicit-subset assignment', async () => {
-    const all = await staffAssignmentService.getAssignmentsForTenant('tenant-savor-01')
+    const all = await staffAssignmentService.getAssignmentsForTenant('tenant-samoon-01')
     expect(all.some((a) => a.branchIds === 'all')).toBe(true)
     expect(all.some((a) => Array.isArray(a.branchIds) && a.branchIds.length > 0)).toBe(true)
   })
 
   it('has at least one read-mode and one manage-mode assignment', async () => {
-    const all = await staffAssignmentService.getAssignmentsForTenant('tenant-savor-01')
+    const all = await staffAssignmentService.getAssignmentsForTenant('tenant-samoon-01')
     expect(all.some((a) => a.mode === 'read')).toBe(true)
     expect(all.some((a) => a.mode === 'manage')).toBe(true)
   })
 
   it('every seeded assignment satisfies the §3.3 ownership invariant', async () => {
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     const brewCafeStaff = (await tenantService.getTenants())
       .map((t) => t.id)
     const allStaff: StaffMember[] = []
@@ -150,7 +150,7 @@ describe('P10.2.1 — StaffAssignment', () => {
     const tenants = await tenantService.getTenants()
 
     const assignments: StaffAssignment[] = [
-      ...(await staffAssignmentService.getAssignmentsForTenant('tenant-savor-01')),
+      ...(await staffAssignmentService.getAssignmentsForTenant('tenant-samoon-01')),
       ...(await staffAssignmentService.getAssignmentsForTenant('tenant-brew-cafe-01')),
       ...(await staffAssignmentService.getAssignmentsForTenant('tenant-wheels-brews-01')),
     ]
@@ -187,12 +187,12 @@ describe('P10.2.1 — StaffAssignment', () => {
 
   it('grant() writes a new row and revoke() marks it revoked without deleting it', async () => {
     const tenants = await tenantService.getTenants()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
 
     const granted = await staffAssignmentService.grant(
       {
         staffId: 'staff-cashier-02',
-        tenantId: 'tenant-savor-01',
+        tenantId: 'tenant-samoon-01',
         branchIds: ['branch-rest-02'],
         role: 'cashier',
         mode: 'manage',
@@ -214,12 +214,12 @@ describe('P10.2.1 — StaffAssignment', () => {
 
   it('move() revokes the old assignment and grants a new one (not an in-place mutation)', async () => {
     const tenants = await tenantService.getTenants()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
 
     const original = await staffAssignmentService.grant(
       {
         staffId: 'staff-waiter-01',
-        tenantId: 'tenant-savor-01',
+        tenantId: 'tenant-samoon-01',
         branchIds: 'all',
         role: 'waiter',
         mode: 'manage',
@@ -311,15 +311,15 @@ describe('P10.2.1 — ownerOwnsTenant / resolveAssignmentBranchIds', () => {
   })
 
   it('expands "all" to every branch of the tenant', async () => {
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
-    const resolved = resolveAssignmentBranchIds({ tenantId: 'tenant-savor-01', branchIds: 'all' }, branches)
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
+    const resolved = resolveAssignmentBranchIds({ tenantId: 'tenant-samoon-01', branchIds: 'all' }, branches)
     expect(resolved.length).toBe(branches.length)
     expect(resolved).toContain('branch-rest-01')
   })
 
   it('passes through an explicit branch list unchanged', () => {
     const resolved = resolveAssignmentBranchIds(
-      { tenantId: 'tenant-savor-01', branchIds: ['branch-rest-01', 'branch-rest-02'] },
+      { tenantId: 'tenant-samoon-01', branchIds: ['branch-rest-01', 'branch-rest-02'] },
       [],
     )
     expect(resolved).toEqual(['branch-rest-01', 'branch-rest-02'])

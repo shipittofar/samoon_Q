@@ -13,10 +13,10 @@ const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms))
  */
 const MOCK_TENANTS: Record<string, Tenant> = {
   default: { ...DEFAULT_TENANT },
-  savor: {
-    id: 'tenant-savor-01',
-    name: 'Savor Restaurant',
-    slug: 'savor',
+  samoon: {
+    id: 'tenant-samoon-01',
+    name: 'Samoon Restaurant',
+    slug: 'samoon',
     businessTypes: ['restaurant'],
     status: 'active',
     createdAt: '2024-01-01T00:00:00.000Z',
@@ -40,8 +40,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         priceLevel: 3,
         amenities: ['WiFi', 'Parking', 'Outdoor Seating', 'Accessible'],
         phone_number: '+1 (212) 555-0100',
-        email: 'hello@savor.com',
-        website: 'https://www.savor.com',
+        email: 'hello@samoon.com',
+        website: 'https://www.samoon.com',
         gallery: [
           'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
           'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=800&q=80',

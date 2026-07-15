@@ -4,7 +4,7 @@
  * Covers:
  *   P2.2.L1 — Header reads logoUrl from tenant theme
  *   P2.2.L2 — Header renders tenant logo image when logoUrl is present
- *   P2.2.L3 — Header renders default Savor wordmark when logoUrl is absent
+ *   P2.2.L3 — Header renders default Samoon wordmark when logoUrl is absent
  *   P2.2.L4 — Alt text uses tenant name
  *   P2.2.L5 — TenantTheme type carries logoUrl field
  */
@@ -70,10 +70,10 @@ describe('P2.2.L2 — Header renders tenant logo image when logoUrl is set', () 
 
 // ── P2.2.L3 — Header renders default wordmark when logoUrl is absent ──────────
 
-describe('P2.2.L3 — Header renders default Savor wordmark when logoUrl is absent', () => {
-  it('Header still contains the Savor wordmark text', () => {
+describe('P2.2.L3 — Header renders default Samoon wordmark when logoUrl is absent', () => {
+  it('Header still contains the Samoon wordmark text', () => {
     const content = src('components/layout/Header.tsx')
-    expect(content).toContain('Savor')
+    expect(content).toContain('Samoon')
   })
 
   it('Header still contains the S icon div (orange gradient fallback)', () => {
@@ -81,12 +81,12 @@ describe('P2.2.L3 — Header renders default Savor wordmark when logoUrl is abse
     expect(content).toContain('from-orange-400 to-orange-600')
   })
 
-  it('Savor wordmark is in the else branch of the logoUrl conditional', () => {
+  it('Samoon wordmark is in the else branch of the logoUrl conditional', () => {
     const content = src('components/layout/Header.tsx')
     const logoIdx = content.indexOf('logoUrl ?')
-    const savorIdx = content.indexOf('Savor', logoIdx)
+    const samoonIdx = content.indexOf('Samoon', logoIdx)
     expect(logoIdx).toBeGreaterThan(-1)
-    expect(savorIdx).toBeGreaterThan(logoIdx)
+    expect(samoonIdx).toBeGreaterThan(logoIdx)
   })
 })
 

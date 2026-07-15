@@ -13,7 +13,7 @@ describe('Staff ownership — every tenant has at least one staff member', () =>
   })
 
   const TENANT_IDS = [
-    'tenant-savor-01',
+    'tenant-samoon-01',
     'tenant-brew-cafe-01',
     'tenant-oak-bar-01',
     'tenant-central-fc-01',
@@ -21,8 +21,8 @@ describe('Staff ownership — every tenant has at least one staff member', () =>
     'tenant-road-bites-01',
   ]
 
-  it('savor has at least 1 staff member', async () => {
-    const staff = await staffService.getStaff('tenant-savor-01')
+  it('samoon has at least 1 staff member', async () => {
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.length).toBeGreaterThanOrEqual(1)
   })
 
@@ -68,7 +68,7 @@ describe('Staff ownership — every tenant has at least one staff member', () =>
 
 describe('Branch ownership — each tenant owns only its branches', () => {
   const TENANT_IDS = [
-    'tenant-savor-01',
+    'tenant-samoon-01',
     'tenant-brew-cafe-01',
     'tenant-oak-bar-01',
     'tenant-central-fc-01',
@@ -119,8 +119,8 @@ describe('Gallery and marketplace ownership per tenant', () => {
     }
   })
 
-  it('savor tenant has its own gallery images', async () => {
-    const tenant = await tenantService.getTenant('savor')
+  it('samoon tenant has its own gallery images', async () => {
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.gallery?.length).toBeGreaterThanOrEqual(1)
   })
@@ -128,7 +128,7 @@ describe('Gallery and marketplace ownership per tenant', () => {
 
 describe('URL ownership — preview URLs always include tenant context', () => {
   it('buildPublicUrl never returns "/" for known tenant', () => {
-    expect(buildPublicUrl({ tenantSlug: 'savor', branchSlug: 'main', module: '' })).toBe('/savor/main')
+    expect(buildPublicUrl({ tenantSlug: 'samoon', branchSlug: 'main', module: '' })).toBe('/samoon/main')
     expect(buildPublicUrl({ tenantSlug: 'brew-cafe', branchSlug: 'main' })).toBe('/brew-cafe/main')
   })
 
@@ -139,7 +139,7 @@ describe('URL ownership — preview URLs always include tenant context', () => {
   })
 
   it('hrefToPublicUrl generates per-tenant preview URL for all known tenants', () => {
-    const tenantSlugs = ['savor', 'brew-cafe', 'the-oak-bar', 'central-food-court', 'wheels-and-brews']
+    const tenantSlugs = ['samoon', 'brew-cafe', 'the-oak-bar', 'central-food-court', 'wheels-and-brews']
     tenantSlugs.forEach((slug) => {
       const url = hrefToPublicUrl('/menu', slug, 'main')
       expect(url).toBe(`/${slug}/main/menu`)

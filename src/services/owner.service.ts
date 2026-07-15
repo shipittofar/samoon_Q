@@ -29,13 +29,13 @@ const delay = (ms = 250) => new Promise<void>((r) => setTimeout(r, ms))
 //
 // Ownership assignment (documented here since it's the single source of
 // truth other mock rebuilds in this phase read from):
-//   owner-001 (Olivia Owner)  → tenant-savor-01, tenant-brew-cafe-01
+//   owner-001 (Olivia Owner)  → tenant-samoon-01, tenant-brew-cafe-01
 //   owner-002 (Drew Owner)    → tenant-oak-bar-01
 //   owner-003 (Jordan Owner)  → tenant-central-fc-01, tenant-wheels-brews-01
 //   owner-004 (Sam Owner)     → tenant-road-bites-01 (suspended)
 //
 // This deliberately consolidates two legacy "owner"-role tenants under a
-// single Owner apiece (savor+brew-cafe under Olivia; central-fc+wheels-
+// single Owner apiece (samoon+brew-cafe under Olivia; central-fc+wheels-
 // brews under Jordan) to realize the target hierarchy's "one Owner owns
 // multiple Tenants" shape. The legacy staff members who previously held
 // the 'owner' role on the now-consolidated tenants (Blake on brew-cafe,
@@ -51,7 +51,7 @@ const MOCK_OWNERS: Owner[] = [
     status: 'active',
     plan: 'enterprise',
     maxTenants: null,
-    billing: { customerId: 'cus_owner001', billingEmail: 'owner@savor.com' },
+    billing: { customerId: 'cus_owner001', billingEmail: 'owner@samoon.com' },
     createdAt: '2023-01-01T00:00:00Z',
     verifiedAt: '2023-01-02T00:00:00Z',
   },
@@ -92,7 +92,7 @@ const MOCK_OWNERS: Owner[] = [
  *  services (tenant.service.ts, staff.service.ts) stay in sync with this
  *  single source of truth instead of hand-duplicating the mapping. */
 export const MOCK_TENANT_OWNER_MAP: Record<string, string> = {
-  'tenant-savor-01': 'owner-001',
+  'tenant-samoon-01': 'owner-001',
   'tenant-brew-cafe-01': 'owner-001',
   'tenant-oak-bar-01': 'owner-002',
   'tenant-central-fc-01': 'owner-003',

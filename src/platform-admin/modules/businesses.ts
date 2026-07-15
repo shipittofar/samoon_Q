@@ -16,10 +16,10 @@ import { registerAdminModule } from '../register-module'
 
 const PERMISSIONS = { view: 'settings.view', edit: 'settings.manage' }
 
-const TENANT_IDS = ['savor', 'brew-cafe', 'the-oak-bar', 'central-food-court', 'road-bites', 'wheels-and-brews']
+const TENANT_IDS = ['samoon', 'brew-cafe', 'the-oak-bar', 'central-food-court', 'road-bites', 'wheels-and-brews']
 
 const TENANT_NAMES: Record<string, string> = {
-  savor: 'Savor Restaurant',
+  samoon: 'Samoon Restaurant',
   'brew-cafe': 'Brew Cafe',
   'the-oak-bar': 'The Oak Bar',
   'central-food-court': 'Central Food Court',
@@ -28,7 +28,7 @@ const TENANT_NAMES: Record<string, string> = {
 }
 
 const TENANT_BUSINESS_TYPE: Record<string, string> = {
-  savor: 'restaurant',
+  samoon: 'restaurant',
   'brew-cafe': 'cafe',
   'the-oak-bar': 'bar',
   'central-food-court': 'food_court',

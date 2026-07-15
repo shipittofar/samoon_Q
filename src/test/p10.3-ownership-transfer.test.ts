@@ -16,21 +16,21 @@ beforeEach(() => {
 
 describe('P10.3 Phase F — tenantService.transferOwnership (single source of truth for Tenant.ownerId)', () => {
   it('reassigns Tenant.ownerId', async () => {
-    const updated = await tenantService.transferOwnership('tenant-savor-01', 'owner-002')
+    const updated = await tenantService.transferOwnership('tenant-samoon-01', 'owner-002')
     expect(updated.ownerId).toBe('owner-002')
   })
 
   it('is reflected by a subsequent getTenants() read', async () => {
-    await tenantService.transferOwnership('tenant-savor-01', 'owner-002')
+    await tenantService.transferOwnership('tenant-samoon-01', 'owner-002')
     const tenants = await tenantService.getTenants()
-    const savor = tenants.find((t) => t.id === 'tenant-savor-01')
-    expect(savor?.ownerId).toBe('owner-002')
+    const samoon = tenants.find((t) => t.id === 'tenant-samoon-01')
+    expect(samoon?.ownerId).toBe('owner-002')
   })
 })
 
 describe('P10.3 Phase F — staffService.transferOwnership (legacy + Tenant.ownerId sync)', () => {
   it('keeps legacy role-swap behavior unchanged when the target has no Owner record', async () => {
-    // staff-manager-01 (tenant-savor-01) has no corresponding Owner record.
+    // staff-manager-01 (tenant-samoon-01) has no corresponding Owner record.
     const result = await staffService.transferOwnership('staff-owner-01', 'staff-manager-01')
     expect(result.owner.roles).toContain('owner')
     expect(result.prevOwner.roles).toContain('admin')
@@ -38,8 +38,8 @@ describe('P10.3 Phase F — staffService.transferOwnership (legacy + Tenant.owne
 
     // Tenant.ownerId is deliberately left unchanged — target has no Owner record.
     const tenants = await tenantService.getTenants()
-    const savor = tenants.find((t) => t.id === 'tenant-savor-01')
-    expect(savor?.ownerId).toBe('owner-001')
+    const samoon = tenants.find((t) => t.id === 'tenant-samoon-01')
+    expect(samoon?.ownerId).toBe('owner-001')
   })
 
   it('synchronizes Tenant.ownerId when both source and target are backed by real Owner records', async () => {
@@ -50,8 +50,8 @@ describe('P10.3 Phase F — staffService.transferOwnership (legacy + Tenant.owne
     expect(result.owner.ownerId).toBe('owner-003')
 
     const tenants = await tenantService.getTenants()
-    const savor = tenants.find((t) => t.id === 'tenant-savor-01')
-    expect(savor?.ownerId).toBe('owner-003')
+    const samoon = tenants.find((t) => t.id === 'tenant-samoon-01')
+    expect(samoon?.ownerId).toBe('owner-003')
   })
 
   it('throws when transferring to oneself (unchanged legacy behavior)', async () => {

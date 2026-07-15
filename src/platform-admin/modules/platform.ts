@@ -21,7 +21,7 @@ registerAdminModule({
   icon: 'LayoutDashboard',
   platformPermission: 'platform.dashboard.view',
   fields: [
-    defineField({ id: 'platform_name', title: 'Platform Name', category: 'platform', type: 'string', default: 'Savor', permissions: PERMISSIONS, uiControl: 'text' }),
+    defineField({ id: 'platform_name', title: 'Platform Name', category: 'platform', type: 'string', default: 'Samoon', permissions: PERMISSIONS, uiControl: 'text' }),
     defineField({ id: 'default_landing_widget_set', title: 'Default Dashboard Widget Set', category: 'platform', type: 'select', default: 'standard', options: [
       { value: 'standard', label: 'Standard' },
       { value: 'finance_focused', label: 'Finance-Focused' },

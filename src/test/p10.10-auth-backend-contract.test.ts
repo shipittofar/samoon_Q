@@ -39,7 +39,7 @@ afterEach(() => {
 
 describe('P10.10 Test 1 — login() response matches the documented SessionResponse contract', () => {
   it('returns { user, tokens: { access, refresh }, p7Roles } and persists tokens', async () => {
-    const promise = authService.login({ email: 'owner@savor.com', password: 'password' })
+    const promise = authService.login({ email: 'owner@samoon.com', password: 'password' })
     await vi.runAllTimersAsync()
     const result = await promise
 
@@ -83,7 +83,7 @@ describe('P10.10 Test 3 — verifyOTP(): new user does NOT create a session', ()
 
 describe('P10.10 Test 4 — getMe(): restores RBAC state identically to login', () => {
   it('a staff (cashier) session restored via getMe() returns the same tenantRoles login would have set', async () => {
-    const loginPromise = authService.login({ email: 'cashier@savor.com', password: 'password' })
+    const loginPromise = authService.login({ email: 'cashier@samoon.com', password: 'password' })
     await vi.runAllTimersAsync()
     const login = await loginPromise
     expect(login.p7Roles).toEqual(['cashier'])

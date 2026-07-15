@@ -15,13 +15,13 @@ if (config.apiKey) {
   const messaging = firebase.messaging()
 
   messaging.onBackgroundMessage((payload) => {
-    const { title = 'Savor', body = '' } = payload.notification || {}
+    const { title = 'Samoon', body = '' } = payload.notification || {}
     self.registration.showNotification(title, {
       body,
       icon: '/icons/icon-192x192.png',
       badge: '/icons/icon-72x72.png',
       data: payload.data,
-      tag: payload.data?.order_id ?? 'savor-notification',
+      tag: payload.data?.order_id ?? 'samoon-notification',
     })
   })
 }

@@ -196,7 +196,7 @@ describe('P3.4 — PWA asset manifest audit', () => {
 // ── P3.5 Mock Login Fix ───────────────────────────────────────────────────────
 
 describe('P3.5 — Mock login credential enforcement', () => {
-  const DEMO_EMAIL = 'demo@savor.com'
+  const DEMO_EMAIL = 'demo@samoon.com'
   const DEMO_PASSWORD = 'password'
 
   // Replicate the fixed mock login logic
@@ -207,7 +207,7 @@ describe('P3.5 — Mock login credential enforcement', () => {
     return true
   }
 
-  it('accepts demo@savor.com / password', () => {
+  it('accepts demo@samoon.com / password', () => {
     expect(() => mockLogin(DEMO_EMAIL, DEMO_PASSWORD)).not.toThrow()
     expect(mockLogin(DEMO_EMAIL, DEMO_PASSWORD)).toBe(true)
   })
@@ -238,7 +238,7 @@ describe('P3.5 — Mock login credential enforcement', () => {
     // which is equivalent to the original OR-based check.
     expect(authSrc).toContain("!entry || credentials.password !== 'password'")
     // The old broken && must not be present
-    expect(authSrc).not.toContain("credentials.email !== 'demo@savor.com' && credentials.password !== 'password'")
+    expect(authSrc).not.toContain("credentials.email !== 'demo@samoon.com' && credentials.password !== 'password'")
   })
 })
 

@@ -459,13 +459,13 @@ export function checkPermission(
 
 // ── Mock infrastructure ───────────────────────────────────────────────────────
 
-export const MOCK_TENANT_ID = 'tenant-savor-01'
+export const MOCK_TENANT_ID = 'tenant-samoon-01'
 export const MOCK_TENANT_B_ID = 'tenant-brew-cafe-01'
 
 export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   {
     id: 'user-owner-01',
-    email: 'owner@savor.com',
+    email: 'owner@samoon.com',
     first_name: 'Olivia',
     last_name: 'Owner',
     tenantAssignments: [
@@ -474,7 +474,7 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   },
   {
     id: 'user-admin-01',
-    email: 'admin@savor.com',
+    email: 'admin@samoon.com',
     first_name: 'Alex',
     last_name: 'Admin',
     tenantAssignments: [
@@ -483,7 +483,7 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   },
   {
     id: 'user-manager-01',
-    email: 'manager@savor.com',
+    email: 'manager@samoon.com',
     first_name: 'Maria',
     last_name: 'Manager',
     tenantAssignments: [
@@ -492,7 +492,7 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   },
   {
     id: 'user-cashier-01',
-    email: 'cashier@savor.com',
+    email: 'cashier@samoon.com',
     first_name: 'Casey',
     last_name: 'Cashier',
     tenantAssignments: [
@@ -501,7 +501,7 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   },
   {
     id: 'user-waiter-01',
-    email: 'waiter@savor.com',
+    email: 'waiter@samoon.com',
     first_name: 'Will',
     last_name: 'Waiter',
     tenantAssignments: [
@@ -510,7 +510,7 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   },
   {
     id: 'user-kitchen-01',
-    email: 'kitchen@savor.com',
+    email: 'kitchen@samoon.com',
     first_name: 'Kai',
     last_name: 'Kitchen',
     tenantAssignments: [
@@ -519,7 +519,7 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   },
   {
     id: 'user-marketing-01',
-    email: 'marketing@savor.com',
+    email: 'marketing@samoon.com',
     first_name: 'Morgan',
     last_name: 'Marketing',
     tenantAssignments: [
@@ -528,7 +528,7 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   },
   {
     id: 'user-support-01',
-    email: 'support@savor.com',
+    email: 'support@samoon.com',
     first_name: 'Sam',
     last_name: 'Support',
     tenantAssignments: [
@@ -538,7 +538,7 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
   {
     // Multi-tenant: manager on Tenant A, cashier on Tenant B
     id: 'user-multi-01',
-    email: 'multi@savor.com',
+    email: 'multi@samoon.com',
     first_name: 'Max',
     last_name: 'Multi',
     tenantAssignments: [

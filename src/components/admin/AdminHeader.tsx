@@ -74,14 +74,14 @@ export function AdminHeader() {
             <Link
               href="/console"
               className="flex items-center gap-2 group"
-              aria-label={t('adminConsoleLinkAria', { name: tenant?.name ?? 'Savor' })}
+              aria-label={t('adminConsoleLinkAria', { name: tenant?.name ?? 'Samoon' })}
             >
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
                 <span className="text-white text-sm font-bold">S</span>
               </div>
               <div className="flex flex-col leading-tight">
                 <span className="text-sm font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors">
-                  {tenant?.name ?? 'Savor'}
+                  {tenant?.name ?? 'Samoon'}
                 </span>
                 <span className="text-[10px] font-medium text-[var(--fg-muted)] uppercase tracking-wider">
                   {t('admin')}

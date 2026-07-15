@@ -93,9 +93,9 @@ describe('P4.9.1 — Logger context injection helpers', () => {
   it('withTenant injects tenant into context', async () => {
     const { createLogger, withTenant } = await import('@/lib/logger')
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    const log = withTenant(createLogger('tenant-test'), 'savor-demo')
+    const log = withTenant(createLogger('tenant-test'), 'samoon-demo')
     log.info('event')
-    expect(spy.mock.calls[0].join(' ')).toContain('savor-demo')
+    expect(spy.mock.calls[0].join(' ')).toContain('samoon-demo')
   })
 
   it('createApiLogger strips email from context', async () => {

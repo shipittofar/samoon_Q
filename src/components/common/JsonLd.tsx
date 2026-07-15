@@ -5,11 +5,11 @@ import type { MenuItem } from '@/types'
 // WebSite schema. The platform is a multi-tenant hospitality marketplace, not
 // a restaurant. Tenant/branch pages emit their own restaurant-typed schemas.
 export function PlatformSchema() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Savor',
+    name: 'Samoon',
     description: 'Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses.',
     url: baseUrl,
     image: `${baseUrl}/og-image.jpg`,

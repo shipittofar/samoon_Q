@@ -61,7 +61,7 @@ export async function getLocalizedPageMetadata({ locale, path, namespaceKey, bas
     title,
     description,
     keywords,
-    openGraph: { type: 'website', siteName: 'Savor Platform', title, description },
+    openGraph: { type: 'website', siteName: 'Samoon Platform', title, description },
     twitter: { card: 'summary_large_image', title, description },
     robots: { index: true, follow: true },
     alternates: {

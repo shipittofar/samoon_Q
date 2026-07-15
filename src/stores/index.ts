@@ -405,7 +405,7 @@ export const useFavoritesStore = create<FavoritesState>()(
       setFavorites: (ids) => set({ favorites: new Set(ids) }),
     }),
     {
-      name: 'savor-favorites',
+      name: 'samoon-favorites',
       storage: {
         getItem: (name) => {
           const str = localStorage.getItem(name)
@@ -443,7 +443,7 @@ export const useRecentlyViewedStore = create<RecentlyViewedState>()(
         })),
       clear: () => set({ items: [] }),
     }),
-    { name: 'savor-recently-viewed' },
+    { name: 'samoon-recently-viewed' },
   ),
 )
 
@@ -464,7 +464,7 @@ interface RbacStoreState {
   // Tenant-scoped role assignments
   //
   // P10.7 Phase F — TRANSITIONAL PERSISTED FIELD. `tenantRoles` is still
-  // persisted to localStorage (see the `persist(..., { name: 'savor-rbac' })`
+  // persisted to localStorage (see the `persist(..., { name: 'samoon-rbac' })`
   // call below — no `partialize` yet). This is a KNOWN, DOCUMENTED gap,
   // not an oversight: docs/P10.5.5_RBAC_REAL_MODE_SECURITY.md §3 and
   // docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md §3 both cover why it
@@ -608,7 +608,7 @@ export const useRbacStore = create<RbacStoreState>()(
     // the `tenantRoles`/`userOverrides` field comments above for why
     // both are still fully persisted, and what precondition must be met
     // before a future phase adds one.
-    { name: 'savor-rbac' },
+    { name: 'samoon-rbac' },
   ),
 )
 

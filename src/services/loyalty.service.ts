@@ -61,7 +61,7 @@ const DEFAULT_TRANSACTIONS = (accountId: string, tenantId: string): LoyaltyTrans
   { id: `txn-${accountId}-5`, accountId, tenantId, type: 'earn',   points: 135,  description: 'Order #1019 — earned 135 pts',  createdAt: new Date(Date.now() - 18 * 86_400_000).toISOString(), referenceId: 'order-1019' },
 ]
 
-function getMockTransactions(accountId: string, tenantId = 'tenant-savor-01'): LoyaltyTransaction[] {
+function getMockTransactions(accountId: string, tenantId = 'tenant-samoon-01'): LoyaltyTransaction[] {
   return mockTransactionsByAccount.get(accountId) ?? DEFAULT_TRANSACTIONS(accountId, tenantId)
 }
 
@@ -130,7 +130,7 @@ export const loyaltyService = {
     if (USE_MOCK) {
       await delay(400)
       const uid = userId ?? 'pu-001'
-      const tid = tenantId ?? 'tenant-savor-01'
+      const tid = tenantId ?? 'tenant-samoon-01'
       return getMockAccount(uid, tid)
     }
     const { data } = await api.get<LoyaltyAccount>(ENDPOINTS.LOYALTY.ACCOUNT)
@@ -141,7 +141,7 @@ export const loyaltyService = {
     if (USE_MOCK) {
       await delay(500)
       const uid = userId ?? 'pu-001'
-      const tid = tenantId ?? 'tenant-savor-01'
+      const tid = tenantId ?? 'tenant-samoon-01'
       const account = getMockAccount(uid, tid)
       return getMockTransactions(account.id)
     }
@@ -162,7 +162,7 @@ export const loyaltyService = {
     if (USE_MOCK) {
       await delay(700)
       const uid = userId ?? 'pu-001'
-      const tid = tenantId ?? 'tenant-savor-01'
+      const tid = tenantId ?? 'tenant-samoon-01'
       const key = `${uid}:${tid}`
       const account = getMockAccount(uid, tid)
       const reward = mockRewards.find((r) => r.id === rewardId)
@@ -198,7 +198,7 @@ export const loyaltyService = {
     if (USE_MOCK) {
       await delay(400)
       const uid = userId ?? 'pu-001'
-      const tid = tenantId ?? 'tenant-savor-01'
+      const tid = tenantId ?? 'tenant-samoon-01'
       const key = `${uid}:${tid}`
       const account = getMockAccount(uid, tid)
       const pointsEarned = Math.round(payload.amount)
@@ -280,14 +280,14 @@ export const loyaltyService = {
     mockAccountOverrides.clear()
     mockTransactionsByAccount.clear()
     mockRewards = mockRewards.map((r) => ({ ...r, active: true }))
-    // Restore the canonical test state for the default user (pu-001 / tenant-savor-01).
+    // Restore the canonical test state for the default user (pu-001 / tenant-samoon-01).
     // Tests that call _resetMockStore() then getAccount() expect these exact values.
-    const testKey = 'pu-001:tenant-savor-01'
+    const testKey = 'pu-001:tenant-samoon-01'
     const testAccountId = 'la-test-reset'
     mockAccountOverrides.set(testKey, {
       id: testAccountId,
       userId: 'pu-001',
-      tenantId: 'tenant-savor-01',
+      tenantId: 'tenant-samoon-01',
       points: 340,
       lifetimePoints: 1340,
       tier: 'silver',

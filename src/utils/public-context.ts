@@ -26,7 +26,7 @@ import { buildRestaurantJsonLd, serializeJsonLd } from '@/lib/json-ld'
 
 /** Single canonical base URL for all public pages. */
 export const PUBLIC_BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+  process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
 // ── Section visibility ────────────────────────────────────────────────────────
 
@@ -208,8 +208,8 @@ export function buildTenantMetadata(opts: {
 }): PublicMetadataFields {
   const { tenantName, tenantSlug, meta } = opts
   return {
-    title: `${tenantName} — Savor Platform`,
-    description: meta?.description ?? `Discover ${tenantName} on the Savor platform.`,
+    title: `${tenantName} — Samoon Platform`,
+    description: meta?.description ?? `Discover ${tenantName} on the Samoon platform.`,
     url: `${PUBLIC_BASE_URL}/${tenantSlug}`,
     image: meta?.coverImage ?? `${PUBLIC_BASE_URL}/og-image.jpg`,
   }

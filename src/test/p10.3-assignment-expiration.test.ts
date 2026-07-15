@@ -15,19 +15,19 @@ beforeEach(() => {
 
 describe('P10.3 Phase I — getNextAssignmentExpiry', () => {
   it('returns null for a staff member with no temporary assignments', () => {
-    const identity = resolveOwnershipIdentity('cashier@savor.com')
+    const identity = resolveOwnershipIdentity('cashier@samoon.com')
     expect(getNextAssignmentExpiry(identity.staffMember!.id)).toBeNull()
   })
 
   it("returns lee.line's (staff-kitchen-02) temporary assignment expiry (assign-008, validUntil set)", () => {
-    const identity = resolveOwnershipIdentity('lee.line@savor.com')
+    const identity = resolveOwnershipIdentity('lee.line@samoon.com')
     const expiry = getNextAssignmentExpiry(identity.staffMember!.id)
     expect(expiry).not.toBeNull()
     expect(expiry!.getTime()).toBeGreaterThan(Date.now())
   })
 
   it('returns null once the temporary assignment has actually expired (not effective at that "now")', () => {
-    const identity = resolveOwnershipIdentity('lee.line@savor.com')
+    const identity = resolveOwnershipIdentity('lee.line@samoon.com')
     const farFuture = new Date(Date.now() + 365 * 86_400_000)
     expect(getNextAssignmentExpiry(identity.staffMember!.id, farFuture)).toBeNull()
   })

@@ -172,7 +172,7 @@ describe('P4.3.3 — Readiness endpoint', () => {
   afterEach(() => vi.unstubAllEnvs())
 
   it('returns 200 and { status: "ready" } when env is valid', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.savor.com')
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.samoon.com')
     vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'false')
     const { GET } = await import('@/app/api/ready/route')
     const response = await GET()
@@ -192,7 +192,7 @@ describe('P4.3.3 — Readiness endpoint', () => {
   })
 
   it('returns 503 when NEXT_PUBLIC_USE_MOCK has an invalid value', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.savor.com')
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.samoon.com')
     vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'yes')
     const { GET } = await import('@/app/api/ready/route')
     const response = await GET()
@@ -207,7 +207,7 @@ describe('P4.3.3 — Readiness endpoint', () => {
       NEXT_PUBLIC_USE_MOCK: z.enum(['true', 'false']),
     })
     const result = schema.safeParse({
-      NEXT_PUBLIC_API_BASE_URL: 'https://api.savor.com',
+      NEXT_PUBLIC_API_BASE_URL: 'https://api.samoon.com',
       NEXT_PUBLIC_USE_MOCK: 'true',
     })
     expect(result.success).toBe(true)

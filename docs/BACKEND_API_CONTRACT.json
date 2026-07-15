@@ -1,6 +1,6 @@
 {
   "meta": {
-    "project": "Savor Restaurant SaaS",
+    "project": "Samoon Restaurant SaaS",
     "generated": "2026-06-21",
     "source": "src/types/index.ts, src/services/**, src/hooks/index.ts",
     "rest_base_url": "${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000/api}",

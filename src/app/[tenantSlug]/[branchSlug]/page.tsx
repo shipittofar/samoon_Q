@@ -14,7 +14,7 @@ export async function generateMetadata({
   const tenant = await tenantService.getTenant(tenantSlug)
 
   if (tenant.slug === 'default' && tenantSlug !== 'default') {
-    return { title: 'Branch not found — Savor Platform' }
+    return { title: 'Branch not found — Samoon Platform' }
   }
 
   const meta = getMarketplaceMeta(tenant.settings)
@@ -43,7 +43,7 @@ export async function generateMetadata({
       title,
       description,
       url,
-      siteName: 'Savor Platform',
+      siteName: 'Samoon Platform',
       type: 'website',
       images: [{ url: image, width: 1200, height: 630, alt: branch.name }],
     },

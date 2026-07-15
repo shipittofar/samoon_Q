@@ -2,7 +2,7 @@ import type { Tenant } from '@/types'
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'
 export const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8000/ws'
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Savor'
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Samoon'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 export const JWT_ACCESS_KEY = 'access_token'
@@ -10,12 +10,12 @@ export const JWT_REFRESH_KEY = 'refresh_token'
 export const CSRF_HEADER = 'X-CSRFToken'
 export const CSRF_COOKIE = 'csrftoken'
 
-export const THEME_KEY = 'savor-theme'
-export const CART_KEY = 'savor-cart'
-export const BRANCH_KEY = 'savor-branch'
-export const LANG_KEY = 'savor-lang'
-export const TENANT_KEY = 'savor-tenant'
-export const DINE_IN_KEY = 'savor-dine-in'
+export const THEME_KEY = 'samoon-theme'
+export const CART_KEY = 'samoon-cart'
+export const BRANCH_KEY = 'samoon-branch'
+export const LANG_KEY = 'samoon-lang'
+export const TENANT_KEY = 'samoon-tenant'
+export const DINE_IN_KEY = 'samoon-dine-in'
 
 /**
  * Fallback tenant used when no tenant can be resolved from the network or URL.
@@ -23,7 +23,7 @@ export const DINE_IN_KEY = 'savor-dine-in'
  * deployment when no tenant context is available (P1A.4 backward compatibility).
  *
  * Tenant resolution strategy decision (P1A.1):
- *   Production: subdomain-based — {tenant}.savor.app
+ *   Production: subdomain-based — {tenant}.samoon.app
  *   Dev / mock:  path-based     — resolved from NEXT_PUBLIC_TENANT_SLUG env var
  *                                 or query param ?tenant=<slug>
  * Full routing implementation is Phase 1B (P1B.3). This constant is the frontend

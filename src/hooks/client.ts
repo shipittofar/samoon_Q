@@ -196,7 +196,7 @@ export function useFcmRegistration() {
 
       // Handle foreground messages (app is open and focused)
       unsubForeground = onForegroundMessage((payload) => {
-        const { title = process.env.NEXT_PUBLIC_APP_NAME || 'Savor', body = '' } = payload.notification ?? {}
+        const { title = process.env.NEXT_PUBLIC_APP_NAME || 'Samoon', body = '' } = payload.notification ?? {}
         const notification: Notification = {
           id: `fcm-${Date.now()}`,
           type: (payload.data?.type as Notification['type']) ?? 'system',

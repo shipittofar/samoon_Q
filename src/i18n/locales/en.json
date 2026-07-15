@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Savor",
+    "appName": "Samoon",
     "loading": "Loading...",
     "error": "Something went wrong",
     "retry": "Try again",
@@ -102,8 +102,8 @@
     "otpResendFailed": "Failed to resend OTP.",
     "createAccountTitle": "Create account",
     "joinThousands": "Join thousands of food lovers today",
-    "joinSavorFamily": "Join the Savor Family",
-    "joinSavorFamilySubtitle": "Create your account and unlock a world of culinary delights.",
+    "joinSamoonFamily": "Join the Samoon Family",
+    "joinSamoonFamilySubtitle": "Create your account and unlock a world of culinary delights.",
     "agreeToTermsCreate": "By creating an account you agree to our",
     "createAccountButton": "Create Account",
     "alreadyHaveAccount": "Already have an account?",
@@ -112,7 +112,7 @@
     "toggleConfirmPassword": "Toggle confirm password",
     "minEightChars": "Min. 8 characters",
     "repeatPassword": "Repeat password",
-    "registrationSuccess": "Account created! Welcome to Savor 🎉",
+    "registrationSuccess": "Account created! Welcome to Samoon 🎉",
     "registrationFailed": "Registration failed. Email may already be in use.",
     "verified": "Verified!",
     "takingYouToAccount": "Taking you to your account…",
@@ -312,7 +312,7 @@
     "online": "Online Payment",
     "onlineDesc": "PayPal, Apple Pay, Google Pay",
     "wallet": "Wallet Balance",
-    "walletDesc": "Use your Savor credits",
+    "walletDesc": "Use your Samoon credits",
     "notes": "Order Notes",
     "notesPlaceholder": "Any special instructions for your order?",
     "placeOrder": "Place Order",
@@ -1897,8 +1897,8 @@
     "stepColonLabel": "Step: {label}",
     "stepNumberColonLabel": "Step {number}: {label}",
     "tenantNameLabel": "Tenant Name",
-    "tenantNamePlaceholder": "e.g. Savor Restaurant",
-    "tenantSlugPlaceholder": "e.g. savor-restaurant",
+    "tenantNamePlaceholder": "e.g. Samoon Restaurant",
+    "tenantSlugPlaceholder": "e.g. samoon-restaurant",
     "slugCharsHint": "2–63 lowercase letters, numbers, or hyphens",
     "businessTypeSelectionAria": "Business type selection",
     "requiredCapabilitiesHint": "Required capabilities are always enabled. Toggle optional capabilities below.",
@@ -2451,7 +2451,7 @@
       },
       "users": {
         "name": "Platform Users",
-        "description": "Savor employees with access to the Platform Administration Center — distinct from any tenant's own staff.",
+        "description": "Samoon employees with access to the Platform Administration Center — distinct from any tenant's own staff.",
         "general": {
           "title": "General"
         },
@@ -4277,63 +4277,63 @@
   },
   "seo": {
     "root": {
-      "title": "Savor — Hospitality Platform",
-      "description": "Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses on Savor.",
+      "title": "Samoon — Hospitality Platform",
+      "description": "Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses on Samoon.",
       "keywords": "restaurant discovery, hospitality platform, food ordering, table booking, cafe, bar, food truck, local dining, marketplace, restaurant marketplace"
     },
     "home": {
-      "title": "Savor — Discover Local Businesses",
-      "description": "Browse restaurants, cafés, bars, food trucks, and more. Discover local businesses, explore menus, and book tables on Savor.",
+      "title": "Samoon — Discover Local Businesses",
+      "description": "Browse restaurants, cafés, bars, food trucks, and more. Discover local businesses, explore menus, and book tables on Samoon.",
       "keywords": "restaurant discovery, hospitality platform, food ordering, table booking, cafe, bar, food truck, local dining, marketplace"
     },
     "restaurantAbout": {
-      "title": "About — Savor Platform",
-      "description": "Learn about the Savor hospitality platform — connecting customers with great local businesses.",
-      "keywords": "about savor, hospitality platform, our story, contact us"
+      "title": "About — Samoon Platform",
+      "description": "Learn about the Samoon hospitality platform — connecting customers with great local businesses.",
+      "keywords": "about samoon, hospitality platform, our story, contact us"
     },
     "discover": {
-      "title": "Discover Businesses — Savor Platform",
+      "title": "Discover Businesses — Samoon Platform",
       "description": "Browse restaurants, cafés, bars, food trucks, and more. Filter by cuisine, amenities, price, and opening hours. Find your next favourite spot.",
-      "keywords": "discover restaurants, find cafés, food near me, restaurant search, marketplace, food court, bar finder, food trucks, Savor platform"
+      "keywords": "discover restaurants, find cafés, food near me, restaurant search, marketplace, food court, bar finder, food trucks, Samoon platform"
     },
     "menu": {
-      "title": "Menu — Savor",
-      "description": "Browse menus from restaurants, cafés, bars, and more on Savor. Find dishes, explore categories, and order online.",
-      "keywords": "menu, restaurant menu, order online, food delivery, Savor platform"
+      "title": "Menu — Samoon",
+      "description": "Browse menus from restaurants, cafés, bars, and more on Samoon. Find dishes, explore categories, and order online.",
+      "keywords": "menu, restaurant menu, order online, food delivery, Samoon platform"
     },
     "events": {
-      "title": "Events | Savor",
+      "title": "Events | Samoon",
       "description": "Discover upcoming events and live entertainment at this venue.",
       "keywords": "events, live entertainment, venue events"
     },
     "location": {
-      "title": "Live Location | Savor",
+      "title": "Live Location | Samoon",
       "description": "Track the real-time location of this food truck or mobile café.",
       "keywords": "live location, food truck tracker, mobile cafe location"
     },
     "reviews": {
-      "title": "Reviews | Savor",
+      "title": "Reviews | Samoon",
       "description": "Read customer reviews and ratings for this business.",
       "keywords": "reviews, ratings, customer feedback"
     },
     "promotions": {
-      "title": "Promotions & Offers | Savor",
+      "title": "Promotions & Offers | Samoon",
       "description": "Browse active promotions, happy hour offers, and upcoming deals.",
       "keywords": "promotions, discounts, happy hour, offers, deals"
     },
     "vendors": {
-      "title": "Vendors | Savor",
+      "title": "Vendors | Samoon",
       "description": "Explore vendors, stalls, and their ratings, orders, and settlements.",
       "keywords": "vendors, stalls, marketplace vendors"
     },
     "login": {
-      "title": "Sign In | Savor",
-      "description": "Sign in to your Savor account to order, reserve tables, and track your orders.",
+      "title": "Sign In | Samoon",
+      "description": "Sign in to your Samoon account to order, reserve tables, and track your orders.",
       "keywords": "sign in, login, customer account"
     },
     "register": {
-      "title": "Create Account | Savor",
-      "description": "Create a free Savor account for faster checkout, order tracking, and exclusive member deals.",
+      "title": "Create Account | Samoon",
+      "description": "Create a free Samoon account for faster checkout, order tracking, and exclusive member deals.",
       "keywords": "create account, register, sign up, customer account"
     }
   },
@@ -4382,8 +4382,8 @@
     "noFeaturedDishesAvailable": "No featured dishes available right now.",
     "exploreTheMenu": "Explore the menu.",
     "exploreLabel": "Explore",
-    "popularOnSavor": "Popular on Savor",
-    "popularOnSavorSubtitle": "Restaurants, cafés, bars, and more — all on Savor",
+    "popularOnSamoon": "Popular on Samoon",
+    "popularOnSamoonSubtitle": "Restaurants, cafés, bars, and more — all on Samoon",
     "browseAll500Businesses": "Browse All 500+ Businesses",
     "howItWorks": {
       "eyebrow": "Simple",
@@ -4410,7 +4410,7 @@
     "forBusinessOwners": {
       "eyebrow": "For Business Owners",
       "heading": "Everything You Need to Run a Modern Hospitality Business",
-      "subtitle": "Savor gives restaurants, cafés, bars, and food trucks a complete digital operations platform — from online ordering and reservations to analytics and loyalty programs.",
+      "subtitle": "Samoon gives restaurants, cafés, bars, and food trucks a complete digital operations platform — from online ordering and reservations to analytics and loyalty programs.",
       "registerYourBusiness": "Register Your Business",
       "seeAllFeatures": "See All Features",
       "benefits": {
@@ -4443,7 +4443,7 @@
     "platformFeatures": {
       "eyebrow": "Platform",
       "heading": "Everything in One Platform",
-      "subtitle": "Savor provides the complete digital stack for modern hospitality businesses — no third-party patchwork required.",
+      "subtitle": "Samoon provides the complete digital stack for modern hospitality businesses — no third-party patchwork required.",
       "getStartedFree": "Get Started Free",
       "noCreditCardNote": "No credit card required · Set up in minutes",
       "items": {
@@ -4492,7 +4492,7 @@
     "testimonials": {
       "eyebrow": "Loved by Diners",
       "heading": "What Our Community Says",
-      "subtitle": "Thousands of food lovers use Savor every day to discover, book, and order from local businesses.",
+      "subtitle": "Thousands of food lovers use Samoon every day to discover, book, and order from local businesses.",
       "items": {
         "sarah": {
           "quote": "Found three new restaurants in my neighbourhood using the category search. Booked a table and ordered — all from one place.",
@@ -4505,7 +4505,7 @@
           "role": "Regular Diner"
         },
         "layla": {
-          "quote": "Discovered a food truck pop-up through Savor that I would never have found otherwise. Now I check it every weekend.",
+          "quote": "Discovered a food truck pop-up through Samoon that I would never have found otherwise. Now I check it every weekend.",
           "name": "Layla K.",
           "role": "Food Enthusiast"
         }
@@ -4668,7 +4668,7 @@
     "businessNotFound": "Business not found",
     "businessNotFoundDesc": "We could not find a business at this URL.",
     "browseAllBusinesses": "Browse all businesses",
-    "businessNotFoundLongDesc": "We could not find a business at this URL. It may have moved or no longer be listed on Savor."
+    "businessNotFoundLongDesc": "We could not find a business at this URL. It may have moved or no longer be listed on Samoon."
   },
   "branch": {
     "openNow": "Open Now",
@@ -4808,7 +4808,7 @@
     "mobileNavigationAria": "Mobile navigation",
     "logoAlt": "{name} logo",
     "tenantHomeAria": "{name} home",
-    "poweredBySavorAria": "Powered by Savor — browse the marketplace",
+    "poweredBySamoonAria": "Powered by Samoon — browse the marketplace",
     "poweredBy": "Powered by",
     "tenantNavigationAria": "{name} navigation",
     "tenantMobileNavigationAria": "{name} mobile navigation",
@@ -4834,12 +4834,12 @@
       "trackOrder": "Track Order",
       "becomeAPartner": "Become a Partner",
       "pricing": "Pricing",
-      "aboutSavor": "About Savor",
+      "aboutSamoon": "About Samoon",
       "support": "Support",
       "privacyPolicy": "Privacy Policy",
       "termsOfService": "Terms of Service"
     },
-    "copyright": "© {year} Savor Platform. All rights reserved."
+    "copyright": "© {year} Samoon Platform. All rights reserved."
   },
   "tenantFooter": {
     "instagram": "Instagram",
@@ -4848,7 +4848,7 @@
     "contact": "Contact",
     "copyright": "© {year} {name}. All rights reserved.",
     "poweredBy": "Powered by",
-    "savorPlatform": "Savor Platform"
+    "samoonPlatform": "Samoon Platform"
   },
   "branchSelector": {
     "selectBranch": "Select Branch",

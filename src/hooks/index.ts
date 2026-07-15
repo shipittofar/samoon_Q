@@ -369,8 +369,8 @@ export function useModuleNav(): NavItem[] {
  * P10.4.10 — the legacy `rbacService.hasPermission(role, 'dashboard:access')`
  * fallback ('legacyGranted') was removed from this OR-expression.
  * docs/P10.4.9_RBAC_MIGRATION_PREPARATION.md closed the id-space gap it
- * existed for (`staff@savor.com`/`multirole@savor.com` — and
- * `admin@savor.com`/`kitchen@savor.com`, found during that phase — now
+ * existed for (`staff@samoon.com`/`multirole@samoon.com` — and
+ * `admin@samoon.com`/`kitchen@samoon.com`, found during that phase — now
  * have real StaffMember/StaffAssignment fixtures), and
  * docs/P10.4.10_REMOVE_LEGACY_DASHBOARD_FALLBACK.md proved every
  * console-capable demo account resolves through this ownership/

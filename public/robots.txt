@@ -4,4 +4,4 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /dashboard/
 
-Sitemap: https://www.savor.com/sitemap.xml
+Sitemap: https://www.samoon.com/sitemap.xml

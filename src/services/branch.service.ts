@@ -25,7 +25,7 @@ import type {
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
-const MOCK_TENANT_ID     = 'tenant-savor-01'
+const MOCK_TENANT_ID     = 'tenant-samoon-01'
 const TENANT_BREW_CAFE   = 'tenant-brew-cafe-01'
 const TENANT_OAK_BAR     = 'tenant-oak-bar-01'
 const TENANT_CENTRAL_FC  = 'tenant-central-fc-01'
@@ -59,7 +59,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     status: 'active',
     type: 'physical',
     location: { address: '123 Culinary Avenue', city: 'New York', country: 'US', latitude: 40.7128, longitude: -74.006 },
-    contact: { phone_number: '+1 212 555 0100', email: 'main@savor.com' },
+    contact: { phone_number: '+1 212 555 0100', email: 'main@samoon.com' },
     managerId: 'staff-manager-01',
     businessHours: defaultHours('10:00', '23:00'),
     settings: { deliveryEnabled: true, deliveryRadius: 10, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 120 },
@@ -74,7 +74,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     status: 'active',
     type: 'physical',
     location: { address: '456 Urban Street', city: 'New York', country: 'US', latitude: 40.72, longitude: -73.99 },
-    contact: { phone_number: '+1 212 555 0200', email: 'downtown@savor.com' },
+    contact: { phone_number: '+1 212 555 0200', email: 'downtown@samoon.com' },
     managerId: 'staff-admin-01',
     businessHours: defaultHours('11:00', '22:00'),
     settings: { deliveryEnabled: true, deliveryRadius: 8, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 80 },
@@ -104,7 +104,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     status: 'active',
     type: 'physical',
     location: { address: '789 Coffee Lane', city: 'New York', country: 'US', latitude: 40.754, longitude: -73.984 },
-    contact: { phone_number: '+1 212 555 0400', email: 'midtown@savor.com' },
+    contact: { phone_number: '+1 212 555 0400', email: 'midtown@samoon.com' },
     businessHours: defaultHours('07:00', '20:00'),
     settings: { deliveryEnabled: true, deliveryRadius: 5, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 50 },
     createdAt: '2023-08-01T00:00:00Z',
@@ -133,7 +133,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     status: 'active',
     type: 'physical',
     location: { address: '555 Tap Street', city: 'New York', country: 'US', latitude: 40.726, longitude: -73.983 },
-    contact: { phone_number: '+1 212 555 0600', email: 'bar@savor.com' },
+    contact: { phone_number: '+1 212 555 0600', email: 'bar@samoon.com' },
     businessHours: defaultHours('16:00', '02:00'),
     settings: { deliveryEnabled: false, pickupEnabled: false, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 100 },
     createdAt: '2023-07-01T00:00:00Z',
@@ -148,7 +148,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     status: 'active',
     type: 'physical',
     location: { address: '100 Market Street', city: 'New York', country: 'US', latitude: 40.76, longitude: -73.99 },
-    contact: { phone_number: '+1 212 555 0700', email: 'foodcourt@savor.com' },
+    contact: { phone_number: '+1 212 555 0700', email: 'foodcourt@samoon.com' },
     businessHours: defaultHours('10:00', '21:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: false, maxCapacity: 300 },
     createdAt: '2022-11-01T00:00:00Z',
@@ -172,7 +172,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
   {
     id: 'branch-ft-01',
     tenantId: MOCK_TENANT_ID,
-    name: 'Savor Truck Alpha',
+    name: 'Samoon Truck Alpha',
     slug: 'truck-alpha',
     status: 'active',
     type: 'mobile',
@@ -186,7 +186,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
   {
     id: 'branch-ft-02',
     tenantId: MOCK_TENANT_ID,
-    name: 'Savor Truck Beta',
+    name: 'Samoon Truck Beta',
     slug: 'truck-beta',
     status: 'active',
     type: 'mobile',

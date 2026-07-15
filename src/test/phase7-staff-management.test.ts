@@ -33,25 +33,25 @@ async function freshService() {
 describe('A. StaffStatus type', () => {
   it('A1: pending is a valid StaffStatus', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.some((s) => s.status === 'pending')).toBe(true)
   })
 
   it('A2: active is a valid StaffStatus', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.some((s) => s.status === 'active')).toBe(true)
   })
 
   it('A3: suspended is a valid StaffStatus', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.some((s) => s.status === 'suspended')).toBe(true)
   })
 
   it('A4: removed is a valid StaffStatus', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.some((s) => s.status === 'removed')).toBe(true)
   })
 
@@ -69,19 +69,19 @@ describe('A. StaffStatus type', () => {
 describe('B. InviteStatus type', () => {
   it('B1: pending invite exists in mock data', async () => {
     const { staffService } = await freshService()
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.some((i) => i.status === 'pending')).toBe(true)
   })
 
   it('B2: expired invite exists in mock data', async () => {
     const { staffService } = await freshService()
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.some((i) => i.status === 'expired')).toBe(true)
   })
 
   it('B3: cancelled invite exists in mock data', async () => {
     const { staffService } = await freshService()
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.some((i) => i.status === 'cancelled')).toBe(true)
   })
 
@@ -108,56 +108,56 @@ describe('B. InviteStatus type', () => {
 describe('C. StaffMember shape', () => {
   it('C1: has required id field', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff[0]).toHaveProperty('id')
   })
 
   it('C2: has tenantId field', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff[0]).toHaveProperty('tenantId')
   })
 
   it('C3: has email field', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff[0]).toHaveProperty('email')
   })
 
   it('C4: has roles array', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(Array.isArray(staff[0]!.roles)).toBe(true)
   })
 
   it('C5: branchIds is optional — may be undefined', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     const hasMissing = staff.some((s) => s.branchIds === undefined)
     expect(hasMissing).toBe(true)
   })
 
   it('C6: createdBy is present', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff[0]).toHaveProperty('createdBy')
   })
 
   it('C7: invitedAt is present', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff[0]).toHaveProperty('invitedAt')
   })
 
   it('C8: status is present', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff[0]).toHaveProperty('status')
   })
 
   it('C9: userId is present', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff[0]).toHaveProperty('userId')
   })
 
@@ -172,13 +172,13 @@ describe('C. StaffMember shape', () => {
 describe('D. Mock data coverage', () => {
   it('D1: at least 15 mock staff members', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.length).toBeGreaterThanOrEqual(15)
   })
 
   it('D2: all 8 roles represented', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     const roles = new Set(staff.flatMap((s) => s.roles))
     ;['owner', 'admin', 'manager', 'cashier', 'waiter', 'kitchen', 'marketing', 'support'].forEach(
       (r) => expect(roles.has(r as never)).toBe(true),
@@ -187,25 +187,25 @@ describe('D. Mock data coverage', () => {
 
   it('D3: has exactly 1 owner', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.filter((s) => s.roles.includes('owner')).length).toBe(1)
   })
 
   it('D4: has at least 10 active staff members', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.filter((s) => s.status === 'active').length).toBeGreaterThanOrEqual(10)
   })
 
   it('D5: has 4 mock invites', async () => {
     const { staffService } = await freshService()
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.length).toBe(4)
   })
 
   it('D6: has 2 pending invites', async () => {
     const { staffService } = await freshService()
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.filter((i) => i.status === 'pending').length).toBe(2)
   })
 
@@ -223,13 +223,13 @@ describe('D. Mock data coverage', () => {
 
   it('D9: has at least 2 suspended staff', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.filter((s) => s.status === 'suspended').length).toBeGreaterThanOrEqual(1)
   })
 
   it('D10: has at least 1 removed staff', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.filter((s) => s.status === 'removed').length).toBeGreaterThanOrEqual(1)
   })
 })
@@ -274,7 +274,7 @@ describe('E. getStaffMember', () => {
 describe('F. inviteStaff', () => {
   it('F1: creates a pending invite', async () => {
     const { staffService } = await freshService()
-    const invite = await staffService.inviteStaff('tenant-savor-01', {
+    const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'new.hire@test.com',
       roles: ['waiter'],
     })
@@ -283,7 +283,7 @@ describe('F. inviteStaff', () => {
 
   it('F2: invite has correct email', async () => {
     const { staffService } = await freshService()
-    const invite = await staffService.inviteStaff('tenant-savor-01', {
+    const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'hire2@test.com',
       roles: ['cashier'],
     })
@@ -292,7 +292,7 @@ describe('F. inviteStaff', () => {
 
   it('F3: invite has correct roles', async () => {
     const { staffService } = await freshService()
-    const invite = await staffService.inviteStaff('tenant-savor-01', {
+    const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'hire3@test.com',
       roles: ['manager'],
     })
@@ -301,11 +301,11 @@ describe('F. inviteStaff', () => {
 
   it('F4: invite appears in getInvites', async () => {
     const { staffService } = await freshService()
-    await staffService.inviteStaff('tenant-savor-01', {
+    await staffService.inviteStaff('tenant-samoon-01', {
       email: 'hire4@test.com',
       roles: ['support'],
     })
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.some((i) => i.email === 'hire4@test.com')).toBe(true)
   })
 
@@ -313,7 +313,7 @@ describe('F. inviteStaff', () => {
     const { staffService, staffAuditHooks } = await freshService()
     const events: Array<{ action: string }> = []
     staffAuditHooks.subscribe((e) => events.push(e))
-    await staffService.inviteStaff('tenant-savor-01', {
+    await staffService.inviteStaff('tenant-samoon-01', {
       email: 'audit.hire@test.com',
       roles: ['waiter'],
     })
@@ -323,7 +323,7 @@ describe('F. inviteStaff', () => {
 
   it('F6: invite has expiresAt in the future', async () => {
     const { staffService } = await freshService()
-    const invite = await staffService.inviteStaff('tenant-savor-01', {
+    const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'future@test.com',
       roles: ['waiter'],
     })
@@ -332,7 +332,7 @@ describe('F. inviteStaff', () => {
 
   it('F7: invite has id', async () => {
     const { staffService } = await freshService()
-    const invite = await staffService.inviteStaff('tenant-savor-01', {
+    const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'idholder@test.com',
       roles: ['kitchen'],
     })
@@ -342,11 +342,11 @@ describe('F. inviteStaff', () => {
 
   it('F8: invite has correct tenantId', async () => {
     const { staffService } = await freshService()
-    const invite = await staffService.inviteStaff('tenant-savor-01', {
+    const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'tenant@test.com',
       roles: ['marketing'],
     })
-    expect(invite.tenantId).toBe('tenant-savor-01')
+    expect(invite.tenantId).toBe('tenant-samoon-01')
   })
 })
 
@@ -377,7 +377,7 @@ describe('G. cancelInvite', () => {
   it('G5: cancelled invite persists in list', async () => {
     const { staffService } = await freshService()
     await staffService.cancelInvite('invite-001')
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     const invite = invites.find((i) => i.id === 'invite-001')
     expect(invite?.status).toBe('cancelled')
   })
@@ -443,7 +443,7 @@ describe('I. acceptInvite', () => {
   it('I5: invite status becomes accepted after acceptInvite', async () => {
     const { staffService } = await freshService()
     await staffService.acceptInvite('invite-001')
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.find((i) => i.id === 'invite-001')?.status).toBe('accepted')
   })
 })
@@ -596,7 +596,7 @@ describe('M. removeStaff', () => {
   it('M5: removed member still returned by getStaff', async () => {
     const { staffService } = await freshService()
     await staffService.removeStaff('staff-waiter-01')
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     expect(staff.some((s) => s.id === 'staff-waiter-01')).toBe(true)
   })
 })
@@ -693,39 +693,39 @@ describe('N. transferOwnership', () => {
 describe('O. computeAnalytics', () => {
   it('O1: totalStaff excludes removed members', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     const analytics = staffService.computeAnalytics(staff, invites)
     expect(analytics.totalStaff).toBe(staff.filter((s) => s.status !== 'removed').length)
   })
 
   it('O2: activeStaff count matches active members', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     const analytics = staffService.computeAnalytics(staff, invites)
     expect(analytics.activeStaff).toBe(staff.filter((s) => s.status === 'active').length)
   })
 
   it('O3: pendingInvites count matches pending invites', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     const analytics = staffService.computeAnalytics(staff, invites)
     expect(analytics.pendingInvites).toBe(invites.filter((i) => i.status === 'pending').length)
   })
 
   it('O4: suspendedStaff count matches suspended members', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     const analytics = staffService.computeAnalytics(staff, invites)
     expect(analytics.suspendedStaff).toBe(staff.filter((s) => s.status === 'suspended').length)
   })
 
   it('O5: byRole contains owner count ≥ 1', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     const analytics = staffService.computeAnalytics(staff, [])
     expect(analytics.byRole['owner']).toBeGreaterThanOrEqual(1)
   })
@@ -741,7 +741,7 @@ describe('O. computeAnalytics', () => {
 
   it('O7: byRole has kitchen key', async () => {
     const { staffService } = await freshService()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     const analytics = staffService.computeAnalytics(staff, [])
     expect(analytics.byRole['kitchen']).toBeGreaterThanOrEqual(1)
   })
@@ -752,32 +752,32 @@ describe('O. computeAnalytics', () => {
 describe('P. getMembership', () => {
   it('P1: returns membership for known user+tenant', async () => {
     const { staffService } = await freshService()
-    const membership = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const membership = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(membership).toBeDefined()
   })
 
   it('P2: membership has correct userId', async () => {
     const { staffService } = await freshService()
-    const membership = staffService.getMembership('user-admin-01', 'tenant-savor-01')
+    const membership = staffService.getMembership('user-admin-01', 'tenant-samoon-01')
     expect(membership?.userId).toBe('user-admin-01')
   })
 
   it('P3: membership has correct tenantId', async () => {
     const { staffService } = await freshService()
-    const membership = staffService.getMembership('user-owner-01', 'tenant-savor-01')
-    expect(membership?.tenantId).toBe('tenant-savor-01')
+    const membership = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
+    expect(membership?.tenantId).toBe('tenant-samoon-01')
   })
 
   it('P4: membership has roles including owner', async () => {
     const { staffService } = await freshService()
-    const membership = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const membership = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(Array.isArray(membership?.roles)).toBe(true)
     expect(membership?.roles).toContain('owner')
   })
 
   it('P5: returns undefined for unknown user', async () => {
     const { staffService } = await freshService()
-    expect(staffService.getMembership('no-such-user', 'tenant-savor-01')).toBeUndefined()
+    expect(staffService.getMembership('no-such-user', 'tenant-samoon-01')).toBeUndefined()
   })
 
   it('P6: tenant isolation — wrong tenant returns undefined', async () => {
@@ -787,13 +787,13 @@ describe('P. getMembership', () => {
 
   it('P7: membership has joinedAt', async () => {
     const { staffService } = await freshService()
-    const membership = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const membership = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(membership?.joinedAt).toBeDefined()
   })
 
   it('P8: membership has staffMemberId', async () => {
     const { staffService } = await freshService()
-    const membership = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const membership = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(membership?.staffMemberId).toBeDefined()
   })
 })
@@ -835,7 +835,7 @@ describe('Q. Audit hooks', () => {
     const { staffService, staffAuditHooks } = await freshService()
     await staffService.suspendStaff('staff-cashier-01')
     const log = staffAuditHooks.getLog()
-    expect(log[0]?.tenantId).toBe('tenant-savor-01')
+    expect(log[0]?.tenantId).toBe('tenant-samoon-01')
   })
 
   it('Q6: audit event has timestamp', async () => {
@@ -885,18 +885,18 @@ describe('Q. Audit hooks', () => {
 describe('R. _resetMockStore', () => {
   it('R1: restores original staff count after mutation', async () => {
     const { staffService } = await freshService()
-    const before = (await staffService.getStaff('tenant-savor-01')).length
-    await staffService.inviteStaff('tenant-savor-01', { email: 'x@x.com', roles: ['waiter'] })
+    const before = (await staffService.getStaff('tenant-samoon-01')).length
+    await staffService.inviteStaff('tenant-samoon-01', { email: 'x@x.com', roles: ['waiter'] })
     staffService._resetMockStore()
-    const after = (await staffService.getStaff('tenant-savor-01')).length
+    const after = (await staffService.getStaff('tenant-samoon-01')).length
     expect(after).toBe(before)
   })
 
   it('R2: restores original invite count after mutation', async () => {
     const { staffService } = await freshService()
-    await staffService.inviteStaff('tenant-savor-01', { email: 'x@x.com', roles: ['waiter'] })
+    await staffService.inviteStaff('tenant-samoon-01', { email: 'x@x.com', roles: ['waiter'] })
     staffService._resetMockStore()
-    const invites = await staffService.getInvites('tenant-savor-01')
+    const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.length).toBe(4)
   })
 
@@ -1087,7 +1087,7 @@ describe('U. StaffAuditEvent shape', () => {
     const { staffService, staffAuditHooks } = await freshService()
     const events: Array<{ inviteId?: string }> = []
     staffAuditHooks.subscribe((e) => events.push(e as { inviteId?: string }))
-    await staffService.inviteStaff('tenant-savor-01', { email: 'x@x.com', roles: ['waiter'] })
+    await staffService.inviteStaff('tenant-samoon-01', { email: 'x@x.com', roles: ['waiter'] })
     expect(events[0]?.inviteId).toBeDefined()
   })
 })
@@ -1225,31 +1225,31 @@ describe('W. Staff page source', () => {
 describe('X. TenantMembership shape', () => {
   it('X1: membership has userId', async () => {
     const { staffService } = await freshService()
-    const m = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const m = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(m).toHaveProperty('userId')
   })
 
   it('X2: membership has tenantId', async () => {
     const { staffService } = await freshService()
-    const m = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const m = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(m).toHaveProperty('tenantId')
   })
 
   it('X3: membership has staffMemberId', async () => {
     const { staffService } = await freshService()
-    const m = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const m = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(m).toHaveProperty('staffMemberId')
   })
 
   it('X4: membership has roles array', async () => {
     const { staffService } = await freshService()
-    const m = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const m = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(Array.isArray(m?.roles)).toBe(true)
   })
 
   it('X5: membership has status', async () => {
     const { staffService } = await freshService()
-    const m = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const m = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(m).toHaveProperty('status')
   })
 
@@ -1260,7 +1260,7 @@ describe('X. TenantMembership shape', () => {
 
   it('X7: membership status matches staff member status', async () => {
     const { staffService } = await freshService()
-    const m = staffService.getMembership('user-owner-01', 'tenant-savor-01')
+    const m = staffService.getMembership('user-owner-01', 'tenant-samoon-01')
     expect(m?.status).toBe('active')
   })
 })
@@ -1270,17 +1270,17 @@ describe('X. TenantMembership shape', () => {
 describe('Y. Regression', () => {
   it('Y1: getStaff returns copies — mutations do not affect store', async () => {
     const { staffService } = await freshService()
-    const staff1 = await staffService.getStaff('tenant-savor-01')
+    const staff1 = await staffService.getStaff('tenant-samoon-01')
     staff1[0]!.email = 'mutated@test.com'
-    const staff2 = await staffService.getStaff('tenant-savor-01')
+    const staff2 = await staffService.getStaff('tenant-samoon-01')
     expect(staff2[0]!.email).not.toBe('mutated@test.com')
   })
 
   it('Y2: getInvites returns copies — mutations do not affect store', async () => {
     const { staffService } = await freshService()
-    const inv1 = await staffService.getInvites('tenant-savor-01')
+    const inv1 = await staffService.getInvites('tenant-samoon-01')
     inv1[0]!.email = 'mutated@test.com'
-    const inv2 = await staffService.getInvites('tenant-savor-01')
+    const inv2 = await staffService.getInvites('tenant-samoon-01')
     expect(inv2[0]!.email).not.toBe('mutated@test.com')
   })
 

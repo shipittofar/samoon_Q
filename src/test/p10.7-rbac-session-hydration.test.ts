@@ -20,7 +20,7 @@ import type { User } from '@/types'
 import type { Role } from '@/types/rbac'
 
 vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
-vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.savor.test')
+vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.samoon.test')
 
 vi.mock('@/constants', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/constants')>()
@@ -67,25 +67,25 @@ describe('P10.7 — getMe() returns user only (no session email set)', () => {
 })
 
 describe('P10.7 — getMe() returns tenantRoles for a known demo session', () => {
-  it('cashier@savor.com: getMe() returns tenantRoles === ["cashier"], matching MOCK_CREDENTIALS.p7Roles', async () => {
-    localStorage.setItem(MOCK_SESSION_KEY, 'cashier@savor.com')
+  it('cashier@samoon.com: getMe() returns tenantRoles === ["cashier"], matching MOCK_CREDENTIALS.p7Roles', async () => {
+    localStorage.setItem(MOCK_SESSION_KEY, 'cashier@samoon.com')
     const promise = authService.getMe()
     await vi.runAllTimersAsync()
     const user = await promise
-    expect(user.email).toBe('cashier@savor.com')
+    expect(user.email).toBe('cashier@samoon.com')
     expect(user.tenantRoles).toEqual(['cashier'])
   })
 
-  it('multirole@savor.com: getMe() returns both roles', async () => {
-    localStorage.setItem(MOCK_SESSION_KEY, 'multirole@savor.com')
+  it('multirole@samoon.com: getMe() returns both roles', async () => {
+    localStorage.setItem(MOCK_SESSION_KEY, 'multirole@samoon.com')
     const promise = authService.getMe()
     await vi.runAllTimersAsync()
     const user = await promise
     expect(user.tenantRoles).toEqual(['cashier', 'kitchen'])
   })
 
-  it('demo@savor.com: getMe() returns an empty tenantRoles array (matches its empty p7Roles)', async () => {
-    localStorage.setItem(MOCK_SESSION_KEY, 'demo@savor.com')
+  it('demo@samoon.com: getMe() returns an empty tenantRoles array (matches its empty p7Roles)', async () => {
+    localStorage.setItem(MOCK_SESSION_KEY, 'demo@samoon.com')
     const promise = authService.getMe()
     await vi.runAllTimersAsync()
     const user = await promise
@@ -101,7 +101,7 @@ describe('P10.7 — page reload simulation: tenantRoles now restored from auth b
     // session-restore hydration wired in — this is the exact gap
     // P10.6 §3 documented.
     useAuthStore.getState().setUser({
-      id: 'x', email: 'owner@savor.com', first_name: 'O', last_name: 'W',
+      id: 'x', email: 'owner@samoon.com', first_name: 'O', last_name: 'W',
       role: 'customer', is_verified: true, created_at: new Date().toISOString(),
     })
     useRbacStore.getState()._resetStore()
@@ -109,7 +109,7 @@ describe('P10.7 — page reload simulation: tenantRoles now restored from auth b
   })
 
   it('AFTER: authService.getMe() + the AuthBootstrapper hydration step restores tenantRoles without touching localStorage persistence', async () => {
-    localStorage.setItem(MOCK_SESSION_KEY, 'owner@savor.com')
+    localStorage.setItem(MOCK_SESSION_KEY, 'owner@samoon.com')
     useRbacStore.getState()._resetStore()
     expect(useRbacStore.getState().tenantRoles).toEqual([])
 
@@ -148,13 +148,13 @@ describe('P10.7 — missing RBAC payload: no crash, clean fallback', () => {
 
 describe('P10.7 — mock mode: existing accounts continue working end to end', () => {
   const accounts: Array<[string, Role[]]> = [
-    ['staff@savor.com', ['manager']],
-    ['kitchen@savor.com', ['kitchen']],
-    ['marketing@savor.com', ['marketing']],
-    ['support@savor.com', ['support']],
-    ['admin@savor.com', ['admin']],
-    ['owner@savor.com', ['owner']],
-    ['platform@savor.com', ['owner']],
+    ['staff@samoon.com', ['manager']],
+    ['kitchen@samoon.com', ['kitchen']],
+    ['marketing@samoon.com', ['marketing']],
+    ['support@samoon.com', ['support']],
+    ['admin@samoon.com', ['admin']],
+    ['owner@samoon.com', ['owner']],
+    ['platform@samoon.com', ['owner']],
   ]
 
   for (const [email, expectedRoles] of accounts) {
@@ -172,7 +172,7 @@ describe('P10.7 — mock mode: existing accounts continue working end to end', (
   }
 
   it('login()/verifyOTP() still resolve p7Roles unchanged (no field rename, no consumer break)', async () => {
-    const loginPromise = authService.login({ email: 'owner@savor.com', password: 'password' })
+    const loginPromise = authService.login({ email: 'owner@samoon.com', password: 'password' })
     await vi.runAllTimersAsync()
     const result = await loginPromise
     expect(result).toHaveProperty('p7Roles')

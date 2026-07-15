@@ -37,7 +37,7 @@ function resetConfigState() {
 
 function loginAsPlatformOwner() {
   useAuthStore.getState().setUser({
-    id: 'u-owner', email: 'owner@savor.com', first_name: 'Pat', last_name: 'Owner',
+    id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     role: 'admin', is_verified: true, created_at: '2024-01-01T00:00:00Z',
   })
   useRbacStore.getState().setTenantRoles('default', ['owner'])
@@ -110,9 +110,9 @@ describe('Platform Administration module registration (Phase C, framework, gener
     const field = platformConfigurationRegistry.getField('platform.tenants.registry')!
     const entries = configCollection.getCollectionEntries(field, field.default)
     expect(entries).toHaveLength(6)
-    const savor = entries.find((e) => e.entityId === 'savor')!
-    expect(savor.values.status).toBe('active')
-    expect(configCollection.getEntityLabel(field, 'savor')).toBe('Savor Restaurant')
+    const samoon = entries.find((e) => e.entityId === 'samoon')!
+    expect(samoon.values.status).toBe('active')
+    expect(configCollection.getEntityLabel(field, 'samoon')).toBe('Samoon Restaurant')
   })
 
   it('existing P9.0-P9.2 modules are tagged into an IA group without changing their category', () => {
@@ -182,7 +182,7 @@ describe('Platform Search (Phase F, framework, generic)', () => {
 describe('Studio reuse — Tenants/Platform Users render through the exact same shell as Authentication/Countries', () => {
   it('renders the Tenants collection module', () => {
     render(<ConfigurationStudioLayout activeModuleId="platform.tenants" onNavigate={vi.fn()} />)
-    expect(screen.getByText('Savor Restaurant')).toBeInTheDocument()
+    expect(screen.getByText('Samoon Restaurant')).toBeInTheDocument()
     expect(screen.getByText('Slug')).toBeInTheDocument() // sanity: collection table header pattern reused (entityIdLabel)
   })
 

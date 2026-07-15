@@ -58,12 +58,12 @@ if (!source.includes(SW_TOKEN)) {
 
 // Replace the __SW_VERSION__ token everywhere (SW_VERSION variable), then
 // inline the template-literal cache names to static strings so the built
-// public/sw.js contains literal 'savor-cache-v1.0.0' instead of a runtime
+// public/sw.js contains literal 'samoon-cache-v1.0.0' instead of a runtime
 // expression — required for version verification during update detection.
 const output = source
   .replaceAll(SW_TOKEN, version)
-  .replace(/`savor-cache-v\$\{SW_VERSION\}`/, `'savor-cache-v${version}'`)
-  .replace(/`savor-api-v\$\{SW_VERSION\}`/, `'savor-api-v${version}'`)
+  .replace(/`samoon-cache-v\$\{SW_VERSION\}`/, `'samoon-cache-v${version}'`)
+  .replace(/`samoon-api-v\$\{SW_VERSION\}`/, `'samoon-api-v${version}'`)
 writeFileSync(outputPath, output, 'utf-8')
 
 console.log(`[build-sw] Generated public/sw.js  version=${version}`)

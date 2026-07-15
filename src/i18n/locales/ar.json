@@ -102,8 +102,8 @@
     "otpResendFailed": "فشلت إعادة إرسال الرمز.",
     "createAccountTitle": "إنشاء حساب",
     "joinThousands": "انضم إلى آلاف عشاق الطعام اليوم",
-    "joinSavorFamily": "انضم إلى عائلة سيفور",
-    "joinSavorFamilySubtitle": "أنشئ حسابك واكتشف عالماً من المتعة الطهوية.",
+    "joinSamoonFamily": "انضم إلى عائلة سيفور",
+    "joinSamoonFamilySubtitle": "أنشئ حسابك واكتشف عالماً من المتعة الطهوية.",
     "agreeToTermsCreate": "بإنشاء حساب، فإنك توافق على",
     "createAccountButton": "إنشاء حساب",
     "alreadyHaveAccount": "لديك حساب بالفعل؟",
@@ -1898,7 +1898,7 @@
     "stepNumberColonLabel": "الخطوة {number}: {label}",
     "tenantNameLabel": "اسم المستأجر",
     "tenantNamePlaceholder": "مثال: مطعم سافور",
-    "tenantSlugPlaceholder": "مثال: savor-restaurant",
+    "tenantSlugPlaceholder": "مثال: samoon-restaurant",
     "slugCharsHint": "2–63 حرفًا صغيرًا أو رقمًا أو شرطة",
     "businessTypeSelectionAria": "اختيار نوع النشاط التجاري",
     "requiredCapabilitiesHint": "القدرات المطلوبة مفعّلة دائمًا. بدّل القدرات الاختيارية أدناه.",
@@ -4292,14 +4292,14 @@
       "keywords": "حول سيفور, منصة الضيافة, قصتنا, اتصل بنا"
     },
     "discover": {
-      "title": "اكتشف الأعمال — منصة Savor",
+      "title": "اكتشف الأعمال — منصة Samoon",
       "description": "تصفح المطاعم والمقاهي والحانات وشاحنات الطعام وغيرها. صفِّ حسب نوع المطبخ والمرافق والسعر وساعات العمل، وابحث عن مكانك المفضل التالي.",
-      "keywords": "اكتشاف المطاعم, البحث عن مقاهي, طعام قريب مني, بحث المطاعم, سوق, ساحة طعام, البحث عن حانة, شاحنات الطعام, منصة Savor"
+      "keywords": "اكتشاف المطاعم, البحث عن مقاهي, طعام قريب مني, بحث المطاعم, سوق, ساحة طعام, البحث عن حانة, شاحنات الطعام, منصة Samoon"
     },
     "menu": {
-      "title": "القائمة — Savor",
-      "description": "تصفح قوائم المطاعم والمقاهي والحانات وغيرها على Savor. اعثر على الأطباق، واستكشف الفئات، واطلب عبر الإنترنت.",
-      "keywords": "قائمة, قائمة مطعم, طلب عبر الإنترنت, توصيل الطعام, منصة Savor"
+      "title": "القائمة — Samoon",
+      "description": "تصفح قوائم المطاعم والمقاهي والحانات وغيرها على Samoon. اعثر على الأطباق، واستكشف الفئات، واطلب عبر الإنترنت.",
+      "keywords": "قائمة, قائمة مطعم, طلب عبر الإنترنت, توصيل الطعام, منصة Samoon"
     },
     "events": {
       "title": "الفعاليات | سيفور",
@@ -4382,8 +4382,8 @@
     "noFeaturedDishesAvailable": "لا توجد أطباق مميزة متاحة حالياً.",
     "exploreTheMenu": "استكشف القائمة.",
     "exploreLabel": "استكشاف",
-    "popularOnSavor": "الأكثر شهرة على Savor",
-    "popularOnSavorSubtitle": "مطاعم ومقاهي وحانات وغيرها — كلها على Savor",
+    "popularOnSamoon": "الأكثر شهرة على Samoon",
+    "popularOnSamoonSubtitle": "مطاعم ومقاهي وحانات وغيرها — كلها على Samoon",
     "browseAll500Businesses": "تصفح أكثر من 500 نشاط تجاري",
     "howItWorks": {
       "eyebrow": "بسيط",
@@ -4410,7 +4410,7 @@
     "forBusinessOwners": {
       "eyebrow": "لأصحاب الأعمال",
       "heading": "كل ما تحتاجه لتشغيل نشاط تجاري ضيافة حديث",
-      "subtitle": "يوفر Savor للمطاعم والمقاهي والحانات وشاحنات الطعام منصة تشغيل رقمية كاملة — من الطلب عبر الإنترنت والحجوزات إلى التحليلات وبرامج الولاء.",
+      "subtitle": "يوفر Samoon للمطاعم والمقاهي والحانات وشاحنات الطعام منصة تشغيل رقمية كاملة — من الطلب عبر الإنترنت والحجوزات إلى التحليلات وبرامج الولاء.",
       "registerYourBusiness": "سجّل نشاطك التجاري",
       "seeAllFeatures": "عرض جميع الميزات",
       "benefits": {
@@ -4443,7 +4443,7 @@
     "platformFeatures": {
       "eyebrow": "المنصة",
       "heading": "كل شيء في منصة واحدة",
-      "subtitle": "يوفر Savor حزمة رقمية كاملة للأعمال الضيافة الحديثة — دون الحاجة لأدوات متفرقة من جهات خارجية.",
+      "subtitle": "يوفر Samoon حزمة رقمية كاملة للأعمال الضيافة الحديثة — دون الحاجة لأدوات متفرقة من جهات خارجية.",
       "getStartedFree": "ابدأ مجاناً",
       "noCreditCardNote": "لا حاجة لبطاقة ائتمان · الإعداد في دقائق",
       "items": {
@@ -4492,7 +4492,7 @@
     "testimonials": {
       "eyebrow": "محبوب لدى الزبائن",
       "heading": "ماذا يقول مجتمعنا",
-      "subtitle": "يستخدم آلاف من عشاق الطعام Savor يومياً لاكتشاف الأعمال المحلية وحجزها والطلب منها.",
+      "subtitle": "يستخدم آلاف من عشاق الطعام Samoon يومياً لاكتشاف الأعمال المحلية وحجزها والطلب منها.",
       "items": {
         "sarah": {
           "quote": "وجدت ثلاثة مطاعم جديدة في حيي باستخدام بحث الفئات. حجزت طاولة وطلبت — كل ذلك من مكان واحد.",
@@ -4505,7 +4505,7 @@
           "role": "زبون دائم"
         },
         "layla": {
-          "quote": "اكتشفت شاحنة طعام مؤقتة عبر Savor لم كنت لأجدها بطريقة أخرى. الآن أتحقق منها كل عطلة أسبوع.",
+          "quote": "اكتشفت شاحنة طعام مؤقتة عبر Samoon لم كنت لأجدها بطريقة أخرى. الآن أتحقق منها كل عطلة أسبوع.",
           "name": "ليلى ك.",
           "role": "متحمسة للطعام"
         }
@@ -4668,7 +4668,7 @@
     "businessNotFound": "لم يتم العثور على النشاط",
     "businessNotFoundDesc": "لم نتمكن من العثور على نشاط تجاري في هذا الرابط.",
     "browseAllBusinesses": "تصفح جميع الأعمال",
-    "businessNotFoundLongDesc": "لم نتمكن من العثور على نشاط تجاري في هذا الرابط. ربما انتقل أو لم يعد مدرجاً في Savor."
+    "businessNotFoundLongDesc": "لم نتمكن من العثور على نشاط تجاري في هذا الرابط. ربما انتقل أو لم يعد مدرجاً في Samoon."
   },
   "branch": {
     "openNow": "مفتوح الآن",
@@ -4808,7 +4808,7 @@
     "mobileNavigationAria": "التنقل عبر الجوال",
     "logoAlt": "شعار {name}",
     "tenantHomeAria": "الرئيسية لـ {name}",
-    "poweredBySavorAria": "مدعوم من Savor — تصفح السوق",
+    "poweredBySamoonAria": "مدعوم من Samoon — تصفح السوق",
     "poweredBy": "مدعوم من",
     "tenantNavigationAria": "تنقل {name}",
     "tenantMobileNavigationAria": "التنقل عبر الجوال لـ {name}",
@@ -4834,12 +4834,12 @@
       "trackOrder": "تتبع الطلب",
       "becomeAPartner": "كن شريكاً",
       "pricing": "التسعير",
-      "aboutSavor": "حول Savor",
+      "aboutSamoon": "حول Samoon",
       "support": "الدعم",
       "privacyPolicy": "سياسة الخصوصية",
       "termsOfService": "شروط الخدمة"
     },
-    "copyright": "© {year} منصة Savor. جميع الحقوق محفوظة."
+    "copyright": "© {year} منصة Samoon. جميع الحقوق محفوظة."
   },
   "tenantFooter": {
     "instagram": "إنستغرام",
@@ -4848,7 +4848,7 @@
     "contact": "اتصل بنا",
     "copyright": "© {year} {name}. جميع الحقوق محفوظة.",
     "poweredBy": "مدعوم من",
-    "savorPlatform": "منصة Savor"
+    "samoonPlatform": "منصة Samoon"
   },
   "branchSelector": {
     "selectBranch": "اختر الفرع",

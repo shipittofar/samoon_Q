@@ -132,7 +132,7 @@ describe('app/layout.tsx — tenant meta tag', () => {
   })
 
   it('preserves existing font/theme script', () => {
-    expect(src()).toContain('savor-theme')
+    expect(src()).toContain('samoon-theme')
   })
 })
 

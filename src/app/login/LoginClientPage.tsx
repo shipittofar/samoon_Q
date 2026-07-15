@@ -28,16 +28,16 @@ const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 // ── Demo accounts ──────────────────────────────────────────────────────────────
 
 const DEMO_ACCOUNTS = [
-  { key: 'customer',      email: 'demo@savor.com',      phone_number: '+1 415 555 0101', icon: User,           color: 'text-blue-600 dark:text-blue-400',     bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',     border: 'border-blue-200 dark:border-blue-800' },
-  { key: 'staff',         email: 'staff@savor.com',     phone_number: '+1 415 555 0102', icon: ShieldCheck,    color: 'text-green-600 dark:text-green-400',   bg: 'hover:bg-green-50 dark:hover:bg-green-950/20',   border: 'border-green-200 dark:border-green-800' },
-  { key: 'cashier',       email: 'cashier@savor.com',   phone_number: '+1 415 555 0103', icon: CreditCard,     color: 'text-cyan-600 dark:text-cyan-400',     bg: 'hover:bg-cyan-50 dark:hover:bg-cyan-950/20',     border: 'border-cyan-200 dark:border-cyan-800' },
-  { key: 'kitchen',       email: 'kitchen@savor.com',   phone_number: '+1 415 555 0104', icon: ChefHat,        color: 'text-amber-600 dark:text-amber-400',   bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20',   border: 'border-amber-200 dark:border-amber-800' },
-  { key: 'marketing',     email: 'marketing@savor.com', phone_number: '+1 415 555 0105', icon: Megaphone,      color: 'text-pink-600 dark:text-pink-400',     bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20',     border: 'border-pink-200 dark:border-pink-800' },
-  { key: 'support',       email: 'support@savor.com',   phone_number: '+1 415 555 0106', icon: HeadphonesIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
-  { key: 'admin',         email: 'admin@savor.com',     phone_number: '+1 415 555 0107', icon: ShieldCheck,    color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
-  { key: 'owner',         email: 'owner@savor.com',     phone_number: '+1 415 555 0108', icon: Crown,          color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
-  { key: 'platformAdmin', email: 'platform@savor.com',  phone_number: '+1 415 555 0109', icon: Building2,      color: 'text-rose-600 dark:text-rose-400',     bg: 'hover:bg-rose-50 dark:hover:bg-rose-950/20',     border: 'border-rose-200 dark:border-rose-800' },
-  { key: 'multiRole',     email: 'multirole@savor.com', phone_number: '+1 415 555 0110', icon: Layers,         color: 'text-teal-600 dark:text-teal-400',     bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',     border: 'border-teal-200 dark:border-teal-800' },
+  { key: 'customer',      email: 'demo@samoon.com',      phone_number: '+1 415 555 0101', icon: User,           color: 'text-blue-600 dark:text-blue-400',     bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',     border: 'border-blue-200 dark:border-blue-800' },
+  { key: 'staff',         email: 'staff@samoon.com',     phone_number: '+1 415 555 0102', icon: ShieldCheck,    color: 'text-green-600 dark:text-green-400',   bg: 'hover:bg-green-50 dark:hover:bg-green-950/20',   border: 'border-green-200 dark:border-green-800' },
+  { key: 'cashier',       email: 'cashier@samoon.com',   phone_number: '+1 415 555 0103', icon: CreditCard,     color: 'text-cyan-600 dark:text-cyan-400',     bg: 'hover:bg-cyan-50 dark:hover:bg-cyan-950/20',     border: 'border-cyan-200 dark:border-cyan-800' },
+  { key: 'kitchen',       email: 'kitchen@samoon.com',   phone_number: '+1 415 555 0104', icon: ChefHat,        color: 'text-amber-600 dark:text-amber-400',   bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20',   border: 'border-amber-200 dark:border-amber-800' },
+  { key: 'marketing',     email: 'marketing@samoon.com', phone_number: '+1 415 555 0105', icon: Megaphone,      color: 'text-pink-600 dark:text-pink-400',     bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20',     border: 'border-pink-200 dark:border-pink-800' },
+  { key: 'support',       email: 'support@samoon.com',   phone_number: '+1 415 555 0106', icon: HeadphonesIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
+  { key: 'admin',         email: 'admin@samoon.com',     phone_number: '+1 415 555 0107', icon: ShieldCheck,    color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
+  { key: 'owner',         email: 'owner@samoon.com',     phone_number: '+1 415 555 0108', icon: Crown,          color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
+  { key: 'platformAdmin', email: 'platform@samoon.com',  phone_number: '+1 415 555 0109', icon: Building2,      color: 'text-rose-600 dark:text-rose-400',     bg: 'hover:bg-rose-50 dark:hover:bg-rose-950/20',     border: 'border-rose-200 dark:border-rose-800' },
+  { key: 'multiRole',     email: 'multirole@samoon.com', phone_number: '+1 415 555 0110', icon: Layers,         color: 'text-teal-600 dark:text-teal-400',     bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',     border: 'border-teal-200 dark:border-teal-800' },
 ]
 
 // ── Email fallback schema ──────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ export function LoginClientPage() {
   }
 
   const fillDemo = () => {
-    setValue('email', 'demo@savor.com')
+    setValue('email', 'demo@samoon.com')
     setValue('password', 'password')
   }
 
@@ -166,7 +166,7 @@ export function LoginClientPage() {
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
               <span className="text-white font-bold">S</span>
             </div>
-            <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
+            <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Samoon</span>
           </Link>
 
           {/* Heading */}

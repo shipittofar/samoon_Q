@@ -75,7 +75,7 @@ function makeBranch(
   }
 }
 
-const TENANT_A = 'tenant-savor-01'
+const TENANT_A = 'tenant-samoon-01'
 const BRANCH_A1 = makeBranch('branch-a1', TENANT_A, 'active')
 const BRANCH_A2 = makeBranch('branch-a2', TENANT_A, 'active')
 const BRANCH_A3 = makeBranch('branch-a3', TENANT_A, 'maintenance')

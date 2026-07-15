@@ -192,10 +192,10 @@ export function TenantHeader() {
               <Link
                 href="/discover"
                 className="hidden sm:flex flex-col leading-none border-s border-[var(--border)] ps-3 text-[var(--fg-subtle)] hover:text-orange-500 transition-colors shrink-0"
-                aria-label={t('poweredBySavorAria')}
+                aria-label={t('poweredBySamoonAria')}
               >
                 <span className="text-[9px] uppercase tracking-wide">{t('poweredBy')}</span>
-                <span className="text-[11px] font-semibold">Savor</span>
+                <span className="text-[11px] font-semibold">Samoon</span>
               </Link>
             </div>
 
@@ -409,7 +409,7 @@ export function TenantHeader() {
                   href="/discover"
                   className="flex items-center gap-1 px-4 py-2 text-xs text-[var(--fg-subtle)] hover:text-orange-500 transition-colors mb-1"
                 >
-                  {t('poweredBy')} <span className="font-semibold">Savor</span>
+                  {t('poweredBy')} <span className="font-semibold">Samoon</span>
                 </Link>
 
                 {navLinks.map((link) => (

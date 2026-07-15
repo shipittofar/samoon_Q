@@ -11,7 +11,7 @@ import { tenantService } from '@/services/tenant.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -37,8 +37,8 @@ const FALLBACK_STORY = 'Founded with a passion for extraordinary hospitality, we
 
 export default async function RestaurantPage() {
   const t = await getTranslations('restaurant')
-  // Load the savor tenant data so all public content is driven by admin settings.
-  const tenant = await tenantService.getTenant('savor').catch(() => null)
+  // Load the samoon tenant data so all public content is driven by admin settings.
+  const tenant = await tenantService.getTenant('samoon').catch(() => null)
   const meta = tenant ? getMarketplaceMeta(tenant.settings) : undefined
 
   const story = meta?.story || FALLBACK_STORY
@@ -70,7 +70,7 @@ export default async function RestaurantPage() {
       <div className="relative h-[60vh] overflow-hidden">
         <Image
           src={meta?.heroImage || meta?.coverImage || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920'}
-          alt={`${meta ? tenant?.name ?? 'Savor' : 'Savor'} interior`}
+          alt={`${meta ? tenant?.name ?? 'Samoon' : 'Samoon'} interior`}
           fill
           className="object-cover"
           sizes="100vw"

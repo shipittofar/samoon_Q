@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const localized = await getLocalizedPageMetadata({ locale, path: '/', namespaceKey: 'root', baseUrl: APP_URL })
   return {
     ...localized,
-    title: { default: String(localized.title), template: '%s | Savor' },
+    title: { default: String(localized.title), template: '%s | Samoon' },
     metadataBase: new URL(APP_URL),
     openGraph: { ...localized.openGraph, images: [{ url: '/og-image.jpg', width: 1200, height: 630 }] },
     twitter: { ...localized.twitter, images: ['/og-image.jpg'] },
@@ -61,7 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-        <script dangerouslySetInnerHTML={{ __html: `try{const t=localStorage.getItem('savor-theme');const th=t?JSON.parse(t).state?.theme:'system';if(th==='dark'||(th==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}` }} />
+        <script dangerouslySetInnerHTML={{ __html: `try{const t=localStorage.getItem('samoon-theme');const th=t?JSON.parse(t).state?.theme:'system';if(th==='dark'||(th==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}` }} />
       </head>
       <body className={`${playfair.variable} ${dmSans.variable} antialiased`}>
         <ClientIntlProvider locale={locale} messages={messages}>

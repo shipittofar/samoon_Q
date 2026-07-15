@@ -44,7 +44,7 @@ function buildCspHeader(): string {
 // P3.3 — Mock mode safety: fail fast when production builds include mock data.
 // NEXT_PUBLIC_USE_MOCK=true is only safe for local development and demo deploys.
 // A production build with mock mode active bypasses real auth and exposes
-// the demo@savor.com/password backdoor to all users.
+// the demo@samoon.com/password backdoor to all users.
 
 const allowMockProduction = process.env.ALLOW_PRODUCTION_MOCK === "true";
 

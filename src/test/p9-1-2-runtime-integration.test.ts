@@ -24,7 +24,7 @@ const actor = { id: 'test-admin', name: 'Test Admin' }
 describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
   it('login/sendOTP/verifyOTP succeed with default configuration (unchanged behavior)', async () => {
     const { authService } = await freshAuth()
-    const login = await authService.login({ email: 'demo@savor.com', password: 'password' })
+    const login = await authService.login({ email: 'demo@samoon.com', password: 'password' })
     expect(login.tokens.access).toBeTruthy()
     expect(login.p7Roles).toEqual([])
 
@@ -40,7 +40,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     configurationService.updateField({
       fieldId: 'authentication.enabled', value: false, level: 'platform', scope: {}, actor, reason: 'test',
     })
-    await expect(authService.login({ email: 'demo@savor.com', password: 'password' })).rejects.toThrow('authentication_disabled')
+    await expect(authService.login({ email: 'demo@samoon.com', password: 'password' })).rejects.toThrow('authentication_disabled')
     await expect(authService.register({ email: 'a@b.com', password: 'password', confirm_password: 'password', first_name: 'A', last_name: 'B' })).rejects.toThrow('authentication_disabled')
     await expect(authService.sendOTP('+14155550101')).rejects.toThrow('authentication_disabled')
     await expect(authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })).rejects.toThrow('authentication_disabled')
@@ -78,7 +78,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     configurationService.updateField({
       fieldId: 'authentication.demo_login_enabled', value: false, level: 'platform', scope: {}, actor, reason: 'test',
     })
-    await expect(authService.login({ email: 'demo@savor.com', password: 'password' })).rejects.toThrow('Invalid credentials')
+    await expect(authService.login({ email: 'demo@samoon.com', password: 'password' })).rejects.toThrow('Invalid credentials')
   })
 
   it('treats a known demo phone_number as a new user when authentication.demo_login_enabled is false', async () => {
@@ -101,7 +101,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     // Proves the mock branch was skipped: the email_login_enabled gate only
     // exists on the non-mock branch, so this error can only fire if
     // mockActive() correctly evaluated false.
-    await expect(authService.login({ email: 'demo@savor.com', password: 'password' })).rejects.toThrow('email_login_disabled')
+    await expect(authService.login({ email: 'demo@samoon.com', password: 'password' })).rejects.toThrow('email_login_disabled')
   })
 })
 

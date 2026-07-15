@@ -16,7 +16,7 @@ import { PlatformFeatures } from '@/components/home/PlatformFeatures'
 import { PlatformTestimonials } from '@/components/home/PlatformTestimonials'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
 // P9.5.7A — localized title/description/OpenGraph/Twitter/hreflang, sourced
 // from the `seo` namespace via getLocalizedPageMetadata() (the same helper
@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const localized = await getLocalizedPageMetadata({ locale, path: '/', namespaceKey: 'home', baseUrl: BASE_URL })
   return {
     ...localized,
-    openGraph: { ...localized.openGraph, images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Savor Platform' }] },
+    openGraph: { ...localized.openGraph, images: [{ url: `${BASE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'Samoon Platform' }] },
     twitter: { ...localized.twitter, images: [`${BASE_URL}/og-image.jpg`] },
   }
 }

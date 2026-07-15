@@ -16,8 +16,8 @@
 const SW_VERSION = '__SW_VERSION__'
 
 // ── Cache names (version-stamped so old caches are pruned on activate) ────────
-const CACHE_NAME = `savor-cache-v${SW_VERSION}`
-const API_CACHE  = `savor-api-v${SW_VERSION}`
+const CACHE_NAME = `samoon-cache-v${SW_VERSION}`
+const API_CACHE  = `samoon-api-v${SW_VERSION}`
 
 const KNOWN_CACHES = [CACHE_NAME, API_CACHE]
 
@@ -105,7 +105,7 @@ self.addEventListener('message', (e) => {
 // ── Push Notifications ────────────────────────────────────────────────────────
 
 self.addEventListener('push', (e) => {
-  const data = e.data?.json() || { title: 'Savor', body: 'You have a new notification' }
+  const data = e.data?.json() || { title: 'Samoon', body: 'You have a new notification' }
   e.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,

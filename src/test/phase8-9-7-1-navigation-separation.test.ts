@@ -59,7 +59,7 @@ describe('AdminSidebar label contracts', () => {
 
 describe('AdminHeader aria-label', () => {
   it('logo link aria-label references "admin console" not "dashboard"', () => {
-    const ariaLabel = 'Savor Admin — go to admin console'
+    const ariaLabel = 'Samoon Admin — go to admin console'
     expect(ariaLabel).toContain('admin console')
     expect(ariaLabel).not.toContain('go to dashboard')
   })

@@ -127,7 +127,7 @@ export function Header() {
                     ? 'text-white group-hover:text-orange-300'
                     : 'text-[var(--fg)] group-hover:text-orange-500',
                 )}>
-                  Savor
+                  Samoon
                 </span>
               </>
             )}

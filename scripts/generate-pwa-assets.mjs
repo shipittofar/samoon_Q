@@ -3,7 +3,7 @@
  *
  * Generates all icon and screenshot assets referenced in public/manifest.json
  * and the Next.js metadata configuration. Uses sharp (bundled with Next.js) to
- * produce production-safe raster images from the Savor brand identity:
+ * produce production-safe raster images from the Samoon brand identity:
  *
  *   Brand color:  #f97316  (orange-500 — matches theme_color in manifest.json)
  *   Brand letter: S
@@ -84,7 +84,7 @@ function screenshotSvg(w, h) {
   <!-- Header bar -->
   <rect width="${w}" height="56" fill="url(#hdr)"/>
   <!-- Logo text in header -->
-  <text x="32" y="36" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="${WHITE}">Savor</text>
+  <text x="32" y="36" font-family="system-ui,sans-serif" font-size="22" font-weight="800" fill="${WHITE}">Samoon</text>
   <!-- Nav items -->
   <text x="200" y="36" font-family="system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.85)">Menu</text>
   <text x="280" y="36" font-family="system-ui,sans-serif" font-size="13" fill="rgba(255,255,255,0.85)">Reservation</text>
@@ -131,7 +131,7 @@ function ogSvg(w, h) {
   <rect x="80" y="${h/2-80}" width="100" height="100" rx="20" fill="rgba(255,255,255,0.25)"/>
   <text x="130" y="${h/2-16}" font-family="system-ui,sans-serif" font-size="64" font-weight="800" fill="${WHITE}" text-anchor="middle">S</text>
   <!-- Brand name -->
-  <text x="210" y="${h/2-30}" font-family="system-ui,sans-serif" font-size="56" font-weight="800" fill="${WHITE}">Savor</text>
+  <text x="210" y="${h/2-30}" font-family="system-ui,sans-serif" font-size="56" font-weight="800" fill="${WHITE}">Samoon</text>
   <text x="210" y="${h/2+28}" font-family="system-ui,sans-serif" font-size="22" fill="rgba(255,255,255,0.85)">Fine Dining &amp; Delivery</text>
   <!-- Tagline -->
   <text x="${w/2}" y="${h-60}" font-family="system-ui,sans-serif" font-size="16" fill="rgba(255,255,255,0.7)" text-anchor="middle">Order online · Reserve a table · Track in real time</text>

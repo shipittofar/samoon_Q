@@ -486,9 +486,9 @@ describe('I — validateTenantConfiguration (invalid)', () => {
     expect(r.errors.some((e) => e.includes('already taken') || e.includes('default'))).toBe(true)
   })
 
-  it('rejects duplicate slug "savor"', async () => {
+  it('rejects duplicate slug "samoon"', async () => {
     const svc = await freshService()
-    const r = svc.validateTenantConfiguration({ name: 'Test', slug: 'savor', businessType: 'restaurant' })
+    const r = svc.validateTenantConfiguration({ name: 'Test', slug: 'samoon', businessType: 'restaurant' })
     expect(r.valid).toBe(false)
   })
 

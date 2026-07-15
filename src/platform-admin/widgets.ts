@@ -137,7 +137,7 @@ platformDashboardRegistry.register({
   id: 'top_businesses', title: 'Top Businesses', group: 'Businesses', kind: 'list', icon: 'Trophy',
   platformPermission: 'platform.businesses.view',
   compute: () => ({ kind: 'list', items: [
-    { label: 'Savor Restaurant', value: '$5,240' },
+    { label: 'Samoon Restaurant', value: '$5,240' },
     { label: 'Brew Cafe', value: '$3,110' },
     { label: 'The Oak Bar', value: '$2,875' },
   ] }),

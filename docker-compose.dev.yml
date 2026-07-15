@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: builder
-    container_name: savor-app-dev
+    container_name: samoon-app-dev
     command: npm run dev
     volumes:
       - .:/app
@@ -34,7 +34,7 @@ services:
 #       context: .
 #       target: builder
 
-#     container_name: savor-app-dev
+#     container_name: samoon-app-dev
 
 #     command: npm run dev
 
@@ -58,7 +58,7 @@ services:
 #     build:
 #       context: .
 #       target: builder
-#     container_name: savor-app-dev
+#     container_name: samoon-app-dev
 #     command: npm run dev
 #     volumes:
 #       - .:/app

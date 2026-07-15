@@ -8,7 +8,7 @@
 
 ## Decision
 
-**Production:** Subdomain-based resolution — `{tenant-slug}.savor.app`
+**Production:** Subdomain-based resolution — `{tenant-slug}.samoon.app`
 
 **Development / mock mode:** Path-based fallback — resolved from the
 `NEXT_PUBLIC_TENANT_SLUG` environment variable, or the `?tenant=<slug>`
@@ -21,11 +21,11 @@ query parameter for local multi-tenant testing without DNS overhead.
 ### Subdomain (production)
 
 - Clean URL isolation per tenant — no tenant slug pollutes the path.
-- Enables SSL termination per tenant (wildcard cert `*.savor.app`).
+- Enables SSL termination per tenant (wildcard cert `*.samoon.app`).
 - Allows Nginx / CDN routing to route traffic at the edge without
   touching application code.
-- Prevents accidental cross-tenant navigation (a user on `acme.savor.app`
-  cannot drift to `rival.savor.app` by editing the path).
+- Prevents accidental cross-tenant navigation (a user on `acme.samoon.app`
+  cannot drift to `rival.samoon.app` by editing the path).
 - Matches the pattern used by every major SaaS product (Shopify, Notion,
   Linear, Vercel) — familiar to future tenants.
 
@@ -33,7 +33,7 @@ query parameter for local multi-tenant testing without DNS overhead.
 
 - Avoids the need to configure local DNS entries or wildcard localhost
   certificates during development.
-- `NEXT_PUBLIC_TENANT_SLUG=savor npm run dev` is sufficient to test a
+- `NEXT_PUBLIC_TENANT_SLUG=samoon npm run dev` is sufficient to test a
   specific tenant's experience.
 - `?tenant=<slug>` enables switching tenants in a single browser session
   without restarting the dev server.

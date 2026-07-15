@@ -1,4 +1,4 @@
-# Product Roadmap — Savor Platform
+# Product Roadmap — Samoon Platform
 
 > Strategic roadmap derived from the current state of the codebase. All items are grounded in the actual source code audit. Priorities reflect production readiness, business impact, and technical dependency ordering.
 >
@@ -103,7 +103,7 @@ Remaining gaps before production:
 >
 > **Why this phase is now split from governance/commercial concerns:** The original combined "Foundation Architecture Migration" phase bundled core data-model abstractions together with RBAC, feature flags, routing, migration planning, and even the Subscription model. In practice, these are different kinds of work with different stakeholders and different urgency: Tenant/Location/Module are *structural* — nothing else can be built without them. RBAC/flags/routing/migration-planning are *governance and enablement* — they make the structural layer safe and operable, but can be sequenced immediately after, not necessarily simultaneously. Subscription is a *commercial* concern that depends on the structural layer existing but has no bearing on whether the structural layer itself is correct. Splitting them clarifies sequencing and lets Phase 1A ship and stabilize before governance and commercial concerns are layered on.
 >
-> **Non-negotiable constraint (unchanged from prior revision):** This phase must not require rewriting existing restaurant functionality. The migration is incremental — the existing Savor restaurant becomes the first tenant and the first module ("Restaurant") running on the new foundation, with identical behavior to today.
+> **Non-negotiable constraint (unchanged from prior revision):** This phase must not require rewriting existing restaurant functionality. The migration is incremental — the existing Samoon restaurant becomes the first tenant and the first module ("Restaurant") running on the new foundation, with identical behavior to today.
 
 ### P1A.1 — Tenant Model & Tenant Resolution Strategy (Critical / High Effort)
 
@@ -112,9 +112,9 @@ Remaining gaps before production:
 **Dependencies:** Backend `Tenant` model and API (coordinated effort with Django team)
 **Estimated Effort:** 5–8 days
 
-Introduce a `Tenant` entity representing a single hospitality business (e.g., "Savor Downtown", "Java Truck Co."). Define:
+Introduce a `Tenant` entity representing a single hospitality business (e.g., "Samoon Downtown", "Java Truck Co."). Define:
 - `Tenant { id, name, slug, businessTypes: Module[], status, createdAt }` *(note: the `subscriptionTier` field originally proposed here has been removed from the core `Tenant` shape and relocated to a separate `Subscription` entity owned by Phase 9 — see [Subscription Model Change](#subscription-model-change-rationale). The `Tenant` model itself does not need to know about billing to function.)*
-- Tenant resolution strategy for the frontend: subdomain-based (`{tenant}.savor.app`) vs. path-based (`/t/{tenant}/...`) vs. header-based for API calls. **Recommendation:** subdomain for production multi-tenant routing, with a path-based fallback for local/dev/mock mode to avoid DNS overhead during development. *(The full implementation of this strategy, as routing/middleware code, is Phase 1B's responsibility — P1A.1 defines the model and the decision; P1B.3 implements the routing.)*
+- Tenant resolution strategy for the frontend: subdomain-based (`{tenant}.samoon.app`) vs. path-based (`/t/{tenant}/...`) vs. header-based for API calls. **Recommendation:** subdomain for production multi-tenant routing, with a path-based fallback for local/dev/mock mode to avoid DNS overhead during development. *(The full implementation of this strategy, as routing/middleware code, is Phase 1B's responsibility — P1A.1 defines the model and the decision; P1B.3 implements the routing.)*
 - A `useTenantStore` (Zustand, hydrated server-side via middleware/headers) holding the active tenant context for the session.
 - Backward-compatible default: when no tenant is resolvable (e.g., today's single-deployment setup), the frontend falls back to a single implicit "default" tenant so existing behavior is unchanged.
 
@@ -280,7 +280,7 @@ A `Module` is a self-contained business-type capability (Restaurant, Cafe, Bar, 
 
 - Extend the token system from P2.1 so token *values* (not just token *names*) can be overridden per tenant: tenant brand colors, logo, and font configuration.
 - This is explicitly a **foundation** for white-labeling, not the full white-label feature — full custom-domain white-labeling remains in Phase 9 (P9.1), which now consumes this engine rather than building theming from scratch.
-- Default behavior: with no tenant-specific overrides set, every tenant (including today's single default tenant) renders with the existing Savor brand tokens — **zero visual change** to the current application.
+- Default behavior: with no tenant-specific overrides set, every tenant (including today's single default tenant) renders with the existing Samoon brand tokens — **zero visual change** to the current application.
 - *(Forward reference: the static PWA manifest shipped in P3.4 — app name, icons, theme color — is intentionally single-tenant for now. Once this theme engine exists, P10.1 extends it to generate a tenant-specific manifest, so PWA branding doesn't need to be rebuilt when white-labeling ships.)*
 
 ---

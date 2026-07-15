@@ -151,7 +151,7 @@ function applyCustomerFilters(customers: AdminCustomer[], filters: AdminCustomer
 }
 
 // Default tenant used when no tenantId is passed — covers legacy call sites.
-const FALLBACK_TENANT = 'tenant-savor-01'
+const FALLBACK_TENANT = 'tenant-samoon-01'
 
 function paginate<T>(items: T[], page = 1, pageSize = 20): PaginatedResponse<T> {
   const start = (page - 1) * pageSize

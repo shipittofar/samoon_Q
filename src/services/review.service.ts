@@ -64,7 +64,7 @@ export const reviewService = {
       await delay(600)
       const review: Review = {
         id: `review-new-${Date.now()}`,
-        user: { id: 'me', first_name: 'You', last_name: '', email: 'demo@savor.com', role: 'customer' as const, is_verified: true, created_at: new Date().toISOString() },
+        user: { id: 'me', first_name: 'You', last_name: '', email: 'demo@samoon.com', role: 'customer' as const, is_verified: true, created_at: new Date().toISOString() },
         menu_item_id: itemId,
         rating: payload.rating,
         comment: payload.comment,

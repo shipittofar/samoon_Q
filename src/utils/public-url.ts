@@ -7,11 +7,11 @@
  * Falls back to the flat route if tenant or branch context is unavailable.
  *
  * Usage:
- *   buildPublicUrl({ tenantSlug: 'savor', branchSlug: 'main', module: 'menu' })
- *   // → '/savor/main/menu'
+ *   buildPublicUrl({ tenantSlug: 'samoon', branchSlug: 'main', module: 'menu' })
+ *   // → '/samoon/main/menu'
  *
- *   buildPublicUrl({ tenantSlug: 'savor', branchSlug: 'main' })
- *   // → '/savor/main'
+ *   buildPublicUrl({ tenantSlug: 'samoon', branchSlug: 'main' })
+ *   // → '/samoon/main'
  *
  *   buildPublicUrl({ tenantSlug: null, branchSlug: null, module: 'menu' })
  *   // → '/menu'  (fallback)

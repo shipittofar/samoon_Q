@@ -59,8 +59,8 @@ describe('DINE_IN_KEY constant', () => {
     expect(src()).toContain('export const DINE_IN_KEY')
   })
 
-  it('has value savor-dine-in', () => {
-    expect(src()).toContain("'savor-dine-in'")
+  it('has value samoon-dine-in', () => {
+    expect(src()).toContain("'samoon-dine-in'")
   })
 })
 

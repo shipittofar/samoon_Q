@@ -1,7 +1,7 @@
 /**
  * Platform Configuration — Schema System (P9.0 / Phase D)
  *
- * Every configuration value surfaced anywhere in Savor (Platform Administrator
+ * Every configuration value surfaced anywhere in Samoon (Platform Administrator
  * settings, tenant settings, branch overrides, user preferences) is described by
  * one ConfigFieldDefinition, grouped under a ConfigSectionDefinition, grouped
  * under a ConfigModuleDefinition. Nothing is read or written outside this model.

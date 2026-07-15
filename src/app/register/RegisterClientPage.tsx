@@ -63,11 +63,11 @@ export function RegisterClientPage() {
           <div className="h-9 w-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <span className="text-white font-bold">S</span>
           </div>
-          <span className="font-[var(--font-display)] text-xl font-bold text-white">Savor</span>
+          <span className="font-[var(--font-display)] text-xl font-bold text-white">Samoon</span>
         </Link>
         <div className="relative text-white">
-          <h2 className="font-[var(--font-display)] text-4xl font-bold mb-4">{t('joinSavorFamily')}</h2>
-          <p className="text-white/80 text-lg mb-8">{t('joinSavorFamilySubtitle')}</p>
+          <h2 className="font-[var(--font-display)] text-4xl font-bold mb-4">{t('joinSamoonFamily')}</h2>
+          <p className="text-white/80 text-lg mb-8">{t('joinSamoonFamilySubtitle')}</p>
           <div className="space-y-4">
             {PERK_KEYS.map((key) => (
               <div key={key} className="flex items-center gap-3">
@@ -88,7 +88,7 @@ export function RegisterClientPage() {
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
                 <span className="text-white font-bold">S</span>
               </div>
-              <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
+              <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Samoon</span>
             </Link>
             <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-2">{t('createAccountTitle')}</h1>
             <p className="text-[var(--fg-muted)]">{t('joinThousands')}</p>

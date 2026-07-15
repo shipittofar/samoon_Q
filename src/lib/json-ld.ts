@@ -120,7 +120,7 @@ export function serializeJsonLd(ld: Record<string, unknown>): string {
 
 // ── Platform defaults ──────────────────────────────────────────────────────────
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.savor.com'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
 export interface JsonLdWebSiteOptions {
   name: string
@@ -155,7 +155,7 @@ export function buildWebSiteJsonLd(options: JsonLdWebSiteOptions): Record<string
  * Uses WebSite schema — the platform is a marketplace, not a restaurant.
  */
 export const DEFAULT_PLATFORM_JSON_LD = buildWebSiteJsonLd({
-  name: 'Savor',
+  name: 'Samoon',
   description: 'Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses.',
   url: BASE_URL,
   image: `${BASE_URL}/og-image.jpg`,
@@ -167,7 +167,7 @@ export const DEFAULT_PLATFORM_JSON_LD = buildWebSiteJsonLd({
  * Do NOT use on platform-level pages — use DEFAULT_PLATFORM_JSON_LD instead.
  */
 export const DEFAULT_RESTAURANT_JSON_LD = buildRestaurantJsonLd({
-  name: 'Savor',
+  name: 'Samoon',
   description: 'Fine dining and delivery. Handcrafted dishes made with the finest ingredients.',
   url: BASE_URL,
   image: `${BASE_URL}/og-image.jpg`,
@@ -177,8 +177,8 @@ export const DEFAULT_RESTAURANT_JSON_LD = buildRestaurantJsonLd({
 
 /** Default Menu JSON-LD for the /menu route. */
 export const DEFAULT_MENU_JSON_LD = buildMenuJsonLd({
-  name: 'Menu — Savor',
-  description: 'Explore menus from restaurants, cafés, and bars on Savor.',
+  name: 'Menu — Samoon',
+  description: 'Explore menus from restaurants, cafés, and bars on Samoon.',
   url: `${BASE_URL}/menu`,
-  restaurantName: 'Savor',
+  restaurantName: 'Samoon',
 })

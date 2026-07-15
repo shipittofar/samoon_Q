@@ -65,7 +65,7 @@ export const STORAGE_MODULE: ConfigModuleDefinition = {
           title: 'CDN Base URL',
           category: 'infrastructure',
           type: 'string',
-          default: 'https://cdn.savor.app',
+          default: 'https://cdn.samoon.app',
           permissions: PERMISSIONS,
           inheritance: { level: 'platform', canOverride: false, mode: 'locked', fallback: 'inherit' },
         }),

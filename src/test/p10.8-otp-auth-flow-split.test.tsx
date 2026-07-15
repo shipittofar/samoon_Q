@@ -27,7 +27,7 @@ import { useAuthStore, useTenantStore, useRbacStore } from '@/stores'
 import { useVerifyOTP } from '@/hooks'
 
 vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
-vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.savor.test')
+vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.samoon.test')
 
 vi.mock('@/constants', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/constants')>()
@@ -39,7 +39,7 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={qc}>{children}</QueryClientProvider>
 }
 
-const KNOWN_PHONE = '+14155550101' // demo@savor.com
+const KNOWN_PHONE = '+14155550101' // demo@samoon.com
 const KNOWN_DIAL_CODE = '+1'
 const UNKNOWN_PHONE = '+442071838750' // not in DEMO_PHONE_TO_EMAIL
 const UNKNOWN_DIAL_CODE = '+44'
@@ -107,7 +107,7 @@ describe('P10.8 — authService.verifyOTP(): is_new_user: false behaves like a n
     const promise = authService.verifyOTP({ phone_number: KNOWN_PHONE, dialCode: KNOWN_DIAL_CODE, otp: '123456' })
     await vi.runAllTimersAsync()
     await promise
-    expect(localStorage.getItem(MOCK_SESSION_KEY)).toBe('demo@savor.com')
+    expect(localStorage.getItem(MOCK_SESSION_KEY)).toBe('demo@samoon.com')
   })
 })
 
@@ -126,12 +126,12 @@ describe('P10.8 — useVerifyOTP(): session bootstrap only runs for is_new_user:
 
   it('is_new_user: false calls setUser() and hydrates tenantRoles exactly like a login', async () => {
     const { result } = renderHook(() => useVerifyOTP(), { wrapper })
-    // owner@savor.com's demo phone
+    // owner@samoon.com's demo phone
     const mutatePromise = result.current.mutateAsync({ phone_number: '+14155550108', dialCode: KNOWN_DIAL_CODE, otp: '123456' })
     await vi.runAllTimersAsync()
     await mutatePromise
 
-    expect(useAuthStore.getState().user?.email).toBe('owner@savor.com')
+    expect(useAuthStore.getState().user?.email).toBe('owner@samoon.com')
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     const tenantId = useTenantStore.getState().tenant.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])

@@ -38,10 +38,10 @@ export default function PermissionsPage() {
     )
     .sort((a, b) => {
       const aAssignment = a.tenantAssignments.find(
-        (t) => t.tenantId === 'tenant-savor-01'
+        (t) => t.tenantId === 'tenant-samoon-01'
       )
       const bAssignment = b.tenantAssignments.find(
-        (t) => t.tenantId === 'tenant-savor-01'
+        (t) => t.tenantId === 'tenant-samoon-01'
       )
 
       const aCount = getPermissionsForRole(aAssignment?.roles ?? []).length
@@ -90,7 +90,7 @@ export default function PermissionsPage() {
               filtered.map((user) => {
                 const sessionRoles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
                 // For demo: use mock tenant assignment roles
-                const mockAssignment = user.tenantAssignments.find((a) => a.tenantId === 'tenant-savor-01')
+                const mockAssignment = user.tenantAssignments.find((a) => a.tenantId === 'tenant-samoon-01')
                 const roles = mockAssignment?.roles ?? []
                 const permissions = getPermissionsForRole(roles)
                 const override = userOverrides.find(

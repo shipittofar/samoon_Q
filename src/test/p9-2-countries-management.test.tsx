@@ -36,7 +36,7 @@ function resetConfigState() {
 
 function loginAsPlatformOwner() {
   useAuthStore.getState().setUser({
-    id: 'u-owner', email: 'owner@savor.com', first_name: 'Pat', last_name: 'Owner',
+    id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     role: 'admin', is_verified: true, created_at: '2024-01-01T00:00:00Z',
   })
   useRbacStore.getState().setTenantRoles('default', ['owner'])

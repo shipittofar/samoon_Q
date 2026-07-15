@@ -31,7 +31,7 @@ const MOCK_BUSINESSES: MockBusiness[] = [
   {
     id: '1',
     name: 'Maison Dorée',
-    slug: 'savor',
+    slug: 'samoon',
     type: 'restaurant',
     rating: 4.9,
     reviewCount: 1240,
@@ -165,9 +165,9 @@ export function DiscoveryPreview() {
           <div>
             <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('exploreLabel')}</p>
             <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">
-              {t('popularOnSavor')}
+              {t('popularOnSamoon')}
             </h2>
-            <p className="text-[var(--fg-muted)] mt-2">{t('popularOnSavorSubtitle')}</p>
+            <p className="text-[var(--fg-muted)] mt-2">{t('popularOnSamoonSubtitle')}</p>
           </div>
           <Link
             href="/discover"

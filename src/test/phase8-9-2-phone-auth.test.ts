@@ -187,18 +187,18 @@ describe('DEMO_PHONE_TO_EMAIL', () => {
     }
   })
 
-  it('all values are savor.com emails', () => {
+  it('all values are samoon.com emails', () => {
     for (const email of Object.values(DEMO_PHONE_TO_EMAIL)) {
-      expect(email, email).toMatch(/@savor\.com$/)
+      expect(email, email).toMatch(/@samoon\.com$/)
     }
   })
 
   it('maps correct phones to correct emails', () => {
-    expect(DEMO_PHONE_TO_EMAIL['+14155550101']).toBe('demo@savor.com')
-    expect(DEMO_PHONE_TO_EMAIL['+14155550104']).toBe('kitchen@savor.com')
-    expect(DEMO_PHONE_TO_EMAIL['+14155550105']).toBe('marketing@savor.com')
-    expect(DEMO_PHONE_TO_EMAIL['+14155550109']).toBe('platform@savor.com')
-    expect(DEMO_PHONE_TO_EMAIL['+14155550110']).toBe('multirole@savor.com')
+    expect(DEMO_PHONE_TO_EMAIL['+14155550101']).toBe('demo@samoon.com')
+    expect(DEMO_PHONE_TO_EMAIL['+14155550104']).toBe('kitchen@samoon.com')
+    expect(DEMO_PHONE_TO_EMAIL['+14155550105']).toBe('marketing@samoon.com')
+    expect(DEMO_PHONE_TO_EMAIL['+14155550109']).toBe('platform@samoon.com')
+    expect(DEMO_PHONE_TO_EMAIL['+14155550110']).toBe('multirole@samoon.com')
   })
 })
 

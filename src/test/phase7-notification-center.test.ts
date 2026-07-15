@@ -314,9 +314,9 @@ describe('P7.6 — Notification Service (mock mode)', () => {
 
   it('getNotifications respects tenantId filter', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
-    const result = await notificationRichService.getNotifications({ tenantId: 'tenant-savor-01' })
+    const result = await notificationRichService.getNotifications({ tenantId: 'tenant-samoon-01' })
     for (const n of result.results) {
-      expect(n.scope.tenantId).toBe('tenant-savor-01')
+      expect(n.scope.tenantId).toBe('tenant-samoon-01')
     }
   })
 
@@ -400,10 +400,10 @@ describe('P7.6 — Notification Service (mock mode)', () => {
 
   it('markAllAsRead respects tenantId scope', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
-    await notificationRichService.markAllAsRead({ tenantId: 'tenant-savor-01' })
+    await notificationRichService.markAllAsRead({ tenantId: 'tenant-samoon-01' })
     const remaining = await notificationRichService.getNotifications({
       status: 'unread',
-      tenantId: 'tenant-savor-01',
+      tenantId: 'tenant-samoon-01',
     })
     expect(remaining.results.length).toBe(0)
   })
@@ -436,7 +436,7 @@ describe('P7.6 — Notification Service (mock mode)', () => {
 
   it('getUnreadCount respects tenantId filter', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
-    const countA = await notificationRichService.getUnreadCount({ tenantId: 'tenant-savor-01' })
+    const countA = await notificationRichService.getUnreadCount({ tenantId: 'tenant-samoon-01' })
     const countB = await notificationRichService.getUnreadCount({ tenantId: 'tenant-brew-cafe-01' })
     expect(countA).toBeGreaterThanOrEqual(0)
     expect(countB).toBeGreaterThanOrEqual(0)
@@ -451,7 +451,7 @@ describe('P7.6 — Notification Service (mock mode)', () => {
       { id: 'user-1', name: 'System', roles: ['admin'] },
       'test-flag',
       'flag-001',
-      { tenantId: 'tenant-savor-01' },
+      { tenantId: 'tenant-samoon-01' },
     )
     const after = await notificationRichService.getNotifications({})
     expect(after.count).toBe(beforeCount + 1)
@@ -469,7 +469,7 @@ describe('P7.6 — Notification Service (mock mode)', () => {
 
   it('getSummary latestNotification is most recent unread', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
-    const summary = await notificationRichService.getSummary({ tenantId: 'tenant-savor-01' })
+    const summary = await notificationRichService.getSummary({ tenantId: 'tenant-samoon-01' })
     if (summary.latestNotification) {
       expect(summary.latestNotification).toHaveProperty('id')
       expect(summary.latestNotification).toHaveProperty('title')
@@ -484,7 +484,7 @@ describe('P7.6 — Notification Service (mock mode)', () => {
         { id: 'user-1', name: 'Test User', roles: ['manager'] },
         'Order #99',
         'order-99',
-        { tenantId: 'tenant-savor-01' },
+        { tenantId: 'tenant-samoon-01' },
       )
     }).not.toThrow()
   })
@@ -594,7 +594,7 @@ describe('P7.6 — Notification Statistics', () => {
 
 describe('P7.6 — Notification Preferences Service', () => {
   const USER_ID = 'user-owner-01'
-  const TENANT_ID = 'tenant-savor-01'
+  const TENANT_ID = 'tenant-samoon-01'
 
   beforeEach(async () => {
     const { notificationPreferencesService } = await import('@/services/notification-preferences.service')
@@ -942,7 +942,7 @@ describe('P7.6 — Tenant Isolation', () => {
 
   it('tenant A notifications do not include tenant B notifications', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
-    const resultA = await notificationRichService.getNotifications({ tenantId: 'tenant-savor-01' })
+    const resultA = await notificationRichService.getNotifications({ tenantId: 'tenant-samoon-01' })
     const resultB = await notificationRichService.getNotifications({ tenantId: 'tenant-brew-cafe-01' })
     const idsA = new Set(resultA.results.map((n) => n.id))
     const idsB = new Set(resultB.results.map((n) => n.id))
@@ -954,14 +954,14 @@ describe('P7.6 — Tenant Isolation', () => {
   it('markAllAsRead for tenant A does not affect tenant B unread count', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
     const beforeB = await notificationRichService.getUnreadCount({ tenantId: 'tenant-brew-cafe-01' })
-    await notificationRichService.markAllAsRead({ tenantId: 'tenant-savor-01' })
+    await notificationRichService.markAllAsRead({ tenantId: 'tenant-samoon-01' })
     const afterB = await notificationRichService.getUnreadCount({ tenantId: 'tenant-brew-cafe-01' })
     expect(afterB).toBe(beforeB)
   })
 
   it('unread count is per-tenant', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
-    const cA = await notificationRichService.getUnreadCount({ tenantId: 'tenant-savor-01' })
+    const cA = await notificationRichService.getUnreadCount({ tenantId: 'tenant-samoon-01' })
     const cB = await notificationRichService.getUnreadCount({ tenantId: 'tenant-brew-cafe-01' })
     expect(cA + cB).toBeGreaterThanOrEqual(0)
   })
@@ -997,7 +997,7 @@ describe('P7.6 — Branch Isolation', () => {
   it('preferences support optional branchId scoping', async () => {
     const { notificationPreferencesService } = await import('@/services/notification-preferences.service')
     const prefs = await notificationPreferencesService.getPreferences(
-      'user-owner-01', 'tenant-savor-01', 'branch-001',
+      'user-owner-01', 'tenant-samoon-01', 'branch-001',
     )
     expect(prefs.length).toBeGreaterThan(0)
   })

@@ -39,54 +39,54 @@ describe('P10.2.2 — resolveOwnershipIdentity (session bridge)', () => {
   })
 
   it('resolves a StaffMember + their Owner for a known staff email', () => {
-    const identity = resolveOwnershipIdentity('owner@savor.com')
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
     expect(identity.staffMember?.id).toBe('staff-owner-01')
     expect(identity.owner?.ownerId).toBe('owner-001')
   })
 
   it('resolves a StaffMember with no Owner short-circuit for a non-owning staff email', () => {
-    const identity = resolveOwnershipIdentity('cashier@savor.com')
+    const identity = resolveOwnershipIdentity('cashier@samoon.com')
     expect(identity.staffMember?.id).toBe('staff-cashier-01')
-    // cashier@savor.com is not the Owner of any tenant.
+    // cashier@samoon.com is not the Owner of any tenant.
     expect(identity.owner).toBeUndefined()
   })
 
   it('resolves the cross-tenant Accountant fixture', () => {
-    const identity = resolveOwnershipIdentity('accountant@savor.com')
+    const identity = resolveOwnershipIdentity('accountant@samoon.com')
     expect(identity.staffMember?.id).toBe('staff-accountant-01')
   })
 })
 
 describe('P10.2.2 — resolveOwnerPermissions (§4.2 short-circuit)', () => {
   it('grants the full P7Permission set for a tenant the identity owns', () => {
-    const identity = resolveOwnershipIdentity('owner@savor.com') // owner-001
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-001', status: 'active' }
-    const result = resolveOwnerPermissions(identity, savor)
+    const identity = resolveOwnershipIdentity('owner@samoon.com') // owner-001
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-001', status: 'active' }
+    const result = resolveOwnerPermissions(identity, samoon)
     expect(result).toEqual(ALL_PERMISSIONS)
   })
 
   it('includes tenant.manage and tenant.view (owner-exclusive, §7.2)', () => {
-    const identity = resolveOwnershipIdentity('owner@savor.com')
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-001', status: 'active' }
-    const result = resolveOwnerPermissions(identity, savor)
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-001', status: 'active' }
+    const result = resolveOwnerPermissions(identity, samoon)
     expect(result).toContain('tenant.manage')
     expect(result).toContain('tenant.view')
   })
 
   it('grants nothing for a tenant the identity does NOT own', () => {
-    const identity = resolveOwnershipIdentity('owner@savor.com') // owner-001
+    const identity = resolveOwnershipIdentity('owner@samoon.com') // owner-001
     const oakBar: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-oak-bar-01', ownerId: 'owner-002', status: 'active' }
     expect(resolveOwnerPermissions(identity, oakBar)).toEqual([])
   })
 
   it('grants nothing for an identity with no Owner record', () => {
-    const identity = resolveOwnershipIdentity('cashier@savor.com')
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-001', status: 'active' }
-    expect(resolveOwnerPermissions(identity, savor)).toEqual([])
+    const identity = resolveOwnershipIdentity('cashier@samoon.com')
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-001', status: 'active' }
+    expect(resolveOwnerPermissions(identity, samoon)).toEqual([])
   })
 
   it('grants nothing when activeTenant is undefined', () => {
-    const identity = resolveOwnershipIdentity('owner@savor.com')
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
     expect(resolveOwnerPermissions(identity, undefined)).toEqual([])
   })
 
@@ -94,14 +94,14 @@ describe('P10.2.2 — resolveOwnerPermissions (§4.2 short-circuit)', () => {
     // Simulates the effect of a completed Tenant.ownerId transfer (Backend
     // Contract §39.4 — not a live endpoint yet) by constructing the
     // post-transfer tenant shape directly and re-resolving.
-    const oldOwnerIdentity = resolveOwnershipIdentity('owner@savor.com') // owner-001
+    const oldOwnerIdentity = resolveOwnershipIdentity('owner@samoon.com') // owner-001
     const newOwnerIdentity = resolveOwnershipIdentity('owner@theoakbar.com') // owner-002
 
-    const preTransfer: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-001', status: 'active' }
+    const preTransfer: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-001', status: 'active' }
     expect(resolveOwnerPermissions(oldOwnerIdentity, preTransfer).length).toBeGreaterThan(0)
     expect(resolveOwnerPermissions(newOwnerIdentity, preTransfer)).toEqual([])
 
-    const postTransfer: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-002', status: 'active' }
+    const postTransfer: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-002', status: 'active' }
     expect(resolveOwnerPermissions(oldOwnerIdentity, postTransfer)).toEqual([])
     expect(resolveOwnerPermissions(newOwnerIdentity, postTransfer).length).toBeGreaterThan(0)
   })
@@ -136,80 +136,80 @@ describe('P10.2.2 — downgradeToReadOnly (§3.4 mode dimension)', () => {
 
 describe('P10.2.2 — resolveStaffAssignmentPermissions (§4.4 step 3)', () => {
   it('returns [] for an identity with no StaffMember', () => {
-    expect(resolveStaffAssignmentPermissions({}, { id: 'tenant-savor-01', status: 'active' })).toEqual([])
+    expect(resolveStaffAssignmentPermissions({}, { id: 'tenant-samoon-01', status: 'active' })).toEqual([])
   })
 
   it('returns [] when tenantId is undefined', () => {
-    const identity = resolveOwnershipIdentity('accountant@savor.com')
+    const identity = resolveOwnershipIdentity('accountant@samoon.com')
     expect(resolveStaffAssignmentPermissions(identity, undefined)).toEqual([])
   })
 
   it('mode: read grants only .view permissions for the assigned role', () => {
-    const identity = resolveOwnershipIdentity('accountant@savor.com')
-    const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-savor-01', status: 'active' })
+    const identity = resolveOwnershipIdentity('accountant@samoon.com')
+    const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-samoon-01', status: 'active' })
     expect(result).toContain('menu.view')
     expect(result).not.toContain('menu.manage')
     expect(result).not.toContain('orders.manage')
   })
 
   it('resolves permissions for a second, differently-scoped tenant under the same Owner (multi-tenant)', () => {
-    const identity = resolveOwnershipIdentity('accountant@savor.com')
-    const savorPerms = resolveStaffAssignmentPermissions(identity, { id: 'tenant-savor-01', status: 'active' })
+    const identity = resolveOwnershipIdentity('accountant@samoon.com')
+    const samoonPerms = resolveStaffAssignmentPermissions(identity, { id: 'tenant-samoon-01', status: 'active' })
     const brewCafePerms = resolveStaffAssignmentPermissions(identity, { id: 'tenant-brew-cafe-01', status: 'active' })
-    expect(savorPerms.length).toBeGreaterThan(0)
+    expect(samoonPerms.length).toBeGreaterThan(0)
     expect(brewCafePerms.length).toBeGreaterThan(0)
   })
 
   it('mode: manage grants the full role permission set unchanged', () => {
-    const identity = resolveOwnershipIdentity('cashier@savor.com')
-    const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-savor-01', status: 'active' })
+    const identity = resolveOwnershipIdentity('cashier@samoon.com')
+    const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-samoon-01', status: 'active' })
     expect(result).toContain('payments.process')
     expect(result).toContain('payments.refund')
   })
 
   it('returns [] for a tenant this staff member has no assignment to', () => {
-    const identity = resolveOwnershipIdentity('cashier@savor.com')
+    const identity = resolveOwnershipIdentity('cashier@samoon.com')
     expect(resolveStaffAssignmentPermissions(identity, { id: 'tenant-oak-bar-01', status: 'active' })).toEqual([])
   })
 
   it('a future assignment (validFrom ahead) grants nothing at the current time', () => {
-    const identity = resolveOwnershipIdentity('sage.server@savor.com') // staff-waiter-02
+    const identity = resolveOwnershipIdentity('sage.server@samoon.com') // staff-waiter-02
     expect(resolveStaffAssignmentPermissions(identity, { id: 'tenant-brew-cafe-01', status: 'active' })).toEqual([])
   })
 
   it('a future assignment becomes effective once validFrom has passed', () => {
-    const identity = resolveOwnershipIdentity('sage.server@savor.com')
+    const identity = resolveOwnershipIdentity('sage.server@samoon.com')
     const in20Days = new Date(Date.now() + 20 * 86_400_000)
     const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-brew-cafe-01', status: 'active' }, in20Days)
     expect(result.length).toBeGreaterThan(0)
   })
 
   it('a temporary assignment (validUntil) is effective before expiry', () => {
-    const identity = resolveOwnershipIdentity('lee.line@savor.com') // staff-kitchen-02
-    const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-savor-01', status: 'active' })
+    const identity = resolveOwnershipIdentity('lee.line@samoon.com') // staff-kitchen-02
+    const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-samoon-01', status: 'active' })
     expect(result.length).toBeGreaterThan(0)
   })
 
   it('a temporary assignment grants nothing after validUntil has passed', () => {
-    const identity = resolveOwnershipIdentity('lee.line@savor.com')
+    const identity = resolveOwnershipIdentity('lee.line@samoon.com')
     const in31Days = new Date(Date.now() + 31 * 86_400_000)
-    expect(resolveStaffAssignmentPermissions(identity, { id: 'tenant-savor-01', status: 'active' }, in31Days)).toEqual([])
+    expect(resolveStaffAssignmentPermissions(identity, { id: 'tenant-samoon-01', status: 'active' }, in31Days)).toEqual([])
   })
 
   it('a revoked assignment grants nothing, regardless of the current time', () => {
-    const identity = resolveOwnershipIdentity('quinn.promo@savor.com') // staff-marketing-02
-    expect(resolveStaffAssignmentPermissions(identity, { id: 'tenant-savor-01', status: 'active' })).toEqual([])
+    const identity = resolveOwnershipIdentity('quinn.promo@samoon.com') // staff-marketing-02
+    expect(resolveStaffAssignmentPermissions(identity, { id: 'tenant-samoon-01', status: 'active' })).toEqual([])
     const farFuture = new Date(Date.now() + 365 * 86_400_000)
-    expect(resolveStaffAssignmentPermissions(identity, { id: 'tenant-savor-01', status: 'active' }, farFuture)).toEqual([])
+    expect(resolveStaffAssignmentPermissions(identity, { id: 'tenant-samoon-01', status: 'active' }, farFuture)).toEqual([])
   })
 
   it('unions permissions across multiple active assignments to the same tenant', async () => {
     const tenants = await tenantService.getTenants()
-    const staff = await staffService.getStaff('tenant-savor-01')
+    const staff = await staffService.getStaff('tenant-samoon-01')
     await staffAssignmentService.grant(
       {
         staffId: 'staff-cashier-01',
-        tenantId: 'tenant-savor-01',
+        tenantId: 'tenant-samoon-01',
         branchIds: 'all',
         role: 'support',
         mode: 'manage',
@@ -218,8 +218,8 @@ describe('P10.2.2 — resolveStaffAssignmentPermissions (§4.4 step 3)', () => {
       staff,
       tenants,
     )
-    const identity = resolveOwnershipIdentity('cashier@savor.com')
-    const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-savor-01', status: 'active' })
+    const identity = resolveOwnershipIdentity('cashier@samoon.com')
+    const result = resolveStaffAssignmentPermissions(identity, { id: 'tenant-samoon-01', status: 'active' })
     // From the pre-existing cashier assignment:
     expect(result).toContain('payments.process')
     // From the newly granted support assignment:
@@ -229,73 +229,73 @@ describe('P10.2.2 — resolveStaffAssignmentPermissions (§4.4 step 3)', () => {
 
 describe('P10.2.2 — resolveOwnershipDrivenPermissions (full §4.4 priority chain)', () => {
   it('Owner short-circuit wins over any StaffAssignment lookup', () => {
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-001', status: 'active' }
-    const result = resolveOwnershipDrivenPermissions('owner@savor.com', savor)
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-001', status: 'active' }
+    const result = resolveOwnershipDrivenPermissions('owner@samoon.com', samoon)
     expect(result).toEqual(ALL_PERMISSIONS)
   })
 
   it('falls through to StaffAssignment permissions when not the owner', () => {
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-001', status: 'active' }
-    const result = resolveOwnershipDrivenPermissions('cashier@savor.com', savor)
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-001', status: 'active' }
+    const result = resolveOwnershipDrivenPermissions('cashier@samoon.com', samoon)
     expect(result.length).toBeGreaterThan(0)
     expect(result).not.toEqual(ALL_PERMISSIONS)
   })
 
   it('Platform Admin identities are untouched — no matching StaffMember means no interference', () => {
-    // platform@savor.com has no StaffMember record; Platform Admin's real
+    // platform@samoon.com has no StaffMember record; Platform Admin's real
     // permissions come entirely from src/platform-admin/permissions.ts,
     // never from this function.
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-001', status: 'active' }
-    expect(resolveOwnershipDrivenPermissions('platform@savor.com', savor)).toEqual([])
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-001', status: 'active' }
+    expect(resolveOwnershipDrivenPermissions('platform@samoon.com', samoon)).toEqual([])
   })
 
   it('Customer identities resolve to zero P7Permission grants (§4.5)', () => {
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-savor-01', ownerId: 'owner-001', status: 'active' }
-    expect(resolveOwnershipDrivenPermissions('john@example.com', savor)).toEqual([])
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = { id: 'tenant-samoon-01', ownerId: 'owner-001', status: 'active' }
+    expect(resolveOwnershipDrivenPermissions('john@example.com', samoon)).toEqual([])
   })
 
   it('returns [] for an undefined active tenant', () => {
-    expect(resolveOwnershipDrivenPermissions('owner@savor.com', undefined)).toEqual([])
+    expect(resolveOwnershipDrivenPermissions('owner@samoon.com', undefined)).toEqual([])
   })
 })
 
 describe('P10.2.2 — buildBranchAccessContextFromAssignments (Phase D wiring)', () => {
   it('returns null for an identity with no StaffMember', () => {
-    expect(buildBranchAccessContextFromAssignments('nobody@nowhere.example', 'tenant-savor-01', [])).toBeNull()
+    expect(buildBranchAccessContextFromAssignments('nobody@nowhere.example', 'tenant-samoon-01', [])).toBeNull()
   })
 
   it('returns null for a staff member with no assignments to this tenant', () => {
     expect(
-      buildBranchAccessContextFromAssignments('cashier@savor.com', 'tenant-oak-bar-01', []),
+      buildBranchAccessContextFromAssignments('cashier@samoon.com', 'tenant-oak-bar-01', []),
     ).toBeNull()
   })
 
   it("expands branchIds: 'all' to every branch of the tenant", async () => {
-    const allBranches = await branchManagementService.getBranches('tenant-savor-01')
-    const context = buildBranchAccessContextFromAssignments('accountant@savor.com', 'tenant-savor-01', allBranches)
+    const allBranches = await branchManagementService.getBranches('tenant-samoon-01')
+    const context = buildBranchAccessContextFromAssignments('accountant@samoon.com', 'tenant-samoon-01', allBranches)
     expect(context).not.toBeNull()
     expect(context!.branchIds.length).toBe(allBranches.length)
-    expect(context!.tenantId).toBe('tenant-savor-01')
+    expect(context!.tenantId).toBe('tenant-samoon-01')
     expect(context!.staffId).toBe('staff-accountant-01')
   })
 
   it('resolves a specific-branch subset for a different tenant (multi-branch, multi-tenant)', async () => {
     const brewCafeBranches = await branchManagementService.getBranches('tenant-brew-cafe-01')
-    const context = buildBranchAccessContextFromAssignments('accountant@savor.com', 'tenant-brew-cafe-01', brewCafeBranches)
+    const context = buildBranchAccessContextFromAssignments('accountant@samoon.com', 'tenant-brew-cafe-01', brewCafeBranches)
     expect(context).not.toBeNull()
     expect(context!.branchIds).toEqual(['branch-brewcafe-02'])
   })
 
   it('resolves a single-branch scope (cashier example)', async () => {
-    const allBranches = await branchManagementService.getBranches('tenant-savor-01')
-    const context = buildBranchAccessContextFromAssignments('cashier@savor.com', 'tenant-savor-01', allBranches)
+    const allBranches = await branchManagementService.getBranches('tenant-samoon-01')
+    const context = buildBranchAccessContextFromAssignments('cashier@samoon.com', 'tenant-samoon-01', allBranches)
     expect(context).not.toBeNull()
     expect(context!.branchIds).toEqual(['branch-rest-01'])
   })
 
   it('returns null for an Owner (ownership grants full access without an assignment context)', () => {
     // staff-owner-01 is a StaffMember record but holds no StaffAssignment rows.
-    expect(buildBranchAccessContextFromAssignments('owner@savor.com', 'tenant-savor-01', [])).toBeNull()
+    expect(buildBranchAccessContextFromAssignments('owner@samoon.com', 'tenant-samoon-01', [])).toBeNull()
   })
 })
 
@@ -362,54 +362,54 @@ describe('P10.3 Phase A — Owner status enforcement', () => {
   })
 
   it('a pending_verification Owner resolves to zero permissions', () => {
-    const baseIdentity = resolveOwnershipIdentity('owner@savor.com')
+    const baseIdentity = resolveOwnershipIdentity('owner@samoon.com')
     const identity = { ...baseIdentity, owner: { ...baseIdentity.owner!, status: 'pending_verification' as const } }
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
-      id: 'tenant-savor-01',
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
+      id: 'tenant-samoon-01',
       ownerId: 'owner-001',
       status: 'active',
     }
-    expect(resolveOwnerPermissions(identity, savor)).toEqual([])
+    expect(resolveOwnerPermissions(identity, samoon)).toEqual([])
   })
 
   it('an active Owner is unaffected (no regression)', () => {
-    const identity = resolveOwnershipIdentity('owner@savor.com')
-    const savor: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
-      id: 'tenant-savor-01',
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
+    const samoon: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
+      id: 'tenant-samoon-01',
       ownerId: 'owner-001',
       status: 'active',
     }
-    expect(resolveOwnerPermissions(identity, savor)).toEqual(ALL_PERMISSIONS)
+    expect(resolveOwnerPermissions(identity, samoon)).toEqual(ALL_PERMISSIONS)
   })
 })
 
 describe('P10.3 Phase B — Staff status enforcement', () => {
   it('a suspended StaffMember resolves to zero permissions despite an active assignment', () => {
-    const baseIdentity = resolveOwnershipIdentity('accountant@savor.com')
+    const baseIdentity = resolveOwnershipIdentity('accountant@samoon.com')
     const identity = { ...baseIdentity, staffMember: { ...baseIdentity.staffMember!, status: 'suspended' as const } }
-    const savor: Pick<Tenant, 'id' | 'status'> = { id: 'tenant-savor-01', status: 'active' }
-    expect(resolveStaffAssignmentPermissions(identity, savor)).toEqual([])
+    const samoon: Pick<Tenant, 'id' | 'status'> = { id: 'tenant-samoon-01', status: 'active' }
+    expect(resolveStaffAssignmentPermissions(identity, samoon)).toEqual([])
   })
 
   it('a removed StaffMember resolves to zero permissions despite an active assignment', () => {
-    const baseIdentity = resolveOwnershipIdentity('accountant@savor.com')
+    const baseIdentity = resolveOwnershipIdentity('accountant@samoon.com')
     const identity = { ...baseIdentity, staffMember: { ...baseIdentity.staffMember!, status: 'removed' as const } }
-    const savor: Pick<Tenant, 'id' | 'status'> = { id: 'tenant-savor-01', status: 'active' }
-    expect(resolveStaffAssignmentPermissions(identity, savor)).toEqual([])
+    const samoon: Pick<Tenant, 'id' | 'status'> = { id: 'tenant-samoon-01', status: 'active' }
+    expect(resolveStaffAssignmentPermissions(identity, samoon)).toEqual([])
   })
 
   it('an active StaffMember is unaffected (no regression)', () => {
-    const identity = resolveOwnershipIdentity('accountant@savor.com')
-    const savor: Pick<Tenant, 'id' | 'status'> = { id: 'tenant-savor-01', status: 'active' }
-    expect(resolveStaffAssignmentPermissions(identity, savor).length).toBeGreaterThan(0)
+    const identity = resolveOwnershipIdentity('accountant@samoon.com')
+    const samoon: Pick<Tenant, 'id' | 'status'> = { id: 'tenant-samoon-01', status: 'active' }
+    expect(resolveStaffAssignmentPermissions(identity, samoon).length).toBeGreaterThan(0)
   })
 })
 
 describe('P10.3 Phase C — Tenant status enforcement', () => {
   it('an archived tenant grants zero Owner permissions', () => {
-    const identity = resolveOwnershipIdentity('owner@savor.com')
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
     const archived: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
-      id: 'tenant-savor-01',
+      id: 'tenant-samoon-01',
       ownerId: 'owner-001',
       status: 'archived',
     }
@@ -417,24 +417,24 @@ describe('P10.3 Phase C — Tenant status enforcement', () => {
   })
 
   it('an archived tenant grants zero Staff permissions', () => {
-    const identity = resolveOwnershipIdentity('accountant@savor.com')
-    const archived: Pick<Tenant, 'id' | 'status'> = { id: 'tenant-savor-01', status: 'archived' }
+    const identity = resolveOwnershipIdentity('accountant@samoon.com')
+    const archived: Pick<Tenant, 'id' | 'status'> = { id: 'tenant-samoon-01', status: 'archived' }
     expect(resolveStaffAssignmentPermissions(identity, archived)).toEqual([])
   })
 
   it('resolveOwnershipDrivenPermissions returns [] for an archived tenant end-to-end (owner identity)', () => {
     const archived: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
-      id: 'tenant-savor-01',
+      id: 'tenant-samoon-01',
       ownerId: 'owner-001',
       status: 'archived',
     }
-    expect(resolveOwnershipDrivenPermissions('owner@savor.com', archived)).toEqual([])
+    expect(resolveOwnershipDrivenPermissions('owner@samoon.com', archived)).toEqual([])
   })
 
   it('a non-archived, non-active tenant status (e.g. "suspended") is unaffected — not a verified P10.2.3 finding', () => {
-    const identity = resolveOwnershipIdentity('owner@savor.com')
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
     const suspendedTenant: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
-      id: 'tenant-savor-01',
+      id: 'tenant-samoon-01',
       ownerId: 'owner-001',
       status: 'suspended',
     }

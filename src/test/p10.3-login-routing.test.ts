@@ -17,11 +17,11 @@ describe('P10.3 Phase H — getPostLoginRedirect is ownership-aware', () => {
   it('routes a known Owner email to /console regardless of role string', () => {
     // 'customer' is deliberately the wrong role string here — ownership
     // data should still win and route to /console.
-    expect(getPostLoginRedirect('customer', 'owner@savor.com')).toBe('/console')
+    expect(getPostLoginRedirect('customer', 'owner@samoon.com')).toBe('/console')
   })
 
   it('routes a known Staff email to /console', () => {
-    expect(getPostLoginRedirect('customer', 'cashier@savor.com')).toBe('/console')
+    expect(getPostLoginRedirect('customer', 'cashier@samoon.com')).toBe('/console')
   })
 
   it('falls back to role-based resolveWorkspace() when no email is provided', () => {

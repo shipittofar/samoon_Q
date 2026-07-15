@@ -14,26 +14,26 @@ describe('buildPublicUrl', () => {
   })
 
   it('returns tenant-only path when branchSlug is absent', () => {
-    expect(buildPublicUrl({ tenantSlug: 'savor', branchSlug: null })).toBe('/savor')
-    expect(buildPublicUrl({ tenantSlug: 'savor', branchSlug: undefined })).toBe('/savor')
+    expect(buildPublicUrl({ tenantSlug: 'samoon', branchSlug: null })).toBe('/samoon')
+    expect(buildPublicUrl({ tenantSlug: 'samoon', branchSlug: undefined })).toBe('/samoon')
   })
 
   it('returns tenant/module path when branchSlug absent but module provided', () => {
-    expect(buildPublicUrl({ tenantSlug: 'savor', branchSlug: null, module: 'about' })).toBe(
-      '/savor/about',
+    expect(buildPublicUrl({ tenantSlug: 'samoon', branchSlug: null, module: 'about' })).toBe(
+      '/samoon/about',
     )
   })
 
   it('returns full context-aware URL when all parts are present', () => {
-    expect(buildPublicUrl({ tenantSlug: 'savor', branchSlug: 'main', module: 'menu' })).toBe(
-      '/savor/main/menu',
+    expect(buildPublicUrl({ tenantSlug: 'samoon', branchSlug: 'main', module: 'menu' })).toBe(
+      '/samoon/main/menu',
     )
-    expect(buildPublicUrl({ tenantSlug: 'savor', branchSlug: 'main' })).toBe('/savor/main')
+    expect(buildPublicUrl({ tenantSlug: 'samoon', branchSlug: 'main' })).toBe('/samoon/main')
   })
 
   it('handles empty module string', () => {
-    expect(buildPublicUrl({ tenantSlug: 'savor', branchSlug: 'main', module: '' })).toBe(
-      '/savor/main',
+    expect(buildPublicUrl({ tenantSlug: 'samoon', branchSlug: 'main', module: '' })).toBe(
+      '/samoon/main',
     )
   })
 })
@@ -42,11 +42,11 @@ describe('buildPublicUrl', () => {
 
 describe('hrefToPublicUrl', () => {
   it('maps "/" to tenant homepage when tenantSlug present', () => {
-    expect(hrefToPublicUrl('/', 'savor', 'main')).toBe('/savor')
+    expect(hrefToPublicUrl('/', 'samoon', 'main')).toBe('/samoon')
   })
 
   it('maps "/restaurant" to tenant homepage when tenantSlug present', () => {
-    expect(hrefToPublicUrl('/restaurant', 'savor', 'main')).toBe('/savor')
+    expect(hrefToPublicUrl('/restaurant', 'samoon', 'main')).toBe('/samoon')
   })
 
   it('falls back to "/" for tenant homepage hrefs when no tenantSlug', () => {
@@ -55,11 +55,11 @@ describe('hrefToPublicUrl', () => {
   })
 
   it('maps "/menu" to branch-level menu URL', () => {
-    expect(hrefToPublicUrl('/menu', 'savor', 'main')).toBe('/savor/main/menu')
+    expect(hrefToPublicUrl('/menu', 'samoon', 'main')).toBe('/samoon/main/menu')
   })
 
   it('maps "/reservation" to branch-level reservation URL', () => {
-    expect(hrefToPublicUrl('/reservation', 'savor', 'main')).toBe('/savor/main/reservation')
+    expect(hrefToPublicUrl('/reservation', 'samoon', 'main')).toBe('/samoon/main/reservation')
   })
 
   it('maps "/loyalty" to branch-level loyalty URL', () => {
@@ -78,15 +78,15 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
     tenantService._resetMockList()
   })
 
-  it('savor has branches array with 3 entries', async () => {
-    const tenant = await tenantService.getTenant('savor')
+  it('samoon has branches array with 3 entries', async () => {
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.branches).toBeDefined()
     expect(meta?.branches?.length).toBe(3)
   })
 
   it('each branch entry has required fields', async () => {
-    const tenant = await tenantService.getTenant('savor')
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     meta?.branches?.forEach((b: PublicBranchInfo) => {
       expect(typeof b.slug).toBe('string')
@@ -147,8 +147,8 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
     })
   })
 
-  it('savor primary branch slug matches first branch slug', async () => {
-    const tenant = await tenantService.getTenant('savor')
+  it('samoon primary branch slug matches first branch slug', async () => {
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.branches?.[0]?.slug).toBe(meta?.primaryBranchSlug)
   })
@@ -165,7 +165,7 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   })
 
   it('gallery is an array of strings when present', async () => {
-    const tenant = await tenantService.getTenant('savor')
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     if (meta?.gallery) {
       expect(Array.isArray(meta.gallery)).toBe(true)
@@ -190,9 +190,9 @@ describe('tenantService.getTenant — unknown slug handling', () => {
   })
 
   it('returns correct tenant for known slug', async () => {
-    const tenant = await tenantService.getTenant('savor')
-    expect(tenant.slug).toBe('savor')
-    expect(tenant.name).toBe('Savor Restaurant')
+    const tenant = await tenantService.getTenant('samoon')
+    expect(tenant.slug).toBe('samoon')
+    expect(tenant.name).toBe('Samoon Restaurant')
   })
 
   it('returns correct tenant for brew-cafe', async () => {

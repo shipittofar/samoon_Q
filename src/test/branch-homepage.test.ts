@@ -7,8 +7,8 @@ import type { PublicBranchInfo } from '@/types/marketplace'
 // ── Branch mock data — tenantId correctness ───────────────────────────────────
 
 describe('branch.service mock data — tenant scoping (P8.7.7.3)', () => {
-  it('savor tenant has branches including main, downtown, airport', async () => {
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+  it('samoon tenant has branches including main, downtown, airport', async () => {
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const slugs = branches.map((b) => b.slug)
     expect(slugs).toContain('main')
     expect(slugs).toContain('downtown')
@@ -57,12 +57,12 @@ describe('branch slugs consistency between branch.service and tenant.service', (
     tenantService._resetMockList()
   })
 
-  it('savor marketplace.branches slugs are all present in branch service', async () => {
-    const tenant = await tenantService.getTenant('savor')
+  it('samoon marketplace.branches slugs are all present in branch service', async () => {
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const metaSlugs = meta?.branches?.map((b: PublicBranchInfo) => b.slug) ?? []
 
-    const branches = await branchManagementService.getBranches('tenant-savor-01')
+    const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const serviceSlugs = new Set(branches.map((b) => b.slug))
 
     // Every marketplace branch must be resolvable in the branch service
@@ -149,8 +149,8 @@ describe('PublicBranchInfo shape (P8.7.7.3)', () => {
     })
   })
 
-  it('savor primary branch slug resolves to a real branch', async () => {
-    const tenant = await tenantService.getTenant('savor')
+  it('samoon primary branch slug resolves to a real branch', async () => {
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const primary = meta?.branches?.find((b: PublicBranchInfo) => b.slug === meta.primaryBranchSlug)
     expect(primary).toBeDefined()
@@ -172,7 +172,7 @@ describe('branch slug resolution for homepage', () => {
   })
 
   it('known tenant + known branch slug resolves to PublicBranchInfo', async () => {
-    const tenant = await tenantService.getTenant('savor')
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'main')
     expect(branch).toBeDefined()
@@ -180,7 +180,7 @@ describe('branch slug resolution for homepage', () => {
   })
 
   it('known tenant + known downtown slug resolves correctly', async () => {
-    const tenant = await tenantService.getTenant('savor')
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'downtown')
     expect(branch).toBeDefined()
@@ -188,7 +188,7 @@ describe('branch slug resolution for homepage', () => {
   })
 
   it('known tenant + unknown branch slug returns undefined', async () => {
-    const tenant = await tenantService.getTenant('savor')
+    const tenant = await tenantService.getTenant('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'nonexistent-location')
     expect(branch).toBeUndefined()

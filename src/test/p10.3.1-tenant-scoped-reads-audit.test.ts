@@ -41,10 +41,10 @@ describe('P10.3.1 — useAdminOrders()/useAdminReservations() now enforce tenant
   })
 
   it('the underlying guard denies an identity with no relationship to the tenant (regression coverage for the shared guard)', async () => {
-    await expect(assertOwnershipTenantAccess('john@example.com', 'tenant-savor-01')).rejects.toThrow()
+    await expect(assertOwnershipTenantAccess('john@example.com', 'tenant-samoon-01')).rejects.toThrow()
   })
 
   it('the underlying guard allows the tenant Owner (regression coverage for the shared guard)', async () => {
-    await expect(assertOwnershipTenantAccess('owner@savor.com', 'tenant-savor-01')).resolves.toBeUndefined()
+    await expect(assertOwnershipTenantAccess('owner@samoon.com', 'tenant-samoon-01')).resolves.toBeUndefined()
   })
 })

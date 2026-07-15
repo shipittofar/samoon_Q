@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Instagram, Twitter, Facebook, Youtube, Mail } from 'lucide-react'
 
-// P8.8.1 — Footer rewritten to represent the Savor hospitality platform
+// P8.8.1 — Footer rewritten to represent the Samoon hospitality platform
 // rather than a single restaurant. Routing structure is unchanged; only
 // labels, sections, and brand copy were updated.
 
@@ -22,7 +22,7 @@ const LINKS = {
     { labelKey: 'pricing', href: '/restaurant' },
   ],
   company: [
-    { labelKey: 'aboutSavor', href: '/restaurant' },
+    { labelKey: 'aboutSamoon', href: '/restaurant' },
     { labelKey: 'support', href: '/restaurant' },
     { labelKey: 'privacyPolicy', href: '/privacy' },
     { labelKey: 'termsOfService', href: '/terms' },
@@ -49,7 +49,7 @@ export function Footer() {
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
                 <span className="text-white font-bold">S</span>
               </div>
-              <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Savor</span>
+              <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Samoon</span>
             </Link>
             <p className="text-sm text-[var(--fg-muted)] leading-relaxed mb-6 max-w-xs">
               {t('brandDescription')}
@@ -57,7 +57,7 @@ export function Footer() {
             <div className="space-y-3 text-sm text-[var(--fg-muted)]">
               <div className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-orange-500" />
-                <a href="mailto:hello@savor.com" className="hover:text-orange-500 transition-colors">hello@savor.com</a>
+                <a href="mailto:hello@samoon.com" className="hover:text-orange-500 transition-colors">hello@samoon.com</a>
               </div>
             </div>
           </div>
