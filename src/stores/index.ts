@@ -581,7 +581,7 @@ export const useRbacStore = create<RbacStoreState>()(
       updateCustomRole: (roleId, updates) =>
         set((s) => ({
           customRoles: s.customRoles.map((r) =>
-            r.id === roleId ? { ...r, ...updates, updatedAt: new Date().toISOString() } : r,
+            r.id === roleId ? { ...r, ...updates, updated_at: new Date().toISOString() } : r,
           ),
         })),
       deleteCustomRole: (roleId) =>

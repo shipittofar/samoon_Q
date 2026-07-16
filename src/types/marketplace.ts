@@ -223,7 +223,7 @@ export function matchesFilters(
  * Sort a TenantWithMeta array by the given SortOption.
  * Uses duck typing to avoid importing the Tenant type (circular-dep safe).
  */
-export function sortItems<T extends { tenant: { name: string; createdAt: string }; meta: MarketplaceMeta }>(
+export function sortItems<T extends { tenant: { name: string; created_at: string }; meta: MarketplaceMeta }>(
   items: T[],
   sortBy: SortOption,
 ): T[] {
@@ -234,7 +234,7 @@ export function sortItems<T extends { tenant: { name: string; createdAt: string 
     case 'most_reviewed':
       return copy.sort((a, b) => b.meta.reviewCount - a.meta.reviewCount)
     case 'newest':
-      return copy.sort((a, b) => new Date(b.tenant.createdAt).getTime() - new Date(a.tenant.createdAt).getTime())
+      return copy.sort((a, b) => new Date(b.tenant.created_at).getTime() - new Date(a.tenant.created_at).getTime())
     case 'alphabetical':
       return copy.sort((a, b) => a.tenant.name.localeCompare(b.tenant.name))
     case 'price_asc':

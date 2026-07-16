@@ -19,7 +19,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     slug: 'samoon',
     businessTypes: ['restaurant'],
     status: 'active',
-    createdAt: '2024-01-01T00:00:00.000Z',
+    created_at: '2024-01-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'reviews.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#e85d04' },
@@ -63,7 +63,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     slug: 'brew-cafe',
     businessTypes: ['cafe'],
     status: 'active',
-    createdAt: '2024-02-01T00:00:00.000Z',
+    created_at: '2024-02-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'loyalty.enabled': true, 'cafe.loyalty.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#6f4e37' },
@@ -102,7 +102,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     slug: 'the-oak-bar',
     businessTypes: ['bar'],
     status: 'active',
-    createdAt: '2024-03-01T00:00:00.000Z',
+    created_at: '2024-03-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'promotions.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#1a1a2e' },
@@ -140,7 +140,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     slug: 'central-food-court',
     businessTypes: ['food_court'],
     status: 'trial',
-    createdAt: '2024-04-01T00:00:00.000Z',
+    created_at: '2024-04-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_court.vendor_management.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#2d6a4f' },
@@ -178,7 +178,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     slug: 'road-bites',
     businessTypes: ['food_truck'],
     status: 'suspended',
-    createdAt: '2024-05-01T00:00:00.000Z',
+    created_at: '2024-05-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_truck.live_location.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#f4a261' },
@@ -202,7 +202,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     slug: 'wheels-and-brews',
     businessTypes: ['mobile_cafe'],
     status: 'active',
-    createdAt: '2024-06-01T00:00:00.000Z',
+    created_at: '2024-06-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'mobile_cafe.loyalty.enabled': true, 'mobile_cafe.live_location.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#457b9d' },

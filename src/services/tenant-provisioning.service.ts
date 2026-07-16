@@ -388,7 +388,7 @@ export const tenantProvisioningService = {
         slug: req.slug,
         businessTypes: [req.businessType],
         status: 'active',
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
         settings: { featureFlags, theme: branding },
       }
 
@@ -446,7 +446,7 @@ export const tenantProvisioningService = {
         // Preserve source business type; fall back to restaurant when source unknown
         businessTypes: source?.businessTypes ? [...source.businessTypes] : ['restaurant'],
         status: 'active',
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
         // Preserve source settings (feature flags + branding), override name
         settings: source?.settings
           ? { ...(source.settings as Record<string, unknown>) }

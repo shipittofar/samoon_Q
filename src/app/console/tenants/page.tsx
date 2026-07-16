@@ -90,7 +90,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
         </span>
       </td>
       <td className="px-4 py-3 text-sm text-gray-500">
-        {new Date(tenant.createdAt).toLocaleDateString()}
+        {new Date(tenant.created_at).toLocaleDateString()}
       </td>
       <td className="px-4 py-3 text-sm space-x-2">
         {tenant.status !== 'active' && tenant.status !== 'archived' && (

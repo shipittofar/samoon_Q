@@ -94,7 +94,7 @@ function buildAdminCustomers(tenantId: string): AdminCustomer[] {
       avatar: pu?.avatar,
       role: 'customer' as UserRole,
       is_verified: pu?.status === 'active',
-      created_at: pu?.createdAt ?? bc.firstInteractionAt,
+      created_at: pu?.created_at ?? bc.firstInteractionAt,
       order_count: bc.ordersCount,
       total_spent: bc.totalSpent,
       avg_order_value: Math.round(avgOrder * 100) / 100,
@@ -290,7 +290,7 @@ export const adminService = {
       if (!pu) return []
       const firstName = pu.name.split(' ')[0] ?? ''
       const lastName = pu.name.split(' ').slice(1).join(' ') ?? ''
-      const mockUser = { id: customerId, first_name: firstName, last_name: lastName, email: pu.email ?? '', role: 'customer' as UserRole, is_verified: pu.status === 'active', created_at: pu.createdAt }
+      const mockUser = { id: customerId, first_name: firstName, last_name: lastName, email: pu.email ?? '', role: 'customer' as UserRole, is_verified: pu.status === 'active', created_at: pu.created_at }
       return [
         {
           id: `review-${customerId}-1`,
@@ -351,7 +351,7 @@ export const adminService = {
       const events = MOCK_CUSTOMER_TIMELINE.filter(
         (e) => e.userId === userId && e.tenantId === tenantId
       )
-      return [...events].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      return [...events].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     }
     const { data } = await api.get<CustomerTimelineEvent[]>(`/admin/customers/${userId}/timeline/`, {
       params: { tenantId },
@@ -364,7 +364,7 @@ export const adminService = {
     if (USE_MOCK) {
       await delay(300)
       return MOCK_CUSTOMER_NOTES.filter((n) => n.userId === userId && n.tenantId === tenantId)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     }
     const { data } = await api.get<CustomerNote[]>(`/admin/customers/${userId}/notes/`, {
       params: { tenantId },
@@ -383,8 +383,8 @@ export const adminService = {
         content,
         authorId,
         authorName,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
       MOCK_CUSTOMER_NOTES.push(note)
       return note
@@ -399,7 +399,7 @@ export const adminService = {
       await delay(300)
       const idx = MOCK_CUSTOMER_NOTES.findIndex((n) => n.id === noteId)
       if (idx === -1) throw new Error(`Note ${noteId} not found`)
-      MOCK_CUSTOMER_NOTES[idx] = { ...MOCK_CUSTOMER_NOTES[idx], content, updatedAt: new Date().toISOString() }
+      MOCK_CUSTOMER_NOTES[idx] = { ...MOCK_CUSTOMER_NOTES[idx], content, updated_at: new Date().toISOString() }
       return MOCK_CUSTOMER_NOTES[idx]
     }
     const { data } = await api.patch<CustomerNote>(`/admin/notes/${noteId}/`, { content })
@@ -484,7 +484,7 @@ export const adminService = {
     if (USE_MOCK) {
       await delay(300)
       return MOCK_CUSTOMER_COUPONS.filter((c) => c.userId === userId && c.tenantId === tenantId)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     }
     const { data } = await api.get<CustomerCoupon[]>(`/admin/customers/${userId}/coupons/`, {
       params: { tenantId },
@@ -509,7 +509,7 @@ export const adminService = {
         currency: 'USD',
         method: 'card' as const,
         status: 'completed' as const,
-        processedAt: e.createdAt,
+        processedAt: e.created_at,
       }))
     }
     const { data } = await api.get<CustomerPayment[]>(`/admin/customers/${userId}/payments/`, {

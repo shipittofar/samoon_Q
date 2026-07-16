@@ -389,7 +389,7 @@ export interface Tenant {
    */
   businessTypes: string[]
   status: TenantStatus
-  createdAt: string
+  created_at: string
   settings?: Record<string, unknown>
   /**
    * P10.2.1 — FK to Owner.ownerId (src/types/ownership.ts). Additive and
@@ -617,8 +617,8 @@ export interface LoyaltyAccount {
   lifetimePoints: number
   tier: LoyaltyTier
   tierExpiresAt?: string
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export type LoyaltyTransactionType = 'earn' | 'redeem' | 'expire' | 'adjustment'
@@ -632,7 +632,7 @@ export interface LoyaltyTransaction {
   /** Human-readable description (e.g. "Order #1234 — earned 120 pts"). */
   description: string
   /** ISO timestamp of when the transaction occurred. */
-  createdAt: string
+  created_at: string
   /** Optional reference to an order or reward that triggered the transaction. */
   referenceId?: string
 }
@@ -649,7 +649,7 @@ export interface LoyaltyReward {
   minimumTier?: LoyaltyTier
   /** ISO expiry date for time-limited rewards. */
   expiresAt?: string
-  createdAt: string
+  created_at: string
 }
 
 /** Tier thresholds — lifetime points needed to reach each tier. */
@@ -695,7 +695,7 @@ export interface HappyHourRule {
   applicableItemIds: string[]
   schedule: PromotionSchedule
   active: boolean
-  createdAt: string
+  created_at: string
 }
 
 export interface PromotionRule {
@@ -711,8 +711,8 @@ export interface PromotionRule {
   applicableItemIds: string[]
   schedule: PromotionSchedule
   active: boolean
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export interface FoodTruckSettings {
@@ -942,7 +942,7 @@ export interface PlatformUser {
   avatar?: string
   email?: string
   language?: string
-  createdAt: string
+  created_at: string
   status: 'active' | 'inactive' | 'suspended'
 }
 
@@ -1033,7 +1033,7 @@ export interface CustomerTimelineEvent {
   actorId?: string
   actorName?: string
   metadata?: Record<string, unknown>
-  createdAt: string
+  created_at: string
 }
 
 export interface CustomerNote {
@@ -1043,8 +1043,8 @@ export interface CustomerNote {
   content: string
   authorId: string
   authorName: string
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export type CustomerTagColor = 'gray' | 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'orange'
@@ -1054,7 +1054,7 @@ export interface CustomerTag {
   tenantId: string
   label: string
   color: CustomerTagColor
-  createdAt: string
+  created_at: string
 }
 
 export interface CustomerTagAssignment {
@@ -1124,7 +1124,7 @@ export interface CustomerCoupon {
   status: 'available' | 'redeemed' | 'expired'
   redeemedAt?: string
   expiresAt?: string
-  createdAt: string
+  created_at: string
 }
 
 export interface CustomerPayment {
@@ -1176,8 +1176,8 @@ export interface Vendor {
   commissionRate: number
   contactEmail: string
   contactPhone?: string
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 export interface VendorStats {
@@ -1212,8 +1212,8 @@ export interface VendorSettlement {
   /** External payout reference (e.g. bank transfer ID). */
   payoutReference?: string
   commission: VendorCommission
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
 }
 
 // ── P7.3 Branch Management types (re-exported for convenience) ────────────────

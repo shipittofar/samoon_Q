@@ -46,7 +46,7 @@ function ProfileSection({ tenant }: { tenant: Tenant }) {
             </span>
           </dd>
         </div>
-        <div><dt className="text-gray-500">{t('createdLabel')}</dt><dd>{new Date(tenant.createdAt).toLocaleDateString()}</dd></div>
+        <div><dt className="text-gray-500">{t('createdLabel')}</dt><dd>{new Date(tenant.created_at).toLocaleDateString()}</dd></div>
       </dl>
     </section>
   )

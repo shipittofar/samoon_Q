@@ -46,19 +46,19 @@ function getMockAccount(userId: string, tenantId: string): LoyaltyAccount {
       points: 0,
       lifetimePoints: 0,
       tier: 'bronze',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
   }
-  return { ...(base ?? { id: `la-${userId}-${tenantId}`, userId, tenantId, points: 0, lifetimePoints: 0, tier: 'bronze' as LoyaltyTier, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }), ...(overrides ?? {}) } as LoyaltyAccount
+  return { ...(base ?? { id: `la-${userId}-${tenantId}`, userId, tenantId, points: 0, lifetimePoints: 0, tier: 'bronze' as LoyaltyTier, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }), ...(overrides ?? {}) } as LoyaltyAccount
 }
 
 const DEFAULT_TRANSACTIONS = (accountId: string, tenantId: string): LoyaltyTransaction[] => [
-  { id: `txn-${accountId}-1`, accountId, tenantId, type: 'earn',   points: 120,  description: 'Order #1042 — earned 120 pts',  createdAt: new Date(Date.now() - 2  * 86_400_000).toISOString(), referenceId: 'order-1042' },
-  { id: `txn-${accountId}-2`, accountId, tenantId, type: 'earn',   points: 85,   description: 'Order #1038 — earned 85 pts',   createdAt: new Date(Date.now() - 5  * 86_400_000).toISOString(), referenceId: 'order-1038' },
-  { id: `txn-${accountId}-3`, accountId, tenantId, type: 'redeem', points: -200,  description: 'Redeemed: Free Latte',           createdAt: new Date(Date.now() - 8  * 86_400_000).toISOString(), referenceId: 'reward-free-latte' },
-  { id: `txn-${accountId}-4`, accountId, tenantId, type: 'earn',   points: 200,  description: 'Order #1025 — earned 200 pts',  createdAt: new Date(Date.now() - 12 * 86_400_000).toISOString(), referenceId: 'order-1025' },
-  { id: `txn-${accountId}-5`, accountId, tenantId, type: 'earn',   points: 135,  description: 'Order #1019 — earned 135 pts',  createdAt: new Date(Date.now() - 18 * 86_400_000).toISOString(), referenceId: 'order-1019' },
+  { id: `txn-${accountId}-1`, accountId, tenantId, type: 'earn',   points: 120,  description: 'Order #1042 — earned 120 pts',  created_at: new Date(Date.now() - 2  * 86_400_000).toISOString(), referenceId: 'order-1042' },
+  { id: `txn-${accountId}-2`, accountId, tenantId, type: 'earn',   points: 85,   description: 'Order #1038 — earned 85 pts',   created_at: new Date(Date.now() - 5  * 86_400_000).toISOString(), referenceId: 'order-1038' },
+  { id: `txn-${accountId}-3`, accountId, tenantId, type: 'redeem', points: -200,  description: 'Redeemed: Free Latte',           created_at: new Date(Date.now() - 8  * 86_400_000).toISOString(), referenceId: 'reward-free-latte' },
+  { id: `txn-${accountId}-4`, accountId, tenantId, type: 'earn',   points: 200,  description: 'Order #1025 — earned 200 pts',  created_at: new Date(Date.now() - 12 * 86_400_000).toISOString(), referenceId: 'order-1025' },
+  { id: `txn-${accountId}-5`, accountId, tenantId, type: 'earn',   points: 135,  description: 'Order #1019 — earned 135 pts',  created_at: new Date(Date.now() - 18 * 86_400_000).toISOString(), referenceId: 'order-1019' },
 ]
 
 function getMockTransactions(accountId: string, tenantId = 'tenant-samoon-01'): LoyaltyTransaction[] {
@@ -73,7 +73,7 @@ let mockRewards: LoyaltyReward[] = [
     pointsCost: 200,
     active: true,
     minimumTier: 'bronze',
-    createdAt: '2024-01-01T00:00:00Z',
+    created_at: '2024-01-01T00:00:00Z',
   },
   {
     id: 'reward-10-off',
@@ -83,7 +83,7 @@ let mockRewards: LoyaltyReward[] = [
     active: true,
     minimumTier: 'silver',
     expiresAt: new Date(Date.now() + 30 * 86_400_000).toISOString(),
-    createdAt: '2024-01-01T00:00:00Z',
+    created_at: '2024-01-01T00:00:00Z',
   },
   {
     id: 'reward-free-pastry',
@@ -92,7 +92,7 @@ let mockRewards: LoyaltyReward[] = [
     pointsCost: 150,
     active: true,
     minimumTier: 'bronze',
-    createdAt: '2024-01-01T00:00:00Z',
+    created_at: '2024-01-01T00:00:00Z',
   },
   {
     id: 'reward-gold-exclusive',
@@ -101,7 +101,7 @@ let mockRewards: LoyaltyReward[] = [
     pointsCost: 500,
     active: true,
     minimumTier: 'gold',
-    createdAt: '2024-01-01T00:00:00Z',
+    created_at: '2024-01-01T00:00:00Z',
   },
 ]
 
@@ -179,11 +179,11 @@ export const loyaltyService = {
         type: 'redeem',
         points: -reward.pointsCost,
         description: `Redeemed: ${reward.name}`,
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
         referenceId: rewardId,
       }
 
-      const updated = { ...account, points: account.points - reward.pointsCost, updatedAt: new Date().toISOString() }
+      const updated = { ...account, points: account.points - reward.pointsCost, updated_at: new Date().toISOString() }
       mockAccountOverrides.set(key, updated)
       const txns = getMockTransactions(account.id)
       mockTransactionsByAccount.set(account.id, [txn, ...txns])
@@ -209,7 +209,7 @@ export const loyaltyService = {
         type: 'earn',
         points: pointsEarned,
         description: `Order #${payload.orderId} — earned ${pointsEarned} pts`,
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
         referenceId: payload.orderId,
       }
 
@@ -219,7 +219,7 @@ export const loyaltyService = {
         points: account.points + pointsEarned,
         lifetimePoints: newLifetime,
         tier: resolveTier(newLifetime),
-        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
       mockAccountOverrides.set(key, updated)
       const txns = getMockTransactions(account.id)
@@ -245,13 +245,13 @@ export const loyaltyService = {
     return data
   },
 
-  async adminCreateReward(payload: Omit<LoyaltyReward, 'id' | 'createdAt'>): Promise<LoyaltyReward> {
+  async adminCreateReward(payload: Omit<LoyaltyReward, 'id' | 'created_at'>): Promise<LoyaltyReward> {
     if (USE_MOCK) {
       await delay(600)
       const reward: LoyaltyReward = {
         ...payload,
         id: `reward-${Date.now()}`,
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       }
       mockRewards = [...mockRewards, reward]
       return reward
@@ -260,7 +260,7 @@ export const loyaltyService = {
     return data
   },
 
-  async adminUpdateReward(id: string, payload: Partial<Omit<LoyaltyReward, 'id' | 'createdAt'>>): Promise<LoyaltyReward> {
+  async adminUpdateReward(id: string, payload: Partial<Omit<LoyaltyReward, 'id' | 'created_at'>>): Promise<LoyaltyReward> {
     if (USE_MOCK) {
       await delay(500)
       const idx = mockRewards.findIndex((r) => r.id === id)
@@ -292,8 +292,8 @@ export const loyaltyService = {
       lifetimePoints: 1340,
       tier: 'silver',
       tierExpiresAt: new Date(Date.now() + 90 * 86_400_000).toISOString(),
-      createdAt: '2024-01-15T10:00:00Z',
-      updatedAt: new Date().toISOString(),
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: new Date().toISOString(),
     })
     // Tests expect 0 transactions after reset (not the default fallback set)
     mockTransactionsByAccount.set(testAccountId, [])

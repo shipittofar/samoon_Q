@@ -88,7 +88,7 @@ function DrawerNotifItem({ notification, onRead, onArchive, onDelete, onClose }:
             <Badge variant={PRIORITY_BADGE[notification.priority]} className="text-xs capitalize">
               {t(`priority.${notification.priority}`)}
             </Badge>
-            <span className="text-xs text-muted-foreground">{timeAgo(notification.createdAt, formatRelativeTime)}</span>
+            <span className="text-xs text-muted-foreground">{timeAgo(notification.created_at, formatRelativeTime)}</span>
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
@@ -150,7 +150,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
     ...(search ? { search } : {}),
     page,
     pageSize: 20,
-    sortBy: 'createdAt',
+    sortBy: 'created_at',
     sortOrder: 'desc',
   }
 

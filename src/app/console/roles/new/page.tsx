@@ -86,8 +86,8 @@ function RoleBuilderContent() {
       permissions: Array.from(selectedPerms),
       tenantId: 'tenant-1',
       createdBy: 'current-user',
-      createdAt: now,
-      updatedAt: now,
+      created_at: now,
+      updated_at: now,
       enabled: true,
       clonedFrom: cloneFrom || undefined,
     })

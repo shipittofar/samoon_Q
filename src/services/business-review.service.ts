@@ -43,7 +43,7 @@ function applyFilters(reviews: BusinessReview[], filters: Partial<BusinessReview
     case 'highest': return result.sort((a, b) => b.rating - a.rating)
     case 'lowest': return result.sort((a, b) => a.rating - b.rating)
     case 'most_helpful': return result.sort((a, b) => b.helpfulCount - a.helpfulCount)
-    default: return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    default: return result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   }
 }
 
@@ -61,8 +61,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Absolutely outstanding experience from start to finish. The food was incredible, service impeccable, and the ambience perfect for a special occasion. The Mediterranean tasting menu is a must-try.',
       visitDate: '2025-12-15',
       visitType: 'dine_in',
-      createdAt: '2025-12-16T10:00:00.000Z',
-      updatedAt: '2025-12-16T10:00:00.000Z',
+      created_at: '2025-12-16T10:00:00.000Z',
+      updated_at: '2025-12-16T10:00:00.000Z',
       helpfulCount: 42,
       verifiedVisit: true,
       status: 'published',
@@ -72,7 +72,7 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
         id: 'reply-samoon-1',
         text: 'Thank you so much, Sarah! We are delighted you enjoyed your evening with us. We look forward to welcoming you back.',
         authorName: 'The Samoon Team',
-        createdAt: '2025-12-17T09:00:00.000Z',
+        created_at: '2025-12-17T09:00:00.000Z',
       },
     },
     {
@@ -85,8 +85,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Best meal I have had all year. Everything on the menu is thoughtfully crafted. Will be coming back with the whole family next time.',
       visitDate: '2025-11-20',
       visitType: 'dine_in',
-      createdAt: '2025-11-21T14:00:00.000Z',
-      updatedAt: '2025-11-21T14:00:00.000Z',
+      created_at: '2025-11-21T14:00:00.000Z',
+      updated_at: '2025-11-21T14:00:00.000Z',
       helpfulCount: 28,
       verifiedVisit: true,
       status: 'published',
@@ -101,8 +101,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Great food and friendly staff. A couple of dishes were slow to arrive but the quality made it worthwhile. Highly recommend the signature dishes.',
       visitDate: '2025-10-05',
       visitType: 'dine_in',
-      createdAt: '2025-10-06T08:00:00.000Z',
-      updatedAt: '2025-10-06T08:00:00.000Z',
+      created_at: '2025-10-06T08:00:00.000Z',
+      updated_at: '2025-10-06T08:00:00.000Z',
       helpfulCount: 15,
       verifiedVisit: true,
       status: 'published',
@@ -116,8 +116,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'The truffle pasta alone is worth the trip. Superb wine selection and knowledgeable sommelier. A true gem in the city.',
       visitDate: '2025-09-30',
       visitType: 'dine_in',
-      createdAt: '2025-10-01T11:00:00.000Z',
-      updatedAt: '2025-10-01T11:00:00.000Z',
+      created_at: '2025-10-01T11:00:00.000Z',
+      updated_at: '2025-10-01T11:00:00.000Z',
       helpfulCount: 19,
       verifiedVisit: false,
       status: 'published',
@@ -131,8 +131,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Food was good but the noise level was quite high for a fine dining experience. Would try again on a quieter night.',
       visitDate: '2025-09-10',
       visitType: 'dine_in',
-      createdAt: '2025-09-11T16:00:00.000Z',
-      updatedAt: '2025-09-11T16:00:00.000Z',
+      created_at: '2025-09-11T16:00:00.000Z',
+      updated_at: '2025-09-11T16:00:00.000Z',
       helpfulCount: 8,
       verifiedVisit: true,
       status: 'published',
@@ -149,8 +149,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Hands down the best flat white in the area. The baristas really know their craft and the beans are sourced ethically. My go-to morning spot.',
       visitDate: '2025-12-10',
       visitType: 'dine_in',
-      createdAt: '2025-12-11T07:30:00.000Z',
-      updatedAt: '2025-12-11T07:30:00.000Z',
+      created_at: '2025-12-11T07:30:00.000Z',
+      updated_at: '2025-12-11T07:30:00.000Z',
       helpfulCount: 31,
       verifiedVisit: true,
       status: 'published',
@@ -165,8 +165,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Lovely relaxed atmosphere perfect for working remotely. Coffee and pastries are consistently excellent. Can get a bit busy on weekends.',
       visitDate: '2025-11-15',
       visitType: 'dine_in',
-      createdAt: '2025-11-16T10:00:00.000Z',
-      updatedAt: '2025-11-16T10:00:00.000Z',
+      created_at: '2025-11-16T10:00:00.000Z',
+      updated_at: '2025-11-16T10:00:00.000Z',
       helpfulCount: 12,
       verifiedVisit: true,
       status: 'published',
@@ -180,8 +180,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'The seasonal pour-over menu is exceptional. Staff are friendly and passionate about coffee. Highly recommended.',
       visitDate: '2025-10-20',
       visitType: 'dine_in',
-      createdAt: '2025-10-21T09:00:00.000Z',
-      updatedAt: '2025-10-21T09:00:00.000Z',
+      created_at: '2025-10-21T09:00:00.000Z',
+      updated_at: '2025-10-21T09:00:00.000Z',
       helpfulCount: 9,
       verifiedVisit: false,
       status: 'published',
@@ -198,8 +198,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'The mixologists here are artists. Every cocktail is a masterpiece. The oak-smoked Old Fashioned is legendary. Perfect spot for a sophisticated night out.',
       visitDate: '2025-12-01',
       visitType: 'dine_in',
-      createdAt: '2025-12-02T23:00:00.000Z',
-      updatedAt: '2025-12-02T23:00:00.000Z',
+      created_at: '2025-12-02T23:00:00.000Z',
+      updated_at: '2025-12-02T23:00:00.000Z',
       helpfulCount: 25,
       verifiedVisit: true,
       status: 'published',
@@ -213,8 +213,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Great whisky selection and knowledgeable staff. Ambience is dark and cosy. Prices are on the high side but quality justifies it.',
       visitDate: '2025-11-08',
       visitType: 'dine_in',
-      createdAt: '2025-11-09T20:00:00.000Z',
-      updatedAt: '2025-11-09T20:00:00.000Z',
+      created_at: '2025-11-09T20:00:00.000Z',
+      updated_at: '2025-11-09T20:00:00.000Z',
       helpfulCount: 14,
       verifiedVisit: true,
       status: 'published',
@@ -230,8 +230,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Great variety of options under one roof. Clean, well-organised, and plenty of seating. The Vietnamese and Thai stalls are excellent.',
       visitDate: '2025-12-05',
       visitType: 'dine_in',
-      createdAt: '2025-12-06T13:00:00.000Z',
-      updatedAt: '2025-12-06T13:00:00.000Z',
+      created_at: '2025-12-06T13:00:00.000Z',
+      updated_at: '2025-12-06T13:00:00.000Z',
       helpfulCount: 20,
       verifiedVisit: true,
       status: 'published',
@@ -245,8 +245,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Decent options but can get very crowded during lunch. Prices are reasonable. Better suited for a quick meal than a leisurely dining experience.',
       visitDate: '2025-11-25',
       visitType: 'dine_in',
-      createdAt: '2025-11-26T12:00:00.000Z',
-      updatedAt: '2025-11-26T12:00:00.000Z',
+      created_at: '2025-11-26T12:00:00.000Z',
+      updated_at: '2025-11-26T12:00:00.000Z',
       helpfulCount: 7,
       verifiedVisit: false,
       status: 'published',
@@ -262,8 +262,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Best street food in the park! The fish tacos are incredible and the craft beers pair perfectly. Love the outdoor vibe.',
       visitDate: '2025-11-30',
       visitType: 'takeaway',
-      createdAt: '2025-12-01T14:00:00.000Z',
-      updatedAt: '2025-12-01T14:00:00.000Z',
+      created_at: '2025-12-01T14:00:00.000Z',
+      updated_at: '2025-12-01T14:00:00.000Z',
       helpfulCount: 16,
       verifiedVisit: true,
       status: 'published',
@@ -277,8 +277,8 @@ const MOCK_STORE: Record<string, BusinessReview[]> = {
       comment: 'Casual and fun. Queue moves quickly, food is fresh and tasty. Great for groups. Only wish they had more non-beer drink options.',
       visitDate: '2025-11-10',
       visitType: 'takeaway',
-      createdAt: '2025-11-11T16:00:00.000Z',
-      updatedAt: '2025-11-11T16:00:00.000Z',
+      created_at: '2025-11-11T16:00:00.000Z',
+      updated_at: '2025-11-11T16:00:00.000Z',
       helpfulCount: 10,
       verifiedVisit: false,
       status: 'published',
@@ -344,8 +344,8 @@ export const businessReviewService = {
         images: payload.images,
         visitDate: payload.visitDate,
         visitType: payload.visitType,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         helpfulCount: 0,
         verifiedVisit: false,
         status: 'pending',
@@ -372,9 +372,9 @@ export const businessReviewService = {
         id: `reply-${Date.now()}`,
         text,
         authorName: 'Business Owner',
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       }
-      review.updatedAt = new Date().toISOString()
+      review.updated_at = new Date().toISOString()
       return review
     }
     const { data } = await api.post<BusinessReview>(
@@ -390,8 +390,8 @@ export const businessReviewService = {
       const review = (MOCK_STORE[tenantId] ?? []).find((r) => r.id === reviewId)
       if (!review?.ownerReply) throw new Error('Reply not found')
       review.ownerReply.text = text
-      review.ownerReply.updatedAt = new Date().toISOString()
-      review.updatedAt = new Date().toISOString()
+      review.ownerReply.updated_at = new Date().toISOString()
+      review.updated_at = new Date().toISOString()
       return review
     }
     const { data } = await api.patch<BusinessReview>(
@@ -407,7 +407,7 @@ export const businessReviewService = {
       const review = (MOCK_STORE[tenantId] ?? []).find((r) => r.id === reviewId)
       if (!review) throw new Error('Review not found')
       review.ownerReply = undefined
-      review.updatedAt = new Date().toISOString()
+      review.updated_at = new Date().toISOString()
       return review
     }
     const { data } = await api.delete<BusinessReview>(
@@ -436,7 +436,7 @@ export const businessReviewService = {
       const review = (MOCK_STORE[tenantId] ?? []).find((r) => r.id === reviewId)
       if (!review) throw new Error('Review not found')
       review.status = status
-      review.updatedAt = new Date().toISOString()
+      review.updated_at = new Date().toISOString()
       return review
     }
     const { data } = await api.patch<BusinessReview>(

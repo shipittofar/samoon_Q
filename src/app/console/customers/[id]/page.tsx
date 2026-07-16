@@ -334,7 +334,7 @@ function TimelinePanel({ id }: { id: string }) {
 
   // Group by date
   const grouped = filtered.reduce<Record<string, CustomerTimelineEvent[]>>((acc, e) => {
-    const day = e.createdAt.slice(0, 10)
+    const day = e.created_at.slice(0, 10)
     if (!acc[day]) acc[day] = []
     acc[day].push(e)
     return acc
@@ -391,7 +391,7 @@ function TimelinePanel({ id }: { id: string }) {
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-xs text-[var(--fg-muted)]">
-                            {new Date(event.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                           {event.amount !== undefined && event.amount > 0 && (
                             <p className="text-xs font-medium text-emerald-500">{formatCurrency(event.amount)}</p>
@@ -725,8 +725,8 @@ function NotesPanel({ id }: { id: string }) {
               <p className="text-sm text-[var(--fg)] whitespace-pre-wrap">{note.content}</p>
               <div className="flex items-center justify-between mt-3">
                 <div className="text-xs text-[var(--fg-muted)]">
-                  {note.authorName} · {formatDate(note.createdAt)}
-                  {note.updatedAt !== note.createdAt && ` ${t('editedParen')}`}
+                  {note.authorName} · {formatDate(note.created_at)}
+                  {note.updated_at !== note.created_at && ` ${t('editedParen')}`}
                 </div>
                 <div className="flex gap-2">
                   <button

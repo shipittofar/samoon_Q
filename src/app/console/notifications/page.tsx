@@ -106,7 +106,7 @@ function InboxTab({ tenantId }: InboxProps) {
     ...(search ? { search } : {}),
     page,
     pageSize: 25,
-    sortBy: 'createdAt',
+    sortBy: 'created_at',
     sortOrder: 'desc',
   }), [tenantId, status, category, priority, search, page])
 
@@ -229,7 +229,7 @@ function InboxTab({ tenantId }: InboxProps) {
                         {n.actor?.name ?? '—'}
                       </td>
                       <td className="px-4 py-3 text-xs text-[var(--fg-muted)] whitespace-nowrap">
-                        {timeAgo(n.createdAt, t)}
+                        {timeAgo(n.created_at, t)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">

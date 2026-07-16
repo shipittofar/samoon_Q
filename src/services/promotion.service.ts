@@ -131,8 +131,8 @@ let mockPromotions: PromotionRule[] = [
       timeWindowEnd: '19:00',
     },
     active: true,
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'promo-10-percent',
@@ -146,8 +146,8 @@ let mockPromotions: PromotionRule[] = [
       endAt: IN_30_DAYS,
     },
     active: true,
-    createdAt: '2024-01-02T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-01-02T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'promo-bogo-latte',
@@ -161,8 +161,8 @@ let mockPromotions: PromotionRule[] = [
       weekdays: [6, 7],
     },
     active: true,
-    createdAt: '2024-01-03T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-01-03T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'promo-fixed-2-off',
@@ -176,8 +176,8 @@ let mockPromotions: PromotionRule[] = [
       endAt: IN_30_DAYS,
     },
     active: true,
-    createdAt: '2024-01-04T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-01-04T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'promo-disabled',
@@ -191,15 +191,15 @@ let mockPromotions: PromotionRule[] = [
       endAt: YESTERDAY,
     },
     active: false,
-    createdAt: '2023-12-01T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2023-12-01T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
 ]
 
 // ── Payload / response types ──────────────────────────────────────────────────
 
-export type CreatePromotionPayload = Omit<PromotionRule, 'id' | 'createdAt' | 'updatedAt'>
-export type UpdatePromotionPayload = Partial<Omit<PromotionRule, 'id' | 'createdAt'>>
+export type CreatePromotionPayload = Omit<PromotionRule, 'id' | 'created_at' | 'updated_at'>
+export type UpdatePromotionPayload = Partial<Omit<PromotionRule, 'id' | 'created_at'>>
 
 // ── Service ───────────────────────────────────────────────────────────────────
 
@@ -231,8 +231,8 @@ export const promotionService = {
       const promotion: PromotionRule = {
         ...payload,
         id: `promo-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
       mockPromotions = [...mockPromotions, promotion]
       return promotion
@@ -251,7 +251,7 @@ export const promotionService = {
         if (errors.length) throw new Error(`Invalid schedule: ${errors.join('; ')}`)
       }
       mockPromotions = mockPromotions.map((p) =>
-        p.id === id ? { ...p, ...payload, updatedAt: new Date().toISOString() } : p,
+        p.id === id ? { ...p, ...payload, updated_at: new Date().toISOString() } : p,
       )
       return mockPromotions.find((p) => p.id === id)!
     }

@@ -2187,7 +2187,7 @@ export function useAdminLoyaltyRewards() {
 export function useAdminCreateReward() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: Omit<LoyaltyReward, 'id' | 'createdAt'>) =>
+    mutationFn: (payload: Omit<LoyaltyReward, 'id' | 'created_at'>) =>
       loyaltyService.adminCreateReward(payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-loyalty-rewards'] }),
   })
@@ -2196,7 +2196,7 @@ export function useAdminCreateReward() {
 export function useAdminUpdateReward() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<Omit<LoyaltyReward, 'id' | 'createdAt'>> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<Omit<LoyaltyReward, 'id' | 'created_at'>> }) =>
       loyaltyService.adminUpdateReward(id, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-loyalty-rewards'] }),
   })

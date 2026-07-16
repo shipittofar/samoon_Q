@@ -68,7 +68,7 @@ function NotifItem({ notification, onRead, onArchive, onClose }: NotifItemProps)
             {notification.title}
           </p>
           <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
-            {timeAgo(notification.createdAt, formatRelativeTime)}
+            {timeAgo(notification.created_at, formatRelativeTime)}
           </span>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notification.message}</p>

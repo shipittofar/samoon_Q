@@ -206,8 +206,8 @@ export interface CustomRoleTemplate {
   permissions: P7Permission[]
   tenantId: string
   createdBy: string
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
   enabled: boolean
   clonedFrom?: Role
 }

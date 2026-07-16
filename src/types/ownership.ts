@@ -45,7 +45,7 @@ export interface Owner {
   /** Plan-derived ceiling on owned tenants. `null` = unlimited. */
   maxTenants: number | null
   billing: BillingRef
-  createdAt: string
+  created_at: string
   verifiedAt?: string
 }
 

@@ -44,7 +44,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     sourceAuditAction: 'ORDER_CREATED',
     channels: ['in_app', 'push'],
     data: { orderId: 'order-042' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
   },
   {
     id: 'notif-002',
@@ -59,7 +59,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'staff', id: 'staff-cashier-01', href: '/console/staff/staff-cashier-01' },
     sourceAuditAction: 'STAFF_SUSPENDED',
     channels: ['in_app', 'push'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
   },
   {
     id: 'notif-003',
@@ -74,7 +74,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'audit_log', id: 'audit-005', href: '/console/audit-logs' },
     sourceAuditAction: 'OWNERSHIP_TRANSFERRED',
     channels: ['in_app', 'push', 'email'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
   },
   {
     id: 'notif-004',
@@ -88,7 +88,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'reservation', id: 'res-001', href: '/console/reservations/res-001' },
     sourceAuditAction: 'RESERVATION_CONFIRMED',
     channels: ['in_app'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
     readAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
   },
   {
@@ -104,7 +104,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'branch', id: BRANCH_2, href: `/console/branches/${BRANCH_2}` },
     sourceAuditAction: 'BRANCH_DEACTIVATED',
     channels: ['in_app', 'push'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
     readAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
   },
   {
@@ -119,7 +119,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'audit_log', id: 'audit-999', href: '/console/audit-logs' },
     sourceAuditAction: 'TENANT_SUSPENDED',
     channels: ['in_app', 'push', 'email'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
   },
   {
     id: 'notif-007',
@@ -134,7 +134,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'promotion', id: 'promo-001', href: '/console/promotions/promo-001' },
     sourceAuditAction: 'PROMOTION_CREATED',
     channels: ['in_app'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     archivedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
   },
   {
@@ -150,7 +150,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'audit_log', id: 'audit-888', href: '/console/audit-logs' },
     sourceAuditAction: 'PAYMENT_REFUNDED',
     channels: ['in_app', 'push', 'email'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(),
     readAt: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
   },
   {
@@ -166,7 +166,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'staff', id: 'staff-waiter-01', href: '/console/staff/staff-waiter-01' },
     sourceAuditAction: 'STAFF_CREATED',
     channels: ['in_app'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
     readAt: new Date(Date.now() - 1000 * 60 * 60 * 47).toISOString(),
   },
   {
@@ -181,7 +181,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'order', id: 'order-041', href: '/console/orders/order-041' },
     sourceAuditAction: 'ORDER_STATUS_CHANGED',
     channels: ['in_app'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 50).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 50).toISOString(),
     readAt: new Date(Date.now() - 1000 * 60 * 60 * 49).toISOString(),
   },
   {
@@ -197,7 +197,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'branch', id: BRANCH_2, href: `/console/branches/${BRANCH_2}` },
     sourceAuditAction: 'BRANCH_CREATED',
     channels: ['in_app'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
     readAt: new Date(Date.now() - 1000 * 60 * 60 * 71).toISOString(),
   },
   {
@@ -213,7 +213,7 @@ const MOCK_NOTIFICATIONS: RichNotification[] = [
     deepLink: { type: 'audit_log', id: '', href: '/console/audit-logs' },
     sourceAuditAction: 'FEATURE_FLAG_CHANGED',
     channels: ['in_app'],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(),
     readAt: new Date(Date.now() - 1000 * 60 * 60 * 95).toISOString(),
   },
 ]
@@ -261,14 +261,14 @@ export function applyNotificationFilter(
     )
   }
   if (filter.dateFrom) {
-    result = result.filter((n) => n.createdAt >= filter.dateFrom!)
+    result = result.filter((n) => n.created_at >= filter.dateFrom!)
   }
   if (filter.dateTo) {
     const dateTo = filter.dateTo + 'T23:59:59Z'
-    result = result.filter((n) => n.createdAt <= dateTo)
+    result = result.filter((n) => n.created_at <= dateTo)
   }
 
-  const sortBy = filter.sortBy ?? 'createdAt'
+  const sortBy = filter.sortBy ?? 'created_at'
   const asc = filter.sortOrder === 'asc'
   result.sort((a, b) => {
     const va = a[sortBy as keyof RichNotification] as string ?? ''
@@ -322,7 +322,7 @@ export function buildNotificationStatistics(
     if (n.scope.branchId) {
       byBranch[n.scope.branchId] = (byBranch[n.scope.branchId] ?? 0) + 1
     }
-    const day = n.createdAt.split('T')[0]
+    const day = n.created_at.split('T')[0]
     byDay[day] = (byDay[day] ?? 0) + 1
     typeCounts[n.type] = (typeCounts[n.type] ?? 0) + 1
   }
@@ -455,7 +455,7 @@ async function createNotificationMock(
     sourceAuditAction: auditAction,
     channels: config.channels,
     data,
-    createdAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
   }
   _mockStore.unshift(notification)
   return notification

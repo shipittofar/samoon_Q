@@ -55,8 +55,8 @@ let mockVendors: Vendor[] = [
     commissionRate: 15,
     contactEmail: 'changs@example.com',
     contactPhone: '+1-555-0101',
-    createdAt: '2024-01-10T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-01-10T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'vendor-2',
@@ -70,8 +70,8 @@ let mockVendors: Vendor[] = [
     stallNumber: 'B3',
     commissionRate: 12,
     contactEmail: 'burgers@example.com',
-    createdAt: '2024-01-12T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-01-12T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'vendor-3',
@@ -85,8 +85,8 @@ let mockVendors: Vendor[] = [
     stallNumber: 'C2',
     commissionRate: 14,
     contactEmail: 'spicegarden@example.com',
-    createdAt: '2024-01-15T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-01-15T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'vendor-4',
@@ -100,8 +100,8 @@ let mockVendors: Vendor[] = [
     stallNumber: 'D1',
     commissionRate: 10,
     contactEmail: 'sweettooth@example.com',
-    createdAt: '2024-02-01T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-02-01T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'vendor-5',
@@ -115,8 +115,8 @@ let mockVendors: Vendor[] = [
     stallNumber: 'E5',
     commissionRate: 12,
     contactEmail: 'healthy@example.com',
-    createdAt: '2024-02-10T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-02-10T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'vendor-6',
@@ -130,8 +130,8 @@ let mockVendors: Vendor[] = [
     stallNumber: 'F2',
     commissionRate: 13,
     contactEmail: 'taco@example.com',
-    createdAt: '2024-03-01T00:00:00Z',
-    updatedAt: new Date().toISOString(),
+    created_at: '2024-03-01T00:00:00Z',
+    updated_at: new Date().toISOString(),
   },
 ]
 
@@ -201,8 +201,8 @@ let mockSettlements: VendorSettlement[] = [
     settlementDate: '2025-06-01T00:00:00Z',
     payoutReference: 'TXN-20250601-V1',
     commission: { vendorId: 'vendor-1', grossRevenue: 54320.50, commissionRate: 15, commissionAmount: 8148.08, netPayout: 46172.42 },
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2025-06-03T00:00:00Z',
+    created_at: '2025-06-01T00:00:00Z',
+    updated_at: '2025-06-03T00:00:00Z',
   },
   {
     id: 'settle-2',
@@ -212,8 +212,8 @@ let mockSettlements: VendorSettlement[] = [
     settlementDate: '2025-06-01T00:00:00Z',
     payoutReference: 'TXN-20250601-V2',
     commission: { vendorId: 'vendor-2', grossRevenue: 38900.00, commissionRate: 12, commissionAmount: 4668.00, netPayout: 34232.00 },
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2025-06-03T00:00:00Z',
+    created_at: '2025-06-01T00:00:00Z',
+    updated_at: '2025-06-03T00:00:00Z',
   },
   {
     id: 'settle-3',
@@ -222,8 +222,8 @@ let mockSettlements: VendorSettlement[] = [
     status: 'pending',
     settlementDate: new Date().toISOString(),
     commission: { vendorId: 'vendor-3', grossRevenue: 29100.00, commissionRate: 14, commissionAmount: 4074.00, netPayout: 25026.00 },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
   {
     id: 'settle-4',
@@ -232,15 +232,15 @@ let mockSettlements: VendorSettlement[] = [
     status: 'failed',
     settlementDate: '2025-05-28T00:00:00Z',
     commission: { vendorId: 'vendor-4', grossRevenue: 18750.00, commissionRate: 10, commissionAmount: 1875.00, netPayout: 16875.00 },
-    createdAt: '2025-05-28T00:00:00Z',
-    updatedAt: '2025-05-30T00:00:00Z',
+    created_at: '2025-05-28T00:00:00Z',
+    updated_at: '2025-05-30T00:00:00Z',
   },
 ]
 
 // ── Payload types ─────────────────────────────────────────────────────────────
 
-export type CreateVendorPayload = Omit<Vendor, 'id' | 'createdAt' | 'updatedAt'>
-export type UpdateVendorPayload = Partial<Omit<Vendor, 'id' | 'createdAt'>>
+export type CreateVendorPayload = Omit<Vendor, 'id' | 'created_at' | 'updated_at'>
+export type UpdateVendorPayload = Partial<Omit<Vendor, 'id' | 'created_at'>>
 export type CreateSettlementPayload = {
   vendorId: string
   grossRevenue: number
@@ -301,8 +301,8 @@ export const vendorService = {
       const vendor: Vendor = {
         ...payload,
         id: `vendor-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
       mockVendors = [...mockVendors, vendor]
       return vendor
@@ -317,7 +317,7 @@ export const vendorService = {
       const idx = mockVendors.findIndex((v) => v.id === id)
       if (idx === -1) throw new Error(`Vendor "${id}" not found`)
       mockVendors = mockVendors.map((v) =>
-        v.id === id ? { ...v, ...payload, updatedAt: new Date().toISOString() } : v,
+        v.id === id ? { ...v, ...payload, updated_at: new Date().toISOString() } : v,
       )
       return { ...mockVendors.find((v) => v.id === id)! }
     }
@@ -344,8 +344,8 @@ export const vendorService = {
         settlementDate: payload.settlementDate ?? new Date().toISOString(),
         payoutReference: payload.payoutReference,
         commission,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
       mockSettlements = [...mockSettlements, settlement]
       if (mockStats[payload.vendorId]) {
@@ -363,7 +363,7 @@ export const vendorService = {
     mockVendors = mockVendors.map((v) => ({
       ...v,
       status: (v.id === 'vendor-5' ? 'inactive' : v.id === 'vendor-6' ? 'pending' : 'active') as VendorStatus,
-      updatedAt: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }))
     mockSettlements = mockSettlements.filter((s) =>
       ['settle-1', 'settle-2', 'settle-3', 'settle-4'].includes(s.id),

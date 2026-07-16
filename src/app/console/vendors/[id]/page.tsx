@@ -115,7 +115,7 @@ function VendorDetailContent({ id }: { id: string }) {
           </div>
           <div>
             <p className="text-gray-400 text-xs">{t('memberSinceLabel')}</p>
-            <p className="text-gray-700 mt-0.5">{formatDate(vendor.createdAt)}</p>
+            <p className="text-gray-700 mt-0.5">{formatDate(vendor.created_at)}</p>
           </div>
         </div>
       </div>

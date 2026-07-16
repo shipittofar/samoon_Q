@@ -64,8 +64,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     managerId: 'staff-manager-01',
     businessHours: defaultHours('10:00', '23:00'),
     settings: { deliveryEnabled: true, deliveryRadius: 10, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 120 },
-    createdAt: '2023-01-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-01-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   {
     id: 'branch-rest-02',
@@ -79,8 +79,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     managerId: 'staff-admin-01',
     businessHours: defaultHours('11:00', '22:00'),
     settings: { deliveryEnabled: true, deliveryRadius: 8, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 80 },
-    createdAt: '2023-03-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-03-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   {
     id: 'branch-rest-03',
@@ -93,8 +93,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0300' },
     businessHours: defaultHours('06:00', '23:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: false, maxCapacity: 40 },
-    createdAt: '2023-06-01T00:00:00Z',
-    updatedAt: '2024-05-01T00:00:00Z',
+    created_at: '2023-06-01T00:00:00Z',
+    updated_at: '2024-05-01T00:00:00Z',
   },
   // ── Cafe branches ──────────────────────────────────────────────────────────
   {
@@ -108,8 +108,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0400', email: 'midtown@samoon.com' },
     businessHours: defaultHours('07:00', '20:00'),
     settings: { deliveryEnabled: true, deliveryRadius: 5, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 50 },
-    createdAt: '2023-08-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-08-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   {
     id: 'branch-cafe-02',
@@ -122,8 +122,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 718 555 0500' },
     businessHours: defaultHours('08:00', '19:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 30 },
-    createdAt: '2023-09-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-09-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   // ── Bar branches ───────────────────────────────────────────────────────────
   {
@@ -137,8 +137,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0600', email: 'bar@samoon.com' },
     businessHours: defaultHours('16:00', '02:00'),
     settings: { deliveryEnabled: false, pickupEnabled: false, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 100 },
-    createdAt: '2023-07-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-07-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   // ── Food court branches ────────────────────────────────────────────────────
   {
@@ -152,8 +152,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0700', email: 'foodcourt@samoon.com' },
     businessHours: defaultHours('10:00', '21:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: false, maxCapacity: 300 },
-    createdAt: '2022-11-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2022-11-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   {
     id: 'branch-fc-02',
@@ -166,8 +166,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0800' },
     businessHours: defaultHours(),
     settings: { deliveryEnabled: false, pickupEnabled: false, tableOrderingEnabled: false, reservationsEnabled: false },
-    createdAt: '2023-02-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
+    created_at: '2023-02-01T00:00:00Z',
+    updated_at: '2024-01-01T00:00:00Z',
   },
   // ── Food truck branches ────────────────────────────────────────────────────
   {
@@ -181,8 +181,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0900' },
     businessHours: defaultHours('11:00', '20:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
-    createdAt: '2023-04-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-04-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   {
     id: 'branch-ft-02',
@@ -195,8 +195,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0901' },
     businessHours: defaultHours('11:00', '19:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
-    createdAt: '2023-05-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-05-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   // ── Mobile cafe ────────────────────────────────────────────────────────────
   {
@@ -210,8 +210,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 1000' },
     businessHours: defaultHours('07:00', '17:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
-    createdAt: '2023-10-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-10-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   {
     id: 'branch-mc-02',
@@ -224,8 +224,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 1001' },
     businessHours: defaultHours(),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-02-01T00:00:00Z',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2024-02-01T00:00:00Z',
   },
 
   // ── Brew Cafe branches ─────────────────────────────────────────────────────
@@ -241,8 +241,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0400', email: 'midtown@brewcafe.com' },
     businessHours: defaultHours('07:00', '20:00'),
     settings: { deliveryEnabled: true, deliveryRadius: 5, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 50 },
-    createdAt: '2023-08-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-08-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
   {
     id: 'branch-brewcafe-02',
@@ -255,8 +255,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 718 555 0500', email: 'brooklyn@brewcafe.com' },
     businessHours: defaultHours('08:00', '19:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 30 },
-    createdAt: '2023-09-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-09-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
 
   // ── The Oak Bar branch ─────────────────────────────────────────────────────
@@ -272,8 +272,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0600', email: 'bar@theoakbar.com' },
     businessHours: defaultHours('16:00', '02:00'),
     settings: { deliveryEnabled: false, pickupEnabled: false, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 100 },
-    createdAt: '2023-07-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-07-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
 
   // ── Central Food Court branch ──────────────────────────────────────────────
@@ -289,8 +289,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0700', email: 'info@centralfoodcourt.com' },
     businessHours: defaultHours('10:00', '21:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: false, maxCapacity: 300 },
-    createdAt: '2022-11-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2022-11-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
 
   // ── Wheels & Brews branch ──────────────────────────────────────────────────
@@ -306,8 +306,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 1000', email: 'hello@wheelsandbrews.com' },
     businessHours: defaultHours('07:00', '17:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
-    createdAt: '2023-10-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2023-10-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
 
   // ── Road Bites branch ──────────────────────────────────────────────────────
@@ -323,8 +323,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0950', email: 'hello@roadbites.com' },
     businessHours: defaultHours('11:00', '20:00'),
     settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
-    createdAt: '2024-05-01T00:00:00Z',
-    updatedAt: '2024-06-01T00:00:00Z',
+    created_at: '2024-05-01T00:00:00Z',
+    updated_at: '2024-06-01T00:00:00Z',
   },
 ]
 
@@ -358,7 +358,7 @@ function setBranchStatus(id: string, status: BranchStatus): Branch {
   const branch = findBranch(id)
   if (!branch) throw new Error(`Branch not found: ${id}`)
   branch.status = status
-  branch.updatedAt = new Date().toISOString()
+  branch.updated_at = new Date().toISOString()
   return { ...branch }
 }
 
@@ -450,8 +450,8 @@ export const branchManagementService = {
         timeZone: payload.timeZone,
         currency: payload.currency,
         language: payload.language,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
       if (branch.isDefault) {
         MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === tenantId) b.isDefault = false })
@@ -487,7 +487,7 @@ export const branchManagementService = {
       if (payload.isDefault) {
         MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === branch.tenantId) b.isDefault = b.id === branch.id })
       }
-      branch.updatedAt = new Date().toISOString()
+      branch.updated_at = new Date().toISOString()
       return { ...branch }
     }
     const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), payload)
@@ -526,7 +526,7 @@ export const branchManagementService = {
       const branch = findBranch(id)
       if (!branch) throw new Error(`Branch not found: ${id}`)
       MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === branch.tenantId) b.isDefault = b.id === branch.id })
-      branch.updatedAt = new Date().toISOString()
+      branch.updated_at = new Date().toISOString()
       return { ...branch }
     }
     const res = await api.post<Branch>(ENDPOINTS.BRANCHES.SET_DEFAULT(id))
@@ -566,7 +566,7 @@ export const branchManagementService = {
       const branch = findBranch(id)
       if (!branch) throw new Error(`Branch not found: ${id}`)
       branch.managerId = payload.managerId
-      branch.updatedAt = new Date().toISOString()
+      branch.updated_at = new Date().toISOString()
       return { ...branch }
     }
     const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.ASSIGN_MANAGER(id), payload)

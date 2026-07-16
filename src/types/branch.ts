@@ -78,8 +78,8 @@ export interface Branch {
   currency?: string
   /** BCP 47 language tag, e.g. "en". */
   language?: string
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
   metadata?: Record<string, unknown>
 }
 

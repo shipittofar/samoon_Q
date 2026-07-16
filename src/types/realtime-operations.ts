@@ -97,8 +97,8 @@ export interface LiveOrder {
   acceptedAt?: string
   preparingAt?: string
   readyAt?: string
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
   scope: OperationsScope
   isDelayed: boolean
   slaBreached: boolean
@@ -203,7 +203,7 @@ export interface LiveMetric {
   previousValue?: number
   unit: string
   trend: 'up' | 'down' | 'stable'
-  updatedAt: string
+  updated_at: string
   scope: OperationsScope
 }
 
@@ -266,7 +266,7 @@ export interface RealtimeStatistics {
   slaCompliancePercent: number
   activeStaff: number
   branchHealthSummary: { healthy: number; degraded: number; critical: number; offline: number }
-  updatedAt: string
+  updated_at: string
   scope: OperationsScope
 }
 

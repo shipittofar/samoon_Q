@@ -75,7 +75,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
     : review.comment
 
   const dateStr = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(
-    new Date(review.createdAt),
+    new Date(review.created_at),
   )
 
   return (
@@ -161,7 +161,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             <span className="text-xs text-[var(--fg-muted)]">·</span>
             <span className="text-xs text-[var(--fg-muted)]">
               {new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric' }).format(
-                new Date(review.ownerReply.createdAt),
+                new Date(review.ownerReply.created_at),
               )}
             </span>
           </div>

@@ -80,7 +80,7 @@ export interface RichNotification {
   sourceAuditAction?: AuditAction
   channels: NotificationChannel[]
   data?: Record<string, unknown>
-  createdAt: string
+  created_at: string
   readAt?: string
   archivedAt?: string
   expiresAt?: string
@@ -98,7 +98,7 @@ export interface NotificationFilter {
   dateTo?: string
   page?: number
   pageSize?: number
-  sortBy?: 'createdAt' | 'priority' | 'status'
+  sortBy?: 'created_at' | 'priority' | 'status'
   sortOrder?: 'asc' | 'desc'
 }
 
@@ -156,7 +156,7 @@ export interface NotificationPreference {
   enabled: boolean
   channels: ChannelPreference
   minPriority: NotificationPriority
-  updatedAt: string
+  updated_at: string
 }
 
 export interface NotificationDelivery {

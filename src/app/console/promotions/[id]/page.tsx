@@ -120,7 +120,7 @@ function PromotionDetailContent({ id }: { id: string }) {
           </div>
           <div>
             <dt className="text-gray-400 text-xs mb-0.5">{t('created')}</dt>
-            <dd className="font-medium text-gray-800">{formatDate(promotion.createdAt)}</dd>
+            <dd className="font-medium text-gray-800">{formatDate(promotion.created_at)}</dd>
           </div>
         </dl>
 

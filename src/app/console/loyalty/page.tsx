@@ -42,7 +42,7 @@ function rewardToForm(r: LoyaltyReward): RewardFormState {
   }
 }
 
-function formToPayload(f: RewardFormState): Omit<LoyaltyReward, 'id' | 'createdAt'> {
+function formToPayload(f: RewardFormState): Omit<LoyaltyReward, 'id' | 'created_at'> {
   return {
     name: f.name,
     description: f.description,

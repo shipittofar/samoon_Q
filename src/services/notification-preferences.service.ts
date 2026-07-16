@@ -69,7 +69,7 @@ function buildDefaultPreferences(userId: string, tenantId: string, branchId?: st
     enabled: true,
     channels: d.channels,
     minPriority: d.minPriority,
-    updatedAt: now,
+    updated_at: now,
   }))
 }
 
@@ -106,11 +106,11 @@ async function updatePreferenceMock(
   if (idx === -1) {
     const defaults = buildDefaultPreferences(userId, tenantId, branchId)
     const pref = defaults.find((p) => p.category === category)!
-    const updated = { ...pref, ...update, updatedAt: new Date().toISOString() }
+    const updated = { ...pref, ...update, updated_at: new Date().toISOString() }
     _prefStore.push(updated)
     return updated
   }
-  _prefStore[idx] = { ..._prefStore[idx], ...update, updatedAt: new Date().toISOString() }
+  _prefStore[idx] = { ..._prefStore[idx], ...update, updated_at: new Date().toISOString() }
   return _prefStore[idx]
 }
 
@@ -124,7 +124,7 @@ async function createPreferenceMock(params: CreatePreferenceParams): Promise<Not
     enabled: params.enabled ?? true,
     channels: { ...DEFAULT_CHANNEL_PREFS, ...params.channels },
     minPriority: params.minPriority ?? 'normal',
-    updatedAt: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   }
   _prefStore.push(pref)
   return pref

@@ -87,7 +87,7 @@ export function backfillTenantOwnership(
         plan: 'starter',
         maxTenants: null,
         billing: { customerId: null, billingEmail: holder.email },
-        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
       }
       resultOwners.push(owner)
       report.createdOwners.push(owner)

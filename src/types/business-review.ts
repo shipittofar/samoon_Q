@@ -6,8 +6,8 @@ export interface OwnerReply {
   id: string
   text: string
   authorName: string
-  createdAt: string
-  updatedAt?: string
+  created_at: string
+  updated_at?: string
 }
 
 export interface BusinessReview {
@@ -23,8 +23,8 @@ export interface BusinessReview {
   images?: string[]
   visitDate?: string
   visitType?: 'dine_in' | 'takeaway' | 'delivery'
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
   ownerReply?: OwnerReply
   helpfulCount: number
   verifiedVisit: boolean

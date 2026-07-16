@@ -52,7 +52,7 @@ const MOCK_OWNERS: Owner[] = [
     plan: 'enterprise',
     maxTenants: null,
     billing: { customerId: 'cus_owner001', billingEmail: 'owner@samoon.com' },
-    createdAt: '2023-01-01T00:00:00Z',
+    created_at: '2023-01-01T00:00:00Z',
     verifiedAt: '2023-01-02T00:00:00Z',
   },
   {
@@ -62,7 +62,7 @@ const MOCK_OWNERS: Owner[] = [
     plan: 'starter',
     maxTenants: 1,
     billing: { customerId: 'cus_owner002', billingEmail: 'owner@theoakbar.com' },
-    createdAt: '2023-07-01T00:00:00Z',
+    created_at: '2023-07-01T00:00:00Z',
     verifiedAt: '2023-07-02T00:00:00Z',
   },
   {
@@ -72,7 +72,7 @@ const MOCK_OWNERS: Owner[] = [
     plan: 'growth',
     maxTenants: 3,
     billing: { customerId: 'cus_owner003', billingEmail: 'owner@centralfoodcourt.com' },
-    createdAt: '2024-04-01T00:00:00Z',
+    created_at: '2024-04-01T00:00:00Z',
     verifiedAt: '2024-04-03T00:00:00Z',
   },
   {
@@ -82,7 +82,7 @@ const MOCK_OWNERS: Owner[] = [
     plan: 'starter',
     maxTenants: 1,
     billing: { customerId: 'cus_owner004', billingEmail: 'owner@roadbites.com' },
-    createdAt: '2024-05-01T00:00:00Z',
+    created_at: '2024-05-01T00:00:00Z',
     // Never completed verification — realizes 'pending_verification'-adjacent,
     // suspended-before-verified state for lifecycle test coverage.
   },

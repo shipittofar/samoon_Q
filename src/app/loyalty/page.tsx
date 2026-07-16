@@ -138,7 +138,7 @@ function LoyaltyContent() {
                 <div>
                   <p className="text-sm text-[var(--fg)]">{txn.description}</p>
                   <p className="text-xs text-[var(--fg-muted)]">
-                    {new Date(txn.createdAt).toLocaleDateString()}
+                    {new Date(txn.created_at).toLocaleDateString()}
                   </p>
                 </div>
                 <span

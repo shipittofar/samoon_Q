@@ -35,7 +35,7 @@ export const DEFAULT_TENANT: Tenant = {
   slug: 'default',
   businessTypes: ['restaurant'],
   status: 'active',
-  createdAt: '2024-01-01T00:00:00.000Z',
+  created_at: '2024-01-01T00:00:00.000Z',
 }
 
 export const STALE_TIME = 1000 * 60 * 5       // 5 minutes

@@ -111,7 +111,7 @@ function NotificationDetailContent({ id }: { id: string }) {
             <Clock className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
             <div>
               <p className="text-gray-400 text-xs">{t('receivedLabel')}</p>
-              <p className="font-medium text-gray-800">{new Date(notification.createdAt).toLocaleString()}</p>
+              <p className="font-medium text-gray-800">{new Date(notification.created_at).toLocaleString()}</p>
             </div>
           </div>
           {notification.readAt && (
