@@ -1,9 +1,30 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { tenantService } from '@/services/tenant.service'
+import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { buildTenantMetadata, buildTenantJsonLd } from '@/utils'
 import { TenantHomepageClient } from './TenantHomepageClient'
+import type { Tenant } from '@/types'
+
+/**
+ * tenantService.getTenant() throws typed errors instead of returning a
+ * placeholder tenant (Phase 1 tenant resolution refactor). Public pages
+ * must translate that into the correct Next.js response:
+ *   - not_found/forbidden slugs  -> notFound() (a real 404, same as before)
+ *   - server/network failures    -> rethrown, so Next's error boundary
+ *     handles it — a temporary backend outage must never render as a
+ *     silent 404, only a genuinely nonexistent/inaccessible business should.
+ */
+async function resolvePublicTenant(tenantSlug: string): Promise<Tenant> {
+  try {
+    return await tenantService.getTenant(tenantSlug)
+  } catch (err) {
+    if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) {
+      notFound()
+    }
+    throw err
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -11,11 +32,7 @@ export async function generateMetadata({
   params: Promise<{ tenantSlug: string }>
 }): Promise<Metadata> {
   const { tenantSlug } = await params
-  const tenant = await tenantService.getTenant(tenantSlug)
-
-  if (tenant.slug === 'default' && tenantSlug !== 'default') {
-    return { title: 'Business not found — Samoon Platform' }
-  }
+  const tenant = await resolvePublicTenant(tenantSlug)
 
   const meta = getMarketplaceMeta(tenant.settings)
   const { title, description, url, image } = buildTenantMetadata({
@@ -51,11 +68,7 @@ export default async function TenantPage({
   params: Promise<{ tenantSlug: string }>
 }) {
   const { tenantSlug } = await params
-  const tenant = await tenantService.getTenant(tenantSlug)
-
-  if (tenant.slug === 'default' && tenantSlug !== 'default') {
-    notFound()
-  }
+  const tenant = await resolvePublicTenant(tenantSlug)
 
   const meta = getMarketplaceMeta(tenant.settings)
   const jsonLd = buildTenantJsonLd({ tenantName: tenant.name, tenantSlug, meta })

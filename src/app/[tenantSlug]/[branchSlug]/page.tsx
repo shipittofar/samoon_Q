@@ -1,9 +1,30 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { tenantService } from '@/services/tenant.service'
+import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { buildBranchMetadata, buildBranchJsonLd } from '@/utils'
 import BranchHomepageClient from './BranchHomepageClient'
+import type { Tenant } from '@/types'
+
+/**
+ * tenantService.getTenant() throws typed errors instead of returning a
+ * placeholder tenant (Phase 1 tenant resolution refactor). Public pages
+ * must translate that into the correct Next.js response:
+ *   - not_found/forbidden slugs  -> notFound() (a real 404, same as before)
+ *   - server/network failures    -> rethrown, so Next's error boundary
+ *     handles it — a temporary backend outage must never render as a
+ *     silent 404, only a genuinely nonexistent/inaccessible business should.
+ */
+async function resolvePublicTenant(tenantSlug: string): Promise<Tenant> {
+  try {
+    return await tenantService.getTenant(tenantSlug)
+  } catch (err) {
+    if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) {
+      notFound()
+    }
+    throw err
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -11,11 +32,7 @@ export async function generateMetadata({
   params: Promise<{ tenantSlug: string; branchSlug: string }>
 }): Promise<Metadata> {
   const { tenantSlug, branchSlug } = await params
-  const tenant = await tenantService.getTenant(tenantSlug)
-
-  if (tenant.slug === 'default' && tenantSlug !== 'default') {
-    return { title: 'Branch not found — Samoon Platform' }
-  }
+  const tenant = await resolvePublicTenant(tenantSlug)
 
   const meta = getMarketplaceMeta(tenant.settings)
   const branch = meta?.branches?.find((b) => b.slug === branchSlug)
@@ -62,11 +79,7 @@ export default async function BranchPage({
   params: Promise<{ tenantSlug: string; branchSlug: string }>
 }) {
   const { tenantSlug, branchSlug } = await params
-  const tenant = await tenantService.getTenant(tenantSlug)
-
-  if (tenant.slug === 'default' && tenantSlug !== 'default') {
-    notFound()
-  }
+  const tenant = await resolvePublicTenant(tenantSlug)
 
   const meta = getMarketplaceMeta(tenant.settings)
   const branch = meta?.branches?.find((b) => b.slug === branchSlug)

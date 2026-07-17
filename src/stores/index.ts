@@ -40,6 +40,7 @@ import {
   TenantForbiddenError,
   ELIGIBLE_TENANT_STATUSES,
 } from '@/services/tenant.service'
+import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
@@ -223,8 +224,10 @@ export const useLangStore = create<LangState>()(
  * They belong here because this is the bootstrap coordinator, not because the
  * tenant store knows anything about RBAC rules or feature flag values.
  *
- * Lifecycle state machine:
- *   tenantState: 'loading' → initial; 'ready' → loaded; 'fallback' → degraded
+ * Lifecycle state machine (see TenantLifecycle in types/index.ts):
+ *   tenantState: 'loading' → initial; 'resolved' → loaded and usable;
+ *   'not_found' | 'forbidden' | 'error' → terminal failure states, tenant
+ *   stays null in all three — there is no fallback/degraded tenant object.
  *
  * Hydration flow:
  *   Phase 1A/1B: TenantBootstrapper calls loadTenant() and then sets both
@@ -316,6 +319,13 @@ export const useTenantStore = create<TenantState>()(
           } else if (err instanceof TenantForbiddenError) {
             set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
           } else {
+            // Unclassified failure (network error, 5xx, malformed response,
+            // etc.) — report it so it doesn't vanish silently. No response
+            // body/headers are forwarded, only the slug and the error itself.
+            captureException(err, { context: 'useTenantStore.loadTenant', slug })
+            if (process.env.NODE_ENV !== 'production') {
+              console.error('[useTenantStore.loadTenant] tenant resolution failed:', slug, err)
+            }
             set({ tenant: null, isLoading: false, tenantState: 'error' })
           }
         }

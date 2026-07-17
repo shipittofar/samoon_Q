@@ -21,7 +21,7 @@ import { authService } from '@/services/auth.service'
 import { qrExperienceService } from '@/services/qr-experience.service'
 import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
-import { tenantService } from '@/services/tenant.service'
+import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
 import { staffService } from '@/services/staff.service'
 import type {
   InviteStaffPayload,
@@ -2346,15 +2346,24 @@ export function usePublicTenants() {
   })
 }
 
-/** Fetches a single public tenant by slug. Returns undefined for unknown slugs. */
+/**
+ * Fetches a single public tenant by slug. Returns null for an unknown or
+ * inaccessible slug (a normal, expected outcome for a mistyped public URL —
+ * must not surface as a query error/toast). A genuine server/network
+ * failure still throws, so React Query's error state (and the global
+ * error-toast handler) only fires for real backend problems, not for
+ * ordinary "this business doesn't exist" lookups.
+ */
 export function usePublicTenant(slug: string) {
   return useQuery({
     queryKey: ['public-tenant', slug],
     queryFn: async () => {
-      const tenant = await tenantService.getTenant(slug)
-      // getTenant returns DEFAULT_TENANT for unknown slugs
-      if (tenant.slug === 'default' && slug !== 'default') return null
-      return tenant
+      try {
+        return await tenantService.getTenant(slug)
+      } catch (err) {
+        if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) return null
+        throw err
+      }
     },
     staleTime: STALE_TIME,
     enabled: !!slug,

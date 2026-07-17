@@ -18,6 +18,7 @@ import { MissingTranslationInspector } from '@/components/dev/MissingTranslation
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import type { TenantTheme } from '@/types'
+import type { Role } from '@/types/rbac'
 
 function makeQueryClient() {
   return new QueryClient({
@@ -206,6 +207,21 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
   const setFavorites = useFavoritesStore((s) => s.setFavorites)
   const qc = useQueryClient()
   const booted = useRef(false)
+  // TenantBootstrapper and AuthBootstrapper are unordered sibling effects —
+  // getMe() can resolve before loadTenant() does. If tenantRoles arrive with
+  // no resolved tenant to seed them against yet, they're queued here instead
+  // of dropped; the effect below applies them exactly once, the moment a
+  // tenant actually resolves. No permission/ownership logic changes — this
+  // only fixes *when* the existing setTenantRoles() call happens.
+  const pendingTenantRolesRef = useRef<Role[] | null>(null)
+  const tenant = useTenantStore((s) => s.tenant)
+
+  useEffect(() => {
+    if (tenant && pendingTenantRolesRef.current) {
+      useRbacStore.getState().setTenantRoles(tenant.id, pendingTenantRolesRef.current)
+      pendingTenantRolesRef.current = null
+    }
+  }, [tenant])
 
   // P10.9 — full session teardown, shared by both places a session can end
   // outside an explicit useLogout() call: a failed getMe() below
@@ -258,9 +274,15 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // survive a page reload (docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md
       // §3). No new RBAC logic here — this only calls the store's
       // existing setTenantRoles() action with whatever getMe() returned.
-      const { tenant } = useTenantStore.getState()
-      if (tenant && user.tenantRoles && user.tenantRoles.length > 0) {
-        useRbacStore.getState().setTenantRoles(tenant.id, user.tenantRoles)
+      if (user.tenantRoles && user.tenantRoles.length > 0) {
+        const currentTenant = useTenantStore.getState().tenant
+        if (currentTenant) {
+          useRbacStore.getState().setTenantRoles(currentTenant.id, user.tenantRoles)
+        } else {
+          // Tenant hasn't resolved yet — queue for the effect above to
+          // apply once it does, instead of dropping the roles forever.
+          pendingTenantRolesRef.current = user.tenantRoles
+        }
       }
       // `user.ownership`/`user.staffAssignments`, if a backend ever sends
       // them here, are deliberately NOT hydrated into any store yet:
