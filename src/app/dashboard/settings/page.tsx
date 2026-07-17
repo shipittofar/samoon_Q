@@ -15,7 +15,7 @@ import { useAuthStore, useThemeStore, useLangStore } from '@/stores'
 import { useSetLocale, useRequestEmailVerification, useConfirmEmailVerification } from '@/hooks'
 import { userService } from '@/services/combined.service'
 import { COUNTRIES } from '@/data/countries'
-import { cn, isEmailVerified } from '@/utils'
+import { cn } from '@/utils'
 import toast from 'react-hot-toast'
 
 // Schema messages are `validation` namespace keys, resolved via
@@ -141,15 +141,14 @@ export default function SettingsPage() {
   // above: it never shares a payload, mutation, or card with first/last
   // name. See useRequestEmailVerification()/useConfirmEmailVerification().
   //
-  // `verified` is DERIVED from `user` on every render rather than copied
-  // into useState once — `user` is populated asynchronously (AuthBootstrapper's
-  // getMe() call, see src/providers/index.tsx) and starts out undefined on
-  // first render, so a `useState(user?.email_verified_at ? ... )` initializer
-  // froze at "unverified" forever even after the real user data (and a
-  // verified email) arrived. Only the ephemeral "did we just send a code"
-  // step is local state; it's harmless because the verified branch below
-  // always takes priority over it.
-  const verified = isEmailVerified(user)
+  // Business rule: an account either has an email or it doesn't — there is
+  // no separate "verified" flag to track. hasEmail is computed straight
+  // from `user` on every render (never cached in state), so the UI reacts
+  // immediately to whatever the store holds, including after
+  // useConfirmEmailVerification() refetches /auth/me and updates the store.
+  const hasEmail = Boolean(user?.email?.trim())
+  // Purely a UI step ("did we just send a code") — not a verification
+  // status, and never consulted to decide hasEmail.
   const [codeSent, setCodeSent] = useState(false)
   const [verifyEmail, setVerifyEmail] = useState(user?.email || '')
   const [verifyCode, setVerifyCode] = useState('')
@@ -160,7 +159,7 @@ export default function SettingsPage() {
   // Seeds the field once the async-loaded user email arrives, without
   // clobbering anything the user has already typed.
   useEffect(() => {
-    if (user?.email) setVerifyEmail((prev) => prev || user.email)
+    if (user?.email) setVerifyEmail((prev) => prev || user.email || '')
   }, [user?.email])
 
   const handleSendVerificationCode = async () => {
@@ -180,9 +179,8 @@ export default function SettingsPage() {
 
   const handleVerifyEmail = async () => {
     try {
-      // useConfirmEmailVerification() already merges the returned user into
-      // useAuthStore and invalidates the ['me'] query — `verified` above
-      // flips to true on the next render with no further action needed here.
+      // useConfirmEmailVerification() re-fetches /auth/me and hydrates the
+      // store — hasEmail above flips on the next render off that alone.
       await confirmEmailVerification.mutateAsync({ email: verifyEmail, code: verifyCode })
       setCodeSent(false)
       setVerifyCode('')
@@ -331,20 +329,20 @@ export default function SettingsPage() {
             </div>
             <h2 className="font-semibold text-[var(--fg)]">{t('emailVerification')}</h2>
           </div>
-          {verified ? (
+          {hasEmail ? (
             <Badge variant="success" dot>{t('verified')}</Badge>
           ) : (
             <Badge variant="warning" dot>{t('notVerified')}</Badge>
           )}
         </div>
 
-        {verified ? (
+        {hasEmail ? (
           <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900">
             <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-emerald-700 dark:text-emerald-300">{t('emailVerifiedTitle')}</p>
               <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1 font-medium">{user?.email}</p>
-              <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-0.5">{t('emailVerifiedDesc')}</p>
+              <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-0.5">{t('emailAddedDesc')}</p>
             </div>
           </div>
         ) : (

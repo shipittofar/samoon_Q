@@ -512,6 +512,7 @@
     "notVerified": "Not Verified",
     "emailVerifiedTitle": "Email Verified",
     "emailVerifiedDesc": "Your email has been successfully verified.",
+    "emailAddedDesc": "Your email has been added to your account.",
     "emailNotVerifiedTitle": "Email not verified",
     "emailNotVerifiedDesc": "Verify your email to secure your account.",
     "verificationCodeLabel": "Verification Code",

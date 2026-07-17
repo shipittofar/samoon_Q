@@ -1,18 +1,8 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import type { User } from '@/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-
-/**
- * `User.email_verified_at` is a nullable timestamp (docs/BACKEND_API_CONTRACT.md
- * §User Object), not a boolean — this is the single source of truth for
- * "is this user's email verified" so no component has to re-derive it.
- */
-export function isEmailVerified(user?: Pick<User, 'email_verified_at'> | null): boolean {
-  return !!user?.email_verified_at
 }
 
 export function formatCurrency(amount: number, currency = 'USD', locale = 'en-US'): string {

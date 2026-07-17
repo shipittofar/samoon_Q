@@ -512,6 +512,7 @@
     "notVerified": "تأیید نشده",
     "emailVerifiedTitle": "ایمیل تأیید شد",
     "emailVerifiedDesc": "ایمیل شما با موفقیت تأیید شد.",
+    "emailAddedDesc": "ایمیل شما به حساب کاربری‌تان اضافه شد.",
     "emailNotVerifiedTitle": "ایمیل تأیید نشده است",
     "emailNotVerifiedDesc": "برای امنیت حساب خود، ایمیل خود را تأیید کنید.",
     "verificationCodeLabel": "کد تأیید",

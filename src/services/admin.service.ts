@@ -144,7 +144,7 @@ function applyCustomerFilters(customers: AdminCustomer[], filters: AdminCustomer
     result = result.filter(
       (c) =>
         `${c.first_name} ${c.last_name}`.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q),
+        (c.email ?? '').toLowerCase().includes(q),
     )
   }
   return result

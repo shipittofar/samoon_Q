@@ -59,7 +59,7 @@ export function captureException(
  * Safe no-op when DSN is not configured.
  */
 export function setSentryUser(
-  user: { id: string; email?: string; role?: string; tenant?: string } | null,
+  user: { id: string; email?: string | null; role?: string; tenant?: string } | null,
 ): void {
   if (!sentryEnabled) return
   try {

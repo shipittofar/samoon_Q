@@ -512,6 +512,7 @@
     "notVerified": "غير موثّق",
     "emailVerifiedTitle": "تم توثيق البريد الإلكتروني",
     "emailVerifiedDesc": "تم توثيق بريدك الإلكتروني بنجاح.",
+    "emailAddedDesc": "تمت إضافة بريدك الإلكتروني إلى حسابك.",
     "emailNotVerifiedTitle": "البريد الإلكتروني غير موثّق",
     "emailNotVerifiedDesc": "وثّق بريدك الإلكتروني لتأمين حسابك.",
     "verificationCodeLabel": "رمز التحقق",

@@ -56,7 +56,7 @@ function UsersContent() {
   const filtered = useMemo(() => {
     return MOCK_USERS.filter((entry) => {
       const name = `${entry.user.first_name} ${entry.user.last_name}`.toLowerCase()
-      const email = entry.user.email.toLowerCase()
+      const email = (entry.user.email ?? '').toLowerCase()
       const q = search.toLowerCase()
       if (q && !name.includes(q) && !email.includes(q)) return false
       if (roleFilter !== 'all' && !entry.p7Roles.includes(roleFilter)) return false

@@ -1079,13 +1079,18 @@ export function useRequestEmailVerification() {
 export function useConfirmEmailVerification() {
   const qc = useQueryClient()
   const setUser = useAuthStore((s) => s.setUser)
-  const user = useAuthStore((s) => s.user)
   return useMutation({
     mutationFn: ({ email, code }: { email: string; code: string }) =>
       authService.confirmEmailVerification({ email, code }),
-    onSuccess: (updated) => {
-      if (user) setUser({ ...user, ...updated })
-      qc.invalidateQueries({ queryKey: ['me'] })
+    // The UI derives "has an email" straight from user.email (no verification
+    // flag) — so after confirming, re-fetch GET /auth/me for the authoritative
+    // value, push it into the React Query cache, and hydrate the auth store.
+    // That's the only thing that needs to happen; the settings page re-renders
+    // off the store update with no local state of its own to reconcile.
+    onSuccess: async () => {
+      const fresh = await authService.getMe()
+      qc.setQueryData(['me'], fresh)
+      setUser(fresh)
     },
   })
 }
