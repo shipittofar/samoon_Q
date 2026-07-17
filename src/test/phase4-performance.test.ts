@@ -444,9 +444,9 @@ describe('P4.7.8 — Regression checks', () => {
     expect(content).not.toContain('useAuthStore.*persist')
   })
 
-  it('tenant store partialize is unchanged', () => {
+  it('tenant store persists nothing — tenant must always be revalidated, never trusted from storage', () => {
     const content = src('stores/index.ts')
-    expect(content).toContain('partialize: (state) => ({ tenant: state.tenant })')
+    expect(content).toContain('partialize: () => ({})')
   })
 
   it('QueryClient error handler is unchanged (401/CancelledError guards in place)', () => {

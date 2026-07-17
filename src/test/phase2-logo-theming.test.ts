@@ -32,7 +32,7 @@ describe('P2.2.L1 — Header reads logoUrl from tenant theme', () => {
 
   it('Header reads settings.theme from useTenantStore tenant', () => {
     const content = src('components/layout/Header.tsx')
-    expect(content).toContain('tenant.settings?.theme')
+    expect(content).toContain('tenant?.settings?.theme')
   })
 })
 
@@ -93,18 +93,18 @@ describe('P2.2.L3 — Header renders default Samoon wordmark when logoUrl is abs
 // ── P2.2.L4 — Alt text uses tenant name ──────────────────────────────────────
 
 describe('P2.2.L4 — Logo image alt text uses tenant name', () => {
-  it('Image alt references tenant.name', () => {
+  it('Image alt references tenant?.name', () => {
     const content = src('components/layout/Header.tsx')
-    expect(content).toContain('tenant.name')
+    expect(content).toContain('tenant?.name')
     expect(content).toContain('logo')
   })
 
-  it('img alt is a template literal or expression using tenant.name (not hardcoded)', () => {
+  it('img alt is an expression referencing tenant?.name, null-safe since tenant can be null (not hardcoded)', () => {
     const content = src('components/layout/Header.tsx')
-    // alt={`${tenant.name} logo`} or similar
+    // alt={t('logoAlt', { name: tenant?.name ?? '' })} or similar
     const imgBlock = content.slice(content.indexOf('<img'), content.indexOf('/>', content.indexOf('<img')))
     expect(imgBlock).toMatch(/alt=\{/)
-    expect(imgBlock).toContain('tenant.name')
+    expect(imgBlock).toContain('tenant?.name')
   })
 })
 

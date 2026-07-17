@@ -22,7 +22,7 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/stores'
+import { useAuthStore, useTenantStore } from '@/stores'
 import { useHasDashboardAccess, usePermission } from '@/hooks'
 import type { P7Permission } from '@/types/rbac'
 
@@ -36,6 +36,22 @@ export interface AuthGuardProps {
   forbiddenPath?: string
   /** Rendered while auth state is still loading. */
   fallback?: ReactNode
+  /**
+   * When true, this guard also requires `tenantState === 'resolved'` before
+   * rendering `children` — i.e. it will never render with `tenant === null`.
+   * Distinct `tenantState` values render distinct fallback content instead
+   * of the single generic `fallback` node, via `tenantFallback`.
+   * Off by default so guards that don't care about tenant context (if any
+   * are ever added) are unaffected.
+   */
+  requireResolvedTenant?: boolean
+  /**
+   * Rendered when `requireResolvedTenant` is true and tenant resolution has
+   * settled into a non-'resolved' terminal state ('not_found' | 'forbidden'
+   * | 'error'). The 'loading' state uses `fallback` instead, same as auth
+   * loading. Falls back to `fallback` if omitted.
+   */
+  tenantFallback?: (tenantState: 'not_found' | 'forbidden' | 'error') => ReactNode
 }
 
 export function AuthGuard({
@@ -44,8 +60,11 @@ export function AuthGuard({
   loginPath = '/login',
   forbiddenPath = '/',
   fallback = null,
+  requireResolvedTenant = false,
+  tenantFallback,
 }: AuthGuardProps) {
   const { isAuthenticated, isLoading } = useAuthStore()
+  const tenantState = useTenantStore((s) => s.tenantState)
   const router = useRouter()
 
   // P10.2.2 — docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §8.1: `dashboard:access`
@@ -65,19 +84,31 @@ export function AuthGuard({
     ? hasDashboardAccess
     : !requiredPermission || hasOtherRequiredPermission
 
+  // Tenant resolution is still settling — wait rather than judge permissions
+  // against an unresolved/null tenant (which would read as "denied" and
+  // trigger a premature redirect to forbiddenPath before the real answer
+  // is known).
+  const tenantPending = requireResolvedTenant && tenantState === 'loading'
+  const tenantFailed = requireResolvedTenant && !tenantPending && tenantState !== 'resolved'
+
   useEffect(() => {
     if (isLoading) return
     if (!isAuthenticated) {
       router.replace(loginPath)
       return
     }
+    if (tenantPending || tenantFailed) return
     if (requiredPermission && !permissionGranted) {
       router.replace(forbiddenPath)
     }
-  }, [isAuthenticated, isLoading, requiredPermission, permissionGranted, loginPath, forbiddenPath, router])
+  }, [isAuthenticated, isLoading, requiredPermission, permissionGranted, loginPath, forbiddenPath, router, tenantPending, tenantFailed])
 
   if (isLoading) return <>{fallback}</>
   if (!isAuthenticated) return <>{fallback}</>
+  if (tenantPending) return <>{fallback}</>
+  if (tenantFailed) {
+    return <>{tenantFallback ? tenantFallback(tenantState as 'not_found' | 'forbidden' | 'error') : fallback}</>
+  }
   if (requiredPermission && !permissionGranted) {
     return <>{fallback}</>
   }

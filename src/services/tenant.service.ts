@@ -8,6 +8,36 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms))
 
 /**
+ * Typed tenant-resolution failures — callers (useTenantStore.loadTenant())
+ * must classify on these, not on a generic caught error, so a 404/403/5xx/
+ * network failure never collapses into a silently-substituted fake tenant.
+ */
+export class TenantNotFoundError extends Error {
+  constructor(slug: string) {
+    super(`Tenant not found: ${slug}`)
+    this.name = 'TenantNotFoundError'
+  }
+}
+
+export class TenantForbiddenError extends Error {
+  constructor(slug: string) {
+    super(`Tenant access forbidden: ${slug}`)
+    this.name = 'TenantForbiddenError'
+  }
+}
+
+export class TenantServerError extends Error {
+  constructor(slug: string, cause?: unknown) {
+    super(`Tenant resolution failed: ${slug}`)
+    this.name = 'TenantServerError'
+    this.cause = cause
+  }
+}
+
+/** Statuses under which a resolved tenant is still eligible to be used (mapped to 'resolved'). Anything else (suspended/archived/churned) is treated as forbidden. */
+export const ELIGIBLE_TENANT_STATUSES: TenantStatus[] = ['active', 'trial']
+
+/**
  * Mock tenant store keyed by slug.
  * P6.15: extended with seed data covering all 6 business types.
  */
@@ -260,23 +290,39 @@ function setMockStatus(slugOrId: string, status: TenantStatus): Tenant | null {
 }
 
 export const tenantService = {
+  /**
+   * Resolves a tenant by slug. NEVER swallows a failure into DEFAULT_TENANT —
+   * throws a typed error the caller (useTenantStore.loadTenant()) classifies
+   * into the TenantLifecycle state machine. Mock mode simulates the same
+   * not-found behavior for an unknown slug instead of silently substituting
+   * the default tenant, so the 'not_found' path is exercisable without a
+   * real backend.
+   */
   async getTenant(slug?: string): Promise<Tenant> {
     const resolvedSlug = slug ?? 'default'
 
     if (USE_MOCK) {
       await delay()
       const found = MOCK_TENANTS[resolvedSlug]
-      return found ? { ...found } : { ...DEFAULT_TENANT }
+      if (!found) throw new TenantNotFoundError(resolvedSlug)
+      return { ...found }
     }
 
     try {
       const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.DETAIL(resolvedSlug))
-      return data.results[0]
-    } catch {
-      return DEFAULT_TENANT
+      const tenant = data.results[0]
+      if (!tenant) throw new TenantNotFoundError(resolvedSlug)
+      return tenant
+    } catch (err) {
+      if (err instanceof TenantNotFoundError) throw err
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 404) throw new TenantNotFoundError(resolvedSlug)
+      if (status === 403) throw new TenantForbiddenError(resolvedSlug)
+      throw new TenantServerError(resolvedSlug, err)
     }
   },
 
+  /** Same never-swallow contract as getTenant() — see above. */
   async getCurrentTenant(): Promise<Tenant> {
     if (USE_MOCK) {
       await delay()
@@ -286,8 +332,11 @@ export const tenantService = {
     try {
       const { data } = await api.get<Tenant>(ENDPOINTS.TENANTS.CURRENT)
       return data
-    } catch {
-      return DEFAULT_TENANT
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status
+      if (status === 404) throw new TenantNotFoundError('current')
+      if (status === 403) throw new TenantForbiddenError('current')
+      throw new TenantServerError('current', err)
     }
   },
 

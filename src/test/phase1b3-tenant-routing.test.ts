@@ -315,15 +315,18 @@ describe('Scenario matrix — source evidence', () => {
     expect(src).toContain('NEXT_PUBLIC_TENANT_SLUG')
   })
 
-  it('Scenario D/E: loadTenant falls back to DEFAULT_TENANT on failure', () => {
+  it('Scenario D/E: loadTenant never substitutes a fake tenant on failure — tenant stays null, tenantState is classified', () => {
     const src = readSrc('stores/index.ts')
-    expect(src).toContain('DEFAULT_TENANT')
-    expect(src).toContain("tenantState: 'fallback'")
+    expect(src).toContain("tenant: null")
+    expect(src).toContain("tenantState: 'not_found'")
+    expect(src).toContain("tenantState: 'forbidden'")
+    expect(src).toContain("tenantState: 'error'")
   })
 
-  it('Scenario E: tenant API failure → DEFAULT_TENANT via catch block', () => {
+  it('Scenario E: tenant API failure is classified via typed errors, not a bare catch that hides the failure', () => {
     const src = readSrc('stores/index.ts')
     expect(src).toContain('catch')
-    expect(src).toContain('DEFAULT_TENANT')
+    expect(src).toContain('TenantNotFoundError')
+    expect(src).toContain('TenantForbiddenError')
   })
 })

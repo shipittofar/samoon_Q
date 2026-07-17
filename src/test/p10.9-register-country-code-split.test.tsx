@@ -107,7 +107,7 @@ describe('P10.9 — useRegister() hydrates session after successful registration
     await vi.runAllTimersAsync()
     await expect(mutatePromise).resolves.not.toThrow()
 
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant?.id ?? ''
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual([])
   })
 })

@@ -65,9 +65,9 @@ function explicitLogout(qc: QueryClient) {
 
 async function loginAs(email: string) {
   const result = await authService.login({ email, password: 'password' })
-  if (result.p7Roles && result.p7Roles.length > 0) {
-    const tenantId = useTenantStore.getState().tenant.id
-    useRbacStore.getState().setTenantRoles(tenantId, result.p7Roles)
+  const tenant = useTenantStore.getState().tenant
+  if (tenant && result.p7Roles && result.p7Roles.length > 0) {
+    useRbacStore.getState().setTenantRoles(tenant.id, result.p7Roles)
   }
   useAuthStore.getState().setUser(result.user)
   return result
@@ -80,6 +80,16 @@ beforeEach(() => {
   useAuthStore.getState().setUser(null)
   useRbacStore.getState()._resetStore()
   useCartStore.getState().clearCart()
+  // Tenant-scoped role hydration (loginAs()) is a no-op unless a tenant has
+  // actually resolved — simulate the correctly-ordered case.
+  useTenantStore.getState().setTenant({
+    id: 'tenant-test-01',
+    name: 'Test Tenant',
+    slug: 'test-tenant',
+    businessTypes: ['restaurant'],
+    status: 'active',
+    created_at: '2024-01-01T00:00:00.000Z',
+  })
 })
 
 afterEach(() => {
@@ -97,7 +107,7 @@ describe('P10.9 Scenario 1 — User A login, logout, User B login: no User A dat
     await loginA
     useCartStore.getState().addItem({ id: 'item-a', name: 'A', price: 10, category: 'x', description: '', image: '' } as never, 1)
     expect(useCartStore.getState().items.length).toBeGreaterThan(0)
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
 
     explicitLogout(qc)
@@ -150,7 +160,7 @@ describe('P10.9 Scenario 4 — New phone OTP: no auth state exists', () => {
     expect(getAccessToken()).toBeNull()
     expect(useAuthStore.getState().user).toBeNull()
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual([])
   })
 })
@@ -164,7 +174,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
     await vi.runAllTimersAsync()
     await loginA
     useCartStore.getState().addItem({ id: 'item-x', name: 'X', price: 5, category: 'x', description: '', image: '' } as never, 1)
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
 
     // The OLD, buggy handler:
@@ -182,7 +192,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
     await vi.runAllTimersAsync()
     await loginA
     useCartStore.getState().addItem({ id: 'item-y', name: 'Y', price: 5, category: 'x', description: '', image: '' } as never, 1)
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
 
     clearSession(qc)

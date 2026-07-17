@@ -31,10 +31,15 @@ export const featureFlagsService = {
    *   Layer 2 — capability-derived flags     (P6.2: from ModuleCapabilitySet declarations)
    *   Layer 3 — tenant.settings.featureFlags (per-tenant overrides; highest priority)
    *
-   * @param tenant - The fully resolved Tenant object (ready or fallback)
+   * @param tenant - The fully resolved Tenant object, or `null` when tenant
+   *   resolution has not succeeded (loading/not_found/forbidden/error) — in
+   *   that case every flag resolves to its safe module-default-only state
+   *   (no tenant overrides applied, since there is no tenant to read them from).
    * @returns Merged flag map; missing keys default to false when read via useFeatureFlag().
    */
-  resolve(tenant: Tenant): Record<string, boolean> {
+  resolve(tenant: Tenant | null): Record<string, boolean> {
+    if (!tenant) return {}
+
     // Layer 1: named flags declared in Module.defaultFeatureFlags
     const moduleDefaults = getDefaultFeatureFlags(tenant.businessTypes)
 

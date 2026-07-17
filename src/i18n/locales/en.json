@@ -680,6 +680,12 @@
   },
   "console": {
     "title": "Console",
+    "tenantNotFoundTitle": "Tenant not found",
+    "tenantNotFoundDesc": "We couldn't find a business at this address. Check the URL, or contact your administrator.",
+    "tenantForbiddenTitle": "Access unavailable",
+    "tenantForbiddenDesc": "This business isn't currently accessible with your account. It may be suspended, archived, or you may not have access.",
+    "tenantErrorTitle": "Something went wrong",
+    "tenantErrorDesc": "We couldn't load this business right now. Please try again in a moment.",
     "unknownModule": "Unknown configuration module \"{moduleId}\".",
     "configurationSaved": "Configuration saved.",
     "fieldsFailedValidation": "{count, plural, one {# field failed validation.} other {# fields failed validation.}}",

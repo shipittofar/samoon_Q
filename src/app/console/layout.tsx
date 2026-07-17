@@ -20,12 +20,37 @@ import { Button } from '@/components/ui/Button'
  *   - AdminSidebar: grouped nav with icons + role chip + focus trap (P8.9.4 Phase F)
  *   - AuthGuard: staff/console only; customers → public home
  */
+/** Simple centered message screen for tenant-resolution terminal states — no admin chrome, since there is no confirmed tenant to render it for. */
+function TenantResolutionMessage({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="max-w-sm text-center space-y-2">
+        <h1 className="text-lg font-semibold text-[var(--fg)]">{title}</h1>
+        <p className="text-sm text-[var(--fg-muted)]">{description}</p>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const t = useTranslations('console')
 
   return (
-    <AuthGuard requiredPermission="dashboard:access" forbiddenPath="/">
+    <AuthGuard
+      requiredPermission="dashboard:access"
+      forbiddenPath="/"
+      requireResolvedTenant
+      tenantFallback={(tenantState) => {
+        if (tenantState === 'not_found') {
+          return <TenantResolutionMessage title={t('tenantNotFoundTitle')} description={t('tenantNotFoundDesc')} />
+        }
+        if (tenantState === 'forbidden') {
+          return <TenantResolutionMessage title={t('tenantForbiddenTitle')} description={t('tenantForbiddenDesc')} />
+        }
+        return <TenantResolutionMessage title={t('tenantErrorTitle')} description={t('tenantErrorDesc')} />
+      }}
+    >
       {/* Admin-specific header — replaces consumer Header */}
       <AdminHeader />
 

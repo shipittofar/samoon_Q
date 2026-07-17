@@ -14,7 +14,8 @@ import { platformConfigurationRegistry, configurationService, configurationVersi
 import type { ConfigCollectionValue } from '@/config'
 import { platformDashboardRegistry } from '@/platform-admin/dashboard'
 import { hasPlatformPermission, usePlatformAdminStore } from '@/platform-admin'
-import { useAuthStore, useRbacStore } from '@/stores'
+import { useAuthStore, useRbacStore, useTenantStore } from '@/stores'
+import { DEFAULT_TENANT } from '@/constants'
 import { ConfigurationStudioLayout } from '@/components/admin/configuration/ConfigurationStudioLayout'
 import '@/platform-admin'
 import '@/platform-admin/modules'
@@ -26,7 +27,8 @@ function loginAsPlatformOwner() {
     id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     role: 'admin', is_verified: true, created_at: '2024-01-01T00:00:00Z',
   })
-  useRbacStore.getState().setTenantRoles('default', ['owner'])
+  useTenantStore.getState().setTenant(DEFAULT_TENANT)
+  useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
 }
 
 beforeEach(() => {

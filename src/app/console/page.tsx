@@ -16,10 +16,15 @@ export default function AdminIndexPage() {
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
   const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantState = useTenantStore((s) => s.tenantState)
   const getRolesForTenant = useRbacStore((s) => s.getRolesForTenant)
 
   useEffect(() => {
-    if (!tenantId) return
+    // AuthGuard (console/layout.tsx) already blocks rendering this page
+    // unless tenantState === 'resolved' — this check is defense-in-depth
+    // so the redirect decision itself never runs against an unresolved
+    // or null tenant.
+    if (tenantState !== 'resolved' || !tenantId) return
 
     const roles = getRolesForTenant(tenantId)
     const permissions = getPermissionsForRole(roles)
@@ -69,7 +74,7 @@ export default function AdminIndexPage() {
 
     // Final fallback
     router.replace('/console/customers')
-  }, [tenantId, getRolesForTenant, router])
+  }, [tenantId, tenantState, getRolesForTenant, router])
 
   // Render nothing while we determine the redirect target
   return null

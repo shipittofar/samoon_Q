@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { tenantService } from '@/services/tenant.service'
+import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
 import { branchManagementService } from '@/services/branch.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import type { PublicBranchInfo } from '@/types/marketplace'
@@ -194,12 +194,8 @@ describe('branch slug resolution for homepage', () => {
     expect(branch).toBeUndefined()
   })
 
-  it('unknown tenant returns default tenant with no matching branches', async () => {
-    const tenant = await tenantService.getTenant('nonexistent-business')
-    expect(tenant.slug).toBe('default')
-    const meta = getMarketplaceMeta(tenant.settings)
-    const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'main')
-    expect(branch).toBeUndefined()
+  it('unknown tenant slug throws TenantNotFoundError instead of silently returning a fake tenant', async () => {
+    await expect(tenantService.getTenant('nonexistent-business')).rejects.toBeInstanceOf(TenantNotFoundError)
   })
 
   it('brew-cafe main branch resolves to Midtown Cafe', async () => {

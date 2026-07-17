@@ -680,6 +680,12 @@
   },
   "console": {
     "title": "لوحة التحكم",
+    "tenantNotFoundTitle": "لم يتم العثور على النشاط التجاري",
+    "tenantNotFoundDesc": "لم نتمكن من العثور على نشاط تجاري على هذا العنوان. تحقق من الرابط أو تواصل مع المسؤول.",
+    "tenantForbiddenTitle": "الوصول غير متاح",
+    "tenantForbiddenDesc": "هذا النشاط التجاري غير متاح حاليًا لحسابك. قد يكون معلقًا أو مؤرشفًا، أو قد لا تملك صلاحية الوصول.",
+    "tenantErrorTitle": "حدث خطأ ما",
+    "tenantErrorDesc": "تعذّر تحميل هذا النشاط التجاري الآن. يرجى المحاولة مرة أخرى بعد قليل.",
     "unknownModule": "وحدة إعدادات غير معروفة \"{moduleId}\".",
     "configurationSaved": "تم حفظ الإعدادات.",
     "fieldsFailedValidation": "فشل التحقق من {count} حقل.",

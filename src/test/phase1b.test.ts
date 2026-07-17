@@ -215,7 +215,7 @@ describe('System readiness — full bootstrap lifecycle', () => {
     expect(canExecute).toBe(true)
   })
 
-  it('canExecute is true in fallback state after bootstrap', async () => {
+  it('canExecute is true in a degraded (error) state after bootstrap — bootstrap settled, even though resolution failed', async () => {
     // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network'))
     await useTenantStore.getState().loadTenant()
@@ -227,18 +227,20 @@ describe('System readiness — full bootstrap lifecycle', () => {
     const { rbacInitialized, featureFlagsInitialized, tenantState } = useTenantStore.getState()
     const canExecute = tenantState !== 'loading' && rbacInitialized && featureFlagsInitialized
     expect(canExecute).toBe(true)
-    expect(tenantState).toBe('fallback')
+    expect(tenantState).toBe('error')
+    expect(useTenantStore.getState().tenant).toBeNull()
     spy.mockRestore()
   })
 
-  it('fallback bootstrap still resolves featureFlags from DEFAULT_TENANT', async () => {
+  it('a failed bootstrap resolves an empty featureFlags map — no fake tenant to derive flags from', async () => {
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network'))
     await useTenantStore.getState().loadTenant()
     const { tenant } = useTenantStore.getState()
+    expect(tenant).toBeNull()
     useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(tenant))
     useTenantStore.getState().setFeatureFlagsInitialized(true)
 
-    expect(useTenantStore.getState().featureFlags['menu.enabled']).toBe(true)
+    expect(useTenantStore.getState().featureFlags).toEqual({})
     spy.mockRestore()
   })
 

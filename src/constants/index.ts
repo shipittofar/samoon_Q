@@ -18,16 +18,18 @@ export const TENANT_KEY = 'samoon-tenant'
 export const DINE_IN_KEY = 'samoon-dine-in'
 
 /**
- * Fallback tenant used when no tenant can be resolved from the network or URL.
- * Ensures the app functions identically to the pre-multi-tenant single restaurant
- * deployment when no tenant context is available (P1A.4 backward compatibility).
+ * The tenant record for the literal `'default'` slug in mock mode — used when
+ * no subdomain/env-var slug is configured at all (single-tenant local dev).
  *
- * Tenant resolution strategy decision (P1A.1):
- *   Production: subdomain-based — {tenant}.samoon.app
- *   Dev / mock:  path-based     — resolved from NEXT_PUBLIC_TENANT_SLUG env var
- *                                 or query param ?tenant=<slug>
- * Full routing implementation is Phase 1B (P1B.3). This constant is the frontend
- * fallback until that middleware exists. See src/modules/TENANT_RESOLUTION_STRATEGY.md.
+ * IMPORTANT — this is NOT an error fallback. It must never be substituted in
+ * place of a real tenant when a `GET /tenants/{slug}/` call fails for an
+ * authenticated Console flow (404 / 403 / suspended / archived / network /
+ * 5xx). Those failures are represented explicitly by `TenantLifecycle`
+ * ('not_found' | 'forbidden' | 'error'), and `useTenantStore.tenant` stays
+ * `null` in every one of those states — see src/stores/index.ts and
+ * src/services/tenant.service.ts. The only legitimate uses of this constant
+ * are: (1) the mock tenant fixture for slug `'default'`, and (2) tenant-less
+ * public surfaces that were never meant to resolve a real tenant at all.
  */
 export const DEFAULT_TENANT: Tenant = {
   id: 'default',

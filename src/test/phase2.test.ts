@@ -187,20 +187,20 @@ describe('useModuleNav feature-flag filtering logic (pure)', () => {
 
   it('getHeaderNav returns items for default business types', () => {
     const { tenant } = useTenantStore.getState()
-    const items = getHeaderNav(tenant.businessTypes)
+    const items = getHeaderNav(tenant?.businessTypes ?? [])
     expect(Array.isArray(items)).toBe(true)
   })
 
   it('items without featureFlagKey are always included (no flag needed)', () => {
     const { tenant } = useTenantStore.getState()
-    const items = getHeaderNav(tenant.businessTypes)
+    const items = getHeaderNav(tenant?.businessTypes ?? [])
     const unconditional = items.filter((item) => !item.featureFlagKey)
     expect(unconditional.length).toBeGreaterThan(0)
   })
 
   it('feature flag false hides conditional items', () => {
     const { tenant } = useTenantStore.getState()
-    const items = getHeaderNav(tenant.businessTypes)
+    const items = getHeaderNav(tenant?.businessTypes ?? [])
     const flagged = items.filter((item) => !!item.featureFlagKey)
     const featureFlags: Record<string, boolean> = {}
     for (const item of flagged) {
@@ -215,7 +215,7 @@ describe('useModuleNav feature-flag filtering logic (pure)', () => {
 
   it('feature flag true shows conditional items', () => {
     const { tenant } = useTenantStore.getState()
-    const items = getHeaderNav(tenant.businessTypes)
+    const items = getHeaderNav(tenant?.businessTypes ?? [])
     const flagged = items.filter((item) => !!item.featureFlagKey)
     const featureFlags: Record<string, boolean> = {}
     for (const item of flagged) {

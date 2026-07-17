@@ -138,8 +138,8 @@ export function useSystemReady(): SystemReadiness {
   const rbacInitialized         = useTenantStore((s) => s.rbacInitialized)
   const featureFlagsInitialized = useTenantStore((s) => s.featureFlagsInitialized)
   const isLoading  = tenantState === 'loading'
-  const isReady    = tenantState === 'ready'
-  const isFallback = tenantState === 'fallback'
+  const isReady    = tenantState === 'resolved'
+  const isFallback = tenantState === 'not_found' || tenantState === 'forbidden' || tenantState === 'error'
 
   // Dev-only: warn when tenant has settled but a subsystem initializer has not fired.
   // TenantBootstrapper sets both flags synchronously after loadTenant() in production.
@@ -217,7 +217,7 @@ export function usePermissions(): readonly P7Permission[] {
     // inconsistency" and docs/P10.5.3_PERMISSION_MODEL_CONSOLIDATION.md.
     const tenantRolePermissions = applyOverrides(base, override)
 
-    const ownershipDriven = resolveOwnershipDrivenPermissions(user?.email, tenant)
+    const ownershipDriven = resolveOwnershipDrivenPermissions(user?.email, tenant ?? undefined)
     if (ownershipDriven.length === 0) return tenantRolePermissions
 
     return [...new Set([...tenantRolePermissions, ...ownershipDriven])]
@@ -352,7 +352,7 @@ export function useModuleNav(): NavItem[] {
   const { canExecute } = useSystemReady()
   const tenant = useTenantStore((s) => s.tenant)
   const featureFlags = useTenantStore((s) => s.featureFlags)
-  const allNav = getHeaderNav(tenant.businessTypes)
+  const allNav = getHeaderNav(tenant?.businessTypes ?? [])
   if (!canExecute) return allNav
   return allNav.filter(
     (item) => !item.featureFlagKey || featureFlags[item.featureFlagKey] !== false,
@@ -458,7 +458,7 @@ export function useDashboardNav(): NavItem[] {
  */
 export function useCapability(cap: Capability): boolean {
   const tenant = useTenantStore((s) => s.tenant)
-  return hasCapability(tenant.businessTypes, cap)
+  return hasCapability(tenant?.businessTypes ?? [], cap)
 }
 
 /**
@@ -500,7 +500,7 @@ export function useAdminModuleNav(): NavItem[] {
   const tenant = useTenantStore((s) => s.tenant)
   const featureFlags = useTenantStore((s) => s.featureFlags)
   const permissions = usePermissions()
-  const allAdminNav = getAdminNav(tenant.businessTypes)
+  const allAdminNav = getAdminNav(tenant?.businessTypes ?? [])
   if (!canExecute) return allAdminNav
   return allAdminNav.filter((item) => {
     if (item.featureFlagKey && featureFlags[item.featureFlagKey] === false) return false
@@ -518,9 +518,9 @@ export function useLogin() {
       setUser(user)
       // P8.4.3 — Seed P7 tenant-scoped roles for mock demo accounts so that
       // PermissionGuard and usePermission() work in admin routes.
-      if (p7Roles && p7Roles.length > 0) {
-        const tenantId = useTenantStore.getState().tenant.id
-        useRbacStore.getState().setTenantRoles(tenantId, p7Roles)
+      const tenant = useTenantStore.getState().tenant
+      if (tenant && p7Roles && p7Roles.length > 0) {
+        useRbacStore.getState().setTenantRoles(tenant.id, p7Roles)
       }
     },
   })
@@ -534,9 +534,9 @@ export function useRegister() {
     mutationFn: (data: RegisterData) => authService.register(data),
     onSuccess: ({ user, p7Roles }) => {
       setUser(user)
-      if (p7Roles && p7Roles.length > 0) {
-        const tenantId = useTenantStore.getState().tenant.id
-        useRbacStore.getState().setTenantRoles(tenantId, p7Roles)
+      const tenant = useTenantStore.getState().tenant
+      if (tenant && p7Roles && p7Roles.length > 0) {
+        useRbacStore.getState().setTenantRoles(tenant.id, p7Roles)
       }
     },
   })
@@ -570,9 +570,9 @@ export function useVerifyOTP() {
     onSuccess: (result) => {
       if (result.is_new_user) return
       setUser(result.user)
-      if (result.p7Roles && result.p7Roles.length > 0) {
-        const tenantId = useTenantStore.getState().tenant.id
-        useRbacStore.getState().setTenantRoles(tenantId, result.p7Roles)
+      const tenant = useTenantStore.getState().tenant
+      if (tenant && result.p7Roles && result.p7Roles.length > 0) {
+        useRbacStore.getState().setTenantRoles(tenant.id, result.p7Roles)
       }
     },
   })

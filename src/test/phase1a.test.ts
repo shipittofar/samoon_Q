@@ -12,7 +12,7 @@ import type { SystemReadiness } from '@/types'
 // Imported at module level so all spies target the same instance the store holds.
 // Dynamic `await import(...)` inside tests returns a fresh instance after vi.resetModules(),
 // which would not match the reference already captured by useTenantStore at init time.
-import { tenantService } from '@/services/tenant.service'
+import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -50,10 +50,10 @@ describe('useTenantStore', () => {
     useTenantStore.getState().reset()
   })
 
-  it('initialises with DEFAULT_TENANT', () => {
-    const { tenant } = useTenantStore.getState()
-    expect(tenant.id).toBe(DEFAULT_TENANT.id)
-    expect(tenant.slug).toBe(DEFAULT_TENANT.slug)
+  it('initialises with tenant null and tenantState loading — no fake tenant is substituted', () => {
+    const { tenant, tenantState } = useTenantStore.getState()
+    expect(tenant).toBeNull()
+    expect(tenantState).toBe<TenantLifecycle>('loading')
   })
 
   it('initialises with isLoading false', () => {
@@ -73,7 +73,7 @@ describe('useTenantStore', () => {
     expect(useTenantStore.getState().tenant).toEqual(next)
   })
 
-  it('reset returns to DEFAULT_TENANT', () => {
+  it('reset returns tenant to null (no fake tenant substituted)', () => {
     const other: Tenant = {
       id: 'tenant-other',
       name: 'Other',
@@ -84,7 +84,7 @@ describe('useTenantStore', () => {
     }
     useTenantStore.getState().setTenant(other)
     useTenantStore.getState().reset()
-    expect(useTenantStore.getState().tenant.id).toBe(DEFAULT_TENANT.id)
+    expect(useTenantStore.getState().tenant).toBeNull()
     expect(useTenantStore.getState().isLoading).toBe(false)
   })
 
@@ -107,7 +107,7 @@ describe('useTenantStore', () => {
     })
   })
 
-  it('loadTenant resets to DEFAULT_TENANT and clears isLoading on service failure (M-1)', async () => {
+  it('loadTenant sets tenant to null and tenantState to error on an unclassified service failure (never substitutes a fake tenant)', async () => {
     // Place a non-default tenant in state to simulate a stale persisted value.
     const stale: Tenant = {
       id: 'stale-id',
@@ -118,17 +118,18 @@ describe('useTenantStore', () => {
       createdAt: '2025-01-01T00:00:00.000Z',
     }
     useTenantStore.getState().setTenant(stale)
-    expect(useTenantStore.getState().tenant.slug).toBe('stale')
+    expect(useTenantStore.getState().tenant?.slug).toBe('stale')
 
-    // Make tenantService.getTenant throw.
+    // Make tenantService.getTenant throw a generic (non-typed) error — this
+    // must classify as 'error', not silently become a usable fake tenant.
     // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network error'))
 
     await useTenantStore.getState().loadTenant('stale')
 
     expect(useTenantStore.getState().isLoading).toBe(false)
-    expect(useTenantStore.getState().tenant.id).toBe(DEFAULT_TENANT.id)
-    expect(useTenantStore.getState().tenant.slug).toBe(DEFAULT_TENANT.slug)
+    expect(useTenantStore.getState().tenant).toBeNull()
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('error')
 
     spy.mockRestore()
   })
@@ -389,11 +390,13 @@ describe('registerModule()', () => {
 // ── P1A.4 — Backward compatibility ───────────────────────────────────────────
 
 describe('Backward compatibility', () => {
-  it('app works with DEFAULT_TENANT (no tenant set explicitly)', () => {
+  it('resolving the default slug in mock mode returns an active, usable tenant', async () => {
     useTenantStore.getState().reset()
-    const { tenant } = useTenantStore.getState()
-    expect(tenant.status).toBe('active')
-    expect(tenant.businessTypes.length).toBeGreaterThan(0)
+    await useTenantStore.getState().loadTenant('default')
+    const { tenant, tenantState } = useTenantStore.getState()
+    expect(tenantState).toBe<TenantLifecycle>('resolved')
+    expect(tenant?.status).toBe('active')
+    expect(tenant?.businessTypes.length).toBeGreaterThan(0)
   })
 
   it('getHeaderNav with DEFAULT_TENANT businessTypes returns non-empty nav', async () => {
@@ -410,7 +413,7 @@ describe('M-1 — loadTenant failure safety', () => {
     useTenantStore.getState().reset()
   })
 
-  it('resets to DEFAULT_TENANT when service throws (no stale state left behind)', async () => {
+  it('clears tenant to null when service throws (no stale state left behind, no fake tenant substituted)', async () => {
     const stale: Tenant = {
       id: 'stale-tenant',
       name: 'Stale',
@@ -426,7 +429,7 @@ describe('M-1 — loadTenant failure safety', () => {
 
     await useTenantStore.getState().loadTenant('stale')
 
-    expect(useTenantStore.getState().tenant.id).toBe(DEFAULT_TENANT.id)
+    expect(useTenantStore.getState().tenant).toBeNull()
     expect(useTenantStore.getState().isLoading).toBe(false)
 
     spy.mockRestore()
@@ -472,19 +475,20 @@ describe('M-5 — TenantBootstrapper wiring', () => {
 
   it('loadTenant() with no slug argument resolves to a valid tenant', async () => {
     await useTenantStore.getState().loadTenant()
-    const { tenant } = useTenantStore.getState()
-    expect(tenant.id).toBeDefined()
-    expect(tenant.slug).toBeDefined()
-    expect(tenant.status).toMatch(/^(active|trial|suspended|churned)$/)
+    const { tenant, tenantState } = useTenantStore.getState()
+    expect(tenantState).toBe<TenantLifecycle>('resolved')
+    expect(tenant?.id).toBeDefined()
+    expect(tenant?.slug).toBeDefined()
+    expect(tenant?.status).toMatch(/^(active|trial|suspended|churned)$/)
   })
 
   it('tenant store holds a known-good state after startup (no undefined fields)', async () => {
     await useTenantStore.getState().loadTenant()
     const { tenant } = useTenantStore.getState()
-    expect(tenant.id).toBeTruthy()
-    expect(tenant.name).toBeTruthy()
-    expect(tenant.slug).toBeTruthy()
-    expect(Array.isArray(tenant.businessTypes)).toBe(true)
+    expect(tenant?.id).toBeTruthy()
+    expect(tenant?.name).toBeTruthy()
+    expect(tenant?.slug).toBeTruthy()
+    expect(Array.isArray(tenant?.businessTypes)).toBe(true)
   })
 
   it('isLoading is false after startup completes', async () => {
@@ -506,109 +510,150 @@ describe('tenantState — initial state', () => {
 
   it("reset() returns tenantState to 'loading'", async () => {
     await useTenantStore.getState().loadTenant()
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('resolved')
     useTenantStore.getState().reset()
     expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
   })
 
-  it('is not persisted — tenantState absent from persisted partition', () => {
-    // The partialize function only stores { tenant }. Verify tenantState is not
-    // in that shape — if it were, it would leak a stale lifecycle value on reload.
-    const persistedPartition = { tenant: DEFAULT_TENANT }
-    expect((persistedPartition as Record<string, unknown>).tenantState).toBeUndefined()
+  it('is not persisted — nothing is persisted at all now (tenant must always be revalidated, not treated as a stored fact)', () => {
+    // partialize() returns {} — no field of TenantState is trusted from
+    // localStorage anymore. Verify the persisted partition really is empty.
+    const persistedPartition: Record<string, unknown> = {}
+    expect(persistedPartition.tenantState).toBeUndefined()
+    expect(persistedPartition.tenant).toBeUndefined()
   })
 })
 
-describe("tenantState — 'loading' → 'ready' transition", () => {
+describe("tenantState — 'loading' → 'resolved' transition", () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it("transitions loading → ready after a successful loadTenant", async () => {
+  it("transitions loading → resolved after a successful loadTenant", async () => {
     expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
     await useTenantStore.getState().loadTenant('default')
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('resolved')
   })
 
   it("tenantState is set to 'loading' at the start of each loadTenant call", async () => {
     // After a first successful load, a second call should re-enter loading first.
     await useTenantStore.getState().loadTenant('default')
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('resolved')
 
     // Start the second load but don't await it yet.
     const promise = useTenantStore.getState().loadTenant('default')
     expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
     await promise
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('resolved')
   })
 
-  it("tenant is valid when state is 'ready'", async () => {
+  it("tenant is valid and non-null when state is 'resolved'", async () => {
     await useTenantStore.getState().loadTenant()
     const { tenant, tenantState } = useTenantStore.getState()
-    expect(tenantState).toBe<TenantLifecycle>('ready')
-    expect(tenant.id).toBeTruthy()
-    expect(tenant.slug).toBeTruthy()
-    expect(tenant.status).toMatch(/^(active|trial|suspended|churned)$/)
+    expect(tenantState).toBe<TenantLifecycle>('resolved')
+    expect(tenant).not.toBeNull()
+    expect(tenant?.id).toBeTruthy()
+    expect(tenant?.slug).toBeTruthy()
+    expect(tenant?.status).toMatch(/^(active|trial|suspended|churned)$/)
   })
 
-  it('isLoading is false when ready', async () => {
+  it('isLoading is false when resolved', async () => {
     await useTenantStore.getState().loadTenant()
     expect(useTenantStore.getState().isLoading).toBe(false)
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('resolved')
   })
 })
 
-describe("tenantState — 'loading' → 'fallback' transition", () => {
+describe("tenantState — 'loading' → 'error' transition (no fake tenant substituted)", () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
 
-  it("transitions loading → fallback when loadTenant throws", async () => {
+  it("transitions loading → error when loadTenant throws an unclassified error", async () => {
     // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('network'))
 
     expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
     await useTenantStore.getState().loadTenant('unknown')
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('fallback')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('error')
 
     spy.mockRestore()
   })
 
-  it("tenant is DEFAULT_TENANT when state is 'fallback'", async () => {
+  it("tenant is null (never DEFAULT_TENANT) when state is 'error'", async () => {
     // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('timeout'))
 
     await useTenantStore.getState().loadTenant()
     const { tenant, tenantState, isLoading } = useTenantStore.getState()
 
-    expect(tenantState).toBe<TenantLifecycle>('fallback')
+    expect(tenantState).toBe<TenantLifecycle>('error')
     expect(isLoading).toBe(false)
-    expect(tenant.id).toBe(DEFAULT_TENANT.id)
-    expect(tenant.slug).toBe(DEFAULT_TENANT.slug)
+    expect(tenant).toBeNull()
 
     spy.mockRestore()
   })
 
-  it('isLoading is false when in fallback state', async () => {
+  it('isLoading is false when in error state', async () => {
     // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
 
     await useTenantStore.getState().loadTenant()
     expect(useTenantStore.getState().isLoading).toBe(false)
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('fallback')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('error')
 
     spy.mockRestore()
   })
 
-  it("fallback is distinguishable from ready — NOT equal to 'ready'", async () => {
+  it("error is distinguishable from resolved — NOT equal to 'resolved'", async () => {
     // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
 
     await useTenantStore.getState().loadTenant()
     const { tenantState } = useTenantStore.getState()
 
-    expect(tenantState).not.toBe<TenantLifecycle>('ready')
-    expect(tenantState).toBe<TenantLifecycle>('fallback')
+    expect(tenantState).not.toBe<TenantLifecycle>('resolved')
+    expect(tenantState).toBe<TenantLifecycle>('error')
+
+    spy.mockRestore()
+  })
+
+  it("a 404 (TenantNotFoundError) classifies as 'not_found', distinct from a generic 'error'", async () => {
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new TenantNotFoundError('ghost-tenant'))
+
+    await useTenantStore.getState().loadTenant('ghost-tenant')
+    const { tenant, tenantState } = useTenantStore.getState()
+
+    expect(tenantState).toBe<TenantLifecycle>('not_found')
+    expect(tenant).toBeNull()
+
+    spy.mockRestore()
+  })
+
+  it("a 403 (TenantForbiddenError) classifies as 'forbidden', distinct from 'not_found' and 'error'", async () => {
+    const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new TenantForbiddenError('locked-tenant'))
+
+    await useTenantStore.getState().loadTenant('locked-tenant')
+    const { tenant, tenantState } = useTenantStore.getState()
+
+    expect(tenantState).toBe<TenantLifecycle>('forbidden')
+    expect(tenant).toBeNull()
+
+    spy.mockRestore()
+  })
+
+  it('a successfully-fetched but suspended tenant resolves to forbidden, not resolved', async () => {
+    const suspended: Tenant = {
+      id: 'suspended-tenant', name: 'Suspended Co', slug: 'suspended-co',
+      businessTypes: ['restaurant'], status: 'suspended', createdAt: '2025-01-01T00:00:00.000Z',
+    }
+    const spy = vi.spyOn(tenantService, 'getTenant').mockResolvedValueOnce(suspended)
+
+    await useTenantStore.getState().loadTenant('suspended-co')
+    const { tenant, tenantState } = useTenantStore.getState()
+
+    expect(tenantState).toBe<TenantLifecycle>('forbidden')
+    expect(tenant).toBeNull()
 
     spy.mockRestore()
   })
@@ -625,17 +670,17 @@ describe('useTenantState() hook contract', () => {
     expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
   })
 
-  it("underlying tenantState is 'ready' after success — hook would return 'ready'", async () => {
+  it("underlying tenantState is 'resolved' after success — hook would return 'resolved'", async () => {
     await useTenantStore.getState().loadTenant()
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('resolved')
   })
 
-  it("underlying tenantState is 'fallback' after failure — hook would return 'fallback'", async () => {
+  it("underlying tenantState is 'error' after an unclassified failure — hook would return 'error'", async () => {
     // tenantService is imported at module level — same instance useTenantStore holds.
     const spy = vi.spyOn(tenantService, 'getTenant').mockRejectedValueOnce(new Error('fail'))
 
     await useTenantStore.getState().loadTenant()
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('fallback')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('error')
 
     spy.mockRestore()
   })
@@ -653,8 +698,8 @@ describe('useTenantState() hook contract', () => {
 function getSystemReady(): SystemReadiness {
   const { tenantState, rbacInitialized, featureFlagsInitialized } = useTenantStore.getState()
   const isLoading  = tenantState === 'loading'
-  const isReady    = tenantState === 'ready'
-  const isFallback = tenantState === 'fallback'
+  const isReady    = tenantState === 'resolved'
+  const isFallback = tenantState === 'not_found' || tenantState === 'forbidden' || tenantState === 'error'
   return {
     isLoading,
     isReady,
@@ -692,21 +737,21 @@ describe("useSystemReady() — 'loading' state", () => {
     expect(getSystemReady().canExecute).toBe(false)
   })
 
-  it('canExecute is false when tenant is ready but RBAC not initialized', async () => {
+  it('canExecute is false when tenant is resolved but RBAC not initialized', async () => {
     await useTenantStore.getState().loadTenant('default')
     // rbacInitialized and featureFlagsInitialized are still false (not bootstrapped)
-    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('ready')
+    expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('resolved')
     expect(getSystemReady().canExecute).toBe(false)
   })
 
-  it('canExecute is false when tenant is ready and RBAC initialized but feature flags are not', async () => {
+  it('canExecute is false when tenant is resolved and RBAC initialized but feature flags are not', async () => {
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setRbacInitialized(true)
     // featureFlagsInitialized still false
     expect(getSystemReady().canExecute).toBe(false)
   })
 
-  it('canExecute is false when tenant is ready and feature flags initialized but RBAC is not', async () => {
+  it('canExecute is false when tenant is resolved and feature flags initialized but RBAC is not', async () => {
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setFeatureFlagsInitialized(true)
     // rbacInitialized still false
@@ -719,7 +764,7 @@ describe("useSystemReady() — 'loading' state", () => {
   })
 })
 
-describe("useSystemReady() — 'ready' state (all subsystems initialized)", () => {
+describe("useSystemReady() — 'resolved' state (all subsystems initialized)", () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })
@@ -729,29 +774,29 @@ describe("useSystemReady() — 'ready' state (all subsystems initialized)", () =
     expect(getSystemReady().isReady).toBe(true)
   })
 
-  it('isLoading is false when ready', async () => {
+  it('isLoading is false when resolved', async () => {
     await bootstrap()
     expect(getSystemReady().isLoading).toBe(false)
   })
 
-  it('isFallback is false when ready', async () => {
+  it('isFallback is false when resolved', async () => {
     await bootstrap()
     expect(getSystemReady().isFallback).toBe(false)
   })
 
-  it('canExecute is true when ready and all subsystems initialized', async () => {
+  it('canExecute is true when resolved and all subsystems initialized', async () => {
     await bootstrap()
     expect(getSystemReady().canExecute).toBe(true)
   })
 
-  it('exactly one of isLoading/isReady/isFallback is true in ready state', async () => {
+  it('exactly one of isLoading/isReady/isFallback is true in resolved state', async () => {
     await bootstrap()
     const { isLoading, isReady, isFallback } = getSystemReady()
     expect([isLoading, isReady, isFallback].filter(Boolean).length).toBe(1)
   })
 })
 
-describe("useSystemReady() — 'fallback' state (all subsystems initialized)", () => {
+describe("useSystemReady() — degraded ('error'/'not_found'/'forbidden') state (all subsystems initialized)", () => {
   beforeEach(() => {
     useTenantStore.getState().reset()
   })

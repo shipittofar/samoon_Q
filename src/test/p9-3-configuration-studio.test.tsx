@@ -15,7 +15,8 @@ import {
   platformConfigurationRegistry,
 } from '@/config'
 import { __resetAuthenticationMockSeedForTests } from '@/config/mock-data'
-import { useAuthStore, useRbacStore } from '@/stores'
+import { useAuthStore, useRbacStore, useTenantStore } from '@/stores'
+import { DEFAULT_TENANT } from '@/constants'
 import { ConfigurationStudioLayout } from '@/components/admin/configuration/ConfigurationStudioLayout'
 
 function resetConfigState() {
@@ -29,7 +30,8 @@ function loginAsPlatformOwner() {
     id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     role: 'admin', is_verified: true, created_at: '2024-01-01T00:00:00Z',
   })
-  useRbacStore.getState().setTenantRoles('default', ['owner'])
+  useTenantStore.getState().setTenant(DEFAULT_TENANT)
+  useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
 }
 
 // The global jsdom matchMedia mock (src/test/setup.ts) always reports

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { tenantService } from '@/services/tenant.service'
+import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { buildPublicUrl, hrefToPublicUrl } from '@/utils/public-url'
 import type { PublicBranchInfo } from '@/types/marketplace'
@@ -184,9 +184,8 @@ describe('tenantService.getTenant — unknown slug handling', () => {
     tenantService._resetMockList()
   })
 
-  it('returns DEFAULT_TENANT for unknown slug', async () => {
-    const tenant = await tenantService.getTenant('nonexistent-business')
-    expect(tenant.slug).toBe('default')
+  it('throws TenantNotFoundError for unknown slug instead of returning a fake tenant', async () => {
+    await expect(tenantService.getTenant('nonexistent-business')).rejects.toBeInstanceOf(TenantNotFoundError)
   })
 
   it('returns correct tenant for known slug', async () => {

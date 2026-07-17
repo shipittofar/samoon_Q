@@ -108,14 +108,19 @@ function readTenantSlug(): string | undefined {
  * Coordinates the full app bootstrap sequence at startup (P1B.6).
  *
  * Sequence:
- *   1. loadTenant(slug)        — resolves tenant by slug (P1B.3); falls back to DEFAULT_TENANT
+ *   1. loadTenant(slug) — resolves tenant by slug. On failure, `tenant` stays
+ *      `null` and `tenantState` becomes 'not_found'/'forbidden'/'error' — NO
+ *      fallback tenant is substituted (see src/stores/index.ts loadTenant()).
  *   2. setRbacInitialized(true) — P1B.1: RBAC permission map is static; mark ready immediately.
  *                                  Phase 2+: replace with async role fetch if needed.
- *   3. setFeatureFlags(flags)  — P1B.2: resolve module defaults + tenant overrides
+ *   3. setFeatureFlags(flags)  — P1B.2: resolve module defaults + tenant overrides,
+ *      only when a tenant actually resolved (an empty map otherwise).
  *   4. setFeatureFlagsInitialized(true)
  *
- * After this sequence, useSystemReady().canExecute becomes true and all
- * Phase 1B systems (RBAC, feature flags, routing) are permitted to execute.
+ * Both readiness flags are still set unconditionally once loadTenant() settles
+ * (successfully or not) — canExecute means "bootstrap finished," not "tenant
+ * resolved." Authenticated Console flows must gate on tenantState === 'resolved'
+ * specifically (see AuthGuard), not on canExecute alone.
  */
 function TenantBootstrapper({ children }: { children: ReactNode }) {
   const { loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags } = useTenantStore()
@@ -129,13 +134,16 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
       // P1B.1 — RBAC: static permission map; initialization is synchronous
       setRbacInitialized(true)
 
-      // P1B.2 — Feature flags: resolve from module defaults + tenant setting overrides
-      const { tenant } = useTenantStore.getState()
+      // P1B.2 — Feature flags: resolve from module defaults + tenant setting
+      // overrides. `tenant` is null unless resolution succeeded — pass null
+      // through untouched; featureFlagsService.resolve() must treat that as
+      // "no tenant, no overrides" (module-default flags only).
+      const { tenant, tenantState } = useTenantStore.getState()
       setFeatureFlags(featureFlagsService.resolve(tenant))
       setFeatureFlagsInitialized(true)
 
-      // P4.6.3 — Tag Sentry events with the resolved tenant slug
-      setSentryTenant(tenant.slug)
+      // P4.6.3 — Tag Sentry events with the resolved tenant slug, when there is one.
+      if (tenantState === 'resolved' && tenant) setSentryTenant(tenant.slug)
     })
   }, [loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags])
   return <>{children}</>
@@ -153,7 +161,7 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
 function TenantThemeProvider({ children }: { children: ReactNode }) {
   const tenant = useTenantStore((s) => s.tenant)
   useEffect(() => {
-    const theme = tenant.settings?.theme as TenantTheme | undefined
+    const theme = tenant?.settings?.theme as TenantTheme | undefined
     const root = document.documentElement
     if (theme?.primaryColor) {
       root.style.setProperty('--accent', theme.primaryColor)
@@ -250,9 +258,9 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // survive a page reload (docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md
       // §3). No new RBAC logic here — this only calls the store's
       // existing setTenantRoles() action with whatever getMe() returned.
-      if (user.tenantRoles && user.tenantRoles.length > 0) {
-        const tenantId = useTenantStore.getState().tenant.id
-        useRbacStore.getState().setTenantRoles(tenantId, user.tenantRoles)
+      const { tenant } = useTenantStore.getState()
+      if (tenant && user.tenantRoles && user.tenantRoles.length > 0) {
+        useRbacStore.getState().setTenantRoles(tenant.id, user.tenantRoles)
       }
       // `user.ownership`/`user.staffAssignments`, if a backend ever sends
       // them here, are deliberately NOT hydrated into any store yet:

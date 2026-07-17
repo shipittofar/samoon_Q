@@ -83,12 +83,32 @@ export function TenantHeader() {
   const prefersReducedMotion = useReducedMotion()
 
   const cartCount = getItemCount()
-  const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
   const branchSlug = activeBranch?.slug
 
   // P8.8.11.4: journey nav priority — business-type-aware nav ordering hint.
   // Website Builder config (layoutNavConfig) overrides this when present.
   const featureFlags = useTenantStore((s) => s.featureFlags)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    setMobileOpen(false)
+    setUserMenuOpen(false)
+    setLangMenuOpen(false)
+  }, [pathname])
+
+  // This is a tenant-branded storefront header — it has nothing meaningful
+  // to render without a resolved tenant. All hooks above this point run
+  // unconditionally (Rules of Hooks); everything below is plain computation,
+  // so it's safe to bail out here rather than null-guard every `tenant.`
+  // access individually.
+  if (!tenant) return null
+
+  const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
   const meta = (tenant.settings as { marketplace?: { branchCount?: number; primaryBranchSlug?: string } } | undefined)?.marketplace
   const journeyCTAs = buildPublicCTAs({
     tenantSlug: tenant.slug,
@@ -113,18 +133,6 @@ export function TenantHeader() {
   // Phase H: active state — exact for marketplace, prefix for business routes.
   const isActive = (href: string): boolean =>
     href === '/discover' ? pathname === '/discover' : pathname.startsWith(href)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  useEffect(() => {
-    setMobileOpen(false)
-    setUserMenuOpen(false)
-    setLangMenuOpen(false)
-  }, [pathname])
 
   const handleLogout = () => {
     logout(undefined, { onSuccess: () => toast.success(tAuth('logoutSuccess')) })

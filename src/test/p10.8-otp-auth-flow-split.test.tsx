@@ -50,6 +50,16 @@ beforeEach(() => {
   if (typeof localStorage !== 'undefined') localStorage.removeItem(MOCK_SESSION_KEY)
   useAuthStore.getState().setUser(null)
   useRbacStore.getState()._resetStore()
+  // Tenant-scoped role hydration is a no-op unless a tenant has actually
+  // resolved — simulate the correctly-ordered case.
+  useTenantStore.getState().setTenant({
+    id: 'tenant-test-01',
+    name: 'Test Tenant',
+    slug: 'test-tenant',
+    businessTypes: ['restaurant'],
+    status: 'active',
+    created_at: '2024-01-01T00:00:00.000Z',
+  })
 })
 
 afterEach(() => {
@@ -120,7 +130,7 @@ describe('P10.8 — useVerifyOTP(): session bootstrap only runs for is_new_user:
 
     expect(useAuthStore.getState().user).toBeNull()
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual([])
   })
 
@@ -133,7 +143,7 @@ describe('P10.8 — useVerifyOTP(): session bootstrap only runs for is_new_user:
 
     expect(useAuthStore.getState().user?.email).toBe('owner@samoon.com')
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
   })
 })

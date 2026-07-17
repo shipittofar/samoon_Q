@@ -61,7 +61,7 @@ export function AdminTenantSwitcher() {
     setAdminActiveBranch(null)
     // Capture current user and roles before the tenant changes
     const currentUser = useAuthStore.getState().user
-    const originRoles = currentUser ? useRbacStore.getState().getRolesForTenant(tenant.id) : []
+    const originRoles = currentUser && tenant ? useRbacStore.getState().getRolesForTenant(tenant.id) : []
     // Clear all client-side state that is tenant-scoped
     useCartStore.getState().clearCart()
     useDineInStore.getState().clearTable()

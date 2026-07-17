@@ -680,6 +680,12 @@
   },
   "console": {
     "title": "کنسول",
+    "tenantNotFoundTitle": "کسب‌وکار یافت نشد",
+    "tenantNotFoundDesc": "کسب‌وکاری در این نشانی پیدا نشد. آدرس را بررسی کنید یا با مدیر خود تماس بگیرید.",
+    "tenantForbiddenTitle": "دسترسی موجود نیست",
+    "tenantForbiddenDesc": "این کسب‌وکار در حال حاضر با حساب شما در دسترس نیست. ممکن است معلق یا بایگانی شده باشد، یا دسترسی نداشته باشید.",
+    "tenantErrorTitle": "مشکلی پیش آمد",
+    "tenantErrorDesc": "در حال حاضر امکان بارگذاری این کسب‌وکار نبود. لطفاً کمی بعد دوباره تلاش کنید.",
     "unknownModule": "ماژول تنظیمات ناشناخته «{moduleId}».",
     "configurationSaved": "تنظیمات ذخیره شد.",
     "fieldsFailedValidation": "اعتبارسنجی {count} فیلد ناموفق بود.",

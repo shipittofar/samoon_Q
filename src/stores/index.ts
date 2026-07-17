@@ -33,8 +33,13 @@ import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLif
 import type { Branch as AdminBranch } from '@/types/branch'
 import type { Role } from '@/types/rbac'
 import type { TenantRoleAssignment, UserPermissionOverride, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
-import { BRANCH_KEY, CART_KEY, DEFAULT_TENANT, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
-import { tenantService } from '@/services/tenant.service'
+import { BRANCH_KEY, CART_KEY, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
+import {
+  tenantService,
+  TenantNotFoundError,
+  TenantForbiddenError,
+  ELIGIBLE_TENANT_STATUSES,
+} from '@/services/tenant.service'
 import { getDirection } from '@/i18n/runtime'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
@@ -229,7 +234,14 @@ export const useLangStore = create<LangState>()(
  * Persist version 1. All runtime signals excluded via partialize.
  */
 interface TenantState {
-  tenant: Tenant
+  /**
+   * `null` in every state except 'resolved'. There is no fallback/placeholder
+   * tenant object — a failed or pending resolution is represented by
+   * `tenant === null` plus the specific `tenantState`, never by substituting
+   * DEFAULT_TENANT or any other stand-in. Consumers (Console pages, guards)
+   * must treat `tenant` as unusable unless `tenantState === 'resolved'`.
+   */
+  tenant: Tenant | null
   isLoading: boolean
   /**
    * Deterministic tenant lifecycle state. See TenantLifecycle in types/index.ts.
@@ -265,7 +277,7 @@ interface TenantState {
    * NOT persisted: always recomputed from the live tenant on each page load.
    */
   featureFlags: Record<string, boolean>
-  setTenant: (tenant: Tenant) => void
+  setTenant: (tenant: Tenant | null) => void
   loadTenant: (slug?: string) => Promise<void>
   setRbacInitialized: (v: boolean) => void
   setFeatureFlagsInitialized: (v: boolean) => void
@@ -276,7 +288,7 @@ interface TenantState {
 export const useTenantStore = create<TenantState>()(
   persist(
     (set) => ({
-      tenant: DEFAULT_TENANT,
+      tenant: null,
       isLoading: false,
       tenantState: 'loading' as TenantLifecycle,
       rbacInitialized: false,
@@ -284,15 +296,28 @@ export const useTenantStore = create<TenantState>()(
       featureFlags: {},
       setTenant: (tenant) => set({ tenant }),
       loadTenant: async (slug?: string) => {
-        set({ isLoading: true, tenantState: 'loading' })
+        set({ isLoading: true, tenantState: 'loading', tenant: null })
         try {
           const tenant = await tenantService.getTenant(slug)
-          set({ tenant, isLoading: false, tenantState: 'ready' })
-        } catch {
-          // Network or service failure — discard any stale persisted tenant,
-          // degrade to DEFAULT_TENANT, and advance to 'fallback' so downstream
-          // systems are not blocked indefinitely on an unresolvable load.
-          set({ tenant: DEFAULT_TENANT, isLoading: false, tenantState: 'fallback' })
+          // A tenant record can be fetched successfully and still be
+          // ineligible (suspended/archived/churned) — that is access denial,
+          // not a resolved, usable tenant. Console must never render against it.
+          if (!ELIGIBLE_TENANT_STATUSES.includes(tenant.status)) {
+            set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
+            return
+          }
+          set({ tenant, isLoading: false, tenantState: 'resolved' })
+        } catch (err) {
+          // Never substitute a fake tenant here. Classify the failure and
+          // leave `tenant` null so nothing downstream can mistake an
+          // unresolved tenant for a real one.
+          if (err instanceof TenantNotFoundError) {
+            set({ tenant: null, isLoading: false, tenantState: 'not_found' })
+          } else if (err instanceof TenantForbiddenError) {
+            set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
+          } else {
+            set({ tenant: null, isLoading: false, tenantState: 'error' })
+          }
         }
       },
       setRbacInitialized: (v) => set({ rbacInitialized: v }),
@@ -300,7 +325,7 @@ export const useTenantStore = create<TenantState>()(
       setFeatureFlags: (flags) => set({ featureFlags: flags }),
       // reset() returns ALL runtime signals to their pre-bootstrap state.
       reset: () => set({
-        tenant: DEFAULT_TENANT,
+        tenant: null,
         isLoading: false,
         tenantState: 'loading',
         rbacInitialized: false,
@@ -310,11 +335,16 @@ export const useTenantStore = create<TenantState>()(
     }),
     {
       name: TENANT_KEY,
-      version: 1,
-      migrate: () => ({ tenant: DEFAULT_TENANT }),
-      // Only tenant is persisted. All runtime signals start fresh on every page
-      // load: tenantState = 'loading', rbacInitialized = false, featureFlagsInitialized = false.
-      partialize: (state) => ({ tenant: state.tenant }),
+      version: 2,
+      migrate: () => ({}),
+      // Nothing meaningful is persisted anymore. `tenant` must always come
+      // from a fresh, revalidated loadTenant() call — a persisted tenant
+      // object would be exactly the kind of unverified "hint treated as
+      // fact" this refactor removes. The actual slug hint used to kick off
+      // that fresh fetch comes from the server-injected x-tenant-slug meta
+      // tag / NEXT_PUBLIC_TENANT_SLUG (see providers/index.tsx's
+      // readTenantSlug()), not from this store's persistence at all.
+      partialize: () => ({}),
     },
   ),
 )

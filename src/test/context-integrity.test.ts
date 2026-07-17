@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { tenantService } from '@/services/tenant.service'
+import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
 import { branchManagementService } from '@/services/branch.service'
 import { getMockRoles } from '@/services/permission.service'
 import { hrefToPublicUrl } from '@/utils/public-url'
@@ -117,9 +117,8 @@ describe('Bug 7 — Public context initialization', () => {
     tenantService._resetMockList()
   })
 
-  it('usePublicTenant equivalent: unknown slug returns default tenant', async () => {
-    const tenant = await tenantService.getTenant('nonexistent-slug')
-    expect(tenant.slug).toBe('default')
+  it('usePublicTenant equivalent: unknown slug throws TenantNotFoundError instead of returning a fake tenant', async () => {
+    await expect(tenantService.getTenant('nonexistent-slug')).rejects.toBeInstanceOf(TenantNotFoundError)
   })
 
   it('usePublicBranch equivalent: unknown branch returns undefined from marketplace meta', async () => {

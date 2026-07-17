@@ -338,16 +338,20 @@ export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned' | 'archi
  * Runtime-only lifecycle state for the tenant bootstrap sequence.
  * Never persisted to localStorage — always starts as 'loading' on each page load.
  *
- *   loading  → TenantBootstrapper has not yet completed loadTenant()
- *   ready    → loadTenant() succeeded; tenant is from a live source
- *   fallback → loadTenant() failed; tenant is DEFAULT_TENANT
+ *   loading    → TenantBootstrapper has not yet completed loadTenant()
+ *   resolved   → loadTenant() succeeded against a live, active/trial tenant
+ *   not_found  → the resolved slug does not correspond to any tenant (404)
+ *   forbidden  → the request was rejected (403), or the tenant exists but is
+ *                suspended/archived/churned — access is denied either way
+ *   error      → network failure or a 5xx — the tenant's real state is unknown
  *
- * Phase 1B systems must branch on all three states:
- *   loading  → block or apply safe defaults (deny RBAC, module-only flags, skip routing)
- *   fallback → apply DEFAULT_TENANT rules (single-tenant behaviour)
- *   ready    → full system behaviour with tenant-specific overrides
+ * `tenant` (useTenantStore.tenant) is `Tenant | null` and is ONLY non-null
+ * when tenantState === 'resolved'. There is no fake/fallback tenant object
+ * for any other state — every non-'resolved' state must be handled by
+ * rendering an explicit loading/error/forbidden/not-found UI, never by
+ * substituting a placeholder tenant and continuing as if nothing failed.
  */
-export type TenantLifecycle = 'loading' | 'ready' | 'fallback'
+export type TenantLifecycle = 'loading' | 'resolved' | 'not_found' | 'forbidden' | 'error'
 
 /**
  * Authoritative execution gate for all Phase 1B+ systems.
@@ -356,7 +360,7 @@ export type TenantLifecycle = 'loading' | 'ready' | 'fallback'
  * Responsibility: P1B.6 — System Execution Gate.
  * This is NOT a store, NOT a source of truth, NOT business logic.
  * It is a safety layer that aggregates three independent bootstrap signals:
- *   TenantState     → lifecycle (loading / ready / fallback)
+ *   TenantState     → lifecycle (loading / resolved / not_found / forbidden / error)
  *   rbacInitialized → RBAC system has completed its own setup (P1B.1)
  *   featureFlagsInitialized → Feature flag system has completed setup (P1B.2)
  *
@@ -368,18 +372,22 @@ export type TenantLifecycle = 'loading' | 'ready' | 'fallback'
  *
  * canExecute is the single field all consumers must check:
  *   false → block; return safe defaults (deny RBAC, module-only flags, skip routing)
- *   true  → all subsystems ready; proceed with appropriate rules for isReady/isFallback
+ *   true  → bootstrap has settled (successfully or not); branch on isReady/isFallback
+ *           for public/degradable surfaces. Authenticated Console flows must NOT
+ *           treat canExecute alone as sufficient — they require isReady === true
+ *           specifically (see AuthGuard), since canExecute stays true even when
+ *           tenant resolution ended in not_found/forbidden/error.
  */
 export interface SystemReadiness {
   /** tenantState === 'loading' */
   isLoading: boolean
-  /** tenantState === 'ready' — live source, full overrides apply */
+  /** tenantState === 'resolved' — live tenant, full overrides apply */
   isReady: boolean
-  /** tenantState === 'fallback' — DEFAULT_TENANT in use, single-tenant rules apply */
+  /** tenantState is one of not_found/forbidden/error — resolution did not succeed; no fake tenant is substituted */
   isFallback: boolean
   /**
    * true when ALL of the following hold:
-   *   tenantState !== 'loading'    — bootstrap completed (ready or fallback)
+   *   tenantState !== 'loading'    — bootstrap completed (settled, successfully or not)
    *   rbacInitialized === true     — RBAC system ready (P1B.1)
    *   featureFlagsInitialized === true — Feature flags ready (P1B.2)
    *

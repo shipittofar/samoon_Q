@@ -57,8 +57,8 @@ export function Header() {
   // On the root site (default tenant) we show PLATFORM_NAV instead of the
   // restaurant-specific module nav (P8.8.2 — Phase I).
   const moduleNav = useModuleNav()
-  const navLinks = tenant.slug === 'default' ? PLATFORM_NAV : moduleNav
-  const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
+  const navLinks = !tenant || tenant.slug === 'default' ? PLATFORM_NAV : moduleNav
+  const logoUrl = (tenant?.settings?.theme as TenantTheme | undefined)?.logoUrl
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
@@ -111,7 +111,7 @@ export function Header() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={logoUrl}
-                alt={t('logoAlt', { name: tenant.name })}
+                alt={t('logoAlt', { name: tenant?.name ?? '' })}
                 width={120}
                 height={32}
                 className="h-8 w-auto object-contain dark:brightness-0 dark:invert"

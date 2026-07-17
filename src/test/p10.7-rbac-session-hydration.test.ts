@@ -36,9 +36,9 @@ vi.mock('@/constants', async (importOriginal) => {
  */
 function simulateSessionRestoreHydration(user: User & { tenantRoles?: Role[] }) {
   useAuthStore.getState().setUser(user)
-  if (user.tenantRoles && user.tenantRoles.length > 0) {
-    const tenantId = useTenantStore.getState().tenant.id
-    useRbacStore.getState().setTenantRoles(tenantId, user.tenantRoles)
+  const tenant = useTenantStore.getState().tenant
+  if (tenant && user.tenantRoles && user.tenantRoles.length > 0) {
+    useRbacStore.getState().setTenantRoles(tenant.id, user.tenantRoles)
   }
 }
 
@@ -47,6 +47,19 @@ beforeEach(() => {
   useAuthStore.getState().setUser(null)
   useRbacStore.getState()._resetStore()
   if (typeof localStorage !== 'undefined') localStorage.removeItem(MOCK_SESSION_KEY)
+  // These hydration tests exercise the same tenant-scoped setTenantRoles()
+  // call AuthBootstrapper makes — which is now a no-op unless a tenant has
+  // actually resolved (tenant !== null). Simulate the correctly-ordered
+  // case (tenant resolution completed before auth hydration runs) rather
+  // than leaving `tenant` at its default `null`.
+  useTenantStore.getState().setTenant({
+    id: 'tenant-test-01',
+    name: 'Test Tenant',
+    slug: 'test-tenant',
+    businessTypes: ['restaurant'],
+    status: 'active',
+    created_at: '2024-01-01T00:00:00.000Z',
+  })
 })
 
 afterEach(() => {
@@ -119,7 +132,7 @@ describe('P10.7 — page reload simulation: tenantRoles now restored from auth b
 
     simulateSessionRestoreHydration(user)
 
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
   })
 })

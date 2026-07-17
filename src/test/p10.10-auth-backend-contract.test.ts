@@ -29,6 +29,16 @@ beforeEach(() => {
   if (typeof localStorage !== 'undefined') localStorage.removeItem(MOCK_SESSION_KEY)
   useAuthStore.getState().setUser(null)
   useRbacStore.getState()._resetStore()
+  // AuthBootstrapper's tenant-scoped role hydration is a no-op unless a
+  // tenant has actually resolved — simulate the correctly-ordered case.
+  useTenantStore.getState().setTenant({
+    id: 'tenant-test-01',
+    name: 'Test Tenant',
+    slug: 'test-tenant',
+    businessTypes: ['restaurant'],
+    status: 'active',
+    created_at: '2024-01-01T00:00:00.000Z',
+  })
 })
 
 afterEach(() => {
@@ -95,7 +105,7 @@ describe('P10.10 Test 4 — getMe(): restores RBAC state identically to login', 
     expect(me.tenantRoles).toEqual(login.p7Roles)
 
     // Mirrors AuthBootstrapper's hydration call exactly.
-    const tenantId = useTenantStore.getState().tenant.id
+    const tenantId = useTenantStore.getState().tenant!.id
     useRbacStore.getState().setTenantRoles(tenantId, me.tenantRoles ?? [])
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['cashier'])
   })
