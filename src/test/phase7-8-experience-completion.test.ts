@@ -241,10 +241,15 @@ describe('P7.8-E: BranchSelector integration', () => {
     expect(content).toContain('BranchSelector')
   })
 
-  it('operations page uses useBranchStore instead of local state for branch', async () => {
+  it('operations page uses the shared branch-resolution state, not local state, for branch', async () => {
     const fs = await import('fs')
     const content = fs.readFileSync('/home/user/samoon_Q/src/app/console/operations/page.tsx', 'utf-8')
-    expect(content).toContain('useBranchStore')
+    // Phase 3.2 — the page no longer reads useBranchStore directly; it goes
+    // through useSelectedBranch()/useBranchState() (hooks/index.ts), which
+    // read the same store internally. The substance of this assertion —
+    // no local useState-based branch filter reinvention — is unchanged.
+    expect(content).toContain('useSelectedBranch')
+    expect(content).toContain('useBranchState')
     expect(content).not.toContain('setBranchFilter')
   })
 })

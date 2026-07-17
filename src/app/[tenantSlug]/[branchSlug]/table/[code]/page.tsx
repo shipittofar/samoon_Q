@@ -10,7 +10,6 @@ import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { useBranchStore } from '@/stores'
 
 export default function TenantBranchTablePage({
   params,
@@ -19,7 +18,6 @@ export default function TenantBranchTablePage({
 }) {
   const t = useTranslations('branch')
   const { code } = use(params)
-  const adminActiveBranch = useBranchStore((s) => s.adminActiveBranch)
   const router = useRouter()
 
   // Redirect to the flat QR route with the table code, once branch context is set

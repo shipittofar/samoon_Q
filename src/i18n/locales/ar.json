@@ -2354,7 +2354,8 @@
     "currencyColonValue": "العملة: {value}",
     "languageColonValue": "اللغة: {value}",
     "orderingColonValue": "الطلب: {value}",
-    "marketplaceVisibleColonValue": "الظهور في السوق: {value}"
+    "marketplaceVisibleColonValue": "الظهور في السوق: {value}",
+    "selectBranchToManageMenu": "اختر فرعًا لإدارة القائمة الخاصة به"
   },
   "configFields": {
     "authentication": {
@@ -4916,7 +4917,8 @@
     "selectBranch": "اختر الفرع",
     "chooseLocation": "اختر الموقع",
     "openNow": "مفتوح الآن",
-    "closed": "مغلق"
+    "closed": "مغلق",
+    "noLocationsAvailable": "لا توجد مواقع متاحة"
   },
   "reviewCard": {
     "starsOutOf5": "{rating} من 5 نجوم",

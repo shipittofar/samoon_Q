@@ -13,8 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
-import { useMenuItems, useCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useExtraGroups, useAssignExtraGroupsToItem } from '@/hooks'
-import { useBranchStore } from '@/stores'
+import { useMenuItems, useCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
 import type { MenuItem } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
@@ -104,7 +103,9 @@ export default function AdminMenuPage() {
   // branch (useActiveBranchId()) via their `branchId ?? fallbackBranchId`
   // internal default — an implicit branch selection this admin page must
   // never exhibit.
-  const adminBranchId = useBranchStore((s) => s.adminActiveBranch?.slug) ?? ''
+  const branchState = useBranchState()
+  const selectedBranch = useSelectedBranch()
+  const adminBranchId = useIsBranchReady() ? selectedBranch?.slug ?? '' : ''
 
   const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch } = useMenuItems(adminBranchId)
   const { data: categories, isLoading: catsLoading } = useCategories(adminBranchId)
@@ -236,8 +237,30 @@ export default function AdminMenuPage() {
             </div>
           </div>
 
+          {/* Branch resolution state — distinct copy per state, never collapsed together.
+              These are separate from itemsLoading/itemsError below, which reflect
+              useMenuItems() itself and only ever run once branchState === 'ready'. */}
+          {branchState === 'loading' && (
+            <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm">{t('loadingBranchesEllipsis')}</span>
+            </div>
+          )}
+          {branchState === 'error' && (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <AlertCircle className="h-8 w-8 text-red-400" />
+              <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadBranches')}</p>
+            </div>
+          )}
+          {branchState === 'empty' && (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <AlertCircle className="h-8 w-8 text-[var(--fg-muted)]" />
+              <p className="text-sm text-[var(--fg-muted)]">{t('selectBranchToManageMenu')}</p>
+            </div>
+          )}
+
           {/* Loading */}
-          {itemsLoading && (
+          {branchState === 'ready' && itemsLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <Loader2 className="h-5 w-5 animate-spin" />
               <span className="text-sm">{t('loadingMenu')}</span>
@@ -245,7 +268,7 @@ export default function AdminMenuPage() {
           )}
 
           {/* Error */}
-          {itemsError && !itemsLoading && (
+          {branchState === 'ready' && itemsError && !itemsLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <AlertCircle className="h-8 w-8 text-red-400" />
               <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadMenuItems')}</p>
@@ -254,7 +277,7 @@ export default function AdminMenuPage() {
           )}
 
           {/* Grid */}
-          {!itemsLoading && !itemsError && (
+          {branchState === 'ready' && !itemsLoading && !itemsError && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filtered.map((item, i) => {

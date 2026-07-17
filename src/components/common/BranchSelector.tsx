@@ -14,7 +14,12 @@ export function BranchSelector({ className }: { className?: string }) {
   const { activeBranch, setActiveBranch } = useBranchStore()
   const { data: branches = [] } = useBranches()
 
-  const current = activeBranch || branches[0]
+  // Phase 3.2 — no `|| branches[0]` fallback: array position must never
+  // have business meaning. Nothing is auto-selected here — `current` is
+  // only ever what the user explicitly picked (`activeBranch`), or
+  // nothing at all, in which case the button/list below render an
+  // explicit "select branch" / empty state instead of a silent guess.
+  const current = activeBranch
 
   return (
     <div className={cn('relative', className)}>
@@ -46,6 +51,9 @@ export function BranchSelector({ className }: { className?: string }) {
                 <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wider">{t('chooseLocation')}</p>
               </div>
               <div className="p-2">
+                {branches.length === 0 && (
+                  <p className="px-3 py-2 text-sm text-[var(--fg-muted)]">{t('noLocationsAvailable')}</p>
+                )}
                 {branches.map((branch) => {
                   const isActive = current?.id === branch.id
                   const now = new Date()

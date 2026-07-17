@@ -23,17 +23,19 @@ import { ChevronDown, Building2, GitBranch, Check, Loader2, AlertCircle } from '
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { useTenantStore, useBranchStore } from '@/stores'
-import { BRANCH_SCOPED_QUERY_KEYS } from '@/hooks'
+import { BRANCH_SCOPED_QUERY_KEYS, useSelectedBranch, useBranchState, useRetryLoadBranches } from '@/hooks'
 import type { Branch as AdminBranch } from '@/types/branch'
 import { useQueryClient } from '@tanstack/react-query'
 
 export function AdminBranchSwitcher() {
   const t = useTranslations('console')
+  const tCommon = useTranslations('common')
   const tenant = useTenantStore((s) => s.tenant)
-  const selectedBranch = useBranchStore((s) => s.selectedBranch)
-  const branchState = useBranchStore((s) => s.branchState)
+  const selectedBranch = useSelectedBranch()
+  const branchState = useBranchState()
   const branches = useBranchStore((s) => s.branches)
   const selectBranch = useBranchStore((s) => s.selectBranch)
+  const retryLoadBranches = useRetryLoadBranches()
   const qc = useQueryClient()
 
   const [open, setOpen] = useState(false)
@@ -114,6 +116,18 @@ export function AdminBranchSwitcher() {
         <span className="hidden md:inline text-xs text-amber-600 dark:text-amber-400">
           {t('selectBranchToManageCategories')}
         </span>
+      )}
+
+      {/* Explicit retry — the only way out of 'error' within this session;
+          never triggered automatically. */}
+      {isError && (
+        <button
+          type="button"
+          onClick={retryLoadBranches}
+          className="text-xs font-medium text-red-600 dark:text-red-400 underline hover:no-underline"
+        >
+          {tCommon('retry')}
+        </button>
       )}
 
       {/* Dropdown */}

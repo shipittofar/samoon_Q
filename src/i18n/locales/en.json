@@ -2354,7 +2354,8 @@
     "currencyColonValue": "Currency: {value}",
     "languageColonValue": "Language: {value}",
     "orderingColonValue": "Ordering: {value}",
-    "marketplaceVisibleColonValue": "Marketplace Visibility: {value}"
+    "marketplaceVisibleColonValue": "Marketplace Visibility: {value}",
+    "selectBranchToManageMenu": "Select a branch to manage its menu"
   },
   "configFields": {
     "authentication": {
@@ -4916,7 +4917,8 @@
     "selectBranch": "Select Branch",
     "chooseLocation": "Choose Location",
     "openNow": "Open now",
-    "closed": "Closed"
+    "closed": "Closed",
+    "noLocationsAvailable": "No locations available"
   },
   "reviewCard": {
     "starsOutOf5": "{rating} out of 5 stars",

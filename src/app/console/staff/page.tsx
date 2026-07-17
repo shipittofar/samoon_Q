@@ -1,7 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useTenantStore, useBranchStore } from '@/stores'
+import { useTenantStore } from '@/stores'
 import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
   useStaff,
@@ -13,6 +13,8 @@ import {
   useCancelInvite,
   useResendInvite,
   useTransferOwnership,
+  useSelectedBranch,
+  useBranchState,
 } from '@/hooks'
 import { staffService } from '@/services/staff.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -33,7 +35,16 @@ function StaffManagementContent() {
   const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const tenantId = tenant?.id ?? ''
-  const activeBranch = useBranchStore((s) => s.activeBranch)
+  // Phase 3.2 — this page previously read `activeBranch` (the unrelated,
+  // unvalidated customer-storefront branch, still persisted in full) for
+  // its branch filter. The admin branch-resolution state machine
+  // (`selectedBranch`/`branchState`) is the only legitimate source here.
+  // Staff management itself is tenant-wide and does not require a branch
+  // to function, so branchState !== 'ready' does not block the page —
+  // it only disables the optional per-branch filter, with that fact
+  // shown explicitly rather than silently falling through.
+  const selectedBranch = useSelectedBranch()
+  const branchState = useBranchState()
 
   const { data: staff = [], isLoading: staffLoading } = useStaff(tenantId)
   const { data: invites = [], isLoading: invitesLoading } = useInvites(tenantId)
@@ -45,8 +56,8 @@ function StaffManagementContent() {
   const resendInvite = useResendInvite(tenantId)
   const transferOwnership = useTransferOwnership(tenantId)
 
-  const filteredStaff = activeBranch
-    ? staff.filter((m) => !m.branchIds || m.branchIds.includes(activeBranch.id))
+  const filteredStaff = branchState === 'ready' && selectedBranch
+    ? staff.filter((m) => !m.branchIds || m.branchIds.includes(selectedBranch.id))
     : staff
 
   const analytics = staffService.computeAnalytics(filteredStaff, invites)
@@ -64,7 +75,15 @@ function StaffManagementContent() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold">{t('staffManagementTitle')}</h1>
-          <BranchContextIndicator branchId={activeBranch?.id} branchName={activeBranch?.name} />
+          {branchState === 'loading' && (
+            <span className="text-xs text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</span>
+          )}
+          {branchState === 'error' && (
+            <span className="text-xs text-red-600 dark:text-red-400">{t('failedToLoadBranches')}</span>
+          )}
+          {(branchState === 'ready' || branchState === 'empty') && (
+            <BranchContextIndicator branchId={selectedBranch?.id} branchName={selectedBranch?.name} />
+          )}
         </div>
         <PermissionGuard permission="staff.manage">
           <button

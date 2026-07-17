@@ -134,6 +134,33 @@ describe('Phase 3 — branch API failure', () => {
   })
 })
 
+describe('Phase 3.2 — retry from branchState = "error"', () => {
+  it('is not automatic: branchState stays "error" until loadBranchesForTenant is explicitly called again', async () => {
+    vi.spyOn(branchManagementService, 'getBranches').mockRejectedValueOnce(new Error('network error'))
+    await useBranchStore.getState().loadBranchesForTenant(TENANT_ID)
+    expect(useBranchStore.getState().branchState).toBe('error')
+
+    // No timers fire, no effect re-runs — state simply stays 'error' until
+    // something explicitly retries.
+    await new Promise((r) => setTimeout(r, 50))
+    expect(useBranchStore.getState().branchState).toBe('error')
+  })
+
+  it('an explicit retry call resolves out of "error" the same way any other load does', async () => {
+    vi.spyOn(branchManagementService, 'getBranches').mockRejectedValueOnce(new Error('network error'))
+    await useBranchStore.getState().loadBranchesForTenant(TENANT_ID)
+    expect(useBranchStore.getState().branchState).toBe('error')
+
+    // The retry action (useRetryLoadBranches in hooks/index.ts) is a thin
+    // wrapper that re-calls loadBranchesForTenant() for the current
+    // tenant — this exercises the same underlying call it makes.
+    await useBranchStore.getState().loadBranchesForTenant(TENANT_ID)
+    const state = useBranchStore.getState()
+    expect(state.branchState).toBe('empty') // no persisted id in this test, so 'empty' not 'ready'
+    expect(state.branches.length).toBeGreaterThan(0)
+  })
+})
+
 describe('Phase 3 — persistence: only selectedBranch.id survives, never the full object', () => {
   it('partialize output contains selectedBranchId but not selectedBranch/branches/branchState', async () => {
     await useBranchStore.getState().loadBranchesForTenant(TENANT_ID)

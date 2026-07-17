@@ -15,9 +15,8 @@ import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@
 import { formatDate } from '@/utils'
 import {
   useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useReorderCategories,
-  usePermission,
+  usePermission, useSelectedBranch, useBranchState, useIsBranchReady,
 } from '@/hooks'
-import { useBranchStore } from '@/stores'
 import type { Category } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -86,11 +85,12 @@ export default function AdminCategoriesPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   // Categories are managed one branch at a time, same as console/menu/page.tsx.
-  const adminBranch = useBranchStore((s) => s.adminActiveBranch)
+  const adminBranch = useSelectedBranch()
+  const branchState = useBranchState()
   // Phase 3 — '' (not undefined): see console/menu/page.tsx's comment on
   // the same pattern — undefined would let useCategories() silently fall
   // back to the unrelated customer-storefront active branch.
-  const adminBranchId = adminBranch?.slug ?? ''
+  const adminBranchId = useIsBranchReady() ? adminBranch?.slug ?? '' : ''
 
   const { data: categories, isLoading, isError, refetch } = useCategories(adminBranchId)
   const canCreate = usePermission('category.create')
@@ -200,8 +200,20 @@ export default function AdminCategoriesPage() {
             )}
           </div>
 
-          {/* No branch selected */}
-          {!adminBranchId && (
+          {/* Branch resolution state — distinct copy per state, never collapsed together */}
+          {branchState === 'loading' && (
+            <EmptyState
+              icon={<Loader2 className="h-8 w-8 animate-spin" />}
+              title={t('loadingBranchesEllipsis')}
+            />
+          )}
+          {branchState === 'error' && (
+            <EmptyState
+              icon={<AlertCircle className="h-8 w-8" />}
+              title={t('failedToLoadBranches')}
+            />
+          )}
+          {branchState === 'empty' && (
             <EmptyState
               icon={<Layers className="h-8 w-8" />}
               title={t('selectBranchToManageCategories')}
@@ -210,7 +222,7 @@ export default function AdminCategoriesPage() {
           )}
 
           {/* Search */}
-          {adminBranchId && (
+          {branchState === 'ready' && adminBranchId && (
             <div className="relative max-w-sm mb-6">
               <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
               <input

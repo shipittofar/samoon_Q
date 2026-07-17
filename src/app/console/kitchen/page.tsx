@@ -6,7 +6,8 @@ import { KitchenDisplay } from '@/components/admin/KitchenDisplay'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { useTenantStore, useBranchStore } from '@/stores'
+import { useTenantStore } from '@/stores'
+import { useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
 import { Maximize2, Minimize2, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 
 const REFRESH_OPTIONS = [
@@ -36,15 +37,15 @@ function KitchenPageContent() {
   // consulted explicitly below rather than only checking `branchId`
   // truthiness, so a 'loading'/'error' state renders distinctly instead
   // of collapsing into the same "select a branch" empty copy.
-  const selectedBranch = useBranchStore((s) => s.selectedBranch)
-  const branchState = useBranchStore((s) => s.branchState)
+  const selectedBranch = useSelectedBranch()
+  const branchState = useBranchState()
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [refreshMs, setRefreshMs] = useState(10_000)
   const [lastRefresh, setLastRefresh] = useState(Date.now())
   const [tick, setTick] = useState(0)
   const [connected, setConnected] = useState(true)
 
-  const branchId = branchState === 'ready' ? selectedBranch?.id ?? '' : ''
+  const branchId = useIsBranchReady() ? selectedBranch?.id ?? '' : ''
   const tenantId = tenant?.id ?? ''
 
   const refresh = useCallback(() => {

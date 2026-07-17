@@ -15,9 +15,8 @@ import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@
 import {
   useExtraGroups, useCreateExtraGroup, useUpdateExtraGroup, useDeleteExtraGroup, useReorderExtraGroups,
   useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra,
-  usePermission,
+  usePermission, useSelectedBranch, useBranchState, useIsBranchReady,
 } from '@/hooks'
-import { useBranchStore } from '@/stores'
 import type { Extra, ExtraGroup, ExtraGroupSelectionType } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -157,11 +156,12 @@ export default function AdminExtrasPage() {
   const [deleteExtraTarget, setDeleteExtraTarget] = useState<Extra | null>(null)
 
   // Extras are managed one branch at a time, same as console/menu and console/categories.
-  const adminBranch = useBranchStore((s) => s.adminActiveBranch)
+  const adminBranch = useSelectedBranch()
+  const branchState = useBranchState()
   // Phase 3 — '' (not undefined): see console/menu/page.tsx's comment on
   // the same pattern — undefined would let useExtraGroups()/useExtras()
   // silently fall back to the unrelated customer-storefront active branch.
-  const adminBranchId = adminBranch?.slug ?? ''
+  const adminBranchId = useIsBranchReady() ? adminBranch?.slug ?? '' : ''
 
   const { data: groups, isLoading: groupsLoading, isError: groupsError, refetch: refetchGroups } = useExtraGroups(adminBranchId)
   const { data: extras, isLoading: extrasLoading, isError: extrasError, refetch: refetchExtras } = useExtras(adminBranchId)
@@ -354,8 +354,20 @@ export default function AdminExtrasPage() {
             )}
           </div>
 
-          {/* No branch selected */}
-          {!adminBranchId && (
+          {/* Branch resolution state — distinct copy per state, never collapsed together */}
+          {branchState === 'loading' && (
+            <EmptyState
+              icon={<Loader2 className="h-8 w-8 animate-spin" />}
+              title={t('loadingBranchesEllipsis')}
+            />
+          )}
+          {branchState === 'error' && (
+            <EmptyState
+              icon={<AlertCircle className="h-8 w-8" />}
+              title={t('failedToLoadBranches')}
+            />
+          )}
+          {branchState === 'empty' && (
             <EmptyState
               icon={<Tag className="h-8 w-8" />}
               title={t('selectBranchToManageExtras')}
@@ -364,7 +376,7 @@ export default function AdminExtrasPage() {
           )}
 
           {/* Search + Filters */}
-          {adminBranchId && (
+          {branchState === 'ready' && adminBranchId && (
             <div className="flex flex-wrap gap-3 mb-6">
               <div className="relative flex-1 min-w-48">
                 <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />

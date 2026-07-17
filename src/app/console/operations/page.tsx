@@ -26,8 +26,10 @@ import {
   useStaffBroadcastSync,
   useNotificationsBroadcastSync,
   useAuditBroadcastSync,
+  useSelectedBranch,
+  useBranchState,
 } from '@/hooks'
-import { useBranchStore, useTenantStore } from '@/stores'
+import { useTenantStore } from '@/stores'
 import type { OperationsScope } from '@/types/realtime-operations'
 
 const SECTIONS = [
@@ -64,9 +66,16 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 function OperationsContent() {
   const t = useTranslations('console')
   const [activeSection, setActiveSection] = useState<Section>('orders')
-  const activeBranch = useBranchStore((s) => s.activeBranch)
+  // Phase 3.2 — this page previously read `activeBranch` (the unrelated,
+  // unvalidated customer-storefront branch) to scope realtime operations.
+  // The admin branch-resolution state machine is the only legitimate
+  // source. Operations is tenant-wide with an optional branch filter, so
+  // branchState !== 'ready' does not block the page — it just means no
+  // branch filter is applied, shown explicitly rather than silently.
+  const selectedBranch = useSelectedBranch()
+  const branchState = useBranchState()
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
-  const branchFilter = activeBranch?.id
+  const branchFilter = branchState === 'ready' ? selectedBranch?.id : undefined
 
   const scope: OperationsScope = {
     tenantId,
@@ -89,7 +98,15 @@ function OperationsContent() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <h1 className="text-lg font-semibold">{t('operationsDashboardTitle')}</h1>
-              <BranchContextIndicator branchId={branchFilter} />
+              {branchState === 'loading' && (
+                <span className="text-xs text-gray-500">{t('loadingBranchesEllipsis')}</span>
+              )}
+              {branchState === 'error' && (
+                <span className="text-xs text-red-600">{t('failedToLoadBranches')}</span>
+              )}
+              {(branchState === 'ready' || branchState === 'empty') && (
+                <BranchContextIndicator branchId={branchFilter} />
+              )}
             </div>
             <div className="flex items-center gap-4 flex-wrap">
               <RealtimeConnectionStatus />

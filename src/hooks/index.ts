@@ -760,18 +760,38 @@ export function useBranch(id: string) {
 /**
  * The single allowlist of admin query-key prefixes that are branch-scoped
  * and must be invalidated on every branch switch. Shared between
- * AdminBranchSwitcher's invalidation call and (eventually) every
- * branch-scoped hook below, so there is exactly one list to keep in sync
- * rather than a hardcoded set duplicated at each call site.
+ * AdminBranchSwitcher's invalidation call and every branch-scoped hook
+ * below, so there is exactly one list to keep in sync rather than a
+ * hardcoded set duplicated at each call site.
+ *
+ * Phase 3.2 audit — every entry here was verified against its actual
+ * `queryKey`/`queryFn`, not assumed from its name:
+ *   - `branch-orders`/`branch-reservations` (useBranchOrders/
+ *     useBranchReservations): queryKey is `[name, branchId]` — genuinely
+ *     branch-scoped.
+ *   - `branch-analytics` (useBranchAnalytics): queryKey is
+ *     `['branch-analytics', branchId]` — genuinely branch-scoped.
+ *   - `kitchen-status` (useKitchenStatus): queryKey is
+ *     `['kitchen-status', tenantId, branchId]` — genuinely branch-scoped.
+ *   - `operations-dashboard`/`live-orders`/`live-reservations`
+ *     (useOperationsDashboard/useLiveOrders/useLiveReservations): queryKey
+ *     is `[name, scope.tenantId, scope.branchId]` — genuinely branch-scoped.
+ *
+ * Removed (Phase 3.2) — verified NOT branch-scoped, so invalidating them
+ * on a branch switch was refetching identical, unchanged data:
+ *   - `admin-orders`/`admin-reservations`/`admin-customers`/`admin-stats`
+ *     (the four admin list/summary hooks further below in this file):
+ *     queryKey is `[name, tenantId, filters?]` — tenant-scoped only, no
+ *     `branchId` anywhere in the key or in the underlying service call.
+ *   - `analytics-summary`/`analytics-revenue`/`analytics-reservations`
+ *     (the corresponding analytics summary hooks further below):
+ *     queryKey is `[name, tenantId]` — tenant-scoped only; the underlying
+ *     `analyticsService` calls take no branch parameter at all.
+ * If a future backend adds branch-level scoping to any of these, add the
+ * corresponding hook's `branchId` to its own queryKey FIRST, then re-add
+ * its key here — never the reverse.
  */
 export const BRANCH_SCOPED_QUERY_KEYS = [
-  'admin-orders',
-  'admin-reservations',
-  'admin-customers',
-  'admin-stats',
-  'analytics-summary',
-  'analytics-revenue',
-  'analytics-reservations',
   'branch-orders',
   'branch-reservations',
   'branch-analytics',
@@ -801,6 +821,23 @@ export function useSelectedBranch() {
  */
 export function useIsBranchReady(): boolean {
   return useBranchStore((s) => s.branchState === 'ready' && s.selectedBranch !== null)
+}
+
+/**
+ * Phase 3.2 — explicit retry for `branchState === 'error'`. There is no
+ * automatic retry anywhere (BranchResolutionBootstrapper only re-runs on
+ * a tenant change, not on a timer or on mount) — this is the one way out
+ * of the error state within a session, and it must be triggered by an
+ * explicit user action (e.g. a "Retry" button), never called on its own.
+ * Calls loadBranchesForTenant() again for the current tenant; nothing
+ * else changes.
+ */
+export function useRetryLoadBranches(): () => void {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const loadBranchesForTenant = useBranchStore((s) => s.loadBranchesForTenant)
+  return () => {
+    if (tenantId) void loadBranchesForTenant(tenantId)
+  }
 }
 
 // ── Branch Management Hooks (P7.3) ────────────────────────────────────────────

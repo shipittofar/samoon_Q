@@ -2354,7 +2354,8 @@
     "currencyColonValue": "واحد پول: {value}",
     "languageColonValue": "زبان: {value}",
     "orderingColonValue": "سفارش‌گیری: {value}",
-    "marketplaceVisibleColonValue": "نمایش در بازار: {value}"
+    "marketplaceVisibleColonValue": "نمایش در بازار: {value}",
+    "selectBranchToManageMenu": "برای مدیریت منو، شعبه‌ای انتخاب کنید"
   },
   "configFields": {
     "authentication": {
@@ -4916,7 +4917,8 @@
     "selectBranch": "انتخاب شعبه",
     "chooseLocation": "انتخاب مکان",
     "openNow": "اکنون باز است",
-    "closed": "بسته"
+    "closed": "بسته",
+    "noLocationsAvailable": "مکانی موجود نیست"
   },
   "reviewCard": {
     "starsOutOf5": "{rating} از ۵ ستاره",

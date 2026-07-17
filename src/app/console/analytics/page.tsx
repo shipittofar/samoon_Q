@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { ChevronDown, ChevronUp, TrendingUp, TrendingDown } from 'lucide-react'
-import { useBranchStore } from '@/stores'
 import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
   useAnalyticsSummary,
@@ -15,6 +14,8 @@ import {
   useVendorAnalytics,
   useMenuAnalytics,
   useAnalyticsComparison,
+  useSelectedBranch,
+  useBranchState,
 } from '@/hooks'
 import { MiniBarChart } from '@/components/charts/MiniBarChart'
 import { Sparkline } from '@/components/charts/Sparkline'
@@ -544,7 +545,15 @@ function ComparisonSection() {
 export default function AdminAnalyticsPage() {
   const t = useTranslations('console')
   const { data: summary, isLoading: summaryLoading } = useAnalyticsSummary()
-  const activeBranch = useBranchStore((s) => s.activeBranch)
+  // Phase 3.2 — this page previously read `activeBranch` (the unrelated,
+  // unvalidated customer-storefront branch) for its branch-context
+  // indicator and "view branch analytics" link. The admin
+  // branch-resolution state machine is the only legitimate source.
+  // Analytics itself is tenant-wide (useAnalyticsSummary takes no branch
+  // param) — branchState !== 'ready' does not block the page, it only
+  // disables the per-branch drill-down link, shown explicitly.
+  const selectedBranch = useSelectedBranch()
+  const branchState = useBranchState()
 
   return (
     <ErrorBoundary feature="Analytics">
@@ -553,12 +562,20 @@ export default function AdminAnalyticsPage() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-[var(--fg)]">{t('analyticsTitle')}</h1>
-          <BranchContextIndicator branchId={activeBranch?.id} branchName={activeBranch?.name} />
+          {branchState === 'loading' && (
+            <span className="text-xs text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</span>
+          )}
+          {branchState === 'error' && (
+            <span className="text-xs text-red-600 dark:text-red-400">{t('failedToLoadBranches')}</span>
+          )}
+          {(branchState === 'ready' || branchState === 'empty') && (
+            <BranchContextIndicator branchId={selectedBranch?.id} branchName={selectedBranch?.name} />
+          )}
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          {activeBranch && (
+          {branchState === 'ready' && selectedBranch && (
             <Link
-              href={`/console/branches/${activeBranch.id}/analytics`}
+              href={`/console/branches/${selectedBranch.id}/analytics`}
               className="text-sm text-blue-600 hover:underline"
             >
               {t('viewBranchAnalyticsArrow')}
