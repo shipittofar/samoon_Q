@@ -370,7 +370,7 @@ export const authService = {
       if (code === '000000') throw new Error('otp_invalid')
       const entry = typeof localStorage !== 'undefined' ? localStorage.getItem(MOCK_SESSION_KEY) : null
       const base = (entry && MOCK_CREDENTIALS[entry]?.user) || MOCK_USER
-      return { ...base, email, email_verified: true }
+      return { ...base, email, email_verified_at: new Date().toISOString() }
     }
     const { data } = await api.post<User>(ENDPOINTS.AUTH.VERIFY_EMAIL_CONFIRM, { email, code })
     return data

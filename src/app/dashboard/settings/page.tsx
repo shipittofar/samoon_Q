@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -15,7 +15,7 @@ import { useAuthStore, useThemeStore, useLangStore } from '@/stores'
 import { useSetLocale, useRequestEmailVerification, useConfirmEmailVerification } from '@/hooks'
 import { userService } from '@/services/combined.service'
 import { COUNTRIES } from '@/data/countries'
-import { cn } from '@/utils'
+import { cn, isEmailVerified } from '@/utils'
 import toast from 'react-hot-toast'
 
 // Schema messages are `validation` namespace keys, resolved via
@@ -140,19 +140,33 @@ export default function SettingsPage() {
   // Email verification — deliberately independent of the profile form/state
   // above: it never shares a payload, mutation, or card with first/last
   // name. See useRequestEmailVerification()/useConfirmEmailVerification().
-  const [emailVerifyStatus, setEmailVerifyStatus] = useState<'unverified' | 'code_sent' | 'verified'>(
-    user?.email_verified ? 'verified' : 'unverified',
-  )
+  //
+  // `verified` is DERIVED from `user` on every render rather than copied
+  // into useState once — `user` is populated asynchronously (AuthBootstrapper's
+  // getMe() call, see src/providers/index.tsx) and starts out undefined on
+  // first render, so a `useState(user?.email_verified_at ? ... )` initializer
+  // froze at "unverified" forever even after the real user data (and a
+  // verified email) arrived. Only the ephemeral "did we just send a code"
+  // step is local state; it's harmless because the verified branch below
+  // always takes priority over it.
+  const verified = isEmailVerified(user)
+  const [codeSent, setCodeSent] = useState(false)
   const [verifyEmail, setVerifyEmail] = useState(user?.email || '')
   const [verifyCode, setVerifyCode] = useState('')
   const requestEmailVerification = useRequestEmailVerification()
   const confirmEmailVerification = useConfirmEmailVerification()
   const verifyEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(verifyEmail)
 
+  // Seeds the field once the async-loaded user email arrives, without
+  // clobbering anything the user has already typed.
+  useEffect(() => {
+    if (user?.email) setVerifyEmail((prev) => prev || user.email)
+  }, [user?.email])
+
   const handleSendVerificationCode = async () => {
     try {
       await requestEmailVerification.mutateAsync(verifyEmail)
-      setEmailVerifyStatus('code_sent')
+      setCodeSent(true)
       toast.success(t('verificationCodeSent'))
     } catch {
       toast.error(t('failedToSendVerificationCode'))
@@ -160,14 +174,17 @@ export default function SettingsPage() {
   }
 
   const handleCancelVerification = () => {
-    setEmailVerifyStatus('unverified')
+    setCodeSent(false)
     setVerifyCode('')
   }
 
   const handleVerifyEmail = async () => {
     try {
+      // useConfirmEmailVerification() already merges the returned user into
+      // useAuthStore and invalidates the ['me'] query — `verified` above
+      // flips to true on the next render with no further action needed here.
       await confirmEmailVerification.mutateAsync({ email: verifyEmail, code: verifyCode })
-      setEmailVerifyStatus('verified')
+      setCodeSent(false)
       setVerifyCode('')
       toast.success(t('emailVerifiedSuccessfully'))
     } catch {
@@ -314,24 +331,25 @@ export default function SettingsPage() {
             </div>
             <h2 className="font-semibold text-[var(--fg)]">{t('emailVerification')}</h2>
           </div>
-          {emailVerifyStatus === 'verified' ? (
+          {verified ? (
             <Badge variant="success" dot>{t('verified')}</Badge>
           ) : (
             <Badge variant="warning" dot>{t('notVerified')}</Badge>
           )}
         </div>
 
-        {emailVerifyStatus === 'verified' ? (
+        {verified ? (
           <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900">
             <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-emerald-700 dark:text-emerald-300">{t('emailVerifiedTitle')}</p>
+              <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1 font-medium">{user?.email}</p>
               <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-0.5">{t('emailVerifiedDesc')}</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            {emailVerifyStatus === 'unverified' && (
+            {!codeSent && (
               <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
                 <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                 <div>
@@ -346,10 +364,10 @@ export default function SettingsPage() {
               type="email"
               value={verifyEmail}
               onChange={(e) => setVerifyEmail(e.target.value)}
-              disabled={emailVerifyStatus === 'code_sent'}
+              disabled={codeSent}
             />
 
-            {emailVerifyStatus === 'code_sent' && (
+            {codeSent && (
               <div>
                 <label className="block text-sm font-medium text-[var(--fg)] mb-2">{t('verificationCodeLabel')}</label>
                 <OTPInput length={6} value={verifyCode} onChange={setVerifyCode} autoFocus />
@@ -357,7 +375,7 @@ export default function SettingsPage() {
             )}
 
             <div className="flex items-center gap-2 justify-end">
-              {emailVerifyStatus === 'code_sent' && (
+              {codeSent && (
                 <Button
                   type="button"
                   variant="secondary"
@@ -368,7 +386,7 @@ export default function SettingsPage() {
                   {tCommon('cancel')}
                 </Button>
               )}
-              {emailVerifyStatus === 'unverified' ? (
+              {!codeSent ? (
                 <Button
                   type="button"
                   onClick={handleSendVerificationCode}

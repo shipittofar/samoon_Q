@@ -8,8 +8,16 @@ export type UserRole = 'customer' | 'staff' | 'owner' | 'admin'
 export interface User {
   id: string
   email: string
-  email_verified?: boolean
+  /**
+   * Backend contract field (docs/BACKEND_API_CONTRACT.md §User Object,
+   * §2.10 GET /auth/me): nullable ISO 8601 timestamp, not a boolean.
+   * `null`/`undefined` = not verified; any timestamp = verified.
+   * Use `isEmailVerified(user)` from '@/utils' rather than truthiness-
+   * testing this field directly in components.
+   */
+  email_verified_at?: string | null
   phone_number?: string
+  phone_verified_at?: string | null
   first_name: string
   last_name: string
   avatar?: string
