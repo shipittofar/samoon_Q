@@ -15,7 +15,17 @@ import {
 } from '@/lib/mock-data'
 import { MOCK_DELAY } from '@/constants'
 import { configurationService } from '@/config'
-import type { AuthTokens, LoginCredentials, OTPVerifyData, RegisterData, SendOTPRequest, VerifyOTPRequest, User } from '@/types'
+import type {
+  AuthTokens,
+  ConfirmEmailVerificationPayload,
+  LoginCredentials,
+  OTPVerifyData,
+  RegisterData,
+  RequestEmailVerificationPayload,
+  SendOTPRequest,
+  VerifyOTPRequest,
+  User,
+} from '@/types'
 import type { Role } from '@/types/rbac'
 import type { AuthSessionRbacPayload } from '@/types/ownership'
 
@@ -336,5 +346,33 @@ export const authService = {
       return
     }
     await api.post(ENDPOINTS.AUTH.CHANGE_PASSWORD, { old_password, new_password })
+  },
+
+  /**
+   * Sends a verification code to `email`. Deliberately separate from
+   * userService.updateProfile() — the profile endpoint never touches
+   * email verification state. Authenticated via the standard axios
+   * instance (bearer token attached by the request interceptor).
+   */
+  async requestEmailVerification({ email }: RequestEmailVerificationPayload): Promise<{ message: string }> {
+    if (mockActive()) {
+      await delay(MOCK_DELAY)
+      return { message: 'Verification code sent successfully.' }
+    }
+    const { data } = await api.post<{ message: string }>(ENDPOINTS.AUTH.VERIFY_EMAIL_REQUEST, { email })
+    return data
+  },
+
+  /** Confirms the code sent by requestEmailVerification() and returns the updated user. */
+  async confirmEmailVerification({ email, code }: ConfirmEmailVerificationPayload): Promise<User> {
+    if (mockActive()) {
+      await delay(MOCK_DELAY)
+      if (code === '000000') throw new Error('otp_invalid')
+      const entry = typeof localStorage !== 'undefined' ? localStorage.getItem(MOCK_SESSION_KEY) : null
+      const base = (entry && MOCK_CREDENTIALS[entry]?.user) || MOCK_USER
+      return { ...base, email, email_verified: true }
+    }
+    const { data } = await api.post<User>(ENDPOINTS.AUTH.VERIFY_EMAIL_CONFIRM, { email, code })
+    return data
   },
 }

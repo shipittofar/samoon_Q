@@ -1066,6 +1066,30 @@ export function useHealthCheck() {
   })
 }
 
+// ── Email Verification Hooks ─────────────────────────────────────────────────
+// Deliberately separate from any profile-update mutation — email verification
+// owns its own request/confirm lifecycle and never shares a payload with
+// userService.updateProfile().
+export function useRequestEmailVerification() {
+  return useMutation({
+    mutationFn: (email: string) => authService.requestEmailVerification({ email }),
+  })
+}
+
+export function useConfirmEmailVerification() {
+  const qc = useQueryClient()
+  const setUser = useAuthStore((s) => s.setUser)
+  const user = useAuthStore((s) => s.user)
+  return useMutation({
+    mutationFn: ({ email, code }: { email: string; code: string }) =>
+      authService.confirmEmailVerification({ email, code }),
+    onSuccess: (updated) => {
+      if (user) setUser({ ...user, ...updated })
+      qc.invalidateQueries({ queryKey: ['me'] })
+    },
+  })
+}
+
 // ── User Hooks ────────────────────────────────────────────────────────────────
 export function useAddresses() {
   return useQuery({

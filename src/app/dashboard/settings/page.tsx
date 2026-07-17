@@ -4,15 +4,15 @@ import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Sun, Moon, Monitor, Globe, Bell, Shield, User, ChevronRight, Camera, Upload, X } from 'lucide-react'
+import { Sun, Moon, Monitor, Globe, Bell, Shield, User, ChevronRight, Camera, Upload, X, Mail, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { Card } from '@/components/ui'
+import { Card, Badge, OTPInput } from '@/components/ui'
 import { Avatar } from '@/components/ui'
 import { FlagIcon } from '@/components/ui/FlagIcon'
 import { useAuthStore, useThemeStore, useLangStore } from '@/stores'
-import { useSetLocale } from '@/hooks'
+import { useSetLocale, useRequestEmailVerification, useConfirmEmailVerification } from '@/hooks'
 import { userService } from '@/services/combined.service'
 import { COUNTRIES } from '@/data/countries'
 import { cn } from '@/utils'
@@ -20,12 +20,13 @@ import toast from 'react-hot-toast'
 
 // Schema messages are `validation` namespace keys, resolved via
 // `tValidation()` wherever `errors.<field>.message` is rendered below.
-// phone_number is intentionally excluded: it is immutable post-verification
-// and displayed read-only below, never sent in the update payload.
+// email and phone_number are intentionally excluded from this schema:
+// email owns a dedicated verification flow (see EmailVerificationCard
+// below) and phone_number is immutable post-verification, displayed
+// read-only. Neither is ever part of the profile update payload.
 const profileSchema = z.object({
   first_name: z.string().min(2, 'required'),
   last_name: z.string().min(2, 'required'),
-  email: z.string().email('invalid_email'),
 })
 type ProfileFormData = z.infer<typeof profileSchema>
 
@@ -131,10 +132,48 @@ export default function SettingsPage() {
 
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { first_name: user?.first_name || '', last_name: user?.last_name || '', email: user?.email || '' },
+    defaultValues: { first_name: user?.first_name || '', last_name: user?.last_name || '' },
   })
 
   const phone = splitPhoneNumber(user?.phone_number)
+
+  // Email verification — deliberately independent of the profile form/state
+  // above: it never shares a payload, mutation, or card with first/last
+  // name. See useRequestEmailVerification()/useConfirmEmailVerification().
+  const [emailVerifyStatus, setEmailVerifyStatus] = useState<'unverified' | 'code_sent' | 'verified'>(
+    user?.email_verified ? 'verified' : 'unverified',
+  )
+  const [verifyEmail, setVerifyEmail] = useState(user?.email || '')
+  const [verifyCode, setVerifyCode] = useState('')
+  const requestEmailVerification = useRequestEmailVerification()
+  const confirmEmailVerification = useConfirmEmailVerification()
+  const verifyEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(verifyEmail)
+
+  const handleSendVerificationCode = async () => {
+    try {
+      await requestEmailVerification.mutateAsync(verifyEmail)
+      setEmailVerifyStatus('code_sent')
+      toast.success(t('verificationCodeSent'))
+    } catch {
+      toast.error(t('failedToSendVerificationCode'))
+    }
+  }
+
+  const handleCancelVerification = () => {
+    setEmailVerifyStatus('unverified')
+    setVerifyCode('')
+  }
+
+  const handleVerifyEmail = async () => {
+    try {
+      await confirmEmailVerification.mutateAsync({ email: verifyEmail, code: verifyCode })
+      setEmailVerifyStatus('verified')
+      setVerifyCode('')
+      toast.success(t('emailVerifiedSuccessfully'))
+    } catch {
+      toast.error(t('invalidVerificationCode'))
+    }
+  }
 
   const onSaveProfile = async (data: ProfileFormData) => {
     setSaving(true)
@@ -242,7 +281,6 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label={t('firstName')} required {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
             <Input label={t('lastName')} required {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
-            <Input label={t('emailLabel')} type="email" required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
 
             <div>
               <label className="block text-sm font-medium text-[var(--fg)] mb-1.5">{t('phoneLabel')}</label>
@@ -265,6 +303,93 @@ export default function SettingsPage() {
           </div>
           <Button type="submit" loading={saving} disabled={!isDirty}>{t('saveChanges')}</Button>
         </form>
+      </Card>
+
+      {/* Email Verification — fully independent card/flow from Profile Information above */}
+      <Card>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
+              <Mail className="h-4 w-4 text-blue-500" />
+            </div>
+            <h2 className="font-semibold text-[var(--fg)]">{t('emailVerification')}</h2>
+          </div>
+          {emailVerifyStatus === 'verified' ? (
+            <Badge variant="success" dot>{t('verified')}</Badge>
+          ) : (
+            <Badge variant="warning" dot>{t('notVerified')}</Badge>
+          )}
+        </div>
+
+        {emailVerifyStatus === 'verified' ? (
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900">
+            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-emerald-700 dark:text-emerald-300">{t('emailVerifiedTitle')}</p>
+              <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-0.5">{t('emailVerifiedDesc')}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {emailVerifyStatus === 'unverified' && (
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
+                <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-amber-700 dark:text-amber-300">{t('emailNotVerifiedTitle')}</p>
+                  <p className="text-sm text-amber-600 dark:text-amber-400 mt-0.5">{t('emailNotVerifiedDesc')}</p>
+                </div>
+              </div>
+            )}
+
+            <Input
+              label={t('emailLabel')}
+              type="email"
+              value={verifyEmail}
+              onChange={(e) => setVerifyEmail(e.target.value)}
+              disabled={emailVerifyStatus === 'code_sent'}
+            />
+
+            {emailVerifyStatus === 'code_sent' && (
+              <div>
+                <label className="block text-sm font-medium text-[var(--fg)] mb-2">{t('verificationCodeLabel')}</label>
+                <OTPInput length={6} value={verifyCode} onChange={setVerifyCode} autoFocus />
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 justify-end">
+              {emailVerifyStatus === 'code_sent' && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleCancelVerification}
+                  disabled={confirmEmailVerification.isPending}
+                >
+                  {tCommon('cancel')}
+                </Button>
+              )}
+              {emailVerifyStatus === 'unverified' ? (
+                <Button
+                  type="button"
+                  onClick={handleSendVerificationCode}
+                  loading={requestEmailVerification.isPending}
+                  disabled={!verifyEmailValid || requestEmailVerification.isPending}
+                >
+                  {t('sendVerificationCode')}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleVerifyEmail}
+                  loading={confirmEmailVerification.isPending}
+                  disabled={verifyCode.length < 6 || confirmEmailVerification.isPending}
+                >
+                  {t('verifyEmail')}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Theme */}

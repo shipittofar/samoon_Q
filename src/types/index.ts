@@ -8,6 +8,7 @@ export type UserRole = 'customer' | 'staff' | 'owner' | 'admin'
 export interface User {
   id: string
   email: string
+  email_verified?: boolean
   phone_number?: string
   first_name: string
   last_name: string
@@ -17,8 +18,21 @@ export interface User {
   created_at: string
 }
 
-/** Editable profile fields. phone_number is immutable post-verification and excluded. */
-export type UpdateProfileRequest = Partial<Pick<User, 'first_name' | 'last_name' | 'email'>>
+/**
+ * Editable profile fields. Excludes email (owns its own verification flow —
+ * see RequestEmailVerification/ConfirmEmailVerification) and phone_number
+ * (immutable post-verification, display-only).
+ */
+export type UpdateProfileRequest = Partial<Pick<User, 'first_name' | 'last_name'>>
+
+export interface RequestEmailVerificationPayload {
+  email: string
+}
+
+export interface ConfirmEmailVerificationPayload {
+  email: string
+  code: string
+}
 
 export type SendOTPRequest = {
   phone_number: string
