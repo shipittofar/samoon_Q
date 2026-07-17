@@ -1,39 +1,33 @@
 // ============================================================
-// P10.3 Phase H — Ownership-aware Login Flow — regression tests
+// P10.3 Phase H — Login Flow Routing — regression tests
+//
+// Phase 2 (RBAC unification) rewrite: getPostLoginRedirect() no longer
+// consults ownership/staff-assignment data — it is a pure function of
+// `role` via resolveWorkspace(). The `email` parameter is accepted for
+// call-site backward compatibility but has no effect on the result.
 // ============================================================
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { getPostLoginRedirect } from '@/utils/auth-redirect'
-import { ownerService } from '@/services/owner.service'
-import { staffService } from '@/services/staff.service'
-import { staffAssignmentService } from '@/services/staff-assignment.service'
 
-beforeEach(() => {
-  ownerService._resetMockStore()
-  staffService._resetMockStore()
-  staffAssignmentService._resetMockStore()
-})
-
-describe('P10.3 Phase H — getPostLoginRedirect is ownership-aware', () => {
-  it('routes a known Owner email to /console regardless of role string', () => {
-    // 'customer' is deliberately the wrong role string here — ownership
-    // data should still win and route to /console.
-    expect(getPostLoginRedirect('customer', 'owner@samoon.com')).toBe('/console')
+describe('P10.3 Phase H — getPostLoginRedirect is role-based only', () => {
+  it('routes based on role regardless of email, even for a known Owner/Staff email', () => {
+    // Ownership/staff-assignment data must never override the role-based
+    // decision — 'customer' role routes to /dashboard even with an
+    // owner/staff email attached.
+    expect(getPostLoginRedirect('customer', 'owner@samoon.com')).toBe('/dashboard')
+    expect(getPostLoginRedirect('customer', 'cashier@samoon.com')).toBe('/dashboard')
   })
 
-  it('routes a known Staff email to /console', () => {
-    expect(getPostLoginRedirect('customer', 'cashier@samoon.com')).toBe('/console')
-  })
-
-  it('falls back to role-based resolveWorkspace() when no email is provided', () => {
+  it('routes staff/owner roles to /console', () => {
     expect(getPostLoginRedirect('owner')).toBe('/console')
+    expect(getPostLoginRedirect('admin')).toBe('/console')
+  })
+
+  it('routes customer role to /dashboard', () => {
     expect(getPostLoginRedirect('customer')).toBe('/dashboard')
   })
 
-  it('falls back to role-based resolveWorkspace() when the email matches no Owner/Staff record', () => {
-    expect(getPostLoginRedirect('customer', 'john@example.com')).toBe('/dashboard')
-  })
-
-  it('falls back to role-based resolveWorkspace() when email is null/undefined', () => {
+  it('is unaffected by a null/undefined email', () => {
     expect(getPostLoginRedirect('owner', null)).toBe('/console')
     expect(getPostLoginRedirect('owner', undefined)).toBe('/console')
   })

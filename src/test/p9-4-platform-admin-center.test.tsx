@@ -17,6 +17,7 @@ import {
   configCollection,
 } from '@/config'
 import { useAuthStore, useRbacStore, useTenantStore } from '@/stores'
+import { normalizeTenantPermissions } from '@/services/permission.service'
 import { DEFAULT_TENANT } from '@/constants'
 import {
   PLATFORM_ROLES,
@@ -43,6 +44,7 @@ function loginAsPlatformOwner() {
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
+  useRbacStore.getState().setCurrentTenantSession(DEFAULT_TENANT.id, ['owner'], normalizeTenantPermissions(['owner']).permissions)
 }
 
 beforeEach(() => {

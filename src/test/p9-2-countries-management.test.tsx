@@ -20,6 +20,7 @@ import {
 } from '@/config'
 import type { ConfigFieldDefinition } from '@/config'
 import { useAuthStore, useRbacStore, useTenantStore } from '@/stores'
+import { normalizeTenantPermissions } from '@/services/permission.service'
 import { DEFAULT_TENANT } from '@/constants'
 import { useConfigurationBulkActions } from '@/hooks/use-configuration-bulk-actions'
 import { ConfigurationModulePage } from '@/components/admin/configuration/ConfigurationModulePage'
@@ -42,6 +43,7 @@ function loginAsPlatformOwner() {
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
+  useRbacStore.getState().setCurrentTenantSession(DEFAULT_TENANT.id, ['owner'], normalizeTenantPermissions(['owner']).permissions)
 }
 
 beforeEach(() => {

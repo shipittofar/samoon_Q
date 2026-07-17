@@ -16,6 +16,7 @@ import {
 } from '@/config'
 import { __resetAuthenticationMockSeedForTests } from '@/config/mock-data'
 import { useAuthStore, useRbacStore, useTenantStore } from '@/stores'
+import { normalizeTenantPermissions } from '@/services/permission.service'
 import { DEFAULT_TENANT } from '@/constants'
 import { ConfigurationStudioLayout } from '@/components/admin/configuration/ConfigurationStudioLayout'
 
@@ -32,6 +33,7 @@ function loginAsPlatformOwner() {
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
+  useRbacStore.getState().setCurrentTenantSession(DEFAULT_TENANT.id, ['owner'], normalizeTenantPermissions(['owner']).permissions)
 }
 
 // The global jsdom matchMedia mock (src/test/setup.ts) always reports

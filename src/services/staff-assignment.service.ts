@@ -43,6 +43,12 @@ function daysFromNow(n: number): string {
 // fixtures in staff.service.ts / tenant.service.ts / branch.service.ts —
 // nothing here is invented in isolation.
 
+// Phase 2 (RBAC unification) — MOCK_STAFF_ASSIGNMENTS no longer
+// participates in any access decision. ownership-resolution.service.ts
+// (the only former consumer of the authorization-relevant reads here,
+// e.g. getEffectiveAssignments()) has zero runtime callers now. This data
+// remains only as a stand-in for a future backend StaffAssignment entity —
+// it must not be wired back into any permission/branch-access check.
 const MOCK_STAFF_ASSIGNMENTS: StaffAssignment[] = [
   // ── Accountant (staff-accountant-01, Owner owner-001) ─────────────────────
   // "role=finance-view, mode=read, branchIds=all" on Tenant A (samoon) —

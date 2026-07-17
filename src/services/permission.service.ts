@@ -103,109 +103,37 @@ export const ALL_PERMISSIONS: readonly P7Permission[] = [
   // Operations
   'operations.view',
   'operations.manage',
+  // Dashboard (console entry) — granted to every assignable role
+  'dashboard:access',
 ]
 
 // ── Role → Permission matrix (single source of truth) ────────────────────────
 
-export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>> = {
-  /** Full access — every permission including tenant ownership actions. */
-  // owner: ALL_PERMISSIONS.filter((p) => p !== 'customers.manage','customers.create'),
-  /**owner: ALL_PERMISSIONS,*/
-
+const BASE_ROLE_PERMISSION_MAP: Record<Role, readonly P7Permission[]> = {
   /**
    * P10.2.2 — everything except tenant ownership actions (`tenant.manage`,
    * `tenant.view`). Per docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §4.2/§4.3
    * (closing P10.0 finding J1): tenant-level ownership actions are
    * Owner-exclusive, never delegable to any Staff role including `admin`.
-   * `admin` previously received these implicitly via `ALL_PERMISSIONS`
-   * with no structural way to say "only the actual owner can do this" —
-   * this was the exact bug the architecture rewrite exists to fix. An
-   * Owner still receives every permission, including both of these, via
-   * the ownership short-circuit in
-   * src/services/ownership-resolution.service.ts, not via this map.
    */
   admin: ALL_PERMISSIONS.filter((p) => p !== 'tenant.manage' && p !== 'tenant.view'),
 
-  /** Full access — every permission including tenant ownership actions. */
-  owner: [
-    // Orders
-    'orders.view',
-    'orders.manage',
-    'orders.create',
-    'orders.edit',
-    'orders.cancel',
-    // 'orders.delete',
-    // Menu
-    'menu.view',
-    'menu.manage',
-    // Categories
-    'category.view',
-    'category.create',
-    'category.update',
-    'category.delete',
-    // Extras
-    'extras.view',
-    'extras.create',
-    'extras.update',
-    'extras.delete',
-    // Reservations
-    'reservations.view',
-    'reservations.manage',
-    // Customers
-    'customers.view',
-    // 'customers.manage',
-    // Payments
-    'payments.process',
-    'payments.refund',
-    // Tables
-    'tables.view',
-    'tables.assign',
-    // Kitchen
-    'kitchen.view',
-    'kitchen.manage',
-    // Vendors
-    'vendors.view',
-    'vendors.manage',
-    // Promotions
-    'promotions.view',
-    'promotions.manage',
-    // Loyalty
-    'loyalty.view',
-    'loyalty.manage',
-    // Analytics
-    'analytics.view',
-    // 'analytics.export',
-    // Staff
-    'staff.view',
-    'staff.manage',
-    'staff.create',
-    'staff.edit',
-    'staff.delete',
-    // Branches
-    'branches.view',
-    'branches.manage',
-    'branches.create',
-    'branches.update',
-    'branches.delete',
-    // Settings
-    'settings.view',
-    // 'settings.manage',
-    // 'featureflags.manage',
-    // Tenant
-    'tenant.view',
-    'tenant.manage',
-    // Audit
-    'audit.view',
-    // 'audit.export',
-    // 'audit.manage',
-    // Notifications
-    'notifications.view',
-    // 'notifications.manage',
-    // 'notifications.preferences',
-    // Operations
-    'operations.view',
-    // 'operations.manage',
-  ],
+  /**
+   * Full access — every permission including tenant ownership actions.
+   *
+   * Phase 2 (RBAC unification) — previously `owner` held a hand-maintained
+   * subset here and received the rest (customers.manage, orders.delete,
+   * analytics.export, settings.manage, audit.export/manage,
+   * notifications.manage/preferences, operations.manage, tenant.*) via a
+   * parallel client-side "ownership short-circuit"
+   * (src/services/ownership-resolution.service.ts, now removed). That
+   * engine decided access from browser-held mock Owner/StaffAssignment
+   * data — an authorization decision that must never be made client-side.
+   * This role map is now the ONLY permission source; Owner's full access
+   * is expressed directly here instead of being reconstructed by a second
+   * system.
+   */
+  owner: ALL_PERMISSIONS,
 
 
   /** Operational management — runs the floor, staff, schedules, branches. */
@@ -309,6 +237,20 @@ export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>
   ],
 }
 
+/**
+ * Every assignable role grants `dashboard:access` — holding any tenant-scoped
+ * role is what makes the Console reachable at all. Previously this specific
+ * permission was granted by the (now-removed) ownership/StaffAssignment
+ * engine rather than this map; folding it in here makes ROLE_PERMISSION_MAP
+ * the single, complete permission source (see BASE_ROLE_PERMISSION_MAP).
+ */
+export const ROLE_PERMISSION_MAP: Readonly<Record<Role, readonly P7Permission[]>> = Object.fromEntries(
+  (Object.entries(BASE_ROLE_PERMISSION_MAP) as [Role, readonly P7Permission[]][]).map(([role, perms]) => [
+    role,
+    perms.includes('dashboard:access') ? perms : [...perms, 'dashboard:access'],
+  ]),
+) as Record<Role, readonly P7Permission[]>
+
 // ── Capability gate map ───────────────────────────────────────────────────────
 // Maps permission resource prefix → feature flag key used to gate capability.
 // If the flag resolves to false, the permission is denied regardless of role.
@@ -374,6 +316,37 @@ export function getPermissionsForRole(
     ; (ROLE_PERMISSION_MAP[r] ?? []).forEach((p) => set.add(p))
   })
   return [...set]
+}
+
+/**
+ * Phase 2 (RBAC unification) — the ONE place that translates a raw auth
+ * response into `{ roles, permissions }`. Every auth entry point (login,
+ * register, verify-otp, getMe, tenant switch) has historically used a
+ * different field name for the same concept (`p7Roles` at login/register/
+ * verify-otp, `tenantRoles` from getMe()) — no consumer downstream of this
+ * function needs to know which one it was.
+ *
+ * `permissions` is derived from `roles` via ROLE_PERMISSION_MAP (the single
+ * role→permission source — see BASE_ROLE_PERMISSION_MAP above) purely
+ * because no backend exists yet to return a pre-resolved permission set.
+ * Once a real backend implements `TenantSession` (types/index.ts) and
+ * starts returning `permissions` directly, this function's body becomes
+ * `{ roles: response.roles, permissions: response.permissions }` — its
+ * call sites do not change.
+ */
+export function normalizeTenantPermissions(
+  response:
+    | { roles?: Role[] | null; p7Roles?: Role[] | null; tenantRoles?: Role[] | null; permissions?: P7Permission[] | null }
+    | Role[]
+    | null
+    | undefined,
+): { roles: Role[]; permissions: P7Permission[] } {
+  if (Array.isArray(response)) {
+    return { roles: response, permissions: [...getPermissionsForRole(response)] }
+  }
+  const roles = response?.roles ?? response?.p7Roles ?? response?.tenantRoles ?? []
+  const permissions = response?.permissions ?? [...getPermissionsForRole(roles)]
+  return { roles, permissions }
 }
 
 /**
@@ -834,6 +807,7 @@ export const permissionService = {
   ROLE_TEMPLATES,
   PERMISSION_CATEGORIES,
   getPermissionsForRole,
+  normalizeTenantPermissions,
   hasPermission,
   hasAnyPermission,
   hasAllPermissions,

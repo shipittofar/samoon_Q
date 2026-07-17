@@ -95,7 +95,7 @@ describe('P8 — Manager tightened permissions', () => {
   // alongside category.*/menu.* (docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md).
   it('manager has exactly 32 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.manager).toHaveLength(32)
+    expect(ROLE_PERMISSION_MAP.manager).toHaveLength(33)
   })
 })
 
@@ -140,7 +140,7 @@ describe('P8 — Cashier tightened permissions', () => {
   })
   it('cashier has exactly 11 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.cashier).toHaveLength(11)
+    expect(ROLE_PERMISSION_MAP.cashier).toHaveLength(12)
   })
 })
 
@@ -177,7 +177,7 @@ describe('P8 — Kitchen tightened permissions', () => {
   })
   it('kitchen has exactly 5 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.kitchen).toHaveLength(5)
+    expect(ROLE_PERMISSION_MAP.kitchen).toHaveLength(6)
   })
 })
 
@@ -226,7 +226,7 @@ describe('P8 — Marketing tightened permissions', () => {
   })
   it('marketing has exactly 8 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.marketing).toHaveLength(8)
+    expect(ROLE_PERMISSION_MAP.marketing).toHaveLength(9)
   })
 })
 
@@ -283,7 +283,7 @@ describe('P8 — Support tightened permissions', () => {
   })
   it('support has exactly 4 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.support).toHaveLength(4)
+    expect(ROLE_PERMISSION_MAP.support).toHaveLength(5)
   })
 })
 
@@ -324,7 +324,7 @@ describe('P8 — Waiter permissions unchanged', () => {
   // Extras Management: waiter gained read-only extras.view alongside category.view/menu.view.
   it('waiter still has 16 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.waiter).toHaveLength(16)
+    expect(ROLE_PERMISSION_MAP.waiter).toHaveLength(17)
   })
   it('waiter has menu.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')

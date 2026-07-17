@@ -55,23 +55,12 @@ import type {
   NotificationPriority,
 } from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
-import { getPermissionsForRole, hasPermission, applyOverrides, resolveEffectivePermissions } from '@/services/permission.service'
+import { applyOverrides, resolveEffectivePermissions, normalizeTenantPermissions } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions, EffectivePermissionResult } from '@/types/rbac'
-import {
-  resolveOwnershipIdentity,
-  resolveOwnershipDrivenPermissions,
-  buildBranchAccessContextFromAssignments,
-  assertOwnershipBranchAccess,
-  assertOwnershipTenantAccess,
-  getNextAssignmentExpiry,
-  isOwnerEligible,
-  isStaffMemberEligible,
-  isTenantEligible,
-} from '@/services/ownership-resolution.service'
-import { staffAssignmentService } from '@/services/staff-assignment.service'
-import { ownerOwnsTenant } from '@/services/ownership.service'
+// Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
+// owner.service.ts, or staff-assignment.service.ts remain in this file.
+// Access decisions come from usePermissions()/currentTenantSession only.
 import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
-import { resolveWorkspace } from '@/utils/navigation-intelligence'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
 import { reviewService } from '@/services/review.service'
@@ -159,70 +148,35 @@ export function useSystemReady(): SystemReadiness {
 // ── P7.1 + P8.5 Permission Hooks ─────────────────────────────────────────────
 
 /**
- * Returns all P7 permissions effective for the current user in the active tenant.
- * Applies user-level allow/deny overrides on top of role-derived permissions.
- * Evaluation order: User Deny → User Allow → Role Permissions → Default Deny.
+ * Returns all P7 permissions effective for the current user in the active
+ * tenant. Applies user-level allow/deny overrides on top of
+ * `currentTenantSession.permissions` — evaluation order: User Deny → User
+ * Allow → Session Permissions → Default Deny.
  *
- * P10.2.2 — EXTENDED (not replaced) with the ownership resolution engine
- * (docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §4.4,
- * src/services/ownership-resolution.service.ts): the legacy
- * `tenantRoles`-based computation below is byte-for-byte unchanged and
- * still runs first; ownership/StaffAssignment-derived permissions for the
- * active tenant are UNIONED on top, never substituted, so every existing
- * mock-login / PermissionGuard / test path keeps working exactly as
- * before. This is the single source of truth for tenant-scoped
- * permissions — `useAdminModuleNav()` below calls this hook instead of
- * recomputing the base permission set itself (P10.2.2 Phase F fix; it
- * previously duplicated the `tenantRoles.find(...) → getPermissionsForRole()`
- * computation inline, which would have silently bypassed this extension).
+ * Phase 2 (RBAC unification) — this is now THE single permission source.
+ * The parallel ownership/StaffAssignment-derived permission union
+ * (src/services/ownership-resolution.service.ts) has been removed
+ * entirely: the frontend does not decide access from client-held
+ * Owner/StaffAssignment data. `currentTenantSession` is seeded by
+ * normalizeTenantPermissions() (permission.service.ts) at login, session
+ * restore, and every tenant switch — never computed here.
  */
 export function usePermissions(): readonly P7Permission[] {
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
-  const tenantId = tenant?.id
-  const tenantRoles = useRbacStore((s) => s.tenantRoles)
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
   const userOverrides = useRbacStore((s) => s.userOverrides)
 
-  // P10.3 Phase I — a temporary StaffAssignment's effect on permissions
-  // previously only updated on an incidental re-render (P10.2.3 finding
-  // F-7). This schedules exactly one timer at the assignment's real
-  // `validUntil` moment — not a poll — to force the recompute below.
-  // Reuses getNextAssignmentExpiry(), which itself reuses
-  // getEffectiveAssignments(); no expiry logic is re-derived here.
-  const [expiryTick, setExpiryTick] = React.useState(0)
-  React.useEffect(() => {
-    const identity = resolveOwnershipIdentity(user?.email)
-    if (!identity.staffMember) return
-    const nextExpiry = getNextAssignmentExpiry(identity.staffMember.id)
-    if (!nextExpiry) return
-    const delay = nextExpiry.getTime() - Date.now()
-    if (delay <= 0) {
-      setExpiryTick((t) => t + 1)
-      return
-    }
-    const timer = setTimeout(() => setExpiryTick((t) => t + 1), delay)
-    return () => clearTimeout(timer)
-  }, [user?.email, tenantId])
-
   return useMemo(() => {
-    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
-    const base = getPermissionsForRole(roles)
+    // Defensive: only trust the session if it's actually for the active
+    // tenant — guards against one stale render between a tenant switch
+    // and the session reseed that follows it.
+    const base = currentTenantSession && currentTenantSession.tenantId === tenantId
+      ? currentTenantSession.permissions
+      : []
     const override = userOverrides.find((o) => o.userId === user?.id && o.tenantId === tenantId)
-    // P10.5.3 — renamed from `legacyEffective`: this is the live
-    // useRbacStore.tenantRoles-based permission set (seeded at login from
-    // the mock auth response's p7Roles, editable via the Console's
-    // per-user override UI), not a reference to the retired
-    // rbacService/ROLE_PERMISSIONS engine (fully removed in P10.4.12).
-    // See docs/P10.5.1_AUTHORIZATION_ARCHITECTURE_AUDIT.md "Naming
-    // inconsistency" and docs/P10.5.3_PERMISSION_MODEL_CONSOLIDATION.md.
-    const tenantRolePermissions = applyOverrides(base, override)
-
-    const ownershipDriven = resolveOwnershipDrivenPermissions(user?.email, tenant ?? undefined)
-    if (ownershipDriven.length === 0) return tenantRolePermissions
-
-    return [...new Set([...tenantRolePermissions, ...ownershipDriven])]
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, user?.email, tenantId, tenant?.ownerId, tenant?.status, tenantRoles, userOverrides, expiryTick])
+    return applyOverrides(base, override)
+  }, [user?.id, tenantId, currentTenantSession, userOverrides])
 }
 
 // P10.6 Phase G — shared per-resource feature-flag gate, previously
@@ -396,36 +350,13 @@ export function useModuleNav(): NavItem[] {
  * `customer`'s destination) is granted dashboard access.
  */
 export function useHasDashboardAccess(): boolean {
-  const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
-  return useMemo(() => {
-    // P10.3.1 audit — this hook is AuthGuard's actual /console gate but had
-    // never been updated to call the P10.3 Phase A/B/C eligibility
-    // predicates, so a suspended/pending Owner, a suspended/removed Staff
-    // member, or staff/owner of an archived tenant could still reach
-    // /console even though resolveOwnerPermissions()/
-    // resolveStaffAssignmentPermissions() would already return zero
-    // permissions for them. Fixed to reuse the same predicates, not
-    // re-derive the checks.
-    if (!tenant?.id || !isTenantEligible(tenant)) return false
-    const identity = resolveOwnershipIdentity(user?.email)
-    if (
-      identity.owner &&
-      isOwnerEligible(identity.owner) &&
-      ownerOwnsTenant(identity.owner.ownerId, tenant.id, [tenant])
-    ) {
-      return true
-    }
-    if (identity.staffMember && isStaffMemberEligible(identity.staffMember)) {
-      return staffAssignmentService.getEffectiveAssignments(identity.staffMember.id).length > 0
-    }
-    if (identity.owner || identity.staffMember) return false
-
-    const role = user?.role?.toLowerCase()
-    if (!role) return false
-    return resolveWorkspace(role) !== '/dashboard'
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email, user?.role, tenant?.id, tenant?.ownerId, tenant?.status])
+  // Phase 2 (RBAC unification) — no longer a second, ownership-derived
+  // access model. `dashboard:access` is now a real permission granted to
+  // every assignable role in ROLE_PERMISSION_MAP (permission.service.ts):
+  // holding ANY tenant-scoped role is what makes the Console reachable.
+  // This hook is kept only because it's a widely-imported, self-describing
+  // name — it is a thin wrapper, not a duplicate permission path.
+  return usePermission('dashboard:access')
 }
 
 /**
@@ -510,18 +441,30 @@ export function useAdminModuleNav(): NavItem[] {
 }
 
 // ── Auth Hooks ────────────────────────────────────────────────────────────────
+/**
+ * Phase 2 (RBAC unification) — seeds currentTenantSession via
+ * normalizeTenantPermissions(), the one place that translates whichever
+ * field name the auth response used (`p7Roles` here, `tenantRoles` from
+ * getMe()) into `{ roles, permissions }`. No consumer downstream needs to
+ * know which field this came from.
+ */
+function seedTenantSession(tenantId: string, response: { p7Roles?: import('@/types/rbac').Role[] }) {
+  const { roles, permissions } = normalizeTenantPermissions(response)
+  useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions)
+  // setTenantRoles() is retained for the admin role-management UI (view/edit
+  // assignments across tenants) — a separate concern from "what can I do
+  // right now," which currentTenantSession alone answers.
+  if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenantId, roles)
+}
+
 export function useLogin() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (creds: LoginCredentials) => authService.login(creds),
     onSuccess: ({ user, p7Roles }) => {
       setUser(user)
-      // P8.4.3 — Seed P7 tenant-scoped roles for mock demo accounts so that
-      // PermissionGuard and usePermission() work in admin routes.
       const tenant = useTenantStore.getState().tenant
-      if (tenant && p7Roles && p7Roles.length > 0) {
-        useRbacStore.getState().setTenantRoles(tenant.id, p7Roles)
-      }
+      if (tenant) seedTenantSession(tenant.id, { p7Roles })
     },
   })
 }
@@ -535,9 +478,7 @@ export function useRegister() {
     onSuccess: ({ user, p7Roles }) => {
       setUser(user)
       const tenant = useTenantStore.getState().tenant
-      if (tenant && p7Roles && p7Roles.length > 0) {
-        useRbacStore.getState().setTenantRoles(tenant.id, p7Roles)
-      }
+      if (tenant) seedTenantSession(tenant.id, { p7Roles })
     },
   })
 }
@@ -571,9 +512,7 @@ export function useVerifyOTP() {
       if (result.is_new_user) return
       setUser(result.user)
       const tenant = useTenantStore.getState().tenant
-      if (tenant && result.p7Roles && result.p7Roles.length > 0) {
-        useRbacStore.getState().setTenantRoles(tenant.id, result.p7Roles)
-      }
+      if (tenant) seedTenantSession(tenant.id, { p7Roles: result.p7Roles })
     },
   })
 }
@@ -818,17 +757,15 @@ export function useBranch(id: string) {
 // ── Branch Management Hooks (P7.3) ────────────────────────────────────────────
 
 /**
- * P10.3 Phase E — tenant isolation enforcement: validates the active
- * identity belongs to `tenantId` before returning its branch list.
+ * Phase 2 — tenant access is no longer decided client-side (see
+ * ownership-resolution.service.ts removal). The backend is the sole
+ * authority on which tenants/branches a request may see; this hook just
+ * asks for `tenantId`'s branches and returns whatever comes back.
  */
 export function useAdminBranches(tenantId: string) {
-  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['admin-branches', tenantId],
-    queryFn: async () => {
-      await assertOwnershipTenantAccess(email, tenantId)
-      return branchManagementService.getBranches(tenantId)
-    },
+    queryFn: () => branchManagementService.getBranches(tenantId),
     staleTime: STALE_TIME,
     enabled: !!tenantId,
   })
@@ -1231,22 +1168,15 @@ export function useAdminStats() {
 }
 
 /**
- * P10.3.1 audit — this is the primary `/console/orders` admin read (not
- * the branch-scoped `useBranchOrders()`, already guarded in P10.3 Phase
- * D). It had no tenant-isolation enforcement at all: `getAdminOrders()`
- * applies no tenant filter to `MOCK_ORDERS`, so any authenticated
- * console session could read it regardless of tenant membership. Now
- * validates via `assertOwnershipTenantAccess()`, the same guard
- * `useStaff()`/`useAdminBranches()` already use.
+ * Phase 2 — tenant scoping for `/console/orders` now relies solely on the
+ * `tenantId` query-key/param, the same as every other admin query; access
+ * enforcement is the backend's responsibility, not a client-side check.
  */
 export function useAdminOrders(filters: AdminOrderFilters = {}) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
     queryKey: ['admin-orders', tenantId, filters],
-    queryFn: async () => {
-      if (tenantId) await assertOwnershipTenantAccess(useAuthStore.getState().user?.email, tenantId)
-      return adminService.getAdminOrders(filters)
-    },
+    queryFn: () => adminService.getAdminOrders(filters),
     staleTime: 30_000,
     enabled: !!tenantId,
   })
@@ -1287,18 +1217,12 @@ export function useUpdateOrderStatus() {
   })
 }
 
-/**
- * P10.3.1 audit — same gap as `useAdminOrders()` above: the primary
- * `/console/reservations` admin read had no tenant-isolation enforcement.
- */
+/** Phase 2 — same scoping approach as useAdminOrders() above. */
 export function useAdminReservations(filters: AdminReservationFilters = {}) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
     queryKey: ['admin-reservations', tenantId, filters],
-    queryFn: async () => {
-      if (tenantId) await assertOwnershipTenantAccess(useAuthStore.getState().user?.email, tenantId)
-      return adminService.getAdminReservations(filters)
-    },
+    queryFn: () => adminService.getAdminReservations(filters),
     staleTime: 30_000,
     enabled: !!tenantId,
   })
@@ -2441,19 +2365,11 @@ export function useArchiveTenant() {
 
 // ── Staff Management Hooks (P7.2) ─────────────────────────────────────────────
 
-/**
- * P10.3 Phase E — tenant isolation enforcement: validates the active
- * identity belongs to `tenantId` via `assertOwnershipTenantAccess()`
- * before returning the tenant's Staff roster.
- */
+/** Phase 2 — tenant scoping via `tenantId` only; access enforcement is the backend's job. */
 export function useStaff(tenantId: string) {
-  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['staff', tenantId],
-    queryFn: async () => {
-      await assertOwnershipTenantAccess(email, tenantId)
-      return staffService.getStaff(tenantId)
-    },
+    queryFn: () => staffService.getStaff(tenantId),
     staleTime: STALE_TIME,
     enabled: !!tenantId,
   })
@@ -2676,83 +2592,39 @@ export function useAccessibleBranches(
   })
 }
 
-/**
- * P10.2.2 Phase D — builds a `BranchAccessContext` for the current session
- * from this Staff member's active `StaffAssignment` rows, via
- * `ownership-resolution.service.ts`'s `buildBranchAccessContextFromAssignments()`.
- * This is StaffAssignment's entry point into the existing, UNCHANGED
- * branch-filtering engine: pass the result straight into
- * `useAccessibleBranches()` / `branchAccessService.*` above — no branch
- * filtering logic is duplicated here, only the context those functions
- * already expected is now actually populated (P10.0 J20: previously
- * "built but unpopulated").
- *
- * Returns `null` when the actor is an Owner of `tenantId` (an Owner needs
- * no assignment-derived context — check `usePermission('branches.manage')`
- * or ownership directly first) or has no assignments to this tenant.
- *
- * Canonical usage:
- *   const branches = useBranches().data ?? []
- *   const context = useOwnershipBranchAccessContext(tenantId, branches)
- *   const { data: visible } = useAccessibleBranches(context ?? EMPTY_CONTEXT, branches)
- */
-export function useOwnershipBranchAccessContext(
-  tenantId: string,
-  tenantBranches: BranchEntity[],
-): BranchAccessContext | null {
-  const user = useAuthStore((s) => s.user)
-  return useMemo(
-    () => buildBranchAccessContextFromAssignments(user?.email, tenantId, tenantBranches),
-    [user?.email, tenantId, tenantBranches],
-  )
-}
+// Phase 2 (RBAC unification) — useOwnershipBranchAccessContext(), which
+// built a BranchAccessContext from client-held StaffAssignment fixtures
+// via ownership-resolution.service.ts, has been removed: deciding which
+// branches a staff member can see is an authorization decision and must
+// come from the backend, not be computed in the browser. It had no
+// consumers outside this file. useAccessibleBranches() above is unaffected
+// — it's a generic filter over whatever context/branches it's given.
 
-/**
- * Fetches orders for a specific branch. P10.3 Phase D — validates the
- * caller's branch access via `assertOwnershipBranchAccess()` before
- * fetching; the query rejects (surfaced as `query.error`) for a branch
- * outside the caller's assignment instead of silently returning data.
- */
+/** Fetches orders for a specific branch. Phase 2 — branch access is a backend concern, not a client-side check. */
 export function useBranchOrders(branchId: string) {
-  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['branch-orders', branchId],
-    queryFn: async () => {
-      await assertOwnershipBranchAccess(email, branchId)
-      return adminService.getAdminOrders({ branch_id: branchId })
-    },
+    queryFn: () => adminService.getAdminOrders({ branch_id: branchId }),
     enabled: !!branchId,
   })
 }
 
-/**
- * Fetches reservations for a specific branch. P10.3 Phase D — same
- * branch-access enforcement as `useBranchOrders()` above.
- */
+/** Fetches reservations for a specific branch. */
 export function useBranchReservations(branchId: string) {
-  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['branch-reservations', branchId],
-    queryFn: async () => {
-      await assertOwnershipBranchAccess(email, branchId)
-      return adminService.getAdminReservations({ branch_id: branchId })
-    },
+    queryFn: () => adminService.getAdminReservations({ branch_id: branchId }),
     enabled: !!branchId,
   })
 }
 
-/**
- * Fetches branch-scoped analytics (revenue, orders, reservations).
- * P10.3 Phase D — same branch-access enforcement as `useBranchOrders()`.
- */
+/** Fetches branch-scoped analytics (revenue, orders, reservations). */
 export function useBranchAnalytics(branchId: string) {
-  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     enabled: !!branchId,
     staleTime: 30_000,
     queryKey: ['branch-analytics', branchId],
     queryFn: async () => {
-      await assertOwnershipBranchAccess(email, branchId)
       const [revenue, orders, reservations] = await Promise.all([
         branchAnalyticsService.getBranchRevenueAnalytics(branchId),
         branchAnalyticsService.getBranchOrderAnalytics(branchId),
@@ -2983,14 +2855,15 @@ import type {
 } from '@/types/realtime-operations'
 
 /**
- * P10.3 Phase D — `OperationsScope.branchId` is optional (a tenant-wide
- * view omits it); enforcement only applies once a specific branch is in
- * scope, mirroring how `useAccessibleBranches()` already treats "no
- * branch filter" as "manage all" upstream of this. Not a second access
- * model — delegates entirely to `assertOwnershipBranchAccess()`.
+ * Phase 2 (RBAC unification) — deliberately a no-op now. Previously
+ * delegated to `assertOwnershipBranchAccess()` (ownership-resolution.service.ts),
+ * deciding branch access from client-held mock data. Branch/tenant access
+ * enforcement belongs to the backend; every call site below is left
+ * unchanged (still `await`s this) so this is a one-line seam if a future
+ * phase needs to reintroduce a client-side check for a different reason.
  */
-async function assertOperationsScopeAccess(email: string | null | undefined, scope: OperationsScope): Promise<void> {
-  if (scope.branchId) await assertOwnershipBranchAccess(email, scope.branchId)
+async function assertOperationsScopeAccess(_email: string | null | undefined, _scope: OperationsScope): Promise<void> {
+  // no-op — see comment above
 }
 
 /** Full operations dashboard snapshot — polls every 15 s for freshness. */
@@ -3047,13 +2920,9 @@ export function useBranchStatus(scope: OperationsScope) {
 
 /** Kitchen queue per branch — polls every 8 s. */
 export function useKitchenStatus(branchId: string, tenantId: string) {
-  const email = useAuthStore((s) => s.user?.email)
   return useQuery({
     queryKey: ['kitchen-status', tenantId, branchId],
-    queryFn: async () => {
-      await assertOwnershipBranchAccess(email, branchId)
-      return realtimeOperationsService.getKitchenStatus(branchId)
-    },
+    queryFn: () => realtimeOperationsService.getKitchenStatus(branchId),
     refetchInterval: 8_000,
   })
 }

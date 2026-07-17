@@ -23,7 +23,7 @@
 import { useEffect, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore, useTenantStore } from '@/stores'
-import { useHasDashboardAccess, usePermission } from '@/hooks'
+import { usePermission } from '@/hooks'
 import type { P7Permission } from '@/types/rbac'
 
 export interface AuthGuardProps {
@@ -67,22 +67,16 @@ export function AuthGuard({
   const tenantState = useTenantStore((s) => s.tenantState)
   const router = useRouter()
 
-  // P10.2.2 — docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md §8.1: `dashboard:access`
-  // is a derived, ownership/StaffAssignment-aware boolean
-  // (`useHasDashboardAccess()`, src/hooks/index.ts), not a plain P7
-  // permission lookup — `ROLE_PERMISSION_MAP` never grants the literal
-  // `'dashboard:access'` permission to any role (see
-  // docs/P10.4.8_LEGACY_COMPATIBILITY_AUDIT.md Phase G), so it stays
-  // special-cased. AuthGuard's external contract (the `requiredPermission`
-  // prop) is unchanged. P10.4.11 — any other `requiredPermission` now
-  // resolves through the P7 permission engine (`usePermission()`),
-  // replacing the removed legacy `rbacService.hasPermission()` fallback.
-  const hasDashboardAccess = useHasDashboardAccess()
-  const hasOtherRequiredPermission = usePermission(requiredPermission ?? 'dashboard:access')
-  const isDashboardAccessCheck = requiredPermission === 'dashboard:access'
-  const permissionGranted = isDashboardAccessCheck
-    ? hasDashboardAccess
-    : !requiredPermission || hasOtherRequiredPermission
+  // Phase 2 (RBAC unification) — `dashboard:access` is now a real P7
+  // permission granted to every assignable role (ROLE_PERMISSION_MAP,
+  // permission.service.ts), so it no longer needs special-casing here:
+  // `usePermission()` alone answers both "can reach the Console at all"
+  // and any other specific permission, through the same single source
+  // (`currentTenantSession`). `requiredPermission` defaults to
+  // `'dashboard:access'` so `<AuthGuard>` with no prop still means
+  // "authenticated + has some tenant role."
+  const hasRequiredPermission = usePermission(requiredPermission ?? 'dashboard:access')
+  const permissionGranted = !requiredPermission || hasRequiredPermission
 
   // Tenant resolution is still settling — wait rather than judge permissions
   // against an unresolved/null tenant (which would read as "denied" and

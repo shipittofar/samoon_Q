@@ -110,6 +110,9 @@ export type P7Permission =
   // ── Console access (legacy compat) ────────────────────────
   | 'dashboard:access'
 
+/** Alias for P7Permission — used at call sites that don't need the P7-specific name. */
+export type Permission = P7Permission
+
 /** A user's role assignment scoped to a specific tenant. */
 export interface UserTenantRole {
   userId: string
@@ -121,6 +124,20 @@ export interface UserTenantRole {
 export interface TenantRoleAssignment {
   tenantId: string
   roles: Role[]
+}
+
+/**
+ * Phase 2 (RBAC unification) — the single, active-tenant-scoped permission
+ * record every permission check reads from (`useRbacStore.currentTenantSession`).
+ * Deliberately holds ONLY the active tenant's roles/permissions — no
+ * cross-tenant cache, no ownership data, no staff-assignment data. Never
+ * persisted; reconstructed after login, refresh, and every tenant switch
+ * (see normalizeTenantPermissions() in permission.service.ts).
+ */
+export interface CurrentTenantSession {
+  tenantId: string
+  roles: Role[]
+  permissions: Permission[]
 }
 
 /** Options for capability/featureFlag-aware permission checks. */

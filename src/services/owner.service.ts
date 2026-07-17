@@ -44,6 +44,11 @@ const delay = (ms = 250) => new Promise<void>((r) => setTimeout(r, ms))
 // staff-assignment.service.ts), which is exactly the "owner role collapses
 // into a Staff assignment" migration story from P10.1 §8.2.
 
+// Phase 2 (RBAC unification) — MOCK_OWNERS/MOCK_TENANT_OWNER_MAP no longer
+// participate in any access decision. ownership-resolution.service.ts (the
+// only former consumer) has zero runtime callers now. This data remains
+// only as a stand-in for a future backend Owner entity — it must not be
+// wired back into any permission/authorization check.
 const MOCK_OWNERS: Owner[] = [
   {
     ownerId: 'owner-001',

@@ -31,7 +31,7 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
 }
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
 import type { Branch as AdminBranch } from '@/types/branch'
-import type { Role } from '@/types/rbac'
+import type { Role, Permission, CurrentTenantSession } from '@/types/rbac'
 import type { TenantRoleAssignment, UserPermissionOverride, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import {
@@ -550,6 +550,22 @@ interface RbacStoreState {
   getRbacAuditLog: (tenantId: string) => RbacAuditEvent[]
   clearRbacAuditLog: (tenantId: string) => void
 
+  /**
+   * Phase 2 (RBAC unification) — THE single source every permission check
+   * reads from (usePermission()/useHasDashboardAccess()/AuthGuard). Holds
+   * ONLY the active tenant's roles + already-resolved permissions — no
+   * cross-tenant cache, no ownership data, no staff-assignment data.
+   *
+   * NEVER persisted (see `partialize` below) — always reconstructed via
+   * normalizeTenantPermissions() (permission.service.ts) after login,
+   * session restore, and every tenant switch. `null` means "no session
+   * established yet for the current tenant" and must read as zero access,
+   * never as "inherit whatever was there before."
+   */
+  currentTenantSession: CurrentTenantSession | null
+  setCurrentTenantSession: (tenantId: string, roles: Role[], permissions: Permission[]) => void
+  clearCurrentTenantSession: () => void
+
   _resetStore: () => void
 }
 
@@ -560,6 +576,11 @@ export const useRbacStore = create<RbacStoreState>()(
       userOverrides: [],
       customRoles: [],
       rbacAuditLog: [],
+      currentTenantSession: null,
+
+      setCurrentTenantSession: (tenantId, roles, permissions) =>
+        set({ currentTenantSession: { tenantId, roles: [...new Set(roles)], permissions: [...new Set(permissions)] } }),
+      clearCurrentTenantSession: () => set({ currentTenantSession: null }),
 
       setTenantRoles: (tenantId, roles) =>
         set((s) => {
@@ -642,13 +663,29 @@ export const useRbacStore = create<RbacStoreState>()(
         userOverrides: [],
         customRoles: [],
         rbacAuditLog: [],
+        currentTenantSession: null,
       }),
     }),
-    // P10.7 Phase F — deliberately unchanged. No `partialize` yet: see
-    // the `tenantRoles`/`userOverrides` field comments above for why
-    // both are still fully persisted, and what precondition must be met
-    // before a future phase adds one.
-    { name: 'samoon-rbac' },
+    {
+      name: 'samoon-rbac',
+      // P10.7 Phase F — tenantRoles/userOverrides/customRoles/rbacAuditLog
+      // deliberately remain fully persisted (unchanged, out of Phase 2
+      // scope — see their field comments above for the documented
+      // precondition for removing that).
+      //
+      // Phase 2 (RBAC unification) — `currentTenantSession` is the one
+      // field explicitly EXCLUDED here. It is the active authorization
+      // decision for this session; persisting it would let a stale,
+      // unrevalidated permission set survive a reload or leak from one
+      // tenant into another. It always starts `null` and is rebuilt via
+      // normalizeTenantPermissions() after login/refresh/tenant switch.
+      partialize: (state) => ({
+        tenantRoles: state.tenantRoles,
+        userOverrides: state.userOverrides,
+        customRoles: state.customRoles,
+        rbacAuditLog: state.rbacAuditLog,
+      }),
+    },
   ),
 )
 

@@ -146,7 +146,7 @@ describe('C — ROLE_PERMISSION_MAP completeness', () => {
   // docs/BRANCH_MANAGEMENT_IMPLEMENTATION.md).
   it('ALL_PERMISSIONS has 59 entries', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(59)
+    expect(ALL_PERMISSIONS).toHaveLength(60)
   })
 })
 
@@ -329,7 +329,7 @@ describe('I — Kitchen permissions', () => {
   })
   it('kitchen has exactly 5 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.kitchen).toHaveLength(5)
+    expect(ROLE_PERMISSION_MAP.kitchen).toHaveLength(6)
   })
 })
 
@@ -404,7 +404,7 @@ describe('L — getPermissionsForRole — single role', () => {
   })
   it('kitchen → 5 permissions', async () => {
     const { getPermissionsForRole } = await import('@/services/permission.service')
-    expect(getPermissionsForRole('kitchen')).toHaveLength(5)
+    expect(getPermissionsForRole('kitchen')).toHaveLength(6)
   })
   it('owner → 24 permissions', async () => {
     const { getPermissionsForRole, ALL_PERMISSIONS } = await import('@/services/permission.service')

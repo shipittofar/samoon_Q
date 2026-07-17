@@ -1,5 +1,20 @@
 // ============================================================
-// P10.2.2 — Ownership Permission Resolution Engine
+// ⚠ DEPRECATED — Phase 2 (RBAC Architecture Refactor & Permission Source
+// Unification). This entire engine has been REMOVED from the runtime
+// authorization path. Nothing in the app calls into this file anymore —
+// confirmed zero non-test imports of any export below. It is kept only
+// because its types/algorithm may inform a future real backend
+// implementation of tenant/branch access resolution; it must never be
+// wired back into usePermissions()/useHasDashboardAccess()/AuthGuard or
+// any admin data hook. Deciding whether a user owns a tenant or belongs
+// to a branch is a backend authorization decision, not something the
+// frontend computes from client-held mock Owner/StaffAssignment data.
+// The single permission source is now `useRbacStore.currentTenantSession`,
+// seeded via `normalizeTenantPermissions()` (permission.service.ts).
+// ============================================================
+//
+// P10.2.2 — Ownership Permission Resolution Engine (original header, kept
+// for algorithm reference only — see deprecation notice above)
 //
 // Implements the algorithm from docs/P10.1_OWNERSHIP_RBAC_ARCHITECTURE.md
 // §4.4, EXTENDING `usePermissions()` (src/hooks/index.ts) rather than

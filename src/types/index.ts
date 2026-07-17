@@ -1,3 +1,5 @@
+import type { Role, Permission } from './rbac'
+
 // ============================================================
 // AUTH TYPES
 // ============================================================
@@ -430,6 +432,25 @@ export interface Tenant {
    * required only once a later phase enforces the non-nullable invariant.
    */
   ownerId?: string
+}
+
+/**
+ * Phase 2 (RBAC unification) — the future backend-supplied session shape.
+ * Not implemented server-side yet (no backend exists in this repo — see
+ * docs/BACKEND_API_CONTRACT.md). Documents the contract the frontend is
+ * ready to consume the moment a backend returns it, from either:
+ *   GET /auth/me/                  (session-scoped)
+ *   GET /tenants/{slug}/session/   (explicit per-tenant session)
+ *
+ * The backend is expected to return `permissions` already resolved for
+ * (user, tenant) — the frontend must not recompute them from `roles`
+ * once this contract is live; `roles` is carried for display/audit
+ * purposes only at that point.
+ */
+export interface TenantSession {
+  tenant: Tenant
+  roles: Role[]
+  permissions: Permission[]
 }
 
 // ============================================================

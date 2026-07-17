@@ -19,6 +19,7 @@ import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } f
 import { getDirection } from '@/i18n/runtime'
 import type { TenantTheme } from '@/types'
 import type { Role } from '@/types/rbac'
+import { normalizeTenantPermissions } from '@/services/permission.service'
 
 function makeQueryClient() {
   return new QueryClient({
@@ -208,17 +209,20 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
   const qc = useQueryClient()
   const booted = useRef(false)
   // TenantBootstrapper and AuthBootstrapper are unordered sibling effects —
-  // getMe() can resolve before loadTenant() does. If tenantRoles arrive with
-  // no resolved tenant to seed them against yet, they're queued here instead
-  // of dropped; the effect below applies them exactly once, the moment a
-  // tenant actually resolves. No permission/ownership logic changes — this
-  // only fixes *when* the existing setTenantRoles() call happens.
+  // getMe() can resolve before loadTenant() does. If roles arrive with no
+  // resolved tenant to seed a session against yet, they're queued here
+  // instead of dropped; the effect below applies them exactly once, the
+  // moment a tenant actually resolves. Phase 2 — this now seeds
+  // currentTenantSession (via normalizeTenantPermissions()), the single
+  // permission source, not a second/parallel computation.
   const pendingTenantRolesRef = useRef<Role[] | null>(null)
   const tenant = useTenantStore((s) => s.tenant)
 
   useEffect(() => {
     if (tenant && pendingTenantRolesRef.current) {
-      useRbacStore.getState().setTenantRoles(tenant.id, pendingTenantRolesRef.current)
+      const { roles, permissions } = normalizeTenantPermissions({ roles: pendingTenantRolesRef.current })
+      useRbacStore.getState().setCurrentTenantSession(tenant.id, roles, permissions)
+      if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenant.id, roles)
       pendingTenantRolesRef.current = null
     }
   }, [tenant])
@@ -268,16 +272,18 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     authService.getMe().then((user) => {
       setUser(user)
       setSentryUser({ id: user.id, email: user.email, role: user.role })
-      // P10.7 Phase D — session restore now hydrates tenantRoles the same
-      // way useLogin()/useVerifyOTP() already do, instead of relying
-      // entirely on useRbacStore's own localStorage persistence to
-      // survive a page reload (docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md
-      // §3). No new RBAC logic here — this only calls the store's
-      // existing setTenantRoles() action with whatever getMe() returned.
+      // P10.7 Phase D / Phase 2 — session restore hydrates currentTenantSession
+      // the same way useLogin()/useVerifyOTP() do (via normalizeTenantPermissions()),
+      // instead of relying entirely on useRbacStore's own localStorage
+      // persistence to survive a page reload. currentTenantSession itself is
+      // NEVER persisted (see stores/index.ts partialize) — this call is what
+      // reconstructs it fresh on every session restore.
       if (user.tenantRoles && user.tenantRoles.length > 0) {
         const currentTenant = useTenantStore.getState().tenant
         if (currentTenant) {
-          useRbacStore.getState().setTenantRoles(currentTenant.id, user.tenantRoles)
+          const { roles, permissions } = normalizeTenantPermissions({ roles: user.tenantRoles })
+          useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions)
+          useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
         } else {
           // Tenant hasn't resolved yet — queue for the effect above to
           // apply once it does, instead of dropping the roles forever.
@@ -285,13 +291,11 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
         }
       }
       // `user.ownership`/`user.staffAssignments`, if a backend ever sends
-      // them here, are deliberately NOT hydrated into any store yet:
-      // Ownership Resolution and StaffAssignment are still synchronous,
-      // mock-service-backed reads (by this phase's own rule — converting
-      // them async is explicitly out of scope), so there is no client
-      // store for these facts to be written into without inventing new
-      // state, which P10.7 also forbids. The fields exist on the
-      // AuthSessionRbacPayload contract for forward compatibility only.
+      // them here, are NOT hydrated into any store — Phase 2 removed the
+      // client-side ownership/StaffAssignment authorization engine those
+      // fields used to feed entirely. The fields remain on the
+      // AuthSessionRbacPayload contract only for forward compatibility with
+      // a future backend that might use them server-side.
       userService.getFavorites().then(setFavorites).catch(() => {})
     }).catch((err: unknown) => {
       // P10.10 — distinguish "session is actually invalid" from "backend

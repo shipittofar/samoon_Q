@@ -16,7 +16,7 @@ import { cn } from '@/utils'
 import { useTenantStore, useBranchStore, useCartStore, useDineInStore, useFavoritesStore, useRecentlyViewedStore, useRbacStore, useAuthStore } from '@/stores'
 import { useTenants, usePermission } from '@/hooks'
 import { featureFlagsService } from '@/services/feature-flags.service'
-import { getMockRoles } from '@/services/permission.service'
+import { getMockRoles, normalizeTenantPermissions } from '@/services/permission.service'
 import { useQueryClient } from '@tanstack/react-query'
 
 const STATUS_DOT: Record<string, string> = {
@@ -59,9 +59,14 @@ export function AdminTenantSwitcher() {
     setSwitching(true)
     setOpen(false)
     setAdminActiveBranch(null)
-    // Capture current user and roles before the tenant changes
+    // Phase 2 (RBAC unification) — the previous implementation fell back to
+    // the ORIGIN tenant's roles when the new tenant had no explicit
+    // assignment for this user. That is permission inheritance across a
+    // tenant switch — never correct: a user's access in tenant A implies
+    // nothing about tenant B. Clear the session immediately so there is no
+    // window where stale tenant-A permissions could be read as valid.
+    useRbacStore.getState().clearCurrentTenantSession()
     const currentUser = useAuthStore.getState().user
-    const originRoles = currentUser && tenant ? useRbacStore.getState().getRolesForTenant(tenant.id) : []
     // Clear all client-side state that is tenant-scoped
     useCartStore.getState().clearCart()
     useDineInStore.getState().clearTable()
@@ -74,15 +79,15 @@ export function AdminTenantSwitcher() {
     if (newTenant) {
       setFeatureFlags(featureFlagsService.resolve(newTenant))
       setFeatureFlagsInitialized(true)
-      // Re-seed RBAC roles for the new tenant. In mock mode, check explicit per-tenant
-      // assignments first; fall back to origin-tenant roles for platform-admin workflows
-      // where the same user manages multiple tenants.
+      // Fetch the new tenant's session permissions fresh. getMockRoles() is
+      // the mock stand-in for a real per-(user,tenant) role-assignment
+      // endpoint — an empty result means zero access to this tenant, full
+      // stop, never a fallback to whatever the previous tenant granted.
       if (currentUser) {
-        const explicitRoles = getMockRoles(currentUser.id, newTenant.id)
-        const rolesToApply = explicitRoles.length > 0 ? explicitRoles : originRoles
-        if (rolesToApply.length > 0) {
-          useRbacStore.getState().setTenantRoles(newTenant.id, rolesToApply)
-        }
+        const roles = getMockRoles(currentUser.id, newTenant.id)
+        const { permissions } = normalizeTenantPermissions({ roles })
+        useRbacStore.getState().setCurrentTenantSession(newTenant.id, roles, permissions)
+        if (roles.length > 0) useRbacStore.getState().setTenantRoles(newTenant.id, roles)
       }
     }
     setSwitching(false)
