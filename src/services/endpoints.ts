@@ -88,8 +88,10 @@ export const ENDPOINTS = {
   // Users
   USERS: {
     PROFILE: '/users/profile/',
-    UPDATE_PROFILE: '/users/profile/',
-    AVATAR_UPLOAD: '/users/avatar/',
+    // UPDATE_PROFILE: '/users/profile/',
+    UPDATE_PROFILE: '/auth/profile/update/',
+    // AVATAR_UPLOAD: '/users/avatar/',
+    AVATAR_UPLOAD: '/auth/profile/avatar/',
     ADDRESSES: '/users/addresses/',
     ADDRESS: (id: string) => `/users/addresses/${id}/`,
     FAVORITES: '/users/favorites/',

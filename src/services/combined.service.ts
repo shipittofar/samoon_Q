@@ -193,7 +193,7 @@ export const userService = {
 
     const form = new FormData()
     form.append('avatar', file)
-    const { data } = await api.post<{ avatar_url: string }>(
+    const { data } = await api.patch<{ avatar_url: string }>(
       ENDPOINTS.USERS.AVATAR_UPLOAD,
       form,
       { headers: { 'Content-Type': 'multipart/form-data' } },
