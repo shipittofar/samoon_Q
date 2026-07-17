@@ -2,7 +2,7 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { MOCK_BRANCHES, MOCK_TENANT_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
-import type { Address, Branch, Notification, PaginatedResponse, Reservation, TableInfo, User } from '@/types'
+import type { Address, Branch, Notification, PaginatedResponse, Reservation, TableInfo, UpdateProfileRequest, User } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms))
@@ -121,7 +121,7 @@ export const notificationService = {
 
 // ─── user.service.ts ──────────────────────────────────────────────────────────
 export const userService = {
-  async updateProfile(data: Partial<User>): Promise<User> {
+  async updateProfile(data: UpdateProfileRequest): Promise<User> {
     if (USE_MOCK) {
       await delay(800)
       return data as User

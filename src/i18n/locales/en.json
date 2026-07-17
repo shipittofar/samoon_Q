@@ -502,6 +502,8 @@
     "lastName": "Last Name",
     "emailLabel": "Email",
     "phoneLabel": "Phone",
+    "phoneNotEditable": "Phone number cannot be changed here.",
+    "noPhoneOnFile": "No phone number on file",
     "saveChanges": "Save Changes",
     "profileUpdated": "Profile updated!",
     "failedToUpdateProfile": "Failed to update profile.",

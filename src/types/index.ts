@@ -17,6 +17,9 @@ export interface User {
   created_at: string
 }
 
+/** Editable profile fields. phone_number is immutable post-verification and excluded. */
+export type UpdateProfileRequest = Partial<Pick<User, 'first_name' | 'last_name' | 'email'>>
+
 export type SendOTPRequest = {
   phone_number: string
   dialCode: string

@@ -10,21 +10,35 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui'
 import { Avatar } from '@/components/ui'
+import { FlagIcon } from '@/components/ui/FlagIcon'
 import { useAuthStore, useThemeStore, useLangStore } from '@/stores'
 import { useSetLocale } from '@/hooks'
 import { userService } from '@/services/combined.service'
+import { COUNTRIES } from '@/data/countries'
 import { cn } from '@/utils'
 import toast from 'react-hot-toast'
 
 // Schema messages are `validation` namespace keys, resolved via
 // `tValidation()` wherever `errors.<field>.message` is rendered below.
+// phone_number is intentionally excluded: it is immutable post-verification
+// and displayed read-only below, never sent in the update payload.
 const profileSchema = z.object({
   first_name: z.string().min(2, 'required'),
   last_name: z.string().min(2, 'required'),
   email: z.string().email('invalid_email'),
-  phone_number: z.string().optional(),
 })
 type ProfileFormData = z.infer<typeof profileSchema>
+
+/** Split an E.164 phone number into its country + national parts for display. */
+function splitPhoneNumber(phone?: string) {
+  if (!phone) return null
+  const digits = phone.startsWith('+') ? phone : `+${phone}`
+  const match = [...COUNTRIES]
+    .sort((a, b) => b.dialCode.length - a.dialCode.length)
+    .find((c) => digits.startsWith(c.dialCode))
+  if (!match) return { country: null, dialCode: '', national: digits }
+  return { country: match, dialCode: match.dialCode, national: digits.slice(match.dialCode.length).trim() }
+}
 
 const THEMES = [
   { value: 'light', key: 'themeLight', icon: Sun },
@@ -117,8 +131,10 @@ export default function SettingsPage() {
 
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { first_name: user?.first_name || '', last_name: user?.last_name || '', email: user?.email || '', phone_number: user?.phone_number || '' },
+    defaultValues: { first_name: user?.first_name || '', last_name: user?.last_name || '', email: user?.email || '' },
   })
+
+  const phone = splitPhoneNumber(user?.phone_number)
 
   const onSaveProfile = async (data: ProfileFormData) => {
     setSaving(true)
@@ -227,7 +243,25 @@ export default function SettingsPage() {
             <Input label={t('firstName')} required {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
             <Input label={t('lastName')} required {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
             <Input label={t('emailLabel')} type="email" required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
-            <Input label={t('phoneLabel')} type="tel" {...register('phone_number')} error={errors.phone_number?.message} />
+
+            <div>
+              <label className="block text-sm font-medium text-[var(--fg)] mb-1.5">{t('phoneLabel')}</label>
+              <div
+                className="flex items-center gap-2 h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card-hover)] text-[var(--fg-muted)] cursor-not-allowed select-none"
+                aria-readonly="true"
+                title={t('phoneNotEditable')}
+              >
+                {phone?.country ? (
+                  <FlagIcon code={phone.country.code} size={18} />
+                ) : (
+                  <span className="text-base leading-none">📵</span>
+                )}
+                {phone?.dialCode && (
+                  <span className="font-medium text-[var(--fg)] shrink-0">{phone.dialCode}</span>
+                )}
+                <span className="truncate">{phone?.national || t('noPhoneOnFile')}</span>
+              </div>
+            </div>
           </div>
           <Button type="submit" loading={saving} disabled={!isDirty}>{t('saveChanges')}</Button>
         </form>

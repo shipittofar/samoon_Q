@@ -502,6 +502,8 @@
     "lastName": "اسم العائلة",
     "emailLabel": "البريد الإلكتروني",
     "phoneLabel": "الهاتف",
+    "phoneNotEditable": "لا يمكن تغيير رقم الهاتف من هنا.",
+    "noPhoneOnFile": "لا يوجد رقم هاتف مسجل",
     "saveChanges": "حفظ التغييرات",
     "profileUpdated": "تم تحديث الملف الشخصي!",
     "failedToUpdateProfile": "فشل تحديث الملف الشخصي.",
