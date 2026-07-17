@@ -328,7 +328,7 @@ export function LoginClientPage() {
       <div className="hidden lg:flex flex-1 relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700" aria-hidden="true">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, white 2px, transparent 2px), radial-gradient(circle at 70% 30%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div className="relative flex flex-col items-center justify-center p-12 text-center text-white">
-          <div className="text-7xl mb-6">🍽️</div>
+          <div className="text-7xl mb-6">🍽️ 🍷 🍕 🥐 ☕ 🧊</div>
           <h2 className="font-[var(--font-display)] text-4xl font-bold mb-4">{t('fineDining')},<br />{t('delivered')}.</h2>
           <p className="text-white/80 max-w-sm text-lg leading-relaxed">
             {t('heroCulinaryExcellence')}
