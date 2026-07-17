@@ -30,7 +30,7 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
   }
 }
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
-import type { Branch as AdminBranch } from '@/types/branch'
+import type { Branch as AdminBranch, BranchResolutionState } from '@/types/branch'
 import type { Role, Permission, CurrentTenantSession } from '@/types/rbac'
 import type { TenantRoleAssignment, UserPermissionOverride, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
 import { BRANCH_KEY, CART_KEY, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
@@ -40,6 +40,7 @@ import {
   TenantForbiddenError,
   ELIGIBLE_TENANT_STATUSES,
 } from '@/services/tenant.service'
+import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 
@@ -360,13 +361,58 @@ export const useTenantStore = create<TenantState>()(
 )
 
 // ── Branch Store ──────────────────────────────────────────────────────────────
+//
+// Phase 3 — Branch Resolution. Two independent branch concepts live here:
+//
+//   activeBranch   — customer-facing storefront location (unrelated to
+//                    admin/console branch resolution; left structurally
+//                    unchanged by this phase).
+//
+//   selectedBranch/branchState — the admin/console branch-resolution state
+//                    machine. `branchState` (BranchResolutionState,
+//                    types/branch.ts) is the SOLE source of "where are we"
+//                    — `null` is never overloaded to mean multiple things.
+//                    `selectedBranch` only answers "which branch, if any".
+//
+//   There is no `branches[0]`/first-branch-wins logic anywhere in this
+//   store. A branch only becomes `selectedBranch` by: (a) explicit user
+//   selection (`selectBranch`), or (b) a persisted branch id that
+//   validates against a freshly-fetched branch list. An invalid or
+//   missing persisted id resolves to `branchState = 'empty'`, never a
+//   silent substitution.
 interface BranchState {
   /** Public-facing branch (Location alias) used by the customer-facing header/BranchSelector. */
   activeBranch: Branch | null
   setActiveBranch: (branch: Branch) => void
-  /** Admin-selected branch with full AdminBranch data (tenantId, settings, businessHours, etc.).
-   *  Set by the AdminBranchSwitcher. Used for context-aware preview URLs and admin scoping. */
+
+  /** The resolved, valid admin branch for the active tenant, or null. Never a placeholder/first-in-array pick — see branchState for why it's null. NOT persisted in full; only its id survives a reload (see partialize below). */
+  selectedBranch: AdminBranch | null
+  /** Deterministic branch lifecycle state (BranchResolutionState) — the single source of branch-resolution truth. */
+  branchState: BranchResolutionState
+  /** The last selected branch's id, persisted across reloads. Used ONLY as an unverified hint to validate against a fresh fetch in loadBranchesForTenant() — never trusted directly, never rendered, never a substitute for `selectedBranch`. */
+  selectedBranchId: string | null
+  /** The full branch list for the active tenant, as last fetched by loadBranchesForTenant(). Array position carries no meaning — never index into this for selection. NOT persisted. */
+  branches: AdminBranch[]
+
+  /**
+   * Fetches branches for `tenantId`, then validates `selectedBranchId`
+   * (if any) against the fresh list:
+   *   - id found in the fresh list  → selectedBranch = that branch, branchState = 'ready'
+   *   - id not found / no id / zero branches → selectedBranch = null, branchState = 'empty'
+   *   - fetch fails → selectedBranch = null, branchState = 'error'
+   * No automatic first-branch substitution at any step. Called once per
+   * tenant resolution by TenantBootstrapper (providers/index.tsx) — not by
+   * individual pages/components.
+   */
+  loadBranchesForTenant: (tenantId: string) => Promise<void>
+  /** Explicit user selection — the only other way `selectedBranch` becomes non-null. Persists the id (not the object). */
+  selectBranch: (branch: AdminBranch) => void
+  /** Resets to `idle`/null — called on tenant switch/logout so no branch (or its id) survives into a different tenant's context. */
+  resetBranchResolution: () => void
+
+  /** @deprecated Phase 3 alias retained only for components not yet migrated off the old field name; identical to `selectedBranch`. */
   adminActiveBranch: AdminBranch | null
+  /** @deprecated Phase 3 alias for `selectBranch`/`resetBranchResolution`; retained for call-site compatibility during migration. */
   setAdminActiveBranch: (branch: AdminBranch | null) => void
 }
 
@@ -384,10 +430,59 @@ export const useBranchStore = create<BranchState>()(
         }
         set({ activeBranch })
       },
+
+      selectedBranch: null,
+      branchState: 'idle',
+      selectedBranchId: null,
+      branches: [],
+
+      loadBranchesForTenant: async (tenantId: string) => {
+        set({ branchState: 'loading' })
+        try {
+          const branches = await branchManagementService.getBranches(tenantId)
+          const persistedId = get().selectedBranchId
+          const match = persistedId ? branches.find((b) => b.id === persistedId) : undefined
+          if (match) {
+            set({ branches, selectedBranch: match, selectedBranchId: match.id, branchState: 'ready', adminActiveBranch: match })
+          } else {
+            // Either no persisted id, zero branches, or the persisted id no
+            // longer exists on the backend — in every case the correct
+            // answer is "no valid branch selected", never branches[0].
+            set({ branches, selectedBranch: null, branchState: 'empty', adminActiveBranch: null })
+          }
+        } catch (err) {
+          captureException(err, { context: 'useBranchStore.loadBranchesForTenant', tenantId })
+          set({ branches: [], selectedBranch: null, branchState: 'error', adminActiveBranch: null })
+        }
+      },
+      selectBranch: (branch) => {
+        set({ selectedBranch: branch, selectedBranchId: branch.id, branchState: 'ready', adminActiveBranch: branch })
+      },
+      resetBranchResolution: () => {
+        set({ branches: [], selectedBranch: null, selectedBranchId: null, branchState: 'idle', adminActiveBranch: null })
+      },
+
+      // Deprecated alias — kept in sync (not a getter, which zustand's
+      // Object.assign-based setState would silently freeze at its first
+      // snapshot) for components not yet migrated off the old field name.
       adminActiveBranch: null,
-      setAdminActiveBranch: (adminActiveBranch) => set({ adminActiveBranch }),
+      setAdminActiveBranch: (branch) => {
+        if (branch) get().selectBranch(branch)
+        else get().resetBranchResolution()
+      },
     }),
-    { name: BRANCH_KEY },
+    {
+      name: BRANCH_KEY,
+      version: 2,
+      // Phase 3 — only the branch id survives a reload. The full Branch
+      // object (name, slug, status, settings, ...) is never persisted; it
+      // is always re-fetched and re-validated by loadBranchesForTenant().
+      partialize: (state) => ({
+        activeBranch: state.activeBranch,
+        selectedBranchId: state.selectedBranchId,
+      }),
+      migrate: () => ({ activeBranch: null, selectedBranchId: null }),
+    },
   ),
 )
 

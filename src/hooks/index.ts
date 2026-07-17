@@ -34,6 +34,7 @@ import type {
   CreateBranchPayload,
   UpdateBranchPayload,
   AssignManagerPayload,
+  BranchResolutionState,
 } from '@/types/branch'
 import { branchAccessService } from '@/services/branch-access.service'
 import { branchAnalyticsService } from '@/services/branch-analytics.service'
@@ -754,6 +755,54 @@ export function useBranch(id: string) {
   })
 }
 
+// ── Branch Resolution (Phase 3) ────────────────────────────────────────────────
+
+/**
+ * The single allowlist of admin query-key prefixes that are branch-scoped
+ * and must be invalidated on every branch switch. Shared between
+ * AdminBranchSwitcher's invalidation call and (eventually) every
+ * branch-scoped hook below, so there is exactly one list to keep in sync
+ * rather than a hardcoded set duplicated at each call site.
+ */
+export const BRANCH_SCOPED_QUERY_KEYS = [
+  'admin-orders',
+  'admin-reservations',
+  'admin-customers',
+  'admin-stats',
+  'analytics-summary',
+  'analytics-revenue',
+  'analytics-reservations',
+  'branch-orders',
+  'branch-reservations',
+  'branch-analytics',
+  'kitchen-status',
+  'operations-dashboard',
+  'live-orders',
+  'live-reservations',
+] as const
+
+/** Current admin branch-resolution state (BranchResolutionState) — see types/branch.ts. */
+export function useBranchState(): BranchResolutionState {
+  return useBranchStore((s) => s.branchState)
+}
+
+/** The resolved, valid admin branch, or null. Only meaningful when useBranchState() === 'ready'. */
+export function useSelectedBranch() {
+  return useBranchStore((s) => s.selectedBranch)
+}
+
+/**
+ * Guard for branch-scoped hooks/pages: true only once a valid branch is
+ * selected (`branchState === 'ready'`). Hooks that must never fire with an
+ * undefined/null branchId should gate their `enabled` on this (or on
+ * `branchState === 'ready'` directly) rather than only checking
+ * `!!branchId`, since a stale/persisted-but-unvalidated id must never
+ * reach a query key.
+ */
+export function useIsBranchReady(): boolean {
+  return useBranchStore((s) => s.branchState === 'ready' && s.selectedBranch !== null)
+}
+
 // ── Branch Management Hooks (P7.3) ────────────────────────────────────────────
 
 /**
@@ -761,6 +810,12 @@ export function useBranch(id: string) {
  * ownership-resolution.service.ts removal). The backend is the sole
  * authority on which tenants/branches a request may see; this hook just
  * asks for `tenantId`'s branches and returns whatever comes back.
+ *
+ * Phase 3 note: this remains a plain fetch hook for pages that manage the
+ * branch LIST itself (e.g. /console/branches). It is NOT the source of
+ * `selectedBranch`/`branchState` — those live in useBranchStore, populated
+ * once per tenant by BranchResolutionBootstrapper (providers/index.tsx),
+ * not by this hook.
  */
 export function useAdminBranches(tenantId: string) {
   return useQuery({

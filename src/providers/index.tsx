@@ -152,6 +152,59 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
 }
 
 /**
+ * Phase 3 — Branch Resolution bootstrap.
+ *
+ * Reacts to tenant resolution (not just initial boot, unlike
+ * TenantBootstrapper's one-shot `booted` ref — a tenant switch must
+ * re-trigger this too): fetches the resolved tenant's branches and
+ * validates the persisted branch id against them. `useBranchStore`
+ * itself never calls out to fetch branches on its own; this is the one
+ * and only trigger point, matching the RBAC pattern where
+ * currentTenantSession is populated from a single call site.
+ *
+ * - tenantState !== 'resolved' (loading/not_found/forbidden/error) →
+ *   resetBranchResolution() — no stale branch/branchState from a
+ *   previous tenant survives into an unresolved or failed context.
+ * - tenantState === 'resolved' → loadBranchesForTenant(tenant.id), which
+ *   itself never falls back to branches[0] (see stores/index.ts).
+ */
+function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
+  const tenant = useTenantStore((s) => s.tenant)
+  const tenantState = useTenantStore((s) => s.tenantState)
+  // Tracks the last tenant id this bootstrapper actually loaded branches
+  // for — `undefined` means "nothing loaded yet this session" (the
+  // refresh-with-persisted-branch case, where the persisted
+  // selectedBranchId must be validated as-is). Any OTHER previous value
+  // means a genuine tenant switch happened, so the previous tenant's
+  // selectedBranchId must be cleared first — it must never be validated
+  // against a different tenant's branch list.
+  const lastLoadedTenantId = useRef<string | null | undefined>(undefined)
+
+  useEffect(() => {
+    if (tenantState !== 'resolved' || !tenant) {
+      if (lastLoadedTenantId.current !== null) {
+        lastLoadedTenantId.current = null
+        useBranchStore.getState().resetBranchResolution()
+      }
+      return
+    }
+    if (lastLoadedTenantId.current === tenant.id) return
+    const isGenuineTenantSwitch = lastLoadedTenantId.current !== undefined && lastLoadedTenantId.current !== null
+    lastLoadedTenantId.current = tenant.id
+    if (isGenuineTenantSwitch) {
+      // Clear the previous tenant's branch id before loading — it must
+      // never leak into, or be validated against, the new tenant's
+      // branch list. On first-ever resolution (page load/refresh) this
+      // is skipped so the persisted id gets its one legitimate validation.
+      useBranchStore.getState().resetBranchResolution()
+    }
+    void useBranchStore.getState().loadBranchesForTenant(tenant.id)
+  }, [tenant, tenantState])
+
+  return <>{children}</>
+}
+
+/**
  * Applies per-tenant CSS variable overrides at runtime (Phase 2 — P2.2).
  * Reads Tenant.settings.theme and mutates document root CSS vars.
  * Isolated from the bootstrap sequence: reacts to tenant changes reactively.
@@ -240,7 +293,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     clearSentryUser()
     clearTokens()
     useRbacStore.getState()._resetStore()
-    useBranchStore.getState().setAdminActiveBranch(null)
+    useBranchStore.getState().resetBranchResolution()
     useCartStore.getState().clearCart()
     useDineInStore.getState().clearTable()
     useFavoritesStore.getState().setFavorites([])
@@ -325,6 +378,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <ThemeProvider>
         <RTLProvider>
           <TenantBootstrapper>
+            <BranchResolutionBootstrapper>
             <TenantThemeProvider>
               <AuthBootstrapper>
                 <FcmRegistrationProvider>
@@ -339,6 +393,7 @@ export function Providers({ children }: { children: ReactNode }) {
                 </FcmRegistrationProvider>
               </AuthBootstrapper>
             </TenantThemeProvider>
+            </BranchResolutionBootstrapper>
           </TenantBootstrapper>
         </RTLProvider>
       </ThemeProvider>

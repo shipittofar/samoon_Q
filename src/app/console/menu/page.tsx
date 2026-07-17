@@ -98,7 +98,13 @@ export default function AdminMenuPage() {
   // AdminBranchSwitcher — menu items/categories/mutations are all scoped to
   // it, never to a tenant-wide "all branches" collection (there is no such
   // thing; see docs/BRANCH_MENU_ANALYSIS.md).
-  const adminBranchId = useBranchStore((s) => s.adminActiveBranch?.slug)
+  // Phase 3 — must be '' (disables the query), never undefined: passing
+  // undefined into useMenuItems/useCategories/useExtraGroups would let
+  // them silently fall back to the unrelated customer-storefront active
+  // branch (useActiveBranchId()) via their `branchId ?? fallbackBranchId`
+  // internal default — an implicit branch selection this admin page must
+  // never exhibit.
+  const adminBranchId = useBranchStore((s) => s.adminActiveBranch?.slug) ?? ''
 
   const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch } = useMenuItems(adminBranchId)
   const { data: categories, isLoading: catsLoading } = useCategories(adminBranchId)

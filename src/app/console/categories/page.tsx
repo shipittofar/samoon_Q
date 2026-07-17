@@ -87,7 +87,10 @@ export default function AdminCategoriesPage() {
 
   // Categories are managed one branch at a time, same as console/menu/page.tsx.
   const adminBranch = useBranchStore((s) => s.adminActiveBranch)
-  const adminBranchId = adminBranch?.slug
+  // Phase 3 — '' (not undefined): see console/menu/page.tsx's comment on
+  // the same pattern — undefined would let useCategories() silently fall
+  // back to the unrelated customer-storefront active branch.
+  const adminBranchId = adminBranch?.slug ?? ''
 
   const { data: categories, isLoading, isError, refetch } = useCategories(adminBranchId)
   const canCreate = usePermission('category.create')

@@ -3,7 +3,6 @@
 import { use, useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { KitchenDisplay } from '@/components/admin/KitchenDisplay'
-import { BranchSelector } from '@/components/common/BranchSelector'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -30,14 +29,22 @@ function ConnectionStatus({ connected }: { connected: boolean }) {
 function KitchenPageContent() {
   const t = useTranslations('console')
   const { tenant } = useTenantStore()
-  const activeBranch = useBranchStore((s) => s.activeBranch)
+  // Phase 3 — the console's Kitchen Display is admin-context, not
+  // customer-storefront: it must read the branch the AdminBranchSwitcher
+  // (AdminContextBar, rendered once by the console layout) resolved, not
+  // the unrelated customer-facing `activeBranch` slice. `branchState` is
+  // consulted explicitly below rather than only checking `branchId`
+  // truthiness, so a 'loading'/'error' state renders distinctly instead
+  // of collapsing into the same "select a branch" empty copy.
+  const selectedBranch = useBranchStore((s) => s.selectedBranch)
+  const branchState = useBranchStore((s) => s.branchState)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [refreshMs, setRefreshMs] = useState(10_000)
   const [lastRefresh, setLastRefresh] = useState(Date.now())
   const [tick, setTick] = useState(0)
   const [connected, setConnected] = useState(true)
 
-  const branchId = activeBranch?.id ?? ''
+  const branchId = branchState === 'ready' ? selectedBranch?.id ?? '' : ''
   const tenantId = tenant?.id ?? ''
 
   const refresh = useCallback(() => {
@@ -79,7 +86,8 @@ function KitchenPageContent() {
             <ConnectionStatus connected={connected} />
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <BranchSelector />
+            {/* Branch selection lives once in AdminContextBar's AdminBranchSwitcher
+                (console layout) — this page only reads the resolved selection. */}
             <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)]">
               <RefreshCw className="h-3 w-3" />
               <span>{t('autoRefreshLabel')}</span>
@@ -116,10 +124,18 @@ function KitchenPageContent() {
 
         <p className="text-xs text-[var(--fg-muted)] mb-4">
           {t('lastUpdatedLabel', { time: new Date(lastRefresh).toLocaleTimeString() })}
-          {activeBranch ? ` · ${activeBranch.name}` : ` · ${t('allBranches')}`}
+          {selectedBranch ? ` · ${selectedBranch.name}` : ` · ${t('allBranches')}`}
         </p>
 
-        {!branchId ? (
+        {branchState === 'loading' ? (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 text-center">
+            <p className="text-sm text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</p>
+          </div>
+        ) : branchState === 'error' ? (
+          <div className="rounded-xl border border-red-300 bg-[var(--card)] p-8 text-center">
+            <p className="text-sm text-red-600 dark:text-red-400">{t('failedToLoadBranches')}</p>
+          </div>
+        ) : !branchId ? (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 text-center">
             <p className="text-sm text-[var(--fg-muted)]">{t('selectBranchToViewKitchenQueue')}</p>
           </div>

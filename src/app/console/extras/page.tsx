@@ -158,7 +158,10 @@ export default function AdminExtrasPage() {
 
   // Extras are managed one branch at a time, same as console/menu and console/categories.
   const adminBranch = useBranchStore((s) => s.adminActiveBranch)
-  const adminBranchId = adminBranch?.slug
+  // Phase 3 — '' (not undefined): see console/menu/page.tsx's comment on
+  // the same pattern — undefined would let useExtraGroups()/useExtras()
+  // silently fall back to the unrelated customer-storefront active branch.
+  const adminBranchId = adminBranch?.slug ?? ''
 
   const { data: groups, isLoading: groupsLoading, isError: groupsError, refetch: refetchGroups } = useExtraGroups(adminBranchId)
   const { data: extras, isLoading: extrasLoading, isError: extrasError, refetch: refetchExtras } = useExtras(adminBranchId)

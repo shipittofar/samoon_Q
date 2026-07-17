@@ -6,6 +6,27 @@ export type BranchStatus = 'active' | 'inactive' | 'maintenance'
 
 export type BranchType = 'physical' | 'mobile'
 
+/**
+ * Phase 3 — Branch Resolution state machine (useBranchStore.branchState).
+ * Deterministic branch lifecycle state — mirrors TenantLifecycle
+ * (types/index.ts) so the two resolution flows read the same way.
+ *
+ *   idle    — initial state, before a tenant has resolved (no fetch yet)
+ *   loading — fetching branches for the resolved tenant
+ *   ready   — a valid selectedBranch exists (persisted id validated, or
+ *             the user explicitly picked one)
+ *   empty   — branches loaded successfully but no valid branch is selected
+ *             (zero branches for the tenant, or the persisted id no
+ *             longer exists) — requires an explicit user choice, never an
+ *             automatic one
+ *   error   — the branch fetch itself failed
+ *
+ * `null` is never overloaded to mean any of these — `selectedBranch` only
+ * answers "which branch, if any", `branchState` alone answers "where are
+ * we in resolving that".
+ */
+export type BranchResolutionState = 'idle' | 'loading' | 'ready' | 'empty' | 'error'
+
 export interface BranchLocation {
   address: string
   city: string
