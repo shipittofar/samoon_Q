@@ -139,13 +139,17 @@ describe('P10.10 Test 6 — network error: session remains (category B)', () => 
     // — a comment mentioning clearSession() elsewhere in the catch block
     // (e.g. explaining the branch) does not satisfy this.
     expect(providersSource).toMatch(/if \(status === 401\) \{\s*clearSession\(\)\s*\}/)
-    // And setLoading(false) must run unconditionally afterward — both
-    // categories reach it, only clearSession() is gated.
+    // Phase 7 — the non-401 branch no longer just calls a bare
+    // setLoading(false); it now marks the failure as transient via
+    // setSessionCheckFailed(true) (which itself resolves isLoading without
+    // touching tokens or the session — see useAuthStore.setSessionCheckFailed).
+    // Only clearSession() may be gated behind the 401 check; the else
+    // branch must never also call clearSession().
     const catchBlock = providersSource.slice(
       providersSource.indexOf('.catch((err: unknown)'),
       providersSource.indexOf('.catch((err: unknown)') + 1500,
     )
-    expect(catchBlock).toMatch(/if \(status === 401\) \{\s*clearSession\(\)\s*\}\s*setLoading\(false\)/)
+    expect(catchBlock).toMatch(/if \(status === 401\) \{\s*clearSession\(\)\s*\}\s*else\s*\{\s*setSessionCheckFailed\(true\)\s*\}/)
   })
 
   it('reproduces the decision logic directly: a network error (no response) does not trigger the clear branch', () => {
