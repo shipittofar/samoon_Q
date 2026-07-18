@@ -33,6 +33,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - backend_static_volume:/app/staticfiles:ro
     depends_on:
       - app
     restart: unless-stopped
@@ -42,6 +43,13 @@ services:
 networks:
   shared-net:
     external: true
+
+
+volumes:
+  backend_static_volume:
+    external: true
+    name: backend_static_volume
+
 
 # services:
 #   app:
