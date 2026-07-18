@@ -32,10 +32,22 @@ export interface AuthGuardProps {
   requiredPermission?: P7Permission
   /** Where to redirect unauthenticated users (default: /login). */
   loginPath?: string
-  /** Where to redirect users who are authenticated but lack permission. */
-  forbiddenPath?: string
   /** Rendered while auth state is still loading. */
   fallback?: ReactNode
+  /**
+   * Phase X.3 — rendered in place, instead of redirecting, when the user
+   * is authenticated (and, if `requireResolvedTenant` is set, the tenant
+   * has resolved) but lacks `requiredPermission`. Falls back to
+   * `fallback` if omitted. A missing permission is never treated the
+   * same as being logged out: redirecting an authenticated user off a
+   * page they merely lack one permission for is indistinguishable from a
+   * forced logout from their perspective, and was the direct cause of
+   * the Console tenant-switch "kicked out" bug (Phase X audit) — a
+   * mid-switch or genuinely-unauthorized-tenant window always produces a
+   * momentarily permission-empty `currentTenantSession`, which must
+   * render an in-place denial, not navigate the whole app away.
+   */
+  permissionDeniedFallback?: ReactNode
   /**
    * When true, this guard also requires `tenantState === 'resolved'` before
    * rendering `children` — i.e. it will never render with `tenant === null`.
@@ -68,11 +80,11 @@ export function AuthGuard({
   children,
   requiredPermission,
   loginPath = '/login',
-  forbiddenPath = '/',
   fallback = null,
   requireResolvedTenant = false,
   tenantFallback,
   sessionErrorFallback,
+  permissionDeniedFallback,
 }: AuthGuardProps) {
   const { isAuthenticated, isLoading, sessionCheckFailed } = useAuthStore()
   const tenantState = useTenantStore((s) => s.tenantState)
@@ -116,11 +128,10 @@ export function AuthGuard({
       router.replace(loginPath)
       return
     }
-    if (tenantPending || tenantFailed) return
-    if (requiredPermission && !permissionGranted) {
-      router.replace(forbiddenPath)
-    }
-  }, [isAuthenticated, isLoading, sessionCheckFailed, requiredPermission, permissionGranted, loginPath, forbiddenPath, router, tenantPending, tenantFailed])
+    // Phase X.3 — permission denial (requiredPermission set, not granted)
+    // deliberately does NOT redirect here. See render logic below and the
+    // permissionDeniedFallback doc comment for why.
+  }, [isAuthenticated, isLoading, sessionCheckFailed, loginPath, router, tenantPending, tenantFailed])
 
   if (isLoading) return <>{fallback}</>
   if (!isAuthenticated && sessionCheckFailed) {
@@ -132,7 +143,7 @@ export function AuthGuard({
     return <>{tenantFallback ? tenantFallback(tenantState as 'not_found' | 'forbidden' | 'error') : fallback}</>
   }
   if (requiredPermission && !permissionGranted) {
-    return <>{fallback}</>
+    return <>{permissionDeniedFallback ?? fallback}</>
   }
 
   return <>{children}</>

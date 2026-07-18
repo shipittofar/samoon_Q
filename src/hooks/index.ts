@@ -796,9 +796,27 @@ export function useBranch(id: string) {
  *     (the corresponding analytics summary hooks further below):
  *     queryKey is `[name, tenantId]` — tenant-scoped only; the underlying
  *     `analyticsService` calls take no branch parameter at all.
- * If a future backend adds branch-level scoping to any of these, add the
- * corresponding hook's `branchId` to its own queryKey FIRST, then re-add
- * its key here — never the reverse.
+ *   - `admin-branches` (useAdminBranches) is deliberately EXCLUDED: its
+ *     queryKey is `['admin-branches', tenantId]` — it lists every branch
+ *     of the tenant, not one branch's data, so it must not be invalidated
+ *     on a branch switch (it hasn't changed).
+ *
+ * Added (Phase X.3 — Console context stabilization audit, finding B6) —
+ * verified branch-scoped but previously missing from this list, so they
+ * only refreshed once `staleTime` elapsed rather than immediately on
+ * switch:
+ *   - `admin-branch`/`admin-branch-metrics` (useAdminBranch/
+ *     useAdminBranchMetrics): queryKey is `[name, id]` where `id` IS the
+ *     branchId.
+ *   - `branch-status`/`staff-presence`/`sla-alerts`/`realtime-statistics`/
+ *     `operations-stream` (the P7.7 realtime-operations hooks further
+ *     below): queryKey is `[name, scope.tenantId, scope.branchId, ...]`.
+ *     `invalidateQueries({ queryKey: [key] })` matches by prefix, so the
+ *     trailing `limit` param on `operations-stream` doesn't prevent this.
+ *
+ * If a future backend adds branch-level scoping to any of the Removed
+ * entries above, add the corresponding hook's `branchId` to its own
+ * queryKey FIRST, then re-add its key here — never the reverse.
  */
 export const BRANCH_SCOPED_QUERY_KEYS = [
   'branch-orders',
@@ -808,6 +826,13 @@ export const BRANCH_SCOPED_QUERY_KEYS = [
   'operations-dashboard',
   'live-orders',
   'live-reservations',
+  'admin-branch',
+  'admin-branch-metrics',
+  'branch-status',
+  'staff-presence',
+  'sla-alerts',
+  'realtime-statistics',
+  'operations-stream',
 ] as const
 
 /** Current admin branch-resolution state (BranchResolutionState) — see types/branch.ts. */

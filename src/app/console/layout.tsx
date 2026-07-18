@@ -8,6 +8,7 @@ import { AdminBreadcrumbs } from '@/components/admin/AdminBreadcrumbs'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminContextBar } from '@/components/admin/AdminContextBar'
 import { AdminHeader } from '@/components/admin/AdminHeader'
+import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Button } from '@/components/ui/Button'
 
 /**
@@ -39,7 +40,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <AuthGuard
       requiredPermission="dashboard:access"
-      forbiddenPath="/"
+      permissionDeniedFallback={<AccessDenied />}
       requireResolvedTenant
       tenantFallback={(tenantState) => {
         if (tenantState === 'not_found') {

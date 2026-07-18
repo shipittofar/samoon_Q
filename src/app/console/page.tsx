@@ -2,22 +2,30 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore, useTenantStore, useRbacStore } from '@/stores'
-import { getPermissionsForRole } from '@/services/permission.service'
+import { useTenantStore, useRbacStore } from '@/stores'
 
 /**
  * Role-aware admin dashboard router (P8.9.4 Phase B).
  *
- * Reads the current user's P7 roles and redirects to the most meaningful
- * first screen for that role. Falls back to /console/orders for roles that
- * can manage orders, or to /console/customers as the most universal fallback.
+ * Reads the current user's P7 permissions and redirects to the most
+ * meaningful first screen for them. Falls back to /console/orders for
+ * roles that can manage orders, or to /console/customers as the most
+ * universal fallback.
+ *
+ * Phase X.3 — reads `currentTenantSession` (the single live runtime
+ * authorization source) instead of the persisted `tenantRoles` array via
+ * `getRolesForTenant()`. That persisted copy can retain a stale entry for
+ * a tenant across a switch — `AdminTenantSwitcher` only overwrites it
+ * when the new tenant grants ≥1 role, so a zero-role switch left it
+ * untouched (Phase X audit finding B5). `currentTenantSession` is always
+ * freshly reseeded on every switch/login, never persisted, so it cannot
+ * carry a stale grant forward.
  */
 export default function AdminIndexPage() {
   const router = useRouter()
-  const user = useAuthStore((s) => s.user)
   const tenantId = useTenantStore((s) => s.tenant?.id)
   const tenantState = useTenantStore((s) => s.tenantState)
-  const getRolesForTenant = useRbacStore((s) => s.getRolesForTenant)
+  const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
 
   useEffect(() => {
     // AuthGuard (console/layout.tsx) already blocks rendering this page
@@ -25,9 +33,11 @@ export default function AdminIndexPage() {
     // so the redirect decision itself never runs against an unresolved
     // or null tenant.
     if (tenantState !== 'resolved' || !tenantId) return
+    // Defensive: only trust the session if it's actually for the active
+    // tenant — same guard usePermissions() applies (hooks/index.ts).
+    if (!currentTenantSession || currentTenantSession.tenantId !== tenantId) return
 
-    const roles = getRolesForTenant(tenantId)
-    const permissions = getPermissionsForRole(roles)
+    const permissions = currentTenantSession.permissions
 
     // Platform admin: tenant management is the primary workflow
     if (permissions.includes('tenant.view') && permissions.includes('tenant.manage')) {
@@ -74,7 +84,7 @@ export default function AdminIndexPage() {
 
     // Final fallback
     router.replace('/console/customers')
-  }, [tenantId, tenantState, getRolesForTenant, router])
+  }, [tenantId, tenantState, currentTenantSession, router])
 
   // Render nothing while we determine the redirect target
   return null

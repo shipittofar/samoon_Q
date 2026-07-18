@@ -9,14 +9,14 @@
  * RBAC, feature flags, and all dependent contexts.
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { ChevronDown, Layers, Check, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { useTenantStore, useBranchStore, useCartStore, useDineInStore, useFavoritesStore, useRecentlyViewedStore, useRbacStore, useAuthStore } from '@/stores'
 import { useTenants, usePermission } from '@/hooks'
 import { featureFlagsService } from '@/services/feature-flags.service'
-import { getMockRoles, normalizeTenantPermissions } from '@/services/permission.service'
+import { getMockRoles, normalizeTenantPermissions, hasAnyTenantAccess } from '@/services/permission.service'
 import { useQueryClient } from '@tanstack/react-query'
 
 const STATUS_DOT: Record<string, string> = {
@@ -36,11 +36,25 @@ export function AdminTenantSwitcher() {
   const setFeatureFlagsInitialized = useTenantStore((s) => s.setFeatureFlagsInitialized)
   const setAdminActiveBranch = useBranchStore((s) => s.setAdminActiveBranch)
   const { data: tenants = [], isLoading } = useTenants()
+  const user = useAuthStore((s) => s.user)
   const qc = useQueryClient()
 
   const [open, setOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
+  // Phase X.3 — never list (or allow a switch into) a tenant this user has
+  // no real membership for. useTenants() itself is still unscoped (a
+  // backend contract gap tracked separately, see the Phase X audit) — this
+  // filter is the frontend's own defense-in-depth on top of that, using
+  // the same mock membership data switchTenant() already fetches roles
+  // from below. The active tenant always stays listed/highlighted even if
+  // its own membership lookup were ever to disagree, since the user is
+  // already legitimately inside it.
+  const accessibleTenants = useMemo(
+    () => tenants.filter((tn) => tn.id === tenant?.id || (user && hasAnyTenantAccess(user.id, tn.id))),
+    [tenants, user, tenant?.id],
+  )
 
   // Close on outside click
   useEffect(() => {
@@ -55,7 +69,26 @@ export function AdminTenantSwitcher() {
   if (!canViewTenants) return null
 
   async function switchTenant(slug: string) {
+    // Phase X.3 — in-flight guard: without this, two rapid clicks (e.g. on
+    // different tenants before the first switch's dropdown-close commits)
+    // can start two overlapping switches, each doing its own qc.clear() /
+    // loadTenant() / setCurrentTenantSession() — whichever resolves last
+    // silently wins, regardless of which tenant the user actually meant to
+    // land on (Phase X audit finding B3).
+    if (switching) return
     if (slug === tenant?.slug) { setOpen(false); return }
+    const currentUser = useAuthStore.getState().user
+    // Phase X.3 — defense-in-depth: reject a switch into a tenant this
+    // user has no real membership for, even if this were ever called
+    // directly rather than through the already-filtered dropdown list
+    // below (Phase X audit finding B1 — this is exactly the condition
+    // that previously produced a permission-empty session and, via
+    // AuthGuard's old redirect-on-denial behavior, an apparent logout).
+    const targetTenant = tenants.find((tn) => tn.slug === slug)
+    if (!targetTenant || !currentUser || !hasAnyTenantAccess(currentUser.id, targetTenant.id)) {
+      setOpen(false)
+      return
+    }
     setSwitching(true)
     setOpen(false)
     setAdminActiveBranch(null)
@@ -66,7 +99,6 @@ export function AdminTenantSwitcher() {
     // nothing about tenant B. Clear the session immediately so there is no
     // window where stale tenant-A permissions could be read as valid.
     useRbacStore.getState().clearCurrentTenantSession()
-    const currentUser = useAuthStore.getState().user
     // Clear all client-side state that is tenant-scoped
     useCartStore.getState().clearCart()
     useDineInStore.getState().clearTable()
@@ -130,7 +162,7 @@ export function AdminTenantSwitcher() {
           <p className="px-3 py-1.5 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide">
             {t('platformTenants')}
           </p>
-          {tenants.map((t) => {
+          {accessibleTenants.map((t) => {
             const isActive = t.id === tenant?.id
             return (
               <button

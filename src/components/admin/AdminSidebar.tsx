@@ -145,10 +145,15 @@ function groupNavItems(items: NavItem[]): { group: string; items: NavItem[] }[] 
 
 function RoleChip() {
   const tenantId = useTenantStore((s) => s.tenant?.id)
-  const getRoles = useRbacStore((s) => s.getRolesForTenant)
+  // Phase X.3 — reads the live currentTenantSession instead of the
+  // persisted tenantRoles array (via getRolesForTenant()), which can
+  // retain a stale role entry for a tenant across a switch — see the
+  // Phase X audit finding B5 and console/page.tsx's matching fix.
+  const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
   const user = useAuthStore((s) => s.user)
   if (!tenantId || !user) return null
-  const roles = getRoles(tenantId)
+  if (!currentTenantSession || currentTenantSession.tenantId !== tenantId) return null
+  const roles = currentTenantSession.roles
   if (roles.length === 0) return null
   const label = roles.map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(' · ')
   return (

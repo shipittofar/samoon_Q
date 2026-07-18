@@ -684,6 +684,21 @@ export function getMockRoles(userId: string, tenantId: string): Role[] {
   return user?.tenantAssignments.find((a) => a.tenantId === tenantId)?.roles ?? []
 }
 
+/**
+ * Phase X.3 — the mock stand-in for "does this user hold ANY tenant
+ * membership for tenantId." Real equivalent: a `GET /auth/memberships`
+ * response (see the Phase X audit's required-backend-contract section —
+ * not implemented by any backend yet). Used to decide which tenants
+ * AdminTenantSwitcher lists and allows a switch into — mirroring how
+ * canAccessBranch() filters branches: a frontend-only, defense-in-depth
+ * safety net, never the actual authorization boundary (a real backend
+ * must independently reject a switch to a tenant the caller doesn't
+ * belong to, exactly as it must for branches).
+ */
+export function hasAnyTenantAccess(userId: string, tenantId: string): boolean {
+  return getMockRoles(userId, tenantId).length > 0
+}
+
 // ── P8.5 — Override-aware permission helpers ──────────────────────────────────
 
 /**
@@ -968,6 +983,7 @@ export const permissionService = {
   applyOverrides,
   resolveEffectivePermissions,
   getMockRoles,
+  hasAnyTenantAccess,
   auditHooks,
   MOCK_RBAC_USERS,
   MOCK_TENANT_ID,
