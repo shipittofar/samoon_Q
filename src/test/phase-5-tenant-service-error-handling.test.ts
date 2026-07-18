@@ -72,7 +72,12 @@ describe('Phase 5 — getTenants() real-mode error handling', () => {
     api.get.mockResolvedValueOnce({ data: { results: [{ id: 't1', slug: 'demo' }] } })
 
     const result = await tenantService.getTenants()
-    expect(result).toEqual([{ id: 't1', slug: 'demo' }])
+    // Phase Z.6 — getTenants() now runs each result through normalizeTenant(),
+    // which fills in `businessTypes` (camelCase, module-key semantics) from
+    // the backend's `business_types` field when present, defaulting to []
+    // when neither is present — see tenant.service.ts's normalizeTenant()
+    // doc comment. Every other raw field is still preserved untouched.
+    expect(result).toEqual([{ id: 't1', slug: 'demo', businessTypes: [] }])
   })
 })
 

@@ -424,10 +424,32 @@ export interface SystemReadiness {
   canExecute: boolean
 }
 
+/**
+ * Phase Z.6 — typed `Tenant.settings`. Known fields from the backend
+ * contract (`/api/tenants/`: currency, language, timezone, features,
+ * ordering) are named explicitly; the index signature keeps this
+ * backward-compatible with the existing mock/marketplace settings shape
+ * (`featureFlags`, `theme`, `marketplace`, etc. — never part of the real
+ * backend contract but still read via `tenant.settings?.x as ...` casts
+ * across the app) without forcing every existing reader to change.
+ */
+export interface TenantSettings {
+  currency?: string
+  language?: string
+  timezone?: string
+  /** Per-tenant feature toggles, e.g. `{ loyalty: true }`. */
+  features?: Record<string, boolean>
+  /** Ordering/checkout configuration (delivery, pickup, minimums, etc.). */
+  ordering?: Record<string, unknown>
+  [key: string]: unknown
+}
+
 export interface Tenant {
   id: string
   name: string
   slug: string
+  /** Phase Z.6 — added; backend's `/api/tenants/` response field. Optional: mock tenants and any tenant fetched before this field existed have no image. */
+  image?: string
   /**
    * Active module keys for this tenant (e.g. ['restaurant']).
    *
@@ -442,11 +464,29 @@ export interface Tenant {
    *
    * Roadmap: Tenant.businessTypes — P1A.1.
    * Rename to moduleKeys in a future breaking-change release (tracked: M-2).
+   *
+   * Phase Z.6 — populated from the backend's `business_types` field by
+   * `tenantService` (see tenant.service.ts's `normalizeTenant()`), not
+   * read directly off the wire under this camelCase name — the real
+   * backend sends `business_types` (snake_case), matching every other
+   * Tenant field's naming convention. Kept as `businessTypes` here (not
+   * renamed) because ~20 existing call sites across module routing,
+   * feature-flag resolution, and tenant display already depend on this
+   * exact name/shape; see `business_types` below for the untouched raw
+   * value.
    */
   businessTypes: string[]
+  /** Phase Z.6 — added; the raw `business_types` array exactly as the backend sent it, before any normalization. Prefer `businessTypes` (above) for module-routing/feature-flag decisions — this is for display/debugging parity with the wire contract. */
+  business_types?: string[]
+  /** Phase Z.6 — added; backend's singular primary business type (distinct from the `business_types` array). */
+  type?: string
   status: TenantStatus
+  /** Phase Z.6 — added; backend's `/api/tenants/` response field. */
+  tax_percentage?: number
   created_at: string
-  settings?: Record<string, unknown>
+  /** Phase Z.6 — added; backend's `/api/tenants/` response field. Optional: not every write path (e.g. activate/suspend/archive mutations) returns an updated timestamp today. */
+  updated_at?: string
+  settings?: TenantSettings
   /**
    * P10.2.1 — FK to Owner.ownerId (src/types/ownership.ts). Additive and
    * optional during the migration window described in

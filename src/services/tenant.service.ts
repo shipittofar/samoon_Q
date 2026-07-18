@@ -38,6 +38,31 @@ export class TenantServerError extends Error {
 export const ELIGIBLE_TENANT_STATUSES: TenantStatus[] = ['active', 'trial']
 
 /**
+ * Phase Z.6 — normalizes a raw backend Tenant response into the frontend's
+ * Tenant shape. Every raw field is preserved (spread first, nothing is
+ * dropped or filtered) — the only thing this adds is `businessTypes`
+ * (camelCase, module-key semantics — src/types/index.ts's Tenant doc
+ * comment) when the response doesn't already carry that exact key, filled
+ * in from the backend's real field name, `business_types`. Without this,
+ * every one of the ~20 call sites that read `tenant.businessTypes`
+ * (module routing, feature-flag resolution, tenant cards/lists, the
+ * discover page's category filter) would silently see `undefined` against
+ * a real backend and either render nothing or throw
+ * (`tenant.businessTypes.forEach is not a function`) — see
+ * docs/TENANT_LIST_CONTRACT_ALIGNMENT_AUDIT.md.
+ *
+ * Mock mode already returns `businessTypes` directly (MOCK_TENANTS below),
+ * so this is a no-op there — `raw.businessTypes ?? ...` short-circuits on
+ * the already-correct value.
+ */
+function normalizeTenant(raw: Tenant & { business_types?: string[] }): Tenant {
+  return {
+    ...raw,
+    businessTypes: raw.businessTypes ?? raw.business_types ?? [],
+  }
+}
+
+/**
  * Mock tenant store keyed by slug.
  * P6.15: extended with seed data covering all 6 business types.
  */
@@ -312,7 +337,7 @@ export const tenantService = {
       const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.DETAIL(resolvedSlug))
       const tenant = data.results[0]
       if (!tenant) throw new TenantNotFoundError(resolvedSlug)
-      return tenant
+      return normalizeTenant(tenant)
     } catch (err) {
       if (err instanceof TenantNotFoundError) throw err
       const status = (err as { response?: { status?: number } })?.response?.status
@@ -331,7 +356,7 @@ export const tenantService = {
 
     try {
       const { data } = await api.get<Tenant>(ENDPOINTS.TENANTS.CURRENT)
-      return data
+      return normalizeTenant(data)
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status
       if (status === 404) throw new TenantNotFoundError('current')
@@ -356,7 +381,7 @@ export const tenantService = {
     }
 
     const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.LIST)
-    return data.results
+    return data.results.map(normalizeTenant)
   },
 
   /**
@@ -400,7 +425,7 @@ export const tenantService = {
       return result
     }
     const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.ACTIVATE(slugOrId))
-    return data
+    return normalizeTenant(data)
   },
 
   /**
@@ -414,7 +439,7 @@ export const tenantService = {
       return result
     }
     const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.SUSPEND(slugOrId))
-    return data
+    return normalizeTenant(data)
   },
 
   /**
@@ -428,7 +453,7 @@ export const tenantService = {
       return result
     }
     const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.ARCHIVE(slugOrId))
-    return data
+    return normalizeTenant(data)
   },
 
   /**
@@ -449,7 +474,7 @@ export const tenantService = {
       return { ...tenant }
     }
     const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.TRANSFER_OWNERSHIP(slugOrId), { newOwnerId })
-    return data
+    return normalizeTenant(data)
   },
 
   /**
@@ -474,7 +499,7 @@ export const tenantService = {
       return updated
     }
     const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.SETTINGS(slug), patch)
-    return data
+    return normalizeTenant(data)
   },
 
   /** Exposes mock lookup by ID/slug for use by provisioning service. */

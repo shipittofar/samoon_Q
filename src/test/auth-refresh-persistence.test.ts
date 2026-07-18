@@ -74,7 +74,7 @@ describe('resolveSessionRestoreInput() — the gate this fix changes', () => {
   it('BUG (pre-fix behavior, proven wrong): a memberships-only response — no legacy tenantRoles — used to be silently skipped', () => {
     // This is exactly what a backend built purely against the frozen
     // memberships contract sends: no `tenantRoles` field exists at all.
-    const oldGateWouldSkip = (user: { tenantRoles?: unknown[] }) =>
+    const oldGateWouldSkip = (user: { tenantRoles?: unknown[]; memberships?: unknown; activeMembership?: unknown }) =>
       !(user.tenantRoles && user.tenantRoles.length > 0)
     const backendResponse = { memberships: [OWNER_MEMBERSHIP], activeMembership: OWNER_MEMBERSHIP }
     expect(oldGateWouldSkip(backendResponse)).toBe(true) // the bug: old code would have done nothing
