@@ -391,19 +391,36 @@ export function canAccessBranch(
  * ambiguous multi-membership list with no hint to disambiguate — see
  * `normalizeTenantPermissions()`'s handling of an unresolved selection.
  *
- * Priority: `activeMembership` (the backend's own assertion of "this is
- * the one," when it bothers to send it) → a membership matching
+ * `activeMembership` is treated ONLY as a selector — "which tenantId is
+ * active" — never as a source of roles/branchAccess itself. The real
+ * backend contract sends it as a minimal pointer (`{ tenantId }`), not a
+ * duplicate of the full membership record; `roles`/`branchAccess` only
+ * ever live on the matching entry in `memberships`. Trusting
+ * `activeMembership.roles` directly (pre-fix behavior) silently produced
+ * an empty permission set — `getPermissionsForRole(undefined)` → `[]` —
+ * for every business owner/admin whose `/auth/me/` response used this
+ * pointer shape, denying Console access despite a fully-permissioned
+ * membership existing in `memberships`.
+ *
+ * Priority for which tenantId is active: `activeMembership.tenantId` →
  * `currentTenantId` (the tenant the frontend has already resolved via
  * slug — see `useTenantStore.tenant`) → the sole entry, if the list has
- * exactly one and nothing else disambiguates it.
+ * exactly one and nothing else disambiguates it. Once a tenantId is
+ * chosen, the returned record always comes from `memberships` — never
+ * from `activeMembership` directly — so `roles`/`branchAccess` are
+ * guaranteed complete whenever a match exists.
  */
 function selectActiveMembership(
   memberships: readonly TenantMembership[] | null | undefined,
   activeMembership: TenantMembership | null | undefined,
   currentTenantId: string | undefined,
 ): TenantMembership | undefined {
-  if (activeMembership) return activeMembership
   if (!memberships || memberships.length === 0) return undefined
+  const activeTenantId = activeMembership?.tenantId
+  if (activeTenantId) {
+    const match = memberships.find((m) => m.tenantId === activeTenantId)
+    if (match) return match
+  }
   if (currentTenantId) {
     const match = memberships.find((m) => m.tenantId === currentTenantId)
     if (match) return match
