@@ -4,7 +4,7 @@
 // Regression suite for docs/TENANT_LIST_CONTRACT_ALIGNMENT_AUDIT.md.
 // Proves normalizeTenant() (src/services/tenant.service.ts) fills in
 // `businessTypes` from the backend's real `business_types` field without
-// dropping any other field, and that the new Tenant fields (image, type,
+// dropping any other field, and that the new Tenant fields (image,
 // tax_percentage, updated_at, business_types, settings.currency/language/
 // timezone/features/ordering) round-trip through getTenant()/getTenants()
 // untouched.
@@ -37,7 +37,6 @@ const RAW_BACKEND_TENANT = {
   slug: 'real-backend-tenant',
   image: 'https://example.com/logo.png',
   business_types: ['restaurant', 'cafe'],
-  type: 'restaurant',
   status: 'active',
   tax_percentage: 8.5,
   settings: {
@@ -75,7 +74,6 @@ describe('Phase Z.6 — normalizeTenant() via getTenants() (real mode)', () => {
       slug: 'real-backend-tenant',
       image: 'https://example.com/logo.png',
       business_types: ['restaurant', 'cafe'],
-      type: 'restaurant',
       status: 'active',
       tax_percentage: 8.5,
       created_at: '2024-01-01T00:00:00Z',

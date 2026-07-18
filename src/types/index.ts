@@ -478,8 +478,6 @@ export interface Tenant {
   businessTypes: string[]
   /** Phase Z.6 — added; the raw `business_types` array exactly as the backend sent it, before any normalization. Prefer `businessTypes` (above) for module-routing/feature-flag decisions — this is for display/debugging parity with the wire contract. */
   business_types?: string[]
-  /** Phase Z.6 — added; backend's singular primary business type (distinct from the `business_types` array). */
-  type?: string
   status: TenantStatus
   /** Phase Z.6 — added; backend's `/api/tenants/` response field. */
   tax_percentage?: number

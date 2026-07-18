@@ -6,6 +6,13 @@ deliberately-deferred follow-up (explained in §6 — fixing it would require
 either a backend change or a UI redesign, both explicitly out of scope for
 this phase).**
 
+**Update (Phase Z.6.1):** the `type?: string` field this phase added to
+`Tenant` was removed in a follow-up phase — it had zero consumers (added
+speculatively to mirror the backend response shape, never wired into any
+component/service). Every mention of `type` below is a historical record of
+what this phase originally did, not the current state of `Tenant`. See
+`docs/TENANT_TYPE_FIELD_REMOVAL_AUDIT.md`.
+
 ---
 
 ## 1. Trace
