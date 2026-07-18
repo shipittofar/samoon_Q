@@ -51,7 +51,11 @@ describe('Phase 9.3 — accountType is not an authorization signal', () => {
     // No currentTenantSession set — no tenant role.
     render(<AuthGuard requiredPermission="dashboard:access">{<div>Console</div>}</AuthGuard>)
     expect(screen.queryByText('Console')).toBeNull()
-    expect(mockReplace).toHaveBeenCalledWith('/')
+    // Phase X.3 — permission denial renders in place (permissionDeniedFallback/
+    // fallback), it no longer redirects; see AuthGuard.tsx and the
+    // phase-X-3-console-context-stabilization.test.tsx suite for the
+    // dedicated coverage of that behavior.
+    expect(mockReplace).not.toHaveBeenCalled()
   })
 
   it('business accountType WITHOUT a tenant membership does NOT get console access', () => {
@@ -60,7 +64,7 @@ describe('Phase 9.3 — accountType is not an authorization signal', () => {
     // alone must not substitute for a real tenant role grant.
     render(<AuthGuard requiredPermission="dashboard:access">{<div>Console</div>}</AuthGuard>)
     expect(screen.queryByText('Console')).toBeNull()
-    expect(mockReplace).toHaveBeenCalledWith('/')
+    expect(mockReplace).not.toHaveBeenCalled()
   })
 
   it('a tenant membership with roles:["manager"] GETS console access, regardless of accountType', () => {
