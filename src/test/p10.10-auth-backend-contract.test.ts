@@ -102,11 +102,11 @@ describe('P10.10 Test 4 — getMe(): restores RBAC state identically to login', 
     await vi.runAllTimersAsync()
     const me = await mePromise
 
-    expect(me.tenantRoles).toEqual(login.p7Roles)
+    expect(me.activeMembership?.roles).toEqual(login.p7Roles)
 
     // Mirrors AuthBootstrapper's hydration call exactly.
     const tenantId = useTenantStore.getState().tenant!.id
-    useRbacStore.getState().setTenantRoles(tenantId, me.tenantRoles ?? [])
+    useRbacStore.getState().setTenantRoles(tenantId, me.activeMembership?.roles ?? [])
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['cashier'])
   })
 })

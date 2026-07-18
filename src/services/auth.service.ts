@@ -58,6 +58,27 @@ export type VerifyOTPResult =
       activeMembership?: TenantMembership
     } & AuthSessionRbacPayload)
 
+/**
+ * `GET /auth/me/`'s response shape. Unlike `login()`/`register()`/
+ * `verifyOTP()` (which return `User` fields flat at the root, alongside
+ * `tokens`), `getMe()`'s contract nests the User under a `user` key:
+ *
+ *   { user: {...}, memberships: [...], activeMembership: {...} }
+ *
+ * `memberships`/`activeMembership` are optional for the same reason as
+ * everywhere else in this file — a backend that hasn't implemented the
+ * frozen membership contract yet still satisfies this type (only `user`
+ * is required). Every consumer reads `.user` for identity fields and
+ * passes the whole response (not `.user`) to
+ * resolveSessionRestoreInput()/normalizeTenantPermissions() for RBAC
+ * fields — see providers/index.tsx's checkSession().
+ */
+export interface GetMeResponse extends AuthSessionRbacPayload {
+  user: User
+  memberships?: TenantMembership[]
+  activeMembership?: TenantMembership
+}
+
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -262,36 +283,35 @@ export const authService = {
     }
   },
 
-  // P10.7 Phase A — widened from `Promise<User>` so session restore
-  // (AuthBootstrapper) can rehydrate `tenantRoles` the same way login()
-  // does, instead of relying entirely on useRbacStore's own localStorage
-  // persistence (docs/P10.5.5_RBAC_REAL_MODE_SECURITY.md §3,
-  // docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md §3). `User`'s own
-  // fields are unchanged and still directly readable (`user.id` etc.) —
-  // this is a structural widening (`User & {...}`), not a breaking
-  // reshape, so every existing consumer that reads `getMe()`'s result as
-  // a plain `User` keeps working unmodified.
-  async getMe(): Promise<
-    User & AuthSessionRbacPayload & { tenantRoles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
-  > {
+  // P10.7 Phase A — session restore (AuthBootstrapper) rehydrates RBAC
+  // state from this response, instead of relying entirely on
+  // useRbacStore's own localStorage persistence
+  // (docs/P10.5.5_RBAC_REAL_MODE_SECURITY.md §3,
+  // docs/P10.6_RBAC_REAL_BACKEND_MIGRATION_PLAN.md §3).
+  //
+  // Contract update: the real backend nests the User under a `user` key
+  // at the response root, alongside `memberships`/`activeMembership` —
+  // NOT a flat `User & {...}` shape. Every consumer (checkSession() in
+  // providers/index.tsx, useConfirmEmailVerification() in hooks/index.ts)
+  // reads `.user` for identity fields and passes the whole response to
+  // resolveSessionRestoreInput()/normalizeTenantPermissions() for RBAC
+  // fields — see GetMeResponse's own doc comment.
+  async getMe(): Promise<GetMeResponse> {
     if (mockActive()) {
       await delay(300)
       if (typeof localStorage !== 'undefined') {
         const email = localStorage.getItem(MOCK_SESSION_KEY)
         if (email && MOCK_CREDENTIALS[email]) {
           const entry = MOCK_CREDENTIALS[email]
-          return { ...entry.user, tenantRoles: entry.p7Roles, ...deriveMockAuthSession(entry.p7Roles) }
+          return { user: entry.user, ...deriveMockAuthSession(entry.p7Roles) }
         }
       }
-      return { ...MOCK_USER, tenantRoles: [], ...deriveMockAuthSession([]) }
+      return { user: MOCK_USER, ...deriveMockAuthSession([]) }
     }
-    // Real mode: `tenantRoles`/`ownership`/`staffAssignments`/`memberships`/
-    // `activeMembership` are all optional — a backend that doesn't send
-    // them yet returns exactly what it always has (`User`), and this call
-    // behaves identically to before this phase.
-    const { data } = await api.get<
-      User & AuthSessionRbacPayload & { tenantRoles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
-    >(ENDPOINTS.AUTH.ME)
+    // Real mode: `memberships`/`activeMembership`/`ownership`/
+    // `staffAssignments` are all optional — a backend that doesn't send
+    // them yet still satisfies this type (only `user` is required).
+    const { data } = await api.get<GetMeResponse>(ENDPOINTS.AUTH.ME)
     return data
   },
 

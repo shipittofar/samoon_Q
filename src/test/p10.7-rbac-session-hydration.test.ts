@@ -12,9 +12,20 @@
 // (setUser() -> setTenantRoles() if present) without needing to mount
 // the full provider tree, matching the established test convention in
 // p10.3.2-cache-isolation-audit.test.ts's simulateLogoutCleanup().
+//
+// Contract update: getMe() now nests the User under a `user` key
+// (GetMeResponse — src/services/auth.service.ts), alongside
+// `memberships`/`activeMembership` as siblings, rather than returning a
+// flat `User & {tenantRoles?}` shape. Every assertion in this file that
+// used to read a field directly off getMe()'s result now reads
+// `result.user.<field>` for identity, and
+// `result.activeMembership?.roles` (or `resolveSessionRestoreInput()`)
+// for RBAC fields.
 // ============================================================
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { authService, MOCK_SESSION_KEY } from '@/services/auth.service'
+import { resolveSessionRestoreInput } from '@/providers'
+import { normalizeTenantPermissions } from '@/services/permission.service'
 import { useAuthStore, useTenantStore, useRbacStore } from '@/stores'
 import type { User } from '@/types'
 import type { Role } from '@/types/rbac'
@@ -29,16 +40,27 @@ vi.mock('@/constants', async (importOriginal) => {
 
 /**
  * Mirrors exactly the RBAC-relevant portion of AuthBootstrapper's
- * getMe().then(...) callback (src/providers/index.tsx) — setUser() +
- * the new setTenantRoles() hydration step. Not a reimplementation of
- * permission logic: this only proves the store-hydration wiring, the
- * same way p10.3.2's simulateLogoutCleanup() mirrors useLogout().
+ * getMe().then(...) callback (src/providers/index.tsx) — setUser(data.user)
+ * + resolveSessionRestoreInput()/normalizeTenantPermissions() +
+ * setTenantRoles(). Not a reimplementation of permission logic: this only
+ * proves the store-hydration wiring, the same way p10.3.2's
+ * simulateLogoutCleanup() mirrors useLogout(). Uses the real exported
+ * resolveSessionRestoreInput(), not a mirror, for the RBAC-gate logic
+ * itself (see auth-refresh-persistence.test.ts, which tests that function
+ * directly).
  */
-function simulateSessionRestoreHydration(user: User & { tenantRoles?: Role[] }) {
-  useAuthStore.getState().setUser(user)
+function simulateSessionRestoreHydration(data: {
+  user: User
+  tenantRoles?: Role[]
+  memberships?: import('@/types/rbac').TenantMembership[]
+  activeMembership?: import('@/types/rbac').TenantMembership
+}) {
+  useAuthStore.getState().setUser(data.user)
   const tenant = useTenantStore.getState().tenant
-  if (tenant && user.tenantRoles && user.tenantRoles.length > 0) {
-    useRbacStore.getState().setTenantRoles(tenant.id, user.tenantRoles)
+  const sessionInput = resolveSessionRestoreInput(data)
+  if (tenant && sessionInput) {
+    const { roles } = normalizeTenantPermissions(sessionInput, tenant.id)
+    if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenant.id, roles)
   }
 }
 
@@ -68,45 +90,46 @@ afterEach(() => {
 })
 
 describe('P10.7 — getMe() returns user only (no session email set)', () => {
-  it('existing behavior continues: resolves to the fallback MOCK_USER with an empty tenantRoles', async () => {
+  it('existing behavior continues: resolves to the fallback MOCK_USER, nested under `user`, with an empty activeMembership', async () => {
     const promise = authService.getMe()
     await vi.runAllTimersAsync()
-    const user = await promise
+    const { user, activeMembership } = await promise
     expect(user.id).toBe('1')
     expect(user.accountType).toBe('customer')
     expect(typeof user.email).toBe('string')
-    expect(user.tenantRoles).toEqual([])
+    expect(activeMembership).toBeUndefined()
   })
 })
 
-describe('P10.7 — getMe() returns tenantRoles for a known demo session', () => {
-  it('cashier@samoon.com: getMe() returns tenantRoles === ["cashier"], matching MOCK_CREDENTIALS.p7Roles', async () => {
+describe('P10.7 — getMe() returns tenant roles (via activeMembership) for a known demo session', () => {
+  it('cashier@samoon.com: getMe() returns activeMembership.roles === ["cashier"], matching MOCK_CREDENTIALS.p7Roles', async () => {
     localStorage.setItem(MOCK_SESSION_KEY, 'cashier@samoon.com')
     const promise = authService.getMe()
     await vi.runAllTimersAsync()
-    const user = await promise
+    const { user, activeMembership } = await promise
     expect(user.email).toBe('cashier@samoon.com')
-    expect(user.tenantRoles).toEqual(['cashier'])
+    expect(activeMembership?.roles).toEqual(['cashier'])
   })
 
   it('multirole@samoon.com: getMe() returns both roles', async () => {
     localStorage.setItem(MOCK_SESSION_KEY, 'multirole@samoon.com')
     const promise = authService.getMe()
     await vi.runAllTimersAsync()
-    const user = await promise
-    expect(user.tenantRoles).toEqual(['cashier', 'kitchen'])
+    const { activeMembership } = await promise
+    expect(activeMembership?.roles).toEqual(['cashier', 'kitchen'])
   })
 
-  it('demo@samoon.com: getMe() returns an empty tenantRoles array (matches its empty p7Roles)', async () => {
+  it('demo@samoon.com: getMe() returns an undefined activeMembership (matches its empty p7Roles)', async () => {
     localStorage.setItem(MOCK_SESSION_KEY, 'demo@samoon.com')
     const promise = authService.getMe()
     await vi.runAllTimersAsync()
-    const user = await promise
-    expect(user.tenantRoles).toEqual([])
+    const { memberships, activeMembership } = await promise
+    expect(memberships).toEqual([])
+    expect(activeMembership).toBeUndefined()
   })
 })
 
-describe('P10.7 — page reload simulation: tenantRoles now restored from auth bootstrap, not only localStorage', () => {
+describe('P10.7 — page reload simulation: tenant roles now restored from auth bootstrap, not only localStorage', () => {
   it('BEFORE: clearing useRbacStore leaves tenantRoles empty even though the "logged in" user is a role-bearing account', async () => {
     // Simulates what happens today the instant useRbacStore's own
     // persistence is cleared (e.g. a private/incognito reload, or a
@@ -121,16 +144,16 @@ describe('P10.7 — page reload simulation: tenantRoles now restored from auth b
     expect(useRbacStore.getState().tenantRoles).toEqual([])
   })
 
-  it('AFTER: authService.getMe() + the AuthBootstrapper hydration step restores tenantRoles without touching localStorage persistence', async () => {
+  it('AFTER: authService.getMe() + the AuthBootstrapper hydration step restores tenant roles without touching localStorage persistence', async () => {
     localStorage.setItem(MOCK_SESSION_KEY, 'owner@samoon.com')
     useRbacStore.getState()._resetStore()
     expect(useRbacStore.getState().tenantRoles).toEqual([])
 
     const promise = authService.getMe()
     await vi.runAllTimersAsync()
-    const user = await promise
+    const data = await promise
 
-    simulateSessionRestoreHydration(user)
+    simulateSessionRestoreHydration(data)
 
     const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
@@ -138,23 +161,22 @@ describe('P10.7 — page reload simulation: tenantRoles now restored from auth b
 })
 
 describe('P10.7 — missing RBAC payload: no crash, clean fallback', () => {
-  it('a getMe()-shaped object with no tenantRoles field at all does not throw when hydrated', () => {
+  it('a getMe()-shaped object with no memberships/activeMembership at all does not throw when hydrated', () => {
     const bareUser: User = {
       id: 'y', email: 'nobody@example.com', first_name: 'N', last_name: 'B',
       accountType: 'customer', is_verified: true, created_at: new Date().toISOString(),
     }
-    expect(() => simulateSessionRestoreHydration(bareUser)).not.toThrow()
+    expect(() => simulateSessionRestoreHydration({ user: bareUser })).not.toThrow()
     expect(useAuthStore.getState().user?.email).toBe('nobody@example.com')
     expect(useRbacStore.getState().tenantRoles).toEqual([])
   })
 
-  it('an explicit empty tenantRoles array does not throw and leaves the store empty', () => {
-    const emptyRolesUser: User & { tenantRoles: Role[] } = {
+  it('an explicit empty memberships array does not throw and leaves the store empty', () => {
+    const bareUser: User = {
       id: 'z', email: 'nobody2@example.com', first_name: 'N', last_name: 'B',
       accountType: 'customer', is_verified: true, created_at: new Date().toISOString(),
-      tenantRoles: [],
     }
-    expect(() => simulateSessionRestoreHydration(emptyRolesUser)).not.toThrow()
+    expect(() => simulateSessionRestoreHydration({ user: bareUser, memberships: [] })).not.toThrow()
     expect(useRbacStore.getState().tenantRoles).toEqual([])
   })
 })
@@ -180,7 +202,7 @@ describe('P10.7 — mock mode: existing accounts continue working end to end', (
       const mePromise = authService.getMe()
       await vi.runAllTimersAsync()
       const meResult = await mePromise
-      expect(meResult.tenantRoles).toEqual(expectedRoles)
+      expect(meResult.activeMembership?.roles).toEqual(expectedRoles)
     })
   }
 

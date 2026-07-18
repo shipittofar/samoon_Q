@@ -564,13 +564,11 @@ export function useLogout() {
 }
 
 export function useMe() {
-  const setUser = useAuthStore((s) => s.setUser)
   return useQuery({
     queryKey: ['me'],
     queryFn: () => authService.getMe(),
     staleTime: STALE_TIME,
     retry: false,
-    meta: { onSuccess: setUser },
   })
 }
 
@@ -1176,7 +1174,7 @@ export function useConfirmEmailVerification() {
     onSuccess: async () => {
       const fresh = await authService.getMe()
       qc.setQueryData(['me'], fresh)
-      setUser(fresh)
+      setUser(fresh.user)
     },
   })
 }

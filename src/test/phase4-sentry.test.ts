@@ -320,8 +320,10 @@ describe('P4.6.2 — Auth synchronization wiring', () => {
     const { readFileSync } = await import('fs')
     const { join } = await import('path')
     const src = readFileSync(join(__dirname, '..', 'providers', 'index.tsx'), 'utf-8')
-    // Should still use setUser (not reimplementing auth)
-    expect(src).toContain('setUser(user)')
+    // Should still use setUser (not reimplementing auth). getMe()'s response
+    // nests the User under a `user` key (GetMeResponse) as of the /auth/me/
+    // contract update, so the session-restore call site is setUser(data.user).
+    expect(src).toContain('setUser(data.user)')
     expect(src).toContain('setUser(null)')
   })
 })

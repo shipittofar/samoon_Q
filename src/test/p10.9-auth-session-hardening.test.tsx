@@ -131,7 +131,7 @@ describe('P10.9 Scenario 2 — Owner login, refresh: owner access restored', () 
     const mePromise = authService.getMe()
     await vi.runAllTimersAsync()
     const meResult = await mePromise
-    expect(meResult.tenantRoles).toEqual(['owner'])
+    expect(meResult.activeMembership?.roles).toEqual(['owner'])
 
     const identity = resolveOwnershipIdentity('owner@samoon.com')
     expect(identity.owner).toBeTruthy()
@@ -144,7 +144,7 @@ describe('P10.9 Scenario 3 — Staff login, refresh: staff assignment restored',
     const mePromise = authService.getMe()
     await vi.runAllTimersAsync()
     const meResult = await mePromise
-    expect(meResult.tenantRoles).toEqual(['cashier'])
+    expect(meResult.activeMembership?.roles).toEqual(['cashier'])
 
     const identity = resolveOwnershipIdentity('cashier@samoon.com')
     expect(identity.staffMember?.email).toBe('cashier@samoon.com')

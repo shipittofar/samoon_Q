@@ -370,9 +370,15 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
   function checkSession() {
     const token = getAccessToken()
     if (!token) { setLoading(false); return }
-    authService.getMe().then((user) => {
-      setUser(user)
-      setSentryUser({ id: user.id, email: user.email, accountType: user.accountType })
+    authService.getMe().then((data) => {
+      // Contract update — getMe() nests the User under a `user` key,
+      // alongside `memberships`/`activeMembership` as siblings (NOT a flat
+      // `User & {...}` shape the way login()/verifyOTP() are). `data.user`
+      // carries identity fields; `data` itself (not `data.user`) carries
+      // the RBAC-relevant `memberships`/`activeMembership` fields
+      // resolveSessionRestoreInput() reads.
+      setUser(data.user)
+      setSentryUser({ id: data.user.id, email: data.user.email, accountType: data.user.accountType })
       // P10.7 Phase D / Phase 2 — session restore hydrates currentTenantSession
       // the same way useLogin()/useVerifyOTP() do (via normalizeTenantPermissions()),
       // instead of relying entirely on useRbacStore's own localStorage
@@ -384,7 +390,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // restore entirely for a backend that only ever sends `memberships`
       // (no legacy `tenantRoles` field). See resolveSessionRestoreInput()'s
       // doc comment above for the full root-cause explanation.
-      const sessionInput = resolveSessionRestoreInput(user)
+      const sessionInput = resolveSessionRestoreInput(data)
       if (sessionInput) {
         const currentTenant = useTenantStore.getState().tenant
         if (currentTenant) {
@@ -397,7 +403,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
           pendingAuthSessionRef.current = sessionInput
         }
       }
-      // `user.ownership`/`user.staffAssignments`, if a backend ever sends
+      // `data.ownership`/`data.staffAssignments`, if a backend ever sends
       // them here, are NOT hydrated into any store — Phase 2 removed the
       // client-side ownership/StaffAssignment authorization engine those
       // fields used to feed entirely. The fields remain on the
