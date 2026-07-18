@@ -18,8 +18,47 @@ import { MissingTranslationInspector } from '@/components/dev/MissingTranslation
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import type { TenantTheme } from '@/types'
-import type { Role } from '@/types/rbac'
+import type { Role, TenantMembership } from '@/types/rbac'
 import { normalizeTenantPermissions } from '@/services/permission.service'
+
+/**
+ * Auth-refresh-persistence fix — the exact shape `normalizeTenantPermissions()`
+ * needs to seed a session, or `null` when the getMe() response carries
+ * neither the legacy `tenantRoles` field nor the frozen-contract
+ * `memberships` field (a genuinely membership-less account, e.g. a new
+ * customer).
+ *
+ * Root cause this fixes: `checkSession()` used to gate the ENTIRE
+ * session-restore block on `user.tenantRoles && user.tenantRoles.length > 0`
+ * — the legacy, pre-Phase-9 field. `useLogin()`/`useRegister()`/
+ * `useVerifyOTP()` (hooks/index.ts) never had this gate — they call
+ * seedTenantSession() unconditionally. A backend built purely against the
+ * frozen `memberships`/`activeMembership` contract (no `tenantRoles` field
+ * at all — exactly the contract this project has been freezing since
+ * Phase Y) would satisfy this gate at login (irrelevant, login doesn't use
+ * it) but silently skip session restore entirely on every page reload:
+ * `useAuthStore.user` would still be set (so the app doesn't look logged
+ * out at the token/identity level), but `currentTenantSession` would stay
+ * null, `usePermissions()` would return `[]`, and every
+ * permission-gated surface (most importantly /console, gated by
+ * `dashboard:access`) would render as if the user had never logged in —
+ * exactly the reported "auth state lost after refresh" symptom, and only
+ * on refresh, never on login. Extracted as a pure, exported function so it
+ * is unit-testable without mounting the full provider tree.
+ */
+export function resolveSessionRestoreInput(user: {
+  tenantRoles?: Role[]
+  memberships?: TenantMembership[]
+  activeMembership?: TenantMembership
+}): { roles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership } | null {
+  const hasLegacyRoles = !!(user.tenantRoles && user.tenantRoles.length > 0)
+  // Phase 9's own rule (normalizeTenantPermissions' doc comment): `memberships`
+  // even as an EMPTY array signals the new contract — only its complete
+  // absence (undefined/null) means "this response used the legacy shape."
+  const hasMemberships = user.memberships !== undefined && user.memberships !== null
+  if (!hasLegacyRoles && !hasMemberships) return null
+  return { roles: user.tenantRoles, memberships: user.memberships, activeMembership: user.activeMembership }
+}
 
 function makeQueryClient() {
   return new QueryClient({
@@ -262,21 +301,25 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
   const qc = useQueryClient()
   const booted = useRef(false)
   // TenantBootstrapper and AuthBootstrapper are unordered sibling effects —
-  // getMe() can resolve before loadTenant() does. If roles arrive with no
-  // resolved tenant to seed a session against yet, they're queued here
-  // instead of dropped; the effect below applies them exactly once, the
-  // moment a tenant actually resolves. Phase 2 — this now seeds
-  // currentTenantSession (via normalizeTenantPermissions()), the single
-  // permission source, not a second/parallel computation.
-  const pendingTenantRolesRef = useRef<Role[] | null>(null)
+  // getMe() can resolve before loadTenant() does. If a session-restore
+  // input arrives with no resolved tenant to seed a session against yet,
+  // it's queued here instead of dropped; the effect below applies it
+  // exactly once, the moment a tenant actually resolves. Phase 2 — this
+  // now seeds currentTenantSession (via normalizeTenantPermissions()), the
+  // single permission source, not a second/parallel computation. Widened
+  // from `Role[] | null` to the full resolveSessionRestoreInput() shape so
+  // the queued case gets the exact same memberships-aware fix as the
+  // immediate-tenant case below (see resolveSessionRestoreInput()'s doc
+  // comment for the bug this closes).
+  const pendingAuthSessionRef = useRef<ReturnType<typeof resolveSessionRestoreInput>>(null)
   const tenant = useTenantStore((s) => s.tenant)
 
   useEffect(() => {
-    if (tenant && pendingTenantRolesRef.current) {
-      const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: pendingTenantRolesRef.current }, tenant.id)
+    if (tenant && pendingAuthSessionRef.current) {
+      const { roles, permissions, branchAccess } = normalizeTenantPermissions(pendingAuthSessionRef.current, tenant.id)
       useRbacStore.getState().setCurrentTenantSession(tenant.id, roles, permissions, branchAccess)
       if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenant.id, roles)
-      pendingTenantRolesRef.current = null
+      pendingAuthSessionRef.current = null
     }
   }, [tenant])
 
@@ -337,24 +380,22 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // persistence to survive a page reload. currentTenantSession itself is
       // NEVER persisted (see stores/index.ts partialize) — this call is what
       // reconstructs it fresh on every session restore.
-      if (user.tenantRoles && user.tenantRoles.length > 0) {
+      // Auth-refresh-persistence fix — was `if (user.tenantRoles &&
+      // user.tenantRoles.length > 0)`, which silently skipped session
+      // restore entirely for a backend that only ever sends `memberships`
+      // (no legacy `tenantRoles` field). See resolveSessionRestoreInput()'s
+      // doc comment above for the full root-cause explanation.
+      const sessionInput = resolveSessionRestoreInput(user)
+      if (sessionInput) {
         const currentTenant = useTenantStore.getState().tenant
         if (currentTenant) {
-          // Phase Z.1 — also passes through `memberships`/`activeMembership`
-          // when getMe() sent them (mock mode now does — see
-          // deriveMockAuthSession() in auth.service.ts), exercising
-          // normalizeTenantPermissions()'s memberships-priority branch on
-          // session restore the same way login does, not just at login.
-          const { roles, permissions, branchAccess } = normalizeTenantPermissions(
-            { roles: user.tenantRoles, memberships: user.memberships, activeMembership: user.activeMembership },
-            currentTenant.id,
-          )
+          const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, currentTenant.id)
           useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions, branchAccess)
           useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
         } else {
           // Tenant hasn't resolved yet — queue for the effect above to
-          // apply once it does, instead of dropping the roles forever.
-          pendingTenantRolesRef.current = user.tenantRoles
+          // apply once it does, instead of dropping the session forever.
+          pendingAuthSessionRef.current = sessionInput
         }
       }
       // `user.ownership`/`user.staffAssignments`, if a backend ever sends
