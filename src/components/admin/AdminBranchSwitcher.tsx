@@ -18,12 +18,13 @@
  *   - Any admin module that reads selectedBranch for data scoping
  */
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { ChevronDown, Building2, GitBranch, Check, Loader2, AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
-import { useTenantStore, useBranchStore } from '@/stores'
+import { useTenantStore, useBranchStore, useRbacStore } from '@/stores'
 import { BRANCH_SCOPED_QUERY_KEYS, useSelectedBranch, useBranchState, useRetryLoadBranches } from '@/hooks'
+import { canAccessBranch } from '@/services/permission.service'
 import type { Branch as AdminBranch } from '@/types/branch'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -37,6 +38,17 @@ export function AdminBranchSwitcher() {
   const selectBranch = useBranchStore((s) => s.selectBranch)
   const retryLoadBranches = useRetryLoadBranches()
   const qc = useQueryClient()
+
+  // Phase 9.4 — UX-only safety net: never list a branch canAccessBranch()
+  // rejects. This does NOT replace backend enforcement — once the backend
+  // filters GET /branches/ itself, `branches` will already be the
+  // accessible set and this filter becomes a no-op; it stays as
+  // defense-in-depth either way (see canAccessBranch()'s doc comment).
+  const branchAccess = useRbacStore((s) => s.currentTenantSession?.branchAccess)
+  const accessibleBranches = useMemo(
+    () => branches.filter((b) => canAccessBranch(branchAccess, b.id)),
+    [branches, branchAccess],
+  )
 
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -80,7 +92,7 @@ export function AdminBranchSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        disabled={isLoading || branches.length === 0}
+        disabled={isLoading || accessibleBranches.length === 0}
         className={cn(
           'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors',
           'border border-[var(--border)] bg-[var(--card)] text-[var(--fg)]',
@@ -112,7 +124,7 @@ export function AdminBranchSwitcher() {
       </button>
 
       {/* Explicit empty-state hint — rendered inline, not swallowed silently */}
-      {isEmpty && !isLoading && branches.length > 0 && (
+      {isEmpty && !isLoading && accessibleBranches.length > 0 && (
         <span className="hidden md:inline text-xs text-amber-600 dark:text-amber-400">
           {t('selectBranchToManageCategories')}
         </span>
@@ -143,10 +155,10 @@ export function AdminBranchSwitcher() {
           <p className="px-3 py-1.5 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide">
             {tenant?.name}
           </p>
-          {branches.length === 0 ? (
+          {accessibleBranches.length === 0 ? (
             <p className="px-3 py-2 text-sm text-[var(--fg-muted)]">{t('noBranchesFoundForTenant')}</p>
           ) : (
-            branches.map((branch) => {
+            accessibleBranches.map((branch) => {
               const isActive = branch.id === selectedBranch?.id
               return (
                 <button

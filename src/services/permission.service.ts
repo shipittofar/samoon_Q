@@ -354,6 +354,38 @@ export function resolveBranchAccess(
 }
 
 /**
+ * Phase 9.4 — the single evaluation of "does this branchAccess grant
+ * visibility into branchId." This is the ONE place that reads a
+ * `BranchAccess` value to answer that question — `useBranchAccess()`
+ * (hooks/index.ts) is a thin wrapper around this, never a second
+ * implementation.
+ *
+ * Frontend-only, defense-in-depth / UX signal — NOT a security boundary.
+ * The backend is the sole authority on whether a branch-scoped request
+ * actually succeeds; this function exists only to avoid firing doomed
+ * requests, avoid rendering branches/links the user can't use, and give
+ * an immediate local "Access Denied" instead of waiting on a round trip
+ * that would fail anyway once the backend enforces this. Never trust its
+ * `true` result as proof of anything beyond "don't bother asking" — a
+ * malicious or modified client can trivially make this return `true` for
+ * any branch, which is exactly why the backend must re-check independently.
+ *
+ * A missing/null `branchAccess` denies by default — never an implicit
+ * allow. This mirrors `resolveBranchAccess()`'s own safety rule; the two
+ * functions are deliberately kept separate (one resolves what
+ * `branchAccess` a session gets, this one reads an already-resolved
+ * value) so neither has to guess at the other's job.
+ */
+export function canAccessBranch(
+  branchAccess: BranchAccess | null | undefined,
+  branchId: string | null | undefined,
+): boolean {
+  if (!branchId || !branchAccess) return false
+  if (branchAccess.scope === 'all') return true
+  return branchAccess.branchIds.includes(branchId)
+}
+
+/**
  * Phase 9 — selects which `TenantMembership` a `{ memberships, activeMembership }`
  * response describes the CURRENT session for. Never guesses across an
  * ambiguous multi-membership list with no hint to disambiguate — see
@@ -928,6 +960,7 @@ export const permissionService = {
   getPermissionsForRole,
   normalizeTenantPermissions,
   resolveBranchAccess,
+  canAccessBranch,
   hasPermission,
   hasAnyPermission,
   hasAllPermissions,

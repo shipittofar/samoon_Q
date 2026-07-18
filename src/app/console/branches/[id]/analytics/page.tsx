@@ -2,7 +2,7 @@
 
 import { use } from 'react'
 import { useTranslations } from 'next-intl'
-import { useAdminBranch, useBranchAnalytics } from '@/hooks'
+import { useAdminBranch, useBranchAnalytics, useBranchAccess } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -88,10 +88,17 @@ function BranchAnalyticsContent({ id }: { id: string }) {
 
 export default function BranchAnalyticsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  // Phase 9.4 — defense-in-depth only (see useBranchAccess()'s doc
+  // comment): this branch id comes straight from the URL, so a direct
+  // navigation to a branch outside the session's branchAccess must not
+  // reach BranchAnalyticsContent (and therefore must not fire
+  // useAdminBranch()/useBranchAnalytics()) at all. The backend remains
+  // the actual enforcement point for these endpoints.
+  const hasBranchAccess = useBranchAccess(id)
   return (
     <ErrorBoundary feature="Branch Analytics">
       <PermissionGuard permission="branches.view" fallback={<AccessDenied />}>
-        <BranchAnalyticsContent id={id} />
+        {hasBranchAccess ? <BranchAnalyticsContent id={id} /> : <AccessDenied />}
       </PermissionGuard>
     </ErrorBoundary>
   )

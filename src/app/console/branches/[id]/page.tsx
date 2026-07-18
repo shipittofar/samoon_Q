@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import {
   useAdminBranch, useAdminBranches, useAdminBranchMetrics,
   useActivateBranch, useDeactivateBranch, useMaintenanceBranch,
-  useDeleteBranch, useSetDefaultBranch,
+  useDeleteBranch, useSetDefaultBranch, useBranchAccess,
 } from '@/hooks'
 import { useBranchStore, useTenantStore } from '@/stores'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -260,10 +260,16 @@ function BranchDetailContent({ id }: { id: string }) {
 
 export default function BranchDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  // Phase 9.4 — defense-in-depth only (see useBranchAccess()'s doc
+  // comment): a direct navigation to a branch outside the session's
+  // branchAccess must not reach BranchDetailContent (and therefore must
+  // not fire useAdminBranch()/useAdminBranchMetrics() etc.) at all. The
+  // backend remains the actual enforcement point for these endpoints.
+  const hasBranchAccess = useBranchAccess(id)
   return (
     <ErrorBoundary feature="Branch Detail">
       <PermissionGuard permission="branches.view" fallback={<AccessDenied />}>
-        <BranchDetailContent id={id} />
+        {hasBranchAccess ? <BranchDetailContent id={id} /> : <AccessDenied />}
       </PermissionGuard>
     </ErrorBoundary>
   )

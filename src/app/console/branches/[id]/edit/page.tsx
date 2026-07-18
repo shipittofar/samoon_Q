@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { useAdminBranch, useUpdateBranch } from '@/hooks'
+import { useAdminBranch, useUpdateBranch, useBranchAccess } from '@/hooks'
 import {
   BranchFormFields, validateBranchForm, defaultBranchFormBusinessHours, DEFAULT_BRANCH_SETTINGS,
   type BranchFormState,
@@ -130,10 +130,16 @@ function EditBranchContent({ id }: { id: string }) {
 
 export default function EditBranchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  // Phase 9.4 — defense-in-depth only (see useBranchAccess()'s doc
+  // comment): a direct navigation to a branch outside the session's
+  // branchAccess must not reach EditBranchContent (and therefore must not
+  // fire useAdminBranch()/useUpdateBranch()) at all. The backend remains
+  // the actual enforcement point for these endpoints.
+  const hasBranchAccess = useBranchAccess(id)
   return (
     <ErrorBoundary feature="Edit Branch">
       <PermissionGuard permission="branches.update" fallback={<AccessDenied />}>
-        <EditBranchContent id={id} />
+        {hasBranchAccess ? <EditBranchContent id={id} /> : <AccessDenied />}
       </PermissionGuard>
     </ErrorBoundary>
   )

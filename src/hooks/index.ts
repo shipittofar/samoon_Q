@@ -54,7 +54,7 @@ import type {
   NotificationPriority,
 } from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
-import { applyOverrides, normalizeTenantPermissions } from '@/services/permission.service'
+import { applyOverrides, normalizeTenantPermissions, canAccessBranch } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
 // owner.service.ts, or staff-assignment.service.ts remain in this file.
@@ -215,6 +215,32 @@ export function usePermission(permission: P7Permission, opts?: PermissionCheckOp
     return true
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [permissions, permission, featureFlags])
+}
+
+/**
+ * Phase 9.4 — the single frontend answer to "can the current session see
+ * `branchId`." Reads ONLY `currentTenantSession.branchAccess` (via
+ * `canAccessBranch()`, permission.service.ts — the one implementation
+ * this wraps; never recomputed or duplicated here). Does not inspect
+ * roles or `accountType` directly, and does not call
+ * `resolveBranchAccess()` again — that already ran once, when the
+ * session was seeded, to produce the `branchAccess` this hook reads.
+ *
+ * Frontend-only, defense-in-depth / UX signal — NOT a security boundary.
+ * See `canAccessBranch()`'s doc comment for why: the backend remains the
+ * sole enforcement point for every branch-scoped request. This hook
+ * exists purely to avoid firing doomed requests, avoid rendering
+ * branches/links the user can't use, and give an immediate local
+ * "Access Denied" instead of waiting on a round trip that would fail
+ * anyway once the backend enforces this.
+ */
+export function useBranchAccess(branchId: string | null | undefined): boolean {
+  const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const branchAccess = currentTenantSession && currentTenantSession.tenantId === tenantId
+    ? currentTenantSession.branchAccess
+    : undefined
+  return canAccessBranch(branchAccess, branchId)
 }
 
 /**
