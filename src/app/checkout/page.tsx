@@ -128,15 +128,45 @@ function CheckoutContent() {
     )
   }
 
+  // Phase 3.4 — a branch must never be inferred. Checkout previously fell
+  // back to a hardcoded branch id ('1') for order/payment creation when
+  // `activeBranch` was unset — that could silently attribute a real order
+  // or payment to the wrong branch. If no branch has been explicitly
+  // resolved (e.g. checkout reached without going through a branch-scoped
+  // route), block entirely: no form, no submit handler, no request can
+  // ever be constructed from this render path.
+  if (!activeBranch) {
+    return (
+      <div className="min-h-screen bg-[var(--bg)]">
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
+          <MapPin className="h-12 w-12 text-[var(--fg-subtle)]" />
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('noBranchSelectedTitle')}</h2>
+          <p className="text-[var(--fg-muted)]">{t('noBranchSelectedDesc')}</p>
+          <Link href="/menu">
+            <Button leftIcon={<ArrowLeft className="h-4 w-4" />}>{tCart('browseMenu')}</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   /**
    * Finalises the order after payment is confirmed (or for non-card methods).
    * Called either directly from onSubmit (cash/wallet/online) or from the
    * Stripe success callback (card).
    */
   const finaliseOrder = (data: CheckoutFormData, paymentIntentId?: string) => {
-    const branchId = activeBranch?.id || '1'
+    // Defense in depth: the component already blocks rendering the form
+    // entirely when `activeBranch` is null (see the guard above), so this
+    // should be unreachable — but order creation itself must never execute
+    // without a real, resolved branch id, regardless of call path.
+    if (!activeBranch) {
+      toast.error(t('noBranchSelectedDesc'))
+      return
+    }
     const payload = {
-      branch_id: branchId,
+      branch_id: activeBranch.id,
       items: orderService.fromCartItems(items),
       order_type: orderType,
       payment_method: paymentMethod,
@@ -169,6 +199,13 @@ function CheckoutContent() {
    * — non-card: calls createOrder directly (unchanged behaviour)
    */
   const onSubmit = async (data: CheckoutFormData) => {
+    // Defense in depth — see the identical guard in finaliseOrder() above:
+    // the form itself is unreachable without a resolved activeBranch, but
+    // payment-intent creation must never execute without one either.
+    if (!activeBranch) {
+      toast.error(t('noBranchSelectedDesc'))
+      return
+    }
     if (paymentMethod === 'card') {
       setPendingFormData(data)
       setPaymentError(null)
@@ -177,7 +214,7 @@ function CheckoutContent() {
           amount: total,
           currency: 'usd',
           order_description: `Order for ${data.first_name} ${data.last_name}`,
-          branch_id: activeBranch?.id || '1',
+          branch_id: activeBranch.id,
         })
         setClientSecret(intent.client_secret)
       } catch {

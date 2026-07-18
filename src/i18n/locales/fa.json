@@ -347,7 +347,9 @@
     "payAmount": "پرداخت · {amount}",
     "simulatedCardMockMode": "ورودی کارت شبیه‌سازی‌شده — حالت آزمایشی فعال است",
     "paymentConfirmed": "پرداخت تأیید شد",
-    "paymentCouldNotBeProcessed": "پرداخت پردازش نشد"
+    "paymentCouldNotBeProcessed": "پرداخت پردازش نشد",
+    "noBranchSelectedTitle": "شعبه‌ای انتخاب نشده است",
+    "noBranchSelectedDesc": "مشخص نیست سفارش از کدام شعبه ثبت شود. لطفاً پیش از پرداخت، شعبه‌ای را از منو انتخاب کنید."
   },
   "order": {
     "title": "پیگیری سفارش",

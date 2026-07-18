@@ -347,7 +347,9 @@
     "payAmount": "Pay · {amount}",
     "simulatedCardMockMode": "Simulated card input — mock mode active",
     "paymentConfirmed": "Payment confirmed",
-    "paymentCouldNotBeProcessed": "Payment could not be processed"
+    "paymentCouldNotBeProcessed": "Payment could not be processed",
+    "noBranchSelectedTitle": "No branch selected",
+    "noBranchSelectedDesc": "We could not determine which branch to order from. Please choose a branch from the menu before checking out."
   },
   "order": {
     "title": "Order Tracking",

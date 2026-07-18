@@ -347,7 +347,9 @@
     "payAmount": "الدفع · {amount}",
     "simulatedCardMockMode": "إدخال بطاقة محاكاة — وضع المحاكاة نشط",
     "paymentConfirmed": "تم تأكيد الدفع",
-    "paymentCouldNotBeProcessed": "تعذرت معالجة الدفع"
+    "paymentCouldNotBeProcessed": "تعذرت معالجة الدفع",
+    "noBranchSelectedTitle": "لم يتم اختيار فرع",
+    "noBranchSelectedDesc": "تعذر تحديد الفرع الذي سيتم الطلب منه. يرجى اختيار فرع من القائمة قبل إتمام الدفع."
   },
   "order": {
     "title": "تتبع الطلب",
