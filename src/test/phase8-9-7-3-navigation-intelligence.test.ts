@@ -225,6 +225,13 @@ describe('getPostLoginRedirect (auth-redirect.ts)', () => {
   it('business accountType with no tenant roles still lands in /console (UX hint only, not a grant)', () => {
     expect(getPostLoginRedirect('business')).toBe('/console')
   })
+
+  // Phase Z.9 — accountType is authoritative for direction; tenant roles
+  // can no longer route a customer account into Console.
+  it('customer accountType never lands in /console, even with tenant roles present', () => {
+    expect(getPostLoginRedirect('customer', ['owner'])).toBe('/dashboard')
+    expect(getPostLoginRedirect('customer', ['admin'])).toBe('/dashboard')
+  })
 })
 
 // ── No route leakage between surfaces ────────────────────────────────────────

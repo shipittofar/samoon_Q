@@ -65,7 +65,7 @@ describe('Phase Z.8 — resolveConsoleTenantFallbackSlug()', () => {
   })
 
   it('session has memberships but no tenantSlug on the resolved membership → no fallback (nothing to load by)', () => {
-    const noSlug = { memberships: [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' as const } }] }
+    const noSlug = { memberships: [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } } as TenantMembership] }
     expect(resolveConsoleTenantFallbackSlug('/console', null, noSlug)).toBeNull()
   })
 

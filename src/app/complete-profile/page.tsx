@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useRegister } from '@/hooks'
+import { getPostLoginRedirect } from '@/utils/auth-redirect'
 import toast from 'react-hot-toast'
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
@@ -77,9 +78,16 @@ function CompleteProfileInner() {
         // confirm_password: data.confirm_password,
       },
       {
-        onSuccess: () => {
+        // Phase Z.9 — was hardcoded to '/dashboard' regardless of the
+        // newly-registered account's accountType, silently sending a
+        // business signup completed through this phone-OTP flow to the
+        // customer dashboard instead of Console. Routed through the same
+        // getPostLoginRedirect() every other post-auth success handler
+        // uses (LoginClientPage.tsx, verify/page.tsx), so accountType is
+        // honored consistently everywhere a session is established.
+        onSuccess: (result) => {
           toast.success(t('completeProfileSuccess'))
-          router.push('/dashboard')
+          router.push(getPostLoginRedirect(result.user.accountType, result.p7Roles))
         },
         onError: () => toast.error(t('completeProfileFailed')),
       },

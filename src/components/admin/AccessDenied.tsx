@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useAuthStore, useRbacStore } from '@/stores'
-import { resolveWorkspace } from '@/utils/navigation-intelligence'
+import { getPostLoginRedirect } from '@/utils/auth-redirect'
 
 interface AccessDeniedProps {
   resource?: string
@@ -14,14 +14,19 @@ export function AccessDenied({ resource }: AccessDeniedProps) {
   const user = useAuthStore((s) => s.user)
   const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
   // Phase 9.3 — "my workspace" should reflect the user's real tenant-scoped
-  // RBAC roles (the actual authorization source), not the removed coarse
-  // `User.role`. Falls back to the `accountType` UX hint only when there is
-  // no tenant session at all (e.g. a genuine customer, or RBAC hasn't
-  // hydrated yet) — this fallback is a landing-page guess, never an access
-  // grant; the destination page still enforces its own permission check.
-  const workspace = currentTenantSession && currentTenantSession.roles.length > 0
-    ? resolveWorkspace(currentTenantSession.roles)
-    : user?.accountType === 'business' ? '/console' : '/dashboard'
+  // RBAC roles (the actual authorization source) when refining WHICH
+  // /console/* page to send a business account to. This is a landing-page
+  // guess, never an access grant; the destination page still enforces its
+  // own permission check.
+  //
+  // Phase Z.9 — routed through the same getPostLoginRedirect() every
+  // post-auth success handler uses, rather than a second, hand-rolled
+  // accountType/roles decision. Previously this duplicated logic could
+  // send a `customer` account to `/console/*` whenever `currentTenantSession`
+  // happened to carry roles (e.g. stale state from a previous tenant) —
+  // getPostLoginRedirect() makes accountType authoritative for direction,
+  // so a customer account always resolves to `/dashboard` here too.
+  const workspace = getPostLoginRedirect(user?.accountType ?? 'customer', currentTenantSession?.roles)
 
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 text-center">

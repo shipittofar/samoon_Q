@@ -54,31 +54,32 @@ export function getDemoRedirect(email: string): string {
  * Phase 9.3 — no longer keyed off the removed, ambiguous `User.role`.
  * This is a landing-page HINT only, never an authorization decision —
  * AuthGuard's `dashboard:access` permission check is what actually gates
- * Console, regardless of where this function sends someone.
+ * Console, regardless of where this function sends someone. A `business`
+ * account routed here with no permission on its tenant still lands on
+ * `/console` and sees AccessDenied there — that is correct, not a bug
+ * this function is responsible for preventing.
  *
- * Preference order:
- *   1. `tenantRoles` (the current session's tenant-scoped RBAC roles for
- *      the resolved tenant, when available — e.g. `p7Roles` from a
- *      login/verify-otp response) — routes straight to the specific
- *      console workspace those roles imply, exactly as the old
- *      role-based logic did, but keyed off real RBAC data instead of the
- *      coarse global role. A non-empty array here is today's stand-in
- *      for "this user has ≥1 TenantMembership" (see the Phase 9
- *      architecture doc) until a backend sends a real `memberships[]`
- *      list (Phase 9.2's `normalizeTenantPermissions()` already accepts
- *      that shape once one does).
- *   2. `accountType` fallback ('business' → /console, 'customer' →
- *      /dashboard) — used only when no tenant role data is available at
- *      all, e.g. immediately after registration before any tenant role
- *      has been assigned.
- *
- * Phase 2 (RBAC unification) — previously consulted
- * `resolveOwnershipIdentity()` first, routing an eligible Owner/Staff
- * member to `/console` based on client-held ownership data. That was a
- * client-side access-adjacent decision the frontend shouldn't make; it
- * remains gone here.
+ * Phase Z.9 — `accountType` is now the AUTHORITATIVE gate on the initial
+ * *direction* (Console vs. the customer dashboard), not a fallback that
+ * only applies when `tenantRoles` happens to be empty. Previously
+ * `tenantRoles` was checked FIRST and could override `accountType` in
+ * either direction — in particular, `getPostLoginRedirect('customer',
+ * ['owner'])` resolved to `/console`, a `customer` account landing on
+ * Console purely because some tenant-scoped role data was present. That
+ * is no longer correct: `customer` must always land on `/dashboard`,
+ * full stop, regardless of what `tenantRoles` says. `tenantRoles` is
+ * still consulted, but only to refine WHICH `/console/*` sub-page a
+ * `business` account lands on (e.g. straight to `/console/orders` for a
+ * cashier) — it can never route a `business` account anywhere outside
+ * Console, and can never apply to a `customer` account at all. `Role`
+ * (the tenant-role union — src/types/rbac.ts) has no `'customer'` member,
+ * so `resolveWorkspace()` can never resolve a `business` account back out
+ * to `/dashboard` via a stray role value either.
  */
 export function getPostLoginRedirect(accountType: AccountType, tenantRoles?: Role[] | null): string {
-  if (tenantRoles && tenantRoles.length > 0) return resolveWorkspace(tenantRoles)
-  return accountType === 'business' ? '/console' : '/dashboard'
+  if (accountType === 'business') {
+    if (tenantRoles && tenantRoles.length > 0) return resolveWorkspace(tenantRoles)
+    return '/console'
+  }
+  return '/dashboard'
 }
