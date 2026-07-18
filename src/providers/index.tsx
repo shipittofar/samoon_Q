@@ -19,7 +19,7 @@ import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } f
 import { getDirection } from '@/i18n/runtime'
 import { usePathname } from 'next/navigation'
 import type { Role, TenantMembership } from '@/types/rbac'
-import { normalizeTenantPermissions, selectActiveMembership } from '@/services/permission.service'
+import { normalizeTenantPermissions, selectActiveMembership, hasAnyMembership } from '@/services/permission.service'
 import { DEFAULT_TENANT } from '@/constants'
 
 /**
@@ -476,6 +476,13 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // resolveSessionRestoreInput() reads.
       setUser(data.user)
       setSentryUser({ id: data.user.id, email: data.user.email, accountType: data.user.accountType })
+      // Phase Z.10 — set independently of tenant resolution (unlike the
+      // currentTenantSession seeding below, which needs a resolved tenant
+      // to key against). Console reads this to decide full workspace vs.
+      // onboarding without waiting on subdomain/membership-based tenant
+      // resolution to succeed first — see
+      // docs/CONSOLE_TENANT_DEPENDENCY_REDESIGN_AUDIT.md.
+      useRbacStore.getState().setHasTenantMembership(hasAnyMembership(data))
       // P10.7 Phase D / Phase 2 — session restore hydrates currentTenantSession
       // the same way useLogin()/useVerifyOTP() do (via normalizeTenantPermissions()),
       // instead of relying entirely on useRbacStore's own localStorage

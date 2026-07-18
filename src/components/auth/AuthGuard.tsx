@@ -105,9 +105,20 @@ export function AuthGuard({
   // permission.service.ts), so it no longer needs special-casing here:
   // `usePermission()` alone answers both "can reach the Console at all"
   // and any other specific permission, through the same single source
-  // (`currentTenantSession`). `requiredPermission` defaults to
-  // `'dashboard:access'` so `<AuthGuard>` with no prop still means
-  // "authenticated + has some tenant role."
+  // (`currentTenantSession`).
+  //
+  // Phase Z.10 correction — `<AuthGuard>` with NO `requiredPermission`
+  // prop is auth-ONLY: `permissionGranted` below short-circuits to `true`
+  // whenever `requiredPermission` is falsy, regardless of
+  // `hasRequiredPermission`, so the permission-denied branch can never
+  // fire. The `?? 'dashboard:access'` here only supplies a valid
+  // `P7Permission` argument to satisfy `usePermission()`'s call signature
+  // when there is nothing to check — it does NOT make `dashboard:access`
+  // a default requirement. Console (src/app/console/layout.tsx) relies on
+  // exactly this: it mounts `<AuthGuard>` bare and performs its own
+  // tenant-context-aware `dashboard:access` check downstream, in
+  // ConsoleWorkspaceGate, once tenant membership is known — see
+  // docs/CONSOLE_TENANT_DEPENDENCY_REDESIGN_AUDIT.md.
   const hasRequiredPermission = usePermission(requiredPermission ?? 'dashboard:access')
   const permissionGranted = !requiredPermission || hasRequiredPermission
 

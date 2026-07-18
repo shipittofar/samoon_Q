@@ -54,7 +54,7 @@ import type {
   NotificationPriority,
 } from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
-import { applyOverrides, normalizeTenantPermissions, canAccessBranch } from '@/services/permission.service'
+import { applyOverrides, normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
 // owner.service.ts, or staff-assignment.service.ts remain in this file.
@@ -487,6 +487,12 @@ export function useLogin() {
     mutationFn: (creds: LoginCredentials) => authService.login(creds),
     onSuccess: ({ user, p7Roles, memberships, activeMembership }) => {
       setUser(user)
+      // Phase Z.10 — set independently of whether a tenant has resolved
+      // (seedTenantSession() below is gated on `if (tenant)` and simply
+      // never runs otherwise) so Console can answer "does this user have
+      // any tenant" without waiting on subdomain/membership-based tenant
+      // resolution to succeed first.
+      useRbacStore.getState().setHasTenantMembership(hasAnyMembership({ p7Roles, memberships }))
       const tenant = useTenantStore.getState().tenant
       if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
     },
@@ -501,6 +507,7 @@ export function useRegister() {
     mutationFn: (data: RegisterData) => authService.register(data),
     onSuccess: ({ user, p7Roles, memberships, activeMembership }) => {
       setUser(user)
+      useRbacStore.getState().setHasTenantMembership(hasAnyMembership({ p7Roles, memberships }))
       const tenant = useTenantStore.getState().tenant
       if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
     },
@@ -535,6 +542,7 @@ export function useVerifyOTP() {
     onSuccess: (result) => {
       if (result.is_new_user) return
       setUser(result.user)
+      useRbacStore.getState().setHasTenantMembership(hasAnyMembership({ p7Roles: result.p7Roles, memberships: result.memberships }))
       const tenant = useTenantStore.getState().tenant
       if (tenant) seedTenantSession(tenant.id, { p7Roles: result.p7Roles, memberships: result.memberships, activeMembership: result.activeMembership })
     },

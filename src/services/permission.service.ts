@@ -518,6 +518,42 @@ export function normalizeTenantPermissions(
 }
 
 /**
+ * Phase Z.10 — does this session-restore/login/register response prove the
+ * user has AT LEAST ONE tenant membership, independent of whether a
+ * specific tenant has actually resolved (subdomain lookup, membership
+ * fallback, or otherwise)? Console uses this to decide full workspace vs.
+ * onboarding — see docs/CONSOLE_TENANT_DEPENDENCY_REDESIGN_AUDIT.md.
+ *
+ * Mirrors `normalizeTenantPermissions()`'s own shape-priority rule: the
+ * frozen `memberships` field, when present (even as an empty array), is
+ * authoritative — `memberships.length > 0` is the answer directly, no
+ * further inference. Only when `memberships` is entirely absent (a
+ * backend still on the legacy `roles`/`p7Roles`/`tenantRoles` shape) do
+ * we fall back to "a non-empty legacy role list IS proof of at least one
+ * tenant membership" — the legacy shape never names which tenant, but a
+ * role assignment cannot exist without one.
+ */
+export function hasAnyMembership(
+  response:
+    | {
+        roles?: Role[] | null
+        p7Roles?: Role[] | null
+        tenantRoles?: Role[] | null
+        memberships?: TenantMembership[] | null
+      }
+    | Role[]
+    | null
+    | undefined,
+): boolean {
+  if (Array.isArray(response)) return response.length > 0
+  if (response?.memberships !== undefined && response?.memberships !== null) {
+    return response.memberships.length > 0
+  }
+  const legacyRoles = response?.roles ?? response?.p7Roles ?? response?.tenantRoles ?? []
+  return legacyRoles.length > 0
+}
+
+/**
  * Checks whether the given role(s) grant a specific permission.
  *
  * Authorization formula: Permission AND Capability AND FeatureFlag
@@ -1038,6 +1074,7 @@ export const permissionService = {
   getPermissionsForRole,
   normalizeTenantPermissions,
   selectActiveMembership,
+  hasAnyMembership,
   resolveBranchAccess,
   canAccessBranch,
   hasPermission,

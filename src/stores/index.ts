@@ -687,6 +687,27 @@ interface RbacStoreState {
   setCurrentTenantSession: (tenantId: string, roles: Role[], permissions: Permission[], branchAccess?: BranchAccess) => void
   clearCurrentTenantSession: () => void
 
+  /**
+   * Phase Z.10 — does the current session's user have ANY tenant
+   * membership at all, from the last resolved auth session
+   * (login/register/verifyOTP/getMe), independent of whether a
+   * subdomain/membership-based tenant lookup has actually succeeded.
+   * Lets Console decide full workspace vs. onboarding without requiring
+   * tenant resolution to succeed first — see
+   * docs/CONSOLE_TENANT_DEPENDENCY_REDESIGN_AUDIT.md. Not the tenant
+   * LIST (AdminTenantSwitcher already sources that independently via
+   * `useMyTenants()`) — purely the yes/no gating signal.
+   *
+   * `null` means "not yet determined" (this session hasn't resolved
+   * membership data yet — still loading). `false` means "confirmed: zero
+   * tenant memberships" (the onboarding case). NEVER persisted (see
+   * `partialize` below), same policy as `currentTenantSession` — always
+   * reconstructed fresh from the session, never carried across a reload
+   * or a different user's login on the same browser.
+   */
+  hasTenantMembership: boolean | null
+  setHasTenantMembership: (value: boolean | null) => void
+
   _resetStore: () => void
 }
 
@@ -698,6 +719,7 @@ export const useRbacStore = create<RbacStoreState>()(
       customRoles: [],
       rbacAuditLog: [],
       currentTenantSession: null,
+      hasTenantMembership: null,
 
       setCurrentTenantSession: (tenantId, roles, permissions, branchAccess) =>
         set({
@@ -709,6 +731,7 @@ export const useRbacStore = create<RbacStoreState>()(
           },
         }),
       clearCurrentTenantSession: () => set({ currentTenantSession: null }),
+      setHasTenantMembership: (value) => set({ hasTenantMembership: value }),
 
       setTenantRoles: (tenantId, roles) =>
         set((s) => {
@@ -792,6 +815,7 @@ export const useRbacStore = create<RbacStoreState>()(
         customRoles: [],
         rbacAuditLog: [],
         currentTenantSession: null,
+        hasTenantMembership: null,
       }),
     }),
     {
