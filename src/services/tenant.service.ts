@@ -363,7 +363,9 @@ export const tenantService = {
   async activateTenant(slugOrId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      return setMockStatus(slugOrId, 'active') ?? { ...DEFAULT_TENANT }
+      const result = setMockStatus(slugOrId, 'active')
+      if (!result) throw new Error(`Tenant not found: ${slugOrId}`)
+      return result
     }
     const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.ACTIVATE(slugOrId))
     return data
@@ -375,7 +377,9 @@ export const tenantService = {
   async suspendTenant(slugOrId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      return setMockStatus(slugOrId, 'suspended') ?? { ...DEFAULT_TENANT }
+      const result = setMockStatus(slugOrId, 'suspended')
+      if (!result) throw new Error(`Tenant not found: ${slugOrId}`)
+      return result
     }
     const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.SUSPEND(slugOrId))
     return data
@@ -387,7 +391,9 @@ export const tenantService = {
   async archiveTenant(slugOrId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      return setMockStatus(slugOrId, 'archived') ?? { ...DEFAULT_TENANT }
+      const result = setMockStatus(slugOrId, 'archived')
+      if (!result) throw new Error(`Tenant not found: ${slugOrId}`)
+      return result
     }
     const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.ARCHIVE(slugOrId))
     return data
