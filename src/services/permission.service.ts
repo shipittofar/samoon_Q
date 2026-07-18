@@ -19,6 +19,8 @@ import type {
   UserPermissionOverride,
   EffectivePermissionResult,
   RoleTemplate,
+  BranchAccess,
+  TenantMembership,
 } from '@/types/rbac'
 
 // ── All permissions (canonical list) ──────────────────────────────────────────
@@ -319,12 +321,71 @@ export function getPermissionsForRole(
 }
 
 /**
+ * Phase 9 — the single place that decides `branchAccess` when the caller
+ * doesn't have (or doesn't trust) an explicit value from the backend.
+ * Shared by `normalizeTenantPermissions()` below and
+ * `useRbacStore.setCurrentTenantSession()` (stores/index.ts) so there is
+ * exactly one implementation of "what branch scope does this role set
+ * get by default," not two.
+ *
+ * Safety rule (Phase 9 architecture doc §"Default behavior for legacy
+ * sessions"): a missing or malformed `explicit` value must NEVER be
+ * treated as "all branches" — that would silently grant access this
+ * session was never actually issued. The one deliberate exception is
+ * `owner`: Owner already holds every P7Permission unconditionally
+ * (`ROLE_PERMISSION_MAP.owner === ALL_PERMISSIONS`), so branch-restricting
+ * an Owner via a missing-data fallback would be a functional regression,
+ * not a security tightening — it would just break Owner without stopping
+ * anyone who actually shouldn't have access.
+ */
+export function resolveBranchAccess(
+  explicit: BranchAccess | null | undefined,
+  roles: readonly Role[],
+): BranchAccess {
+  if (
+    explicit &&
+    (explicit.scope === 'all' ||
+      (explicit.scope === 'assigned' && Array.isArray(explicit.branchIds)))
+  ) {
+    return explicit
+  }
+  if (roles.includes('owner')) return { scope: 'all' }
+  return { scope: 'assigned', branchIds: [] }
+}
+
+/**
+ * Phase 9 — selects which `TenantMembership` a `{ memberships, activeMembership }`
+ * response describes the CURRENT session for. Never guesses across an
+ * ambiguous multi-membership list with no hint to disambiguate — see
+ * `normalizeTenantPermissions()`'s handling of an unresolved selection.
+ *
+ * Priority: `activeMembership` (the backend's own assertion of "this is
+ * the one," when it bothers to send it) → a membership matching
+ * `currentTenantId` (the tenant the frontend has already resolved via
+ * slug — see `useTenantStore.tenant`) → the sole entry, if the list has
+ * exactly one and nothing else disambiguates it.
+ */
+function selectActiveMembership(
+  memberships: readonly TenantMembership[] | null | undefined,
+  activeMembership: TenantMembership | null | undefined,
+  currentTenantId: string | undefined,
+): TenantMembership | undefined {
+  if (activeMembership) return activeMembership
+  if (!memberships || memberships.length === 0) return undefined
+  if (currentTenantId) {
+    const match = memberships.find((m) => m.tenantId === currentTenantId)
+    if (match) return match
+  }
+  return memberships.length === 1 ? memberships[0] : undefined
+}
+
+/**
  * Phase 2 (RBAC unification) — the ONE place that translates a raw auth
- * response into `{ roles, permissions }`. Every auth entry point (login,
- * register, verify-otp, getMe, tenant switch) has historically used a
- * different field name for the same concept (`p7Roles` at login/register/
- * verify-otp, `tenantRoles` from getMe()) — no consumer downstream of this
- * function needs to know which one it was.
+ * response into `{ tenantId, roles, permissions, branchAccess }`. Every
+ * auth entry point (login, register, verify-otp, getMe, tenant switch)
+ * has historically used a different field name for the same roles concept
+ * (`p7Roles` at login/register/verify-otp, `tenantRoles` from getMe()) —
+ * no consumer downstream of this function needs to know which one it was.
  *
  * `permissions` is derived from `roles` via ROLE_PERMISSION_MAP (the single
  * role→permission source — see BASE_ROLE_PERMISSION_MAP above) purely
@@ -333,20 +394,78 @@ export function getPermissionsForRole(
  * starts returning `permissions` directly, this function's body becomes
  * `{ roles: response.roles, permissions: response.permissions }` — its
  * call sites do not change.
+ *
+ * Phase 9 — also accepts the target `{ memberships, activeMembership }`
+ * shape (see `TenantMembership` in types/rbac.ts) alongside the legacy
+ * `roles`/`p7Roles`/`tenantRoles` shape, and always resolves a
+ * `branchAccess` value (see `resolveBranchAccess()` above) — neither
+ * input shape can produce a session with a missing/undefined branch
+ * scope. `currentTenantId` (normally `useTenantStore.tenant?.id`) is used
+ * only to disambiguate which membership applies when a `memberships` list
+ * has more than one entry and no `activeMembership` was sent — it has no
+ * effect on the legacy shape, which has no per-tenant structure to select
+ * from in the first place.
+ *
+ * No backend sends the `memberships`/`activeMembership` shape yet (mock
+ * mode and the real-mode contract both still only ever produce
+ * `tenantRoles`) — this is data-model preparation (Phase 9.2), not a
+ * behavior change for any call site that exists today.
  */
 export function normalizeTenantPermissions(
   response:
-    | { roles?: Role[] | null; p7Roles?: Role[] | null; tenantRoles?: Role[] | null; permissions?: P7Permission[] | null }
+    | {
+        roles?: Role[] | null
+        p7Roles?: Role[] | null
+        tenantRoles?: Role[] | null
+        permissions?: P7Permission[] | null
+        memberships?: TenantMembership[] | null
+        activeMembership?: TenantMembership | null
+      }
     | Role[]
     | null
     | undefined,
-): { roles: Role[]; permissions: P7Permission[] } {
+  currentTenantId?: string,
+): { tenantId?: string; roles: Role[]; permissions: P7Permission[]; branchAccess: BranchAccess } {
   if (Array.isArray(response)) {
-    return { roles: response, permissions: [...getPermissionsForRole(response)] }
+    const roles = response
+    return {
+      tenantId: currentTenantId,
+      roles,
+      permissions: [...getPermissionsForRole(roles)],
+      branchAccess: resolveBranchAccess(undefined, roles),
+    }
   }
+
+  // Phase 9 — the new, tenant-mapped shape takes priority when present.
+  // `memberships` (even an empty array) signals the caller is on the new
+  // contract; only fall through to the legacy fields when `memberships`
+  // itself is absent, so a backend mid-migration can't have both fields
+  // half-trusted at once.
+  if (response?.memberships !== undefined && response?.memberships !== null) {
+    const selected = selectActiveMembership(response.memberships, response.activeMembership, currentTenantId)
+    if (!selected) {
+      // Ambiguous (multiple memberships, no hint to pick one) or an empty
+      // list — deny by default, exactly like a missing branchAccess: never
+      // guess which tenant's roles apply.
+      return { tenantId: currentTenantId, roles: [], permissions: [], branchAccess: resolveBranchAccess(undefined, []) }
+    }
+    const roles = selected.roles
+    return {
+      tenantId: selected.tenantId,
+      roles,
+      permissions: [...getPermissionsForRole(roles)],
+      branchAccess: resolveBranchAccess(selected.branchAccess, roles),
+    }
+  }
+
   const roles = response?.roles ?? response?.p7Roles ?? response?.tenantRoles ?? []
   const permissions = response?.permissions ?? [...getPermissionsForRole(roles)]
-  return { roles, permissions }
+  return {
+    tenantId: currentTenantId,
+    roles,
+    permissions,
+    branchAccess: resolveBranchAccess(undefined, roles),
+  }
 }
 
 /**
@@ -808,6 +927,7 @@ export const permissionService = {
   PERMISSION_CATEGORIES,
   getPermissionsForRole,
   normalizeTenantPermissions,
+  resolveBranchAccess,
   hasPermission,
   hasAnyPermission,
   hasAllPermissions,

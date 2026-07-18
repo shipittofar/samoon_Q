@@ -85,8 +85,8 @@ export function AdminTenantSwitcher() {
       // stop, never a fallback to whatever the previous tenant granted.
       if (currentUser) {
         const roles = getMockRoles(currentUser.id, newTenant.id)
-        const { permissions } = normalizeTenantPermissions({ roles })
-        useRbacStore.getState().setCurrentTenantSession(newTenant.id, roles, permissions)
+        const { permissions, branchAccess } = normalizeTenantPermissions({ roles }, newTenant.id)
+        useRbacStore.getState().setCurrentTenantSession(newTenant.id, roles, permissions, branchAccess)
         if (roles.length > 0) useRbacStore.getState().setTenantRoles(newTenant.id, roles)
       }
     }

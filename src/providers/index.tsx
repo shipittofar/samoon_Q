@@ -273,8 +273,8 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (tenant && pendingTenantRolesRef.current) {
-      const { roles, permissions } = normalizeTenantPermissions({ roles: pendingTenantRolesRef.current })
-      useRbacStore.getState().setCurrentTenantSession(tenant.id, roles, permissions)
+      const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: pendingTenantRolesRef.current }, tenant.id)
+      useRbacStore.getState().setCurrentTenantSession(tenant.id, roles, permissions, branchAccess)
       if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenant.id, roles)
       pendingTenantRolesRef.current = null
     }
@@ -340,8 +340,8 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       if (user.tenantRoles && user.tenantRoles.length > 0) {
         const currentTenant = useTenantStore.getState().tenant
         if (currentTenant) {
-          const { roles, permissions } = normalizeTenantPermissions({ roles: user.tenantRoles })
-          useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions)
+          const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: user.tenantRoles }, currentTenant.id)
+          useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions, branchAccess)
           useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
         } else {
           // Tenant hasn't resolved yet — queue for the effect above to

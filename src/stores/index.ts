@@ -31,8 +31,9 @@ function createDebouncedStorage<T>(delayMs: number): PersistStorage<T> {
 }
 import type { Branch, CartItem, Extra, MenuItem, Notification, Tenant, TenantLifecycle, User } from '@/types'
 import type { Branch as AdminBranch, BranchResolutionState } from '@/types/branch'
-import type { Role, Permission, CurrentTenantSession } from '@/types/rbac'
+import type { Role, Permission, CurrentTenantSession, BranchAccess } from '@/types/rbac'
 import type { TenantRoleAssignment, UserPermissionOverride, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
+import { resolveBranchAccess } from '@/services/permission.service'
 import { BRANCH_KEY, CART_KEY, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
 import {
   tenantService,
@@ -673,7 +674,17 @@ interface RbacStoreState {
    * never as "inherit whatever was there before."
    */
   currentTenantSession: CurrentTenantSession | null
-  setCurrentTenantSession: (tenantId: string, roles: Role[], permissions: Permission[]) => void
+  /**
+   * Phase 9 — `branchAccess` is optional here for backward compatibility
+   * with every existing 3-arg call site (real and test): when omitted, it
+   * is computed from `roles` via the same `resolveBranchAccess()` helper
+   * `normalizeTenantPermissions()` uses, so a session set without an
+   * explicit branch scope still gets a safe, correct one — never an
+   * accidental "all" and never left undefined. Callers that already have
+   * a `branchAccess` value from `normalizeTenantPermissions()` should pass
+   * it through explicitly rather than relying on this fallback.
+   */
+  setCurrentTenantSession: (tenantId: string, roles: Role[], permissions: Permission[], branchAccess?: BranchAccess) => void
   clearCurrentTenantSession: () => void
 
   _resetStore: () => void
@@ -688,8 +699,15 @@ export const useRbacStore = create<RbacStoreState>()(
       rbacAuditLog: [],
       currentTenantSession: null,
 
-      setCurrentTenantSession: (tenantId, roles, permissions) =>
-        set({ currentTenantSession: { tenantId, roles: [...new Set(roles)], permissions: [...new Set(permissions)] } }),
+      setCurrentTenantSession: (tenantId, roles, permissions, branchAccess) =>
+        set({
+          currentTenantSession: {
+            tenantId,
+            roles: [...new Set(roles)],
+            permissions: [...new Set(permissions)],
+            branchAccess: resolveBranchAccess(branchAccess, roles),
+          },
+        }),
       clearCurrentTenantSession: () => set({ currentTenantSession: null }),
 
       setTenantRoles: (tenantId, roles) =>

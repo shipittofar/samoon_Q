@@ -433,8 +433,8 @@ export function useAdminModuleNav(): NavItem[] {
  * know which field this came from.
  */
 function seedTenantSession(tenantId: string, response: { p7Roles?: import('@/types/rbac').Role[] }) {
-  const { roles, permissions } = normalizeTenantPermissions(response)
-  useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions)
+  const { roles, permissions, branchAccess } = normalizeTenantPermissions(response, tenantId)
+  useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions, branchAccess)
   // setTenantRoles() is retained for the admin role-management UI (view/edit
   // assignments across tenants) — a separate concern from "what can I do
   // right now," which currentTenantSession alone answers.

@@ -127,17 +127,75 @@ export interface TenantRoleAssignment {
 }
 
 /**
+ * Phase 9 — describes WHERE (which branches) a tenant-scoped session may
+ * operate, as distinct from Permission (WHAT it may do) and Role (the
+ * grant that produced the permission set). Deliberately a separate field
+ * from Permission/P7Permission — see docs/ Phase 9 architecture doc
+ * ("Permission answers can, BranchAccess answers where") — never folded
+ * into the permission string itself.
+ *
+ * 'all' = every current and future branch of the tenant (owner/admin).
+ * 'assigned' = exactly the listed branch ids — an empty `branchIds` array
+ * is a valid, meaningful value: "assigned scope, but assigned to nothing
+ * (yet)," which must deny every branch-scoped read, not be mistaken for
+ * 'all'.
+ */
+export type BranchAccess =
+  | { scope: 'all' }
+  | { scope: 'assigned'; branchIds: string[] }
+
+/**
+ * Phase 9 — one tenant a user belongs to, carrying the roles and branch
+ * scope granted within THAT tenant specifically. This is the shape a
+ * future backend contract is expected to send instead of the flat,
+ * tenant-less `tenantRoles: Role[]` field the current contract uses (see
+ * docs/P10.10_AUTH_BACKEND_API_CONTRACT.md) — replacing an array of bare
+ * role strings with an array of these lets one auth response describe
+ * memberships across multiple tenants unambiguously.
+ *
+ * NOT YET sent by the mock layer or any real backend as of Phase 9.2 —
+ * `normalizeTenantPermissions()` (permission.service.ts) accepts this
+ * shape in addition to the legacy one purely so the frontend type system
+ * and normalization logic are ready the moment a backend starts sending
+ * it, with no breaking change to what already works today.
+ *
+ * `tenantSlug`/`tenantName`/`status` are optional because nothing
+ * populates them yet (no caller constructs a real `TenantMembership`
+ * today) — they exist so the shape matches the target wire contract in
+ * full, without forcing every current call site to fabricate values for
+ * fields it doesn't have.
+ */
+export interface TenantMembership {
+  tenantId: string
+  tenantSlug?: string
+  tenantName?: string
+  roles: Role[]
+  branchAccess: BranchAccess
+  status?: 'active' | 'suspended' | 'revoked'
+}
+
+/**
  * Phase 2 (RBAC unification) — the single, active-tenant-scoped permission
  * record every permission check reads from (`useRbacStore.currentTenantSession`).
  * Deliberately holds ONLY the active tenant's roles/permissions — no
  * cross-tenant cache, no ownership data, no staff-assignment data. Never
  * persisted; reconstructed after login, refresh, and every tenant switch
  * (see normalizeTenantPermissions() in permission.service.ts).
+ *
+ * Phase 9 — extended with `branchAccess`. Every session ALWAYS carries a
+ * real (never undefined) `branchAccess` value: `setCurrentTenantSession()`
+ * computes a safe default (`{ scope: 'assigned', branchIds: [] }`, or
+ * `{ scope: 'all' }` for an `owner` role) whenever a caller doesn't supply
+ * one explicitly, so no session can silently end up with an ambiguous or
+ * over-permissive branch scope. Nothing reads this field for an actual
+ * access decision yet (Phase 9.2 is data-model preparation only) — see
+ * the Phase 9 architecture doc for the consuming design (Phase 9.4).
  */
 export interface CurrentTenantSession {
   tenantId: string
   roles: Role[]
   permissions: Permission[]
+  branchAccess: BranchAccess
 }
 
 /** Options for capability/featureFlag-aware permission checks. */
