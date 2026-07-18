@@ -17,8 +17,10 @@ import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { MissingTranslationInspector } from '@/components/dev/MissingTranslationInspector'
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
+import { usePathname } from 'next/navigation'
 import type { Role, TenantMembership } from '@/types/rbac'
-import { normalizeTenantPermissions } from '@/services/permission.service'
+import { normalizeTenantPermissions, selectActiveMembership } from '@/services/permission.service'
+import { DEFAULT_TENANT } from '@/constants'
 
 /**
  * Auth-refresh-persistence fix — the exact shape `normalizeTenantPermissions()`
@@ -57,6 +59,43 @@ export function resolveSessionRestoreInput(user: {
   const hasMemberships = user.memberships !== undefined && user.memberships !== null
   if (!hasLegacyRoles && !hasMemberships) return null
   return { roles: user.tenantRoles, memberships: user.memberships, activeMembership: user.activeMembership }
+}
+
+/**
+ * Phase Z.8 — pure decision: does the current route's tenant need to be
+ * re-resolved from the authenticated session's own membership, and if
+ * so, which slug? TenantBootstrapper resolves tenant purely from the
+ * request's subdomain (docs/modules/TENANT_RESOLUTION_STRATEGY.md) — by
+ * design, for the public storefront — and has no path back to the
+ * authenticated user's own memberships. A business owner/admin reaching
+ * /console from the platform's own domain (no tenant subdomain to be on
+ * before logging in) gets no slug at all, TenantBootstrapper falls back
+ * to `loadTenant('default')`, and a real backend 404s on a tenant
+ * literally named "default" — producing tenantState 'not_found'
+ * ("Tenant not found") with zero relation to the user's actual,
+ * fully-permissioned membership. Not an RBAC problem:
+ * `dashboard:access` is never evaluated because AuthGuard's
+ * `requireResolvedTenant` fails first.
+ *
+ * Extracted as a pure, exported function (same pattern as
+ * `resolveSessionRestoreInput()` above) so the decision is unit-testable
+ * without mounting the full provider tree.
+ *
+ * Returns the tenantSlug to load, or `null` when no fallback is needed:
+ * not on a `/console` route, the current tenant already resolved to a
+ * real (non-`DEFAULT_TENANT`) tenant, or the session carries no
+ * membership with a `tenantSlug` to fall back to.
+ */
+export function resolveConsoleTenantFallbackSlug(
+  pathname: string | null | undefined,
+  currentTenant: { slug: string; id: string } | null | undefined,
+  sessionInput: { memberships?: TenantMembership[]; activeMembership?: TenantMembership } | null | undefined,
+): string | null {
+  if (!pathname?.startsWith('/console')) return null
+  if (currentTenant && currentTenant.slug !== DEFAULT_TENANT.slug) return null
+  if (!sessionInput) return null
+  const membership = selectActiveMembership(sessionInput.memberships, sessionInput.activeMembership, currentTenant?.id)
+  return membership?.tenantSlug ?? null
 }
 
 function makeQueryClient() {
@@ -312,15 +351,73 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
   // comment for the bug this closes).
   const pendingAuthSessionRef = useRef<ReturnType<typeof resolveSessionRestoreInput>>(null)
   const tenant = useTenantStore((s) => s.tenant)
+  const tenantState = useTenantStore((s) => s.tenantState)
+  const pathname = usePathname()
+  // Phase Z.8 — one-shot guard so a genuinely tenant-less /console visit
+  // (membership resolves to a tenant that itself 404s/is forbidden) tries
+  // the membership-based fallback exactly once, instead of looping.
+  const consoleFallbackAttempted = useRef(false)
 
-  useEffect(() => {
-    if (tenant && pendingAuthSessionRef.current) {
-      const { roles, permissions, branchAccess } = normalizeTenantPermissions(pendingAuthSessionRef.current, tenant.id)
-      useRbacStore.getState().setCurrentTenantSession(tenant.id, roles, permissions, branchAccess)
-      if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenant.id, roles)
+  // TenantBootstrapper resolves tenant purely from the request's
+  // subdomain (docs/modules/TENANT_RESOLUTION_STRATEGY.md) — by design,
+  // for the public storefront. It has no path back to the authenticated
+  // user's own memberships. A business owner/admin reaching /console from
+  // the platform's own domain (there is no tenant subdomain to be on
+  // before logging in) gets no slug at all, falls back to
+  // `loadTenant('default')`, and a real backend 404s on a tenant literally
+  // named "default" — producing tenantState 'not_found' ("Tenant not
+  // found") with zero relation to the user's actual, fully-permissioned
+  // membership. This is NOT an RBAC problem — `dashboard:access` is never
+  // evaluated because AuthGuard's `requireResolvedTenant` fails first.
+  //
+  // Waits for `tenantState !== 'loading'` (host-based resolution has
+  // settled, successfully or not) before deciding whether a fallback is
+  // needed, so this never races TenantBootstrapper's own in-flight
+  // loadTenant() call and clobbers a legitimately-resolved subdomain
+  // tenant. Called both reactively (the effect below, for the case where
+  // tenant resolution finishes AFTER getMe()) and directly from
+  // checkSession() (for the equally common case where tenant resolution
+  // already finished by the time getMe() resolves — a ref write alone
+  // does not retrigger a useEffect, so relying on the effect alone would
+  // silently drop the session in that ordering).
+  function applyPendingAuthSession() {
+    if (tenantState === 'loading') return
+    if (!pendingAuthSessionRef.current) return
+    const sessionInput = pendingAuthSessionRef.current
+    const currentTenant = useTenantStore.getState().tenant
+
+    const fallbackSlug = resolveConsoleTenantFallbackSlug(pathname, currentTenant, sessionInput)
+
+    if (fallbackSlug && !consoleFallbackAttempted.current) {
+      consoleFallbackAttempted.current = true
+      pendingAuthSessionRef.current = null
+      // Re-resolve tenant identity from the authenticated session's own
+      // membership — never from client-held role/permission data, and
+      // never bypassing AuthGuard's `dashboard:access` check, which still
+      // runs against whatever tenant this settles on.
+      useTenantStore.getState().loadTenant(fallbackSlug).then(() => {
+        const resolved = useTenantStore.getState().tenant
+        if (resolved) {
+          const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, resolved.id)
+          useRbacStore.getState().setCurrentTenantSession(resolved.id, roles, permissions, branchAccess)
+          if (roles.length > 0) useRbacStore.getState().setTenantRoles(resolved.id, roles)
+        }
+      })
+      return
+    }
+
+    if (currentTenant) {
+      const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, currentTenant.id)
+      useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions, branchAccess)
+      if (roles.length > 0) useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
       pendingAuthSessionRef.current = null
     }
-  }, [tenant])
+  }
+
+  useEffect(() => {
+    applyPendingAuthSession()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenant, tenantState, pathname])
 
   // P10.9 — full session teardown, shared by both places a session can end
   // outside an explicit useLogout() call: a failed getMe() below
@@ -392,16 +489,15 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // doc comment above for the full root-cause explanation.
       const sessionInput = resolveSessionRestoreInput(data)
       if (sessionInput) {
-        const currentTenant = useTenantStore.getState().tenant
-        if (currentTenant) {
-          const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, currentTenant.id)
-          useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions, branchAccess)
-          useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
-        } else {
-          // Tenant hasn't resolved yet — queue for the effect above to
-          // apply once it does, instead of dropping the session forever.
-          pendingAuthSessionRef.current = sessionInput
-        }
+        // Queue, then apply immediately — applyPendingAuthSession() is the
+        // single place that decides whether the already-resolved tenant is
+        // usable as-is, needs the Console membership-based fallback (Phase
+        // Z.8), or is still settling. Calling it here (not just relying on
+        // the effect below) covers the equally common ordering where
+        // TenantBootstrapper's loadTenant() already settled before getMe()
+        // resolves — a ref write alone would never retrigger that effect.
+        pendingAuthSessionRef.current = sessionInput
+        applyPendingAuthSession()
       }
       // `data.ownership`/`data.staffAssignments`, if a backend ever sends
       // them here, are NOT hydrated into any store — Phase 2 removed the

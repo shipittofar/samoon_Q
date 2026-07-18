@@ -410,7 +410,7 @@ export function canAccessBranch(
  * from `activeMembership` directly — so `roles`/`branchAccess` are
  * guaranteed complete whenever a match exists.
  */
-function selectActiveMembership(
+export function selectActiveMembership(
   memberships: readonly TenantMembership[] | null | undefined,
   activeMembership: TenantMembership | null | undefined,
   currentTenantId: string | undefined,
@@ -1037,6 +1037,7 @@ export const permissionService = {
   PERMISSION_CATEGORIES,
   getPermissionsForRole,
   normalizeTenantPermissions,
+  selectActiveMembership,
   resolveBranchAccess,
   canAccessBranch,
   hasPermission,
