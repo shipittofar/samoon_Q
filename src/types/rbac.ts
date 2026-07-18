@@ -118,6 +118,15 @@ export interface UserTenantRole {
   userId: string
   tenantId: string
   roles: Role[]
+  /**
+   * Phase Z.1 — optional explicit branch grant for this assignment.
+   * Omitted (undefined) means "let resolveBranchAccess() decide the
+   * default" (owner → all, everyone else → assigned/empty), exactly as
+   * before this field existed. When present, it is the authoritative
+   * 'assigned' branch list — see getMockMemberships() in
+   * permission.service.ts, the only reader of this field.
+   */
+  branchIds?: string[]
 }
 
 /** Active session role assignments per tenant. */

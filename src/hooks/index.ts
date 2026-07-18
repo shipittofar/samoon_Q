@@ -457,8 +457,22 @@ export function useAdminModuleNav(): NavItem[] {
  * field name the auth response used (`p7Roles` here, `tenantRoles` from
  * getMe()) into `{ roles, permissions }`. No consumer downstream needs to
  * know which field this came from.
+ *
+ * Phase Z.1 — also accepts the frozen-contract `memberships`/
+ * `activeMembership` fields (optional; mock mode now sends them alongside
+ * `p7Roles` — see deriveMockAuthSession() in auth.service.ts). Passing
+ * them through here is what actually exercises
+ * normalizeTenantPermissions()'s memberships-priority branch end to end,
+ * rather than leaving it type-compatible but never invoked.
  */
-function seedTenantSession(tenantId: string, response: { p7Roles?: import('@/types/rbac').Role[] }) {
+function seedTenantSession(
+  tenantId: string,
+  response: {
+    p7Roles?: import('@/types/rbac').Role[]
+    memberships?: import('@/types/rbac').TenantMembership[]
+    activeMembership?: import('@/types/rbac').TenantMembership
+  },
+) {
   const { roles, permissions, branchAccess } = normalizeTenantPermissions(response, tenantId)
   useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions, branchAccess)
   // setTenantRoles() is retained for the admin role-management UI (view/edit
@@ -471,10 +485,10 @@ export function useLogin() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (creds: LoginCredentials) => authService.login(creds),
-    onSuccess: ({ user, p7Roles }) => {
+    onSuccess: ({ user, p7Roles, memberships, activeMembership }) => {
       setUser(user)
       const tenant = useTenantStore.getState().tenant
-      if (tenant) seedTenantSession(tenant.id, { p7Roles })
+      if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
     },
   })
 }
@@ -485,10 +499,10 @@ export function useRegister() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (data: RegisterData) => authService.register(data),
-    onSuccess: ({ user, p7Roles }) => {
+    onSuccess: ({ user, p7Roles, memberships, activeMembership }) => {
       setUser(user)
       const tenant = useTenantStore.getState().tenant
-      if (tenant) seedTenantSession(tenant.id, { p7Roles })
+      if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
     },
   })
 }
@@ -522,7 +536,7 @@ export function useVerifyOTP() {
       if (result.is_new_user) return
       setUser(result.user)
       const tenant = useTenantStore.getState().tenant
-      if (tenant) seedTenantSession(tenant.id, { p7Roles: result.p7Roles })
+      if (tenant) seedTenantSession(tenant.id, { p7Roles: result.p7Roles, memberships: result.memberships, activeMembership: result.activeMembership })
     },
   })
 }
@@ -746,11 +760,20 @@ export function useCreatePaymentIntent() {
 }
 
 // ── Branch Hooks (public) ─────────────────────────────────────────────────────
+/**
+ * Phase Z.1 — routes through branchService.getTenantBranches(tenantId)
+ * once a tenant has resolved, so the intent at this call site is
+ * unambiguous ("this tenant's branches," never "every branch"). Before
+ * the tenant resolves, this still falls back to the untargeted
+ * getBranches() exactly as before — that bootstrap-timing behavior is
+ * unchanged (and covered by context-integrity.test.ts), not something
+ * this phase redesigns.
+ */
 export function useBranches() {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
     queryKey: ['branches', tenantId],
-    queryFn: () => branchService.getBranches(tenantId ?? undefined),
+    queryFn: () => (tenantId ? branchService.getTenantBranches(tenantId) : branchService.getBranches()),
     staleTime: CACHE_TIME,
   })
 }
@@ -2373,6 +2396,40 @@ export function useTenants() {
   return useQuery({
     queryKey: ['tenants'],
     queryFn: () => tenantService.getTenants(),
+    staleTime: STALE_TIME,
+    enabled: canView,
+  })
+}
+
+/**
+ * Phase Z.1 — "my accessible tenants." Use this at any call site that
+ * means "which tenants can the current user act in" (e.g.
+ * AdminTenantSwitcher) — never "which tenants exist on the platform."
+ * Same underlying query as useTenants() (tenantService.getMyTenants() is
+ * a placeholder boundary over the same unscoped mock data — see that
+ * function's doc comment) so this shares useTenants()'s cache entry
+ * rather than triggering a second fetch.
+ */
+export function useMyTenants() {
+  const canView = usePermission('tenant.view')
+  return useQuery({
+    queryKey: ['tenants'],
+    queryFn: () => tenantService.getMyTenants(),
+    staleTime: STALE_TIME,
+    enabled: canView,
+  })
+}
+
+/**
+ * Phase Z.1 — "all platform tenants." Use this at any call site that
+ * genuinely means every tenant on the platform (e.g. /console/tenants'
+ * tenant-administration table) — never "tenants I belong to."
+ */
+export function usePlatformTenants() {
+  const canView = usePermission('tenant.view')
+  return useQuery({
+    queryKey: ['tenants'],
+    queryFn: () => tenantService.getPlatformTenants(),
     staleTime: STALE_TIME,
     enabled: canView,
   })

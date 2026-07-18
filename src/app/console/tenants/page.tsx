@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useTenants, useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
+import { usePlatformTenants, useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
 import type { Tenant } from '@/types'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -133,7 +133,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
 
 export default function AdminTenantsPage() {
   const t = useTranslations('console')
-  const { data: tenants = [], isLoading } = useTenants()
+  const { data: tenants = [], isLoading } = usePlatformTenants()
 
   return (
     <ErrorBoundary feature="Tenant Management">

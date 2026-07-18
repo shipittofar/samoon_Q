@@ -360,6 +360,36 @@ export const tenantService = {
   },
 
   /**
+   * Phase Z.1 — "my accessible tenants": the tenants the CURRENT user has a
+   * real membership in, for surfaces like AdminTenantSwitcher where listing
+   * a tenant the caller doesn't belong to is a real access-control bug, not
+   * a display nicety. Per docs/BACKEND_CONTRACT.md's recommended
+   * `GET /me/tenants` endpoint (not yet implemented by any backend —
+   * see API_GAP_REPORT.md item 2). Until that endpoint exists, this is a
+   * placeholder boundary that delegates to the same unscoped getTenants()
+   * — the caller is still responsible for filtering with
+   * permissionService.hasAnyTenantAccess() (see AdminTenantSwitcher.tsx),
+   * exactly as it already does. What changes here is the NAME at the call
+   * site: "I mean my tenants" is no longer indistinguishable from "I mean
+   * every platform tenant" (getPlatformTenants() below).
+   */
+  async getMyTenants(): Promise<Tenant[]> {
+    return tenantService.getTenants()
+  },
+
+  /**
+   * Phase Z.1 — "all platform tenants": genuinely global, for platform
+   * administration surfaces like /console/tenants (tenant analytics,
+   * activate/suspend/archive) where seeing every tenant IS the point.
+   * Per docs/BACKEND_CONTRACT.md's `GET /platform/tenants` (not yet
+   * implemented — see API_GAP_REPORT.md item 2). Placeholder boundary,
+   * same underlying data as getTenants() until that endpoint exists.
+   */
+  async getPlatformTenants(): Promise<Tenant[]> {
+    return tenantService.getTenants()
+  },
+
+  /**
    * Activate a suspended or trial tenant.
    */
   async activateTenant(slugOrId: string): Promise<Tenant> {

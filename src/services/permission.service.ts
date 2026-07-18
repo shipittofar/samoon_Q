@@ -673,15 +673,61 @@ export const MOCK_RBAC_USERS: readonly MockRbacUser[] = [
     last_name: 'Multi',
     tenantAssignments: [
       { userId: 'user-multi-01', tenantId: MOCK_TENANT_ID, roles: ['manager'] },
-      { userId: 'user-multi-01', tenantId: MOCK_TENANT_B_ID, roles: ['cashier'] },
+      // Phase Z.1 — explicit branchIds gives this assignment a real,
+      // non-empty 'assigned' branch scope (as opposed to every other
+      // non-owner assignment above, which falls through to
+      // resolveBranchAccess()'s empty-array default) — the mock fixture
+      // for "selected branch access" test coverage. See
+      // getMockMemberships() below, the only reader of this field.
+      { userId: 'user-multi-01', tenantId: MOCK_TENANT_B_ID, roles: ['cashier'], branchIds: ['branch-brewcafe-01'] },
     ],
   },
 ]
+
+/**
+ * Phase Z.1 — tenant slug lookup for getMockMemberships() below. Mirrors
+ * tenant.service.ts's MOCK_TENANTS keys (samoon → tenant-samoon-01,
+ * brew-cafe → tenant-brew-cafe-01) without importing that module — this
+ * file (permission.service.ts) intentionally has no dependency on
+ * tenant.service.ts, and a slug is a display/UX convenience here, never
+ * used for any access decision.
+ */
+const MOCK_TENANT_SLUGS: Record<string, string> = {
+  [MOCK_TENANT_ID]: 'samoon',
+  [MOCK_TENANT_B_ID]: 'brew-cafe',
+}
 
 /** Find a mock user's roles for a given tenant. */
 export function getMockRoles(userId: string, tenantId: string): Role[] {
   const user = MOCK_RBAC_USERS.find((u) => u.id === userId)
   return user?.tenantAssignments.find((a) => a.tenantId === tenantId)?.roles ?? []
+}
+
+/**
+ * Phase Z.1 — the single place that turns a MOCK_RBAC_USERS entry's
+ * `tenantAssignments` (the pre-Phase-9 `UserTenantRole[]` shape) into the
+ * target `TenantMembership[]` shape the frozen backend contract sends
+ * (docs/BACKEND_CONTRACT.md §2, `GET /auth/memberships/`). Reuses
+ * resolveBranchAccess() for the branchAccess computation — never a second,
+ * hand-rolled scope decision — so a mock user's resolved branch access here
+ * is guaranteed consistent with what setCurrentTenantSession() would
+ * compute for the same roles/branchIds.
+ *
+ * Returns [] for a userId with no MOCK_RBAC_USERS entry (e.g. a pure
+ * customer with no tenant membership at all) — never throws, matching
+ * getMockRoles()'s own "unknown user → empty result" contract.
+ */
+export function getMockMemberships(userId: string): TenantMembership[] {
+  const user = MOCK_RBAC_USERS.find((u) => u.id === userId)
+  if (!user) return []
+  return user.tenantAssignments.map((a) => ({
+    tenantId: a.tenantId,
+    tenantSlug: MOCK_TENANT_SLUGS[a.tenantId],
+    roles: a.roles,
+    branchAccess: a.branchIds
+      ? { scope: 'assigned', branchIds: a.branchIds }
+      : resolveBranchAccess(undefined, a.roles),
+  }))
 }
 
 /**
@@ -983,6 +1029,7 @@ export const permissionService = {
   applyOverrides,
   resolveEffectivePermissions,
   getMockRoles,
+  getMockMemberships,
   hasAnyTenantAccess,
   auditHooks,
   MOCK_RBAC_USERS,

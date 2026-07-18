@@ -340,7 +340,15 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       if (user.tenantRoles && user.tenantRoles.length > 0) {
         const currentTenant = useTenantStore.getState().tenant
         if (currentTenant) {
-          const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: user.tenantRoles }, currentTenant.id)
+          // Phase Z.1 — also passes through `memberships`/`activeMembership`
+          // when getMe() sent them (mock mode now does — see
+          // deriveMockAuthSession() in auth.service.ts), exercising
+          // normalizeTenantPermissions()'s memberships-priority branch on
+          // session restore the same way login does, not just at login.
+          const { roles, permissions, branchAccess } = normalizeTenantPermissions(
+            { roles: user.tenantRoles, memberships: user.memberships, activeMembership: user.activeMembership },
+            currentTenant.id,
+          )
           useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions, branchAccess)
           useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
         } else {

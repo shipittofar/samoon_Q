@@ -67,6 +67,15 @@ export const reservationService = {
 
 // ─── branch.service.ts ────────────────────────────────────────────────────────
 export const branchService = {
+  /**
+   * Phase Z.1 — kept for the (rare) case a caller genuinely has no tenant
+   * context yet — see useBranches() in hooks/index.ts, which falls back to
+   * this only while the active tenant is still resolving. `tenantId`
+   * omitted returns the legacy, tenant-less MOCK_BRANCHES list — that
+   * fallback is intentional and covered by context-integrity.test.ts, not
+   * a bug to silently remove here. Prefer getTenantBranches(tenantId)
+   * below at any call site that already has a resolved tenant.
+   */
   async getBranches(tenantId?: string): Promise<Branch[]> {
     if (USE_MOCK) {
       await delay(400)
@@ -78,6 +87,21 @@ export const branchService = {
     const params = tenantId ? { tenant_id: tenantId } : {}
     const { data } = await api.get<Branch[]>(ENDPOINTS.BRANCHES.LIST, { params })
     return data
+  },
+
+  /**
+   * Phase Z.1 — "this tenant's branches," full stop: `tenantId` is
+   * required, so a call site using this method can never silently fall
+   * back to the tenant-less global MOCK_BRANCHES list the way
+   * getBranches(undefined) does. Per docs/BACKEND_CONTRACT.md's
+   * `GET /tenants/{tenantId}/branches` (not yet implemented — see
+   * API_GAP_REPORT.md) — placeholder boundary, same underlying data as
+   * getBranches(tenantId) until that endpoint exists. No route migration
+   * here: still called from the exact same /reservation and
+   * BranchSelector call sites, just with an unambiguous signature.
+   */
+  async getTenantBranches(tenantId: string): Promise<Branch[]> {
+    return branchService.getBranches(tenantId)
   },
 
   async getBranch(id: string): Promise<Branch> {

@@ -536,8 +536,12 @@ describe('O — admin tenants page (/console/tenants)', () => {
     expect(src()).toContain('Tenant Management')
   })
 
-  it('uses useTenants hook (not just templates)', () => {
-    expect(src()).toContain('useTenants')
+  it('uses usePlatformTenants hook (not just templates)', () => {
+    // Phase Z.1 — this page manages every tenant on the platform, so it
+    // was repointed from the ambiguous useTenants() to the explicitly
+    // "all platform tenants" hook (AdminTenantSwitcher, which means "my
+    // accessible tenants," uses useMyTenants() instead).
+    expect(src()).toContain('usePlatformTenants')
   })
 
   it('has a link to /console/tenants/new', () => {

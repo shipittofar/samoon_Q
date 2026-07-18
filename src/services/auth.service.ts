@@ -26,8 +26,9 @@ import type {
   VerifyOTPRequest,
   User,
 } from '@/types'
-import type { Role } from '@/types/rbac'
+import type { Role, TenantMembership } from '@/types/rbac'
 import type { AuthSessionRbacPayload } from '@/types/ownership'
+import { resolveBranchAccess, MOCK_TENANT_ID } from '@/services/permission.service'
 
 /**
  * P10.8 — verifyOTP()'s result is a discriminated union, matching the
@@ -42,7 +43,20 @@ import type { AuthSessionRbacPayload } from '@/types/ownership'
  */
 export type VerifyOTPResult =
   | { is_new_user: true }
-  | ({ is_new_user: false; user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload)
+  | ({
+      is_new_user: false
+      user: User
+      tokens: AuthTokens
+      p7Roles?: Role[]
+      /**
+       * Phase Z.1 — forward-compat mirror of login()/getMe()'s widening:
+       * the frozen-contract shape (docs/BACKEND_CONTRACT.md §2), optional
+       * so a backend that only ever sends `p7Roles` (today's contract)
+       * changes nothing for any existing consumer.
+       */
+      memberships?: TenantMembership[]
+      activeMembership?: TenantMembership
+    } & AuthSessionRbacPayload)
 
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -94,6 +108,20 @@ export const MOCK_REFRESH_TOKEN =
  *
  * p7Roles are the P7 tenant-scoped roles seeded into useRbacStore by
  * useLogin() on successful mock login. They cover all PermissionGuard checks.
+ *
+ * Phase Z.1 — this is the ONE place a demo persona's tenant-scoped roles
+ * are declared. login()/verifyOTP()/getMe() below all read `p7Roles` from
+ * here and pass it through deriveMockAuthSession(), which is the single
+ * function that turns it into BOTH the legacy `p7Roles`/`tenantRoles` wire
+ * field (unchanged, still consumed by seedTenantSession() in hooks/index.ts)
+ * and the frozen-contract `memberships`/`activeMembership` shape
+ * (docs/BACKEND_CONTRACT.md §2) — previously each of the three functions
+ * would have had to construct the new shape separately, which is exactly
+ * the kind of per-function duplication this phase removes. Every demo
+ * persona here belongs to the one demo tenant (tenant-samoon-01,
+ * MOCK_TENANT_ID) — matching existing behavior, where these roles were
+ * always applied against whatever tenant the frontend currently has
+ * resolved, with no per-persona tenant selection.
  */
 export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> = {
   'demo@samoon.com':      { user: MOCK_USER,           p7Roles: [] },
@@ -110,10 +138,39 @@ export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> =
   'platform@samoon.com':  { user: MOCK_PLATFORM_ADMIN_USER, p7Roles: ['owner'] },
 }
 
+/**
+ * Phase Z.1 — derives the frozen-contract `memberships`/`activeMembership`
+ * shape from a MOCK_CREDENTIALS entry's flat `p7Roles`, reusing
+ * resolveBranchAccess() (permission.service.ts) rather than a second,
+ * hand-rolled branch-scope decision. `p7Roles.length === 0` (the
+ * demo@samoon.com customer account) correctly produces an empty
+ * `memberships` array and no `activeMembership` — "logged in, zero tenant
+ * memberships" is a real, valid state, not an omission.
+ *
+ * The single-membership result mirrors today's actual behavior: every mock
+ * login persona has exactly one tenant (see MOCK_CREDENTIALS above), so
+ * there is never an ambiguous multi-membership list to disambiguate here.
+ */
+function deriveMockAuthSession(
+  p7Roles: Role[],
+): { memberships: TenantMembership[]; activeMembership?: TenantMembership } {
+  if (p7Roles.length === 0) return { memberships: [] }
+  const membership: TenantMembership = {
+    tenantId: MOCK_TENANT_ID,
+    tenantSlug: 'samoon',
+    roles: p7Roles,
+    branchAccess: resolveBranchAccess(undefined, p7Roles),
+  }
+  return { memberships: [membership], activeMembership: membership }
+}
+
 export const authService = {
   async login(
     credentials: LoginCredentials,
-  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload> {
+  ): Promise<
+    { user: User; tokens: AuthTokens; p7Roles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
+    & AuthSessionRbacPayload
+  > {
     if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
 
     if (mockActive()) {
@@ -130,7 +187,7 @@ export const authService = {
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
       if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_SESSION_KEY, credentials.email)
-      return { user: entry.user, tokens, p7Roles: entry.p7Roles }
+      return { user: entry.user, tokens, p7Roles: entry.p7Roles, ...deriveMockAuthSession(entry.p7Roles) }
     }
 
     if (!authFlag('authentication.email_login_enabled')) throw new Error('email_login_disabled')
@@ -140,7 +197,13 @@ export const authService = {
     // matching what mock mode has always returned. All three fields are
     // optional — a backend that doesn't send them yet behaves exactly as
     // before (see docs/P10.7_RBAC_SESSION_HYDRATION_IMPLEMENTATION.md).
-    const { data } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload>(
+    // Phase Z.1 — also optionally accepts `memberships`/`activeMembership`
+    // (the frozen-contract shape); still optional, so this changes nothing
+    // for a real backend that hasn't implemented it yet.
+    const { data } = await api.post<
+      { user: User; tokens: AuthTokens; p7Roles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
+      & AuthSessionRbacPayload
+    >(
       ENDPOINTS.AUTH.LOGIN,
       credentials,
     )
@@ -155,7 +218,10 @@ export const authService = {
   // shape is consistent either way).
   async register(
     data: RegisterData,
-  ): Promise<{ user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload> {
+  ): Promise<
+    { user: User; tokens: AuthTokens; p7Roles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
+    & AuthSessionRbacPayload
+  > {
     if (!isAuthenticationEnabled()) throw new Error('authentication_disabled')
     if (!authFlag('authentication.registration_enabled')) throw new Error('registration_disabled')
 
@@ -168,6 +234,7 @@ export const authService = {
         user: { ...MOCK_USER, first_name: data.first_name, last_name: data.last_name },
         tokens,
         p7Roles: [],
+        ...deriveMockAuthSession([]),
       }
     }
 
@@ -175,7 +242,10 @@ export const authService = {
     // the caller built them (never concatenated here) — see
     // src/app/complete-profile/page.tsx for the phone-OTP registration
     // flow's payload construction.
-    const { data: res } = await api.post<{ user: User; tokens: AuthTokens; p7Roles?: Role[] } & AuthSessionRbacPayload>(
+    const { data: res } = await api.post<
+      { user: User; tokens: AuthTokens; p7Roles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
+      & AuthSessionRbacPayload
+    >(
       ENDPOINTS.AUTH.REGISTER,
       data,
     )
@@ -201,23 +271,27 @@ export const authService = {
   // this is a structural widening (`User & {...}`), not a breaking
   // reshape, so every existing consumer that reads `getMe()`'s result as
   // a plain `User` keeps working unmodified.
-  async getMe(): Promise<User & AuthSessionRbacPayload & { tenantRoles?: Role[] }> {
+  async getMe(): Promise<
+    User & AuthSessionRbacPayload & { tenantRoles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
+  > {
     if (mockActive()) {
       await delay(300)
       if (typeof localStorage !== 'undefined') {
         const email = localStorage.getItem(MOCK_SESSION_KEY)
         if (email && MOCK_CREDENTIALS[email]) {
           const entry = MOCK_CREDENTIALS[email]
-          return { ...entry.user, tenantRoles: entry.p7Roles }
+          return { ...entry.user, tenantRoles: entry.p7Roles, ...deriveMockAuthSession(entry.p7Roles) }
         }
       }
-      return { ...MOCK_USER, tenantRoles: [] }
+      return { ...MOCK_USER, tenantRoles: [], ...deriveMockAuthSession([]) }
     }
-    // Real mode: `tenantRoles`/`ownership`/`staffAssignments` are all
-    // optional — a backend that doesn't send them yet returns exactly
-    // what it always has (`User`), and this call behaves identically to
-    // before this phase.
-    const { data } = await api.get<User & AuthSessionRbacPayload & { tenantRoles?: Role[] }>(ENDPOINTS.AUTH.ME)
+    // Real mode: `tenantRoles`/`ownership`/`staffAssignments`/`memberships`/
+    // `activeMembership` are all optional — a backend that doesn't send
+    // them yet returns exactly what it always has (`User`), and this call
+    // behaves identically to before this phase.
+    const { data } = await api.get<
+      User & AuthSessionRbacPayload & { tenantRoles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
+    >(ENDPOINTS.AUTH.ME)
     return data
   },
 
@@ -309,7 +383,7 @@ export const authService = {
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem(MOCK_SESSION_KEY, email)
         }
-        return { user: entry.user, tokens, p7Roles: entry.p7Roles, is_new_user: false }
+        return { user: entry.user, tokens, p7Roles: entry.p7Roles, is_new_user: false, ...deriveMockAuthSession(entry.p7Roles) }
       }
 
       // P10.8 — unknown phone_number = new user. Registration is NOT

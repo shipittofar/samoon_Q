@@ -14,7 +14,7 @@ import { ChevronDown, Layers, Check, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { useTenantStore, useBranchStore, useCartStore, useDineInStore, useFavoritesStore, useRecentlyViewedStore, useRbacStore, useAuthStore } from '@/stores'
-import { useTenants, usePermission } from '@/hooks'
+import { useMyTenants, usePermission } from '@/hooks'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { getMockRoles, normalizeTenantPermissions, hasAnyTenantAccess } from '@/services/permission.service'
 import { useQueryClient } from '@tanstack/react-query'
@@ -35,7 +35,7 @@ export function AdminTenantSwitcher() {
   const setFeatureFlags = useTenantStore((s) => s.setFeatureFlags)
   const setFeatureFlagsInitialized = useTenantStore((s) => s.setFeatureFlagsInitialized)
   const setAdminActiveBranch = useBranchStore((s) => s.setAdminActiveBranch)
-  const { data: tenants = [], isLoading } = useTenants()
+  const { data: tenants = [], isLoading } = useMyTenants()
   const user = useAuthStore((s) => s.user)
   const qc = useQueryClient()
 
@@ -44,13 +44,15 @@ export function AdminTenantSwitcher() {
   const ref = useRef<HTMLDivElement>(null)
 
   // Phase X.3 — never list (or allow a switch into) a tenant this user has
-  // no real membership for. useTenants() itself is still unscoped (a
-  // backend contract gap tracked separately, see the Phase X audit) — this
-  // filter is the frontend's own defense-in-depth on top of that, using
-  // the same mock membership data switchTenant() already fetches roles
-  // from below. The active tenant always stays listed/highlighted even if
-  // its own membership lookup were ever to disagree, since the user is
-  // already legitimately inside it.
+  // no real membership for. useMyTenants() itself is still backed by an
+  // unscoped placeholder (tenantService.getMyTenants() — a backend
+  // contract gap tracked separately, see the Phase X audit and Phase Z.1's
+  // FRONTEND_CONTRACT_ALIGNMENT_REPORT.md) — this filter is the
+  // frontend's own defense-in-depth on top of that, using the same mock
+  // membership data switchTenant() already fetches roles from below. The
+  // active tenant always stays listed/highlighted even if its own
+  // membership lookup were ever to disagree, since the user is already
+  // legitimately inside it.
   const accessibleTenants = useMemo(
     () => tenants.filter((tn) => tn.id === tenant?.id || (user && hasAnyTenantAccess(user.id, tn.id))),
     [tenants, user, tenant?.id],

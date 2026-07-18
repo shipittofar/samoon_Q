@@ -784,8 +784,11 @@ describe('O — admin tenants page source', () => {
     expect(src()).toContain('/console/tenants/new')
   })
 
-  it('uses useTenants hook', () => {
-    expect(src()).toContain('useTenants')
+  it('uses usePlatformTenants hook', () => {
+    // Phase Z.1 — repointed from the ambiguous useTenants() to the
+    // explicit "all platform tenants" hook; see phase6-tenant-management.test.ts's
+    // matching assertion for the full rationale.
+    expect(src()).toContain('usePlatformTenants')
   })
 
   it('renders tenant list', () => {
