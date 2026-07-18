@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin, Monitor } from 'lucide-react'
 import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
-import type { TenantTheme } from '@/types'
 import type { NavItem } from '@/types'
 import { useLogout, useSetLocale, useModuleNav, useHasDashboardAccess } from '@/hooks'
 
@@ -58,7 +57,7 @@ export function Header() {
   // restaurant-specific module nav (P8.8.2 — Phase I).
   const moduleNav = useModuleNav()
   const navLinks = !tenant || tenant.slug === 'default' ? PLATFORM_NAV : moduleNav
-  const logoUrl = (tenant?.settings?.theme as TenantTheme | undefined)?.logoUrl
+  const logoUrl = tenant?.settings?.theme?.logoUrl
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)

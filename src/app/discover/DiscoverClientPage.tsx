@@ -32,11 +32,18 @@ import type { MarketplaceMeta } from '@/types/marketplace'
 
 type TenantWithMeta = { tenant: Tenant; meta: MarketplaceMeta }
 
-function withMeta(tenants: Tenant[]): TenantWithMeta[] {
-  return tenants.flatMap((t) => {
-    const meta = getMarketplaceMeta(t.settings)
-    return meta ? [{ tenant: t, meta }] : []
-  })
+/**
+ * Phase Z.6.2 — previously dropped any tenant whose `settings.marketplace`
+ * was absent entirely (`meta ? [...] : []`), which against a backend that
+ * hasn't populated marketplace data for every tenant yet would empty the
+ * whole discover page even though the backend correctly returned N
+ * tenants. Every tenant is now kept — an empty `{}` stands in for missing
+ * marketplace metadata, and BusinessCard/matchesSearch/matchesFilters all
+ * already degrade gracefully field-by-field (hidden sections, empty-array
+ * defaults) rather than assuming any of it is present.
+ */
+export function withMeta(tenants: Tenant[]): TenantWithMeta[] {
+  return tenants.map((t) => ({ tenant: t, meta: getMarketplaceMeta(t.settings) ?? {} }))
 }
 
 // ── Section ───────────────────────────────────────────────────────────────────
@@ -257,13 +264,13 @@ export function DiscoverClientPage() {
 
   const availableCuisines = useMemo(() => {
     const seen = new Set<string>()
-    allWithMeta.forEach(({ meta }) => meta.cuisines.forEach((c) => seen.add(c)))
+    allWithMeta.forEach(({ meta }) => (meta.cuisines ?? []).forEach((c) => seen.add(c)))
     return Array.from(seen).sort()
   }, [allWithMeta])
 
   const availableCities = useMemo(() => {
     const seen = new Set<string>()
-    allWithMeta.forEach(({ meta }) => seen.add(meta.city))
+    allWithMeta.forEach(({ meta }) => { if (meta.city) seen.add(meta.city) })
     return Array.from(seen).sort()
   }, [allWithMeta])
 
@@ -289,7 +296,7 @@ export function DiscoverClientPage() {
 
     if (hasActiveFilters(filters)) {
       result = result.filter(({ tenant, meta }) => {
-        const flags = (tenant.settings?.featureFlags as Record<string, boolean | undefined>) ?? {}
+        const flags = tenant.settings?.featureFlags ?? {}
         return matchesFilters(meta, flags, filters)
       })
     }
@@ -305,11 +312,11 @@ export function DiscoverClientPage() {
   const popular   = useMemo(() => allWithMeta.filter(({ meta }) => meta.popular && !meta.featured), [allWithMeta])
   const newest    = useMemo(() => allWithMeta.filter(({ meta }) => meta.isNew), [allWithMeta])
   const topRated  = useMemo(
-    () => sortItems([...allWithMeta], 'highest_rated').filter(({ meta }) => meta.rating >= 4.5),
+    () => sortItems([...allWithMeta], 'highest_rated').filter(({ meta }) => (meta.rating ?? 0) >= 4.5),
     [allWithMeta],
   )
   const familyFriendly = useMemo(
-    () => allWithMeta.filter(({ meta }) => meta.tags.includes('Family Friendly')),
+    () => allWithMeta.filter(({ meta }) => (meta.tags ?? []).includes('Family Friendly')),
     [allWithMeta],
   )
   const coffeeShops = useMemo(

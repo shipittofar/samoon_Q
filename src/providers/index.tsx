@@ -17,7 +17,6 @@ import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { MissingTranslationInspector } from '@/components/dev/MissingTranslationInspector'
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
-import type { TenantTheme } from '@/types'
 import type { Role, TenantMembership } from '@/types/rbac'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 
@@ -255,7 +254,7 @@ function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
 function TenantThemeProvider({ children }: { children: ReactNode }) {
   const tenant = useTenantStore((s) => s.tenant)
   useEffect(() => {
-    const theme = tenant?.settings?.theme as TenantTheme | undefined
+    const theme = tenant?.settings?.theme
     const root = document.documentElement
     if (theme?.primaryColor) {
       root.style.setProperty('--accent', theme.primaryColor)

@@ -47,8 +47,7 @@ export const featureFlagsService = {
     const capabilityFlags = getCapabilityFeatureFlags(tenant.businessTypes)
 
     // Layer 3: per-tenant overrides stored in tenant.settings.featureFlags
-    const overrides =
-      (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+    const overrides = tenant.settings?.featureFlags ?? {}
 
     return { ...moduleDefaults, ...capabilityFlags, ...overrides }
   },
@@ -56,8 +55,7 @@ export const featureFlagsService = {
   listFlags(tenant: Tenant): FeatureFlagEntry[] {
     const moduleDefaults = getDefaultFeatureFlags(tenant.businessTypes)
     const capabilityFlags = getCapabilityFeatureFlags(tenant.businessTypes)
-    const overrides =
-      (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+    const overrides = tenant.settings?.featureFlags ?? {}
 
     const allKeys = new Set([
       ...Object.keys(moduleDefaults),
@@ -77,14 +75,12 @@ export const featureFlagsService = {
   },
 
   updateFlag(tenant: Tenant, key: string, value: boolean): Record<string, boolean> {
-    const current =
-      (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+    const current = tenant.settings?.featureFlags ?? {}
     return { ...current, [key]: value }
   },
 
   bulkUpdateFlags(tenant: Tenant, updates: Record<string, boolean>): Record<string, boolean> {
-    const current =
-      (tenant.settings?.featureFlags as Record<string, boolean> | undefined) ?? {}
+    const current = tenant.settings?.featureFlags ?? {}
     return { ...current, ...updates }
   },
 }

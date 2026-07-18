@@ -1,4 +1,5 @@
 import type { Role, Permission } from './rbac'
+import type { MarketplaceMeta } from './marketplace'
 
 // ============================================================
 // AUTH TYPES
@@ -425,22 +426,37 @@ export interface SystemReadiness {
 }
 
 /**
- * Phase Z.6 — typed `Tenant.settings`. Known fields from the backend
- * contract (`/api/tenants/`: currency, language, timezone, features,
- * ordering) are named explicitly; the index signature keeps this
- * backward-compatible with the existing mock/marketplace settings shape
- * (`featureFlags`, `theme`, `marketplace`, etc. — never part of the real
- * backend contract but still read via `tenant.settings?.x as ...` casts
- * across the app) without forcing every existing reader to change.
+ * Phase Z.6 / Z.6.2 — typed `Tenant.settings`, the full contract per
+ * docs/BACKEND_CONTRACT.md and the Phase Z.6.2 task's authoritative shape.
+ *
+ * `featureFlags` (not `features` — corrected in Z.6.2; `features` was
+ * this phase's own earlier guess and had zero real consumers) is the
+ * field `feature-flags.service.ts` and `BusinessCard.tsx` have always
+ * read via an untyped cast (`tenant.settings?.featureFlags as
+ * Record<string, boolean>`) — this interface makes that cast
+ * unnecessary. `theme` reuses the existing `TenantTheme` interface
+ * (below) rather than duplicating its shape. `marketplace` reuses the
+ * existing `MarketplaceMeta` (src/types/marketplace.ts) — the type
+ * `getMarketplaceMeta()` has always returned via a cast, now typed
+ * directly instead.
+ *
+ * The index signature keeps this open for settings keys neither this
+ * task nor the backend contract names yet (e.g. `contactPhone`/
+ * `contactEmail`, read ad hoc in a couple of places) without forcing
+ * every reader to change.
  */
 export interface TenantSettings {
   currency?: string
   language?: string
   timezone?: string
-  /** Per-tenant feature toggles, e.g. `{ loyalty: true }`. */
-  features?: Record<string, boolean>
+  /** Per-tenant feature toggles, keyed like `'menu.enabled'`, `'reservations.enabled'`. */
+  featureFlags?: Record<string, boolean>
   /** Ordering/checkout configuration (delivery, pickup, minimums, etc.). */
   ordering?: Record<string, unknown>
+  /** Branding overrides — accent color, logo, font. */
+  theme?: TenantTheme
+  /** Public marketplace/discovery display data — see MarketplaceMeta's own doc comment. Absent for a tenant that hasn't configured public discovery content. */
+  marketplace?: MarketplaceMeta
   [key: string]: unknown
 }
 

@@ -32,7 +32,6 @@ import {
   useCartStore, useAuthStore, useLangStore, useThemeStore,
   useTenantStore, useBranchStore,
 } from '@/stores'
-import type { TenantTheme } from '@/types'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 import { cn, buildPublicCTAs, buildCustomerJourney } from '@/utils'
 import { buildTenantNavigation, getBusinessTypeBadge } from '@/utils/navigation'
@@ -108,8 +107,8 @@ export function TenantHeader() {
   // access individually.
   if (!tenant) return null
 
-  const logoUrl = (tenant.settings?.theme as TenantTheme | undefined)?.logoUrl
-  const meta = (tenant.settings as { marketplace?: { branchCount?: number; primaryBranchSlug?: string } } | undefined)?.marketplace
+  const logoUrl = tenant.settings?.theme?.logoUrl
+  const meta = tenant.settings?.marketplace
   const journeyCTAs = buildPublicCTAs({
     tenantSlug: tenant.slug,
     branchSlug,

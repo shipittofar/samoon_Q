@@ -182,7 +182,7 @@ describe('Tenant marketplace metadata', () => {
       const meta = getMarketplaceMeta(t.settings)
       if (meta) {
         expect(typeof meta.primaryBranchSlug).toBe('string')
-        expect(meta.primaryBranchSlug.length).toBeGreaterThan(0)
+        expect(meta.primaryBranchSlug!.length).toBeGreaterThan(0)
       }
     })
   })

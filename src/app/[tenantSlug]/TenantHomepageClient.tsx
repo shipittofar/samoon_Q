@@ -66,9 +66,7 @@ function Breadcrumb({ name }: { name: string }) {
 function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }) {
   const t = useTranslations('tenant')
   const tMarketplace = useTranslations('marketplace')
-  const accentColor =
-    (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor ??
-    'var(--accent)'
+  const accentColor = tenant.settings?.theme?.primaryColor ?? 'var(--accent)'
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
 
   const featureFlags = useTenantStore((s) => s.featureFlags)
@@ -97,14 +95,16 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
 
       {/* Badges */}
       <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-        <span
-          className={cn(
-            'text-xs font-semibold px-2.5 py-1 rounded-full shadow',
-            meta.openNow ? 'bg-emerald-500 text-white' : 'bg-gray-800/90 text-gray-200',
-          )}
-        >
-          {meta.openNow ? tMarketplace('openNow') : tMarketplace('closed')}
-        </span>
+        {meta.openNow !== undefined && (
+          <span
+            className={cn(
+              'text-xs font-semibold px-2.5 py-1 rounded-full shadow',
+              meta.openNow ? 'bg-emerald-500 text-white' : 'bg-gray-800/90 text-gray-200',
+            )}
+          >
+            {meta.openNow ? tMarketplace('openNow') : tMarketplace('closed')}
+          </span>
+        )}
         {meta.featured && (
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-500 text-white shadow">
             {tMarketplace('featured')}
@@ -148,20 +148,26 @@ function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }
               <p className="text-base text-white/90 mt-1">{meta.tagline}</p>
             )}
             <div className="flex flex-wrap items-center gap-3 mt-2">
-              <span className="flex items-center gap-1 text-sm text-white/80">
-                <Star className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
-                <strong className="text-white">{meta.rating.toFixed(1)}</strong>
-                <span>{t('reviewsCount', { count: meta.reviewCount })}</span>
-              </span>
-              <span className="flex items-center gap-1 text-sm text-white/80">
-                <MapPin className="w-4 h-4" aria-hidden="true" />
-                {meta.city}
-              </span>
+              {meta.rating !== undefined && (
+                <span className="flex items-center gap-1 text-sm text-white/80">
+                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
+                  <strong className="text-white">{meta.rating.toFixed(1)}</strong>
+                  <span>{t('reviewsCount', { count: meta.reviewCount ?? 0 })}</span>
+                </span>
+              )}
+              {meta.city && (
+                <span className="flex items-center gap-1 text-sm text-white/80">
+                  <MapPin className="w-4 h-4" aria-hidden="true" />
+                  {meta.city}
+                </span>
+              )}
               {/* C4: MapPin instead of GitBranch */}
-              <span className="flex items-center gap-1 text-sm text-white/80">
-                <MapPin className="w-4 h-4" aria-hidden="true" />
-                {t('locationsCountLower', { count: meta.branchCount })}
-              </span>
+              {(meta.branchCount ?? 0) > 0 && (
+                <span className="flex items-center gap-1 text-sm text-white/80">
+                  <MapPin className="w-4 h-4" aria-hidden="true" />
+                  {t('locationsCountLower', { count: meta.branchCount ?? 0 })}
+                </span>
+              )}
               <PriceLevel level={meta.priceLevel} />
             </div>
 
@@ -331,7 +337,9 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Description + story + tags */}
         <div>
-          <p className="text-[var(--fg-muted)] leading-relaxed mb-4">{meta.description}</p>
+          {meta.description && (
+            <p className="text-[var(--fg-muted)] leading-relaxed mb-4">{meta.description}</p>
+          )}
 
           {/* C2: Our Story block */}
           {meta.story && (
@@ -341,9 +349,9 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
             </div>
           )}
 
-          {meta.cuisines.length > 0 && (
+          {(meta.cuisines?.length ?? 0) > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-3">
-              {meta.cuisines.map((c) => (
+              {meta.cuisines!.map((c) => (
                 <span
                   key={c}
                   className="text-xs px-2.5 py-1 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] border border-[var(--border)]"
@@ -354,9 +362,9 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
             </div>
           )}
 
-          {meta.tags.length > 0 && (
+          {(meta.tags?.length ?? 0) > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {meta.tags.map((tag) => (
+              {meta.tags!.map((tag) => (
                 <span
                   key={tag}
                   className="text-xs px-2.5 py-1 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20"
@@ -846,13 +854,13 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
         <CategoriesSection
           categories={categories}
           tenantSlug={tenantSlug}
-          primaryBranchSlug={meta.primaryBranchSlug}
+          primaryBranchSlug={meta.primaryBranchSlug ?? ''}
         />
         {sections.featured_menu && (
           <FeaturedItemsSection
             items={menuItems}
             tenantSlug={tenantSlug}
-            primaryBranchSlug={meta.primaryBranchSlug}
+            primaryBranchSlug={meta.primaryBranchSlug ?? ''}
           />
         )}
       </>
@@ -861,7 +869,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
       <PromotionsSection
         promotions={promotions}
         tenantSlug={tenantSlug}
-        primaryBranchSlug={meta.primaryBranchSlug}
+        primaryBranchSlug={meta.primaryBranchSlug ?? ''}
       />
     ) : null,
   }

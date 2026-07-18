@@ -19,15 +19,14 @@ const src = (rel: string) => readFileSync(join(ROOT, 'src', rel), 'utf-8')
 // ── P2.2.L1 — Header reads logoUrl from tenant theme ─────────────────────────
 
 describe('P2.2.L1 — Header reads logoUrl from tenant theme', () => {
-  it('Header imports TenantTheme type', () => {
+  // Phase Z.6.2 — Tenant.settings is now typed directly (TenantSettings.theme:
+  // TenantTheme, src/types/index.ts), so Header.tsx no longer needs its own
+  // `as TenantTheme` cast or a local TenantTheme import to read logoUrl —
+  // `tenant.settings?.theme?.logoUrl` type-checks on its own.
+  it('Header reads logoUrl from tenant.settings.theme', () => {
     const content = src('components/layout/Header.tsx')
-    expect(content).toContain("import type { TenantTheme } from '@/types'")
-  })
-
-  it('Header reads logoUrl via TenantTheme cast on tenant.settings.theme', () => {
-    const content = src('components/layout/Header.tsx')
-    expect(content).toContain('TenantTheme')
     expect(content).toContain('logoUrl')
+    expect(content).toContain('tenant?.settings?.theme?.logoUrl')
   })
 
   it('Header reads settings.theme from useTenantStore tenant', () => {

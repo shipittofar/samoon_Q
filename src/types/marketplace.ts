@@ -28,26 +28,37 @@ export interface PublicBranchInfo {
 }
 
 export interface MarketplaceMeta {
+  /**
+   * Phase Z.6.2 — every field below is optional: the backend contract
+   * guarantees `settings.marketplace` may be present or absent as a
+   * whole (see Tenant.settings on `TenantSettings`), but does not
+   * guarantee every sub-field is populated the moment marketplace exists
+   * (e.g. a newly onboarded tenant with zero reviews yet, or one that
+   * hasn't set a cover image). Every consumer of this type must degrade
+   * gracefully — see BusinessCard.tsx / DiscoverClientPage.tsx for the
+   * fallback conventions (0 for numbers, [] for arrays, hidden UI
+   * sections for absent optional content).
+   */
   /** Short pitch shown on the business card (max ~120 chars). */
-  description: string
+  description?: string
   /** URL of the cover/hero image for the card. */
-  coverImage: string
+  coverImage?: string
   /** Cuisine types or beverage styles (e.g. "Mediterranean", "Coffee"). */
-  cuisines: string[]
+  cuisines?: string[]
   /** Discovery tags (e.g. "Date Night", "Pet Friendly"). */
-  tags: string[]
+  tags?: string[]
   /** Average star rating (0–5, two decimal places). */
-  rating: number
+  rating?: number
   /** Number of reviews that contributed to the rating. */
-  reviewCount: number
+  reviewCount?: number
   /** City where the business (or its primary branch) is located. */
-  city: string
+  city?: string
   /** Total number of active branches. */
-  branchCount: number
+  branchCount?: number
   /** Whether the business is currently open. */
-  openNow: boolean
+  openNow?: boolean
   /** Slug of the primary/default branch (used to build preview links). */
-  primaryBranchSlug: string
+  primaryBranchSlug?: string
   /** Pin this business in the "Featured" section. */
   featured?: boolean
   /** Pin this business in the "Popular" section. */
@@ -148,9 +159,15 @@ export function hasActiveFilters(f: FilterState): boolean {
 
 // ── Core helpers ──────────────────────────────────────────────────────────────
 
-/** Returns the MarketplaceMeta stored in Tenant.settings.marketplace, or undefined. */
-export function getMarketplaceMeta(settings?: Record<string, unknown>): MarketplaceMeta | undefined {
-  return settings?.marketplace as MarketplaceMeta | undefined
+/**
+ * Returns the MarketplaceMeta stored in Tenant.settings.marketplace, or
+ * undefined. Phase Z.6.2 — no longer a cast: `settings.marketplace` is
+ * typed directly (src/types/index.ts's TenantSettings), since
+ * `getMarketplaceMeta()`'s only real job left is the `undefined`
+ * shorthand for "no settings object at all."
+ */
+export function getMarketplaceMeta(settings?: { marketplace?: MarketplaceMeta; [key: string]: unknown }): MarketplaceMeta | undefined {
+  return settings?.marketplace
 }
 
 /** Accent-strip + lowercase for accent-insensitive matching. */
@@ -173,11 +190,11 @@ export function matchesSearch(
   const q = normalize(query)
   return (
     normalize(tenantName).includes(q) ||
-    normalize(meta.city).includes(q) ||
-    normalize(meta.description).includes(q) ||
+    normalize(meta.city ?? '').includes(q) ||
+    normalize(meta.description ?? '').includes(q) ||
     (meta.tagline ? normalize(meta.tagline).includes(q) : false) ||
-    meta.cuisines.some((c) => normalize(c).includes(q)) ||
-    meta.tags.some((t) => normalize(t).includes(q)) ||
+    (meta.cuisines ?? []).some((c) => normalize(c).includes(q)) ||
+    (meta.tags ?? []).some((t) => normalize(t).includes(q)) ||
     (meta.amenities ?? []).some((a) => normalize(a).includes(q)) ||
     businessTypes.some((bt) => {
       const label = BUSINESS_TYPE_LABELS[bt]
@@ -202,8 +219,8 @@ export function matchesFilters(
   featureFlags: Record<string, boolean | undefined>,
   filters: FilterState,
 ): boolean {
-  if (filters.cuisines.length > 0 && !filters.cuisines.some((c) => meta.cuisines.includes(c))) return false
-  if (filters.cities.length > 0 && !filters.cities.includes(meta.city)) return false
+  if (filters.cuisines.length > 0 && !filters.cuisines.some((c) => (meta.cuisines ?? []).includes(c))) return false
+  if (filters.cities.length > 0 && !filters.cities.includes(meta.city ?? '')) return false
   if (filters.priceLevels.length > 0 && (!meta.priceLevel || !filters.priceLevels.includes(meta.priceLevel))) return false
   if (filters.openNow && !meta.openNow) return false
   if (filters.amenities.length > 0 && !filters.amenities.every((a) => (meta.amenities ?? []).includes(a))) return false
@@ -230,9 +247,9 @@ export function sortItems<T extends { tenant: { name: string; created_at: string
   const copy = [...items]
   switch (sortBy) {
     case 'highest_rated':
-      return copy.sort((a, b) => b.meta.rating - a.meta.rating)
+      return copy.sort((a, b) => (b.meta.rating ?? 0) - (a.meta.rating ?? 0))
     case 'most_reviewed':
-      return copy.sort((a, b) => b.meta.reviewCount - a.meta.reviewCount)
+      return copy.sort((a, b) => (b.meta.reviewCount ?? 0) - (a.meta.reviewCount ?? 0))
     case 'newest':
       return copy.sort((a, b) => new Date(b.tenant.created_at).getTime() - new Date(a.tenant.created_at).getTime())
     case 'alphabetical':

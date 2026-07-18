@@ -660,7 +660,7 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
   const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas })
 
   const accentColor =
-    (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor ?? '#e85d04'
+    tenant.settings?.theme?.primaryColor ?? '#e85d04'
 
   const allBranches = meta?.branches ?? []
   const tenantGallery = meta?.gallery ?? []

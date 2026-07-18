@@ -6,8 +6,10 @@
 // `businessTypes` from the backend's real `business_types` field without
 // dropping any other field, and that the new Tenant fields (image,
 // tax_percentage, updated_at, business_types, settings.currency/language/
-// timezone/features/ordering) round-trip through getTenant()/getTenants()
-// untouched.
+// timezone/featureFlags/ordering) round-trip through getTenant()/getTenants()
+// untouched. `featureFlags` (not `features` — corrected in Phase Z.6.2,
+// see TENANT_SETTINGS_CONTRACT_MIGRATION_AUDIT.md) matches the real
+// contract feature-flags.service.ts and BusinessCard.tsx have always read.
 // ============================================================
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -43,7 +45,7 @@ const RAW_BACKEND_TENANT = {
     currency: 'USD',
     language: 'en',
     timezone: 'America/New_York',
-    features: { loyalty: true, delivery: false },
+    featureFlags: { loyalty: true, delivery: false },
     ordering: { minimumOrder: 15 },
   },
   created_at: '2024-01-01T00:00:00Z',
@@ -81,12 +83,12 @@ describe('Phase Z.6 — normalizeTenant() via getTenants() (real mode)', () => {
     })
   })
 
-  it('settings.features and settings.ordering survive untouched', async () => {
+  it('settings.featureFlags and settings.ordering survive untouched', async () => {
     const { tenantService, api } = await freshTenantServiceRealMode()
     api.get.mockResolvedValueOnce({ data: { results: [RAW_BACKEND_TENANT] } })
 
     const [tenant] = await tenantService.getTenants()
-    expect(tenant!.settings?.features).toEqual({ loyalty: true, delivery: false })
+    expect(tenant!.settings?.featureFlags).toEqual({ loyalty: true, delivery: false })
     expect(tenant!.settings?.ordering).toEqual({ minimumOrder: 15 })
     expect(tenant!.settings?.currency).toBe('USD')
     expect(tenant!.settings?.language).toBe('en')

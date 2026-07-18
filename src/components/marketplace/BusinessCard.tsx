@@ -44,15 +44,15 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
   const [branchesOpen, setBranchesOpen] = useState(false)
 
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')
-  const accentColor = (tenant.settings?.theme as { primaryColor?: string } | undefined)?.primaryColor
-  const featureFlags = (tenant.settings?.featureFlags as Record<string, boolean | undefined>) ?? {}
+  const accentColor = tenant.settings?.theme?.primaryColor
+  const featureFlags = tenant.settings?.featureFlags ?? {}
   const hasReservations = featureFlags['reservations.enabled'] === true
   const hasLoyalty = Object.entries(featureFlags).some(([k, v]) => k.includes('loyalty') && v === true)
 
   // C3: multi-branch businesses go to the tenant homepage so users can choose a location.
   // Single-branch businesses go directly to the menu.
-  const isMultiBranch = meta.branchCount > 1
-  const viewHref   = isMultiBranch ? `/${tenant.slug}` : `/${tenant.slug}/${meta.primaryBranchSlug}/menu`
+  const isMultiBranch = (meta.branchCount ?? 0) > 1
+  const viewHref   = isMultiBranch ? `/${tenant.slug}` : `/${tenant.slug}/${meta.primaryBranchSlug ?? ''}/menu`
   const tenantHref = `/${tenant.slug}`
   const hasBranches = (meta.branches?.length ?? 0) > 0
   // C3: Use a contextual CTA label based on business type and branch count
@@ -87,14 +87,16 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
             <span className="text-4xl opacity-40">🍽️</span>
           </div>
         )}
-        <span
-          className={cn(
-            'absolute top-3 left-3 text-xs font-semibold px-2 py-0.5 rounded-full',
-            meta.openNow ? 'bg-emerald-500/90 text-white' : 'bg-gray-800/80 text-gray-200',
-          )}
-        >
-          {meta.openNow ? t('openNow') : t('closed')}
-        </span>
+        {meta.openNow !== undefined && (
+          <span
+            className={cn(
+              'absolute top-3 left-3 text-xs font-semibold px-2 py-0.5 rounded-full',
+              meta.openNow ? 'bg-emerald-500/90 text-white' : 'bg-gray-800/80 text-gray-200',
+            )}
+          >
+            {meta.openNow ? t('openNow') : t('closed')}
+          </span>
+        )}
         <StatusBadge meta={meta} />
       </div>
 
@@ -119,29 +121,37 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
         </div>
 
         {/* Description */}
-        <p className="text-sm text-[var(--fg-muted)] line-clamp-2 mb-3">{meta.description}</p>
+        {meta.description && (
+          <p className="text-sm text-[var(--fg-muted)] line-clamp-2 mb-3">{meta.description}</p>
+        )}
 
         {/* Stats row */}
         <div className="flex items-center gap-3 text-xs text-[var(--fg-subtle)] mb-3 flex-wrap">
-          <span className="flex items-center gap-1" aria-label={t('ratingAria', { rating: meta.rating })}>
-            <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" aria-hidden="true" />
-            <span className="font-medium text-[var(--fg-muted)]">{meta.rating.toFixed(1)}</span>
-            <span>({meta.reviewCount.toLocaleString()})</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
-            {meta.city}
-          </span>
-          <span className="flex items-center gap-1" aria-label={t('locationsCount', { count: meta.branchCount })}>
-            <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
-            {t('locationsCount', { count: meta.branchCount })}
-          </span>
+          {meta.rating !== undefined && (
+            <span className="flex items-center gap-1" aria-label={t('ratingAria', { rating: meta.rating })}>
+              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" aria-hidden="true" />
+              <span className="font-medium text-[var(--fg-muted)]">{meta.rating.toFixed(1)}</span>
+              <span>({(meta.reviewCount ?? 0).toLocaleString()})</span>
+            </span>
+          )}
+          {meta.city && (
+            <span className="flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
+              {meta.city}
+            </span>
+          )}
+          {(meta.branchCount ?? 0) > 0 && (
+            <span className="flex items-center gap-1" aria-label={t('locationsCount', { count: meta.branchCount ?? 0 })}>
+              <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
+              {t('locationsCount', { count: meta.branchCount ?? 0 })}
+            </span>
+          )}
         </div>
 
         {/* Cuisine tags */}
-        {meta.cuisines.length > 0 && (
+        {(meta.cuisines?.length ?? 0) > 0 && (
           <div className="flex flex-wrap gap-1 mb-2" role="list" aria-label={t('cuisinesAria')}>
-            {meta.cuisines.slice(0, 3).map((c) => (
+            {meta.cuisines!.slice(0, 3).map((c) => (
               <span
                 key={c}
                 role="listitem"

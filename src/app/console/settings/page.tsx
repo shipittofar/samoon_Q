@@ -145,13 +145,13 @@ function BrandingTab() {
   const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
-  const existingTheme = tenant?.settings?.theme as TenantTheme | undefined
+  const existingTheme = tenant?.settings?.theme
   const [primaryColor, setPrimaryColor] = useState(existingTheme?.primaryColor ?? '#2563eb')
   const [logoUrl, setLogoUrl] = useState(existingTheme?.logoUrl ?? '')
   const [fontBody, setFontBody] = useState(existingTheme?.fontBody ?? '')
 
   useEffect(() => {
-    const theme = tenant?.settings?.theme as TenantTheme | undefined
+    const theme = tenant?.settings?.theme
     if (theme) {
       setPrimaryColor(theme.primaryColor ?? '#2563eb')
       setLogoUrl(theme.logoUrl ?? '')
