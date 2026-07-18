@@ -342,6 +342,12 @@ export const tenantService = {
 
   /**
    * List all tenants. P6.15 — Tenant Management Finalization.
+   *
+   * Phase 5 — a real-mode fetch failure is never swallowed into an empty
+   * list: that made a genuine backend/network failure indistinguishable
+   * from "this tenant genuinely has zero tenants." The rejection is left
+   * to propagate so React Query's normal error flow (isError, the global
+   * QueryCache.onError toast) handles it, exactly like getTenant().
    */
   async getTenants(): Promise<Tenant[]> {
     if (USE_MOCK) {
@@ -349,12 +355,8 @@ export const tenantService = {
       return MOCK_TENANT_LIST.map((t) => ({ ...t }))
     }
 
-    try {
-      const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.LIST)
-      return data.results
-    } catch {
-      return []
-    }
+    const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.LIST)
+    return data.results
   },
 
   /**

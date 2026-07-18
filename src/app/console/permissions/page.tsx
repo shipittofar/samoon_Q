@@ -26,7 +26,6 @@ const ROLE_COLORS: Record<Role, string> = {
 export default function PermissionsPage() {
   const t = useTranslations('console')
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
-  const tenantRoles = useRbacStore((s) => s.tenantRoles)
   const userOverrides = useRbacStore((s) => s.userOverrides)
   const [search, setSearch] = useState('')
 
@@ -88,7 +87,6 @@ export default function PermissionsPage() {
               </div>
             ) : (
               filtered.map((user) => {
-                const sessionRoles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
                 // For demo: use mock tenant assignment roles
                 const mockAssignment = user.tenantAssignments.find((a) => a.tenantId === 'tenant-samoon-01')
                 const roles = mockAssignment?.roles ?? []

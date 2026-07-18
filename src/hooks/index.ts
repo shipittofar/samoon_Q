@@ -36,9 +36,7 @@ import type {
   AssignManagerPayload,
   BranchResolutionState,
 } from '@/types/branch'
-import { branchAccessService } from '@/services/branch-access.service'
 import { branchAnalyticsService } from '@/services/branch-analytics.service'
-import type { BranchAccessContext } from '@/types/branch-routing'
 import type {
   BranchRevenueAnalytics,
   BranchOrderAnalytics,
@@ -56,8 +54,8 @@ import type {
   NotificationPriority,
 } from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
-import { applyOverrides, resolveEffectivePermissions, normalizeTenantPermissions } from '@/services/permission.service'
-import type { P7Permission, PermissionCheckOptions, EffectivePermissionResult } from '@/types/rbac'
+import { applyOverrides, normalizeTenantPermissions } from '@/services/permission.service'
+import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
 // owner.service.ts, or staff-assignment.service.ts remain in this file.
 // Access decisions come from usePermissions()/currentTenantSession only.
@@ -261,21 +259,6 @@ export function useAllPermissions(permissions: P7Permission[], opts?: Permission
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectivePermissions, permissions.join(','), featureFlags])
-}
-
-/**
- * P8.5 — Returns the full effective permission breakdown for the given user+tenant.
- * Used by the admin Permission Management UI to display per-permission source info.
- */
-export function useEffectivePermissions(userId: string, tenantId: string): EffectivePermissionResult[] {
-  const tenantRoles = useRbacStore((s) => s.tenantRoles)
-  const userOverrides = useRbacStore((s) => s.userOverrides)
-  return useMemo(() => {
-    const roles = tenantRoles.find((t) => t.tenantId === tenantId)?.roles ?? []
-    const override = userOverrides.find((o) => o.userId === userId && o.tenantId === tenantId)
-    return resolveEffectivePermissions(roles, override)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, tenantId, tenantRoles, userOverrides])
 }
 
 // ── Feature Flag Hook — P1B.2 ─────────────────────────────────────────────────
@@ -2671,26 +2654,19 @@ export function useAcceptInvite() {
 
 // ── Branch Routing & Isolation Hooks (P7.4) ──────────────────────────────────
 
-/** Returns the branches visible to the given access context, filtered through the branch access engine. */
-export function useAccessibleBranches(
-  context: BranchAccessContext,
-  allBranches: BranchEntity[],
-) {
-  return useQuery({
-    enabled: !!context.tenantId && !!context.staffId,
-    staleTime: STALE_TIME,
-    queryKey: ['accessible-branches', context.tenantId, context.staffId, context.roles, context.branchIds],
-    queryFn: () => Promise.resolve(branchAccessService.getAccessibleBranches(context, allBranches)),
-  })
-}
-
 // Phase 2 (RBAC unification) — useOwnershipBranchAccessContext(), which
 // built a BranchAccessContext from client-held StaffAssignment fixtures
 // via ownership-resolution.service.ts, has been removed: deciding which
 // branches a staff member can see is an authorization decision and must
-// come from the backend, not be computed in the browser. It had no
-// consumers outside this file. useAccessibleBranches() above is unaffected
-// — it's a generic filter over whatever context/branches it's given.
+// come from the backend, not be computed in the browser.
+//
+// Phase 5 — useAccessibleBranches() (its would-be replacement) had zero
+// consumers outside this file and was removed too, along with
+// order-routing.service.ts (also zero runtime callers). branchAccessService
+// (services/branch-access.service.ts) was NOT removed despite losing its
+// only other caller here — ownership-resolution.service.ts still imports
+// it directly (assertBranchAccess), and that file is intentionally kept
+// until its dependent tests are migrated (see its own header comment).
 
 /** Fetches orders for a specific branch. Phase 2 — branch access is a backend concern, not a client-side check. */
 export function useBranchOrders(branchId: string) {

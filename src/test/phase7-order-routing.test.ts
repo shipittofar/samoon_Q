@@ -6,21 +6,19 @@
  *   B. BranchAccessContext shape
  *   C. BranchIsolationResult shape
  *   D. BranchScope union values
- *   E. BranchAssignmentRule shape
  *   F. branchAccessService — getAccessibleBranches (owner/console sees all)
  *   G. branchAccessService — getAccessibleBranches (manager/cashier sees assigned)
  *   H. branchAccessService — canAccessBranch
  *   I. branchAccessService — filterByAccessibleBranches
  *   J. branchAccessService — assertBranchAccess
  *   K. branchAccessService — getScopeForContext
- *   L. orderRoutingService — resolveBranchForOrder (dine_in)
- *   M. orderRoutingService — resolveBranchForOrder (delivery)
- *   N. orderRoutingService — resolveBranchForOrder (pickup)
- *   O. orderRoutingService — getAccessibleOrders
- *   P. orderRoutingService — validateBranchOrderAccess
- *   Q. orderRoutingService — getAccessibleReservations
- *   R. orderRoutingService — validateReservationBranch
  *   S. Vendor branchIds field
+ *
+ *   Phase 5 — E (ORDER_ROUTING_RULES) and L-R (orderRoutingService.*) were
+ *   removed along with order-routing.service.ts itself (zero runtime
+ *   callers). branchAccessService (F-K, above) was kept — it still has a
+ *   real runtime caller in ownership-resolution.service.ts, which is
+ *   itself intentionally kept until its dependent tests are migrated.
  *   T. branchAnalyticsService — getBranchRevenueAnalytics
  *   U. branchAnalyticsService — getBranchOrderAnalytics
  *   V. branchAnalyticsService — getBranchReservationAnalytics
@@ -46,7 +44,6 @@ function src(rel: string): string {
 
 import type { Branch as BranchEntity } from '@/types/branch'
 import { branchAccessService, BranchAccessError } from '@/services/branch-access.service'
-import { orderRoutingService, ORDER_ROUTING_RULES } from '@/services/order-routing.service'
 
 function makeBranch(
   id: string,
@@ -241,45 +238,6 @@ describe('D — BranchScope values', () => {
     expect(branchAccessService.getScopeForContext({
       tenantId: TENANT_A, staffId: 's', roles: ['cashier'], branchIds: [],
     })).toBe('none')
-  })
-})
-
-// ── E. BranchAssignmentRule shape ─────────────────────────────────────────────
-
-describe('E — ORDER_ROUTING_RULES', () => {
-  it('E1: ORDER_ROUTING_RULES is an array', () => {
-    expect(Array.isArray(ORDER_ROUTING_RULES)).toBe(true)
-  })
-
-  it('E2: has a dine_in rule', () => {
-    expect(ORDER_ROUTING_RULES.some((r) => r.orderType === 'dine_in')).toBe(true)
-  })
-
-  it('E3: has a delivery rule', () => {
-    expect(ORDER_ROUTING_RULES.some((r) => r.orderType === 'delivery')).toBe(true)
-  })
-
-  it('E4: has a pickup rule', () => {
-    expect(ORDER_ROUTING_RULES.some((r) => r.orderType === 'pickup')).toBe(true)
-  })
-
-  it('E5: dine_in rule has table strategy', () => {
-    const rule = ORDER_ROUTING_RULES.find((r) => r.orderType === 'dine_in')
-    expect(rule?.branchSelectionStrategy).toBe('table')
-  })
-
-  it('E6: delivery rule has customer_choice strategy', () => {
-    const rule = ORDER_ROUTING_RULES.find((r) => r.orderType === 'delivery')
-    expect(rule?.branchSelectionStrategy).toBe('customer_choice')
-  })
-
-  it('E7: pickup rule has nearest strategy', () => {
-    const rule = ORDER_ROUTING_RULES.find((r) => r.orderType === 'pickup')
-    expect(rule?.branchSelectionStrategy).toBe('nearest')
-  })
-
-  it('E8: all rules require an active branch', () => {
-    expect(ORDER_ROUTING_RULES.every((r) => r.requiresActiveBranch)).toBe(true)
   })
 })
 
@@ -607,330 +565,6 @@ describe('K — getScopeForContext', () => {
   })
 })
 
-// ── L. resolveBranchForOrder — dine_in ────────────────────────────────────────
-
-describe('L — resolveBranchForOrder (dine_in)', () => {
-  afterEach(() => vi.vi.resetModules?.())
-
-  it('L1: dine_in resolves to first active branch', async () => {
-    const branchId = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'dine_in', tableNumber: 5 },
-      [BRANCH_A1, BRANCH_A2],
-    )
-    expect(branchId).toBe(BRANCH_A1.id)
-  })
-
-  it('L2: dine_in returns null when no active branches', async () => {
-    const inactive = makeBranch('i1', TENANT_A, 'inactive')
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'dine_in' },
-      [inactive],
-    )
-    expect(result).toBeNull()
-  })
-
-  it('L3: dine_in skips maintenance branch if no active available', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'dine_in' },
-      [BRANCH_A3],
-    )
-    expect(result).toBeNull()
-  })
-
-  it('L4: dine_in with multiple active returns a valid branch id', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'dine_in' },
-      [BRANCH_A1, BRANCH_A2],
-    )
-    expect([BRANCH_A1.id, BRANCH_A2.id]).toContain(result)
-  })
-
-  it('L5: return value is a string', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'dine_in' },
-      [BRANCH_A1],
-    )
-    expect(typeof result).toBe('string')
-  })
-})
-
-// ── M. resolveBranchForOrder — delivery ──────────────────────────────────────
-
-describe('M — resolveBranchForOrder (delivery)', () => {
-  it('M1: delivery uses customerChosenBranchId when provided', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'delivery', customerChosenBranchId: BRANCH_A2.id },
-      [BRANCH_A1, BRANCH_A2],
-    )
-    expect(result).toBe(BRANCH_A2.id)
-  })
-
-  it('M2: delivery falls back to first active when chosen branch is inactive', async () => {
-    const inactive = makeBranch('inactive-1', TENANT_A, 'inactive')
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'delivery', customerChosenBranchId: inactive.id },
-      [BRANCH_A1, inactive],
-    )
-    expect(result).toBe(BRANCH_A1.id)
-  })
-
-  it('M3: delivery with no customerChosenBranchId returns first active', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'delivery' },
-      [BRANCH_A1, BRANCH_A2],
-    )
-    expect(result).toBeTruthy()
-  })
-
-  it('M4: delivery returns null when no active branches', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'delivery', customerChosenBranchId: BRANCH_A3.id },
-      [BRANCH_A3],
-    )
-    expect(result).toBeNull()
-  })
-
-  it('M5: delivery with exact chosen active branch returns that branch', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'delivery', customerChosenBranchId: BRANCH_A1.id },
-      [BRANCH_A1],
-    )
-    expect(result).toBe(BRANCH_A1.id)
-  })
-})
-
-// ── N. resolveBranchForOrder — pickup ────────────────────────────────────────
-
-describe('N — resolveBranchForOrder (pickup)', () => {
-  it('N1: pickup prefers physical branch', async () => {
-    const mobileBranch = makeBranch('mobile-1', TENANT_A, 'active', 'mobile')
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'pickup' },
-      [mobileBranch, BRANCH_A1],
-    )
-    expect(result).toBe(BRANCH_A1.id)
-  })
-
-  it('N2: pickup falls back to mobile when no physical active', async () => {
-    const mobileBranch = makeBranch('mobile-1', TENANT_A, 'active', 'mobile')
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'pickup' },
-      [mobileBranch],
-    )
-    expect(result).toBe(mobileBranch.id)
-  })
-
-  it('N3: pickup returns null when no active branches', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'pickup' },
-      [],
-    )
-    expect(result).toBeNull()
-  })
-
-  it('N4: pickup result is a string when branch available', async () => {
-    const result = await orderRoutingService.resolveBranchForOrder(
-      { orderType: 'pickup' },
-      [BRANCH_A1],
-    )
-    expect(typeof result).toBe('string')
-  })
-})
-
-// ── O. getAccessibleOrders ────────────────────────────────────────────────────
-
-describe('O — getAccessibleOrders', () => {
-  const mockOrders = [
-    { id: 'o1', branch_id: BRANCH_A1.id, order_number: 'ORD-1' },
-    { id: 'o2', branch_id: BRANCH_A2.id, order_number: 'ORD-2' },
-    { id: 'o3', branch_id: BRANCH_A3.id, order_number: 'ORD-3' },
-    { id: 'o4', branch_id: BRANCH_B1.id, order_number: 'ORD-4' },
-  ]
-
-  it('O1: owner sees all own-tenant orders', () => {
-    const result = orderRoutingService.getAccessibleOrders(
-      mockOrders,
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(3)
-  })
-
-  it('O2: manager sees only assigned-branch orders', () => {
-    const result = orderRoutingService.getAccessibleOrders(
-      mockOrders,
-      { tenantId: TENANT_A, staffId: 's', roles: ['manager'], branchIds: [BRANCH_A1.id] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(1)
-    expect(result[0].id).toBe('o1')
-  })
-
-  it('O3: cashier with no assignments sees no orders', () => {
-    const result = orderRoutingService.getAccessibleOrders(
-      mockOrders,
-      { tenantId: TENANT_A, staffId: 's', roles: ['cashier'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(0)
-  })
-
-  it('O4: cross-tenant orders are excluded for owner', () => {
-    const result = orderRoutingService.getAccessibleOrders(
-      mockOrders,
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result.every((o) => o.branch_id !== BRANCH_B1.id)).toBe(true)
-  })
-
-  it('O5: empty orders return empty', () => {
-    const result = orderRoutingService.getAccessibleOrders(
-      [],
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(0)
-  })
-})
-
-// ── P. validateBranchOrderAccess ─────────────────────────────────────────────
-
-describe('P — validateBranchOrderAccess', () => {
-  it('P1: owner can access any tenant branch', () => {
-    expect(orderRoutingService.validateBranchOrderAccess(
-      BRANCH_A2.id,
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )).toBe(true)
-  })
-
-  it('P2: manager can validate assigned branch', () => {
-    expect(orderRoutingService.validateBranchOrderAccess(
-      BRANCH_A1.id,
-      { tenantId: TENANT_A, staffId: 's', roles: ['manager'], branchIds: [BRANCH_A1.id] },
-      ALL_BRANCHES,
-    )).toBe(true)
-  })
-
-  it('P3: manager cannot validate unassigned branch', () => {
-    expect(orderRoutingService.validateBranchOrderAccess(
-      BRANCH_A2.id,
-      { tenantId: TENANT_A, staffId: 's', roles: ['manager'], branchIds: [BRANCH_A1.id] },
-      ALL_BRANCHES,
-    )).toBe(false)
-  })
-
-  it('P4: cashier with no assignments returns false', () => {
-    expect(orderRoutingService.validateBranchOrderAccess(
-      BRANCH_A1.id,
-      { tenantId: TENANT_A, staffId: 's', roles: ['cashier'], branchIds: [] },
-      ALL_BRANCHES,
-    )).toBe(false)
-  })
-})
-
-// ── Q. getAccessibleReservations ─────────────────────────────────────────────
-
-describe('Q — getAccessibleReservations', () => {
-  const mockReservations = [
-    { id: 'r1', branch_id: BRANCH_A1.id, name: 'Alice' },
-    { id: 'r2', branch_id: BRANCH_A2.id, name: 'Bob' },
-    { id: 'r3', branch_id: BRANCH_B1.id, name: 'Carol' },
-  ]
-
-  it('Q1: owner sees all own-tenant reservations', () => {
-    const result = orderRoutingService.getAccessibleReservations(
-      mockReservations,
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(2)
-  })
-
-  it('Q2: manager sees only assigned-branch reservations', () => {
-    const result = orderRoutingService.getAccessibleReservations(
-      mockReservations,
-      { tenantId: TENANT_A, staffId: 's', roles: ['manager'], branchIds: [BRANCH_A2.id] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(1)
-    expect(result[0].id).toBe('r2')
-  })
-
-  it('Q3: waiter with no assignments sees none', () => {
-    const result = orderRoutingService.getAccessibleReservations(
-      mockReservations,
-      { tenantId: TENANT_A, staffId: 's', roles: ['waiter'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(0)
-  })
-
-  it('Q4: cross-tenant reservations excluded', () => {
-    const result = orderRoutingService.getAccessibleReservations(
-      mockReservations,
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result.every((r) => r.branch_id !== BRANCH_B1.id)).toBe(true)
-  })
-
-  it('Q5: empty reservations returns empty', () => {
-    const result = orderRoutingService.getAccessibleReservations(
-      [],
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(0)
-  })
-
-  it('Q6: admin sees all own-tenant reservations', () => {
-    const result = orderRoutingService.getAccessibleReservations(
-      mockReservations,
-      { tenantId: TENANT_A, staffId: 's', roles: ['admin'], branchIds: [] },
-      ALL_BRANCHES,
-    )
-    expect(result).toHaveLength(2)
-  })
-})
-
-// ── R. validateReservationBranch ──────────────────────────────────────────────
-
-describe('R — validateReservationBranch', () => {
-  it('R1: owner can validate any tenant reservation branch', () => {
-    expect(orderRoutingService.validateReservationBranch(
-      BRANCH_A1.id,
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )).toBe(true)
-  })
-
-  it('R2: manager can validate assigned branch for reservations', () => {
-    expect(orderRoutingService.validateReservationBranch(
-      BRANCH_A1.id,
-      { tenantId: TENANT_A, staffId: 's', roles: ['manager'], branchIds: [BRANCH_A1.id] },
-      ALL_BRANCHES,
-    )).toBe(true)
-  })
-
-  it('R3: waiter cannot validate unassigned branch', () => {
-    expect(orderRoutingService.validateReservationBranch(
-      BRANCH_A2.id,
-      { tenantId: TENANT_A, staffId: 's', roles: ['waiter'], branchIds: [BRANCH_A1.id] },
-      ALL_BRANCHES,
-    )).toBe(false)
-  })
-
-  it('R4: cross-tenant branch always returns false', () => {
-    expect(orderRoutingService.validateReservationBranch(
-      BRANCH_B1.id,
-      { tenantId: TENANT_A, staffId: 's', roles: ['owner'], branchIds: [] },
-      ALL_BRANCHES,
-    )).toBe(false)
-  })
-})
-
 // ── S. Vendor branchIds field ──────────────────────────────────────────────────
 
 describe('S — Vendor branchIds field', () => {
@@ -1175,10 +809,6 @@ describe('W — Types: branch-scoped analytics and filter types', () => {
 describe('X — Hooks source checks', () => {
   const hooksSrc = () => src('src/hooks/index.ts')
 
-  it('X1: exports useAccessibleBranches', () => {
-    expect(hooksSrc()).toContain('export function useAccessibleBranches')
-  })
-
   it('X2: exports useBranchOrders', () => {
     expect(hooksSrc()).toContain('export function useBranchOrders')
   })
@@ -1209,15 +839,6 @@ describe('X — Hooks source checks', () => {
   it('X8: useBranchAnalytics has staleTime', () => {
     const block = hooksSrc().slice(hooksSrc().indexOf('function useBranchAnalytics'))
     expect(block.slice(0, 400)).toContain('staleTime')
-  })
-
-  it('X9: useAccessibleBranches has enabled guard', () => {
-    const block = hooksSrc().slice(hooksSrc().indexOf('function useAccessibleBranches'))
-    expect(block.slice(0, 300)).toContain('enabled')
-  })
-
-  it('X10: hooks import branchAccessService', () => {
-    expect(hooksSrc()).toContain('branchAccessService')
   })
 
   it('X11: hooks import branchAnalyticsService', () => {
@@ -1380,10 +1001,6 @@ describe('Regression — P7.4 nav count updates', () => {
     expect(src('src/services/branch-access.service.ts')).toContain('export const branchAccessService')
   })
 
-  it('Reg8: order-routing.service.ts exports orderRoutingService', () => {
-    expect(src('src/services/order-routing.service.ts')).toContain('export const orderRoutingService')
-  })
-
   it('Reg9: branch-analytics.service.ts exports branchAnalyticsService', () => {
     expect(src('src/services/branch-analytics.service.ts')).toContain('export const branchAnalyticsService')
   })
@@ -1391,11 +1008,6 @@ describe('Regression — P7.4 nav count updates', () => {
   it('Reg10: branchAccessService uses hasPermission (no hardcoded role checks)', () => {
     const svc = src('src/services/branch-access.service.ts')
     expect(svc).toContain('hasPermission')
-    expect(svc).not.toMatch(/if\s*\(\s*(roles|role)\s*===/)
-  })
-
-  it('Reg11: orderRoutingService does not hardcode role checks', () => {
-    const svc = src('src/services/order-routing.service.ts')
     expect(svc).not.toMatch(/if\s*\(\s*(roles|role)\s*===/)
   })
 
