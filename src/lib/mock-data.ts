@@ -8,14 +8,17 @@ export const MOCK_USER: User = {
   first_name: 'John',
   last_name: 'Doe',
   avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop',
-  role: 'customer',
+  accountType: 'customer',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
 
 // Mock demo accounts for staff/console roles (mock mode only).
 // These are separate from MOCK_USER to preserve the security invariant
-// that MOCK_USER.role === 'customer'.
+// that MOCK_USER.accountType === 'customer'. Console access for these
+// accounts still comes entirely from their tenant-scoped RBAC roles
+// (see MOCK_CREDENTIALS' p7Roles in auth.service.ts), never from
+// accountType — accountType is a UX hint only (Phase 9.3).
 export const MOCK_STAFF_USER: User = {
   id: '2',
   email: 'staff@samoon.com',
@@ -23,7 +26,7 @@ export const MOCK_STAFF_USER: User = {
   first_name: 'Sam',
   last_name: 'Staff',
   avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-  role: 'staff',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
@@ -35,7 +38,7 @@ export const MOCK_ADMIN_USER: User = {
   first_name: 'Alex',
   last_name: 'Admin',
   avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-  role: 'admin',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
@@ -47,7 +50,7 @@ export const MOCK_OWNER_USER: User = {
   first_name: 'Olivia',
   last_name: 'Owner',
   avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-  role: 'admin',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
@@ -59,7 +62,7 @@ export const MOCK_CASHIER_USER: User = {
   first_name: 'Casey',
   last_name: 'Cashier',
   avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop',
-  role: 'staff',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
@@ -71,7 +74,7 @@ export const MOCK_KITCHEN_USER: User = {
   first_name: 'Kai',
   last_name: 'Kitchen',
   avatar: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=100&h=100&fit=crop',
-  role: 'staff',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
@@ -83,7 +86,7 @@ export const MOCK_MARKETING_USER: User = {
   first_name: 'Morgan',
   last_name: 'Marketing',
   avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop',
-  role: 'staff',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
@@ -95,7 +98,7 @@ export const MOCK_SUPPORT_USER: User = {
   first_name: 'Sam',
   last_name: 'Support',
   avatar: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100&fit=crop',
-  role: 'staff',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
@@ -107,7 +110,7 @@ export const MOCK_PLATFORM_ADMIN_USER: User = {
   phone_number: '+14155550109',
   first_name: 'Pat',
   last_name: 'Platform',
-  role: 'admin',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }
@@ -120,7 +123,7 @@ export const MOCK_MULTI_ROLE_USER: User = {
   first_name: 'Max',
   last_name: 'MultiRole',
   avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-  role: 'staff',
+  accountType: 'business',
   is_verified: true,
   created_at: '2024-01-01T00:00:00Z',
 }

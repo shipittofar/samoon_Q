@@ -122,11 +122,11 @@ function VerifyPageInner() {
         // is forwarded so /complete-profile never has to guess it.
         const dest = result.is_new_user
           ? `/complete-profile?phone_number=${encodeURIComponent(phone_number)}&dialCode=${encodeURIComponent(dialCode)}`
-          : result.user.role === 'customer'
-            ? getPostLoginRedirect('customer', result.user.email)
+          : result.user.accountType === 'customer'
+            ? getPostLoginRedirect('customer', result.p7Roles)
             : getDemoRedirect(phone_number) !== '/console'
               ? getDemoRedirect(phone_number)
-              : getPostLoginRedirect(result.user.role, result.user.email)
+              : getPostLoginRedirect(result.user.accountType, result.p7Roles)
 
         // Brief pause for success animation, then redirect
         

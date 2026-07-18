@@ -16,13 +16,13 @@ import { tenantService } from '@/services/tenant.service'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import type { User, Tenant } from '@/types'
 
-function userFor(email: string, role: User['role'] = 'customer'): User {
+function userFor(email: string, accountType: User['accountType'] = 'customer'): User {
   return {
     id: 'test-user-' + email,
     email,
     first_name: 'Test',
     last_name: 'User',
-    role,
+    accountType,
     is_verified: true,
     created_at: new Date().toISOString(),
   }
@@ -56,7 +56,7 @@ describe('P10.3.1 — useHasDashboardAccess reads only currentTenantSession', ()
   it('denies access when no currentTenantSession has been set, regardless of user role', async () => {
     const samoon = await tenantById('tenant-samoon-01')
     useTenantStore.getState().setTenant(samoon)
-    useAuthStore.getState().setUser(userFor('someone@samoon.com', 'admin'))
+    useAuthStore.getState().setUser(userFor('someone@samoon.com', 'business'))
     // No setCurrentTenantSession call — must not fall back to any
     // ownership/staff/role-string check.
 
@@ -67,7 +67,7 @@ describe('P10.3.1 — useHasDashboardAccess reads only currentTenantSession', ()
   it('denies access when currentTenantSession belongs to a different tenant', async () => {
     const samoon = await tenantById('tenant-samoon-01')
     useTenantStore.getState().setTenant(samoon)
-    useAuthStore.getState().setUser(userFor('someone@samoon.com', 'owner'))
+    useAuthStore.getState().setUser(userFor('someone@samoon.com', 'business'))
     const { permissions } = normalizeTenantPermissions(['owner'])
     useRbacStore.getState().setCurrentTenantSession('some-other-tenant', ['owner'], permissions)
 

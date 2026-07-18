@@ -34,7 +34,7 @@ function customerRoleUserFor(email: string): User {
     email,
     first_name: 'Test',
     last_name: 'User',
-    role: 'customer',
+    accountType: 'customer',
     is_verified: true,
     created_at: new Date().toISOString(),
   }

@@ -83,7 +83,7 @@ describe('E2E: Auth Flow', () => {
     await vi.runAllTimersAsync()
     const user = await promise
     expect(user.id).toBe('1')
-    expect(user.role).toBe('customer')
+    expect(user.accountType).toBe('customer')
     expect(typeof user.email).toBe('string')
   })
 

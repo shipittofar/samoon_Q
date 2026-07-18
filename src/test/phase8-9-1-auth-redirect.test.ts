@@ -78,20 +78,23 @@ describe('getDemoRedirect', () => {
   })
 })
 
+// Phase 9.3 — getPostLoginRedirect() no longer takes an arbitrary role
+// string; it takes accountType ('customer'|'business', a UX hint only)
+// plus an optional tenantRoles list (the real RBAC signal, preferred).
 describe('getPostLoginRedirect', () => {
-  it('sends customer role to /dashboard', () => {
+  it('sends customer accountType to /dashboard when there are no tenant roles', () => {
     expect(getPostLoginRedirect('customer')).toBe('/dashboard')
   })
 
-  it('sends staff role to /console', () => {
-    expect(getPostLoginRedirect('staff')).toBe('/console')
+  it('sends business accountType to /console when there are no tenant roles', () => {
+    expect(getPostLoginRedirect('business')).toBe('/console')
   })
 
-  it('sends admin role to /console', () => {
-    expect(getPostLoginRedirect('admin')).toBe('/console')
+  it('a non-empty tenantRoles list overrides accountType entirely', () => {
+    expect(getPostLoginRedirect('customer', ['owner'])).toBe('/console')
   })
 
-  it('sends unknown role to /console', () => {
-    expect(getPostLoginRedirect('superuser')).toBe('/console')
+  it('an unrecognized tenant role still lands in /console (resolveWorkspace default)', () => {
+    expect(getPostLoginRedirect('business', ['superuser' as never])).toBe('/console')
   })
 })

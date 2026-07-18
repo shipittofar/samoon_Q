@@ -145,19 +145,18 @@ describe('P4.1.2 — CSP header in next.config.ts', () => {
 
 // ── P4.1.3 — Mock User Role ───────────────────────────────────────────────────
 
-describe('P4.1.3 — Mock user role hardening', () => {
-  it('MOCK_USER.role is "customer", not "admin"', async () => {
+describe('P4.1.3 — Mock user account-type hardening', () => {
+  it('MOCK_USER.accountType is "customer", not "business" (Phase 9.3: renamed from role)', async () => {
     const { MOCK_USER } = await import('@/lib/mock-data')
-    expect(MOCK_USER.role).toBe('customer')
-    expect(MOCK_USER.role).not.toBe('admin')
-    expect(MOCK_USER.role).not.toBe('staff')
+    expect(MOCK_USER.accountType).toBe('customer')
+    expect(MOCK_USER.accountType).not.toBe('business')
   })
 
-  it('mock mode cannot produce an admin-role user from demo credentials', async () => {
+  it('mock mode cannot produce a business-accountType user from demo credentials', async () => {
     const { MOCK_USER } = await import('@/lib/mock-data')
     // Simulate mock auth response: service returns MOCK_USER
     const mockAuthResponse = { user: MOCK_USER, tokens: { access: 'mock', refresh: 'mock' } }
-    expect(mockAuthResponse.user.role).toBe('customer')
+    expect(mockAuthResponse.user.accountType).toBe('customer')
   })
 })
 

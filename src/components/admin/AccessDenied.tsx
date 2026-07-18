@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useAuthStore } from '@/stores'
+import { useAuthStore, useRbacStore } from '@/stores'
 import { resolveWorkspace } from '@/utils/navigation-intelligence'
 
 interface AccessDeniedProps {
@@ -12,8 +12,16 @@ interface AccessDeniedProps {
 export function AccessDenied({ resource }: AccessDeniedProps) {
   const t = useTranslations('console')
   const user = useAuthStore((s) => s.user)
-  const primaryRole = user?.role ?? 'customer'
-  const workspace = resolveWorkspace(primaryRole)
+  const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
+  // Phase 9.3 — "my workspace" should reflect the user's real tenant-scoped
+  // RBAC roles (the actual authorization source), not the removed coarse
+  // `User.role`. Falls back to the `accountType` UX hint only when there is
+  // no tenant session at all (e.g. a genuine customer, or RBAC hasn't
+  // hydrated yet) — this fallback is a landing-page guess, never an access
+  // grant; the destination page still enforces its own permission check.
+  const workspace = currentTenantSession && currentTenantSession.roles.length > 0
+    ? resolveWorkspace(currentTenantSession.roles)
+    : user?.accountType === 'business' ? '/console' : '/dashboard'
 
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 text-center">

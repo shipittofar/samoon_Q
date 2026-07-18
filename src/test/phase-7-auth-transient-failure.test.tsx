@@ -49,7 +49,7 @@ describe('Phase 7 — useAuthStore.sessionCheckFailed', () => {
 
     useAuthStore.getState().setUser({
       id: 'u1', email: 'a@b.com', first_name: 'A', last_name: 'B',
-      role: 'customer', is_verified: true, created_at: new Date().toISOString(),
+      accountType: 'customer', is_verified: true, created_at: new Date().toISOString(),
     })
     expect(useAuthStore.getState().sessionCheckFailed).toBe(false)
     expect(useAuthStore.getState().isAuthenticated).toBe(true)

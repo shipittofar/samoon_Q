@@ -83,8 +83,8 @@ function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
               <p className="text-sm font-medium text-[var(--fg)] truncate">
                 {user ? `${user.first_name} ${user.last_name}` : 'My Account'}
               </p>
-              {user?.role && (
-                <p className="text-xs text-[var(--fg-muted)] capitalize">{user.role}</p>
+              {user?.accountType && (
+                <p className="text-xs text-[var(--fg-muted)] capitalize">{user.accountType}</p>
               )}
             </div>
           </div>

@@ -44,7 +44,7 @@ import type {
   PaginatedResponse,
   Reservation,
   Review,
-  UserRole,
+  AccountType,
 } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -92,7 +92,7 @@ function buildAdminCustomers(tenantId: string): AdminCustomer[] {
       first_name: pu?.name.split(' ')[0] ?? '',
       last_name: pu?.name.split(' ').slice(1).join(' ') ?? '',
       avatar: pu?.avatar,
-      role: 'customer' as UserRole,
+      accountType: 'customer' as AccountType,
       is_verified: pu?.status === 'active',
       created_at: pu?.created_at ?? bc.firstInteractionAt,
       order_count: bc.ordersCount,
@@ -290,7 +290,7 @@ export const adminService = {
       if (!pu) return []
       const firstName = pu.name.split(' ')[0] ?? ''
       const lastName = pu.name.split(' ').slice(1).join(' ') ?? ''
-      const mockUser = { id: customerId, first_name: firstName, last_name: lastName, email: pu.email ?? '', role: 'customer' as UserRole, is_verified: pu.status === 'active', created_at: pu.created_at }
+      const mockUser = { id: customerId, first_name: firstName, last_name: lastName, email: pu.email ?? '', accountType: 'customer' as AccountType, is_verified: pu.status === 'active', created_at: pu.created_at }
       return [
         {
           id: `review-${customerId}-1`,

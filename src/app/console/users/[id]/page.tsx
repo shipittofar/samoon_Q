@@ -198,7 +198,7 @@ function UserDetailContent({ userId }: { userId: string }) {
                 {user.first_name} {user.last_name}
               </div>
               <div className="text-gray-500 text-sm">{user.email}</div>
-              <div className="text-gray-400 text-xs mt-1">{t('idColonValue', { id: user.id })} - - - {t('roleColonName', { name: user.role })}</div>
+              <div className="text-gray-400 text-xs mt-1">{t('idColonValue', { id: user.id })} - - - {t('roleColonName', { name: user.accountType })}</div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 pt-2 border-t border-gray-100">

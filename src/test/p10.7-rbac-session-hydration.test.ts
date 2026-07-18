@@ -73,7 +73,7 @@ describe('P10.7 — getMe() returns user only (no session email set)', () => {
     await vi.runAllTimersAsync()
     const user = await promise
     expect(user.id).toBe('1')
-    expect(user.role).toBe('customer')
+    expect(user.accountType).toBe('customer')
     expect(typeof user.email).toBe('string')
     expect(user.tenantRoles).toEqual([])
   })
@@ -115,7 +115,7 @@ describe('P10.7 — page reload simulation: tenantRoles now restored from auth b
     // P10.6 §3 documented.
     useAuthStore.getState().setUser({
       id: 'x', email: 'owner@samoon.com', first_name: 'O', last_name: 'W',
-      role: 'customer', is_verified: true, created_at: new Date().toISOString(),
+      accountType: 'customer', is_verified: true, created_at: new Date().toISOString(),
     })
     useRbacStore.getState()._resetStore()
     expect(useRbacStore.getState().tenantRoles).toEqual([])
@@ -141,7 +141,7 @@ describe('P10.7 — missing RBAC payload: no crash, clean fallback', () => {
   it('a getMe()-shaped object with no tenantRoles field at all does not throw when hydrated', () => {
     const bareUser: User = {
       id: 'y', email: 'nobody@example.com', first_name: 'N', last_name: 'B',
-      role: 'customer', is_verified: true, created_at: new Date().toISOString(),
+      accountType: 'customer', is_verified: true, created_at: new Date().toISOString(),
     }
     expect(() => simulateSessionRestoreHydration(bareUser)).not.toThrow()
     expect(useAuthStore.getState().user?.email).toBe('nobody@example.com')
@@ -151,7 +151,7 @@ describe('P10.7 — missing RBAC payload: no crash, clean fallback', () => {
   it('an explicit empty tenantRoles array does not throw and leaves the store empty', () => {
     const emptyRolesUser: User & { tenantRoles: Role[] } = {
       id: 'z', email: 'nobody2@example.com', first_name: 'N', last_name: 'B',
-      role: 'customer', is_verified: true, created_at: new Date().toISOString(),
+      accountType: 'customer', is_verified: true, created_at: new Date().toISOString(),
       tenantRoles: [],
     }
     expect(() => simulateSessionRestoreHydration(emptyRolesUser)).not.toThrow()

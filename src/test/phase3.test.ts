@@ -585,7 +585,7 @@ describe('P3.10 — Auth store flow', async () => {
   })
 
   it('setUser marks authenticated', () => {
-    const user = { id: '1', first_name: 'Test', last_name: 'User', email: 'test@example.com', role: 'customer' as const, phone_number: '', avatar: undefined, is_active: true, is_verified: true, created_at: '' }
+    const user = { id: '1', first_name: 'Test', last_name: 'User', email: 'test@example.com', accountType: 'customer' as const, phone_number: '', avatar: undefined, is_active: true, is_verified: true, created_at: '' }
     useAuthStore.getState().setUser(user)
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
     expect(useAuthStore.getState().user).toBe(user)

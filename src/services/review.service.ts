@@ -18,9 +18,9 @@ export interface ReviewsResponse {
 }
 
 const MOCK_USERS = [
-  { id: 'u1', first_name: 'Alice', last_name: 'K.', email: 'alice@example.com', role: 'customer' as const, is_verified: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'u2', first_name: 'Bob', last_name: 'M.', email: 'bob@example.com', role: 'customer' as const, is_verified: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'u3', first_name: 'Carol', last_name: 'T.', email: 'carol@example.com', role: 'customer' as const, is_verified: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'u1', first_name: 'Alice', last_name: 'K.', email: 'alice@example.com', accountType: 'customer' as const, is_verified: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'u2', first_name: 'Bob', last_name: 'M.', email: 'bob@example.com', accountType: 'customer' as const, is_verified: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'u3', first_name: 'Carol', last_name: 'T.', email: 'carol@example.com', accountType: 'customer' as const, is_verified: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 const MOCK_COMMENTS = [
@@ -64,7 +64,7 @@ export const reviewService = {
       await delay(600)
       const review: Review = {
         id: `review-new-${Date.now()}`,
-        user: { id: 'me', first_name: 'You', last_name: '', email: 'demo@samoon.com', role: 'customer' as const, is_verified: true, created_at: new Date().toISOString() },
+        user: { id: 'me', first_name: 'You', last_name: '', email: 'demo@samoon.com', accountType: 'customer' as const, is_verified: true, created_at: new Date().toISOString() },
         menu_item_id: itemId,
         rating: payload.rating,
         comment: payload.comment,

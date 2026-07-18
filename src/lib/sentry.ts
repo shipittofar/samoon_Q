@@ -54,12 +54,16 @@ export function captureException(
 /**
  * P4.6.1 — Set user context for subsequent Sentry events.
  *
- * Only forwards id, role, tenant, and email — never tokens or passwords.
- * Call after successful authentication.
+ * Only forwards id, accountType, tenant, and email — never tokens or
+ * passwords. Call after successful authentication.
  * Safe no-op when DSN is not configured.
+ *
+ * Phase 9.3 — `accountType` (renamed from the removed, ambiguous
+ * `User.role`) is telemetry metadata only, exactly as `role` was before
+ * — it has no bearing on any authorization decision.
  */
 export function setSentryUser(
-  user: { id: string; email?: string | null; role?: string; tenant?: string } | null,
+  user: { id: string; email?: string | null; accountType?: string; tenant?: string } | null,
 ): void {
   if (!sentryEnabled) return
   try {
@@ -70,7 +74,7 @@ export function setSentryUser(
     SentrySDK.setUser({
       id: user.id,
       ...(user.email ? { email: user.email } : {}),
-      ...(user.role ? { role: user.role } : {}),
+      ...(user.accountType ? { accountType: user.accountType } : {}),
       ...(user.tenant ? { tenant: user.tenant } : {}),
     })
   } catch {

@@ -63,10 +63,10 @@ describe('P4.6.1 — setSentryUser', () => {
     expect(mockSetUser).toHaveBeenCalledWith(expect.objectContaining({ email: 'a@b.com' }))
   })
 
-  it('forwards role when provided', async () => {
+  it('forwards accountType when provided', async () => {
     const { setSentryUser } = await sentryWithDsn()
-    setSentryUser({ id: 'u1', role: 'admin' })
-    expect(mockSetUser).toHaveBeenCalledWith(expect.objectContaining({ role: 'admin' }))
+    setSentryUser({ id: 'u1', accountType: 'business' })
+    expect(mockSetUser).toHaveBeenCalledWith(expect.objectContaining({ accountType: 'business' }))
   })
 
   it('forwards tenant when provided', async () => {
@@ -90,7 +90,7 @@ describe('P4.6.1 — setSentryUser', () => {
   it('does not expose tokens in user context', async () => {
     const { setSentryUser } = await sentryWithDsn()
     // Even if caller passes extra fields, only allowed fields are forwarded
-    setSentryUser({ id: 'u1', email: 'a@b.com', role: 'customer' })
+    setSentryUser({ id: 'u1', email: 'a@b.com', accountType: 'customer' })
     const call = mockSetUser.mock.calls[0][0] as Record<string, unknown>
     expect(call).not.toHaveProperty('password')
     expect(call).not.toHaveProperty('token')
@@ -106,7 +106,7 @@ describe('P4.6.1 — setSentryUser', () => {
 
   it('omits email field when not provided', async () => {
     const { setSentryUser } = await sentryWithDsn()
-    setSentryUser({ id: 'u1', role: 'customer' })
+    setSentryUser({ id: 'u1', accountType: 'customer' })
     const call = mockSetUser.mock.calls[0][0] as Record<string, unknown>
     expect(call).not.toHaveProperty('email')
   })
@@ -285,7 +285,7 @@ describe('P4.6.2 — Auth synchronization wiring', () => {
     // setSentryUser called in the same .then() block as setUser
     expect(src).toContain('setSentryUser')
     expect(src).toContain('user.id')
-    expect(src).toContain('user.role')
+    expect(src).toContain('user.accountType')
   })
 
   it('providers/index.tsx calls clearSentryUser on logout', async () => {

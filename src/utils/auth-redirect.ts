@@ -6,6 +6,8 @@
  */
 
 import { resolveWorkspace } from '@/utils/navigation-intelligence'
+import type { AccountType } from '@/types'
+import type { Role } from '@/types/rbac'
 
 /**
  * Maps demo phone_number (E.164) → email, so the mock OTP flow can resolve
@@ -47,20 +49,36 @@ export function getDemoRedirect(email: string): string {
 }
 
 /**
- * Returns the post-login destination for a real (non-demo) user based on
- * their role. Customer → /dashboard; staff roles → /console (or
- * role-specific sub-path).
+ * Returns the post-login destination for a real (non-demo) user.
+ *
+ * Phase 9.3 — no longer keyed off the removed, ambiguous `User.role`.
+ * This is a landing-page HINT only, never an authorization decision —
+ * AuthGuard's `dashboard:access` permission check is what actually gates
+ * Console, regardless of where this function sends someone.
+ *
+ * Preference order:
+ *   1. `tenantRoles` (the current session's tenant-scoped RBAC roles for
+ *      the resolved tenant, when available — e.g. `p7Roles` from a
+ *      login/verify-otp response) — routes straight to the specific
+ *      console workspace those roles imply, exactly as the old
+ *      role-based logic did, but keyed off real RBAC data instead of the
+ *      coarse global role. A non-empty array here is today's stand-in
+ *      for "this user has ≥1 TenantMembership" (see the Phase 9
+ *      architecture doc) until a backend sends a real `memberships[]`
+ *      list (Phase 9.2's `normalizeTenantPermissions()` already accepts
+ *      that shape once one does).
+ *   2. `accountType` fallback ('business' → /console, 'customer' →
+ *      /dashboard) — used only when no tenant role data is available at
+ *      all, e.g. immediately after registration before any tenant role
+ *      has been assigned.
  *
  * Phase 2 (RBAC unification) — previously consulted
  * `resolveOwnershipIdentity()` first, routing an eligible Owner/Staff
- * member to `/console` based on client-held ownership data before even
- * looking at `role`. That was a client-side access-adjacent decision the
- * frontend shouldn't make. `resolveWorkspace(role)` alone already routes
- * every non-customer role to `/console` (its own unknown-role default),
- * so behavior for real accounts is unchanged — only the ownership
- * short-circuit is gone. `email` is accepted for backward-compatible call
- * sites but no longer used.
+ * member to `/console` based on client-held ownership data. That was a
+ * client-side access-adjacent decision the frontend shouldn't make; it
+ * remains gone here.
  */
-export function getPostLoginRedirect(role: string, _email?: string | null): string {
-  return resolveWorkspace(role)
+export function getPostLoginRedirect(accountType: AccountType, tenantRoles?: Role[] | null): string {
+  if (tenantRoles && tenantRoles.length > 0) return resolveWorkspace(tenantRoles)
+  return accountType === 'business' ? '/console' : '/dashboard'
 }

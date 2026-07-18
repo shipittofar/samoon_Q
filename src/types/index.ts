@@ -4,8 +4,32 @@ import type { Role, Permission } from './rbac'
 // AUTH TYPES
 // ============================================================
 
-/** Role assigned to an authenticated user. Matches the backend auth model. */
+/**
+ * @deprecated Phase 9.3 — replaced by `AccountType` on `User`. This coarse
+ * 'customer' | 'staff' | 'owner' | 'admin' vocabulary overlapped with, and
+ * was easily confused for, the tenant-scoped RBAC `Role` enum
+ * (owner/admin/manager/cashier/waiter/kitchen/marketing/support —
+ * src/types/rbac.ts) despite never being an authorization signal itself.
+ * No longer used by `User` — kept only because
+ * `ownership-migration.service.ts`'s `deriveLegacyUserRoleLabel()`
+ * (a P10.1 §8.2 migration-spec function, not wired into any runtime path)
+ * still documents its derivation in these exact terms; do not reintroduce
+ * this type as a `User` field.
+ */
 export type UserRole = 'customer' | 'staff' | 'owner' | 'admin'
+
+/**
+ * Phase 9.3 — replaces the ambiguous `UserRole` field on `User`. Answers
+ * ONLY "what kind of experience should this account start with before
+ * tenant context exists" (registration flow choice, first-touch/no-tenant
+ * redirect hint, marketing-site personalization) — it MUST NOT be read as
+ * an authorization signal. Authorization comes exclusively from
+ * `TenantMembership.roles` / `CurrentTenantSession.permissions`
+ * (src/types/rbac.ts) — a 'business' accountType grants no permission and
+ * no Console access by itself; see AuthGuard's `dashboard:access` check,
+ * which never reads this field.
+ */
+export type AccountType = 'customer' | 'business'
 
 export interface User {
   id: string
@@ -20,7 +44,7 @@ export interface User {
   first_name: string
   last_name: string
   avatar?: string
-  role: UserRole
+  accountType: AccountType
   is_verified: boolean
   created_at: string
 }

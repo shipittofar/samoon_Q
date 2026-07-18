@@ -237,7 +237,7 @@ describe('useAuthStore — avatar propagation after upload', () => {
     const store = useAuthStore.getState()
     const mockUser = {
       id: 'u1', first_name: 'Test', last_name: 'User', email: 'test@test.com',
-      role: 'customer' as const, is_verified: true, created_at: '',
+      accountType: 'customer' as const, is_verified: true, created_at: '',
     }
     store.setUser(mockUser)
     expect(useAuthStore.getState().user?.avatar).toBeUndefined()
@@ -251,7 +251,7 @@ describe('useAuthStore — avatar propagation after upload', () => {
     const store = useAuthStore.getState()
     const mockUser = {
       id: 'u1', first_name: 'A', last_name: 'B', email: 'a@b.com',
-      role: 'customer' as const, is_verified: true, created_at: '',
+      accountType: 'customer' as const, is_verified: true, created_at: '',
       avatar: 'https://old.url/avatar.jpg',
     }
     store.setUser(mockUser)

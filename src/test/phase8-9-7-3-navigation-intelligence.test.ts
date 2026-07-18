@@ -202,22 +202,28 @@ describe('resolvePostLoginRedirect', () => {
 })
 
 // ── auth-redirect.ts integration ─────────────────────────────────────────────
+// Phase 9.3 — getPostLoginRedirect() takes accountType (UX hint only) plus
+// an optional tenantRoles list (the real RBAC signal, preferred when present).
 
 describe('getPostLoginRedirect (auth-redirect.ts)', () => {
-  it('customer → /dashboard', () => {
+  it('customer accountType, no tenant roles → /dashboard', () => {
     expect(getPostLoginRedirect('customer')).toBe('/dashboard')
   })
 
-  it('admin → /console', () => {
-    expect(getPostLoginRedirect('admin')).toBe('/console')
+  it('a tenant role of admin → /console', () => {
+    expect(getPostLoginRedirect('business', ['admin'])).toBe('/console')
   })
 
-  it('kitchen → /console/kitchen', () => {
-    expect(getPostLoginRedirect('kitchen')).toBe('/console/kitchen')
+  it('a tenant role of kitchen → /console/kitchen', () => {
+    expect(getPostLoginRedirect('business', ['kitchen'])).toBe('/console/kitchen')
   })
 
-  it('marketing → /console/analytics', () => {
-    expect(getPostLoginRedirect('marketing')).toBe('/console/analytics')
+  it('a tenant role of marketing → /console/analytics', () => {
+    expect(getPostLoginRedirect('business', ['marketing'])).toBe('/console/analytics')
+  })
+
+  it('business accountType with no tenant roles still lands in /console (UX hint only, not a grant)', () => {
+    expect(getPostLoginRedirect('business')).toBe('/console')
   })
 })
 

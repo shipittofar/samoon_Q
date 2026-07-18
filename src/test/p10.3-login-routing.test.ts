@@ -1,34 +1,31 @@
 // ============================================================
 // P10.3 Phase H — Login Flow Routing — regression tests
 //
-// Phase 2 (RBAC unification) rewrite: getPostLoginRedirect() no longer
-// consults ownership/staff-assignment data — it is a pure function of
-// `role` via resolveWorkspace(). The `email` parameter is accepted for
-// call-site backward compatibility but has no effect on the result.
+// Phase 9.3 rewrite: getPostLoginRedirect() no longer takes the removed,
+// ambiguous `User.role` — it takes `accountType` (UX hint only) plus an
+// optional `tenantRoles` list (the real RBAC-role signal, preferred when
+// present). Neither argument is an authorization decision — AuthGuard's
+// `dashboard:access` permission check is what actually gates Console.
 // ============================================================
 import { describe, it, expect } from 'vitest'
 import { getPostLoginRedirect } from '@/utils/auth-redirect'
 
-describe('P10.3 Phase H — getPostLoginRedirect is role-based only', () => {
-  it('routes based on role regardless of email, even for a known Owner/Staff email', () => {
-    // Ownership/staff-assignment data must never override the role-based
-    // decision — 'customer' role routes to /dashboard even with an
-    // owner/staff email attached.
-    expect(getPostLoginRedirect('customer', 'owner@samoon.com')).toBe('/dashboard')
-    expect(getPostLoginRedirect('customer', 'cashier@samoon.com')).toBe('/dashboard')
+describe('P10.3 Phase H — getPostLoginRedirect prefers tenantRoles over accountType', () => {
+  it('a non-empty tenantRoles list wins regardless of accountType', () => {
+    expect(getPostLoginRedirect('customer', ['owner'])).toBe('/console')
+    expect(getPostLoginRedirect('customer', ['cashier'])).toBe('/console/orders')
   })
 
-  it('routes staff/owner roles to /console', () => {
-    expect(getPostLoginRedirect('owner')).toBe('/console')
-    expect(getPostLoginRedirect('admin')).toBe('/console')
+  it('routes tenant-role-bearing business accounts to their specific workspace', () => {
+    expect(getPostLoginRedirect('business', ['owner'])).toBe('/console')
+    expect(getPostLoginRedirect('business', ['admin'])).toBe('/console')
   })
 
-  it('routes customer role to /dashboard', () => {
+  it('falls back to accountType when tenantRoles is absent, null, or empty', () => {
+    expect(getPostLoginRedirect('business')).toBe('/console')
+    expect(getPostLoginRedirect('business', null)).toBe('/console')
+    expect(getPostLoginRedirect('business', [])).toBe('/console')
     expect(getPostLoginRedirect('customer')).toBe('/dashboard')
-  })
-
-  it('is unaffected by a null/undefined email', () => {
-    expect(getPostLoginRedirect('owner', null)).toBe('/console')
-    expect(getPostLoginRedirect('owner', undefined)).toBe('/console')
+    expect(getPostLoginRedirect('customer', [])).toBe('/dashboard')
   })
 })

@@ -40,7 +40,7 @@ function resetConfigState() {
 function loginAsPlatformOwner() {
   useAuthStore.getState().setUser({
     id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
-    role: 'admin', is_verified: true, created_at: '2024-01-01T00:00:00Z',
+    accountType: 'business', is_verified: true, created_at: '2024-01-01T00:00:00Z',
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])

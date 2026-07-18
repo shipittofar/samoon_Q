@@ -330,7 +330,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     if (!token) { setLoading(false); return }
     authService.getMe().then((user) => {
       setUser(user)
-      setSentryUser({ id: user.id, email: user.email, role: user.role })
+      setSentryUser({ id: user.id, email: user.email, accountType: user.accountType })
       // P10.7 Phase D / Phase 2 — session restore hydrates currentTenantSession
       // the same way useLogin()/useVerifyOTP() do (via normalizeTenantPermissions()),
       // instead of relying entirely on useRbacStore's own localStorage
