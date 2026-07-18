@@ -1,12 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useTenantStore } from '@/stores'
 import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
   useStaff,
   useInvites,
-  useInviteStaff,
   useSuspendStaff,
   useActivateStaff,
   useRemoveStaff,
@@ -20,6 +20,7 @@ import { staffService } from '@/services/staff.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { StaffInviteModal } from '@/components/admin/StaffInviteModal'
 
 export default function StaffManagementPage() {
   return (
@@ -48,7 +49,7 @@ function StaffManagementContent() {
 
   const { data: staff = [], isLoading: staffLoading } = useStaff(tenantId)
   const { data: invites = [], isLoading: invitesLoading } = useInvites(tenantId)
-  const inviteStaff = useInviteStaff(tenantId)
+  const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const suspendStaff = useSuspendStaff()
   const activateStaff = useActivateStaff()
   const removeStaff = useRemoveStaff()
@@ -88,14 +89,18 @@ function StaffManagementContent() {
         <PermissionGuard permission="staff.manage">
           <button
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
-            onClick={() =>
-              inviteStaff.mutate({ email: '', roles: ['waiter'] })
-            }
+            onClick={() => setInviteModalOpen(true)}
           >
             {t('inviteStaffLabel')}
           </button>
         </PermissionGuard>
       </div>
+
+      <StaffInviteModal
+        tenantId={tenantId}
+        open={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+      />
 
       {/* Analytics Summary */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

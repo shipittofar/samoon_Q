@@ -73,6 +73,13 @@ export interface StaffInvite {
   invitedBy: string
   expiresAt: string
   status: InviteStatus
+  /**
+   * Console Staff — branches this invite grants visibility into, carried
+   * over onto the `StaffMember` created when the invite is accepted (see
+   * `staffService.acceptInvite()`). Optional for backward compatibility —
+   * an invite for an owner/admin role legitimately has no branch scope.
+   */
+  branchIds?: string[]
 }
 
 /**
@@ -107,10 +114,25 @@ export interface InviteStaffPayload {
   roles: Role[]
   firstName?: string
   lastName?: string
+  /**
+   * Console Staff — branches to grant this invite. Optional for backward
+   * compatibility with existing callers/tests that predate branch
+   * assignment (e.g. an owner/admin invite that legitimately has no
+   * branch scope) — omitted or empty means "no branch assignment," never
+   * "all branches."
+   */
+  branchIds?: string[]
 }
 
 export interface UpdateStaffRolesPayload {
   roles: Role[]
+  /**
+   * Console Staff — replaces the member's full branch assignment (not a
+   * merge). Optional for backward compatibility with existing callers
+   * that only ever updated roles — omitting it leaves the member's
+   * current `branchIds` untouched (see `staffService.updateStaffRoles()`).
+   */
+  branchIds?: string[]
 }
 
 export interface TransferOwnershipPayload {

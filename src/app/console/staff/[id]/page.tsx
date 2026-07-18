@@ -1,12 +1,13 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useStaffMember, useAdminBranch, useAdminBranches } from '@/hooks'
 import { getPermissionsForRole } from '@/services/permission.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { StaffEditAssignmentModal } from '@/components/admin/StaffEditAssignmentModal'
 import Link from 'next/link'
 
 function BranchBadge({ branchId }: { branchId: string }) {
@@ -71,6 +72,7 @@ const STAFF_STATUS_KEY: Record<string, string> = {
 function StaffDetailContent({ id }: { id: string }) {
   const t = useTranslations('console')
   const { data: member, isLoading } = useStaffMember(id)
+  const [editOpen, setEditOpen] = useState(false)
 
   if (isLoading) return <div className="p-6">{t('loadingEllipsis')}</div>
   if (!member) return <div className="p-6">{t('staffMemberNotFound')}</div>
@@ -94,7 +96,7 @@ function StaffDetailContent({ id }: { id: string }) {
           <p className="text-gray-500">{member.email}</p>
         </div>
         <span
-          className={`ml-auto px-3 py-1 rounded-full text-sm font-medium ${
+          className={`px-3 py-1 rounded-full text-sm font-medium ${
             member.status === 'active'
               ? 'bg-green-100 text-green-700'
               : member.status === 'suspended'
@@ -106,6 +108,17 @@ function StaffDetailContent({ id }: { id: string }) {
         >
           {t(STAFF_STATUS_KEY[member.status] ?? 'statusInactive')}
         </span>
+        {member.status !== 'removed' && (
+          <PermissionGuard permission="staff.manage">
+            <button
+              type="button"
+              onClick={() => setEditOpen(true)}
+              className="ml-auto rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-gray-50"
+            >
+              {t('editAssignmentLabel')}
+            </button>
+          </PermissionGuard>
+        )}
       </div>
 
       <section>
@@ -164,6 +177,12 @@ function StaffDetailContent({ id }: { id: string }) {
       )}
 
       <BranchAccessMatrix tenantId={member.tenantId} assignedBranchIds={member.branchIds ?? []} />
+
+      <StaffEditAssignmentModal
+        member={member}
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+      />
     </div>
   )
 }

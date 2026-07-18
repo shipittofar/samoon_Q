@@ -579,11 +579,12 @@ export const staffService = {
         invitedBy: MOCK_OWNER_ID,
         expiresAt: daysFromNow(7),
         status: 'pending',
+        ...(payload.branchIds ? { branchIds: [...payload.branchIds] } : {}),
       }
       MOCK_INVITE_LIST.push(invite)
       emitAudit('staff.invited', tenantId, {
         inviteId: invite.id,
-        metadata: { email: payload.email, roles: payload.roles },
+        metadata: { email: payload.email, roles: payload.roles, branchIds: payload.branchIds },
       })
       return { ...invite }
     }
@@ -642,6 +643,7 @@ export const staffService = {
       if (member) {
         member.status = 'active'
         member.activatedAt = new Date().toISOString()
+        if (invite.branchIds) member.branchIds = [...invite.branchIds]
         return { ...member }
       }
       // Create new staff member if not found
@@ -657,6 +659,7 @@ export const staffService = {
         invitedAt: invite.id,
         activatedAt: new Date().toISOString(),
         createdBy: invite.invitedBy,
+        ...(invite.branchIds ? { branchIds: [...invite.branchIds] } : {}),
       }
       MOCK_STAFF_LIST.push(newMember)
       return { ...newMember }
@@ -672,10 +675,15 @@ export const staffService = {
       if (!member) throw new Error(`Staff member not found: ${id}`)
       if (member.status === 'removed') throw new Error('Cannot update roles of a removed member')
       const prevRoles = [...member.roles]
+      const prevBranchIds = member.branchIds ? [...member.branchIds] : undefined
       member.roles = [...payload.roles]
+      // Replaces (not merges) the branch assignment when provided — omitting
+      // payload.branchIds entirely leaves the member's current assignment
+      // untouched, for callers that only ever update roles.
+      if (payload.branchIds) member.branchIds = [...payload.branchIds]
       emitAudit('staff.role_changed', member.tenantId, {
         staffMemberId: id,
-        metadata: { prevRoles, newRoles: payload.roles },
+        metadata: { prevRoles, newRoles: payload.roles, prevBranchIds, newBranchIds: member.branchIds },
       })
       return { ...member }
     }
