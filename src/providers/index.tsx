@@ -257,7 +257,7 @@ function FcmRegistrationProvider({ children }: { children: ReactNode }) {
 }
 
 function AuthBootstrapper({ children }: { children: ReactNode }) {
-  const { setUser, setLoading } = useAuthStore()
+  const { setUser, setLoading, setSessionCheckFailed } = useAuthStore()
   const setFavorites = useFavoritesStore((s) => s.setFavorites)
   const qc = useQueryClient()
   const booted = useRef(false)
@@ -317,9 +317,15 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc])
 
-  useEffect(() => {
-    if (booted.current) return
-    booted.current = true
+  // Phase 7 — extracted so it can be re-run on retry (see the
+  // 'auth:retry-session-check' listener below), not just once at boot.
+  // Behavior is unchanged from before: a 401 means the session is
+  // genuinely invalid (clearSession()); any other failure (network error,
+  // timeout, 5xx) is treated as transient and now sets sessionCheckFailed
+  // instead of just silently leaving the user in an ambiguous
+  // "not loading, not authenticated" state — AuthGuard reads that flag to
+  // avoid redirecting to /login on a temporary backend outage.
+  function checkSession() {
     const token = getAccessToken()
     if (!token) { setLoading(false); return }
     authService.getMe().then((user) => {
@@ -363,11 +369,35 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       const status = (err as { response?: { status?: number } } | undefined)?.response?.status
       if (status === 401) {
         clearSession()
+      } else {
+        setSessionCheckFailed(true)
       }
-      setLoading(false)
     })
+  }
+
+  useEffect(() => {
+    if (booted.current) return
+    booted.current = true
+    checkSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setUser, setLoading, setFavorites])
+
+  // Phase 7 — mirrors the 'auth:logout' listener above: a plain
+  // (unguarded) effect so retry works correctly under React 18 StrictMode's
+  // dev-only double-invoke, same reasoning as documented there. Lets
+  // AuthGuard's "Retry" affordance re-run the session check without a full
+  // page reload, without needing a shared context/prop just for this.
+  useEffect(() => {
+    function handleRetry() {
+      setSessionCheckFailed(false)
+      setLoading(true)
+      checkSession()
+    }
+    window.addEventListener('auth:retry-session-check', handleRetry)
+    return () => window.removeEventListener('auth:retry-session-check', handleRetry)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return <>{children}</>
 }
 

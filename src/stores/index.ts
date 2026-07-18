@@ -49,8 +49,21 @@ interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
+  /**
+   * Phase 7 — true when the boot-time session check (getMe()) failed for a
+   * reason that does NOT prove the session is invalid (network error,
+   * timeout, 5xx — no response, or a non-401 status). Tokens are
+   * deliberately left untouched in this case (see providers/index.tsx).
+   * This exists so AuthGuard can tell "definitely logged out" apart from
+   * "we don't know yet, the backend was unreachable" — the former
+   * redirects to /login, the latter must not, since that would force a
+   * re-auth prompt for a session that may still be perfectly valid.
+   * Cleared on any successful setUser() call or explicit logout().
+   */
+  sessionCheckFailed: boolean
   setUser: (user: User | null) => void
   setLoading: (v: boolean) => void
+  setSessionCheckFailed: (v: boolean) => void
   logout: () => void
 }
 
@@ -58,9 +71,11 @@ export const useAuthStore = create<AuthState>()((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  setUser: (user) => set({ user, isAuthenticated: !!user, isLoading: false }),
+  sessionCheckFailed: false,
+  setUser: (user) => set({ user, isAuthenticated: !!user, isLoading: false, sessionCheckFailed: false }),
   setLoading: (isLoading) => set({ isLoading }),
-  logout: () => set({ user: null, isAuthenticated: false, isLoading: false }),
+  setSessionCheckFailed: (sessionCheckFailed) => set({ sessionCheckFailed, isLoading: false }),
+  logout: () => set({ user: null, isAuthenticated: false, isLoading: false, sessionCheckFailed: false }),
 }))
 
 // ── Cart Store ────────────────────────────────────────────────────────────────

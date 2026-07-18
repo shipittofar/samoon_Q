@@ -52,6 +52,16 @@ export interface AuthGuardProps {
    * loading. Falls back to `fallback` if omitted.
    */
   tenantFallback?: (tenantState: 'not_found' | 'forbidden' | 'error') => ReactNode
+  /**
+   * Phase 7 — rendered instead of redirecting to `loginPath` when the
+   * boot-time session check failed for a reason that does NOT prove the
+   * session is invalid (network error, timeout, 5xx). Receives a `retry`
+   * callback that re-runs the session check in place, without a full page
+   * reload. Falls back to `fallback` if omitted — the guard still never
+   * redirects to login in this state either way, since a valid session
+   * must not be thrown away over a transient failure.
+   */
+  sessionErrorFallback?: (retry: () => void) => ReactNode
 }
 
 export function AuthGuard({
@@ -62,10 +72,21 @@ export function AuthGuard({
   fallback = null,
   requireResolvedTenant = false,
   tenantFallback,
+  sessionErrorFallback,
 }: AuthGuardProps) {
-  const { isAuthenticated, isLoading } = useAuthStore()
+  const { isAuthenticated, isLoading, sessionCheckFailed } = useAuthStore()
   const tenantState = useTenantStore((s) => s.tenantState)
   const router = useRouter()
+
+  // Phase 7 — a transient getMe() failure (network/5xx, not a 401) must
+  // never be treated the same as "definitely logged out": tokens are
+  // still intact (providers/index.tsx never clears them for this case),
+  // so forcing a redirect to /login would throw away a session that may
+  // still be perfectly valid. `retrySessionCheck` re-runs the check in
+  // place via the same event AuthBootstrapper already listens for.
+  const retrySessionCheck = () => {
+    window.dispatchEvent(new CustomEvent('auth:retry-session-check'))
+  }
 
   // Phase 2 (RBAC unification) — `dashboard:access` is now a real P7
   // permission granted to every assignable role (ROLE_PERMISSION_MAP,
@@ -88,6 +109,10 @@ export function AuthGuard({
   useEffect(() => {
     if (isLoading) return
     if (!isAuthenticated) {
+      // A transient session-check failure must not force a re-auth
+      // prompt — stay put (sessionErrorFallback/fallback renders below)
+      // instead of navigating away from whatever the user was looking at.
+      if (sessionCheckFailed) return
       router.replace(loginPath)
       return
     }
@@ -95,9 +120,12 @@ export function AuthGuard({
     if (requiredPermission && !permissionGranted) {
       router.replace(forbiddenPath)
     }
-  }, [isAuthenticated, isLoading, requiredPermission, permissionGranted, loginPath, forbiddenPath, router, tenantPending, tenantFailed])
+  }, [isAuthenticated, isLoading, sessionCheckFailed, requiredPermission, permissionGranted, loginPath, forbiddenPath, router, tenantPending, tenantFailed])
 
   if (isLoading) return <>{fallback}</>
+  if (!isAuthenticated && sessionCheckFailed) {
+    return <>{sessionErrorFallback ? sessionErrorFallback(retrySessionCheck) : fallback}</>
+  }
   if (!isAuthenticated) return <>{fallback}</>
   if (tenantPending) return <>{fallback}</>
   if (tenantFailed) {
