@@ -1,30 +1,38 @@
 // ============================================================
-// Phase Z.1 — Backend Database Schema Freeze (DBML)
+// Phase Z.2 — Database Schema Freeze (DBML)
 //
-// Source of truth: docs/BACKEND_CONTRACT.md, docs/FRONTEND_CONTEXT_MODEL.md,
-// docs/BACKEND_IMPLEMENTATION_PLAN.md
+// Source of truth: docs/BACKEND_CONTRACT.md, docs/BACKEND_IMPLEMENTATION_PLAN.md,
+// docs/FRONTEND_CONTEXT_MODEL.md, docs/FRONTEND_CONTRACT_ALIGNMENT_REPORT.md
+//
+// Supersedes the Phase Z.1 schema freeze (same architecture; this pass
+// re-validates every table against the task's explicit section-by-section
+// spec and against FRONTEND_CONTRACT_ALIGNMENT_REPORT.md — which changed
+// no schema requirement: every Z.1 alignment finding was frontend/mock-only,
+// see that report's own conclusion). Section headers below (§1-§10) mirror
+// the task spec 1:1 so each table/rule can be cross-referenced directly.
 //
 // Schema only. No Django code, no migrations, no models.py, no
 // implementation detail beyond what a schema itself expresses.
 // ============================================================
 
-// ── Enums ─────────────────────────────────────────────────────────────────
+// ── §7 Enums ─────────────────────────────────────────────────────────────
 
-// Deviation note (see "Schema Validation Notes" at the end of this file):
-// the frozen contract (docs/BACKEND_CONTRACT.md §1, User.accountType)
-// uses 'customer', not 'personal'. This schema follows the frozen
-// contract's actual value rather than the task's abbreviated example —
-// flagged explicitly, not silently resolved.
+// Deviation (documented, not silently resolved — see "Schema Validation
+// Notes" at the end of this file, and §10): the task's §7 example list is
+// 'personal, business'. The actual frozen contract (docs/BACKEND_CONTRACT.md
+// §1, User.accountType; src/types/index.ts's AccountType) uses 'customer',
+// not 'personal'. This schema follows the frozen contract's real value.
 Enum account_type {
   customer
   business
 }
 
-// Deviation note: docs/BACKEND_IMPLEMENTATION_PLAN.md §1 (Tenant model)
-// specifies 5 statuses, matching src/types/index.ts's Tenant.status and
-// src/services/tenant.service.ts's ELIGIBLE_TENANT_STATUSES check. The
-// task's example list ('active', 'suspended') is a subset; the full set
-// is reproduced here as the actual frozen contract requires.
+// Deviation: the task's §7 example list is 'active, suspended' (2 values).
+// docs/BACKEND_IMPLEMENTATION_PLAN.md §1 (Tenant model) and the already-
+// shipped frontend (src/types/index.ts's Tenant.status,
+// src/services/tenant.service.ts's MOCK_TENANTS / ELIGIBLE_TENANT_STATUSES)
+// use 5 values. Dropping 'trial'/'churned'/'archived' would silently break
+// the already-frozen contract's tenant lifecycle — the full set is kept.
 Enum tenant_status {
   active
   trial
@@ -33,69 +41,77 @@ Enum tenant_status {
   archived
 }
 
-// Deviation note: docs/BACKEND_IMPLEMENTATION_PLAN.md §1 (Branch model)
-// specifies 3 statuses (src/types/branch.ts's BranchStatus). The task's
-// example list ('active', 'inactive') is a subset; 'maintenance' is
-// retained as the frozen contract requires.
+// Deviation: the task's §7 example list is 'active, inactive' (2 values).
+// docs/BACKEND_IMPLEMENTATION_PLAN.md §1 (Branch model) and the shipped
+// frontend (src/types/branch.ts's BranchStatus; branch.service.ts's mock
+// data includes a 'maintenance' branch) use 3 values.
 Enum branch_status {
   active
   inactive
   maintenance
 }
 
+// Matches the task's §7 spec exactly — no deviation.
 Enum branch_scope {
   all
   selected
 }
 
+// Not listed in the task's §7 enum list, but required by §4's own field
+// list being a floor, not a ceiling — see the membership_status note below
+// tenant_memberships, and §10.
 Enum membership_status {
   active
   suspended
   revoked
 }
 
-// ── Authentication Domain ───────────────────────────────────────────────
+// ── §1 Core Identity Model — User ─────────────────────────────────────────
 
 Table users {
   id uuid [pk, default: `gen_random_uuid()`]
-  email varchar [unique, null, note: 'Nullable — phone-only accounts have no email (docs/BACKEND_CONTRACT.md §1)']
-  phone_number varchar [unique, null]
-  account_type account_type [not null, note: 'UX-only landing hint. NEVER an authorization signal — no global role field exists on this table by design (FRONTEND_CONTEXT_MODEL.md §1). Authorization comes exclusively from tenant_memberships.']
+  email varchar [unique, null, note: 'Nullable — phone-only accounts have no email (docs/BACKEND_CONTRACT.md §1). Unique when present (§1 rule: "email unique").']
+  phone_number varchar [unique, null, note: 'Not in the task §1 field list, but required by docs/BACKEND_CONTRACT.md §1 (phone-OTP login/registration is a live frontend flow — src/app/login, src/utils/auth-redirect.ts DEMO_PHONE_TO_EMAIL). §1\'s field list is a floor, not a ceiling.']
+  account_type account_type [not null, note: 'UX-only landing hint (docs/FRONTEND_CONTEXT_MODEL.md §1: read only by getPostLoginRedirect() to pick /dashboard vs /console before any tenant context exists). NEVER an authorization signal.']
   first_name varchar [not null]
   last_name varchar [not null]
-  avatar varchar [null]
+  avatar varchar [null, note: 'Not in the task §1 field list; matches src/types/index.ts User.avatar (optional profile photo), already part of the frozen auth contract\'s User shape.']
   is_verified boolean [not null, default: false]
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+    // §8 requires an index on User.email — implemented as the unique
+    // constraint above, which is itself always backed by an index.
     email [unique, name: 'uq_users_email']
     phone_number [unique, name: 'uq_users_phone_number']
   }
 
-  Note: 'One row per platform account. No tenant, role, or branch information ever lives here — see tenant_memberships. account_type answers "what experience before tenant context exists," nothing else.'
+  Note: '§1 rule "no global role field" — deliberately true: no role/permission/tenant column exists on this table. Authorization comes exclusively from tenant_memberships (§4/§6). See §10 for why.'
 }
 
-// ── Tenant Domain ────────────────────────────────────────────────────────
+// ── §2 Tenant Model ─────────────────────────────────────────────────────
 
 Table tenants {
   id uuid [pk, default: `gen_random_uuid()`]
   name varchar [not null]
   slug varchar [not null, unique]
   status tenant_status [not null, default: 'trial']
-  business_types jsonb [not null, default: `'[]'`, note: 'Flat list of strings — src/types/index.ts Tenant.businessTypes']
-  settings jsonb [not null, default: `'{}'`, note: 'theme, contactEmail, businessHours, etc. — loose bag matching Tenant.settings on the frontend']
+  business_types jsonb [not null, default: `'[]'`, note: 'Not in the task §2 field list; matches src/types/index.ts Tenant.businessTypes, required for the already-frozen Tenant CRUD contract (BACKEND_CONTRACT.md) to be implementable, not decorative.']
+  settings jsonb [not null, default: `'{}'`, note: 'theme, contactEmail, businessHours, marketplace metadata, etc. — mirrors Tenant.settings on the frontend. Same floor-not-ceiling rationale as business_types.']
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+    // §8 requires an index on Tenant.slug — the unique constraint below
+    // provides it.
     slug [unique, name: 'uq_tenants_slug']
   }
 
-  Note: 'The isolation boundary. No owner FK on this table — ownership is expressed exclusively via a tenant_memberships row with role=owner (docs/BACKEND_IMPLEMENTATION_PLAN.md §1), never a direct column here. slug is the primary lookup key, resolved from the request subdomain (docs/BACKEND_CONTRACT.md §6).'
+  Note: '§2 rule "tenant is the primary isolation boundary" — every tenant-scoped table below (branches, tenant_memberships) carries a tenant_id FK back to this table; nothing tenant-scoped is reachable without one. No owner FK on this table — ownership is expressed exclusively via a tenant_memberships row with role=owner (see §6/§10), never a direct column here. slug is the subdomain-resolution key (BACKEND_CONTRACT.md §6, FRONTEND_CONTRACT_ALIGNMENT_REPORT.md §6 item 5 — unaffected by that report\'s frontend-only changes).'
 }
 
-// ── Branch Domain ────────────────────────────────────────────────────────
+// ── §3 Branch Model ────────────────────────────────────────────────────
 
 Table branches {
   id uuid [pk, default: `gen_random_uuid()`]
@@ -103,8 +119,8 @@ Table branches {
   name varchar [not null]
   slug varchar [not null]
   status branch_status [not null, default: 'active']
-  is_default boolean [not null, default: false]
-  location jsonb [not null, default: `'{}'`, note: 'address/city/country/lat/lng']
+  is_default boolean [not null, default: false, note: 'Not in the task §3 field list; required so branch deletion/creation logic (branch.service.ts\'s "a tenant must always have exactly one default branch" invariant, already shipped) has somewhere to live.']
+  location jsonb [not null, default: `'{}'`, note: 'address/city/country/lat/lng — required for the already-frozen Branch CRUD contract, not decorative.']
   contact jsonb [not null, default: `'{}'`, note: 'phone_number/email/website']
   business_hours jsonb [not null, default: `'[]'`]
   settings jsonb [not null, default: `'{}'`, note: 'delivery/pickup/tableOrdering/etc.']
@@ -112,46 +128,47 @@ Table branches {
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+    // §3 unique rule + §8 index requirement: (tenant_id, slug).
     (tenant_id, slug) [unique, name: 'uq_branches_tenant_slug']
-    (tenant_id, status) [name: 'ix_branches_tenant_status']
+    (tenant_id, status) [name: 'ix_branches_tenant_status', note: 'Not required by §8, kept from the Z.1 freeze — supports "list active branches for tenant X," the actual query BACKEND_IMPLEMENTATION_PLAN.md\'s branch-list endpoint issues.']
   }
 
-  Note: 'Belongs to exactly one tenant (tenant_id FK, not null). Slug uniqueness is scoped per tenant, not global — two different tenants may each have a "main" branch.'
+  Note: '§3 rule "every branch belongs to exactly one tenant" — tenant_id is not null, with a cascading FK (see Ref: below). Slug uniqueness is scoped per tenant (the (tenant_id, slug) composite), not global — two different tenants may each have a "main" branch, exactly as the current mock data already does.'
 }
 
 Ref: branches.tenant_id > tenants.id [delete: cascade]
 
-// ── Membership Domain ────────────────────────────────────────────────────
+// ── §4 Membership Model ────────────────────────────────────────────────
 //
-// User -> TenantMembership -> Tenant. No BranchMembership table — branch
-// access is a property of the membership as a whole (branch_scope),
-// expanded via a join table only when scope = 'selected'. This is the
-// architecture decision documented in docs/BACKEND_IMPLEMENTATION_PLAN.md
-// §3: an 'all' scope must mean every CURRENT AND FUTURE branch, which a
-// per-branch snapshot table cannot express — a scope flag can.
+// Approved design, per the task's explicit instruction and
+// docs/BACKEND_IMPLEMENTATION_PLAN.md §3: NO BranchMembership table. An
+// 'all' scope must mean every CURRENT AND FUTURE branch, which a per-branch
+// snapshot table cannot express — a scope flag (branch_scope) can. See §10.
 
 Table tenant_memberships {
   id uuid [pk, default: `gen_random_uuid()`]
   user_id uuid [not null]
   tenant_id uuid [not null]
   branch_scope branch_scope [not null, default: 'selected']
-  status membership_status [not null, default: 'active']
+  status membership_status [not null, default: 'active', note: 'Not in the task §4 field list, but load-bearing on the already-frozen contract: docs/FRONTEND_CONTEXT_MODEL.md §5 step 1 explicitly denies access when "membership.status !== \'active\'" — src/types/rbac.ts\'s TenantMembership.status is the frontend field this backs. Omitting it would silently break a contract rule already relied on by normalizeTenantPermissions(). See §10.']
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
 
   indexes {
+    // §4 unique rule + §8 index requirement: (user_id, tenant_id).
     (user_id, tenant_id) [unique, name: 'uq_tenant_memberships_user_tenant']
-    (user_id, status) [name: 'ix_tenant_memberships_user_status', note: 'primary query path for GET /auth/me']
+    (user_id, status) [name: 'ix_tenant_memberships_user_status', note: 'Primary query path for GET /auth/me (BACKEND_IMPLEMENTATION_PLAN.md) — "every tenant query starts from the authenticated user\'s memberships," see Schema Validation Notes Q1.']
     (tenant_id, status) [name: 'ix_tenant_memberships_tenant_status']
   }
 
-  Note: 'One row per (user, tenant) — never more than one. Multiple roles for that user in that tenant live in tenant_membership_roles, not as multiple rows here. branch_scope=all means every current AND future branch of tenant_id; branch_scope=selected means exactly the branches listed in tenant_membership_branches.'
+  Note: '§4 meaning: branch_scope=all means every CURRENT AND FUTURE branch of tenant_id (no rows in tenant_membership_branches required or read for this case); branch_scope=selected means exactly the branches listed in tenant_membership_branches (§5). One row per (user, tenant) — never more than one; multiple roles for that user in that tenant live in tenant_membership_roles (§6), not as multiple rows here.'
 }
 
 Ref: tenant_memberships.user_id > users.id [delete: cascade]
 Ref: tenant_memberships.tenant_id > tenants.id [delete: cascade]
 
-// assigned_branches — only meaningful/populated when branch_scope = 'selected'.
+// ── §5 Assigned Branches ───────────────────────────────────────────────
+
 Table tenant_membership_branches {
   tenant_membership_id uuid [not null]
   branch_id uuid [not null]
@@ -160,18 +177,18 @@ Table tenant_membership_branches {
     (tenant_membership_id, branch_id) [pk]
   }
 
-  Note: 'Explicit branch grants for a branch_scope=selected membership. Ignored/expected-empty when the parent membership is branch_scope=all — application logic must not require rows here for an all-scope membership to resolve correctly.'
+  Note: '§5 constraint "branch must belong to the same tenant as membership" — DBML/SQL has no native cross-table CHECK referencing two different foreign tables, so this is enforced at the application layer (the membership-branch-assignment write path validates branch.tenant_id == membership.tenant_id before insert) or via a Postgres trigger, not a declarative column constraint. Documented here as the authoritative invariant either implementation must enforce. Only meaningful/populated when the parent membership is branch_scope=selected; ignored/expected-empty for branch_scope=all — application logic must not require rows here for an all-scope membership to resolve correctly.'
 }
 
 Ref: tenant_membership_branches.tenant_membership_id > tenant_memberships.id [delete: cascade]
 Ref: tenant_membership_branches.branch_id > branches.id [delete: cascade]
 
-// ── RBAC Domain ──────────────────────────────────────────────────────────
+// ── §6 RBAC ─────────────────────────────────────────────────────────────
 
 Table roles {
   id uuid [pk, default: `gen_random_uuid()`]
   name varchar [not null]
-  slug varchar [not null, unique, note: "owner | admin | manager | cashier | waiter | kitchen | marketing | support — fixed, seeded set. No custom roles this phase (docs/BACKEND_IMPLEMENTATION_PLAN.md §4)."]
+  slug varchar [not null, unique, note: "owner | admin | manager | cashier | waiter | kitchen | marketing | support — fixed, seeded set (src/types/rbac.ts Role union). No custom roles this phase."]
 
   indexes {
     slug [unique, name: 'uq_roles_slug']
@@ -187,10 +204,12 @@ Table permissions {
   action varchar [not null, note: "e.g. 'view', 'edit' — the verb after the dot in code"]
 
   indexes {
+    // §8 requires an index on Permission.code — the unique constraint
+    // below provides it.
     code [unique, name: 'uq_permissions_code']
   }
 
-  Note: 'Seeded to mirror ALL_PERMISSIONS (src/services/permission.service.ts) exactly — resource/action are derived/denormalized from code for query convenience, code remains the single source of truth string the frontend already checks against.'
+  Note: 'Seeded to mirror ALL_PERMISSIONS (src/services/permission.service.ts) exactly — resource/action are derived/denormalized from code for query convenience, code remains the single source-of-truth string the frontend already checks against.'
 }
 
 Table role_permissions {
@@ -201,15 +220,12 @@ Table role_permissions {
     (role_id, permission_id) [pk]
   }
 
-  Note: 'Plain many-to-many. Owner access is represented by seeding EVERY permission row against the owner role here — there is no runtime "if role == owner" bypass anywhere in the schema or the query path that reads it (docs/BACKEND_IMPLEMENTATION_PLAN.md §4). Seed data must reproduce ROLE_PERMISSION_MAP row-for-row.'
+  Note: '§6 "RolePermission — Role | Permission" relationship, plain many-to-many. §6 rule "NO runtime owner bypass" — owner access is represented by seeding EVERY permission row against the owner role here, never a runtime "if role == owner" check anywhere in the schema or the query path that reads it. Seed data must reproduce ROLE_PERMISSION_MAP.owner (= ALL_PERMISSIONS) row-for-row. See §10.'
 }
 
 Ref: role_permissions.role_id > roles.id [delete: cascade]
 Ref: role_permissions.permission_id > permissions.id [delete: cascade]
 
-// tenant_membership_roles — because roles belong to the MEMBERSHIP
-// (tenant-scoped), not to the user globally and not to the role in
-// isolation. A membership may hold multiple roles; permissions union.
 Table tenant_membership_roles {
   tenant_membership_id uuid [not null]
   role_id uuid [not null]
@@ -218,15 +234,15 @@ Table tenant_membership_roles {
     (tenant_membership_id, role_id) [pk]
   }
 
-  Note: 'A tenant_membership may hold more than one role (e.g. cashier + waiter) — permissions resolve as the UNION of every held role\'s permission_permissions, computed at read time, never denormalized onto this table.'
+  Note: '§6 "MembershipRole — TenantMembership | Role" relationship. A tenant_membership may hold more than one role (e.g. cashier + waiter) — permissions resolve as the UNION of every held role\'s role_permissions, computed at read time, never denormalized onto this table.'
 }
 
 Ref: tenant_membership_roles.tenant_membership_id > tenant_memberships.id [delete: cascade]
 Ref: tenant_membership_roles.role_id > roles.id [delete: cascade]
 
 // ============================================================
-// Relationship Diagram (textual — DBML above already encodes this via
-// the Ref: statements; reproduced here for readability per Phase Z.1 §8)
+// Relationship Diagram (textual — the DBML above already encodes this via
+// the Ref: statements; reproduced here for readability)
 //
 //                         users
 //                           |
