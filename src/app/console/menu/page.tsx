@@ -127,11 +127,22 @@ export default function AdminMenuPage() {
   // ── Handlers ────────────────────────────────────────────────────────────────
 
   const openCreate = () => {
+    // Phase 3.6 — mirrors console/categories/page.tsx's disabled-button
+    // guard on the trigger; kept here too as defense in depth in case this
+    // handler is ever wired to a second, unguarded entry point.
+    if (!adminBranchId) return
     setCreateForm(EMPTY_FORM)
     setCreateOpen(true)
   }
 
   const submitCreate = () => {
+    // Phase 3.6 — no menu-item creation may execute unless the branch
+    // resolution state machine is 'ready' with a real selectedBranch.
+    // adminBranchId alone already encodes that (see its derivation
+    // above), but branchState/selectedBranch are checked explicitly too
+    // so this guard doesn't silently depend on adminBranchId's specific
+    // implementation staying in sync.
+    if (branchState !== 'ready' || !selectedBranch || !adminBranchId) return
     createMutation.mutate(formToPayload(createForm), {
       onSuccess: (created) => {
         setCreateOpen(false)
@@ -200,7 +211,7 @@ export default function AdminMenuPage() {
             </div>
             <div className="flex items-center gap-2">
               <PreviewButton href="/menu" label={t('previewMenu')} size="sm" />
-              <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>{t('addItem')}</Button>
+              <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate} disabled={!adminBranchId}>{t('addItem')}</Button>
             </div>
           </div>
 
