@@ -1,55 +1,169 @@
 'use client'
 
 /**
- * Phase Z.10 — Console Workspace Gate
+ * Phase Z.11 — Console Workspace Gate (tenant resolution decoupled from
+ * Console rendering)
  *
- * Console is an application workspace, not a tenant-gated page. Tenant
- * resolution used to be a hard precondition — AuthGuard's
- * `requireResolvedTenant` blocked ALL of Console's chrome (header,
- * sidebar, everything) until `tenantState === 'resolved'`, which meant a
- * genuinely tenant-less business owner (a brand-new signup with zero
- * memberships) could never see Console at all — only a "Tenant not
- * found" error, indistinguishable from an actual routing/subdomain bug.
- * See docs/CONSOLE_TENANT_DEPENDENCY_REDESIGN_AUDIT.md for the full
- * audit this component implements.
+ * Previous architecture (Phase Z.10): `ConsoleWorkspaceGate` decided
+ * whether to render the ENTIRE console workspace — chrome included — or
+ * a full-page replacement (onboarding / tenant error / access denied).
+ * That closed the "zero memberships -> hard error" bug, but it still
+ * meant a TEMPORARY tenant loading failure (network blip, 5xx, timeout)
+ * unmounted the whole console, including the header and sidebar, and
+ * merged every non-'resolved' tenantState into a single blocking screen.
+ * Tenant availability is a DATA dependency of the workspace, not an
+ * authentication dependency of it — a transient failure fetching tenant
+ * data must never look like the user got logged out or hit a dead route.
  *
- * This component is mounted INSIDE `<AuthGuard>` (auth-only now — no
- * `requiredPermission`/`requireResolvedTenant` on that guard for
- * Console; see src/app/console/layout.tsx), so by the time it renders
- * the user is known to be authenticated. It owns the tenant-context and
- * RBAC decision that `AuthGuard` used to make for Console specifically:
+ * `console/layout.tsx` now renders the chrome (AdminHeader,
+ * AdminContextBar, AdminSidebar) unconditionally once authenticated —
+ * this component only decides what appears INSIDE `<main>`, and never
+ * unmounts the shell around it. See
+ * docs/CONSOLE_ARCHITECTURE_TENANT_DECOUPLING_AUDIT.md.
  *
- *   hasTenantMembership === null   -> still resolving the session, wait
- *   hasTenantMembership === false  -> onboarding (Console still "loads")
- *   hasTenantMembership === true:
- *     tenantState === 'loading'    -> still resolving tenant context, wait
- *     tenantState !== 'resolved'   -> a real error (the membership's own
- *                                     tenant is suspended/forbidden/etc,
- *                                     or resolution genuinely failed) —
- *                                     distinct from "no tenant at all"
- *     tenantState === 'resolved':
- *       !dashboard:access          -> AccessDenied (RBAC, unchanged)
- *       dashboard:access           -> render the full workspace (children)
+ * State model (maps directly onto the required states):
+ *   auth_loading         -> not reached here; AuthGuard's own fallback
+ *   authenticated,
+ *   membership_loading    <- hasTenantMembership === null
+ *   onboarding             <- hasTenantMembership === false
+ *   tenant_loading         <- tenantState === 'loading', first attempt
+ *   tenant_retrying        <- tenantState === 'loading' | 'error', retryCount > 0 and not yet exhausted
+ *   tenant_network_error   <- tenantState === 'error', auto-retry exhausted (manual retry only)
+ *   tenant_not_found       <- tenantState === 'not_found' (genuinely no such tenant)
+ *   tenant_access_denied   <- tenantState === 'forbidden' (tenant exists, membership's access to it is denied/suspended)
+ *   access_denied          <- tenantState === 'resolved', !dashboard:access (RBAC, unchanged)
+ *   resolved                <- tenantState === 'resolved', dashboard:access granted -> render children
  *
- * Tenant membership decides ACCESS (via RBAC below); accountType never
- * does — this component reads no accountType field at all.
+ * `tenant_not_found`/`tenant_access_denied` are reached ONLY via the
+ * store's own explicit classification (`TenantNotFoundError`/
+ * `TenantForbiddenError` — src/services/tenant.service.ts,
+ * src/stores/index.ts `loadTenant()`) — never for a network failure,
+ * timeout, or loading delay. Those always classify as `'error'`, which
+ * this component treats as retryable, not as "not found."
  */
 
-import { type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
+import { RefreshCw } from 'lucide-react'
 import { useTenantStore, useRbacStore } from '@/stores'
 import { usePermission } from '@/hooks'
+import type { TenantLifecycle } from '@/types'
 import { AccessDenied } from './AccessDenied'
 import { ConsoleOnboarding } from './ConsoleOnboarding'
 
-function TenantResolutionMessage({ title, description }: { title: string; description: string }) {
+/** Auto-retry cadence for a transient tenant-loading failure. */
+export const TENANT_RETRY_DELAY_MS = 4000
+/** Auto-retries stop after this many attempts; manual retry remains available indefinitely. */
+export const TENANT_MAX_AUTO_RETRIES = 3
+
+export type ConsoleTenantPhase =
+  | 'membership_loading'
+  | 'onboarding'
+  | 'tenant_loading'
+  | 'tenant_retrying'
+  | 'tenant_network_error'
+  | 'tenant_not_found'
+  | 'tenant_access_denied'
+  | 'access_denied'
+  | 'resolved'
+
+/**
+ * Pure phase decision — no timers, no store reads. Unit-testable directly.
+ * `retryCount === 0` on a 'loading'/'error' tenantState means "first
+ * attempt, never yet retried" (tenant_loading); `retryCount > 0` means an
+ * auto- or manual retry has already fired at least once (tenant_retrying),
+ * until `retryCount` reaches `TENANT_MAX_AUTO_RETRIES`, at which point a
+ * still-failing 'error' state settles into `tenant_network_error` (no
+ * more automatic retries, manual retry still offered).
+ */
+export function resolveConsoleTenantPhase(params: {
+  hasTenantMembership: boolean | null
+  tenantState: TenantLifecycle
+  hasDashboardAccess: boolean
+  retryCount: number
+}): ConsoleTenantPhase {
+  const { hasTenantMembership, tenantState, hasDashboardAccess, retryCount } = params
+
+  if (hasTenantMembership === null) return 'membership_loading'
+  if (hasTenantMembership === false) return 'onboarding'
+
+  if (tenantState === 'not_found') return 'tenant_not_found'
+  if (tenantState === 'forbidden') return 'tenant_access_denied'
+
+  if (tenantState === 'loading') {
+    return retryCount > 0 ? 'tenant_retrying' : 'tenant_loading'
+  }
+  if (tenantState === 'error') {
+    return retryCount > 0 && retryCount < TENANT_MAX_AUTO_RETRIES ? 'tenant_retrying' : 'tenant_network_error'
+  }
+
+  // tenantState === 'resolved'
+  return hasDashboardAccess ? 'resolved' : 'access_denied'
+}
+
+/**
+ * Auto-retry orchestration. Schedules exactly one retry at a time
+ * (`timerRef` guards re-scheduling), stops after `TENANT_MAX_AUTO_RETRIES`,
+ * clears itself the moment `tenantState` leaves `'error'`, and resets
+ * `retryCount` to 0 on a successful resolution so a LATER unrelated
+ * failure (e.g. after a tenant switch) gets its own fresh retry budget.
+ * Re-attempts the exact slug the last `loadTenant()` call used
+ * (`useTenantStore.lastAttemptedSlug`), whichever caller originally chose
+ * it (subdomain resolution or the Console membership-based fallback).
+ */
+function useTenantAutoRetry(tenantState: TenantLifecycle) {
+  const [retryCount, setRetryCount] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const runRetry = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+    setRetryCount((c) => c + 1)
+    void useTenantStore.getState().loadTenant(useTenantStore.getState().lastAttemptedSlug)
+  }, [])
+
+  useEffect(() => {
+    if (tenantState === 'resolved') {
+      setRetryCount(0)
+    }
+    if (tenantState !== 'error' && timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+    if (tenantState === 'error' && retryCount < TENANT_MAX_AUTO_RETRIES && !timerRef.current) {
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null
+        setRetryCount((c) => c + 1)
+        void useTenantStore.getState().loadTenant(useTenantStore.getState().lastAttemptedSlug)
+      }, TENANT_RETRY_DELAY_MS)
+    }
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+        timerRef.current = null
+      }
+    }
+  }, [tenantState, retryCount])
+
+  return { retryCount, retryNow: runRetry }
+}
+
+function InlineCenteredState({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="max-w-sm space-y-2 text-center">
-        <h1 className="text-lg font-semibold text-[var(--fg)]">{title}</h1>
-        <p className="text-sm text-[var(--fg-muted)]">{description}</p>
-      </div>
+    <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 px-4 text-center">
+      {children}
     </div>
+  )
+}
+
+function TenantMessage({ title, description }: { title: string; description: string }) {
+  return (
+    <InlineCenteredState>
+      <h2 className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
+      <p className="max-w-sm text-sm text-[var(--fg-muted)]">{description}</p>
+    </InlineCenteredState>
   )
 }
 
@@ -58,33 +172,46 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
   const hasTenantMembership = useRbacStore((s) => s.hasTenantMembership)
   const tenantState = useTenantStore((s) => s.tenantState)
   const hasDashboardAccess = usePermission('dashboard:access')
+  const { retryCount, retryNow } = useTenantAutoRetry(tenantState)
 
-  // Still determining whether this session has any tenant membership at
-  // all — wait rather than guess (mirrors AuthGuard's own isLoading gate).
-  if (hasTenantMembership === null) return null
+  const phase = resolveConsoleTenantPhase({ hasTenantMembership, tenantState, hasDashboardAccess, retryCount })
 
-  if (hasTenantMembership === false) {
-    return <ConsoleOnboarding />
+  switch (phase) {
+    case 'membership_loading':
+      return null
+    case 'onboarding':
+      return <ConsoleOnboarding />
+    case 'tenant_not_found':
+      return <TenantMessage title={t('tenantNotFoundTitle')} description={t('tenantNotFoundDesc')} />
+    case 'tenant_access_denied':
+      return <TenantMessage title={t('tenantForbiddenTitle')} description={t('tenantForbiddenDesc')} />
+    case 'tenant_loading':
+    case 'tenant_retrying':
+      return (
+        <InlineCenteredState>
+          <RefreshCw className="h-6 w-6 animate-spin text-[var(--fg-muted)]" aria-hidden="true" />
+          <p className="text-sm text-[var(--fg-muted)]">
+            {phase === 'tenant_retrying' ? t('tenantRetrying', { attempt: retryCount }) : t('tenantLoading')}
+          </p>
+        </InlineCenteredState>
+      )
+    case 'tenant_network_error':
+      return (
+        <InlineCenteredState>
+          <p className="text-sm text-[var(--fg-muted)]">{t('tenantErrorDesc')}</p>
+          <button
+            type="button"
+            onClick={retryNow}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            {t('tenantRetryCta')}
+          </button>
+        </InlineCenteredState>
+      )
+    case 'access_denied':
+      return <AccessDenied />
+    case 'resolved':
+      return <>{children}</>
   }
-
-  // Has at least one membership — a tenant context should resolve
-  // (subdomain resolution, or the membership-based fallback — see
-  // resolveConsoleTenantFallbackSlug() in src/providers/index.tsx).
-  if (tenantState === 'loading') return null
-
-  if (tenantState !== 'resolved') {
-    if (tenantState === 'not_found') {
-      return <TenantResolutionMessage title={t('tenantNotFoundTitle')} description={t('tenantNotFoundDesc')} />
-    }
-    if (tenantState === 'forbidden') {
-      return <TenantResolutionMessage title={t('tenantForbiddenTitle')} description={t('tenantForbiddenDesc')} />
-    }
-    return <TenantResolutionMessage title={t('tenantErrorTitle')} description={t('tenantErrorDesc')} />
-  }
-
-  if (!hasDashboardAccess) {
-    return <AccessDenied />
-  }
-
-  return <>{children}</>
 }

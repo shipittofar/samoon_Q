@@ -297,6 +297,17 @@ interface TenantState {
    * NOT persisted: always recomputed from the live tenant on each page load.
    */
   featureFlags: Record<string, boolean>
+  /**
+   * Phase Z.11 — the slug argument passed to the most recent `loadTenant()`
+   * call, whichever caller made it (TenantBootstrapper's subdomain-derived
+   * slug, or the Console membership-based fallback slug — see
+   * `resolveConsoleTenantFallbackSlug()` in providers/index.tsx). Lets a
+   * retry re-attempt the SAME resolution that failed, without the retrying
+   * component needing to know which of those two paths originally chose
+   * it. NOT persisted — always reflects only the current session's most
+   * recent attempt.
+   */
+  lastAttemptedSlug: string | undefined
   setTenant: (tenant: Tenant | null) => void
   loadTenant: (slug?: string) => Promise<void>
   setRbacInitialized: (v: boolean) => void
@@ -314,9 +325,10 @@ export const useTenantStore = create<TenantState>()(
       rbacInitialized: false,
       featureFlagsInitialized: false,
       featureFlags: {},
+      lastAttemptedSlug: undefined,
       setTenant: (tenant) => set({ tenant }),
       loadTenant: async (slug?: string) => {
-        set({ isLoading: true, tenantState: 'loading', tenant: null })
+        set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedSlug: slug })
         try {
           const tenant = await tenantService.getTenant(slug)
           // A tenant record can be fetched successfully and still be
@@ -358,6 +370,7 @@ export const useTenantStore = create<TenantState>()(
         rbacInitialized: false,
         featureFlagsInitialized: false,
         featureFlags: {},
+        lastAttemptedSlug: undefined,
       }),
     }),
     {
