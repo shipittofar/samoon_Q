@@ -381,7 +381,14 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
   // does not retrigger a useEffect, so relying on the effect alone would
   // silently drop the session in that ordering).
   function applyPendingAuthSession() {
-    if (tenantState === 'loading') return
+    // Read live store state — checkSession()'s getMe().then() callback can
+    // run with a stale render closure where this hook still says 'loading'
+    // even though TenantBootstrapper's loadTenant(undefined) already settled
+    // to 'not_found'. That ordering (sync host bootstrap before async /me)
+    // is the common /console case and used to return here forever, leaving
+    // pendingAuthSessionRef populated but never applying the membership fallback.
+    const settledTenantState = useTenantStore.getState().tenantState
+    if (settledTenantState === 'loading') return
     if (!pendingAuthSessionRef.current) return
     const sessionInput = pendingAuthSessionRef.current
     const currentTenant = useTenantStore.getState().tenant

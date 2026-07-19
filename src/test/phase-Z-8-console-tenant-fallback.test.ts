@@ -74,3 +74,17 @@ describe('Phase Z.8 — resolveConsoleTenantFallbackSlug()', () => {
     expect(slug).toBe('2cum17xs')
   })
 })
+
+describe('Phase Z.8 — applyPendingAuthSession host-bootstrap race', () => {
+  it('reads live tenantState from the store (not a stale render closure) before deciding to wait', () => {
+    // Regression: TenantBootstrapper's loadTenant(undefined) settles synchronously
+    // to 'not_found' while getMe() is still in flight. checkSession()'s .then()
+    // callback invoked applyPendingAuthSession with tenantState still 'loading'
+    // from the first render, so the membership fallback never ran and Console
+    // showed "Tenant not found" with only GET /auth/me/ in the network tab.
+    const src = require('fs').readFileSync(require('path').join(process.cwd(), 'src/providers/index.tsx'), 'utf8')
+    const block = src.slice(src.indexOf('function applyPendingAuthSession'), src.indexOf('useEffect(() => {', src.indexOf('function applyPendingAuthSession')))
+    expect(block).toContain('useTenantStore.getState().tenantState')
+    expect(block).not.toMatch(/if \(tenantState === 'loading'\) return/)
+  })
+})
