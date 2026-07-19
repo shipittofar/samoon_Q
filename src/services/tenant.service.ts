@@ -323,8 +323,8 @@ export const tenantService = {
    * the default tenant, so the 'not_found' path is exercisable without a
    * real backend.
    */
-  async getTenant(slug?: string): Promise<Tenant> {
-    const resolvedSlug = slug ?? 'default'
+  async getTenant(slug: string): Promise<Tenant> {
+    const resolvedSlug = slug
 
     if (USE_MOCK) {
       await delay()
@@ -334,10 +334,9 @@ export const tenantService = {
     }
 
     try {
-      const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.DETAIL(resolvedSlug))
-      const tenant = data.results[0]
-      if (!tenant) throw new TenantNotFoundError(resolvedSlug)
-      return normalizeTenant(tenant)
+      const { data } = await api.get<Tenant>(ENDPOINTS.TENANTS.DETAIL(resolvedSlug))
+      if (!data) throw new TenantNotFoundError(resolvedSlug)
+      return normalizeTenant(data)
     } catch (err) {
       if (err instanceof TenantNotFoundError) throw err
       const status = (err as { response?: { status?: number } })?.response?.status

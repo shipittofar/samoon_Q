@@ -328,6 +328,15 @@ export const useTenantStore = create<TenantState>()(
       lastAttemptedSlug: undefined,
       setTenant: (tenant) => set({ tenant }),
       loadTenant: async (slug?: string) => {
+        // No slug to resolve against (e.g. the platform domain with no
+        // tenant subdomain) — never guess a tenant. Leave tenant null and
+        // let the Console's own membership-based fallback
+        // (resolveConsoleTenantFallbackSlug in providers/index.tsx) supply
+        // the real slug once the authenticated session's memberships load.
+        if (!slug) {
+          set({ tenant: null, isLoading: false, tenantState: 'not_found', lastAttemptedSlug: slug })
+          return
+        }
         set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedSlug: slug })
         try {
           const tenant = await tenantService.getTenant(slug)
