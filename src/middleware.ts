@@ -42,24 +42,50 @@ function resolveTenantSlug(request: NextRequest): string | undefined {
 }
 
 /**
- * Lightweight JWT validation — Edge-runtime compatible (no Node.js crypto).
- * Checks structure (3 segments) and decodes the payload to verify `exp`.
- * Full signature verification is delegated to the backend on every API call.
+ * Lightweight JWT expiry check — Edge-runtime compatible (no Node.js crypto).
+ * Full signature verification is delegated to the backend on every API
+ * call; this is a fast heuristic gate only, meant to catch "obviously not
+ * logged in" (no cookie at all) before rendering a protected route's
+ * shell — never a security boundary.
+ *
+ * Root-cause fix (redirect-loop bug): this function used to return
+ * `false` — "not logged in" — for anything it could not positively parse
+ * as a 3-segment JWT with a numeric `exp` claim in seconds. That is wrong
+ * for a PRESENT token: an opaque (non-JWT) access token, or a JWT whose
+ * `exp` claim this parser doesn't recognize, is not proof the user is
+ * logged out — it only proves this heuristic couldn't read it. Treating
+ * "can't parse" the same as "invalid" caused a real, reproducible loop:
+ * a genuinely valid access token that merely didn't match this parser's
+ * assumptions got classified as invalid, middleware redirected to
+ * `/login?redirect=...` AND deleted the cookie (see below) — but
+ * `localStorage`'s copy of the same token was untouched, so the app's
+ * own client-side auth state still read "authenticated" and kept sending
+ * the user right back to the protected route, which middleware rejected
+ * again on the now-cookie-less follow-up request. Every login attempt
+ * reproduced the same bounce.
+ *
+ * Now: only a token this function can POSITIVELY PROVE is expired (a
+ * well-formed JWT with a past numeric `exp`) is rejected here. A present
+ * token this heuristic cannot parse is treated as possibly valid — the
+ * backend's own 401 responses (handled by the axios interceptor +
+ * AuthBootstrapper.clearSession(), src/providers/index.tsx) remain the
+ * real authority and will still correctly log out a genuinely invalid
+ * session the moment an actual API call is made.
  */
 function isValidJWT(token: string): boolean {
   const parts = token.split('.')
-  if (parts.length !== 3) return false
+  if (parts.length !== 3) return true
   try {
     // base64url → base64 → decode
     const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
     const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=')
     const payload = JSON.parse(atob(padded)) as Record<string, unknown>
     const exp = payload['exp']
-    if (typeof exp !== 'number') return false
+    if (typeof exp !== 'number') return true
     // exp is seconds; Date.now() is ms
     return exp * 1000 > Date.now()
   } catch {
-    return false
+    return true
   }
 }
 
