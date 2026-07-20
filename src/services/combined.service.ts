@@ -85,8 +85,8 @@ export const branchService = {
       return MOCK_BRANCHES
     }
     const params = tenantId ? { tenant_id: tenantId } : {}
-    const { data } = await api.get<Branch[]>(ENDPOINTS.BRANCHES.LIST, { params })
-    return data
+    const { data } = await api.get<PaginatedResponse<Branch>>(ENDPOINTS.BRANCHES.LIST, { params })
+    return data.results
   },
 
   /**

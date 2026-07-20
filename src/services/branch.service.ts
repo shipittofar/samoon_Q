@@ -22,15 +22,17 @@ import type {
   BranchBusinessHours,
 } from '@/types/branch'
 
+import type { PaginatedResponse } from '@/types'
+
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
-const MOCK_TENANT_ID     = 'tenant-samoon-01'
-const TENANT_BREW_CAFE   = 'tenant-brew-cafe-01'
-const TENANT_OAK_BAR     = 'tenant-oak-bar-01'
-const TENANT_CENTRAL_FC  = 'tenant-central-fc-01'
+const MOCK_TENANT_ID = 'tenant-samoon-01'
+const TENANT_BREW_CAFE = 'tenant-brew-cafe-01'
+const TENANT_OAK_BAR = 'tenant-oak-bar-01'
+const TENANT_CENTRAL_FC = 'tenant-central-fc-01'
 const TENANT_WHEELS_BREWS = 'tenant-wheels-brews-01'
-const TENANT_ROAD_BITES  = 'tenant-road-bites-01'
+const TENANT_ROAD_BITES = 'tenant-road-bites-01'
 
 // ── Default business hours helper ─────────────────────────────────────────────
 
@@ -375,13 +377,28 @@ function assertSlugAvailable(tenantId: string, slug: string, excludeId?: string)
 export const branchManagementService = {
   // ── Reads ──────────────────────────────────────────────────────────────────
 
+  async getTenantsBranches(tenantId: string): Promise<Branch[]> {
+    if (USE_MOCK) {
+      await delay()
+      return MOCK_BRANCH_LIST
+        .filter((b) => b.tenantId === tenantId)
+        .map((b) => ({ ...b }))
+    }
+
+    const res = await api.get<PaginatedResponse<Branch>>(
+      ENDPOINTS.TENANTS.BRANCHES(tenantId)
+    )
+
+    return res.data.results
+  },
+
   async getBranches(tenantId: string): Promise<Branch[]> {
     if (USE_MOCK) {
       await delay()
       return MOCK_BRANCH_LIST.filter((b) => b.tenantId === tenantId).map((b) => ({ ...b }))
     }
-    const res = await api.get<Branch[]>(ENDPOINTS.BRANCHES.LIST)
-    return res.data
+    const res = await api.get<PaginatedResponse<Branch>>(ENDPOINTS.BRANCHES.LIST)
+    return res.data.results
   },
 
   async getBranch(id: string): Promise<Branch> {

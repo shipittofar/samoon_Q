@@ -108,6 +108,7 @@ export const ENDPOINTS = {
     PROVISION: '/tenants/provision/',
     CLONE: '/tenants/clone/',
     ACTIVATE: (slugOrId: string) => `/tenants/${slugOrId}/activate/`,
+    BRANCHES: (tenantId: string) => `/tenants/${tenantId}/branches/`,
     SUSPEND: (slugOrId: string) => `/tenants/${slugOrId}/suspend/`,
     ARCHIVE: (slugOrId: string) => `/tenants/${slugOrId}/archive/`,
     SETTINGS: (slug: string) => `/tenants/${slug}/settings/`,

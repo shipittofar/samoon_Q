@@ -122,11 +122,11 @@ export function useTenantState(): TenantLifecycle {
  * See SystemReadiness in types/index.ts for the complete field contract.
  */
 export function useSystemReady(): SystemReadiness {
-  const tenantState             = useTenantStore((s) => s.tenantState)
-  const rbacInitialized         = useTenantStore((s) => s.rbacInitialized)
+  const tenantState = useTenantStore((s) => s.tenantState)
+  const rbacInitialized = useTenantStore((s) => s.rbacInitialized)
   const featureFlagsInitialized = useTenantStore((s) => s.featureFlagsInitialized)
-  const isLoading  = tenantState === 'loading'
-  const isReady    = tenantState === 'resolved'
+  const isLoading = tenantState === 'loading'
+  const isReady = tenantState === 'resolved'
   const isFallback = tenantState === 'not_found' || tenantState === 'forbidden' || tenantState === 'error'
 
   // Dev-only: warn when tenant has settled but a subsystem initializer has not fired.
@@ -779,7 +779,24 @@ export function useBranches() {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
     queryKey: ['branches', tenantId],
-    queryFn: () => (tenantId ? branchService.getTenantBranches(tenantId) : branchService.getBranches()),
+    queryFn: () => (tenantId ? branchService.getBranches(tenantId) : branchService.getBranches()),
+    staleTime: CACHE_TIME,
+  })
+}
+
+export function useTenantsBranches() {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+
+  return useQuery({
+    queryKey: ['branches', tenantId],
+
+    queryFn: () =>
+      tenantId
+        ? branchManagementService.getTenantsBranches(tenantId)
+        : Promise.resolve([]),
+
+    enabled: !!tenantId,
+
     staleTime: CACHE_TIME,
   })
 }
@@ -3290,9 +3307,9 @@ function downloadBlob(content: string, filename: string, mime: string) {
 function toPDF(data: unknown, domain: string, timestamp: string): string {
   const entries = data && typeof data === 'object'
     ? Object.entries(data as Record<string, unknown>).map(([k, v]) => {
-        const val = typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')
-        return `<tr><td style="padding:4px 8px;border:1px solid #ddd;font-weight:600">${k}</td><td style="padding:4px 8px;border:1px solid #ddd">${val}</td></tr>`
-      }).join('')
+      const val = typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')
+      return `<tr><td style="padding:4px 8px;border:1px solid #ddd;font-weight:600">${k}</td><td style="padding:4px 8px;border:1px solid #ddd">${val}</td></tr>`
+    }).join('')
     : '<tr><td colspan="2">No data</td></tr>'
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${domain} Analytics — ${timestamp}</title><style>body{font-family:sans-serif;padding:24px}table{border-collapse:collapse;width:100%}h1{font-size:18px}</style></head><body><h1>${domain.charAt(0).toUpperCase() + domain.slice(1)} Analytics Report</h1><p>Generated: ${timestamp}</p><table><thead><tr><th style="text-align:left;padding:4px 8px;border:1px solid #ddd;background:#f5f5f5">Field</th><th style="text-align:left;padding:4px 8px;border:1px solid #ddd;background:#f5f5f5">Value</th></tr></thead><tbody>${entries}</tbody></table></body></html>`
 }
@@ -3301,13 +3318,13 @@ export function useExportAnalytics() {
   return useMutation({
     mutationFn: async ({ domain, format }: { domain: ExportDomain; format: ExportFormat }) => {
       const fetchMap: Record<ExportDomain, () => Promise<unknown>> = {
-        summary:      () => analyticsService.getAnalyticsSummary(),
-        revenue:      () => analyticsService.getRevenueAnalytics(),
+        summary: () => analyticsService.getAnalyticsSummary(),
+        revenue: () => analyticsService.getRevenueAnalytics(),
         reservations: () => analyticsService.getReservationAnalytics(),
-        loyalty:      () => analyticsService.getLoyaltyAnalytics(),
-        promotions:   () => analyticsService.getPromotionAnalytics(),
-        vendors:      () => analyticsService.getVendorAnalytics(),
-        menu:         () => analyticsService.getMenuAnalytics(),
+        loyalty: () => analyticsService.getLoyaltyAnalytics(),
+        promotions: () => analyticsService.getPromotionAnalytics(),
+        vendors: () => analyticsService.getVendorAnalytics(),
+        menu: () => analyticsService.getMenuAnalytics(),
       }
       const data = await fetchMap[domain]()
       const timestamp = new Date().toISOString().split('T')[0]

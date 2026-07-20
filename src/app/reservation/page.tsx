@@ -12,7 +12,7 @@ import { Footer } from '@/components/layout/Footer'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
 import { Skeleton } from '@/components/ui'
-import { useCreateReservation, useAvailableSlots, useBranches } from '@/hooks'
+import { useCreateReservation, useAvailableSlots, useTenantsBranches } from '@/hooks'
 import { useBranchStore } from '@/stores'
 import { formatCurrency, cn } from '@/utils'
 import toast from 'react-hot-toast'
@@ -49,7 +49,7 @@ export default function ReservationPage() {
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedBranch, setSelectedBranch] = useState(() => activeBranchId ?? '')
   const { mutate: createReservation, isPending } = useCreateReservation()
-  const { data: branches } = useBranches()
+  const { data: branches } = useTenantsBranches()
   const { data: slots, isLoading: slotsLoading } = useAvailableSlots(selectedDate, selectedBranch)
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ReservationFormData>({
@@ -177,6 +177,7 @@ export default function ReservationPage() {
                     )}
                   >
                     <p className={cn('text-sm font-semibold', selectedBranch === branch.id ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{branch.name}</p>
+                    <p className="text-xs text-[var(--fg-muted)] mt-1">{branch.city}</p>
                     <p className="text-xs text-[var(--fg-muted)] mt-1">{branch.address}</p>
                   </button>
                 ))}
