@@ -19,7 +19,7 @@ export interface TenantProvisionRequest {
   /** Display name for the new tenant. */
   name: string
   /** URL-safe slug — must be unique and match /^[a-z0-9-]{2,63}$/. */
-  slug: string
+  // slug: string
   businessType: ProvisionableBusinessType
   /** Optional per-flag overrides applied on top of the template defaults. */
   capabilityOverrides?: Record<string, boolean>

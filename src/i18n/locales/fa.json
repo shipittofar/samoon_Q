@@ -681,6 +681,7 @@
     "must_accept_terms": "باید شرایط را بپذیرید"
   },
   "console": {
+    "changeLanguageAria":"تغییر زبان",
     "title": "کنسول",
     "tenantNotFoundTitle": "کسب‌وکار یافت نشد",
     "tenantNotFoundDesc": "کسب‌وکاری در این نشانی پیدا نشد. آدرس را بررسی کنید یا با مدیر خود تماس بگیرید.",

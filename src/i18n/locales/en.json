@@ -681,6 +681,7 @@
     "must_accept_terms": "You must accept the terms"
   },
   "console": {
+    "changeLanguageAria": "Change Language",
     "title": "Console",
     "tenantNotFoundTitle": "Tenant not found",
     "tenantNotFoundDesc": "We couldn't find a business at this address. Check the URL, or contact your administrator.",

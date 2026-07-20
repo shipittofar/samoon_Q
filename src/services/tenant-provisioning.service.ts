@@ -325,14 +325,14 @@ export const tenantProvisioningService = {
     }
 
     // Slug format
-    if (!req.slug || !SLUG_RE.test(req.slug)) {
-      errors.push('slug must be 2–63 lowercase alphanumeric characters or hyphens')
-    }
+    // if (!req.slug || !SLUG_RE.test(req.slug)) {
+    //   errors.push('slug must be 2–63 lowercase alphanumeric characters or hyphens')
+    // }
 
     // Duplicate slug
-    if (req.slug && MOCK_EXISTING_SLUGS.has(req.slug)) {
-      errors.push(`slug "${req.slug}" is already taken`)
-    }
+    // if (req.slug && MOCK_EXISTING_SLUGS.has(req.slug)) {
+    //   errors.push(`slug "${req.slug}" is already taken`)
+    // }
 
     // Business type
     if (!VALID_BUSINESS_TYPES.has(req.businessType)) {
@@ -375,7 +375,8 @@ export const tenantProvisioningService = {
 
     if (USE_MOCK) {
       await delay()
-      const tenantId = `tenant-${req.slug}-${Date.now()}`
+      // const tenantId = `tenant-${req.slug}-${Date.now()}`
+      const tenantId = `tenant-${Date.now()}`
       const featureFlags = this.generateFeatureFlags(
         req.businessType,
         { ...req.capabilityOverrides, ...req.featureFlagOverrides },
@@ -385,15 +386,17 @@ export const tenantProvisioningService = {
       const tenant: Tenant = {
         id: tenantId,
         name: req.name,
-        slug: req.slug,
+        slug: '',
         businessTypes: [req.businessType],
         status: 'active',
         created_at: new Date().toISOString(),
         settings: { featureFlags, theme: branding },
       }
 
-      MOCK_EXISTING_SLUGS.add(req.slug)
-      return { success: true, tenantId, slug: req.slug, tenant }
+      // MOCK_EXISTING_SLUGS.add(req.slug)
+      MOCK_EXISTING_SLUGS.add(req.name)
+      // return { success: true, tenantId, slug: req.slug, tenant }
+      return { success: true, tenantId, tenant }
     }
 
     try {
@@ -404,7 +407,7 @@ export const tenantProvisioningService = {
       const branding = { ...this.generateBrandingDefaults(req.businessType), ...req.branding }
       const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.PROVISION, {
         name: req.name,
-        slug: req.slug,
+        // slug: req.slug,
         businessTypes: [req.businessType],
         settings: { featureFlags, theme: branding },
       })
@@ -424,12 +427,12 @@ export const tenantProvisioningService = {
     newName: string,
   ): Promise<TenantProvisionResult> {
     const slugErrors: string[] = []
-    if (!newSlug || !SLUG_RE.test(newSlug)) {
-      slugErrors.push('slug must be 2–63 lowercase alphanumeric characters or hyphens')
-    }
-    if (newSlug && MOCK_EXISTING_SLUGS.has(newSlug)) {
-      slugErrors.push(`slug "${newSlug}" is already taken`)
-    }
+    // if (!newSlug || !SLUG_RE.test(newSlug)) {
+    //   slugErrors.push('slug must be 2–63 lowercase alphanumeric characters or hyphens')
+    // }
+    // if (newSlug && MOCK_EXISTING_SLUGS.has(newSlug)) {
+    //   slugErrors.push(`slug "${newSlug}" is already taken`)
+    // }
     if (!newName || newName.trim().length < 2) {
       slugErrors.push('name must be at least 2 characters')
     }

@@ -78,7 +78,7 @@ export default function NewTenantPage() {
 
   // Form state
   const [name, setName] = useState('')
-  const [slug, setSlug] = useState('')
+  // const [slug, setSlug] = useState('')
   const [businessType, setBusinessType] = useState<ProvisionableBusinessType>('restaurant')
   const [capabilityOverrides, setCapabilityOverrides] = useState<Record<string, boolean>>({})
   const [branding, setBranding] = useState<TenantBrandingConfig>({})
@@ -101,7 +101,8 @@ export default function NewTenantPage() {
   }
 
   async function handleProvision() {
-    const req = { name, slug, businessType, capabilityOverrides, branding, featureFlagOverrides }
+    // const req = { name, slug, businessType, capabilityOverrides, branding, featureFlagOverrides }
+    const req = { name, businessType, capabilityOverrides, branding, featureFlagOverrides }
     const validation = tenantProvisioningService.validateTenantConfiguration(req)
     if (!validation.valid) {
       setValidationErrors(validation.errors)
@@ -143,7 +144,7 @@ export default function NewTenantPage() {
               className="w-full border rounded-lg px-3 py-2 text-sm"
             />
           </div>
-          <div className="mb-4">
+          {/* <div className="mb-4">
             <label className="block text-sm font-medium mb-1" htmlFor="tenant-slug">
               {t('slugLabel')}
             </label>
@@ -156,7 +157,7 @@ export default function NewTenantPage() {
               className="w-full border rounded-lg px-3 py-2 text-sm"
             />
             <p className="text-xs text-gray-500 mt-1">{t('slugCharsHint')}</p>
-          </div>
+          </div> */}
           <div>
             <p className="block text-sm font-medium mb-2">{t('businessTypeLabel')}</p>
             <div className="grid grid-cols-2 gap-3" aria-label={t('businessTypeSelectionAria')}>
@@ -288,10 +289,10 @@ export default function NewTenantPage() {
               <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
               <dd>{name || <span className="text-red-500">{t('notSetLabel')}</span>}</dd>
             </div>
-            <div>
+            {/* <div>
               <dt className="font-medium text-gray-500">{t('slugLabel')}</dt>
               <dd className="font-mono">{slug || <span className="text-red-500">{t('notSetLabel')}</span>}</dd>
-            </div>
+            </div> */}
             <div>
               <dt className="font-medium text-gray-500">{t('businessTypeLabel')}</dt>
               <dd>{t(BUSINESS_TYPE_LABEL_KEYS[businessType])}</dd>

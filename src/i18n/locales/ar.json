@@ -681,6 +681,7 @@
     "must_accept_terms": "يجب أن تقبل الشروط"
   },
   "console": {
+    "changeLanguageAria":"تغيير اللغة",
     "title": "لوحة التحكم",
     "tenantNotFoundTitle": "لم يتم العثور على النشاط التجاري",
     "tenantNotFoundDesc": "لم نتمكن من العثور على نشاط تجاري على هذا العنوان. تحقق من الرابط أو تواصل مع المسؤول.",
