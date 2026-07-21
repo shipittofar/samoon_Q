@@ -717,8 +717,8 @@ interface RbacStoreState {
    * Lets Console decide full workspace vs. onboarding without requiring
    * tenant resolution to succeed first — see
    * docs/CONSOLE_TENANT_DEPENDENCY_REDESIGN_AUDIT.md. Not the tenant
-   * LIST (AdminTenantSwitcher already sources that independently via
-   * `useMyTenants()`) — purely the yes/no gating signal.
+   * LIST (AdminTenantSwitcher sources that from `sessionMemberships`,
+   * hydrated from GET /auth/me — see setSessionMemberships()) — purely the
    *
    * `null` means "not yet determined" (this session hasn't resolved
    * membership data yet — still loading). `false` means "confirmed: zero
@@ -729,6 +729,21 @@ interface RbacStoreState {
    */
   hasTenantMembership: boolean | null
   setHasTenantMembership: (value: boolean | null) => void
+
+  /**
+   * Phase Z.12 — the tenant membership list from the last resolved auth
+   * session (GET /auth/me, login, register, verifyOTP). Console's
+   * AdminTenantSwitcher reads this instead of tenantService.getMyTenants().
+   * NEVER persisted — reconstructed on every session restore, same policy
+   * as `currentTenantSession`.
+   */
+  sessionMemberships: import('@/types/rbac').TenantMembership[] | null
+  /** Pointer half of GET /auth/me's `activeMembership` — which tenantId is active. */
+  activeMembership: Pick<import('@/types/rbac').TenantMembership, 'tenantId'> | null
+  setSessionMemberships: (
+    memberships: import('@/types/rbac').TenantMembership[] | null,
+    activeMembership?: Pick<import('@/types/rbac').TenantMembership, 'tenantId'> | null,
+  ) => void
 
   _resetStore: () => void
 }
@@ -742,6 +757,8 @@ export const useRbacStore = create<RbacStoreState>()(
       rbacAuditLog: [],
       currentTenantSession: null,
       hasTenantMembership: null,
+      sessionMemberships: null,
+      activeMembership: null,
 
       setCurrentTenantSession: (tenantId, roles, permissions, branchAccess) =>
         set({
@@ -754,6 +771,8 @@ export const useRbacStore = create<RbacStoreState>()(
         }),
       clearCurrentTenantSession: () => set({ currentTenantSession: null }),
       setHasTenantMembership: (value) => set({ hasTenantMembership: value }),
+      setSessionMemberships: (memberships, activeMembership = null) =>
+        set({ sessionMemberships: memberships, activeMembership: activeMembership ?? null }),
 
       setTenantRoles: (tenantId, roles) =>
         set((s) => {
@@ -838,6 +857,8 @@ export const useRbacStore = create<RbacStoreState>()(
         rbacAuditLog: [],
         currentTenantSession: null,
         hasTenantMembership: null,
+        sessionMemberships: null,
+        activeMembership: null,
       }),
     }),
     {

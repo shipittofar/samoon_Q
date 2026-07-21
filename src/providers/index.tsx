@@ -490,6 +490,10 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // resolution to succeed first — see
       // docs/CONSOLE_TENANT_DEPENDENCY_REDESIGN_AUDIT.md.
       useRbacStore.getState().setHasTenantMembership(hasAnyMembership(data))
+      useRbacStore.getState().setSessionMemberships(
+        data.memberships !== undefined && data.memberships !== null ? data.memberships : null,
+        data.activeMembership ?? null,
+      )
       // P10.7 Phase D / Phase 2 — session restore hydrates currentTenantSession
       // the same way useLogin()/useVerifyOTP() do (via normalizeTenantPermissions()),
       // instead of relying entirely on useRbacStore's own localStorage

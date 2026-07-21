@@ -481,6 +481,20 @@ function seedTenantSession(
   if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenantId, roles)
 }
 
+function seedAuthSessionMemberships(
+  response: {
+    p7Roles?: import('@/types/rbac').Role[]
+    memberships?: import('@/types/rbac').TenantMembership[]
+    activeMembership?: import('@/types/rbac').TenantMembership
+  },
+) {
+  useRbacStore.getState().setHasTenantMembership(hasAnyMembership(response))
+  useRbacStore.getState().setSessionMemberships(
+    response.memberships !== undefined && response.memberships !== null ? response.memberships : null,
+    response.activeMembership ?? null,
+  )
+}
+
 export function useLogin() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
@@ -492,7 +506,7 @@ export function useLogin() {
       // never runs otherwise) so Console can answer "does this user have
       // any tenant" without waiting on subdomain/membership-based tenant
       // resolution to succeed first.
-      useRbacStore.getState().setHasTenantMembership(hasAnyMembership({ p7Roles, memberships }))
+      seedAuthSessionMemberships({ p7Roles, memberships, activeMembership })
       const tenant = useTenantStore.getState().tenant
       if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
     },
@@ -507,7 +521,7 @@ export function useRegister() {
     mutationFn: (data: RegisterData) => authService.register(data),
     onSuccess: ({ user, p7Roles, memberships, activeMembership }) => {
       setUser(user)
-      useRbacStore.getState().setHasTenantMembership(hasAnyMembership({ p7Roles, memberships }))
+      seedAuthSessionMemberships({ p7Roles, memberships, activeMembership })
       const tenant = useTenantStore.getState().tenant
       if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
     },
@@ -542,7 +556,7 @@ export function useVerifyOTP() {
     onSuccess: (result) => {
       if (result.is_new_user) return
       setUser(result.user)
-      useRbacStore.getState().setHasTenantMembership(hasAnyMembership({ p7Roles: result.p7Roles, memberships: result.memberships }))
+      seedAuthSessionMemberships({ p7Roles: result.p7Roles, memberships: result.memberships, activeMembership: result.activeMembership })
       const tenant = useTenantStore.getState().tenant
       if (tenant) seedTenantSession(tenant.id, { p7Roles: result.p7Roles, memberships: result.memberships, activeMembership: result.activeMembership })
     },
@@ -599,6 +613,19 @@ export function useCategories(branchId?: string) {
   return useQuery({
     queryKey: ['categories', tenantId, scopedBranchId],
     queryFn: () => menuService.getCategories(scopedBranchId!),
+    enabled: !!scopedBranchId,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useConsoleCategories(branchId?: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  return useQuery({
+    queryKey: ['categories', tenantId, scopedBranchId],
+    queryFn: () => menuService.getConsoleCategories(scopedBranchId!),
     enabled: !!scopedBranchId,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,

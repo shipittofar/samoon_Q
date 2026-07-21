@@ -47,6 +47,15 @@ export const menuService = {
     return data
   },
 
+  async getConsoleCategories(branchId: string): Promise<Category[]> {
+    if (USE_MOCK) {
+      await delay(400)
+      return mockCategories(branchId)
+    }
+    const { data } = await api.get<PaginatedResponse<Category>>(ENDPOINTS.MENU.CONSOLE_CATEGORY(branchId))
+    return data.results
+  },
+
   async getItems(branchId: string, filters?: MenuFilters): Promise<PaginatedResponse<MenuItem>> {
     if (USE_MOCK) {
       await delay(600)
@@ -247,7 +256,7 @@ export const menuService = {
       const existing = mockCategories(branchId).find((c) => c.id === id)
       return { ...(existing as Category), ...payload, id, branch_id: branchId }
     }
-    const { data } = await api.patch<Category>(ENDPOINTS.MENU.CATEGORY(id), payload, {
+    const { data } = await api.patch<Category>(ENDPOINTS.MENU.CONSOLE_CATEGORY(branchId), payload, {
       params: { branch_id: branchId },
     })
     return data

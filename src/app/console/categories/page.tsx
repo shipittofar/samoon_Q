@@ -14,7 +14,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@/components/ui/Table'
 import { formatDate } from '@/utils'
 import {
-  useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useReorderCategories,
+  useConsoleCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useReorderCategories,
   usePermission, useSelectedBranch, useBranchState, useIsBranchReady,
 } from '@/hooks'
 import type { Category } from '@/types'
@@ -90,9 +90,9 @@ export default function AdminCategoriesPage() {
   // Phase 3 — '' (not undefined): see console/menu/page.tsx's comment on
   // the same pattern — undefined would let useCategories() silently fall
   // back to the unrelated customer-storefront active branch.
-  const adminBranchId = useIsBranchReady() ? adminBranch?.slug ?? '' : ''
+  const adminBranchId = useIsBranchReady() ? adminBranch?.id ?? '' : ''
 
-  const { data: categories, isLoading, isError, refetch } = useCategories(adminBranchId)
+  const { data: categories, isLoading, isError, refetch } = useConsoleCategories(adminBranchId)
   const canCreate = usePermission('category.create')
   const canUpdate = usePermission('category.update')
   const canDelete = usePermission('category.delete')

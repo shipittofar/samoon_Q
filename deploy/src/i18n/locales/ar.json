@@ -1,0 +1,5097 @@
+{
+  "common": {
+    "appName": "سيفور",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ ما",
+    "retry": "حاول مرة أخرى",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "save": "حفظ",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "back": "رجوع",
+    "next": "التالي",
+    "submit": "إرسال",
+    "close": "إغلاق",
+    "search": "بحث",
+    "filter": "تصفية",
+    "sort": "ترتيب",
+    "clear": "مسح",
+    "viewAll": "عرض الكل",
+    "noResults": "لا توجد نتائج",
+    "required": "هذا الحقل مطلوب",
+    "continue": "متابعة",
+    "or": "أو",
+    "and": "و",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "termsOfService": "الشروط",
+    "privacyPolicy": "سياسة الخصوصية",
+    "capabilityNotAvailableAria": "{capability} غير متوفر",
+    "featureNotAvailable": "هذه الميزة غير متوفرة",
+    "capabilityNotEnabled": "قدرة {capability} غير مفعّلة في خطتك الحالية. تواصل مع المسؤول لتفعيلها."
+  },
+  "nav": {
+    "menu": "القائمة",
+    "cart": "السلة",
+    "orders": "الطلبات",
+    "reservation": "حجز",
+    "dashboard": "لوحة التحكم",
+    "restaurant": "المطعم",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "logout": "تسجيل الخروج"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "forgotPassword": "نسيت كلمة المرور",
+    "resetPassword": "إعادة تعيين",
+    "verifyOTP": "التحقق من الرمز",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "phone_number": "رقم الهاتف",
+    "rememberMe": "تذكرني",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب؟",
+    "loginSuccess": "مرحباً بعودتك!",
+    "registerSuccess": "تم إنشاء الحساب!",
+    "logoutSuccess": "إلى اللقاء!",
+    "welcome": "مرحباً",
+    "enterPhoneToContinue": "أدخل رقم هاتفك للمتابعة",
+    "phoneNumber": "رقم الهاتف",
+    "phoneHint": "سنرسل رمزاً مكوناً من 6 أرقام للتحقق من رقمك",
+    "orTryDemo": "أو جرّب حساباً تجريبياً",
+    "oneClickDemoHint": "تسجيل دخول بنقرة واحدة — بدون رمز في الوضع التجريبي",
+    "signInWithEmailInstead": "تسجيل الدخول بالبريد الإلكتروني بدلاً من ذلك",
+    "hideEmailSignIn": "إخفاء تسجيل الدخول بالبريد",
+    "fillDemoCredentials": "تعبئة بيانات تجريبية",
+    "forgotPasswordLink": "نسيت كلمة المرور؟",
+    "signInWithEmail": "تسجيل الدخول بالبريد الإلكتروني",
+    "emailPlaceholder": "you@example.com",
+    "agreeToTerms": "بالمتابعة، فإنك توافق على",
+    "tooManyAttempts": "عدد كبير جداً من المحاولات. حاول مرة أخرى لاحقاً.",
+    "tooManyLoginAttempts": "عدد كبير جداً من محاولات الدخول. حاول مرة أخرى لاحقاً.",
+    "otpSendFailed": "تعذر إرسال الرمز. حاول مرة أخرى.",
+    "loginFailed": "فشل تسجيل الدخول. حاول مرة أخرى.",
+    "invalidCredentials": "بيانات الدخول غير صحيحة. حاول مرة أخرى.",
+    "forgotTitle": "نسيت كلمة المرور؟",
+    "forgotSubtitle": "لا مشكلة! أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.",
+    "emailAddress": "البريد الإلكتروني",
+    "sendResetLink": "إرسال رابط إعادة التعيين",
+    "backToSignIn": "العودة لتسجيل الدخول",
+    "backToSignInButton": "العودة لتسجيل الدخول",
+    "checkInbox": "تحقق من بريدك الوارد",
+    "resetLinkSentTo": "أرسلنا رابط إعادة تعيين كلمة المرور إلى",
+    "didntReceiveIt": "لم تستلمه؟ تحقق من مجلد الرسائل غير المرغوب فيها، أو",
+    "tryAgain": "حاول مرة أخرى",
+    "tooManyResetAttempts": "عدد كبير جداً من محاولات إعادة التعيين. حاول مرة أخرى لاحقاً.",
+    "verifyYourNumber": "تحقق من رقمك",
+    "weSentCodeTo": "أرسلنا رمزاً مكوناً من 6 أرقام إلى",
+    "digitLabel": "الرقم {position}",
+    "verifying": "جاري التحقق…",
+    "verifyCode": "تحقق من الرمز",
+    "resendCodeIn": "إعادة إرسال الرمز خلال",
+    "sendingResend": "جاري الإرسال…",
+    "resendCode": "إعادة إرسال الرمز",
+    "invalidOtp": "رمز غير صالح. حاول مرة أخرى.",
+    "otpResent": "تم إرسال رمز جديد!",
+    "otpResendFailed": "فشلت إعادة إرسال الرمز.",
+    "createAccountTitle": "إنشاء حساب",
+    "joinThousands": "انضم إلى آلاف عشاق الطعام اليوم",
+    "joinSamoonFamily": "انضم إلى عائلة سيفور",
+    "joinSamoonFamilySubtitle": "أنشئ حسابك واكتشف عالماً من المتعة الطهوية.",
+    "agreeToTermsCreate": "بإنشاء حساب، فإنك توافق على",
+    "createAccountButton": "إنشاء حساب",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "signInArrow": "تسجيل الدخول ←",
+    "togglePassword": "إظهار/إخفاء كلمة المرور",
+    "toggleConfirmPassword": "إظهار/إخفاء تأكيد كلمة المرور",
+    "minEightChars": "8 أحرف على الأقل",
+    "repeatPassword": "أعد كتابة كلمة المرور",
+    "registrationSuccess": "تم إنشاء الحساب! مرحباً بك في سيفور 🎉",
+    "registrationFailed": "فشل التسجيل. قد يكون البريد الإلكتروني مستخدماً بالفعل.",
+    "verified": "تم التحقق!",
+    "takingYouToAccount": "جارٍ نقلك إلى حسابك…",
+    "phoneVerifiedRedirecting": "تم التحقق من الهاتف. جارٍ إعادة التوجيه.",
+    "tooManyAttemptsHeading": "عدد كبير جدًا من المحاولات",
+    "requestNewCodeToContinue": "اطلب رمزًا جديدًا للمتابعة.",
+    "sendNewCode": "إرسال رمز جديد",
+    "enterTheCode": "أدخل الرمز",
+    "wrongCodeAttemptsRemaining": "رمز خاطئ. تبقّى {count, plural, one {# محاولة} other {# محاولات}}.",
+    "verify": "تحقق",
+    "secondsRemainingAria": "تبقّى {seconds} ثانية",
+    "mockModeHint": "الوضع التجريبي: أي رمز يعمل باستثناء {code}",
+    "completeProfileSuccess": "تم إنشاء الحساب!",
+    "completeProfileFailed": "تعذّر إنشاء الحساب. يرجى المحاولة مرة أخرى.",
+    "createYourAccount": "أنشئ حسابك",
+    "justAFewMoreDetails": "بضع تفاصيل أخرى فقط لتبدأ.",
+    "demoAccounts": {
+      "customer": {
+        "label": "العميل",
+        "description": "القائمة، الطلبات، الحجوزات"
+      },
+      "staff": {
+        "label": "الموظفون",
+        "description": "مدير — العمليات الكاملة"
+      },
+      "cashier": {
+        "label": "أمين الصندوق",
+        "description": "الطلبات والعملاء"
+      },
+      "kitchen": {
+        "label": "المطبخ",
+        "description": "قائمة انتظار الطلبات وشاشة المطبخ"
+      },
+      "marketing": {
+        "label": "التسويق",
+        "description": "التحليلات والعروض"
+      },
+      "support": {
+        "label": "الدعم",
+        "description": "العملاء والحجوزات"
+      },
+      "admin": {
+        "label": "المسؤول",
+        "description": "لوحة تحكم كاملة"
+      },
+      "owner": {
+        "label": "المالك",
+        "description": "إدارة المستأجر وكل شيء"
+      },
+      "platformAdmin": {
+        "label": "مسؤول المنصة",
+        "description": "الوصول إلى المنصة عبر المستأجرين"
+      },
+      "multiRole": {
+        "label": "متعدد الأدوار",
+        "description": "أمين الصندوق والمطبخ (P8.5)"
+      }
+    },
+    "fineDining": "المأكولات الفاخرة,",
+    "delivered": "تم التوصيل.",
+    "heroCulinaryExcellence": "اختبر التميز الطهي — من البيتزا الحرفية إلى البرغر الفاخر، كل قضمة صُنعت بشغف.",
+    "joinedByFoodies": "انضم إليه أكثر من 50,000 من عشاق الطعام",
+    "perks": {
+      "exclusiveDeals": "عروض وخصومات حصرية للأعضاء",
+      "fasterCheckout": "دفع أسرع بالتفاصيل المحفوظة",
+      "realtimeTracking": "تتبع الطلب في الوقت الفعلي",
+      "priorityReservations": "حجوزات طاولات ذات أولوية"
+    }
+  },
+  "menu": {
+    "title": "قائمتنا",
+    "allCategories": "الكل",
+    "searchPlaceholder": "ابحث...",
+    "filters": "التصفية",
+    "sortBy": "ترتيب حسب",
+    "sortOptions": {
+      "popular": "الأكثر شعبية",
+      "rating": "الأعلى تقييماً",
+      "priceAsc": "السعر: من الأقل",
+      "priceDesc": "السعر: من الأعلى",
+      "newest": "الأحدث"
+    },
+    "available": "متوفر",
+    "unavailable": "غير متوفر",
+    "addToCart": "أضف إلى السلة",
+    "customize": "تخصيص",
+    "calories": "{count} سعرة",
+    "prepTime": "{min} دقيقة",
+    "rating": "{rating} ({count} تقييم)",
+    "extras": "الإضافات",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "طلبات خاصة؟",
+    "featured": "مميز",
+    "popular": "الأكثر طلباً",
+    "new": "جديد",
+    "discount": "خصم {percent}٪",
+    "related": "قد يعجبك أيضاً",
+    "explore": "استكشف",
+    "branchMenu": "قائمة {branch}",
+    "tenantMenu": "قائمة {tenant}",
+    "ourFullMenu": "قائمتنا الكاملة",
+    "discoverDishes": "اكتشف {count} طبقاً مصنوعاً يدوياً من أجود المكونات.",
+    "searchAriaLabel": "بحث في القائمة",
+    "clearSearch": "مسح البحث",
+    "categoriesAriaLabel": "فئات القائمة",
+    "dietaryFiltersAriaLabel": "فلاتر غذائية",
+    "dietaryVegan": "🌱 نباتي صرف",
+    "dietaryVegetarian": "🥗 نباتي",
+    "dietaryHalal": "✡ حلال",
+    "dietaryGlutenFree": "🌾 خالٍ من الغلوتين",
+    "dietarySpicy": "🌶 حار",
+    "sortAriaLabel": "ترتيب حسب",
+    "gridView": "عرض شبكي",
+    "listView": "عرض قائمة",
+    "priceRangeLabel": "نطاق السعر: {min} – {max}",
+    "minPriceAria": "الحد الأدنى للسعر",
+    "maxPriceAria": "الحد الأقصى للسعر",
+    "minRatingLabel": "الحد الأدنى للتقييم: {rating}",
+    "any": "الكل",
+    "availability": "التوفر",
+    "availableOnly": "المتوفر فقط",
+    "recentlyViewed": "شوهد مؤخراً",
+    "itemsFound": "{count, plural, =0 {لا توجد عناصر} one {# عنصر} other {# عناصر}}",
+    "noDishesFound": "لم يتم العثور على أطباق",
+    "noResultsFor": "لا توجد نتائج لـ \"{query}\". جرب كلمات مختلفة.",
+    "noItemsMatchFilters": "لا توجد عناصر تطابق الفلاتر الحالية.",
+    "browseByCategoryInstead": "تصفح حسب الفئة بدلاً من ذلك:",
+    "clearFiltersButton": "مسح الفلاتر",
+    "reviewCount": "({count} تقييم)",
+    "addToFavorites": "إضافة إلى المفضلة",
+    "removeFromFavorites": "إزالة من المفضلة",
+    "nutritionalInfo": "معلومات غذائية",
+    "addExtras": "إضافات",
+    "specialRequests": "طلبات خاصة",
+    "specialRequestsPlaceholder": "طلبات خاصة؟ (مثلاً بدون بصل، حار إضافي…)",
+    "reviews": "التقييمات",
+    "writeReview": "اكتب تقييماً",
+    "rateStars": "قيّم بـ {count} نجوم",
+    "shareExperiencePlaceholder": "شارك تجربتك…",
+    "submitting": "جاري الإرسال…",
+    "noReviewsYet": "لا توجد تقييمات بعد. كن أول من يقيّم!",
+    "decreaseQuantity": "إنقاص الكمية",
+    "increaseQuantity": "زيادة الكمية",
+    "addToCartWithPrice": "أضف إلى السلة · {price}",
+    "unavailableShort": "غير متوفر",
+    "ratingCountShort": "({count})",
+    "prepTimeApprox": "~{min} دقيقة",
+    "add": "إضافة",
+    "added": "تمت الإضافة!",
+    "loadingMenuAria": "جارٍ تحميل القائمة"
+  },
+  "cart": {
+    "title": "سلة التسوق",
+    "empty": "سلتك فارغة",
+    "emptyDesc": "أضف أطباقاً من قائمتنا",
+    "items": "{count} عناصر",
+    "subtotal": "المجموع الجزئي",
+    "discount": "الخصم",
+    "tax": "الضريبة (9٪)",
+    "serviceCharge": "رسوم الخدمة (5٪)",
+    "total": "الإجمالي",
+    "discountCode": "كود الخصم",
+    "applyCode": "تطبيق",
+    "removeItem": "إزالة",
+    "checkout": "المتابعة للدفع",
+    "continueShopping": "مواصلة التسوق",
+    "codeApplied": "تم تطبيق الكود!",
+    "invalidCode": "كود غير صالح",
+    "browseMenu": "تصفح القائمة",
+    "decreaseQuantity": "إنقاص الكمية",
+    "increaseQuantity": "زيادة الكمية",
+    "removeItemAria": "إزالة العنصر",
+    "discountLabel": "الخصم ({code})",
+    "validateCodeFailed": "فشل التحقق من الكود",
+    "discountCodePlaceholder": "كود الخصم",
+    "clearCart": "إفراغ السلة",
+    "viewCart": "عرض السلة",
+    "viewCartAria": "عرض السلة — {count} عناصر"
+  },
+  "checkout": {
+    "title": "إتمام الطلب",
+    "orderType": "نوع الطلب",
+    "delivery": "توصيل",
+    "pickup": "استلام",
+    "dineIn": "في المطعم",
+    "deliveryDesc": "التوصيل إلى عنوانك",
+    "pickupDesc": "الاستلام من المطعم",
+    "dineInDesc": "الطلب من طاولتك",
+    "deliveryAddress": "عنوان التوصيل",
+    "tableNumber": "رقم الطاولة",
+    "tableNumberPlaceholder": "مثال: 5",
+    "paymentMethod": "طريقة الدفع",
+    "card": "بطاقة ائتمان",
+    "cardDesc": "فيزا، ماستركارد، أمكس",
+    "cash": "الدفع نقداً عند الاستلام",
+    "cashDesc": "ادفع عند الاستلام",
+    "online": "دفع إلكتروني",
+    "onlineDesc": "باي بال، آبل باي، جوجل باي",
+    "wallet": "رصيد المحفظة",
+    "walletDesc": "استخدم أرصدة سيفور الخاصة بك",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "أي تعليمات خاصة لطلبك؟",
+    "placeOrder": "تأكيد الطلب",
+    "processing": "جاري المعالجة...",
+    "orderSuccess": "تم الطلب بنجاح!",
+    "orderFailed": "فشل الطلب",
+    "backToMenuAria": "العودة إلى القائمة",
+    "itemsCountTotal": "{count} عناصر · {total}",
+    "stepDetails": "التفاصيل",
+    "stepPayment": "الدفع",
+    "dineInBanner": "طلب لطاولة {table} — طلب داخل المطعم",
+    "contactInformation": "معلومات التواصل",
+    "streetAddress": "عنوان الشارع",
+    "streetAddressPlaceholder": "شارع رئيسي 123، شقة 4ب",
+    "city": "المدينة",
+    "continueToPayment": "المتابعة إلى الدفع",
+    "changeMethod": "تغيير الطريقة",
+    "cardPayment": "الدفع بالبطاقة",
+    "preparingPayment": "جاري تحضير الدفع…",
+    "payWithCard": "ادفع بالبطاقة · {total}",
+    "placingOrder": "جاري تأكيد الطلب…",
+    "placeOrderWithTotal": "تأكيد الطلب · {total}",
+    "orderSummary": "ملخص الطلب",
+    "secureNote": "معلومات الدفع الخاصة بك مشفرة وآمنة.",
+    "emptyCartTitle": "سلتك فارغة",
+    "emptyCartDesc": "أضف بعض الأطباق قبل المتابعة إلى الدفع.",
+    "couldNotInitPayment": "تعذر تهيئة الدفع. حاول مرة أخرى.",
+    "orderPlacedSuccess": "تم تقديم الطلب بنجاح! 🎉",
+    "orderPlaceFailed": "فشل تقديم الطلب. حاول مرة أخرى.",
+    "paymentFailedRetry": "فشل الدفع. يرجى المحاولة مرة أخرى.",
+    "paymentFailed": "فشل الدفع.",
+    "payAmount": "الدفع · {amount}",
+    "simulatedCardMockMode": "إدخال بطاقة محاكاة — وضع المحاكاة نشط",
+    "paymentConfirmed": "تم تأكيد الدفع",
+    "paymentCouldNotBeProcessed": "تعذرت معالجة الدفع",
+    "noBranchSelectedTitle": "لم يتم اختيار فرع",
+    "noBranchSelectedDesc": "تعذر تحديد الفرع الذي سيتم الطلب منه. يرجى اختيار فرع من القائمة قبل إتمام الدفع."
+  },
+  "order": {
+    "title": "تتبع الطلب",
+    "orderNumber": "الطلب {number}",
+    "status": {
+      "pending": "في الانتظار",
+      "accepted": "مقبول",
+      "preparing": "قيد التحضير",
+      "ready": "جاهز",
+      "delivered": "تم التوصيل",
+      "cancelled": "ملغي"
+    },
+    "estimatedTime": "الوقت المتوقع: {min} دقيقة",
+    "history": "سجل الطلبات"
+  },
+  "reservation": {
+    "title": "حجز طاولة",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "guests": "عدد الأشخاص",
+    "name": "الاسم الكامل",
+    "phone_number": "رقم الهاتف",
+    "email": "البريد الإلكتروني",
+    "notes": "طلبات خاصة",
+    "confirm": "احجز الطاولة",
+    "confirmationCode": "رمز التأكيد",
+    "confirmed": "تم تأكيد حجزك!",
+    "myReservations": "حجوزاتي",
+    "reservationsLabel": "الحجوزات",
+    "reserveYourTable": "احجز طاولتك",
+    "bookPerfectExperience": "احجز تجربة تناول طعام مثالية. سنجهز كل شيء لأمسية لا تُنسى.",
+    "chooseBranch": "اختر الفرع",
+    "dateTimeHeading": "التاريخ والوقت",
+    "moreGuests": "+10",
+    "availableTimeSlots": "الأوقات المتاحة",
+    "availableTimeSlotsFor": "لـ {date}",
+    "selectDateFirst": "الرجاء اختيار تاريخ أولاً",
+    "contactInformation": "معلومات التواصل",
+    "fullName": "الاسم الكامل",
+    "specialRequests": "طلبات خاصة",
+    "specialRequestsPlaceholder": "قيود غذائية، مناسبة، تفضيلات الجلوس…",
+    "confirmingReservation": "جاري تأكيد الحجز…",
+    "confirmReservationButton": "تأكيد الحجز",
+    "lookForwardToSeeing": "نتطلع لرؤيتك",
+    "peopleSuffix": "{count} أشخاص",
+    "confirmationSentTo": "تم إرسال تأكيد إلى {contact}",
+    "makeAnotherReservation": "إجراء حجز آخر",
+    "reservationConfirmedToast": "تم تأكيد الحجز! 🎉",
+    "reservationFailed": "فشل الحجز. حاول مرة أخرى.",
+    "noReservationFoundTitle": "لم يتم العثور على حجز",
+    "noReservationFoundDesc": "تعرض هذه الصفحة تفاصيل حجزك مباشرة بعد الحجز. إذا كان لديك حجز بالفعل، يمكنك عرضه في لوحة التحكم الخاصة بك.",
+    "nameLabel": "الاسم",
+    "dateLabel": "التاريخ",
+    "timeLabel": "الوقت",
+    "branchLabel": "الفرع",
+    "addToCalendar": "إضافة إلى التقويم",
+    "downloadIcsAria": "تنزيل ملف تقويم ICS",
+    "downloadIcsFile": "تنزيل ملف .ics",
+    "addToGoogleCalendarAria": "إضافة إلى تقويم جوجل",
+    "addToGoogleCalendar": "إضافة إلى تقويم جوجل",
+    "backToHome": "العودة إلى الرئيسية"
+  },
+  "dashboard": {
+    "title": "حسابي",
+    "orders": "الطلبات",
+    "favorites": "المفضلة",
+    "addresses": "العناوين",
+    "reservations": "الحجوزات",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "editProfile": "تعديل الملف",
+    "notifications": "الإشعارات",
+    "language": "اللغة",
+    "theme": "المظهر",
+    "greeting": "مرحباً، {name}! 👋",
+    "subtitle": "إليك آخر ما يحدث في حسابك.",
+    "totalOrders": "إجمالي الطلبات",
+    "totalSpent": "إجمالي الإنفاق",
+    "avgRating": "متوسط التقييم",
+    "activeOrderLabel": "الطلب النشط {number}",
+    "statusLabel": "الحالة: {status}",
+    "trackNow": "تتبع الآن",
+    "quickActions": "إجراءات سريعة",
+    "recentOrders": "الطلبات الأخيرة",
+    "noOrdersYet": "لا توجد طلبات بعد",
+    "orderNow": "اطلب الآن",
+    "upcomingReservations": "الحجوزات القادمة",
+    "guestsTimeTemplate": "{guests} أشخاص · {time}",
+    "loggedOut": "تم تسجيل الخروج!",
+    "overview": "نظرة عامة",
+    "businessConsole": "لوحة تحكم الأعمال",
+    "signOut": "تسجيل الخروج",
+    "loadingDashboardAria": "جارٍ تحميل لوحة التحكم",
+    "loadingReservationsAria": "جارٍ تحميل الحجوزات",
+    "loadingOrdersAria": "جارٍ تحميل الطلبات",
+    "myOrders": "طلباتي",
+    "totalOrdersCount": "{count, plural, =0 {لا توجد طلبات} one {طلب واحد إجمالي} other {# طلبات إجمالية}}",
+    "refresh": "تحديث",
+    "searchByOrderNumberPlaceholder": "البحث برقم الطلب…",
+    "startOrderingFromMenu": "ابدأ الطلب من قائمتنا!",
+    "writeAReview": "كتابة تقييم",
+    "reviewSubmitted": "تم إرسال التقييم ✓",
+    "shareYourExperiencePlaceholder": "شارك تجربتك…",
+    "submittingEllipsis": "جارٍ الإرسال…",
+    "savedDishesCount": "{count, plural, =0 {لا توجد أطباق محفوظة} one {طبق محفوظ واحد} other {# أطباق محفوظة}}",
+    "noFavoritesYet": "لا توجد مفضلات حتى الآن",
+    "heartDishesHint": "أضف علامة القلب للأطباق التي تحبها لحفظها هنا.",
+    "totalReservationsCount": "{count, plural, =0 {لا توجد حجوزات} one {حجز واحد إجمالي} other {# حجوزات إجمالية}}",
+    "newReservation": "حجز جديد",
+    "noReservationsYet": "لا توجد حجوزات حتى الآن",
+    "bookTableForNextVisit": "احجز طاولة لزيارتك القادمة.",
+    "bookATable": "حجز طاولة",
+    "codeLabel": "الرمز:",
+    "guestsCount": "{count, plural, one {ضيف واحد} other {# ضيوف}}",
+    "mainBranch": "الفرع الرئيسي",
+    "downtownBranch": "وسط المدينة",
+    "airportBranch": "المطار",
+    "streetAndCityRequired": "الشارع والمدينة مطلوبان.",
+    "addressAdded": "تمت إضافة العنوان!",
+    "failedToAddAddress": "فشلت إضافة العنوان.",
+    "addressRemoved": "تمت إزالة العنوان.",
+    "failedToDeleteAddress": "فشل حذف العنوان.",
+    "savedAddresses": "العناوين المحفوظة",
+    "addressesSavedCount": "{count, plural, =0 {لا توجد عناوين محفوظة} one {عنوان واحد محفوظ} other {# عناوين محفوظة}}",
+    "addAddress": "إضافة عنوان",
+    "noAddressesSaved": "لا توجد عناوين محفوظة",
+    "addDeliveryAddressHint": "أضف عنوان توصيل لتسريع الدفع.",
+    "addressFallbackLabel": "العنوان",
+    "defaultLabel": "افتراضي",
+    "setAsDefaultAria": "تعيين كافتراضي",
+    "addNewAddress": "إضافة عنوان جديد",
+    "label": "التصنيف",
+    "homeWorkOtherPlaceholder": "المنزل، العمل، أخرى…",
+    "streetAddress": "عنوان الشارع",
+    "city": "المدينة",
+    "state": "الولاية",
+    "zipCode": "الرمز البريدي",
+    "saveAddress": "حفظ العنوان",
+    "manageAccountPreferences": "إدارة تفضيلات حسابك",
+    "profileInformation": "معلومات الملف الشخصي",
+    "changeProfilePhotoAria": "تغيير صورة الملف الشخصي",
+    "selectProfilePhotoAria": "اختيار صورة الملف الشخصي",
+    "uploadingEllipsis": "جارٍ الرفع…",
+    "upload": "رفع",
+    "avatarUpdatedSuccessfully": "تم تحديث الصورة الرمزية بنجاح.",
+    "avatarFormatHint": "JPEG أو PNG أو WebP أو GIF · بحد أقصى 5 ميغابايت",
+    "unsupportedFileType": "نوع الملف غير مدعوم. استخدم JPEG أو PNG أو WebP أو GIF.",
+    "fileTooLarge": "الملف كبير جدًا. الحد الأقصى 5 ميغابايت.",
+    "avatarUpdated": "تم تحديث الصورة الرمزية!",
+    "uploadFailedRetry": "فشل الرفع. يرجى المحاولة مرة أخرى.",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "emailLabel": "البريد الإلكتروني",
+    "phoneLabel": "الهاتف",
+    "phoneNotEditable": "لا يمكن تغيير رقم الهاتف من هنا.",
+    "noPhoneOnFile": "لا يوجد رقم هاتف مسجل",
+    "saveChanges": "حفظ التغييرات",
+    "profileUpdated": "تم تحديث الملف الشخصي!",
+    "failedToUpdateProfile": "فشل تحديث الملف الشخصي.",
+    "emailVerification": "التحقق من البريد الإلكتروني",
+    "verified": "موثّق",
+    "notVerified": "غير موثّق",
+    "emailVerifiedTitle": "تم توثيق البريد الإلكتروني",
+    "emailVerifiedDesc": "تم توثيق بريدك الإلكتروني بنجاح.",
+    "emailAddedDesc": "تمت إضافة بريدك الإلكتروني إلى حسابك.",
+    "emailNotVerifiedTitle": "البريد الإلكتروني غير موثّق",
+    "emailNotVerifiedDesc": "وثّق بريدك الإلكتروني لتأمين حسابك.",
+    "verificationCodeLabel": "رمز التحقق",
+    "sendVerificationCode": "إرسال رمز التحقق",
+    "verifyEmail": "توثيق البريد الإلكتروني",
+    "verificationCodeSent": "تم إرسال رمز التحقق بنجاح.",
+    "failedToSendVerificationCode": "فشل إرسال رمز التحقق.",
+    "emailVerifiedSuccessfully": "تم توثيق البريد الإلكتروني بنجاح!",
+    "invalidVerificationCode": "رمز التحقق غير صالح أو منتهي الصلاحية.",
+    "appearance": "المظهر",
+    "themeLight": "فاتح",
+    "themeDark": "غامق",
+    "themeSystem": "النظام",
+    "languageAndRegion": "اللغة والمنطقة",
+    "directionLtr": "من اليسار إلى اليمين",
+    "directionRtl": "من اليمين إلى اليسار",
+    "notificationPreferences": "تفضيلات الإشعارات",
+    "notifPrefs": {
+      "orderUpdates": {
+        "label": "تحديثات الطلب",
+        "desc": "تغييرات الحالة وإشعارات التوصيل"
+      },
+      "notifPromotions": {
+        "label": "العروض",
+        "desc": "الصفقات والخصومات والعروض الخاصة"
+      },
+      "reservationReminders": {
+        "label": "تذكيرات الحجز",
+        "desc": "تذكيرات قبل حجزك"
+      },
+      "systemNotices": {
+        "label": "إشعارات النظام",
+        "desc": "إشعارات الأمان والحساب"
+      }
+    },
+    "security": "الأمان",
+    "securityItems": {
+      "changePassword": {
+        "label": "تغيير كلمة المرور",
+        "desc": "تحديث كلمة مرور حسابك"
+      },
+      "twoFactorAuth": {
+        "label": "المصادقة الثنائية",
+        "desc": "أضف طبقة إضافية من الأمان"
+      },
+      "activeSessions": {
+        "label": "الجلسات النشطة",
+        "desc": "إدارة الأجهزة التي تم تسجيل الدخول منها"
+      }
+    },
+    "dangerZone": "منطقة الخطر",
+    "deleteAccount": "حذف الحساب"
+  },
+  "restaurant": {
+    "title": "من نحن",
+    "hours": "ساعات العمل",
+    "contact": "التواصل",
+    "gallery": "المعرض",
+    "branches": "فروعنا",
+    "closed": "مغلق",
+    "open": "مفتوح الآن",
+    "establishedBadge": "تأسست عام {year}",
+    "ourStory": "قصتنا",
+    "craftedTagline": "صُنع بشغف، يُقدَّم بحب",
+    "contactUsHeading": "اتصل بنا",
+    "phoneLabel": "الهاتف",
+    "emailLabel": "البريد الإلكتروني",
+    "websiteLabel": "الموقع الإلكتروني",
+    "ourLocations": "مواقعنا",
+    "viewOnMaps": "عرض على الخريطة"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "empty": "لا توجد إشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "orderUpdate": "تحديث الطلب",
+    "promotion": "عرض",
+    "reservation": "حجز",
+    "system": "النظام",
+    "resetEmailSent": "تم إرسال بريد إعادة التعيين — تحقق من صندوق الوارد.",
+    "resetEmailFailed": "فشل إرسال بريد إعادة التعيين. حاول مرة أخرى.",
+    "phoneVerified": "تم التحقق من الهاتف! مرحباً",
+    "reviewSubmitted": "تم إرسال التقييم!",
+    "reviewFailed": "فشل إرسال التقييم. حاول مرة أخرى.",
+    "itemAddedToCart": "تمت إضافة {item} إلى السلة!",
+    "discountApplied": "تم تطبيق الخصم! لقد وفرت {amount}",
+    "configurationSaved": "تم حفظ الإعدادات.",
+    "configurationRefreshed": "تم تحديث الإعدادات.",
+    "configurationSaveFailed": "تعذر حفظ الإعدادات.",
+    "exported": "تم تصدير {name}.",
+    "bellAria": "الإشعارات — {count} غير مقروءة",
+    "noNotificationsYet": "لا توجد إشعارات حتى الآن",
+    "bellWithUnreadAria": "الإشعارات، {count} غير مقروءة",
+    "unreadCount": "{count} غير مقروءة",
+    "urgentCount": "{count} عاجلة",
+    "noUnreadNotifications": "لا توجد إشعارات غير مقروءة",
+    "viewAllNotifications": "عرض جميع الإشعارات",
+    "view": "عرض",
+    "markRead": "وضع علامة كمقروء",
+    "archive": "أرشفة",
+    "priority": {
+      "low": "منخفضة",
+      "normal": "عادية",
+      "high": "عالية",
+      "urgent": "عاجلة"
+    },
+    "byActor": "بواسطة {name}",
+    "viewDetails": "عرض التفاصيل",
+    "delete": "حذف",
+    "refresh": "تحديث",
+    "tabs": {
+      "unread": "غير مقروءة",
+      "read": "مقروءة",
+      "archived": "مؤرشفة"
+    },
+    "searchNotificationsPlaceholder": "البحث في الإشعارات…",
+    "categories": {
+      "all": "الكل",
+      "orders": "الطلبات",
+      "reservations": "الحجوزات",
+      "staff": "الموظفون",
+      "branches": "الفروع",
+      "promotions": "العروض الترويجية",
+      "vendors": "الموردون",
+      "audit": "التدقيق",
+      "system": "النظام"
+    },
+    "noNotifications": "لا توجد إشعارات",
+    "allCaughtUp": "أنت على اطلاع بكل شيء!",
+    "nothingHereYet": "لا يوجد شيء هنا بعد.",
+    "previous": "السابق",
+    "pageOfTotal": "صفحة {page} من {total}",
+    "next": "التالي",
+    "openNotificationCenter": "فتح مركز الإشعارات"
+  },
+  "errors": {
+    "notFound": "الصفحة غير موجودة",
+    "notFoundDesc": "الصفحة التي تبحث عنها غير موجودة.",
+    "notFoundPlayful": "يبدو أن هذه الصفحة مفقودة — تماماً مثل آخر شريحة بيتزا. دعنا نعيدك إلى المسار الصحيح.",
+    "goHome": "الذهاب للرئيسية",
+    "browse": "تصفح",
+    "serverError": "خطأ في الخادم",
+    "serverErrorDesc": "حدث خطأ. يرجى المحاولة.",
+    "offline": "أنت غير متصل",
+    "offlineDesc": "تحقق من اتصالك.",
+    "somethingWentWrong": "حدث خطأ ما",
+    "unexpectedErrorOccurred": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+    "tryAgain": "حاول مرة أخرى",
+    "home": "الرئيسية",
+    "errorId": "معرّف الخطأ: {id}",
+    "browseCachedMenu": "تصفح القائمة المخزّنة"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب",
+    "invalid_phone": "أدخل رقم هاتف صالح",
+    "invalid_email": "البريد الإلكتروني غير صالح",
+    "invalid_password": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+    "otp_expired": "انتهت صلاحية هذا الرمز. اطلب رمزاً جديداً.",
+    "too_many_attempts": "عدد كبير جداً من المحاولات. حاول مرة أخرى لاحقاً.",
+    "network_error": "خطأ في الشبكة — تحقق من اتصالك وحاول مرة أخرى.",
+    "permission_denied": "ليس لديك إذن للقيام بذلك.",
+    "unknown_error": "حدث خطأ ما. حاول مرة أخرى.",
+    "passwords_do_not_match": "كلمتا المرور غير متطابقتين",
+    "must_accept_terms": "يجب أن تقبل الشروط"
+  },
+  "console": {
+    "changeLanguageAria":"تغيير اللغة",
+    "title": "لوحة التحكم",
+    "tenantNotFoundTitle": "لم يتم العثور على النشاط التجاري",
+    "tenantNotFoundDesc": "لم نتمكن من العثور على نشاط تجاري على هذا العنوان. تحقق من الرابط أو تواصل مع المسؤول.",
+    "tenantForbiddenTitle": "الوصول غير متاح",
+    "tenantForbiddenDesc": "هذا النشاط التجاري غير متاح حاليًا لحسابك. قد يكون معلقًا أو مؤرشفًا، أو قد لا تملك صلاحية الوصول.",
+    "tenantErrorTitle": "حدث خطأ ما",
+    "tenantErrorDesc": "تعذّر تحميل هذا النشاط التجاري الآن. يرجى المحاولة مرة أخرى بعد قليل.",
+    "tenantLoading": "جارٍ تحميل نشاطك التجاري...",
+    "tenantRetrying": "جارٍ إعادة الاتصال... (المحاولة {attempt})",
+    "tenantRetryCta": "إعادة المحاولة",
+    "onboardingTitle": "أنشئ نشاطك التجاري الأول",
+    "onboardingDesc": "تم تسجيل دخولك، ولكن لا يوجد لديك نشاط تجاري بعد. تواصل معنا لإضافة نشاطك التجاري إلى Samoon Q.",
+    "onboardingContactCta": "تواصل معنا",
+    "unknownModule": "وحدة إعدادات غير معروفة \"{moduleId}\".",
+    "configurationSaved": "تم حفظ الإعدادات.",
+    "fieldsFailedValidation": "فشل التحقق من {count} حقل.",
+    "couldNotSave": "تعذر حفظ الإعدادات.",
+    "changesDiscarded": "تم تجاهل التغييرات.",
+    "mockEnvironment": "بيئة تجريبية",
+    "liveEnvironment": "بيئة حقيقية",
+    "lastModifiedBy": "آخر تعديل {date} بواسطة {actor}",
+    "searchSettingsPlaceholder": "بحث في إعدادات {module}…",
+    "searchSettingsAria": "بحث في إعدادات {module}",
+    "noSettingsMatch": "لا توجد إعدادات مطابقة لـ \"{query}\".",
+    "noSettingsVisible": "لا توجد إعدادات مرئية بصلاحياتك الحالية.",
+    "resetSectionAria": "إعادة تعيين قسم {section}",
+    "resetSectionTitle": "إعادة تعيين التغييرات غير المحفوظة لهذا القسم",
+    "unsavedChanges": "{count} تغيير غير محفوظ",
+    "reasonPlaceholder": "سبب هذا التغيير (مطلوب)",
+    "discard": "تجاهل",
+    "saving": "جاري الحفظ…",
+    "saveChanges": "حفظ التغييرات",
+    "toolbarAria": "شريط أدوات الإعدادات",
+    "configurationLabel": "الإعدادات",
+    "searchOrJumpTo": "بحث أو الانتقال إلى…",
+    "refreshAria": "تحديث الإعدادات",
+    "viewHistoryAria": "عرض السجل",
+    "exportModuleAria": "تصدير إعدادات الوحدة",
+    "importComingSoonAria": "استيراد (قريباً)",
+    "importPlaceholderTitle": "الاستيراد عنصر نائب لمرحلة مستقبلية",
+    "unsavedBadge": "{count} غير محفوظ",
+    "publish": "نشر",
+    "save": "حفظ",
+    "mock": "تجريبي",
+    "live": "حقيقي",
+    "historyDrawerTitle": "{module} — السجل",
+    "historyDrawerTitleDefault": "السجل",
+    "noHistoryYetTitle": "لا يوجد سجل بعد",
+    "noHistoryYetDesc": "ستظهر هنا التغييرات في إعدادات هذه الوحدة.",
+    "rollbackAria": "التراجع عن {field}",
+    "navAria": "وحدات الإعدادات",
+    "searchModulesPlaceholder": "بحث في الوحدات…",
+    "searchModulesAria": "بحث في الوحدات",
+    "noModulesMatch": "لا توجد وحدات مطابقة",
+    "nothingMatchesQuery": "لا يوجد ما يطابق \"{query}\".",
+    "pinned": "مثبّت",
+    "recent": "الأخيرة",
+    "pinAria": "تثبيت {name}",
+    "unpinAria": "إلغاء تثبيت {name}",
+    "saveChangesCommand": "حفظ التغييرات",
+    "discardChangesCommand": "تجاهل التغييرات",
+    "goToModule": "الانتقال إلى {name}",
+    "paletteSearchPlaceholder": "انتقل إلى وحدة، أو إعداد، أو نفّذ أمراً…",
+    "paletteAria": "لوحة الأوامر",
+    "noMatches": "لا توجد نتائج",
+    "noDashboardAccessTitle": "لا يوجد وصول للوحة التحكم",
+    "noDashboardAccessDesc": "دور منصتك لا يشمل platform.dashboard.view.",
+    "noWidgetsTitle": "لا توجد أدوات متاحة",
+    "noWidgetsDesc": "لا توجد أدوات لوحة تحكم مرئية لدور منصتك.",
+    "bulkEnable": "تفعيل",
+    "bulkDisable": "تعطيل",
+    "bulkPublish": "نشر",
+    "bulkArchive": "أرشفة",
+    "bulkReset": "إعادة تعيين للافتراضي",
+    "bulkExport": "تصدير",
+    "bulkImport": "استيراد",
+    "validationErrorsTitle": "تم العثور على {count} من مشكلات التحقق",
+    "importPlaceholder": "الصق بيانات JSON بنفس تنسيق التصدير",
+    "importTextareaAria": "استيراد بيانات JSON",
+    "importApply": "تطبيق الاستيراد",
+    "importCancel": "إلغاء",
+    "devicePreviewTitle": "معاينة الجهاز",
+    "devicePreviewHeading": "مرحباً",
+    "devicePreviewButton": "متابعة",
+    "totalCount": "الإجمالي: {count}",
+    "enabledCount": "{count} مفعّل",
+    "disabledCount": "{count} معطّل",
+    "matchingFiltersCount": "{count} مطابق للفلاتر",
+    "selectedCount": "تم تحديد {count}",
+    "searchEntityPlaceholder": "بحث في {entity}…",
+    "searchEntityAria": "بحث في {entity}",
+    "allStatuses": "جميع الحالات",
+    "filterAria": "تصفية",
+    "noGrouping": "بدون تجميع",
+    "groupByLabel": "تجميع حسب {property}",
+    "groupByAria": "تجميع حسب",
+    "sortByEntity": "ترتيب حسب {entity}",
+    "sortByProperty": "ترتيب حسب {property}",
+    "sortByAria": "ترتيب حسب",
+    "sortDirectionAria": "اتجاه الترتيب: {direction}",
+    "ascending": "تصاعدي",
+    "descending": "تنازلي",
+    "idColumnDefault": "المعرّف",
+    "enabledColumn": "مفعّل",
+    "statusColumn": "الحالة",
+    "selectAllAria": "تحديد الكل",
+    "selectEntityAria": "تحديد {entity}",
+    "enabledBadge": "مفعّل",
+    "disabledBadge": "معطّل",
+    "noMatchesTitle": "لا توجد نتائج",
+    "noMatchesFilterDesc": "جرّب كلمة بحث مختلفة أو امسح الفلتر النشط.",
+    "noEntriesDesc": "لا توجد عناصر في هذه المجموعة بعد.",
+    "defaultEntityLabel": "عناصر",
+    "entityDrawerTab_configuration": "الإعدادات",
+    "entityDrawerTab_overrides": "التجاوزات",
+    "entityDrawerTab_dependencies": "التبعيات",
+    "entityDrawerTab_audit": "التدقيق",
+    "entityDrawerTab_statistics": "الإحصائيات",
+    "entityDrawerTab_inheritance": "الوراثة",
+    "entityDrawerTab_preview": "معاينة",
+    "overriddenCount": "{count} متجاوز عليه",
+    "noOverriddenProperties": "لا توجد خصائص تختلف عن الإعدادات الافتراضية للمخطط.",
+    "defaultLabel": "افتراضي",
+    "currentLabel": "الحالي",
+    "noDependencies": "لا توجد خاصية في هذا المخطط تعرّف تبعية.",
+    "hiddenUnless": "مخفي ما لم يفشل شرط {fieldId} — حالياً {state}.",
+    "enabledWhen": "يُفعَّل عند تحقق شرط {fieldId} — حالياً {state}.",
+    "visibleState": "ظاهر",
+    "hiddenState": "مخفي",
+    "enabledState": "مفعّل",
+    "disabledState": "معطّل",
+    "noAuditEntries": "لا توجد تغييرات مسجلة لهذا العنصر بعد.",
+    "updatedThisOn": "تم التحديث في {date}",
+    "totalProperties": "إجمالي الخصائص",
+    "overriddenProperties": "الخصائص المتجاوز عليها",
+    "recordedChanges": "التغييرات المسجلة",
+    "inheritanceExplainer": "يُخزَّن كل عنصر في هذه المجموعة داخل حقل واحد ({fieldId})، لذا يُحل الوراثة مرة واحدة لكامل المجموعة، وليس لكل عنصر على حدة.",
+    "owningLevel": "مستوى الملكية",
+    "modeLabel": "الوضع",
+    "noPreviewAvailable": "لا تتوفر معاينة لهذا {entity}.",
+    "defaultEntityLabelSingular": "عنصر",
+    "inspectorTab_overview": "نظرة عامة",
+    "inspectorTab_inheritance": "الوراثة",
+    "inspectorTab_dependencies": "التبعيات",
+    "inspectorTab_validation": "التحقق",
+    "inspectorTab_audit": "التدقيق",
+    "inspectorTab_history": "السجل",
+    "inspectorTab_preview": "معاينة",
+    "inspectorTab_statistics": "الإحصائيات",
+    "inspectorTab_documentation": "التوثيق",
+    "noFieldSelectedTitle": "لم يتم اختيار حقل",
+    "noFieldSelectedDesc": "انقر على أيقونة الفحص لأي إعداد لمشاهدة الوراثة والتبعيات وسجل التدقيق والمزيد هنا.",
+    "configurationPath": "مسار الإعداد",
+    "typeLabel": "النوع",
+    "categoryLabel": "الفئة",
+    "resolvedFrom": "تم الحل من",
+    "noDependencyConditions": "لا يعرّف هذا الحقل أي شروط تبعية.",
+    "hiddenWhenLabel": "مخفي عندما",
+    "currentlyLabel": "حالياً",
+    "holdsHidden": "متحقق (مخفي)",
+    "doesNotHoldVisible": "غير متحقق (ظاهر)",
+    "enabledWhenLabel": "مفعّل عندما",
+    "holdsEnabled": "متحقق (مفعّل)",
+    "doesNotHoldDisabled": "غير متحقق (معطّل)",
+    "validLabel": "صالح",
+    "yesLabel": "نعم",
+    "noLabel": "لا",
+    "minLabel": "الحد الأدنى",
+    "maxLabel": "الحد الأقصى",
+    "patternLabel": "النمط",
+    "noAuditEntriesTitle": "لا توجد سجلات تدقيق",
+    "noAuditEntriesFieldDesc": "لم يتم تسجيل أي تغييرات لهذا الحقل بعد.",
+    "noPreviewConfigured": "لا توجد معاينة مهيأة لهذا الحقل.",
+    "auditEntriesLabel": "سجلات التدقيق",
+    "lifecycleLabel": "دورة الحياة",
+    "versionLabel": "الإصدار",
+    "sensitiveLabel": "حساس",
+    "openDocumentation": "فتح التوثيق",
+    "noDocumentationLink": "لا يوجد رابط توثيق محدد لهذا الحقل.",
+    "levelPlatform": "المنصة",
+    "levelTenant": "المستأجر",
+    "levelBranch": "الفرع",
+    "levelUser": "المستخدم",
+    "inheritanceChainAria": "سلسلة الوراثة",
+    "ownerLabel": "المالك",
+    "inheritsFromAbove": "يرث من المستوى الأعلى",
+    "effectiveLabel": "فعّال",
+    "blockedLabel": "محظور",
+    "overriddenLabel": "متجاوز عليه",
+    "thenLabel": "ثم",
+    "currentEffective": "الحالي (الفعّال)",
+    "draftUnsaved": "مسودة (غير محفوظة)",
+    "levelOverride": "تجاوز {level}",
+    "schemaDefault": "افتراضي المخطط",
+    "notEnoughHistoryToCompare": "لا يوجد سجل كافٍ للمقارنة بعد — هذا الحقل لديه قيمته الحالية فقط.",
+    "compareLeftAria": "مقارنة اللقطة اليسرى",
+    "compareRightAria": "مقارنة اللقطة اليمنى",
+    "snapshotsDiffer": "هاتان اللقطتان مختلفتان.",
+    "snapshotsIdentical": "هاتان اللقطتان متطابقتان.",
+    "noHistoryYetFieldDesc": "ستظهر التغييرات على هذا الحقل هنا بمجرد حفظها.",
+    "filterHistoryPlaceholder": "تصفية حسب الفاعل أو المستوى أو السبب…",
+    "filterHistoryAria": "تصفية السجل",
+    "noMatchingHistoryTitle": "لا يوجد سجل مطابق",
+    "changedThisAt": "غيّر هذا في مستوى",
+    "levelSuffix": "المستوى",
+    "rollbackToValueFromAria": "التراجع إلى القيمة من {date}",
+    "unsavedBadge2": "غير محفوظ",
+    "fieldState_default": "افتراضي",
+    "fieldState_modified": "معدّل",
+    "fieldState_tenant_override": "تجاوز المستأجر",
+    "fieldState_branch_override": "تجاوز الفرع",
+    "fieldState_user_override": "تجاوز المستخدم",
+    "draftBadge": "مسودة",
+    "betaBadge": "تجريبي",
+    "deprecatedBadge": "قديم",
+    "archivedReadOnlyBadge": "مؤرشف — للقراءة فقط",
+    "dangerousBadge": "خطير",
+    "experimentalBadge": "تجريبي",
+    "internalOnlyBadge": "داخلي فقط",
+    "restartRequiredBadge": "يتطلب إعادة تشغيل",
+    "publishRequiredBadge": "يتطلب نشراً",
+    "requiresApprovalBadge": "يتطلب موافقة",
+    "securitySensitiveBadge": "حساس أمنياً",
+    "lockedBadge": "مقفل",
+    "fontSamplePreview": "الثعلب البني السريع يقفز — {fontFamily}",
+    "hideValueAria": "إخفاء القيمة",
+    "revealValueAria": "إظهار القيمة",
+    "loadingConfigurationAria": "جارٍ تحميل الإعدادات",
+    "selectModuleToBegin": "اختر وحدة من القائمة للبدء.",
+    "resizeModulesPanelAria": "تغيير حجم لوحة الوحدات",
+    "showModulesPanelAria": "إظهار لوحة الوحدات",
+    "hideModulesPanelAria": "إخفاء لوحة الوحدات",
+    "modulesDrawerTitle": "الوحدات",
+    "resizeInspectorPanelAria": "تغيير حجم لوحة الفحص",
+    "showInspectorPanelAria": "إظهار لوحة الفحص",
+    "hideInspectorPanelAria": "إخفاء لوحة الفحص",
+    "inspectorDrawerTitle": "الفحص",
+    "auditHistoryAndDetailsAria": "سجل التدقيق والتفاصيل",
+    "resetFieldToSavedValueAria": "إعادة تعيين {field} إلى قيمته المحفوظة",
+    "resetToSavedValueTitle": "إعادة التعيين إلى القيمة المحفوظة",
+    "disabledDependencyNotMet": "معطّل لأن أحد الشروط غير محقق.",
+    "noPermissionToEditField": "ليس لديك صلاحية تعديل هذا الحقل.",
+    "archivedReadOnlyExplanation": "مؤرشف — للقراءة فقط؛ يعود إلى القيمة الافتراضية بغض النظر عن أي تجاوز محفوظ.",
+    "minValueLabel": "الحد الأدنى {min}",
+    "maxValueLabel": "الحد الأقصى {max}",
+    "auditHistoryLabel": "سجل التدقيق",
+    "noChangesRecordedYet": "لم يتم تسجيل أي تغييرات بعد.",
+    "changedThisTo": "غيّر هذا إلى",
+    "onDateLabel": "في {date}",
+    "lastModifiedByOn": "آخر تعديل بواسطة {actor} في {date}",
+    "escKey": "Esc",
+    "urlBasedUntilStorageWired": "مبني على الرابط إلى أن يتم تفعيل الرفع المعتمد على التخزين.",
+    "openAdminMenuAria": "فتح قائمة الإدارة",
+    "adminConsoleLinkAria": "إدارة {name} — الانتقال إلى لوحة التحكم",
+    "admin": "الإدارة",
+    "mockModeTitle": "الوضع التجريبي: لا يتم إجراء أي استدعاءات فعلية للخادم",
+    "mockBadge": "تجريبي",
+    "switchToThemeAria": "التبديل إلى مظهر {theme}",
+    "viewPublicSiteAria": "عرض الموقع العام لـ {name}",
+    "openPublicWebsiteAria": "فتح الموقع العام",
+    "publicSite": "الموقع العام",
+    "breadcrumbAria": "مسار التنقل",
+    "adminConsoleAria": "لوحة التحكم الإدارية",
+    "breadcrumbs": {
+      "admin": "الإدارة",
+      "orders": "الطلبات",
+      "reservations": "الحجوزات",
+      "customers": "العملاء",
+      "vendors": "البائعون",
+      "promotions": "العروض",
+      "branches": "الفروع",
+      "tenants": "المستأجرون",
+      "staff": "الموظفون",
+      "analytics": "التحليلات",
+      "notifications": "الإشعارات",
+      "auditLogs": "سجلات التدقيق",
+      "liveOperations": "العمليات المباشرة",
+      "settings": "الإعدادات",
+      "kitchenDisplay": "شاشة المطبخ",
+      "reviews": "المراجعات",
+      "menu": "القائمة",
+      "loyalty": "الولاء",
+      "permissions": "الأذونات",
+      "roles": "الأدوار",
+      "users": "المستخدمون",
+      "websiteBuilder": "أداة إنشاء الموقع",
+      "new": "جديد",
+      "simulator": "المحاكي",
+      "featureFlags": "أعلام الميزات",
+      "happyHour": "ساعة السعادة",
+      "foodCourt": "ساحة الطعام",
+      "foodTruck": "شاحنة الطعام",
+      "mobileCafe": "المقهى المتنقل",
+      "bar": "الحانة",
+      "cafe": "المقهى",
+      "item": "عنصر",
+      "reservation": "الحجز"
+    },
+    "breadcrumbItemLabel": "{parent} {id}",
+    "switchTenantAria": "تبديل المستأجر",
+    "selectTenant": "اختر المستأجر",
+    "platformTenants": "مستأجرو المنصة",
+    "switchBranchAria": "تبديل الفرع",
+    "selectBranch": "اختر الفرع",
+    "accessDenied": "تم رفض الوصول",
+    "noPermissionToAccessResource": "لا تملك إذنًا للوصول إلى {resource}.",
+    "noPermissionToViewPage": "لا تملك إذنًا لعرض هذه الصفحة.",
+    "goToMyWorkspace": "الانتقال إلى مساحة عملي",
+    "quickActions": "إجراءات سريعة",
+    "quickActionItems": {
+      "newMenuItem": "عنصر قائمة جديد",
+      "newPromotion": "عرض جديد",
+      "newReservation": "حجز جديد",
+      "inviteStaff": "دعوة موظف"
+    },
+    "adminNavigationAria": "التنقل الإداري",
+    "adminPanel": "لوحة الإدارة",
+    "closeSidebarAria": "إغلاق الشريط الجانبي",
+    "adminMenuAria": "قائمة الإدارة",
+    "customerDashboard": "لوحة تحكم العميل",
+    "returnToPublicWebsiteAria": "العودة إلى الموقع العام للعملاء",
+    "backToPublicSite": "الرجوع إلى الموقع العام",
+    "logOut": "تسجيل الخروج",
+    "previewPublicSite": "معاينة الموقع العام",
+    "bulkActionsAria": "الإجراءات المجمعة",
+    "clearSelectionAria": "مسح التحديد",
+    "exportDomains": {
+      "summary": "ملخص التحليلات",
+      "revenue": "الإيرادات",
+      "reservations": "الحجوزات",
+      "loyalty": "الولاء",
+      "promotions": "العروض",
+      "vendors": "البائعون",
+      "menu": "أداء القائمة"
+    },
+    "export": "تصدير",
+    "pushEnabled": "مفعّل",
+    "pushBlockedByBrowser": "محظور من المتصفح",
+    "pushNotEnabled": "غير مفعّل",
+    "pushNotifications": "الإشعارات الفورية",
+    "enable": "تفعيل",
+    "updateInBrowserSettings": "التحديث في إعدادات المتصفح",
+    "active": "نشط",
+    "slaAlertTypes": {
+      "orderPrepExceeded": "تجاوز وقت تحضير الطلب",
+      "deliveryExceeded": "تجاوز وقت التوصيل",
+      "reservationWaitExceeded": "تجاوز وقت انتظار الحجز",
+      "kitchenQueueDepth": "عمق قائمة انتظار المطبخ",
+      "staffShortage": "نقص الموظفين"
+    },
+    "priorityLow": "منخفض",
+    "priorityNormal": "عادي",
+    "priorityHigh": "مرتفع",
+    "priorityCritical": "حرج",
+    "elapsedMinutesLabel": "المنقضي: {minutes} دقيقة",
+    "thresholdMinutesLabel": "الحد: {minutes} دقيقة",
+    "minutesOver": "+{minutes} دقيقة زيادة",
+    "raisedJustNow": "أُثير الآن",
+    "raisedMinutesAgo": "أُثير منذ {minutes} دقيقة",
+    "loadingSlaMonitor": "جارٍ تحميل مراقب اتفاقية مستوى الخدمة…",
+    "criticalCount": "حرج: {count}",
+    "highCount": "مرتفع: {count}",
+    "activeCount": "نشط: {count}",
+    "avgPrepLabel": "متوسط التحضير: {minutes} دقيقة",
+    "slaComplianceLabel": "توافق اتفاقية مستوى الخدمة: {percent}%",
+    "noActiveSlaBreaches": "لا توجد خروقات نشطة لاتفاقية مستوى الخدمة",
+    "statusOnline": "متصل",
+    "statusBusy": "مشغول",
+    "statusBreak": "استراحة",
+    "statusOffline": "غير متصل",
+    "justNow": "الآن",
+    "minutesAgoShort": "منذ {minutes} دقيقة",
+    "hoursAgoShort": "منذ {hours} ساعة",
+    "ordersCount": "{count} طلب",
+    "onlineCount": "متصل: {count}",
+    "none": "لا يوجد",
+    "loadingStaff": "جارٍ تحميل الموظفين…",
+    "failedToLoadStaffPresence": "فشل تحميل حضور الموظفين.",
+    "statusDelivering": "قيد التوصيل",
+    "slaBreached": "تم خرق اتفاقية مستوى الخدمة",
+    "delayed": "متأخر",
+    "loadingOrders": "جارٍ تحميل الطلبات…",
+    "failedToLoadOrders": "فشل تحميل الطلبات.",
+    "empty": "فارغ",
+    "statusUpcoming": "قادم",
+    "statusConfirmed": "مؤكد",
+    "statusCheckedIn": "تم تسجيل الدخول",
+    "statusCompleted": "مكتمل",
+    "statusCancelled": "ملغى",
+    "statusNoShow": "عدم حضور",
+    "partyOfSize": "مجموعة من {size}",
+    "tableNumberLabel": "طاولة {number}",
+    "waitMinutesLabel": "الانتظار: {minutes} دقيقة",
+    "overdue": "متأخر",
+    "loadingReservations": "جارٍ تحميل الحجوزات…",
+    "failedToLoadReservations": "فشل تحميل الحجوزات.",
+    "statusPending": "قيد الانتظار",
+    "statusPreparing": "قيد التحضير",
+    "statusReady": "جاهز",
+    "priority": "الأولوية",
+    "orderSlaBreachedAria": "الطلب {number}، تم خرق اتفاقية مستوى الخدمة",
+    "orderNumberAria": "الطلب {number}",
+    "minutesElapsed": "مرّ {minutes} دقيقة",
+    "minutesTarget": "~{minutes} دقيقة مستهدفة",
+    "loadingKitchenQueue": "جارٍ تحميل قائمة انتظار المطبخ…",
+    "failedToLoadKitchenStatus": "فشل تحميل حالة المطبخ.",
+    "queueDepthLabel": "قائمة الانتظار: {depth}",
+    "capacityLabel": "السعة: {percent}%",
+    "kitchenOrderColumnsAria": "أعمدة طلبات المطبخ",
+    "columnOrdersCountAria": "عمود {column}، {count} طلبات",
+    "noOrdersAria": "لا توجد طلبات",
+    "healthHealthy": "سليم",
+    "healthDegraded": "متدهور",
+    "healthCritical": "حرج",
+    "healthOffline": "غير متصل",
+    "closed": "مغلق",
+    "alertsCount": "{count} تنبيهات",
+    "updatedJustNow": "تم التحديث الآن",
+    "updatedMinutesAgo": "تم التحديث منذ {minutes} دقيقة",
+    "loadingBranchStatus": "جارٍ تحميل حالة الفرع…",
+    "failedToLoadBranchStatus": "فشل تحميل حالة الفرع.",
+    "healthyCount": "سليم: {count}",
+    "degradedCount": "متدهور: {count}",
+    "offlineCount": "غير متصل: {count}",
+    "connectionLive": "مباشر",
+    "connectionConnecting": "جارٍ الاتصال…",
+    "connectionOffline": "غير متصل",
+    "activeStaffLabel": "الطاقم النشط",
+    "eventsPerMinuteLabel": "الأحداث/دقيقة:",
+    "systemLabel": "النظام: {label}",
+    "allBranches": "جميع الفروع",
+    "eventTypes": {
+      "orderCreated": "تم إنشاء الطلب",
+      "orderUpdated": "تم تحديث الطلب",
+      "orderCancelledEvent": "تم إلغاء الطلب",
+      "reservationCreated": "تم إنشاء الحجز",
+      "reservationUpdated": "تم تحديث الحجز",
+      "reservationCancelledEvent": "تم إلغاء الحجز",
+      "guestCheckedIn": "تم تسجيل دخول الضيف",
+      "staffStatusChanged": "تغيرت حالة الموظف",
+      "staffPresenceUpdated": "تم تحديث حضور الموظف",
+      "branchStatusChanged": "تغيرت حالة الفرع",
+      "branchHealthUpdated": "تم تحديث سلامة الفرع",
+      "notificationEvent": "إشعار",
+      "auditEvent": "حدث تدقيق",
+      "slaAlertRaised": "تم إثارة تنبيه اتفاقية مستوى الخدمة",
+      "slaAlertResolved": "تم حل تنبيه اتفاقية مستوى الخدمة",
+      "kitchenQueueUpdated": "تم تحديث قائمة انتظار المطبخ",
+      "metricsUpdated": "تم تحديث المقاييس",
+      "systemAlert": "تنبيه النظام"
+    },
+    "viewArrow": "عرض ←",
+    "branchIdLabel": "الفرع: {id}",
+    "loadingActivity": "جارٍ تحميل النشاط…",
+    "failedToLoadActivityFeed": "فشل تحميل موجز النشاط.",
+    "noRecentActivity": "لا يوجد نشاط حديث",
+    "severityInfo": "معلومة",
+    "severityWarning": "تحذير",
+    "targetLabel": "الهدف",
+    "changedLabel": "تم التغيير: {fields}",
+    "noAuditEventsFound": "لم يتم العثور على أحداث تدقيق.",
+    "eventsCountParen": "({count} أحداث)",
+    "ordersPageSubtitle": "إدارة وتتبع جميع الطلبات الواردة في الوقت الفعلي.",
+    "previewMenu": "معاينة القائمة",
+    "refresh": "تحديث",
+    "searchOrdersPlaceholder": "البحث برقم الطلب أو اسم العميل…",
+    "filterByBranchAria": "التصفية حسب الفرع",
+    "selectAllOrdersAria": "تحديد جميع الطلبات",
+    "selectOrderAria": "تحديد الطلب {number}",
+    "noOrdersMatchFilter": "لا توجد طلبات مطابقة للتصفية.",
+    "acceptSelected": "قبول المحدد",
+    "cancelSelected": "إلغاء المحدد",
+    "tableHeaders": {
+      "order": "الطلب",
+      "customer": "العميل",
+      "items": "العناصر",
+      "type": "النوع",
+      "total": "الإجمالي",
+      "status": "الحالة",
+      "time": "الوقت",
+      "actions": "الإجراءات"
+    },
+    "advanceToStatus": "→ {status}",
+    "loadingAdminPage": "جارٍ تحميل صفحة الإدارة…",
+    "loadingOrder": "جارٍ تحميل الطلب…",
+    "orderNotFoundOrFailedToLoad": "لم يتم العثور على الطلب أو فشل تحميله.",
+    "backToOrders": "العودة إلى الطلبات",
+    "orderNumberHeading": "الطلب رقم {number}",
+    "orderSummary": "ملخص الطلب",
+    "orderType": "نوع الطلب",
+    "table": "الطاولة",
+    "created": "تاريخ الإنشاء",
+    "updated": "تاريخ التحديث",
+    "estPrepTime": "وقت التحضير المقدر",
+    "minutesShort": "{minutes} دقيقة",
+    "notes": "ملاحظات",
+    "item": "عنصر",
+    "subtotal": "المجموع الفرعي",
+    "discount": "الخصم",
+    "tax": "الضريبة",
+    "serviceCharge": "رسوم الخدمة",
+    "payment": "الدفع",
+    "method": "الطريقة",
+    "statusHistory": "سجل الحالة",
+    "viewAuditLogsForThisOrder": "عرض سجلات التدقيق لهذا الطلب",
+    "paymentStatusPending": "قيد الانتظار",
+    "paymentStatusPaid": "مدفوع",
+    "paymentStatusFailed": "فشل",
+    "paymentStatusRefunded": "مسترد",
+    "reservationsPageSubtitle": "إدارة حجوزات الطاولات عبر جميع الفروع",
+    "previewReservationPage": "معاينة صفحة الحجز",
+    "totalLabel": "الإجمالي",
+    "searchReservationsPlaceholder": "البحث بالاسم أو الهاتف…",
+    "reservationTableHeaders": {
+      "guest": "الضيف",
+      "dateTime": "التاريخ والوقت",
+      "guests": "الضيوف",
+      "branch": "الفرع",
+      "contact": "التواصل",
+      "notes": "ملاحظات",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "noReservationsFound": "لم يتم العثور على حجوزات.",
+    "selectAllReservationsAria": "تحديد جميع الحجوزات",
+    "selectReservationForAria": "تحديد الحجز الخاص بـ {name}",
+    "confirm": "تأكيد",
+    "cancel": "إلغاء",
+    "confirmSelected": "تأكيد المحدد",
+    "loadingReservation": "جارٍ تحميل الحجز…",
+    "reservationNotFoundOrFailedToLoad": "لم يتم العثور على الحجز أو فشل تحميله.",
+    "backToReservations": "العودة إلى الحجوزات",
+    "bookingDetails": "تفاصيل الحجز",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "confirmation": "التأكيد",
+    "guestInformation": "معلومات الضيف",
+    "name": "الاسم",
+    "phone_number": "الهاتف",
+    "email": "البريد الإلكتروني",
+    "viewCustomerProfileArrow": "عرض ملف العميل ←",
+    "viewAuditLogsForThisReservation": "عرض سجلات التدقيق لهذا الحجز",
+    "kitchenDisplay": "شاشة المطبخ",
+    "autoRefreshLabel": "التحديث التلقائي:",
+    "refresh5s": "5 ثوانٍ",
+    "refresh10s": "10 ثوانٍ",
+    "refresh30s": "30 ثانية",
+    "refreshOff": "إيقاف",
+    "refreshNow": "تحديث الآن",
+    "exitFullscreen": "الخروج من ملء الشاشة",
+    "fullscreen": "ملء الشاشة",
+    "lastUpdatedLabel": "آخر تحديث: {time}",
+    "selectBranchToViewKitchenQueue": "اختر فرعًا لعرض قائمة انتظار المطبخ.",
+    "seatingManagement": "إدارة الجلوس",
+    "seatingManagementDescription": "تهيئة مناطق الجلوس والسعة وتخصيص الطاولات لمستأجري ساحة الطعام.",
+    "comingSoon": "قريبًا",
+    "customersPageSubtitle": "إدارة قاعدة العملاء والولاء",
+    "totalCustomers": "إجمالي العملاء",
+    "vipMembers": "الأعضاء المميزون",
+    "totalRevenue": "إجمالي الإيرادات",
+    "avgOrderValue": "متوسط قيمة الطلب",
+    "tierVip": "مميز",
+    "tierRegular": "عادي",
+    "tierNew": "جديد",
+    "allTiers": "الكل",
+    "searchCustomersPlaceholder": "البحث عن العملاء…",
+    "loadingCustomers": "جارٍ تحميل العملاء…",
+    "failedToLoadCustomers": "فشل تحميل العملاء.",
+    "selectAllCustomersAria": "تحديد جميع العملاء",
+    "selectCustomerAria": "تحديد {name}",
+    "noCustomersFound": "لم يتم العثور على عملاء.",
+    "exportSelected": "تصدير المحدد",
+    "customerTableHeaders": {
+      "customer": "العميل",
+      "contact": "التواصل",
+      "orders": "الطلبات",
+      "totalSpent": "إجمالي الإنفاق",
+      "avgOrder": "متوسط الطلب",
+      "joined": "تاريخ الانضمام",
+      "tier": "المستوى"
+    },
+    "customerTabOverview": "نظرة عامة",
+    "customerTabTimeline": "الجدول الزمني",
+    "customerTabOrders": "الطلبات",
+    "customerTabNotes": "ملاحظات",
+    "customerTabTags": "الوسوم",
+    "customerTabMarketing": "التسويق",
+    "customerTabAnalytics": "التحليلات",
+    "lifetimeSpend": "إجمالي الإنفاق مدى الحياة",
+    "totalOrders": "إجمالي الطلبات",
+    "loyaltyPoints": "نقاط الولاء",
+    "activitySummary": "ملخص النشاط",
+    "favouriteItem": "العنصر المفضل",
+    "lastOrder": "آخر طلب",
+    "relationshipDetails": "تفاصيل العلاقة",
+    "firstInteraction": "أول تفاعل",
+    "lastInteraction": "آخر تفاعل",
+    "visitFrequency": "تكرار الزيارة",
+    "everyNDays": "كل ~{days} يوم",
+    "favouriteBranch": "الفرع المفضل",
+    "favouriteDay": "اليوم المفضل",
+    "daysSinceLastVisit": "الأيام منذ آخر زيارة",
+    "nDays": "{days} يومًا",
+    "branchActivity": "نشاط الفرع",
+    "lastVisitLabel": "آخر زيارة {date}",
+    "visitsCount": "{count} زيارة",
+    "quickLinks": "روابط سريعة",
+    "viewOrders": "عرض الطلبات",
+    "viewReservations": "عرض الحجوزات",
+    "viewReviews": "عرض المراجعات",
+    "allCountParen": "الكل ({count})",
+    "timelineFilterTypes": {
+      "order_placed": "تم تقديم الطلب",
+      "reservation_made": "تم إجراء الحجز",
+      "points_earned": "تم كسب نقاط",
+      "coupon_received": "تم استلام قسيمة",
+      "review_posted": "تم نشر مراجعة",
+      "admin_note": "ملاحظة إدارية"
+    },
+    "noTimelineEventsYet": "لا توجد أحداث في الجدول الزمني بعد.",
+    "noOrdersFoundForCustomer": "لم يتم العثور على طلبات لهذا العميل.",
+    "plusNMore": "+{count} أخرى",
+    "viewOrder": "عرض الطلب",
+    "noReservationsFoundForCustomer": "لم يتم العثور على حجوزات لهذا العميل.",
+    "dateAtTime": "{date} في {time}",
+    "guestsCountAnd": "{count} ضيوف · {name}",
+    "noLoyaltyAccountFound": "لم يتم العثور على حساب ولاء لهذا العميل في هذا النشاط التجاري.",
+    "currentTier": "المستوى الحالي",
+    "redeemablePoints": "نقاط قابلة للاستبدال",
+    "lifetimePtsCount": "{count} نقطة مدى الحياة",
+    "nextTierAtThreshold": "→ {tier} عند {threshold}",
+    "lifetimeValue": "القيمة مدى الحياة",
+    "loyaltyTier": "مستوى الولاء",
+    "totalSpent": "إجمالي الإنفاق",
+    "tierExpiresLabel": "تنتهي صلاحية المستوى في {date}",
+    "noReviewsPostedYet": "لم يتم نشر مراجعات بعد.",
+    "reviewsCount": "{count, plural, one {مراجعة واحدة} other {# مراجعة}}",
+    "addANote": "أضف ملاحظة",
+    "privateNotePlaceholder": "ملاحظة خاصة مرئية لفريقك فقط...",
+    "addNote": "إضافة ملاحظة",
+    "noNotesYet": "لا توجد ملاحظات بعد. أضف أول ملاحظة أعلاه.",
+    "editedParen": "(معدَّل)",
+    "assignedTags": "الوسوم المخصصة",
+    "noTagsAssignedYet": "لم يتم تعيين وسوم بعد. اختر الوسوم أدناه.",
+    "removeTagAria": "إزالة {label}",
+    "availableTags": "الوسوم المتاحة",
+    "noTagsDefinedYet": "لم يتم تعريف وسوم لهذا النشاط التجاري بعد.",
+    "noMarketingDataAvailable": "لا توجد بيانات تسويقية متاحة لهذا العميل.",
+    "channelEmail": "البريد الإلكتروني",
+    "channelSms": "الرسائل القصيرة",
+    "channelPush": "الإشعارات الفورية",
+    "channelWhatsapp": "واتساب",
+    "subscribed": "مشترك",
+    "unsubscribed": "غير مشترك",
+    "channelPreferences": "تفضيلات القناة",
+    "couponsReceived": "القسائم المستلمة",
+    "couponsRedeemed": "القسائم المستردة",
+    "lastCampaign": "آخر حملة",
+    "never": "أبدًا",
+    "campaignHistory": "سجل الحملات",
+    "opened": "تم الفتح",
+    "clicked": "تم النقر",
+    "coupons": "القسائم",
+    "couponStatusAvailable": "متاحة",
+    "couponStatusRedeemed": "مستردة",
+    "couponStatusExpired": "منتهية",
+    "expiresLabel": "تنتهي الصلاحية",
+    "discountOff": "خصم {amount}",
+    "analyticsNotYetAvailable": "التحليلات غير متاحة بعد لهذا العميل.",
+    "avgPartySize": "متوسط حجم المجموعة",
+    "behaviourPatterns": "أنماط السلوك",
+    "everyNDaysApprox": "كل ~{days} يوم تقريبًا",
+    "favouriteHour": "الساعة المفضلة",
+    "favouriteCategories": "الفئات المفضلة",
+    "favouriteItems": "العناصر المفضلة",
+    "revenueTrend": "اتجاه الإيرادات",
+    "paymentHistory": "سجل المدفوعات",
+    "loadingCustomer": "جارٍ تحميل العميل…",
+    "customerNotFound": "لم يتم العثور على العميل.",
+    "backToCustomers": "العودة إلى العملاء",
+    "unverified": "غير موثّق",
+    "inactive": "غير نشط",
+    "customerSinceLabel": "عميل منذ {date}",
+    "hideIds": "إخفاء المعرفات",
+    "showIds": "إظهار المعرفات",
+    "platformUserLabel": "مستخدم المنصة:",
+    "businessCustomerLabel": "عميل النشاط التجاري:",
+    "itemLabel": "العنصر: {item}",
+    "orderLabel": "الطلب: {order}",
+    "totalReviews": "إجمالي المراجعات",
+    "averageRating": "متوسط التقييم",
+    "noReviewsYet": "لا توجد مراجعات بعد.",
+    "loadingReviews": "جارٍ تحميل المراجعات…",
+    "descriptionLabel": "الوصف",
+    "pointsCost": "تكلفة النقاط",
+    "minimumTierOptional": "الحد الأدنى للمستوى (اختياري)",
+    "anyTier": "أي مستوى",
+    "expiresAtOptional": "تاريخ الانتهاء (اختياري)",
+    "savingEllipsis": "جارٍ الحفظ…",
+    "loyaltyManagement": "إدارة الولاء",
+    "previewLoyalty": "معاينة الولاء",
+    "createReward": "إنشاء مكافأة",
+    "loadingRewards": "جارٍ تحميل المكافآت…",
+    "noRewardsConfigured": "لم يتم تكوين مكافآت.",
+    "disabled": "معطّل",
+    "editNameAria": "تعديل {name}",
+    "edit": "تعديل",
+    "disableNameAria": "تعطيل {name}",
+    "disable": "تعطيل",
+    "create": "إنشاء",
+    "editReward": "تعديل المكافأة",
+    "reviewTabPublished": "منشورة",
+    "reviewTabHidden": "مخفية",
+    "reviewTabSpam": "مزعجة",
+    "replyToReviewAria": "الرد على المراجعة",
+    "replyToReview": "الرد على المراجعة",
+    "thoughtfulResponsePlaceholder": "اكتب ردًا مدروسًا…",
+    "replyTextAria": "نص الرد",
+    "updateReply": "تحديث الرد",
+    "postReply": "نشر الرد",
+    "loadingReviewAnalytics": "جارٍ تحميل التحليلات…",
+    "noAnalyticsDataAvailable": "لا توجد بيانات تحليلية متاحة.",
+    "replyRate": "معدل الرد",
+    "avgReplyTime": "متوسط وقت الرد",
+    "hoursShort": "{hours} س",
+    "trendImproving": "في تحسن",
+    "trendDeclining": "في تراجع",
+    "trendStable": "مستقر",
+    "trendLabel": "اتجاه {trend}",
+    "ratingDeltaOverMonths": "التقييم {sign}{delta} خلال الأشهر الثلاثة الماضية",
+    "topKeywordsInReviews": "أهم الكلمات المفتاحية في المراجعات",
+    "reviewManagement": "إدارة المراجعات",
+    "noStatusReviews": "لا توجد مراجعات {status}.",
+    "approve": "الموافقة",
+    "hideAction": "إخفاء",
+    "markSpam": "وضع علامة كمزعجة",
+    "deleteAction": "حذف",
+    "editReply": "تعديل الرد",
+    "reply": "رد",
+    "promoTypePercentDiscount": "خصم %",
+    "promoTypeFixedDiscount": "خصم ثابت",
+    "promoTypeBogo": "اشترِ واحدًا واحصل على آخر",
+    "promoTypeHappyHour": "ساعة سعيدة",
+    "weekdayMonShort": "الاثنين",
+    "weekdayTueShort": "الثلاثاء",
+    "weekdayWedShort": "الأربعاء",
+    "weekdayThuShort": "الخميس",
+    "weekdayFriShort": "الجمعة",
+    "weekdaySatShort": "السبت",
+    "weekdaySunShort": "الأحد",
+    "promotionType": "نوع العرض الترويجي",
+    "discountPercentLabel": "نسبة الخصم %",
+    "discountAmountLabel": "مبلغ الخصم ($)",
+    "startLabel": "البداية",
+    "endOptionalLabel": "النهاية (اختياري)",
+    "weekdaysOptionalLabel": "أيام الأسبوع (اختياري)",
+    "timeFromOptionalLabel": "الوقت من (اختياري)",
+    "timeToOptionalLabel": "الوقت إلى (اختياري)",
+    "promoBadgePercentOff": "خصم %",
+    "promoBadgeFixed": "ثابت",
+    "promoBadgeBogo": "اشترِ واحدًا واحصل على آخر",
+    "promotionManagement": "إدارة العروض الترويجية",
+    "createPromotion": "إنشاء عرض ترويجي",
+    "loadingPromotions": "جارٍ تحميل العروض الترويجية…",
+    "noPromotionsConfigured": "لم يتم تكوين عروض ترويجية.",
+    "activateNameAria": "تفعيل {name}",
+    "activate": "تفعيل",
+    "editPromotion": "تعديل العرض الترويجي",
+    "loadingPromotion": "جارٍ تحميل العرض الترويجي…",
+    "promotionNotFound": "لم يتم العثور على العرض الترويجي.",
+    "backToPromotions": "العودة إلى العروض الترويجية",
+    "previewPromotions": "معاينة العروض الترويجية",
+    "fixedAmount": "مبلغ ثابت",
+    "startsLabel": "يبدأ",
+    "endsLabel": "ينتهي",
+    "promotionIdLabel": "معرف العرض الترويجي",
+    "appliesToNItems": "ينطبق على {count} عنصر (عناصر)",
+    "menuManagement": "إدارة القائمة",
+    "itemsCount": "{count} عنصر",
+    "menuPageSubtitle": "إضافة وتعديل وإدارة عناصر قائمتك",
+    "addItem": "إضافة عنصر",
+    "searchItemsPlaceholder": "البحث عن العناصر…",
+    "allCategories": "الكل",
+    "loadingEllipsis": "جارٍ التحميل…",
+    "loadingMenu": "جارٍ تحميل القائمة…",
+    "failedToLoadMenuItems": "فشل تحميل عناصر القائمة.",
+    "featured": "مميز",
+    "popular": "شائع",
+    "percentOff": "خصم {percent}٪",
+    "markUnavailable": "وضع علامة كغير متاح",
+    "markAvailable": "وضع علامة كمتاح",
+    "editItemAria": "تعديل العنصر",
+    "deleteItemAria": "حذف العنصر",
+    "noItemsFound": "لم يتم العثور على عناصر.",
+    "addMenuItem": "إضافة عنصر إلى القائمة",
+    "failedToCreateItemRetry": "فشل إنشاء العنصر. يرجى المحاولة مرة أخرى.",
+    "editColonName": "تعديل: {name}",
+    "editItem": "تعديل العنصر",
+    "failedToSaveChangesRetry": "فشل حفظ التغييرات. يرجى المحاولة مرة أخرى.",
+    "deleteItem": "حذف العنصر",
+    "confirmDeleteItem": "هل أنت متأكد أنك تريد حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
+    "failedToDeleteItemRetry": "فشل حذف العنصر. يرجى المحاولة مرة أخرى.",
+    "itemNameLabel": "اسم العنصر",
+    "category": "الفئة",
+    "selectCategoryEllipsis": "اختر الفئة…",
+    "priceDollarLabel": "السعر ($)",
+    "discountPercentSignLabel": "نسبة الخصم %",
+    "caloriesLabel": "السعرات الحرارية",
+    "prepTimeMinLabel": "وقت التحضير (دقيقة)",
+    "imageUrlLabel": "رابط الصورة",
+    "available": "متاح",
+    "loadingVendor": "جارٍ تحميل البائع…",
+    "vendorNotFound": "لم يتم العثور على البائع.",
+    "backToVendors": "العودة إلى البائعين",
+    "statusActive": "نشط",
+    "statusSuspended": "معلّق",
+    "statusInactive": "غير نشط",
+    "ratingWithCount": "{rating} ({count} تقييم)",
+    "stallNumberLabel": "الكشك {number}",
+    "contactEmailLabel": "بريد التواصل",
+    "contactPhoneLabel": "هاتف التواصل",
+    "commissionRateLabel": "معدل العمولة",
+    "vendorIdLabel": "معرف البائع",
+    "memberSinceLabel": "عضو منذ",
+    "vendorRevenue": "الإيرادات",
+    "commissionPaidLabel": "العمولة المدفوعة",
+    "avgRatingLabel": "متوسط التقييم",
+    "commissionRatePercentLabel": "معدل العمولة (٪)",
+    "stallNumberLabelForm": "رقم الكشك",
+    "featuredVendorLabel": "بائع مميز",
+    "vendorStatistics": "إحصائيات البائع",
+    "loadingStats": "جارٍ تحميل الإحصائيات…",
+    "activeProductsLabel": "المنتجات النشطة",
+    "periodLabel": "الفترة",
+    "settlements": "التسويات",
+    "noSettlementsYet": "لا توجد تسويات بعد.",
+    "grossRevenuePlaceholder": "الإيرادات الإجمالية ($)",
+    "settlementGrossRevenueAria": "الإيرادات الإجمالية للتسوية",
+    "createSettlementAria": "إنشاء تسوية",
+    "creatingEllipsis": "جارٍ الإنشاء…",
+    "settle": "تسوية",
+    "vendorManagement": "إدارة البائعين",
+    "createVendorAria": "إنشاء بائع",
+    "addVendor": "إضافة بائع",
+    "noVendorsConfigured": "لم يتم تكوين بائعين.",
+    "stallRatingLabel": "الكشك {number} · ★ {rating}",
+    "viewStatsForAria": "عرض إحصائيات {name}",
+    "statsLabel": "الإحصائيات",
+    "editVendor": "تعديل البائع",
+    "websiteTabTheme": "السمة",
+    "websiteTabSections": "الأقسام",
+    "websiteTabTemplates": "القوالب",
+    "websiteTabHero": "البطل",
+    "websiteTabContent": "المحتوى",
+    "websiteTabModules": "الوحدات",
+    "websiteTabPreview": "معاينة",
+    "websiteTabVersions": "الإصدارات",
+    "themeTabDescription": "اختر سمة علامة تجارية مختارة تحدد ألوانك وخطوطك وأسلوبك المرئي.",
+    "sectionsTabDescription": "قم بتمكين أو تعطيل الأقسام وإعادة ترتيبها في صفحتك الرئيسية العامة.",
+    "moveSectionUpAria": "نقل {section} لأعلى",
+    "moveSectionDownAria": "نقل {section} لأسفل",
+    "templatesTabDescription": "اختر قالب التخطيط لكل نوع قسم.",
+    "galleryLabel": "المعرض",
+    "contactLabel": "التواصل",
+    "aboutLabel": "من نحن",
+    "bgTypeImage": "صورة",
+    "bgTypeVideo": "فيديو",
+    "bgTypeGradient": "تدرج لوني",
+    "bgTypeSolidColor": "لون واحد",
+    "alignLeft": "يسار",
+    "alignCenter": "وسط",
+    "alignRight": "يمين",
+    "noneOptionDash": "— لا شيء —",
+    "layoutVariantLabel": "متغير التخطيط",
+    "backgroundTypeLabel": "نوع الخلفية",
+    "backgroundImageUrlLabel": "رابط صورة الخلفية",
+    "backgroundVideoUrlLabel": "رابط فيديو الخلفية",
+    "cssGradientLabel": "تدرج CSS",
+    "solidColorHexLabel": "لون واحد (هيكس)",
+    "textAlignmentLabel": "محاذاة النص",
+    "primaryCtaLabel": "دعوة الإجراء الأساسية",
+    "secondaryCtaOptionalLabel": "دعوة الإجراء الثانوية (اختياري)",
+    "heroContentLabel": "محتوى البطل",
+    "headlineLabel": "العنوان الرئيسي",
+    "welcomeToOurRestaurantPlaceholder": "مرحبًا بكم في مطعمنا",
+    "subheadlineLabel": "العنوان الفرعي",
+    "freshFoodGreatVibesPlaceholder": "طعام طازج وأجواء رائعة",
+    "backgroundImageUrlLegacyLabel": "رابط صورة الخلفية (قديم)",
+    "ourStoryLabel": "قصتنا",
+    "tellYourStoryPlaceholder": "احكِ قصتك…",
+    "missionLabel": "المهمة",
+    "ourMissionIsPlaceholder": "مهمتنا هي…",
+    "historyLabel": "التاريخ",
+    "foundedInPlaceholder": "تأسست في…",
+    "founderNameLabel": "اسم المؤسس",
+    "founderImageUrlLabel": "رابط صورة المؤسس",
+    "founderBioLabel": "السيرة الذاتية للمؤسس",
+    "bioEllipsisPlaceholder": "السيرة الذاتية…",
+    "phoneLabel": "الهاتف",
+    "emailLabel": "البريد الإلكتروني",
+    "websiteLabel": "الموقع الإلكتروني",
+    "whatsappLabel": "واتساب",
+    "instagramLabel": "إنستغرام",
+    "facebookLabel": "فيسبوك",
+    "tiktokLabel": "تيك توك",
+    "youtubeLabel": "يوتيوب",
+    "telegramLabel": "تلغرام",
+    "mapEmbedUrlLabel": "رابط تضمين الخريطة",
+    "latitudeLabel": "خط العرض",
+    "longitudeLabel": "خط الطول",
+    "moduleFeatureReservationsDesc": "نظام حجز الطاولات",
+    "moduleFeatureOnlineOrdering": "الطلب عبر الإنترنت",
+    "moduleFeatureOnlineOrderingDesc": "الطلب المسبق / التوصيل",
+    "moduleFeatureLoyaltyProgram": "برنامج الولاء",
+    "moduleFeatureLoyaltyProgramDesc": "النقاط والمكافآت",
+    "moduleFeaturePromotionsDesc": "العروض والخصومات",
+    "moduleFeaturePhotoGallery": "معرض الصور",
+    "moduleFeaturePhotoGalleryDesc": "عرض الصور",
+    "moduleFeatureEvents": "الفعاليات",
+    "moduleFeatureEventsDesc": "تقويم الفعاليات القادمة",
+    "moduleFeatureReviewsDesc": "شهادات العملاء",
+    "moduleFeatureMultiLocation": "متعدد المواقع",
+    "moduleFeatureMultiLocationDesc": "دعم فروع متعددة",
+    "moduleFeatureFaq": "الأسئلة الشائعة",
+    "moduleFeatureFaqDesc": "الأسئلة المتكررة",
+    "moduleFeatureWebsiteBuilderDesc": "محرر الصفحة الرئيسية العامة",
+    "modulesTabDescription": "نظرة عامة على الميزات والوحدات المتاحة في خطتك. تواصل مع الدعم لتفعيل أو ترقية القدرات.",
+    "allModulesIncludedInPlan": "جميع الوحدات الموضحة أعلاه مشمولة في خطتك الحالية.",
+    "livePreviewNotice": "معاينة مباشرة — تنعكس التغييرات بعد الحفظ. افتح الرابط العام لرؤية التجربة الكاملة.",
+    "themeColonLabel": "السمة:",
+    "activeSectionsInOrderLabel": "الأقسام النشطة (بالترتيب):",
+    "openPublicPage": "فتح الصفحة العامة",
+    "publishedLabel": "منشور",
+    "draftLabel": "مسودة",
+    "lastSavedLabel": "آخر حفظ",
+    "lastPublishedLabel": "آخر نشر",
+    "noSavedVersionsYet": "لا توجد إصدارات محفوظة بعد. انشر لإنشاء إصدار.",
+    "versionHistoryLabel": "سجل الإصدارات",
+    "versionNumberLabel": "الإصدار {id}",
+    "restore": "استعادة",
+    "loadingBranchOverrides": "جارٍ تحميل تجاوزات الفرع…",
+    "heroHeadlineLabel": "عنوان البطل الرئيسي",
+    "branchSpecificHeadlinePlaceholder": "عنوان خاص بالفرع",
+    "heroSubheadlineLabel": "العنوان الفرعي للبطل",
+    "branchSpecificSubheadlinePlaceholder": "عنوان فرعي خاص بالفرع",
+    "heroImageUrlLabel": "رابط صورة البطل",
+    "branchDescriptionLabel": "وصف الفرع",
+    "locatedInPlaceholder": "يقع في…",
+    "branchPhoneLabel": "هاتف الفرع",
+    "aboutBranchSpecificLabel": "نبذة (خاصة بالفرع)",
+    "ourDowntownLocationPlaceholder": "موقعنا في وسط المدينة…",
+    "saveBranchOverrides": "حفظ تجاوزات الفرع",
+    "branchesTabDescription": "تجاوز محتوى البطل والصور والوصف ورقم الهاتف لفرع معين دون تغيير الموقع الرئيسي.",
+    "branchSlugLabel": "معرف الفرع",
+    "branchSlugPlaceholder": "مثال: وسط المدينة، الجهة الغربية",
+    "noTenantSelected": "لم يتم اختيار مستأجر.",
+    "loadingWebsiteBuilder": "جارٍ تحميل منشئ الموقع…",
+    "failedToLoadWebsiteBuilder": "فشل تحميل منشئ الموقع. يرجى تحديث الصفحة.",
+    "websiteBuilderTitle": "منشئ الموقع",
+    "websiteBuilderSubtitle": "خصص صفحتك الرئيسية العامة — دون الحاجة إلى برمجة.",
+    "savedLabel": "تم الحفظ",
+    "unsavedChangesNotice": "لديك تغييرات غير محفوظة. احفظ قبل النشر.",
+    "settingsTabGeneral": "عام",
+    "settingsTabBranding": "الهوية التجارية",
+    "settingsTabBusinessHours": "ساعات العمل",
+    "settingsTabPublicProfile": "الملف العام",
+    "settingsTabIntegrations": "التكاملات",
+    "settingsTabFeatureFlags": "أعلام الميزات",
+    "weekday": {
+      "monday": "الاثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة",
+      "saturday": "السبت",
+      "sunday": "الأحد"
+    },
+    "openLabel": "مفتوح",
+    "notifChannelInApp": "داخل التطبيق",
+    "notifEventNewOrder": "طلب جديد",
+    "notifEventOrderStatusChange": "تغيير حالة الطلب",
+    "notifEventNewReservation": "حجز جديد",
+    "notifEventSlaBreach": "خرق اتفاقية مستوى الخدمة",
+    "notifEventStaffClockIn": "تسجيل حضور الموظف",
+    "eventLabel": "الحدث",
+    "businessNameLabel": "اسم النشاط التجاري",
+    "managedByAccountSettings": "تتم إدارتها بواسطة إعدادات حسابك.",
+    "businessTypeLabel": "نوع النشاط التجاري",
+    "tenantIdLabel": "معرف المستأجر",
+    "publicUrlLabel": "الرابط العام",
+    "primaryColorLabel": "اللون الأساسي",
+    "logoUrlLabel": "رابط الشعار",
+    "bodyFontLabel": "خط النص",
+    "settingsTitle": "الإعدادات",
+    "settingsSectionComingSoon": "إعدادات {section} قريبًا.",
+    "sourceModuleDefault": "افتراضي الوحدة",
+    "sourceCapability": "القدرة",
+    "sourceTenantOverride": "تجاوز المستأجر",
+    "loadingFeatureFlags": "جارٍ تحميل أعلام الميزات…",
+    "failedToLoadFeatureFlags": "فشل تحميل أعلام الميزات.",
+    "featureFlagsTabDescription": "قم بتبديل أعلام القدرة لهذا المستأجر. تجاوزات المستأجر لها الأولوية على افتراضيات الوحدة.",
+    "toggleFlagAria": "تبديل {key}",
+    "noFeatureFlagsConfigured": "لم يتم تكوين أعلام ميزات.",
+    "publicProfileDescription": "يتم عرض هذه المعلومات علنًا في صفحة نشاطك التجاري وبطاقات الاكتشاف. تسري التغييرات فور الحفظ.",
+    "taglineLabel": "الشعار",
+    "taglinePlaceholder": "عبارتك الجذابة",
+    "taglineHint": "يظهر أسفل اسم نشاطك التجاري. الحد الأقصى 120 حرفًا.",
+    "shortDescriptionLabel": "وصف مختصر",
+    "shortDescriptionPlaceholder": "وصف موجز يظهر في بطاقات الاكتشاف (~200 حرف كحد أقصى)",
+    "shortDescriptionHint": "يظهر في بطاقة اكتشاف السوق.",
+    "aboutStoryLabel": "نبذة / قصة",
+    "aboutStoryPlaceholder": "احكِ قصتك — التاريخ، المهمة، ما يميزك",
+    "aboutStoryHint": "يظهر في قسم \"من نحن\" العام في صفحة نشاطك التجاري.",
+    "cuisinesSpecialtiesLabel": "المأكولات / التخصصات",
+    "commaSeparatedSearchHint": "مفصولة بفواصل. تُستخدم للبحث والتصفية.",
+    "discoveryTagsLabel": "وسوم الاكتشاف",
+    "discoveryTagsHint": "وسوم مفصولة بفواصل تساعد العملاء على إيجادك.",
+    "amenitiesLabel": "المرافق",
+    "amenitiesHint": "مرافق مفصولة بفواصل تظهر في صفحة نشاطك التجاري.",
+    "priceLevelLabel": "مستوى السعر",
+    "selectDash": "— اختر —",
+    "priceLevelBudget": "$ — اقتصادي",
+    "priceLevelModerate": "$$ — متوسط",
+    "priceLevelUpscale": "$$$ — راقٍ",
+    "priceLevelFineDining": "$$$$ — مطاعم فاخرة",
+    "contactInformationLabel": "معلومات التواصل",
+    "publicPhoneLabel": "هاتف عام",
+    "publicEmailLabel": "بريد إلكتروني عام",
+    "socialMediaLabel": "وسائل التواصل الاجتماعي",
+    "instagramUrlLabel": "رابط إنستغرام",
+    "twitterUrlLabel": "رابط تويتر / X",
+    "mediaLabel": "الوسائط",
+    "coverImageUrlLabel": "رابط صورة الغلاف",
+    "coverImageHint": "يظهر كصورة رئيسية في بطاقة وصفحة نشاطك التجاري. الموصى به: 1200×630 بكسل.",
+    "galleryImageUrlsLabel": "روابط صور المعرض",
+    "galleryImageUrlsHint": "رابط واحد في كل سطر. يظهر في قسم المعرض في صفحة نشاطك التجاري.",
+    "revenueAnalyticsAria": "تحليلات الإيرادات",
+    "dailyRevenue30Days": "الإيرادات اليومية (30 يومًا)",
+    "dailyRevenueBarChartAria": "مخطط شريطي للإيرادات اليومية",
+    "topItemsByOrders": "أفضل العناصر حسب الطلبات",
+    "reservationAnalyticsAria": "تحليلات الحجوزات",
+    "totalReservationsLabel": "إجمالي الحجوزات",
+    "occupancyRate": "معدل الإشغال",
+    "statusBreakdown": "تفصيل الحالة",
+    "tableOccupancyRatio": "إشغال الطاولة: {occupied}/{total}",
+    "dailyReservations30Days": "الحجوزات اليومية (30 يومًا)",
+    "dailyReservationsSparklineAria": "مخطط دقيق للحجوزات اليومية",
+    "loyaltyAnalyticsAria": "تحليلات الولاء",
+    "totalMembers": "إجمالي الأعضاء",
+    "activeThisMonth": "نشط هذا الشهر",
+    "pointsIssued": "النقاط الصادرة",
+    "redemptionRate": "معدل الاسترداد",
+    "tierDistribution": "توزيع المستويات",
+    "topRewards": "أفضل المكافآت",
+    "redemptionsCount": "{count} عملية استرداد",
+    "promotionAnalyticsAria": "تحليلات العروض الترويجية",
+    "totalPromotions": "إجمالي العروض الترويجية",
+    "activePromotions": "العروض الترويجية النشطة",
+    "totalDiscountGiven": "إجمالي الخصم الممنوح",
+    "usageByType": "الاستخدام حسب النوع",
+    "topPromotions": "أفضل العروض الترويجية",
+    "vendorAnalyticsAria": "تحليلات البائعين",
+    "totalVendorsLabel": "إجمالي البائعين",
+    "activeVendorsLabel": "البائعون النشطون",
+    "totalCommission": "إجمالي العمولة",
+    "vendorLabel": "البائع",
+    "revenueLabel": "الإيرادات",
+    "commissionLabel": "العمولة",
+    "avgRatingStarLabel": "المتوسط ★",
+    "menuPerformanceAnalyticsAria": "تحليلات أداء القائمة",
+    "totalItemsSold": "إجمالي العناصر المباعة",
+    "menuRevenue": "إيرادات القائمة",
+    "topSellers": "الأكثر مبيعًا",
+    "slowMovers": "الأبطأ مبيعًا",
+    "byCategoryLabel": "حسب الفئة",
+    "itemsLabel": "العناصر",
+    "periodTodayVsYesterday": "اليوم مقابل الأمس",
+    "periodThisWeekVsLastWeek": "هذا الأسبوع مقابل الأسبوع الماضي",
+    "periodThisMonthVsLastMonth": "هذا الشهر مقابل الشهر الماضي",
+    "periodThisQuarterVsLastQuarter": "هذا الربع مقابل الربع الماضي",
+    "periodThisYearVsLastYear": "هذا العام مقابل العام الماضي",
+    "periodTabDay": "يوم",
+    "periodTabWeek": "أسبوع",
+    "periodTabMonth": "شهر",
+    "periodTabQuarter": "ربع",
+    "periodTabYear": "سنة",
+    "newCustomersLabel": "العملاء الجدد",
+    "periodComparisonAria": "مقارنة الفترات",
+    "periodComparison": "مقارنة الفترات",
+    "prevColonValue": "السابق: {value}",
+    "analyticsTitle": "التحليلات",
+    "viewBranchAnalyticsArrow": "عرض تحليلات الفرع ←",
+    "revenueAndOrders": "الإيرادات والطلبات",
+    "menuPerformance": "أداء القائمة",
+    "loyaltyLabel": "الولاء",
+    "promotionsLabel": "العروض الترويجية",
+    "vendorsLabel": "البائعون",
+    "profileTabLabel": "الملف الشخصي",
+    "rolesTabLabel": "الأدوار",
+    "permissionsTabLabel": "الأذونات",
+    "activityTabLabel": "النشاط",
+    "securityTabLabel": "الأمان",
+    "userNotFound": "المستخدم غير موجود.",
+    "backToUsers": "العودة إلى المستخدمين",
+    "idColonValue": "المعرف: {id}",
+    "lastLoginLabel": "آخر تسجيل دخول",
+    "verifiedLabel": "موثّق",
+    "assignedRolesLabel": "الأدوار المعينة",
+    "removeRoleAria": "إزالة {role}",
+    "noRolesAssigned": "لم يتم تعيين أي أدوار",
+    "addRoleLabel": "إضافة دور",
+    "saveRolesLabel": "حفظ الأدوار",
+    "resetLabel": "إعادة تعيين",
+    "branchAccessLabel": "الوصول إلى الفروع",
+    "globalRolesApplyLabel": "تُطبَّق الأدوار العامة",
+    "branchRoleOverridesHint": "يمكن تكوين تجاوزات الأدوار الخاصة بالفرع لكل تعيين. يتم حاليًا استخدام أدوار على مستوى المستأجر.",
+    "permissionsSummaryLine": "{effective} إذنًا فعالًا • {granted} ممنوحًا بالتجاوز • {denied} مرفوضًا بالتجاوز",
+    "overrideLabel": "تجاوز",
+    "deniedLabel": "مرفوض",
+    "grantLabel": "منح",
+    "denyLabel": "رفض",
+    "resetToRoleDefaultLabel": "إعادة التعيين إلى افتراضي الدور",
+    "activityLogLabel": "سجل النشاط",
+    "activityLoggedIn": "تم تسجيل الدخول",
+    "activityPermissionOverrideApplied": "تم تطبيق تجاوز الإذن",
+    "activityRoleUpdated": "تم تحديث الدور",
+    "activityAccountCreated": "تم إنشاء الحساب",
+    "securitySettingsLabel": "إعدادات الأمان",
+    "emailVerifiedLabel": "البريد الإلكتروني موثّق",
+    "twoFactorAuthLabel": "المصادقة الثنائية",
+    "notConfiguredLabel": "غير مهيأ",
+    "activeSessionsLabel": "الجلسات النشطة",
+    "sessionCount": "{count} جلسة",
+    "dangerZoneLabel": "منطقة الخطر",
+    "deactivateAccountLabel": "إلغاء تفعيل الحساب",
+    "notifCategoryTenant": "المستأجر",
+    "notifCategoryPayments": "المدفوعات",
+    "notifCategorySystem": "النظام",
+    "notifCategoryAuditEvents": "أحداث التدقيق",
+    "searchNotificationsEllipsisPlaceholder": "البحث في الإشعارات…",
+    "allStatusOption": "كل الحالات",
+    "unreadOption": "غير مقروء",
+    "readOption": "مقروء",
+    "allPriorityOption": "كل الأولويات",
+    "priorityUrgent": "عاجل",
+    "markAllReadCount": "تحديد الكل كمقروء ({count})",
+    "failedToLoadNotifications": "فشل تحميل الإشعارات.",
+    "noNotificationsFound": "لم يتم العثور على إشعارات",
+    "priorityColumnLabel": "الأولوية",
+    "titleColumnLabel": "العنوان",
+    "actorColumnLabel": "الفاعل",
+    "viewLabel": "عرض",
+    "markReadTitle": "تحديد كمقروء",
+    "archiveTitle": "أرشفة",
+    "pageOfTotalCount": "الصفحة {page} من {totalPages} ({count} إجمالاً)",
+    "previousLabel": "السابق",
+    "nextLabel": "التالي",
+    "readRateLabel": "معدل القراءة",
+    "byPriorityLabel": "حسب الأولوية",
+    "topNotificationTypesLabel": "أهم أنواع الإشعارات",
+    "configureNotificationsHint": "قم بتكوين الإشعارات التي تتلقاها وكيفية تلقيها.",
+    "resetToDefaultsLabel": "إعادة التعيين إلى الافتراضيات",
+    "enabledLabel": "مفعّل",
+    "minPriorityLabel": "الحد الأدنى للأولوية",
+    "notificationCenterTitle": "مركز الإشعارات",
+    "manageNotificationsSubtitle": "إدارة إشعاراتك وتفضيلاتك وإعدادات التسليم.",
+    "archivedNotificationsKeptHint": "يتم الاحتفاظ بالإشعارات المؤرشفة لمدة 30 يومًا.",
+    "inboxTabLabel": "صندوق الوارد",
+    "archivedTabLabel": "مؤرشف",
+    "statisticsTabLabel": "الإحصاءات",
+    "preferencesTabLabel": "التفضيلات",
+    "daysAgoShort": "منذ {days} يوم",
+    "loadingNotificationEllipsis": "جارٍ تحميل الإشعار…",
+    "notificationNotFoundOrFailed": "لم يتم العثور على الإشعار أو فشل تحميله.",
+    "receivedLabel": "تم الاستلام",
+    "viewRelatedType": "عرض {type} ذي الصلة",
+    "triggeredByName": "تم التشغيل بواسطة {name}",
+    "markAsReadLabel": "تحديد كمقروء",
+    "backToListArrow": "← العودة إلى القائمة",
+    "eventDataLabel": "بيانات الحدث",
+    "tenantStatusTrial": "تجريبي",
+    "tenantStatusChurned": "منسحب",
+    "tenantStatusArchived": "مؤرشف",
+    "tenantAnalyticsAria": "تحليلات المستأجرين",
+    "totalTenantsAria": "إجمالي المستأجرين",
+    "totalTenantsLabel": "إجمالي المستأجرين",
+    "activeTenantsAria": "المستأجرون النشطون",
+    "suspendedTenantsAria": "المستأجرون المعلقون",
+    "businessTypeDistributionAria": "توزيع نوع النشاط التجاري",
+    "byTypeLabel": "حسب النوع",
+    "activateLabel": "تفعيل",
+    "suspendNameAria": "تعليق {name}",
+    "suspendLabel": "تعليق",
+    "archiveNameAria": "أرشفة {name}",
+    "tenantManagementAria": "إدارة المستأجرين",
+    "tenantsTitle": "المستأجرون",
+    "manageAndProvisionTenantsSubtitle": "إدارة وتزويد المستأجرين",
+    "previewPublicSiteLabel": "معاينة الموقع العام",
+    "createNewTenantAria": "إنشاء مستأجر جديد",
+    "newTenantLabel": "مستأجر جديد",
+    "loadingTenantsEllipsis": "جارٍ تحميل المستأجرين…",
+    "tenantListAria": "قائمة المستأجرين",
+    "nameSlashSlugLabel": "الاسم / المعرف",
+    "createdLabel": "تاريخ الإنشاء",
+    "noTenantsFound": "لم يتم العثور على مستأجرين.",
+    "tenantProfileAria": "الملف الشخصي للمستأجر",
+    "nameLabel": "الاسم",
+    "slugLabel": "المعرف",
+    "idLabel": "المعرف",
+    "businessTypeAndModuleConfigLabel": "نوع النشاط التجاري وتكوين الوحدات",
+    "brandingSectionAria": "العلامة التجارية",
+    "accentHoverColorLabel": "لون التحويم المميز",
+    "noBrandingConfiguredHint": "لم يتم تكوين العلامة التجارية — يتم استخدام الإعدادات الافتراضية.",
+    "capabilitiesAria": "القدرات",
+    "capabilitiesAndFeatureFlagsLabel": "القدرات وأعلام الميزات",
+    "disabledLabel": "معطّل",
+    "statusManagementLabel": "إدارة الحالة",
+    "currentStatusColon": "الحالة الحالية: {status}",
+    "tenantArchivedCannotModifyHint": "تم أرشفة هذا المستأجر ولا يمكن تعديله.",
+    "activateTenantAria": "تفعيل المستأجر",
+    "activatingEllipsis": "جارٍ التفعيل…",
+    "suspendTenantAria": "تعليق المستأجر",
+    "suspendingEllipsis": "جارٍ التعليق…",
+    "archiveTenantAria": "أرشفة المستأجر",
+    "archivingEllipsis": "جارٍ الأرشفة…",
+    "tenantDetailAria": "تفاصيل المستأجر",
+    "loadingTenantEllipsis": "جارٍ تحميل المستأجر…",
+    "tenantNotFoundPeriod": "لم يتم العثور على المستأجر.",
+    "backToTenantsLabel": "العودة إلى المستأجرين",
+    "backArrowTenants": "← المستأجرون",
+    "previewTenantSiteLabel": "معاينة موقع المستأجر",
+    "businessTypeRestaurant": "مطعم",
+    "businessTypeCafe": "مقهى",
+    "businessTypeBar": "حانة",
+    "businessTypeFoodCourt": "ساحة الطعام",
+    "businessTypeFoodTruck": "شاحنة طعام",
+    "businessTypeMobileCafe": "مقهى متنقل",
+    "brandingDefaultsLabel": "الإعدادات الافتراضية للعلامة التجارية",
+    "featureFlagsLabel": "أعلام الميزات",
+    "reviewLabel": "المراجعة",
+    "provisionLabel": "التزويد",
+    "stepOfTotalAria": "الخطوة {current} من {total}",
+    "newTenantWizardAria": "معالج المستأجر الجديد",
+    "createNewTenantTitle": "إنشاء مستأجر جديد",
+    "stepColonLabel": "الخطوة: {label}",
+    "stepNumberColonLabel": "الخطوة {number}: {label}",
+    "tenantNameLabel": "اسم المستأجر",
+    "tenantNamePlaceholder": "مثال: مطعم سافور",
+    "tenantSlugPlaceholder": "مثال: samoon-restaurant",
+    "slugCharsHint": "2–63 حرفًا صغيرًا أو رقمًا أو شرطة",
+    "businessTypeSelectionAria": "اختيار نوع النشاط التجاري",
+    "requiredCapabilitiesHint": "القدرات المطلوبة مفعّلة دائمًا. بدّل القدرات الاختيارية أدناه.",
+    "requiredLabel": "إلزامي",
+    "alwaysOnParenthetical": "(مفعّل دائمًا)",
+    "optionalLabel": "اختياري",
+    "defaultsDerivedFromTemplateHint": "الإعدادات الافتراضية مشتقة من قالب {type}. عدّلها حسب الحاجة.",
+    "fineTuneFeatureFlagsHint": "اضبط أعلام الميزات الفردية. هذه تتجاوز القالب واختيارات القدرات.",
+    "notSetLabel": "غير محدد",
+    "enabledCapabilitiesLabel": "القدرات المفعّلة",
+    "validationErrorsAria": "أخطاء التحقق",
+    "readyToProvisionAsType": "جاهز لتزويد {name} كـ {type}.",
+    "confirmProvisionAria": "تأكيد التزويد",
+    "provisioningEllipsis": "جارٍ التزويد…",
+    "provisionTenantLabel": "تزويد المستأجر",
+    "provisionSuccessAria": "نجاح التزويد",
+    "tenantProvisionedSuccessfully": "تم تزويد المستأجر بنجاح!",
+    "tenantIdColonValue": "معرف المستأجر: {id}",
+    "provisionErrorAria": "خطأ في التزويد",
+    "provisioningFailedLabel": "فشل التزويد",
+    "previousStepAria": "الخطوة السابقة",
+    "backLabel": "رجوع",
+    "nextStepAria": "الخطوة التالية",
+    "userManagementTitle": "إدارة المستخدمين",
+    "manageStaffRolesSubtitle": "إدارة أدوار الموظفين وأذوناتهم ووصولهم",
+    "inviteUserLabel": "دعوة مستخدم",
+    "totalUsersLabel": "إجمالي المستخدمين",
+    "withOverridesLabel": "مع تجاوزات",
+    "searchUsersEllipsisPlaceholder": "البحث عن المستخدمين...",
+    "allRolesOption": "كل الأدوار",
+    "noUsersMatchFilters": "لا يوجد مستخدمون يطابقون عوامل التصفية الخاصة بك.",
+    "userColumnLabel": "المستخدم",
+    "overridesColumnLabel": "التجاوزات",
+    "overrideCount": "{count} تجاوز",
+    "manageLabel": "إدارة",
+    "branchAccessMatrixLabel": "مصفوفة وصول الفروع",
+    "noBranchesConfigured": "لم يتم تكوين أي فروع.",
+    "staffStatusRemoved": "تمت الإزالة",
+    "staffMemberNotFound": "لم يتم العثور على عضو الطاقم.",
+    "derivedPermissionsLabel": "الأذونات المشتقة",
+    "membershipLabel": "العضوية",
+    "tenantLabelShort": "المستأجر",
+    "invitedLabel": "تمت الدعوة",
+    "activatedLabel": "تم التفعيل",
+    "lastSeenLabel": "آخر ظهور",
+    "assignedBranchesLabel": "الفروع المعينة",
+    "loadingStaffEllipsis": "جارٍ تحميل الطاقم...",
+    "staffManagementTitle": "إدارة الطاقم",
+    "inviteStaffLabel": "دعوة موظف",
+    "inviteStaffModalTitle": "دعوة عضو فريق",
+    "firstNameLabel": "الاسم الأول",
+    "lastNameLabel": "اسم العائلة",
+    "rolesLabel": "الأدوار",
+    "branchesLabel": "الفروع",
+    "selectRolesHint": "اختر دورًا واحدًا أو أكثر",
+    "selectBranchesHint": "اختر فرعًا واحدًا أو أكثر",
+    "emailRequiredError": "البريد الإلكتروني مطلوب",
+    "roleRequiredError": "اختر دورًا واحدًا على الأقل",
+    "branchRequiredForRoleError": "اختر فرعًا واحدًا على الأقل للأدوار المحددة",
+    "sendInviteLabel": "إرسال الدعوة",
+    "sendingInviteEllipsis": "جارٍ الإرسال...",
+    "inviteSentSuccessfully": "تم إرسال الدعوة بنجاح",
+    "failedToSendInviteRetry": "فشل إرسال الدعوة. حاول مرة أخرى.",
+    "editAssignmentLabel": "تعديل الأدوار والفروع",
+    "editStaffAssignmentModalTitle": "تعديل الأدوار والفروع",
+    "staffAssignmentUpdatedSuccessfully": "تم تحديث تعيين الموظف بنجاح",
+    "failedToUpdateStaffAssignmentRetry": "فشل تحديث تعيين الموظف. حاول مرة أخرى.",
+    "totalStaffLabel": "إجمالي الطاقم",
+    "pendingInvitesLabel": "الدعوات المعلقة",
+    "noActiveStaffPeriod": "لا يوجد طاقم نشط.",
+    "removeLabel": "إزالة",
+    "transferOwnershipLabel": "نقل الملكية",
+    "pendingInvitationsLabel": "الدعوات المعلقة",
+    "noPendingInvitationsPeriod": "لا توجد دعوات معلقة.",
+    "expiresDateLabel": "تنتهي الصلاحية {date}",
+    "resendLabel": "إعادة الإرسال",
+    "suspendedStaffLabel": "الطاقم المعلق",
+    "reactivateLabel": "إعادة التفعيل",
+    "cityLabel": "المدينة",
+    "loadingBranchesEllipsis": "جارٍ تحميل الفروع…",
+    "failedToLoadBranches": "فشل تحميل الفروع.",
+    "maintenanceLabel": "الصيانة",
+    "staffAssignedLabel": "الطاقم المعين",
+    "physicalLabel": "فعلي",
+    "activeBranchesLabel": "الفروع النشطة",
+    "underMaintenanceLabel": "قيد الصيانة",
+    "inactiveBranchesLabel": "الفروع غير النشطة",
+    "noBranchesFoundForTenant": "لم يتم العثور على فروع لهذا المستأجر.",
+    "branchManagementTitle": "إدارة الفروع",
+    "previewBranchLabel": "معاينة الفرع",
+    "addBranchLabel": "إضافة فرع",
+    "viewAnalyticsLabel": "عرض التحليلات",
+    "branchAnalyticsTitle": "تحليلات الفرع",
+    "selectBranchToViewAnalyticsHint": "اختر فرعًا لعرض تحليلاته",
+    "backArrowBranchManagement": "← إدارة الفروع",
+    "allBranchesLabel": "كل الفروع",
+    "noBranchesFoundPeriod": "لم يتم العثور على فروع.",
+    "loadingBranchEllipsis": "جارٍ تحميل الفرع…",
+    "branchNotFoundPeriod": "لم يتم العثور على الفرع.",
+    "locationLabel": "الموقع",
+    "postalColonValue": "الرمز البريدي: {code}",
+    "phoneColonValue": "الهاتف: {value}",
+    "emailColonValue": "البريد الإلكتروني: {value}",
+    "websiteColonValue": "الموقع الإلكتروني: {value}",
+    "deliveryColonValue": "التوصيل: {value}",
+    "pickupColonValue": "الاستلام: {value}",
+    "tableOrderingColonValue": "الطلب من الطاولة: {value}",
+    "reservationsColonValue": "الحجوزات: {value}",
+    "maxCapacityColonValue": "الحد الأقصى للسعة: {value}",
+    "businessHoursLabel": "ساعات العمل",
+    "closedLabel": "مغلق",
+    "metricsPeriodLabel": "المقاييس ({period})",
+    "statusActionsLabel": "إجراءات الحالة",
+    "setMaintenanceLabel": "ضبط الصيانة",
+    "deactivateLabel": "إلغاء التفعيل",
+    "fillAllRequiredFieldsError": "يرجى ملء جميع الحقول المطلوبة.",
+    "branchCreatedSuccessfully": "تم إنشاء الفرع بنجاح.",
+    "failedToCreateBranchRetry": "فشل إنشاء الفرع. يرجى المحاولة مرة أخرى.",
+    "createNewBranchHint": "أنشئ فرعًا جديدًا لهذا المستأجر.",
+    "basicInformationLabel": "المعلومات الأساسية",
+    "downtownBranchPlaceholder": "مثال: فرع وسط المدينة",
+    "downtownBranchSlugPlaceholder": "مثال: downtown-branch",
+    "lowercaseSlugHint": "أحرف صغيرة وأرقام وشرطات فقط.",
+    "branchTypePhysical": "فعلي",
+    "branchTypeMobile": "متنقل",
+    "addressLabel": "العنوان",
+    "countryLabel": "الدولة",
+    "postalCodeLabel": "الرمز البريدي",
+    "contactOptionalLabel": "التواصل (اختياري)",
+    "createBranchLabel": "إنشاء فرع",
+    "loadingAnalyticsEllipsis": "جارٍ تحميل التحليلات…",
+    "nameEmdashAnalytics": "{name} — التحليلات",
+    "backArrowToBranch": "← العودة إلى الفرع",
+    "revenuePeriodLabel": "الإيرادات ({period})",
+    "revenueChangeLabel": "تغيّر الإيرادات",
+    "deliveredLabel": "تم التسليم",
+    "preparingLabel": "قيد التحضير",
+    "noAnalyticsAvailableForBranch": "لا توجد تحليلات متاحة لهذا الفرع.",
+    "auditLogsSubtitle": "سجل النشاط الكامل للامتثال وتصحيح الأخطاء",
+    "refreshLabel": "تحديث",
+    "exportingEllipsis": "جارٍ التصدير…",
+    "exportCsvLabel": "تصدير CSV",
+    "totalEventsLabel": "إجمالي الأحداث",
+    "criticalLabel": "حرج",
+    "warningsLabel": "التحذيرات",
+    "infoLabel": "معلومات",
+    "filtersLabel": "عوامل التصفية",
+    "searchActorTargetActionEllipsisPlaceholder": "البحث عن الفاعل، الهدف، الإجراء…",
+    "filterBySeverityAria": "التصفية حسب الخطورة",
+    "allSeveritiesOption": "كل درجات الخطورة",
+    "warningLabel": "تحذير",
+    "filterByDomainAria": "التصفية حسب المجال",
+    "allDomainsOption": "كل المجالات",
+    "fromDateAria": "من تاريخ",
+    "toDateAria": "إلى تاريخ",
+    "viewModeTimeline": "الجدول الزمني",
+    "viewModeTable": "جدول",
+    "loadingAuditLogsEllipsis": "جارٍ تحميل سجلات التدقيق…",
+    "failedToLoadAuditLogs": "فشل تحميل سجلات التدقيق.",
+    "retryLabel": "إعادة المحاولة",
+    "timestampLabel": "الطابع الزمني",
+    "actionColumnLabel": "الإجراء",
+    "severityLabel": "الخطورة",
+    "noAuditEventsMatchFilters": "لا توجد أحداث تدقيق تطابق عوامل التصفية الخاصة بك.",
+    "loadingAuditLogEllipsis": "جارٍ تحميل سجل التدقيق…",
+    "auditLogNotFoundOrFailed": "لم يتم العثور على سجل التدقيق أو فشل تحميله.",
+    "logIdLabel": "معرف السجل",
+    "changesLabel": "التغييرات",
+    "noFieldLevelChangesRecorded": "لم يتم تسجيل أي تغييرات على مستوى الحقل.",
+    "metadataLabel": "البيانات الوصفية",
+    "recentActivityByName": "النشاط الأخير بواسطة {name}",
+    "noRolesLabel": "بدون أدوار",
+    "permissionSimulatorTitle": "محاكي الأذونات",
+    "previewUserRoleCombinationHint": "معاينة ما يراه المستخدم ضمن أي مجموعة أدوار",
+    "simulateAsLabel": "المحاكاة كـ",
+    "selectRolesLabel": "اختيار الأدوار",
+    "permsCount": "{count} إذن",
+    "applyUserOverrideOptionalLabel": "تطبيق تجاوز المستخدم (اختياري)",
+    "userGrantDenyLabel": "المستخدم {id} ({grant} منح، {deny} رفض)",
+    "runSimulationLabel": "تشغيل المحاكاة",
+    "summaryLabel": "الملخص",
+    "permissionsGrantedViaOverride": "تم منح {count} إذن(ات) عبر تجاوز المستخدم",
+    "selectRolesRunSimulationHint": "اختر الأدوار وشغّل المحاكاة لمعاينة الأذونات",
+    "simulatingColonLabel": "المحاكاة جارية: {label}",
+    "backToPermissionsLabel": "العودة إلى الأذونات",
+    "userNotFoundNoPeriod": "المستخدم غير موجود",
+    "effectivePermissionsLabel": "الأذونات الفعّالة",
+    "overridesLabel": "التجاوزات",
+    "removeRoleRoleAria": "إزالة دور {role}",
+    "addRoleLowercaseLabel": "إضافة دور",
+    "legendLabel": "المفتاح",
+    "fromRoleLabel": "من الدور",
+    "grantedOverrideLabel": "تجاوز ممنوح",
+    "deniedOverrideLabel": "تجاوز مرفوض",
+    "notGrantedLabel": "غير ممنوح",
+    "changesSavedLabel": "تم حفظ التغييرات",
+    "resetAllOverridesLabel": "إعادة تعيين كل التجاوزات",
+    "clearSavedOverridesLabel": "مسح التجاوزات المحفوظة",
+    "searchPermissionsEllipsisPlaceholder": "البحث عن الأذونات…",
+    "plusOverrideLabel": "+تجاوز",
+    "minusDeniedLabel": "−مرفوض",
+    "grantOverrideTitle": "منح تجاوز",
+    "denyOverrideTitle": "رفض التجاوز",
+    "permissionManagementTitle": "إدارة الأذونات",
+    "assignRolesConfigureOverridesHint": "قم بتعيين الأدوار وتكوين تجاوزات الأذونات لكل مستخدم لهذا المستأجر.",
+    "noUsersMatchSearch": "لا يوجد مستخدمون يطابقون بحثك.",
+    "permissionsLowercaseLabel": "الأذونات",
+    "permissionFromRoleLabel": "إذن من الدور",
+    "userHasOverridesAppliedLabel": "المستخدم لديه تجاوزات مطبقة",
+    "roleBuilderTitle": "منشئ الأدوار",
+    "createCustomRoleHint": "أنشئ دورًا مخصصًا بأذونات محددة",
+    "customRoleNotActiveWarning": "يتم حفظ الأدوار المخصصة ولكنها لا تمنح أي أذونات بعد ولا تظهر في قائمة الأدوار. هذا المنشئ هو معاينة لميزة قادمة.",
+    "roleDetailsLabel": "تفاصيل الدور",
+    "nameStarLabel": "الاسم *",
+    "seniorCashierPlaceholder": "مثال: أمين صندوق أول",
+    "describeRoleResponsibilitiesPlaceholder": "صف مسؤوليات هذا الدور...",
+    "colorLabel": "اللون",
+    "cloneFromRoleLabel": "الاستنساخ من دور",
+    "permissionsSelectedCount": "تم اختيار {selected} / {total} إذن",
+    "roleColonName": "الدور: {name}",
+    "setNameToSaveLabel": "حدد اسمًا للحفظ",
+    "savedRedirectingEllipsis": "تم الحفظ! جارٍ إعادة التوجيه...",
+    "saveRoleLabel": "حفظ الدور",
+    "deselectAllLabel": "إلغاء تحديد الكل",
+    "selectAllLabel": "تحديد الكل",
+    "roleManagementTitle": "إدارة الأدوار",
+    "viewSystemRolesHint": "عرض أدوار النظام ومجموعات أذوناتها. تُدار جميع الأدوار بواسطة النظام ولا يمكن حذفها.",
+    "totalRolesLabel": "إجمالي الأدوار",
+    "systemRolesLabel": "أدوار النظام",
+    "totalPermissionsLabel": "إجمالي الأذونات",
+    "avgPermissionsPerRoleLabel": "متوسط الأذونات لكل دور",
+    "searchRolesEllipsisPlaceholder": "البحث عن الأدوار…",
+    "systemLowercaseLabel": "النظام",
+    "fullAccessLabel": "وصول كامل",
+    "toggleCapabilityFlagsHint": "بدّل أعلام القدرات لهذا المستأجر. تجاوزات المستأجر لها الأولوية على الإعدادات الافتراضية للوحدة.",
+    "eventManagementTitle": "إدارة الفعاليات",
+    "previewEventsLabel": "معاينة الفعاليات",
+    "manageBarEventsHint": "إدارة الفعاليات المباشرة والتذاكر والجداول الزمنية لمستأجري البار.",
+    "happyHourSettingsTitle": "إعدادات ساعة السعادة",
+    "configureHappyHourHint": "قم بتكوين جداول ساعة السعادة وعروض المشروبات الخاصة لمستأجري البار.",
+    "configureHappyHourDiscountsHint": "قم بتكوين جداول ساعة السعادة والخصومات لمستأجري المقهى.",
+    "cafeLoyaltyManagementTitle": "إدارة ولاء المقهى",
+    "previewLoyaltyLabel": "معاينة الولاء",
+    "loyaltyProgrammeConfigCafeHint": "تكوين برنامج الولاء لمستأجري المقهى.",
+    "routeManagementTitle": "إدارة المسارات",
+    "planManageRoutesFoodTruckHint": "خطط وأدر المسارات والمواقع اليومية لمستأجري شاحنة الطعام.",
+    "stopManagementTitle": "إدارة المحطات",
+    "configureStopsHint": "قم بتكوين المحطات المجدولة وأوقات الوصول لمستأجري شاحنة الطعام.",
+    "loyaltyManagementTitle": "إدارة الولاء",
+    "configureLoyaltyRewardsMobileCafeHint": "قم بتكوين مكافآت الولاء وأنظمة النقاط لمستأجري المقهى المتنقل.",
+    "planManageRoutesMobileCafeHint": "خطط وأدر المسارات والمواقع اليومية لمستأجري المقهى المتنقل.",
+    "liveOrdersLabel": "الطلبات المباشرة",
+    "liveReservationsLabel": "الحجوزات المباشرة",
+    "branchStatusLabel": "حالة الفرع",
+    "staffPresenceLabel": "حضور الطاقم",
+    "kitchenDisplayLabel": "شاشة المطبخ",
+    "slaMonitorLabel": "مراقب اتفاقية مستوى الخدمة",
+    "activityFeedLabel": "خلاصة النشاط",
+    "operationsDashboardTitle": "لوحة معلومات العمليات",
+    "activeOrdersLabel": "الطلبات النشطة",
+    "todayLabel": "اليوم",
+    "eventsPerMinLabel": "أحداث/دقيقة",
+    "avgPrepLabel2": "متوسط التحضير",
+    "slaComplianceLabel2": "الامتثال لاتفاقية مستوى الخدمة",
+    "eventsTodayLabel": "أحداث اليوم",
+    "cuisinesExamplePlaceholder": "متوسطي، إيطالي، قهوة",
+    "tagsExamplePlaceholder": "ليلة رومانسية، ملائم للحيوانات الأليفة، جلوس خارجي",
+    "amenitiesExamplePlaceholder": "واي فاي، مواقف سيارات، جلوس خارجي، طلبات خارجية",
+    "newYorkExamplePlaceholder": "نيويورك",
+    "janeDoeExamplePlaceholder": "جين دو",
+    "websiteSectionHero": "شعار البطل",
+    "websiteSectionFeaturedMenu": "القائمة المميزة",
+    "websiteSectionAboutUs": "من نحن",
+    "websiteSectionOurLocations": "مواقعنا",
+    "heroLayoutACenteredLabel": "في المنتصف",
+    "heroLayoutACenteredDesc": "تخطيط في المنتصف مع العنوان وزر الدعوة للعمل في الوسط",
+    "heroLayoutBLeftAlignedLabel": "محاذاة لليسار",
+    "heroLayoutBLeftAlignedDesc": "عنوان محاذٍ لليسار مع صورة على اليمين",
+    "heroLayoutCSplitLabel": "منقسم",
+    "heroLayoutCSplitDesc": "تخطيط منقسم مع المحتوى على جانب والصور على الجانب الآخر",
+    "heroLayoutDMinimalLabel": "بسيط",
+    "heroLayoutDMinimalDesc": "تخطيط بسيط بخط نظيف بدون صور",
+    "heroLayoutECinematicLabel": "سينمائي",
+    "heroLayoutECinematicDesc": "تخطيط سينمائي كامل مع صورة خلفية جريئة",
+    "ctaReserveATable": "احجز طاولة",
+    "ctaOrderOnline": "اطلب عبر الإنترنت",
+    "ctaViewMenu": "عرض القائمة",
+    "ctaContactUs": "اتصل بنا",
+    "ctaGetDirections": "الحصول على الاتجاهات",
+    "ctaSeePromotions": "عرض العروض",
+    "ctaJoinLoyalty": "الانضمام لبرنامج الولاء",
+    "ctaViewGallery": "عرض المعرض",
+    "ctaReadReviews": "قراءة التقييمات",
+    "templateGrid": "شبكة",
+    "templateSlider": "شريط تمرير",
+    "templateMasonry": "بناء متداخل",
+    "templateCompact": "مضغوط",
+    "templateCards": "بطاقات",
+    "templateCarousel": "دائري",
+    "templateMinimal": "بسيط",
+    "templateMapLeft": "الخريطة يسار",
+    "templateMapRight": "الخريطة يمين",
+    "templateCard": "بطاقة",
+    "templateStoryLeft": "القصة يسار",
+    "templateStoryRight": "القصة يمين",
+    "templateWide": "عريض",
+    "navGroupPlatform": "المنصة",
+    "navGroupUsers": "المستخدمون",
+    "navGroupBusinesses": "الأعمال",
+    "navGroupSubscriptions": "الاشتراكات",
+    "navGroupConfiguration": "الإعدادات",
+    "navGroupLocalization": "التوطين",
+    "navGroupSecurity": "الأمان",
+    "navGroupMonitoring": "المراقبة",
+    "navGroupInfrastructure": "البنية التحتية",
+    "navGroupAutomation": "الأتمتة",
+    "navGroupDeveloper": "المطورون",
+    "navGroupSupport": "الدعم",
+    "navGroupSystem": "النظام",
+    "categoryManagement": "إدارة الفئات",
+    "categoriesCount": "{count} فئات",
+    "categoryPageSubtitle": "إدارة فئات {branch}",
+    "selectBranchToManageCategories": "اختر فرعًا لإدارة فئاته",
+    "categoryPageNoBranchHint": "اختر فرعًا نشطًا من محول الفروع لعرض فئاته وإدارتها.",
+    "addCategory": "إضافة فئة",
+    "searchCategoriesPlaceholder": "بحث في الفئات...",
+    "loadingCategories": "جارٍ تحميل الفئات...",
+    "failedToLoadCategories": "فشل تحميل الفئات.",
+    "noCategoriesFound": "لا توجد فئات بعد",
+    "noCategoriesHint": "أنشئ فئتك الأولى لبدء تنظيم قائمة هذا الفرع.",
+    "noCategoriesMatchSearch": "لا توجد فئات مطابقة لبحثك",
+    "sortOrder": "ترتيب الفرز",
+    "branch": "الفرع",
+    "status": "الحالة",
+    "createdDate": "تاريخ الإنشاء",
+    "actionsColumn": "الإجراءات",
+    "moveUpAria": "نقل {name} للأعلى",
+    "moveDownAria": "نقل {name} للأسفل",
+    "markInactive": "تعيين كغير نشط",
+    "markActive": "تعيين كنشط",
+    "editCategoryAria": "تعديل الفئة",
+    "deleteCategoryAria": "حذف الفئة",
+    "editCategory": "تعديل الفئة",
+    "deleteCategory": "حذف الفئة",
+    "confirmDeleteCategory": "هل أنت متأكد أنك تريد حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
+    "failedToCreateCategoryRetry": "فشل إنشاء الفئة. يرجى المحاولة مرة أخرى.",
+    "failedToDeleteCategoryRetry": "فشل حذف الفئة. يرجى المحاولة مرة أخرى.",
+    "categoryNameLabel": "اسم الفئة",
+    "sortOrderLabel": "ترتيب الفرز",
+    "categoryFormError": {
+      "nameRequired": "اسم الفئة مطلوب.",
+      "invalidSortOrder": "يجب أن يكون ترتيب الفرز رقمًا صحيحًا موجبًا."
+    },
+    "extrasManagement": "إدارة الإضافات",
+    "extraGroupsCount": "{count} مجموعات إضافات",
+    "extrasPageSubtitle": "إدارة إضافات {branch}",
+    "selectBranchToManageExtras": "اختر فرعًا لإدارة إضافاته",
+    "extrasPageNoBranchHint": "اختر فرعًا نشطًا من محول الفروع لعرض مجموعات الإضافات وإدارتها.",
+    "addExtraGroup": "إضافة مجموعة إضافات",
+    "searchExtrasPlaceholder": "بحث في المجموعات أو الإضافات...",
+    "loadingExtras": "جارٍ تحميل الإضافات...",
+    "failedToLoadExtras": "فشل تحميل الإضافات.",
+    "noExtraGroupsFound": "لا توجد مجموعات إضافات بعد",
+    "noExtraGroupsHint": "أنشئ أول مجموعة إضافات (مثل الحجم، الصلصات، الإضافات) لبدء إضافة العناصر.",
+    "noExtrasMatchSearch": "لا توجد مجموعات أو إضافات مطابقة لبحثك",
+    "toggleGroupAria": "تبديل مجموعة {name}",
+    "requiredBadge": "إلزامي",
+    "minMaxBadge": "الحد الأدنى {min} / الحد الأقصى {max}",
+    "editExtraGroupAria": "تعديل مجموعة الإضافات",
+    "deleteExtraGroupAria": "حذف مجموعة الإضافات",
+    "noExtrasInGroup": "لا توجد إضافات في هذه المجموعة بعد",
+    "addExtra": "إضافة عنصر إضافي",
+    "priceColumn": "السعر",
+    "editExtraAria": "تعديل العنصر الإضافي",
+    "deleteExtraAria": "حذف العنصر الإضافي",
+    "editExtraGroup": "تعديل مجموعة الإضافات",
+    "deleteExtraGroup": "حذف مجموعة الإضافات",
+    "confirmDeleteExtraGroup": "هل أنت متأكد أنك تريد حذف {name}؟ سيتم أيضًا حذف عناصرها الإضافية. لا يمكن التراجع عن هذا الإجراء.",
+    "failedToCreateExtraGroupRetry": "فشل إنشاء مجموعة الإضافات. يرجى المحاولة مرة أخرى.",
+    "failedToDeleteExtraGroupRetry": "فشل حذف مجموعة الإضافات. يرجى المحاولة مرة أخرى.",
+    "editExtra": "تعديل العنصر الإضافي",
+    "deleteExtra": "حذف العنصر الإضافي",
+    "confirmDeleteExtra": "هل أنت متأكد أنك تريد حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
+    "failedToCreateExtraRetry": "فشل إنشاء العنصر الإضافي. يرجى المحاولة مرة أخرى.",
+    "failedToDeleteExtraRetry": "فشل حذف العنصر الإضافي. يرجى المحاولة مرة أخرى.",
+    "extraGroupNameLabel": "اسم المجموعة",
+    "selectionTypeLabel": "نوع الاختيار",
+    "minSelectionLabel": "الحد الأدنى للاختيار",
+    "maxSelectionLabel": "الحد الأقصى للاختيار",
+    "extraNameLabel": "اسم العنصر الإضافي",
+    "extraGroupsLabel": "مجموعات الإضافات",
+    "noExtraGroupsAvailable": "لا توجد مجموعات إضافات متاحة لهذا الفرع بعد.",
+    "assignedGroupsPreview": "المُعيَّنة:",
+    "selectionType": {
+      "single": "اختيار واحد",
+      "multiple": "اختيار متعدد"
+    },
+    "extrasStatusFilter": {
+      "all": "الكل",
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
+    "extraGroupFormError": {
+      "nameRequired": "اسم المجموعة مطلوب.",
+      "duplicateName": "توجد مجموعة بهذا الاسم بالفعل في هذا الفرع.",
+      "invalidLimits": "يجب أن يكون الحد الأدنى/الأقصى للاختيار صحيحًا (الحد الأدنى ≤ الحد الأقصى، وعلى الأقل 1 إذا كان إلزاميًا)."
+    },
+    "extraFormError": {
+      "nameRequired": "اسم العنصر الإضافي مطلوب.",
+      "duplicateName": "يوجد عنصر إضافي بهذا الاسم بالفعل في هذا الفرع.",
+      "negativePrice": "لا يمكن أن يكون السعر سالبًا."
+    },
+    "brandingLabel": "الهوية البصرية",
+    "localeLabel": "الإعدادات المحلية",
+    "timeZoneLabel": "المنطقة الزمنية",
+    "currencyLabel": "العملة",
+    "languageLabel": "اللغة",
+    "defaultBranchLabel": "الفرع الافتراضي لهذا المستأجر",
+    "orderingEnabledLabel": "الطلب مُفعّل",
+    "deliveryEnabledLabel": "التوصيل مُفعّل",
+    "pickupEnabledLabel": "الاستلام مُفعّل",
+    "dineInEnabledLabel": "تناول الطعام في المطعم مُفعّل",
+    "reservationsEnabledLabel": "الحجوزات مُفعّلة",
+    "marketplaceVisibleLabel": "مرئي في السوق",
+    "maxCapacityLabel": "السعة القصوى",
+    "workingHoursLabel": "ساعات العمل",
+    "openTimeAria": "وقت فتح {day}",
+    "closeTimeAria": "وقت إغلاق {day}",
+    "invalidSlugError": "يجب أن يحتوي المعرف على أحرف صغيرة وأرقام وشرطات فقط.",
+    "invalidEmailError": "يرجى إدخال عنوان بريد إلكتروني صالح.",
+    "invalidPhoneError": "يرجى إدخال رقم هاتف صالح.",
+    "invalidWorkingHoursError": "يجب أن يكون وقت الفتح قبل وقت الإغلاق في كل يوم عمل.",
+    "duplicateSlugError": "يوجد فرع بهذا المعرف بالفعل لهذا المستأجر.",
+    "branchUpdatedSuccessfully": "تم تحديث الفرع بنجاح.",
+    "failedToUpdateBranchRetry": "فشل تحديث الفرع. يرجى المحاولة مرة أخرى.",
+    "editBranchLabel": "تعديل الفرع",
+    "defaultBadge": "افتراضي",
+    "setAsDefaultLabel": "تعيين كافتراضي",
+    "defaultBranchUpdated": "تم تحديث الفرع الافتراضي.",
+    "deleteBranchLabel": "حذف الفرع",
+    "confirmDeleteBranch": "هل أنت متأكد أنك تريد حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
+    "deleteActiveBranchWarning": "هذا هو فرعك النشط حاليًا في لوحة التحكم. سيتطلب حذفه اختيار فرع آخر.",
+    "cannotDeleteLastBranch": "هذا هو الفرع الوحيد لهذا المستأجر ولا يمكن حذفه. يجب أن يكون لدى المستأجر فرع واحد على الأقل دائمًا.",
+    "branchDeletedSuccessfully": "تم حذف الفرع بنجاح.",
+    "failedToDeleteBranchRetry": "فشل حذف الفرع. يرجى المحاولة مرة أخرى.",
+    "deletingEllipsis": "جارٍ الحذف...",
+    "timeZoneColonValue": "المنطقة الزمنية: {value}",
+    "currencyColonValue": "العملة: {value}",
+    "languageColonValue": "اللغة: {value}",
+    "orderingColonValue": "الطلب: {value}",
+    "marketplaceVisibleColonValue": "الظهور في السوق: {value}",
+    "selectBranchToManageMenu": "اختر فرعًا لإدارة القائمة الخاصة به"
+  },
+  "configFields": {
+    "authentication": {
+      "name": "المصادقة",
+      "description": "قواعد تسجيل الدخول بالهاتف/رمز التحقق، سياسة التسجيل، وحدود قفل الحساب.",
+      "core": {
+        "title": "التبديلات الأساسية"
+      },
+      "otp": {
+        "title": "رمز التحقق",
+        "enabled": {
+          "title": "تفعيل تسجيل الدخول برمز التحقق"
+        },
+        "length": {
+          "title": "طول رمز التحقق"
+        },
+        "ttl_seconds": {
+          "title": "مدة صلاحية رمز التحقق (بالثواني)"
+        },
+        "resend_cooldown_seconds": {
+          "title": "مهلة إعادة الإرسال (بالثواني)"
+        },
+        "max_verify_attempts": {
+          "title": "الحد الأقصى لمحاولات التحقق من الرمز",
+          "description": "يختلف عن الحد الأقصى لمحاولات تسجيل الدخول (بكلمة المرور) — يحدّ من المحاولات على رمز تحقق واحد صادر."
+        }
+      },
+      "lockout": {
+        "title": "محاولات الدخول والقفل"
+      },
+      "demo": {
+        "title": "تجريبي / محاكاة"
+      },
+      "group": "الأمان",
+      "enabled": {
+        "title": "تفعيل المصادقة",
+        "description": "مفتاح إيقاف على مستوى المنصة لجميع نقاط تسجيل الدخول والتسجيل ورمز التحقق."
+      },
+      "phone_login_enabled": {
+        "title": "تفعيل تسجيل الدخول بالهاتف",
+        "description": "إعداد خاص بالمنصة يُطبَّق على مستوى المنصة فقط؛ إمكانية التخصيص على مستوى المستأجر جاهزة في المخطط لكن لم تُفعَّل بعد."
+      },
+      "email_login_enabled": {
+        "title": "تفعيل تسجيل الدخول بالبريد الإلكتروني",
+        "description": "خاص بالمنصة لنفس سبب تسجيل الدخول بالهاتف."
+      },
+      "guest_checkout_enabled": {
+        "title": "تفعيل الدفع كضيف",
+        "description": "مسجّل لتكامل مستقبلي مع تدفق الدفع — لا يوجد مستهلك فعلي بعد."
+      },
+      "max_login_attempts": {
+        "title": "الحد الأقصى لمحاولات تسجيل الدخول"
+      },
+      "lockout_duration_minutes": {
+        "title": "مدة القفل (بالدقائق)"
+      },
+      "registration_enabled": {
+        "title": "تفعيل التسجيل الذاتي"
+      },
+      "jwt_access_ttl_minutes": {
+        "title": "مدة صلاحية رمز الوصول (بالدقائق)"
+      },
+      "jwt_refresh_ttl_days": {
+        "title": "مدة صلاحية رمز التحديث (بالأيام)",
+        "description": "يحدد العمر الأقصى لملف تعريف ارتباط المصادقة المطابق."
+      },
+      "demo_login_enabled": {
+        "title": "تفعيل تسجيل الدخول التجريبي",
+        "description": "يحدد ما إذا كانت بيانات الاعتماد التجريبية المعروفة مقبولة لتسجيل الدخول/التحقق — يختلف عن تفعيل المصادقة الوهمية."
+      },
+      "demo_accounts_visible": {
+        "title": "إظهار الحسابات التجريبية في الواجهة",
+        "description": "يحدد ما إذا كانت شبكة الحسابات التجريبية بنقرة واحدة تظهر في صفحة تسجيل الدخول."
+      },
+      "mock_authentication_enabled": {
+        "title": "تفعيل المصادقة الوهمية",
+        "description": "مفتاح رئيسي قابل للتدقيق لكامل فرع خدمة المصادقة الوهمية."
+      }
+    },
+    "languages": {
+      "name": "اللغات",
+      "description": "اللغات المدعومة، اللغة الافتراضية، وقواعد العرض من اليمين لليسار.",
+      "locales": {
+        "title": "اللغات"
+      },
+      "supported": {
+        "title": "اللغات المدعومة",
+        "description": "اللغات المتاحة في مبدّل اللغة."
+      },
+      "default": {
+        "title": "اللغة الافتراضية",
+        "description": "اللغة المستخدمة عند عدم وجود تفضيل للمستخدم أو تجاوز للمستأجر."
+      },
+      "rtl_locales": {
+        "title": "لغات من اليمين لليسار",
+        "description": "اللغات المعروضة من اليمين إلى اليسار."
+      },
+      "group": "الإعدادات"
+    },
+    "platform": {
+      "overview": {
+        "name": "نظرة عامة على المنصة",
+        "description": "الهوية العليا للمنصة وسلوك الصفحة الافتراضي لمركز الإدارة.",
+        "general": {
+          "title": "عام"
+        },
+        "platform_name": {
+          "title": "اسم المنصة"
+        },
+        "default_landing_widget_set": {
+          "title": "مجموعة أدوات لوحة التحكم الافتراضية",
+          "options": {
+            "standard": {
+              "label": "قياسي"
+            },
+            "finance_focused": {
+              "label": "مركّز على المالية"
+            },
+            "ops_focused": {
+              "label": "مركّز على العمليات"
+            }
+          }
+        },
+        "group": "المنصة"
+      },
+      "maintenance_mode": {
+        "name": "وضع الصيانة",
+        "description": "وضع صيانة على مستوى المنصة — يحظر حركة المرور الموجهة للمستأجرين عند التفعيل.",
+        "general": {
+          "title": "عام"
+        },
+        "enabled": {
+          "title": "وضع الصيانة مفعّل"
+        },
+        "message": {
+          "title": "رسالة الصيانة"
+        },
+        "allow_platform_admin_access": {
+          "title": "السماح بوصول مدير المنصة أثناء الصيانة"
+        },
+        "group": "المنصة"
+      },
+      "system_status": {
+        "name": "حالة النظام",
+        "description": "تهيئة صفحة حالة النظام العامة.",
+        "general": {
+          "title": "عام"
+        },
+        "status_page_enabled": {
+          "title": "صفحة الحالة العامة مفعّلة"
+        },
+        "show_incident_history": {
+          "title": "إظهار سجل الحوادث"
+        },
+        "group": "المنصة"
+      },
+      "users": {
+        "name": "مستخدمو المنصة",
+        "description": "موظفو سامور الذين لديهم وصول إلى مركز إدارة المنصة — مختلفون عن موظفي أي مستأجر.",
+        "general": {
+          "title": "عام"
+        },
+        "registry": {
+          "title": "مستخدمو المنصة",
+          "description": "كل مستخدم داخلي في المنصة ودوره على مستوى المنصة.",
+          "schema": {
+            "role": {
+              "title": "دور المنصة",
+              "options": {
+                "platform_owner": {
+                  "label": "المالك"
+                },
+                "platform_super_admin": {
+                  "label": "مسؤول متقدم"
+                },
+                "platform_admin": {
+                  "label": "مسؤول"
+                },
+                "platform_support": {
+                  "label": "الدعم"
+                },
+                "platform_operations": {
+                  "label": "العمليات"
+                },
+                "platform_finance": {
+                  "label": "المالية"
+                },
+                "platform_security": {
+                  "label": "الأمان"
+                },
+                "platform_developer": {
+                  "label": "المطور"
+                },
+                "platform_auditor": {
+                  "label": "المدقق"
+                },
+                "platform_read_only": {
+                  "label": "قراءة فقط"
+                }
+              }
+            },
+            "active": {
+              "title": "نشط"
+            },
+            "mfa_enabled": {
+              "title": "تفعيل المصادقة الثنائية"
+            },
+            "last_login_note": {
+              "title": "ملاحظات"
+            }
+          }
+        },
+        "group": "المستخدمون"
+      },
+      "languages": {
+        "name": "إدارة اللغات",
+        "description": "جميع لغات المنصة — التفعيل والطباعة والتنسيق واللغة الاحتياطية وتغطية الترجمة.",
+        "group": "التوطين",
+        "registry": {
+          "title": "اللغات",
+          "schema": {
+            "nativeName": {
+              "title": "الاسم الأصلي",
+              "description": "اسم اللغة مكتوبًا بها هي نفسها، مثلاً «فارسی»."
+            },
+            "englishName": {
+              "title": "الاسم بالإنجليزية"
+            },
+            "region": {
+              "title": "المنطقة"
+            },
+            "searchKeywords": {
+              "title": "كلمات البحث",
+              "description": "مصطلحات إضافية يجب أن تكون هذه اللغة قابلة للبحث بها (أسماء بديلة، تهجئات بديلة)."
+            },
+            "notes": {
+              "title": "ملاحظات"
+            },
+            "status": {
+              "title": "الحالة",
+              "options": {
+                "draft": {
+                  "label": "مسودة"
+                },
+                "testing": {
+                  "label": "قيد الاختبار"
+                },
+                "published": {
+                  "label": "منشور"
+                },
+                "deprecated": {
+                  "label": "مهمل"
+                },
+                "archived": {
+                  "label": "مؤرشف"
+                }
+              }
+            },
+            "enabled": {
+              "title": "مفعّل",
+              "description": "المفتاح الرئيسي للتفعيل/الإيقاف. لإدارة المنصة فقط."
+            },
+            "visibility": {
+              "title": "ظاهر في محول اللغة",
+              "description": "يظهر في محول اللغة. حالة مفعّل لكن غير مرئي يمكن الوصول إليها عبر رابط مباشر فقط."
+            },
+            "default": {
+              "title": "الافتراضي للمنصة",
+              "description": "لغة واحدة فقط يمكن أن تكون الافتراضية."
+            },
+            "beta": {
+              "title": "تجريبي مبكر"
+            },
+            "experimental": {
+              "title": "تجريبي"
+            },
+            "lastUpdated": {
+              "title": "آخر تحديث"
+            },
+            "translator": {
+              "title": "المترجم / المسؤول"
+            },
+            "version": {
+              "title": "الإصدار",
+              "description": "علامة مراجعة حرة لهذا الإدخال اللغوي، تُحدَّث مع التغييرات المنشورة."
+            },
+            "translationCoverage": {
+              "title": "نسبة تغطية الترجمة",
+              "description": "نسبة مفاتيح اللغة المرجعية (الإنجليزية) التي لها قيمة في هذه اللغة."
+            },
+            "completionPercent": {
+              "title": "نسبة الإنجاز",
+              "description": "نسبة المفاتيح المترجمة التي تُعتبر نهائية (تمت مراجعتها، وليست آلية فقط)."
+            },
+            "machineTranslated": {
+              "title": "مترجم آليًا"
+            },
+            "humanReviewed": {
+              "title": "تمت مراجعته بشريًا"
+            },
+            "currency": {
+              "title": "العملة الافتراضية"
+            },
+            "timezone": {
+              "title": "المنطقة الزمنية الافتراضية"
+            },
+            "dateStyle": {
+              "title": "تنسيق التاريخ",
+              "description": "نمط التاريخ Intl.DateTimeFormat.",
+              "options": {
+                "short": {
+                  "label": "قصير"
+                },
+                "medium": {
+                  "label": "متوسط"
+                },
+                "long": {
+                  "label": "طويل"
+                },
+                "full": {
+                  "label": "كامل"
+                }
+              }
+            },
+            "hourCycle": {
+              "title": "تنسيق الوقت",
+              "description": "دورة الساعة Intl.DateTimeFormat.",
+              "options": {
+                "h12": {
+                  "label": "12 ساعة"
+                },
+                "h23": {
+                  "label": "24 ساعة"
+                }
+              }
+            },
+            "numberNotation": {
+              "title": "تنسيق الأرقام",
+              "description": "ترميز Intl.NumberFormat.",
+              "options": {
+                "standard": {
+                  "label": "قياسي (1,234,567)"
+                },
+                "compact": {
+                  "label": "مضغوط (1.2M)"
+                }
+              }
+            },
+            "pluralRules": {
+              "title": "لغة قواعد الجمع",
+              "description": "علامة BCP 47 التي يجب إنشاء Intl.PluralRules بها."
+            },
+            "fallbackLanguage": {
+              "title": "اللغة الاحتياطية",
+              "description": "مؤشر احتياطي بخطوة واحدة؛ حل السلسلة هو اجتياز بسيط."
+            },
+            "direction": {
+              "title": "الاتجاه",
+              "options": {
+                "ltr": {
+                  "label": "من اليسار لليمين"
+                },
+                "rtl": {
+                  "label": "من اليمين لليسار"
+                }
+              }
+            },
+            "rtl": {
+              "title": "من اليمين لليسار",
+              "description": "يجب أن يتوافق مع حقل الاتجاه."
+            },
+            "fontFamily": {
+              "title": "الخط الأساسي"
+            },
+            "secondaryFontFamily": {
+              "title": "الخط الثانوي"
+            },
+            "headingFontFamily": {
+              "title": "خط العناوين"
+            },
+            "monoFontFamily": {
+              "title": "الخط أحادي التباعد"
+            },
+            "fontScale": {
+              "title": "مقياس الخط",
+              "description": "مضاعف يُطبَّق على حجم الخط الأساسي للمنصة."
+            },
+            "lineHeight": {
+              "title": "ارتفاع السطر"
+            },
+            "letterSpacing": {
+              "title": "تباعد الأحرف (em)"
+            },
+            "fontWeight": {
+              "title": "الوزن الأساسي"
+            }
+          }
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "support_tickets": {
+        "name": "تذاكر الدعم",
+        "description": "توجيه تذاكر الدعم وإعدادات اتفاقية مستوى الخدمة.",
+        "group": "الدعم",
+        "default_sla_hours": {
+          "title": "اتفاقية الرد الأول الافتراضية (ساعات)"
+        },
+        "auto_assign_enabled": {
+          "title": "تعيين التذاكر تلقائيًا"
+        },
+        "escalation_threshold_hours": {
+          "title": "التصعيد بعد (ساعات)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "tenants": {
+        "name": "المستأجرون",
+        "description": "جميع الأنشطة التجارية العاملة على المنصة، مع الحالة والخطة وعلامات المراجعة الداخلية.",
+        "group": "الأعمال",
+        "registry": {
+          "title": "المستأجرون",
+          "description": "جميع الأنشطة التجارية للمستأجرين على المنصة.",
+          "schema": {
+            "status": {
+              "title": "الحالة",
+              "options": {
+                "active": {
+                  "label": "نشط"
+                },
+                "trial": {
+                  "label": "تجريبي"
+                },
+                "suspended": {
+                  "label": "معلّق"
+                },
+                "churned": {
+                  "label": "مغادر"
+                }
+              }
+            },
+            "plan": {
+              "title": "الخطة",
+              "options": {
+                "starter": {
+                  "label": "مبتدئ"
+                },
+                "growth": {
+                  "label": "نمو"
+                },
+                "enterprise": {
+                  "label": "مؤسسات"
+                }
+              }
+            },
+            "business_type": {
+              "title": "نوع النشاط التجاري"
+            },
+            "verified": {
+              "title": "نشاط تجاري موثق"
+            },
+            "flagged_for_review": {
+              "title": "معلّم للمراجعة"
+            },
+            "notes": {
+              "title": "ملاحظات داخلية"
+            }
+          }
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "business_owners": {
+        "name": "أصحاب الأعمال",
+        "description": "حساب المالك الرئيسي لكل نشاط تجاري للمستأجر.",
+        "group": "الأعمال",
+        "require_verified_email": {
+          "title": "طلب بريد إلكتروني موثق"
+        },
+        "require_verified_phone": {
+          "title": "طلب هاتف موثق"
+        },
+        "max_owned_businesses": {
+          "title": "الحد الأقصى للأعمال لكل مالك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "branches": {
+        "name": "الفروع",
+        "description": "عرض شامل على مستوى المنصة لجميع الفروع/المواقع عبر جميع المستأجرين.",
+        "group": "الأعمال",
+        "max_branches_per_tenant": {
+          "title": "الحد الأقصى للفروع لكل مستأجر"
+        },
+        "require_address_verification": {
+          "title": "طلب التحقق من العنوان"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "plans": {
+        "name": "الخطط",
+        "description": "خطط التسعير المتاحة للمستأجرين (مبتدئ، نمو، مؤسسات).",
+        "group": "الاشتراكات",
+        "trial_days": {
+          "title": "مدة التجربة الافتراضية (بالأيام)"
+        },
+        "allow_plan_downgrade": {
+          "title": "السماح بالتخفيض الذاتي"
+        },
+        "grace_period_days": {
+          "title": "فترة سماح الدفع (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "billing": {
+        "name": "الفوترة",
+        "description": "دورة الفوترة على مستوى المنصة وإعدادات متابعة المدفوعات المتأخرة.",
+        "group": "الاشتراكات",
+        "billing_cycle": {
+          "title": "دورة الفوترة الافتراضية",
+          "options": {
+            "monthly": {
+              "label": "شهري"
+            },
+            "annual": {
+              "label": "سنوي"
+            }
+          }
+        },
+        "dunning_retry_attempts": {
+          "title": "محاولات إعادة الدفع الفاشل"
+        },
+        "auto_suspend_on_failure": {
+          "title": "التعليق التلقائي بعد استنفاد المحاولات"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "invoices": {
+        "name": "الفواتير",
+        "description": "إعدادات إصدار الفواتير وترقيمها.",
+        "group": "الاشتراكات",
+        "invoice_prefix": {
+          "title": "بادئة رقم الفاتورة"
+        },
+        "auto_send_on_issue": {
+          "title": "إرسال الفاتورة تلقائيًا عند الإصدار"
+        },
+        "include_tax_breakdown": {
+          "title": "تضمين تفاصيل الضريبة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "queues": {
+        "name": "قوائم الانتظار",
+        "description": "إعدادات قائمة انتظار المهام الخلفية.",
+        "group": "الأتمتة",
+        "max_queue_depth": {
+          "title": "الحد الأقصى لعمق قائمة الانتظار"
+        },
+        "dead_letter_enabled": {
+          "title": "تفعيل قائمة الرسائل الميتة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "jobs": {
+        "name": "المهام",
+        "description": "سياسة إعادة المحاولة والمهلة للمهام الخلفية.",
+        "group": "الأتمتة",
+        "max_retry_attempts": {
+          "title": "الحد الأقصى لمحاولات الإعادة"
+        },
+        "job_timeout_seconds": {
+          "title": "مهلة المهمة (بالثواني)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "scheduler": {
+        "name": "المجدول",
+        "description": "سياسة تنفيذ المهام المجدولة.",
+        "group": "الأتمتة",
+        "scheduler_enabled": {
+          "title": "تفعيل المجدول"
+        },
+        "misfire_grace_seconds": {
+          "title": "فترة سماح التأخير (بالثواني)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "email_providers": {
+        "name": "مزودو البريد الإلكتروني",
+        "description": "إعدادات مزود البريد الإلكتروني التبادلي والتبديل الاحتياطي.",
+        "group": "الأتمتة",
+        "primary_provider": {
+          "title": "المزود الرئيسي",
+          "options": {
+            "sendgrid": {
+              "label": "سندغريد"
+            },
+            "ses": {
+              "label": "أمازون SES"
+            },
+            "postmark": {
+              "label": "بوستمارك"
+            },
+            "mailgun": {
+              "label": "ميلغان"
+            }
+          }
+        },
+        "failover_enabled": {
+          "title": "التبديل التلقائي عند الفشل"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "sms_providers": {
+        "name": "مزودو الرسائل النصية",
+        "description": "إعدادات مزود تسليم الرسائل النصية/رمز التحقق والتبديل الاحتياطي.",
+        "group": "الأتمتة",
+        "primary_provider": {
+          "title": "المزود الرئيسي",
+          "options": {
+            "twilio": {
+              "label": "تويليو"
+            },
+            "vonage": {
+              "label": "فوناج"
+            },
+            "sns": {
+              "label": "أمازون SNS"
+            }
+          }
+        },
+        "failover_enabled": {
+          "title": "التبديل التلقائي عند الفشل"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "push_providers": {
+        "name": "مزودو الإشعارات الفورية",
+        "description": "إعدادات مزود تسليم الإشعارات الفورية.",
+        "group": "الأتمتة",
+        "provider": {
+          "title": "المزود",
+          "options": {
+            "fcm": {
+              "label": "فايربيس للمراسلة السحابية"
+            },
+            "apns": {
+              "label": "خدمة إشعارات آبل الفورية"
+            },
+            "onesignal": {
+              "label": "ون سيغنال"
+            }
+          }
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "oauth_providers": {
+        "name": "مزودو OAuth",
+        "description": "مزودو تسجيل الدخول عبر OAuth من جهات خارجية المتاحون للمستأجرين.",
+        "group": "الأتمتة",
+        "google_enabled": {
+          "title": "غوغل"
+        },
+        "apple_enabled": {
+          "title": "آبل"
+        },
+        "facebook_enabled": {
+          "title": "فيسبوك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "announcements": {
+        "name": "الإعلانات",
+        "description": "إعدادات لافتة الإعلانات على مستوى المنصة.",
+        "group": "المنصة",
+        "banner_enabled": {
+          "title": "تفعيل لافتة الإعلان"
+        },
+        "banner_message": {
+          "title": "رسالة اللافتة"
+        },
+        "banner_severity": {
+          "title": "الخطورة",
+          "options": {
+            "info": {
+              "label": "معلومة"
+            },
+            "warning": {
+              "label": "تحذير"
+            },
+            "critical": {
+              "label": "حرج"
+            }
+          }
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "media": {
+        "name": "الوسائط",
+        "description": "حدود ومعالجة الوسائط المرفوعة.",
+        "group": "البنية التحتية",
+        "max_upload_size_mb": {
+          "title": "الحد الأقصى لحجم الرفع (ميغابايت)"
+        },
+        "auto_generate_thumbnails": {
+          "title": "إنشاء صور مصغرة تلقائيًا"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "cdn": {
+        "name": "شبكة توصيل المحتوى",
+        "description": "سياسة التخزين المؤقت الطرفي والمسح لشبكة CDN.",
+        "group": "البنية التحتية",
+        "default_cache_ttl_seconds": {
+          "title": "مدة التخزين المؤقت الافتراضية (بالثواني)"
+        },
+        "auto_purge_on_deploy": {
+          "title": "المسح التلقائي عند النشر"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "cache": {
+        "name": "التخزين المؤقت",
+        "description": "إعدادات التخزين المؤقت على مستوى التطبيق.",
+        "group": "البنية التحتية",
+        "cache_provider": {
+          "title": "مزود التخزين المؤقت",
+          "options": {
+            "in_memory": {
+              "label": "في الذاكرة"
+            },
+            "redis": {
+              "label": "ريديس"
+            },
+            "memcached": {
+              "label": "ميمكاشد"
+            }
+          }
+        },
+        "default_ttl_seconds": {
+          "title": "المدة الافتراضية (بالثواني)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "backups": {
+        "name": "النسخ الاحتياطية",
+        "description": "جدولة النسخ الاحتياطي التلقائي والاحتفاظ به.",
+        "group": "البنية التحتية",
+        "backup_frequency": {
+          "title": "تكرار النسخ الاحتياطي",
+          "options": {
+            "hourly": {
+              "label": "كل ساعة"
+            },
+            "daily": {
+              "label": "يومي"
+            },
+            "weekly": {
+              "label": "أسبوعي"
+            }
+          }
+        },
+        "backup_retention_days": {
+          "title": "مدة الاحتفاظ بالنسخ الاحتياطية (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "restore": {
+        "name": "الاستعادة",
+        "description": "ضمانات الاستعادة من النسخة الاحتياطية.",
+        "group": "البنية التحتية",
+        "require_dual_approval": {
+          "title": "طلب موافقة مزدوجة للاستعادة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "database": {
+        "name": "قاعدة البيانات",
+        "description": "تجمع اتصالات قاعدة البيانات وحدود أمان الاستعلامات.",
+        "group": "البنية التحتية",
+        "max_connections": {
+          "title": "الحد الأقصى لحجم تجمع الاتصالات"
+        },
+        "slow_query_threshold_ms": {
+          "title": "حد الاستعلام البطيء (مللي ثانية)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "search_infra": {
+        "name": "البحث",
+        "description": "إعدادات فهرس البحث في المنصة (يختلف عن لوحة أوامر الاستوديو).",
+        "group": "البنية التحتية",
+        "reindex_frequency_hours": {
+          "title": "تكرار إعادة الفهرسة (ساعات)"
+        },
+        "fuzzy_matching_enabled": {
+          "title": "تفعيل المطابقة التقريبية"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "metrics": {
+        "name": "المقاييس",
+        "description": "جمع المقاييس على مستوى المنصة والاحتفاظ بها.",
+        "group": "المراقبة",
+        "metrics_retention_days": {
+          "title": "مدة الاحتفاظ بالمقاييس (بالأيام)"
+        },
+        "sample_rate_percent": {
+          "title": "معدل أخذ العينات (%)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "health": {
+        "name": "الصحة",
+        "description": "إعدادات وحدود فحص صحة الخدمة.",
+        "group": "المراقبة",
+        "healthcheck_interval_seconds": {
+          "title": "فاصل فحص الصحة (بالثواني)"
+        },
+        "degraded_latency_ms": {
+          "title": "حد زمن الاستجابة المتدهور (مللي ثانية)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "incidents": {
+        "name": "الحوادث",
+        "description": "مستويات خطورة الحوادث وسياسة التصعيد.",
+        "group": "المراقبة",
+        "auto_page_on_sev1": {
+          "title": "استدعاء تلقائي للحوادث من الدرجة الأولى"
+        },
+        "public_status_page_enabled": {
+          "title": "تفعيل صفحة الحالة العامة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "errors": {
+        "name": "الأخطاء",
+        "description": "معدل أخذ عينات تتبع الأخطاء وحدود التنبيه.",
+        "group": "المراقبة",
+        "error_rate_alert_threshold": {
+          "title": "حد تنبيه معدل الأخطاء (%)"
+        },
+        "group_similar_errors": {
+          "title": "تجميع الأخطاء المتشابهة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "activity_logs": {
+        "name": "سجلات النشاط",
+        "description": "الاحتفاظ برؤية موجز نشاط المستخدمين عبر المستأجرين.",
+        "group": "المراقبة",
+        "activity_log_retention_days": {
+          "title": "مدة الاحتفاظ بسجل النشاط (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "analytics": {
+        "name": "التحليلات",
+        "description": "إعدادات تجميع التحليلات عبر المستأجرين.",
+        "group": "المراقبة",
+        "aggregation_window": {
+          "title": "نافذة التجميع الافتراضية",
+          "options": {
+            "hourly": {
+              "label": "كل ساعة"
+            },
+            "daily": {
+              "label": "يومي"
+            },
+            "weekly": {
+              "label": "أسبوعي"
+            }
+          }
+        },
+        "include_churned_tenants": {
+          "title": "تضمين المستأجرين المغادرين في التجميعات"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "audit_logs": {
+        "name": "سجلات تدقيق المنصة",
+        "description": "سجل تدقيق إداري على مستوى المنصة (عبر المستأجرين).",
+        "group": "المراقبة",
+        "audit_log_retention_days": {
+          "title": "مدة الاحتفاظ بسجل التدقيق (بالأيام)"
+        },
+        "require_reason_for_destructive_actions": {
+          "title": "طلب سبب للإجراءات المدمرة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "roles": {
+        "name": "الأدوار",
+        "description": "أدوار على مستوى المنصة (تختلف عن التحكم بالوصول لدى المستأجر) وما يمنحه كل منها.",
+        "group": "الأمان",
+        "allow_custom_roles": {
+          "title": "السماح بأدوار مخصصة للمنصة"
+        },
+        "require_approval_for_owner_grant": {
+          "title": "طلب موافقة لمنح دور المالك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "permissions": {
+        "name": "الصلاحيات",
+        "description": "مفاتيح الصلاحيات المتاحة لأدوار المنصة.",
+        "group": "الأمان",
+        "strict_wildcard_grants": {
+          "title": "قصر منح الصلاحية الشاملة (*) على المالك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "security_center": {
+        "name": "مركز الأمان",
+        "description": "الوضع الأمني على مستوى المنصة: حالات دخول شاذة ونشاط مشبوه وضوابط الإغلاق الطارئ.",
+        "group": "الأمان",
+        "anomaly_detection_enabled": {
+          "title": "كشف حالات الدخول الشاذة"
+        },
+        "auto_lock_on_anomaly": {
+          "title": "قفل الحساب تلقائيًا عند اكتشاف حالة شاذة"
+        },
+        "platform_lockdown_mode": {
+          "title": "وضع الإغلاق الطارئ للمنصة",
+          "description": "مفتاح طوارئ — يحظر جميع الوصول للمنصة باستثناء المالك."
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "compliance": {
+        "name": "الامتثال",
+        "description": "تتبع وضع الامتثال لمعايير SOC 2 / PCI والتنظيمية.",
+        "group": "الأمان",
+        "soc2_compliant": {
+          "title": "متوافق مع SOC 2 النوع الثاني"
+        },
+        "pci_dss_level": {
+          "title": "مستوى PCI DSS",
+          "options": {
+            "not_applicable": {
+              "label": "غير قابل للتطبيق"
+            },
+            "level_1": {
+              "label": "المستوى 1"
+            },
+            "level_2": {
+              "label": "المستوى 2"
+            },
+            "level_3": {
+              "label": "المستوى 3"
+            },
+            "level_4": {
+              "label": "المستوى 4"
+            }
+          }
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "gdpr": {
+        "name": "اللائحة العامة لحماية البيانات",
+        "description": "معالجة طلبات أصحاب البيانات وسياسة الاحتفاظ.",
+        "group": "الأمان",
+        "data_retention_days": {
+          "title": "مدة الاحتفاظ الافتراضية بالبيانات (بالأيام)"
+        },
+        "auto_fulfill_export_requests": {
+          "title": "تنفيذ طلبات تصدير البيانات تلقائيًا"
+        },
+        "right_to_be_forgotten_enabled": {
+          "title": "تفعيل الحق في النسيان"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "fraud": {
+        "name": "الاحتيال",
+        "description": "حدود كشف الاحتيال للتسجيل والمدفوعات.",
+        "group": "الأمان",
+        "fraud_score_threshold": {
+          "title": "حد وضع علامة تلقائية على درجة الاحتيال"
+        },
+        "auto_suspend_high_risk": {
+          "title": "تعليق التسجيلات عالية الخطورة تلقائيًا"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "abuse": {
+        "name": "إساءة الاستخدام",
+        "description": "حدود قائمة انتظار بلاغات إساءة الاستخدام والإشراف التلقائي.",
+        "group": "الأمان",
+        "auto_moderate_reports": {
+          "title": "الإشراف التلقائي على المحتوى المُبلَّغ عنه"
+        },
+        "reports_before_auto_review": {
+          "title": "عدد البلاغات قبل المراجعة التلقائية"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "rate_limits": {
+        "name": "حدود المعدل",
+        "description": "حدود المعدل الافتراضية لواجهة برمجة التطبيقات والمصادقة على مستوى المنصة.",
+        "group": "الأمان",
+        "api_requests_per_minute": {
+          "title": "طلبات API في الدقيقة (لكل مفتاح)"
+        },
+        "login_attempts_per_hour": {
+          "title": "محاولات تسجيل الدخول في الساعة (لكل عنوان IP)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "session_management": {
+        "name": "إدارة الجلسات",
+        "description": "مدة جلسة موظفي المنصة وسياسة التزامن.",
+        "group": "الأمان",
+        "session_timeout_minutes": {
+          "title": "مهلة انتهاء الجلسة (بالدقائق)"
+        },
+        "max_concurrent_sessions": {
+          "title": "الحد الأقصى للجلسات المتزامنة لكل مستخدم"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "device_management": {
+        "name": "إدارة الأجهزة",
+        "description": "سياسة الأجهزة الموثوقة لتسجيل دخول موظفي المنصة.",
+        "group": "الأمان",
+        "require_device_approval": {
+          "title": "طلب موافقة على الجهاز الجديد"
+        },
+        "max_trusted_devices": {
+          "title": "الحد الأقصى للأجهزة الموثوقة لكل مستخدم"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "api_keys": {
+        "name": "مفاتيح API",
+        "description": "سياسة إصدار مفاتيح API للمنصة والمستأجرين.",
+        "group": "المطورون",
+        "max_keys_per_tenant": {
+          "title": "الحد الأقصى لمفاتيح API لكل مستأجر"
+        },
+        "default_key_expiry_days": {
+          "title": "انتهاء صلاحية المفتاح الافتراضي (بالأيام، 0 = أبدًا)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "webhooks": {
+        "name": "الويب هوك",
+        "description": "سياسة تسليم وإعادة محاولة الويب هوك الصادر.",
+        "group": "المطورون",
+        "max_endpoints_per_tenant": {
+          "title": "الحد الأقصى لنقاط نهاية الويب هوك لكل مستأجر"
+        },
+        "retry_backoff_seconds": {
+          "title": "مهلة إعادة المحاولة (بالثواني)"
+        },
+        "sign_payloads": {
+          "title": "توقيع حمولات الويب هوك"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "integrations": {
+        "name": "التكاملات",
+        "description": "التكاملات الخارجية المتاحة للمستأجرين.",
+        "group": "المطورون",
+        "allow_custom_integrations": {
+          "title": "السماح بالتكاملات المخصصة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "marketplace": {
+        "name": "السوق",
+        "description": "سياسة إدراج تطبيقات السوق الخارجية.",
+        "group": "المطورون",
+        "marketplace_enabled": {
+          "title": "تفعيل السوق"
+        },
+        "require_review_before_listing": {
+          "title": "طلب مراجعة قبل الإدراج"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "plugins": {
+        "name": "الإضافات",
+        "description": "سياسة تثبيت إضافات المنصة.",
+        "group": "المطورون",
+        "plugins_enabled": {
+          "title": "تفعيل الإضافات"
+        },
+        "sandbox_untrusted_plugins": {
+          "title": "تشغيل الإضافات غير الموثوقة في بيئة معزولة"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "ai_providers": {
+        "name": "مزودو الذكاء الاصطناعي",
+        "description": "إعدادات مزود الذكاء الاصطناعي/نموذج اللغة للميزات المدعومة من المنصة.",
+        "group": "المطورون",
+        "primary_provider": {
+          "title": "المزود الرئيسي",
+          "options": {
+            "anthropic": {
+              "label": "أنثروبيك"
+            },
+            "openai": {
+              "label": "أوبن إيه آي"
+            },
+            "google": {
+              "label": "غوغل"
+            }
+          }
+        },
+        "monthly_token_budget": {
+          "title": "الميزانية الشهرية للرموز"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "developer_tools": {
+        "name": "أدوات المطورين",
+        "description": "الوصول إلى أدوات المطورين الداخلية (لوحات التصحيح، فاحص الاستعلامات).",
+        "group": "المطورون",
+        "debug_mode_enabled": {
+          "title": "تفعيل وضع التصحيح"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "environment": {
+        "name": "البيئة",
+        "description": "تحديد بيئة النشر وضماناتها.",
+        "group": "المطورون",
+        "environment_name": {
+          "title": "اسم البيئة",
+          "options": {
+            "development": {
+              "label": "التطوير"
+            },
+            "staging": {
+              "label": "التجريبي"
+            },
+            "production": {
+              "label": "الإنتاج"
+            }
+          }
+        },
+        "protect_production_writes": {
+          "title": "تأكيد إضافي لعمليات الكتابة في بيئة الإنتاج"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "secrets": {
+        "name": "الأسرار",
+        "description": "سياسة تدوير الأسرار — لا تُخزَّن القيم الفعلية للأسرار في الإعدادات أبدًا.",
+        "group": "المطورون",
+        "rotation_period_days": {
+          "title": "فترة تدوير الأسرار (بالأيام)"
+        },
+        "alert_before_expiry_days": {
+          "title": "التنبيه قبل انتهاء الصلاحية (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "licenses": {
+        "name": "التراخيص",
+        "description": "تتبع تراخيص البرمجيات الخارجية.",
+        "group": "المطورون",
+        "license_audit_enabled": {
+          "title": "تفعيل تدقيق الامتثال للترخيص"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "version_management": {
+        "name": "إدارة الإصدارات",
+        "description": "نافذة دعم إصدار API/المخطط.",
+        "group": "المطورون",
+        "supported_api_versions": {
+          "title": "إصدارات API المدعومة"
+        },
+        "deprecation_notice_days": {
+          "title": "فترة إشعار الإهمال (بالأيام)"
+        },
+        "general": {
+          "title": "عام"
+        }
+      },
+      "migration_center": {
+        "name": "مركز الترحيل",
+        "description": "ضمانات مهام ترحيل البيانات.",
+        "group": "المطورون",
+        "require_dry_run": {
+          "title": "طلب تشغيل تجريبي قبل التنفيذ"
+        },
+        "auto_backup_before_migration": {
+          "title": "نسخ احتياطي تلقائي قبل الترحيل"
+        },
+        "general": {
+          "title": "عام"
+        }
+      }
+    },
+    "api": {
+      "name": "واجهة برمجة التطبيقات",
+      "description": "إصدارات واجهة برمجة التطبيقات العامة، قائمة CORS المسموح بها، وسياسة تسليم الويب هوك.",
+      "group": "المطورون",
+      "access": {
+        "title": "الوصول"
+      },
+      "current_version": {
+        "title": "إصدار API الحالي"
+      },
+      "cors_allowed_origins": {
+        "title": "أصول CORS المسموح بها"
+      },
+      "webhook_retry_attempts": {
+        "title": "عدد محاولات إعادة الويب هوك"
+      },
+      "public_api_enabled": {
+        "title": "تفعيل واجهة برمجة التطبيقات العامة"
+      }
+    },
+    "countries": {
+      "name": "الدول",
+      "description": "مجموعة الدول المتاحة في نماذج التسجيل والدفع واختيار اللغة، بالإضافة إلى إعدادات كل دولة.",
+      "group": "الإعدادات",
+      "availability": {
+        "title": "التوفر"
+      },
+      "enabled_codes": {
+        "title": "الدول المفعّلة",
+        "description": "رموز ISO 3166-1 المكونة من حرفين المتاحة على مستوى المنصة."
+      },
+      "pinned_codes": {
+        "title": "الدول المثبتة",
+        "description": "الرموز المثبتة أعلى قوائم اختيار الدول، حسب ترتيب العرض."
+      },
+      "default_code": {
+        "title": "الدولة الافتراضية",
+        "description": "الدولة المختارة مسبقًا عند عدم وجود مؤشر لتحديد دولة المستأجر."
+      },
+      "registry": {
+        "title": "الدول",
+        "description": "كل دولة مدعومة بخصائصها القابلة للتكوين الخاصة.",
+        "schema": {
+          "enabled": {
+            "title": "مفعّل"
+          },
+          "visible": {
+            "title": "ظاهر في القوائم"
+          },
+          "supported": {
+            "title": "مدعوم بالكامل",
+            "description": "إيقاف هذا الخيار يعني أن الدولة مدعومة جزئيًا (تغطية محدودة للميزات)."
+          },
+          "phone_login_enabled": {
+            "title": "تسجيل الدخول بالهاتف"
+          },
+          "sms_enabled": {
+            "title": "الرسائل النصية"
+          },
+          "registration_enabled": {
+            "title": "التسجيل"
+          },
+          "reservations_enabled": {
+            "title": "الحجوزات"
+          },
+          "ordering_enabled": {
+            "title": "الطلب"
+          },
+          "payments_enabled": {
+            "title": "المدفوعات"
+          },
+          "delivery_enabled": {
+            "title": "التوصيل"
+          },
+          "pickup_enabled": {
+            "title": "الاستلام"
+          },
+          "currency": {
+            "title": "العملة"
+          },
+          "timezone": {
+            "title": "المنطقة الزمنية التمثيلية"
+          },
+          "default_language": {
+            "title": "اللغة الافتراضية"
+          },
+          "default_phone_prefix": {
+            "title": "بادئة الهاتف"
+          },
+          "phone_example": {
+            "title": "مثال رقم الهاتف",
+            "description": "مثال بالتنسيق المحلي يظهر في العنصر النائب لإدخال الهاتف."
+          },
+          "vat_supported": {
+            "title": "دعم ضريبة القيمة المضافة"
+          },
+          "address_format": {
+            "title": "تنسيق العنوان",
+            "options": {
+              "street_city_state_zip": {
+                "label": "الشارع، المدينة، الولاية، الرمز البريدي (نمط أمريكي)"
+              },
+              "street_postal_city": {
+                "label": "الشارع، الرمز البريدي، المدينة (نمط أوروبي)"
+              },
+              "street_city_postal": {
+                "label": "الشارع، المدينة، الرمز البريدي"
+              },
+              "street_district_city_postal": {
+                "label": "الشارع، الحي، المدينة، الرمز البريدي"
+              },
+              "street_city_state_postal": {
+                "label": "الشارع، المدينة، الولاية، الرمز البريدي (نمط أسترالي/نيوزيلندي)"
+              }
+            }
+          },
+          "postal_code_validation": {
+            "title": "التحقق من الرمز البريدي"
+          },
+          "national_id_required": {
+            "title": "طلب رقم الهوية الوطنية",
+            "description": "جاهز للمستقبل — لم يُفرض بعد عند الدفع/التسجيل."
+          },
+          "region": {
+            "title": "المنطقة",
+            "options": {
+              "North_America": {
+                "label": "أمريكا الشمالية"
+              },
+              "South_America": {
+                "label": "أمريكا الجنوبية"
+              },
+              "Europe": {
+                "label": "أوروبا"
+              },
+              "Middle_East": {
+                "label": "الشرق الأوسط"
+              },
+              "Asia": {
+                "label": "آسيا"
+              },
+              "Africa": {
+                "label": "أفريقيا"
+              },
+              "Oceania": {
+                "label": "أوقيانوسيا"
+              }
+            }
+          },
+          "status": {
+            "title": "الحالة",
+            "options": {
+              "draft": {
+                "label": "مسودة"
+              },
+              "testing": {
+                "label": "تجريبي"
+              },
+              "published": {
+                "label": "منشور"
+              },
+              "deprecated": {
+                "label": "مهمل"
+              },
+              "archived": {
+                "label": "مؤرشف"
+              }
+            }
+          },
+          "notes": {
+            "title": "ملاحظات"
+          }
+        }
+      },
+      "registry_section": {
+        "title": "إدارة الدول",
+        "description": "إعدادات كل دولة — التفعيل والميزات والعملة واللغة وحالة الحوكمة لجميع الدول الـ176."
+      }
+    },
+    "feature_flags": {
+      "name": "أعلام الميزات",
+      "description": "مفاتيح إطلاق على مستوى المنصة تتحكم بالقدرات الكاملة قبل تمكين المستأجرين من تفعيلها.",
+      "group": "الإعدادات",
+      "platform": {
+        "title": "قدرات المنصة"
+      },
+      "website_builder": {
+        "title": "منشئ الموقع"
+      },
+      "ai_assistant": {
+        "title": "المساعد الذكي",
+        "description": "المفتاح الرئيسي للميزات المدعومة بالذكاء الاصطناعي (نص القائمة، الردود على التقييمات، الرؤى)."
+      },
+      "billing_self_serve": {
+        "title": "الفوترة الذاتية"
+      },
+      "rbac_custom_roles": {
+        "title": "أدوار مخصصة للتحكم بالوصول"
+      }
+    },
+    "monitoring": {
+      "name": "المراقبة",
+      "description": "تتبع الأخطاء وحدود وقت التشغيل وتوجيه التنبيهات.",
+      "group": "المراقبة",
+      "thresholds": {
+        "title": "الحدود"
+      },
+      "sentry_enabled": {
+        "title": "تفعيل تتبع الأخطاء"
+      },
+      "error_rate_alert_threshold_percent": {
+        "title": "حد تنبيه معدل الأخطاء (%)"
+      },
+      "api_latency_alert_ms": {
+        "title": "حد تنبيه زمن استجابة API (مللي ثانية)"
+      },
+      "alert_channels": {
+        "title": "قنوات التنبيه",
+        "options": {
+          "email": {
+            "label": "البريد الإلكتروني"
+          },
+          "sms": {
+            "label": "الرسائل النصية"
+          },
+          "slack": {
+            "label": "سلاك"
+          },
+          "pagerduty": {
+            "label": "بيجرديوتي"
+          }
+        }
+      }
+    },
+    "notifications": {
+      "name": "الإشعارات",
+      "description": "مزودو التسليم وسياسة القناة الافتراضية لإشعارات المنصة.",
+      "group": "الأتمتة",
+      "providers": {
+        "title": "المزودون"
+      },
+      "email_provider": {
+        "title": "مزود البريد الإلكتروني",
+        "options": {
+          "sendgrid": {
+            "label": "سندغريد"
+          },
+          "ses": {
+            "label": "أمازون SES"
+          },
+          "postmark": {
+            "label": "بوستمارك"
+          }
+        }
+      },
+      "sms_provider": {
+        "title": "مزود الرسائل النصية",
+        "options": {
+          "twilio": {
+            "label": "تويليو"
+          },
+          "vonage": {
+            "label": "فوناج"
+          }
+        }
+      },
+      "push_enabled": {
+        "title": "تفعيل الإشعارات الفورية"
+      },
+      "default_channels": {
+        "title": "القنوات الافتراضية",
+        "description": "القنوات المفعّلة افتراضيًا للمستخدم الجديد قبل تطبيق تفضيلاته الخاصة.",
+        "options": {
+          "push": {
+            "label": "إشعار فوري"
+          },
+          "email": {
+            "label": "البريد الإلكتروني"
+          },
+          "sms": {
+            "label": "الرسائل النصية"
+          }
+        }
+      }
+    },
+    "payments": {
+      "name": "المدفوعات",
+      "description": "مزودو الدفع المفعّلون والعملة الافتراضية وسياسة رسوم المعالجة.",
+      "group": "الاشتراكات",
+      "providers": {
+        "title": "المزودون"
+      },
+      "enabled_providers": {
+        "title": "المزودون المفعّلون",
+        "options": {
+          "stripe": {
+            "label": "سترايب"
+          },
+          "cash": {
+            "label": "الدفع عند الاستلام"
+          },
+          "wallet": {
+            "label": "محفظة المنصة"
+          },
+          "gift_card": {
+            "label": "بطاقة هدية"
+          }
+        }
+      },
+      "stripe_publishable_key": {
+        "title": "مفتاح Stripe العام"
+      },
+      "stripe_secret_key": {
+        "title": "مفتاح Stripe السري"
+      },
+      "default_currency": {
+        "title": "العملة الافتراضية",
+        "options": {
+          "USD": {
+            "label": "الدولار الأمريكي"
+          },
+          "EUR": {
+            "label": "اليورو"
+          },
+          "AED": {
+            "label": "الدرهم الإماراتي"
+          },
+          "TRY": {
+            "label": "الليرة التركية"
+          }
+        }
+      },
+      "platform_fee_percent": {
+        "title": "رسوم المنصة (%)"
+      }
+    },
+    "rbac": {
+      "name": "التحكم بالوصول القائم على الأدوار",
+      "description": "حدود الأدوار المخصصة والدور الافتراضي المخصص للموظفين المدعوين حديثًا.",
+      "group": "الأمان",
+      "roles": {
+        "title": "الأدوار"
+      },
+      "max_custom_roles_per_tenant": {
+        "title": "الحد الأقصى للأدوار المخصصة لكل مستأجر"
+      },
+      "default_invite_role": {
+        "title": "دور الدعوة الافتراضي",
+        "options": {
+          "staff": {
+            "label": "الموظفون"
+          },
+          "manager": {
+            "label": "المدير"
+          }
+        }
+      },
+      "require_mfa_for_admin": {
+        "title": "طلب المصادقة الثنائية لدور المسؤول"
+      }
+    },
+    "storage": {
+      "name": "التخزين",
+      "description": "مزود تخزين الوسائط وحدود الرفع وسلوك شبكة توصيل المحتوى.",
+      "group": "البنية التحتية",
+      "provider": {
+        "title": "مزود التخزين",
+        "options": {
+          "s3": {
+            "label": "أمازون S3"
+          },
+          "gcs": {
+            "label": "تخزين غوغل السحابي"
+          },
+          "local": {
+            "label": "قرص محلي (للتطوير فقط)"
+          }
+        }
+      },
+      "max_upload_mb": {
+        "title": "الحد الأقصى لحجم الرفع (ميغابايت)"
+      },
+      "allowed_mime_types": {
+        "title": "أنواع الملفات المسموح بها",
+        "options": {
+          "image_png": {
+            "label": "PNG"
+          },
+          "image_jpeg": {
+            "label": "JPEG"
+          },
+          "image_webp": {
+            "label": "WebP"
+          },
+          "application_pdf": {
+            "label": "PDF"
+          }
+        }
+      },
+      "cdn_base_url": {
+        "title": "رابط URL الأساسي لشبكة CDN"
+      }
+    },
+    "subscriptions": {
+      "name": "الاشتراكات",
+      "description": "خطط الفوترة ومدة التجربة وسياسة فترة السماح لاشتراكات المستأجرين.",
+      "group": "الاشتراكات",
+      "plans": {
+        "title": "الخطط"
+      },
+      "plans_catalog": {
+        "title": "كتالوج الخطط",
+        "description": "الخطط المحددة من قبل المنصة والتي يمكن للمستأجرين الاشتراك فيها."
+      },
+      "default_plan_id": {
+        "title": "الخطة الافتراضية",
+        "options": {
+          "starter": {
+            "label": "مبتدئ"
+          },
+          "growth": {
+            "label": "نمو"
+          },
+          "enterprise": {
+            "label": "مؤسسات"
+          }
+        }
+      },
+      "trial_days": {
+        "title": "مدة التجربة (بالأيام)"
+      },
+      "grace_period_days": {
+        "title": "فترة سماح الدفع (بالأيام)",
+        "description": "عدد الأيام التي يحتفظ فيها المستأجر بالوصول بعد فشل عملية الدفع."
+      }
+    },
+    "system": {
+      "name": "النظام",
+      "description": "وضع الصيانة وحدود المعدل العامة وسياسة الاحتفاظ بالبيانات.",
+      "group": "النظام",
+      "operations": {
+        "title": "العمليات"
+      },
+      "maintenance_mode": {
+        "title": "وضع الصيانة"
+      },
+      "api_rate_limit_per_minute": {
+        "title": "حد معدل API (طلب/دقيقة)"
+      },
+      "audit_log_retention_days": {
+        "title": "مدة الاحتفاظ بسجل التدقيق (بالأيام)"
+      },
+      "default_business_type": {
+        "title": "نوع النشاط التجاري الافتراضي",
+        "description": "نوع النشاط التجاري المختار مسبقًا أثناء تهيئة المستأجر.",
+        "options": {
+          "restaurant": {
+            "label": "مطعم"
+          },
+          "cafe": {
+            "label": "مقهى"
+          },
+          "bar": {
+            "label": "بار"
+          },
+          "food_court": {
+            "label": "ساحة الطعام"
+          },
+          "food_truck": {
+            "label": "شاحنة طعام"
+          },
+          "mobile_cafe": {
+            "label": "مقهى متنقل"
+          }
+        }
+      }
+    },
+    "themes": {
+      "name": "السمات",
+      "description": "لوحة العلامة التجارية الافتراضية ومتغيرات CSS المسموح للمستأجرين بتخصيصها.",
+      "group": "الإعدادات",
+      "palette": {
+        "title": "لوحة الألوان"
+      },
+      "default_mode": {
+        "title": "وضع الألوان الافتراضي",
+        "options": {
+          "light": {
+            "label": "فاتح"
+          },
+          "dark": {
+            "label": "داكن"
+          },
+          "system": {
+            "label": "اتباع النظام"
+          }
+        }
+      },
+      "primary_color": {
+        "title": "اللون الأساسي",
+        "description": "يتجاوز لون التمييز. يمكن للمستأجرين تخصيصه؛ وترث الفروع قيمة المستأجر."
+      },
+      "accent_hover_color": {
+        "title": "لون التمييز عند التحويم",
+        "description": "يتجاوز لون التمييز عند التحويم. يكون افتراضيًا درجة أغمق من اللون الأساسي."
+      },
+      "logo_url": {
+        "title": "رابط URL للشعار"
+      }
+    },
+    "typography": {
+      "name": "الطباعة",
+      "description": "مجموعة الخطوط الافتراضية للمنصة وتخصيصات الخطوط لكل مستأجر.",
+      "group": "الإعدادات",
+      "fonts": {
+        "title": "الخطوط"
+      },
+      "body_font": {
+        "title": "خط النص",
+        "description": "عائلة الخط الافتراضية لنص المحتوى، قابلة للتخصيص لكل مستأجر."
+      },
+      "heading_font": {
+        "title": "خط العناوين",
+        "description": "عائلة الخط الافتراضية للعناوين، قابلة للتخصيص لكل مستأجر."
+      },
+      "rtl_font": {
+        "title": "خط الاتجاه من اليمين لليسار",
+        "description": "عائلة الخط المستخدمة عند عرض اللغة النشطة من اليمين لليسار."
+      },
+      "base_size_px": {
+        "title": "حجم الخط الأساسي (بكسل)"
+      }
+    },
+    "website_builder": {
+      "name": "منشئ الموقع",
+      "description": "مكتبة الكتل الافتراضية وقواعد النشر وحدود الأقسام لمنشئ موقع المستأجر.",
+      "group": "الإعدادات",
+      "defaults": {
+        "title": "الإعدادات الافتراضية"
+      },
+      "enabled_blocks": {
+        "title": "الكتل المفعّلة",
+        "options": {
+          "hero": {
+            "label": "شعار البطل"
+          },
+          "menu_preview": {
+            "label": "معاينة القائمة"
+          },
+          "gallery": {
+            "label": "المعرض"
+          },
+          "testimonials": {
+            "label": "آراء العملاء"
+          },
+          "hours": {
+            "label": "ساعات العمل"
+          },
+          "map": {
+            "label": "الخريطة"
+          },
+          "cta": {
+            "label": "دعوة لاتخاذ إجراء"
+          }
+        }
+      },
+      "max_sections": {
+        "title": "الحد الأقصى للأقسام لكل صفحة"
+      },
+      "custom_domain_enabled": {
+        "title": "تفعيل النطاق المخصص"
+      }
+    },
+    "active_businesses": {
+      "title": "الأعمال النشطة"
+    },
+    "online_users": {
+      "title": "المستخدمون المتصلون"
+    },
+    "orders_today": {
+      "title": "طلبات اليوم"
+    },
+    "reservations_today": {
+      "title": "حجوزات اليوم"
+    },
+    "revenue_today": {
+      "title": "إيرادات اليوم"
+    },
+    "mrr": {
+      "title": "الإيرادات الشهرية المتكررة"
+    },
+    "arr": {
+      "title": "الإيرادات السنوية المتكررة"
+    },
+    "failed_payments": {
+      "title": "المدفوعات الفاشلة"
+    },
+    "new_signups": {
+      "title": "التسجيلات الجديدة"
+    },
+    "server_health": {
+      "title": "صحة الخادم"
+    },
+    "error_rate": {
+      "title": "معدل الأخطاء"
+    },
+    "queue_status": {
+      "title": "حالة قائمة الانتظار"
+    },
+    "background_jobs": {
+      "title": "المهام الخلفية"
+    },
+    "platform_alerts": {
+      "title": "تنبيهات المنصة"
+    },
+    "feature_rollouts": {
+      "title": "طرح الميزات"
+    },
+    "abuse_reports": {
+      "title": "بلاغات إساءة الاستخدام"
+    },
+    "api_usage": {
+      "title": "استخدام API"
+    },
+    "top_countries": {
+      "title": "أفضل الدول"
+    },
+    "top_businesses": {
+      "title": "أفضل الأعمال"
+    },
+    "storage_usage": {
+      "title": "استخدام التخزين"
+    },
+    "email_success_rate": {
+      "title": "معدل نجاح البريد الإلكتروني"
+    },
+    "sms_success_rate": {
+      "title": "معدل نجاح الرسائل النصية"
+    },
+    "push_delivery": {
+      "title": "تسليم الإشعارات الفورية"
+    },
+    "operational_languages": {
+      "title": "اللغات التشغيلية"
+    },
+    "avg_translation_coverage": {
+      "title": "متوسط تغطية الترجمة"
+    },
+    "human_reviewed_languages": {
+      "title": "اللغات المراجَعة بشريًا"
+    },
+    "lowest_coverage_languages": {
+      "title": "أقل تغطية (مفعّلة)"
+    },
+    "translation_quality_issues": {
+      "title": "مشاكل جودة الترجمة"
+    },
+    "missing_translation_keys": {
+      "title": "مفاتيح الترجمة المفقودة"
+    },
+    "broken_icu_placeholder_keys": {
+      "title": "مفاتيح ICU/العناصر النائبة المعطوبة"
+    },
+    "locale_bundle_sizes": {
+      "title": "أحجام حزم اللغات"
+    }
+  },
+  "platform": {
+    "title": "إدارة المنصة"
+  },
+  "countries": {
+    "title": "الدول"
+  },
+  "languages": {
+    "title": "اللغات"
+  },
+  "marketing": {
+    "title": "التسويق"
+  },
+  "analytics": {
+    "title": "التحليلات"
+  },
+  "system": {
+    "title": "النظام"
+  },
+  "seo": {
+    "root": {
+      "title": "سافور — منصة الضيافة",
+      "description": "اكتشف المطاعم والمقاهي والبارات وعربات الطعام والمزيد. تصفح القوائم، احجز الطاولات، واطلب من الأعمال المحلية على سافور.",
+      "keywords": "اكتشاف المطاعم, منصة الضيافة, طلب الطعام, حجز الطاولات, مقهى, بار, عربة طعام, تناول الطعام المحلي, سوق, سوق المطاعم"
+    },
+    "home": {
+      "title": "سيفور — اكتشف الأعمال المحلية",
+      "description": "تصفح المطاعم والمقاهي والحانات وشاحنات الطعام والمزيد. اكتشف الأعمال المحلية، واستكشف القوائم، واحجز الطاولات على سيفور.",
+      "keywords": "اكتشاف المطاعم, منصة الضيافة, طلب الطعام, حجز الطاولات, مقهى, حانة, شاحنة طعام, تناول الطعام محليًا, سوق"
+    },
+    "restaurantAbout": {
+      "title": "حول — منصة سيفور",
+      "description": "تعرف على منصة الضيافة سيفور — نربط العملاء بأفضل الأعمال المحلية.",
+      "keywords": "حول سيفور, منصة الضيافة, قصتنا, اتصل بنا"
+    },
+    "discover": {
+      "title": "اكتشف الأعمال — منصة Samoon",
+      "description": "تصفح المطاعم والمقاهي والحانات وشاحنات الطعام وغيرها. صفِّ حسب نوع المطبخ والمرافق والسعر وساعات العمل، وابحث عن مكانك المفضل التالي.",
+      "keywords": "اكتشاف المطاعم, البحث عن مقاهي, طعام قريب مني, بحث المطاعم, سوق, ساحة طعام, البحث عن حانة, شاحنات الطعام, منصة Samoon"
+    },
+    "menu": {
+      "title": "القائمة — Samoon",
+      "description": "تصفح قوائم المطاعم والمقاهي والحانات وغيرها على Samoon. اعثر على الأطباق، واستكشف الفئات، واطلب عبر الإنترنت.",
+      "keywords": "قائمة, قائمة مطعم, طلب عبر الإنترنت, توصيل الطعام, منصة Samoon"
+    },
+    "events": {
+      "title": "الفعاليات | سيفور",
+      "description": "اكتشف الفعاليات القادمة والعروض الحية في هذا المكان.",
+      "keywords": "الفعاليات, العروض الحية, فعاليات المكان"
+    },
+    "location": {
+      "title": "الموقع المباشر | سيفور",
+      "description": "تتبّع الموقع المباشر لهذه الشاحنة أو المقهى المتنقل.",
+      "keywords": "الموقع المباشر, تتبع شاحنة الطعام, موقع المقهى المتنقل"
+    },
+    "reviews": {
+      "title": "التقييمات | سيفور",
+      "description": "اقرأ تقييمات وآراء العملاء لهذا النشاط التجاري.",
+      "keywords": "التقييمات, التقييمات النجمية, ملاحظات العملاء"
+    },
+    "promotions": {
+      "title": "العروض والتخفيضات | سيفور",
+      "description": "استعرض العروض النشطة وعروض ساعة السعادة والصفقات القادمة.",
+      "keywords": "العروض, الخصومات, ساعة السعادة, الصفقات"
+    },
+    "vendors": {
+      "title": "البائعون | سيفور",
+      "description": "استعرض البائعين والأكشاك وتقييماتهم وطلباتهم وتسوياتهم.",
+      "keywords": "البائعون, الأكشاك, بائعو السوق"
+    },
+    "login": {
+      "title": "تسجيل الدخول | سيفور",
+      "description": "سجّل الدخول إلى حسابك في سيفور للطلب وحجز الطاولات وتتبع طلباتك.",
+      "keywords": "تسجيل الدخول, حساب العميل"
+    },
+    "register": {
+      "title": "إنشاء حساب | سيفور",
+      "description": "أنشئ حسابًا مجانيًا في سيفور لدفع أسرع وتتبع الطلبات وعروض حصرية للأعضاء.",
+      "keywords": "إنشاء حساب, التسجيل, حساب العميل"
+    }
+  },
+  "home": {
+    "heroImageAlt": "سوق نابض بالحياة من المطاعم والمقاهي",
+    "heroPill": "ابحث · احجز · اطلب — منصة واحدة",
+    "heroHeadingLine1": "اكتشف",
+    "heroHeadingHighlight": "الأعمال المحلية",
+    "heroHeadingLine2": "بالقرب منك.",
+    "heroSubheadline": "منصة واحدة للمطاعم والمقاهي والحانات وشاحنات الطعام والمزيد. تصفح القوائم، احجز الطاولات، واطلب — كل ذلك دون التبديل بين التطبيقات.",
+    "heroSearchAriaLabel": "ابحث عن المطاعم والمقاهي والحانات والمزيد",
+    "heroSearchPlaceholder": "ابحث عن مطاعم، مقاهٍ، حانات…",
+    "heroChips": {
+      "restaurant": "مطعم",
+      "cafe": "مقهى",
+      "bar": "حانة",
+      "foodTruck": "شاحنة طعام",
+      "foodCourt": "ساحة طعام"
+    },
+    "exploreBusinesses": "استكشف الأعمال",
+    "areYouBusinessOwner": "هل أنت صاحب عمل؟",
+    "scroll": "مرر لأسفل",
+    "browseByType": "تصفح حسب النوع",
+    "businessCategories": "فئات الأعمال",
+    "categories": {
+      "restaurants": "مطاعم",
+      "cafes": "مقاهٍ",
+      "bars": "حانات",
+      "foodCourts": "ساحات طعام",
+      "foodTrucks": "شاحنات طعام"
+    },
+    "stats": {
+      "businesses": "الأعمال",
+      "locations": "المواقع",
+      "cities": "المدن",
+      "customers": "العملاء"
+    },
+    "popular": "شائع",
+    "featured": "مميز",
+    "orderNow": "اطلب الآن",
+    "handpicked": "مختارة بعناية",
+    "featuredDishes": "الأطباق المميزة",
+    "seeAll": "عرض الكل",
+    "unableToLoadFeaturedDishes": "تعذر تحميل الأطباق المميزة.",
+    "browseTheFullMenu": "تصفح القائمة الكاملة.",
+    "noFeaturedDishesAvailable": "لا توجد أطباق مميزة متاحة حالياً.",
+    "exploreTheMenu": "استكشف القائمة.",
+    "exploreLabel": "استكشاف",
+    "popularOnSamoon": "الأكثر شهرة على Samoon",
+    "popularOnSamoonSubtitle": "مطاعم ومقاهي وحانات وغيرها — كلها على Samoon",
+    "browseAll500Businesses": "تصفح أكثر من 500 نشاط تجاري",
+    "howItWorks": {
+      "eyebrow": "بسيط",
+      "heading": "كيف يعمل",
+      "subtitle": "وجبتك الرائعة التالية على بعد ثلاث خطوات فقط.",
+      "steps": {
+        "discover": {
+          "title": "اكتشف",
+          "description": "تصفح المطاعم والمقاهي والحانات وشاحنات الطعام وساحات الطعام حسب الفئة أو الموقع أو المزاج.",
+          "cta": "ابدأ الاستكشاف"
+        },
+        "pickLocation": {
+          "title": "اختر موقعاً",
+          "description": "اختر أقرب مكان، وتحقق من القائمة وساعات العمل وتوفر الطاولات في الوقت الفعلي.",
+          "cta": "عرض المواقع"
+        },
+        "orderOrReserve": {
+          "title": "اطلب أو احجز",
+          "description": "اطلب عبر الإنترنت للتوصيل أو الاستلام، أو احجز طاولتك — كل ذلك من منصة واحدة.",
+          "cta": "احجز طاولة"
+        }
+      }
+    },
+    "forBusinessOwners": {
+      "eyebrow": "لأصحاب الأعمال",
+      "heading": "كل ما تحتاجه لتشغيل نشاط تجاري ضيافة حديث",
+      "subtitle": "يوفر Samoon للمطاعم والمقاهي والحانات وشاحنات الطعام منصة تشغيل رقمية كاملة — من الطلب عبر الإنترنت والحجوزات إلى التحليلات وبرامج الولاء.",
+      "registerYourBusiness": "سجّل نشاطك التجاري",
+      "seeAllFeatures": "عرض جميع الميزات",
+      "benefits": {
+        "realtimeAnalytics": {
+          "title": "تحليلات فورية",
+          "description": "تتبع الطلبات والإيرادات واتجاهات العملاء في جميع فروعك من لوحة تحكم واحدة."
+        },
+        "qrTableOrdering": {
+          "title": "طلب عبر QR على الطاولة",
+          "description": "اجعل الضيوف يمسحون ويطلبون مباشرة من طاولتهم — دون الحاجة لتحميل تطبيق."
+        },
+        "teamManagement": {
+          "title": "إدارة الفريق",
+          "description": "وصول دقيق مبني على الأدوار للمديرين والطهاة وأمناء الصندوق والموظفين."
+        },
+        "loyaltyPrograms": {
+          "title": "برامج الولاء",
+          "description": "قم ببناء ومكافأة عملائك الدائمين بالنقاط والمستويات وحملات الولاء المخصصة."
+        },
+        "multiBranchReady": {
+          "title": "جاهز لتعدد الفروع",
+          "description": "أدر عدداً غير محدود من الفروع، كل منها بقائمته وساعاته ومخزونه الخاص."
+        },
+        "liveOrderDisplay": {
+          "title": "عرض الطلبات المباشر",
+          "description": "قم ببث الطلبات الواردة مباشرة إلى شاشة مطبخك في الوقت الفعلي."
+        }
+      }
+    },
+    "platformFeatures": {
+      "eyebrow": "المنصة",
+      "heading": "كل شيء في منصة واحدة",
+      "subtitle": "يوفر Samoon حزمة رقمية كاملة للأعمال الضيافة الحديثة — دون الحاجة لأدوات متفرقة من جهات خارجية.",
+      "getStartedFree": "ابدأ مجاناً",
+      "noCreditCardNote": "لا حاجة لبطاقة ائتمان · الإعداد في دقائق",
+      "items": {
+        "onlineMenu": {
+          "label": "قائمة عبر الإنترنت",
+          "description": "قوائم رقمية جذابة بصور ووصف وعلامات غذائية."
+        },
+        "reservations": {
+          "label": "الحجوزات",
+          "description": "حجز طاولات فوري مع التأكيد والتذكيرات."
+        },
+        "qrOrdering": {
+          "label": "الطلب عبر QR",
+          "description": "مسح للطلب على الطاولة. بلا تطبيق، بلا انتظار."
+        },
+        "loyalty": {
+          "label": "الولاء",
+          "description": "نقاط ومستويات ومكافآت مخصصة لإبقاء العملاء يعودون."
+        },
+        "analytics": {
+          "label": "التحليلات",
+          "description": "الإيرادات واتجاهات الطلبات ورؤى العملاء في الوقت الفعلي."
+        },
+        "kitchenDisplay": {
+          "label": "شاشة المطبخ",
+          "description": "بث مباشر للطلبات إلى نظام شاشة مطبخك."
+        },
+        "posIntegration": {
+          "label": "التكامل مع نقاط البيع",
+          "description": "المزامنة السلسة مع نظام نقاط البيع الحالي لديك."
+        },
+        "multiBranch": {
+          "label": "متعدد الفروع",
+          "description": "فروع غير محدودة، كل منها قابل للتكوين بشكل مستقل."
+        },
+        "giftCards": {
+          "label": "بطاقات الهدايا",
+          "description": "بيع واستبدال بطاقات الهدايا الرقمية في جميع الفروع."
+        },
+        "events": {
+          "label": "الفعاليات",
+          "description": "نشر وإدارة الفعاليات الخاصة والعروض الترويجية."
+        }
+      }
+    },
+    "testimonials": {
+      "eyebrow": "محبوب لدى الزبائن",
+      "heading": "ماذا يقول مجتمعنا",
+      "subtitle": "يستخدم آلاف من عشاق الطعام Samoon يومياً لاكتشاف الأعمال المحلية وحجزها والطلب منها.",
+      "items": {
+        "sarah": {
+          "quote": "وجدت ثلاثة مطاعم جديدة في حيي باستخدام بحث الفئات. حجزت طاولة وطلبت — كل ذلك من مكان واحد.",
+          "name": "سارة م.",
+          "role": "مستكشفة طعام"
+        },
+        "james": {
+          "quote": "الطلب عبر QR في مقهاي المفضل سلس تماماً. لا انتظار للنادل، ونقاط ولائي تتراكم في كل زيارة.",
+          "name": "جيمس ت.",
+          "role": "زبون دائم"
+        },
+        "layla": {
+          "quote": "اكتشفت شاحنة طعام مؤقتة عبر Samoon لم كنت لأجدها بطريقة أخرى. الآن أتحقق منها كل عطلة أسبوع.",
+          "name": "ليلى ك.",
+          "role": "متحمسة للطعام"
+        }
+      },
+      "stats": {
+        "happyCustomers": "عملاء سعداء",
+        "avgAppRating": "متوسط تقييم التطبيق",
+        "businessesListed": "الأعمال المدرجة",
+        "satisfactionRate": "معدل الرضا"
+      }
+    }
+  },
+  "discover": {
+    "eyebrow": "اكتشف",
+    "headingPrefix": "ابحث عن مكانك المفضل",
+    "headingAccent": "التالي",
+    "subtitle": "بحث · حجز طاولة · طلب عبر الإنترنت · كسب المكافآت — كل ذلك في مكان واحد.",
+    "searchPlaceholder": "البحث بالاسم أو المدينة أو المطبخ أو المرفق أو النوع…",
+    "errorLoad": "فشل تحميل الأعمال. يرجى المحاولة مرة أخرى.",
+    "loadingBusinesses": "جارٍ تحميل الأعمال…",
+    "resultsCount": "{count, plural, =0 {لا توجد نتائج} one {نتيجة واحدة} other {# نتيجة}}",
+    "resultsCountForQuery": "{count, plural, =0 {لا توجد نتائج} one {نتيجة واحدة} other {# نتيجة}} لـ \"{query}\"",
+    "searchResultsAria": "نتائج البحث",
+    "sectionFeatured": "مميز",
+    "sectionPopular": "شائع الآن",
+    "sectionNewlyOpened": "افتتح حديثاً",
+    "sectionTopRated": "الأعلى تقييماً",
+    "sectionFamilyFriendly": "مناسب للعائلات",
+    "sectionCoffeeShops": "المقاهي",
+    "allBusinesses": "جميع الأعمال",
+    "listedCount": "{count} مُدرج",
+    "sortBusinesses": "ترتيب {count} من الأعمال",
+    "noBusinessesFound": "لم يتم العثور على أعمال",
+    "noMatchCategoryQuery": "لا توجد أعمال {category} تطابق \"{query}\". حاول تعديل البحث أو الفلاتر.",
+    "noMatchQuery": "لا توجد أعمال تطابق \"{query}\". جرّب مصطلحاً آخر أو تصفح حسب الفئة.",
+    "noMatchFilters": "لا توجد أعمال تطابق الفلاتر الحالية. حاول إزالة بعضها.",
+    "noBusinessesCategory": "لا توجد أعمال في هذه الفئة حتى الآن.",
+    "clearAllFilters": "مسح كل الفلاتر",
+    "tryBrowsing": "جرّب التصفح",
+    "popularBusinessesYouMightLike": "أعمال شائعة قد تعجبك"
+  },
+  "marketplace": {
+    "featured": "مميز",
+    "new": "جديد",
+    "popular": "شائع",
+    "priceBudget": "اقتصادي",
+    "priceModerate": "متوسط",
+    "priceUpscale": "راقٍ",
+    "priceFineDining": "مطعم فاخر",
+    "explore": "استكشاف",
+    "visit": "زيارة",
+    "viewMenu": "عرض القائمة",
+    "openNow": "مفتوح الآن",
+    "closed": "مغلق",
+    "ratingAria": "التقييم: {rating} من 5",
+    "locationsCount": "{count} فرع",
+    "cuisinesAria": "أنواع المطابخ",
+    "featuresAndAmenitiesAria": "الميزات والمرافق",
+    "reservations": "الحجوزات",
+    "loyalty": "برنامج الولاء",
+    "ctaAria": "{cta} — {name}",
+    "hideBranchesAria": "إخفاء فروع {name}",
+    "showBranchesAria": "إظهار فروع {name}",
+    "branches": "الفروع",
+    "viewHomepageAria": "عرض الصفحة الرئيسية لـ {name}",
+    "businessTypes": {
+      "restaurant": "مطعم",
+      "cafe": "مقهى",
+      "bar": "حانة",
+      "food_court": "ساحة طعام",
+      "food_truck": "شاحنة طعام",
+      "mobile_cafe": "مقهى متنقل",
+      "hotel": "فندق",
+      "other": "أخرى"
+    },
+    "filterByBusinessTypeAria": "تصفية حسب نوع النشاط",
+    "all": "الكل",
+    "searchBusinesses": "البحث عن الأعمال",
+    "searchBusinessesPlaceholder": "البحث بالاسم أو المدينة أو المطبخ أو النوع…",
+    "clearSearch": "مسح البحث",
+    "filters": "الفلاتر",
+    "activeFiltersAria": "{count} فلتر نشط",
+    "advancedFiltersAria": "فلاتر متقدمة",
+    "advancedFilters": "فلاتر متقدمة",
+    "clearAllFilters": "مسح كل الفلاتر",
+    "clearAllCount": "مسح الكل ({count})",
+    "openNowOnly": "المفتوح الآن فقط",
+    "priceLevel": "مستوى السعر",
+    "priceLevels": {
+      "1": "اقتصادي",
+      "2": "متوسط",
+      "3": "راقٍ",
+      "4": "مطعم فاخر"
+    },
+    "cuisine": "المطبخ",
+    "city": "المدينة",
+    "services": "الخدمات",
+    "loyaltyProgram": "برنامج الولاء",
+    "amenities": "المرافق",
+    "businessesCount": "{count} من الأعمال",
+    "sortResults": "ترتيب النتائج",
+    "sortOptions": {
+      "recommended": "موصى به",
+      "highestRated": "الأعلى تقييماً",
+      "mostReviewed": "الأكثر تقييماً",
+      "newest": "الأحدث",
+      "alphabetical": "أ-ي",
+      "priceLowToHigh": "السعر: من الأقل إلى الأعلى",
+      "openNowFirst": "المفتوح الآن أولاً"
+    },
+    "publicUrl": "الرابط العام",
+    "copyUrlAria": "نسخ الرابط",
+    "copied": "تم النسخ",
+    "copy": "نسخ",
+    "openPublicUrlAria": "فتح الرابط العام",
+    "open": "فتح",
+    "qrCodeMobileNote": "توليد رمز QR متاح في تطبيق الجوال.",
+    "branchLocationsAria": "مواقع الفروع",
+    "locations": "المواقع",
+    "visitBranchAria": "زيارة {name}",
+    "view": "عرض"
+  },
+  "tenant": {
+    "priceLevelAria": "مستوى السعر: {level}",
+    "breadcrumbAria": "مسار التنقل",
+    "discover": "اكتشف",
+    "reviewsCount": "({count} تقييم)",
+    "locationsCountLower": "{count} فرع",
+    "allLocations": "جميع المواقع",
+    "shareThisBusinessAria": "مشاركة هذا النشاط",
+    "copiedExclaim": "تم النسخ!",
+    "share": "مشاركة",
+    "quickActionsAria": "إجراءات سريعة",
+    "amenitiesAria": "المرافق",
+    "about": "حول",
+    "ourStory": "قصتنا",
+    "open": "مفتوح",
+    "closed": "مغلق",
+    "visitBranchAria": "زيارة {name}",
+    "visitBranch": "زيارة الفرع",
+    "ourLocations": "مواقعنا",
+    "browseByCategory": "تصفح حسب الفئة",
+    "browseCategoryAria": "تصفح {name}",
+    "itemsCount": "{count} عنصر",
+    "popularItems": "الأصناف الشائعة",
+    "viewFullMenu": "عرض القائمة الكاملة",
+    "currentOffers": "العروض الحالية",
+    "promoTypes": {
+      "discount": "خصم",
+      "fixedOff": "خصم ثابت",
+      "bogo": "اشترِ واحصل على واحدة مجاناً",
+      "happyHour": "ساعة سعيدة"
+    },
+    "percentOff": "خصم {percent}%",
+    "amountOff": "خصم {amount}$",
+    "useThisOffer": "استخدم هذا العرض ←",
+    "gallery": "معرض الصور",
+    "loadingPageContentAria": "جارٍ تحميل محتوى الصفحة",
+    "loadingEllipsis": "جارٍ التحميل…",
+    "businessNotFound": "لم يتم العثور على النشاط",
+    "businessNotFoundDesc": "لم نتمكن من العثور على نشاط تجاري في هذا الرابط.",
+    "browseAllBusinesses": "تصفح جميع الأعمال",
+    "businessNotFoundLongDesc": "لم نتمكن من العثور على نشاط تجاري في هذا الرابط. ربما انتقل أو لم يعد مدرجاً في Samoon."
+  },
+  "branch": {
+    "openNow": "مفتوح الآن",
+    "closed": "مغلق",
+    "directions": "الاتجاهات",
+    "quickActionsAria": "إجراءات سريعة",
+    "call": "اتصال",
+    "copiedExclaim": "تم النسخ!",
+    "share": "مشاركة",
+    "linkCopiedToClipboard": "تم نسخ الرابط إلى الحافظة",
+    "branchInformation": "معلومات الفرع",
+    "todayHours": "اليوم: {hours}",
+    "openInGoogleMapsAria": "فتح في خرائط جوجل",
+    "viewOnMap": "عرض على الخريطة",
+    "locations": "المواقع",
+    "youreHere": "أنت هنا",
+    "open": "مفتوح",
+    "popularItems": "الأصناف الشائعة",
+    "fullMenu": "القائمة الكاملة",
+    "categories": "الفئات",
+    "allOffers": "جميع العروض",
+    "thisLocation": "هذا الموقع",
+    "businessGallery": "معرض الأعمال",
+    "loadingBranchPageAria": "جارٍ تحميل صفحة الفرع",
+    "loadingEllipsis": "جارٍ التحميل…",
+    "branchNotFound": "لم يتم العثور على الفرع",
+    "branchNotFoundDesc": "لم نتمكن من العثور على هذا الموقع. ربما انتقل أو لم يعد مدرجاً.",
+    "backToBusiness": "العودة إلى النشاط",
+    "loadingMenuEllipsis": "جارٍ تحميل القائمة…",
+    "loadingTableExperienceEllipsis": "جارٍ تحميل تجربة الطاولة…",
+    "branchNotFoundLongDesc": "لم نتمكن من العثور على هذا الموقع. ربما أُغلق أو انتقل. تصفح صفحة النشاط للاطلاع على جميع المواقع النشطة."
+  },
+  "orderDetail": {
+    "orderNotFound": "لم يتم العثور على الطلب",
+    "myOrders": "طلباتي",
+    "dateAtTime": "{date} في {time}",
+    "liveTracking": "تتبع مباشر",
+    "orderItems": "عناصر الطلب",
+    "unitPriceEach": "({price} للقطعة)",
+    "orderDetailsNotAvailable": "تفاصيل الطلب غير متوفرة.",
+    "orderSummary": "ملخص الطلب",
+    "subtotal": "المجموع الفرعي",
+    "discount": "الخصم",
+    "tax": "الضريبة",
+    "service": "الخدمة",
+    "total": "الإجمالي",
+    "printReceipt": "طباعة الإيصال",
+    "deliveryInfo": "معلومات التوصيل",
+    "tableNumber": "طاولة #{number}",
+    "orderAgain": "اطلب مرة أخرى",
+    "newOrder": "طلب جديد",
+    "backToOrderDetailsAria": "العودة إلى تفاصيل الطلب",
+    "trackingNumber": "تتبع #{number}",
+    "orderCancelled": "تم إلغاء الطلب",
+    "orderCancelledDesc": "تم إلغاء هذا الطلب.",
+    "viewFullOrder": "عرض الطلب كاملاً",
+    "allOrders": "جميع الطلبات"
+  },
+  "orderTracker": {
+    "orderCancelled": "تم إلغاء الطلب",
+    "orderCancelledDesc": "تم إلغاء طلبك.",
+    "estimatedTime": "الوقت المقدر",
+    "minutesCount": "{count} دقيقة",
+    "orderPlaced": "تم تقديم الطلب",
+    "orderPlacedDesc": "تم استلام طلبك",
+    "accepted": "تم القبول",
+    "acceptedDesc": "قبل المطعم طلبك",
+    "preparing": "قيد التحضير",
+    "preparingDesc": "الشيف يُحضّر وجبتك",
+    "ready": "جاهز",
+    "readyDesc": "طلبك جاهز!",
+    "delivered": "تم التوصيل",
+    "deliveredDesc": "استمتع بوجبتك 🎉"
+  },
+  "checkoutResult": {
+    "orderConfirmed": "تم تأكيد الطلب!",
+    "orderConfirmedDesc": "وجبتك الشهية في طريقها إليك",
+    "orderNumberLabel": "رقم الطلب",
+    "liveOrderTracking": "تتبع الطلب المباشر",
+    "trackOrder": "تتبع الطلب",
+    "orderMore": "اطلب المزيد",
+    "backToHome": "العودة إلى الرئيسية",
+    "orderFailed": "فشل الطلب",
+    "orderFailedDesc": "حدث خطأ ما في طلبك",
+    "failureBody": "لا تقلق — سلة التسوق الخاصة بك لا تزال محفوظة. يرجى المحاولة مرة أخرى أو التواصل مع الدعم إذا استمرت المشكلة.",
+    "tryAgain": "حاول مرة أخرى",
+    "backToMenu": "العودة إلى القائمة"
+  },
+  "loyalty": {
+    "loadingAccount": "جارٍ تحميل حساب الولاء الخاص بك…",
+    "noAccountFound": "لم يتم العثور على حساب ولاء.",
+    "currentPoints": "النقاط الحالية",
+    "availablePoints": "النقاط المتاحة",
+    "lifetime": "الإجمالي مدى الحياة:",
+    "tierStatus": "حالة المستوى",
+    "currentTier": "المستوى الحالي",
+    "tierExpires": "تنتهي صلاحية المستوى في {date}",
+    "tiers": {
+      "bronze": "برونزي",
+      "silver": "فضي",
+      "gold": "ذهبي",
+      "platinum": "بلاتيني"
+    },
+    "availableRewards": "المكافآت المتاحة",
+    "loadingRewards": "جارٍ تحميل المكافآت…",
+    "noRewardsAvailable": "لا توجد مكافآت متاحة.",
+    "requiresTier": "يتطلب مستوى: {tier}",
+    "pointsSuffix": "{count} نقطة",
+    "redeemAria": "استبدال {name}",
+    "redeeming": "جارٍ الاستبدال…",
+    "redeem": "استبدال",
+    "transactionHistory": "سجل المعاملات",
+    "loadingTransactions": "جارٍ تحميل المعاملات…",
+    "noTransactionsYet": "لا توجد معاملات حتى الآن.",
+    "loyaltyProgram": "برنامج الولاء"
+  },
+  "header": {
+    "skipToMainContent": "الانتقال إلى المحتوى الرئيسي",
+    "navDiscover": "اكتشف",
+    "navReservations": "الحجوزات",
+    "navForBusiness": "للأعمال",
+    "mainNavigationAria": "التنقل الرئيسي",
+    "toggleThemeAria": "تبديل المظهر",
+    "changeLanguageAria": "تغيير اللغة",
+    "cartWithItemsAria": "السلة تحتوي على {count} عنصر",
+    "userMenuAria": "قائمة المستخدم",
+    "myAccount": "حسابي",
+    "myOrders": "طلباتي",
+    "favorites": "المفضلة",
+    "addresses": "العناوين",
+    "settings": "الإعدادات",
+    "businessConsole": "لوحة تحكم الأعمال",
+    "signOut": "تسجيل الخروج",
+    "signIn": "تسجيل الدخول",
+    "getStarted": "ابدأ الآن",
+    "toggleMenuAria": "تبديل القائمة",
+    "mobileNavigationAria": "التنقل عبر الجوال",
+    "logoAlt": "شعار {name}",
+    "tenantHomeAria": "الرئيسية لـ {name}",
+    "poweredBySamoonAria": "مدعوم من Samoon — تصفح السوق",
+    "poweredBy": "مدعوم من",
+    "tenantNavigationAria": "تنقل {name}",
+    "tenantMobileNavigationAria": "التنقل عبر الجوال لـ {name}",
+    "closeMenuAria": "إغلاق القائمة",
+    "openMenuAria": "فتح القائمة",
+    "switchToLanguageAria": "التبديل إلى {language}"
+  },
+  "footer": {
+    "brandDescription": "ربط العملاء بأفضل المطاعم والمقاهي والحانات المحلية وغيرها. اكتشف، اطلب، واحجز — كل ذلك في مكان واحد.",
+    "sections": {
+      "explore": "استكشاف",
+      "platform": "المنصة",
+      "company": "الشركة"
+    },
+    "links": {
+      "discoverBusinesses": "اكتشاف الأعمال",
+      "restaurants": "المطاعم",
+      "cafes": "المقاهي",
+      "barsAndVenues": "الحانات والأماكن",
+      "foodTrucks": "شاحنات الطعام",
+      "orderOnline": "اطلب عبر الإنترنت",
+      "bookATable": "احجز طاولة",
+      "trackOrder": "تتبع الطلب",
+      "becomeAPartner": "كن شريكاً",
+      "pricing": "التسعير",
+      "aboutSamoon": "حول Samoon",
+      "support": "الدعم",
+      "privacyPolicy": "سياسة الخصوصية",
+      "termsOfService": "شروط الخدمة"
+    },
+    "copyright": "© {year} منصة Samoon. جميع الحقوق محفوظة."
+  },
+  "tenantFooter": {
+    "instagram": "إنستغرام",
+    "twitterX": "تويتر / إكس",
+    "quickLinks": "روابط سريعة",
+    "contact": "اتصل بنا",
+    "copyright": "© {year} {name}. جميع الحقوق محفوظة.",
+    "poweredBy": "مدعوم من",
+    "samoonPlatform": "منصة Samoon"
+  },
+  "branchSelector": {
+    "selectBranch": "اختر الفرع",
+    "chooseLocation": "اختر الموقع",
+    "openNow": "مفتوح الآن",
+    "closed": "مغلق",
+    "noLocationsAvailable": "لا توجد مواقع متاحة"
+  },
+  "reviewCard": {
+    "starsOutOf5": "{rating} من 5 نجوم",
+    "reviewByNameStars": "تقييم بواسطة {name}، {rating} نجوم",
+    "verifiedVisit": "زيارة موثقة",
+    "verified": "موثق",
+    "visitTypes": {
+      "dineIn": "تناول في المطعم",
+      "takeaway": "طلبات خارجية",
+      "delivery": "توصيل"
+    },
+    "showLess": "عرض أقل",
+    "readMore": "قراءة المزيد",
+    "reviewPhotosAria": "صور التقييم",
+    "reviewPhotoAlt": "صورة التقييم {index}",
+    "markHelpfulAria": "وضع علامة على التقييم كمفيد. وجد {count} شخص هذا مفيداً",
+    "helpfulCount": "مفيد ({count})",
+    "helpfulSuffix": "{count} مفيد",
+    "photosCount": "{count} صورة",
+    "reply": "الرد",
+    "averageRatingOutOf5Aria": "متوسط التقييم: {rating} من 5",
+    "ratingDistributionAria": "توزيع التقييمات",
+    "reviewsCount": "{count} مراجعة",
+    "starPercentAria": "{star} نجمة: {percentage}٪"
+  },
+  "vendorsPage": {
+    "vendors": "البائعون",
+    "noRatings": "لا توجد تقييمات",
+    "featured": "مميز",
+    "statuses": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "pending": "قيد الانتظار",
+      "suspended": "معلّق"
+    },
+    "categories": {
+      "asian": "آسيوي",
+      "western": "غربي",
+      "mediterranean": "متوسطي",
+      "mexican": "مكسيكي",
+      "indian": "هندي",
+      "desserts": "الحلويات",
+      "beverages": "المشروبات",
+      "fastFood": "الوجبات السريعة",
+      "healthy": "صحي",
+      "other": "أخرى"
+    },
+    "stallNumber": "كشك {number}",
+    "backToVendorListAria": "الرجوع إلى قائمة البائعين",
+    "backToVendors": "الرجوع إلى البائعين",
+    "stallLabel": "كشك: {number}",
+    "stats": {
+      "orders": "الطلبات",
+      "activeItems": "العناصر النشطة",
+      "revenue": "الإيرادات",
+      "avgRating": "متوسط التقييم"
+    },
+    "recentSettlements": "التسويات الأخيرة",
+    "settlementAmount": "{amount} ({status})",
+    "settlementStatuses": {
+      "paid": "مدفوع",
+      "failed": "فاشل",
+      "pending": "قيد الانتظار"
+    },
+    "loadingVendors": "جارٍ تحميل البائعين…",
+    "featuredVendors": "البائعون المميزون",
+    "allVendors": "جميع البائعين",
+    "all": "الكل",
+    "noVendorsInCategory": "لا يوجد بائعون في هذه الفئة."
+  },
+  "comingSoon": {
+    "events": "الفعاليات",
+    "eventsContent": "محتوى الفعاليات قريبًا.",
+    "liveLocation": "الموقع المباشر",
+    "liveLocationContent": "محتوى تتبع الموقع المباشر قريبًا.",
+    "reviews": "التقييمات",
+    "reviewsContent": "محتوى التقييمات قريبًا."
+  },
+  "promotionsPage": {
+    "types": {
+      "percentageDiscount": "خصم بالنسبة",
+      "fixedDiscount": "خصم ثابت",
+      "buyOneGetOne": "اشترِ واحدًا واحصل على آخر",
+      "happyHour": "ساعة السعادة"
+    },
+    "weekdays": {
+      "mon": "الإثنين",
+      "tue": "الثلاثاء",
+      "wed": "الأربعاء",
+      "thu": "الخميس",
+      "fri": "الجمعة",
+      "sat": "السبت",
+      "sun": "الأحد"
+    },
+    "bogo": "اشترِ 1 واحصل على 1",
+    "percentOff": "خصم {percent}%",
+    "amountOff": "خصم ${amount}",
+    "untilDate": "حتى {date}",
+    "allDayEveryDay": "طوال اليوم، كل يوم",
+    "activeNow": "نشط الآن",
+    "loadingPromotions": "جارٍ تحميل العروض…",
+    "activePromotions": "العروض النشطة",
+    "noActivePromotions": "لا توجد عروض نشطة حاليًا.",
+    "happyHourOffers": "عروض ساعة السعادة",
+    "noHappyHourOffers": "لا توجد عروض ساعة سعادة متاحة.",
+    "upcomingPromotions": "العروض القادمة",
+    "noUpcomingPromotions": "لا توجد عروض قادمة.",
+    "promotionsAndOffers": "العروض والتخفيضات"
+  },
+  "qrTable": {
+    "explore": "استكشاف",
+    "browseMenu": "استعراض القائمة",
+    "reservations": "الحجوزات",
+    "reviews": "التقييمات",
+    "loyaltyRewards": "مكافآت الولاء",
+    "events": "الفعاليات",
+    "vendors": "البائعون",
+    "liveLocation": "الموقع المباشر",
+    "promotions": "العروض",
+    "invalidTable": "طاولة غير صالحة",
+    "invalidTableDesc": "رمز QR هذا غير صالح.",
+    "tableNumberLabel": "طاولة {number}",
+    "dineInNoLoginRequired": "الطلب داخل المطعم — لا حاجة لتسجيل الدخول",
+    "checkout": "الدفع",
+    "welcome": "مرحبًا!",
+    "welcomeDesc": "أنت تطلب من الطاولة {number}. استعرض قائمتنا الكاملة وأضف العناصر إلى سلتك.",
+    "loadingTableInfoEllipsis": "جارٍ تحميل معلومات الطاولة…",
+    "seatsCount": "يستوعب {count}",
+    "serverLabel": "النادل: {name}"
+  },
+  "phoneInput": {
+    "countryPickerOpened": "تم فتح أداة اختيار البلد.",
+    "countriesFoundCount": "{count, plural, =0 {لم يتم العثور على بلد.} one {تم العثور على بلد واحد.} other {تم العثور على # بلد.}}",
+    "countrySelectedAnnounce": "تم اختيار {name}.",
+    "selectCountry": "اختر البلد",
+    "closeCountryPickerAria": "إغلاق أداة اختيار البلد",
+    "countrySearchPlaceholder": "اسم البلد أو الرمز أو مفتاح الاتصال (+44)…",
+    "searchCountriesAria": "البحث عن البلدان",
+    "clearSearchAria": "مسح البحث",
+    "countriesListAria": "البلدان",
+    "noCountriesFound": "لم يتم العثور على بلدان",
+    "tryAnotherSearchHint": "جرّب اسمًا أو رمزًا آخر (US) أو مفتاح اتصال آخر (+1)",
+    "clearSearch": "مسح البحث",
+    "pinned": "مثبّت",
+    "recent": "الأخيرة",
+    "allCountries": "جميع البلدان",
+    "phoneCountryAria": "بلد الهاتف: {name} {dialCode}"
+  }
+}

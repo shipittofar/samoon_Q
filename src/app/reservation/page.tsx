@@ -177,8 +177,8 @@ export default function ReservationPage() {
                     )}
                   >
                     <p className={cn('text-sm font-semibold', selectedBranch === branch.id ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{branch.name}</p>
-                    <p className="text-xs text-[var(--fg-muted)] mt-1">{branch.city}</p>
-                    <p className="text-xs text-[var(--fg-muted)] mt-1">{branch.address}</p>
+                    {/* <p className="text-xs text-[var(--fg-muted)] mt-1">{branch.city}</p>
+                    <p className="text-xs text-[var(--fg-muted)] mt-1">{branch.address}</p> */}
                   </button>
                 ))}
               </div>

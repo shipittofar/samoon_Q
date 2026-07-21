@@ -19,6 +19,7 @@ export const ENDPOINTS = {
   MENU: {
     CATEGORIES: '/menu/categories/',
     CATEGORY: (id: string) => `/menu/categories/${id}/`,
+    CONSOLE_CATEGORY: (branchId: string) => `/menu/console-categories/${branchId}/`,
     ITEMS: '/menu/items/',
     ITEM: (id: string) => `/menu/items/${id}/`,
     ITEM_BY_SLUG: (slug: string) => `/menu/items/${slug}/`,
