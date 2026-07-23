@@ -43,10 +43,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { cn } from '@/utils'
 import { useTranslations } from 'next-intl'
 import { RefreshCw } from 'lucide-react'
 import { useTenantStore, useRbacStore } from '@/stores'
-import { usePermission } from '@/hooks'
+import { usePermission, useConsoleSessionRefresh } from '@/hooks'
 import type { TenantLifecycle } from '@/types'
 import { AccessDenied } from './AccessDenied'
 import { ConsoleOnboarding } from './ConsoleOnboarding'
@@ -59,6 +60,8 @@ export const TENANT_MAX_AUTO_RETRIES = 3
 export type ConsoleTenantPhase =
   | 'membership_loading'
   | 'onboarding'
+  | 'no_active_tenant'
+  | 'tenant_awaiting_selection'
   | 'tenant_loading'
   | 'tenant_retrying'
   | 'tenant_network_error'
@@ -78,14 +81,30 @@ export type ConsoleTenantPhase =
  */
 export function resolveConsoleTenantPhase(params: {
   hasTenantMembership: boolean | null
+  sessionMembershipCount: number | null
+  activeTenantId: string | null | undefined
   tenantState: TenantLifecycle
   hasDashboardAccess: boolean
   retryCount: number
 }): ConsoleTenantPhase {
-  const { hasTenantMembership, tenantState, hasDashboardAccess, retryCount } = params
+  const {
+    hasTenantMembership,
+    sessionMembershipCount,
+    activeTenantId,
+    tenantState,
+    hasDashboardAccess,
+    retryCount,
+  } = params
 
   if (hasTenantMembership === null) return 'membership_loading'
-  if (hasTenantMembership === false) return 'onboarding'
+  if (sessionMembershipCount === null) {
+    return hasTenantMembership === false ? 'onboarding' : 'membership_loading'
+  }
+  if (sessionMembershipCount === 0) return 'no_active_tenant'
+
+  const awaitingActiveMembership = !activeTenantId && tenantState === 'not_found'
+
+  if (awaitingActiveMembership) return 'tenant_awaiting_selection'
 
   if (tenantState === 'not_found') return 'tenant_not_found'
   if (tenantState === 'forbidden') return 'tenant_access_denied'
@@ -158,11 +177,20 @@ function InlineCenteredState({ children }: { children: ReactNode }) {
   )
 }
 
-function TenantMessage({ title, description }: { title: string; description: string }) {
+function TenantMessage({
+  title,
+  description,
+  action,
+}: {
+  title: string
+  description: string
+  action?: ReactNode
+}) {
   return (
     <InlineCenteredState>
       <h2 className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
       <p className="max-w-sm text-sm text-[var(--fg-muted)]">{description}</p>
+      {action}
     </InlineCenteredState>
   )
 }
@@ -170,17 +198,57 @@ function TenantMessage({ title, description }: { title: string; description: str
 export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
   const t = useTranslations('console')
   const hasTenantMembership = useRbacStore((s) => s.hasTenantMembership)
+  const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
+  const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
   const tenantState = useTenantStore((s) => s.tenantState)
   const hasDashboardAccess = usePermission('dashboard:access')
   const { retryCount, retryNow } = useTenantAutoRetry(tenantState)
+  const { refresh, refreshing } = useConsoleSessionRefresh()
 
-  const phase = resolveConsoleTenantPhase({ hasTenantMembership, tenantState, hasDashboardAccess, retryCount })
+  const sessionMembershipCount =
+    sessionMemberships === null ? null : sessionMemberships.length
+
+  const phase = resolveConsoleTenantPhase({
+    hasTenantMembership,
+    sessionMembershipCount,
+    activeTenantId,
+    tenantState,
+    hasDashboardAccess,
+    retryCount,
+  })
+
+  const sessionRefreshButton = (
+    <button
+      type="button"
+      onClick={() => void refresh()}
+      disabled={refreshing}
+      className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <RefreshCw className={cn('h-4 w-4', refreshing && 'animate-spin')} aria-hidden="true" />
+      {t('refreshSessionCta')}
+    </button>
+  )
 
   switch (phase) {
     case 'membership_loading':
       return null
     case 'onboarding':
       return <ConsoleOnboarding />
+    case 'no_active_tenant':
+      return (
+        <TenantMessage
+          title={t('noActiveTenantTitle')}
+          description={t('noActiveTenantDesc')}
+          action={sessionRefreshButton}
+        />
+      )
+    case 'tenant_awaiting_selection':
+      return (
+        <TenantMessage
+          title={t('selectTenant')}
+          description={t('selectTenantPromptDesc')}
+        />
+      )
     case 'tenant_not_found':
       return <TenantMessage title={t('tenantNotFoundTitle')} description={t('tenantNotFoundDesc')} />
     case 'tenant_access_denied':

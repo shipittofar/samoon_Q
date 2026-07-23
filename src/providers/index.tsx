@@ -15,11 +15,14 @@ import { STALE_TIME, CACHE_TIME } from '@/constants'
 import { ServiceWorkerUpdateBanner } from '@/components/pwa/ServiceWorkerUpdateBanner'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { MissingTranslationInspector } from '@/components/dev/MissingTranslationInspector'
+import { ConsoleWorkspaceBootstrapper } from '@/providers/ConsoleWorkspaceBootstrapper'
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import { usePathname } from 'next/navigation'
 import type { Role, TenantMembership } from '@/types/rbac'
 import { normalizeTenantPermissions, selectActiveMembership, hasAnyMembership } from '@/services/permission.service'
+import { hasMembershipBranches } from '@/lib/console-workspace'
+import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { DEFAULT_TENANT } from '@/constants'
 
 /**
@@ -94,7 +97,9 @@ export function resolveConsoleTenantFallbackSlug(
   if (!pathname?.startsWith('/console')) return null
   if (currentTenant && currentTenant.slug !== DEFAULT_TENANT.slug) return null
   if (!sessionInput) return null
-  const membership = selectActiveMembership(sessionInput.memberships, sessionInput.activeMembership, currentTenant?.id)
+  const activeTenantId = sessionInput.activeMembership?.tenantId
+  if (!activeTenantId) return null
+  const membership = sessionInput.memberships?.find((m) => m.tenantId === activeTenantId)
   return membership?.tenantSlug ?? null
 }
 
@@ -246,6 +251,7 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
  *   itself never falls back to branches[0] (see stores/index.ts).
  */
 function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
   const tenant = useTenantStore((s) => s.tenant)
   const tenantState = useTenantStore((s) => s.tenantState)
   // Tracks the last tenant id this bootstrapper actually loaded branches
@@ -275,8 +281,19 @@ function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
       // is skipped so the persisted id gets its one legitimate validation.
       useBranchStore.getState().resetBranchResolution()
     }
-    void useBranchStore.getState().loadBranchesForTenant(tenant.id)
-  }, [tenant, tenantState])
+    void (() => {
+      const isConsole = pathname?.startsWith('/console')
+      if (isConsole) {
+        const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
+        if (!activeTenantId || tenant.id !== activeTenantId) return
+        const membership = useRbacStore.getState().sessionMemberships?.find((m) => m.tenantId === tenant.id)
+        if (hasMembershipBranches(membership)) {
+          return useBranchStore.getState().loadBranchesFromMembership(tenant.id, membership.branches)
+        }
+      }
+      return useBranchStore.getState().loadBranchesForTenant(tenant.id)
+    })()
+  }, [tenant, tenantState, pathname])
 
   return <>{children}</>
 }
@@ -393,6 +410,19 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     const sessionInput = pendingAuthSessionRef.current
     const currentTenant = useTenantStore.getState().tenant
 
+    // Console workspace resolves tenant by membership id — never slug.
+    if (pathname?.startsWith('/console') && sessionInput.memberships && sessionInput.memberships.length > 0) {
+      pendingAuthSessionRef.current = null
+      const activeTenantId = sessionInput.activeMembership?.tenantId
+      if (!activeTenantId) return
+      if (currentTenant?.id === activeTenantId) {
+        const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, currentTenant.id)
+        useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions, branchAccess)
+        if (roles.length > 0) useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
+      }
+      return
+    }
+
     const fallbackSlug = resolveConsoleTenantFallbackSlug(pathname, currentTenant, sessionInput)
 
     if (fallbackSlug && !consoleFallbackAttempted.current) {
@@ -439,6 +469,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     clearSentryUser()
     clearTokens()
     useRbacStore.getState()._resetStore()
+    useConsoleWorkspaceStore.getState().resetWorkspace()
     useBranchStore.getState().resetBranchResolution()
     useCartStore.getState().clearCart()
     useDineInStore.getState().clearTable()
@@ -579,6 +610,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <BranchResolutionBootstrapper>
             <TenantThemeProvider>
               <AuthBootstrapper>
+                <ConsoleWorkspaceBootstrapper>
                 <FcmRegistrationProvider>
                 <NotificationWebSocketProvider>
                   {children}
@@ -589,6 +621,7 @@ export function Providers({ children }: { children: ReactNode }) {
                   <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
                 </NotificationWebSocketProvider>
                 </FcmRegistrationProvider>
+                </ConsoleWorkspaceBootstrapper>
               </AuthBootstrapper>
             </TenantThemeProvider>
             </BranchResolutionBootstrapper>

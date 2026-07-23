@@ -59,11 +59,11 @@ describe('Phase Z.7 — activeMembership pointer-only shape', () => {
 
   it('still works when activeMembership is already a full record (backward compatible)', () => {
     const tenantId = 'tenant-full-01'
-    const full: TenantMembership = { tenantId, roles: ['manager'], branchAccess: { scope: 'assigned', branchIds: ['b1'] } }
+    const full: TenantMembership = { tenantId, roles: ['manager'], branchAccess: { scope: 'selected', branchIds: ['b1'] } }
     const memberships: TenantMembership[] = [full]
     const { roles, branchAccess } = normalizeTenantPermissions({ memberships, activeMembership: full }, tenantId)
     expect(roles).toEqual(['manager'])
-    expect(branchAccess).toEqual({ scope: 'assigned', branchIds: ['b1'] })
+    expect(branchAccess).toEqual({ scope: 'selected', branchIds: ['b1'] })
   })
 
   it('activeMembership pointing at a tenantId absent from memberships falls back to currentTenantId, never fabricates roles', () => {

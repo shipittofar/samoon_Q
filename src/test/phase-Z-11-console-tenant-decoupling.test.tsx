@@ -70,11 +70,19 @@ function businessUser() {
 
 const SAMOON = { id: 'tenant-samoon-01', slug: 'samoon', name: 'Samoon Restaurant', status: 'active' }
 
+function seedActiveMembership() {
+  useRbacStore.getState().setSessionMemberships(
+    [{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+    { tenantId: SAMOON.id },
+  )
+}
+
 beforeEach(() => {
   useRbacStore.getState()._resetStore()
   useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
   useTenantStore.setState({ tenant: null, tenantState: 'loading', lastAttemptedSlug: 'samoon' } as never)
   useRbacStore.getState().setHasTenantMembership(true)
+  seedActiveMembership()
 })
 
 afterEach(() => {
@@ -83,13 +91,31 @@ afterEach(() => {
 })
 
 describe('Phase Z.11 — resolveConsoleTenantPhase(): pure state coverage', () => {
-  const base = { hasTenantMembership: true as boolean | null, tenantState: 'resolved' as const, hasDashboardAccess: true, retryCount: 0 }
+  const base = {
+    hasTenantMembership: true as boolean | null,
+    sessionMembershipCount: 1 as number | null,
+    activeTenantId: 'tenant-1' as string | null,
+    tenantState: 'resolved' as const,
+    hasDashboardAccess: true,
+    retryCount: 0,
+  }
 
   it('membership_loading when hasTenantMembership is null', () => {
     expect(resolveConsoleTenantPhase({ ...base, hasTenantMembership: null })).toBe('membership_loading')
   })
-  it('onboarding when hasTenantMembership is false', () => {
-    expect(resolveConsoleTenantPhase({ ...base, hasTenantMembership: false })).toBe('onboarding')
+  it('onboarding when memberships are unknown and hasTenantMembership is false', () => {
+    expect(resolveConsoleTenantPhase({ ...base, hasTenantMembership: false, sessionMembershipCount: null })).toBe('onboarding')
+  })
+  it('no_active_tenant when memberships array is empty', () => {
+    expect(resolveConsoleTenantPhase({ ...base, sessionMembershipCount: 0, hasTenantMembership: false })).toBe('no_active_tenant')
+  })
+  it('tenant_awaiting_selection when memberships exist but activeMembership.tenantId is missing', () => {
+    expect(resolveConsoleTenantPhase({
+      ...base,
+      sessionMembershipCount: 2,
+      activeTenantId: null,
+      tenantState: 'not_found',
+    })).toBe('tenant_awaiting_selection')
   })
   it('tenant_not_found for a genuine not_found classification, regardless of retryCount', () => {
     expect(resolveConsoleTenantPhase({ ...base, tenantState: 'not_found', retryCount: 2 })).toBe('tenant_not_found')
@@ -217,6 +243,7 @@ describe('Phase Z.11 — successful resolution after a failure activates tenant-
     const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] }, SAMOON.id)
     useRbacStore.getState().setCurrentTenantSession(SAMOON.id, roles, permissions, branchAccess)
     useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
+    seedActiveMembership()
 
     rerender(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
 
@@ -225,9 +252,41 @@ describe('Phase Z.11 — successful resolution after a failure activates tenant-
   })
 })
 
+describe('Phase Z.11 — no active tenant: distinct from not_found and onboarding', () => {
+  it('renders the dedicated no-active-tenant copy when memberships array is empty', () => {
+    useRbacStore.getState().setHasTenantMembership(false)
+    useRbacStore.getState().setSessionMemberships([], null)
+
+    render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
+
+    expect(screen.getByText(en.console.noActiveTenantTitle)).toBeTruthy()
+    expect(screen.getByText(en.console.noActiveTenantDesc)).toBeTruthy()
+    expect(screen.getByRole('button', { name: en.console.refreshSessionCta })).toBeTruthy()
+    expect(screen.queryByText(en.console.tenantNotFoundTitle)).toBeNull()
+    expect(screen.queryByText(en.console.onboardingTitle)).toBeNull()
+    expect(screen.queryByText('Menu Module')).toBeNull()
+  })
+
+  it('prompts manual tenant selection when memberships exist but activeMembership.tenantId is missing', () => {
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+      null,
+    )
+    useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
+
+    render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
+
+    expect(screen.getByText(en.console.selectTenant)).toBeTruthy()
+    expect(screen.getByText(en.console.selectTenantPromptDesc)).toBeTruthy()
+    expect(screen.queryByText(en.console.noActiveTenantTitle)).toBeNull()
+    expect(screen.queryByText('Menu Module')).toBeNull()
+  })
+})
+
 describe('Phase Z.11 — no memberships: correct empty (onboarding) state', () => {
   it('shows onboarding, never "Tenant not found", and never leaks tenant-scoped content', () => {
     useRbacStore.getState().setHasTenantMembership(false)
+    useRbacStore.getState().setSessionMemberships(null, null)
     useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
 
     render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))

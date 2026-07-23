@@ -328,7 +328,7 @@ export const tenantService = {
 
     if (USE_MOCK) {
       await delay()
-      const found = MOCK_TENANTS[resolvedSlug]
+      const found = MOCK_TENANTS[resolvedSlug] ?? findInList(resolvedSlug)
       if (!found) throw new TenantNotFoundError(resolvedSlug)
       return { ...found }
     }

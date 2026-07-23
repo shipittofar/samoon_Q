@@ -54,6 +54,8 @@ import type {
   NotificationPriority,
 } from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
+import { hasMembershipBranches } from '@/lib/console-workspace'
+import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { applyOverrides, normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
@@ -575,6 +577,7 @@ export function useLogout() {
       // previous clearRoles() only reset tenantRoles, leaving stale
       // authorization state behind after logout (P10.2.3 finding F-5).
       useRbacStore.getState()._resetStore()
+      useConsoleWorkspaceStore.getState().resetWorkspace()
       useBranchStore.getState().setAdminActiveBranch(null)
       useCartStore.getState().clearCart()
       useDineInStore.getState().clearTable()
@@ -603,7 +606,7 @@ export function useMe() {
 // route) should pass it explicitly; callers with no route-level branch context
 // fall back to the customer's currently active branch in useBranchStore.
 export function useActiveBranchId(): string | undefined {
-  return useBranchStore((s) => s.activeBranch?.slug)
+  return useBranchStore((s) => s.selectedBranch?.id ?? s.activeBranch?.slug)
 }
 
 export function useCategories(branchId?: string) {
@@ -942,8 +945,16 @@ export function useIsBranchReady(): boolean {
 export function useRetryLoadBranches(): () => void {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   const loadBranchesForTenant = useBranchStore((s) => s.loadBranchesForTenant)
+  const loadBranchesFromMembership = useBranchStore((s) => s.loadBranchesFromMembership)
+  const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
   return () => {
-    if (tenantId) void loadBranchesForTenant(tenantId)
+    if (!tenantId) return
+    const membership = sessionMemberships?.find((m) => m.tenantId === tenantId)
+    if (hasMembershipBranches(membership)) {
+      void loadBranchesFromMembership(tenantId, membership.branches)
+    } else {
+      void loadBranchesForTenant(tenantId)
+    }
   }
 }
 
@@ -964,7 +975,7 @@ export function useRetryLoadBranches(): () => void {
 export function useAdminBranches(tenantId: string) {
   return useQuery({
     queryKey: ['admin-branches', tenantId],
-    queryFn: () => branchManagementService.getBranches(tenantId),
+    queryFn: () => branchManagementService.getTenantsBranches(tenantId),
     staleTime: STALE_TIME,
     enabled: !!tenantId,
   })
@@ -3563,3 +3574,14 @@ export function useSaveBranchOverrides(tenantSlug: string, branchSlug: string) {
     },
   })
 }
+
+export {
+  useConsoleWorkspace,
+  useConsoleTenantId,
+  useConsoleBranchId,
+  useConsoleSessionRefresh,
+  refreshConsoleWorkspaceSession,
+  invalidateConsoleWorkspaceQueries,
+  clearConsoleWorkspaceQueryCache,
+  TENANT_SCOPED_QUERY_KEYS,
+} from './console-workspace'

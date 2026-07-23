@@ -71,13 +71,13 @@ describe('Phase Z.1 — getMockMemberships()', () => {
   it('selected branch access: multi-tenant user\'s Tenant B membership has an explicit, non-empty assigned scope', () => {
     const memberships = getMockMemberships('user-multi-01')
     const tenantB = memberships.find((m) => m.tenantId === MOCK_TENANT_B_ID)!
-    expect(tenantB.branchAccess).toEqual({ scope: 'assigned', branchIds: ['branch-brewcafe-01'] })
+    expect(tenantB.branchAccess).toEqual({ scope: 'selected', branchIds: ['branch-brewcafe-01'] })
   })
 
   it('all branch access: multi-tenant user\'s Tenant A (manager) membership falls back to the empty assigned default, distinct from Tenant B\'s explicit selection', () => {
     const memberships = getMockMemberships('user-multi-01')
     const tenantA = memberships.find((m) => m.tenantId === MOCK_TENANT_ID)!
-    expect(tenantA.branchAccess).toEqual({ scope: 'assigned', branchIds: [] })
+    expect(tenantA.branchAccess).toEqual({ scope: 'selected', branchIds: [] })
   })
 
   it('unknown userId: returns an empty array, never throws', () => {
@@ -170,10 +170,10 @@ describe('Phase Z.1 — tenant service boundary (getMyTenants / getPlatformTenan
     expect(tenantService.getMyTenants).not.toBe(tenantService.getPlatformTenants)
   })
 
-  it('AdminTenantSwitcher (my-tenants surface) uses useMyTenants, not the ambiguous useTenants', () => {
+  it('AdminTenantSwitcher (membership surface) uses useConsoleWorkspace, not useMyTenants', () => {
     const src = readSrc('components/admin/AdminTenantSwitcher.tsx')
-    expect(src).toContain('useMyTenants')
-    expect(src).not.toMatch(/[^A-Za-z]useTenants\(/)
+    expect(src).toContain('useConsoleWorkspace')
+    expect(src).not.toContain('useMyTenants')
   })
 
   it('/console/tenants (platform-tenants surface) uses usePlatformTenants, not the ambiguous useTenants', () => {
@@ -204,11 +204,11 @@ describe('Phase Z.1 — branch service boundary (getTenantBranches requires tena
     expect(src).not.toContain('async getTenantBranches(tenantId?: string)')
   })
 
-  it('useBranches() prefers getTenantBranches() once a tenant has resolved', () => {
+  it('useBranches() loads branches for the resolved tenant via branchService.getBranches', () => {
     const src = readSrc('hooks/index.ts')
     const fnIdx = src.indexOf('export function useBranches')
     const bodyEnd = src.indexOf('\n}', fnIdx)
     const body = src.slice(fnIdx, bodyEnd)
-    expect(body).toContain('getTenantBranches')
+    expect(body).toContain('branchService.getBranches')
   })
 })

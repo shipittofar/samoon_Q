@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url'
 import React from 'react'
 import en from '@/i18n/locales/en.json'
 import { useAuthStore, useTenantStore, useRbacStore } from '@/stores'
+import { authService } from '@/services/auth.service'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { ConsoleWorkspaceGate } from '@/components/admin/ConsoleWorkspaceGate'
 import { AdminTenantSwitcher } from '@/components/admin/AdminTenantSwitcher'
@@ -65,12 +66,13 @@ beforeEach(() => {
 })
 
 describe('Phase Z.10 — Scenario 1: business owner WITH a tenant', () => {
-  it('/console loads (children render) and dashboard:access-gated content is visible — permissions work', () => {
+  it('business owner WITH a tenant: Console loads (children render) and dashboard:access-gated content is visible — permissions work', () => {
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
     const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner', 'admin'] }, SAMOON.id)
     useRbacStore.getState().setCurrentTenantSession(SAMOON.id, roles, permissions, branchAccess)
     useRbacStore.getState().setHasTenantMembership(true)
+    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner', 'admin'], branchAccess: { scope: 'all' } }], { tenantId: SAMOON.id })
 
     render(withProviders(
       <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
@@ -85,6 +87,7 @@ describe('Phase Z.10 — Scenario 1: business owner WITH a tenant', () => {
     const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] }, SAMOON.id)
     useRbacStore.getState().setCurrentTenantSession(SAMOON.id, roles, permissions, branchAccess)
     useRbacStore.getState().setHasTenantMembership(true)
+    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }], { tenantId: SAMOON.id })
 
     render(withProviders(
       <ConsoleWorkspaceGate><AdminTenantSwitcher /></ConsoleWorkspaceGate>,
@@ -98,6 +101,7 @@ describe('Phase Z.10 — Scenario 1: business owner WITH a tenant', () => {
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
     useRbacStore.getState().setHasTenantMembership(true)
+    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }], { tenantId: SAMOON.id })
     // No currentTenantSession set — no permission grant.
 
     render(withProviders(
@@ -142,8 +146,9 @@ describe('Phase Z.10 — Scenario 2: business user WITHOUT a tenant', () => {
 describe('Phase Z.10 — a real tenant-resolution failure (has membership, but the specific tenant is unusable) is distinct from onboarding', () => {
   it('hasTenantMembership true + tenantState "not_found" shows the tenant error, not onboarding', () => {
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
-    useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
+    useTenantStore.setState({ tenant: null, tenantState: 'not_found', lastAttemptedSlug: 'ghost' } as never)
     useRbacStore.getState().setHasTenantMembership(true)
+    useRbacStore.getState().setSessionMemberships([{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }], { tenantId: 't1' })
 
     render(withProviders(
       <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
@@ -152,6 +157,111 @@ describe('Phase Z.10 — a real tenant-resolution failure (has membership, but t
     expect(screen.getByText(en.console.tenantNotFoundTitle)).toBeTruthy()
     expect(screen.queryByText(en.console.onboardingTitle)).toBeNull()
     expect(screen.queryByText('Console Workspace')).toBeNull()
+  })
+})
+
+describe('Phase Z.10 — tenant selection cases (activeMembership vs memberships)', () => {
+  it('Case 1: activeMembership.tenantId resolves and workspace renders when tenant is loaded', () => {
+    useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
+    useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
+    const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] }, SAMOON.id)
+    useRbacStore.getState().setCurrentTenantSession(SAMOON.id, roles, permissions, branchAccess)
+    useRbacStore.getState().setHasTenantMembership(true)
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: SAMOON.id },
+    )
+
+    render(withProviders(
+      <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
+    ))
+
+    expect(screen.getByText('Console Workspace')).toBeTruthy()
+  })
+
+  it('Case 2: memberships exist without activeMembership.tenantId — read-only selector, no local activation', async () => {
+    useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
+    useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
+    useRbacStore.getState().setHasTenantMembership(true)
+    useRbacStore.getState().setSessionMemberships(
+      [
+        { tenantId: SAMOON.id, tenantName: 'Samoon Restaurant', roles: ['owner'], branchAccess: { scope: 'all' } },
+        { tenantId: 'tenant-b-02', tenantName: 'Other Business', roles: ['manager'], branchAccess: { scope: 'all' } },
+      ],
+      null,
+    )
+
+    const user = userEvent.setup()
+    const { rerender } = render(withProviders(
+      <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
+    ))
+
+    expect(screen.getByText(en.console.selectTenant)).toBeTruthy()
+    expect(screen.queryByText(en.console.noActiveTenantTitle)).toBeNull()
+
+    rerender(withProviders(<AdminTenantSwitcher />))
+
+    await user.click(screen.getByRole('button', { name: /switchTenantAria|Switch tenant/i }))
+    await user.click(screen.getByText('Other Business'))
+
+    expect(useTenantStore.getState().tenant).toBeNull()
+    expect(useRbacStore.getState().activeMembership?.tenantId).toBeUndefined()
+    expect(screen.getByText(en.console.selectTenant)).toBeTruthy()
+  })
+
+  it('Case 3: empty memberships — no-active-tenant state with refresh', () => {
+    useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
+    useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
+    useRbacStore.getState().setHasTenantMembership(false)
+    useRbacStore.getState().setSessionMemberships([], null)
+
+    render(withProviders(
+      <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
+    ))
+
+    expect(screen.getByText(en.console.noActiveTenantTitle)).toBeTruthy()
+    expect(screen.getByText(en.console.noActiveTenantDesc)).toBeTruthy()
+    expect(screen.getByRole('button', { name: en.console.refreshSessionCta })).toBeTruthy()
+    expect(screen.queryByText(en.console.onboardingTitle)).toBeNull()
+    expect(screen.queryByText('Console Workspace')).toBeNull()
+  })
+
+  it('Case 3 switcher: empty memberships show disabled no-tenant label and refresh', () => {
+    useRbacStore.getState().setHasTenantMembership(false)
+    useRbacStore.getState().setSessionMemberships([], null)
+
+    render(withProviders(<AdminTenantSwitcher />))
+
+    expect(screen.getByText(en.console.noActiveTenantSwitcherLabel)).toBeTruthy()
+    expect(screen.getByRole('button', { name: en.console.refreshSessionAria })).toBeTruthy()
+    expect(screen.queryByText(en.console.selectTenant)).toBeNull()
+  })
+
+  it('refresh re-fetches /auth/me when memberships are empty', async () => {
+    useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
+    useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
+    useRbacStore.getState().setHasTenantMembership(false)
+    useRbacStore.getState().setSessionMemberships([], null)
+
+    const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: businessUser(),
+      memberships: [{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+      activeMembership: { tenantId: SAMOON.id },
+    } as never)
+
+    const user = userEvent.setup()
+    render(withProviders(
+      <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
+    ))
+
+    await user.click(screen.getByRole('button', { name: en.console.refreshSessionCta }))
+
+    await waitFor(() => {
+      expect(getMeSpy).toHaveBeenCalled()
+      expect(useRbacStore.getState().activeMembership?.tenantId).toBe(SAMOON.id)
+    })
+
+    getMeSpy.mockRestore()
   })
 })
 

@@ -20,6 +20,8 @@ import type {
   EffectivePermissionResult,
   RoleTemplate,
   BranchAccess,
+  BranchAccessInput,
+  MembershipBranch,
   TenantMembership,
 } from '@/types/rbac'
 
@@ -339,18 +341,31 @@ export function getPermissionsForRole(
  * anyone who actually shouldn't have access.
  */
 export function resolveBranchAccess(
-  explicit: BranchAccess | null | undefined,
+  explicit: BranchAccessInput | null | undefined,
   roles: readonly Role[],
+  membershipBranches?: readonly MembershipBranch[],
 ): BranchAccess {
-  if (
-    explicit &&
-    (explicit.scope === 'all' ||
-      (explicit.scope === 'assigned' && Array.isArray(explicit.branchIds)))
-  ) {
-    return explicit
+  if (explicit?.scope === 'all') {
+    return { scope: 'all' }
   }
+
+  const isSelectedLike =
+    explicit &&
+    (explicit.scope === 'selected' || explicit.scope === 'assigned')
+
+  if (isSelectedLike) {
+    const branchIds = Array.isArray(explicit.branchIds) ? explicit.branchIds : []
+    if (branchIds.length > 0) {
+      return { scope: 'selected', branchIds }
+    }
+    if (membershipBranches && membershipBranches.length > 0) {
+      return { scope: 'selected', branchIds: membershipBranches.map((b) => b.id) }
+    }
+    return { scope: 'selected', branchIds: [] }
+  }
+
   if (roles.includes('owner')) return { scope: 'all' }
-  return { scope: 'assigned', branchIds: [] }
+  return { scope: 'selected', branchIds: [] }
 }
 
 /**
@@ -377,12 +392,19 @@ export function resolveBranchAccess(
  * value) so neither has to guess at the other's job.
  */
 export function canAccessBranch(
-  branchAccess: BranchAccess | null | undefined,
+  branchAccess: BranchAccess | BranchAccessInput | null | undefined,
   branchId: string | null | undefined,
 ): boolean {
   if (!branchId || !branchAccess) return false
   if (branchAccess.scope === 'all') return true
-  return branchAccess.branchIds.includes(branchId)
+  if (branchAccess.scope === 'selected' || branchAccess.scope === 'assigned') {
+    const branchIds = 'branchIds' in branchAccess && Array.isArray(branchAccess.branchIds)
+      ? branchAccess.branchIds
+      : []
+    if (branchIds.length === 0) return false
+    return branchIds.includes(branchId)
+  }
+  return false
 }
 
 /**
@@ -503,7 +525,7 @@ export function normalizeTenantPermissions(
       tenantId: selected.tenantId,
       roles,
       permissions: [...getPermissionsForRole(roles)],
-      branchAccess: resolveBranchAccess(selected.branchAccess, roles),
+      branchAccess: resolveBranchAccess(selected.branchAccess, roles, selected.branches),
     }
   }
 
@@ -778,7 +800,7 @@ export function getMockMemberships(userId: string): TenantMembership[] {
     tenantSlug: MOCK_TENANT_SLUGS[a.tenantId],
     roles: a.roles,
     branchAccess: a.branchIds
-      ? { scope: 'assigned', branchIds: a.branchIds }
+      ? { scope: 'selected', branchIds: a.branchIds }
       : resolveBranchAccess(undefined, a.roles),
   }))
 }

@@ -51,6 +51,11 @@ function withProviders(node: React.ReactNode) {
 const SAMOON = { id: 'tenant-samoon-01', slug: 'samoon', name: 'Samoon Restaurant' }
 const BREW_CAFE_ID = 'tenant-brew-cafe-01'
 
+const MULTI_MEMBERSHIPS = [
+  { tenantId: SAMOON.id, tenantSlug: 'samoon', tenantName: 'Samoon Restaurant', roles: ['manager'] as const, branchAccess: { scope: 'all' as const } },
+  { tenantId: BREW_CAFE_ID, tenantSlug: 'brew-cafe', tenantName: 'Brew Cafe', roles: ['cashier'] as const, branchAccess: { scope: 'selected' as const, branchIds: ['branch-brewcafe-01'] } },
+]
+
 function seedOwnerSessionForSamoon(userId: string) {
   useAuthStore.setState({
     user: { id: userId, email: `${userId}@test.com`, first_name: 'T', last_name: 'U', accountType: 'business', is_verified: true, created_at: new Date().toISOString() },
@@ -59,6 +64,7 @@ function seedOwnerSessionForSamoon(userId: string) {
     sessionCheckFailed: false,
   })
   useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
+  useRbacStore.getState().setSessionMemberships(MULTI_MEMBERSHIPS as never, { tenantId: SAMOON.id })
   const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] }, SAMOON.id)
   useRbacStore.getState().setCurrentTenantSession(SAMOON.id, roles, permissions, branchAccess)
 }
@@ -110,12 +116,12 @@ describe('Phase X.3 — AdminTenantSwitcher never lists an unauthorized tenant',
   })
 })
 
-describe('Phase X.3 — an authorized tenant switch does not empty the session', () => {
+describe('Phase X.3 — tenant selector is read-only until backend switch exists', () => {
   beforeEach(() => {
     useRbacStore.getState()._resetStore()
   })
 
-  it('switching to Brew Cafe (real cashier access) resolves to a non-empty currentTenantSession for the new tenant', async () => {
+  it('clicking another membership in the dropdown does not activate it locally', async () => {
     seedOwnerSessionForSamoon('user-multi-01')
     const user = userEvent.setup()
     render(withProviders(<AdminTenantSwitcher />))
@@ -123,14 +129,9 @@ describe('Phase X.3 — an authorized tenant switch does not empty the session',
     await openTenantSwitcher(user)
     await user.click(await screen.findByText('Brew Cafe'))
 
-    await waitFor(() => {
-      const session = useRbacStore.getState().currentTenantSession
-      expect(session?.tenantId).toBe(BREW_CAFE_ID)
-    }, { timeout: 3000 })
-
-    const session = useRbacStore.getState().currentTenantSession
-    expect(session?.roles).toEqual(['cashier'])
-    expect(session?.permissions.length).toBeGreaterThan(0)
+    expect(useRbacStore.getState().currentTenantSession?.tenantId).toBe(SAMOON.id)
+    expect(useRbacStore.getState().activeMembership?.tenantId).toBe(SAMOON.id)
+    expect(useTenantStore.getState().tenant?.id).toBe(SAMOON.id)
   })
 })
 

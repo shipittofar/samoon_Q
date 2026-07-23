@@ -144,14 +144,34 @@ export interface TenantRoleAssignment {
  * into the permission string itself.
  *
  * 'all' = every current and future branch of the tenant (owner/admin).
- * 'assigned' = exactly the listed branch ids — an empty `branchIds` array
- * is a valid, meaningful value: "assigned scope, but assigned to nothing
+ * 'selected' = exactly the listed branch ids — an empty `branchIds` array
+ * is a valid, meaningful value: "selected scope, but assigned to nothing
  * (yet)," which must deny every branch-scoped read, not be mistaken for
  * 'all'.
+ *
+ * `LegacyBranchAccess` accepts the pre-migration `assigned` scope alias;
+ * `resolveBranchAccess()` normalizes it to `selected`.
  */
 export type BranchAccess =
   | { scope: 'all' }
-  | { scope: 'assigned'; branchIds: string[] }
+  | { scope: 'selected'; branchIds: string[] }
+
+/** Pre-migration wire value — normalized to `selected` on ingest. */
+export type LegacyBranchAccess = { scope: 'assigned'; branchIds: string[] }
+
+export type BranchAccessInput = BranchAccess | LegacyBranchAccess | { scope: 'selected'; branchIds?: string[] }
+
+/**
+ * Branch summary embedded in GET /auth/me `memberships[].branches`.
+ * Authoritative branch list for Console when non-empty.
+ */
+export interface MembershipBranch {
+  id: string
+  name: string
+  slug: string
+  status: 'active' | 'inactive' | 'maintenance'
+  isDefault?: boolean
+}
 
 /**
  * Phase 9 — one tenant a user belongs to, carrying the roles and branch
@@ -179,7 +199,9 @@ export interface TenantMembership {
   tenantSlug?: string
   tenantName?: string
   roles: Role[]
-  branchAccess: BranchAccess
+  branchAccess: BranchAccessInput
+  /** Branches available to this membership — Console source of truth when non-empty. */
+  branches?: MembershipBranch[]
   status?: 'active' | 'suspended' | 'revoked'
 }
 
@@ -193,7 +215,7 @@ export interface TenantMembership {
  *
  * Phase 9 — extended with `branchAccess`. Every session ALWAYS carries a
  * real (never undefined) `branchAccess` value: `setCurrentTenantSession()`
- * computes a safe default (`{ scope: 'assigned', branchIds: [] }`, or
+ * computes a safe default (`{ scope: 'selected', branchIds: [] }`, or
  * `{ scope: 'all' }` for an `owner` role) whenever a caller doesn't supply
  * one explicitly, so no session can silently end up with an ambiguous or
  * over-permissive branch scope. Nothing reads this field for an actual

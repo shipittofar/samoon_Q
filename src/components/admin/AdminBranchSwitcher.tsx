@@ -22,8 +22,9 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { ChevronDown, Building2, GitBranch, Check, Loader2, AlertCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
-import { useTenantStore, useBranchStore, useRbacStore } from '@/stores'
-import { BRANCH_SCOPED_QUERY_KEYS, useSelectedBranch, useBranchState, useRetryLoadBranches } from '@/hooks'
+import { useRbacStore } from '@/stores'
+import { BRANCH_SCOPED_QUERY_KEYS, useBranchState, useRetryLoadBranches } from '@/hooks'
+import { useConsoleWorkspace } from '@/hooks/console-workspace'
 import { canAccessBranch } from '@/services/permission.service'
 import type { Branch as AdminBranch } from '@/types/branch'
 import { useQueryClient } from '@tanstack/react-query'
@@ -31,23 +32,28 @@ import { useQueryClient } from '@tanstack/react-query'
 export function AdminBranchSwitcher() {
   const t = useTranslations('console')
   const tCommon = useTranslations('common')
-  const tenant = useTenantStore((s) => s.tenant)
-  const selectedBranch = useSelectedBranch()
+  const {
+    selectedTenant,
+    selectedBranch,
+    availableBranches,
+    branchesSource,
+    branchLoading,
+    switchBranch,
+  } = useConsoleWorkspace()
   const branchState = useBranchState()
-  const branches = useBranchStore((s) => s.branches)
-  const selectBranch = useBranchStore((s) => s.selectBranch)
   const retryLoadBranches = useRetryLoadBranches()
   const qc = useQueryClient()
 
-  // Phase 9.4 — UX-only safety net: never list a branch canAccessBranch()
-  // rejects. This does NOT replace backend enforcement — once the backend
-  // filters GET /branches/ itself, `branches` will already be the
-  // accessible set and this filter becomes a no-op; it stays as
-  // defense-in-depth either way (see canAccessBranch()'s doc comment).
+  // When branches come from /auth/me membership.branches the list is already
+  // authoritative; canAccessBranch() still applies branchAccess.branchIds for
+  // scope:'selected' (defense-in-depth on API fallback path).
   const branchAccess = useRbacStore((s) => s.currentTenantSession?.branchAccess)
   const accessibleBranches = useMemo(
-    () => branches.filter((b) => canAccessBranch(branchAccess, b.id)),
-    [branches, branchAccess],
+    () =>
+      branchesSource === 'membership'
+        ? availableBranches
+        : availableBranches.filter((b) => canAccessBranch(branchAccess, b.id)),
+    [availableBranches, branchAccess, branchesSource],
   )
 
   const [open, setOpen] = useState(false)
@@ -64,17 +70,14 @@ export function AdminBranchSwitcher() {
 
   function select(branch: AdminBranch) {
     if (branch.id === selectedBranch?.id) { setOpen(false); return }
-    selectBranch(branch)
+    switchBranch(branch.id)
     setOpen(false)
-    // Invalidate every branch-scoped admin query (shared allowlist, kept in
-    // sync with the query keys themselves — see hooks/index.ts) so stale
-    // branch data from the previous selection is never shown.
     for (const key of BRANCH_SCOPED_QUERY_KEYS) {
       qc.invalidateQueries({ queryKey: [key] })
     }
   }
 
-  const isLoading = branchState === 'loading'
+  const isLoading = branchLoading || branchState === 'loading'
   const isError = branchState === 'error'
   const isEmpty = branchState === 'empty'
 
@@ -83,7 +86,7 @@ export function AdminBranchSwitcher() {
       {/* Tenant label */}
       <div className="hidden sm:flex items-center gap-1.5 text-[var(--fg-muted)]">
         <Building2 className="h-3.5 w-3.5 shrink-0" />
-        <span className="font-medium truncate max-w-[120px]">{tenant?.name ?? '—'}</span>
+        <span className="font-medium truncate max-w-[120px]">{selectedTenant?.name ?? '—'}</span>
       </div>
 
       <span className="hidden sm:block text-[var(--border)] select-none">/</span>
@@ -153,7 +156,7 @@ export function AdminBranchSwitcher() {
           )}
         >
           <p className="px-3 py-1.5 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide">
-            {tenant?.name}
+            {selectedTenant?.name}
           </p>
           {accessibleBranches.length === 0 ? (
             <p className="px-3 py-2 text-sm text-[var(--fg-muted)]">{t('noBranchesFoundForTenant')}</p>
@@ -176,7 +179,9 @@ export function AdminBranchSwitcher() {
                 >
                   <div className="min-w-0">
                     <p className="font-medium truncate">{branch.name}</p>
-                    <p className="text-xs text-[var(--fg-muted)] truncate">{branch.location.address}</p>
+                    <p className="text-xs text-[var(--fg-muted)] truncate">
+                      {branch.location.address || branch.slug}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span

@@ -77,6 +77,10 @@ describe('Phase Z.8 — resolveConsoleTenantFallbackSlug()', () => {
     const slug = resolveConsoleTenantFallbackSlug('/console/orders', null, sessionInput)
     expect(slug).toBe('2cum17xs')
   })
+
+  it('memberships present but activeMembership.tenantId missing → no fallback', () => {
+    expect(resolveConsoleTenantFallbackSlug('/console', null, { memberships: [membership] })).toBeNull()
+  })
 })
 
 describe('Phase Z.8 — applyPendingAuthSession host-bootstrap race', () => {

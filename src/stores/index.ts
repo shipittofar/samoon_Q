@@ -44,6 +44,8 @@ import {
 import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
+import { membershipBranchesToBranches, resolveConsoleDefaultBranch } from '@/lib/console-workspace'
+import type { MembershipBranch } from '@/types/rbac'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
 interface AuthState {
@@ -310,6 +312,8 @@ interface TenantState {
   lastAttemptedSlug: string | undefined
   setTenant: (tenant: Tenant | null) => void
   loadTenant: (slug?: string) => Promise<void>
+  /** Console workspace — resolves tenant by canonical id (never slug). */
+  loadTenantById: (tenantId: string) => Promise<void>
   setRbacInitialized: (v: boolean) => void
   setFeatureFlagsInitialized: (v: boolean) => void
   setFeatureFlags: (flags: Record<string, boolean>) => void
@@ -363,6 +367,29 @@ export const useTenantStore = create<TenantState>()(
             captureException(err, { context: 'useTenantStore.loadTenant', slug })
             if (process.env.NODE_ENV !== 'production') {
               console.error('[useTenantStore.loadTenant] tenant resolution failed:', slug, err)
+            }
+            set({ tenant: null, isLoading: false, tenantState: 'error' })
+          }
+        }
+      },
+      loadTenantById: async (tenantId: string) => {
+        set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedSlug: tenantId })
+        try {
+          const tenant = await tenantService.getTenant(tenantId)
+          if (!ELIGIBLE_TENANT_STATUSES.includes(tenant.status)) {
+            set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
+            return
+          }
+          set({ tenant, isLoading: false, tenantState: 'resolved' })
+        } catch (err) {
+          if (err instanceof TenantNotFoundError) {
+            set({ tenant: null, isLoading: false, tenantState: 'not_found' })
+          } else if (err instanceof TenantForbiddenError) {
+            set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
+          } else {
+            captureException(err, { context: 'useTenantStore.loadTenantById', tenantId })
+            if (process.env.NODE_ENV !== 'production') {
+              console.error('[useTenantStore.loadTenantById] tenant resolution failed:', tenantId, err)
             }
             set({ tenant: null, isLoading: false, tenantState: 'error' })
           }
@@ -433,16 +460,17 @@ interface BranchState {
   branches: AdminBranch[]
 
   /**
-   * Fetches branches for `tenantId`, then validates `selectedBranchId`
-   * (if any) against the fresh list:
-   *   - id found in the fresh list  → selectedBranch = that branch, branchState = 'ready'
-   *   - id not found / no id / zero branches → selectedBranch = null, branchState = 'empty'
-   *   - fetch fails → selectedBranch = null, branchState = 'error'
-   * No automatic first-branch substitution at any step. Called once per
+   * Fetches branches for `tenantId`, then selects a default branch:
+   *   - 1 branch → auto-select
+   *   - 2+ branches → persisted id when valid, else first branch
+   *   - 0 branches → branchState = 'empty'
+   *   - fetch fails → branchState = 'error'
    * tenant resolution by TenantBootstrapper (providers/index.tsx) — not by
    * individual pages/components.
    */
   loadBranchesForTenant: (tenantId: string) => Promise<void>
+  /** Console — hydrate branches from GET /auth/me membership.branches (no API call). */
+  loadBranchesFromMembership: (tenantId: string, membershipBranches: MembershipBranch[]) => Promise<void>
   /** Explicit user selection — the only other way `selectedBranch` becomes non-null. Persists the id (not the object). */
   selectBranch: (branch: AdminBranch) => void
   /** Resets to `idle`/null — called on tenant switch/logout so no branch (or its id) survives into a different tenant's context. */
@@ -477,19 +505,44 @@ export const useBranchStore = create<BranchState>()(
       loadBranchesForTenant: async (tenantId: string) => {
         set({ branchState: 'loading' })
         try {
-          const branches = await branchManagementService.getBranches(tenantId)
+          const branches = await branchManagementService.getTenantsBranches(tenantId)
           const persistedId = get().selectedBranchId
-          const match = persistedId ? branches.find((b) => b.id === persistedId) : undefined
-          if (match) {
-            set({ branches, selectedBranch: match, selectedBranchId: match.id, branchState: 'ready', adminActiveBranch: match })
+          const selected = resolveConsoleDefaultBranch(branches, persistedId)
+          if (selected) {
+            set({
+              branches,
+              selectedBranch: selected,
+              selectedBranchId: selected.id,
+              branchState: 'ready',
+              adminActiveBranch: selected,
+            })
           } else {
-            // Either no persisted id, zero branches, or the persisted id no
-            // longer exists on the backend — in every case the correct
-            // answer is "no valid branch selected", never branches[0].
             set({ branches, selectedBranch: null, branchState: 'empty', adminActiveBranch: null })
           }
         } catch (err) {
           captureException(err, { context: 'useBranchStore.loadBranchesForTenant', tenantId })
+          set({ branches: [], selectedBranch: null, branchState: 'error', adminActiveBranch: null })
+        }
+      },
+      loadBranchesFromMembership: async (tenantId: string, membershipBranches: MembershipBranch[]) => {
+        set({ branchState: 'loading' })
+        try {
+          const branches = membershipBranchesToBranches(membershipBranches, tenantId)
+          const persistedId = get().selectedBranchId
+          const selected = resolveConsoleDefaultBranch(branches, persistedId, { respectMembershipDefault: true })
+          if (selected) {
+            set({
+              branches,
+              selectedBranch: selected,
+              selectedBranchId: selected.id,
+              branchState: 'ready',
+              adminActiveBranch: selected,
+            })
+          } else {
+            set({ branches, selectedBranch: null, branchState: 'empty', adminActiveBranch: null })
+          }
+        } catch (err) {
+          captureException(err, { context: 'useBranchStore.loadBranchesFromMembership', tenantId })
           set({ branches: [], selectedBranch: null, branchState: 'error', adminActiveBranch: null })
         }
       },

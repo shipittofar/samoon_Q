@@ -65,7 +65,7 @@ describe('Phase 9.4 — canAccessBranch() evaluation rules (the single implement
   })
 
   it('scope: "assigned" grants only listed branch ids', () => {
-    const access: BranchAccess = { scope: 'assigned', branchIds: ['branch-1'] }
+    const access: BranchAccess = { scope: 'selected', branchIds: ['branch-1'] }
     expect(canAccessBranch(access, 'branch-1')).toBe(true)
     expect(canAccessBranch(access, 'branch-2')).toBe(false)
   })
@@ -96,7 +96,7 @@ describe('Phase 9.4 — useBranchAccess() reads ONLY currentTenantSession.branch
   })
 
   it('an assigned user (branchIds: ["branch-1"]) can access branch-1 but not branch-2', () => {
-    useRbacStore.getState().setCurrentTenantSession('tenant-1', ['manager'], [], { scope: 'assigned', branchIds: ['branch-1'] })
+    useRbacStore.getState().setCurrentTenantSession('tenant-1', ['manager'], [], { scope: 'selected', branchIds: ['branch-1'] })
     const { result: r1 } = renderHook(() => useBranchAccess('branch-1'))
     const { result: r2 } = renderHook(() => useBranchAccess('branch-2'))
     expect(r1.current).toBe(true)
@@ -127,7 +127,7 @@ describe('Phase 9.4 — AdminBranchSwitcher never renders a forbidden branch', (
   })
 
   it('lists only the accessible branch in the dropdown', async () => {
-    useRbacStore.getState().setCurrentTenantSession('tenant-1', ['manager'], [], { scope: 'assigned', branchIds: ['branch-1'] })
+    useRbacStore.getState().setCurrentTenantSession('tenant-1', ['manager'], [], { scope: 'selected', branchIds: ['branch-1'] })
     const { AdminBranchSwitcher } = await import('@/components/admin/AdminBranchSwitcher')
     render(withProviders(<AdminBranchSwitcher />))
     const { default: userEvent } = await import('@testing-library/user-event')
@@ -165,7 +165,7 @@ describe('Phase 9.4 — direct URL to an inaccessible branch never fires the bra
   })
 
   it('navigating to branch-2 while only branch-1 is accessible never calls useAdminBranch()/useBranchAnalytics()', async () => {
-    useRbacStore.getState().setCurrentTenantSession('tenant-1', ['manager'], ['branches.view'] as never, { scope: 'assigned', branchIds: ['branch-1'] })
+    useRbacStore.getState().setCurrentTenantSession('tenant-1', ['manager'], ['branches.view'] as never, { scope: 'selected', branchIds: ['branch-1'] })
     const { default: BranchAnalyticsPage } = await import('@/app/console/branches/[id]/analytics/page')
     await act(async () => {
       render(withIntl(<BranchAnalyticsPage params={Promise.resolve({ id: 'branch-2' })} />))
@@ -175,7 +175,7 @@ describe('Phase 9.4 — direct URL to an inaccessible branch never fires the bra
   })
 
   it('navigating to branch-1 (accessible) does call the branch-scoped hooks', async () => {
-    useRbacStore.getState().setCurrentTenantSession('tenant-1', ['manager'], ['branches.view'] as never, { scope: 'assigned', branchIds: ['branch-1'] })
+    useRbacStore.getState().setCurrentTenantSession('tenant-1', ['manager'], ['branches.view'] as never, { scope: 'selected', branchIds: ['branch-1'] })
     const { default: BranchAnalyticsPage } = await import('@/app/console/branches/[id]/analytics/page')
     await act(async () => {
       render(withIntl(<BranchAnalyticsPage params={Promise.resolve({ id: 'branch-1' })} />))

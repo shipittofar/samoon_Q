@@ -52,7 +52,7 @@ const CASHIER_B_MEMBERSHIP: TenantMembership = {
   tenantId: MOCK_TENANT_B_ID,
   tenantSlug: 'brew-cafe',
   roles: ['cashier'],
-  branchAccess: { scope: 'assigned', branchIds: ['branch-brewcafe-01'] },
+  branchAccess: { scope: 'selected', branchIds: ['branch-brewcafe-01'] },
   status: 'active',
 }
 
@@ -145,7 +145,7 @@ describe('Session restore end to end — real currentTenantSession outcome', () 
     const session = useRbacStore.getState().currentTenantSession
     expect(session?.tenantId).toBe(MOCK_TENANT_B_ID)
     expect(session?.roles).toEqual(['cashier'])
-    expect(session?.branchAccess).toEqual({ scope: 'assigned', branchIds: ['branch-brewcafe-01'] })
+    expect(session?.branchAccess).toEqual({ scope: 'selected', branchIds: ['branch-brewcafe-01'] })
   })
 
   it('legacy-only backend (tenantRoles, pre-Phase-9 contract) still restores correctly — the fix is additive, not a breaking change', () => {
