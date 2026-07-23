@@ -74,7 +74,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
     <tr>
       <td className="px-4 py-3">
         <Link
-          href={`/console/tenants/${tenant.slug}`}
+          href={`/console/tenants/${tenant.id}`}
           className="font-medium text-accent hover:underline"
         >
           {tenant.name}

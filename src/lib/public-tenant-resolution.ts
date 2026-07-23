@@ -1,4 +1,12 @@
-import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
+import { cache } from 'react'
+import { notFound } from 'next/navigation'
+import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
+import { branchManagementService } from '@/services/branch.service'
+import {
+  getMarketplaceMeta,
+  publicBranchFromDetail,
+  type PublicBranchInfo,
+} from '@/types/marketplace'
 import type { Tenant } from '@/types'
 
 /** React Query key for the Discover tenant list — shared with usePublicTenants(). */
@@ -10,6 +18,13 @@ export type ResolvePublicTenantOptions = {
    * When a match is found, avoids an extra GET /tenants/ list round-trip.
    */
   cachedTenants?: Tenant[]
+}
+
+export type PublicBranchPageData = {
+  tenant: Tenant
+  meta: ReturnType<typeof getMarketplaceMeta>
+  marketplaceBranch: PublicBranchInfo
+  branch: PublicBranchInfo
 }
 
 function findTenantIdBySlug(tenants: Tenant[], slug: string): string | undefined {
@@ -52,3 +67,49 @@ export async function fetchPublicTenantBySlug(
   const tenantId = await resolvePublicTenantId(slug, options)
   return tenantService.getTenantById(tenantId)
 }
+
+/**
+ * SSR/RSC tenant resolver — dedupes across generateMetadata() and page() within
+ * one Next.js request via React.cache().
+ */
+export const resolvePublicTenantForPage = cache(async (slug: string): Promise<Tenant> => {
+  try {
+    return await fetchPublicTenantBySlug(slug)
+  } catch (err) {
+    if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) {
+      notFound()
+    }
+    throw err
+  }
+})
+
+/**
+ * SSR/RSC branch page resolver — reuses the cached tenant fetch above and
+ * dedupes the full branch bootstrap across generateMetadata() and page().
+ */
+export const resolvePublicBranchPageForPage = cache(async (
+  tenantSlug: string,
+  branchSlug: string,
+): Promise<PublicBranchPageData> => {
+  const tenant = await resolvePublicTenantForPage(tenantSlug)
+  const meta = getMarketplaceMeta(tenant.settings)
+  const marketplaceBranch = meta?.branches?.find((b) => b.slug === branchSlug)
+
+  if (!marketplaceBranch?.id) {
+    notFound()
+  }
+
+  let branchDetail
+  try {
+    branchDetail = await branchManagementService.getPublicBranch(
+      tenant.id,
+      marketplaceBranch.id,
+    )
+  } catch {
+    notFound()
+  }
+
+  const branch = publicBranchFromDetail(branchDetail, marketplaceBranch)
+
+  return { tenant, meta, marketplaceBranch, branch }
+})

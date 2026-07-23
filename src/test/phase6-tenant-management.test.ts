@@ -584,15 +584,15 @@ describe('O — admin tenants page (/console/tenants)', () => {
     expect(src()).toContain('Archive')
   })
 
-  it('links to tenant detail page', () => {
-    expect(src()).toContain('/console/tenants/${')
+  it('links to tenant detail page by UUID', () => {
+    expect(src()).toContain('/console/tenants/${tenant.id}')
   })
 })
 
 // ── P: Tenant Detail Page ─────────────────────────────────────────────────────
 
-describe('P — tenant detail page (/console/tenants/[slug])', () => {
-  const src = () => readSrc('app/console/tenants/[slug]/page.tsx')
+describe('P — tenant detail page (/console/tenants/[tenantId])', () => {
+  const src = () => readSrc('app/console/tenants/[tenantId]/page.tsx')
 
   it('is a client component', () => {
     expect(src()).toContain("'use client'")
@@ -634,9 +634,9 @@ describe('P — tenant detail page (/console/tenants/[slug])', () => {
     expect(src()).toContain('Archive')
   })
 
-  it('uses tenantService.getTenantBySlug', () => {
+  it('loads tenant by UUID via tenantService.getTenantById', () => {
     expect(src()).toContain('tenantService')
-    expect(src()).toContain('getTenantBySlug')
+    expect(src()).toContain('getTenantById')
   })
 
   it('shows feature flags enabled/disabled', () => {
@@ -852,7 +852,7 @@ describe('W — getModuleRoutes includes tenant routes for all modules', () => {
 // ── X: Tenant detail sections ────────────────────────────────────────────────
 
 describe('X — tenant detail page sections', () => {
-  const src = () => readSrc('app/console/tenants/[slug]/page.tsx')
+  const src = () => readSrc('app/console/tenants/[tenantId]/page.tsx')
 
   it('ProfileSection renders tenant.name', () => {
     expect(src()).toContain('tenant.name')

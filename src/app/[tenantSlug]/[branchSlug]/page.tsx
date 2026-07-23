@@ -1,54 +1,7 @@
-import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
-import { fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
-import { branchManagementService } from '@/services/branch.service'
-import {
-  getMarketplaceMeta,
-  publicBranchFromDetail,
-} from '@/types/marketplace'
+import { resolvePublicBranchPageForPage } from '@/lib/public-tenant-resolution'
 import { buildBranchMetadata, buildBranchJsonLd } from '@/utils'
 import BranchHomepageClient from './BranchHomepageClient'
-import type { Tenant } from '@/types'
-
-/**
- * Resolves a public URL slug to full tenant detail via UUID lookup
- * (resolvePublicTenantId → getTenantById). Never calls GET /tenants/{slug}/.
- */
-async function resolvePublicTenant(tenantSlug: string): Promise<Tenant> {
-  try {
-    return await fetchPublicTenantBySlug(tenantSlug)
-  } catch (err) {
-    if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) {
-      notFound()
-    }
-    throw err
-  }
-}
-
-async function resolvePublicBranchPage(tenantSlug: string, branchSlug: string) {
-  const tenant = await resolvePublicTenant(tenantSlug)
-  const meta = getMarketplaceMeta(tenant.settings)
-  const marketplaceBranch = meta?.branches?.find((b) => b.slug === branchSlug)
-
-  if (!marketplaceBranch?.id) {
-    notFound()
-  }
-
-  let branchDetail
-  try {
-    branchDetail = await branchManagementService.getPublicBranch(
-      tenant.id,
-      marketplaceBranch.id,
-    )
-  } catch {
-    notFound()
-  }
-
-  const branch = publicBranchFromDetail(branchDetail, marketplaceBranch)
-
-  return { tenant, meta, marketplaceBranch, branch }
-}
 
 export async function generateMetadata({
   params,
@@ -56,7 +9,7 @@ export async function generateMetadata({
   params: Promise<{ tenantSlug: string; branchSlug: string }>
 }): Promise<Metadata> {
   const { tenantSlug, branchSlug } = await params
-  const { tenant, meta, branch } = await resolvePublicBranchPage(tenantSlug, branchSlug)
+  const { tenant, meta, branch } = await resolvePublicBranchPageForPage(tenantSlug, branchSlug)
 
   const { title, description, url, image } = buildBranchMetadata({
     branchName: branch.name,
@@ -96,7 +49,7 @@ export default async function BranchPage({
   params: Promise<{ tenantSlug: string; branchSlug: string }>
 }) {
   const { tenantSlug, branchSlug } = await params
-  const { tenant, meta, marketplaceBranch, branch } = await resolvePublicBranchPage(
+  const { tenant, meta, marketplaceBranch, branch } = await resolvePublicBranchPageForPage(
     tenantSlug,
     branchSlug,
   )

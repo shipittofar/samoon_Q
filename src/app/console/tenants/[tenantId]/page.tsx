@@ -211,11 +211,11 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
   )
 }
 
-function TenantDetailContent({ slug }: { slug: string }) {
+function TenantDetailContent({ tenantId }: { tenantId: string }) {
   const t = useTranslations('console')
   const { data: tenant, isLoading, isError } = useQuery<Tenant>({
-    queryKey: ['tenant', slug],
-    queryFn: () => tenantService.getTenantBySlug(slug),
+    queryKey: ['tenant', tenantId],
+    queryFn: () => tenantService.getTenantById(tenantId),
   })
 
   if (isLoading) {
@@ -258,12 +258,12 @@ function TenantDetailContent({ slug }: { slug: string }) {
   )
 }
 
-export default function TenantDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params)
+export default function TenantDetailPage({ params }: { params: Promise<{ tenantId: string }> }) {
+  const { tenantId } = use(params)
   return (
     <ErrorBoundary feature="Tenant Detail">
       <PermissionGuard permission="tenant.view" fallback={<AccessDenied />}>
-        <TenantDetailContent slug={slug} />
+        <TenantDetailContent tenantId={tenantId} />
       </PermissionGuard>
     </ErrorBoundary>
   )

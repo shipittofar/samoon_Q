@@ -7,7 +7,7 @@ import { Footer } from '@/components/layout/Footer'
 import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Badge } from '@/components/ui'
-import { tenantService } from '@/services/tenant.service'
+import { fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 
@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RestaurantPage() {
   const t = await getTranslations('restaurant')
   // Load the samoon tenant data so all public content is driven by admin settings.
-  const tenant = await tenantService.getTenantBySlug('samoon').catch(() => null)
+  const tenant = await fetchPublicTenantBySlug('samoon').catch(() => null)
   const meta = tenant ? getMarketplaceMeta(tenant.settings) : undefined
 
   // Phase Z.6.2 — no hardcoded fallback content. Every field below comes
