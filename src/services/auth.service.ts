@@ -110,6 +110,8 @@ function demoLoginEnabled(): boolean {
 }
 
 export const MOCK_SESSION_KEY = 'mock_session_email'
+export const MOCK_ACTIVE_TENANT_KEY = 'mock_active_tenant_id'
+export const MOCK_SESSION_MEMBERSHIPS_KEY = 'mock_session_memberships'
 
 // Structurally valid JWTs (header.payload.signature) with exp=9999999999 (year 2286).
 // Required so middleware's isValidJWT() check passes in mock/demo mode.
@@ -279,7 +281,11 @@ export const authService = {
       if (!mockActive()) await api.post(ENDPOINTS.AUTH.LOGOUT)
     } finally {
       clearTokens()
-      if (typeof localStorage !== 'undefined') localStorage.removeItem(MOCK_SESSION_KEY)
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(MOCK_SESSION_KEY)
+        localStorage.removeItem(MOCK_ACTIVE_TENANT_KEY)
+        localStorage.removeItem(MOCK_SESSION_MEMBERSHIPS_KEY)
+      }
     }
   },
 
@@ -303,7 +309,23 @@ export const authService = {
         const email = localStorage.getItem(MOCK_SESSION_KEY)
         if (email && MOCK_CREDENTIALS[email]) {
           const entry = MOCK_CREDENTIALS[email]
-          return { user: entry.user, ...deriveMockAuthSession(entry.p7Roles) }
+          const session = deriveMockAuthSession(entry.p7Roles)
+          const cachedMembershipsRaw = localStorage.getItem(MOCK_SESSION_MEMBERSHIPS_KEY)
+          const memberships =
+            cachedMembershipsRaw !== null
+              ? (JSON.parse(cachedMembershipsRaw) as TenantMembership[])
+              : session.memberships
+          const pendingActiveTenantId = localStorage.getItem(MOCK_ACTIVE_TENANT_KEY)
+          const activeMembership =
+            pendingActiveTenantId &&
+            memberships.some((membership) => membership.tenantId === pendingActiveTenantId)
+              ? { tenantId: pendingActiveTenantId }
+              : session.activeMembership
+          const response: GetMeResponse = { user: entry.user, memberships, activeMembership }
+          if (memberships.length > 0) {
+            localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify(memberships))
+          }
+          return response
         }
       }
       return { user: MOCK_USER, ...deriveMockAuthSession([]) }
@@ -313,6 +335,23 @@ export const authService = {
     // them yet still satisfies this type (only `user` is required).
     const { data } = await api.get<GetMeResponse>(ENDPOINTS.AUTH.ME)
     return data
+  },
+
+  /**
+   * Switches the server-side active tenant (BACKEND_CONTRACT.md §2).
+   * The frontend must follow with GET /auth/me via refreshConsoleWorkspaceSession().
+   */
+  async switchActiveTenant(params: { tenantId: string; tenantSlug?: string }): Promise<void> {
+    if (mockActive()) {
+      await delay(MOCK_DELAY)
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(MOCK_ACTIVE_TENANT_KEY, params.tenantId)
+      }
+      return
+    }
+    await api.post('/auth/switch-tenant/', {
+      tenantSlug: params.tenantSlug ?? params.tenantId,
+    })
   },
 
   async forgotPassword(email: string): Promise<{ message: string }> {

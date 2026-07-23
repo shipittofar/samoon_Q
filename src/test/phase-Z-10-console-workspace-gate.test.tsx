@@ -179,34 +179,39 @@ describe('Phase Z.10 — tenant selection cases (activeMembership vs memberships
     expect(screen.getByText('Console Workspace')).toBeTruthy()
   })
 
-  it('Case 2: memberships exist without activeMembership.tenantId — read-only selector, no local activation', async () => {
+  it('Case 2: memberships exist without activeMembership.tenantId — switch requests backend then refreshes session', async () => {
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
     useRbacStore.getState().setHasTenantMembership(true)
-    useRbacStore.getState().setSessionMemberships(
-      [
-        { tenantId: SAMOON.id, tenantName: 'Samoon Restaurant', roles: ['owner'], branchAccess: { scope: 'all' } },
-        { tenantId: 'tenant-b-02', tenantName: 'Other Business', roles: ['manager'], branchAccess: { scope: 'all' } },
-      ],
-      null,
-    )
+    const memberships = [
+      { tenantId: SAMOON.id, tenantName: 'Samoon Restaurant', tenantSlug: 'samoon', roles: ['owner'], branchAccess: { scope: 'all' } },
+      { tenantId: 'tenant-b-02', tenantName: 'Other Business', tenantSlug: 'other-business', roles: ['manager'], branchAccess: { scope: 'all' } },
+    ]
+    useRbacStore.getState().setSessionMemberships(memberships, null)
+
+    const switchSpy = vi.spyOn(authService, 'switchActiveTenant').mockResolvedValue(undefined)
+    const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: businessUser(),
+      memberships,
+      activeMembership: { tenantId: SAMOON.id },
+    } as never)
 
     const user = userEvent.setup()
-    const { rerender } = render(withProviders(
-      <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
-    ))
-
-    expect(screen.getByText(en.console.selectTenant)).toBeTruthy()
-    expect(screen.queryByText(en.console.noActiveTenantTitle)).toBeNull()
-
-    rerender(withProviders(<AdminTenantSwitcher />))
+    render(withProviders(<AdminTenantSwitcher />))
 
     await user.click(screen.getByRole('button', { name: /switchTenantAria|Switch tenant/i }))
     await user.click(screen.getByText('Other Business'))
 
-    expect(useTenantStore.getState().tenant).toBeNull()
-    expect(useRbacStore.getState().activeMembership?.tenantId).toBeUndefined()
-    expect(screen.getByText(en.console.selectTenant)).toBeTruthy()
+    await waitFor(() => {
+      expect(switchSpy).toHaveBeenCalledWith({
+        tenantId: 'tenant-b-02',
+        tenantSlug: 'other-business',
+      })
+      expect(getMeSpy).toHaveBeenCalled()
+    })
+
+    switchSpy.mockRestore()
+    getMeSpy.mockRestore()
   })
 
   it('Case 3: empty memberships — no-active-tenant state with refresh', () => {

@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useRef, useEffect } from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import { useRbacStore, useTenantStore, useBranchStore } from '@/stores'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
-import { authService } from '@/services/auth.service'
+import { authService, MOCK_SESSION_MEMBERSHIPS_KEY } from '@/services/auth.service'
 import { hasAnyMembership } from '@/services/permission.service'
 
 /** Branch-scoped query prefixes — keep in sync with hooks/index.ts BRANCH_SCOPED_QUERY_KEYS. */
@@ -94,6 +94,29 @@ export async function refreshConsoleWorkspaceSession(): Promise<void> {
   await useConsoleWorkspaceStore.getState().initializeFromSession()
 }
 
+/**
+ * Requests a backend tenant switch, then refreshes /auth/me so
+ * activeMembership remains the sole source of truth for workspace boot.
+ */
+export async function requestConsoleTenantSwitch(tenantId: string): Promise<void> {
+  const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
+  if (activeTenantId === tenantId) return
+
+  const memberships = useRbacStore.getState().sessionMemberships ?? []
+  const membership = memberships.find((m) => m.tenantId === tenantId)
+  if (!membership) return
+
+  if (typeof localStorage !== 'undefined' && memberships.length > 0) {
+    localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify(memberships))
+  }
+
+  await authService.switchActiveTenant({
+    tenantId,
+    tenantSlug: membership.tenantSlug,
+  })
+  await refreshConsoleWorkspaceSession()
+}
+
 /** Shared refresh action for no-active-tenant UX (selector + gate). */
 export function useConsoleSessionRefresh() {
   const [refreshing, setRefreshing] = useState(false)
@@ -109,6 +132,40 @@ export function useConsoleSessionRefresh() {
   }, [refreshing])
 
   return { refresh, refreshing }
+}
+
+/** Tenant switch orchestration for AdminTenantSwitcher. */
+export function useConsoleTenantSwitch() {
+  const [switchingToTenantId, setSwitchingToTenantId] = useState<string | null>(null)
+  const switchingRef = useRef(false)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  const switchTenant = useCallback(async (tenantId: string) => {
+    if (switchingRef.current) return
+    switchingRef.current = true
+    setSwitchingToTenantId(tenantId)
+    try {
+      await requestConsoleTenantSwitch(tenantId)
+    } finally {
+      switchingRef.current = false
+      if (mountedRef.current) {
+        setSwitchingToTenantId(null)
+      }
+    }
+  }, [])
+
+  return {
+    switchTenant,
+    switchingToTenantId,
+    switching: switchingToTenantId !== null,
+  }
 }
 
 /** Single source of truth for Console tenant + branch context. */

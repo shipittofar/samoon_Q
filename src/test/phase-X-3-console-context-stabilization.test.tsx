@@ -22,6 +22,7 @@ import { BRANCH_SCOPED_QUERY_KEYS } from '@/hooks'
 import { AdminTenantSwitcher } from '@/components/admin/AdminTenantSwitcher'
 import { AdminBranchSwitcher } from '@/components/admin/AdminBranchSwitcher'
 import { AuthGuard } from '@/components/auth/AuthGuard'
+import { authService } from '@/services/auth.service'
 import type { Branch as AdminBranch } from '@/types/branch'
 
 const mockReplace = vi.fn()
@@ -116,22 +117,36 @@ describe('Phase X.3 — AdminTenantSwitcher never lists an unauthorized tenant',
   })
 })
 
-describe('Phase X.3 — tenant selector is read-only until backend switch exists', () => {
+describe('Phase X.3 — tenant selector switches through session refresh', () => {
   beforeEach(() => {
     useRbacStore.getState()._resetStore()
   })
 
-  it('clicking another membership in the dropdown does not activate it locally', async () => {
+  it('clicking another membership requests backend switch and refreshes activeMembership', async () => {
     seedOwnerSessionForSamoon('user-multi-01')
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(
+        'mock_session_memberships',
+        JSON.stringify(MULTI_MEMBERSHIPS),
+      )
+    }
+
+    const switchSpy = vi.spyOn(authService, 'switchActiveTenant').mockResolvedValue(undefined)
+
     const user = userEvent.setup()
     render(withProviders(<AdminTenantSwitcher />))
 
     await openTenantSwitcher(user)
     await user.click(await screen.findByText('Brew Cafe'))
 
-    expect(useRbacStore.getState().currentTenantSession?.tenantId).toBe(SAMOON.id)
-    expect(useRbacStore.getState().activeMembership?.tenantId).toBe(SAMOON.id)
-    expect(useTenantStore.getState().tenant?.id).toBe(SAMOON.id)
+    await waitFor(() => {
+      expect(switchSpy).toHaveBeenCalledWith({
+        tenantId: BREW_CAFE_ID,
+        tenantSlug: 'brew-cafe',
+      })
+    })
+
+    switchSpy.mockRestore()
   })
 })
 

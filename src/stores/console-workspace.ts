@@ -149,38 +149,47 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
 
         set({ _switching: true, workspacePhase: 'switching_tenant', workspaceError: null, selectedTenantId: tenantId })
 
-        clearTenantScopedClientState()
-        useBranchStore.getState().resetBranchResolution()
+        try {
+          clearTenantScopedClientState()
+          useBranchStore.getState().resetBranchResolution()
 
-        await useTenantStore.getState().loadTenantById(tenantId)
+          await useTenantStore.getState().loadTenantById(tenantId)
 
-        const tenant = useTenantStore.getState().tenant
-        const tenantState = useTenantStore.getState().tenantState
-        if (tenantState !== 'resolved' || !tenant) {
+          const tenant = useTenantStore.getState().tenant
+          const tenantState = useTenantStore.getState().tenantState
+          if (tenantState !== 'resolved' || !tenant) {
+            set({
+              workspacePhase: 'error',
+              workspaceError: `Tenant could not be resolved (${tenantState})`,
+            })
+            return
+          }
+
+          seedRbacForTenant(tenantId)
+          useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(tenant))
+          useTenantStore.getState().setFeatureFlagsInitialized(true)
+          useTenantStore.getState().setRbacInitialized(true)
+
+          if (hasMembershipBranches(membership)) {
+            await useBranchStore.getState().loadBranchesFromMembership(tenantId, membership.branches)
+          } else {
+            await useBranchStore.getState().loadBranchesForTenant(tenantId)
+          }
+
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('console:tenant-changed', { detail: { tenantId } }))
+          }
+
+          set({ workspacePhase: 'ready', workspaceError: null })
+        } catch (err) {
           set({
-            _switching: false,
             workspacePhase: 'error',
-            workspaceError: `Tenant could not be resolved (${tenantState})`,
+            workspaceError: err instanceof Error ? err.message : 'Failed to switch tenant',
           })
-          return
+          throw err
+        } finally {
+          set({ _switching: false })
         }
-
-        seedRbacForTenant(tenantId)
-        useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(tenant))
-        useTenantStore.getState().setFeatureFlagsInitialized(true)
-        useTenantStore.getState().setRbacInitialized(true)
-
-        if (hasMembershipBranches(membership)) {
-          await useBranchStore.getState().loadBranchesFromMembership(tenantId, membership.branches)
-        } else {
-          await useBranchStore.getState().loadBranchesForTenant(tenantId)
-        }
-
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('console:tenant-changed', { detail: { tenantId } }))
-        }
-
-        set({ _switching: false, workspacePhase: 'ready', workspaceError: null })
       },
 
       switchBranch: (branchId: string) => {

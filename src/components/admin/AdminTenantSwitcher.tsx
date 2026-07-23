@@ -3,10 +3,9 @@
 /**
  * Console Tenant Switcher — membership-driven (GET /auth/me).
  *
- * Read-only display of `sessionMemberships` and the active tenant from
- * `activeMembership.tenantId`. The frontend never activates a tenant locally;
- * a future backend switch endpoint will update activeMembership, then the
- * session refresh path will initialize the workspace.
+ * Lists every tenant in `sessionMemberships`, highlights the active tenant
+ * from `activeMembership.tenantId`, and switches via the backend
+ * `POST /auth/switch-tenant/` contract followed by a session refresh.
  */
 
 import { useState, useRef, useEffect } from 'react'
@@ -14,7 +13,11 @@ import { ChevronDown, Layers, Check, Loader2, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { membershipLabel } from '@/lib/console-workspace'
-import { useConsoleWorkspace, useConsoleSessionRefresh } from '@/hooks/console-workspace'
+import {
+  useConsoleWorkspace,
+  useConsoleSessionRefresh,
+  useConsoleTenantSwitch,
+} from '@/hooks/console-workspace'
 
 const switcherButtonClass =
   'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors border border-[var(--border)] bg-[var(--card)] text-[var(--fg)]'
@@ -29,9 +32,12 @@ export function AdminTenantSwitcher() {
     tenantLoading,
   } = useConsoleWorkspace()
   const { refresh, refreshing } = useConsoleSessionRefresh()
+  const { switchTenant, switchingToTenantId, switching } = useConsoleTenantSwitch()
 
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
+  const pending = switching || refreshing || tenantLoading
 
   useEffect(() => {
     function handle(e: MouseEvent) {
@@ -57,14 +63,14 @@ export function AdminTenantSwitcher() {
         <button
           type="button"
           onClick={() => void refresh()}
-          disabled={refreshing || tenantLoading}
+          disabled={pending}
           className={cn(
             switcherButtonClass,
             'hover:bg-[var(--card-hover)] disabled:opacity-50 disabled:cursor-not-allowed',
           )}
           aria-label={t('refreshSessionAria')}
         >
-          {refreshing || tenantLoading ? (
+          {pending ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
             <RefreshCw className="h-3.5 w-3.5 shrink-0" />
@@ -88,12 +94,22 @@ export function AdminTenantSwitcher() {
       ))
     : t('selectTenant')
 
+  async function handleOptionSelect(tenantId: string) {
+    if (pending) return
+    if (tenantId === activeTenantId) {
+      setOpen(false)
+      return
+    }
+    setOpen(false)
+    await switchTenant(tenantId)
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        disabled={tenantLoading}
+        onClick={() => !pending && setOpen((o) => !o)}
+        disabled={pending}
         className={cn(
           switcherButtonClass,
           'hover:bg-[var(--card-hover)] disabled:opacity-50 disabled:cursor-not-allowed',
@@ -105,7 +121,7 @@ export function AdminTenantSwitcher() {
         aria-label={t('switchTenantAria')}
       >
         <Layers className={cn('h-3.5 w-3.5 shrink-0', activeTenantId ? 'text-orange-500' : 'text-orange-500/70')} />
-        {tenantLoading ? (
+        {pending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
           <span className="truncate max-w-[120px]">{activeLabel}</span>
@@ -127,16 +143,20 @@ export function AdminTenantSwitcher() {
           </p>
           {availableTenants.map((membership) => {
             const isActive = membership.tenantId === activeTenantId
+            const isPending = membership.tenantId === switchingToTenantId
             return (
-              <div
+              <button
                 key={membership.tenantId}
+                type="button"
                 role="option"
                 aria-selected={isActive}
+                disabled={pending}
+                onClick={() => void handleOptionSelect(membership.tenantId)}
                 className={cn(
-                  'flex w-full items-center justify-between gap-2 px-3 py-2 text-sm text-left',
+                  'w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
                   isActive
                     ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400'
-                    : 'text-[var(--fg)]',
+                    : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
                 )}
               >
                 <div className="min-w-0">
@@ -145,8 +165,12 @@ export function AdminTenantSwitcher() {
                     {membership.roles.join(', ')}
                   </p>
                 </div>
-                {isActive && <Check className="h-3.5 w-3.5 shrink-0 text-orange-500" />}
-              </div>
+                {isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                ) : isActive ? (
+                  <Check className="h-3.5 w-3.5 shrink-0 text-orange-500" />
+                ) : null}
+              </button>
             )
           })}
         </div>
