@@ -28,7 +28,7 @@ describe('Phase 3.8 — activateTenant() rejects instead of fabricating DEFAULT_
 
   it('still resolves normally for a real tenant (no regression)', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.activateTenant('road-bites')
+    const updated = await svc.activateTenant('tenant-road-bites-01')
     expect(updated.status).toBe('active')
   })
 })
@@ -41,7 +41,7 @@ describe('Phase 3.8 — suspendTenant() rejects instead of fabricating DEFAULT_T
 
   it('still resolves normally for a real tenant (no regression)', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.suspendTenant('samoon')
+    const updated = await svc.suspendTenant('tenant-samoon-01')
     expect(updated.status).toBe('suspended')
   })
 })
@@ -54,7 +54,7 @@ describe('Phase 3.8 — archiveTenant() rejects instead of fabricating DEFAULT_T
 
   it('still resolves normally for a real tenant (no regression)', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.archiveTenant('samoon')
+    const updated = await svc.archiveTenant('tenant-samoon-01')
     expect(updated.status).toBe('archived')
   })
 })
@@ -73,7 +73,7 @@ describe('Phase 3.8 — no DEFAULT_TENANT fallback remains in the three mutation
     expect(block).not.toContain('?? { ...DEFAULT_TENANT }')
   })
 
-  it('getTenant() and getCurrentTenant() are unaffected — still out of scope for this fix', async () => {
+  it('getTenantBySlug() and getCurrentTenant() are unaffected — still out of scope for this fix', async () => {
     const fs = await import('node:fs')
     const path = await import('node:path')
     const src = fs.readFileSync(
@@ -82,7 +82,7 @@ describe('Phase 3.8 — no DEFAULT_TENANT fallback remains in the three mutation
     )
     // getTenant() never returned DEFAULT_TENANT before this fix and still
     // doesn't (throws TenantNotFoundError, unchanged).
-    const getTenantBlock = src.slice(src.indexOf('async getTenant('), src.indexOf('async getCurrentTenant'))
+    const getTenantBlock = src.slice(src.indexOf('async getTenantBySlug('), src.indexOf('async getCurrentTenant'))
     expect(getTenantBlock).not.toContain('DEFAULT_TENANT')
 
     // getCurrentTenant() still returns DEFAULT_TENANT in mock mode —

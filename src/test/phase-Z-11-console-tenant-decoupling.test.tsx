@@ -191,7 +191,7 @@ describe('Phase Z.11 — authenticated + tenant API failure: Console shell still
 describe('Phase Z.11 — retry behavior', () => {
   it('auto-retries after TENANT_RETRY_DELAY_MS, calling loadTenant() with the last-attempted slug', async () => {
     vi.useFakeTimers()
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenant').mockResolvedValue(SAMOON as never)
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockResolvedValue(SAMOON as never)
     useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
 
     render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
@@ -203,7 +203,7 @@ describe('Phase Z.11 — retry behavior', () => {
   })
 
   it('manual retry button re-invokes loadTenant() immediately, without waiting for the auto-retry delay', async () => {
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenant').mockResolvedValue(SAMOON as never)
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockResolvedValue(SAMOON as never)
     useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
 
     const { default: userEvent } = await import('@testing-library/user-event')
@@ -217,7 +217,7 @@ describe('Phase Z.11 — retry behavior', () => {
 
   it('auto-retry stops after TENANT_MAX_AUTO_RETRIES — no infinite duplicate requests', async () => {
     vi.useFakeTimers()
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenant').mockRejectedValue(new Error('network error'))
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValue(new Error('network error'))
     useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
 
     render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))

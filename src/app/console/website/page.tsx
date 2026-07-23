@@ -10,7 +10,7 @@ import {
 import { cn } from '@/utils'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
-import { useTenantStore } from '@/stores'
+import { useTenantStore, useBranchStore } from '@/stores'
 import {
   useHomepageLayout, useSaveLayout, usePublishLayout,
   useRestoreVersion, useBranchOverrides, useSaveBranchOverrides,
@@ -751,14 +751,14 @@ function VersionsTab({
 // ── Branches Tab ──────────────────────────────────────────────────────────────
 
 function BranchOverridesForm({
-  tenantSlug, branchSlug,
+  tenantId, branchId,
 }: {
-  tenantSlug: string
-  branchSlug: string
+  tenantId: string
+  branchId: string
 }) {
   const t = useTranslations('console')
-  const { data: overrides = {}, isLoading } = useBranchOverrides(tenantSlug, branchSlug)
-  const save = useSaveBranchOverrides(tenantSlug, branchSlug)
+  const { data: overrides = {}, isLoading } = useBranchOverrides(tenantId, branchId)
+  const save = useSaveBranchOverrides(tenantId, branchId)
   const [local, setLocal] = useState<BranchContentOverrides | null>(null)
   const current = local ?? overrides
 
@@ -795,9 +795,10 @@ function BranchOverridesForm({
   )
 }
 
-function BranchesTab({ tenantSlug }: { tenantSlug: string }) {
+function BranchesTab({ tenantId }: { tenantId: string }) {
   const t = useTranslations('console')
-  const [selectedBranch, setSelectedBranch] = useState('')
+  const branches = useBranchStore((s) => s.branches)
+  const [selectedBranchId, setSelectedBranchId] = useState('')
 
   return (
     <div className="space-y-4">
@@ -805,14 +806,21 @@ function BranchesTab({ tenantSlug }: { tenantSlug: string }) {
         {t('branchesTabDescription')}
       </p>
       <Field label={t('branchSlugLabel')}>
-        <TextInput
-          value={selectedBranch}
-          onChange={setSelectedBranch}
-          placeholder={t('branchSlugPlaceholder')}
-        />
+        <select
+          value={selectedBranchId}
+          onChange={(e) => setSelectedBranchId(e.target.value)}
+          className="w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--fg)]"
+        >
+          <option value="">{t('branchSlugPlaceholder')}</option>
+          {branches.map((branch) => (
+            <option key={branch.id} value={branch.id}>
+              {branch.name} ({branch.slug})
+            </option>
+          ))}
+        </select>
       </Field>
-      {selectedBranch.trim() && (
-        <BranchOverridesForm tenantSlug={tenantSlug} branchSlug={selectedBranch.trim()} />
+      {selectedBranchId && (
+        <BranchOverridesForm tenantId={tenantId} branchId={selectedBranchId} />
       )}
     </div>
   )
@@ -822,11 +830,12 @@ function BranchesTab({ tenantSlug }: { tenantSlug: string }) {
 
 function WebsiteBuilderContent() {
   const t = useTranslations('console')
+  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const tenantSlug = useTenantStore((s) => s.tenant?.slug ?? '')
-  const { data: layout, isLoading, error } = useHomepageLayout(tenantSlug)
-  const saveLayout = useSaveLayout(tenantSlug)
-  const publishLayout = usePublishLayout(tenantSlug)
-  const restoreVersion = useRestoreVersion(tenantSlug)
+  const { data: layout, isLoading, error } = useHomepageLayout(tenantId)
+  const saveLayout = useSaveLayout(tenantId)
+  const publishLayout = usePublishLayout(tenantId)
+  const restoreVersion = useRestoreVersion(tenantId)
 
   const [tab, setTab] = useState<Tab>('theme')
   const [draft, setDraft] = useState<HomepageLayout | null>(null)
@@ -857,7 +866,7 @@ function WebsiteBuilderContent() {
     setDraft(null)
   }
 
-  if (!tenantSlug) return (
+  if (!tenantId) return (
     <div className="flex items-center justify-center h-64 text-[var(--fg-muted)]">{t('noTenantSelected')}</div>
   )
 
@@ -994,7 +1003,7 @@ function WebsiteBuilderContent() {
           <PreviewTab tenantSlug={tenantSlug} layout={current} />
         )}
         {tab === 'branches' && (
-          <BranchesTab tenantSlug={tenantSlug} />
+          <BranchesTab tenantId={tenantId} />
         )}
         {tab === 'versions' && (
           <VersionsTab

@@ -7,8 +7,12 @@
  * owner explicitly chooses to show to the public.
  */
 
+import type { Branch } from '@/types/branch'
+
 /** Public-facing branch summary shown on the tenant homepage. */
 export interface PublicBranchInfo {
+  /** Canonical branch id from the backend (used for API calls). */
+  id: string
   /** Branch route slug, used in /{tenantSlug}/{branchSlug} URLs. */
   slug: string
   /** Display name of the branch. */
@@ -168,6 +172,24 @@ export function hasActiveFilters(f: FilterState): boolean {
  */
 export function getMarketplaceMeta(settings?: { marketplace?: MarketplaceMeta; [key: string]: unknown }): MarketplaceMeta | undefined {
   return settings?.marketplace
+}
+
+/** Maps a canonical branch detail response into the public display shape. */
+export function publicBranchFromDetail(
+  branch: Branch,
+  marketplace?: PublicBranchInfo,
+): PublicBranchInfo {
+  return {
+    id: branch.id,
+    slug: branch.slug,
+    name: branch.name,
+    address: branch.location.address,
+    city: branch.location.city,
+    phone_number: branch.contact.phone_number ?? marketplace?.phone_number,
+    openNow: marketplace?.openNow ?? branch.status === 'active',
+    todayHours: marketplace?.todayHours,
+    image: branch.image ?? branch.coverImage ?? marketplace?.image,
+  }
 }
 
 /** Accent-strip + lowercase for accent-insensitive matching. */

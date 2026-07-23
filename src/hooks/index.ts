@@ -22,6 +22,7 @@ import { qrExperienceService } from '@/services/qr-experience.service'
 import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
+import { PUBLIC_TENANTS_QUERY_KEY, fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
 import { staffService } from '@/services/staff.service'
 import type {
   InviteStaffPayload,
@@ -95,7 +96,7 @@ import type {
   SendOTPRequest,
   VerifyOTPRequest,
 } from '@/types'
-import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
+import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -600,15 +601,13 @@ export function useMe() {
 }
 
 // ── Menu Hooks ────────────────────────────────────────────────────────────────
-// Menus are branch-scoped: every hook here requires a branch identity before
-// it will fetch anything. The identity is the branch's `slug` (the only
-// stable identifier the public-facing branch representation — PublicBranchInfo
-// — actually carries; see docs/BRANCH_MENU_ANALYSIS.md). Callers that already
-// know which branch they're rendering (e.g. a `[tenantSlug]/[branchSlug]`
-// route) should pass it explicitly; callers with no route-level branch context
-// fall back to the customer's currently active branch in useBranchStore.
+// Menus are branch-scoped: every hook here requires a canonical branch id before
+// it will fetch anything. Callers that already know which branch they're
+// rendering (e.g. a `[tenantSlug]/[branchSlug]` route) should pass it
+// explicitly; callers with no route-level branch context fall back to the
+// customer's currently active branch in useBranchStore (never the URL slug).
 export function useActiveBranchId(): string | undefined {
-  return useBranchStore((s) => s.selectedBranch?.id ?? s.activeBranch?.slug)
+  return useBranchStore((s) => s.selectedBranch?.id ?? s.activeBranch?.id)
 }
 
 export function useCategories(branchId?: string) {
@@ -2451,7 +2450,7 @@ export function useUpdateTenantSettings() {
   return useMutation({
     mutationFn: (patch: Record<string, unknown>) => {
       if (!tenant) throw new Error('No tenant')
-      return tenantService.updateTenantSettings(tenant.slug, patch)
+      return tenantService.updateTenantSettings(tenant.id, patch)
     },
     onSuccess: (updated) => {
       useTenantStore.getState().setTenant(updated)
@@ -2514,7 +2513,7 @@ export function usePlatformTenants() {
  */
 export function usePublicTenants() {
   return useQuery({
-    queryKey: ['public-tenants'],
+    queryKey: PUBLIC_TENANTS_QUERY_KEY,
     queryFn: () => tenantService.getTenants(),
     staleTime: STALE_TIME,
     select: (tenants) =>
@@ -2537,7 +2536,7 @@ export function usePublicTenant(slug: string) {
     queryKey: ['public-tenant', slug],
     queryFn: async () => {
       try {
-        return await tenantService.getTenant(slug)
+        return await fetchPublicTenantBySlug(slug)
       } catch (err) {
         if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) return null
         throw err
@@ -2548,18 +2547,24 @@ export function usePublicTenant(slug: string) {
   })
 }
 
-/** Fetches a single public branch by tenant+branch slug from marketplace meta. Returns null for unknown slugs. */
-export function usePublicBranch(tenantSlug: string, branchSlug: string) {
+/** Fetches canonical public branch detail by tenant id + branch id. */
+export function usePublicBranch(
+  tenantId: string,
+  branchId: string,
+  options?: {
+    marketplaceBranch?: PublicBranchInfo
+    initialData?: PublicBranchInfo
+  },
+) {
   return useQuery<PublicBranchInfo | null>({
-    queryKey: ['public-branch', tenantSlug, branchSlug],
+    queryKey: ['public-branch', tenantId, branchId],
     queryFn: async (): Promise<PublicBranchInfo | null> => {
-      const tenant = await tenantService.getTenant(tenantSlug)
-      if (tenant.slug === 'default' && tenantSlug !== 'default') return null
-      const meta = getMarketplaceMeta(tenant.settings)
-      return meta?.branches?.find((b) => b.slug === branchSlug) ?? null
+      const detail = await branchManagementService.getPublicBranch(tenantId, branchId)
+      return publicBranchFromDetail(detail, options?.marketplaceBranch)
     },
+    initialData: options?.initialData,
     staleTime: STALE_TIME,
-    enabled: !!tenantSlug && !!branchSlug,
+    enabled: !!tenantId && !!branchId,
   })
 }
 
@@ -2567,14 +2572,14 @@ export function useActivateTenant() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
   return useMutation({
-    mutationFn: (slugOrId: string) => tenantService.activateTenant(slugOrId),
-    onSuccess: (_data, slugOrId) => {
+    mutationFn: (tenantId: string) => tenantService.activateTenant(tenantId),
+    onSuccess: (_data, tenantId) => {
       qc.invalidateQueries({ queryKey: ['tenants'] })
       auditLogService.record(
         'TENANT_ACTIVATED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
-        { type: 'tenant', id: slugOrId, displayName: slugOrId },
-        { tenantId: slugOrId },
+        { type: 'tenant', id: tenantId, displayName: tenantId },
+        { tenantId },
         { before: { status: 'suspended' }, after: { status: 'active' }, changedFields: ['status'] },
       )
     },
@@ -2585,14 +2590,14 @@ export function useSuspendTenant() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
   return useMutation({
-    mutationFn: (slugOrId: string) => tenantService.suspendTenant(slugOrId),
-    onSuccess: (_data, slugOrId) => {
+    mutationFn: (tenantId: string) => tenantService.suspendTenant(tenantId),
+    onSuccess: (_data, tenantId) => {
       qc.invalidateQueries({ queryKey: ['tenants'] })
       auditLogService.record(
         'TENANT_SUSPENDED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
-        { type: 'tenant', id: slugOrId, displayName: slugOrId },
-        { tenantId: slugOrId },
+        { type: 'tenant', id: tenantId, displayName: tenantId },
+        { tenantId },
         { before: { status: 'active' }, after: { status: 'suspended' }, changedFields: ['status'] },
       )
     },
@@ -2603,14 +2608,14 @@ export function useArchiveTenant() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
   return useMutation({
-    mutationFn: (slugOrId: string) => tenantService.archiveTenant(slugOrId),
-    onSuccess: (_data, slugOrId) => {
+    mutationFn: (tenantId: string) => tenantService.archiveTenant(tenantId),
+    onSuccess: (_data, tenantId) => {
       qc.invalidateQueries({ queryKey: ['tenants'] })
       auditLogService.record(
         'TENANT_ARCHIVED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
-        { type: 'tenant', id: slugOrId, displayName: slugOrId },
-        { tenantId: slugOrId },
+        { type: 'tenant', id: tenantId, displayName: tenantId },
+        { tenantId },
         { before: { status: 'active' }, after: { status: 'archived' }, changedFields: ['status'] },
       )
     },
@@ -3523,64 +3528,64 @@ export function useReviewAnalytics(tenantId: string) {
 import { websiteBuilderService } from '@/services/website-builder.service'
 import type { HomepageLayout, BranchContentOverrides } from '@/types/website-builder'
 
-export function useHomepageLayout(tenantSlug: string) {
+export function useHomepageLayout(tenantId: string) {
   return useQuery({
-    queryKey: ['website-builder', tenantSlug, 'layout'],
-    queryFn: () => websiteBuilderService.getLayout(tenantSlug),
-    enabled: Boolean(tenantSlug),
+    queryKey: ['website-builder', tenantId, 'layout'],
+    queryFn: () => websiteBuilderService.getLayout(tenantId),
+    enabled: Boolean(tenantId),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   })
 }
 
-export function useSaveLayout(tenantSlug: string) {
+export function useSaveLayout(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (layout: HomepageLayout) => websiteBuilderService.saveLayout(tenantSlug, layout),
+    mutationFn: (layout: HomepageLayout) => websiteBuilderService.saveLayout(tenantId, layout),
     onSuccess: (saved) => {
-      qc.setQueryData(['website-builder', tenantSlug, 'layout'], saved)
+      qc.setQueryData(['website-builder', tenantId, 'layout'], saved)
     },
   })
 }
 
-export function usePublishLayout(tenantSlug: string) {
+export function usePublishLayout(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (layout: HomepageLayout) => websiteBuilderService.publishLayout(tenantSlug, layout),
+    mutationFn: (layout: HomepageLayout) => websiteBuilderService.publishLayout(tenantId, layout),
     onSuccess: (published) => {
-      qc.setQueryData(['website-builder', tenantSlug, 'layout'], published)
-      void qc.invalidateQueries({ queryKey: ['tenant', tenantSlug] })
+      qc.setQueryData(['website-builder', tenantId, 'layout'], published)
+      void qc.invalidateQueries({ queryKey: ['tenant', tenantId] })
     },
   })
 }
 
-export function useRestoreVersion(tenantSlug: string) {
+export function useRestoreVersion(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (versionId: string) => websiteBuilderService.restoreVersion(tenantSlug, versionId),
+    mutationFn: (versionId: string) => websiteBuilderService.restoreVersion(tenantId, versionId),
     onSuccess: (restored) => {
-      qc.setQueryData(['website-builder', tenantSlug, 'layout'], restored)
+      qc.setQueryData(['website-builder', tenantId, 'layout'], restored)
     },
   })
 }
 
-export function useBranchOverrides(tenantSlug: string, branchSlug: string) {
+export function useBranchOverrides(tenantId: string, branchId: string) {
   return useQuery({
-    queryKey: ['website-builder', tenantSlug, 'branch-overrides', branchSlug],
-    queryFn: () => websiteBuilderService.getBranchOverrides(tenantSlug, branchSlug),
-    enabled: Boolean(tenantSlug) && Boolean(branchSlug),
+    queryKey: ['website-builder', tenantId, 'branch-overrides', branchId],
+    queryFn: () => websiteBuilderService.getBranchOverrides(tenantId, branchId),
+    enabled: Boolean(tenantId) && Boolean(branchId),
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   })
 }
 
-export function useSaveBranchOverrides(tenantSlug: string, branchSlug: string) {
+export function useSaveBranchOverrides(tenantId: string, branchId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (overrides: BranchContentOverrides) =>
-      websiteBuilderService.saveBranchOverrides(tenantSlug, branchSlug, overrides),
+      websiteBuilderService.saveBranchOverrides(tenantId, branchId, overrides),
     onSuccess: (saved) => {
-      qc.setQueryData(['website-builder', tenantSlug, 'branch-overrides', branchSlug], saved)
+      qc.setQueryData(['website-builder', tenantId, 'branch-overrides', branchId], saved)
     },
   })
 }

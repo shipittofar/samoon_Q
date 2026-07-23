@@ -120,7 +120,7 @@ describe('Phase Z.6 — normalizeTenant() via getTenants() (real mode)', () => {
     // paginated list wrapper — unlike getTenants()/getMyTenants() above.
     api.get.mockResolvedValueOnce({ data: RAW_BACKEND_TENANT })
 
-    const tenant = await tenantService.getTenant('real-backend-tenant')
+    const tenant = await tenantService.getTenantBySlug('real-backend-tenant')
     expect(tenant.businessTypes).toEqual(['restaurant', 'cafe'])
     expect(tenant.tax_percentage).toBe(8.5)
   })

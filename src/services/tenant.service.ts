@@ -105,9 +105,9 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone_number: '+1 212 555 0100', openNow: true, todayHours: '10:00–23:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
-          { slug: 'downtown', name: 'Downtown Branch', address: '456 Urban Street', city: 'New York', phone_number: '+1 212 555 0200', openNow: true, todayHours: '11:00–22:00', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80' },
-          { slug: 'airport', name: 'Airport Branch', address: 'JFK Terminal 4', city: 'New York', phone_number: '+1 212 555 0300', openNow: false, todayHours: '06:00–23:00', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80' },
+          { id: 'branch-rest-01', slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone_number: '+1 212 555 0100', openNow: true, todayHours: '10:00–23:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
+          { id: 'branch-rest-02', slug: 'downtown', name: 'Downtown Branch', address: '456 Urban Street', city: 'New York', phone_number: '+1 212 555 0200', openNow: true, todayHours: '11:00–22:00', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80' },
+          { id: 'branch-rest-03', slug: 'airport', name: 'Airport Branch', address: 'JFK Terminal 4', city: 'New York', phone_number: '+1 212 555 0300', openNow: false, todayHours: '06:00–23:00', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80' },
         ],
       },
     },
@@ -145,8 +145,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'Midtown Cafe', address: '789 Coffee Lane', city: 'New York', phone_number: '+1 212 555 0400', openNow: true, todayHours: '07:00–20:00', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=80' },
-          { slug: 'brooklyn-cafe', name: 'Brooklyn Cafe', address: '321 Brew Boulevard', city: 'Brooklyn', phone_number: '+1 718 555 0500', openNow: true, todayHours: '08:00–19:00', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80' },
+          { id: 'branch-brewcafe-01', slug: 'main', name: 'Midtown Cafe', address: '789 Coffee Lane', city: 'New York', phone_number: '+1 212 555 0400', openNow: true, todayHours: '07:00–20:00', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=80' },
+          { id: 'branch-brewcafe-02', slug: 'brooklyn-cafe', name: 'Brooklyn Cafe', address: '321 Brew Boulevard', city: 'Brooklyn', phone_number: '+1 718 555 0500', openNow: true, todayHours: '08:00–19:00', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80' },
         ],
       },
     },
@@ -184,7 +184,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1514362453360-8f94243c9996?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'East Village', address: '555 Tap Street', city: 'New York', phone_number: '+1 212 555 0600', openNow: false, todayHours: '16:00–02:00', image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&q=80' },
+          { id: 'branch-oakbar-01', slug: 'main', name: 'East Village', address: '555 Tap Street', city: 'New York', phone_number: '+1 212 555 0600', openNow: false, todayHours: '16:00–02:00', image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&q=80' },
         ],
       },
     },
@@ -222,7 +222,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'Westside Food Court', address: '100 Market Street', city: 'New York', phone_number: '+1 212 555 0700', openNow: true, todayHours: '10:00–21:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
+          { id: 'branch-centralfc-01', slug: 'main', name: 'Westside Food Court', address: '100 Market Street', city: 'New York', phone_number: '+1 212 555 0700', openNow: true, todayHours: '10:00–21:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
         ],
       },
     },
@@ -284,7 +284,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
           'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
         ],
         branches: [
-          { slug: 'main', name: 'Brew Cart (Central Park)', address: 'Central Park South Entrance', city: 'New York', phone_number: '+1 212 555 1000', openNow: true, todayHours: '07:00–17:00', image: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=400&q=80' },
+          { id: 'branch-wheelsbrews-01', slug: 'main', name: 'Brew Cart (Central Park)', address: 'Central Park South Entrance', city: 'New York', phone_number: '+1 212 555 1000', openNow: true, todayHours: '07:00–17:00', image: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=400&q=80' },
         ],
       },
     },
@@ -314,39 +314,49 @@ function setMockStatus(slugOrId: string, status: TenantStatus): Tenant | null {
   return { ...tenant }
 }
 
+async function fetchTenantFromApi(path: string, identifier: string): Promise<Tenant> {
+  try {
+    const { data } = await api.get<Tenant>(path)
+    if (!data) throw new TenantNotFoundError(identifier)
+    return normalizeTenant(data)
+  } catch (err) {
+    if (err instanceof TenantNotFoundError) throw err
+    const status = (err as { response?: { status?: number } })?.response?.status
+    if (status === 404) throw new TenantNotFoundError(identifier)
+    if (status === 403) throw new TenantForbiddenError(identifier)
+    throw new TenantServerError(identifier, err)
+  }
+}
+
 export const tenantService = {
   /**
-   * Resolves a tenant by slug. NEVER swallows a failure into DEFAULT_TENANT —
-   * throws a typed error the caller (useTenantStore.loadTenant()) classifies
-   * into the TenantLifecycle state machine. Mock mode simulates the same
-   * not-found behavior for an unknown slug instead of silently substituting
-   * the default tenant, so the 'not_found' path is exercisable without a
-   * real backend.
+   * Resolves a tenant by slug — mock mode and legacy callers only.
+   * Production public routes must use resolvePublicTenantId() + getTenantById().
    */
-  async getTenant(slug: string): Promise<Tenant> {
-    const resolvedSlug = slug
-
+  async getTenantBySlug(slug: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay()
-      const found = MOCK_TENANTS[resolvedSlug] ?? findInList(resolvedSlug)
-      if (!found) throw new TenantNotFoundError(resolvedSlug)
+      const found = MOCK_TENANTS[slug] ?? findInList(slug)
+      if (!found) throw new TenantNotFoundError(slug)
       return { ...found }
     }
-
-    try {
-      const { data } = await api.get<Tenant>(ENDPOINTS.TENANTS.DETAIL(resolvedSlug))
-      if (!data) throw new TenantNotFoundError(resolvedSlug)
-      return normalizeTenant(data)
-    } catch (err) {
-      if (err instanceof TenantNotFoundError) throw err
-      const status = (err as { response?: { status?: number } })?.response?.status
-      if (status === 404) throw new TenantNotFoundError(resolvedSlug)
-      if (status === 403) throw new TenantForbiddenError(resolvedSlug)
-      throw new TenantServerError(resolvedSlug, err)
-    }
+    return fetchTenantFromApi(ENDPOINTS.TENANTS.DETAIL_BY_SLUG(slug), slug)
   },
 
-  /** Same never-swallow contract as getTenant() — see above. */
+  /**
+   * Resolves a tenant by canonical id — Console workspace, membership, mutations.
+   */
+  async getTenantById(tenantId: string): Promise<Tenant> {
+    if (USE_MOCK) {
+      await delay()
+      const found = MOCK_TENANT_LIST.find((t) => t.id === tenantId)
+      if (!found) throw new TenantNotFoundError(tenantId)
+      return { ...found }
+    }
+    return fetchTenantFromApi(ENDPOINTS.TENANTS.DETAIL_BY_ID(tenantId), tenantId)
+  },
+
+  /** Same never-swallow contract as getTenantBySlug() — see above. */
   async getCurrentTenant(): Promise<Tenant> {
     if (USE_MOCK) {
       await delay()
@@ -371,7 +381,7 @@ export const tenantService = {
    * list: that made a genuine backend/network failure indistinguishable
    * from "this tenant genuinely has zero tenants." The rejection is left
    * to propagate so React Query's normal error flow (isError, the global
-   * QueryCache.onError toast) handles it, exactly like getTenant().
+   * QueryCache.onError toast) handles it, exactly like getTenantBySlug().
    */
   async getTenants(): Promise<Tenant[]> {
     if (USE_MOCK) {
@@ -416,42 +426,42 @@ export const tenantService = {
   /**
    * Activate a suspended or trial tenant.
    */
-  async activateTenant(slugOrId: string): Promise<Tenant> {
+  async activateTenant(tenantId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      const result = setMockStatus(slugOrId, 'active')
-      if (!result) throw new Error(`Tenant not found: ${slugOrId}`)
+      const result = setMockStatus(tenantId, 'active')
+      if (!result) throw new Error(`Tenant not found: ${tenantId}`)
       return result
     }
-    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.ACTIVATE(slugOrId))
+    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.ACTIVATE(tenantId))
     return normalizeTenant(data)
   },
 
   /**
    * Suspend an active tenant.
    */
-  async suspendTenant(slugOrId: string): Promise<Tenant> {
+  async suspendTenant(tenantId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      const result = setMockStatus(slugOrId, 'suspended')
-      if (!result) throw new Error(`Tenant not found: ${slugOrId}`)
+      const result = setMockStatus(tenantId, 'suspended')
+      if (!result) throw new Error(`Tenant not found: ${tenantId}`)
       return result
     }
-    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.SUSPEND(slugOrId))
+    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.SUSPEND(tenantId))
     return normalizeTenant(data)
   },
 
   /**
    * Archive a tenant (terminal state).
    */
-  async archiveTenant(slugOrId: string): Promise<Tenant> {
+  async archiveTenant(tenantId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      const result = setMockStatus(slugOrId, 'archived')
-      if (!result) throw new Error(`Tenant not found: ${slugOrId}`)
+      const result = setMockStatus(tenantId, 'archived')
+      if (!result) throw new Error(`Tenant not found: ${tenantId}`)
       return result
     }
-    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.ARCHIVE(slugOrId))
+    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.ARCHIVE(tenantId))
     return normalizeTenant(data)
   },
 
@@ -464,15 +474,15 @@ export const tenantService = {
    * `'owner'` P7 role between Staff within one tenant); see that
    * function's JSDoc for how the two are kept in sync.
    */
-  async transferOwnership(slugOrId: string, newOwnerId: string): Promise<Tenant> {
+  async transferOwnership(tenantId: string, newOwnerId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      const tenant = findInList(slugOrId)
-      if (!tenant) throw new Error(`Tenant not found: ${slugOrId}`)
+      const tenant = findInList(tenantId)
+      if (!tenant) throw new Error(`Tenant not found: ${tenantId}`)
       tenant.ownerId = newOwnerId
       return { ...tenant }
     }
-    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.TRANSFER_OWNERSHIP(slugOrId), { newOwnerId })
+    const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.TRANSFER_OWNERSHIP(tenantId), { newOwnerId })
     return normalizeTenant(data)
   },
 
@@ -480,24 +490,22 @@ export const tenantService = {
    * Persist tenant settings (general, branding, hours, integrations, notifications).
    * In mock mode: patches the in-memory tenant record and returns the updated object.
    */
-  async updateTenantSettings(slug: string, patch: Record<string, unknown>): Promise<Tenant> {
+  async updateTenantSettings(tenantId: string, patch: Record<string, unknown>): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(250)
-      const existing = findInList(slug)
-      if (!existing) throw new Error(`Tenant not found: ${slug}`)
+      const existing = MOCK_TENANT_LIST.find((t) => t.id === tenantId) ?? findInList(tenantId)
+      if (!existing) throw new Error(`Tenant not found: ${tenantId}`)
       const updated: Tenant = {
         ...existing,
         settings: { ...(existing.settings ?? {}), ...patch },
       }
-      const idx = MOCK_TENANT_LIST.findIndex((t) => t.slug === slug || t.id === slug)
+      const idx = MOCK_TENANT_LIST.findIndex((t) => t.id === tenantId)
       if (idx !== -1) MOCK_TENANT_LIST[idx] = updated
-      const mockKey = Object.keys(MOCK_TENANTS).find(
-        (k) => MOCK_TENANTS[k].slug === slug || MOCK_TENANTS[k].id === slug,
-      )
+      const mockKey = Object.keys(MOCK_TENANTS).find((k) => MOCK_TENANTS[k].id === tenantId)
       if (mockKey) MOCK_TENANTS[mockKey] = updated
       return updated
     }
-    const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.SETTINGS(slug), patch)
+    const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.SETTINGS(tenantId), patch)
     return normalizeTenant(data)
   },
 

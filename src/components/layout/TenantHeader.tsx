@@ -71,7 +71,7 @@ export function TenantHeader() {
 
   // Website Builder nav config for this tenant's homepage layout (Phase I).
   // Optional — when undefined the module registry defaults are used.
-  const { data: layout } = useHomepageLayout(tenant?.slug ?? '')
+  const { data: layout } = useHomepageLayout(tenant?.id ?? '')
   const layoutNavConfig = layout?.navItems
 
   const [mobileOpen, setMobileOpen] = useState(false)

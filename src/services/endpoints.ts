@@ -105,17 +105,22 @@ export const ENDPOINTS = {
 
   // Tenants (Phase 1A — P1A.1 / P6.14 — Provisioning / P6.15 — Management)
   TENANTS: {
-    DETAIL: (slug: string) => `/tenants/${slug}/`,
+    /** Legacy slug path — mock mode only. Production public routes use resolvePublicTenantId + DETAIL_BY_ID. */
+    DETAIL_BY_SLUG: (slug: string) => `/tenants/${slug}/`,
+    /** All post-bootstrap tenant lookups and mutations — canonical id only. */
+    DETAIL_BY_ID: (tenantId: string) => `/tenants/${tenantId}/`,
     CURRENT: '/tenants/current/',
     LIST: '/tenants/',
     PROVISION: '/tenants/provision/',
     CLONE: '/tenants/clone/',
-    ACTIVATE: (slugOrId: string) => `/tenants/${slugOrId}/activate/`,
+    ACTIVATE: (tenantId: string) => `/tenants/${tenantId}/activate/`,
     BRANCHES: (tenantId: string) => `/tenants/${tenantId}/branches/`,
-    SUSPEND: (slugOrId: string) => `/tenants/${slugOrId}/suspend/`,
-    ARCHIVE: (slugOrId: string) => `/tenants/${slugOrId}/archive/`,
-    SETTINGS: (slug: string) => `/tenants/${slug}/settings/`,
-    TRANSFER_OWNERSHIP: (slugOrId: string) => `/tenants/${slugOrId}/transfer-ownership/`,
+    BRANCH_DETAIL: (tenantId: string, branchId: string) =>
+      `/tenants/${tenantId}/branches/${branchId}/`,
+    SUSPEND: (tenantId: string) => `/tenants/${tenantId}/suspend/`,
+    ARCHIVE: (tenantId: string) => `/tenants/${tenantId}/archive/`,
+    SETTINGS: (tenantId: string) => `/tenants/${tenantId}/settings/`,
+    TRANSFER_OWNERSHIP: (tenantId: string) => `/tenants/${tenantId}/transfer-ownership/`,
   },
 
   // Reviews (menu-item level)
@@ -127,12 +132,12 @@ export const ENDPOINTS = {
 
   // Website Builder (P8.8.6)
   WEBSITE_BUILDER: {
-    LAYOUT: (tenantSlug: string) => `/tenants/${tenantSlug}/website/layout/`,
-    PUBLISH: (tenantSlug: string) => `/tenants/${tenantSlug}/website/publish/`,
-    RESTORE: (tenantSlug: string, versionId: string) => `/tenants/${tenantSlug}/website/versions/${versionId}/restore/`,
-    VERSIONS: (tenantSlug: string) => `/tenants/${tenantSlug}/website/versions/`,
-    BRANCH_OVERRIDES: (tenantSlug: string, branchSlug: string) => `/tenants/${tenantSlug}/branches/${branchSlug}/website/overrides/`,
-    MEDIA_UPLOAD: (tenantSlug: string) => `/tenants/${tenantSlug}/website/media/`,
+    LAYOUT: (tenantId: string) => `/tenants/${tenantId}/website/layout/`,
+    PUBLISH: (tenantId: string) => `/tenants/${tenantId}/website/publish/`,
+    RESTORE: (tenantId: string, versionId: string) => `/tenants/${tenantId}/website/versions/${versionId}/restore/`,
+    VERSIONS: (tenantId: string) => `/tenants/${tenantId}/website/versions/`,
+    BRANCH_OVERRIDES: (tenantId: string, branchId: string) => `/tenants/${tenantId}/branches/${branchId}/website/overrides/`,
+    MEDIA_UPLOAD: (tenantId: string) => `/tenants/${tenantId}/website/media/`,
   },
 
   // Business Reviews (tenant/branch level — P8.8.5)

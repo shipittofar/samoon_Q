@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Minus, Plus, X, Star, Clock, Flame, Heart, ChevronDown, ChevronUp, Send } from 'lucide-react'
 import { useCartStore, useFavoritesStore } from '@/stores'
-import { useToggleFavorite, useRelatedItems, useItemReviews, useCreateReview } from '@/hooks'
+import { useToggleFavorite, useRelatedItems, useItemReviews, useCreateReview, useActiveBranchId } from '@/hooks'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Input'
@@ -20,11 +20,13 @@ interface FoodDetailModalProps {
   item: MenuItem | null
   open: boolean
   onClose: () => void
+  /** Canonical branch id for branch-scoped API calls (menu related items). */
+  branchId?: string
   /** C4/H9: callback to open a related item in the same modal */
   onOpenRelated?: (item: MenuItem) => void
 }
 
-export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDetailModalProps) {
+export function FoodDetailModal({ item, open, onClose, branchId, onOpenRelated }: FoodDetailModalProps) {
   const t = useTranslations('menu')
   const tCommon = useTranslations('common')
   const tNotifications = useTranslations('notifications')
@@ -38,9 +40,9 @@ export function FoodDetailModal({ item, open, onClose, onOpenRelated }: FoodDeta
   const [showReviews, setShowReviews] = useState(false)
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewComment, setReviewComment] = useState('')
-  // Related items must come from the same branch as the item being viewed —
-  // never fall back to whatever branch happens to be active in the store.
-  const { data: related } = useRelatedItems(item?.branch_id, item?.id || '')
+  const activeBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? activeBranchId
+  const { data: related } = useRelatedItems(scopedBranchId, item?.id || '')
   const { data: reviewsData } = useItemReviews(item?.id || '')
   const { mutate: submitReview, isPending: submittingReview } = useCreateReview(item?.id || '')
 

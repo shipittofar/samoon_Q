@@ -84,12 +84,12 @@ export function resolveSessionRestoreInput(user: {
  * `resolveSessionRestoreInput()` above) so the decision is unit-testable
  * without mounting the full provider tree.
  *
- * Returns the tenantSlug to load, or `null` when no fallback is needed:
+ * Returns the tenantId to load, or `null` when no fallback is needed:
  * not on a `/console` route, the current tenant already resolved to a
  * real (non-`DEFAULT_TENANT`) tenant, or the session carries no
- * membership with a `tenantSlug` to fall back to.
+ * membership with an `activeMembership.tenantId` to fall back to.
  */
-export function resolveConsoleTenantFallbackSlug(
+export function resolveConsoleTenantFallbackTenantId(
   pathname: string | null | undefined,
   currentTenant: { slug: string; id: string } | null | undefined,
   sessionInput: { memberships?: TenantMembership[]; activeMembership?: TenantMembership } | null | undefined,
@@ -100,6 +100,18 @@ export function resolveConsoleTenantFallbackSlug(
   const activeTenantId = sessionInput.activeMembership?.tenantId
   if (!activeTenantId) return null
   const membership = sessionInput.memberships?.find((m) => m.tenantId === activeTenantId)
+  return membership ? activeTenantId : null
+}
+
+/** @deprecated Use resolveConsoleTenantFallbackTenantId — slug must not be sent to tenant APIs after bootstrap. */
+export function resolveConsoleTenantFallbackSlug(
+  pathname: string | null | undefined,
+  currentTenant: { slug: string; id: string } | null | undefined,
+  sessionInput: { memberships?: TenantMembership[]; activeMembership?: TenantMembership } | null | undefined,
+): string | null {
+  const tenantId = resolveConsoleTenantFallbackTenantId(pathname, currentTenant, sessionInput)
+  if (!tenantId) return null
+  const membership = sessionInput?.memberships?.find((m) => m.tenantId === tenantId)
   return membership?.tenantSlug ?? null
 }
 
@@ -423,16 +435,16 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       return
     }
 
-    const fallbackSlug = resolveConsoleTenantFallbackSlug(pathname, currentTenant, sessionInput)
+    const fallbackTenantId = resolveConsoleTenantFallbackTenantId(pathname, currentTenant, sessionInput)
 
-    if (fallbackSlug && !consoleFallbackAttempted.current) {
+    if (fallbackTenantId && !consoleFallbackAttempted.current) {
       consoleFallbackAttempted.current = true
       pendingAuthSessionRef.current = null
       // Re-resolve tenant identity from the authenticated session's own
       // membership — never from client-held role/permission data, and
       // never bypassing AuthGuard's `dashboard:access` check, which still
       // runs against whatever tenant this settles on.
-      useTenantStore.getState().loadTenant(fallbackSlug).then(() => {
+      useTenantStore.getState().loadTenantById(fallbackTenantId).then(() => {
         const resolved = useTenantStore.getState().tenant
         if (resolved) {
           const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, resolved.id)

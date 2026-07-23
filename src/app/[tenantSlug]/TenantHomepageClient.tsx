@@ -15,7 +15,7 @@ import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
-import { usePublicTenant, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
+import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   getMarketplaceMeta,
@@ -808,22 +808,26 @@ function TenantNotFoundState() {
 // ── Main Export ───────────────────────────────────────────────────────────────
 
 export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
-  const { data: tenant, isLoading } = usePublicTenant(tenantSlug)
+  const tenant = useTenantStore((s) => s.tenant)
+  const tenantState = useTenantStore((s) => s.tenantState)
+  const isLoading = useTenantStore((s) => s.isLoading || s.tenantState === 'loading')
+  const tenantId = tenant?.id ?? ''
   // The tenant homepage previews the tenant's primary branch's menu — there is
   // no single "tenant menu"; each branch (including the primary one) owns its
   // own independent categories/items. See docs/BRANCH_MENU_ANALYSIS.md.
   const meta = tenant ? getMarketplaceMeta(tenant.settings) : undefined
-  const primaryBranchSlug = meta?.primaryBranchSlug
-  const { data: categories = [] } = useCategories(primaryBranchSlug)
-  const { data: menuItemsPage } = useMenuItems(primaryBranchSlug)
+  const primaryBranch = meta?.branches?.find((b) => b.slug === meta?.primaryBranchSlug)
+  const primaryBranchId = primaryBranch?.id
+  const { data: categories = [] } = useCategories(primaryBranchId)
+  const { data: menuItemsPage } = useMenuItems(primaryBranchId)
   const menuItems = menuItemsPage?.results ?? []
   const { data: promotions = [] } = useActivePromotions()
   // Website Builder section config — optional, fails open to DEFAULT_SECTIONS
-  const { data: layout } = useHomepageLayout(tenantSlug)
+  const { data: layout } = useHomepageLayout(tenantId)
   const featureFlags = useTenantStore((s) => s.featureFlags)
 
   if (isLoading) return <LoadingSkeleton />
-  if (!tenant) return <TenantNotFoundState />
+  if (!tenant || tenant.slug !== tenantSlug || tenantState !== 'resolved') return <TenantNotFoundState />
   if (!meta) return <TenantNotFoundState />
 
   // Section visibility: Website Builder config or DEFAULT_SECTIONS

@@ -96,7 +96,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
         {tenant.status !== 'active' && tenant.status !== 'archived' && (
           <button
             type="button"
-            onClick={() => activate.mutate(tenant.slug)}
+            onClick={() => activate.mutate(tenant.id)}
             disabled={activate.isPending}
             className="text-green-700 hover:underline disabled:opacity-40"
             aria-label={t('activateNameAria', { name: tenant.name })}
@@ -107,7 +107,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
         {tenant.status === 'active' && (
           <button
             type="button"
-            onClick={() => suspend.mutate(tenant.slug)}
+            onClick={() => suspend.mutate(tenant.id)}
             disabled={suspend.isPending}
             className="text-amber-700 hover:underline disabled:opacity-40"
             aria-label={t('suspendNameAria', { name: tenant.name })}
@@ -118,7 +118,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
         {tenant.status !== 'archived' && (
           <button
             type="button"
-            onClick={() => archive.mutate(tenant.slug)}
+            onClick={() => archive.mutate(tenant.id)}
             disabled={archive.isPending}
             className="text-red-600 hover:underline disabled:opacity-40"
             aria-label={t('archiveNameAria', { name: tenant.name })}

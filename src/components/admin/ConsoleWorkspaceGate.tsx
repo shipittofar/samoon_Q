@@ -130,6 +130,12 @@ export function resolveConsoleTenantPhase(params: {
  * (`useTenantStore.lastAttemptedSlug`), whichever caller originally chose
  * it (subdomain resolution or the Console membership-based fallback).
  */
+function retryLastTenantResolution() {
+  const { lastAttemptedTenantId, lastAttemptedSlug, loadTenantById, loadTenant } = useTenantStore.getState()
+  if (lastAttemptedTenantId) return loadTenantById(lastAttemptedTenantId)
+  return loadTenant(lastAttemptedSlug)
+}
+
 function useTenantAutoRetry(tenantState: TenantLifecycle) {
   const [retryCount, setRetryCount] = useState(0)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -140,7 +146,7 @@ function useTenantAutoRetry(tenantState: TenantLifecycle) {
       timerRef.current = null
     }
     setRetryCount((c) => c + 1)
-    void useTenantStore.getState().loadTenant(useTenantStore.getState().lastAttemptedSlug)
+    void retryLastTenantResolution()
   }, [])
 
   useEffect(() => {
@@ -155,7 +161,7 @@ function useTenantAutoRetry(tenantState: TenantLifecycle) {
       timerRef.current = setTimeout(() => {
         timerRef.current = null
         setRetryCount((c) => c + 1)
-        void useTenantStore.getState().loadTenant(useTenantStore.getState().lastAttemptedSlug)
+        void retryLastTenantResolution()
       }, TENANT_RETRY_DELAY_MS)
     }
     return () => {

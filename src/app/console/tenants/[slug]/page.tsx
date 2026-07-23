@@ -177,7 +177,7 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
           {tenant.status !== 'active' && (
             <button
               type="button"
-              onClick={() => activate.mutate(tenant.slug)}
+              onClick={() => activate.mutate(tenant.id)}
               disabled={activate.isPending}
               className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg disabled:opacity-50"
               aria-label={t('activateTenantAria')}
@@ -188,7 +188,7 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
           {tenant.status === 'active' && (
             <button
               type="button"
-              onClick={() => suspend.mutate(tenant.slug)}
+              onClick={() => suspend.mutate(tenant.id)}
               disabled={suspend.isPending}
               className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg disabled:opacity-50"
               aria-label={t('suspendTenantAria')}
@@ -198,7 +198,7 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
           )}
           <button
             type="button"
-            onClick={() => archive.mutate(tenant.slug)}
+            onClick={() => archive.mutate(tenant.id)}
             disabled={archive.isPending}
             className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg disabled:opacity-50"
             aria-label={t('archiveTenantAria')}
@@ -215,7 +215,7 @@ function TenantDetailContent({ slug }: { slug: string }) {
   const t = useTranslations('console')
   const { data: tenant, isLoading, isError } = useQuery<Tenant>({
     queryKey: ['tenant', slug],
-    queryFn: () => tenantService.getTenant(slug),
+    queryFn: () => tenantService.getTenantBySlug(slug),
   })
 
   if (isLoading) {

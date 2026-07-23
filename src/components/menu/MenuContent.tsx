@@ -496,6 +496,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
       <LazyFoodDetailModal
         item={selectedItem}
         open={modalOpen}
+        branchId={branchId}
         onClose={() => { setModalOpen(false); setTimeout(() => setSelectedItem(null), 300) }}
         onOpenRelated={handleOpenDetail}
       />

@@ -325,18 +325,18 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
 
 // ── Categories ────────────────────────────────────────────────────────────────
 export const MOCK_CATEGORIES: Category[] = [
-  { id: '1', branch_id: 'main', name: 'Pizza', slug: 'pizza', icon: '🍕', order: 1, items_count: 8 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: '2', branch_id: 'main', name: 'Burger', slug: 'burger', icon: '🍔', order: 2, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: '3', branch_id: 'main', name: 'Pasta', slug: 'pasta', icon: '🍝', order: 3, items_count: 5 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: '4', branch_id: 'main', name: 'Drinks', slug: 'drinks', icon: '🥤', order: 4, items_count: 7 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: '5', branch_id: 'main', name: 'Desserts', slug: 'desserts', icon: '🍰', order: 5, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '1', branch_id: 'branch-rest-01', name: 'Pizza', slug: 'pizza', icon: '🍕', order: 1, items_count: 8 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '2', branch_id: 'branch-rest-01', name: 'Burger', slug: 'burger', icon: '🍔', order: 2, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '3', branch_id: 'branch-rest-01', name: 'Pasta', slug: 'pasta', icon: '🍝', order: 3, items_count: 5 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '4', branch_id: 'branch-rest-01', name: 'Drinks', slug: 'drinks', icon: '🥤', order: 4, items_count: 7 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '5', branch_id: 'branch-rest-01', name: 'Desserts', slug: 'desserts', icon: '🍰', order: 5, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 // ── Menu Items ────────────────────────────────────────────────────────────────
 export const MOCK_MENU_ITEMS: MenuItem[] = [
   // PIZZA
   {
-    id: '1', branch_id: 'main', category_id: '1', name: 'Margherita Classic',
+    id: '1', branch_id: 'branch-rest-01', category_id: '1', name: 'Margherita Classic',
     slug: 'margherita-classic',
     description: 'San Marzano tomatoes, fresh mozzarella di bufala, hand-torn basil, extra virgin olive oil on our signature 72-hour cold-fermented dough.',
     price: 18.99, discount: 0,
@@ -353,7 +353,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extra_group_ids: ['grp-size', 'grp-sauces'],
   },
   {
-    id: '2', branch_id: 'main', category_id: '1', name: 'Diavola',
+    id: '2', branch_id: 'branch-rest-01', category_id: '1', name: 'Diavola',
     slug: 'diavola',
     description: 'Spicy Calabrian salami, fresh chili, smoked mozzarella, and a drizzle of chili-infused olive oil.',
     price: 22.99, discount: 10,
@@ -364,7 +364,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [{ id: 'e1', name: 'Extra Cheese', price: 2.50, available: true }],
   },
   {
-    id: '3', branch_id: 'main', category_id: '1', name: 'Quattro Stagioni',
+    id: '3', branch_id: 'branch-rest-01', category_id: '1', name: 'Quattro Stagioni',
     slug: 'quattro-stagioni',
     description: 'Four seasons pizza: artichokes, ham, mushrooms, and olives — each quadrant celebrating a unique flavor.',
     price: 24.99, discount: 0,
@@ -375,7 +375,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [],
   },
   {
-    id: '4', branch_id: 'main', category_id: '1', name: 'Truffle Mushroom',
+    id: '4', branch_id: 'branch-rest-01', category_id: '1', name: 'Truffle Mushroom',
     slug: 'truffle-mushroom',
     description: 'Wild mushroom medley, black truffle shavings, taleggio cheese, and fresh thyme on white sauce.',
     price: 28.99, discount: 0,
@@ -388,7 +388,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 
   // BURGERS
   {
-    id: '5', branch_id: 'main', category_id: '2', name: 'Wagyu Smash',
+    id: '5', branch_id: 'branch-rest-01', category_id: '2', name: 'Wagyu Smash',
     slug: 'wagyu-smash',
     description: 'Double wagyu beef smash patty, aged cheddar, caramelized onions, pickles, house sauce on brioche bun.',
     price: 24.99, discount: 15,
@@ -403,7 +403,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     ],
   },
   {
-    id: '6', branch_id: 'main', category_id: '2', name: 'Crispy Chicken',
+    id: '6', branch_id: 'branch-rest-01', category_id: '2', name: 'Crispy Chicken',
     slug: 'crispy-chicken',
     description: 'Buttermilk-brined fried chicken, jalapeño slaw, honey hot sauce, dill pickles on potato bun.',
     price: 19.99, discount: 0,
@@ -414,7 +414,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [{ id: 'e4', name: 'Avocado', price: 1.50, available: true }],
   },
   {
-    id: '7', branch_id: 'main', category_id: '2', name: 'Black Bean Royale',
+    id: '7', branch_id: 'branch-rest-01', category_id: '2', name: 'Black Bean Royale',
     slug: 'black-bean-royale',
     description: 'Spiced black bean patty, cashew cheese, roasted peppers, arugula, chipotle mayo on whole grain bun.',
     price: 17.99, discount: 0,
@@ -427,7 +427,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 
   // PASTA
   {
-    id: '8', branch_id: 'main', category_id: '3', name: 'Carbonara Autentica',
+    id: '8', branch_id: 'branch-rest-01', category_id: '3', name: 'Carbonara Autentica',
     slug: 'carbonara-autentica',
     description: 'Rigatoni, guanciale, Pecorino Romano, Parmigiano-Reggiano, free-range egg yolk. The Roman way, no cream.',
     price: 21.99, discount: 0,
@@ -438,7 +438,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [{ id: 'e6', name: 'Extra Guanciale', price: 3.00, available: true }],
   },
   {
-    id: '9', branch_id: 'main', category_id: '3', name: 'Lobster Linguine',
+    id: '9', branch_id: 'branch-rest-01', category_id: '3', name: 'Lobster Linguine',
     slug: 'lobster-linguine',
     description: 'Fresh Maine lobster, cherry tomatoes, garlic, white wine, chili, and parsley in olive oil sauce.',
     price: 38.99, discount: 0,
@@ -451,7 +451,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 
   // DRINKS
   {
-    id: '10', branch_id: 'main', category_id: '4', name: 'Cold Brew Coffee',
+    id: '10', branch_id: 'branch-rest-01', category_id: '4', name: 'Cold Brew Coffee',
     slug: 'cold-brew-coffee',
     description: 'Single-origin Ethiopian beans, 24-hour cold extraction, served over crystal-clear ice.',
     price: 7.99, discount: 0,
@@ -465,7 +465,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     ],
   },
   {
-    id: '11', branch_id: 'main', category_id: '4', name: 'Mango Lassi',
+    id: '11', branch_id: 'branch-rest-01', category_id: '4', name: 'Mango Lassi',
     slug: 'mango-lassi',
     description: 'Alphonso mangoes, whole-milk yogurt, cardamom, and a hint of rose water.',
     price: 6.99, discount: 0,
@@ -478,7 +478,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 
   // DESSERTS
   {
-    id: '12', branch_id: 'main', category_id: '5', name: 'Crème Brûlée',
+    id: '12', branch_id: 'branch-rest-01', category_id: '5', name: 'Crème Brûlée',
     slug: 'creme-brulee',
     description: 'Classic French custard with Madagascar vanilla, torched caramel crust, served with fresh berries.',
     price: 11.99, discount: 0,
@@ -489,7 +489,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     extras: [],
   },
   {
-    id: '13', branch_id: 'main', category_id: '5', name: 'Molten Lava Cake',
+    id: '13', branch_id: 'branch-rest-01', category_id: '5', name: 'Molten Lava Cake',
     slug: 'molten-lava-cake',
     description: '72% Valrhona chocolate, salted caramel core, served warm with vanilla bean gelato.',
     price: 13.99, discount: 20,
@@ -508,13 +508,13 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 // item objects — never the same object references — so editing one branch's
 // menu can never mutate another branch's data.
 export const MOCK_DOWNTOWN_CATEGORIES: Category[] = [
-  { id: 'dt-1', branch_id: 'downtown', name: 'Express Bowls', slug: 'express-bowls', icon: '🥗', order: 1, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'dt-2', branch_id: 'downtown', name: 'Coffee', slug: 'coffee', icon: '☕', order: 2, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'dt-1', branch_id: 'branch-rest-02', name: 'Express Bowls', slug: 'express-bowls', icon: '🥗', order: 1, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'dt-2', branch_id: 'branch-rest-02', name: 'Coffee', slug: 'coffee', icon: '☕', order: 2, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_DOWNTOWN_ITEMS: MenuItem[] = [
   {
-    id: 'dt-item-1', branch_id: 'downtown', category_id: 'dt-1', name: 'Downtown Power Bowl',
+    id: 'dt-item-1', branch_id: 'branch-rest-02', category_id: 'dt-1', name: 'Downtown Power Bowl',
     slug: 'downtown-power-bowl',
     description: 'Quinoa, grilled chicken, avocado, lime dressing — built for a fast lunch break.',
     price: 13.50, discount: 0,
@@ -525,7 +525,7 @@ export const MOCK_DOWNTOWN_ITEMS: MenuItem[] = [
     extras: [{ id: 'dt-e1', name: 'Extra Chicken', price: 3.00, available: true }],
   },
   {
-    id: 'dt-item-2', branch_id: 'downtown', category_id: 'dt-2', name: 'Downtown Espresso',
+    id: 'dt-item-2', branch_id: 'branch-rest-02', category_id: 'dt-2', name: 'Downtown Espresso',
     slug: 'downtown-espresso',
     description: 'Double shot, locally roasted beans.',
     price: 3.50, discount: 0,
@@ -538,12 +538,12 @@ export const MOCK_DOWNTOWN_ITEMS: MenuItem[] = [
 ]
 
 export const MOCK_AIRPORT_CATEGORIES: Category[] = [
-  { id: 'ap-1', branch_id: 'airport', name: 'Grab & Go', slug: 'grab-and-go', icon: '🥪', order: 1, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ap-1', branch_id: 'branch-rest-03', name: 'Grab & Go', slug: 'grab-and-go', icon: '🥪', order: 1, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_AIRPORT_ITEMS: MenuItem[] = [
   {
-    id: 'ap-item-1', branch_id: 'airport', category_id: 'ap-1', name: 'Terminal Club Sandwich',
+    id: 'ap-item-1', branch_id: 'branch-rest-03', category_id: 'ap-1', name: 'Terminal Club Sandwich',
     slug: 'terminal-club-sandwich',
     description: 'Turkey, bacon, swiss, sourdough — packaged for security lines.',
     price: 11.00, discount: 0,
@@ -555,18 +555,18 @@ export const MOCK_AIRPORT_ITEMS: MenuItem[] = [
   },
 ]
 
-/** Resolves a branch's independent category set in mock/dev mode. Defaults to `main`'s data for any unlisted branch id so single-branch tenants keep working unchanged. */
+/** Resolves a branch's independent category set in mock/dev mode. Defaults to the primary branch for any unlisted branch id. */
 export const MOCK_BRANCH_CATEGORIES: Record<string, Category[]> = {
-  main: MOCK_CATEGORIES,
-  downtown: MOCK_DOWNTOWN_CATEGORIES,
-  airport: MOCK_AIRPORT_CATEGORIES,
+  'branch-rest-01': MOCK_CATEGORIES,
+  'branch-rest-02': MOCK_DOWNTOWN_CATEGORIES,
+  'branch-rest-03': MOCK_AIRPORT_CATEGORIES,
 }
 
-/** Resolves a branch's independent item set in mock/dev mode. Defaults to `main`'s data for any unlisted branch id so single-branch tenants keep working unchanged. */
+/** Resolves a branch's independent item set in mock/dev mode. Defaults to the primary branch for any unlisted branch id. */
 export const MOCK_BRANCH_ITEMS: Record<string, MenuItem[]> = {
-  main: MOCK_MENU_ITEMS,
-  downtown: MOCK_DOWNTOWN_ITEMS,
-  airport: MOCK_AIRPORT_ITEMS,
+  'branch-rest-01': MOCK_MENU_ITEMS,
+  'branch-rest-02': MOCK_DOWNTOWN_ITEMS,
+  'branch-rest-03': MOCK_AIRPORT_ITEMS,
 }
 
 // ── Extra Groups & Extras ──────────────────────────────────────────────────────
@@ -578,52 +578,52 @@ export const MOCK_BRANCH_ITEMS: Record<string, MenuItem[]> = {
 // exactly like MOCK_DOWNTOWN_CATEGORIES/MOCK_AIRPORT_CATEGORIES already are.
 
 export const MOCK_MAIN_EXTRA_GROUPS: ExtraGroup[] = [
-  { id: 'grp-size', branch_id: 'main', name: 'Size', description: 'Choose one size', selection_type: 'single', required: true, min_selection: 1, max_selection: 1, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'grp-sauces', branch_id: 'main', name: 'Sauces', description: 'Add extra sauces', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 3, order: 2, is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'grp-toppings', branch_id: 'main', name: 'Toppings', description: 'Customize with toppings', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 5, order: 3, is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'grp-drinks', branch_id: 'main', name: 'Drinks', description: 'Add a drink', selection_type: 'single', required: false, min_selection: 0, max_selection: 1, order: 4, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-size', branch_id: 'branch-rest-01', name: 'Size', description: 'Choose one size', selection_type: 'single', required: true, min_selection: 1, max_selection: 1, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-sauces', branch_id: 'branch-rest-01', name: 'Sauces', description: 'Add extra sauces', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 3, order: 2, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-toppings', branch_id: 'branch-rest-01', name: 'Toppings', description: 'Customize with toppings', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 5, order: 3, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-drinks', branch_id: 'branch-rest-01', name: 'Drinks', description: 'Add a drink', selection_type: 'single', required: false, min_selection: 0, max_selection: 1, order: 4, is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_MAIN_EXTRAS: Extra[] = [
-  { id: 'ext-size-reg', branch_id: 'main', group_id: 'grp-size', name: 'Regular', price: 0, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'ext-size-lg', branch_id: 'main', group_id: 'grp-size', name: 'Large', price: 3.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'ext-sauce-cheese', branch_id: 'main', group_id: 'grp-sauces', name: 'Extra Cheese', description: 'Extra mozzarella', price: 2.50, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'ext-sauce-truffle', branch_id: 'main', group_id: 'grp-sauces', name: 'Truffle Oil', price: 3.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'ext-topping-bacon', branch_id: 'main', group_id: 'grp-toppings', name: 'Bacon', price: 2.00, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'ext-topping-avocado', branch_id: 'main', group_id: 'grp-toppings', name: 'Avocado', price: 1.50, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'ext-drink-cola', branch_id: 'main', group_id: 'grp-drinks', name: 'Cola', price: 2.99, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'ext-drink-lemonade', branch_id: 'main', group_id: 'grp-drinks', name: 'Lemonade', price: 3.49, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-size-reg', branch_id: 'branch-rest-01', group_id: 'grp-size', name: 'Regular', price: 0, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-size-lg', branch_id: 'branch-rest-01', group_id: 'grp-size', name: 'Large', price: 3.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-sauce-cheese', branch_id: 'branch-rest-01', group_id: 'grp-sauces', name: 'Extra Cheese', description: 'Extra mozzarella', price: 2.50, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-sauce-truffle', branch_id: 'branch-rest-01', group_id: 'grp-sauces', name: 'Truffle Oil', price: 3.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-topping-bacon', branch_id: 'branch-rest-01', group_id: 'grp-toppings', name: 'Bacon', price: 2.00, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-topping-avocado', branch_id: 'branch-rest-01', group_id: 'grp-toppings', name: 'Avocado', price: 1.50, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-drink-cola', branch_id: 'branch-rest-01', group_id: 'grp-drinks', name: 'Cola', price: 2.99, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-drink-lemonade', branch_id: 'branch-rest-01', group_id: 'grp-drinks', name: 'Lemonade', price: 3.49, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_DOWNTOWN_EXTRA_GROUPS: ExtraGroup[] = [
-  { id: 'grp-dt-milk', branch_id: 'downtown', name: 'Milk Options', description: 'Choose your milk', selection_type: 'single', required: true, min_selection: 1, max_selection: 1, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-dt-milk', branch_id: 'branch-rest-02', name: 'Milk Options', description: 'Choose your milk', selection_type: 'single', required: true, min_selection: 1, max_selection: 1, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_DOWNTOWN_EXTRAS: Extra[] = [
-  { id: 'ext-dt-oat', branch_id: 'downtown', group_id: 'grp-dt-milk', name: 'Oat Milk', price: 1.00, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'ext-dt-almond', branch_id: 'downtown', group_id: 'grp-dt-milk', name: 'Almond Milk', price: 1.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-dt-oat', branch_id: 'branch-rest-02', group_id: 'grp-dt-milk', name: 'Oat Milk', price: 1.00, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-dt-almond', branch_id: 'branch-rest-02', group_id: 'grp-dt-milk', name: 'Almond Milk', price: 1.00, available: true, order: 2, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_AIRPORT_EXTRA_GROUPS: ExtraGroup[] = [
-  { id: 'grp-ap-sides', branch_id: 'airport', name: 'Sides', description: 'Add a side', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 2, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'grp-ap-sides', branch_id: 'branch-rest-03', name: 'Sides', description: 'Add a side', selection_type: 'multiple', required: false, min_selection: 0, max_selection: 2, order: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_AIRPORT_EXTRAS: Extra[] = [
-  { id: 'ext-ap-chips', branch_id: 'airport', group_id: 'grp-ap-sides', name: 'Chips', price: 1.50, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ext-ap-chips', branch_id: 'branch-rest-03', group_id: 'grp-ap-sides', name: 'Chips', price: 1.50, available: true, order: 1, created_at: '2024-01-01T00:00:00Z' },
 ]
 
-/** Resolves a branch's independent Extra Group set in mock/dev mode. Defaults to `main`'s data for any unlisted branch id. */
+/** Resolves a branch's independent Extra Group set in mock/dev mode. Defaults to the primary branch for any unlisted branch id. */
 export const MOCK_BRANCH_EXTRA_GROUPS: Record<string, ExtraGroup[]> = {
-  main: MOCK_MAIN_EXTRA_GROUPS,
-  downtown: MOCK_DOWNTOWN_EXTRA_GROUPS,
-  airport: MOCK_AIRPORT_EXTRA_GROUPS,
+  'branch-rest-01': MOCK_MAIN_EXTRA_GROUPS,
+  'branch-rest-02': MOCK_DOWNTOWN_EXTRA_GROUPS,
+  'branch-rest-03': MOCK_AIRPORT_EXTRA_GROUPS,
 }
 
-/** Resolves a branch's independent Extra set in mock/dev mode. Defaults to `main`'s data for any unlisted branch id. */
+/** Resolves a branch's independent Extra set in mock/dev mode. Defaults to the primary branch for any unlisted branch id. */
 export const MOCK_BRANCH_EXTRAS: Record<string, Extra[]> = {
-  main: MOCK_MAIN_EXTRAS,
-  downtown: MOCK_DOWNTOWN_EXTRAS,
-  airport: MOCK_AIRPORT_EXTRAS,
+  'branch-rest-01': MOCK_MAIN_EXTRAS,
+  'branch-rest-02': MOCK_DOWNTOWN_EXTRAS,
+  'branch-rest-03': MOCK_AIRPORT_EXTRAS,
 }
 
 // ── Orders ────────────────────────────────────────────────────────────────────

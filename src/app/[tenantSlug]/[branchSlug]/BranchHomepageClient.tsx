@@ -16,7 +16,7 @@ import { Fragment } from 'react'
 import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
-import { usePublicTenant, usePublicBranch, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
+import { usePublicBranch, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
@@ -635,22 +635,40 @@ function BranchNotFound({ tenantSlug }: { tenantSlug: string }) {
 interface Props {
   tenantSlug: string
   branchSlug: string
+  tenantId: string
+  branchId: string
+  initialBranch: PublicBranchInfo
+  marketplaceBranch: PublicBranchInfo
 }
 
-export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) {
+export default function BranchHomepageClient({
+  tenantSlug,
+  branchSlug,
+  tenantId,
+  branchId,
+  initialBranch,
+  marketplaceBranch,
+}: Props) {
   const t = useTranslations('branch')
-  const { data: tenant, isLoading: tenantLoading } = usePublicTenant(tenantSlug)
-  const { data: branch, isLoading: branchLoading } = usePublicBranch(tenantSlug, branchSlug)
-  const { data: categories = [] } = useCategories(branchSlug)
-  const { data: menuItemsPage } = useMenuItems(branchSlug)
+  const tenant = useTenantStore((s) => s.tenant)
+  const tenantState = useTenantStore((s) => s.tenantState)
+  const tenantLoading = useTenantStore((s) => s.isLoading || s.tenantState === 'loading')
+  const { data: branch, isLoading: branchLoading } = usePublicBranch(tenantId, branchId, {
+    marketplaceBranch,
+    initialData: initialBranch,
+  })
+  const { data: categories = [] } = useCategories(branchId)
+  const { data: menuItemsPage } = useMenuItems(branchId)
   const { data: promotions = [] } = useActivePromotions()
-  const { data: layout } = useHomepageLayout(tenantSlug)
+  const { data: layout } = useHomepageLayout(tenantId)
   const featureFlags = useTenantStore((s) => s.featureFlags)
 
   const menuItems: MenuItem[] = menuItemsPage?.results ?? []
 
   if (tenantLoading || branchLoading) return <BranchSkeleton />
-  if (!tenant || !branch) return <BranchNotFound tenantSlug={tenantSlug} />
+  if (!tenant || tenant.slug !== tenantSlug || tenantState !== 'resolved' || !branch) {
+    return <BranchNotFound tenantSlug={tenantSlug} />
+  }
 
   const meta = getMarketplaceMeta(tenant.settings)
   const sections = buildPublicSections(layout?.sections)
@@ -707,7 +725,7 @@ export default function BranchHomepageClient({ tenantSlug, branchSlug }: Props) 
                   <ReviewsSection
                     tenantId={tenant.id}
                     tenantSlug={tenantSlug}
-                    branchId={branchSlug}
+                    branchId={branchId}
                     initialRating={rating}
                     initialReviewCount={reviewCount}
                   />

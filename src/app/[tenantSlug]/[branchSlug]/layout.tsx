@@ -20,7 +20,7 @@ import type { Location } from '@/types'
 
 function publicBranchToLocation(b: PublicBranchInfo, tenantId: string): Location {
   return {
-    id: b.slug,
+    id: b.id,
     tenant_id: tenantId,
     name: b.name,
     slug: b.slug,
@@ -43,26 +43,23 @@ export default function TenantBranchLayout({
 }) {
   const { tenantSlug, branchSlug } = use(params)
 
-  const loadTenant = useTenantStore((s) => s.loadTenant)
   const tenant = useTenantStore((s) => s.tenant)
+  const tenantState = useTenantStore((s) => s.tenantState)
   const setActiveBranch = useBranchStore((s) => s.setActiveBranch)
 
-  // Load correct tenant from URL slug
-  useEffect(() => {
-    if (tenant?.slug !== tenantSlug) {
-      loadTenant(tenantSlug)
-    }
-  }, [tenantSlug, tenant?.slug, loadTenant])
+  // Tenant bootstrap is owned by the parent [tenantSlug]/layout.tsx — never
+  // call loadTenant(slug) here; that duplicated GET /tenants/{slug}/ after
+  // bootstrap and violated the id-only post-bootstrap contract.
 
   // Set public activeBranch from MarketplaceMeta once tenant is loaded
   useEffect(() => {
-    if (!tenant || tenant.slug !== tenantSlug) return
+    if (tenantState !== 'resolved' || !tenant || tenant.slug !== tenantSlug) return
     const meta = getMarketplaceMeta(tenant.settings)
     const match = meta?.branches?.find((b) => b.slug === branchSlug)
-    if (match) {
+    if (match?.id) {
       setActiveBranch(publicBranchToLocation(match, tenant.id))
     }
-  }, [tenantSlug, branchSlug, tenant, setActiveBranch])
+  }, [tenantSlug, branchSlug, tenant, tenantState, setActiveBranch])
 
   return <>{children}</>
 }

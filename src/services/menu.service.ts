@@ -18,21 +18,23 @@ export interface MenuFilters {
   page_size?: number
 }
 
+const DEFAULT_MOCK_BRANCH_ID = 'branch-rest-01'
+
 /** Every menu-domain request is branch-scoped — there is no global/shared menu. */
 function mockCategories(branchId: string): Category[] {
-  return MOCK_BRANCH_CATEGORIES[branchId] ?? MOCK_BRANCH_CATEGORIES.main
+  return MOCK_BRANCH_CATEGORIES[branchId] ?? MOCK_BRANCH_CATEGORIES[DEFAULT_MOCK_BRANCH_ID]
 }
 
 function mockItems(branchId: string): MenuItem[] {
-  return MOCK_BRANCH_ITEMS[branchId] ?? MOCK_BRANCH_ITEMS.main
+  return MOCK_BRANCH_ITEMS[branchId] ?? MOCK_BRANCH_ITEMS[DEFAULT_MOCK_BRANCH_ID]
 }
 
 function mockExtraGroups(branchId: string): ExtraGroup[] {
-  return MOCK_BRANCH_EXTRA_GROUPS[branchId] ?? MOCK_BRANCH_EXTRA_GROUPS.main
+  return MOCK_BRANCH_EXTRA_GROUPS[branchId] ?? MOCK_BRANCH_EXTRA_GROUPS[DEFAULT_MOCK_BRANCH_ID]
 }
 
 function mockExtras(branchId: string): Extra[] {
-  return MOCK_BRANCH_EXTRAS[branchId] ?? MOCK_BRANCH_EXTRAS.main
+  return MOCK_BRANCH_EXTRAS[branchId] ?? MOCK_BRANCH_EXTRAS[DEFAULT_MOCK_BRANCH_ID]
 }
 
 export const menuService = {

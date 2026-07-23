@@ -1,23 +1,23 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
-import { getMarketplaceMeta } from '@/types/marketplace'
+import { TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
+import { fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
+import { branchManagementService } from '@/services/branch.service'
+import {
+  getMarketplaceMeta,
+  publicBranchFromDetail,
+} from '@/types/marketplace'
 import { buildBranchMetadata, buildBranchJsonLd } from '@/utils'
 import BranchHomepageClient from './BranchHomepageClient'
 import type { Tenant } from '@/types'
 
 /**
- * tenantService.getTenant() throws typed errors instead of returning a
- * placeholder tenant (Phase 1 tenant resolution refactor). Public pages
- * must translate that into the correct Next.js response:
- *   - not_found/forbidden slugs  -> notFound() (a real 404, same as before)
- *   - server/network failures    -> rethrown, so Next's error boundary
- *     handles it — a temporary backend outage must never render as a
- *     silent 404, only a genuinely nonexistent/inaccessible business should.
+ * Resolves a public URL slug to full tenant detail via UUID lookup
+ * (resolvePublicTenantId → getTenantById). Never calls GET /tenants/{slug}/.
  */
 async function resolvePublicTenant(tenantSlug: string): Promise<Tenant> {
   try {
-    return await tenantService.getTenant(tenantSlug)
+    return await fetchPublicTenantBySlug(tenantSlug)
   } catch (err) {
     if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) {
       notFound()
@@ -26,20 +26,37 @@ async function resolvePublicTenant(tenantSlug: string): Promise<Tenant> {
   }
 }
 
+async function resolvePublicBranchPage(tenantSlug: string, branchSlug: string) {
+  const tenant = await resolvePublicTenant(tenantSlug)
+  const meta = getMarketplaceMeta(tenant.settings)
+  const marketplaceBranch = meta?.branches?.find((b) => b.slug === branchSlug)
+
+  if (!marketplaceBranch?.id) {
+    notFound()
+  }
+
+  let branchDetail
+  try {
+    branchDetail = await branchManagementService.getPublicBranch(
+      tenant.id,
+      marketplaceBranch.id,
+    )
+  } catch {
+    notFound()
+  }
+
+  const branch = publicBranchFromDetail(branchDetail, marketplaceBranch)
+
+  return { tenant, meta, marketplaceBranch, branch }
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ tenantSlug: string; branchSlug: string }>
 }): Promise<Metadata> {
   const { tenantSlug, branchSlug } = await params
-  const tenant = await resolvePublicTenant(tenantSlug)
-
-  const meta = getMarketplaceMeta(tenant.settings)
-  const branch = meta?.branches?.find((b) => b.slug === branchSlug)
-
-  if (!branch) {
-    return { title: `${tenant.name} — Branch not found` }
-  }
+  const { tenant, meta, branch } = await resolvePublicBranchPage(tenantSlug, branchSlug)
 
   const { title, description, url, image } = buildBranchMetadata({
     branchName: branch.name,
@@ -79,13 +96,10 @@ export default async function BranchPage({
   params: Promise<{ tenantSlug: string; branchSlug: string }>
 }) {
   const { tenantSlug, branchSlug } = await params
-  const tenant = await resolvePublicTenant(tenantSlug)
-
-  const meta = getMarketplaceMeta(tenant.settings)
-  const branch = meta?.branches?.find((b) => b.slug === branchSlug)
-  if (!branch) {
-    notFound()
-  }
+  const { tenant, meta, marketplaceBranch, branch } = await resolvePublicBranchPage(
+    tenantSlug,
+    branchSlug,
+  )
 
   const jsonLd = buildBranchJsonLd({
     branchName: branch.name,
@@ -107,7 +121,14 @@ export default async function BranchPage({
           dangerouslySetInnerHTML={{ __html: jsonLd }}
         />
       )}
-      <BranchHomepageClient tenantSlug={tenantSlug} branchSlug={branchSlug} />
+      <BranchHomepageClient
+        tenantSlug={tenantSlug}
+        branchSlug={branchSlug}
+        tenantId={tenant.id}
+        branchId={branch.id}
+        initialBranch={branch}
+        marketplaceBranch={marketplaceBranch}
+      />
     </>
   )
 }

@@ -31,7 +31,7 @@ describe('Bug 1 / Bug 6 — RBAC role availability for all tenants', () => {
   it('every known tenant can be resolved by getTenant', async () => {
     const slugs = ['samoon', 'brew-cafe', 'the-oak-bar', 'central-food-court', 'wheels-and-brews', 'road-bites']
     for (const slug of slugs) {
-      const tenant = await tenantService.getTenant(slug)
+      const tenant = await tenantService.getTenantBySlug(slug)
       expect(tenant.slug).toBe(slug)
     }
   })
@@ -118,18 +118,18 @@ describe('Bug 7 — Public context initialization', () => {
   })
 
   it('usePublicTenant equivalent: unknown slug throws TenantNotFoundError instead of returning a fake tenant', async () => {
-    await expect(tenantService.getTenant('nonexistent-slug')).rejects.toBeInstanceOf(TenantNotFoundError)
+    await expect(tenantService.getTenantBySlug('nonexistent-slug')).rejects.toBeInstanceOf(TenantNotFoundError)
   })
 
   it('usePublicBranch equivalent: unknown branch returns undefined from marketplace meta', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b) => b.slug === 'nonexistent-branch')
     expect(branch).toBeUndefined()
   })
 
   it('known tenant + known branch slug resolves to correct PublicBranchInfo', async () => {
-    const tenant = await tenantService.getTenant('brew-cafe')
+    const tenant = await tenantService.getTenantBySlug('brew-cafe')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b) => b.slug === 'brooklyn-cafe')
     expect(branch).toBeDefined()
@@ -139,14 +139,14 @@ describe('Bug 7 — Public context initialization', () => {
 
 describe('R-06 — CapabilityGuard loyalty flag consistency (P8.7.7.8)', () => {
   it('brew-cafe featureFlags includes loyalty.enabled: true so CapabilityGuard passes', async () => {
-    const tenant = await tenantService.getTenant('brew-cafe')
+    const tenant = await tenantService.getTenantBySlug('brew-cafe')
     const flags = (tenant.settings?.featureFlags ?? {}) as Record<string, boolean>
     // CapabilityGuard checks CAPABILITY_FLAG_MAP['loyalty'] = 'loyalty.enabled'
     expect(flags['loyalty.enabled']).toBe(true)
   })
 
   it('wheels-and-brews featureFlags does not explicitly disable loyalty.enabled', async () => {
-    const tenant = await tenantService.getTenant('wheels-and-brews')
+    const tenant = await tenantService.getTenantBySlug('wheels-and-brews')
     const flags = (tenant.settings?.featureFlags ?? {}) as Record<string, boolean>
     // mobile_cafe has loyalty in defaultEnabled → Layer 2 sets loyalty.enabled=true
     // tenant Layer 3 override must not actively disable it
@@ -154,7 +154,7 @@ describe('R-06 — CapabilityGuard loyalty flag consistency (P8.7.7.8)', () => {
   })
 
   it('samoon tenant does not explicitly enable loyalty.enabled', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const flags = (tenant.settings?.featureFlags ?? {}) as Record<string, boolean>
     expect(flags['loyalty.enabled']).toBeUndefined()
   })

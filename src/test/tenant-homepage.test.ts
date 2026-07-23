@@ -79,14 +79,14 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   })
 
   it('samoon has branches array with 3 entries', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.branches).toBeDefined()
     expect(meta?.branches?.length).toBe(3)
   })
 
   it('each branch entry has required fields', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     meta?.branches?.forEach((b: PublicBranchInfo) => {
       expect(typeof b.slug).toBe('string')
@@ -99,25 +99,25 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   })
 
   it('brew-cafe has 2 branches', async () => {
-    const tenant = await tenantService.getTenant('brew-cafe')
+    const tenant = await tenantService.getTenantBySlug('brew-cafe')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.branches?.length).toBe(2)
   })
 
   it('the-oak-bar has 1 branch', async () => {
-    const tenant = await tenantService.getTenant('the-oak-bar')
+    const tenant = await tenantService.getTenantBySlug('the-oak-bar')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.branches?.length).toBe(1)
   })
 
   it('central-food-court has 1 branch', async () => {
-    const tenant = await tenantService.getTenant('central-food-court')
+    const tenant = await tenantService.getTenantBySlug('central-food-court')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.branches?.length).toBe(1)
   })
 
   it('wheels-and-brews has 1 branch', async () => {
-    const tenant = await tenantService.getTenant('wheels-and-brews')
+    const tenant = await tenantService.getTenantBySlug('wheels-and-brews')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.branches?.length).toBe(1)
   })
@@ -148,7 +148,7 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   })
 
   it('samoon primary branch slug matches first branch slug', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.branches?.[0]?.slug).toBe(meta?.primaryBranchSlug)
   })
@@ -165,7 +165,7 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   })
 
   it('gallery is an array of strings when present', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     if (meta?.gallery) {
       expect(Array.isArray(meta.gallery)).toBe(true)
@@ -185,17 +185,17 @@ describe('tenantService.getTenant — unknown slug handling', () => {
   })
 
   it('throws TenantNotFoundError for unknown slug instead of returning a fake tenant', async () => {
-    await expect(tenantService.getTenant('nonexistent-business')).rejects.toBeInstanceOf(TenantNotFoundError)
+    await expect(tenantService.getTenantBySlug('nonexistent-business')).rejects.toBeInstanceOf(TenantNotFoundError)
   })
 
   it('returns correct tenant for known slug', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     expect(tenant.slug).toBe('samoon')
     expect(tenant.name).toBe('Samoon Restaurant')
   })
 
   it('returns correct tenant for brew-cafe', async () => {
-    const tenant = await tenantService.getTenant('brew-cafe')
+    const tenant = await tenantService.getTenantBySlug('brew-cafe')
     expect(tenant.slug).toBe('brew-cafe')
   })
 })

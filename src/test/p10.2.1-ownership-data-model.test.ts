@@ -75,7 +75,7 @@ describe('P10.2.1 — Tenant.ownerId (additive, nullable)', () => {
   })
 
   it('reading a tenant without knowledge of ownerId is unaffected (backward compatibility)', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     // Every field that existed before P10.2.1 is still present and typed the same.
     expect(tenant.id).toBe('tenant-samoon-01')
     expect(tenant.slug).toBe('samoon')

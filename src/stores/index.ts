@@ -45,6 +45,10 @@ import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import { membershipBranchesToBranches, resolveConsoleDefaultBranch } from '@/lib/console-workspace'
+import {
+  resolvePublicTenantId,
+  type ResolvePublicTenantOptions,
+} from '@/lib/public-tenant-resolution'
 import type { MembershipBranch } from '@/types/rbac'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
@@ -310,8 +314,10 @@ interface TenantState {
    * recent attempt.
    */
   lastAttemptedSlug: string | undefined
+  /** Canonical id from the most recent `loadTenantById()` call — used for console retries. */
+  lastAttemptedTenantId: string | undefined
   setTenant: (tenant: Tenant | null) => void
-  loadTenant: (slug?: string) => Promise<void>
+  loadTenant: (slug?: string, options?: ResolvePublicTenantOptions) => Promise<void>
   /** Console workspace — resolves tenant by canonical id (never slug). */
   loadTenantById: (tenantId: string) => Promise<void>
   setRbacInitialized: (v: boolean) => void
@@ -330,8 +336,9 @@ export const useTenantStore = create<TenantState>()(
       featureFlagsInitialized: false,
       featureFlags: {},
       lastAttemptedSlug: undefined,
+      lastAttemptedTenantId: undefined,
       setTenant: (tenant) => set({ tenant }),
-      loadTenant: async (slug?: string) => {
+      loadTenant: async (slug?: string, options?: ResolvePublicTenantOptions) => {
         // No slug to resolve against (e.g. the platform domain with no
         // tenant subdomain) — never guess a tenant. Leave tenant null and
         // let the Console's own membership-based fallback
@@ -341,9 +348,16 @@ export const useTenantStore = create<TenantState>()(
           set({ tenant: null, isLoading: false, tenantState: 'not_found', lastAttemptedSlug: slug })
           return
         }
-        set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedSlug: slug })
+        const current = useTenantStore.getState()
+        // Already bootstrapped for this URL slug — never re-fetch.
+        if (current.tenant?.slug === slug && current.tenantState === 'resolved') return
+        // Parallel layout/effect callers share one in-flight slug bootstrap.
+        if (current.isLoading && current.lastAttemptedSlug === slug) return
+        set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedSlug: slug, lastAttemptedTenantId: undefined })
         try {
-          const tenant = await tenantService.getTenant(slug)
+          // Public slug routes resolve slug → UUID, then fetch via GET /tenants/{id}/.
+          const tenantId = await resolvePublicTenantId(slug, options)
+          const tenant = await tenantService.getTenantById(tenantId)
           // A tenant record can be fetched successfully and still be
           // ineligible (suspended/archived/churned) — that is access denial,
           // not a resolved, usable tenant. Console must never render against it.
@@ -351,7 +365,7 @@ export const useTenantStore = create<TenantState>()(
             set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
             return
           }
-          set({ tenant, isLoading: false, tenantState: 'resolved' })
+          set({ tenant, isLoading: false, tenantState: 'resolved', lastAttemptedTenantId: tenantId })
         } catch (err) {
           // Never substitute a fake tenant here. Classify the failure and
           // leave `tenant` null so nothing downstream can mistake an
@@ -373,9 +387,9 @@ export const useTenantStore = create<TenantState>()(
         }
       },
       loadTenantById: async (tenantId: string) => {
-        set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedSlug: tenantId })
+        set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedTenantId: tenantId, lastAttemptedSlug: undefined })
         try {
-          const tenant = await tenantService.getTenant(tenantId)
+          const tenant = await tenantService.getTenantById(tenantId)
           if (!ELIGIBLE_TENANT_STATUSES.includes(tenant.status)) {
             set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
             return
@@ -407,6 +421,7 @@ export const useTenantStore = create<TenantState>()(
         featureFlagsInitialized: false,
         featureFlags: {},
         lastAttemptedSlug: undefined,
+        lastAttemptedTenantId: undefined,
       }),
     }),
     {

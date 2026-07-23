@@ -120,7 +120,7 @@ describe('Gallery and marketplace ownership per tenant', () => {
   })
 
   it('samoon tenant has its own gallery images', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     expect(meta?.gallery?.length).toBeGreaterThanOrEqual(1)
   })

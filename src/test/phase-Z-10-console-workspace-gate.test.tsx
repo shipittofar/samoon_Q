@@ -273,8 +273,8 @@ describe('Phase Z.10 — tenant selection cases (activeMembership vs memberships
 describe('Phase Z.10 — Scenario 3: public tenant storefront (subdomain resolution) is untouched', () => {
   const src = readFileSync(join(__dirname, '..', 'app', '[tenantSlug]', 'layout.tsx'), 'utf-8')
 
-  it('[tenantSlug]/layout.tsx still resolves tenant via loadTenant(tenantSlug) from the URL segment', () => {
-    expect(src).toContain('loadTenant(tenantSlug)')
+  it('[tenantSlug]/layout.tsx still resolves tenant via loadTenant from the URL segment', () => {
+    expect(src).toContain('loadTenant(tenantSlug')
   })
 
   it('middleware.ts still resolves the tenant slug from the subdomain for storefront routes', async () => {

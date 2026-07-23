@@ -189,26 +189,26 @@ describe('D — mock tenant data covers all 6 business types', () => {
 describe('E — activateTenant()', () => {
   it('sets suspended tenant to active', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.activateTenant('road-bites')
+    const updated = await svc.activateTenant('tenant-road-bites-01')
     expect(updated.status).toBe('active')
   })
 
   it('sets trial tenant to active', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.activateTenant('central-food-court')
+    const updated = await svc.activateTenant('tenant-central-fc-01')
     expect(updated.status).toBe('active')
   })
 
   it('returns a Tenant object with name and slug', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.activateTenant('road-bites')
+    const updated = await svc.activateTenant('tenant-road-bites-01')
     expect(typeof updated.name).toBe('string')
     expect(typeof updated.slug).toBe('string')
   })
 
   it('status persists in subsequent getTenants()', async () => {
     const svc = await freshTenantService()
-    await svc.activateTenant('road-bites')
+    await svc.activateTenant('tenant-road-bites-01')
     const tenants = await svc.getTenants()
     const t = tenants.find((x) => x.slug === 'road-bites')
     expect(t?.status).toBe('active')
@@ -220,19 +220,19 @@ describe('E — activateTenant()', () => {
 describe('F — suspendTenant()', () => {
   it('sets active tenant to suspended', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.suspendTenant('samoon')
+    const updated = await svc.suspendTenant('tenant-samoon-01')
     expect(updated.status).toBe('suspended')
   })
 
   it('returns Tenant object with id', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.suspendTenant('brew-cafe')
+    const updated = await svc.suspendTenant('tenant-brew-cafe-01')
     expect(typeof updated.id).toBe('string')
   })
 
   it('status persists in subsequent getTenants()', async () => {
     const svc = await freshTenantService()
-    await svc.suspendTenant('samoon')
+    await svc.suspendTenant('tenant-samoon-01')
     const tenants = await svc.getTenants()
     const t = tenants.find((x) => x.slug === 'samoon')
     expect(t?.status).toBe('suspended')
@@ -244,19 +244,19 @@ describe('F — suspendTenant()', () => {
 describe('G — archiveTenant()', () => {
   it('sets active tenant to archived', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.archiveTenant('samoon')
+    const updated = await svc.archiveTenant('tenant-samoon-01')
     expect(updated.status).toBe('archived')
   })
 
   it('sets suspended tenant to archived', async () => {
     const svc = await freshTenantService()
-    const updated = await svc.archiveTenant('road-bites')
+    const updated = await svc.archiveTenant('tenant-road-bites-01')
     expect(updated.status).toBe('archived')
   })
 
   it('status persists in subsequent getTenants()', async () => {
     const svc = await freshTenantService()
-    await svc.archiveTenant('brew-cafe')
+    await svc.archiveTenant('tenant-brew-cafe-01')
     const tenants = await svc.getTenants()
     const t = tenants.find((x) => x.slug === 'brew-cafe')
     expect(t?.status).toBe('archived')
@@ -268,11 +268,11 @@ describe('G — archiveTenant()', () => {
 describe('H — status transitions', () => {
   it('activate → suspend → archive lifecycle', async () => {
     const svc = await freshTenantService()
-    let t = await svc.activateTenant('road-bites')
+    let t = await svc.activateTenant('tenant-road-bites-01')
     expect(t.status).toBe('active')
-    t = await svc.suspendTenant('road-bites')
+    t = await svc.suspendTenant('tenant-road-bites-01')
     expect(t.status).toBe('suspended')
-    t = await svc.archiveTenant('road-bites')
+    t = await svc.archiveTenant('tenant-road-bites-01')
     expect(t.status).toBe('archived')
   })
 
@@ -634,9 +634,9 @@ describe('P — tenant detail page (/console/tenants/[slug])', () => {
     expect(src()).toContain('Archive')
   })
 
-  it('uses tenantService.getTenant', () => {
+  it('uses tenantService.getTenantBySlug', () => {
     expect(src()).toContain('tenantService')
-    expect(src()).toContain('getTenant')
+    expect(src()).toContain('getTenantBySlug')
   })
 
   it('shows feature flags enabled/disabled', () => {
@@ -719,17 +719,17 @@ describe('R — TenantStatus type', () => {
 describe('S — status management resolves in mock mode without network', () => {
   it('activateTenant resolves', async () => {
     const svc = await freshTenantService()
-    await expect(svc.activateTenant('road-bites')).resolves.toBeTruthy()
+    await expect(svc.activateTenant('tenant-road-bites-01')).resolves.toBeTruthy()
   })
 
   it('suspendTenant resolves', async () => {
     const svc = await freshTenantService()
-    await expect(svc.suspendTenant('samoon')).resolves.toBeTruthy()
+    await expect(svc.suspendTenant('tenant-samoon-01')).resolves.toBeTruthy()
   })
 
   it('archiveTenant resolves', async () => {
     const svc = await freshTenantService()
-    await expect(svc.archiveTenant('brew-cafe')).resolves.toBeTruthy()
+    await expect(svc.archiveTenant('tenant-brew-cafe-01')).resolves.toBeTruthy()
   })
 
   it('getTenants resolves', async () => {
@@ -779,9 +779,9 @@ describe('U — copy semantics', () => {
 
   it('getTenant returns copy of tenant object', async () => {
     const svc = await freshTenantService()
-    const t1 = await svc.getTenant('samoon')
+    const t1 = await svc.getTenantBySlug('samoon')
     t1.name = 'MUTATED'
-    const t2 = await svc.getTenant('samoon')
+    const t2 = await svc.getTenantBySlug('samoon')
     expect(t2.name).not.toBe('MUTATED')
   })
 })

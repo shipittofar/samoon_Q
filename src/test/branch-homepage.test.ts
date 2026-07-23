@@ -58,7 +58,7 @@ describe('branch slugs consistency between branch.service and tenant.service', (
   })
 
   it('samoon marketplace.branches slugs are all present in branch service', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const metaSlugs = meta?.branches?.map((b: PublicBranchInfo) => b.slug) ?? []
 
@@ -70,7 +70,7 @@ describe('branch slugs consistency between branch.service and tenant.service', (
   })
 
   it('brew-cafe branch service slugs match marketplace.branches slugs', async () => {
-    const tenant = await tenantService.getTenant('brew-cafe')
+    const tenant = await tenantService.getTenantBySlug('brew-cafe')
     const meta = getMarketplaceMeta(tenant.settings)
     const metaSlugs = meta?.branches?.map((b: PublicBranchInfo) => b.slug).sort() ?? []
 
@@ -81,7 +81,7 @@ describe('branch slugs consistency between branch.service and tenant.service', (
   })
 
   it('the-oak-bar branch service slugs match marketplace.branches slugs', async () => {
-    const tenant = await tenantService.getTenant('the-oak-bar')
+    const tenant = await tenantService.getTenantBySlug('the-oak-bar')
     const meta = getMarketplaceMeta(tenant.settings)
     const metaSlugs = meta?.branches?.map((b: PublicBranchInfo) => b.slug).sort() ?? []
 
@@ -92,7 +92,7 @@ describe('branch slugs consistency between branch.service and tenant.service', (
   })
 
   it('central-food-court branch service slugs match marketplace.branches slugs', async () => {
-    const tenant = await tenantService.getTenant('central-food-court')
+    const tenant = await tenantService.getTenantBySlug('central-food-court')
     const meta = getMarketplaceMeta(tenant.settings)
     const metaSlugs = meta?.branches?.map((b: PublicBranchInfo) => b.slug).sort() ?? []
 
@@ -103,7 +103,7 @@ describe('branch slugs consistency between branch.service and tenant.service', (
   })
 
   it('wheels-and-brews branch service slugs match marketplace.branches slugs', async () => {
-    const tenant = await tenantService.getTenant('wheels-and-brews')
+    const tenant = await tenantService.getTenantBySlug('wheels-and-brews')
     const meta = getMarketplaceMeta(tenant.settings)
     const metaSlugs = meta?.branches?.map((b: PublicBranchInfo) => b.slug).sort() ?? []
 
@@ -121,13 +121,15 @@ describe('PublicBranchInfo shape (P8.7.7.3)', () => {
     tenantService._resetMockList()
   })
 
-  it('each branch has required fields: slug, name, address, city, openNow', async () => {
+  it('each branch has required fields: id, slug, name, address, city, openNow', async () => {
     const tenants = await tenantService.getTenants()
     tenants
       .filter((t) => t.slug !== 'default')
       .forEach((t) => {
         const meta = getMarketplaceMeta(t.settings)
         meta?.branches?.forEach((b: PublicBranchInfo) => {
+          expect(typeof b.id).toBe('string')
+          expect(b.id.length).toBeGreaterThan(0)
           expect(typeof b.slug).toBe('string')
           expect(b.slug.length).toBeGreaterThan(0)
           expect(typeof b.name).toBe('string')
@@ -150,14 +152,14 @@ describe('PublicBranchInfo shape (P8.7.7.3)', () => {
   })
 
   it('samoon primary branch slug resolves to a real branch', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const primary = meta?.branches?.find((b: PublicBranchInfo) => b.slug === meta.primaryBranchSlug)
     expect(primary).toBeDefined()
   })
 
   it('brew-cafe primary branch slug resolves to a real branch', async () => {
-    const tenant = await tenantService.getTenant('brew-cafe')
+    const tenant = await tenantService.getTenantBySlug('brew-cafe')
     const meta = getMarketplaceMeta(tenant.settings)
     const primary = meta?.branches?.find((b: PublicBranchInfo) => b.slug === meta.primaryBranchSlug)
     expect(primary).toBeDefined()
@@ -172,7 +174,7 @@ describe('branch slug resolution for homepage', () => {
   })
 
   it('known tenant + known branch slug resolves to PublicBranchInfo', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'main')
     expect(branch).toBeDefined()
@@ -180,7 +182,7 @@ describe('branch slug resolution for homepage', () => {
   })
 
   it('known tenant + known downtown slug resolves correctly', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'downtown')
     expect(branch).toBeDefined()
@@ -188,18 +190,18 @@ describe('branch slug resolution for homepage', () => {
   })
 
   it('known tenant + unknown branch slug returns undefined', async () => {
-    const tenant = await tenantService.getTenant('samoon')
+    const tenant = await tenantService.getTenantBySlug('samoon')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'nonexistent-location')
     expect(branch).toBeUndefined()
   })
 
   it('unknown tenant slug throws TenantNotFoundError instead of silently returning a fake tenant', async () => {
-    await expect(tenantService.getTenant('nonexistent-business')).rejects.toBeInstanceOf(TenantNotFoundError)
+    await expect(tenantService.getTenantBySlug('nonexistent-business')).rejects.toBeInstanceOf(TenantNotFoundError)
   })
 
   it('brew-cafe main branch resolves to Midtown Cafe', async () => {
-    const tenant = await tenantService.getTenant('brew-cafe')
+    const tenant = await tenantService.getTenantBySlug('brew-cafe')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'main')
     expect(branch).toBeDefined()
@@ -207,7 +209,7 @@ describe('branch slug resolution for homepage', () => {
   })
 
   it('brew-cafe brooklyn-cafe branch resolves correctly', async () => {
-    const tenant = await tenantService.getTenant('brew-cafe')
+    const tenant = await tenantService.getTenantBySlug('brew-cafe')
     const meta = getMarketplaceMeta(tenant.settings)
     const branch = meta?.branches?.find((b: PublicBranchInfo) => b.slug === 'brooklyn-cafe')
     expect(branch).toBeDefined()

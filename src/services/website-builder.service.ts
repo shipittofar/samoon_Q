@@ -4,9 +4,7 @@ import { tenantService } from './tenant.service'
 import type {
   HomepageLayout,
   HomepageVersion,
-  ThemeSettings,
   BranchContentOverrides,
-  DEFAULT_LAYOUT,
 } from '@/types/website-builder'
 import { DEFAULT_SECTIONS, DEFAULT_HERO, DEFAULT_THEME } from '@/types/website-builder'
 
@@ -39,29 +37,29 @@ function extractLayout(settings: Record<string, unknown>): HomepageLayout {
 }
 
 export const websiteBuilderService = {
-  async getLayout(tenantSlug: string): Promise<HomepageLayout> {
+  async getLayout(tenantId: string): Promise<HomepageLayout> {
     if (USE_MOCK) {
       await delay(150)
-      const tenant = await tenantService.getTenant(tenantSlug)
+      const tenant = await tenantService.getTenantById(tenantId)
       return extractLayout((tenant.settings ?? {}) as Record<string, unknown>)
     }
-    const { data } = await api.get<HomepageLayout>(ENDPOINTS.WEBSITE_BUILDER.LAYOUT(tenantSlug))
+    const { data } = await api.get<HomepageLayout>(ENDPOINTS.WEBSITE_BUILDER.LAYOUT(tenantId))
     return data
   },
 
-  async saveLayout(tenantSlug: string, layout: HomepageLayout): Promise<HomepageLayout> {
+  async saveLayout(tenantId: string, layout: HomepageLayout): Promise<HomepageLayout> {
     if (USE_MOCK) {
       await delay(250)
       const savedAt = new Date().toISOString()
       const saved: HomepageLayout = { ...layout, lastSavedAt: savedAt }
-      await tenantService.updateTenantSettings(tenantSlug, { websiteBuilder: saved })
+      await tenantService.updateTenantSettings(tenantId, { websiteBuilder: saved })
       return saved
     }
-    const { data } = await api.put<HomepageLayout>(ENDPOINTS.WEBSITE_BUILDER.LAYOUT(tenantSlug), layout)
+    const { data } = await api.put<HomepageLayout>(ENDPOINTS.WEBSITE_BUILDER.LAYOUT(tenantId), layout)
     return data
   },
 
-  async publishLayout(tenantSlug: string, layout: HomepageLayout): Promise<HomepageLayout> {
+  async publishLayout(tenantId: string, layout: HomepageLayout): Promise<HomepageLayout> {
     if (USE_MOCK) {
       await delay(350)
       const now = new Date().toISOString()
@@ -83,17 +81,17 @@ export const websiteBuilderService = {
         publishedVersion: version,
         versions: [version, ...(layout.versions ?? [])].slice(0, 10),
       }
-      await tenantService.updateTenantSettings(tenantSlug, { websiteBuilder: published })
+      await tenantService.updateTenantSettings(tenantId, { websiteBuilder: published })
       return published
     }
-    const { data } = await api.post<HomepageLayout>(ENDPOINTS.WEBSITE_BUILDER.PUBLISH(tenantSlug), layout)
+    const { data } = await api.post<HomepageLayout>(ENDPOINTS.WEBSITE_BUILDER.PUBLISH(tenantId), layout)
     return data
   },
 
-  async restoreVersion(tenantSlug: string, versionId: string): Promise<HomepageLayout> {
+  async restoreVersion(tenantId: string, versionId: string): Promise<HomepageLayout> {
     if (USE_MOCK) {
       await delay(250)
-      const tenant = await tenantService.getTenant(tenantSlug)
+      const tenant = await tenantService.getTenantById(tenantId)
       const layout = extractLayout((tenant.settings ?? {}) as Record<string, unknown>)
       const version = layout.versions?.find((v) => v.id === versionId)
       if (!version) throw new Error('Version not found')
@@ -108,49 +106,49 @@ export const websiteBuilderService = {
         status: 'draft',
         lastSavedAt: new Date().toISOString(),
       }
-      await tenantService.updateTenantSettings(tenantSlug, { websiteBuilder: restored })
+      await tenantService.updateTenantSettings(tenantId, { websiteBuilder: restored })
       return restored
     }
     const { data } = await api.post<HomepageLayout>(
-      ENDPOINTS.WEBSITE_BUILDER.RESTORE(tenantSlug, versionId),
+      ENDPOINTS.WEBSITE_BUILDER.RESTORE(tenantId, versionId),
     )
     return data
   },
 
-  async getBranchOverrides(tenantSlug: string, branchSlug: string): Promise<BranchContentOverrides> {
+  async getBranchOverrides(tenantId: string, branchId: string): Promise<BranchContentOverrides> {
     if (USE_MOCK) {
       await delay(150)
-      const tenant = await tenantService.getTenant(tenantSlug)
+      const tenant = await tenantService.getTenantById(tenantId)
       const overrides = (tenant.settings as Record<string, unknown>)?.branchOverrides as
         | Record<string, BranchContentOverrides>
         | undefined
-      return overrides?.[branchSlug] ?? {}
+      return overrides?.[branchId] ?? {}
     }
     const { data } = await api.get<BranchContentOverrides>(
-      ENDPOINTS.WEBSITE_BUILDER.BRANCH_OVERRIDES(tenantSlug, branchSlug),
+      ENDPOINTS.WEBSITE_BUILDER.BRANCH_OVERRIDES(tenantId, branchId),
     )
     return data
   },
 
   async saveBranchOverrides(
-    tenantSlug: string,
-    branchSlug: string,
+    tenantId: string,
+    branchId: string,
     overrides: BranchContentOverrides,
   ): Promise<BranchContentOverrides> {
     if (USE_MOCK) {
       await delay(250)
-      const tenant = await tenantService.getTenant(tenantSlug)
+      const tenant = await tenantService.getTenantById(tenantId)
       const existing = ((tenant.settings as Record<string, unknown>)?.branchOverrides ?? {}) as Record<
         string,
         BranchContentOverrides
       >
-      await tenantService.updateTenantSettings(tenantSlug, {
-        branchOverrides: { ...existing, [branchSlug]: overrides },
+      await tenantService.updateTenantSettings(tenantId, {
+        branchOverrides: { ...existing, [branchId]: overrides },
       })
       return overrides
     }
     const { data } = await api.put<BranchContentOverrides>(
-      ENDPOINTS.WEBSITE_BUILDER.BRANCH_OVERRIDES(tenantSlug, branchSlug),
+      ENDPOINTS.WEBSITE_BUILDER.BRANCH_OVERRIDES(tenantId, branchId),
       overrides,
     )
     return data

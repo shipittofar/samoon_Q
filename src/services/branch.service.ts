@@ -412,6 +412,22 @@ export const branchManagementService = {
     return res.data
   },
 
+  /** Public branch detail — tenant-scoped nested route (not /branches/{id}/). */
+  async getPublicBranch(tenantId: string, branchId: string): Promise<Branch> {
+    if (USE_MOCK) {
+      await delay()
+      const branch = MOCK_BRANCH_LIST.find(
+        (b) => b.id === branchId && b.tenantId === tenantId,
+      )
+      if (!branch) throw new Error(`Branch not found: ${branchId}`)
+      return { ...branch }
+    }
+    const res = await api.get<Branch>(
+      ENDPOINTS.TENANTS.BRANCH_DETAIL(tenantId, branchId),
+    )
+    return res.data
+  },
+
   async getBranchMetrics(id: string): Promise<BranchMetrics> {
     if (USE_MOCK) {
       await delay()
