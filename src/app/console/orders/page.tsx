@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Package, Clock, ChefHat, CheckCircle, Truck, XCircle, RefreshCw, AlertCircle, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatRelativeTime } from '@/utils'
 import { cn } from '@/utils'
 import { useAdminOrders, useUpdateOrderStatus, useAdminBranches, useBulkUpdateOrderStatus, useBulkCancelOrders } from '@/hooks'
-import { useTenantStore } from '@/stores'
-import type { Order, OrderStatus, OrderType } from '@/types'
+import { ADMIN_ORDERS_PAGE_SIZE } from '@/services/admin.service'
+import { useConsoleWorkspace } from '@/hooks/console-workspace'
+import type { AdminOrdersScope, Order, OrderStatus, OrderType } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -60,22 +61,43 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [search, setSearch] = useState('')
   const [branchFilter, setBranchFilter] = useState<string>('all')
+  const [allOrdersMode, setAllOrdersMode] = useState(false)
+  const [page, setPage] = useState(1)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const {
+    activeTenantId,
+    selectedBranchId,
+    tenantLoading,
+    branchLoading,
+  } = useConsoleWorkspace()
+  const tenantId = activeTenantId ?? ''
+  const ordersScope: AdminOrdersScope = allOrdersMode ? 'global' : 'scoped'
   const { data: branches = [] } = useAdminBranches(tenantId)
 
-  const filters = useMemo<Parameters<typeof useAdminOrders>[0]>(() => ({
-    ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
-    ...(branchFilter !== 'all' ? { branch_id: branchFilter } : {}),
-    ...(search ? { search } : {}),
-  }), [statusFilter, branchFilter, search])
+  useEffect(() => {
+    setPage(1)
+    setSelectedIds(new Set())
+  }, [ordersScope, activeTenantId, selectedBranchId, statusFilter, branchFilter, search])
 
-  const { data, isLoading, isError, refetch } = useAdminOrders(filters)
+  const filters = useMemo<Parameters<typeof useAdminOrders>[0]>(() => ({
+    page,
+    page_size: ADMIN_ORDERS_PAGE_SIZE,
+    ...(statusFilter !== 'all' ? { status: statusFilter } : {}),
+    ...(allOrdersMode && branchFilter !== 'all' ? { branch_id: branchFilter } : {}),
+    ...(search ? { search } : {}),
+  }), [page, statusFilter, branchFilter, search, allOrdersMode])
+
+  const { data, isLoading, isError, refetch } = useAdminOrders(filters, { scope: ordersScope })
+  const awaitingScope = !allOrdersMode && (!activeTenantId || !selectedBranchId)
+  const showLoading = isLoading || awaitingScope || (!allOrdersMode && (tenantLoading || branchLoading))
   const updateStatus = useUpdateOrderStatus()
   const bulkUpdateStatus = useBulkUpdateOrderStatus()
   const bulkCancel = useBulkCancelOrders()
 
   const orders: Order[] = data?.results ?? []
+  const totalPages = Math.max(1, Math.ceil((data?.count ?? 0) / ADMIN_ORDERS_PAGE_SIZE))
+  const canGoPrevious = page > 1 && data?.previous != null
+  const canGoNext = data?.next != null
 
   const statusCounts = useMemo(() => {
     const all = data?.results ?? []
@@ -120,19 +142,53 @@ export default function AdminOrdersPage() {
               <p className="text-[var(--fg-muted)] mt-1">{t('ordersPageSubtitle')}</p>
             </div>
             <div className="flex items-center gap-2">
+              <div
+                role="group"
+                aria-label={t('ordersScopeToggleAria')}
+                className="inline-flex rounded-lg border border-[var(--border)] bg-[var(--card-hover)] p-0.5"
+              >
+                <button
+                  type="button"
+                  aria-pressed={!allOrdersMode}
+                  onClick={() => setAllOrdersMode(false)}
+                  className={cn(
+                    'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+                    !allOrdersMode
+                      ? 'bg-[var(--card)] text-[var(--fg)] shadow-sm'
+                      : 'text-[var(--fg-muted)] hover:text-[var(--fg)]',
+                  )}
+                >
+                  {t('ordersScopeBranch')}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={allOrdersMode}
+                  onClick={() => setAllOrdersMode(true)}
+                  className={cn(
+                    'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+                    allOrdersMode
+                      ? 'bg-[var(--card)] text-[var(--fg)] shadow-sm'
+                      : 'text-[var(--fg-muted)] hover:text-[var(--fg)]',
+                  )}
+                >
+                  {t('ordersScopeAll')}
+                </button>
+              </div>
               <PreviewButton href="/menu" label={t('previewMenu')} size="sm" />
               <Button
                 variant="secondary"
                 size="sm"
                 leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
                 onClick={() => refetch()}
+                disabled={showLoading}
               >
                 {t('refresh')}
               </Button>
             </div>
           </div>
 
-          {/* Status Summary */}
+          {/* Status Summary — counts are page-local; backend does not expose aggregates */}
+          <p className="text-xs text-[var(--fg-muted)] mb-2">{t('ordersStatusOnPage')}</p>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
             {(Object.entries(STATUS_CONFIG) as [OrderStatus, typeof STATUS_CONFIG[OrderStatus]][]).map(([status, cfg]) => (
               <button
@@ -163,7 +219,7 @@ export default function AdminOrdersPage() {
                 className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
               />
             </div>
-            {branches.length > 0 && (
+            {allOrdersMode && branches.length > 0 && (
               <select
                 value={branchFilter}
                 onChange={(e) => setBranchFilter(e.target.value)}
@@ -179,7 +235,7 @@ export default function AdminOrdersPage() {
           </div>
 
           {/* Loading */}
-          {isLoading && (
+          {showLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <Loader2 className="h-5 w-5 animate-spin" />
               <span className="text-sm">{t('loadingOrders')}</span>
@@ -187,7 +243,7 @@ export default function AdminOrdersPage() {
           )}
 
           {/* Error */}
-          {isError && !isLoading && (
+          {isError && !showLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <AlertCircle className="h-8 w-8 text-red-400" />
               <p className="text-sm">{t('failedToLoadOrders')}</p>
@@ -196,7 +252,7 @@ export default function AdminOrdersPage() {
           )}
 
           {/* Orders Table */}
-          {!isLoading && !isError && (
+          {!showLoading && !isError && (
             <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -291,6 +347,31 @@ export default function AdminOrdersPage() {
                   </div>
                 )}
               </div>
+              {(data?.count ?? 0) > ADMIN_ORDERS_PAGE_SIZE && (
+                <div className="border-t border-[var(--border)] px-4 py-3 flex items-center justify-between">
+                  <span className="text-xs text-[var(--fg-muted)]">
+                    {t('pageOfTotalCount', { page, totalPages, count: data?.count ?? 0 })}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((p) => p - 1)}
+                      disabled={!canGoPrevious}
+                    >
+                      {t('previousLabel')}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((p) => p + 1)}
+                      disabled={!canGoNext}
+                    >
+                      {t('nextLabel')}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

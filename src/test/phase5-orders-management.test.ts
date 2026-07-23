@@ -106,7 +106,7 @@ describe('Admin orders page — filter state → query params', () => {
   })
 
   it('D: filters passed to useAdminOrders', () => {
-    expect(page).toMatch(/useAdminOrders\s*\(\s*filters\s*\)/)
+    expect(page).toMatch(/useAdminOrders\s*\(\s*filters/)
   })
 })
 
@@ -120,7 +120,7 @@ describe('Admin orders page — loading state', () => {
   })
 
   it('E: renders loading UI when isLoading', () => {
-    expect(page).toMatch(/isLoading\s*&&/)
+    expect(page).toMatch(/showLoading\s*&&/)
   })
 
   it('E: uses Loader2 spinner', () => {

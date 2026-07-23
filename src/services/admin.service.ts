@@ -26,6 +26,8 @@ import type {
   AdminCustomerFilters,
   AdminCustomerStats,
   AdminOrderFilters,
+  AdminOrdersRequest,
+  AdminOrdersScope,
   AdminReservationFilters,
   AdminStats,
   BusinessCustomer,
@@ -110,6 +112,7 @@ function applyOrderFilters(orders: Partial<Order>[], filters: AdminOrderFilters)
   let result = [...orders]
   if (filters.status) result = result.filter((o) => o.status === filters.status)
   if (filters.order_type) result = result.filter((o) => o.order_type === filters.order_type)
+  if (filters.branch_id) result = result.filter((o) => o.branch_id === filters.branch_id)
   if (filters.search) {
     const q = filters.search.toLowerCase()
     result = result.filter(
@@ -117,6 +120,52 @@ function applyOrderFilters(orders: Partial<Order>[], filters: AdminOrderFilters)
     )
   }
   return result
+}
+
+function isAdminOrdersRequest(input: AdminOrdersRequest | AdminOrderFilters): input is AdminOrdersRequest {
+  return (
+    'scope' in input ||
+    'tenantId' in input ||
+    'branchId' in input ||
+    'filters' in input
+  )
+}
+
+function normalizeAdminOrdersRequest(
+  input: AdminOrdersRequest | AdminOrderFilters = {},
+): {
+  scope: AdminOrdersScope
+  tenantId?: string
+  branchId?: string
+  filters: AdminOrderFilters
+} {
+  if (isAdminOrdersRequest(input)) {
+    return {
+      scope: input.scope ?? (input.tenantId && input.branchId ? 'scoped' : 'global'),
+      tenantId: input.tenantId,
+      branchId: input.branchId,
+      filters: input.filters ?? {},
+    }
+  }
+  return { scope: 'global', filters: input }
+}
+
+function resolveAdminOrdersUrl(request: ReturnType<typeof normalizeAdminOrdersRequest>): string {
+  if (request.scope === 'scoped' && request.tenantId && request.branchId) {
+    return ENDPOINTS.ORDERS.TENANT_BRANCH_LIST(request.tenantId, request.branchId)
+  }
+  return ENDPOINTS.ORDERS.LIST
+}
+
+function buildAdminOrdersParams(
+  request: ReturnType<typeof normalizeAdminOrdersRequest>,
+): AdminOrderFilters & { admin: true } {
+  const { branch_id: _branchId, ...rest } = request.filters
+  const params: AdminOrderFilters & { admin: true } = { ...rest, admin: true }
+  if (request.scope === 'global' && request.filters.branch_id) {
+    params.branch_id = request.filters.branch_id
+  }
+  return params
 }
 
 function applyReservationFilters(
@@ -153,10 +202,52 @@ function applyCustomerFilters(customers: AdminCustomer[], filters: AdminCustomer
 // Default tenant used when no tenantId is passed — covers legacy call sites.
 const FALLBACK_TENANT = 'tenant-samoon-01'
 
-function paginate<T>(items: T[], page = 1, pageSize = 20): PaginatedResponse<T> {
-  const start = (page - 1) * pageSize
+export const ADMIN_ORDERS_PAGE_SIZE = 20
+
+/** Mock branch → tenant map (matches branch.service INITIAL_MOCK_BRANCHES). */
+const MOCK_BRANCH_TENANT_IDS: Record<string, string> = {
+  'branch-rest-01': FALLBACK_TENANT,
+  'branch-rest-02': FALLBACK_TENANT,
+  'branch-rest-03': FALLBACK_TENANT,
+  'branch-cafe-01': FALLBACK_TENANT,
+  'branch-cafe-02': FALLBACK_TENANT,
+  'branch-bar-01': FALLBACK_TENANT,
+  'branch-fc-01': FALLBACK_TENANT,
+  'branch-fc-02': FALLBACK_TENANT,
+}
+
+function mockBranchTenantId(branchId: string): string | undefined {
+  return MOCK_BRANCH_TENANT_IDS[branchId]
+}
+
+function applyMockOrdersScope(
+  orders: Partial<Order>[],
+  request: ReturnType<typeof normalizeAdminOrdersRequest>,
+): Partial<Order>[] {
+  if (request.scope !== 'scoped') return orders
+  return orders.filter((o) => {
+    if (!o.branch_id) return false
+    if (request.branchId && o.branch_id !== request.branchId) return false
+    if (request.tenantId) {
+      const orderTenantId = mockBranchTenantId(o.branch_id)
+      if (!orderTenantId || orderTenantId !== request.tenantId) return false
+    }
+    return true
+  })
+}
+
+function paginate<T>(items: T[], page = 1, pageSize = ADMIN_ORDERS_PAGE_SIZE): PaginatedResponse<T> {
+  const count = items.length
+  const totalPages = Math.max(1, Math.ceil(count / pageSize))
+  const safePage = Math.min(Math.max(page, 1), totalPages)
+  const start = (safePage - 1) * pageSize
   const results = items.slice(start, start + pageSize)
-  return { count: items.length, next: null, previous: null, results }
+  return {
+    count,
+    next: safePage < totalPages ? String(safePage + 1) : null,
+    previous: safePage > 1 ? String(safePage - 1) : null,
+    results,
+  }
 }
 
 // ── adminService ───────────────────────────────────────────────────────────────
@@ -172,15 +263,25 @@ export const adminService = {
     return data
   },
 
-  // Falls back to GET /orders/ in real mode; swap to ENDPOINTS.ADMIN.ORDERS when deployed
-  async getAdminOrders(filters: AdminOrderFilters = {}): Promise<PaginatedResponse<Order>> {
+  // Scoped: GET /orders/tenants/{tenantId}/branches/{branchId}/?admin=true
+  // Global: GET /orders/?admin=true (legacy callers pass plain AdminOrderFilters)
+  async getAdminOrders(
+    requestOrFilters: AdminOrdersRequest | AdminOrderFilters = {},
+  ): Promise<PaginatedResponse<Order>> {
+    const request = normalizeAdminOrdersRequest(requestOrFilters)
     if (USE_MOCK) {
       await delay(500)
-      const filtered = applyOrderFilters(MOCK_ORDERS, filters)
-      return paginate(filtered as Order[], filters.page, filters.page_size) as PaginatedResponse<Order>
+      const scoped = applyMockOrdersScope(MOCK_ORDERS, request)
+      const mockFilters =
+        request.scope === 'scoped'
+          ? { ...request.filters, branch_id: undefined }
+          : request.filters
+      const filtered = applyOrderFilters(scoped, mockFilters)
+      const pageSize = request.filters.page_size ?? ADMIN_ORDERS_PAGE_SIZE
+      return paginate(filtered as Order[], request.filters.page, pageSize) as PaginatedResponse<Order>
     }
-    const { data } = await api.get<PaginatedResponse<Order>>(ENDPOINTS.ORDERS.LIST, {
-      params: { ...filters, admin: true },
+    const { data } = await api.get<PaginatedResponse<Order>>(resolveAdminOrdersUrl(request), {
+      params: buildAdminOrdersParams(request),
     })
     return data
   },

@@ -491,7 +491,7 @@ describe('admin hooks — query keys', () => {
   it('useAdminOrders uses admin-orders query key', async () => {
     const src = readSrc('hooks/index.ts')
     const block = src.slice(src.indexOf('function useAdminOrders'))
-    expect(block.slice(0, 200)).toContain("'admin-orders'")
+    expect(block.slice(0, 500)).toContain("'admin-orders'")
   })
 
   it('useAdminReservations uses admin-reservations query key', async () => {

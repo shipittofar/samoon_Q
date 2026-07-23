@@ -1037,6 +1037,16 @@ export interface AdminOrderFilters {
   page_size?: number
 }
 
+/** Console orders list scope — branch-scoped vs tenant-wide admin list. */
+export type AdminOrdersScope = 'scoped' | 'global'
+
+export interface AdminOrdersRequest {
+  scope?: AdminOrdersScope
+  tenantId?: string
+  branchId?: string
+  filters?: AdminOrderFilters
+}
+
 /** Filter params accepted by getAdminReservations() */
 export interface AdminReservationFilters {
   status?: ReservationStatus

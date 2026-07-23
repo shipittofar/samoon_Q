@@ -631,6 +631,7 @@ export const MOCK_ORDERS: Partial<Order>[] = [
   {
     id: 'ord-001',
     order_number: '#3847',
+    branch_id: 'branch-rest-01',
     status: 'delivered',
     order_type: 'delivery',
     total: 79.96,
@@ -645,6 +646,7 @@ export const MOCK_ORDERS: Partial<Order>[] = [
   {
     id: 'ord-002',
     order_number: '#3901',
+    branch_id: 'branch-rest-02',
     status: 'preparing',
     order_type: 'dine_in',
     total: 228.86,

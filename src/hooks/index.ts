@@ -56,6 +56,7 @@ import type {
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
+import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
 import { applyOverrides, normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
 import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
@@ -73,6 +74,7 @@ import type { CreateReservationPayload } from '@/services/combined.service'
 import type {
   AdminCustomerFilters,
   AdminOrderFilters,
+  AdminOrdersScope,
   AdminReservationFilters,
   Capability,
   Category,
@@ -1378,17 +1380,25 @@ export function useAdminStats() {
 }
 
 /**
- * Phase 2 — tenant scoping for `/console/orders` now relies solely on the
- * `tenantId` query-key/param, the same as every other admin query; access
- * enforcement is the backend's responsibility, not a client-side check.
+ * Console admin orders — scoped to active tenant + branch by default.
+ * Pass `{ scope: 'global' }` for the tenant-wide admin list.
  */
-export function useAdminOrders(filters: AdminOrderFilters = {}) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+export function useAdminOrders(
+  filters: AdminOrderFilters = {},
+  options: { scope?: AdminOrdersScope } = {},
+) {
+  const scope = options.scope ?? 'scoped'
+  const tenantId = useConsoleTenantId()
+  const branchId = useConsoleBranchId()
+  const scoped = scope === 'scoped'
   return useQuery({
-    queryKey: ['admin-orders', tenantId, filters],
-    queryFn: () => adminService.getAdminOrders(filters),
+    queryKey: ['admin-orders', scope, tenantId, branchId, filters],
+    queryFn: () =>
+      scoped
+        ? adminService.getAdminOrders({ scope, tenantId, branchId, filters })
+        : adminService.getAdminOrders({ scope, filters }),
     staleTime: 30_000,
-    enabled: !!tenantId,
+    enabled: scoped ? !!(tenantId && branchId) : !!tenantId,
   })
 }
 
