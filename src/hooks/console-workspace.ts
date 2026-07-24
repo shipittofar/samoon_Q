@@ -112,7 +112,6 @@ export async function requestConsoleTenantSwitch(tenantId: string): Promise<void
 
   await authService.switchActiveTenant({
     tenantId,
-    tenantSlug: membership.tenantSlug,
   })
   await refreshConsoleWorkspaceSession()
 }

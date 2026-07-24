@@ -56,6 +56,7 @@ import type {
 } from '@/types/notification'
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { hasMembershipBranches } from '@/lib/console-workspace'
+import { dispatchPostLoginRedirect } from '@/lib/post-auth-navigation'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
 import { applyOverrides, normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
@@ -94,6 +95,7 @@ import type {
   SystemReadiness,
   TenantLifecycle,
   SendOTPRequest,
+  User,
   VerifyOTPRequest,
 } from '@/types'
 import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
@@ -500,20 +502,38 @@ function seedAuthSessionMemberships(
   )
 }
 
+type AuthSessionPayload = {
+  user: User
+  p7Roles?: import('@/types/rbac').Role[]
+  memberships?: import('@/types/rbac').TenantMembership[]
+  activeMembership?: import('@/types/rbac').TenantMembership
+}
+
+/**
+ * Hydrates auth + RBAC stores after login/register/verify, then optionally
+ * requests post-login navigation (see PostLoginRedirectHandler).
+ */
+function establishAuthenticatedSession(
+  setUser: (user: User) => void,
+  payload: AuthSessionPayload,
+  options?: { navigate?: boolean },
+) {
+  const { user, p7Roles, memberships, activeMembership } = payload
+  setUser(user)
+  seedAuthSessionMemberships({ p7Roles, memberships, activeMembership })
+  const tenant = useTenantStore.getState().tenant
+  if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
+  if (options?.navigate !== false) {
+    dispatchPostLoginRedirect(user, p7Roles)
+  }
+}
+
 export function useLogin() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (creds: LoginCredentials) => authService.login(creds),
-    onSuccess: ({ user, p7Roles, memberships, activeMembership }) => {
-      setUser(user)
-      // Phase Z.10 — set independently of whether a tenant has resolved
-      // (seedTenantSession() below is gated on `if (tenant)` and simply
-      // never runs otherwise) so Console can answer "does this user have
-      // any tenant" without waiting on subdomain/membership-based tenant
-      // resolution to succeed first.
-      seedAuthSessionMemberships({ p7Roles, memberships, activeMembership })
-      const tenant = useTenantStore.getState().tenant
-      if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
+    onSuccess: (data) => {
+      establishAuthenticatedSession(setUser, data)
     },
   })
 }
@@ -524,11 +544,8 @@ export function useRegister() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (data: RegisterData) => authService.register(data),
-    onSuccess: ({ user, p7Roles, memberships, activeMembership }) => {
-      setUser(user)
-      seedAuthSessionMemberships({ p7Roles, memberships, activeMembership })
-      const tenant = useTenantStore.getState().tenant
-      if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
+    onSuccess: (data) => {
+      establishAuthenticatedSession(setUser, data)
     },
   })
 }
@@ -560,10 +577,16 @@ export function useVerifyOTP() {
     mutationFn: (payload: VerifyOTPRequest) => authService.verifyOTP(payload),
     onSuccess: (result) => {
       if (result.is_new_user) return
-      setUser(result.user)
-      seedAuthSessionMemberships({ p7Roles: result.p7Roles, memberships: result.memberships, activeMembership: result.activeMembership })
-      const tenant = useTenantStore.getState().tenant
-      if (tenant) seedTenantSession(tenant.id, { p7Roles: result.p7Roles, memberships: result.memberships, activeMembership: result.activeMembership })
+      establishAuthenticatedSession(
+        setUser,
+        {
+          user: result.user,
+          p7Roles: result.p7Roles,
+          memberships: result.memberships,
+          activeMembership: result.activeMembership,
+        },
+        { navigate: false },
+      )
     },
   })
 }

@@ -9,7 +9,7 @@
  */
 
 import { Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
@@ -20,7 +20,6 @@ import { useTranslations } from 'next-intl'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useRegister } from '@/hooks'
-import { getPostLoginRedirect } from '@/utils/auth-redirect'
 import toast from 'react-hot-toast'
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
@@ -37,7 +36,6 @@ type FormData = z.infer<typeof schema>
 // ── Inner page ─────────────────────────────────────────────────────────────────
 
 function CompleteProfileInner() {
-  const router = useRouter()
   const params = useSearchParams()
   const phone_number = params.get('phone_number') ?? ''
   const dialCode = params.get('dialCode') ?? ''
@@ -85,9 +83,8 @@ function CompleteProfileInner() {
         // getPostLoginRedirect() every other post-auth success handler
         // uses (LoginClientPage.tsx, verify/page.tsx), so accountType is
         // honored consistently everywhere a session is established.
-        onSuccess: (result) => {
+        onSuccess: () => {
           toast.success(t('completeProfileSuccess'))
-          router.push(getPostLoginRedirect(result.user.accountType, result.p7Roles))
         },
         onError: () => toast.error(t('completeProfileFailed')),
       },

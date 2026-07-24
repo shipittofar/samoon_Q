@@ -19,7 +19,6 @@ import { Divider } from '@/components/ui'
 import { PhoneInput } from '@/components/ui/PhoneInput'
 import { useLogin, useSendOTP } from '@/hooks'
 import { useConfigurationField } from '@/hooks/use-platform-configuration'
-import { getDemoRedirect, getPostLoginRedirect } from '@/utils/auth-redirect'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
 
@@ -120,7 +119,6 @@ export function LoginClientPage() {
       onSuccess: () => {
         LOGIN_LIMIT.reset(email)
         toast.success(t('loginSuccess'))
-        router.push(getDemoRedirect(email))
       },
       onError: () => toast.error(t('loginFailed')),
     })
@@ -135,10 +133,9 @@ export function LoginClientPage() {
       return
     }
     login(data, {
-      onSuccess: (result) => {
+      onSuccess: () => {
         LOGIN_LIMIT.reset(data.email)
         toast.success(t('loginSuccess'))
-        router.push(getPostLoginRedirect(result.user.accountType, result.p7Roles))
       },
       onError: () => toast.error(t('invalidCredentials')),
     })

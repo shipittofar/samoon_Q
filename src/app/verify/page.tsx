@@ -20,7 +20,7 @@ import { OTPInput } from '@/components/ui/OTPInput'
 import { Button } from '@/components/ui/Button'
 import { useVerifyOTP, useSendOTP } from '@/hooks'
 import { useConfigurationField } from '@/hooks/use-platform-configuration'
-import { getDemoRedirect, getPostLoginRedirect } from '@/utils/auth-redirect'
+import { dispatchPostLoginRedirect } from '@/lib/post-auth-navigation'
 import toast from 'react-hot-toast'
 import type {
   VerifyOTPRequest,
@@ -122,15 +122,15 @@ function VerifyPageInner() {
         // is forwarded so /complete-profile never has to guess it.
         const dest = result.is_new_user
           ? `/complete-profile?phone_number=${encodeURIComponent(phone_number)}&dialCode=${encodeURIComponent(dialCode)}`
-          : result.user.accountType === 'customer'
-            ? getPostLoginRedirect('customer', result.p7Roles)
-            : getDemoRedirect(phone_number) !== '/console'
-              ? getDemoRedirect(phone_number)
-              : getPostLoginRedirect(result.user.accountType, result.p7Roles)
+          : null
 
-        // Brief pause for success animation, then redirect
-        
-        setTimeout(() => router.push(dest), prefersReducedMotion ? 100 : 1200)
+        setTimeout(() => {
+          if (dest) {
+            router.push(dest)
+          } else if (!result.is_new_user) {
+            dispatchPostLoginRedirect(result.user, result.p7Roles)
+          }
+        }, prefersReducedMotion ? 100 : 1200)
       },
       onError: () => {
         const newAttempts = attempts + 1

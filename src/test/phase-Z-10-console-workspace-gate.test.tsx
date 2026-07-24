@@ -277,6 +277,10 @@ describe('Phase Z.10 — Scenario 3: public tenant storefront (subdomain resolut
     expect(src).toContain('loadTenant(tenantSlug')
   })
 
+  it('[tenantSlug]/layout.tsx resets tenant store on unmount so theme does not persist', () => {
+    expect(src).toContain('useTenantStore.getState().reset()')
+  })
+
   it('middleware.ts still resolves the tenant slug from the subdomain for storefront routes', async () => {
     const middlewareSrc = readFileSync(join(__dirname, '..', 'middleware.ts'), 'utf-8')
     expect(middlewareSrc).toContain('resolveTenantSlug')

@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin, Monitor } from 'lucide-react'
+import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin } from 'lucide-react'
 import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
 import type { NavItem } from '@/types'
-import { useLogout, useSetLocale, useModuleNav, useHasDashboardAccess } from '@/hooks'
+import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
+import { UserMenuBusinessConsoleLink } from '@/components/layout/UserMenuBusinessConsoleLink'
 
 // Platform-level nav shown on the root site (when no tenant is active).
 // Replaces restaurant-specific module nav on the public marketplace surface.
@@ -49,7 +50,6 @@ export function Header() {
   const { tenant } = useTenantStore()
   const { mutate: logout } = useLogout()
   const tAuth = useTranslations('auth')
-  const canAccessConsole = useHasDashboardAccess()
   // useModuleNav() returns header nav filtered by resolved feature flags (P6.8).
   // Items with featureFlagKey are hidden when the flag is false (e.g. reservations
   // disabled for food_truck, loyalty disabled for bar).
@@ -282,13 +282,13 @@ export function Header() {
                         <p className="text-sm font-medium text-[var(--fg)]">{user?.first_name} {user?.last_name}</p>
                         <p className="text-xs text-[var(--fg-muted)] truncate">{user?.email}</p>
                       </div>
+                      <UserMenuBusinessConsoleLink />
                       {[
                         { href: '/dashboard', icon: User, labelKey: 'myAccount' },
                         { href: '/dashboard/orders', icon: Package, labelKey: 'myOrders' },
                         { href: '/dashboard/favorites', icon: Heart, labelKey: 'favorites' },
                         { href: '/dashboard/addresses', icon: MapPin, labelKey: 'addresses' },
                         { href: '/dashboard/settings', icon: Settings, labelKey: 'settings' },
-                        ...(canAccessConsole ? [{ href: '/console', icon: Monitor, labelKey: 'businessConsole' }] : []),
                       ].map((item) => (
                         <Link key={item.href} href={item.href} className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors">
                           <item.icon className="h-4 w-4 text-[var(--fg-muted)]" />

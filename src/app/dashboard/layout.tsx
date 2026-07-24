@@ -13,7 +13,8 @@ import { Header } from '@/components/layout/Header'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/stores'
-import { useLogout, useHasDashboardAccess } from '@/hooks'
+import { useLogout } from '@/hooks'
+import { isBusinessAccount } from '@/lib/console-account-access'
 import { cn } from '@/utils'
 import { getDashboardNav } from '@/modules/registry'
 import toast from 'react-hot-toast'
@@ -45,7 +46,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { mutate: logout } = useLogout()
-  const canAccessConsole = useHasDashboardAccess()
+  const showBusinessConsoleNav = isBusinessAccount(user)
   const t = useTranslations('dashboard')
 
   useEffect(() => {
@@ -109,7 +110,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </Link>
                   )
                 })}
-                {canAccessConsole && (
+                {showBusinessConsoleNav && (
                   <Link
                     href="/console"
                     className="flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors border-t border-[var(--border)]"

@@ -16,14 +16,16 @@ import { ServiceWorkerUpdateBanner } from '@/components/pwa/ServiceWorkerUpdateB
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { MissingTranslationInspector } from '@/components/dev/MissingTranslationInspector'
 import { ConsoleWorkspaceBootstrapper } from '@/providers/ConsoleWorkspaceBootstrapper'
+import { PostLoginRedirectHandler } from '@/providers/PostLoginRedirectHandler'
 import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import { usePathname } from 'next/navigation'
 import type { Role, TenantMembership } from '@/types/rbac'
 import { normalizeTenantPermissions, selectActiveMembership, hasAnyMembership } from '@/services/permission.service'
 import { hasMembershipBranches } from '@/lib/console-workspace'
-import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
+import { TENANT_OVERRIDABLE_VARS } from '@/lib/tokens'
 import { DEFAULT_TENANT } from '@/constants'
+import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 
 /**
  * Auth-refresh-persistence fix — the exact shape `normalizeTenantPermissions()`
@@ -332,11 +334,9 @@ function TenantThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty('--font-body', theme.fontBody)
     }
     return () => {
-      if (theme?.primaryColor) {
-        root.style.removeProperty('--accent')
-        root.style.removeProperty('--accent-hover')
+      for (const cssVar of TENANT_OVERRIDABLE_VARS) {
+        root.style.removeProperty(cssVar)
       }
-      if (theme?.fontBody) root.style.removeProperty('--font-body')
     }
   }, [tenant])
   return <>{children}</>
@@ -622,6 +622,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <BranchResolutionBootstrapper>
             <TenantThemeProvider>
               <AuthBootstrapper>
+                <PostLoginRedirectHandler>
                 <ConsoleWorkspaceBootstrapper>
                 <FcmRegistrationProvider>
                 <NotificationWebSocketProvider>
@@ -634,6 +635,7 @@ export function Providers({ children }: { children: ReactNode }) {
                 </NotificationWebSocketProvider>
                 </FcmRegistrationProvider>
                 </ConsoleWorkspaceBootstrapper>
+                </PostLoginRedirectHandler>
               </AuthBootstrapper>
             </TenantThemeProvider>
             </BranchResolutionBootstrapper>

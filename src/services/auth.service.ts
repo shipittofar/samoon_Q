@@ -316,11 +316,11 @@ export const authService = {
               ? (JSON.parse(cachedMembershipsRaw) as TenantMembership[])
               : session.memberships
           const pendingActiveTenantId = localStorage.getItem(MOCK_ACTIVE_TENANT_KEY)
-          const activeMembership =
-            pendingActiveTenantId &&
-            memberships.some((membership) => membership.tenantId === pendingActiveTenantId)
-              ? { tenantId: pendingActiveTenantId }
-              : session.activeMembership
+          const activeMembership = pendingActiveTenantId
+          ? memberships.find(
+              (membership) => membership.tenantId === pendingActiveTenantId,
+            ) ?? session.activeMembership
+          : session.activeMembership
           const response: GetMeResponse = { user: entry.user, memberships, activeMembership }
           if (memberships.length > 0) {
             localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify(memberships))
@@ -341,7 +341,7 @@ export const authService = {
    * Switches the server-side active tenant (BACKEND_CONTRACT.md §2).
    * The frontend must follow with GET /auth/me via refreshConsoleWorkspaceSession().
    */
-  async switchActiveTenant(params: { tenantId: string; tenantSlug?: string }): Promise<void> {
+  async switchActiveTenant(params: { tenantId: string; }): Promise<void> {
     if (mockActive()) {
       await delay(MOCK_DELAY)
       if (typeof localStorage !== 'undefined') {
@@ -349,8 +349,8 @@ export const authService = {
       }
       return
     }
-    await api.post('/auth/switch-tenant/', {
-      tenantSlug: params.tenantSlug ?? params.tenantId,
+    await api.post(ENDPOINTS.AUTH.SWITCH_TENANT, {
+      tenantId: params.tenantId,
     })
   },
 

@@ -33,6 +33,7 @@ import {
   useTenantStore, useBranchStore,
 } from '@/stores'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
+import { UserMenuBusinessConsoleLink } from '@/components/layout/UserMenuBusinessConsoleLink'
 import { cn, buildPublicCTAs, buildCustomerJourney } from '@/utils'
 import { buildTenantNavigation, getBusinessTypeBadge } from '@/utils/navigation'
 import { Avatar } from '@/components/ui'
@@ -343,6 +344,7 @@ export function TenantHeader() {
                           <p className="text-sm font-medium text-[var(--fg)]">{user?.first_name} {user?.last_name}</p>
                           <p className="text-xs text-[var(--fg-muted)] truncate">{user?.email}</p>
                         </div>
+                        <UserMenuBusinessConsoleLink />
                         {[
                           { href: '/dashboard', icon: User, labelKey: 'myAccount' },
                           { href: '/dashboard/orders', icon: Package, labelKey: 'myOrders' },
