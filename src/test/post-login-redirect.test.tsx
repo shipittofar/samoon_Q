@@ -11,12 +11,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: mockReplace, back: vi.fn(), prefetch: vi.fn() }),
 }))
 
-vi.mock('@/services/auth.service', () => ({
-  authService: {
-    getMe: vi.fn(),
-  },
-}))
-
 function userWith(accountType: User['accountType']): User {
   return {
     id: 'u1',
@@ -63,5 +57,18 @@ describe('PostLoginRedirectHandler', () => {
     await vi.waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith('/dashboard')
     })
+  })
+
+  it('does not redirect when accountType is missing from event payload', async () => {
+    const userWithoutType = { ...userWith('customer'), accountType: undefined } as User
+
+    render(<PostLoginRedirectHandler><div /></PostLoginRedirectHandler>)
+
+    window.dispatchEvent(
+      new CustomEvent(POST_LOGIN_REDIRECT_EVENT, { detail: { user: userWithoutType } }),
+    )
+
+    await new Promise((r) => setTimeout(r, 50))
+    expect(mockReplace).not.toHaveBeenCalled()
   })
 })

@@ -20,7 +20,6 @@ import { OTPInput } from '@/components/ui/OTPInput'
 import { Button } from '@/components/ui/Button'
 import { useVerifyOTP, useSendOTP } from '@/hooks'
 import { useConfigurationField } from '@/hooks/use-platform-configuration'
-import { dispatchPostLoginRedirect } from '@/lib/post-auth-navigation'
 import toast from 'react-hot-toast'
 import type {
   VerifyOTPRequest,
@@ -115,22 +114,11 @@ function VerifyPageInner() {
     verifyOTP({ phone_number, dialCode, otp: code }, {
       onSuccess: (result) => {
         setState('success')
-        // P10.8 — is_new_user: true means registration is NOT complete
-        // (no session was initialized by useVerifyOTP() for this case —
-        // see docs/P10.8_OTP_AUTH_FLOW_SPLIT.md). This page's only
-        // responsibility for a new user is the redirect below; dialCode
-        // is forwarded so /complete-profile never has to guess it.
-        const dest = result.is_new_user
-          ? `/complete-profile?phone_number=${encodeURIComponent(phone_number)}&dialCode=${encodeURIComponent(dialCode)}`
-          : null
-
-        setTimeout(() => {
-          if (dest) {
-            router.push(dest)
-          } else if (!result.is_new_user) {
-            dispatchPostLoginRedirect(result.user, result.p7Roles)
-          }
-        }, prefersReducedMotion ? 100 : 1200)
+        if (result.is_new_user) {
+          router.push(
+            `/complete-profile?phone_number=${encodeURIComponent(phone_number)}&dialCode=${encodeURIComponent(dialCode)}`,
+          )
+        }
       },
       onError: () => {
         const newAttempts = attempts + 1
@@ -145,7 +133,7 @@ function VerifyPageInner() {
         }
       },
     })
-  }, [state, phone_number, otp, attempts, verifyOTP, router, prefersReducedMotion, MAX_ATTEMPTS])
+  }, [state, phone_number, otp, attempts, verifyOTP, router, dialCode, MAX_ATTEMPTS])
 
   const handleResend = () => {
     sendOTP(

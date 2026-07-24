@@ -17,7 +17,7 @@ import {
   tableService,
   userService,
 } from '@/services/combined.service'
-import { authService } from '@/services/auth.service'
+import { authService, type GetMeResponse } from '@/services/auth.service'
 import { qrExperienceService } from '@/services/qr-experience.service'
 import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
@@ -60,7 +60,7 @@ import { dispatchPostLoginRedirect } from '@/lib/post-auth-navigation'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
 import { applyOverrides, normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
-import type { P7Permission, PermissionCheckOptions } from '@/types/rbac'
+import type { P7Permission, PermissionCheckOptions, Role } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
 // owner.service.ts, or staff-assignment.service.ts remain in this file.
 // Access decisions come from usePermissions()/currentTenantSession only.
@@ -502,29 +502,51 @@ function seedAuthSessionMemberships(
   )
 }
 
-type AuthSessionPayload = {
-  user: User
-  p7Roles?: import('@/types/rbac').Role[]
-  memberships?: import('@/types/rbac').TenantMembership[]
-  activeMembership?: import('@/types/rbac').TenantMembership
+
+function tenantRolesForPostLoginRedirect(data: GetMeResponse): Role[] | undefined {
+  const activeId = data.activeMembership?.tenantId
+  if (activeId && data.memberships?.length) {
+    const active = data.memberships.find((m) => m.tenantId === activeId)
+    if (active?.roles?.length) return active.roles
+  }
+  if (data.memberships?.length === 1 && data.memberships[0].roles.length > 0) {
+    return data.memberships[0].roles
+  }
+  const legacy = data as GetMeResponse & { tenantRoles?: Role[]; p7Roles?: Role[] }
+  if (legacy.tenantRoles?.length) return legacy.tenantRoles
+  if (legacy.p7Roles?.length) return legacy.p7Roles
+  return undefined
 }
 
 /**
- * Hydrates auth + RBAC stores after login/register/verify, then optionally
- * requests post-login navigation (see PostLoginRedirectHandler).
+ * Hydrates auth + RBAC from GET /auth/me after tokens are set, then optionally
+ * requests post-login navigation. Redirect decisions use only the /me profile.
  */
-function establishAuthenticatedSession(
+async function establishAuthenticatedSession(
   setUser: (user: User) => void,
-  payload: AuthSessionPayload,
   options?: { navigate?: boolean },
-) {
-  const { user, p7Roles, memberships, activeMembership } = payload
-  setUser(user)
-  seedAuthSessionMemberships({ p7Roles, memberships, activeMembership })
+): Promise<void> {
+  const data = await authService.getMe()
+  if (!data.user.accountType) {
+    throw new Error('Authenticated profile is missing accountType')
+  }
+  const p7Roles = tenantRolesForPostLoginRedirect(data)
+  setUser(data.user)
+  seedAuthSessionMemberships({
+    memberships: data.memberships,
+    activeMembership: data.activeMembership,
+    p7Roles,
+  })
   const tenant = useTenantStore.getState().tenant
-  if (tenant) seedTenantSession(tenant.id, { p7Roles, memberships, activeMembership })
+  if (tenant) {
+    seedTenantSession(tenant.id, {
+      memberships: data.memberships,
+      activeMembership: data.activeMembership,
+      p7Roles,
+    })
+  }
   if (options?.navigate !== false) {
-    dispatchPostLoginRedirect(user, p7Roles)
+    dispatchPostLoginRedirect(data.user, p7Roles)
   }
 }
 
@@ -532,8 +554,8 @@ export function useLogin() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (creds: LoginCredentials) => authService.login(creds),
-    onSuccess: (data) => {
-      establishAuthenticatedSession(setUser, data)
+    onSuccess: async () => {
+      await establishAuthenticatedSession(setUser)
     },
   })
 }
@@ -544,8 +566,8 @@ export function useRegister() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (data: RegisterData) => authService.register(data),
-    onSuccess: (data) => {
-      establishAuthenticatedSession(setUser, data)
+    onSuccess: async () => {
+      await establishAuthenticatedSession(setUser)
     },
   })
 }
@@ -575,18 +597,9 @@ export function useVerifyOTP() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: (payload: VerifyOTPRequest) => authService.verifyOTP(payload),
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (result.is_new_user) return
-      establishAuthenticatedSession(
-        setUser,
-        {
-          user: result.user,
-          p7Roles: result.p7Roles,
-          memberships: result.memberships,
-          activeMembership: result.activeMembership,
-        },
-        { navigate: false },
-      )
+      await establishAuthenticatedSession(setUser)
     },
   })
 }

@@ -10,9 +10,8 @@ export type PostLoginRedirectDetail = {
 }
 
 /**
- * Requests a post-authentication redirect after the session has been hydrated.
- * `PostLoginRedirectHandler` (providers) performs navigation once `user.accountType`
- * is confirmed — never on manual Dashboard visits or boot-time getMe().
+ * Requests post-authentication redirect after GET /auth/me has hydrated the session.
+ * `PostLoginRedirectHandler` navigates using the resolved profile — never on boot.
  */
 export function dispatchPostLoginRedirect(user: User, p7Roles?: Role[] | null): void {
   if (typeof window === 'undefined') return

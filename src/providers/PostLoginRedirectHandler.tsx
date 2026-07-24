@@ -2,41 +2,26 @@
 
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/stores'
-import { authService } from '@/services/auth.service'
 import { getPostLoginRedirect } from '@/utils/auth-redirect'
 import { POST_LOGIN_REDIRECT_EVENT, type PostLoginRedirectDetail } from '@/lib/post-auth-navigation'
 
 /**
  * Handles post-login navigation only — listens for `auth:post-login` events
- * dispatched by auth mutations (useLogin/useRegister/useVerifyOTP callers).
- * Never runs on session restore (AuthBootstrapper getMe) or manual routing.
+ * dispatched after GET /auth/me has resolved (see establishAuthenticatedSession).
+ * Never runs on session restore or manual routing.
  */
 export function PostLoginRedirectHandler({ children }: { children: ReactNode }) {
   const router = useRouter()
-  const navigatingRef = useRef(false)
+  const redirectedRef = useRef(false)
 
   useEffect(() => {
-    async function onPostLogin(event: Event) {
-      if (navigatingRef.current) return
-      navigatingRef.current = true
-      try {
-        const { user: eventUser, p7Roles } = (event as CustomEvent<PostLoginRedirectDetail>).detail
-        let user = useAuthStore.getState().user ?? eventUser
-        let roles = p7Roles
+    function onPostLogin(event: Event) {
+      if (redirectedRef.current) return
+      const { user, p7Roles } = (event as CustomEvent<PostLoginRedirectDetail>).detail
+      if (!user?.accountType) return
 
-        if (!user?.accountType) {
-          const me = await authService.getMe()
-          useAuthStore.getState().setUser(me.user)
-          user = me.user
-        }
-
-        if (!user?.accountType) return
-
-        router.replace(getPostLoginRedirect(user.accountType, roles))
-      } finally {
-        navigatingRef.current = false
-      }
+      redirectedRef.current = true
+      router.replace(getPostLoginRedirect(user.accountType, p7Roles))
     }
 
     window.addEventListener(POST_LOGIN_REDIRECT_EVENT, onPostLogin)
