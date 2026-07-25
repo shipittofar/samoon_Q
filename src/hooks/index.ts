@@ -664,7 +664,7 @@ export function useConsoleCategories(branchId?: string) {
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
-    queryKey: ['categories', tenantId, scopedBranchId],
+    queryKey: ['console-categories', tenantId, scopedBranchId],
     queryFn: () => menuService.getConsoleCategories(scopedBranchId!),
     enabled: !!scopedBranchId,
     staleTime: STALE_TIME,
