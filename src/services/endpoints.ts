@@ -37,8 +37,8 @@ export const ENDPOINTS = {
   // Orders
   ORDERS: {
     LIST: '/orders/',
-    TENANT_BRANCH_LIST: (tenantId: string, branchId: string) =>
-      `/orders/tenants/${tenantId}/branches/${branchId}/`,
+    CONSOLE_ORDER_TENANT_BRANCH_LIST: (tenantId: string, branchId: string) =>
+      `/orders/console-orders/tenants/${tenantId}/branches/${branchId}/`,
     CREATE: '/orders/',
     DETAIL: (id: string) => `/orders/${id}/`,
     CANCEL: (id: string) => `/orders/${id}/cancel/`,
@@ -70,7 +70,7 @@ export const ENDPOINTS = {
     DETAIL: (id: string) => `/branches/${id}/`,
     NEARBY: '/branches/nearby/',
     // P7.3 — Branch Management
-    GET: (id: string) => `/branches/${id}/`,
+    GET: (id: string) => `/tenants/branches/${id}/`,
     CREATE: '/branches/',
     UPDATE: (id: string) => `/branches/${id}/`,
     ACTIVATE: (id: string) => `/branches/${id}/activate/`,

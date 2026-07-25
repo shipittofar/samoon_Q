@@ -86,7 +86,7 @@ export function AdminBranchSwitcher() {
       {/* Tenant label */}
       <div className="hidden sm:flex items-center gap-1.5 text-[var(--fg-muted)]">
         <Building2 className="h-3.5 w-3.5 shrink-0" />
-        <span className="font-medium truncate max-w-[120px]">{selectedTenant?.name ?? '—'}</span>
+        <span className="font-medium truncate max-w-[200px]">{selectedTenant?.name ?? '—'}</span>
       </div>
 
       <span className="hidden sm:block text-[var(--border)] select-none">/</span>

@@ -152,7 +152,7 @@ function normalizeAdminOrdersRequest(
 
 function resolveAdminOrdersUrl(request: ReturnType<typeof normalizeAdminOrdersRequest>): string {
   if (request.scope === 'scoped' && request.tenantId && request.branchId) {
-    return ENDPOINTS.ORDERS.TENANT_BRANCH_LIST(request.tenantId, request.branchId)
+    return ENDPOINTS.ORDERS.CONSOLE_ORDER_TENANT_BRANCH_LIST(request.tenantId, request.branchId)
   }
   return ENDPOINTS.ORDERS.LIST
 }
