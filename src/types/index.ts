@@ -124,7 +124,7 @@ export interface Category {
   description?: string
   image?: string
   icon?: string
-  order: number
+  sort_order: number
   items_count?: number
   /** Whether the category is shown on the customer-facing menu. Console-managed. */
   is_active: boolean

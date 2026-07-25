@@ -325,11 +325,11 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
 
 // ── Categories ────────────────────────────────────────────────────────────────
 export const MOCK_CATEGORIES: Category[] = [
-  { id: '1', branch_id: 'branch-rest-01', name: 'Pizza', slug: 'pizza', icon: '🍕', order: 1, items_count: 8 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: '2', branch_id: 'branch-rest-01', name: 'Burger', slug: 'burger', icon: '🍔', order: 2, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: '3', branch_id: 'branch-rest-01', name: 'Pasta', slug: 'pasta', icon: '🍝', order: 3, items_count: 5 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: '4', branch_id: 'branch-rest-01', name: 'Drinks', slug: 'drinks', icon: '🥤', order: 4, items_count: 7 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: '5', branch_id: 'branch-rest-01', name: 'Desserts', slug: 'desserts', icon: '🍰', order: 5, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '1', branch_id: 'branch-rest-01', name: 'Pizza', slug: 'pizza', icon: '🍕', sort_order: 1, items_count: 8 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '2', branch_id: 'branch-rest-01', name: 'Burger', slug: 'burger', icon: '🍔', sort_order: 2, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '3', branch_id: 'branch-rest-01', name: 'Pasta', slug: 'pasta', icon: '🍝', sort_order: 3, items_count: 5 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '4', branch_id: 'branch-rest-01', name: 'Drinks', slug: 'drinks', icon: '🥤', sort_order: 4, items_count: 7 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: '5', branch_id: 'branch-rest-01', name: 'Desserts', slug: 'desserts', icon: '🍰', sort_order: 5, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 // ── Menu Items ────────────────────────────────────────────────────────────────
@@ -508,8 +508,8 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
 // item objects — never the same object references — so editing one branch's
 // menu can never mutate another branch's data.
 export const MOCK_DOWNTOWN_CATEGORIES: Category[] = [
-  { id: 'dt-1', branch_id: 'branch-rest-02', name: 'Express Bowls', slug: 'express-bowls', icon: '🥗', order: 1, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
-  { id: 'dt-2', branch_id: 'branch-rest-02', name: 'Coffee', slug: 'coffee', icon: '☕', order: 2, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'dt-1', branch_id: 'branch-rest-02', name: 'Express Bowls', slug: 'express-bowls', icon: '🥗', sort_order: 1, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'dt-2', branch_id: 'branch-rest-02', name: 'Coffee', slug: 'coffee', icon: '☕', sort_order: 2, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_DOWNTOWN_ITEMS: MenuItem[] = [
@@ -538,7 +538,7 @@ export const MOCK_DOWNTOWN_ITEMS: MenuItem[] = [
 ]
 
 export const MOCK_AIRPORT_CATEGORIES: Category[] = [
-  { id: 'ap-1', branch_id: 'branch-rest-03', name: 'Grab & Go', slug: 'grab-and-go', icon: '🥪', order: 1, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
+  { id: 'ap-1', branch_id: 'branch-rest-03', name: 'Grab & Go', slug: 'grab-and-go', icon: '🥪', sort_order: 1, items_count: 1, is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
 export const MOCK_AIRPORT_ITEMS: MenuItem[] = [

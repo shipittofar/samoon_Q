@@ -241,7 +241,7 @@ export const menuService = {
         description: payload.description,
         image: payload.image,
         icon: payload.icon,
-        order: payload.order ?? existing.length + 1,
+        sort_order: payload.sort_order ?? existing.length + 1,
         is_active: payload.is_active ?? true,
         created_at: new Date().toISOString(),
         ...payload,
@@ -280,11 +280,11 @@ export const menuService = {
       return orderedIds
         .map((id, index) => {
           const cat = byId.get(id)
-          return cat ? { ...cat, order: index + 1 } : undefined
+          return cat ? { ...cat, sort_order: index + 1 } : undefined
         })
         .filter((c): c is Category => !!c)
     }
-    const { data } = await api.patch<Category[]>(ENDPOINTS.MENU.CATEGORIES, { order: orderedIds }, {
+    const { data } = await api.patch<Category[]>(ENDPOINTS.MENU.CATEGORIES, { category_ids: orderedIds }, {
       params: { branch_id: branchId },
     })
     return data

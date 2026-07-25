@@ -30,12 +30,12 @@ interface CategoryForm {
   name: string
   description: string
   image: string
-  order: string
+  sort_order: string
   is_active: boolean
 }
 
 const EMPTY_FORM: CategoryForm = {
-  name: '', description: '', image: '', order: '', is_active: true,
+  name: '', description: '', image: '', sort_order: '', is_active: true,
 }
 
 function categoryToForm(category: Category): CategoryForm {
@@ -43,7 +43,7 @@ function categoryToForm(category: Category): CategoryForm {
     name: category.name,
     description: category.description ?? '',
     image: category.image ?? '',
-    order: String(category.order),
+    sort_order: String(category.sort_order),
     is_active: category.is_active,
   }
 }
@@ -53,7 +53,7 @@ function formToPayload(form: CategoryForm): Partial<Category> {
     name: form.name.trim(),
     description: form.description.trim() || undefined,
     image: form.image.trim() || undefined,
-    order: form.order ? parseInt(form.order, 10) : undefined,
+    sort_order: form.sort_order ? parseInt(form.sort_order, 10) : undefined,
     is_active: form.is_active,
   }
 }
@@ -61,7 +61,7 @@ function formToPayload(form: CategoryForm): Partial<Category> {
 /** Empty/whitespace-only name, or a non-numeric/negative sort order. */
 function validateForm(form: CategoryForm): string | null {
   if (!form.name.trim()) return 'nameRequired'
-  if (form.order && (!/^\d+$/.test(form.order) || parseInt(form.order, 10) < 1)) return 'invalidSortOrder'
+  if (form.sort_order && (!/^\d+$/.test(form.sort_order) || parseInt(form.sort_order, 10) < 1)) return 'invalidSortOrder'
   return null
 }
 
@@ -103,7 +103,7 @@ export default function AdminCategoriesPage() {
   const reorderMutation = useReorderCategories(adminBranchId ?? '')
 
   const allCategories: Category[] = useMemo(
-    () => [...(categories ?? [])].sort((a, b) => a.order - b.order),
+    () => [...(categories ?? [])].sort((a, b) => a.sort_order - b.sort_order),
     [categories],
   )
 
@@ -284,7 +284,7 @@ export default function AdminCategoriesPage() {
                   <TableRow key={category.id}>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <span className="tabular-nums text-[var(--fg-muted)] w-6">{category.order}</span>
+                        <span className="tabular-nums text-[var(--fg-muted)] w-6">{category.sort_order}</span>
                         {canUpdate && (
                           <div className="flex flex-col">
                             <button
@@ -443,7 +443,7 @@ function CategoryFormFields({
       <Input label={t('categoryNameLabel')} value={form.name} onChange={set('name')} />
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
       <Input label={t('imageUrlLabel')} value={form.image} onChange={set('image')} />
-      <Input label={t('sortOrderLabel')} type="number" min={1} value={form.order} onChange={set('order')} />
+      <Input label={t('sortOrderLabel')} type="number" min={1} value={form.sort_order} onChange={set('sort_order')} />
       <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
         <input type="checkbox" checked={form.is_active} onChange={set('is_active')} className="rounded" />
         {t('active')}

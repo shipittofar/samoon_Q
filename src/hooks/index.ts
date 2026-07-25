@@ -1950,7 +1950,7 @@ export function useReorderCategories(branchId: string) {
           return orderedIds
             .map((id, index) => {
               const c = byId.get(id)
-              return c ? { ...c, order: index + 1 } : undefined
+              return c ? { ...c, sort_order: index + 1 } : undefined
             })
             .filter((c): c is Category => !!c)
         },
