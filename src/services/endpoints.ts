@@ -20,7 +20,7 @@ export const ENDPOINTS = {
   MENU: {
     CATEGORIES: '/menu/categories/',
     CATEGORY: (id: string) => `/menu/categories/${id}/`,
-    CONSOLE_CATEGORY: (branchId: string) => `/menu/console-categories/${branchId}/`,
+    CONSOLE_CATEGORY: (branchId: string) => `/menu/console-menu/categories/${branchId}/`,
     ITEMS: '/menu/items/',
     CONSOLE_ITEMS: (branchId: string) => `/menu/console-menu/items/${branchId}/`,
     ITEM: (id: string) => `/menu/items/${id}/`,
