@@ -13,7 +13,7 @@ import { Input, Textarea } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@/components/ui/Table'
 import {
-  useExtraGroups, useCreateExtraGroup, useUpdateExtraGroup, useDeleteExtraGroup, useReorderExtraGroups,
+  useExtraGroups, useConsoleExtraGroups, useCreateExtraGroup, useUpdateExtraGroup, useDeleteExtraGroup, useReorderExtraGroups,
   useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra,
   usePermission, useSelectedBranch, useBranchState, useIsBranchReady,
 } from '@/hooks'
@@ -163,7 +163,7 @@ export default function AdminExtrasPage() {
   // silently fall back to the unrelated customer-storefront active branch.
   const adminBranchId = useIsBranchReady() ? adminBranch?.id ?? '' : ''
 
-  const { data: groups, isLoading: groupsLoading, isError: groupsError, refetch: refetchGroups } = useExtraGroups(adminBranchId)
+  const { data: groups, isLoading: groupsLoading, isError: groupsError, refetch: refetchGroups } = useConsoleExtraGroups(adminBranchId)
   const { data: extras, isLoading: extrasLoading, isError: extrasError, refetch: refetchExtras } = useExtras(adminBranchId)
 
   const canCreate = usePermission('extras.create')

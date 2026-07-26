@@ -31,6 +31,7 @@ export const ENDPOINTS = {
     SEARCH: '/menu/items/search/',
     RELATED: (id: string) => `/menu/items/${id}/related/`,
     EXTRA_GROUPS: '/menu/extra-groups/',
+    CONSOLE_EXTRA_GROUPS: (branchId: string) => `/menu/console-menu/extra-groups/${branchId}/`,
     EXTRA_GROUP: (id: string) => `/menu/extra-groups/${id}/`,
     EXTRAS: '/menu/extras/',
     EXTRA: (id: string) => `/menu/extras/${id}/`,

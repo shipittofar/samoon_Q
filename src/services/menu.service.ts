@@ -110,7 +110,6 @@ export const menuService = {
     const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.CONSOLE_ITEMS(branchId))
     return data.results
   },
-  
 
   async getItem(branchId: string, id: string): Promise<MenuItem> {
     if (USE_MOCK) {
@@ -325,6 +324,15 @@ export const menuService = {
       params: { branch_id: branchId },
     })
     return data
+  },
+
+  async getConsoleExtraGroups(branchId: string): Promise<ExtraGroup[]> {
+    if (USE_MOCK) {
+      await delay(400)
+      return mockExtraGroups(branchId)
+    }
+    const { data } = await api.get<PaginatedResponse<ExtraGroup>>(ENDPOINTS.MENU.CONSOLE_EXTRA_GROUPS(branchId))
+    return data.results
   },
 
   async createExtraGroup(branchId: string, payload: Partial<ExtraGroup>): Promise<ExtraGroup> {
