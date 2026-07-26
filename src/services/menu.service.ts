@@ -1,8 +1,8 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS, MOCK_BRANCH_EXTRA_GROUPS, MOCK_BRANCH_EXTRAS } from '@/lib/mock-data'
-import type { Category, Extra, ExtraGroup, MenuItem, PaginatedResponse } from '@/types'
-
+import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
+import type { Category, DrfPaginationParams, Extra, ExtraGroup, MenuItem, PaginatedResponse } from '@/types'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms))
 
@@ -17,6 +17,15 @@ export interface MenuFilters {
   page?: number
   page_size?: number
 }
+
+/**
+ * Query params for `getConsoleItems`.
+ * Pagination defaults are applied in the service via `buildDrfPaginationParams`.
+ *
+ * Server-side search/category/status are not documented on
+ * `GET /menu/console-menu/items/{branchId}/` — see `console-menu-client-filters.ts`.
+ */
+export type ConsoleMenuItemsParams = DrfPaginationParams
 
 const DEFAULT_MOCK_BRANCH_ID = 'branch-rest-01'
 
@@ -102,15 +111,26 @@ export const menuService = {
     return data
   },
 
-  async getConsoleItems(branchId: string): Promise<MenuItem[]> {
+  async getConsoleItems(
+    branchId: string,
+    params?: ConsoleMenuItemsParams,
+  ): Promise<PaginatedResponse<MenuItem>> {
+    const paginationParams = buildDrfPaginationParams(params)
+
     if (USE_MOCK) {
       await delay(400)
-      return mockItems(branchId)
+      return paginateList(
+        mockItems(branchId),
+        paginationParams.page,
+        paginationParams.page_size,
+      )
     }
-    const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.CONSOLE_ITEMS(branchId))
-    return data.results
-  },
 
+    const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.CONSOLE_ITEMS(branchId), {
+      params: paginationParams,
+    })
+    return data
+  },
   async getItem(branchId: string, id: string): Promise<MenuItem> {
     if (USE_MOCK) {
       await delay(400)

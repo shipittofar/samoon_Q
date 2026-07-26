@@ -899,6 +899,12 @@ export interface PaginatedResponse<T> {
   results: T[]
 }
 
+/** Shared DRF pagination query params accepted by list endpoints. */
+export interface DrfPaginationParams {
+  page?: number
+  page_size?: number
+}
+
 export interface ApiError {
   message: string
   code?: string

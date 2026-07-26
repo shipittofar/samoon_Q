@@ -68,7 +68,7 @@ import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_F
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
 import { reviewService } from '@/services/review.service'
-import type { MenuFilters } from '@/services/menu.service'
+import type { MenuFilters, ConsoleMenuItemsParams } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreatePaymentIntentPayload } from '@/services/payment.service'
 import type { CreateReviewPayload } from '@/services/review.service'
@@ -98,6 +98,7 @@ import type {
   User,
   VerifyOTPRequest,
 } from '@/types'
+import { buildDrfPaginationParams } from '@/utils/pagination'
 import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
@@ -720,15 +721,31 @@ export function useMenuItems(branchId?: string, filters?: MenuFilters) {
   })
 }
 
-export function useConsoleMenuItems(branchId?: string) {
+export function useConsoleMenuItems(branchId?: string, params?: ConsoleMenuItemsParams) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
-  return useQuery({
-    queryKey: ['console-menu-items', tenantId, scopedBranchId],
-    queryFn: () => menuService.getConsoleItems(scopedBranchId!),
+
+  const queryParams = useMemo(() => {
+    const listParams = params ?? {}
+    return { ...listParams, ...buildDrfPaginationParams(listParams) }
+  }, [params?.page, params?.page_size])
+
+  const pagination = useMemo(
+    () => buildDrfPaginationParams(params),
+    [params?.page, params?.page_size],
+  )
+
+  const query = useQuery({
+    queryKey: ['console-menu-items', tenantId, scopedBranchId, queryParams],
+    queryFn: () => menuService.getConsoleItems(scopedBranchId!, params),
     enabled: !!scopedBranchId,
   })
+
+  return {
+    ...query,
+    pagination,
+  }
 }
 
 export function useMenuItem(branchId: string | undefined, id: string) {
@@ -1896,6 +1913,43 @@ function menuItemsQueryPredicate(branchId: string) {
     query.queryKey[0] === 'menu-items' && query.queryKey[2] === branchId
 }
 
+/** Matches only this branch's cached `console-menu-items` entries. */
+function consoleMenuItemsQueryPredicate(branchId: string) {
+  return (query: { queryKey: readonly unknown[] }) =>
+    query.queryKey[0] === 'console-menu-items' && query.queryKey[2] === branchId
+}
+
+function branchMenuItemsQueryPredicates(branchId: string) {
+  return [menuItemsQueryPredicate(branchId), consoleMenuItemsQueryPredicate(branchId)]
+}
+
+function invalidateBranchMenuItemsQueries(
+  qc: ReturnType<typeof useQueryClient>,
+  branchId: string,
+) {
+  for (const predicate of branchMenuItemsQueryPredicates(branchId)) {
+    qc.invalidateQueries({ predicate })
+  }
+}
+
+async function updateBranchMenuItemsQueries(
+  qc: ReturnType<typeof useQueryClient>,
+  branchId: string,
+  updater: (old: PaginatedResponse<MenuItem>) => PaginatedResponse<MenuItem>,
+) {
+  const snapshots: Array<[readonly unknown[], PaginatedResponse<MenuItem> | undefined]> = []
+  for (const predicate of branchMenuItemsQueryPredicates(branchId)) {
+    await qc.cancelQueries({ predicate })
+    const entries = qc.getQueriesData<PaginatedResponse<MenuItem>>({ predicate })
+    snapshots.push(...entries)
+    qc.setQueriesData<PaginatedResponse<MenuItem>>(
+      { predicate },
+      (old) => (old ? updater(old) : old),
+    )
+  }
+  return { snapshots }
+}
+
 /** Matches only this branch's cached `categories` entries. */
 function categoriesQueryPredicate(branchId: string) {
   return (query: { queryKey: readonly unknown[] }) =>
@@ -2175,7 +2229,7 @@ export function useAssignExtraGroupsToItem(branchId: string) {
     mutationFn: ({ itemId, groupIds }: { itemId: string; groupIds: string[] }) =>
       menuService.assignExtraGroupsToItem(branchId, itemId, groupIds),
     onSuccess: (_data, { itemId }) => {
-      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+      invalidateBranchMenuItemsQueries(qc, branchId)
       qc.invalidateQueries({ queryKey: ['menu-item', branchId, itemId] })
     },
   })
@@ -2188,7 +2242,7 @@ export function useCreateMenuItem(branchId: string) {
     onSuccess: () => {
       // Scoped invalidation: only the active branch's cached menu-items/categories
       // are refetched — other branches' cached queries are left untouched.
-      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+      invalidateBranchMenuItemsQueries(qc, branchId)
       qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
     },
   })
@@ -2200,22 +2254,16 @@ export function useUpdateMenuItem(branchId: string) {
     mutationFn: ({ id, payload }: { id: string; payload: Partial<MenuItem> }) =>
       menuService.updateItem(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
-      const predicate = menuItemsQueryPredicate(branchId)
-      await qc.cancelQueries({ predicate })
-      const snapshots = qc.getQueriesData<PaginatedResponse<MenuItem>>({ predicate })
-      qc.setQueriesData<PaginatedResponse<MenuItem>>(
-        { predicate },
-        (old) => old
-          ? { ...old, results: old.results.map((i) => i.id === id ? { ...i, ...payload } : i) }
-          : old,
-      )
-      return { snapshots }
+      return updateBranchMenuItemsQueries(qc, branchId, (old) => ({
+        ...old,
+        results: old.results.map((i) => (i.id === id ? { ...i, ...payload } : i)),
+      }))
     },
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
     onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+      invalidateBranchMenuItemsQueries(qc, branchId)
       qc.invalidateQueries({ queryKey: ['menu-item', branchId, id] })
     },
   })
@@ -2457,22 +2505,17 @@ export function useDeleteMenuItem(branchId: string) {
   return useMutation({
     mutationFn: (id: string) => menuService.deleteItem(branchId, id),
     onMutate: async (id) => {
-      const predicate = menuItemsQueryPredicate(branchId)
-      await qc.cancelQueries({ predicate })
-      const snapshots = qc.getQueriesData<PaginatedResponse<MenuItem>>({ predicate })
-      qc.setQueriesData<PaginatedResponse<MenuItem>>(
-        { predicate },
-        (old) => old
-          ? { ...old, results: old.results.filter((i) => i.id !== id), count: old.count - 1 }
-          : old,
-      )
-      return { snapshots }
+      return updateBranchMenuItemsQueries(qc, branchId, (old) => ({
+        ...old,
+        results: old.results.filter((i) => i.id !== id),
+        count: old.count - 1,
+      }))
     },
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
     onSuccess: () => {
-      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+      invalidateBranchMenuItemsQueries(qc, branchId)
     },
   })
 }

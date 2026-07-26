@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
@@ -8,12 +8,14 @@ import {
   Plus, Search, Edit2, Trash2, Eye, EyeOff, Star, Clock, Flame,
   Loader2, AlertCircle,
 } from 'lucide-react'
-import { Badge } from '@/components/ui'
+import { Badge, PaginationControls } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
-import { useMenuItems, useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useExtraGroups, useConsoleExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
+import { getTotalPages } from '@/utils/pagination'
+import { applyConsoleMenuClientFilters } from '@/lib/console-menu-client-filters'
+import { useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
 import type { MenuItem } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
@@ -82,6 +84,7 @@ export default function AdminMenuPage() {
   const tCommon = useTranslations('common')
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [page, setPage] = useState(1)
 
   const [createOpen, setCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState<MenuItemForm>(EMPTY_FORM)
@@ -107,7 +110,14 @@ export default function AdminMenuPage() {
   const selectedBranch = useSelectedBranch()
   const adminBranchId = useIsBranchReady() ? selectedBranch?.id ?? '' : ''
 
-  const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch } = useConsoleMenuItems(adminBranchId)
+  useEffect(() => {
+    setPage(1)
+  }, [search, categoryFilter])
+
+  const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch, pagination } = useConsoleMenuItems(
+    adminBranchId,
+    { page },
+  )
   const { data: categories, isLoading: catsLoading } = useConsoleCategories(adminBranchId)
   const { data: extraGroups } = useConsoleExtraGroups(adminBranchId)
 
@@ -116,13 +126,19 @@ export default function AdminMenuPage() {
   const deleteMutation = useDeleteMenuItem(adminBranchId ?? '')
   const assignGroupsMutation = useAssignExtraGroupsToItem(adminBranchId ?? '')
 
-  const allItems: MenuItem[] = itemsData ?? []
+  const totalCount = itemsData?.count ?? 0
 
-  const filtered = useMemo(() => allItems.filter((item) => {
-    const matchCat = categoryFilter === 'all' || item.category_id === categoryFilter
-    const matchSearch = !search || item.name.toLowerCase().includes(search.toLowerCase())
-    return matchCat && matchSearch
-  }), [allItems, categoryFilter, search])
+  const clientFilters = useMemo(
+    () => ({ search, categoryId: categoryFilter }),
+    [search, categoryFilter],
+  )
+
+  // Interim client-side filter — see src/lib/console-menu-client-filters.ts.
+  // Applies to the current page only until the console endpoint supports server-side filters.
+  const filtered = useMemo(() => {
+    const pageItems = itemsData?.results ?? []
+    return applyConsoleMenuClientFilters(pageItems, clientFilters)
+  }, [itemsData?.results, clientFilters])
 
   // ── Handlers ────────────────────────────────────────────────────────────────
 
@@ -205,7 +221,7 @@ export default function AdminMenuPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('menuManagement')}</h1>
-                <Badge variant="secondary">{t('itemsCount', { count: allItems.length })}</Badge>
+                <Badge variant="secondary">{t('itemsCount', { count: totalCount })}</Badge>
               </div>
               <p className="text-[var(--fg-muted)] mt-1">{t('menuPageSubtitle')}</p>
             </div>
@@ -360,6 +376,22 @@ export default function AdminMenuPage() {
                   <p className="text-[var(--fg-muted)]">{t('noItemsFound')}</p>
                 </div>
               )}
+
+              <PaginationControls
+                page={page}
+                pageSize={pagination.page_size}
+                count={totalCount}
+                next={itemsData?.next}
+                previous={itemsData?.previous}
+                onPageChange={setPage}
+                previousLabel={t('previousLabel')}
+                nextLabel={t('nextLabel')}
+                pageOfLabel={t('pageOfTotalCount', {
+                  page,
+                  totalPages: getTotalPages(totalCount, pagination.page_size),
+                  count: totalCount,
+                })}
+              />
             </>
           )}
         </div>
