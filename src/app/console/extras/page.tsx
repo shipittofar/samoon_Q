@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Input, Textarea } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@/components/ui/Table'
+import { formatCurrency } from '@/utils'
 import {
   useExtraGroups, useConsoleExtraGroups, useCreateExtraGroup, useUpdateExtraGroup, useDeleteExtraGroup, useReorderExtraGroups,
   useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra,
@@ -538,7 +539,7 @@ export default function AdminExtrasPage() {
                                   <span className="font-medium">{extra.name}</span>
                                   {extra.description && <p className="text-xs text-[var(--fg-muted)] line-clamp-1">{extra.description}</p>}
                                 </TableCell>
-                                <TableCell>${extra.price.toFixed(2)}</TableCell>
+                                <TableCell>{formatCurrency(extra.price)}</TableCell>
                                 <TableCell>{extra.order ?? '—'}</TableCell>
                                 <TableCell>
                                   <button

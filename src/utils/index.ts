@@ -1,17 +1,24 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { parseDecimal } from './decimal'
+
+export { parseDecimal } from './decimal'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency = 'USD', locale = 'en-US'): string {
+export function formatCurrency(
+  amount: string | number | null | undefined,
+  currency = 'USD',
+  locale = 'en-US',
+): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount)
+  }).format(parseDecimal(amount))
 }
 
 export function formatDate(date: string | Date, locale = 'en-US'): string {
@@ -57,9 +64,10 @@ export function truncate(text: string, length: number): string {
   return text.slice(0, length).trim() + '…'
 }
 
-export function getDiscountedPrice(price: number, discount?: number): number {
-  if (!discount) return price
-  return price * (1 - discount / 100)
+export function getDiscountedPrice(price: string | number, discount?: number): number {
+  const numericPrice = parseDecimal(price)
+  if (!discount) return numericPrice
+  return numericPrice * (1 - discount / 100)
 }
 
 export function generateStars(rating: number): string {

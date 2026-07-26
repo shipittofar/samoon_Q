@@ -12,7 +12,7 @@ import {
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
-import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
+import { cn, formatCurrency, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
@@ -616,7 +616,7 @@ function FeaturedItemsSection({
               </p>
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-sm text-[var(--fg)]">
-                  ${item.price.toFixed(2)}
+                  {formatCurrency(item.price)}
                 </span>
                 <span className="flex items-center gap-0.5 text-xs text-[var(--fg-muted)]">
                   <Star className="w-3 h-3 text-amber-400 fill-amber-400" aria-hidden="true" />

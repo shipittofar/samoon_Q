@@ -16,6 +16,8 @@
  *   />
  */
 
+import { parseDecimal } from '@/utils/decimal'
+
 export interface JsonLdRestaurantOptions {
   name: string
   description?: string
@@ -85,7 +87,7 @@ export interface JsonLdMenuItemOptions {
   name: string
   description?: string
   image?: string
-  price: number
+  price: number | string
   currency?: string
   category?: string
 }
@@ -98,7 +100,7 @@ export function buildMenuItemJsonLd(options: JsonLdMenuItemOptions): Record<stri
     name: options.name,
     offers: {
       '@type': 'Offer',
-      price: options.price.toFixed(2),
+      price: parseDecimal(options.price).toFixed(2),
       priceCurrency: options.currency ?? 'USD',
     },
   }

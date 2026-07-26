@@ -13,7 +13,7 @@ import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
 import { Fragment } from 'react'
-import { cn, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
+import { cn, formatCurrency, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { usePublicBranch, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
@@ -398,7 +398,7 @@ function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuIte
               <p className="text-sm font-medium text-[var(--fg)] truncate">{item.name}</p>
               {/* H4: price fix — remove /100 */}
               <p className="text-sm text-[var(--accent)] font-semibold mt-0.5">
-                ${item.price.toFixed(2)}
+                {formatCurrency(item.price)}
               </p>
             </div>
           </div>

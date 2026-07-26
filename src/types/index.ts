@@ -131,6 +131,13 @@ export interface Category {
   created_at: string
 }
 
+/**
+ * Django DecimalField JSON representation at the API transport layer.
+ * Coerced to `number` by `normalizeExtra()` / `normalizeMenuItem()` in
+ * `src/lib/menu-normalizers.ts` before reaching UI code.
+ */
+export type DecimalFieldValue = string | number
+
 export interface Extra {
   id: string
   name: string

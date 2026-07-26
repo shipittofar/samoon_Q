@@ -1,6 +1,15 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS, MOCK_BRANCH_EXTRA_GROUPS, MOCK_BRANCH_EXTRAS } from '@/lib/mock-data'
+import {
+  normalizeExtra,
+  normalizeExtras,
+  normalizeMenuItem,
+  normalizeMenuItems,
+  normalizePaginatedMenuItems,
+  type ExtraWire,
+  type MenuItemWire,
+} from '@/lib/menu-normalizers'
 import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
 import type { Category, DrfPaginationParams, Extra, ExtraGroup, MenuItem, PaginatedResponse } from '@/types'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -105,10 +114,10 @@ export const menuService = {
       return { count: items.length, next: null, previous: null, results: items }
     }
 
-    const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.ITEMS, {
+    const { data } = await api.get<PaginatedResponse<MenuItemWire>>(ENDPOINTS.MENU.ITEMS, {
       params: { branch_id: branchId, ...filters },
     })
-    return data
+    return normalizePaginatedMenuItems(data)
   },
 
   async getConsoleItems(
@@ -126,10 +135,10 @@ export const menuService = {
       )
     }
 
-    const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.CONSOLE_ITEMS(branchId), {
+    const { data } = await api.get<PaginatedResponse<MenuItemWire>>(ENDPOINTS.MENU.CONSOLE_ITEMS(branchId), {
       params: paginationParams,
     })
-    return data
+    return normalizePaginatedMenuItems(data)
   },
   async getItem(branchId: string, id: string): Promise<MenuItem> {
     if (USE_MOCK) {
@@ -138,10 +147,10 @@ export const menuService = {
       if (!item) throw new Error('Item not found')
       return item
     }
-    const { data } = await api.get<MenuItem>(ENDPOINTS.MENU.ITEM(id), {
+    const { data } = await api.get<MenuItemWire>(ENDPOINTS.MENU.ITEM(id), {
       params: { branch_id: branchId },
     })
-    return data
+    return normalizeMenuItem(data)
   },
 
   async getConsoleItem(branchId: string): Promise<MenuItem[]> {
@@ -151,8 +160,8 @@ export const menuService = {
       if (!item) throw new Error('Item not found')
       return [item]
     }
-    const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.CONSOLE_ITEM(branchId))
-    return data.results
+    const { data } = await api.get<PaginatedResponse<MenuItemWire>>(ENDPOINTS.MENU.CONSOLE_ITEM(branchId))
+    return normalizeMenuItems(data.results)
   },
 
   async getFeatured(branchId: string): Promise<MenuItem[]> {
@@ -160,10 +169,10 @@ export const menuService = {
       await delay(400)
       return mockItems(branchId).filter((i) => i.is_featured)
     }
-    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.FEATURED, {
+    const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.FEATURED, {
       params: { branch_id: branchId },
     })
-    return data
+    return normalizeMenuItems(data)
   },
 
   async getPopular(branchId: string): Promise<MenuItem[]> {
@@ -171,10 +180,10 @@ export const menuService = {
       await delay(400)
       return mockItems(branchId).filter((i) => i.is_popular)
     }
-    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.POPULAR, {
+    const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.POPULAR, {
       params: { branch_id: branchId },
     })
-    return data
+    return normalizeMenuItems(data)
   },
 
   async getRelated(branchId: string, id: string): Promise<MenuItem[]> {
@@ -187,10 +196,10 @@ export const menuService = {
         (i) => i.category_id === item.category_id && i.id !== id,
       ).slice(0, 4)
     }
-    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.RELATED(id), {
+    const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.RELATED(id), {
       params: { branch_id: branchId },
     })
-    return data
+    return normalizeMenuItems(data)
   },
 
   async search(branchId: string, query: string): Promise<MenuItem[]> {
@@ -204,10 +213,10 @@ export const menuService = {
           i.tags?.some((t) => t.toLowerCase().includes(q)),
       )
     }
-    const { data } = await api.get<MenuItem[]>(ENDPOINTS.MENU.SEARCH, {
+    const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.SEARCH, {
       params: { branch_id: branchId, q: query },
     })
-    return data
+    return normalizeMenuItems(data)
   },
 
   // ── Admin CRUD (P5.1) ──────────────────────────────────────────────────────
@@ -237,8 +246,8 @@ export const menuService = {
       }
       return newItem
     }
-    const { data } = await api.post<MenuItem>(ENDPOINTS.MENU.ITEMS, scopedPayload)
-    return data
+    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.ITEMS, scopedPayload)
+    return normalizeMenuItem(data)
   },
 
   async updateItem(branchId: string, id: string, payload: Partial<MenuItem>): Promise<MenuItem> {
@@ -247,10 +256,10 @@ export const menuService = {
       const existing = mockItems(branchId).find((i) => i.id === id)
       return { ...(existing as MenuItem), ...payload, id, branch_id: branchId }
     }
-    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(id), payload, {
+    const { data } = await api.patch<MenuItemWire>(ENDPOINTS.MENU.ITEM(id), payload, {
       params: { branch_id: branchId },
     })
-    return data
+    return normalizeMenuItem(data)
   },
 
   async deleteItem(branchId: string, id: string): Promise<void> {
@@ -426,10 +435,10 @@ export const menuService = {
       const all = mockExtras(branchId)
       return groupId ? all.filter((e) => e.group_id === groupId) : all
     }
-    const { data } = await api.get<Extra[]>(ENDPOINTS.MENU.EXTRAS, {
+    const { data } = await api.get<ExtraWire[]>(ENDPOINTS.MENU.EXTRAS, {
       params: { branch_id: branchId, group_id: groupId },
     })
-    return data
+    return normalizeExtras(data)
   },
 
   async createExtra(branchId: string, payload: Partial<Extra> & { group_id: string }): Promise<Extra> {
@@ -451,8 +460,8 @@ export const menuService = {
       }
       return newExtra
     }
-    const { data } = await api.post<Extra>(ENDPOINTS.MENU.EXTRAS, scopedPayload)
-    return data
+    const { data } = await api.post<ExtraWire>(ENDPOINTS.MENU.EXTRAS, scopedPayload)
+    return normalizeExtra(data)
   },
 
   async updateExtra(branchId: string, id: string, payload: Partial<Extra>): Promise<Extra> {
@@ -461,10 +470,10 @@ export const menuService = {
       const existing = mockExtras(branchId).find((e) => e.id === id)
       return { ...(existing as Extra), ...payload, id, branch_id: branchId }
     }
-    const { data } = await api.patch<Extra>(ENDPOINTS.MENU.EXTRA(id), payload, {
+    const { data } = await api.patch<ExtraWire>(ENDPOINTS.MENU.EXTRA(id), payload, {
       params: { branch_id: branchId },
     })
-    return data
+    return normalizeExtra(data)
   },
 
   async deleteExtra(branchId: string, id: string): Promise<void> {
@@ -497,9 +506,9 @@ export const menuService = {
         extras: materializedExtras,
       }
     }
-    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(itemId), { extra_group_ids: groupIds }, {
+    const { data } = await api.patch<MenuItemWire>(ENDPOINTS.MENU.ITEM(itemId), { extra_group_ids: groupIds }, {
       params: { branch_id: branchId },
     })
-    return data
+    return normalizeMenuItem(data)
   },
 }

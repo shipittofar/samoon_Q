@@ -30,6 +30,7 @@
  * `resolveField()`. See docs/P9.5.5.1_RUNTIME_RECOVERY.md.
  */
 import { configurationService } from '@/config'
+import { parseDecimal } from '@/utils/decimal'
 import {
   ALL_LANGUAGE_CODES,
   getLanguageMetadata,
@@ -209,9 +210,9 @@ export function formatNumber(locale: string, value: number, options?: Intl.Numbe
   return new Intl.NumberFormat(locale, options).format(value)
 }
 
-export function formatCurrency(locale: string, value: number, currency?: string): string {
+export function formatCurrency(locale: string, value: number | string, currency?: string): string {
   const resolvedCurrency = currency ?? getLanguageMetadata(locale)?.defaultCurrency ?? 'USD'
-  return new Intl.NumberFormat(locale, { style: 'currency', currency: resolvedCurrency }).format(value)
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: resolvedCurrency }).format(parseDecimal(value))
 }
 
 export function formatPercent(locale: string, value: number, options?: Intl.NumberFormatOptions): string {
