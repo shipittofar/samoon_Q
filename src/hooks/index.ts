@@ -2053,14 +2053,53 @@ export function useReorderCategories(branchId: string) {
 }
 
 // ── Extra Group Admin Hooks ───────────────────────────────────────────────────
-// Same pattern as the Category admin hooks above: branchId required (no store
+// Same pattern as the Menu Item admin hooks above: branchId required (no store
 // fallback for mutations), invalidation scoped to the active branch's cached
-// queries via a predicate, optimistic update + rollback on read-then-write ops.
+// queries via branchExtraGroupsQueryPredicates, optimistic update + rollback on
+// read-then-write ops — covers both legacy `extra-groups` and console
+// `console-extra-groups` caches.
 
 /** Matches only this branch's cached `extra-groups` entries. */
 function extraGroupsQueryPredicate(branchId: string) {
   return (query: { queryKey: readonly unknown[] }) =>
     query.queryKey[0] === 'extra-groups' && query.queryKey[2] === branchId
+}
+
+/** Matches only this branch's cached `console-extra-groups` entries. */
+function consoleExtraGroupsQueryPredicate(branchId: string) {
+  return (query: { queryKey: readonly unknown[] }) =>
+    query.queryKey[0] === 'console-extra-groups' && query.queryKey[2] === branchId
+}
+
+function branchExtraGroupsQueryPredicates(branchId: string) {
+  return [extraGroupsQueryPredicate(branchId), consoleExtraGroupsQueryPredicate(branchId)]
+}
+
+function invalidateBranchExtraGroupsQueries(
+  qc: ReturnType<typeof useQueryClient>,
+  branchId: string,
+) {
+  for (const predicate of branchExtraGroupsQueryPredicates(branchId)) {
+    qc.invalidateQueries({ predicate })
+  }
+}
+
+async function updateBranchExtraGroupsQueries(
+  qc: ReturnType<typeof useQueryClient>,
+  branchId: string,
+  updater: (old: ExtraGroup[]) => ExtraGroup[],
+) {
+  const snapshots: Array<[readonly unknown[], ExtraGroup[] | undefined]> = []
+  for (const predicate of branchExtraGroupsQueryPredicates(branchId)) {
+    await qc.cancelQueries({ predicate })
+    const entries = qc.getQueriesData<ExtraGroup[]>({ predicate })
+    snapshots.push(...entries)
+    qc.setQueriesData<ExtraGroup[]>(
+      { predicate },
+      (old) => (old ? updater(old) : old),
+    )
+  }
+  return { snapshots }
 }
 
 /** Matches only this branch's cached `extras` entries, across every group filter. */
@@ -2074,7 +2113,7 @@ export function useCreateExtraGroup(branchId: string) {
   return useMutation({
     mutationFn: (payload: Partial<ExtraGroup>) => menuService.createExtraGroup(branchId, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ predicate: extraGroupsQueryPredicate(branchId) })
+      invalidateBranchExtraGroupsQueries(qc, branchId)
     },
   })
 }
@@ -2085,20 +2124,15 @@ export function useUpdateExtraGroup(branchId: string) {
     mutationFn: ({ id, payload }: { id: string; payload: Partial<ExtraGroup> }) =>
       menuService.updateExtraGroup(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
-      const predicate = extraGroupsQueryPredicate(branchId)
-      await qc.cancelQueries({ predicate })
-      const snapshots = qc.getQueriesData<ExtraGroup[]>({ predicate })
-      qc.setQueriesData<ExtraGroup[]>(
-        { predicate },
-        (old) => old ? old.map((g) => g.id === id ? { ...g, ...payload } : g) : old,
+      return updateBranchExtraGroupsQueries(qc, branchId, (old) =>
+        old.map((g) => (g.id === id ? { ...g, ...payload } : g)),
       )
-      return { snapshots }
     },
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
     onSuccess: () => {
-      qc.invalidateQueries({ predicate: extraGroupsQueryPredicate(branchId) })
+      invalidateBranchExtraGroupsQueries(qc, branchId)
     },
   })
 }
@@ -2108,23 +2142,18 @@ export function useDeleteExtraGroup(branchId: string) {
   return useMutation({
     mutationFn: (id: string) => menuService.deleteExtraGroup(branchId, id),
     onMutate: async (id) => {
-      const predicate = extraGroupsQueryPredicate(branchId)
-      await qc.cancelQueries({ predicate })
-      const snapshots = qc.getQueriesData<ExtraGroup[]>({ predicate })
-      qc.setQueriesData<ExtraGroup[]>(
-        { predicate },
-        (old) => old ? old.filter((g) => g.id !== id) : old,
+      return updateBranchExtraGroupsQueries(qc, branchId, (old) =>
+        old.filter((g) => g.id !== id),
       )
-      return { snapshots }
     },
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
     onSuccess: () => {
-      qc.invalidateQueries({ predicate: extraGroupsQueryPredicate(branchId) })
+      invalidateBranchExtraGroupsQueries(qc, branchId)
       // A deleted group can no longer be assigned to any item — its menu-item
       // assignments/materialized extras may need to be refreshed too.
-      qc.invalidateQueries({ predicate: menuItemsQueryPredicate(branchId) })
+      invalidateBranchMenuItemsQueries(qc, branchId)
     },
   })
 }
@@ -2134,29 +2163,21 @@ export function useReorderExtraGroups(branchId: string) {
   return useMutation({
     mutationFn: (orderedIds: string[]) => menuService.reorderExtraGroups(branchId, orderedIds),
     onMutate: async (orderedIds) => {
-      const predicate = extraGroupsQueryPredicate(branchId)
-      await qc.cancelQueries({ predicate })
-      const snapshots = qc.getQueriesData<ExtraGroup[]>({ predicate })
-      qc.setQueriesData<ExtraGroup[]>(
-        { predicate },
-        (old) => {
-          if (!old) return old
-          const byId = new Map(old.map((g) => [g.id, g]))
-          return orderedIds
-            .map((id, index) => {
-              const g = byId.get(id)
-              return g ? { ...g, order: index + 1 } : undefined
-            })
-            .filter((g): g is ExtraGroup => !!g)
-        },
-      )
-      return { snapshots }
+      return updateBranchExtraGroupsQueries(qc, branchId, (old) => {
+        const byId = new Map(old.map((g) => [g.id, g]))
+        return orderedIds
+          .map((id, index) => {
+            const g = byId.get(id)
+            return g ? { ...g, order: index + 1 } : undefined
+          })
+          .filter((g): g is ExtraGroup => !!g)
+      })
     },
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
     onSuccess: () => {
-      qc.invalidateQueries({ predicate: extraGroupsQueryPredicate(branchId) })
+      invalidateBranchExtraGroupsQueries(qc, branchId)
     },
   })
 }

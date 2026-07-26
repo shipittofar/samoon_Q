@@ -28,6 +28,7 @@ const BRANCH_SCOPED_QUERY_KEYS = [
 export const TENANT_SCOPED_QUERY_KEYS = [
   'categories',
   'extra-groups',
+  'console-extra-groups',
   'extras',
   'menu-items',
   'menu-item',
