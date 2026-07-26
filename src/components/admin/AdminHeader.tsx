@@ -172,7 +172,7 @@ export function AdminHeader() {
                   size="sm"
                 />
                 <div className="hidden md:flex flex-col leading-tight">
-                  <span className="text-sm font-medium text-[var(--fg)] truncate max-w-[120px]">
+                  <span className="text-sm font-medium text-[var(--fg)] truncate max-w-[220px]">
                     {user.first_name} {user.last_name}
                   </span>
                 </div>

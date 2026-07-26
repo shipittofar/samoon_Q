@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
-import { useMenuItems, useConsoleCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
+import { useMenuItems, useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
 import type { MenuItem } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
@@ -107,7 +107,7 @@ export default function AdminMenuPage() {
   const selectedBranch = useSelectedBranch()
   const adminBranchId = useIsBranchReady() ? selectedBranch?.id ?? '' : ''
 
-  const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch } = useMenuItems(adminBranchId)
+  const { data: itemsData, isLoading: itemsLoading, isError: itemsError, refetch } = useConsoleMenuItems(adminBranchId)
   const { data: categories, isLoading: catsLoading } = useConsoleCategories(adminBranchId)
   const { data: extraGroups } = useExtraGroups(adminBranchId)
 
@@ -116,7 +116,7 @@ export default function AdminMenuPage() {
   const deleteMutation = useDeleteMenuItem(adminBranchId ?? '')
   const assignGroupsMutation = useAssignExtraGroupsToItem(adminBranchId ?? '')
 
-  const allItems: MenuItem[] = itemsData?.results ?? []
+  const allItems: MenuItem[] = itemsData ?? []
 
   const filtered = useMemo(() => allItems.filter((item) => {
     const matchCat = categoryFilter === 'all' || item.category_id === categoryFilter

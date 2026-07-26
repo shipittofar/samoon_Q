@@ -124,7 +124,7 @@ export function AdminTenantSwitcher() {
         {pending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
         ) : (
-          <span className="truncate max-w-[120px]">{activeLabel}</span>
+          <span className="truncate max-w-[220px]">{activeLabel}</span>
         )}
         <ChevronDown className={cn('h-3 w-3 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>

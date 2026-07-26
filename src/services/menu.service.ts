@@ -102,6 +102,16 @@ export const menuService = {
     return data
   },
 
+  async getConsoleItems(branchId: string): Promise<MenuItem[]> {
+    if (USE_MOCK) {
+      await delay(400)
+      return mockItems(branchId)
+    }
+    const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.CONSOLE_ITEMS(branchId))
+    return data.results
+  },
+  
+
   async getItem(branchId: string, id: string): Promise<MenuItem> {
     if (USE_MOCK) {
       await delay(400)
@@ -113,6 +123,17 @@ export const menuService = {
       params: { branch_id: branchId },
     })
     return data
+  },
+
+  async getConsoleItem(branchId: string): Promise<MenuItem[]> {
+    if (USE_MOCK) {
+      await delay(400)
+      const item = mockItems(branchId).find((i) => i.id === branchId || i.slug === branchId)
+      if (!item) throw new Error('Item not found')
+      return [item]
+    }
+    const { data } = await api.get<PaginatedResponse<MenuItem>>(ENDPOINTS.MENU.CONSOLE_ITEM(branchId))
+    return data.results
   },
 
   async getFeatured(branchId: string): Promise<MenuItem[]> {

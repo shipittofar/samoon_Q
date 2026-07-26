@@ -710,12 +710,34 @@ export function useMenuItems(branchId?: string, filters?: MenuFilters) {
   })
 }
 
+export function useConsoleMenuItems(branchId?: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  return useQuery({
+    queryKey: ['console-menu-items', tenantId, scopedBranchId],
+    queryFn: () => menuService.getConsoleItems(scopedBranchId!),
+    enabled: !!scopedBranchId,
+  })
+}
+
 export function useMenuItem(branchId: string | undefined, id: string) {
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
     queryKey: ['menu-item', scopedBranchId, id],
     queryFn: () => menuService.getItem(scopedBranchId!, id),
+    staleTime: STALE_TIME,
+    enabled: !!scopedBranchId && !!id,
+  })
+}
+
+export function useConsoleMenuItem(branchId: string | undefined, id: string) {
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  return useQuery({
+    queryKey: ['console-menu-item', scopedBranchId, id],
+    queryFn: () => menuService.getConsoleItem(scopedBranchId!),
     staleTime: STALE_TIME,
     enabled: !!scopedBranchId && !!id,
   })

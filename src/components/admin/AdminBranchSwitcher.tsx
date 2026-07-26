@@ -114,14 +114,14 @@ export function AdminBranchSwitcher() {
         ) : isError ? (
           <>
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate max-w-[120px]">{t('failedToLoadBranches')}</span>
+            <span className="truncate max-w-[200px]">{t('failedToLoadBranches')}</span>
           </>
         ) : (
           // No fallback to any branch's name here — explicit "no branch
           // selected" copy is the only thing shown when selectedBranch is
           // null, whether that's because branchState is 'empty' or the
           // switcher hasn't resolved yet.
-          <span className="truncate max-w-[120px]">{selectedBranch?.name ?? t('selectBranch')}</span>
+          <span className="truncate max-w-[200px]">{selectedBranch?.name ?? t('selectBranch')}</span>
         )}
         <ChevronDown className={cn('h-3 w-3 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
