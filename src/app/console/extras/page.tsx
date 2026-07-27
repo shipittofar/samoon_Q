@@ -180,7 +180,18 @@ export default function AdminExtrasPage() {
   const updateExtraMutation = useUpdateExtra(adminBranchId ?? '')
   const deleteExtraMutation = useDeleteExtra(adminBranchId ?? '')
 
-  const isLoading = groupsLoading || extrasLoading
+  // const isLoading = groupsLoading || extrasLoading
+
+  // Gate on settled data, not raw isLoading flags alone. Two parallel queries
+  // (groups + extras) can finish while one observer still reports isLoading on
+  // a remount/refresh; OR-ing those flags then blocks the UI until an unrelated
+  // local setState (e.g. opening the create dialog) forces a re-render.
+  // Categories avoids this by using a single query — see console/categories/page.tsx.
+  
+  // #+ch001 #+ch001 #+ch001
+  const isLoading =
+    !!adminBranchId &&
+    ((groups === undefined && groupsLoading) || (extras === undefined && extrasLoading))
   const isError = groupsError || extrasError
 
   const allGroups: ExtraGroup[] = useMemo(

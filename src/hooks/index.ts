@@ -687,17 +687,22 @@ export function useExtraGroups(branchId?: string) {
 }
 
 export function useConsoleExtraGroups(branchId?: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  // const tenantId = useTenantStore((s) => s.tenant?.id) #-ch001
+  const tenantId = useConsoleTenantId()
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
     queryKey: ['console-extra-groups', tenantId, scopedBranchId],
     queryFn: () => menuService.getConsoleExtraGroups(scopedBranchId!),
-  })
+    enabled: !!scopedBranchId, 
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  }) // #+ch001 #+ch001 #+ch001
 }
 
 export function useExtras(branchId?: string, groupId?: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  // const tenantId = useTenantStore((s) => s.tenant?.id) #-ch001
+  const tenantId = useConsoleTenantId()
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
