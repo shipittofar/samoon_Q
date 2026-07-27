@@ -393,6 +393,17 @@ export const tenantService = {
     return data.results.map(normalizeTenant)
   },
 
+  async getConsoleTenants(): Promise<Tenant[]> {
+    if (USE_MOCK) {
+      await delay()
+      return Object.values(MOCK_TENANTS).map((t) => ({ ...t }))
+    }
+
+    const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.CONSOLE_LIST)
+    return data.results.map(normalizeTenant)
+  },
+
+
   /**
    * Phase Z.1 — "my accessible tenants": the tenants the CURRENT user has a
    * real membership in, for surfaces like AdminTenantSwitcher where listing
@@ -408,7 +419,7 @@ export const tenantService = {
    * every platform tenant" (getPlatformTenants() below).
    */
   async getMyTenants(): Promise<Tenant[]> {
-    return tenantService.getTenants()
+    return tenantService.getConsoleTenants()
   },
 
   /**
@@ -421,6 +432,10 @@ export const tenantService = {
    */
   async getPlatformTenants(): Promise<Tenant[]> {
     return tenantService.getTenants()
+  },
+
+  async getConsolePlatformTenants(): Promise<Tenant[]> {
+    return tenantService.getConsoleTenants()
   },
 
   /**

@@ -2620,7 +2620,7 @@ export function useTenants() {
 export function useMyTenants() {
   const canView = usePermission('tenant.view')
   return useQuery({
-    queryKey: ['tenants'],
+    queryKey: ['console-tenants'],
     queryFn: () => tenantService.getMyTenants(),
     staleTime: STALE_TIME,
     enabled: canView,
@@ -2637,6 +2637,16 @@ export function usePlatformTenants() {
   return useQuery({
     queryKey: ['tenants'],
     queryFn: () => tenantService.getPlatformTenants(),
+    staleTime: STALE_TIME,
+    enabled: canView,
+  })
+}
+
+export function useConsoleTenants() {
+  const canView = usePermission('tenant.view')
+  return useQuery({
+    queryKey: ['console-platform-tenants'],
+    queryFn: () => tenantService.getConsolePlatformTenants(),
     staleTime: STALE_TIME,
     enabled: canView,
   })

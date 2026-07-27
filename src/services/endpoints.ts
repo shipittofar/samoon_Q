@@ -115,6 +115,7 @@ export const ENDPOINTS = {
     DETAIL_BY_ID: (tenantId: string) => `/tenants/${tenantId}/`,
     CURRENT: '/tenants/current/',
     LIST: '/tenants/',
+    CONSOLE_LIST: '/tenants/console-tenants/',
     PROVISION: '/tenants/provision/',
     CLONE: '/tenants/clone/',
     ACTIVATE: (tenantId: string) => `/tenants/${tenantId}/activate/`,
