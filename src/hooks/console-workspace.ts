@@ -213,9 +213,11 @@ export function useConsoleWorkspace() {
 
 export function useConsoleTenantId(): string | undefined {
   const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
-  if (!activeTenantId) return undefined
   const tenantId = useTenantStore((s) => s.tenant?.id)
-  return tenantId === activeTenantId ? tenantId : activeTenantId
+
+  return activeTenantId
+    ? (tenantId === activeTenantId ? tenantId : activeTenantId)
+    : undefined
 }
 
 export function useConsoleBranchId(): string | undefined {
