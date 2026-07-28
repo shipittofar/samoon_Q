@@ -44,7 +44,7 @@ import {
 import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
-import { membershipBranchesToBranches, resolveConsoleDefaultBranch } from '@/lib/console-workspace'
+import { membershipBranchesToBranches, resolveConsoleActiveBranch } from '@/lib/console-workspace'
 import {
   resolvePublicTenantId,
   type ResolvePublicTenantOptions,
@@ -455,11 +455,9 @@ export const useTenantStore = create<TenantState>()(
 //                    `selectedBranch` only answers "which branch, if any".
 //
 //   There is no `branches[0]`/first-branch-wins logic anywhere in this
-//   store. A branch only becomes `selectedBranch` by: (a) explicit user
-//   selection (`selectBranch`), or (b) a persisted branch id that
-//   validates against a freshly-fetched branch list. An invalid or
-//   missing persisted id resolves to `branchState = 'empty'`, never a
-//   silent substitution.
+//   store. A branch only becomes `selectedBranch` when
+//   activeMembership.branchId from GET /auth/me matches a loaded branch,
+//   or via explicit user selection (`selectBranch`) after a backend switch.
 interface BranchState {
   /** Public-facing branch (Location alias) used by the customer-facing header/BranchSelector. */
   activeBranch: Branch | null
@@ -469,7 +467,7 @@ interface BranchState {
   selectedBranch: AdminBranch | null
   /** Deterministic branch lifecycle state (BranchResolutionState) — the single source of branch-resolution truth. */
   branchState: BranchResolutionState
-  /** The last selected branch's id, persisted across reloads. Used ONLY as an unverified hint to validate against a fresh fetch in loadBranchesForTenant() — never trusted directly, never rendered, never a substitute for `selectedBranch`. */
+  /** Mirrors GET /auth/me activeMembership.branchId after bootstrap — not used to pick the active branch on reload. */
   selectedBranchId: string | null
   /** The full branch list for the active tenant, as last fetched by loadBranchesForTenant(). Array position carries no meaning — never index into this for selection. NOT persisted. */
   branches: AdminBranch[]
@@ -521,8 +519,8 @@ export const useBranchStore = create<BranchState>()(
         set({ branchState: 'loading' })
         try {
           const branches = await branchManagementService.getTenantsBranches(tenantId)
-          const persistedId = get().selectedBranchId
-          const selected = resolveConsoleDefaultBranch(branches, persistedId)
+          const activeBranchId = useRbacStore.getState().activeMembership?.branchId
+          const selected = resolveConsoleActiveBranch(branches, activeBranchId)
           if (selected) {
             set({
               branches,
@@ -532,7 +530,7 @@ export const useBranchStore = create<BranchState>()(
               adminActiveBranch: selected,
             })
           } else {
-            set({ branches, selectedBranch: null, branchState: 'empty', adminActiveBranch: null })
+            set({ branches, selectedBranch: null, selectedBranchId: null, branchState: 'empty', adminActiveBranch: null })
           }
         } catch (err) {
           captureException(err, { context: 'useBranchStore.loadBranchesForTenant', tenantId })
@@ -543,8 +541,8 @@ export const useBranchStore = create<BranchState>()(
         set({ branchState: 'loading' })
         try {
           const branches = membershipBranchesToBranches(membershipBranches, tenantId)
-          const persistedId = get().selectedBranchId
-          const selected = resolveConsoleDefaultBranch(branches, persistedId, { respectMembershipDefault: true })
+          const activeBranchId = useRbacStore.getState().activeMembership?.branchId
+          const selected = resolveConsoleActiveBranch(branches, activeBranchId)
           if (selected) {
             set({
               branches,
@@ -554,7 +552,7 @@ export const useBranchStore = create<BranchState>()(
               adminActiveBranch: selected,
             })
           } else {
-            set({ branches, selectedBranch: null, branchState: 'empty', adminActiveBranch: null })
+            set({ branches, selectedBranch: null, selectedBranchId: null, branchState: 'empty', adminActiveBranch: null })
           }
         } catch (err) {
           captureException(err, { context: 'useBranchStore.loadBranchesFromMembership', tenantId })
@@ -579,15 +577,14 @@ export const useBranchStore = create<BranchState>()(
     }),
     {
       name: BRANCH_KEY,
-      version: 2,
-      // Phase 3 — only the branch id survives a reload. The full Branch
-      // object (name, slug, status, settings, ...) is never persisted; it
-      // is always re-fetched and re-validated by loadBranchesForTenant().
+      version: 3,
+      // Console active branch is restored from GET /auth/me activeMembership.branchId —
+      // never from a persisted selectedBranchId. Only the public storefront activeBranch
+      // survives a reload.
       partialize: (state) => ({
         activeBranch: state.activeBranch,
-        selectedBranchId: state.selectedBranchId,
       }),
-      migrate: () => ({ activeBranch: null, selectedBranchId: null }),
+      migrate: () => ({ activeBranch: null }),
     },
   ),
 )
@@ -806,11 +803,11 @@ interface RbacStoreState {
    * as `currentTenantSession`.
    */
   sessionMemberships: import('@/types/rbac').TenantMembership[] | null
-  /** Pointer half of GET /auth/me's `activeMembership` — which tenantId is active. */
-  activeMembership: Pick<import('@/types/rbac').TenantMembership, 'tenantId'> | null
+  /** Pointer half of GET /auth/me's `activeMembership` — active tenant/branch ids. */
+  activeMembership: Pick<import('@/types/rbac').TenantMembership, 'tenantId' | 'branchId'> | null
   setSessionMemberships: (
     memberships: import('@/types/rbac').TenantMembership[] | null,
-    activeMembership?: Pick<import('@/types/rbac').TenantMembership, 'tenantId'> | null,
+    activeMembership?: Pick<import('@/types/rbac').TenantMembership, 'tenantId' | 'branchId'> | null,
   ) => void
 
   _resetStore: () => void

@@ -23,11 +23,10 @@ import { ChevronDown, Building2, GitBranch, Check, Loader2, AlertCircle } from '
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { useRbacStore } from '@/stores'
-import { BRANCH_SCOPED_QUERY_KEYS, useBranchState, useRetryLoadBranches } from '@/hooks'
-import { useConsoleWorkspace } from '@/hooks/console-workspace'
+import { useBranchState, useRetryLoadBranches } from '@/hooks'
+import { useConsoleWorkspace, useConsoleBranchSwitch } from '@/hooks/console-workspace'
 import { canAccessBranch } from '@/services/permission.service'
 import type { Branch as AdminBranch } from '@/types/branch'
-import { useQueryClient } from '@tanstack/react-query'
 
 export function AdminBranchSwitcher() {
   const t = useTranslations('console')
@@ -38,11 +37,10 @@ export function AdminBranchSwitcher() {
     availableBranches,
     branchesSource,
     branchLoading,
-    switchBranch,
   } = useConsoleWorkspace()
+  const { switchBranch, switchingToBranchId, switching } = useConsoleBranchSwitch()
   const branchState = useBranchState()
   const retryLoadBranches = useRetryLoadBranches()
-  const qc = useQueryClient()
 
   // When branches come from /auth/me membership.branches the list is already
   // authoritative; canAccessBranch() still applies branchAccess.branchIds for
@@ -59,6 +57,8 @@ export function AdminBranchSwitcher() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
+  const pending = switching || branchLoading
+
   // Close on outside click
   useEffect(() => {
     function handle(e: MouseEvent) {
@@ -68,16 +68,17 @@ export function AdminBranchSwitcher() {
     return () => document.removeEventListener('mousedown', handle)
   }, [])
 
-  function select(branch: AdminBranch) {
-    if (branch.id === selectedBranch?.id) { setOpen(false); return }
-    switchBranch(branch.id)
-    setOpen(false)
-    for (const key of BRANCH_SCOPED_QUERY_KEYS) {
-      qc.invalidateQueries({ queryKey: [key] })
+  async function select(branch: AdminBranch) {
+    if (pending) return
+    if (branch.id === selectedBranch?.id) {
+      setOpen(false)
+      return
     }
+    setOpen(false)
+    await switchBranch(branch.id)
   }
 
-  const isLoading = branchLoading || branchState === 'loading'
+  const isLoading = pending || branchState === 'loading'
   const isError = branchState === 'error'
   const isEmpty = branchState === 'empty'
 
@@ -94,8 +95,8 @@ export function AdminBranchSwitcher() {
       {/* Branch dropdown trigger */}
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        disabled={isLoading || accessibleBranches.length === 0}
+        onClick={() => !pending && setOpen((o) => !o)}
+        disabled={pending || accessibleBranches.length === 0}
         className={cn(
           'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors',
           'border border-[var(--border)] bg-[var(--card)] text-[var(--fg)]',
@@ -163,15 +164,17 @@ export function AdminBranchSwitcher() {
           ) : (
             accessibleBranches.map((branch) => {
               const isActive = branch.id === selectedBranch?.id
+              const isPending = branch.id === switchingToBranchId
               return (
                 <button
                   key={branch.id}
                   type="button"
                   role="option"
                   aria-selected={isActive}
-                  onClick={() => select(branch)}
+                  disabled={pending}
+                  onClick={() => void select(branch)}
                   className={cn(
-                    'w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors',
+                    'w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
                     isActive
                       ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400'
                       : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
@@ -190,7 +193,11 @@ export function AdminBranchSwitcher() {
                         branch.status === 'active' ? 'bg-green-500' : branch.status === 'maintenance' ? 'bg-amber-500' : 'bg-gray-400',
                       )}
                     />
-                    {isActive && <Check className="h-3.5 w-3.5 text-orange-500" />}
+                    {isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                    ) : isActive ? (
+                      <Check className="h-3.5 w-3.5 text-orange-500" />
+                    ) : null}
                   </div>
                 </button>
               )

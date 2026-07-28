@@ -200,6 +200,8 @@ export interface TenantMembership {
   tenantName?: string
   roles: Role[]
   branchAccess: BranchAccessInput
+  /** Active branch pointer from GET /auth/me `activeMembership` after switch-branch. */
+  branchId?: string
   /** Branches available to this membership — Console source of truth when non-empty. */
   branches?: MembershipBranch[]
   status?: 'active' | 'suspended' | 'revoked'

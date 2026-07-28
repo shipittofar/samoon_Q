@@ -23,6 +23,7 @@ import { AdminTenantSwitcher } from '@/components/admin/AdminTenantSwitcher'
 import { AdminBranchSwitcher } from '@/components/admin/AdminBranchSwitcher'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { authService } from '@/services/auth.service'
+import { invalidateConsoleWorkspaceQueries } from '@/hooks/console-workspace'
 import type { Branch as AdminBranch } from '@/types/branch'
 
 const mockReplace = vi.fn()
@@ -227,6 +228,16 @@ describe('Phase X.3 — branch switch invalidates every branch-scoped cache, inc
       qc.setQueryData([key, 'branch-1'], { seeded: true })
     }
     const invalidateSpy = vi.spyOn(qc, 'invalidateQueries')
+    window.addEventListener('console:branch-changed', () => {
+      invalidateConsoleWorkspaceQueries(qc, 'branch')
+    })
+
+    vi.spyOn(authService, 'switchActiveBranch').mockResolvedValue(undefined)
+    vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: { id: 'u1', email: 'a@b.com', first_name: 'A', last_name: 'B', accountType: 'business', is_verified: true, created_at: '' },
+      memberships: [{ tenantId: 'tenant-1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      activeMembership: { tenantId: 'tenant-1', branchId: 'branch-2' },
+    } as never)
 
     const user = userEvent.setup()
     render(
@@ -240,9 +251,11 @@ describe('Phase X.3 — branch switch invalidates every branch-scoped cache, inc
     await user.click(screen.getAllByRole('button')[0])
     await user.click(await screen.findByText('Branch Two'))
 
-    const invalidatedKeys = invalidateSpy.mock.calls.map((c) => (c[0] as { queryKey: string[] }).queryKey[0])
-    for (const key of BRANCH_SCOPED_QUERY_KEYS) {
-      expect(invalidatedKeys).toContain(key)
-    }
+    await waitFor(() => {
+      const invalidatedKeys = invalidateSpy.mock.calls.map((c) => (c[0] as { queryKey: string[] }).queryKey[0])
+      for (const key of BRANCH_SCOPED_QUERY_KEYS) {
+        expect(invalidatedKeys).toContain(key)
+      }
+    })
   })
 })

@@ -3,12 +3,14 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import {
   membershipBranchToBranch,
   resolveConsoleActiveTenantId,
+  resolveConsoleActiveBranch,
   resolveConsoleDefaultBranch,
 } from '@/lib/console-workspace'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
-import { useRbacStore, useTenantStore } from '@/stores'
+import { useRbacStore, useTenantStore, useBranchStore } from '@/stores'
 import { authService } from '@/services/auth.service'
-import { requestConsoleTenantSwitch, useConsoleTenantSwitch } from '@/hooks/console-workspace'
+import { ENDPOINTS } from '@/services/endpoints'
+import { requestConsoleTenantSwitch, useConsoleTenantSwitch, requestConsoleBranchSwitch, useConsoleBranchSwitch } from '@/hooks/console-workspace'
 import type { TenantMembership } from '@/types/rbac'
 import type { Branch } from '@/types/branch'
 
@@ -61,25 +63,28 @@ describe('resolveConsoleActiveTenantId', () => {
   })
 })
 
-describe('resolveConsoleDefaultBranch', () => {
-  it('auto-selects the only branch', () => {
-    const branches = [branch('one')]
-    expect(resolveConsoleDefaultBranch(branches, null)?.id).toBe('one')
+describe('resolveConsoleActiveBranch', () => {
+  it('returns null when activeMembership.branchId is absent', () => {
+    const branches = [branch('one'), branch('two')]
+    expect(resolveConsoleActiveBranch(branches, null)).toBeNull()
   })
 
-  it('keeps persisted branch when valid', () => {
+  it('returns the branch matching activeMembership.branchId', () => {
+    const branches = [branch('a'), branch('b')]
+    expect(resolveConsoleActiveBranch(branches, 'b')?.id).toBe('b')
+  })
+
+  it('returns null when activeMembership.branchId is not in the branch list', () => {
+    const branches = [branch('a'), branch('b')]
+    expect(resolveConsoleActiveBranch(branches, 'missing')).toBeNull()
+  })
+})
+
+describe('resolveConsoleDefaultBranch', () => {
+  it('delegates to resolveConsoleActiveBranch', () => {
     const branches = [branch('a'), branch('b')]
     expect(resolveConsoleDefaultBranch(branches, 'b')?.id).toBe('b')
-  })
-
-  it('falls back to first branch when persisted id is invalid (API path)', () => {
-    const branches = [branch('a'), branch('b')]
-    expect(resolveConsoleDefaultBranch(branches, 'missing')?.id).toBe('a')
-  })
-
-  it('prefers isDefault branch for membership source', () => {
-    const branches = [branch('a'), branch('b', true), branch('c')]
-    expect(resolveConsoleDefaultBranch(branches, null, { respectMembershipDefault: true })?.id).toBe('b')
+    expect(resolveConsoleDefaultBranch(branches, null)).toBeNull()
   })
 })
 
@@ -250,6 +255,176 @@ describe('useConsoleTenantSwitch', () => {
 
     await waitFor(() => {
       expect(result.current.switchingToTenantId).toBeNull()
+    })
+
+    switchSpy.mockRestore()
+  })
+})
+
+describe('requestConsoleBranchSwitch', () => {
+  it('SWITCH_BRANCH endpoint is defined for switchActiveBranch', () => {
+    expect(ENDPOINTS.AUTH.SWITCH_BRANCH).toBe('/authorization/switch-branch/')
+  })
+
+  beforeEach(() => {
+    useRbacStore.getState()._resetStore()
+    useConsoleWorkspaceStore.getState().resetWorkspace()
+    useBranchStore.getState().resetBranchResolution()
+  })
+
+  it('calls switchActiveBranch then refreshes /auth/me without mutating selectedBranch locally first', async () => {
+    const branches = [branch('branch-a'), branch('branch-b')]
+    useBranchStore.setState({
+      branches,
+      selectedBranch: branches[0],
+      selectedBranchId: 'branch-a',
+      branchState: 'ready',
+    } as never)
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: 't1' },
+    )
+
+    const switchSpy = vi.spyOn(authService, 'switchActiveBranch').mockResolvedValue(undefined)
+    const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: { id: 'u1', email: 'a@b.com', first_name: 'A', last_name: 'B', accountType: 'business', is_verified: true, created_at: '' },
+      memberships: [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      activeMembership: { tenantId: 't1', branchId: 'branch-b' },
+    } as never)
+
+    await requestConsoleBranchSwitch('branch-b')
+
+    expect(switchSpy).toHaveBeenCalledWith({ branchId: 'branch-b' })
+    expect(getMeSpy).toHaveBeenCalled()
+    expect(useBranchStore.getState().selectedBranch?.id).toBe('branch-b')
+    expect(useRbacStore.getState().activeMembership?.branchId).toBe('branch-b')
+
+    switchSpy.mockRestore()
+    getMeSpy.mockRestore()
+  })
+
+  it('skips the API when selecting the already-active branch', async () => {
+    const branches = [branch('branch-a'), branch('branch-b')]
+    useBranchStore.setState({
+      branches,
+      selectedBranch: branches[0],
+      selectedBranchId: 'branch-a',
+      branchState: 'ready',
+    } as never)
+
+    const switchSpy = vi.spyOn(authService, 'switchActiveBranch')
+    const getMeSpy = vi.spyOn(authService, 'getMe')
+
+    await requestConsoleBranchSwitch('branch-a')
+
+    expect(switchSpy).not.toHaveBeenCalled()
+    expect(getMeSpy).not.toHaveBeenCalled()
+
+    switchSpy.mockRestore()
+    getMeSpy.mockRestore()
+  })
+
+  it('leaves selectedBranch unchanged when switchActiveBranch fails', async () => {
+    const branches = [branch('branch-a'), branch('branch-b')]
+    useBranchStore.setState({
+      branches,
+      selectedBranch: branches[0],
+      selectedBranchId: 'branch-a',
+      branchState: 'ready',
+    } as never)
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: 't1' },
+    )
+
+    const switchSpy = vi.spyOn(authService, 'switchActiveBranch').mockRejectedValue(new Error('switch failed'))
+    const getMeSpy = vi.spyOn(authService, 'getMe')
+
+    await expect(requestConsoleBranchSwitch('branch-b')).rejects.toThrow('switch failed')
+
+    expect(useBranchStore.getState().selectedBranch?.id).toBe('branch-a')
+    expect(getMeSpy).not.toHaveBeenCalled()
+
+    switchSpy.mockRestore()
+    getMeSpy.mockRestore()
+  })
+})
+
+describe('useConsoleBranchSwitch', () => {
+  beforeEach(() => {
+    useRbacStore.getState()._resetStore()
+    useConsoleWorkspaceStore.getState().resetWorkspace()
+    useBranchStore.getState().resetBranchResolution()
+  })
+
+  it('clears switchingToBranchId after switch failure so retry is possible', async () => {
+    const branches = [branch('branch-a'), branch('branch-b')]
+    useBranchStore.setState({
+      branches,
+      selectedBranch: branches[0],
+      selectedBranchId: 'branch-a',
+      branchState: 'ready',
+    } as never)
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: 't1' },
+    )
+
+    vi.spyOn(authService, 'switchActiveBranch').mockRejectedValue(new Error('switch failed'))
+
+    const { result } = renderHook(() => useConsoleBranchSwitch())
+
+    await act(async () => {
+      await expect(result.current.switchBranch('branch-b')).rejects.toThrow('switch failed')
+    })
+
+    expect(result.current.switchingToBranchId).toBeNull()
+    expect(result.current.switching).toBe(false)
+  })
+
+  it('ignores concurrent switch requests', async () => {
+    const branches = [branch('branch-a'), branch('branch-b'), branch('branch-c')]
+    useBranchStore.setState({
+      branches,
+      selectedBranch: branches[0],
+      selectedBranchId: 'branch-a',
+      branchState: 'ready',
+    } as never)
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: 't1' },
+    )
+
+    let resolveSwitch: (() => void) | undefined
+    const switchSpy = vi.spyOn(authService, 'switchActiveBranch').mockImplementation(
+      () => new Promise<void>((resolve) => { resolveSwitch = resolve }),
+    )
+    vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: { id: 'u1', email: 'a@b.com', first_name: 'A', last_name: 'B', accountType: 'business', is_verified: true, created_at: '' },
+      memberships: [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      activeMembership: { tenantId: 't1', branchId: 'branch-b' },
+    } as never)
+
+    const { result } = renderHook(() => useConsoleBranchSwitch())
+
+    let first: Promise<void> | undefined
+    let second: Promise<void> | undefined
+    await act(async () => {
+      first = result.current.switchBranch('branch-b')
+      second = result.current.switchBranch('branch-c')
+    })
+
+    expect(switchSpy).toHaveBeenCalledTimes(1)
+    expect(switchSpy).toHaveBeenCalledWith({ branchId: 'branch-b' })
+
+    await act(async () => {
+      resolveSwitch?.()
+      await first
+      await second
+    })
+
+    await waitFor(() => {
+      expect(result.current.switchingToBranchId).toBeNull()
     })
 
     switchSpy.mockRestore()

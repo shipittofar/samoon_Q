@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { TenantMembership } from '@/types/rbac'
 import type { Branch } from '@/types/branch'
-import { hasMembershipBranches, membershipLabel, resolveConsoleActiveTenantId, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId } from '@/lib/console-workspace'
+import { hasMembershipBranches, membershipLabel, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId } from '@/lib/console-workspace'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useTenantStore } from '@/stores/index'
@@ -114,6 +114,12 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
 
         const currentTenantId = useTenantStore.getState().tenant?.id
         if (currentTenantId === targetTenantId && useTenantStore.getState().tenantState === 'resolved') {
+          const membership = memberships.find((m) => m.tenantId === targetTenantId)
+          if (hasMembershipBranches(membership)) {
+            await useBranchStore.getState().loadBranchesFromMembership(targetTenantId, membership.branches)
+          } else {
+            await useBranchStore.getState().loadBranchesForTenant(targetTenantId)
+          }
           set({ selectedTenantId: targetTenantId, workspacePhase: 'ready', _bootstrapped: true })
           return
         }
@@ -222,4 +228,4 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
   ),
 )
 
-export { membershipLabel, resolveConsoleActiveTenantId, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId }
+export { membershipLabel, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId }

@@ -261,53 +261,56 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
  * - tenantState !== 'resolved' (loading/not_found/forbidden/error) →
  *   resetBranchResolution() — no stale branch/branchState from a
  *   previous tenant survives into an unresolved or failed context.
- * - tenantState === 'resolved' → loadBranchesForTenant(tenant.id), which
- *   itself never falls back to branches[0] (see stores/index.ts).
+ * - tenantState === 'resolved' → load branches, then select only the branch
+ *   whose id matches GET /auth/me activeMembership.branchId.
  */
 function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const tenant = useTenantStore((s) => s.tenant)
   const tenantState = useTenantStore((s) => s.tenantState)
-  // Tracks the last tenant id this bootstrapper actually loaded branches
-  // for — `undefined` means "nothing loaded yet this session" (the
-  // refresh-with-persisted-branch case, where the persisted
-  // selectedBranchId must be validated as-is). Any OTHER previous value
-  // means a genuine tenant switch happened, so the previous tenant's
-  // selectedBranchId must be cleared first — it must never be validated
-  // against a different tenant's branch list.
-  const lastLoadedTenantId = useRef<string | null | undefined>(undefined)
+  const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
+  const activeMembership = useRbacStore((s) => s.activeMembership)
+  const activeBranchId = activeMembership?.branchId
+  // Tracks the last tenant + active branch pointer this bootstrapper loaded
+  // for — re-run when either changes so GET /auth/me always wins over any
+  // stale in-memory branch state from an earlier bootstrap pass.
+  const lastLoadedKey = useRef<string | null>(null)
 
   useEffect(() => {
     if (tenantState !== 'resolved' || !tenant) {
-      if (lastLoadedTenantId.current !== null) {
-        lastLoadedTenantId.current = null
+      if (lastLoadedKey.current !== null) {
+        lastLoadedKey.current = null
         useBranchStore.getState().resetBranchResolution()
       }
       return
     }
-    if (lastLoadedTenantId.current === tenant.id) return
-    const isGenuineTenantSwitch = lastLoadedTenantId.current !== undefined && lastLoadedTenantId.current !== null
-    lastLoadedTenantId.current = tenant.id
+    if (sessionMemberships === null) return
+
+    const activeTenantId = activeMembership?.tenantId
+    const loadKey = `${tenant.id}:${activeBranchId ?? ''}`
+    if (lastLoadedKey.current === loadKey) return
+
+    const previousKey = lastLoadedKey.current
+    lastLoadedKey.current = loadKey
+
+    const previousTenantId = previousKey?.split(':')[0]
+    const isGenuineTenantSwitch = previousTenantId !== undefined && previousTenantId !== tenant.id
     if (isGenuineTenantSwitch) {
-      // Clear the previous tenant's branch id before loading — it must
-      // never leak into, or be validated against, the new tenant's
-      // branch list. On first-ever resolution (page load/refresh) this
-      // is skipped so the persisted id gets its one legitimate validation.
       useBranchStore.getState().resetBranchResolution()
     }
+
     void (() => {
       const isConsole = pathname?.startsWith('/console')
       if (isConsole) {
-        const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
         if (!activeTenantId || tenant.id !== activeTenantId) return
-        const membership = useRbacStore.getState().sessionMemberships?.find((m) => m.tenantId === tenant.id)
+        const membership = sessionMemberships.find((m) => m.tenantId === tenant.id)
         if (hasMembershipBranches(membership)) {
           return useBranchStore.getState().loadBranchesFromMembership(tenant.id, membership.branches)
         }
       }
       return useBranchStore.getState().loadBranchesForTenant(tenant.id)
     })()
-  }, [tenant, tenantState, pathname])
+  }, [tenant, tenantState, pathname, sessionMemberships, activeMembership, activeBranchId])
 
   return <>{children}</>
 }

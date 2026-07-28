@@ -52,36 +52,27 @@ export function membershipBranchesToBranches(
 }
 
 /**
- * Picks the branch the Console workspace should activate.
+ * Resolves the Console active branch — ONLY from activeMembership.branchId.
  *
- * Membership source (respectMembershipDefault):
- *   1. persisted id when still in list
- *   2. branch with isDefault === true
- *   3. first branch
- *
- * API fallback (default):
- *   1. persisted id when still in list
- *   2. first branch (or sole branch auto-select)
+ * Returns null when branchId is missing or not in the loaded branch list.
+ * Does not fall back to persisted ids, isDefault, or array position.
+ */
+export function resolveConsoleActiveBranch(
+  branches: readonly Branch[],
+  activeBranchId: string | null | undefined,
+): Branch | null {
+  if (!activeBranchId) return null
+  return branches.find((b) => b.id === activeBranchId) ?? null
+}
+
+/**
+ * @deprecated Use resolveConsoleActiveBranch — kept for import stability during migration.
  */
 export function resolveConsoleDefaultBranch(
   branches: readonly Branch[],
-  persistedBranchId: string | null | undefined,
-  options?: { respectMembershipDefault?: boolean },
+  activeBranchId: string | null | undefined,
 ): Branch | null {
-  if (branches.length === 0) return null
-  if (branches.length === 1) return branches[0]!
-
-  if (persistedBranchId) {
-    const match = branches.find((b) => b.id === persistedBranchId)
-    if (match) return match
-  }
-
-  if (options?.respectMembershipDefault) {
-    const defaultBranch = branches.find((b) => b.isDefault === true)
-    if (defaultBranch) return defaultBranch
-  }
-
-  return branches[0]!
+  return resolveConsoleActiveBranch(branches, activeBranchId)
 }
 
 export function membershipLabel(membership: TenantMembership): string {

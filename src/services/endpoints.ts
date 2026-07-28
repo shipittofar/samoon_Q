@@ -11,6 +11,7 @@ export const ENDPOINTS = {
     VERIFY_OTP: '/auth/verify-otp/',
     SEND_OTP: '/auth/send-otp/',
     SWITCH_TENANT: '/authorization/switch-tenant/',
+    SWITCH_BRANCH: '/authorization/switch-branch/',
     CHANGE_PASSWORD: '/auth/change-password/',
     VERIFY_EMAIL_REQUEST: '/auth/verify-email/request/',
     VERIFY_EMAIL_CONFIRM: '/auth/verify-email/confirm/',

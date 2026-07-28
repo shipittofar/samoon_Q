@@ -111,6 +111,7 @@ function demoLoginEnabled(): boolean {
 
 export const MOCK_SESSION_KEY = 'mock_session_email'
 export const MOCK_ACTIVE_TENANT_KEY = 'mock_active_tenant_id'
+export const MOCK_ACTIVE_BRANCH_KEY = 'mock_active_branch_id'
 export const MOCK_SESSION_MEMBERSHIPS_KEY = 'mock_session_memberships'
 
 // Structurally valid JWTs (header.payload.signature) with exp=9999999999 (year 2286).
@@ -284,6 +285,7 @@ export const authService = {
       if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(MOCK_SESSION_KEY)
         localStorage.removeItem(MOCK_ACTIVE_TENANT_KEY)
+        localStorage.removeItem(MOCK_ACTIVE_BRANCH_KEY)
         localStorage.removeItem(MOCK_SESSION_MEMBERSHIPS_KEY)
       }
     }
@@ -316,12 +318,22 @@ export const authService = {
               ? (JSON.parse(cachedMembershipsRaw) as TenantMembership[])
               : session.memberships
           const pendingActiveTenantId = localStorage.getItem(MOCK_ACTIVE_TENANT_KEY)
+          const pendingActiveBranchId = localStorage.getItem(MOCK_ACTIVE_BRANCH_KEY)
           const activeMembership = pendingActiveTenantId
           ? memberships.find(
               (membership) => membership.tenantId === pendingActiveTenantId,
             ) ?? session.activeMembership
           : session.activeMembership
-          const response: GetMeResponse = { user: entry.user, memberships, activeMembership }
+          const response: GetMeResponse = {
+            user: entry.user,
+            memberships,
+            activeMembership: activeMembership
+              ? {
+                  ...activeMembership,
+                  ...(pendingActiveBranchId ? { branchId: pendingActiveBranchId } : {}),
+                }
+              : activeMembership,
+          }
           if (memberships.length > 0) {
             localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify(memberships))
           }
@@ -351,6 +363,23 @@ export const authService = {
     }
     await api.post(ENDPOINTS.AUTH.SWITCH_TENANT, {
       tenantId: params.tenantId,
+    })
+  },
+
+  /**
+   * Switches the server-side active branch (mirror of switchActiveTenant).
+   * The frontend must follow with GET /auth/me via refreshConsoleBranchSession().
+   */
+  async switchActiveBranch(params: { branchId: string }): Promise<void> {
+    if (mockActive()) {
+      await delay(MOCK_DELAY)
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(MOCK_ACTIVE_BRANCH_KEY, params.branchId)
+      }
+      return
+    }
+    await api.post(ENDPOINTS.AUTH.SWITCH_BRANCH, {
+      branchId: params.branchId,
     })
   },
 
