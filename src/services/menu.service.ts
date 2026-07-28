@@ -246,7 +246,36 @@ export const menuService = {
       }
       return newItem
     }
-    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.ITEMS, scopedPayload)
+    const { data } = await api.post<MenuItem>(ENDPOINTS.MENU.ITEMS, scopedPayload)
+    return data
+  },
+
+  async consoleCreateItem(branchId: string, payload: Partial<MenuItem>): Promise<MenuItem> {
+    const scopedPayload = { ...payload, branch_id: branchId }
+    if (USE_MOCK) {
+      await delay(800)
+      const newItem: MenuItem = {
+        id: `item-${Date.now()}`,
+        branch_id: branchId,
+        name: payload.name ?? 'New Item',
+        slug: payload.slug ?? `new-item-${Date.now()}`,
+        description: payload.description ?? '',
+        price: payload.price ?? 0,
+        image: payload.image ?? '',
+        category_id: payload.category_id ?? '',
+        available: payload.available ?? true,
+        rating: 0,
+        rating_count: 0,
+        preparation_time: payload.preparation_time ?? 15,
+        is_featured: payload.is_featured ?? false,
+        is_popular: payload.is_popular ?? false,
+        tags: payload.tags ?? [],
+        extras: payload.extras ?? [],
+        ...payload,
+      }
+      return newItem
+    }
+    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.CONSOLE_CREATE_ITEMS, scopedPayload)
     return normalizeMenuItem(data)
   },
 
@@ -256,10 +285,10 @@ export const menuService = {
       const existing = mockItems(branchId).find((i) => i.id === id)
       return { ...(existing as MenuItem), ...payload, id, branch_id: branchId }
     }
-    const { data } = await api.patch<MenuItemWire>(ENDPOINTS.MENU.ITEM(id), payload, {
+    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(id), payload, {
       params: { branch_id: branchId },
     })
-    return normalizeMenuItem(data)
+    return data
   },
 
   async deleteItem(branchId: string, id: string): Promise<void> {
@@ -435,10 +464,10 @@ export const menuService = {
       const all = mockExtras(branchId)
       return groupId ? all.filter((e) => e.group_id === groupId) : all
     }
-    const { data } = await api.get<ExtraWire[]>(ENDPOINTS.MENU.EXTRAS, {
+    const { data } = await api.get<Extra[]>(ENDPOINTS.MENU.EXTRAS, {
       params: { branch_id: branchId, group_id: groupId },
     })
-    return normalizeExtras(data)
+    return data
   },
 
   async createExtra(branchId: string, payload: Partial<Extra> & { group_id: string }): Promise<Extra> {
@@ -460,8 +489,8 @@ export const menuService = {
       }
       return newExtra
     }
-    const { data } = await api.post<ExtraWire>(ENDPOINTS.MENU.EXTRAS, scopedPayload)
-    return normalizeExtra(data)
+    const { data } = await api.post<Extra>(ENDPOINTS.MENU.EXTRAS, scopedPayload)
+    return data
   },
 
   async updateExtra(branchId: string, id: string, payload: Partial<Extra>): Promise<Extra> {
@@ -470,10 +499,10 @@ export const menuService = {
       const existing = mockExtras(branchId).find((e) => e.id === id)
       return { ...(existing as Extra), ...payload, id, branch_id: branchId }
     }
-    const { data } = await api.patch<ExtraWire>(ENDPOINTS.MENU.EXTRA(id), payload, {
+    const { data } = await api.patch<Extra>(ENDPOINTS.MENU.EXTRA(id), payload, {
       params: { branch_id: branchId },
     })
-    return normalizeExtra(data)
+    return data
   },
 
   async deleteExtra(branchId: string, id: string): Promise<void> {
@@ -506,9 +535,9 @@ export const menuService = {
         extras: materializedExtras,
       }
     }
-    const { data } = await api.patch<MenuItemWire>(ENDPOINTS.MENU.ITEM(itemId), { extra_group_ids: groupIds }, {
+    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(itemId), { extra_group_ids: groupIds }, {
       params: { branch_id: branchId },
     })
-    return normalizeMenuItem(data)
+    return data
   },
 }

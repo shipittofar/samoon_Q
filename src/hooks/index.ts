@@ -2304,6 +2304,19 @@ export function useCreateMenuItem(branchId: string) {
   })
 }
 
+export function useConsoleCreateMenuItem(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: Partial<MenuItem>) => menuService.consoleCreateItem(branchId, payload),
+    onSuccess: () => {
+      // Scoped invalidation: only the active branch's cached menu-items/categories
+      // are refetched — other branches' cached queries are left untouched.
+      invalidateBranchMenuItemsQueries(qc, branchId)
+      qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
+    },
+  })
+}
+
 export function useUpdateMenuItem(branchId: string) {
   const qc = useQueryClient()
   return useMutation({

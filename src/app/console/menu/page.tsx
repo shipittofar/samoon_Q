@@ -15,7 +15,7 @@ import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
 import { getTotalPages } from '@/utils/pagination'
 import { applyConsoleMenuClientFilters } from '@/lib/console-menu-client-filters'
-import { useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
+import { useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useConsoleCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
 import type { MenuItem } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
@@ -121,7 +121,8 @@ export default function AdminMenuPage() {
   const { data: categories, isLoading: catsLoading } = useConsoleCategories(adminBranchId)
   const { data: extraGroups } = useConsoleExtraGroups(adminBranchId)
 
-  const createMutation = useCreateMenuItem(adminBranchId ?? '')
+  // const createMutation = useCreateMenuItem(adminBranchId ?? '')
+  const createMutation = useConsoleCreateMenuItem(adminBranchId ?? '')
   const updateMutation = useUpdateMenuItem(adminBranchId ?? '')
   const deleteMutation = useDeleteMenuItem(adminBranchId ?? '')
   const assignGroupsMutation = useAssignExtraGroupsToItem(adminBranchId ?? '')
