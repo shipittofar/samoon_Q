@@ -32,6 +32,8 @@ export function Modal({
   className, closeOnOverlay = true, showClose = true,
 }: ModalProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!open) return
@@ -46,11 +48,11 @@ export function Modal({
         (el) => el.offsetParent !== null,
       )
 
-    // Defer first focus until after the entrance animation frame
+    // Defer first focus until after the entrance animation frame — once per open only.
     const frameId = requestAnimationFrame(() => getFocusable()[0]?.focus())
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return }
+      if (e.key === 'Escape') { onCloseRef.current(); return }
       if (e.key !== 'Tab') return
       const focusable = getFocusable()
       if (focusable.length === 0) return
@@ -72,7 +74,7 @@ export function Modal({
       document.body.style.overflow = ''
       previousFocus?.focus()
     }
-  }, [open, onClose])
+  }, [open])
 
   return (
     <AnimatePresence>
