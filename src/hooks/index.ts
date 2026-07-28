@@ -85,6 +85,7 @@ import type {
   LoginCredentials,
   LoyaltyReward,
   MenuItem,
+  MenuItemWriteRequest,
   NavItem,
   Order,
   OrderStatus,
@@ -2294,7 +2295,7 @@ export function useAssignExtraGroupsToItem(branchId: string) {
 export function useCreateMenuItem(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: Partial<MenuItem>) => menuService.createItem(branchId, payload),
+    mutationFn: (payload: MenuItemWriteRequest) => menuService.createItem(branchId, payload),
     onSuccess: () => {
       // Scoped invalidation: only the active branch's cached menu-items/categories
       // are refetched — other branches' cached queries are left untouched.
@@ -2307,7 +2308,7 @@ export function useCreateMenuItem(branchId: string) {
 export function useConsoleCreateMenuItem(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: Partial<MenuItem>) => menuService.consoleCreateItem(branchId, payload),
+    mutationFn: (payload: MenuItemWriteRequest) => menuService.consoleCreateItem(branchId, payload),
     onSuccess: () => {
       // Scoped invalidation: only the active branch's cached menu-items/categories
       // are refetched — other branches' cached queries are left untouched.
@@ -2320,12 +2321,13 @@ export function useConsoleCreateMenuItem(branchId: string) {
 export function useUpdateMenuItem(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<MenuItem> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: MenuItemWriteRequest }) =>
       menuService.updateItem(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
+      const { image: _image, removeImage: _removeImage, ...optimistic } = payload
       return updateBranchMenuItemsQueries(qc, branchId, (old) => ({
         ...old,
-        results: old.results.map((i) => (i.id === id ? { ...i, ...payload } : i)),
+        results: old.results.map((i) => (i.id === id ? { ...i, ...optimistic } : i)),
       }))
     },
     onError: (_err, _vars, ctx) => {

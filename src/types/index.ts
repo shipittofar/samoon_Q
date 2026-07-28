@@ -1417,3 +1417,10 @@ export type {
   PaginatedAuditLogs,
   AuditTargetType,
 } from '@/types/audit-log'
+
+export type { MenuItemFormInput, MenuItemWriteRequest } from '@/types/menu-item'
+export {
+  menuItemFormToWriteRequest,
+  menuItemToFormInput,
+  buildMenuItemFormData,
+} from '@/types/menu-item'

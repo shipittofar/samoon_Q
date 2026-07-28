@@ -16,65 +16,18 @@ import { formatCurrency } from '@/utils'
 import { getTotalPages } from '@/utils/pagination'
 import { applyConsoleMenuClientFilters } from '@/lib/console-menu-client-filters'
 import { useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useConsoleCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
-import type { MenuItem } from '@/types'
+import type { MenuItem, MenuItemFormInput } from '@/types'
+import { menuItemFormToWriteRequest, menuItemToFormInput } from '@/types'
+import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
 
-interface MenuItemForm {
-  name: string
-  description: string
-  price: string
-  discount: string
-  calories: string
-  preparation_time: string
-  image: string
-  category_id: string
-  available: boolean
-  is_featured: boolean
-  is_popular: boolean
-  /** Extra Groups attached to this item — zero, one, or many. */
-  extra_group_ids: string[]
-}
-
-const EMPTY_FORM: MenuItemForm = {
+const EMPTY_FORM: MenuItemFormInput = {
   name: '', description: '', price: '', discount: '', calories: '',
-  preparation_time: '', image: '', category_id: '', available: true,
+  preparation_time: '', image: { ...EMPTY_IMAGE_FIELD }, category_id: '', available: true,
   is_featured: false, is_popular: false, extra_group_ids: [],
-}
-
-function itemToForm(item: MenuItem): MenuItemForm {
-  return {
-    name: item.name,
-    description: item.description,
-    price: String(item.price),
-    discount: String(item.discount ?? ''),
-    calories: String(item.calories ?? ''),
-    preparation_time: String(item.preparation_time),
-    image: item.image,
-    category_id: item.category_id,
-    available: item.available,
-    is_featured: item.is_featured ?? false,
-    is_popular: item.is_popular ?? false,
-    extra_group_ids: item.extra_group_ids ?? [],
-  }
-}
-
-function formToPayload(form: MenuItemForm): Partial<MenuItem> {
-  return {
-    name: form.name,
-    description: form.description,
-    price: parseFloat(form.price) || 0,
-    discount: form.discount ? parseFloat(form.discount) : undefined,
-    calories: form.calories ? parseInt(form.calories, 10) : undefined,
-    preparation_time: parseInt(form.preparation_time, 10) || 15,
-    image: form.image,
-    category_id: form.category_id,
-    available: form.available,
-    is_featured: form.is_featured,
-    is_popular: form.is_popular,
-  }
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -87,11 +40,11 @@ export default function AdminMenuPage() {
   const [page, setPage] = useState(1)
 
   const [createOpen, setCreateOpen] = useState(false)
-  const [createForm, setCreateForm] = useState<MenuItemForm>(EMPTY_FORM)
+  const [createForm, setCreateForm] = useState<MenuItemFormInput>(EMPTY_FORM)
 
   const [editItem, setEditItem] = useState<MenuItem | null>(null)
   const [editOpen, setEditOpen] = useState(false)
-  const [editForm, setEditForm] = useState<MenuItemForm>(EMPTY_FORM)
+  const [editForm, setEditForm] = useState<MenuItemFormInput>(EMPTY_FORM)
 
   const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -160,7 +113,7 @@ export default function AdminMenuPage() {
     // so this guard doesn't silently depend on adminBranchId's specific
     // implementation staying in sync.
     if (branchState !== 'ready' || !selectedBranch || !adminBranchId) return
-    createMutation.mutate(formToPayload(createForm), {
+    createMutation.mutate(menuItemFormToWriteRequest(createForm), {
       onSuccess: (created) => {
         setCreateOpen(false)
         setCreateForm(EMPTY_FORM)
@@ -175,13 +128,13 @@ export default function AdminMenuPage() {
 
   const openEdit = (item: MenuItem) => {
     setEditItem(item)
-    setEditForm(itemToForm(item))
+    setEditForm(menuItemToFormInput(item))
     setEditOpen(true)
   }
 
   const submitEdit = () => {
     if (!editItem) return
-    updateMutation.mutate({ id: editItem.id, payload: formToPayload(editForm) }, {
+    updateMutation.mutate({ id: editItem.id, payload: menuItemFormToWriteRequest(editForm) }, {
       onSuccess: () => {
         setEditOpen(false)
         // Attach/detach Extra Groups and re-materialize `extras` for cart/checkout.
@@ -493,14 +446,15 @@ function MenuItemFormFields({
   categories,
   extraGroups,
 }: {
-  form: MenuItemForm
-  onChange: (f: MenuItemForm) => void
+  form: MenuItemFormInput
+  onChange: (f: MenuItemFormInput) => void
   categories: Category[]
   extraGroups: ExtraGroup[]
 }) {
   const t = useTranslations('console')
-  const set = (field: keyof MenuItemForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-    onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
+  const set = (field: Exclude<keyof MenuItemFormInput, 'image' | 'extra_group_ids'>) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
 
   const toggleExtraGroup = (groupId: string) => {
     const selected = form.extra_group_ids.includes(groupId)
@@ -535,7 +489,11 @@ function MenuItemFormFields({
         <Input label={t('prepTimeMinLabel')} type="number" value={form.preparation_time} onChange={set('preparation_time')} />
       </div>
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
-      <Input label={t('imageUrlLabel')} value={form.image} onChange={set('image')} />
+      <ImageUploader
+        label={t('imageLabel')}
+        value={form.image}
+        onChange={(image) => onChange({ ...form, image })}
+      />
       <div className="flex gap-6">
         <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
           <input type="checkbox" checked={form.available} onChange={set('available')} className="rounded" />

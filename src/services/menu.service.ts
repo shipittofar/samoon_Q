@@ -12,6 +12,7 @@ import {
 } from '@/lib/menu-normalizers'
 import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
 import type { Category, DrfPaginationParams, Extra, ExtraGroup, MenuItem, PaginatedResponse } from '@/types'
+import { buildMenuItemFormData, type MenuItemWriteRequest } from '@/types/menu-item'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms))
 
@@ -37,6 +38,56 @@ export interface MenuFilters {
 export type ConsoleMenuItemsParams = DrfPaginationParams
 
 const DEFAULT_MOCK_BRANCH_ID = 'branch-rest-01'
+
+/** Axios config for multipart requests — strip Content-Type so the browser sets the boundary. */
+function multipartConfig() {
+  return {
+    transformRequest: [
+      (data: unknown, headers: Record<string, unknown>) => {
+        if (data instanceof FormData) {
+          delete headers['Content-Type']
+        }
+        return data
+      },
+    ],
+  }
+}
+
+function mockImageFromRequest(payload: MenuItemWriteRequest, fallback = ''): string {
+  if (payload.image instanceof File && typeof URL !== 'undefined' && URL.createObjectURL) {
+    return URL.createObjectURL(payload.image)
+  }
+  if (payload.removeImage) return ''
+  return fallback
+}
+
+function menuItemFromWriteRequest(
+  branchId: string,
+  payload: MenuItemWriteRequest,
+  overrides: Partial<MenuItem> = {},
+): MenuItem {
+  const { image: _image, removeImage: _removeImage, ...fields } = payload
+  return {
+    id: overrides.id ?? `item-${Date.now()}`,
+    branch_id: branchId,
+    name: fields.name ?? 'New Item',
+    slug: overrides.slug ?? `new-item-${Date.now()}`,
+    description: fields.description ?? '',
+    price: fields.price ?? 0,
+    image: mockImageFromRequest(payload, overrides.image ?? ''),
+    category_id: fields.category_id ?? '',
+    available: fields.available ?? true,
+    rating: overrides.rating ?? 0,
+    rating_count: overrides.rating_count ?? 0,
+    preparation_time: fields.preparation_time ?? 15,
+    is_featured: fields.is_featured ?? false,
+    is_popular: fields.is_popular ?? false,
+    tags: overrides.tags ?? [],
+    extras: overrides.extras ?? [],
+    discount: fields.discount,
+    calories: fields.calories,
+  }
+}
 
 /** Every menu-domain request is branch-scoped — there is no global/shared menu. */
 function mockCategories(branchId: string): Category[] {
@@ -221,74 +272,50 @@ export const menuService = {
 
   // ── Admin CRUD (P5.1) ──────────────────────────────────────────────────────
 
-  async createItem(branchId: string, payload: Partial<MenuItem>): Promise<MenuItem> {
-    const scopedPayload = { ...payload, branch_id: branchId }
+  async createItem(branchId: string, payload: MenuItemWriteRequest): Promise<MenuItem> {
     if (USE_MOCK) {
       await delay(800)
-      const newItem: MenuItem = {
-        id: `item-${Date.now()}`,
-        branch_id: branchId,
-        name: payload.name ?? 'New Item',
-        slug: payload.slug ?? `new-item-${Date.now()}`,
-        description: payload.description ?? '',
-        price: payload.price ?? 0,
-        image: payload.image ?? '',
-        category_id: payload.category_id ?? '',
-        available: payload.available ?? true,
-        rating: 0,
-        rating_count: 0,
-        preparation_time: payload.preparation_time ?? 15,
-        is_featured: payload.is_featured ?? false,
-        is_popular: payload.is_popular ?? false,
-        tags: payload.tags ?? [],
-        extras: payload.extras ?? [],
-        ...payload,
-      }
-      return newItem
+      return menuItemFromWriteRequest(branchId, payload)
     }
-    const { data } = await api.post<MenuItem>(ENDPOINTS.MENU.ITEMS, scopedPayload)
-    return data
-  },
-
-  async consoleCreateItem(branchId: string, payload: Partial<MenuItem>): Promise<MenuItem> {
-    const scopedPayload = { ...payload, branch_id: branchId }
-    if (USE_MOCK) {
-      await delay(800)
-      const newItem: MenuItem = {
-        id: `item-${Date.now()}`,
-        branch_id: branchId,
-        name: payload.name ?? 'New Item',
-        slug: payload.slug ?? `new-item-${Date.now()}`,
-        description: payload.description ?? '',
-        price: payload.price ?? 0,
-        image: payload.image ?? '',
-        category_id: payload.category_id ?? '',
-        available: payload.available ?? true,
-        rating: 0,
-        rating_count: 0,
-        preparation_time: payload.preparation_time ?? 15,
-        is_featured: payload.is_featured ?? false,
-        is_popular: payload.is_popular ?? false,
-        tags: payload.tags ?? [],
-        extras: payload.extras ?? [],
-        ...payload,
-      }
-      return newItem
-    }
-    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.CONSOLE_CREATE_ITEMS, scopedPayload)
+    const formData = buildMenuItemFormData(payload, { branchId })
+    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.ITEMS, formData, multipartConfig())
     return normalizeMenuItem(data)
   },
 
-  async updateItem(branchId: string, id: string, payload: Partial<MenuItem>): Promise<MenuItem> {
+  async consoleCreateItem(branchId: string, payload: MenuItemWriteRequest): Promise<MenuItem> {
+    if (USE_MOCK) {
+      await delay(800)
+      return menuItemFromWriteRequest(branchId, payload)
+    }
+    const formData = buildMenuItemFormData(payload, { branchId })
+    const { data } = await api.post<MenuItemWire>(
+      ENDPOINTS.MENU.CONSOLE_CREATE_ITEMS,
+      formData,
+      multipartConfig(),
+    )
+    return normalizeMenuItem(data)
+  },
+
+  async updateItem(branchId: string, id: string, payload: MenuItemWriteRequest): Promise<MenuItem> {
     if (USE_MOCK) {
       await delay(600)
       const existing = mockItems(branchId).find((i) => i.id === id)
-      return { ...(existing as MenuItem), ...payload, id, branch_id: branchId }
+      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const image = mockImageFromRequest(payload, existing?.image ?? '')
+      return {
+        ...(existing as MenuItem),
+        ...fields,
+        image,
+        id,
+        branch_id: branchId,
+      }
     }
-    const { data } = await api.patch<MenuItem>(ENDPOINTS.MENU.ITEM(id), payload, {
+    const formData = buildMenuItemFormData(payload)
+    const { data } = await api.patch<MenuItemWire>(ENDPOINTS.MENU.ITEM(id), formData, {
       params: { branch_id: branchId },
+      ...multipartConfig(),
     })
-    return data
+    return normalizeMenuItem(data)
   },
 
   async deleteItem(branchId: string, id: string): Promise<void> {
