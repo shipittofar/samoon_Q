@@ -91,7 +91,8 @@ export function FoodDetailModal({ item, open, onClose, branchId, onOpenRelated }
 
   return (
     <Modal open={open} onClose={onClose} size="xl" showClose={false} className="!p-0">
-      <div className="flex flex-col md:flex-row max-h-[85vh]">
+      <div className="flex flex-col max-h-[calc(100dvh-2rem)]">
+        <div className="flex flex-col md:flex-row min-h-0 flex-1 overflow-hidden">
         {/* Image */}
         <div className="relative md:w-2/5 h-60 md:h-auto shrink-0">
           <Image
@@ -356,20 +357,21 @@ export function FoodDetailModal({ item, open, onClose, branchId, onOpenRelated }
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Related Items */}
-      {related && related.length > 0 && (
-        <div className="border-t border-[var(--border)] p-6">
-          <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] mb-4">{t('related')}</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {/* C4/H9: wire onOpenRelated so related items open in the modal */}
-            {related.slice(0, 4).map((rel) => (
-              <FoodCard key={rel.id} item={rel} compact onOpenDetail={onOpenRelated} />
-            ))}
-          </div>
         </div>
-      )}
+
+        {/* Related Items */}
+        {related && related.length > 0 && (
+          <div className="border-t border-[var(--border)] p-6 shrink-0 overflow-y-auto max-h-[40vh]">
+            <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] mb-4">{t('related')}</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* C4/H9: wire onOpenRelated so related items open in the modal */}
+              {related.slice(0, 4).map((rel) => (
+                <FoodCard key={rel.id} item={rel} compact onOpenDetail={onOpenRelated} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </Modal>
   )
 }

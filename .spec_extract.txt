@@ -1,0 +1,1517 @@
+# Phase 4 — Target Architecture & Implementation Specification
+
+**Project:** `samoon_Q`  
+**Status:** Implementation-ready specification (read-only)  
+**Basis:** Phases 1–3 audits + verified current code in `src/components/ui/Modal.tsx`, consumers, and `PhoneInput.tsx`
+
+---
+
+## 26. Executive Architecture Summary
+
+### Current state (verified)
+
+| Aspect | Today |
+|--------|-------|
+| Primitives | Single file: `src/components/ui/Modal.tsx` exports `Modal` + `Drawer` |
+| Portal | **None** — all overlays render in-place |
+| Layout | Modal: `overflow-hidden`, no `max-height`, no scroll body; Drawer: `flex-1 overflow-y-auto` |
+| A11y | Focus trap on Modal only; Drawer/custom modals lack it |
+| Implementations | **3 parallel patterns**: shared Modal, shared Drawer, 4 inline custom modals |
+| Reference impl | `PhoneInput` CountryPicker — grid scroll, `dvh`, `useFocusTrap` (local, not shared) |
+| Draft | Config studio only (`useConfigurationDraft`); dialog forms use ephemeral `useState` |
+| Tests/Storybook | **0** Storybook stories; **1** RTL modal test (`StaffInviteModal`) |
+
+### Target state
+
+A **layered overlay platform** under `src/components/ui/overlay/` with:
+
+- One provider stack at app root
+- Composable primitives (`Modal`, `Drawer`, `BottomSheet`, `WizardShell`, `ConfirmDialog`)
+- Shared managers (focus, scroll lock, stack, portal, animation)
+- Feature teams build **forms inside shells**, never custom `fixed inset-0` markup
+- Draft and unsaved-guard as opt-in hooks, not per-page reinvention
+
+### What gets removed
+
+- Inline `PromotionModal`, `RewardModal`, `ReplyModal`, `VendorFormModal` in page files
+- Dead `NotificationDrawer.tsx` (zero app imports)
+- Layout hacks: `FoodDetailModal` `!p-0` + partial `max-h`; CommandPalette `-m-6`
+- Duplicate focus/scroll logic in `Modal.tsx` vs `PhoneInput.tsx`
+
+### What stays (refactored)
+
+- `Modal` and `Drawer` names and import paths (via re-exports for backward compatibility)
+- Feature-specific form components (`MenuItemFormFields`, `StaffRoleBranchFields`, etc.)
+- React Query mutation hooks — unchanged contract
+
+---
+
+## 1. Target Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Application Root                                 │
+│  <OverlayProvider>                                                       │
+│    <DraftProvider>          ← optional, scoped to long forms             │
+│      {children}                                                          │
+│    </DraftProvider>                                                      │
+│  </OverlayProvider>                                                      │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+        ┌───────────────────────────┼───────────────────────────┐
+        ▼                           ▼                           ▼
+  PortalManager              OverlayStackManager           AnimationProvider
+  (document.body)            (z-index, ESC routing)        (tokens, reduced motion)
+        │                           │
+        └───────────┬───────────────┘
+                    ▼
+         ┌──────────────────────────────────────┐
+         │         Shell Components              │
+         │  Modal │ Drawer │ BottomSheet        │
+         │  FullscreenDialog │ ConfirmDialog     │
+         │  AlertDialog │ WizardShell            │
+         └──────────────────────────────────────┘
+                    │
+         ┌──────────┴──────────┐
+         ▼                     ▼
+   Layout Slots           Feature Content
+   Header/Body/Footer     Forms, lists, custom UI
+         │
+         ▼
+   Managers (via hooks)
+   FocusManager │ ScrollLockManager │ KeyboardManager
+```
+
+**Design principle:** Shells own **presentation + interaction**; features own **data + validation + mutations**.
+
+---
+
+## 2. Overlay Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph Providers["Provider Layer (app layout)"]
+        OP[OverlayProvider]
+        PM[PortalManager]
+        OSM[OverlayStackManager]
+        AP[AnimationProvider]
+        OP --> PM
+        OP --> OSM
+        OP --> AP
+    end
+
+    subgraph Managers["Manager Layer (hooks)"]
+        FM[FocusManager / useFocusTrap]
+        SLM[ScrollLockManager / useScrollLock]
+        KM[KeyboardManager]
+        AL[AccessibilityLayer]
+    end
+
+    subgraph Shells["Shell Layer"]
+        M[Modal]
+        D[Drawer]
+        BS[BottomSheet]
+        FSD[FullscreenDialog]
+        CD[ConfirmDialog]
+        AD[AlertDialog]
+        WS[WizardShell]
+    end
+
+    subgraph Layout["Layout Layer"]
+        MH[ModalHeader]
+        MB[ModalBody]
+        MF[ModalFooter]
+        PI[ProgressIndicator]
+        WSStep[WizardStep]
+    end
+
+    subgraph Feature["Feature Layer"]
+        Forms[Feature Forms]
+        Mutations[React Query Hooks]
+    end
+
+    subgraph Draft["Draft Layer (opt-in)"]
+        DM[DraftManager / useFormDraft]
+        UUC[useUnsavedChanges]
+    end
+
+    OP --> Shells
+    Shells --> Managers
+    Shells --> Layout
+    Layout --> Feature
+    Feature --> Mutations
+    WS --> DM
+    WS --> UUC
+```
+
+---
+
+## 3. Folder Structure Specification
+
+```
+src/
+├── components/
+│   └── ui/
+│       ├── overlay/                          # NEW — all overlay primitives
+│       │   ├── index.ts                      # Public barrel export
+│       │   ├── providers/
+│       │   │   ├── OverlayProvider.tsx
+│       │   │   └── overlay-context.ts
+│       │   ├── portal/
+│       │   │   ├── PortalManager.tsx
+│       │   │   └── Portal.tsx
+│       │   ├── stack/
+│       │   │   ├── OverlayStackManager.ts
+│       │   │   └── useOverlayStack.ts
+│       │   ├── modal/
+│       │   │   ├── Modal.tsx
+│       │   │   ├── ModalHeader.tsx
+│       │   │   ├── ModalBody.tsx
+│       │   │   ├── ModalFooter.tsx
+│       │   │   └── modal.types.ts
+│       │   ├── drawer/
+│       │   │   ├── Drawer.tsx
+│       │   │   ├── DrawerHeader.tsx
+│       │   │   ├── DrawerBody.tsx
+│       │   │   └── DrawerFooter.tsx
+│       │   ├── bottom-sheet/
+│       │   │   ├── BottomSheet.tsx           # Mobile-first; uses Drawer internals
+│       │   │   └── bottom-sheet.types.ts
+│       │   ├── fullscreen/
+│       │   │   └── FullscreenDialog.tsx
+│       │   ├── confirm/
+│       │   │   ├── ConfirmDialog.tsx
+│       │   │   └── AlertDialog.tsx
+│       │   ├── wizard/
+│       │   │   ├── WizardShell.tsx
+│       │   │   ├── WizardStep.tsx
+│       │   │   ├── WizardNavigation.tsx
+│       │   │   ├── ProgressIndicator.tsx
+│       │   │   ├── wizard-context.ts
+│       │   │   └── wizard.types.ts
+│       │   ├── layout/
+│       │   │   ├── OverlayHeader.tsx         # Shared header primitive
+│       │   │   ├── OverlayBody.tsx           # Shared scroll body
+│       │   │   ├── OverlayFooter.tsx         # Shared footer/actions
+│       │   │   └── ResponsiveLayout.tsx
+│       │   └── primitives/
+│       │       ├── OverlayBackdrop.tsx
+│       │       └── OverlaySurface.tsx        # Card surface (radius, shadow, border)
+│       ├── animations/
+│       │   ├── overlay-motion.ts             # Spring/fade tokens
+│       │   └── useReducedMotion.ts
+│       └── Modal.tsx                         # DEPRECATED re-export shim → overlay/modal
+│
+├── hooks/
+│   └── overlay/                              # NEW
+│       ├── useFocusTrap.ts                   # Extracted from Modal + PhoneInput
+│       ├── useScrollLock.ts
+│       ├── useOverlay.ts                     # open/close/stack id
+│       ├── useModal.ts                       # Thin wrapper
+│       ├── useDrawer.ts
+│       ├── useWizard.ts
+│       ├── useFormDraft.ts
+│       ├── useUnsavedChanges.ts
+│       ├── useResponsiveOverlay.ts           # bottom-sheet vs modal breakpoint
+│       └── useVisualViewport.ts              # Extracted from PhoneInput
+│
+├── lib/
+│   └── overlay/
+│       ├── tokens.ts                         # Z-index, spacing, motion CSS vars
+│       └── draft-storage.ts                  # sessionStorage adapter
+│
+├── types/
+│   └── overlay.ts                            # Shared overlay TypeScript types
+│
+└── features/                                 # EXISTING pattern — feature forms stay here
+    └── console/
+        ├── menu/
+        │   ├── MenuItemFormFields.tsx
+        │   ├── MenuItemWizard.tsx              # NEW — wizard composition
+        │   └── menu-item.schema.ts             # NEW — Zod (future)
+        └── ...
+```
+
+**Rationale:** Separates **platform** (`ui/overlay/`) from **features** (`features/console/` or co-located form components). Keeps `src/components/ui/Button.tsx` etc. unchanged. Shim at old `Modal.tsx` path prevents breaking 12 importers during migration.
+
+---
+
+## 4. Component Responsibility Matrix
+
+| Component | Purpose | Owns | Does NOT own |
+|-----------|---------|------|--------------|
+| **OverlayProvider** | App-level overlay context | Portal root, stack registration, reduced-motion preference | Form state, API calls |
+| **PortalManager** | Render overlays at `document.body` | DOM mount point, SSR guard | Layout, animations |
+| **OverlayStackManager** | LIFO stack of open overlays | z-index assignment, top-only ESC | Focus logic (delegates) |
+| **Modal** | Centered/bottom-sheet dialog shell | Open/close, backdrop, surface, layout slots | Validation, mutations |
+| **Drawer** | Side panel shell | Slide animation, full-height scroll | Business content |
+| **BottomSheet** | Mobile sheet variant | `dvh`, drag handle, keyboard safe area | Desktop layout (delegates to Modal) |
+| **FullscreenDialog** | Full viewport takeover | `100dvh` surface, sticky chrome | Wizard step logic |
+| **ConfirmDialog** | Destructive/neutral confirm | Preset copy, two-button footer, `closeOnOverlay=false` | Custom forms |
+| **AlertDialog** | Info/alert | Single action | Form inputs |
+| **WizardShell** | Multi-step orchestration | Step index, nav, progress, per-step validation gate | Field definitions |
+| **WizardStep** | Step content wrapper | Step id, title, optional description | Submit logic |
+| **ProgressIndicator** | Step progress UI | Visual only | State |
+| **ModalHeader/Body/Footer** | Layout slots | Sticky regions, padding tokens | Content |
+| **FocusManager** | Focus trap + restore | Tab cycling, initial focus, restore target | Rendering |
+| **ScrollLockManager** | Body scroll lock | Ref-counted `overflow: hidden` | Overlay scroll |
+| **KeyboardManager** | Global shortcut routing | ESC to top overlay only | Feature shortcuts |
+| **AccessibilityLayer** | ARIA wiring | `role`, `aria-modal`, `aria-labelledby`, live regions | — |
+| **DraftManager** | Client draft persistence | sessionStorage read/write, TTL, keys | Server sync |
+| **AnimationProvider** | Motion config | Springs, durations, reduced-motion overrides | — |
+| **ResponsiveLayout** | Breakpoint strategy | Modal vs BottomSheet vs Fullscreen selection | — |
+
+---
+
+## 5. Public API Specification (TypeScript Interfaces Only)
+
+### Core types (`src/types/overlay.ts`)
+
+```typescript
+export type OverlaySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'fullscreen'
+
+export type OverlaySide = 'left' | 'right' | 'bottom'
+
+export interface OverlayBaseProps {
+  open: boolean
+  onClose: () => void
+  /** Unique id for stack + analytics; auto-generated if omitted */
+  id?: string
+  /** Default: true for alerts; false for forms/wizards */
+  closeOnOverlay?: boolean
+  /** Default: true */
+  closeOnEscape?: boolean
+  className?: string
+  'aria-label'?: string
+  'aria-labelledby'?: string
+  'aria-describedby'?: string
+}
+
+export interface OverlayLayoutProps {
+  header?: React.ReactNode
+  footer?: React.ReactNode
+  /** Removes default body padding — use sparingly */
+  bodyClassName?: string
+  /** Sticky footer slot; alternative to footer prop */
+  stickyFooter?: boolean
+}
+```
+
+### Modal
+
+```typescript
+export interface ModalProps extends OverlayBaseProps, OverlayLayoutProps {
+  title?: string
+  description?: string
+  size?: OverlaySize
+  showClose?: boolean
+  children?: React.ReactNode
+  /** sm and below: render as BottomSheet. Default: true for md+ sizes */
+  mobileVariant?: 'bottom-sheet' | 'fullscreen' | 'centered'
+}
+```
+
+### Drawer
+
+```typescript
+export interface DrawerProps extends OverlayBaseProps, OverlayLayoutProps {
+  title?: string
+  side?: 'left' | 'right' | 'bottom'
+  size?: 'sm' | 'md' | 'lg'
+  children?: React.ReactNode
+}
+```
+
+### BottomSheet
+
+```typescript
+export interface BottomSheetProps extends OverlayBaseProps, OverlayLayoutProps {
+  title?: string
+  /** Max height as dvh fraction. Default: 90 */
+  maxHeightDvh?: number
+  showDragHandle?: boolean
+  children?: React.ReactNode
+}
+```
+
+### FullscreenDialog
+
+```typescript
+export interface FullscreenDialogProps extends OverlayBaseProps, OverlayLayoutProps {
+  title?: string
+  children?: React.ReactNode
+}
+```
+
+### ConfirmDialog
+
+```typescript
+export interface ConfirmDialogProps extends OverlayBaseProps {
+  title: string
+  description?: string
+  confirmLabel?: string
+  cancelLabel?: string
+  variant?: 'default' | 'destructive'
+  onConfirm: () => void | Promise<void>
+  isLoading?: boolean
+}
+```
+
+### AlertDialog
+
+```typescript
+export interface AlertDialogProps extends OverlayBaseProps {
+  title: string
+  description?: string
+  actionLabel?: string
+  onAction?: () => void
+}
+```
+
+### WizardShell
+
+```typescript
+export interface WizardStepDefinition {
+  id: string
+  title: string
+  description?: string
+  /** Return false to block navigation */
+  validate?: () => boolean | Promise<boolean>
+  /** Hide step based on form state */
+  when?: () => boolean
+  component: React.ComponentType<WizardStepComponentProps>
+}
+
+export interface WizardStepComponentProps {
+  data: unknown
+  onChange: (patch: unknown) => void
+  errors?: Record<string, string>
+}
+
+export interface WizardShellProps extends OverlayBaseProps {
+  id: string
+  title?: string
+  steps: WizardStepDefinition[]
+  initialData: unknown
+  onSubmit: (data: unknown) => void | Promise<void>
+  onDraftChange?: (data: unknown) => void
+  showReviewStep?: boolean
+  size?: 'lg' | 'xl' | 'fullscreen'
+  isSubmitting?: boolean
+  submitError?: string | null
+}
+```
+
+### OverlayProvider
+
+```typescript
+export interface OverlayProviderProps {
+  children: React.ReactNode
+  /** Portal mount node. Default: document.body */
+  container?: HTMLElement | null
+}
+```
+
+### Draft hooks
+
+```typescript
+export interface UseFormDraftOptions<T> {
+  key: string
+  initialValue: T
+  /** TTL in ms. Default: 7 days */
+  ttl?: number
+  /** Schema version for migration */
+  version?: number
+  enabled?: boolean
+}
+
+export interface UseFormDraftReturn<T> {
+  value: T
+  setValue: (next: T | ((prev: T) => T)) => void
+  clearDraft: () => void
+  hasDraft: boolean
+  restoredFromDraft: boolean
+}
+
+export interface UseUnsavedChangesOptions {
+  isDirty: boolean
+  onDiscard: () => void
+  message?: string
+}
+```
+
+### useOverlay (imperative, optional future)
+
+```typescript
+export interface UseOverlayReturn {
+  open: boolean
+  openOverlay: () => void
+  closeOverlay: () => void
+  overlayId: string
+}
+```
+
+---
+
+## 6. Overlay Lifecycle Specification
+
+```
+CREATE (React mount, open=false)
+  │  Responsibility: Provider assigns overlayId; no portal render yet
+  ▼
+OPEN (open=true)
+  │  OverlayStackManager.push(id)
+  │  ScrollLockManager.acquire()
+  │  PortalManager renders surface
+  ▼
+ENTER ANIMATION
+  │  AnimationProvider applies enter tokens (or skip if reduced motion)
+  ▼
+FOCUS
+  │  FocusManager: save document.activeElement
+  │  FocusManager: focus first focusable (or initialFocusRef)
+  │  AccessibilityLayer: aria-modal=true, label wiring
+  ▼
+INTERACTION
+  │  User edits form / navigates wizard steps
+  │  KeyboardManager: Tab trap, ESC → onClose (if allowed)
+  │  ScrollLockManager: body locked; ONLY OverlayBody scrolls
+  │  DraftManager: optional persist on change (debounced)
+  ▼
+VALIDATION (on step next or submit)
+  │  Feature layer: Zod/manual validate
+  │  Errors rendered in OverlayBody; focus first invalid field
+  ▼
+SUBMIT (optional)
+  │  Feature: React Query mutation
+  │  Footer: loading state, disable actions
+  │  On error: keep open, show inline/toast error
+  ▼
+CLOSE REQUEST (success / cancel / ESC / overlay)
+  │  useUnsavedChanges: confirm if dirty (forms/wizards)
+  ▼
+EXIT ANIMATION
+  │  AnimatePresence exit
+  ▼
+CLEANUP
+  │  FocusManager.restore()
+  │  ScrollLockManager.release()
+  │  OverlayStackManager.pop(id)
+  │  DraftManager.clear() on success only
+  ▼
+UNMOUNT (open=false after exit)
+```
+
+| Stage | Owner |
+|-------|-------|
+| Stack push/pop | OverlayStackManager |
+| Body scroll | ScrollLockManager |
+| Trap/release focus | FocusManager |
+| ESC routing | KeyboardManager → top of stack only |
+| Dirty guard | useUnsavedChanges (feature opts in) |
+| Mutation | Feature hooks (unchanged) |
+
+---
+
+## 7. State Architecture
+
+| State type | Owner | Storage | Lifetime |
+|------------|-------|---------|----------|
+| Open/closed | Feature page or `useOverlay` | `useState` | Per dialog instance |
+| Form field values | Feature form | `useState` / RHF / `useFormDraft` | Until submit or discard |
+| Wizard step index | WizardShell context | React context inside shell | Until close |
+| Wizard form aggregate | WizardShell | `useState` + optional `useFormDraft` | Until submit |
+| Overlay stack | OverlayStackManager | React context (provider) | App session |
+| z-index | OverlayStackManager | Computed from stack position | Per open cycle |
+| Focus restore target | FocusManager | Ref in hook closure | Per open cycle |
+| Scroll lock count | ScrollLockManager | Module ref counter | Per open overlay |
+| Draft persistence | DraftManager | sessionStorage | TTL-based |
+| Server data | React Query | Query cache | Invalidated on mutation success |
+| Cart | Zustand | `useCartStore` | Unchanged |
+
+**Rules:**
+- Overlay shells hold **zero business data**
+- WizardShell holds **orchestration state only** (step, aggregate data pointer)
+- Never put form state in OverlayProvider
+- React Query cache is **not** used for drafts
+
+---
+
+## 8. Form Architecture
+
+### Hierarchy
+
+```
+Page (route)
+└── FeatureDialog / WizardShell          ← shell from ui/overlay
+    └── FeatureForm                      ← max ~200 lines
+        └── FormSection[]                ← logical groups
+            └── FieldGroup               ← grid layout
+                └── Field                ← Input, select, etc.
+```
+
+### Standards
+
+| Rule | Limit |
+|------|-------|
+| Max form component size | **200 lines** (excluding types) |
+| Max fields per section | **8** |
+| Max sections without wizard | **2** (else → WizardShell) |
+| Max nesting depth | Page → Shell → Form → Section → Field (**5 levels**) |
+| Shell responsibilities | Layout, open/close, a11y only |
+| Form responsibilities | Fields, validation, mapping to API payload |
+| Page responsibilities | Mutations, open state, success/error toasts |
+
+### Payload mapping
+
+Keep existing pattern, extract to colocated files:
+
+```
+menu-item.schema.ts     → Zod (target)
+menu-item.mappers.ts    → formToPayload, itemToForm (today inline in page.tsx)
+MenuItemFormFields.tsx  → presentational fields
+MenuItemWizard.tsx      → WizardShell + steps
+```
+
+**Current violation to fix:** `src/app/console/menu/page.tsx` (~587 lines) merges page + 3 modals + form + mutations.
+
+---
+
+## 9. Wizard Architecture
+
+### Framework components
+
+```
+WizardShell
+├── ProgressIndicator (step dots / bar)
+├── ModalHeader (title + step subtitle)
+├── ModalBody
+│   └── WizardStep (active step component)
+├── ModalFooter
+│   └── WizardNavigation (Back | Next | Save)
+└── WizardContext (step index, data, goNext, goBack, validate)
+```
+
+### Step registration
+
+```typescript
+const MENU_WIZARD_STEPS: WizardStepDefinition[] = [
+  { id: 'basic', title: '...', component: MenuBasicStep, validate: validateBasic },
+  { id: 'pricing', title: '...', component: MenuPricingStep },
+  { id: 'media', title: '...', component: MenuMediaStep },
+  { id: 'availability', title: '...', component: MenuAvailabilityStep },
+  { id: 'extras', title: '...', component: MenuExtrasStep },
+  { id: 'review', title: '...', component: MenuReviewStep },
+]
+```
+
+### Behaviors
+
+| Concern | Implementation |
+|---------|----------------|
+| **Progress** | `ProgressIndicator` shows `(currentIndex + 1) / total` |
+| **Navigation** | Back decrements; Next runs `step.validate()` first |
+| **Review step** | Optional read-only summary; Submit triggers `onSubmit` |
+| **Draft** | `useFormDraft({ key: 'menu-item:create:{branchId}' })` wired in WizardShell |
+| **Unsaved** | `useUnsavedChanges({ isDirty, onDiscard })` on close/ESC
+
+[REDACTED]
+
+Continuing the Phase 4 specification from Section 9 onward.
+
+---
+
+## 9. Wizard Architecture (continued)
+
+### Behaviors (continued)
+
+| Concern | Implementation |
+|---------|----------------|
+| **Recovery** | On mount, `useFormDraft` checks sessionStorage; if valid draft exists, show `ConfirmDialog`: "Resume draft?" |
+| **Step guards** | `validate()` on step; `goNext()` blocked until `true` |
+| **Conditional steps** | `when?: () => boolean` filters visible steps; step index maps to filtered array |
+| **Branching** | `goNext()` can accept `nextStepId` override from step component via context |
+| **Dynamic steps** | Steps array built from feature config (e.g. extra groups count); recompute on data change |
+| **Submit** | Final step or Review step calls feature `onSubmit`; same mutations as today (no backend change) |
+| **Edit mode** | Same shell; `initialData` from entity; draft key includes entity id |
+
+### Menu Item wizard (P0 target)
+
+Maps today's 15 fields in `src/app/console/menu/page.tsx` to 6 steps:
+
+| Step | Fields | Validation |
+|------|--------|------------|
+| Basic | name, description, category | Required name, category |
+| Pricing | price, compare_at_price, cost | Price > 0 |
+| Media | image_url | Optional URL |
+| Availability | is_available, is_featured, sort_order | — |
+| Extras | extra_group_ids | — |
+| Review | Summary | Read-only |
+
+**Submit:** Same two-call transaction as today (`createMutation` → `assignGroupsMutation` on success). Wizard is UI-only refactor.
+
+### Branch wizard (P1 target)
+
+`src/app/console/branches/new/page.tsx` and `[id]/page.tsx` (~45 fields) → `WizardShell` with `size="fullscreen"` or dedicated full-page `WizardPage` layout (no modal shell).
+
+### Reference: existing wizard
+
+`src/app/console/tenants/new/page.tsx` — 6-step inline wizard. **Target:** migrate to `WizardShell` pattern without changing API calls.
+
+---
+
+## 10. Draft Architecture
+
+### Storage
+
+| Layer | Technology | Scope |
+|-------|------------|-------|
+| Client draft | `sessionStorage` via `draft-storage.ts` | Per-tab, per-user session |
+| Server state | React Query | Authoritative after save |
+| Config studio | `useConfigurationDraft` (existing) | In-memory only; **not** merged into overlay draft system in v1 |
+
+### Keys
+
+```
+samoon:draft:{version}:{feature}:{scope}:{id?}
+```
+
+Examples:
+- `samoon:draft:1:menu-item:create:branch-abc123`
+- `samoon:draft:1:menu-item:edit:item-xyz789`
+- `samoon:draft:1:branch:create:tenant-abc`
+
+**Scope** = tenantId + branchId where applicable (prevent cross-tenant leakage).
+
+### Envelope format
+
+```typescript
+interface DraftEnvelope<T> {
+  version: number
+  key: string
+  data: T
+  createdAt: number
+  updatedAt: number
+  expiresAt: number
+}
+```
+
+### Expiration
+
+- Default TTL: **7 days** (`expiresAt = updatedAt + 7d`)
+- On read: discard if `Date.now() > expiresAt`
+- Cleanup on app init: sweep keys matching `samoon:draft:*`
+
+### Recovery
+
+1. User opens create/edit overlay
+2. `useFormDraft` finds valid envelope
+3. `ConfirmDialog`: "You have unsaved changes from [date]. Resume or start fresh?"
+4. Resume → hydrate form; Fresh → `clearDraft()`
+
+### Versioning
+
+- `version` in envelope; on mismatch, discard draft (no auto-migrate in v1)
+- Bump version when form shape changes
+
+### Conflict resolution
+
+- **Client-only drafts:** Last write wins within tab
+- **Edit entity while draft exists:** Draft keyed by entity id; server data loaded separately; user chooses resume vs server state
+- **No multi-tab sync** in v1 (sessionStorage is per-tab)
+
+### Security
+
+- Never store auth tokens, PII beyond form fields, or payment data in drafts
+- Keys scoped by tenant/branch id
+- Clear all drafts on logout (`authStore` listener)
+
+### Ownership
+
+| Owner | Responsibility |
+|-------|----------------|
+| `lib/overlay/draft-storage.ts` | Read/write/clear/TTL |
+| `hooks/overlay/useFormDraft.ts` | React binding, debounced persist |
+| Feature form | Defines `T` shape and key |
+| WizardShell | Optional `onDraftChange` callback |
+
+---
+
+## 11. Shared Layout Specification
+
+### Standard shell anatomy
+
+```
+┌─────────────────────────────────────┐
+│ ModalHeader (sticky, shrink-0)      │  px-6 pt-6 pb-4
+├─────────────────────────────────────┤
+│ ModalBody (flex-1, overflow-y-auto) │  px-6 py-4
+│   ... scrollable content ...        │
+├─────────────────────────────────────┤
+│ ModalFooter (sticky, shrink-0)      │  px-6 pb-6 pt-4, border-t
+│   [Cancel]              [Save]      │
+└─────────────────────────────────────┘
+```
+
+### Tokens (see Section 15)
+
+| Region | Padding | Border |
+|--------|---------|--------|
+| Header | `px-6 pt-6 pb-4` | `border-b border-[var(--border)]` when footer exists |
+| Body | `px-6 py-4` | — |
+| Footer | `px-6 pb-6 pt-4` | `border-t border-[var(--border)]` |
+
+### Grid
+
+- Default form grid: `grid grid-cols-1 sm:grid-cols-2 gap-4`
+- Full-width fields: `sm:col-span-2`
+- Dense tables inside modal: single column on mobile
+
+### States
+
+| State | Location | Pattern |
+|-------|----------|---------|
+| Loading | Body center or skeleton | `Loader2` + `aria-busy` |
+| Empty | Body center | Reuse `EmptyState` |
+| Error (field) | Below field | `text-destructive text-sm` |
+| Error (submit) | Footer top or Alert in body | Inline banner, focus on error |
+| Success | Toast (sonner/existing) + close overlay | — |
+
+### Sticky regions
+
+- Header and Footer: `shrink-0` inside `flex flex-col max-h-[var(--overlay-max-h)]`
+- Body: `flex-1 min-h-0 overflow-y-auto` (critical — fixes current `Modal.tsx` defect)
+
+### Scroll containers
+
+- **Exactly one** vertical scroll region per overlay: `ModalBody`
+- Forbidden: nested `overflow-y-auto` inside body without explicit design reason
+
+---
+
+## 12. Responsive Specification
+
+### Breakpoints (align with Tailwind defaults)
+
+| Name | Min width | Overlay behavior |
+|------|-----------|------------------|
+| Mobile | `< 640px` | BottomSheet or full-width centered modal |
+| Tablet | `640–1024px` | Centered modal, `max-w-*` |
+| Laptop | `1024–1280px` | Centered modal |
+| Desktop | `≥ 1280px` | Centered modal, larger max-width |
+
+### Per-component rules
+
+| Component | Mobile | Tablet+ |
+|-----------|--------|---------|
+| Modal `sm/md` | BottomSheet `max-h-[90dvh]` | Centered |
+| Modal `lg/xl` | Fullscreen or `95dvh` bottom sheet | Centered |
+| Drawer | Bottom sheet (`side=bottom`) | Side drawer (`left`/`right`) |
+| CartDrawer | Bottom (existing) | Right (existing) |
+| FoodDetailModal | Fullscreen bottom sheet | Centered `xl` |
+| Wizard | Fullscreen | `xl` or `fullscreen` |
+
+### Viewport units
+
+- Use **`dvh`** not `vh` for max-height (keyboard-safe; proven in `PhoneInput.tsx`)
+- `--overlay-max-h: min(90dvh, calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem))`
+
+### Keyboard safe areas
+
+- `useVisualViewport` hook (extracted from PhoneInput) adjusts bottom sheet when virtual keyboard opens
+- Footer actions remain visible or scroll into view
+
+### Landscape / short viewports
+
+- If `visualViewport.height < 500px`: force fullscreen layout
+- Reduce header padding; compact progress indicator
+
+### Fullscreen rules
+
+- Checkout, tenant wizard, branch wizard: full-page routes — not modal shells
+- Mobile food detail: `FullscreenDialog` or BottomSheet at `95dvh`
+
+---
+
+## 13. Accessibility Specification
+
+### Mandatory (all overlays)
+
+| Requirement | Standard |
+|-------------|----------|
+| Focus trap | Tab cycles within overlay; implemented via shared `useFocusTrap` |
+| Focus restore | Return focus to trigger element on close |
+| ESC | Close top overlay only if `closeOnEscape` |
+| `role` | `role="dialog"` on surface |
+| `aria-modal` | `aria-modal="true"` |
+| Labeling | `aria-labelledby` → header id; `aria-describedby` → description |
+| Initial focus | First input or close button (configurable `initialFocusRef`) |
+| Scroll lock | Body `overflow: hidden` while open |
+| Touch targets | Minimum **44×44px** for interactive elements |
+
+### Keyboard navigation
+
+| Key | Action |
+|-----|--------|
+| Tab / Shift+Tab | Cycle focus within trap |
+| ESC | Close (top overlay) |
+| Enter | Submit primary action in ConfirmDialog only |
+
+### Screen readers
+
+- Step changes in wizard: `aria-live="polite"` region announces "Step 2 of 6: Pricing"
+- Loading: `aria-busy="true"` on form during submit
+- Errors: `role="alert"` on submit error banner
+
+### Reduced motion
+
+- Respect `prefers-reduced-motion: reduce`
+- Skip scale/spring; use opacity-only ≤150ms
+- `AnimationProvider` reads preference once at provider mount
+
+### High contrast
+
+- Borders use `var(--border)`; focus rings use `ring-2 ring-[var(--ring)]`
+- Destructive actions: `variant="destructive"` with sufficient contrast
+
+### Tab order
+
+- Header → body fields (DOM order) → footer actions
+- No positive `tabIndex` except trap sentinels (`tabIndex={0}` on container only if needed)
+
+### Testing requirement
+
+- Every primitive: RTL test for focus trap, ESC, aria attributes
+- Storybook: a11y addon on all overlay stories
+
+---
+
+## 14. Animation Specification
+
+### Tokens (`src/lib/overlay/tokens.ts` + CSS vars)
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--overlay-duration-enter` | `200ms` | Fade/scale enter |
+| `--overlay-duration-exit` | `150ms` | Faster exit |
+| `--overlay-ease` | `cubic-bezier(0.16, 1, 0.3, 1)` | Enter |
+| `--overlay-ease-exit` | `cubic-bezier(0.4, 0, 1, 1)` | Exit |
+| Spring (modal) | `{ stiffness: 300, damping: 30 }` | Match current Modal.tsx |
+| Spring (drawer) | `{ stiffness: 300, damping: 30 }` | Match current Drawer.tsx |
+
+### Per-variant motion
+
+| Variant | Enter | Exit |
+|---------|-------|------|
+| Modal (centered) | `opacity 0→1`, `scale 0.95→1`, `y 20→0` | Reverse |
+| Drawer (side) | `x ±100%→0` | Reverse |
+| BottomSheet | `y 100%→0` | `y 0→100%` |
+| Backdrop | `opacity 0→1` | `opacity 1→0` |
+| ConfirmDialog | Same as Modal, no scale on mobile |
+
+### Reduced motion
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  --overlay-duration-enter: 0ms;
+  --overlay-duration-exit: 0ms;
+}
+```
+
+### Interruptions
+
+- Rapid open/close: `AnimatePresence mode="wait"` on stack layer
+- Nested overlay: child animates independently; parent backdrop darkens incrementally (`--overlay-backdrop-opacity-step: 0.1`)
+
+### Nested animations
+
+- Only shell animates on open/close
+- Inner content (lists, accordions) uses CSS transitions, not competing Framer springs
+
+---
+
+## 15. Design Token Specification
+
+Add to `src/app/globals.css` (overlay section):
+
+```css
+:root {
+  /* Z-index scale */
+  --z-overlay-backdrop: 50;
+  --z-overlay-surface: 51;
+  --z-overlay-nested-step: 1;   /* added per stack level */
+
+  /* Overlay layout */
+  --overlay-max-h: min(90dvh, calc(100dvh - 2rem));
+  --overlay-padding-x: 1.5rem;   /* 24px — replaces hardcoded p-6 */
+  --overlay-padding-y: 1.5rem;
+  --overlay-gap: 1rem;
+
+  /* Surface */
+  --overlay-radius: var(--radius-lg);
+  --overlay-shadow: var(--shadow-xl);
+  --overlay-border: 1px solid var(--border);
+  --overlay-backdrop: rgb(0 0 0 / 0.6);  /* replaces bg-black/60 */
+
+  /* Widths */
+  --overlay-width-xs: 20rem;
+  --overlay-width-sm: 24rem;
+  --overlay-width-md: 28rem;
+  --overlay-width-lg: 32rem;
+  --overlay-width-xl: 36rem;
+  --overlay-width-2xl: 42rem;
+
+  /* Motion */
+  --overlay-duration-enter: 200ms;
+  --overlay-duration-exit: 150ms;
+  --overlay-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Typography in chrome */
+  --overlay-title-size: 1.125rem;    /* text-lg */
+  --overlay-description-size: 0.875rem;
+  --overlay-icon-size: 1.25rem;      /* 20px */
+}
+```
+
+### Elevation
+
+- Surface: `shadow-xl` + `border`
+- Nested overlay: base z-index + `stackIndex * var(--z-overlay-nested-step)`
+
+### Replace hardcoded values
+
+| Current | Target |
+|---------|--------|
+| `z-50` | `z-[var(--z-overlay-backdrop)]` |
+| `bg-black/60` | `bg-[var(--overlay-backdrop)]` |
+| `p-6` on modal wrapper | Header/Body/Footer tokens |
+| Inline Framer springs | `overlay-motion.ts` constants |
+
+---
+
+## 16. Error Handling Specification
+
+| Error type | Where shown | Recovery |
+|------------|-------------|----------|
+| Field validation | Below field + summary at top | Fix fields; focus first error |
+| Step validation (wizard) | Step-level banner | Block Next; scroll to error |
+| Submission error (4xx) | Footer banner `role="alert"` | User corrects and retries |
+| Network error (5xx/offline) | Banner + Retry button | `mutation.retry()` |
+| Timeout | Toast + inline message | Retry or cancel |
+| Conflict (409) | AlertDialog with server message | Reload entity or overwrite |
+| Unsaved close | ConfirmDialog | Discard or stay |
+| Draft corrupt | Silent clear + toast | Start fresh |
+
+### Patterns
+
+```typescript
+// Feature layer — unchanged React Query pattern
+const mutation = useCreateMenuItem()
+mutation.mutate(payload, {
+  onSuccess: () => { clearDraft(); onClose() },
+  onError: (err) => setSubmitError(mapApiError(err)),
+})
+```
+
+### Cancel behavior
+
+- Cancel in footer → `useUnsavedChanges` guard if dirty
+- ESC → same guard
+- Overlay click → only if `closeOnOverlay=true` (never on destructive forms)
+
+### Offline
+
+- Detect `navigator.onLine`; disable submit with tooltip
+- Queue not in v1 (out of scope)
+
+---
+
+## 17. File Ownership Matrix
+
+| File | Action | Destination / Reason |
+|------|--------|----------------------|
+| `src/components/ui/Modal.tsx` | **Split + Refactor** | → `overlay/modal/Modal.tsx`, `overlay/drawer/Drawer.tsx`; shim re-export |
+| `src/components/ui/index.tsx` | **Refactor** | Add barrel export for `@/components/ui/overlay` |
+| `src/components/ui/PhoneInput.tsx` | **Refactor** | Extract `useFocusTrap`, `useVisualViewport` to `hooks/overlay/`; CountryPicker uses shared BottomSheet |
+| `src/components/menu/FoodDetailModal.tsx` | **Refactor** | Use new Modal layout slots; remove `!p-0` hack |
+| `src/components/menu/LazyFoodDetailModal.tsx` | **Keep** | Update import path only |
+| `src/components/cart/CartDrawer.tsx` | **Refactor** | Migrate to new Drawer API; keep Zustand |
+| `src/components/layout/NotificationDrawer.tsx` | **Delete** | Dead code (zero imports) |
+| `src/components/admin/StaffInviteModal.tsx` | **Keep** | Adopt new Modal `footer` prop |
+| `src/components/admin/StaffEditAssignmentModal.tsx` | **Keep** | Same |
+| `src/components/admin/configuration/ConfigurationCommandPalette.tsx` | **Refactor** | Remove `-m-6` hack; use `bodyClassName` |
+| `src/components/admin/configuration/ConfigurationEntityDrawer.tsx` | **Keep** | New Drawer scroll/a11y parity |
+| `src/components/admin/configuration/ConfigurationStudioLayout.tsx` | **Keep** | Drawer consumers |
+| `src/components/admin/configuration/ConfigurationStudioToolbar.tsx` | **Keep** | Drawer consumers |
+| `src/app/console/menu/page.tsx` | **Split** | Extract forms + `MenuItemWizard.tsx`; page owns open state |
+| `src/app/console/categories/page.tsx` | **Refactor** | New Modal API |
+| `src/app/console/extras/page.tsx` | **Refactor** | New Modal API |
+| `src/app/console/branches/[id]/page.tsx` | **Refactor** | Delete confirm → `ConfirmDialog` |
+| `src/app/console/branches/new/page.tsx` | **Refactor** | Future WizardShell |
+| `src/app/console/promotions/page.tsx` | **Refactor** | Remove inline `PromotionModal` → shared Modal |
+| `src/app/console/loyalty/page.tsx` | **Refactor** | Remove inline `RewardModal` |
+| `src/app/console/reviews/page.tsx` | **Refactor** | Remove inline `ReplyModal` |
+| `src/app/console/food-court/vendors/page.tsx` | **Refactor** | Remove `VendorFormModal` + `VendorStatsPanel` inline |
+| `src/app/console/tenants/new/page.tsx` | **Refactor** | Migrate to WizardShell pattern |
+| `src/app/dashboard/addresses/page.tsx` | **Refactor** | New Modal API |
+| `src/app/dashboard/favorites/page.tsx` | **Keep** | LazyFoodDetailModal consumer |
+| `src/components/menu/MenuContent.tsx` | **Keep** | FoodDetailModal consumer |
+| `src/hooks/use-configuration-draft.ts` | **Keep** | Config-specific; not merged v1 |
+| `src/hooks/index.ts` | **Keep** | Mutations unchanged |
+| `src/app/globals.css` | **Refactor** | Add overlay tokens |
+| `src/test/phase-C-staff-assignment.test.tsx` | **Refactor** | Update imports; expand coverage |
+| `src/test/phase4-performance.test.ts` | **Keep** | Update paths if needed |
+| `tests/e2e/critical-path.spec.ts` | **Refactor** | Add overlay smoke tests |
+
+---
+
+## 18. Hook Architecture
+
+| Hook | Responsibility | Used by |
+|------|----------------|---------|
+| `useFocusTrap` | Tab cycle, sentinel nodes, initial focus | Modal, Drawer, BottomSheet, ConfirmDialog |
+| `useScrollLock` | Ref-counted body overflow lock | All shells |
+| `useOverlay` | `open`, `openOverlay`, `closeOverlay`, `overlayId` | Feature pages |
+| `useModal` | Thin wrapper over `useOverlay` + Modal defaults | CRUD pages |
+| `useDrawer` | Side/bottom defaults | Cart, Config |
+| `useWizard` | Step nav, validate, aggregate data | WizardShell internals + features |
+| `useFormDraft` | sessionStorage bind, TTL, recovery | Wizards, long forms |
+| `useUnsavedChanges` | `beforeunload` + close guard | Forms with dirty state |
+| `useOverlayStack` | Register/unregister, isTop, zIndex | Shell internals |
+| `useResponsiveOverlay` | Returns `'modal' \| 'bottom-sheet' \| 'fullscreen'` for breakpoint | Modal, FoodDetail |
+| `useVisualViewport` | Keyboard height offset | BottomSheet, PhoneInput |
+| `useReducedMotion` | Boolean preference | AnimationProvider |
+
+### Non-responsibilities (hooks must NOT)
+
+- Call APIs
+- Own React Query cache
+- Render UI
+
+---
+
+## 19. Provider Architecture
+
+```mermaid
+flowchart TD
+    Root[App Layout]
+    OP[OverlayProvider]
+    PM[PortalManager internal]
+    OSM[OverlayStackManager internal]
+    AP[AnimationProvider internal]
+    Children[App Routes]
+
+    Root --> OP
+    OP --> PM
+    OP --> OSM
+    OP --> AP
+    OP --> Children
+```
+
+| Provider | Scope | Mount location | Dependencies |
+|----------|-------|----------------|--------------|
+| **OverlayProvider** | App-wide | `src/app/layout.tsx` or `AppShell` | None |
+| **PortalManager** | Internal to OverlayProvider | Creates `#overlay-root` div | DOM |
+| **AnimationProvider** | Internal | Reads `prefers-reduced-motion` | None |
+| **DraftProvider** | **Not required v1** | — | `useFormDraft` is hook-only |
+| **FocusProvider** | **Not required v1** | — | Per-overlay `useFocusTrap` |
+
+### OverlayProvider public API
+
+```typescript
+// Context (internal)
+interface OverlayContextValue {
+  register(overlay: RegisteredOverlay): void
+  unregister(id: string): void
+  getStackIndex(id: string): number
+  isTop(id: string): boolean
+  reducedMotion: boolean
+}
+```
+
+Feature developers **never** consume OverlayContext directly — use shell components.
+
+---
+
+## 20. Migration Mapping
+
+| Current | Target | Notes |
+|---------|--------|-------|
+| `Modal` (shared) | `overlay/modal/Modal` | Same props + `footer`, `bodyClassName` |
+| `Drawer` (shared) | `overlay/drawer/Drawer` | Add focus trap parity |
+| `PromotionModal` (inline) | `Modal` + `PromotionForm` | Delete ~80 lines from page |
+| `RewardModal` (inline) | `Modal` + `RewardForm` | Same |
+| `ReplyModal` (inline) | `Modal` + `ReplyForm` | Add focus trap (was missing) |
+| `VendorFormModal` (inline) | `Modal` + `VendorForm` | Same |
+| `VendorStatsPanel` (inline drawer) | `Drawer` | Same |
+| `FoodDetailModal` | `Modal` or `BottomSheet` via `useResponsiveOverlay` | Remove `!p-0`; use layout slots |
+| `CartDrawer` | `Drawer` | API-compatible |
+| `ConfigurationEntityDrawer` | `Drawer` | 7-tab scroll in `DrawerBody` |
+| `ConfigurationCommandPalette` | `Modal` | Remove `-m-6` |
+| Delete branch modal | `ConfirmDialog` | `variant="destructive"` |
+| Add Menu Item modal | `MenuItemWizard` in `WizardShell` | Env flag `NEXT_PUBLIC_MENU_WIZARD` |
+| Edit Menu Item modal | `MenuItemWizard` (edit mode) | Same shell |
+| Category CRUD modals | `Modal` (unchanged UX) | Scroll fix only |
+| Extra CRUD modals (×6) | `Modal` | Scroll fix only |
+| StaffInviteModal | `Modal` → future `WizardShell` (P1) | Tests already exist |
+| StaffEditAssignmentModal | `Modal` | — |
+| Address modal | `Modal` | — |
+| `NotificationDrawer` | **Deleted** | Dead code |
+| PhoneInput CountryPicker | `BottomSheet` | Extract shared primitives |
+| Tenant provision wizard | `WizardShell` | Full-page variant |
+| Branch create/edit | `WizardShell` fullscreen | P1 |
+| `NotificationBell` dropdown | **Keep** (not overlay) | Out of scope |
+| `AdminSidebar` mobile scrim | **Keep** | Out of scope |
+
+---
+
+## 21. Coding Standards
+
+### Naming
+
+- Shells: PascalCase (`Modal`, `WizardShell`)
+- Hooks: `use` prefix (`useFormDraft`)
+- Types: `ModalProps`, `WizardStepDefinition`
+- Files: match export name (`Modal.tsx`)
+
+### Folder structure
+
+- One component per folder when >1 file (types, subcomponents)
+- Barrel `index.ts` at `overlay/` only — avoid deep re-export chains
+
+### Composition
+
+```tsx
+// ✅ Correct
+<Modal open={open} onClose={onClose} title="Add Item" footer={<Actions />}>
+  <MenuItemFormFields ... />
+</Modal>
+
+// ❌ Forbidden
+<div className="fixed inset-0 z-50 ...">
+```
+
+### Accessibility
+
+- Every interactive overlay must use a shell component
+- Run Storybook a11y addon before merge
+
+### State
+
+- Open state: `useState` in page OR `useModal()`
+- Form state: `useState` / RHF; drafts via `useFormDraft`
+- Never store overlay open state in Zustand (except CartDrawer pattern — acceptable for global cart)
+
+### Validation
+
+- New forms: Zod + RHF (match checkout pattern)
+- Legacy console forms: migrate incrementally; wizard is forcing function for menu
+
+### Testing
+
+- Unit: RTL per primitive (focus, ESC, scroll)
+- Storybook: all sizes + mobile variant
+- E2E: P0 smoke (menu add, food detail, cart)
+
+### Documentation
+
+- JSDoc on public props interfaces
+- Storybook stories = living docs
+
+### Review checklist
+
+- [ ] Uses shell from `ui/overlay`?
+- [ ] Single scroll container?
+- [ ] Focus trap + restore?
+- [ ] Footer sticky and reachable at 320px height?
+- [ ] No hardcoded `z-50` / `bg-black/60`?
+- [ ] No inline `fixed inset-0`?
+- [ ] Tests added/updated?
+
+---
+
+## 22. Extension Strategy
+
+### New simple modal (≤8 fields)
+
+1. Create `FeatureForm.tsx` in feature folder
+2. Page: `const { open, openModal, closeModal } = useModal()`
+3. Render `<Modal footer={...}><FeatureForm /></Modal>`
+4. No new overlay code
+
+### New wizard
+
+1. Define `WizardStepDefinition[]` in feature folder
+2. Create step components (≤150 lines each)
+3. Wrap in `<WizardShell steps={...} onSubmit={mutation.mutate} />`
+4. Optional: `useFormDraft({ key: 'feature:create:...' })`
+
+### New drawer
+
+1. `<Drawer side="right" footer={...}><Content /></Drawer>`
+2. For mobile-only: `<BottomSheet>` or `useResponsiveOverlay`
+
+### New fullscreen flow
+
+1. Prefer **route-based** wizard page for >6 steps
+2. Or `<FullscreenDialog>` for mobile takeover
+
+### Without duplication
+
+All paths go through `ui/overlay` — never copy backdrop/panel markup.
+
+---
+
+## 23. Anti-Patterns
+
+| Anti-pattern | Why forbidden | Current example |
+|--------------|---------------|-----------------|
+| Nested scroll containers | Unreachable footer, scroll confusion | Modal content + inner div both scroll |
+| Hardcoded `max-h-[85vh]` | Inconsistent; breaks on mobile keyboard | FoodDetailModal hack |
+| Hardcoded `z-50` | Nested overlays break | All current overlays |
+| Duplicated modal wrappers | A11y gaps, drift | Promotion/Reward/Reply/Vendor inline |
+| Monolithic page+form+modal | Untestable, 500+ lines | `menu/page.tsx` |
+| Business logic in shell | Coupling, reuse failure | N/A today (good) |
+| Multiple overlay implementations | 3 systems today | Inline modals vs shared |
+| Custom focus handling per feature | Inconsistent a11y | Custom modals lack trap |
+| Multiple animation systems | Janky, untokenized | Framer inline per file |
+| State duplication | Draft in page + storage | N/A (no drafts today) |
+| `closeOnOverlay=true` on forms | Accidental data loss | — |
+| Positive tabIndex on fields | Broken tab order | — |
+| `overflow-hidden` without `max-h` | **Root bug** | `Modal.tsx` line ~panel |
+
+---
+
+## 24. Implementation Sequence
+
+### R0 — Foundation (Week 1) — BLOCKER
+
+| | |
+|--|--|
+| **Objective** | Test harness + scroll fix behind flag |
+| **Files** | `overlay/modal/*`, `hooks/overlay/useFocusTrap.ts`, `useScrollLock.ts`, `lib/overlay/tokens.ts`, `globals.css`, `.storybook/*`, `Modal.test.tsx` |
+| **Dependencies** | None |
+| **Risk** | FoodDetailModal `!p-0`, CommandPalette `-m-6` regressions |
+| **Rollback** | `NEXT_PUBLIC_OVERLAY_SCROLL_FIX=false` |
+| **Testing** | Storybook stories; RTL focus/ESC/scroll; manual QA checklist |
+| **Acceptance** | Add Menu Item save button reachable at 320×568; all 12 Modal importers pass RTL smoke |
+
+### R1 — Custom modal migration (Week 2)
+
+| | |
+|--|--|
+| **Objective** | Eliminate 4 inline modals |
+| **Files** | `promotions/page.tsx`, `loyalty/page.tsx`, `reviews/page.tsx`, `vendors/page.tsx` + extracted form components |
+| **Dependencies** | R0 merged |
+| **Risk** | Low — same UX, better a11y |
+| **Rollback** | Revert page commits |
+| **Testing** | RTL per migrated modal; manual CRUD |
+| **Acceptance** | Zero `fixed inset-0` in `src/app/console/` except via shell |
+
+### R2 — Drawer parity (Week 2–3)
+
+| | |
+|--|--|
+| **Objective** | Focus trap + restore on Drawer |
+| **Files** | `overlay/drawer/Drawer.tsx`, `CartDrawer.tsx`, `ConfigurationEntityDrawer.tsx` |
+| **Dependencies** | R0 |
+| **Risk** | Cart focus on open |
+| **Rollback** | Revert Drawer commit |
+| **Testing** | RTL CartDrawer; manual config studio |
+| **Acceptance** | Tab stays in drawer; focus returns to trigger |
+
+### R3 — Layout-sensitive fixes (Week 3–4)
+
+| | |
+|--|--|
+| **Objective** | FoodDetail + CommandPalette without hacks |
+| **Files** | `FoodDetailModal.tsx`, `ConfigurationCommandPalette.tsx` |
+| **Dependencies** | R0 |
+| **Risk** | Revenue path regression |
+| **Rollback** | Revert per-file |
+| **Testing** | E2E food detail smoke; visual QA |
+| **Acceptance** | No `!p-0` or `-m-6`; related items scroll inside body |
+
+### R4 — Portal + z-index (Week 4–5)
+
+| | |
+|--|--|
+| **Objective** | Portal rendering + stack manager |
+| **Files** | `OverlayProvider.tsx`, `PortalManager.tsx`, `OverlayStackManager.ts`, `app/layout.tsx` |
+| **Dependencies** | R0 |
+| **Risk** | SSR hydration, nested modals |
+| **Rollback** | `NEXT_PUBLIC_OVERLAY_PORTAL=false` |
+| **Testing** | Nested modal RTL; z-index visual test |
+| **Acceptance** | Modal renders under `#overlay-root`; nested ESC closes top only |
+
+### R5 — Wizard + drafts (Week 6–8)
+
+| | |
+|--|--|
+| **Objective** | Menu Item wizard + sessionStorage drafts |
+| **Files** | `wizard/*`, `useFormDraft.ts`, `MenuItemWizard.tsx`, split `menu/page.tsx` |
+| **Dependencies** | R0, R3 |
+| **Risk** | Two-call create transaction |
+| **Rollback** | `NEXT_PUBLIC_MENU_WIZARD=false` → old modal |
+| **Testing** | Wizard RTL; draft recovery; E2E menu create |
+| **Acceptance** | 6-step wizard; draft resume works; same API calls |
+
+### R6 — Cleanup (Week 9+)
+
+| | |
+|--|--|
+| **Objective** | Branch wizard, delete dead code, remove shims |
+| **Files** | `NotificationDrawer.tsx` (delete), `branches/new`, `tenants/new`, deprecated `Modal.tsx` shim |
+| **Dependencies** | R5 |
+| **Risk** | Import path breaks |
+| **Rollback** | Keep shim until all imports updated |
+| **Testing** | Full regression suite |
+| **Acceptance** | File ownership matrix 100% complete; no deprecated patterns |
+
+---
+
+## 25. Acceptance Criteria (Program-Level)
+
+### Functional
+
+- [ ] All 12+ Modal consumers work without layout regression
+- [ ] Add Menu Item: full form + save reachable on 320px viewport
+- [ ] FoodDetailModal: add-to-cart flow works on mobile
+- [ ] Cart drawer: open/close/checkout path intact
+- [ ] Config studio: 7-tab drawer scrolls correctly
+- [ ] Zero inline `fixed inset-0` modals in app code
+
+### Accessibility
+
+- [ ] 100% overlay shells have focus trap + restore
+- [ ] ESC closes top overlay only
+- [ ] `role="dialog"` + `aria-labelledby` on all shells
+- [ ] Reduced motion honored
+
+### Architecture
+
+- [ ] All overlays import from `@/components/ui/overlay`
+- [ ] Overlay tokens in `globals.css`; no raw `z-50` in feature code
+- [ ] `menu/page.tsx` under 200 lines (logic extracted)
+
+### Testing
+
+- [ ] Storybook: Modal, Drawer, BottomSheet, ConfirmDialog, WizardShell
+- [ ] RTL: ≥8 overlay test files
+- [ ] Playwright: menu create, food detail, cart (3 smoke tests)
+
+### Performance
+
+- [ ] No additional bundle >15KB gzipped (measure LazyFoodDetailModal chunk)
+- [ ] Portal does not cause layout shift (CLS)
+
+---
+
+## Provider Hierarchy Diagram
+
+```mermaid
+flowchart TB
+    subgraph App["src/app/layout.tsx"]
+        OP[OverlayProvider]
+    end
+
+    subgraph Internal["Internal (not imported by features)"]
+        PM[PortalManager]
+        OSM[OverlayStackManager]
+        AP[AnimationProvider]
+        KM[KeyboardManager]
+    end
+
+    subgraph Features["Feature Layer"]
+        P1[console/menu]
+        P2[cart/CartDrawer]
+        P3[menu/FoodDetailModal]
+        P4[admin/StaffInviteModal]
+    end
+
+    OP --> PM
+    OP --> OSM
+    OP --> AP
+    OP --> KM
+    OP --> Features
+
+    P1 --> Modal
+    P1 --> WizardShell
+    P2 --> Drawer
+    P3 --> Modal
+    P4 --> Modal
+```
+
+## State Ownership Diagram
+
+```mermaid
+flowchart LR
+    subgraph Feature["Feature Page"]
+        OS[open: useState]
+        FS[form: useState / RHF]
+        MU[mutation: useMutation]
+    end
+
+    subgraph Shell["Overlay Shell"]
+        ST[stepIndex: WizardContext]
+        SC[scroll lock: useScrollLock]
+        FC[focus: useFocusTrap]
+    end
+
+    subgraph Provider["OverlayProvider"]
+        SK[stack: OverlayStackManager]
+        ZI[z-index: computed]
+    end
+
+    subgraph Persist["Optional"]
+        DR[draft: sessionStorage]
+    end
+
+    subgraph Server["React Query"]
+        QC[cache]
+    end
+
+    OS --> Shell
+    FS --> DR
+    FS --> MU
+    MU --> QC
+    Shell --> Provider
+```
+
+---
+
+## Component Hierarchy (Target)
+
+```
+OverlayProvider
+└── Portal → #overlay-root
+    └── [Stack Layer 0..n]
+        └── OverlayBackdrop
+            └── OverlaySurface (Modal | Drawer | BottomSheet)
+                ├── ModalHeader / DrawerHeader
+                ├── ModalBody / DrawerBody  ← ONLY scroll region
+                │   └── Feature Content
+                │       └── WizardShell
+                │           └── WizardStep
+                └── ModalFooter / DrawerFooter
+```
+
+---
+
+## Summary: Current vs Target
+
+| Dimension | Current | Target |
+|-----------|---------|--------|
+| Primitives | 1 file, 2 exports | `ui/overlay/` module (~25 files) |
+| Implementations | 3 parallel patterns | 1 platform, feature composition |
+| Scroll | Broken on Modal | Flex column + `min-h-0` body scroll |
+| Portal | None | `PortalManager` at body |
+| z-index | Hardcoded `z-50` | Stack-based tokens |
+| A11y | Partial | Mandatory on all shells |
+| Wizards | Ad-hoc page inline | `WizardShell` framework |
+| Drafts | None in dialogs | `useFormDraft` + sessionStorage |
+| Tests | 1 RTL modal test | Storybook + 8+ RTL + E2E smoke |
+
+This specification is **implementation-ready**. Engineering can begin at **R0** without further design work. No code has been modified in this phase.
+
+[REDACTED]

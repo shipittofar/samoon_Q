@@ -39,12 +39,12 @@ function ReplyModal({
   const [text, setText] = useState(review.ownerReply?.text ?? '')
   return (
     <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label={t('replyToReviewAria')}
     >
-      <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 w-full max-w-lg shadow-xl">
+      <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 w-full max-w-lg shadow-xl my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
         <h3 className="text-lg font-semibold text-[var(--fg)] mb-1">{t('replyToReview')}</h3>
         <p className="text-sm text-[var(--fg-muted)] mb-4">{tNotifications('byActor', { name: review.customerName })} · {review.rating}★</p>
         <p className="text-sm text-[var(--fg-muted)] italic mb-4 line-clamp-3">{review.comment}</p>

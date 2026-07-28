@@ -125,7 +125,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
       aria-labelledby="promo-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto"
     >
-      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--border)] p-6 space-y-4 my-8">
+      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--border)] p-6 space-y-4 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
         <h2 id="promo-modal-title" className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
 
         <div className="space-y-3">

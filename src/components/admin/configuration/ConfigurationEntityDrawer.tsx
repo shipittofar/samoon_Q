@@ -90,7 +90,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
 
   return (
     <Drawer open onClose={onClose} title={label} size="lg">
-      <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-4 p-4 min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">{field.collection?.entityIdLabel ?? t('idColumnDefault')}: {entry.entityId}</Badge>
           {overriddenProps.length > 0 && <Badge variant="info">{t('overriddenCount', { count: overriddenProps.length })}</Badge>}

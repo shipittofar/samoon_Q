@@ -146,7 +146,7 @@ export function ConfigurationStudioToolbar({
       </div>
 
       <Drawer open={historyOpen} onClose={() => setHistoryOpen(false)} title={activeModule ? t('historyDrawerTitle', { module: activeModule.name }) : t('historyDrawerTitleDefault')} side="right" size="lg">
-        <div className="p-4">
+        <div className="p-4 min-h-0 flex-1 overflow-y-auto overscroll-contain">
           {moduleAuditEntries.length === 0 ? (
             <EmptyState icon={<History className="h-6 w-6" />} title={t('noHistoryYetTitle')} description={t('noHistoryYetDesc')} />
           ) : (

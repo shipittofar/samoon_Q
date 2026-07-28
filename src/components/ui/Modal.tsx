@@ -78,7 +78,7 @@ export function Modal({
     <AnimatePresence>
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
           role="dialog"
           aria-modal="true"
           aria-labelledby={title ? 'modal-title' : undefined}
@@ -97,13 +97,13 @@ export function Modal({
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className={cn(
-              'relative z-10 w-full bg-[var(--card)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden',
+              'relative z-10 my-auto w-full bg-[var(--card)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]',
               modalSizes[size],
               className,
             )}
           >
             {(title || showClose) && (
-              <div className="flex items-start justify-between p-6 pb-0">
+              <div className="flex items-start justify-between p-6 pb-0 shrink-0">
                 <div>
                   {title && (
                     <h2 id="modal-title" className="text-xl font-semibold text-[var(--fg)] font-[var(--font-display)]">
@@ -121,7 +121,7 @@ export function Modal({
                 )}
               </div>
             )}
-            <div className="p-6">{children}</div>
+            <div className="p-6 overflow-y-auto min-h-0 flex-1 overscroll-contain">{children}</div>
           </motion.div>
         </div>
       )}
@@ -204,7 +204,7 @@ export function Drawer({ open, onClose, title, children, side = 'right', size = 
                 </Button>
               </div>
             )}
-            <div className="flex-1 overflow-y-auto">{children}</div>
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{children}</div>
           </motion.div>
         </div>
       )}

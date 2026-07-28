@@ -159,10 +159,12 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
           </>
         ) : (
           <Drawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} title={t('modulesDrawerTitle')} side="left">
+            <div className="min-h-0 flex-1 overflow-hidden flex flex-col">
             <ConfigurationStudioNav
               activeModuleId={activeModuleId}
               onSelect={(id) => { onNavigate(id); setMobileNavOpen(false) }}
             />
+            </div>
           </Drawer>
         )}
 
@@ -205,7 +207,9 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
           </>
         ) : (
           <Drawer open={mobileInspectorOpen} onClose={() => setMobileInspectorOpen(false)} title={t('inspectorDrawerTitle')} side="right">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             {inspectorPanel}
+            </div>
           </Drawer>
         )}
       </div>
