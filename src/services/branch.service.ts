@@ -618,6 +618,24 @@ export const branchManagementService = {
     await api.delete(ENDPOINTS.BRANCHES.DELETE(id))
   },
 
+  async consoleDeleteBranch(branch_id: string): Promise<void> {
+    if (USE_MOCK) {
+      await delay()
+      const branch = findBranch(branch_id)
+      if (!branch) throw new Error(`Branch not found: ${branch_id}`)
+      const siblingCount = MOCK_BRANCH_LIST.filter((b) => b.tenantId === branch.tenantId).length
+      if (siblingCount <= 1) throw new Error('last_branch')
+      MOCK_BRANCH_LIST = MOCK_BRANCH_LIST.filter((b) => b.id !== branch.id)
+      // If the deleted branch was the default, promote the next remaining one.
+      if (branch.isDefault) {
+        const next = MOCK_BRANCH_LIST.find((b) => b.tenantId === branch.tenantId)
+        if (next) next.isDefault = true
+      }
+      return
+    }
+    await api.delete(ENDPOINTS.BRANCHES.CONSOLE_DELETE(branch_id))
+  },
+
   /** Sets this branch as the tenant's default, unsetting the previous default. */
   async setDefaultBranch(id: string): Promise<Branch> {
     if (USE_MOCK) {

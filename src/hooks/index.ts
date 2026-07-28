@@ -1254,6 +1254,16 @@ export function useDeleteBranch() {
   })
 }
 
+export function useConsoleDeleteBranch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (branch_id: string) => branchManagementService.consoleDeleteBranch(branch_id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    },
+  })
+}
+
 export function useSetDefaultBranch() {
   const qc = useQueryClient()
   return useMutation({

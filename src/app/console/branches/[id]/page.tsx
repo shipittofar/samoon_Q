@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import {
   useAdminBranch, useAdminBranches, useAdminBranchMetrics, useConsoleAdminBranchMetrics,
   useActivateBranch, useDeactivateBranch, useMaintenanceBranch,
-  useDeleteBranch, useSetDefaultBranch, useBranchAccess,
+  useDeleteBranch, useSetDefaultBranch, useBranchAccess, useConsoleDeleteBranch,
 } from '@/hooks'
 import { useBranchStore, useTenantStore } from '@/stores'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -41,7 +41,8 @@ function BranchDetailContent({ id }: { id: string }) {
   const activate = useActivateBranch()
   const deactivate = useDeactivateBranch()
   const maintenance = useMaintenanceBranch()
-  const deleteBranch = useDeleteBranch()
+  // const deleteBranch = useDeleteBranch()
+  const deleteBranch = useConsoleDeleteBranch()
   const setDefault = useSetDefaultBranch()
   const adminActiveBranch = useBranchStore((s) => s.adminActiveBranch)
 

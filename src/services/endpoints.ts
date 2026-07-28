@@ -84,6 +84,7 @@ export const ENDPOINTS = {
     METRICS: (id: string) => `/branches/${id}/metrics/`,
     CONSOLE_METRICS: (id: string) => `/branches/console-branches/${id}/metrics/`,
     DELETE: (id: string) => `/branches/${id}/`,
+    CONSOLE_DELETE: (branchId: string) => `/branches/console-branches/branches/${branchId}/delete/`,
     SET_DEFAULT: (id: string) => `/branches/${id}/default/`,
   },
 
