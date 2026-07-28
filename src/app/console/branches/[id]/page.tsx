@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import {
-  useAdminBranch, useAdminBranches, useAdminBranchMetrics,
+  useAdminBranch, useAdminBranches, useAdminBranchMetrics, useConsoleAdminBranchMetrics,
   useActivateBranch, useDeactivateBranch, useMaintenanceBranch,
   useDeleteBranch, useSetDefaultBranch, useBranchAccess,
 } from '@/hooks'
@@ -36,7 +36,8 @@ function BranchDetailContent({ id }: { id: string }) {
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const { data: branch, isLoading, error } = useAdminBranch(id)
   const { data: siblingBranches = [] } = useAdminBranches(tenantId)
-  const { data: metrics } = useAdminBranchMetrics(id)
+  // const { data: metrics } = useAdminBranchMetrics(id)
+  const { data: metrics } = useConsoleAdminBranchMetrics(id)
   const activate = useActivateBranch()
   const deactivate = useDeactivateBranch()
   const maintenance = useMaintenanceBranch()

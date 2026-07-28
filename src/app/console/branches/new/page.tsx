@@ -7,7 +7,7 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useTenantStore } from '@/stores'
-import { useCreateBranch } from '@/hooks'
+import { useCreateBranch, useConsoleCreateBranch } from '@/hooks'
 import {
   BranchFormFields, validateBranchForm, defaultBranchFormBusinessHours, DEFAULT_BRANCH_SETTINGS,
   type BranchFormState,
@@ -27,7 +27,7 @@ export default function NewBranchPage() {
   const t = useTranslations('console')
   const router = useRouter()
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
-  const { mutate: createBranch, isPending } = useCreateBranch(tenantId)
+  const { mutate: createBranch, isPending } = useConsoleCreateBranch(tenantId)
 
   const [form, setForm] = useState<BranchFormState>(EMPTY_FORM)
   const [error, setError] = useState<string | null>(null)

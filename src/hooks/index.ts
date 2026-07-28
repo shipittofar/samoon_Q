@@ -1090,6 +1090,15 @@ export function useAdminBranchMetrics(id: string) {
   })
 }
 
+export function useConsoleAdminBranchMetrics(id: string) {
+  return useQuery({
+    queryKey: ['console-admin-branch-metrics', id],
+    queryFn: () => branchManagementService.getConsoleBranchMetrics(id),
+    enabled: !!id,
+    staleTime: 30_000,
+  })
+}
+
 export function useCreateBranch(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
@@ -1097,6 +1106,17 @@ export function useCreateBranch(tenantId: string) {
       branchManagementService.createBranch(tenantId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-branches', tenantId] })
+    },
+  })
+}
+
+export function useConsoleCreateBranch(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateBranchPayload) =>
+      branchManagementService.consoleCreateBranch(tenantId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['console-admin-branches', tenantId] })
     },
   })
 }

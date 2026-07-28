@@ -447,6 +447,25 @@ export const branchManagementService = {
     return res.data
   },
 
+  async getConsoleBranchMetrics(id: string): Promise<BranchMetrics> {
+    if (USE_MOCK) {
+      await delay()
+      if (!findBranch(id)) throw new Error(`Branch not found: ${id}`)
+      return MOCK_METRICS[id] ?? {
+        branchId: id,
+        totalOrders: 0,
+        totalRevenue: 0,
+        totalReservations: 0,
+        totalCustomers: 0,
+        staffCount: 0,
+        averageOrderValue: 0,
+        period: 'month',
+      }
+    }
+    const res = await api.get<BranchMetrics>(ENDPOINTS.BRANCHES.CONSOLE_METRICS(id))
+    return res.data   
+  },
+  
   // ── Mutations ──────────────────────────────────────────────────────────────
 
   async createBranch(tenantId: string, payload: CreateBranchPayload): Promise<Branch> {
@@ -493,6 +512,53 @@ export const branchManagementService = {
       return { ...branch }
     }
     const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CREATE, { ...payload, tenantId })
+    return res.data
+  },
+
+  async consoleCreateBranch(tenantId: string, payload: CreateBranchPayload): Promise<Branch> {
+    if (USE_MOCK) {
+      await delay()
+      assertSlugAvailable(tenantId, payload.slug)
+      _branchCounter += 1
+      const isFirstBranch = MOCK_BRANCH_LIST.every((b) => b.tenantId !== tenantId)
+      const branch: Branch = {
+        id: `branch-new-${_branchCounter}`,
+        tenantId,
+        name: payload.name,
+        slug: payload.slug,
+        description: payload.description,
+        status: 'inactive',
+        type: payload.type,
+        location: payload.location,
+        contact: payload.contact ?? {},
+        managerId: payload.managerId,
+        businessHours: payload.businessHours ?? defaultHours(),
+        settings: {
+          deliveryEnabled: false,
+          pickupEnabled: true,
+          tableOrderingEnabled: false,
+          reservationsEnabled: false,
+          orderingEnabled: true,
+          marketplaceVisible: true,
+          ...payload.settings,
+        },
+        image: payload.image,
+        coverImage: payload.coverImage,
+        // The tenant's first branch is always the default, regardless of the payload.
+        isDefault: isFirstBranch || payload.isDefault,
+        timeZone: payload.timeZone,
+        currency: payload.currency,
+        language: payload.language,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      if (branch.isDefault) {
+        MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === tenantId) b.isDefault = false })
+      }
+      MOCK_BRANCH_LIST.push(branch)
+      return { ...branch }
+    }
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CONSOLE_CREATE(tenantId), { ...payload })
     return res.data
   },
 
