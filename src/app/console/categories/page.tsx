@@ -18,48 +18,24 @@ import {
   usePermission, useSelectedBranch, useBranchState, useIsBranchReady,
 } from '@/hooks'
 import type { Category } from '@/types'
+import {
+  categoryFormToWriteRequest,
+  categoryToFormInput,
+  type CategoryFormInput,
+} from '@/types'
+import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
-// Mirrors the MenuItemForm/formToPayload pattern in console/menu/page.tsx —
-// no parallel form-handling pattern introduced.
 
-interface CategoryForm {
-  name: string
-  description: string
-  image: string
-  sort_order: string
-  is_active: boolean
-}
-
-const EMPTY_FORM: CategoryForm = {
-  name: '', description: '', image: '', sort_order: '', is_active: true,
-}
-
-function categoryToForm(category: Category): CategoryForm {
-  return {
-    name: category.name,
-    description: category.description ?? '',
-    image: category.image ?? '',
-    sort_order: String(category.sort_order),
-    is_active: category.is_active,
-  }
-}
-
-function formToPayload(form: CategoryForm): Partial<Category> {
-  return {
-    name: form.name.trim(),
-    description: form.description.trim() || undefined,
-    image: form.image.trim() || undefined,
-    sort_order: form.sort_order ? parseInt(form.sort_order, 10) : undefined,
-    is_active: form.is_active,
-  }
+const EMPTY_FORM: CategoryFormInput = {
+  name: '', description: '', image: { ...EMPTY_IMAGE_FIELD }, sort_order: '', is_active: true,
 }
 
 /** Empty/whitespace-only name, or a non-numeric/negative sort order. */
-function validateForm(form: CategoryForm): string | null {
+function validateForm(form: CategoryFormInput): string | null {
   if (!form.name.trim()) return 'nameRequired'
   if (form.sort_order && (!/^\d+$/.test(form.sort_order) || parseInt(form.sort_order, 10) < 1)) return 'invalidSortOrder'
   return null
@@ -73,12 +49,12 @@ export default function AdminCategoriesPage() {
   const [search, setSearch] = useState('')
 
   const [createOpen, setCreateOpen] = useState(false)
-  const [createForm, setCreateForm] = useState<CategoryForm>(EMPTY_FORM)
+  const [createForm, setCreateForm] = useState<CategoryFormInput>(EMPTY_FORM)
   const [createError, setCreateError] = useState<string | null>(null)
 
   const [editCategory, setEditCategory] = useState<Category | null>(null)
   const [editOpen, setEditOpen] = useState(false)
-  const [editForm, setEditForm] = useState<CategoryForm>(EMPTY_FORM)
+  const [editForm, setEditForm] = useState<CategoryFormInput>(EMPTY_FORM)
   const [editError, setEditError] = useState<string | null>(null)
 
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null)
@@ -125,14 +101,14 @@ export default function AdminCategoriesPage() {
     const validationError = validateForm(createForm)
     if (validationError) { setCreateError(validationError); return }
     setCreateError(null)
-    createMutation.mutate(formToPayload(createForm), {
+    createMutation.mutate(categoryFormToWriteRequest(createForm), {
       onSuccess: () => { setCreateOpen(false); setCreateForm(EMPTY_FORM) },
     })
   }
 
   const openEdit = (category: Category) => {
     setEditCategory(category)
-    setEditForm(categoryToForm(category))
+    setEditForm(categoryToFormInput(category))
     setEditError(null)
     setEditOpen(true)
   }
@@ -142,7 +118,7 @@ export default function AdminCategoriesPage() {
     const validationError = validateForm(editForm)
     if (validationError) { setEditError(validationError); return }
     setEditError(null)
-    updateMutation.mutate({ id: editCategory.id, payload: formToPayload(editForm) }, {
+    updateMutation.mutate({ id: editCategory.id, payload: categoryFormToWriteRequest(editForm) }, {
       onSuccess: () => { setEditOpen(false); setEditCategory(null) },
     })
   }
@@ -430,19 +406,24 @@ function CategoryFormFields({
   onChange,
   error,
 }: {
-  form: CategoryForm
-  onChange: (f: CategoryForm) => void
+  form: CategoryFormInput
+  onChange: (f: CategoryFormInput) => void
   error: string | null
 }) {
   const t = useTranslations('console')
-  const set = (field: keyof CategoryForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
+  const set = (field: Exclude<keyof CategoryFormInput, 'image'>) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
 
   return (
     <div className="space-y-4 mb-4">
       <Input label={t('categoryNameLabel')} value={form.name} onChange={set('name')} />
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
-      <Input label={t('imageUrlLabel')} value={form.image} onChange={set('image')} />
+      <ImageUploader
+        label={t('imageLabel')}
+        value={form.image}
+        onChange={(image) => onChange({ ...form, image })}
+      />
       <Input label={t('sortOrderLabel')} type="number" min={1} value={form.sort_order} onChange={set('sort_order')} />
       <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
         <input type="checkbox" checked={form.is_active} onChange={set('is_active')} className="rounded" />

@@ -159,7 +159,7 @@ describe('menu.service — multipart create/update', () => {
     )
     expect(src).toContain('buildMenuItemFormData')
     expect(src).toContain("formData = buildMenuItemFormData")
-    expect(src).toContain('delete headers[\'Content-Type\']')
+    expect(src).toContain('multipartRequestConfig')
     expect(src).not.toContain('multipart/form-data')
     expect(src).not.toContain('fileToImageDataUrl')
     expect(src).not.toContain('menu-image.service')

@@ -13,6 +13,15 @@ import {
 import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
 import type { Category, DrfPaginationParams, Extra, ExtraGroup, MenuItem, PaginatedResponse } from '@/types'
 import { buildMenuItemFormData, type MenuItemWriteRequest } from '@/types/menu-item'
+import {
+  buildCategoryFormData,
+  type CategoryWriteRequest,
+} from '@/types/category'
+import {
+  buildExtraFormData,
+  type ExtraWriteRequest,
+} from '@/types/extra'
+import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms))
 
@@ -39,26 +48,9 @@ export type ConsoleMenuItemsParams = DrfPaginationParams
 
 const DEFAULT_MOCK_BRANCH_ID = 'branch-rest-01'
 
-/** Axios config for multipart requests — strip Content-Type so the browser sets the boundary. */
-function multipartConfig() {
-  return {
-    transformRequest: [
-      (data: unknown, headers: Record<string, unknown>) => {
-        if (data instanceof FormData) {
-          delete headers['Content-Type']
-        }
-        return data
-      },
-    ],
-  }
-}
-
-function mockImageFromRequest(payload: MenuItemWriteRequest, fallback = ''): string {
-  if (payload.image instanceof File && typeof URL !== 'undefined' && URL.createObjectURL) {
-    return URL.createObjectURL(payload.image)
-  }
+function mockImageFromRequest(payload: { image?: File; removeImage?: boolean }, fallback = ''): string {
   if (payload.removeImage) return ''
-  return fallback
+  return mockImageUrlFromFile(payload.image, fallback)
 }
 
 function menuItemFromWriteRequest(
@@ -278,7 +270,7 @@ export const menuService = {
       return menuItemFromWriteRequest(branchId, payload)
     }
     const formData = buildMenuItemFormData(payload, { branchId })
-    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.ITEMS, formData, multipartConfig())
+    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.ITEMS, formData, multipartRequestConfig())
     return normalizeMenuItem(data)
   },
 
@@ -291,7 +283,7 @@ export const menuService = {
     const { data } = await api.post<MenuItemWire>(
       ENDPOINTS.MENU.CONSOLE_CREATE_ITEMS,
       formData,
-      multipartConfig(),
+      multipartRequestConfig(),
     )
     return normalizeMenuItem(data)
   },
@@ -313,7 +305,7 @@ export const menuService = {
     const formData = buildMenuItemFormData(payload)
     const { data } = await api.patch<MenuItemWire>(ENDPOINTS.MENU.ITEM(id), formData, {
       params: { branch_id: branchId },
-      ...multipartConfig(),
+      ...multipartRequestConfig(),
     })
     return normalizeMenuItem(data)
   },
@@ -333,38 +325,47 @@ export const menuService = {
   // update is what makes the change visible — identical to createItem/
   // updateItem/deleteItem's existing mock behavior).
 
-  async createCategory(branchId: string, payload: Partial<Category>): Promise<Category> {
-    const scopedPayload = { ...payload, branch_id: branchId }
+  async createCategory(branchId: string, payload: CategoryWriteRequest): Promise<Category> {
     if (USE_MOCK) {
       await delay(600)
       const existing = mockCategories(branchId)
+      const { image: _image, removeImage: _removeImage, ...fields } = payload
       const newCategory: Category = {
         id: `cat-${Date.now()}`,
         branch_id: branchId,
-        name: payload.name ?? 'New Category',
-        slug: payload.slug ?? `new-category-${Date.now()}`,
-        description: payload.description,
-        image: payload.image,
-        icon: payload.icon,
-        sort_order: payload.sort_order ?? existing.length + 1,
-        is_active: payload.is_active ?? true,
+        name: fields.name ?? 'New Category',
+        slug: `new-category-${Date.now()}`,
+        description: fields.description,
+        image: mockImageFromRequest(payload),
+        icon: undefined,
+        sort_order: fields.sort_order ?? existing.length + 1,
+        is_active: fields.is_active ?? true,
         created_at: new Date().toISOString(),
-        ...payload,
       }
       return newCategory
     }
-    const { data } = await api.post<Category>(ENDPOINTS.MENU.CATEGORIES, scopedPayload)
+    const formData = buildCategoryFormData(payload, { branchId })
+    const { data } = await api.post<Category>(ENDPOINTS.MENU.CATEGORIES, formData, multipartRequestConfig())
     return data
   },
 
-  async updateCategory(branchId: string, id: string, payload: Partial<Category>): Promise<Category> {
+  async updateCategory(branchId: string, id: string, payload: CategoryWriteRequest): Promise<Category> {
     if (USE_MOCK) {
       await delay(500)
       const existing = mockCategories(branchId).find((c) => c.id === id)
-      return { ...(existing as Category), ...payload, id, branch_id: branchId }
+      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      return {
+        ...(existing as Category),
+        ...fields,
+        image: mockImageFromRequest(payload, existing?.image),
+        id,
+        branch_id: branchId,
+      }
     }
-    const { data } = await api.patch<Category>(ENDPOINTS.MENU.CONSOLE_CATEGORY(branchId), payload, {
+    const formData = buildCategoryFormData(payload)
+    const { data } = await api.patch<Category>(ENDPOINTS.MENU.CONSOLE_CATEGORY(branchId), formData, {
       params: { branch_id: branchId },
+      ...multipartRequestConfig(),
     })
     return data
   },
@@ -497,37 +498,47 @@ export const menuService = {
     return data
   },
 
-  async createExtra(branchId: string, payload: Partial<Extra> & { group_id: string }): Promise<Extra> {
-    const scopedPayload = { ...payload, branch_id: branchId }
+  async createExtra(branchId: string, payload: ExtraWriteRequest & { group_id: string }): Promise<Extra> {
     if (USE_MOCK) {
       await delay(600)
       const existing = mockExtras(branchId).filter((e) => e.group_id === payload.group_id)
+      const { image: _image, removeImage: _removeImage, group_id, ...fields } = payload
       const newExtra: Extra = {
         id: `ext-${Date.now()}`,
         branch_id: branchId,
-        name: payload.name ?? 'New Extra',
-        description: payload.description,
-        image: payload.image,
-        price: payload.price ?? 0,
-        available: payload.available ?? true,
-        order: payload.order ?? existing.length + 1,
+        group_id,
+        name: fields.name ?? 'New Extra',
+        description: fields.description,
+        image: mockImageFromRequest(payload),
+        price: fields.price ?? 0,
+        available: fields.available ?? true,
+        order: fields.order ?? existing.length + 1,
         created_at: new Date().toISOString(),
-        ...payload,
       }
       return newExtra
     }
-    const { data } = await api.post<Extra>(ENDPOINTS.MENU.EXTRAS, scopedPayload)
+    const formData = buildExtraFormData(payload, { branchId })
+    const { data } = await api.post<Extra>(ENDPOINTS.MENU.EXTRAS, formData, multipartRequestConfig())
     return data
   },
 
-  async updateExtra(branchId: string, id: string, payload: Partial<Extra>): Promise<Extra> {
+  async updateExtra(branchId: string, id: string, payload: ExtraWriteRequest): Promise<Extra> {
     if (USE_MOCK) {
       await delay(500)
       const existing = mockExtras(branchId).find((e) => e.id === id)
-      return { ...(existing as Extra), ...payload, id, branch_id: branchId }
+      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      return {
+        ...(existing as Extra),
+        ...fields,
+        image: mockImageFromRequest(payload, existing?.image),
+        id,
+        branch_id: branchId,
+      }
     }
-    const { data } = await api.patch<Extra>(ENDPOINTS.MENU.EXTRA(id), payload, {
+    const formData = buildExtraFormData(payload)
+    const { data } = await api.patch<Extra>(ENDPOINTS.MENU.EXTRA(id), formData, {
       params: { branch_id: branchId },
+      ...multipartRequestConfig(),
     })
     return data
   },

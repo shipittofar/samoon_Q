@@ -80,7 +80,9 @@ import type {
   AdminReservationFilters,
   Capability,
   Category,
+  CategoryWriteRequest,
   Extra,
+  ExtraWriteRequest,
   ExtraGroup,
   LoginCredentials,
   LoyaltyReward,
@@ -2002,7 +2004,7 @@ function categoriesQueryPredicate(branchId: string) {
 export function useCreateCategory(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: Partial<Category>) => menuService.createCategory(branchId, payload),
+    mutationFn: (payload: CategoryWriteRequest) => menuService.createCategory(branchId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
     },
@@ -2012,15 +2014,16 @@ export function useCreateCategory(branchId: string) {
 export function useUpdateCategory(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<Category> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: CategoryWriteRequest }) =>
       menuService.updateCategory(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
+      const { image: _image, removeImage: _removeImage, ...optimistic } = payload
       const predicate = categoriesQueryPredicate(branchId)
       await qc.cancelQueries({ predicate })
       const snapshots = qc.getQueriesData<Category[]>({ predicate })
       qc.setQueriesData<Category[]>(
         { predicate },
-        (old) => old ? old.map((c) => c.id === id ? { ...c, ...payload } : c) : old,
+        (old) => old ? old.map((c) => c.id === id ? { ...c, ...optimistic } : c) : old,
       )
       return { snapshots }
     },
@@ -2223,7 +2226,7 @@ export function useReorderExtraGroups(branchId: string) {
 export function useCreateExtra(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: Partial<Extra> & { group_id: string }) => menuService.createExtra(branchId, payload),
+    mutationFn: (payload: ExtraWriteRequest & { group_id: string }) => menuService.createExtra(branchId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ predicate: extrasQueryPredicate(branchId) })
     },
@@ -2233,15 +2236,16 @@ export function useCreateExtra(branchId: string) {
 export function useUpdateExtra(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<Extra> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: ExtraWriteRequest }) =>
       menuService.updateExtra(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
+      const { image: _image, removeImage: _removeImage, ...optimistic } = payload
       const predicate = extrasQueryPredicate(branchId)
       await qc.cancelQueries({ predicate })
       const snapshots = qc.getQueriesData<Extra[]>({ predicate })
       qc.setQueriesData<Extra[]>(
         { predicate },
-        (old) => old ? old.map((e) => e.id === id ? { ...e, ...payload } : e) : old,
+        (old) => old ? old.map((e) => e.id === id ? { ...e, ...optimistic } : e) : old,
       )
       return { snapshots }
     },

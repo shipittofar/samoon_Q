@@ -35,8 +35,8 @@ describe('combined.service.ts — uploadAvatar method', () => {
     expect(src()).toContain('uploadAvatar')
   })
 
-  it('uses multipart/form-data', () => {
-    expect(src()).toContain('multipart/form-data')
+  it('uses multipartRequestConfig for FormData uploads', () => {
+    expect(src()).toContain('multipartRequestConfig()')
   })
 
   it('uses FormData', () => {
@@ -47,14 +47,8 @@ describe('combined.service.ts — uploadAvatar method', () => {
     expect(src()).toContain("form.append('avatar', file)")
   })
 
-  it('validates allowed file types', () => {
-    expect(src()).toContain('ALLOWED_TYPES')
-    expect(src()).toContain('image/jpeg')
-    expect(src()).toContain('image/png')
-  })
-
-  it('enforces 5 MB max size', () => {
-    expect(src()).toContain('5 * 1024 * 1024')
+  it('validates allowed file types via validateMenuImageFile', () => {
+    expect(src()).toContain('validateMenuImageFile')
   })
 
   it('validates server response has avatar_url', () => {
@@ -77,27 +71,13 @@ describe('combined.service.ts — uploadAvatar method', () => {
 describe('settings/page.tsx — avatar upload UI', () => {
   const src = () => readSrc('app/dashboard/settings/page.tsx')
 
-  it('has a hidden file input', () => {
-    expect(src()).toContain('type="file"')
-    expect(src()).toContain('sr-only')
-  })
-
-  it('accepts image MIME types', () => {
-    expect(src()).toContain('image/jpeg')
-    expect(src()).toContain('image/png')
-  })
-
-  it('renders image preview via previewUrl state', () => {
-    expect(src()).toContain('previewUrl')
+  it('uses ImageUploader component', () => {
+    expect(src()).toContain('ImageUploader')
   })
 
   it('has upload button', () => {
     expect(src()).toContain('Upload')
     expect(src()).toContain('handleUploadAvatar')
-  })
-
-  it('has cancel button to clear preview', () => {
-    expect(src()).toContain('handleCancelPreview')
   })
 
   it('shows loading state during upload', () => {
@@ -111,7 +91,6 @@ describe('settings/page.tsx — avatar upload UI', () => {
 
   it('shows error message on failure', () => {
     expect(src()).toContain('uploadError')
-    expect(src()).toContain('role="alert"')
   })
 
   it('calls userService.uploadAvatar', () => {
@@ -123,11 +102,7 @@ describe('settings/page.tsx — avatar upload UI', () => {
     expect(src()).toContain('avatar: avatar_url')
   })
 
-  it('has accessible aria-label on file input', () => {
-    expect(src()).toContain('aria-label')
-  })
-
-  it('has accessible aria-label on camera trigger button', () => {
+  it('has accessible label on image uploader', () => {
     expect(src()).toContain("t('changeProfilePhotoAria')")
   })
 
@@ -181,20 +156,14 @@ describe('userService.uploadAvatar — mock mode', () => {
     expect(result.avatar_url).toBeTruthy()
   })
 
-  it('returns avatar_url on valid WebP upload', async () => {
+  it('rejects WebP upload', async () => {
     const file = makeFile('photo.webp', 'image/webp', 2048)
-    const p = userService.uploadAvatar(file)
-    await vi.runAllTimersAsync()
-    const result = await p
-    expect(result.avatar_url).toBeTruthy()
+    await expect(userService.uploadAvatar(file)).rejects.toThrow('Unsupported file type')
   })
 
-  it('returns avatar_url on valid GIF upload', async () => {
+  it('rejects GIF upload', async () => {
     const file = makeFile('anim.gif', 'image/gif', 100)
-    const p = userService.uploadAvatar(file)
-    await vi.runAllTimersAsync()
-    const result = await p
-    expect(result.avatar_url).toBeTruthy()
+    await expect(userService.uploadAvatar(file)).rejects.toThrow('Unsupported file type')
   })
 
   it('throws on unsupported file type (PDF)', async () => {
@@ -220,12 +189,12 @@ describe('userService.uploadAvatar — mock mode', () => {
     expect(result.avatar_url).toBeTruthy()
   })
 
-  it('calls URL.createObjectURL with the file in mock mode', async () => {
+  it('returns avatar_url in mock mode', async () => {
     const file = makeFile('pic.jpg', 'image/jpeg', 200)
     const p = userService.uploadAvatar(file)
     await vi.runAllTimersAsync()
-    await p
-    expect(URL.createObjectURL).toHaveBeenCalledWith(file)
+    const result = await p
+    expect(result.avatar_url).toBe('blob:mock-avatar-url')
   })
 })
 

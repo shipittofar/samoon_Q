@@ -18,7 +18,12 @@ import {
   useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra,
   usePermission, useSelectedBranch, useBranchState, useIsBranchReady,
 } from '@/hooks'
-import type { Extra, ExtraGroup, ExtraGroupSelectionType } from '@/types'
+import type { Extra, ExtraGroup, ExtraGroupSelectionType, ExtraFormInput } from '@/types'
+import {
+  extraFormToWriteRequest,
+  extraToFormInput,
+} from '@/types'
+import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -82,43 +87,12 @@ function validateGroupForm(form: GroupForm, existingGroups: ExtraGroup[], exclud
 
 // ── Extra form ──────────────────────────────────────────────────────────────────
 
-interface ExtraForm {
-  name: string
-  description: string
-  image: string
-  price: string
-  order: string
-  available: boolean
-}
-
-const EMPTY_EXTRA_FORM: ExtraForm = {
-  name: '', description: '', image: '', price: '', order: '', available: true,
-}
-
-function extraToForm(extra: Extra): ExtraForm {
-  return {
-    name: extra.name,
-    description: extra.description ?? '',
-    image: extra.image ?? '',
-    price: String(extra.price),
-    order: extra.order !== undefined ? String(extra.order) : '',
-    available: extra.available,
-  }
-}
-
-function extraFormToPayload(form: ExtraForm): Partial<Extra> {
-  return {
-    name: form.name.trim(),
-    description: form.description.trim() || undefined,
-    image: form.image.trim() || undefined,
-    price: parseFloat(form.price) || 0,
-    order: form.order ? parseInt(form.order, 10) : undefined,
-    available: form.available,
-  }
+const EMPTY_EXTRA_FORM: ExtraFormInput = {
+  name: '', description: '', image: { ...EMPTY_IMAGE_FIELD }, price: '', order: '', available: true,
 }
 
 /** Empty name, duplicate name within the branch, or a negative price. */
-function validateExtraForm(form: ExtraForm, existingExtras: Extra[], excludeId?: string): string | null {
+function validateExtraForm(form: ExtraFormInput, existingExtras: Extra[], excludeId?: string): string | null {
   if (!form.name.trim()) return 'nameRequired'
   const nameLower = form.name.trim().toLowerCase()
   if (existingExtras.some((e) => e.id !== excludeId && e.name.trim().toLowerCase() === nameLower)) return 'duplicateName'
@@ -147,11 +121,11 @@ export default function AdminExtrasPage() {
   const [deleteGroupTarget, setDeleteGroupTarget] = useState<ExtraGroup | null>(null)
 
   const [extraCreateGroupId, setExtraCreateGroupId] = useState<string | null>(null)
-  const [extraCreateForm, setExtraCreateForm] = useState<ExtraForm>(EMPTY_EXTRA_FORM)
+  const [extraCreateForm, setExtraCreateForm] = useState<ExtraFormInput>(EMPTY_EXTRA_FORM)
   const [extraCreateError, setExtraCreateError] = useState<string | null>(null)
 
   const [editExtra, setEditExtra] = useState<Extra | null>(null)
-  const [extraEditForm, setExtraEditForm] = useState<ExtraForm>(EMPTY_EXTRA_FORM)
+  const [extraEditForm, setExtraEditForm] = useState<ExtraFormInput>(EMPTY_EXTRA_FORM)
   const [extraEditError, setExtraEditError] = useState<string | null>(null)
 
   const [deleteExtraTarget, setDeleteExtraTarget] = useState<Extra | null>(null)
@@ -306,14 +280,14 @@ export default function AdminExtrasPage() {
     if (validationError) { setExtraCreateError(validationError); return }
     setExtraCreateError(null)
     createExtraMutation.mutate(
-      { ...extraFormToPayload(extraCreateForm), group_id: extraCreateGroupId },
+      { ...extraFormToWriteRequest(extraCreateForm), group_id: extraCreateGroupId },
       { onSuccess: () => { setExtraCreateGroupId(null); setExtraCreateForm(EMPTY_EXTRA_FORM) } },
     )
   }
 
   const openExtraEdit = (extra: Extra) => {
     setEditExtra(extra)
-    setExtraEditForm(extraToForm(extra))
+    setExtraEditForm(extraToFormInput(extra))
     setExtraEditError(null)
   }
 
@@ -323,7 +297,7 @@ export default function AdminExtrasPage() {
     const validationError = validateExtraForm(extraEditForm, groupExtras, editExtra.id)
     if (validationError) { setExtraEditError(validationError); return }
     setExtraEditError(null)
-    updateExtraMutation.mutate({ id: editExtra.id, payload: extraFormToPayload(extraEditForm) }, {
+    updateExtraMutation.mutate({ id: editExtra.id, payload: extraFormToWriteRequest(extraEditForm) }, {
       onSuccess: () => setEditExtra(null),
     })
   }
@@ -728,19 +702,24 @@ function GroupFormFields({
 function ExtraFormFields({
   form, onChange, error,
 }: {
-  form: ExtraForm
-  onChange: (f: ExtraForm) => void
+  form: ExtraFormInput
+  onChange: (f: ExtraFormInput) => void
   error: string | null
 }) {
   const t = useTranslations('console')
-  const set = (field: keyof ExtraForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
+  const set = (field: Exclude<keyof ExtraFormInput, 'image'>) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
 
   return (
     <div className="space-y-4 mb-4">
       <Input label={t('extraNameLabel')} value={form.name} onChange={set('name')} />
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={2} />
-      <Input label={t('imageUrlLabel')} value={form.image} onChange={set('image')} />
+      <ImageUploader
+        label={t('imageLabel')}
+        value={form.image}
+        onChange={(image) => onChange({ ...form, image })}
+      />
       <div className="grid grid-cols-2 gap-4">
         <Input label={t('priceDollarLabel')} type="number" min={0} step="0.01" value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">$</span>} />
         <Input label={t('sortOrderLabel')} type="number" min={1} value={form.order} onChange={set('order')} />

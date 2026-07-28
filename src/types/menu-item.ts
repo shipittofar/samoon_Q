@@ -1,4 +1,5 @@
 import type { ImageFieldValue } from '@/components/ImageUploader'
+import { appendImageField } from '@/lib/multipart'
 import type { MenuItem } from './index'
 
 /**
@@ -87,9 +88,9 @@ export function buildMenuItemFormData(
   if (payload.is_popular != null) form.append('is_popular', String(payload.is_popular))
 
   if (payload.image instanceof File) {
-    form.append('image', payload.image)
+    appendImageField(form, 'image', payload.image)
   } else if (payload.removeImage) {
-    form.append('image', '')
+    appendImageField(form, 'image', undefined, true)
   }
 
   return form

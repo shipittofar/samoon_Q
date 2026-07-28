@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Sun, Moon, Monitor, Globe, Bell, Shield, User, ChevronRight, Camera, Upload, X, Mail, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { Sun, Moon, Monitor, Globe, Bell, Shield, User, ChevronRight, Upload, Mail, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { ImageUploader, EMPTY_IMAGE_FIELD, type ImageFieldValue } from '@/components/ImageUploader'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Card, Badge, OTPInput } from '@/components/ui'
@@ -79,50 +80,32 @@ export default function SettingsPage() {
   })
 
   // Avatar upload state
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [avatarImage, setAvatarImage] = useState<ImageFieldValue>({
+    ...EMPTY_IMAGE_FIELD,
+    existingUrl: user?.avatar ?? '',
+  })
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [uploadError, setUploadError] = useState<string | null>(null)
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-    if (!ALLOWED.includes(file.type)) {
-      setUploadError(t('unsupportedFileType'))
-      return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError(t('fileTooLarge'))
-      return
-    }
-    setUploadError(null)
-    setUploadState('idle')
-    setPendingFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
-  }
-
-  const handleCancelPreview = () => {
-    setPendingFile(null)
-    setPreviewUrl(null)
-    setUploadState('idle')
-    setUploadError(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
+  useEffect(() => {
+    setAvatarImage((prev) => ({
+      ...prev,
+      existingUrl: user?.avatar ?? '',
+      file: null,
+      cleared: false,
+    }))
+  }, [user?.avatar])
 
   const handleUploadAvatar = async () => {
-    if (!pendingFile) return
+    if (!avatarImage.file) return
     setUploadState('uploading')
     setUploadError(null)
     try {
-      const { avatar_url } = await userService.uploadAvatar(pendingFile)
+      const { avatar_url } = await userService.uploadAvatar(avatarImage.file)
       setUser({ ...user!, avatar: avatar_url })
       toast.success(t('avatarUpdated'))
       setUploadState('success')
-      setPendingFile(null)
-      setPreviewUrl(null)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      setAvatarImage({ file: null, existingUrl: avatar_url, cleared: false })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t('uploadFailedRetry')
       setUploadError(msg)
@@ -219,77 +202,48 @@ export default function SettingsPage() {
           <h2 className="font-semibold text-[var(--fg)]">{t('profileInformation')}</h2>
         </div>
 
-        <div className="flex items-center gap-4 mb-6 p-4 bg-[var(--card-hover)] rounded-xl">
-          {/* Avatar preview / current avatar */}
-          <div className="relative shrink-0">
+        <div className="mb-6 p-4 bg-[var(--card-hover)] rounded-xl space-y-4">
+          <div className="flex items-center gap-4">
             <Avatar
-              src={previewUrl ?? user?.avatar}
+              src={avatarImage.file ? undefined : (avatarImage.existingUrl || user?.avatar)}
               firstName={user?.first_name}
               lastName={user?.last_name}
               size="lg"
             />
-            {!pendingFile && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                aria-label={t('changeProfilePhotoAria')}
-                className="absolute -bottom-1 -end-1 h-6 w-6 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-md hover:bg-orange-600 transition-colors"
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-[var(--fg)]">{user?.first_name} {user?.last_name}</p>
+              <p className="text-sm text-[var(--fg-muted)]">{user?.email}</p>
+            </div>
+          </div>
+
+          <ImageUploader
+            label={t('changeProfilePhotoAria')}
+            value={avatarImage}
+            onChange={(image) => {
+              setAvatarImage(image)
+              setUploadError(null)
+              setUploadState('idle')
+            }}
+            error={uploadError}
+          />
+
+          {avatarImage.file && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                size="sm"
+                onClick={handleUploadAvatar}
+                loading={uploadState === 'uploading'}
+                disabled={uploadState === 'uploading'}
+                leftIcon={<Upload className="h-3.5 w-3.5" />}
               >
-                <Camera className="h-3 w-3" />
-              </button>
-            )}
-          </div>
+                {uploadState === 'uploading' ? t('uploadingEllipsis') : t('upload')}
+              </Button>
+            </div>
+          )}
 
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-[var(--fg)]">{user?.first_name} {user?.last_name}</p>
-            <p className="text-sm text-[var(--fg-muted)]">{user?.email}</p>
-
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="sr-only"
-              aria-label={t('selectProfilePhotoAria')}
-              onChange={handleFileChange}
-              data-testid="avatar-file-input"
-            />
-
-            {/* Upload controls — shown when a file is staged */}
-            {pendingFile && (
-              <div className="mt-2 flex items-center gap-2 flex-wrap">
-                <Button
-                  size="sm"
-                  onClick={handleUploadAvatar}
-                  loading={uploadState === 'uploading'}
-                  disabled={uploadState === 'uploading'}
-                  leftIcon={<Upload className="h-3.5 w-3.5" />}
-                >
-                  {uploadState === 'uploading' ? t('uploadingEllipsis') : t('upload')}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={handleCancelPreview}
-                  disabled={uploadState === 'uploading'}
-                  leftIcon={<X className="h-3.5 w-3.5" />}
-                >
-                  {tCommon('cancel')}
-                </Button>
-              </div>
-            )}
-
-            {/* Feedback messages */}
-            {uploadState === 'success' && (
-              <p className="mt-1 text-xs text-emerald-600 font-medium">{t('avatarUpdatedSuccessfully')}</p>
-            )}
-            {uploadState === 'error' && uploadError && (
-              <p className="mt-1 text-xs text-red-500" role="alert">{uploadError}</p>
-            )}
-            {!pendingFile && !uploadError && uploadState !== 'success' && (
-              <p className="mt-1 text-xs text-[var(--fg-muted)]">{t('avatarFormatHint')}</p>
-            )}
-          </div>
+          {uploadState === 'success' && (
+            <p className="text-xs text-emerald-600 font-medium">{t('avatarUpdatedSuccessfully')}</p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit(onSaveProfile)} className="space-y-4">

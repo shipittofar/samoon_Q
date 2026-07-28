@@ -1424,3 +1424,17 @@ export {
   menuItemToFormInput,
   buildMenuItemFormData,
 } from '@/types/menu-item'
+
+export type { CategoryFormInput, CategoryWriteRequest } from '@/types/category'
+export {
+  categoryFormToWriteRequest,
+  categoryToFormInput,
+  buildCategoryFormData,
+} from '@/types/category'
+
+export type { ExtraFormInput, ExtraWriteRequest } from '@/types/extra'
+export {
+  extraFormToWriteRequest,
+  extraToFormInput,
+  buildExtraFormData,
+} from '@/types/extra'
