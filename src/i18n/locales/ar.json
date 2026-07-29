@@ -360,6 +360,7 @@
       "preparing": "قيد التحضير",
       "ready": "جاهز",
       "delivered": "تم التوصيل",
+      "picked_up": "تم الاستلام",
       "cancelled": "ملغي"
     },
     "estimatedTime": "الوقت المتوقع: {min} دقيقة",
@@ -4853,7 +4854,9 @@
     "ready": "جاهز",
     "readyDesc": "طلبك جاهز!",
     "delivered": "تم التوصيل",
-    "deliveredDesc": "استمتع بوجبتك 🎉"
+    "deliveredDesc": "استمتع بوجبتك 🎉",
+    "pickedUp": "تم الاستلام",
+    "pickedUpDesc": "تم استلام طلبك"
   },
   "checkoutResult": {
     "orderConfirmed": "تم تأكيد الطلب!",

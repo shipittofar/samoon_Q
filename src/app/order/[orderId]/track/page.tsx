@@ -10,11 +10,8 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { useOrder } from '@/hooks'
-
-const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple' | 'danger' | 'secondary'> = {
-  delivered: 'success', pending: 'warning', accepted: 'info',
-  preparing: 'purple', ready: 'success', cancelled: 'danger',
-}
+import { getOrderStatusBadgeVariant } from '@/lib/order-status'
+import type { OrderStatus } from '@/types'
 
 export default function OrderTrackPage({ params }: { params: Promise<{ orderId: string }> }) {
   const t = useTranslations('orderDetail')
@@ -63,8 +60,8 @@ export default function OrderTrackPage({ params }: { params: Promise<{ orderId: 
                 {t('trackingNumber', { number: order.order_number })}
               </h1>
             </div>
-            <Badge variant={STATUS_BADGE_MAP[order.status] || 'secondary'} className="capitalize shrink-0">
-              {order.status && STATUS_BADGE_MAP[order.status] ? tOrder(`status.${order.status}`) : order.status?.replace('_', ' ')}
+            <Badge variant={getOrderStatusBadgeVariant(order.status as OrderStatus)} className="capitalize shrink-0">
+              {tOrder(`status.${order.status}`)}
             </Badge>
           </div>
 
@@ -82,7 +79,8 @@ export default function OrderTrackPage({ params }: { params: Promise<{ orderId: 
               <OrderTracker
                 orderId={order.id}
                 initialStatus={order.status}
-                useMockSimulation={order.status !== 'delivered'}
+                orderType={order.order_type}
+                useMockSimulation={order.status !== 'delivered' && order.status !== 'picked_up'}
               />
             </div>
           )}

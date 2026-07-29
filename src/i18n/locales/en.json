@@ -360,6 +360,7 @@
       "preparing": "Preparing",
       "ready": "Ready",
       "delivered": "Delivered",
+      "picked_up": "Picked up",
       "cancelled": "Cancelled"
     },
     "estimatedTime": "Estimated time: {min} min",
@@ -4853,7 +4854,9 @@
     "ready": "Ready",
     "readyDesc": "Your order is ready!",
     "delivered": "Delivered",
-    "deliveredDesc": "Enjoy your meal 🎉"
+    "deliveredDesc": "Enjoy your meal 🎉",
+    "pickedUp": "Picked up",
+    "pickedUpDesc": "Your order has been picked up"
   },
   "checkoutResult": {
     "orderConfirmed": "Order Confirmed!",

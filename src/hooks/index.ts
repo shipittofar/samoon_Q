@@ -23,6 +23,7 @@ import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
 import { PUBLIC_TENANTS_QUERY_KEY, fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
+import { resolveStatusUpdate, type OrderStatusContext } from '@/lib/order-status'
 import { staffService } from '@/services/staff.service'
 import type {
   InviteStaffPayload,
@@ -1529,15 +1530,16 @@ export function useUpdateOrderStatus() {
   const user = useAuthStore((s) => s.user)
   const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
-      adminService.updateOrderStatus(id, status),
-    onMutate: async ({ id, status }) => {
+    mutationFn: ({ id, status, order }: { id: string; status: OrderStatus; order?: OrderStatusContext }) =>
+      adminService.updateOrderStatus(id, status, order),
+    onMutate: async ({ id, status, order }) => {
+      const resolvedStatus = resolveStatusUpdate(order, status)
       await qc.cancelQueries({ queryKey: ['admin-orders'] })
       const snapshots = qc.getQueriesData<PaginatedResponse<Order>>({ queryKey: ['admin-orders'] })
       qc.setQueriesData<PaginatedResponse<Order>>(
         { queryKey: ['admin-orders'] },
         (old) => old
-          ? { ...old, results: old.results.map((o) => o.id === id ? { ...o, status } : o) }
+          ? { ...old, results: old.results.map((o) => o.id === id ? { ...o, status: resolvedStatus } : o) }
           : old,
       )
       return { snapshots }
@@ -1545,7 +1547,14 @@ export function useUpdateOrderStatus() {
     onError: (_err, _vars, ctx) => {
       ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
     },
-    onSuccess: (_data, { id, status }) => {
+    onSuccess: (data, { id }) => {
+      qc.setQueriesData<PaginatedResponse<Order>>(
+        { queryKey: ['admin-orders'] },
+        (old) => old
+          ? { ...old, results: old.results.map((o) => o.id === id ? { ...o, status: data.status } : o) }
+          : old,
+      )
+      qc.setQueryData<Order>(['order', id], (old) => old ? { ...old, status: data.status } : old)
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })
       auditLogService.record(
@@ -1553,7 +1562,7 @@ export function useUpdateOrderStatus() {
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'order', id, displayName: `Order ${id}` },
         { tenantId: tenant?.id ?? '' },
-        { before: null, after: { status }, changedFields: ['status'] },
+        { before: null, after: { status: data.status }, changedFields: ['status'] },
       )
     },
   })

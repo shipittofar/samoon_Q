@@ -360,6 +360,7 @@
       "preparing": "در حال آماده‌سازی",
       "ready": "آماده",
       "delivered": "تحویل داده شده",
+      "picked_up": "تحویل گرفته شد",
       "cancelled": "لغو شده"
     },
     "estimatedTime": "زمان تخمینی: {min} دقیقه",
@@ -4853,7 +4854,9 @@
     "ready": "آماده",
     "readyDesc": "سفارش شما آماده است!",
     "delivered": "تحویل داده شد",
-    "deliveredDesc": "از غذای خود لذت ببرید 🎉"
+    "deliveredDesc": "از غذای خود لذت ببرید 🎉",
+    "pickedUp": "تحویل گرفته شد",
+    "pickedUpDesc": "سفارش شما تحویل گرفته شد"
   },
   "checkoutResult": {
     "orderConfirmed": "سفارش تأیید شد!",

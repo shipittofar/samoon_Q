@@ -270,6 +270,7 @@ export type OrderStatus =
   | 'preparing'
   | 'ready'
   | 'delivered'
+  | 'picked_up'
   | 'cancelled'
 
 export type OrderType = 'delivery' | 'pickup' | 'dine_in'

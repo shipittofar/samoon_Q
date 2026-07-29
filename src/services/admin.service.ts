@@ -21,6 +21,7 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { MOCK_MENU_ITEMS, MOCK_ORDERS, MOCK_PLATFORM_USERS, MOCK_BUSINESS_CUSTOMERS, MOCK_BRANCH_CUSTOMERS, MOCK_RESERVATIONS, MOCK_CUSTOMER_NOTES, MOCK_CUSTOMER_TAG_DEFINITIONS, MOCK_CUSTOMER_TAG_ASSIGNMENTS, MOCK_CUSTOMER_ANALYTICS, MOCK_CUSTOMER_MARKETING, MOCK_CUSTOMER_COUPONS, MOCK_CUSTOMER_TIMELINE } from '@/lib/mock-data'
+import { isPickupDeliveryRejectionError, resolveStatusUpdate, type OrderStatusContext } from '@/lib/order-status'
 import type {
   AdminCustomer,
   AdminCustomerFilters,
@@ -287,14 +288,29 @@ export const adminService = {
   },
 
   // ⚠️ Backend blocker: PATCH /orders/{id}/status/ not yet deployed
-  async updateOrderStatus(id: string, status: OrderStatus): Promise<Order> {
+  async updateOrderStatus(
+    id: string,
+    status: OrderStatus,
+    orderContext?: OrderStatusContext,
+  ): Promise<Order> {
+    const resolvedStatus = resolveStatusUpdate(orderContext, status)
     if (USE_MOCK) {
       await delay(400)
       const order = MOCK_ORDERS.find((o) => o.id === id)
-      return { ...(order as Order), status }
+      return { ...(order as Order), status: resolvedStatus }
     }
-    const { data } = await api.patch<Order>(ENDPOINTS.ORDERS.STATUS(id), { status })
-    return data
+    try {
+      const { data } = await api.patch<Order>(ENDPOINTS.ORDERS.STATUS(id), { status: resolvedStatus })
+      return data
+    } catch (error) {
+      if (isPickupDeliveryRejectionError(error)) {
+        console.warn(
+          '[adminService.updateOrderStatus] Unexpected invalid_order_status_transition',
+          { id, status: resolvedStatus, orderType: orderContext?.order_type },
+        )
+      }
+      throw error
+    }
   },
 
   async getAdminReservation(id: string): Promise<Reservation> {

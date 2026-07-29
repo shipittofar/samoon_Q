@@ -1,15 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { Check, Clock, ChefHat, Bell, Bike, X } from 'lucide-react'
+import { Check, Clock, ChefHat, Bell, Bike, Truck, X } from 'lucide-react'
 import { simulateOrderUpdates } from '@/services/websocket.service'
 import { useOrderWebSocket } from '@/hooks/client'
 import { cn } from '@/utils'
-import type { OrderStatus } from '@/types'
+import { getTrackerStatusOrder, usesPickupFulfillment } from '@/lib/order-status'
+import type { OrderStatus, OrderType } from '@/types'
 
-const STEPS: { status: OrderStatus; labelKey: string; icon: React.ElementType; descriptionKey: string }[] = [
+const DELIVERY_STEPS: {
+  status: OrderStatus
+  labelKey: string
+  icon: React.ElementType
+  descriptionKey: string
+}[] = [
   { status: 'pending', labelKey: 'orderPlaced', icon: Clock, descriptionKey: 'orderPlacedDesc' },
   { status: 'accepted', labelKey: 'accepted', icon: Check, descriptionKey: 'acceptedDesc' },
   { status: 'preparing', labelKey: 'preparing', icon: ChefHat, descriptionKey: 'preparingDesc' },
@@ -17,28 +23,51 @@ const STEPS: { status: OrderStatus; labelKey: string; icon: React.ElementType; d
   { status: 'delivered', labelKey: 'delivered', icon: Bike, descriptionKey: 'deliveredDesc' },
 ]
 
-const STATUS_ORDER: OrderStatus[] = ['pending', 'accepted', 'preparing', 'ready', 'delivered']
+const PICKUP_STEPS: {
+  status: OrderStatus
+  labelKey: string
+  icon: React.ElementType
+  descriptionKey: string
+}[] = [
+  { status: 'pending', labelKey: 'orderPlaced', icon: Clock, descriptionKey: 'orderPlacedDesc' },
+  { status: 'accepted', labelKey: 'accepted', icon: Check, descriptionKey: 'acceptedDesc' },
+  { status: 'preparing', labelKey: 'preparing', icon: ChefHat, descriptionKey: 'preparingDesc' },
+  { status: 'ready', labelKey: 'ready', icon: Bell, descriptionKey: 'readyDesc' },
+  { status: 'picked_up', labelKey: 'pickedUp', icon: Truck, descriptionKey: 'pickedUpDesc' },
+]
 
 interface OrderTrackerProps {
   orderId: string
   initialStatus?: OrderStatus
+  orderType?: OrderType
   useMockSimulation?: boolean
 }
 
-export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimulation = true }: OrderTrackerProps) {
+export function OrderTracker({
+  orderId,
+  initialStatus = 'pending',
+  orderType,
+  useMockSimulation = true,
+}: OrderTrackerProps) {
   const t = useTranslations('orderTracker')
   const [currentStatus, setCurrentStatus] = useState<OrderStatus>(initialStatus)
   const [estimatedTime, setEstimatedTime] = useState<number | null>(null)
   const [isCancelled, setIsCancelled] = useState(initialStatus === 'cancelled')
 
+  const orderContext = useMemo(
+    () => ({ status: currentStatus, order_type: orderType ?? 'delivery' as const }),
+    [currentStatus, orderType],
+  )
+  const pickupWorkflow = usesPickupFulfillment(orderContext)
+  const statusOrder = useMemo(() => getTrackerStatusOrder(orderContext), [orderContext])
+  const steps = pickupWorkflow ? PICKUP_STEPS : DELIVERY_STEPS
+  const terminalStatuses: OrderStatus[] = pickupWorkflow ? ['picked_up'] : ['delivered']
+
   const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
-  // Connect to real WebSocket only when not in mock mode and tracking is active.
-  // Passing null disables the connection without violating the rules of hooks.
   const shouldConnectWs = !isMockMode && useMockSimulation && !isCancelled
   const { status: wsStatus, estimatedTime: wsEta } = useOrderWebSocket(shouldConnectWs ? orderId : null)
 
-  // Sync real WebSocket updates into local state (real mode only)
   useEffect(() => {
     if (isMockMode || !wsStatus) return
     setCurrentStatus(wsStatus)
@@ -49,9 +78,13 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
     setEstimatedTime(wsEta)
   }, [isMockMode, wsEta])
 
-  const currentIdx = STATUS_ORDER.indexOf(currentStatus)
+  useEffect(() => {
+    setCurrentStatus(initialStatus)
+    setIsCancelled(initialStatus === 'cancelled')
+  }, [initialStatus])
 
-  // Mock simulation (only when USE_MOCK=true)
+  const currentIdx = statusOrder.indexOf(currentStatus)
+
   useEffect(() => {
     if (!isMockMode || !useMockSimulation || isCancelled) return
     const cleanup = simulateOrderUpdates(orderId, (status, eta) => {
@@ -77,9 +110,8 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
 
   return (
     <div className="space-y-6">
-      {/* Estimated Time */}
       <AnimatePresence>
-        {estimatedTime !== null && estimatedTime > 0 && (
+        {estimatedTime !== null && estimatedTime > 0 && !terminalStatuses.includes(currentStatus) && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -97,19 +129,18 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
         )}
       </AnimatePresence>
 
-      {/* Progress Bar */}
       <div className="relative">
         <div className="absolute top-5 start-5 end-5 h-0.5 bg-[var(--border)]" />
         <motion.div
           className="absolute top-5 start-5 h-0.5 bg-orange-500"
           initial={{ width: '0%' }}
-          animate={{ width: currentIdx === -1 ? '0%' : `${(currentIdx / (STEPS.length - 1)) * 100}%` }}
+          animate={{ width: currentIdx === -1 ? '0%' : `${(currentIdx / (steps.length - 1)) * 100}%` }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
         />
 
         <div className="relative flex justify-between">
-          {STEPS.map((step, idx) => {
-            const stepIdx = STATUS_ORDER.indexOf(step.status)
+          {steps.map((step) => {
+            const stepIdx = statusOrder.indexOf(step.status)
             const done = stepIdx < currentIdx
             const active = stepIdx === currentIdx
 
@@ -151,9 +182,8 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
         </div>
       </div>
 
-      {/* Current Step Description */}
       <AnimatePresence mode="wait">
-        {STEPS.find((s) => s.status === currentStatus) && (
+        {steps.find((s) => s.status === currentStatus) && (
           <motion.div
             key={currentStatus}
             initial={{ opacity: 0, y: 10 }}
@@ -163,7 +193,7 @@ export function OrderTracker({ orderId, initialStatus = 'pending', useMockSimula
           >
             <div className="inline-flex items-center gap-2 bg-[var(--card-hover)] rounded-full px-4 py-2">
               {(() => {
-                const step = STEPS.find((s) => s.status === currentStatus)!
+                const step = steps.find((s) => s.status === currentStatus)!
                 return (
                   <>
                     <step.icon className="h-4 w-4 text-orange-500" />

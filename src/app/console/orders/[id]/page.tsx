@@ -5,17 +5,12 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import {
   ArrowLeft,
-  Package,
-  Clock,
-  ChefHat,
-  CheckCircle,
-  Truck,
-  XCircle,
   User,
   MapPin,
   CreditCard,
   Hash,
-  Calendar,
+  XCircle,
+  Clock,
 } from 'lucide-react'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -23,19 +18,8 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { formatCurrency } from '@/utils'
 import { useOrder } from '@/hooks'
-import type { OrderStatus, OrderStatusHistory, OrderType, PaymentMethod, PaymentStatus } from '@/types'
-
-const STATUS_CONFIG: Record<
-  OrderStatus,
-  { labelKey: string; icon: React.ElementType; badge: 'warning' | 'info' | 'purple' | 'success' | 'danger' | 'secondary' }
-> = {
-  pending:   { labelKey: 'pending',   icon: Clock,        badge: 'warning'   },
-  accepted:  { labelKey: 'accepted',  icon: CheckCircle,  badge: 'info'      },
-  preparing: { labelKey: 'preparing', icon: ChefHat,      badge: 'purple'    },
-  ready:     { labelKey: 'ready',     icon: Package,      badge: 'success'   },
-  delivered: { labelKey: 'delivered', icon: Truck,        badge: 'success'   },
-  cancelled: { labelKey: 'cancelled', icon: XCircle,      badge: 'danger'    },
-}
+import { ORDER_STATUS_CONFIG } from '@/lib/order-status'
+import type { OrderStatusHistory, OrderType, PaymentMethod, PaymentStatus } from '@/types'
 
 const ORDER_TYPE_KEY: Record<OrderType, string> = { delivery: 'delivery', pickup: 'pickup', dine_in: 'dineIn' }
 const PAYMENT_METHOD_KEY: Record<PaymentMethod, string> = { card: 'card', cash: 'cash', online: 'online', wallet: 'wallet' }
@@ -48,7 +32,7 @@ const PAYMENT_STATUS_KEY: Record<PaymentStatus, string> = {
 
 function TimelineItem({ entry, isLast }: { entry: OrderStatusHistory; isLast: boolean }) {
   const tOrder = useTranslations('order')
-  const cfg = STATUS_CONFIG[entry.status]
+  const cfg = ORDER_STATUS_CONFIG[entry.status]
   const label = cfg ? tOrder(`status.${cfg.labelKey}`) : entry.status
   const Icon = cfg?.icon ?? Clock
   return (
@@ -112,7 +96,7 @@ function OrderDetailContent({ id }: { id: string }) {
     )
   }
 
-  const statusCfg = STATUS_CONFIG[order.status]
+  const statusCfg = ORDER_STATUS_CONFIG[order.status]
   const statusLabel = statusCfg ? tOrder(`status.${statusCfg.labelKey}`) : order.status
 
   return (

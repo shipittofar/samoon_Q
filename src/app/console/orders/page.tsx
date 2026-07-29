@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Search, Package, Clock, ChefHat, CheckCircle, Truck, XCircle, RefreshCw, AlertCircle, Loader2 } from 'lucide-react'
+import { Search, Package, RefreshCw, AlertCircle, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -11,6 +11,7 @@ import { cn } from '@/utils'
 import { useAdminOrders, useUpdateOrderStatus, useAdminBranches, useBulkUpdateOrderStatus, useBulkCancelOrders } from '@/hooks'
 import { ADMIN_ORDERS_PAGE_SIZE } from '@/services/admin.service'
 import { useConsoleWorkspace } from '@/hooks/console-workspace'
+import { getNextOrderStatus, ORDER_STATUS_CONFIG } from '@/lib/order-status'
 import type { AdminOrdersScope, Order, OrderStatus, OrderType } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -19,29 +20,10 @@ import { BulkActionBar } from '@/components/admin/BulkActionBar'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 
 
-const STATUS_CONFIG: Record<OrderStatus, {
-  labelKey: string
-  icon: React.ElementType
-  color: string
-  bg: string
-  badge: 'warning' | 'info' | 'purple' | 'success' | 'danger' | 'secondary'
-}> = {
-  pending:   { labelKey: 'pending',   icon: Clock,        color: 'text-amber-500',   bg: 'bg-amber-50 dark:bg-amber-950/30',    badge: 'warning'   },
-  accepted:  { labelKey: 'accepted',  icon: CheckCircle,  color: 'text-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/30',      badge: 'info'      },
-  preparing: { labelKey: 'preparing', icon: ChefHat,      color: 'text-purple-500',  bg: 'bg-purple-50 dark:bg-purple-950/30',  badge: 'purple'    },
-  ready:     { labelKey: 'ready',     icon: Package,      color: 'text-green-500',   bg: 'bg-green-50 dark:bg-green-950/30',    badge: 'success'   },
-  delivered: { labelKey: 'delivered', icon: Truck,        color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30', badge: 'success'  },
-  cancelled: { labelKey: 'cancelled', icon: XCircle,      color: 'text-red-500',     bg: 'bg-red-50 dark:bg-red-950/30',        badge: 'danger'    },
-}
-
 const ORDER_TYPE_KEY: Record<OrderType, string> = {
   delivery: 'delivery',
   pickup: 'pickup',
   dine_in: 'dineIn',
-}
-
-const STATUS_NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
-  pending: 'accepted', accepted: 'preparing', preparing: 'ready', ready: 'delivered',
 }
 
 function orderCustomerName(order: Order): string {
@@ -101,16 +83,16 @@ export default function AdminOrdersPage() {
 
   const statusCounts = useMemo(() => {
     const all = data?.results ?? []
-    return (Object.keys(STATUS_CONFIG) as OrderStatus[]).reduce<Record<string, number>>((acc, s) => {
+    return (Object.keys(ORDER_STATUS_CONFIG) as OrderStatus[]).reduce<Record<string, number>>((acc, s) => {
       acc[s] = all.filter((o) => o.status === s).length
       return acc
     }, {})
   }, [data])
 
   const advance = (order: Order) => {
-    const next = STATUS_NEXT[order.status]
+    const next = getNextOrderStatus(order)
     if (!next) return
-    updateStatus.mutate({ id: order.id, status: next })
+    updateStatus.mutate({ id: order.id, status: next, order })
   }
 
   const toggleSelect = (id: string) => {
@@ -189,8 +171,8 @@ export default function AdminOrdersPage() {
 
           {/* Status Summary — counts are page-local; backend does not expose aggregates */}
           <p className="text-xs text-[var(--fg-muted)] mb-2">{t('ordersStatusOnPage')}</p>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
-            {(Object.entries(STATUS_CONFIG) as [OrderStatus, typeof STATUS_CONFIG[OrderStatus]][]).map(([status, cfg]) => (
+          <div className="grid grid-cols-3 sm:grid-cols-7 gap-3 mb-6">
+            {(Object.entries(ORDER_STATUS_CONFIG) as [OrderStatus, typeof ORDER_STATUS_CONFIG[OrderStatus]][]).map(([status, cfg]) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
@@ -274,8 +256,8 @@ export default function AdminOrdersPage() {
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
                     {orders.map((order, i) => {
-                      const cfg = STATUS_CONFIG[order.status]
-                      const nextStatus = STATUS_NEXT[order.status]
+                      const cfg = ORDER_STATUS_CONFIG[order.status]
+                      const nextStatus = getNextOrderStatus(order)
                       const isPending = updateStatus.isPending && updateStatus.variables?.id === order.id
                       return (
                         <motion.tr
@@ -329,7 +311,7 @@ export default function AdminOrdersPage() {
                               >
                                 {isPending
                                   ? <Loader2 className="h-3 w-3 animate-spin" />
-                                  : t('advanceToStatus', { status: tOrder(`status.${STATUS_CONFIG[nextStatus]?.labelKey}`) })}
+                                  : t('advanceToStatus', { status: tOrder(`status.${ORDER_STATUS_CONFIG[nextStatus]?.labelKey}`) })}
                               </Button>
                             )}
                           </td>
