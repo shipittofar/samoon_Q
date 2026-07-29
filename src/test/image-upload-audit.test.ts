@@ -88,10 +88,47 @@ describe('avatar image upload', () => {
   })
 })
 
-describe('remaining URL-based image inputs', () => {
-  it('branch forms still use URL text fields (backend URL contract)', () => {
+describe('branch image upload', () => {
+  it('buildBranchFormData appends image and coverImage Files', async () => {
+    const { buildBranchFormData } = await import('@/types/branch-form')
+    const logo = makeFile('logo.jpg', 'image/jpeg')
+    const cover = makeFile('cover.png', 'image/png')
+    const form = buildBranchFormData(
+      {
+        name: 'Downtown',
+        slug: 'downtown',
+        type: 'physical',
+        location: { address: '1 Main', city: 'NYC', country: 'US' },
+        image: logo,
+        coverImage: cover,
+      },
+      { tenantId: 't1' },
+    )
+    expect(form.get('name')).toBe('Downtown')
+    expect(form.get('tenantId')).toBe('t1')
+    expect(form.get('image')).toBe(logo)
+    expect(form.get('coverImage')).toBe(cover)
+    expect(form.get('location')).toBe(JSON.stringify({ address: '1 Main', city: 'NYC', country: 'US' }))
+  })
+
+  it('branch forms use ImageUploader not image URL input', () => {
     const src = read('src/app/console/branches/BranchFormFields.tsx')
-    expect(src).toContain('imageUrlLabel')
+    expect(src).toContain('ImageUploader')
+    expect(src).not.toMatch(/imageUrlLabel.*form\.image/)
+    expect(src).toContain('branchFormToWriteRequest')
+  })
+
+  it('branch service createBranch uses FormData', () => {
+    const src = read('src/services/branch.service.ts')
+    expect(src).toContain('buildBranchFormData')
+    expect(src).toContain('multipartRequestConfig()')
+  })
+})
+
+describe('remaining URL-based image inputs', () => {
+  it('console marketplace settings still use cover image URL input', () => {
+    const src = read('src/app/console/settings/page.tsx')
+    expect(src).toContain('coverImageUrlLabel')
     expect(src).not.toContain('ImageUploader')
   })
 })

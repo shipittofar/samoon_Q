@@ -33,11 +33,10 @@ import type {
 import { branchManagementService } from '@/services/branch.service'
 import type {
   Branch as BranchEntity,
-  CreateBranchPayload,
-  UpdateBranchPayload,
   AssignManagerPayload,
   BranchResolutionState,
 } from '@/types/branch'
+import type { BranchWriteRequest } from '@/types/branch-form'
 import { branchAnalyticsService } from '@/services/branch-analytics.service'
 import type {
   BranchRevenueAnalytics,
@@ -1111,7 +1110,7 @@ export function useConsoleAdminBranchMetrics(id: string) {
 export function useCreateBranch(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: CreateBranchPayload) =>
+    mutationFn: (payload: BranchWriteRequest) =>
       branchManagementService.createBranch(tenantId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-branches', tenantId] })
@@ -1122,7 +1121,7 @@ export function useCreateBranch(tenantId: string) {
 export function useConsoleCreateBranch(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: CreateBranchPayload) =>
+    mutationFn: (payload: BranchWriteRequest) =>
       branchManagementService.consoleCreateBranch(tenantId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['console-admin-branches', tenantId] })
@@ -1133,7 +1132,7 @@ export function useConsoleCreateBranch(tenantId: string) {
 export function useUpdateBranch() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateBranchPayload }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: BranchWriteRequest }) =>
       branchManagementService.updateBranch(id, payload),
     onMutate: async ({ id, payload }) => {
       await qc.cancelQueries({ queryKey: ['admin-branch', id] })

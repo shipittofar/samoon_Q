@@ -16,16 +16,26 @@ import type {
   BranchStatus,
   BranchMetrics,
   BranchAnalyticsSummary,
-  CreateBranchPayload,
-  UpdateBranchPayload,
   AssignManagerPayload,
   BranchBusinessHours,
 } from '@/types/branch'
+import { buildBranchFormData, type BranchWriteRequest } from '@/types/branch-form'
 
 import type { PaginatedResponse } from '@/types'
+import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
+
+function mockBranchImagesFromRequest(
+  payload: BranchWriteRequest,
+  existing: { image?: string; coverImage?: string } = {},
+): { image?: string; coverImage?: string } {
+  return {
+    image: payload.removeImage ? undefined : mockImageUrlFromFile(payload.image, existing.image),
+    coverImage: payload.removeCoverImage ? undefined : mockImageUrlFromFile(payload.coverImage, existing.coverImage),
+  }
+}
 
 const MOCK_TENANT_ID = 'tenant-samoon-01'
 const TENANT_BREW_CAFE = 'tenant-brew-cafe-01'
@@ -468,21 +478,22 @@ export const branchManagementService = {
   
   // ── Mutations ──────────────────────────────────────────────────────────────
 
-  async createBranch(tenantId: string, payload: CreateBranchPayload): Promise<Branch> {
+  async createBranch(tenantId: string, payload: BranchWriteRequest): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
-      assertSlugAvailable(tenantId, payload.slug)
+      assertSlugAvailable(tenantId, payload.slug!)
       _branchCounter += 1
       const isFirstBranch = MOCK_BRANCH_LIST.every((b) => b.tenantId !== tenantId)
+      const images = mockBranchImagesFromRequest(payload)
       const branch: Branch = {
         id: `branch-new-${_branchCounter}`,
         tenantId,
-        name: payload.name,
-        slug: payload.slug,
+        name: payload.name!,
+        slug: payload.slug!,
         description: payload.description,
         status: 'inactive',
-        type: payload.type,
-        location: payload.location,
+        type: payload.type!,
+        location: payload.location!,
         contact: payload.contact ?? {},
         managerId: payload.managerId,
         businessHours: payload.businessHours ?? defaultHours(),
@@ -495,8 +506,8 @@ export const branchManagementService = {
           marketplaceVisible: true,
           ...payload.settings,
         },
-        image: payload.image,
-        coverImage: payload.coverImage,
+        image: images.image,
+        coverImage: images.coverImage,
         // The tenant's first branch is always the default, regardless of the payload.
         isDefault: isFirstBranch || payload.isDefault,
         timeZone: payload.timeZone,
@@ -511,25 +522,27 @@ export const branchManagementService = {
       MOCK_BRANCH_LIST.push(branch)
       return { ...branch }
     }
-    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CREATE, { ...payload, tenantId })
+    const formData = buildBranchFormData(payload, { tenantId })
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CREATE, formData, multipartRequestConfig())
     return res.data
   },
 
-  async consoleCreateBranch(tenantId: string, payload: CreateBranchPayload): Promise<Branch> {
+  async consoleCreateBranch(tenantId: string, payload: BranchWriteRequest): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
-      assertSlugAvailable(tenantId, payload.slug)
+      assertSlugAvailable(tenantId, payload.slug!)
       _branchCounter += 1
       const isFirstBranch = MOCK_BRANCH_LIST.every((b) => b.tenantId !== tenantId)
+      const images = mockBranchImagesFromRequest(payload)
       const branch: Branch = {
         id: `branch-new-${_branchCounter}`,
         tenantId,
-        name: payload.name,
-        slug: payload.slug,
+        name: payload.name!,
+        slug: payload.slug!,
         description: payload.description,
         status: 'inactive',
-        type: payload.type,
-        location: payload.location,
+        type: payload.type!,
+        location: payload.location!,
         contact: payload.contact ?? {},
         managerId: payload.managerId,
         businessHours: payload.businessHours ?? defaultHours(),
@@ -542,8 +555,8 @@ export const branchManagementService = {
           marketplaceVisible: true,
           ...payload.settings,
         },
-        image: payload.image,
-        coverImage: payload.coverImage,
+        image: images.image,
+        coverImage: images.coverImage,
         // The tenant's first branch is always the default, regardless of the payload.
         isDefault: isFirstBranch || payload.isDefault,
         timeZone: payload.timeZone,
@@ -558,11 +571,12 @@ export const branchManagementService = {
       MOCK_BRANCH_LIST.push(branch)
       return { ...branch }
     }
-    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CONSOLE_CREATE(tenantId), { ...payload })
+    const formData = buildBranchFormData(payload)
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CONSOLE_CREATE(tenantId), formData, multipartRequestConfig())
     return res.data
   },
 
-  async updateBranch(id: string, payload: UpdateBranchPayload): Promise<Branch> {
+  async updateBranch(id: string, payload: BranchWriteRequest): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
       const branch = findBranch(id)
@@ -578,8 +592,12 @@ export const branchManagementService = {
       if (payload.managerId !== undefined) branch.managerId = payload.managerId
       if (payload.businessHours) branch.businessHours = payload.businessHours
       if (payload.settings) branch.settings = { ...branch.settings, ...payload.settings }
-      if (payload.image !== undefined) branch.image = payload.image
-      if (payload.coverImage !== undefined) branch.coverImage = payload.coverImage
+      const images = mockBranchImagesFromRequest(payload, {
+        image: branch.image,
+        coverImage: branch.coverImage,
+      })
+      if (payload.image || payload.removeImage) branch.image = images.image
+      if (payload.coverImage || payload.removeCoverImage) branch.coverImage = images.coverImage
       if (payload.timeZone !== undefined) branch.timeZone = payload.timeZone
       if (payload.currency !== undefined) branch.currency = payload.currency
       if (payload.language !== undefined) branch.language = payload.language
@@ -589,7 +607,8 @@ export const branchManagementService = {
       branch.updated_at = new Date().toISOString()
       return { ...branch }
     }
-    const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), payload)
+    const formData = buildBranchFormData(payload)
+    const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), formData, multipartRequestConfig())
     return res.data
   },
 

@@ -7,21 +7,14 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useTenantStore } from '@/stores'
-import { useCreateBranch, useConsoleCreateBranch } from '@/hooks'
+import { useConsoleCreateBranch } from '@/hooks'
 import {
-  BranchFormFields, validateBranchForm, defaultBranchFormBusinessHours, DEFAULT_BRANCH_SETTINGS,
-  type BranchFormState,
+  BranchFormFields,
+  validateBranchForm,
+  branchFormToWriteRequest,
+  EMPTY_BRANCH_FORM,
 } from '../BranchFormFields'
 import toast from 'react-hot-toast'
-
-const EMPTY_FORM: BranchFormState = {
-  name: '', slug: '', description: '', type: 'physical',
-  address: '', city: '', country: '', postalCode: '',
-  phone_number: '', email: '', image: '', coverImage: '',
-  timeZone: '', currency: '', language: '', isDefault: false,
-  businessHours: defaultBranchFormBusinessHours(),
-  settings: { ...DEFAULT_BRANCH_SETTINGS },
-}
 
 export default function NewBranchPage() {
   const t = useTranslations('console')
@@ -29,7 +22,7 @@ export default function NewBranchPage() {
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const { mutate: createBranch, isPending } = useConsoleCreateBranch(tenantId)
 
-  const [form, setForm] = useState<BranchFormState>(EMPTY_FORM)
+  const [form, setForm] = useState(EMPTY_BRANCH_FORM)
   const [error, setError] = useState<string | null>(null)
 
   function handleSubmit(e: React.FormEvent) {
@@ -42,36 +35,15 @@ export default function NewBranchPage() {
       return
     }
     setError(null)
-    createBranch(
-      {
-        name: form.name.trim(),
-        slug: form.slug.trim(),
-        description: form.description.trim() || undefined,
-        type: form.type,
-        location: {
-          address: form.address.trim(), city: form.city.trim(), country: form.country.trim(),
-          postalCode: form.postalCode.trim() || undefined,
-        },
-        contact: { phone_number: form.phone_number.trim() || undefined, email: form.email.trim() || undefined },
-        businessHours: form.businessHours,
-        settings: form.settings,
-        image: form.image.trim() || undefined,
-        coverImage: form.coverImage.trim() || undefined,
-        isDefault: form.isDefault,
-        timeZone: form.timeZone.trim() || undefined,
-        currency: form.currency.trim() || undefined,
-        language: form.language.trim() || undefined,
+    createBranch(branchFormToWriteRequest(form), {
+      onSuccess: () => {
+        toast.success(t('branchCreatedSuccessfully'))
+        router.push('/console/branches')
       },
-      {
-        onSuccess: () => {
-          toast.success(t('branchCreatedSuccessfully'))
-          router.push('/console/branches')
-        },
-        onError: (err) => {
-          toast.error(err instanceof Error && err.message === 'duplicate_slug' ? t('duplicateSlugError') : t('failedToCreateBranchRetry'))
-        },
+      onError: (err) => {
+        toast.error(err instanceof Error && err.message === 'duplicate_slug' ? t('duplicateSlugError') : t('failedToCreateBranchRetry'))
       },
-    )
+    })
   }
 
   return (

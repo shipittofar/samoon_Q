@@ -8,34 +8,13 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useAdminBranch, useUpdateBranch, useBranchAccess } from '@/hooks'
 import {
-  BranchFormFields, validateBranchForm, defaultBranchFormBusinessHours, DEFAULT_BRANCH_SETTINGS,
+  BranchFormFields,
+  validateBranchForm,
+  branchFormToWriteRequest,
+  branchToFormInput,
   type BranchFormState,
 } from '../../BranchFormFields'
-import type { Branch } from '@/types/branch'
 import toast from 'react-hot-toast'
-
-function branchToForm(branch: Branch): BranchFormState {
-  return {
-    name: branch.name,
-    slug: branch.slug,
-    description: branch.description ?? '',
-    type: branch.type,
-    address: branch.location.address,
-    city: branch.location.city,
-    country: branch.location.country,
-    postalCode: branch.location.postalCode ?? '',
-    phone_number: branch.contact.phone_number ?? '',
-    email: branch.contact.email ?? '',
-    image: branch.image ?? '',
-    coverImage: branch.coverImage ?? '',
-    timeZone: branch.timeZone ?? '',
-    currency: branch.currency ?? '',
-    language: branch.language ?? '',
-    isDefault: branch.isDefault ?? false,
-    businessHours: branch.businessHours.length > 0 ? branch.businessHours : defaultBranchFormBusinessHours(),
-    settings: { ...DEFAULT_BRANCH_SETTINGS, ...branch.settings },
-  }
-}
 
 function EditBranchContent({ id }: { id: string }) {
   const t = useTranslations('console')
@@ -47,7 +26,7 @@ function EditBranchContent({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (branch) setForm(branchToForm(branch))
+    if (branch) setForm(branchToFormInput(branch))
   }, [branch])
 
   if (isLoading || !form) return <p className="p-6 text-gray-500">{t('loadingBranchEllipsis')}</p>
@@ -66,24 +45,7 @@ function EditBranchContent({ id }: { id: string }) {
     updateBranch(
       {
         id,
-        payload: {
-          name: form.name.trim(),
-          slug: form.slug.trim(),
-          description: form.description.trim() || undefined,
-          location: {
-            address: form.address.trim(), city: form.city.trim(), country: form.country.trim(),
-            postalCode: form.postalCode.trim() || undefined,
-          },
-          contact: { phone_number: form.phone_number.trim() || undefined, email: form.email.trim() || undefined },
-          businessHours: form.businessHours,
-          settings: form.settings,
-          image: form.image.trim() || undefined,
-          coverImage: form.coverImage.trim() || undefined,
-          isDefault: form.isDefault,
-          timeZone: form.timeZone.trim() || undefined,
-          currency: form.currency.trim() || undefined,
-          language: form.language.trim() || undefined,
-        },
+        payload: branchFormToWriteRequest(form),
       },
       {
         onSuccess: () => {

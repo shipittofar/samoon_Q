@@ -9,62 +9,19 @@
  */
 
 import { useTranslations } from 'next-intl'
-import type { BranchType, BranchBusinessHours, BranchSettings } from '@/types/branch'
+import { ImageUploader } from '@/components/ImageUploader'
+import type { BranchBusinessHours, BranchSettings } from '@/types/branch'
+import type { BranchFormState } from '@/types/branch-form'
 
-export interface BranchFormState {
-  name: string
-  slug: string
-  description: string
-  type: BranchType
-  address: string
-  city: string
-  country: string
-  postalCode: string
-  phone_number: string
-  email: string
-  image: string
-  coverImage: string
-  timeZone: string
-  currency: string
-  language: string
-  isDefault: boolean
-  businessHours: BranchBusinessHours[]
-  settings: BranchSettings
-}
-
-const DAYS: BranchBusinessHours['day'][] = [
-  'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
-]
-
-export function defaultBranchFormBusinessHours(): BranchBusinessHours[] {
-  return DAYS.map((day) => ({ day, open: '09:00', close: '22:00', isClosed: false }))
-}
-
-export const DEFAULT_BRANCH_SETTINGS: BranchSettings = {
-  deliveryEnabled: false,
-  pickupEnabled: true,
-  tableOrderingEnabled: false,
-  reservationsEnabled: false,
-  orderingEnabled: true,
-  marketplaceVisible: true,
-}
-
-const SIMPLE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const SIMPLE_PHONE_RE = /^[+]?[\d\s()-]{7,20}$/
-
-/** Empty required fields, invalid email/phone format, or invalid working hours (open >= close on an open day). */
-export function validateBranchForm(form: BranchFormState): string | null {
-  if (!form.name.trim() || !form.slug.trim() || !form.address.trim() || !form.city.trim() || !form.country.trim()) {
-    return 'fillAllRequiredFieldsError'
-  }
-  if (!/^[a-z0-9-]+$/.test(form.slug.trim())) return 'invalidSlugError'
-  if (form.email.trim() && !SIMPLE_EMAIL_RE.test(form.email.trim())) return 'invalidEmailError'
-  if (form.phone_number.trim() && !SIMPLE_PHONE_RE.test(form.phone_number.trim())) return 'invalidPhoneError'
-  for (const h of form.businessHours) {
-    if (!h.isClosed && h.open >= h.close) return 'invalidWorkingHoursError'
-  }
-  return null
-}
+export type { BranchFormState } from '@/types/branch-form'
+export {
+  validateBranchForm,
+  defaultBranchFormBusinessHours,
+  DEFAULT_BRANCH_SETTINGS,
+  EMPTY_BRANCH_FORM,
+  branchFormToWriteRequest,
+  branchToFormInput,
+} from '@/types/branch-form'
 
 export function BranchFormFields({
   form,
@@ -144,7 +101,7 @@ export function BranchFormFields({
         <div>
           <p className="block text-sm font-medium mb-2">{t('tableHeaders.type')} <span className="text-red-500">*</span></p>
           <div className="flex gap-3">
-            {(['physical', 'mobile'] as BranchType[]).map((bt) => (
+            {(['physical', 'mobile'] as const).map((bt) => (
               <button
                 key={bt}
                 type="button"
@@ -216,15 +173,20 @@ export function BranchFormFields({
       {/* Branding */}
       <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
         <legend className="text-sm font-semibold text-gray-700 px-1">{t('brandingLabel')}</legend>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-image">{t('imageUrlLabel')}</label>
-            <input id="branch-image" type="text" value={form.image} onChange={(e) => set('image', e.target.value)} className={inputClass} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-cover-image">{t('coverImageUrlLabel')}</label>
-            <input id="branch-cover-image" type="text" value={form.coverImage} onChange={(e) => set('coverImage', e.target.value)} className={inputClass} />
-          </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <ImageUploader
+            id="branch-image"
+            label={t('imageLabel')}
+            value={form.image}
+            onChange={(image) => onChange({ ...form, image })}
+          />
+          <ImageUploader
+            id="branch-cover-image"
+            label={t('coverImageUrlLabel')}
+            value={form.coverImage}
+            onChange={(coverImage) => onChange({ ...form, coverImage })}
+            hint={t('coverImageHint')}
+          />
         </div>
       </fieldset>
 
