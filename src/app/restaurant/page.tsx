@@ -8,6 +8,7 @@ import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Badge } from '@/components/ui'
 import { fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
+import { resolvePublicBranchList } from '@/lib/public-branches'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 
@@ -36,8 +37,11 @@ export default async function RestaurantPage() {
   const contactEmail = meta?.email || tenant?.settings?.contactEmail as string | undefined
   const contactWebsite = meta?.website
 
-  // Derive public branch list from marketplace meta — no fallback branches.
-  const branches = (meta?.branches ?? []).map((b) => ({
+  // Derive public branch list from tenant → branch relation (legacy fallback).
+  const publicBranches = tenant
+    ? await resolvePublicBranchList(tenant.id, tenant.settings)
+    : []
+  const branches = publicBranches.map((b) => ({
     name: b.name,
     address: b.address,
     city: b.city,

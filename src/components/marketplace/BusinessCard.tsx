@@ -8,6 +8,7 @@ import { Star, MapPin, Calendar, Award, ChevronDown, ChevronUp } from 'lucide-re
 import { cn } from '@/utils'
 import type { Tenant } from '@/types'
 import { type MarketplaceMeta, BUSINESS_TYPE_LABELS } from '@/types/marketplace'
+import { usePublicBranches } from '@/hooks'
 import { BranchPreview } from './BranchPreview'
 
 interface BusinessCardProps {
@@ -42,6 +43,8 @@ function PriceDots({ level }: { level?: number }) {
 export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
   const t = useTranslations('marketplace')
   const [branchesOpen, setBranchesOpen] = useState(false)
+  const { data: resolvedBranches } = usePublicBranches(tenant.id, tenant.settings)
+  const branches = resolvedBranches ?? meta.branches ?? []
 
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')
   const accentColor = tenant.settings?.theme?.primaryColor
@@ -54,7 +57,7 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
   const isMultiBranch = (meta.branchCount ?? 0) > 1
   const viewHref   = isMultiBranch ? `/${tenant.slug}` : `/${tenant.slug}/${meta.primaryBranchSlug ?? ''}/menu`
   const tenantHref = `/${tenant.slug}`
-  const hasBranches = (meta.branches?.length ?? 0) > 0
+  const hasBranches = branches.length > 0
   // C3: Use a contextual CTA label based on business type and branch count
   const nonMenuTypes = ['bar', 'hotel', 'other']
   const isNonMenuType = tenant.businessTypes.every((bt) => nonMenuTypes.includes(bt))
@@ -230,8 +233,8 @@ export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
         </div>
 
         {/* Branch preview */}
-        {branchesOpen && meta.branches && meta.branches.length > 0 && (
-          <BranchPreview branches={meta.branches} tenantSlug={tenant.slug} />
+        {branchesOpen && branches.length > 0 && (
+          <BranchPreview branches={branches} tenantSlug={tenant.slug} />
         )}
       </div>
     </article>

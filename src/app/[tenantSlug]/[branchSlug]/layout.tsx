@@ -9,13 +9,16 @@
  * sets the public-facing activeBranch — so all child pages render with the
  * right tenant/branch context automatically, including for anonymous visitors.
  *
- * Uses only public data (MarketplaceMeta.branches) — no admin APIs, no auth
- * required. Safe for incognito, logged-out browsers, and direct deep links.
+ * Uses canonical tenant → branch records (with legacy marketplace fallback) —
+ * no admin APIs, no auth required. Safe for incognito, logged-out browsers,
+ * and direct deep links.
  */
 
 import { use, useEffect } from 'react'
 import { useTenantStore, useBranchStore } from '@/stores'
-import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
+import { usePublicBranches } from '@/hooks'
+import { findPublicBranchBySlug } from '@/lib/public-branches'
+import type { PublicBranchInfo } from '@/types/marketplace'
 import type { Location } from '@/types'
 
 function publicBranchToLocation(b: PublicBranchInfo, tenantId: string): Location {
@@ -46,20 +49,20 @@ export default function TenantBranchLayout({
   const tenant = useTenantStore((s) => s.tenant)
   const tenantState = useTenantStore((s) => s.tenantState)
   const setActiveBranch = useBranchStore((s) => s.setActiveBranch)
+  const { data: publicBranches } = usePublicBranches(tenant?.id ?? '', tenant?.settings)
 
   // Tenant bootstrap is owned by the parent [tenantSlug]/layout.tsx — never
   // call loadTenant(slug) here; that duplicated GET /tenants/{slug}/ after
   // bootstrap and violated the id-only post-bootstrap contract.
 
-  // Set public activeBranch from MarketplaceMeta once tenant is loaded
+  // Set public activeBranch from tenant branch relation once tenant is loaded
   useEffect(() => {
     if (tenantState !== 'resolved' || !tenant || tenant.slug !== tenantSlug) return
-    const meta = getMarketplaceMeta(tenant.settings)
-    const match = meta?.branches?.find((b) => b.slug === branchSlug)
+    const match = findPublicBranchBySlug(publicBranches ?? [], branchSlug)
     if (match?.id) {
       setActiveBranch(publicBranchToLocation(match, tenant.id))
     }
-  }, [tenantSlug, branchSlug, tenant, tenantState, setActiveBranch])
+  }, [tenantSlug, branchSlug, tenant, tenantState, setActiveBranch, publicBranches])
 
   return <>{children}</>
 }

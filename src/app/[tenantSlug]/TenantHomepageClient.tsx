@@ -15,7 +15,7 @@ import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn, formatCurrency, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
-import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
+import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout, usePublicBranches } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   getMarketplaceMeta,
@@ -478,14 +478,13 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
 }
 
 function BranchesSection({
-  meta,
+  branches,
   tenantSlug,
 }: {
-  meta: MarketplaceMeta
+  branches: PublicBranchInfo[]
   tenantSlug: string
 }) {
   const t = useTranslations('tenant')
-  const branches = meta.branches ?? []
   if (branches.length === 0) return null
 
   return (
@@ -816,7 +815,9 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   // no single "tenant menu"; each branch (including the primary one) owns its
   // own independent categories/items. See docs/BRANCH_MENU_ANALYSIS.md.
   const meta = tenant ? getMarketplaceMeta(tenant.settings) : undefined
-  const primaryBranch = meta?.branches?.find((b) => b.slug === meta?.primaryBranchSlug)
+  const { data: publicBranches = [] } = usePublicBranches(tenantId, tenant?.settings)
+  const primaryBranch =
+    publicBranches.find((b) => b.slug === meta?.primaryBranchSlug) ?? publicBranches[0]
   const primaryBranchId = primaryBranch?.id
   const { data: categories = [] } = useCategories(primaryBranchId)
   const { data: menuItemsPage } = useMenuItems(primaryBranchId)
@@ -851,7 +852,9 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
       />
     ) : null,
     gallery: sections.gallery ? <GallerySection meta={meta} /> : null,
-    branches: sections.branches ? <BranchesSection meta={meta} tenantSlug={tenantSlug} /> : null,
+    branches: sections.branches ? (
+      <BranchesSection branches={publicBranches} tenantSlug={tenantSlug} />
+    ) : null,
     // CategoriesSection always renders (structural nav); FeaturedItemsSection is section-gated.
     featured_menu: (
       <>

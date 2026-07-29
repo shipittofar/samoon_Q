@@ -104,6 +104,8 @@ import type {
 } from '@/types'
 import { buildDrfPaginationParams } from '@/utils/pagination'
 import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
+import type { Tenant } from '@/types'
+import { resolvePublicBranchList } from '@/lib/public-branches'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -2774,6 +2776,19 @@ export function usePublicBranch(
     initialData: options?.initialData,
     staleTime: STALE_TIME,
     enabled: !!tenantId && !!branchId,
+  })
+}
+
+/** Canonical public branch list for a tenant (API-first, legacy fallback). */
+export function usePublicBranches(
+  tenantId: string,
+  settings?: Tenant['settings'],
+) {
+  return useQuery<PublicBranchInfo[]>({
+    queryKey: ['public-branches', tenantId],
+    queryFn: () => resolvePublicBranchList(tenantId, settings),
+    staleTime: STALE_TIME,
+    enabled: !!tenantId,
   })
 }
 

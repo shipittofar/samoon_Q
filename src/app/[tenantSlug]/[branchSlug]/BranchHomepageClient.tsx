@@ -16,7 +16,7 @@ import { Fragment } from 'react'
 import { cn, formatCurrency, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
-import { usePublicBranch, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
+import { usePublicBranch, usePublicBranches, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
@@ -657,6 +657,7 @@ export default function BranchHomepageClient({
     marketplaceBranch,
     initialData: initialBranch,
   })
+  const { data: publicBranches = [] } = usePublicBranches(tenantId, tenant?.settings)
   const { data: categories = [] } = useCategories(branchId)
   const { data: menuItemsPage } = useMenuItems(branchId)
   const { data: promotions = [] } = useActivePromotions()
@@ -680,7 +681,7 @@ export default function BranchHomepageClient({
   const accentColor =
     tenant.settings?.theme?.primaryColor ?? '#e85d04'
 
-  const allBranches = meta?.branches ?? []
+  const allBranches = publicBranches
   const tenantGallery = meta?.gallery ?? []
   const rating = meta?.rating
   const reviewCount = meta?.reviewCount

@@ -3,10 +3,11 @@ import { notFound } from 'next/navigation'
 import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
 import { branchManagementService } from '@/services/branch.service'
 import {
-  getMarketplaceMeta,
-  publicBranchFromDetail,
-  type PublicBranchInfo,
-} from '@/types/marketplace'
+  findPublicBranchBySlug,
+  getLegacyMarketplaceBranches,
+  resolvePublicBranchList,
+} from '@/lib/public-branches'
+import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant } from '@/types'
 
 /** React Query key for the Discover tenant list — shared with usePublicTenants(). */
@@ -93,23 +94,24 @@ export const resolvePublicBranchPageForPage = cache(async (
 ): Promise<PublicBranchPageData> => {
   const tenant = await resolvePublicTenantForPage(tenantSlug)
   const meta = getMarketplaceMeta(tenant.settings)
-  const marketplaceBranch = meta?.branches?.find((b) => b.slug === branchSlug)
+  const branchList = await resolvePublicBranchList(tenant.id, tenant.settings)
+  const listMatch = findPublicBranchBySlug(branchList, branchSlug)
 
-  if (!marketplaceBranch?.id) {
+  if (!listMatch?.id) {
     notFound()
   }
 
-  let branchDetail
+  const legacyMatch = getLegacyMarketplaceBranches(tenant.settings).find(
+    (b) => b.slug === branchSlug,
+  )
+
+  let branch: PublicBranchInfo
   try {
-    branchDetail = await branchManagementService.getPublicBranch(
-      tenant.id,
-      marketplaceBranch.id,
-    )
+    const detail = await branchManagementService.getPublicBranch(tenant.id, listMatch.id)
+    branch = publicBranchFromDetail(detail, legacyMatch ?? listMatch)
   } catch {
     notFound()
   }
 
-  const branch = publicBranchFromDetail(branchDetail, marketplaceBranch)
-
-  return { tenant, meta, marketplaceBranch, branch }
+  return { tenant, meta, marketplaceBranch: legacyMatch ?? listMatch, branch }
 })
