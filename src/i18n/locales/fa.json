@@ -357,11 +357,15 @@
     "status": {
       "pending": "در انتظار",
       "accepted": "تأیید شده",
+      "confirmed": "تأیید شده",
       "preparing": "در حال آماده‌سازی",
+      "processing": "در حال پردازش",
       "ready": "آماده",
       "delivered": "تحویل داده شده",
+      "completed": "تکمیل شده",
       "picked_up": "تحویل گرفته شد",
-      "cancelled": "لغو شده"
+      "cancelled": "لغو شده",
+      "rejected": "رد شده"
     },
     "estimatedTime": "زمان تخمینی: {min} دقیقه",
     "history": "تاریخچه سفارشات"

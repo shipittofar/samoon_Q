@@ -11,7 +11,7 @@ import { cn } from '@/utils'
 import { useAdminOrders, useUpdateOrderStatus, useAdminBranches, useBulkUpdateOrderStatus, useBulkCancelOrders } from '@/hooks'
 import { ADMIN_ORDERS_PAGE_SIZE } from '@/services/admin.service'
 import { useConsoleWorkspace } from '@/hooks/console-workspace'
-import { getNextOrderStatus, ORDER_STATUS_CONFIG } from '@/lib/order-status'
+import { getNextOrderStatus, getOrderStatusMeta, ORDER_STATUS_CONFIG, resolveOrderStatus } from '@/lib/order-status'
 import type { AdminOrdersScope, Order, OrderStatus, OrderType } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -84,7 +84,7 @@ export default function AdminOrdersPage() {
   const statusCounts = useMemo(() => {
     const all = data?.results ?? []
     return (Object.keys(ORDER_STATUS_CONFIG) as OrderStatus[]).reduce<Record<string, number>>((acc, s) => {
-      acc[s] = all.filter((o) => o.status === s).length
+      acc[s] = all.filter((o) => resolveOrderStatus(o.status) === s).length
       return acc
     }, {})
   }, [data])
@@ -256,7 +256,7 @@ export default function AdminOrdersPage() {
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
                     {orders.map((order, i) => {
-                      const cfg = ORDER_STATUS_CONFIG[order.status]
+                      const cfg = getOrderStatusMeta(order.status)
                       const nextStatus = getNextOrderStatus(order)
                       const isPending = updateStatus.isPending && updateStatus.variables?.id === order.id
                       return (
@@ -311,7 +311,7 @@ export default function AdminOrdersPage() {
                               >
                                 {isPending
                                   ? <Loader2 className="h-3 w-3 animate-spin" />
-                                  : t('advanceToStatus', { status: tOrder(`status.${ORDER_STATUS_CONFIG[nextStatus]?.labelKey}`) })}
+                                  : t('advanceToStatus', { status: tOrder(`status.${getOrderStatusMeta(nextStatus).labelKey}`) })}
                               </Button>
                             )}
                           </td>

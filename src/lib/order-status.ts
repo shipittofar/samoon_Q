@@ -89,6 +89,57 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, OrderStatusMeta> = {
   },
 }
 
+/** Backend console-orders statuses not in the canonical OrderStatus union. */
+const BACKEND_ORDER_STATUS_META: Record<string, OrderStatusMeta> = {
+  confirmed: {
+    labelKey: 'confirmed',
+    icon: CheckCircle,
+    color: 'text-blue-500',
+    bg: 'bg-blue-50 dark:bg-blue-950/30',
+    badge: 'info',
+  },
+  processing: {
+    labelKey: 'processing',
+    icon: ChefHat,
+    color: 'text-purple-500',
+    bg: 'bg-purple-50 dark:bg-purple-950/30',
+    badge: 'purple',
+  },
+  completed: {
+    labelKey: 'completed',
+    icon: Truck,
+    color: 'text-emerald-500',
+    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+    badge: 'success',
+  },
+  rejected: {
+    labelKey: 'rejected',
+    icon: XCircle,
+    color: 'text-red-500',
+    bg: 'bg-red-50 dark:bg-red-950/30',
+    badge: 'danger',
+  },
+}
+
+/** Map backend alias statuses onto canonical workflow statuses. */
+export const BACKEND_ORDER_STATUS_ALIASES: Partial<Record<string, OrderStatus>> = {
+  confirmed: 'accepted',
+  processing: 'preparing',
+  completed: 'delivered',
+  rejected: 'cancelled',
+}
+
+export function resolveOrderStatus(status: string): OrderStatus {
+  if (status in ORDER_STATUS_CONFIG) return status as OrderStatus
+  return BACKEND_ORDER_STATUS_ALIASES[status] ?? 'pending'
+}
+
+export function getOrderStatusMeta(status: string): OrderStatusMeta {
+  if (status in ORDER_STATUS_CONFIG) return ORDER_STATUS_CONFIG[status as OrderStatus]
+  if (status in BACKEND_ORDER_STATUS_META) return BACKEND_ORDER_STATUS_META[status]
+  return ORDER_STATUS_CONFIG.pending
+}
+
 const DELIVERY_STATUS_NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
   pending: 'accepted',
   accepted: 'preparing',
@@ -110,7 +161,7 @@ export function usesPickupFulfillment(order: Pick<Order, 'order_type'>): boolean
 
 export function getNextOrderStatus(order: OrderStatusContext): OrderStatus | undefined {
   const nextMap = usesPickupFulfillment(order) ? PICKUP_STATUS_NEXT : DELIVERY_STATUS_NEXT
-  return nextMap[order.status]
+  return nextMap[resolveOrderStatus(order.status)]
 }
 
 /** Defensive guard when callers pass an explicit status instead of getNextOrderStatus(). */
@@ -156,5 +207,5 @@ export function getTrackerStatusOrder(order?: OrderStatusContext): OrderStatus[]
 }
 
 export function getOrderStatusBadgeVariant(status: OrderStatus): OrderStatusBadgeVariant {
-  return ORDER_STATUS_CONFIG[status]?.badge ?? 'secondary'
+  return getOrderStatusMeta(status).badge
 }

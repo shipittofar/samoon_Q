@@ -151,22 +151,35 @@ function normalizeAdminOrdersRequest(
   return { scope: 'global', filters: input }
 }
 
+function usesConsoleOrdersEndpoint(
+  request: ReturnType<typeof normalizeAdminOrdersRequest>,
+): boolean {
+  if (request.scope === 'scoped' && request.tenantId && request.branchId) return true
+  if (request.scope === 'global' && request.tenantId) return true
+  return false
+}
+
 function resolveAdminOrdersUrl(request: ReturnType<typeof normalizeAdminOrdersRequest>): string {
   if (request.scope === 'scoped' && request.tenantId && request.branchId) {
     return ENDPOINTS.ORDERS.CONSOLE_ORDER_TENANT_BRANCH_LIST(request.tenantId, request.branchId)
+  }
+  if (request.scope === 'global' && request.tenantId) {
+    return ENDPOINTS.ORDERS.CONSOLE_ORDER_TENANT_BRANCHES_LIST(request.tenantId)
   }
   return ENDPOINTS.ORDERS.LIST
 }
 
 function buildAdminOrdersParams(
   request: ReturnType<typeof normalizeAdminOrdersRequest>,
-): AdminOrderFilters & { admin: true } {
-  const { branch_id: _branchId, ...rest } = request.filters
-  const params: AdminOrderFilters & { admin: true } = { ...rest, admin: true }
-  if (request.scope === 'global' && request.filters.branch_id) {
-    params.branch_id = request.filters.branch_id
+): AdminOrderFilters | (AdminOrderFilters & { admin: true }) {
+  if (usesConsoleOrdersEndpoint(request)) {
+    if (request.scope === 'scoped') {
+      const { branch_id: _branchId, ...rest } = request.filters
+      return rest
+    }
+    return { ...request.filters }
   }
-  return params
+  return { ...request.filters, admin: true }
 }
 
 function applyReservationFilters(
@@ -225,16 +238,25 @@ function applyMockOrdersScope(
   orders: Partial<Order>[],
   request: ReturnType<typeof normalizeAdminOrdersRequest>,
 ): Partial<Order>[] {
-  if (request.scope !== 'scoped') return orders
-  return orders.filter((o) => {
-    if (!o.branch_id) return false
-    if (request.branchId && o.branch_id !== request.branchId) return false
-    if (request.tenantId) {
+  if (request.scope === 'scoped') {
+    return orders.filter((o) => {
+      if (!o.branch_id) return false
+      if (request.branchId && o.branch_id !== request.branchId) return false
+      if (request.tenantId) {
+        const orderTenantId = mockBranchTenantId(o.branch_id)
+        if (!orderTenantId || orderTenantId !== request.tenantId) return false
+      }
+      return true
+    })
+  }
+  if (request.scope === 'global' && request.tenantId) {
+    return orders.filter((o) => {
+      if (!o.branch_id) return false
       const orderTenantId = mockBranchTenantId(o.branch_id)
-      if (!orderTenantId || orderTenantId !== request.tenantId) return false
-    }
-    return true
-  })
+      return orderTenantId === request.tenantId
+    })
+  }
+  return orders
 }
 
 function paginate<T>(items: T[], page = 1, pageSize = ADMIN_ORDERS_PAGE_SIZE): PaginatedResponse<T> {
@@ -264,8 +286,9 @@ export const adminService = {
     return data
   },
 
-  // Scoped: GET /orders/tenants/{tenantId}/branches/{branchId}/?admin=true
-  // Global: GET /orders/?admin=true (legacy callers pass plain AdminOrderFilters)
+  // Scoped: GET /orders/console-orders/tenants/{tenantId}/branches/{branchId}/
+  // Global: GET /orders/console-orders/tenants/{tenantId}/branches/
+  // Legacy: GET /orders/?admin=true (plain AdminOrderFilters without tenantId)
   async getAdminOrders(
     requestOrFilters: AdminOrdersRequest | AdminOrderFilters = {},
   ): Promise<PaginatedResponse<Order>> {

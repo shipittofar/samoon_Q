@@ -357,11 +357,15 @@
     "status": {
       "pending": "في الانتظار",
       "accepted": "مقبول",
+      "confirmed": "مؤكد",
       "preparing": "قيد التحضير",
+      "processing": "قيد المعالجة",
       "ready": "جاهز",
       "delivered": "تم التوصيل",
+      "completed": "مكتمل",
       "picked_up": "تم الاستلام",
-      "cancelled": "ملغي"
+      "cancelled": "ملغي",
+      "rejected": "مرفوض"
     },
     "estimatedTime": "الوقت المتوقع: {min} دقيقة",
     "history": "سجل الطلبات"

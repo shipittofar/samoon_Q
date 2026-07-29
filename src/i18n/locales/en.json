@@ -357,11 +357,15 @@
     "status": {
       "pending": "Pending",
       "accepted": "Accepted",
+      "confirmed": "Confirmed",
       "preparing": "Preparing",
+      "processing": "Processing",
       "ready": "Ready",
       "delivered": "Delivered",
+      "completed": "Completed",
       "picked_up": "Picked up",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "rejected": "Rejected"
     },
     "estimatedTime": "Estimated time: {min} min",
     "history": "Order History"

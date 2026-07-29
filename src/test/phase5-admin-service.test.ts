@@ -607,3 +607,111 @@ describe('Regression — P3/P4 features intact', () => {
     expect(readSrc('app/checkout/page.tsx')).toContain('persistedTableNumber')
   })
 })
+
+// ── Console orders endpoint routing ───────────────────────────────────────────
+
+vi.mock('@/services/axios.instance', () => ({
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+    put: vi.fn(),
+  },
+}))
+
+async function freshAdminServiceRealMode() {
+  vi.resetModules()
+  process.env.NEXT_PUBLIC_USE_MOCK = 'false'
+  const mod = await import('@/services/admin.service')
+  const axiosMod = await import('@/services/axios.instance')
+  return {
+    adminService: mod.adminService,
+    api: axiosMod.default as unknown as { get: ReturnType<typeof vi.fn> },
+  }
+}
+
+describe('adminService.getAdminOrders — console endpoint routing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('endpoints.ts exposes tenant-wide console orders list URL', async () => {
+    const { ENDPOINTS } = await import('@/services/endpoints')
+    expect(ENDPOINTS.ORDERS.CONSOLE_ORDER_TENANT_BRANCHES_LIST('tenant-1'))
+      .toBe('/orders/console-orders/tenants/tenant-1/branches/')
+  })
+
+  it('scoped mode calls branch-specific console orders endpoint', async () => {
+    const { adminService, api } = await freshAdminServiceRealMode()
+    api.get.mockResolvedValue({ data: { count: 0, next: null, previous: null, results: [] } })
+
+    await adminService.getAdminOrders({
+      scope: 'scoped',
+      tenantId: 'tenant-1',
+      branchId: 'branch-1',
+      filters: { page: 1, page_size: 20 },
+    })
+
+    expect(api.get).toHaveBeenCalledWith(
+      '/orders/console-orders/tenants/tenant-1/branches/branch-1/',
+      { params: { page: 1, page_size: 20 } },
+    )
+  })
+
+  it('global mode calls tenant-wide console orders endpoint with tenantId', async () => {
+    const { adminService, api } = await freshAdminServiceRealMode()
+    api.get.mockResolvedValue({ data: { count: 0, next: null, previous: null, results: [] } })
+
+    await adminService.getAdminOrders({
+      scope: 'global',
+      tenantId: 'tenant-1',
+      filters: { page: 1, page_size: 20 },
+    })
+
+    expect(api.get).toHaveBeenCalledWith(
+      '/orders/console-orders/tenants/tenant-1/branches/',
+      { params: { page: 1, page_size: 20 } },
+    )
+  })
+
+  it('global mode forwards branch_id filter as query param', async () => {
+    const { adminService, api } = await freshAdminServiceRealMode()
+    api.get.mockResolvedValue({ data: { count: 0, next: null, previous: null, results: [] } })
+
+    await adminService.getAdminOrders({
+      scope: 'global',
+      tenantId: 'tenant-1',
+      filters: { page: 1, page_size: 20, branch_id: 'branch-2' },
+    })
+
+    expect(api.get).toHaveBeenCalledWith(
+      '/orders/console-orders/tenants/tenant-1/branches/',
+      { params: { page: 1, page_size: 20, branch_id: 'branch-2' } },
+    )
+  })
+
+  it('legacy plain filters still fall back to /orders/?admin=true', async () => {
+    const { adminService, api } = await freshAdminServiceRealMode()
+    api.get.mockResolvedValue({ data: { count: 0, next: null, previous: null, results: [] } })
+
+    await adminService.getAdminOrders({ status: 'pending' })
+
+    expect(api.get).toHaveBeenCalledWith('/orders/', { params: { status: 'pending', admin: true } })
+  })
+})
+
+describe('useAdminOrders — global scope passes tenantId', () => {
+  it('passes tenantId to adminService in global mode', () => {
+    const src = readSrc('hooks/index.ts')
+    const block = src.slice(src.indexOf('function useAdminOrders'), src.indexOf('export function useUpdateOrderStatus'))
+    expect(block).toContain("{ scope, tenantId, filters }")
+    expect(block).not.toContain("adminService.getAdminOrders({ scope, filters })")
+  })
+
+  it('omits branchId from global query key', () => {
+    const src = readSrc('hooks/index.ts')
+    const block = src.slice(src.indexOf('function useAdminOrders'), src.indexOf('export function useUpdateOrderStatus'))
+    expect(block).toContain("['admin-orders', scope, tenantId, filters]")
+  })
+})

@@ -44,6 +44,8 @@ export const ENDPOINTS = {
     LIST: '/orders/',
     CONSOLE_ORDER_TENANT_BRANCH_LIST: (tenantId: string, branchId: string) =>
       `/orders/console-orders/tenants/${tenantId}/branches/${branchId}/`,
+    CONSOLE_ORDER_TENANT_BRANCHES_LIST: (tenantId: string) =>
+      `/orders/console-orders/tenants/${tenantId}/branches/`,
     CREATE: '/orders/',
     DETAIL: (id: string) => `/orders/${id}/`,
     CANCEL: (id: string) => `/orders/${id}/cancel/`,

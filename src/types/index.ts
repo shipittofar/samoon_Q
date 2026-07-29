@@ -1054,6 +1054,7 @@ export interface AdminOrderFilters {
 /** Console orders list scope — branch-scoped vs tenant-wide admin list. */
 export type AdminOrdersScope = 'scoped' | 'global'
 
+/** Request shape for getAdminOrders(). Global scope requires tenantId. */
 export interface AdminOrdersRequest {
   scope?: AdminOrdersScope
   tenantId?: string

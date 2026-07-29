@@ -1515,11 +1515,15 @@ export function useAdminOrders(
   const branchId = useConsoleBranchId()
   const scoped = scope === 'scoped'
   return useQuery({
-    queryKey: ['admin-orders', scope, tenantId, branchId, filters],
+    queryKey: scoped
+      ? ['admin-orders', scope, tenantId, branchId, filters]
+      : ['admin-orders', scope, tenantId, filters],
     queryFn: () =>
-      scoped
-        ? adminService.getAdminOrders({ scope, tenantId, branchId, filters })
-        : adminService.getAdminOrders({ scope, filters }),
+      adminService.getAdminOrders(
+        scoped
+          ? { scope, tenantId, branchId, filters }
+          : { scope, tenantId, filters },
+      ),
     staleTime: 30_000,
     enabled: scoped ? !!(tenantId && branchId) : !!tenantId,
   })
