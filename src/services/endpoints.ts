@@ -1,4 +1,9 @@
 export const ENDPOINTS = {
+  // Public (unauthenticated marketplace surfaces)
+  PUBLIC: {
+    DISCOVER: '/public/discover/',
+  },
+
   // Auth
   AUTH: {
     LOGIN: '/auth/login/',

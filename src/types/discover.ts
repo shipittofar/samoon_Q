@@ -1,0 +1,44 @@
+/**
+ * Wire contract for GET /api/public/discover/
+ */
+
+import type { TenantStatus } from '@/types'
+import type { TenantTheme } from '@/types'
+import type { MarketplaceMeta } from '@/types/marketplace'
+
+/** Branch summary embedded in a discover tenant result. */
+export interface DiscoverBranch {
+  id: string
+  slug: string
+  name: string
+  image?: string
+  openNow: boolean
+  todayHours?: string
+  location: {
+    address: string
+    city: string
+    country?: string
+  }
+}
+
+/** Marketplace display fields on a discover tenant (no embedded branches). */
+export type DiscoverMarketplace = Omit<MarketplaceMeta, 'branches'>
+
+/** Single tenant entry in the discover response. */
+export interface DiscoverTenant {
+  id: string
+  slug: string
+  name: string
+  status: TenantStatus
+  created_at: string
+  businessTypes: string[]
+  featureFlags?: Record<string, boolean>
+  theme?: TenantTheme
+  marketplace?: DiscoverMarketplace
+  branches?: DiscoverBranch[]
+}
+
+export interface DiscoverResponse {
+  count: number
+  results: DiscoverTenant[]
+}

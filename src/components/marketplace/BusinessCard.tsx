@@ -7,13 +7,15 @@ import { useTranslations } from 'next-intl'
 import { Star, MapPin, Calendar, Award, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/utils'
 import type { Tenant } from '@/types'
-import { type MarketplaceMeta, BUSINESS_TYPE_LABELS } from '@/types/marketplace'
+import { type MarketplaceMeta, type PublicBranchInfo, BUSINESS_TYPE_LABELS } from '@/types/marketplace'
 import { usePublicBranches } from '@/hooks'
 import { BranchPreview } from './BranchPreview'
 
 interface BusinessCardProps {
   tenant: Tenant
   meta: MarketplaceMeta
+  /** When provided (e.g. Discover page), skips per-card branch API fetch. */
+  branches?: PublicBranchInfo[]
   className?: string
 }
 
@@ -40,11 +42,13 @@ function PriceDots({ level }: { level?: number }) {
   )
 }
 
-export function BusinessCard({ tenant, meta, className }: BusinessCardProps) {
+export function BusinessCard({ tenant, meta, branches: branchesProp, className }: BusinessCardProps) {
   const t = useTranslations('marketplace')
   const [branchesOpen, setBranchesOpen] = useState(false)
-  const { data: resolvedBranches } = usePublicBranches(tenant.id, tenant.settings)
-  const branches = resolvedBranches ?? meta.branches ?? []
+  const { data: resolvedBranches } = usePublicBranches(tenant.id, tenant.settings, {
+    enabled: branchesProp === undefined,
+  })
+  const branches = branchesProp ?? resolvedBranches ?? meta.branches ?? []
 
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')
   const accentColor = tenant.settings?.theme?.primaryColor

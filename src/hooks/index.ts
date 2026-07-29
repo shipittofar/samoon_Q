@@ -106,6 +106,9 @@ import { buildDrfPaginationParams } from '@/utils/pagination'
 import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant } from '@/types'
 import { resolvePublicBranchList } from '@/lib/public-branches'
+import { adaptDiscoverResponse } from '@/lib/discover-adapter'
+import { discoverService } from '@/services/discover.service'
+import type { DiscoverItem } from '@/lib/discover-adapter'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -2734,6 +2737,18 @@ export function usePublicTenants() {
   })
 }
 
+/** Public discover marketplace — single consolidated tenant + branch payload. */
+export function useDiscover() {
+  return useQuery<DiscoverItem[]>({
+    queryKey: ['public-discover'],
+    queryFn: async () => {
+      const response = await discoverService.getDiscover()
+      return adaptDiscoverResponse(response)
+    },
+    staleTime: STALE_TIME,
+  })
+}
+
 /**
  * Fetches a single public tenant by slug. Returns null for an unknown or
  * inaccessible slug (a normal, expected outcome for a mistyped public URL —
@@ -2783,12 +2798,13 @@ export function usePublicBranch(
 export function usePublicBranches(
   tenantId: string,
   settings?: Tenant['settings'],
+  options?: { enabled?: boolean },
 ) {
   return useQuery<PublicBranchInfo[]>({
     queryKey: ['public-branches', tenantId],
     queryFn: () => resolvePublicBranchList(tenantId, settings),
     staleTime: STALE_TIME,
-    enabled: !!tenantId,
+    enabled: !!tenantId && (options?.enabled ?? true),
   })
 }
 

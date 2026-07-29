@@ -12,9 +12,8 @@ import { BusinessSearch } from '@/components/marketplace/BusinessSearch'
 import { CategoryFilter } from '@/components/marketplace/CategoryFilter'
 import { AdvancedFilters } from '@/components/marketplace/AdvancedFilters'
 import { SortBar } from '@/components/marketplace/SortBar'
-import { usePublicTenants } from '@/hooks'
+import { useDiscover } from '@/hooks'
 import {
-  getMarketplaceMeta,
   matchesSearch,
   matchesCategory,
   matchesFilters,
@@ -22,15 +21,19 @@ import {
   hasActiveFilters,
   countActiveFilters,
   DEFAULT_FILTERS,
+  getMarketplaceMeta,
 } from '@/types/marketplace'
 import type { FilterState, SortOption } from '@/types/marketplace'
 import { debounce } from '@/utils'
 import type { Tenant } from '@/types'
 import type { MarketplaceMeta } from '@/types/marketplace'
+import type { DiscoverItem } from '@/lib/discover-adapter'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type TenantWithMeta = { tenant: Tenant; meta: MarketplaceMeta }
+export type TenantWithMeta = { tenant: Tenant; meta: MarketplaceMeta }
+
+export type DiscoverRow = DiscoverItem
 
 /**
  * Phase Z.6.2 — previously dropped any tenant whose `settings.marketplace`
@@ -54,7 +57,7 @@ function Section({
   icon,
 }: {
   title: string
-  items: TenantWithMeta[]
+  items: DiscoverItem[]
   icon?: React.ReactNode
 }) {
   if (items.length === 0) return null
@@ -74,11 +77,11 @@ function Section({
   )
 }
 
-function BusinessGrid({ items }: { items: TenantWithMeta[] }) {
+function BusinessGrid({ items }: { items: DiscoverItem[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      {items.map(({ tenant, meta }) => (
-        <BusinessCard key={tenant.id} tenant={tenant} meta={meta} />
+      {items.map(({ tenant, meta, branches }) => (
+        <BusinessCard key={tenant.id} tenant={tenant} meta={meta} branches={branches} />
       ))}
     </div>
   )
@@ -113,7 +116,7 @@ function EmptyState({
   category: string
   hasFilters: boolean
   onClearAll: () => void
-  topItems: TenantWithMeta[]
+  topItems: DiscoverItem[]
 }) {
   const t = useTranslations('discover')
   const tHome = useTranslations('home')
@@ -175,8 +178,8 @@ function EmptyState({
             {t('popularBusinessesYouMightLike')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {topItems.slice(0, 3).map(({ tenant, meta }) => (
-              <BusinessCard key={tenant.id} tenant={tenant} meta={meta} />
+            {topItems.slice(0, 3).map(({ tenant, meta, branches }) => (
+              <BusinessCard key={tenant.id} tenant={tenant} meta={meta} branches={branches} />
             ))}
           </div>
         </div>
@@ -189,7 +192,7 @@ function EmptyState({
 
 export function DiscoverClientPage() {
   const t = useTranslations('discover')
-  const { data: tenants = [], isLoading, isError } = usePublicTenants()
+  const { data: discoverItems = [], isLoading, isError } = useDiscover()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -242,7 +245,7 @@ export function DiscoverClientPage() {
   }
 
   // Build list with marketplace metadata
-  const allWithMeta = useMemo(() => withMeta(tenants), [tenants])
+  const allWithMeta = useMemo(() => discoverItems, [discoverItems])
 
   // Derive available filter options from data
   const availableCategories = useMemo(() => {
