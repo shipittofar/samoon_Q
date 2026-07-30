@@ -48,6 +48,23 @@ export type ConsoleMenuItemsParams = DrfPaginationParams
 
 const DEFAULT_MOCK_BRANCH_ID = 'branch-rest-01'
 
+/** Maps storefront MenuFilters to query params for GET /menu/items/branches/{branchId}/. */
+function buildMenuItemQueryParams(filters?: MenuFilters): Record<string, string | number | boolean> {
+  if (!filters) return {}
+
+  const params: Record<string, string | number | boolean> = {}
+  if (filters.category) params.category = filters.category
+  if (filters.search) params.search = filters.search
+  if (filters.min_price != null) params.min_price = filters.min_price
+  if (filters.max_price != null) params.max_price = filters.max_price
+  if (filters.min_rating != null) params.min_rating = filters.min_rating
+  if (filters.available !== undefined) params.available = filters.available
+  if (filters.sort) params.sort = filters.sort
+  if (filters.page != null) params.page = filters.page
+  if (filters.page_size != null) params.page_size = filters.page_size
+  return params
+}
+
 function mockImageFromRequest(payload: { image?: File; removeImage?: boolean }, fallback = ''): string {
   if (payload.removeImage) return ''
   return mockImageUrlFromFile(payload.image, fallback)
@@ -156,7 +173,10 @@ export const menuService = {
       return { count: items.length, next: null, previous: null, results: items }
     }
 
-    const { data } = await api.get<PaginatedResponse<MenuItemWire>>(ENDPOINTS.MENU.PUBLIC_ITEMS(branchId))
+    const { data } = await api.get<PaginatedResponse<MenuItemWire>>(
+      ENDPOINTS.MENU.PUBLIC_ITEMS(branchId),
+      { params: buildMenuItemQueryParams(filters) },
+    )
     return normalizePaginatedMenuItems(data)
   },
 

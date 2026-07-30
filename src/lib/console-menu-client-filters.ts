@@ -17,15 +17,24 @@ export interface ConsoleMenuClientFilters {
   categoryId: string
 }
 
+function resolveItemCategoryId(item: MenuItem): string {
+  if (item.category_id != null && item.category_id !== '') {
+    return String(item.category_id)
+  }
+  if (item.category?.id != null) return String(item.category.id)
+  return ''
+}
+
 export function applyConsoleMenuClientFilters(
   items: MenuItem[],
   filters: ConsoleMenuClientFilters,
 ): MenuItem[] {
   const normalizedSearch = filters.search.trim().toLowerCase()
+  const categoryFilter = String(filters.categoryId)
 
   return items.filter((item) => {
     const matchCategory =
-      filters.categoryId === 'all' || item.category_id === filters.categoryId
+      categoryFilter === 'all' || resolveItemCategoryId(item) === categoryFilter
     const matchSearch =
       !normalizedSearch || item.name.toLowerCase().includes(normalizedSearch)
 

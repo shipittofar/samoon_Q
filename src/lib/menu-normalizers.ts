@@ -26,8 +26,10 @@ export function normalizeExtras(raw: ExtraWire[]): Extra[] {
 
 /** Normalizes a MenuItem, including nested inline extras. */
 export function normalizeMenuItem(raw: MenuItemWire): MenuItem {
+  const category_id = raw.category_id ?? raw.category?.id ?? ''
   return {
     ...raw,
+    category_id,
     is_active: raw.is_active ?? true,
     price: parseDecimal(raw.price),
     discounted_price:

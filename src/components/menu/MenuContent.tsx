@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, List, Sparkles } from 'lucide-react'
@@ -82,8 +82,17 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
 
   const { data: categories, isLoading: catsLoading } = useCategories(branchId)
 
+  // URL/state keep the human-readable slug; the API filters by category ID.
+  const categoryFilterId = useMemo(() => {
+    if (!activeCategory) return undefined
+    const match = categories?.find(
+      (c) => c.slug === activeCategory || c.id === activeCategory,
+    )
+    return match?.id
+  }, [activeCategory, categories])
+
   const filters: MenuFilters = {
-    category: activeCategory || undefined,
+    category: categoryFilterId,
     search: debouncedSearch || undefined,
     sort,
     min_price: priceRange[0] > 0 ? priceRange[0] : undefined,
