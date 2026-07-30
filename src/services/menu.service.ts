@@ -104,10 +104,8 @@ export const menuService = {
       await delay(400)
       return mockCategories(branchId)
     }
-    const { data } = await api.get<Category[]>(ENDPOINTS.MENU.CATEGORIES, {
-      params: { branch_id: branchId },
-    })
-    return data
+    const { data } = await api.get<PaginatedResponse<Category>>(ENDPOINTS.MENU.CATEGORY(branchId))
+    return data.results
   },
 
   async getConsoleCategories(branchId: string): Promise<Category[]> {
