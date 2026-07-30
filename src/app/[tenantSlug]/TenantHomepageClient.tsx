@@ -619,7 +619,7 @@ function FeaturedItemsSection({
                 </span>
                 <span className="flex items-center gap-0.5 text-xs text-[var(--fg-muted)]">
                   <Star className="w-3 h-3 text-amber-400 fill-amber-400" aria-hidden="true" />
-                  {item.rating.toFixed(1)}
+                  {item.rating?.toFixed(1) ?? "0.0"}
                 </span>
               </div>
             </div>

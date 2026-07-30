@@ -46,7 +46,7 @@ function FeaturedCard({ item }: { item: { id: string; name: string; image: strin
           <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)]">
             <span className="flex items-center gap-0.5">
               <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-              {item.rating.toFixed(1)}
+              {item.rating?.toFixed(1) ?? "0.0"}
             </span>
             <span className="flex items-center gap-0.5">
               <Clock className="h-3 w-3" />

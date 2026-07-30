@@ -171,7 +171,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
         <div className="flex items-center gap-3 mb-4 text-xs text-[var(--fg-muted)]">
           <span className="flex items-center gap-1">
             <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-            {item.rating.toFixed(1)}
+            {item.rating?.toFixed(1) ?? "0.0"}
             {item.rating_count > 0 && (
               <span className="text-[var(--fg-subtle)]">{t('ratingCountShort', { count: item.rating_count })}</span>
             )}

@@ -157,9 +157,7 @@ export const menuService = {
       return { count: items.length, next: null, previous: null, results: items }
     }
 
-    const { data } = await api.get<PaginatedResponse<MenuItemWire>>(ENDPOINTS.MENU.ITEMS, {
-      params: { branch_id: branchId, ...filters },
-    })
+    const { data } = await api.get<PaginatedResponse<MenuItemWire>>(ENDPOINTS.MENU.PUBLIC_ITEMS(branchId))
     return normalizePaginatedMenuItems(data)
   },
 

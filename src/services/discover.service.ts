@@ -9,7 +9,7 @@ import type { PublicBranchInfo } from '@/types/marketplace'
 import type { PaginatedResponse } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
-const delay = (ms = 300) => Promise<void>((r) => setTimeout(r, ms))
+const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms))
 
 function legacyBranchToDiscoverBranch(
   legacy: PublicBranchInfo,
