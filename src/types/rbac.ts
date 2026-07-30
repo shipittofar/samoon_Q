@@ -45,6 +45,11 @@ export type P7Permission =
   | 'extras.create'
   | 'extras.update'
   | 'extras.delete'
+  // ── Tags (sub-resource of Menu) ───────────────────────────
+  | 'tag.view'
+  | 'tag.create'
+  | 'tag.update'
+  | 'tag.delete'
   // ── Reservations ──────────────────────────────────────────
   | 'reservations.view'
   | 'reservations.manage'

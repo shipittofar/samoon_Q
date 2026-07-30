@@ -15,19 +15,23 @@ import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
 import { getTotalPages } from '@/utils/pagination'
 import { applyConsoleMenuClientFilters } from '@/lib/console-menu-client-filters'
-import { useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useConsoleCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
+import { useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useConsoleCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useConsoleMenuTags, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
 import type { MenuItem, MenuItemFormInput } from '@/types'
 import { menuItemFormToWriteRequest, menuItemToFormInput } from '@/types'
 import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
+import { PermissionGuard } from '@/components/auth/PermissionGuard'
+import { AccessDenied } from '@/components/admin/AccessDenied'
+import { MenuTagBadge } from '@/components/menu/MenuTagBadge'
+import { MenuTagMultiSelect } from '@/components/console/MenuTagMultiSelect'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
 
 const EMPTY_FORM: MenuItemFormInput = {
   name: '', description: '', price: '', discount: '', calories: '',
   preparation_time: '', image: { ...EMPTY_IMAGE_FIELD }, category_id: '', available: true,
-  is_active: true, is_featured: false, is_popular: false, extra_group_ids: [],
+  is_active: true, is_featured: false, is_popular: false, extra_group_ids: [], tag_ids: [],
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -73,6 +77,8 @@ export default function AdminMenuPage() {
   )
   const { data: categories, isLoading: catsLoading } = useConsoleCategories(adminBranchId)
   const { data: extraGroups } = useConsoleExtraGroups(adminBranchId)
+  const { data: branchTagsData, isLoading: tagsLoading } = useConsoleMenuTags(adminBranchId, { page_size: 200 })
+  const branchTags = branchTagsData?.results ?? []
 
   // const createMutation = useCreateMenuItem(adminBranchId ?? '')
   const createMutation = useConsoleCreateMenuItem(adminBranchId ?? '')
@@ -321,6 +327,13 @@ export default function AdminMenuPage() {
                         </div>
                         <p className="font-semibold text-[var(--fg)] text-sm truncate mb-0.5">{item.name}</p>
                         <p className="text-xs text-[var(--fg-muted)] line-clamp-2 mb-2">{item.description}</p>
+                        {item.tags && item.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {item.tags.map((tag) => (
+                              <MenuTagBadge key={tag.id} tag={tag} className="text-[10px]" />
+                            ))}
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)] mb-3">
                           <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-amber-400 fill-amber-400" />{item.rating}</span>
                           <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" />{item.preparation_time}m</span>
@@ -384,6 +397,8 @@ export default function AdminMenuPage() {
           onChange={setCreateForm}
           categories={categories ?? []}
           extraGroups={extraGroups ?? []}
+          branchTags={branchTags}
+          tagsLoading={tagsLoading}
         />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary" onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
@@ -412,6 +427,8 @@ export default function AdminMenuPage() {
           onChange={setEditForm}
           categories={categories ?? []}
           extraGroups={extraGroups ?? []}
+          branchTags={branchTags}
+          tagsLoading={tagsLoading}
         />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary" onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
@@ -462,20 +479,22 @@ export default function AdminMenuPage() {
 
 // ── Shared form fields component ──────────────────────────────────────────────
 
-import type { Category, ExtraGroup } from '@/types'
-import { PermissionGuard } from '@/components/auth/PermissionGuard'
-import { AccessDenied } from '@/components/admin/AccessDenied'
+import type { Category, ConsoleMenuTag, ExtraGroup } from '@/types'
 
 function MenuItemFormFields({
   form,
   onChange,
   categories,
   extraGroups,
+  branchTags,
+  tagsLoading,
 }: {
   form: MenuItemFormInput
   onChange: (f: MenuItemFormInput) => void
   categories: Category[]
   extraGroups: ExtraGroup[]
+  branchTags: ConsoleMenuTag[]
+  tagsLoading?: boolean
 }) {
   const t = useTranslations('console')
   const set = (field: Exclude<keyof MenuItemFormInput, 'image' | 'extra_group_ids'>) =>
@@ -515,6 +534,12 @@ function MenuItemFormFields({
         <Input label={t('prepTimeMinLabel')} type="number" value={form.preparation_time} onChange={set('preparation_time')} />
       </div>
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
+      <MenuTagMultiSelect
+        tags={branchTags}
+        value={form.tag_ids}
+        onChange={(tag_ids) => onChange({ ...form, tag_ids })}
+        isLoading={tagsLoading}
+      />
       <ImageUploader
         label={t('imageLabel')}
         value={form.image}

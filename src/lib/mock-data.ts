@@ -1,4 +1,4 @@
-import type { Branch, BusinessCustomer, BranchCustomer, Category, CustomerAnalytics, CustomerCoupon, CustomerMarketing, CustomerNote, CustomerTag, CustomerTimelineEvent, Extra, ExtraGroup, LoyaltyAccount, MenuItem, MenuItemTag, MenuTag, Notification, Order, PlatformUser, Reservation, User } from '@/types'
+import type { Branch, BusinessCustomer, BranchCustomer, Category, ConsoleMenuTag, CustomerAnalytics, CustomerCoupon, CustomerMarketing, CustomerNote, CustomerTag, CustomerTimelineEvent, Extra, ExtraGroup, LoyaltyAccount, MenuItem, MenuItemTag, MenuTag, Notification, Order, PlatformUser, Reservation, User } from '@/types'
 
 // ── Users ────────────────────────────────────────────────────────────────────
 export const MOCK_USER: User = {
@@ -613,6 +613,28 @@ export const MOCK_BRANCH_AVAILABLE_TAGS: Record<string, MenuTag[]> = {
   'branch-rest-01': DEFAULT_MOCK_AVAILABLE_TAGS,
   'branch-rest-02': DEFAULT_MOCK_AVAILABLE_TAGS,
   'branch-rest-03': DEFAULT_MOCK_AVAILABLE_TAGS,
+}
+
+const mockConsoleTagsStore: Record<string, ConsoleMenuTag[]> = {}
+
+export function getMockConsoleTags(branchId: string): ConsoleMenuTag[] {
+  if (!mockConsoleTagsStore[branchId]) {
+    const counts = new Map(DEFAULT_MOCK_AVAILABLE_TAGS.map((t) => [t.id, t.item_count]))
+    mockConsoleTagsStore[branchId] = MOCK_TAG_CATALOG.map((tag, index) => ({
+      ...tag,
+      branch_id: branchId,
+      description: '',
+      is_active: true,
+      display_order: index + 1,
+      item_count: counts.get(tag.id) ?? 0,
+      created_at: '2024-01-01T00:00:00Z',
+    }))
+  }
+  return mockConsoleTagsStore[branchId]
+}
+
+export function setMockConsoleTags(branchId: string, tags: ConsoleMenuTag[]): void {
+  mockConsoleTagsStore[branchId] = tags
 }
 
 // ── Extra Groups & Extras ──────────────────────────────────────────────────────

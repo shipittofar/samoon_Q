@@ -1,6 +1,6 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS, MOCK_BRANCH_EXTRA_GROUPS, MOCK_BRANCH_EXTRAS, MOCK_BRANCH_AVAILABLE_TAGS } from '@/lib/mock-data'
+import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS, MOCK_BRANCH_EXTRA_GROUPS, MOCK_BRANCH_EXTRAS, MOCK_BRANCH_AVAILABLE_TAGS, getMockConsoleTags, setMockConsoleTags } from '@/lib/mock-data'
 import {
   normalizeExtra,
   normalizeExtras,
@@ -11,7 +11,7 @@ import {
   type MenuItemWire,
 } from '@/lib/menu-normalizers'
 import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
-import type { Category, DrfPaginationParams, Extra, ExtraGroup, MenuItem, MenuTag, PaginatedResponse } from '@/types'
+import type { Category, ConsoleMenuTag, DrfPaginationParams, Extra, ExtraGroup, MenuItem, MenuTag, PaginatedResponse } from '@/types'
 import { buildMenuItemFormData, type MenuItemWriteRequest } from '@/types/menu-item'
 import {
   buildCategoryFormData,
@@ -21,6 +21,7 @@ import {
   buildExtraFormData,
   type ExtraWriteRequest,
 } from '@/types/extra'
+import { buildTagFormData, type TagWriteRequest } from '@/types/tag'
 import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms))
@@ -47,6 +48,13 @@ export interface MenuFilters {
  * `GET /menu/console-menu/items/{branchId}/` — see `console-menu-client-filters.ts`.
  */
 export type ConsoleMenuItemsParams = DrfPaginationParams
+
+/** Query params for `getConsoleTags`. */
+export type ConsoleMenuTagsParams = DrfPaginationParams & {
+  search?: string
+  ordering?: string
+  is_active?: boolean
+}
 
 const DEFAULT_MOCK_BRANCH_ID = 'branch-rest-01'
 
@@ -599,6 +607,159 @@ export const menuService = {
       return
     }
     await api.delete(ENDPOINTS.MENU.EXTRA(id), { params: { branch_id: branchId } })
+  },
+
+  // ── Tag Admin CRUD ─────────────────────────────────────────────────────────
+
+  async getConsoleTags(
+    branchId: string,
+    params?: ConsoleMenuTagsParams,
+  ): Promise<PaginatedResponse<ConsoleMenuTag>> {
+    const paginationParams = buildDrfPaginationParams(params)
+
+    if (USE_MOCK) {
+      await delay(400)
+      let tags = [...getMockConsoleTags(branchId)]
+
+      if (params?.search) {
+        const q = params.search.toLowerCase()
+        tags = tags.filter(
+          (t) =>
+            t.name.toLowerCase().includes(q) ||
+            t.slug.toLowerCase().includes(q) ||
+            (t.description ?? '').toLowerCase().includes(q),
+        )
+      }
+
+      if (params?.is_active !== undefined) {
+        tags = tags.filter((t) => t.is_active === params.is_active)
+      }
+
+      if (params?.ordering) {
+        const desc = params.ordering.startsWith('-')
+        const field = desc ? params.ordering.slice(1) : params.ordering
+        const readField = (tag: ConsoleMenuTag): string | number => {
+          if (field === 'display_order') return tag.display_order
+          if (field === 'name') return tag.name
+          if (field === 'created_at') return tag.created_at
+          if (field === 'item_count') return tag.item_count ?? 0
+          return ''
+        }
+        tags.sort((a, b) => {
+          const av = readField(a)
+          const bv = readField(b)
+          if (av < bv) return desc ? 1 : -1
+          if (av > bv) return desc ? -1 : 1
+          return 0
+        })
+      } else {
+        tags.sort((a, b) => a.display_order - b.display_order)
+      }
+
+      return paginateList(tags, paginationParams.page, paginationParams.page_size)
+    }
+
+    const { data } = await api.get<PaginatedResponse<ConsoleMenuTag>>(
+      ENDPOINTS.MENU.CONSOLE_TAGS(branchId),
+      {
+        params: {
+          ...paginationParams,
+          ...(params?.search ? { search: params.search } : {}),
+          ...(params?.ordering ? { ordering: params.ordering } : {}),
+          ...(params?.is_active !== undefined ? { is_active: params.is_active } : {}),
+        },
+      },
+    )
+    return data
+  },
+
+  async getConsoleTag(branchId: string, id: number): Promise<ConsoleMenuTag> {
+    if (USE_MOCK) {
+      await delay(300)
+      const tag = getMockConsoleTags(branchId).find((t) => t.id === id)
+      if (!tag) throw new Error('Tag not found')
+      return tag
+    }
+    const { data } = await api.get<ConsoleMenuTag>(ENDPOINTS.MENU.CONSOLE_TAG(branchId, id))
+    return data
+  },
+
+  async createTag(branchId: string, payload: TagWriteRequest): Promise<ConsoleMenuTag> {
+    if (USE_MOCK) {
+      await delay(600)
+      const existing = getMockConsoleTags(branchId)
+      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const newTag: ConsoleMenuTag = {
+        id: Date.now(),
+        branch_id: branchId,
+        name: fields.name ?? 'New Tag',
+        slug: fields.slug ?? `tag-${Date.now()}`,
+        description: fields.description ?? '',
+        icon: fields.icon ?? '',
+        image: mockImageFromRequest(payload),
+        color: fields.color ?? '#f97316',
+        is_active: fields.is_active ?? true,
+        display_order: fields.display_order ?? existing.length + 1,
+        item_count: 0,
+        created_at: new Date().toISOString(),
+      }
+      setMockConsoleTags(branchId, [...existing, newTag])
+      return newTag
+    }
+    const formData = buildTagFormData(payload)
+    const { data } = await api.post<ConsoleMenuTag>(
+      ENDPOINTS.MENU.CONSOLE_TAGS(branchId),
+      formData,
+      multipartRequestConfig(),
+    )
+    return data
+  },
+
+  async updateTag(branchId: string, id: number, payload: TagWriteRequest): Promise<ConsoleMenuTag> {
+    if (USE_MOCK) {
+      await delay(500)
+      const existing = getMockConsoleTags(branchId)
+      const current = existing.find((t) => t.id === id)
+      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const updated: ConsoleMenuTag = {
+        ...(current as ConsoleMenuTag),
+        ...fields,
+        image: mockImageFromRequest(payload, current?.image),
+        id,
+        branch_id: branchId,
+      }
+      setMockConsoleTags(
+        branchId,
+        existing.map((t) => (t.id === id ? updated : t)),
+      )
+      return updated
+    }
+    const formData = buildTagFormData(payload)
+    const { data } = await api.patch<ConsoleMenuTag>(
+      ENDPOINTS.MENU.CONSOLE_TAG(branchId, id),
+      formData,
+      multipartRequestConfig(),
+    )
+    return data
+  },
+
+  async deleteTag(branchId: string, id: number): Promise<void> {
+    if (USE_MOCK) {
+      await delay(400)
+      const existing = getMockConsoleTags(branchId)
+      const tag = existing.find((t) => t.id === id)
+      if (tag && (tag.item_count ?? 0) > 0) {
+        throw Object.assign(new Error('Cannot delete tag assigned to menu items'), {
+          response: { data: { detail: 'Cannot delete tag that is assigned to menu items.' } },
+        })
+      }
+      setMockConsoleTags(
+        branchId,
+        existing.filter((t) => t.id !== id),
+      )
+      return
+    }
+    await api.delete(ENDPOINTS.MENU.CONSOLE_TAG(branchId, id))
   },
 
   // ── Menu Item ↔ Extra Group assignment ────────────────────────────────────

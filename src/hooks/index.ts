@@ -68,7 +68,7 @@ import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_F
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
 import { reviewService } from '@/services/review.service'
-import type { MenuFilters, ConsoleMenuItemsParams } from '@/services/menu.service'
+import type { MenuFilters, ConsoleMenuItemsParams, ConsoleMenuTagsParams } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreatePaymentIntentPayload } from '@/services/payment.service'
 import type { CreateReviewPayload } from '@/services/review.service'
@@ -81,6 +81,7 @@ import type {
   Capability,
   Category,
   CategoryWriteRequest,
+  ConsoleMenuTag,
   Extra,
   ExtraWriteRequest,
   ExtraGroup,
@@ -96,6 +97,7 @@ import type {
   Reservation,
   ReservationStatus,
   SystemReadiness,
+  TagWriteRequest,
   TenantLifecycle,
   SendOTPRequest,
   User,
@@ -2117,6 +2119,140 @@ export function useReorderCategories(branchId: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
+    },
+  })
+}
+
+// ── Tag Admin Hooks ───────────────────────────────────────────────────────────
+
+function consoleMenuTagsQueryPredicate(branchId: string) {
+  return (query: { queryKey: readonly unknown[] }) =>
+    query.queryKey[0] === 'console-menu-tags' && query.queryKey[2] === branchId
+}
+
+function branchTagQueryPredicates(branchId: string) {
+  return [
+    consoleMenuTagsQueryPredicate(branchId),
+    (query: { queryKey: readonly unknown[] }) =>
+      query.queryKey[0] === 'available-menu-tags' && query.queryKey[2] === branchId,
+  ]
+}
+
+function invalidateBranchTagQueries(
+  qc: ReturnType<typeof useQueryClient>,
+  branchId: string,
+) {
+  for (const predicate of branchTagQueryPredicates(branchId)) {
+    qc.invalidateQueries({ predicate })
+  }
+}
+
+export function useConsoleMenuTags(branchId?: string, params?: ConsoleMenuTagsParams) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+
+  const queryParams = useMemo(() => {
+    const listParams = params ?? {}
+    return { ...listParams, ...buildDrfPaginationParams(listParams) }
+  }, [params?.page, params?.page_size, params?.search, params?.ordering, params?.is_active])
+
+  const pagination = useMemo(
+    () => buildDrfPaginationParams(params),
+    [params?.page, params?.page_size],
+  )
+
+  const query = useQuery({
+    queryKey: ['console-menu-tags', tenantId, scopedBranchId, queryParams],
+    queryFn: () => menuService.getConsoleTags(scopedBranchId!, params),
+    enabled: !!scopedBranchId,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+
+  return { ...query, pagination }
+}
+
+/** Alias for console tag list — see `useConsoleMenuTags`. */
+export const useMenuTags = useConsoleMenuTags
+
+export function useConsoleMenuTag(branchId: string, id: number | undefined) {
+  return useQuery({
+    queryKey: ['console-menu-tag', branchId, id],
+    queryFn: () => menuService.getConsoleTag(branchId, id!),
+    enabled: !!branchId && id != null,
+    staleTime: STALE_TIME,
+  })
+}
+
+/** Alias for single console tag — see `useConsoleMenuTag`. */
+export const useMenuTag = useConsoleMenuTag
+
+export function useCreateMenuTag(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: TagWriteRequest) => menuService.createTag(branchId, payload),
+    onSuccess: () => {
+      invalidateBranchTagQueries(qc, branchId)
+    },
+  })
+}
+
+export function useUpdateMenuTag(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: TagWriteRequest }) =>
+      menuService.updateTag(branchId, id, payload),
+    onMutate: async ({ id, payload }) => {
+      const { image: _image, removeImage: _removeImage, ...optimistic } = payload
+      const predicate = consoleMenuTagsQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<PaginatedResponse<ConsoleMenuTag>>({ predicate })
+      qc.setQueriesData<PaginatedResponse<ConsoleMenuTag>>(
+        { predicate },
+        (old) =>
+          old
+            ? {
+                ...old,
+                results: old.results.map((tag) =>
+                  tag.id === id ? { ...tag, ...optimistic } : tag,
+                ),
+              }
+            : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      invalidateBranchTagQueries(qc, branchId)
+    },
+  })
+}
+
+export function useDeleteMenuTag(branchId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => menuService.deleteTag(branchId, id),
+    onMutate: async (id) => {
+      const predicate = consoleMenuTagsQueryPredicate(branchId)
+      await qc.cancelQueries({ predicate })
+      const snapshots = qc.getQueriesData<PaginatedResponse<ConsoleMenuTag>>({ predicate })
+      qc.setQueriesData<PaginatedResponse<ConsoleMenuTag>>(
+        { predicate },
+        (old) =>
+          old
+            ? { ...old, count: Math.max(0, old.count - 1), results: old.results.filter((t) => t.id !== id) }
+            : old,
+      )
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+    },
+    onSuccess: () => {
+      invalidateBranchTagQueries(qc, branchId)
     },
   })
 }

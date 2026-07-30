@@ -144,9 +144,9 @@ describe('C — ROLE_PERMISSION_MAP completeness', () => {
   // extras.view/create/update/delete (52 + 4 = 56, docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md);
   // Branch Management added branches.create/update/delete (56 + 3 = 59,
   // docs/BRANCH_MANAGEMENT_IMPLEMENTATION.md).
-  it('ALL_PERMISSIONS has 59 entries', async () => {
+  it('ALL_PERMISSIONS has 64 entries', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(60)
+    expect(ALL_PERMISSIONS).toHaveLength(64)
   })
 })
 

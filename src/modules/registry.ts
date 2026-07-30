@@ -240,6 +240,15 @@ const CATEGORIES_NAV_ITEM = {
   permissionKey: 'category.view',
 } as const
 
+const TAGS_NAV_ITEM = {
+  href: '/console/tags',
+  label: 'Tags',
+  icon: 'Tags',
+  group: 'Content',
+  featureFlagKey: 'menu.enabled',
+  permissionKey: 'tag.view',
+} as const
+
 const EXTRAS_NAV_ITEM = {
   href: '/console/extras',
   label: 'Extras',
@@ -360,6 +369,7 @@ export const RESTAURANT_MODULE: Module = {
     // Content
     MENU_NAV_ITEM,
     CATEGORIES_NAV_ITEM,
+    TAGS_NAV_ITEM,
     EXTRAS_NAV_ITEM,
     PROMOTIONS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
@@ -451,6 +461,7 @@ export const CAFE_MODULE: Module = {
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CATEGORIES_NAV_ITEM,
+    TAGS_NAV_ITEM,
     EXTRAS_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
@@ -531,6 +542,7 @@ export const BAR_MODULE: Module = {
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CATEGORIES_NAV_ITEM,
+    TAGS_NAV_ITEM,
     EXTRAS_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
@@ -611,6 +623,7 @@ export const FOOD_COURT_MODULE: Module = {
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CATEGORIES_NAV_ITEM,
+    TAGS_NAV_ITEM,
     EXTRAS_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     RESERVATIONS_NAV_ITEM,
@@ -691,6 +704,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CATEGORIES_NAV_ITEM,
+    TAGS_NAV_ITEM,
     EXTRAS_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
@@ -774,6 +788,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     ORDERS_NAV_ITEM,
     MENU_NAV_ITEM,
     CATEGORIES_NAV_ITEM,
+    TAGS_NAV_ITEM,
     EXTRAS_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,

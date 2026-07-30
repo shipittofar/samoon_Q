@@ -445,8 +445,8 @@ describe('J — P8.6 admin pages exist', () => {
 // ── R — Regression ────────────────────────────────────────────────────────────
 
 describe('R — Regression', () => {
-  it('permission.service ALL_PERMISSIONS has 48 entries', () => {
-    expect(ALL_PERMISSIONS).toHaveLength(60)
+  it('permission.service ALL_PERMISSIONS has 64 entries', () => {
+    expect(ALL_PERMISSIONS).toHaveLength(64)
   })
 
   it('rbac types file defines all P8.6 interfaces', () => {

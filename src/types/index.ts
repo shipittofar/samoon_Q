@@ -197,6 +197,16 @@ export interface MenuTag extends MenuItemTag {
   item_count: number
 }
 
+/** Full tag record for Console management (GET /menu/branches/{branchId}/tags/). */
+export interface ConsoleMenuTag extends MenuItemTag {
+  branch_id?: string
+  description?: string
+  is_active: boolean
+  display_order: number
+  item_count?: number
+  created_at: string
+}
+
 export interface MenuItem {
   id: string
   /** Branch that owns this item. Menus are branch-scoped — no item is shared across branches. */
@@ -1458,6 +1468,13 @@ export {
   extraToFormInput,
   buildExtraFormData,
 } from '@/types/extra'
+
+export type { TagFormInput, TagWriteRequest } from '@/types/tag'
+export {
+  tagFormToWriteRequest,
+  tagToFormInput,
+  buildTagFormData,
+} from '@/types/tag'
 
 export type { BranchFormState, BranchWriteRequest } from '@/types/branch-form'
 export {

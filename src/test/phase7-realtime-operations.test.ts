@@ -1327,7 +1327,7 @@ describe('R — Regression', () => {
 
   it('permission.service.ts has 31 total permissions', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(60)
+    expect(ALL_PERMISSIONS).toHaveLength(64)
   })
 
   it('realtime types do not use any type', () => {

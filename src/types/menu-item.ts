@@ -20,6 +20,7 @@ export interface MenuItemFormInput {
   is_featured: boolean
   is_popular: boolean
   extra_group_ids: string[]
+  tag_ids: number[]
 }
 
 /**
@@ -38,6 +39,7 @@ export interface MenuItemWriteRequest {
   is_active?: boolean
   is_featured?: boolean
   is_popular?: boolean
+  tag_ids?: number[]
   image?: File
   /** When true, clears the image on update (no new file selected). */
   removeImage?: boolean
@@ -57,6 +59,7 @@ export function menuItemFormToWriteRequest(form: MenuItemFormInput): MenuItemWri
     is_active: form.is_active,
     is_featured: form.is_featured,
     is_popular: form.is_popular,
+    tag_ids: form.tag_ids,
   }
 
   if (form.image.file) {
@@ -91,6 +94,10 @@ export function buildMenuItemFormData(
   if (payload.is_featured != null) form.append('is_featured', String(payload.is_featured))
   if (payload.is_popular != null) form.append('is_popular', String(payload.is_popular))
 
+  if (payload.tag_ids != null) {
+    payload.tag_ids.forEach((id) => form.append('tag_ids', String(id)))
+  }
+
   if (payload.image instanceof File) {
     appendImageField(form, 'image', payload.image)
   } else if (payload.removeImage) {
@@ -120,5 +127,6 @@ export function menuItemToFormInput(item: MenuItem): MenuItemFormInput {
     is_featured: item.is_featured ?? false,
     is_popular: item.is_popular ?? false,
     extra_group_ids: item.extra_group_ids ?? [],
+    tag_ids: item.tags?.map((tag) => tag.id) ?? [],
   }
 }
