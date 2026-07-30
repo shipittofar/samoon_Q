@@ -1,6 +1,6 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS, MOCK_BRANCH_EXTRA_GROUPS, MOCK_BRANCH_EXTRAS } from '@/lib/mock-data'
+import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS, MOCK_BRANCH_EXTRA_GROUPS, MOCK_BRANCH_EXTRAS, MOCK_BRANCH_AVAILABLE_TAGS } from '@/lib/mock-data'
 import {
   normalizeExtra,
   normalizeExtras,
@@ -11,7 +11,7 @@ import {
   type MenuItemWire,
 } from '@/lib/menu-normalizers'
 import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
-import type { Category, DrfPaginationParams, Extra, ExtraGroup, MenuItem, PaginatedResponse } from '@/types'
+import type { Category, DrfPaginationParams, Extra, ExtraGroup, MenuItem, MenuTag, PaginatedResponse } from '@/types'
 import { buildMenuItemFormData, type MenuItemWriteRequest } from '@/types/menu-item'
 import {
   buildCategoryFormData,
@@ -33,6 +33,8 @@ export interface MenuFilters {
   min_rating?: number
   available?: boolean
   sort?: 'price_asc' | 'price_desc' | 'rating' | 'newest' | 'popular'
+  /** Numeric tag IDs — sent as comma-separated `tags` query param. */
+  tags?: number[]
   page?: number
   page_size?: number
 }
@@ -60,6 +62,7 @@ function buildMenuItemQueryParams(filters?: MenuFilters): Record<string, string 
   if (filters.min_rating != null) params.min_rating = filters.min_rating
   if (filters.available !== undefined) params.available = filters.available
   if (filters.sort) params.sort = filters.sort
+  if (filters.tags?.length) params.tags = [...filters.tags].sort((a, b) => a - b).join(',')
   if (filters.page != null) params.page = filters.page
   if (filters.page_size != null) params.page_size = filters.page_size
   return params
@@ -104,6 +107,10 @@ function mockCategories(branchId: string): Category[] {
   return MOCK_BRANCH_CATEGORIES[branchId] ?? MOCK_BRANCH_CATEGORIES[DEFAULT_MOCK_BRANCH_ID]
 }
 
+function mockAvailableTags(branchId: string): MenuTag[] {
+  return MOCK_BRANCH_AVAILABLE_TAGS[branchId] ?? MOCK_BRANCH_AVAILABLE_TAGS[DEFAULT_MOCK_BRANCH_ID]
+}
+
 function mockItems(branchId: string): MenuItem[] {
   return MOCK_BRANCH_ITEMS[branchId] ?? MOCK_BRANCH_ITEMS[DEFAULT_MOCK_BRANCH_ID]
 }
@@ -124,6 +131,15 @@ export const menuService = {
     }
     const { data } = await api.get<PaginatedResponse<Category>>(ENDPOINTS.MENU.CATEGORY(branchId))
     return data.results
+  },
+
+  async getAvailableTags(branchId: string): Promise<MenuTag[]> {
+    if (USE_MOCK) {
+      await delay(300)
+      return mockAvailableTags(branchId)
+    }
+    const { data } = await api.get<MenuTag[]>(ENDPOINTS.MENU.AVAILABLE_TAGS(branchId))
+    return data
   },
 
   async getConsoleCategories(branchId: string): Promise<Category[]> {
@@ -160,6 +176,19 @@ export const menuService = {
       if (filters?.max_price) items = items.filter((i) => i.price <= filters.max_price!)
       if (filters?.min_rating) items = items.filter((i) => i.rating >= filters.min_rating!)
       if (filters?.available !== undefined) items = items.filter((i) => i.available === filters.available)
+
+      if (filters?.tags?.length) {
+        const tagSlugs = mockAvailableTags(branchId)
+          .filter((t) => filters.tags!.includes(t.id))
+          .map((t) => t.slug.toLowerCase())
+        if (tagSlugs.length > 0) {
+          items = items.filter((item) =>
+            tagSlugs.every((slug) =>
+              (item.tags ?? []).some((t) => t.slug.toLowerCase() === slug),
+            ),
+          )
+        }
+      }
 
       if (filters?.sort) {
         switch (filters.sort) {
@@ -270,7 +299,11 @@ export const menuService = {
         (i) =>
           i.name.toLowerCase().includes(q) ||
           i.description.toLowerCase().includes(q) ||
-          i.tags?.some((t) => t.toLowerCase().includes(q)),
+          i.tags?.some(
+            (t) =>
+              t.name.toLowerCase().includes(q) ||
+              t.slug.toLowerCase().includes(q),
+          ),
       )
     }
     const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.SEARCH, {

@@ -668,6 +668,19 @@ export function useCategories(branchId?: string) {
   })
 }
 
+export function useAvailableMenuTags(branchId?: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  return useQuery({
+    queryKey: ['available-menu-tags', tenantId, scopedBranchId],
+    queryFn: () => menuService.getAvailableTags(scopedBranchId!),
+    enabled: !!scopedBranchId,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
 export function useConsoleCategories(branchId?: string) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   const fallbackBranchId = useActiveBranchId()

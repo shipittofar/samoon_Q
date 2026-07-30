@@ -10,9 +10,10 @@ import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FoodCard } from '@/components/menu/FoodCard'
 import { LazyFoodDetailModal } from '@/components/menu/LazyFoodDetailModal'
+import { MenuTagLabel } from '@/components/menu/MenuTagBadge'
 import { FoodCardSkeleton, Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
-import { useCategories, useMenuItems } from '@/hooks'
+import { useCategories, useMenuItems, useAvailableMenuTags, useActiveBranchId } from '@/hooks'
 import { useRecentlyViewedStore, useCartStore, useTenantStore, useBranchStore } from '@/stores'
 import { cn, debounce } from '@/utils'
 import { useTranslations } from 'next-intl'
@@ -22,6 +23,14 @@ import type { MenuFilters } from '@/services/menu.service'
 interface MenuContentProps {
   /** Branch slug to scope the menu to. Falls back to the customer's active branch (useBranchStore) when omitted — see docs/BRANCH_MENU_ANALYSIS.md. */
   branchId?: string
+}
+
+function parseTagIdsFromUrl(raw: string | null): number[] {
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((s) => parseInt(s.trim(), 10))
+    .filter((n) => Number.isFinite(n) && n > 0)
 }
 
 export function MenuContent({ branchId }: MenuContentProps = {}) {
@@ -36,18 +45,14 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     { value: 'newest', label: t('sortOptions.newest') },
   ]
 
-  const DIETARY_TAGS = [
-    { label: t('dietaryVegan'), tag: 'vegan' },
-    { label: t('dietaryVegetarian'), tag: 'vegetarian' },
-    { label: t('dietaryHalal'), tag: 'halal' },
-    { label: t('dietaryGlutenFree'), tag: 'gluten-free' },
-    { label: t('dietarySpicy'), tag: 'spicy' },
-  ]
   const searchParams = useSearchParams()
   const router = useRouter()
-  // C1: use pathname for correct relative URL building
   const pathname = usePathname()
   const categoryFromUrl = searchParams.get('category') || ''
+  const selectedTagIds = useMemo(
+    () => parseTagIdsFromUrl(searchParams.get('tags')),
+    [searchParams],
+  )
 
   const [activeCategory, setActiveCategory] = useState(categoryFromUrl)
   const [search, setSearch] = useState('')
@@ -58,17 +63,15 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100])
   const [minRating, setMinRating] = useState(0)
   const [onlyAvailable, setOnlyAvailable] = useState(false)
-  // C2/H5: dietary quick-filters
-  const [activeDietaryTags, setActiveDietaryTags] = useState<string[]>([])
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const categoryBarRef = useRef<HTMLDivElement>(null)
   const { items: recentlyViewed } = useRecentlyViewedStore()
-  // H1: detect cart for bottom padding
   const cartCount = useCartStore((s) => s.getItemCount())
-  // H7: tenant/branch name for heading
   const tenantName = useTenantStore((s) => s.tenant?.name)
   const branchName = useBranchStore((s) => s.activeBranch?.name)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
 
   const debouncedSetSearch = useCallback(
     debounce((v: string) => setDebouncedSearch(v), 350),
@@ -81,8 +84,12 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
   }
 
   const { data: categories, isLoading: catsLoading } = useCategories(branchId)
+  const {
+    data: availableTags,
+    isLoading: tagsLoading,
+    isError: tagsError,
+  } = useAvailableMenuTags(branchId)
 
-  // URL/state keep the human-readable slug; the API filters by category ID.
   const categoryFilterId = useMemo(() => {
     if (!activeCategory) return undefined
     const match = categories?.find(
@@ -99,30 +106,31 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     max_price: priceRange[1] < 100 ? priceRange[1] : undefined,
     min_rating: minRating > 0 ? minRating : undefined,
     available: onlyAvailable ? true : undefined,
+    tags: selectedTagIds.length > 0 ? selectedTagIds : undefined,
   }
 
   const { data, isLoading } = useMenuItems(branchId, filters)
-  const allItems = data?.results || []
+  const items = data?.results || []
 
-  // C2: filter by dietary tags client-side (item.tags)
-  const items = activeDietaryTags.length > 0
-    ? allItems.filter((item) =>
-        activeDietaryTags.every((tag) =>
-          (item.tags ?? []).some((t) => t.toLowerCase() === tag.toLowerCase()),
-        ),
-      )
-    : allItems
+  const syncTagsToUrl = (tagIds: number[]) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (tagIds.length > 0) params.set('tags', tagIds.join(','))
+    else params.delete('tags')
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }
 
   const handleCategoryChange = (slug: string) => {
     setActiveCategory(slug)
     const params = new URLSearchParams(searchParams.toString())
     if (slug) params.set('category', slug)
     else params.delete('category')
-    // C1: use pathname (current route) not hardcoded '/menu'
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
-  // H2: scroll active category tab into view
+  useEffect(() => {
+    setActiveCategory(categoryFromUrl)
+  }, [categoryFromUrl])
+
   useEffect(() => {
     if (!categoryBarRef.current) return
     const active = categoryBarRef.current.querySelector('[aria-selected="true"]') as HTMLElement | null
@@ -134,10 +142,11 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     setModalOpen(true)
   }
 
-  const toggleDietaryTag = (tag: string) => {
-    setActiveDietaryTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    )
+  const toggleTag = (tagId: number) => {
+    const next = selectedTagIds.includes(tagId)
+      ? selectedTagIds.filter((id) => id !== tagId)
+      : [...selectedTagIds, tagId]
+    syncTagsToUrl(next)
   }
 
   const clearFilters = () => {
@@ -148,13 +157,17 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     setSearch('')
     setDebouncedSearch('')
     setActiveCategory('')
-    setActiveDietaryTags([])
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete('category')
+    params.delete('tags')
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
   const hasActiveFilters =
-    priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || onlyAvailable || !!debouncedSearch || activeDietaryTags.length > 0
+    priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || onlyAvailable || !!debouncedSearch || selectedTagIds.length > 0
 
-  // H7: compose page heading
+  const showTagFilters = !!scopedBranchId && !tagsError && (tagsLoading || (availableTags?.length ?? 0) > 0)
+
   const pageHeading = branchName
     ? t('branchMenu', { branch: branchName })
     : tenantName
@@ -258,25 +271,35 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 ))}
           </div>
 
-          {/* H5: Dietary quick-filter chips */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2" role="group" aria-label={t('dietaryFiltersAriaLabel')}>
-            {DIETARY_TAGS.map(({ label, tag }) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => toggleDietaryTag(tag)}
-                aria-pressed={activeDietaryTags.includes(tag)}
-                className={cn(
-                  'whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 border',
-                  activeDietaryTags.includes(tag)
-                    ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                    : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)] hover:border-orange-300 hover:text-[var(--fg)]',
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {/* Tag quick-filter chips */}
+          {showTagFilters && (
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2" role="group" aria-label={t('tagFiltersAriaLabel')}>
+              {tagsLoading
+                ? Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="h-7 w-20 rounded-full bg-[var(--card-hover)] animate-pulse shrink-0" />
+                  ))
+                : availableTags?.map((tag) => {
+                    const isSelected = selectedTagIds.includes(tag.id)
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTag(tag.id)}
+                        aria-pressed={isSelected}
+                        className={cn(
+                          'flex items-center gap-1.5 whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 border',
+                          isSelected
+                            ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                            : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)] hover:border-orange-300 hover:text-[var(--fg)]',
+                        )}
+                        style={!isSelected && tag.color ? { borderColor: `${tag.color}40` } : undefined}
+                      >
+                        <MenuTagLabel tag={tag} />
+                      </button>
+                    )
+                  })}
+            </div>
+          )}
 
           {/* Toolbar */}
           <div className="flex items-center justify-between py-2 gap-3">
@@ -288,7 +311,6 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
               >
                 {t('filters')}
-                {/* H2 (filter count): show count of active non-dietary filters */}
                 {(priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || onlyAvailable) && (
                   <span className="ms-1 h-4 w-4 rounded-full bg-white/30 text-[10px] font-bold flex items-center justify-center">
                     {[priceRange[0] > 0, priceRange[1] < 100, minRating > 0, onlyAvailable].filter(Boolean).length}

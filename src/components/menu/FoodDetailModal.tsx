@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Input'
 import { Badge, RatingStars, Divider } from '@/components/ui'
+import { MenuTagBadge } from '@/components/menu/MenuTagBadge'
 import { FoodCard } from './FoodCard'
 import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
 import type { Extra, MenuItem } from '@/types'
@@ -163,7 +164,7 @@ export function FoodDetailModal({ item, open, onClose, branchId, onOpenRelated }
               {item.tags && item.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-3">
                   {item.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="capitalize">{tag}</Badge>
+                    <MenuTagBadge key={tag.id} tag={tag} className="capitalize" />
                   ))}
                 </div>
               )}

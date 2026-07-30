@@ -182,6 +182,21 @@ export interface ExtraGroup {
   created_at: string
 }
 
+/** Tag embedded on menu items and returned by available-tags (without item_count). */
+export interface MenuItemTag {
+  id: number
+  name: string
+  slug: string
+  icon: string
+  image: string
+  color: string
+}
+
+/** Branch-scoped menu tag returned by GET /menu/branches/{branch_id}/available-tags/ */
+export interface MenuTag extends MenuItemTag {
+  item_count: number
+}
+
 export interface MenuItem {
   id: string
   /** Branch that owns this item. Menus are branch-scoped — no item is shared across branches. */
@@ -207,7 +222,7 @@ export interface MenuItem {
   is_featured?: boolean
   is_new?: boolean
   is_popular?: boolean
-  tags?: string[]
+  tags?: MenuItemTag[]
   /**
    * Materialized, flat list of active extras for cart/checkout display —
    * unchanged shape, consumed by FoodDetailModal/CartDrawer/checkout/

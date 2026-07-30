@@ -1,4 +1,4 @@
-import type { Branch, BusinessCustomer, BranchCustomer, Category, CustomerAnalytics, CustomerCoupon, CustomerMarketing, CustomerNote, CustomerTag, CustomerTimelineEvent, Extra, ExtraGroup, LoyaltyAccount, MenuItem, Notification, Order, PlatformUser, Reservation, User } from '@/types'
+import type { Branch, BusinessCustomer, BranchCustomer, Category, CustomerAnalytics, CustomerCoupon, CustomerMarketing, CustomerNote, CustomerTag, CustomerTimelineEvent, Extra, ExtraGroup, LoyaltyAccount, MenuItem, MenuItemTag, MenuTag, Notification, Order, PlatformUser, Reservation, User } from '@/types'
 
 // ── Users ────────────────────────────────────────────────────────────────────
 export const MOCK_USER: User = {
@@ -332,6 +332,38 @@ export const MOCK_CATEGORIES: Category[] = [
   { id: '5', branch_id: 'branch-rest-01', name: 'Desserts', slug: 'desserts', icon: '🍰', sort_order: 5, items_count: 6 , is_active: true, created_at: '2024-01-01T00:00:00Z' },
 ]
 
+// ── Menu Tags (mock) ──────────────────────────────────────────────────────────
+
+const MOCK_TAG_CATALOG: MenuItemTag[] = [
+  { id: 1, name: 'Vegan', slug: 'vegan', icon: '🌱', image: '', color: '#2ecc71' },
+  { id: 2, name: 'Vegetarian', slug: 'vegetarian', icon: '🥗', image: '', color: '#27ae60' },
+  { id: 3, name: 'Halal', slug: 'halal', icon: '✡', image: '', color: '#3498db' },
+  { id: 4, name: 'Gluten-Free', slug: 'gluten-free', icon: '🌾', image: '', color: '#f39c12' },
+  { id: 5, name: 'Spicy', slug: 'spicy', icon: '🌶', image: '', color: '#e74c3c' },
+  { id: 6, name: 'Classic', slug: 'classic', icon: '⭐', image: '', color: '#95a5a6' },
+  { id: 7, name: 'Meat', slug: 'meat', icon: '🥩', image: '', color: '#c0392b' },
+  { id: 8, name: 'Premium', slug: 'premium', icon: '✨', image: '', color: '#9b59b6' },
+  { id: 9, name: 'Chicken', slug: 'chicken', icon: '🍗', image: '', color: '#e67e22' },
+  { id: 10, name: 'Plant-Based', slug: 'plant-based', icon: '🌿', image: '', color: '#1abc9c' },
+  { id: 11, name: 'Seafood', slug: 'seafood', icon: '🦐', image: '', color: '#2980b9' },
+  { id: 12, name: 'Coffee', slug: 'coffee', icon: '☕', image: '', color: '#6f4e37' },
+  { id: 13, name: 'Cold', slug: 'cold', icon: '🧊', image: '', color: '#00bcd4' },
+  { id: 14, name: 'Refreshing', slug: 'refreshing', icon: '💧', image: '', color: '#00acc1' },
+  { id: 15, name: 'Tropical', slug: 'tropical', icon: '🌴', image: '', color: '#43a047' },
+  { id: 16, name: 'Chocolate', slug: 'chocolate', icon: '🍫', image: '', color: '#5d4037' },
+  { id: 17, name: 'Healthy', slug: 'healthy', icon: '💚', image: '', color: '#66bb6a' },
+  { id: 18, name: 'Grab & Go', slug: 'grab-and-go', icon: '🥡', image: '', color: '#78909c' },
+]
+
+const MOCK_TAG_BY_SLUG = new Map(MOCK_TAG_CATALOG.map((tag) => [tag.slug, tag]))
+
+function mockItemTags(...slugs: string[]): MenuItemTag[] {
+  return slugs.flatMap((slug) => {
+    const tag = MOCK_TAG_BY_SLUG.get(slug)
+    return tag ? [tag] : []
+  })
+}
+
 // ── Menu Items ────────────────────────────────────────────────────────────────
 export const MOCK_MENU_ITEMS: MenuItem[] = [
   // PIZZA
@@ -343,7 +375,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600',
     calories: 850, preparation_time: 20, rating: 4.8, rating_count: 324,
     available: true, is_active: true, is_popular: true, is_featured: true,
-    tags: ['vegetarian', 'classic'],
+    tags: mockItemTags('vegetarian', 'classic'),
     extras: [
       { id: 'e1', name: 'Extra Cheese', price: 2.50, available: true },
       { id: 'e2', name: 'Truffle Oil', price: 3.00, available: true },
@@ -360,7 +392,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600',
     calories: 1050, preparation_time: 22, rating: 4.7, rating_count: 198,
     available: true, is_active: true, is_new: true,
-    tags: ['spicy', 'meat'],
+    tags: mockItemTags('spicy', 'meat'),
     extras: [{ id: 'e1', name: 'Extra Cheese', price: 2.50, available: true }],
   },
   {
@@ -371,7 +403,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600',
     calories: 980, preparation_time: 25, rating: 4.6, rating_count: 145,
     available: true, is_active: true,
-    tags: ['classic', 'meat'],
+    tags: mockItemTags('classic', 'meat'),
     extras: [],
   },
   {
@@ -382,7 +414,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600',
     calories: 920, preparation_time: 25, rating: 4.9, rating_count: 267,
     available: true, is_active: true, is_featured: true,
-    tags: ['vegetarian', 'premium'],
+    tags: mockItemTags('vegetarian', 'premium'),
     extras: [{ id: 'e2', name: 'Truffle Oil', price: 3.00, available: true }],
   },
 
@@ -395,7 +427,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600',
     calories: 1200, preparation_time: 15, rating: 4.9, rating_count: 412,
     available: true, is_active: true, is_popular: true, is_featured: true,
-    tags: ['meat', 'premium'],
+    tags: mockItemTags('meat', 'premium'),
     extras: [
       { id: 'e3', name: 'Bacon', price: 2.00, available: true },
       { id: 'e4', name: 'Avocado', price: 1.50, available: true },
@@ -410,7 +442,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=600',
     calories: 980, preparation_time: 18, rating: 4.7, rating_count: 289,
     available: true, is_active: true, is_new: true,
-    tags: ['chicken', 'spicy'],
+    tags: mockItemTags('chicken', 'spicy'),
     extras: [{ id: 'e4', name: 'Avocado', price: 1.50, available: true }],
   },
   {
@@ -421,7 +453,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1520072959219-c595dc870360?w=600',
     calories: 720, preparation_time: 15, rating: 4.5, rating_count: 156,
     available: true, is_active: true,
-    tags: ['vegan', 'plant-based'],
+    tags: mockItemTags('vegan', 'plant-based'),
     extras: [],
   },
 
@@ -434,7 +466,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600',
     calories: 880, preparation_time: 20, rating: 4.9, rating_count: 378,
     available: true, is_active: true, is_featured: true, is_popular: true,
-    tags: ['classic', 'meat'],
+    tags: mockItemTags('classic', 'meat'),
     extras: [{ id: 'e6', name: 'Extra Guanciale', price: 3.00, available: true }],
   },
   {
@@ -445,7 +477,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=600',
     calories: 760, preparation_time: 25, rating: 4.8, rating_count: 201,
     available: true, is_active: true,
-    tags: ['seafood', 'premium'],
+    tags: mockItemTags('seafood', 'premium'),
     extras: [],
   },
 
@@ -458,7 +490,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=600',
     calories: 15, preparation_time: 2, rating: 4.7, rating_count: 445,
     available: true, is_active: true, is_popular: true,
-    tags: ['coffee', 'cold'],
+    tags: mockItemTags('coffee', 'cold'),
     extras: [
       { id: 'e7', name: 'Oat Milk', price: 1.00, available: true },
       { id: 'e8', name: 'Vanilla Syrup', price: 0.75, available: true },
@@ -472,7 +504,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1582126892906-5ba118eaf46b?w=600',
     calories: 220, preparation_time: 3, rating: 4.8, rating_count: 289,
     available: true, is_active: true,
-    tags: ['refreshing', 'tropical'],
+    tags: mockItemTags('refreshing', 'tropical'),
     extras: [],
   },
 
@@ -485,7 +517,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=600',
     calories: 420, preparation_time: 10, rating: 4.9, rating_count: 312,
     available: true, is_active: true, is_featured: true, is_popular: true,
-    tags: ['classic', 'vegetarian'],
+    tags: mockItemTags('classic', 'vegetarian'),
     extras: [],
   },
   {
@@ -496,7 +528,7 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=600',
     calories: 580, preparation_time: 12, rating: 4.8, rating_count: 267,
     available: true, is_active: true, is_popular: true,
-    tags: ['chocolate', 'vegetarian'],
+    tags: mockItemTags('chocolate', 'vegetarian'),
     extras: [{ id: 'e9', name: 'Extra Ice Cream', price: 2.00, available: true }],
   },
 ]
@@ -521,7 +553,7 @@ export const MOCK_DOWNTOWN_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600',
     calories: 540, preparation_time: 8, rating: 4.6, rating_count: 54,
     available: true, is_active: true, is_popular: true,
-    tags: ['healthy'],
+    tags: mockItemTags('healthy'),
     extras: [{ id: 'dt-e1', name: 'Extra Chicken', price: 3.00, available: true }],
   },
   {
@@ -532,7 +564,7 @@ export const MOCK_DOWNTOWN_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600',
     calories: 5, preparation_time: 3, rating: 4.7, rating_count: 88,
     available: true, is_active: true,
-    tags: ['coffee'],
+    tags: mockItemTags('coffee'),
     extras: [],
   },
 ]
@@ -550,7 +582,7 @@ export const MOCK_AIRPORT_ITEMS: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1553909489-cd47e0ef937f?w=600',
     calories: 610, preparation_time: 2, rating: 4.2, rating_count: 31,
     available: true, is_active: true,
-    tags: ['grab-and-go'],
+    tags: mockItemTags('grab-and-go'),
     extras: [],
   },
 ]
@@ -567,6 +599,20 @@ export const MOCK_BRANCH_ITEMS: Record<string, MenuItem[]> = {
   'branch-rest-01': MOCK_MENU_ITEMS,
   'branch-rest-02': MOCK_DOWNTOWN_ITEMS,
   'branch-rest-03': MOCK_AIRPORT_ITEMS,
+}
+
+const DEFAULT_MOCK_AVAILABLE_TAGS: MenuTag[] = [
+  { ...MOCK_TAG_BY_SLUG.get('vegan')!, item_count: 1 },
+  { ...MOCK_TAG_BY_SLUG.get('vegetarian')!, item_count: 4 },
+  { ...MOCK_TAG_BY_SLUG.get('halal')!, item_count: 0 },
+  { ...MOCK_TAG_BY_SLUG.get('gluten-free')!, item_count: 0 },
+  { ...MOCK_TAG_BY_SLUG.get('spicy')!, item_count: 2 },
+]
+
+export const MOCK_BRANCH_AVAILABLE_TAGS: Record<string, MenuTag[]> = {
+  'branch-rest-01': DEFAULT_MOCK_AVAILABLE_TAGS,
+  'branch-rest-02': DEFAULT_MOCK_AVAILABLE_TAGS,
+  'branch-rest-03': DEFAULT_MOCK_AVAILABLE_TAGS,
 }
 
 // ── Extra Groups & Extras ──────────────────────────────────────────────────────

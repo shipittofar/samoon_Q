@@ -34,6 +34,7 @@ export const ENDPOINTS = {
     ITEM: (id: string) => `/menu/items/${id}/`,
     CONSOLE_ITEM: (branchId: string) => `/menu/console-menu/items/${branchId}/`,
     ITEM_BY_SLUG: (slug: string) => `/menu/items/${slug}/`,
+    AVAILABLE_TAGS: (branchId: string) => `/menu/branches/${branchId}/available-tags/`,
     FEATURED: '/menu/items/featured/',
     POPULAR: '/menu/items/popular/',
     SEARCH: '/menu/items/search/',
