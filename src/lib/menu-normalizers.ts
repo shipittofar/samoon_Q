@@ -5,10 +5,11 @@ import type { DecimalFieldValue, Extra, MenuItem, PaginatedResponse } from '@/ty
 export type ExtraWire = Omit<Extra, 'price'> & { price: DecimalFieldValue }
 
 /** Wire shape for menu items — price fields may arrive as decimal strings. */
-export type MenuItemWire = Omit<MenuItem, 'price' | 'discounted_price' | 'extras'> & {
+export type MenuItemWire = Omit<MenuItem, 'price' | 'discounted_price' | 'extras' | 'is_active'> & {
   price: DecimalFieldValue
   discounted_price?: DecimalFieldValue
   extras?: ExtraWire[]
+  is_active?: boolean
 }
 
 /** Normalizes a single Extra from API transport into the domain model. */
@@ -27,6 +28,7 @@ export function normalizeExtras(raw: ExtraWire[]): Extra[] {
 export function normalizeMenuItem(raw: MenuItemWire): MenuItem {
   return {
     ...raw,
+    is_active: raw.is_active ?? true,
     price: parseDecimal(raw.price),
     discounted_price:
       raw.discounted_price != null ? parseDecimal(raw.discounted_price) : undefined,

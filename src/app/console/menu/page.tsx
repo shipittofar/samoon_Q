@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import {
   Plus, Search, Edit2, Trash2, Eye, EyeOff, Star, Clock, Flame,
-  Loader2, AlertCircle,
+  Loader2, AlertCircle, CircleCheck, CircleX,
 } from 'lucide-react'
 import { Badge, PaginationControls } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -27,7 +27,7 @@ import { PreviewButton } from '@/components/admin/PreviewButton'
 const EMPTY_FORM: MenuItemFormInput = {
   name: '', description: '', price: '', discount: '', calories: '',
   preparation_time: '', image: { ...EMPTY_IMAGE_FIELD }, category_id: '', available: true,
-  is_featured: false, is_popular: false, extra_group_ids: [],
+  is_active: true, is_featured: false, is_popular: false, extra_group_ids: [],
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -148,6 +148,10 @@ export default function AdminMenuPage() {
     updateMutation.mutate({ id: item.id, payload: { available: !item.available } })
   }
 
+  const toggleActive = (item: MenuItem) => {
+    updateMutation.mutate({ id: item.id, payload: { is_active: !item.is_active } })
+  }
+
   const openDelete = (item: MenuItem) => {
     setDeleteTarget(item)
     setDeleteOpen(true)
@@ -262,14 +266,16 @@ export default function AdminMenuPage() {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filtered.map((item, i) => {
-                  const isToggling = updateMutation.isPending && updateMutation.variables?.id === item.id
+                  const isUpdating = updateMutation.isPending && updateMutation.variables?.id === item.id
+                  const isTogglingAvailable = isUpdating && updateMutation.variables?.payload.available !== undefined
+                  const isTogglingActive = isUpdating && updateMutation.variables?.payload.is_active !== undefined
                   return (
                     <motion.div
                       key={item.id}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.04 }}
-                      className={`bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden ${!item.available ? 'opacity-60' : ''}`}
+                      className={`bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden ${!item.is_active ? 'opacity-60' : ''}`}
                     >
                       <div className="relative h-36">
                         <Image src={item.image} alt={item.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" />
@@ -279,20 +285,40 @@ export default function AdminMenuPage() {
                           {item.is_popular && <Badge variant="warning" className="text-[10px]">{t('popular')}</Badge>}
                           {item.discount && <Badge variant="danger" className="text-[10px]">{t('percentOff', { percent: item.discount })}</Badge>}
                         </div>
-                        <div className="absolute top-2 end-2">
+                        <div className="absolute top-2 end-2 flex gap-1">
                           <button
                             onClick={() => toggleAvailable(item)}
-                            disabled={isToggling}
+                            disabled={isUpdating}
                             className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all shadow ${item.available ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'} disabled:opacity-50`}
                             title={item.available ? t('markUnavailable') : t('markAvailable')}
+                            aria-label={item.available ? t('markUnavailable') : t('markAvailable')}
                           >
-                            {isToggling
+                            {isTogglingAvailable
                               ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              : item.available ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                              : item.available ? <CircleCheck className="h-3.5 w-3.5" /> : <CircleX className="h-3.5 w-3.5" />}
+                          </button>
+                          <button
+                            onClick={() => toggleActive(item)}
+                            disabled={isUpdating}
+                            className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all shadow ${item.is_active ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'} disabled:opacity-50`}
+                            title={item.is_active ? t('markHidden') : t('markPublished')}
+                            aria-label={item.is_active ? t('markHidden') : t('markPublished')}
+                          >
+                            {isTogglingActive
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              : item.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
                           </button>
                         </div>
                       </div>
                       <div className="p-3">
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                          <Badge variant={item.available ? 'success' : 'secondary'} className="text-[10px]">
+                            {item.available ? t('statusAvailable') : t('statusUnavailable')}
+                          </Badge>
+                          <Badge variant={item.is_active ? 'success' : 'secondary'} className="text-[10px]">
+                            {item.is_active ? t('statusPublished') : t('statusHidden')}
+                          </Badge>
+                        </div>
                         <p className="font-semibold text-[var(--fg)] text-sm truncate mb-0.5">{item.name}</p>
                         <p className="text-xs text-[var(--fg-muted)] line-clamp-2 mb-2">{item.description}</p>
                         <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)] mb-3">
@@ -494,10 +520,14 @@ function MenuItemFormFields({
         value={form.image}
         onChange={(image) => onChange({ ...form, image })}
       />
-      <div className="flex gap-6">
+      <div className="flex flex-wrap gap-6">
         <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
           <input type="checkbox" checked={form.available} onChange={set('available')} className="rounded" />
           {t('available')}
+        </label>
+        <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
+          <input type="checkbox" checked={form.is_active} onChange={set('is_active')} className="rounded" />
+          {t('publishedOnMenu')}
         </label>
         <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
           <input type="checkbox" checked={form.is_featured} onChange={set('is_featured')} className="rounded" />

@@ -69,6 +69,7 @@ function menuItemFromWriteRequest(
     image: mockImageFromRequest(payload, overrides.image ?? ''),
     category_id: fields.category_id ?? '',
     available: fields.available ?? true,
+    is_active: fields.is_active ?? true,
     rating: overrides.rating ?? 0,
     rating_count: overrides.rating_count ?? 0,
     preparation_time: fields.preparation_time ?? 15,

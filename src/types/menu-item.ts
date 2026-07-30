@@ -16,6 +16,7 @@ export interface MenuItemFormInput {
   image: ImageFieldValue
   category_id: string
   available: boolean
+  is_active: boolean
   is_featured: boolean
   is_popular: boolean
   extra_group_ids: string[]
@@ -34,6 +35,7 @@ export interface MenuItemWriteRequest {
   preparation_time?: number
   category_id?: string
   available?: boolean
+  is_active?: boolean
   is_featured?: boolean
   is_popular?: boolean
   image?: File
@@ -52,6 +54,7 @@ export function menuItemFormToWriteRequest(form: MenuItemFormInput): MenuItemWri
     preparation_time: parseInt(form.preparation_time, 10) || 15,
     category_id: form.category_id,
     available: form.available,
+    is_active: form.is_active,
     is_featured: form.is_featured,
     is_popular: form.is_popular,
   }
@@ -84,6 +87,7 @@ export function buildMenuItemFormData(
   if (payload.preparation_time != null) form.append('preparation_time', String(payload.preparation_time))
   if (payload.category_id != null) form.append('category_id', payload.category_id)
   if (payload.available != null) form.append('available', String(payload.available))
+  if (payload.is_active != null) form.append('is_active', String(payload.is_active))
   if (payload.is_featured != null) form.append('is_featured', String(payload.is_featured))
   if (payload.is_popular != null) form.append('is_popular', String(payload.is_popular))
 
@@ -112,6 +116,7 @@ export function menuItemToFormInput(item: MenuItem): MenuItemFormInput {
     },
     category_id: item.category_id,
     available: item.available,
+    is_active: item.is_active,
     is_featured: item.is_featured ?? false,
     is_popular: item.is_popular ?? false,
     extra_group_ids: item.extra_group_ids ?? [],

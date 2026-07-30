@@ -200,7 +200,10 @@ export interface MenuItem {
   preparation_time: number
   rating: number
   rating_count: number
+  /** Whether the item can currently be ordered. Console-managed. */
   available: boolean
+  /** Whether the item is published and visible on the public menu. Console-managed. */
+  is_active: boolean
   is_featured?: boolean
   is_new?: boolean
   is_popular?: boolean
