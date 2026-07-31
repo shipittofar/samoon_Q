@@ -57,6 +57,12 @@ import type {
 import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { dispatchPostLoginRedirect } from '@/lib/post-auth-navigation'
+import {
+  type AuthTransitionPhase,
+  redirectAndAwaitMount,
+} from '@/lib/auth-transition'
+import { getPostLoginRedirect } from '@/utils/auth-redirect'
+import { getAccessToken } from '@/services/axios.instance'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
 import { applyOverrides, normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
@@ -536,7 +542,7 @@ function tenantRolesForPostLoginRedirect(data: GetMeResponse): Role[] | undefine
 async function establishAuthenticatedSession(
   setUser: (user: User) => void,
   options?: { navigate?: boolean },
-): Promise<void> {
+): Promise<{ user: User; p7Roles?: Role[] }> {
   const data = await authService.getMe()
   if (!data.user.accountType) {
     throw new Error('Authenticated profile is missing accountType')
@@ -559,6 +565,40 @@ async function establishAuthenticatedSession(
   if (options?.navigate !== false) {
     dispatchPostLoginRedirect(data.user, p7Roles)
   }
+  return { user: data.user, p7Roles }
+}
+
+/**
+ * Full login transition: credentials → token persistence → session hydration →
+ * redirect with mount confirmation. Used by the login page transition UI.
+ * Does not treat HTTP 200 as completed login until redirect succeeds.
+ */
+export async function performAuthenticatedLoginFlow(
+  creds: LoginCredentials,
+  router: { replace: (path: string) => void },
+  onPhase: (phase: AuthTransitionPhase) => void,
+): Promise<void> {
+  const setUser = useAuthStore.getState().setUser
+
+  onPhase('authenticating')
+  await authService.login(creds)
+
+  onPhase('storing_session')
+  if (!getAccessToken()) {
+    throw new Error('token_storage_failed')
+  }
+
+  onPhase('loading_user')
+  const { user, p7Roles } = await establishAuthenticatedSession(setUser, { navigate: false })
+  if (!user?.accountType) {
+    throw new Error('session_hydration_failed')
+  }
+
+  onPhase('redirecting')
+  const path = getPostLoginRedirect(user.accountType, p7Roles)
+  await redirectAndAwaitMount(router, path)
+
+  onPhase('authenticated')
 }
 
 export function useLogin() {

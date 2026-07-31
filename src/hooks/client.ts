@@ -1,13 +1,19 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { orderWebSocket, notificationWebSocket, type ConnectionStatus } from '@/services/websocket.service'
-import { useNotificationStore } from '@/stores'
-import { useAuthStore } from '@/stores'
+import { useNotificationStore, useAuthStore } from '@/stores'
 import { requestNotificationToken, onForegroundMessage } from '@/lib/firebase'
 import { notificationService } from '@/services/combined.service'
-import type { Notification, OrderStatus } from '@/types'
+import type { Notification, OrderStatus, LoginCredentials } from '@/types'
 import toast from 'react-hot-toast'
+import { performAuthenticatedLoginFlow } from '@/hooks'
+import {
+  type AuthTransitionPhase,
+  authTransitionLabelKey,
+  isAuthTransitionActive,
+} from '@/lib/auth-transition'
 
 // ── useOrderWebSocket ─────────────────────────────────────────────────────────
 export function useOrderWebSocket(orderId: string | null) {
@@ -163,6 +169,43 @@ export function useMediaQuery(query: string): boolean {
   }, [query])
 
   return matches
+}
+
+// ── useLoginTransition — full auth transition state machine for login UI ─────
+
+export function useLoginTransition() {
+  const router = useRouter()
+  const [phase, setPhase] = useState<AuthTransitionPhase>('idle')
+  const inFlightRef = useRef(false)
+
+  const executeLogin = useCallback(async (creds: LoginCredentials) => {
+    if (inFlightRef.current || isAuthTransitionActive(phase)) return
+    inFlightRef.current = true
+    try {
+      await performAuthenticatedLoginFlow(creds, router, setPhase)
+    } catch {
+      setPhase('failed')
+      throw new Error('login_transition_failed')
+    } finally {
+      inFlightRef.current = false
+    }
+  }, [router, phase])
+
+  const reset = useCallback(() => {
+    if (!isAuthTransitionActive(phase)) {
+      setPhase('idle')
+    }
+  }, [phase])
+
+  const labelKey = authTransitionLabelKey(phase)
+
+  return {
+    phase,
+    executeLogin,
+    reset,
+    isActive: isAuthTransitionActive(phase),
+    labelKey,
+  }
 }
 
 // ── useFcmRegistration — P4.2 ─────────────────────────────────────────────────

@@ -17,7 +17,8 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Divider } from '@/components/ui'
 import { PhoneInput } from '@/components/ui/PhoneInput'
-import { useLogin, useSendOTP } from '@/hooks'
+import { useSendOTP } from '@/hooks'
+import { useLoginTransition } from '@/hooks/client'
 import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
@@ -52,12 +53,10 @@ type EmailFormData = z.infer<typeof emailSchema>
 
 // ── Page component ─────────────────────────────────────────────────────────────
 
-type SubmissionState = 'idle' | 'submitting' | 'success' | 'error'
-
 export function LoginClientPage() {
   const router = useRouter()
   const prefersReducedMotion = useReducedMotion()
-  const { mutate: login } = useLogin()
+  const loginTransition = useLoginTransition()
   const { mutate: sendOTP, isPending: isSendingOTP } = useSendOTP()
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
@@ -74,8 +73,8 @@ export function LoginClientPage() {
   const [phoneAuthMode, setPhoneAuthMode] = useState<'otp' | 'password'>('otp')
   const [phonePassword, setPhonePassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [phoneLoginState, setPhoneLoginState] = useState<SubmissionState>('idle')
-  const [emailLoginState, setEmailLoginState] = useState<SubmissionState>('idle')
+
+  const { isActive: isLoginTransitionActive, labelKey: loginTransitionLabelKey, executeLogin, reset: resetLoginTransition } = loginTransition
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
@@ -100,8 +99,8 @@ export function LoginClientPage() {
     )
   }
 
-  const handlePhonePasswordLogin = () => {
-    if (phoneLoginState === 'submitting' || phoneLoginState === 'success') return
+  const handlePhonePasswordLogin = async () => {
+    if (isLoginTransitionActive) return
     if (!phonePassword) return
     if (!nationalNumber) {
       toast.error(t('enterPhoneToContinue'))
@@ -113,67 +112,52 @@ export function LoginClientPage() {
       toast.error(t('tooManyLoginAttempts'))
       return
     }
-    setPhoneLoginState('submitting')
-    login(
-      {
+    try {
+      await executeLogin({
         phone_number: nationalNumber,
         country_code: dialCode,
         password: phonePassword,
-      },
-      {
-        onSuccess: () => {
-          setPhoneLoginState('success')
-          LOGIN_LIMIT.reset(rateKey)
-          toast.success(t('loginSuccess'))
-        },
-        onError: () => {
-          setPhoneLoginState('idle')
-          toast.error(t('invalidCredentials'))
-        },
-      },
-    )
+      })
+      LOGIN_LIMIT.reset(rateKey)
+      toast.success(t('loginSuccess'))
+    } catch {
+      resetLoginTransition()
+      toast.error(t('invalidCredentials'))
+    }
   }
 
-  const loginAs = (email: string) => {
-    if (emailLoginState === 'submitting' || emailLoginState === 'success') return
+  const loginAs = async (email: string) => {
+    if (isLoginTransitionActive) return
     const rateCheck = LOGIN_LIMIT.check(email)
     if (!rateCheck.allowed) {
       toast.error(t('tooManyLoginAttempts'))
       return
     }
-    setEmailLoginState('submitting')
-    login({ email, password: 'password' }, {
-      onSuccess: () => {
-        setEmailLoginState('success')
-        LOGIN_LIMIT.reset(email)
-        toast.success(t('loginSuccess'))
-      },
-      onError: () => {
-        setEmailLoginState('idle')
-        toast.error(t('loginFailed'))
-      },
-    })
+    try {
+      await executeLogin({ email, password: 'password' })
+      LOGIN_LIMIT.reset(email)
+      toast.success(t('loginSuccess'))
+    } catch {
+      resetLoginTransition()
+      toast.error(t('loginFailed'))
+    }
   }
 
-  const onEmailSubmit = (data: EmailFormData) => {
-    if (emailLoginState === 'submitting' || emailLoginState === 'success') return
+  const onEmailSubmit = async (data: EmailFormData) => {
+    if (isLoginTransitionActive) return
     const rateCheck = LOGIN_LIMIT.check(data.email)
     if (!rateCheck.allowed) {
       toast.error(t('tooManyLoginAttempts'))
       return
     }
-    setEmailLoginState('submitting')
-    login(data, {
-      onSuccess: () => {
-        setEmailLoginState('success')
-        LOGIN_LIMIT.reset(data.email)
-        toast.success(t('loginSuccess'))
-      },
-      onError: () => {
-        setEmailLoginState('idle')
-        toast.error(t('invalidCredentials'))
-      },
-    })
+    try {
+      await executeLogin(data)
+      LOGIN_LIMIT.reset(data.email)
+      toast.success(t('loginSuccess'))
+    } catch {
+      resetLoginTransition()
+      toast.error(t('invalidCredentials'))
+    }
   }
 
   const fillDemo = () => {
@@ -189,7 +173,11 @@ export function LoginClientPage() {
     ? {}
     : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } }
 
-  const isPending = emailLoginState === 'submitting' || (phoneAuthMode === 'otp' && isSendingOTP)
+  const isPending = isLoginTransitionActive || (phoneAuthMode === 'otp' && isSendingOTP)
+
+  const loginButtonLabel = loginTransitionLabelKey
+    ? t(loginTransitionLabelKey)
+    : null
 
   const headingTitle = authView === 'forgot-password'
     ? t('forgotTitle')
@@ -296,27 +284,26 @@ export function LoginClientPage() {
                         type="button"
                         className="w-full"
                         size="lg"
-                        loading={phoneLoginState === 'submitting'}
+                        loading={isLoginTransitionActive}
                         disabled={
                           !phonePassword
                           || !nationalNumber
-                          || phoneLoginState === 'submitting'
-                          || phoneLoginState === 'success'
+                          || isLoginTransitionActive
                         }
                         onClick={handlePhonePasswordLogin}
                         rightIcon={<ArrowRight className="h-4 w-4" />}
                       >
-                        {t('signInWithPassword')}
+                        {loginButtonLabel ?? t('signInWithPassword')}
                       </Button>
                       <Button
                         type="button"
                         variant="secondary"
                         size="lg"
                         className="w-full active:scale-[0.98]"
-                        disabled={phoneLoginState === 'submitting' || phoneLoginState === 'success'}
+                        disabled={isLoginTransitionActive}
                         onClick={() => {
                           setPhoneAuthMode('otp')
-                          setPhoneLoginState('idle')
+                          resetLoginTransition()
                         }}
                       >
                         {t('backToOtpLogin')}
@@ -423,11 +410,11 @@ export function LoginClientPage() {
                       type="submit"
                       className="w-full"
                       size="lg"
-                      loading={emailLoginState === 'submitting'}
-                      disabled={emailLoginState === 'submitting' || emailLoginState === 'success'}
+                      loading={isLoginTransitionActive}
+                      disabled={isLoginTransitionActive}
                       rightIcon={<ArrowRight className="h-4 w-4" />}
                     >
-                      {t('signInWithEmail')}
+                      {loginButtonLabel ?? t('signInWithEmail')}
                     </Button>
                   </form>
 
@@ -435,7 +422,7 @@ export function LoginClientPage() {
                     type="button"
                     onClick={() => {
                       setAuthView('phone')
-                      setEmailLoginState('idle')
+                      resetLoginTransition()
                     }}
                     className="w-full text-center text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors py-2"
                   >
