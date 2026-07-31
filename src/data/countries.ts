@@ -403,6 +403,20 @@ export function loadLastSelected(): Country | null {
   }
 }
 
+/** Strip non-digit characters from a string. */
+export function digitsOnly(s: string): string {
+  return s.replace(/\D/g, '')
+}
+
+/**
+ * Maximum national (local) digits inferred from the example placeholder.
+ * Falls back to 15 (E.164 national portion limit) when placeholder has no digits.
+ */
+export function getMaxNationalDigits(country: Country): number {
+  const fromPlaceholder = digitsOnly(country.placeholder).length
+  return fromPlaceholder > 0 ? fromPlaceholder : 15
+}
+
 /** Normalize a string for accent-insensitive, case-insensitive comparison. */
 export function normalizeQuery(s: string): string {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()

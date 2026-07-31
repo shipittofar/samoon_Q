@@ -83,8 +83,12 @@ export interface AuthTokens {
 }
 
 export interface LoginCredentials {
-  email: string
+  email?: string
   password: string
+  /** National phone number without dial code prefix. */
+  phone_number?: string
+  /** Dial code (e.g. '+1'), sent separately from phone_number. */
+  country_code?: string
 }
 
 export interface RegisterData {

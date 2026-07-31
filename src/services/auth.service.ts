@@ -188,6 +188,21 @@ function deriveMockAuthSession(
   return { memberships: [membership], activeMembership: membership }
 }
 
+/** Normalize LOGIN / PASSWORD_PHONE_LOGIN responses that return flat or nested JWT pairs. */
+function extractAndPersistTokens(data: unknown): AuthTokens {
+  const record = data as Record<string, unknown>
+  if (typeof record.access === 'string' && typeof record.refresh === 'string') {
+    setTokens(record.access, record.refresh)
+    return { access: record.access, refresh: record.refresh }
+  }
+  const nested = record.tokens as AuthTokens | undefined
+  if (nested?.access && nested?.refresh) {
+    setTokens(nested.access, nested.refresh)
+    return nested
+  }
+  throw new Error('Invalid token response')
+}
+
 export const authService = {
   async login(
     credentials: LoginCredentials,
@@ -204,35 +219,64 @@ export const authService = {
       // login cannot be used as an authentication bypass.
       // P9.1.2 — demoLoginEnabled() lets a Platform Administrator disable the
       // demo-credential shortcut without disabling mock mode entirely.
-      const entry = demoLoginEnabled() ? MOCK_CREDENTIALS[credentials.email] : undefined
+      let email = credentials.email
+      if (!email && credentials.phone_number && credentials.country_code) {
+        const dialDigits = credentials.country_code.replace(/\D/g, '')
+        const national = credentials.phone_number.replace(/\D/g, '')
+        const e164 = `+${dialDigits}${national}`
+        email = DEMO_PHONE_TO_EMAIL[e164]
+      }
+      const entry = demoLoginEnabled() && email ? MOCK_CREDENTIALS[email] : undefined
       if (!entry || credentials.password !== 'password') {
         throw new Error('Invalid credentials')
       }
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
-      if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_SESSION_KEY, credentials.email)
+      if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_SESSION_KEY, credentials.email ?? email!)
       return { user: entry.user, tokens, p7Roles: entry.p7Roles, ...deriveMockAuthSession(entry.p7Roles) }
     }
 
-    if (!authFlag('authentication.email_login_enabled')) throw new Error('email_login_disabled')
+    const isPhoneLogin = !credentials.email && credentials.phone_number && credentials.country_code
+    if (isPhoneLogin) {
+      if (!authFlag('authentication.phone_login_enabled')) throw new Error('phone_login_disabled')
+    } else {
+      if (!authFlag('authentication.email_login_enabled')) throw new Error('email_login_disabled')
+    }
 
-    // P10.7 — widened from `{ user, tokens }` so a real backend can
-    // optionally return `p7Roles`/`ownership`/`staffAssignments` on login,
-    // matching what mock mode has always returned. All three fields are
-    // optional — a backend that doesn't send them yet behaves exactly as
-    // before (see docs/P10.7_RBAC_SESSION_HYDRATION_IMPLEMENTATION.md).
-    // Phase Z.1 — also optionally accepts `memberships`/`activeMembership`
-    // (the frozen-contract shape); still optional, so this changes nothing
-    // for a real backend that hasn't implemented it yet.
-    const { data } = await api.post<
-      { user: User; tokens: AuthTokens; p7Roles?: Role[]; memberships?: TenantMembership[]; activeMembership?: TenantMembership }
-      & AuthSessionRbacPayload
-    >(
+    const loginPayload = isPhoneLogin
+      ? {
+          phone_number: credentials.phone_number!.replace(/\D/g, ''),
+          country_code: credentials.country_code,
+          password: credentials.password,
+        }
+      : { email: credentials.email, password: credentials.password }
+
+    if (isPhoneLogin) {
+      // PASSWORD_PHONE_LOGIN returns a flat JWT pair: { access, refresh }.
+      // Profile/RBAC hydration happens in establishAuthenticatedSession() via GET /auth/me.
+      const { data } = await api.post<AuthTokens>(
+        ENDPOINTS.AUTH.PASSWORD_PHONE_LOGIN,
+        loginPayload,
+      )
+      const tokens = extractAndPersistTokens(data)
+      return {
+        tokens,
+        // User is not returned by this endpoint; getMe() supplies it immediately after.
+        user: undefined as unknown as User,
+      }
+    }
+
+    // LOGIN returns a flat JWT pair: { access, refresh }.
+    // Profile/RBAC hydration happens in establishAuthenticatedSession() via GET /auth/me.
+    const { data } = await api.post<AuthTokens>(
       ENDPOINTS.AUTH.LOGIN,
-      credentials,
+      loginPayload,
     )
-    setTokens(data.tokens.access, data.tokens.refresh)
-    return data
+    const tokens = extractAndPersistTokens(data)
+    return {
+      tokens,
+      user: undefined as unknown as User,
+    }
   },
 
   // P10.9 — register() now optionally returns p7Roles/ownership/

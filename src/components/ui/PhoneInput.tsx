@@ -21,6 +21,7 @@ import {
   useMemo,
   useRef,
   useState,
+  memo,
   KeyboardEvent,
 } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -31,9 +32,10 @@ import {
   COUNTRIES,
   Country,
   PINNED_COUNTRY_CODES,
+  digitsOnly,
+  getMaxNationalDigits,
   getPinnedCountries,
   getRestCountries,
-  getSortedCountries,
   guessCountryFromLocale,
   guessCountryFromTimezone,
   loadRecentCountries,
@@ -43,6 +45,7 @@ import {
   searchCountries,
 } from '@/data/countries'
 import { FlagIcon } from '@/components/ui/FlagIcon'
+import { useMediaQuery } from '@/hooks/client'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -70,8 +73,6 @@ export interface PhoneInputProps {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-const digitsOnly = (s: string) => s.replace(/\D/g, '')
-
 function formatNational(digits: string, country: Country): string {
   const d = digitsOnly(digits)
   if (country.code === 'US' || country.code === 'CA') {
@@ -97,9 +98,26 @@ function buildE164(dialCode: string, nationalDigits: string): string {
   return `+${stripped}${national}`
 }
 
-function isValidLength(nationalDigits: string): boolean {
+function isValidLength(nationalDigits: string, country: Country): boolean {
   const len = digitsOnly(nationalDigits).length
-  return len >= 5 && len <= 15
+  const max = getMaxNationalDigits(country)
+  return len >= 5 && len <= max
+}
+
+function clampNationalDigits(digits: string, country: Country): string {
+  return digitsOnly(digits).slice(0, getMaxNationalDigits(country))
+}
+
+function buildMeta(country: Country, nationalDigits: string): PhoneInputMeta {
+  const digits = digitsOnly(nationalDigits)
+  const e164 = buildE164(country.dialCode, digits)
+  return {
+    countryCode: country.code,
+    dialCode: country.dialCode,
+    nationalNumber: digits,
+    e164,
+    isValid: isValidLength(digits, country),
+  }
 }
 
 function parseE164(e164: string): { country: Country | null; national: string } {
@@ -183,7 +201,6 @@ function useAnnouncer() {
   const announce = useCallback((msg: string) => {
     if (!ref.current) return
     ref.current.textContent = ''
-    // Force DOM flush so changing same text re-triggers SR
     requestAnimationFrame(() => {
       if (ref.current) ref.current.textContent = msg
     })
@@ -201,14 +218,10 @@ function useAnnouncer() {
 }
 
 // ── VisualViewport keyboard safety ────────────────────────────────────────────
-//
-// The Bottom Sheet stays anchored at bottom:0. When a software keyboard opens,
-// visualViewport.height shrinks. We cap the sheet's maxHeight to that visible
-// height so only the inner list (flex-1) shrinks — the sheet never moves.
 
 interface ViewportState {
-  keyboardHeight: number  // px the keyboard occupies (0 when hidden)
-  viewportHeight: number  // px of visible screen above keyboard
+  keyboardHeight: number
+  viewportHeight: number
 }
 
 function useVisualViewport(): ViewportState {
@@ -238,6 +251,11 @@ function useVisualViewport(): ViewportState {
   return state
 }
 
+// ── Incremental list loading ───────────────────────────────────────────────────
+
+const INITIAL_REST_BATCH = 25
+const REST_BATCH_SIZE = 25
+
 // ── Section header ─────────────────────────────────────────────────────────────
 
 function SectionHeader({ label }: { label: string }) {
@@ -258,7 +276,13 @@ interface CountryRowProps {
   isActive: boolean
 }
 
-function CountryRow({ country, selected, onSelect, optionId, isActive }: CountryRowProps) {
+const CountryRow = memo(function CountryRow({
+  country,
+  selected,
+  onSelect,
+  optionId,
+  isActive,
+}: CountryRowProps) {
   const isSelected = country.code === selected.code
   return (
     <button
@@ -269,50 +293,37 @@ function CountryRow({ country, selected, onSelect, optionId, isActive }: Country
       data-selected={isSelected || undefined}
       onClick={() => onSelect(country)}
       className={cn(
-        // Touch-friendly: 48px min height, full width
         'w-full flex items-center gap-3 px-3 rounded-xl text-sm text-start transition-colors',
         'min-h-[48px] py-2',
-        // Selected: accent background + left border
         isSelected && !isActive
           ? 'bg-[var(--accent)]/10 border-s-2 border-[var(--accent)]'
           : '',
-        // Keyboard-active: stronger accent ring
         isActive
           ? 'bg-[var(--accent)]/15 outline-none ring-2 ring-inset ring-[var(--accent)]/40'
           : '',
-        // Default hover / focus-visible
         !isActive && !isSelected
           ? 'hover:bg-[var(--card-hover)] focus-visible:bg-[var(--card-hover)] focus:outline-none'
           : '',
       )}
     >
-      {/* Flag */}
       <span className="w-8 shrink-0 flex items-center justify-center" aria-hidden="true">
         <FlagIcon code={country.code} size={22} />
       </span>
-
-      {/* Name */}
       <span className="flex-1 min-w-0 truncate font-medium text-[var(--fg)]">
         {country.name}
       </span>
-
-      {/* ISO code — muted, hidden on xs */}
       <span
         className="hidden sm:inline text-[10px] font-mono text-[var(--fg-muted)] shrink-0 opacity-50"
         aria-hidden="true"
       >
         {country.code}
       </span>
-
-      {/* Dial code — always dir="ltr" for RTL layouts */}
       <span
         dir="ltr"
         className="text-sm font-mono text-[var(--fg-muted)] shrink-0 min-w-[3.25rem] text-end"
       >
         {country.dialCode}
       </span>
-
-      {/* Check icon for selected */}
       {isSelected && (
         <span className="shrink-0 text-[var(--accent)] ms-1" aria-hidden="true">
           <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -322,7 +333,7 @@ function CountryRow({ country, selected, onSelect, optionId, isActive }: Country
       )}
     </button>
   )
-}
+})
 
 // ── Country Picker ─────────────────────────────────────────────────────────────
 
@@ -332,22 +343,32 @@ interface CountryPickerProps {
   onSelect: (country: Country) => void
   onClose: () => void
   triggerRef: React.RefObject<HTMLButtonElement | null>
+  /** Called after exit animation when the picker closed due to country selection. */
+  onAfterSelectClose?: () => void
 }
 
-const PAGE_SIZE = 8 // rows per PageUp/PageDown jump
+const PAGE_SIZE = 8
 
-function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: CountryPickerProps) {
+function CountryPicker({
+  isOpen,
+  selected,
+  onSelect,
+  onClose,
+  triggerRef,
+  onAfterSelectClose,
+}: CountryPickerProps) {
   const t = useTranslations('phoneInput')
   const prefersReducedMotion = useReducedMotion()
+  const isDesktop = useMediaQuery('(min-width: 768px)')
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
   const [recents, setRecents] = useState<Country[]>([])
+  const [visibleRestCount, setVisibleRestCount] = useState(INITIAL_REST_BATCH)
   const { keyboardHeight, viewportHeight } = useVisualViewport()
-  // When the software keyboard is open (height > 50px threshold), cap the sheet
-  // to 92% of the remaining visible area. The sheet stays at bottom:0; only its
-  // internal flex-1 list shrinks to fit.
   const keyboardOpen = keyboardHeight > 50
-  const sheetMaxHeight = keyboardOpen ? `${Math.round(viewportHeight * 0.92)}px` : undefined
+  const sheetMaxHeight = keyboardOpen && !isDesktop
+    ? `${Math.round(viewportHeight * 0.92)}px`
+    : undefined
 
   const searchRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -359,85 +380,88 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
   const optionId = (i: number) => `${uid}-opt-${i}`
 
   const { announce, node: announcer } = useAnnouncer()
+  const closedBySelectionRef = useRef(false)
 
-  // Memoized pinned (never changes)
   const pinned = useMemo(() => getPinnedCountries(), [])
   const pinnedSet = useMemo(() => new Set(PINNED_COUNTRY_CODES), [])
 
-  // Search results (memoized by query)
   const results = useMemo(
     () => (query ? searchCountries(query) : []),
     [query],
   )
 
-  // Recents filtered to exclude pinned
   const recentFiltered = useMemo(
     () => recents.filter((c) => !pinnedSet.has(c.code)),
     [recents, pinnedSet],
   )
 
-  // Rest = all countries minus pinned, alphabetical
   const rest = useMemo(() => getRestCountries(), [])
 
-  // The flat list used for keyboard navigation depends on whether searching
+  const restExcludingRecent = useMemo(() => {
+    const recentCodes = new Set(recentFiltered.map((c) => c.code))
+    return rest.filter((c) => !recentCodes.has(c.code))
+  }, [rest, recentFiltered])
+
+  const visibleRest = useMemo(
+    () => restExcludingRecent.slice(0, visibleRestCount),
+    [restExcludingRecent, visibleRestCount],
+  )
+
   const navList: Country[] = useMemo(() => {
     if (query) return results
-    // When not searching: pinned + recent + rest (no duplicates)
-    const recentCodes = new Set(recentFiltered.map((c) => c.code))
-    const filteredRest = rest.filter((c) => !recentCodes.has(c.code))
-    return [...pinned, ...recentFiltered, ...filteredRest]
-  }, [query, results, pinned, recentFiltered, rest])
+    return [...pinned, ...recentFiltered, ...restExcludingRecent]
+  }, [query, results, pinned, recentFiltered, restExcludingRecent])
 
-  // ── Scroll lock ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen) return
     const unlock = lockBodyScroll()
     return unlock
   }, [isOpen])
 
-  // ── Open: reset state, scroll to selected, announce ─────────────────────────
-  // Phase A/B: NO automatic focus on the search input.
-  // Focusing the search field would immediately open the soft keyboard on mobile,
-  // which is not native UX. The keyboard must only appear when the user
-  // intentionally taps the search field.
   useEffect(() => {
     if (!isOpen) return
     setQuery('')
     setActiveIndex(-1)
-    setRecents(loadRecentCountries())
+    setVisibleRestCount(INITIAL_REST_BATCH)
 
-    const timer = setTimeout(() => {
-      // Scroll selected row into view — but do NOT focus any input
-      if (listRef.current) {
-        const sel = listRef.current.querySelector('[data-selected="true"]') as HTMLElement
-        sel?.scrollIntoView({ block: 'center' })
+    requestAnimationFrame(() => {
+      setRecents(loadRecentCountries())
+
+      if (isDesktop) {
+        searchRef.current?.focus({ preventScroll: true })
       }
-      announce(t('countryPickerOpened'))
-    }, 120)
-    return () => clearTimeout(timer)
-  }, [isOpen, announce, t])
 
-  // ── Close: dismiss keyboard, restore focus to trigger ────────────────────────
-  // Phase G: blur the search input so the soft keyboard dismisses when the picker
-  // closes (either via selection, Escape, or backdrop tap).
+      requestAnimationFrame(() => {
+        if (listRef.current) {
+          const sel = listRef.current.querySelector('[data-selected="true"]') as HTMLElement
+          sel?.scrollIntoView({ block: 'center' })
+        }
+        announce(t('countryPickerOpened'))
+      })
+    })
+  }, [isOpen, announce, t, isDesktop])
+
   useEffect(() => {
     if (isOpen) return
     searchRef.current?.blur()
+    if (closedBySelectionRef.current) return
     const timer = setTimeout(() => triggerRef.current?.focus(), 50)
     return () => clearTimeout(timer)
   }, [isOpen, triggerRef])
 
-  // ── Announce search result count ─────────────────────────────────────────────
+  const handleExitComplete = useCallback(() => {
+    if (!closedBySelectionRef.current) return
+    closedBySelectionRef.current = false
+    onAfterSelectClose?.()
+  }, [onAfterSelectClose])
+
   useEffect(() => {
     if (!isOpen || !query) return
-    const count = results.length
-    announce(t('countriesFoundCount', { count }))
-  }, [query, results, isOpen, announce])
+    announce(t('countriesFoundCount', { count: results.length }))
+  }, [query, results.length, isOpen, announce, t])
 
-  // ── Focus trap ───────────────────────────────────────────────────────────────
   useFocusTrap(containerRef, isOpen)
 
-  // ── Scroll active item into view ─────────────────────────────────────────────
   useEffect(() => {
     if (activeIndex < 0 || !listRef.current) return
     const item = listRef.current.querySelector(`[id="${optionId(activeIndex)}"]`) as HTMLElement
@@ -445,12 +469,23 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
   }, [activeIndex]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSelect = useCallback((country: Country) => {
+    closedBySelectionRef.current = true
     saveRecentCountry(country.code)
     saveLastSelected(country.code)
     onSelect(country)
     announce(t('countrySelectedAnnounce', { name: country.name }))
     onClose()
-  }, [onSelect, onClose, announce])
+  }, [onSelect, onClose, announce, t])
+
+  const handleListScroll = useCallback(() => {
+    const el = listRef.current
+    if (!el || query) return
+    if (visibleRestCount >= restExcludingRecent.length) return
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 120
+    if (nearBottom) {
+      setVisibleRestCount((n) => Math.min(n + REST_BATCH_SIZE, restExcludingRecent.length))
+    }
+  }, [query, visibleRestCount, restExcludingRecent.length])
 
   const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const total = navList.length
@@ -491,7 +526,6 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
         onClose()
         break
       default:
-        // Type-to-search: printable character redirects focus to search input
         if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
           if (document.activeElement !== searchRef.current) {
             e.preventDefault()
@@ -504,48 +538,19 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
     }
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-
   const isSearching = query.length > 0
-
-  // ── Dialog layout (CSS Grid) ──────────────────────────────────────────────
-  //
-  // The dialog uses a 3-row CSS Grid so that only the list row can scroll.
-  // Row 1 (auto):           Header — fixed height, never scrolls
-  // Row 2 (auto):           Search — fixed height, never scrolls
-  // Row 3 (minmax(0,1fr)):  List   — fills remaining space, scrolls
-  //
-  // Key constraints:
-  //   • Dialog: flex-1 min-h-0  — fills sheet after drag handle; min-h-0
-  //     lets it shrink below its content (essential in flex parents)
-  //   • Dialog: overflow-hidden — clips content at sheet boundary
-  //   • List: min-h-0           — grid child must opt into shrinking;
-  //     without this the grid track expands to full content height and the
-  //     sheet itself scrolls instead of the list
-  //   • List: overflow-y-auto   — the one and only scroll container
-  //
-  // Removed constraints vs P8.9.2.4:
-  //   • h-full on dialog  → replaced by flex-1 (parent is flex-col)
-  //   • flex flex-col on dialog → replaced by grid
-  //   • shrink-0 on header/search → not needed; grid auto rows are intrinsic
-  //   • flex-1 on list    → not needed; list is the minmax(0,1fr) grid track
 
   const listContent = (
     <div
       ref={containerRef}
-      // flex-1 min-h-0: fills sheet's flex layout and allows shrinking
-      // grid: 3-row layout so only the list row scrolls
-      // overflow-hidden: clips rounded corners; no overflow escapes the dialog
       className="flex-1 min-h-0 grid grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden"
       onKeyDown={handleKeyDown}
       role="dialog"
       aria-labelledby={titleId}
       aria-modal="true"
     >
-      {/* Announcer (sr-only) */}
       {announcer}
 
-      {/* ── Row 1: Header — auto height, never scrolls ── */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <h2 id={titleId} className="text-base font-semibold text-[var(--fg)]">
           {t('selectCountry')}
@@ -560,7 +565,6 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
         </button>
       </div>
 
-      {/* ── Row 2: Search — auto height, never scrolls ── */}
       <div className="px-4 pb-2">
         <div className="relative">
           <Search
@@ -586,7 +590,6 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             aria-autocomplete="list"
             aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
           />
-          {/* Clear query button */}
           {isSearching && (
             <button
               type="button"
@@ -600,22 +603,17 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
         </div>
       </div>
 
-      {/* ── Row 3: Country list — minmax(0,1fr), ONLY this scrolls ── */}
       <div
         ref={listRef}
         id={listId}
         role="listbox"
         aria-label={t('countriesListAria')}
         aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
+        onScroll={handleListScroll}
         className={cn(
-          // min-h-0: grid child must opt into shrinking (no implicit min-height:auto)
-          // overflow-y-auto: the single scroll container; nothing else scrolls
           'min-h-0 overflow-y-auto px-2 overscroll-contain',
-          // iOS momentum scrolling (safe for modern + legacy WebKit)
           '[WebkitOverflowScrolling:touch]',
-          // Safe area for iOS home indicator / Dynamic Island devices
           'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
-          // Thin themed scrollbar (WebKit/Blink)
           '[&::-webkit-scrollbar]:w-[5px]',
           '[&::-webkit-scrollbar-track]:bg-transparent',
           '[&::-webkit-scrollbar-thumb]:rounded-full',
@@ -623,7 +621,6 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
           '[&::-webkit-scrollbar-thumb:hover]:bg-[var(--fg-muted)]',
         )}
       >
-        {/* ── Searching: flat ranked results ── */}
         {isSearching ? (
           results.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
@@ -655,9 +652,7 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
             ))
           )
         ) : (
-          /* ── Not searching: Pinned → Recent → All ── */
           <>
-            {/* Pinned */}
             <SectionHeader label={t('pinned')} />
             {pinned.map((c, i) => (
               <CountryRow
@@ -670,7 +665,6 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
               />
             ))}
 
-            {/* Recent — only if non-empty */}
             {recentFiltered.length > 0 && (
               <>
                 <SectionHeader label={t('recent')} />
@@ -690,79 +684,102 @@ function CountryPicker({ isOpen, selected, onSelect, onClose, triggerRef }: Coun
               </>
             )}
 
-            {/* Divider */}
             <div className="mx-3 my-2 border-t border-[var(--border)]" aria-hidden="true" />
 
-            {/* All countries (excluding pinned + recent) */}
             <SectionHeader label={t('allCountries')} />
-            {rest
-              .filter((c) => !recentFiltered.some((r) => r.code === c.code))
-              .map((c, i) => {
-                const navIdx = pinned.length + recentFiltered.length + i
-                return (
-                  <CountryRow
-                    key={c.code}
-                    country={c}
-                    selected={selected}
-                    onSelect={handleSelect}
-                    optionId={optionId(navIdx)}
-                    isActive={navIdx === activeIndex}
-                  />
-                )
-              })}
+            {visibleRest.map((c, i) => {
+              const navIdx = pinned.length + recentFiltered.length + i
+              return (
+                <CountryRow
+                  key={c.code}
+                  country={c}
+                  selected={selected}
+                  onSelect={handleSelect}
+                  optionId={optionId(navIdx)}
+                  isActive={navIdx === activeIndex}
+                />
+              )
+            })}
           </>
         )}
       </div>
     </div>
   )
 
-  const slideY = prefersReducedMotion ? 0 : '100%'
-  const motionDuration = prefersReducedMotion ? 0 : 0.28
+  const sheetInitial = prefersReducedMotion
+    ? { opacity: 0 }
+    : isDesktop
+      ? { opacity: 0, scale: 0.97 }
+      : { y: '100%' }
+
+  const sheetAnimate = prefersReducedMotion
+    ? { opacity: 1 }
+    : isDesktop
+      ? { opacity: 1, scale: 1 }
+      : { y: 0 }
+
+  const sheetExit = prefersReducedMotion
+    ? { opacity: 0 }
+    : isDesktop
+      ? { opacity: 0, scale: 0.97 }
+      : { y: '100%' }
+
+  const sheetTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : isDesktop
+      ? { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] as const }
+      : { type: 'spring' as const, damping: 32, stiffness: 380, mass: 0.85 }
 
   return (
-    <AnimatePresence>
+    <AnimatePresence onExitComplete={handleExitComplete}>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             key="cp-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.18 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+            transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: 'easeOut' }}
+            className="fixed inset-0 z-50 bg-black/50"
             onClick={onClose}
             aria-hidden="true"
           />
 
-          {/* Sheet — bottom on mobile, centered modal on desktop */}
-          <motion.div
-            key="cp-sheet"
-            initial={{ y: slideY, opacity: prefersReducedMotion ? 0 : 1 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: slideY, opacity: prefersReducedMotion ? 0 : 1 }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300, duration: motionDuration }}
-            style={sheetMaxHeight ? { maxHeight: sheetMaxHeight } : undefined}
+          {/*
+            Positioning wrapper uses flex centering (md:items-center md:justify-center)
+            instead of start-1/2 + translate-x. That avoids RTL misalignment where
+            logical start-1/2 pairs with physical -translate-x-1/2.
+            Framer Motion transform animations live on the inner sheet only, so they
+            never override the positioning translate used by Tailwind utilities.
+          */}
+          <div
             className={cn(
-              // Sheet: flex column so drag handle (shrink-0) + dialog (flex-1) stack correctly
-              // overflow-hidden: clips content at rounded corners; no content escapes
-              'fixed z-50 bg-[var(--bg)] shadow-2xl flex flex-col overflow-hidden',
-              // Mobile: anchored at bottom:0 — NEVER moves; maxHeight shrinks via VisualViewport
-              'bottom-0 start-0 end-0 rounded-t-2xl max-h-[85dvh]',
-              // Smooth max-height resize as keyboard slides in/out
-              prefersReducedMotion ? '' : 'transition-[max-height] duration-200 ease-out',
-              // Desktop: centered modal; bottom:auto unanchors from bottom edge
-              'md:bottom-auto md:start-1/2 md:top-1/2',
-              'md:-translate-x-1/2 md:-translate-y-1/2',
-              'md:rounded-2xl md:w-[480px] md:max-h-[70vh]',
+              'fixed inset-0 z-50 flex pointer-events-none',
+              'items-end md:items-center md:justify-center md:p-4',
             )}
           >
-            {/* Drag handle — mobile only */}
-            <div className="flex justify-center pt-2.5 pb-0 md:hidden shrink-0" aria-hidden="true">
-              <div className="h-1 w-10 rounded-full bg-[var(--border)]" />
-            </div>
-            {listContent}
-          </motion.div>
+            <motion.div
+              key="cp-sheet"
+              initial={sheetInitial}
+              animate={sheetAnimate}
+              exit={sheetExit}
+              transition={sheetTransition}
+              style={{
+                maxHeight: sheetMaxHeight ?? undefined,
+                willChange: prefersReducedMotion ? undefined : 'transform, opacity',
+              }}
+              className={cn(
+                'pointer-events-auto bg-[var(--bg)] shadow-2xl flex flex-col overflow-hidden w-full',
+                'rounded-t-2xl max-h-[85dvh]',
+                'md:rounded-2xl md:w-[480px] md:max-w-full md:max-h-[70vh]',
+              )}
+            >
+              <div className="flex justify-center pt-2.5 pb-0 md:hidden shrink-0" aria-hidden="true">
+                <div className="h-1 w-10 rounded-full bg-[var(--border)]" />
+              </div>
+              {listContent}
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
@@ -792,16 +809,8 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
   const errorId = `${id}-error`
   const hintId = `${id}-hint`
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  /**
-   * Country detection priority:
-   * 1. Explicit defaultCountry prop
-   * 2. Parsed from value (E.164)
-   * 3. Last explicitly selected (localStorage)
-   * 4. Browser locale
-   * 5. Browser timezone
-   * 6. US default
-   */
   const t = useTranslations('phoneInput')
 
   const resolveInitialCountry = (): Country => {
@@ -826,49 +835,108 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
   const [national, setNational] = useState<string>(() => {
     if (value && value.startsWith('+')) {
       const parsed = parseE164(value)
-      return parsed.national
+      const c = parsed.country ?? resolveInitialCountry()
+      return clampNationalDigits(parsed.national, c)
     }
-    return value ? digitsOnly(value) : ''
+    const initialCountry = resolveInitialCountry()
+    return value ? clampNationalDigits(value, initialCountry) : ''
   })
   const [pickerOpen, setPickerOpen] = useState(false)
 
-  // Sync when external value changes
+  const mergeRefs = useCallback(
+    (node: HTMLInputElement | null) => {
+      inputRef.current = node
+      if (typeof ref === 'function') ref(node)
+      else if (ref) ref.current = node
+    },
+    [ref],
+  )
+
   useEffect(() => {
     if (value && value.startsWith('+')) {
       const parsed = parseE164(value)
-      if (parsed.country && parsed.country.code !== country.code) {
-        setCountry(parsed.country)
+      const nextCountry = parsed.country
+      if (nextCountry && nextCountry.code !== country.code) {
+        setCountry(nextCountry)
       }
-      setNational(parsed.national)
+      const clamped = nextCountry
+        ? clampNationalDigits(parsed.national, nextCountry)
+        : digitsOnly(parsed.national)
+      setNational(clamped)
     }
   }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleCountrySelect = useCallback((c: Country) => {
-    setCountry(c)
-    const e164 = buildE164(c.dialCode, national)
-    onChange?.(e164, {
-      countryCode: c.code,
-      dialCode: c.dialCode,
-      nationalNumber: digitsOnly(national),
-      e164,
-      isValid: isValidLength(national),
-    })
-  }, [national, onChange])
+  const emitChange = useCallback(
+    (c: Country, nationalDigits: string) => {
+      const meta = buildMeta(c, nationalDigits)
+      onChange?.(meta.e164, meta)
+    },
+    [onChange],
+  )
 
-  const handleNationalChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = digitsOnly(e.target.value)
-    if (digits.length > 15) return
-    setNational(digits)
-    const e164 = buildE164(country.dialCode, digits)
-    onChange?.(e164, {
-      countryCode: country.code,
-      dialCode: country.dialCode,
-      nationalNumber: digits,
-      e164,
-      isValid: isValidLength(digits),
+  const handleCountrySelect = useCallback(
+    (c: Country) => {
+      const trimmed = clampNationalDigits(national, c)
+      setCountry(c)
+      setNational(trimmed)
+      emitChange(c, trimmed)
+    },
+    [national, emitChange],
+  )
+
+  const focusPhoneInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const input = inputRef.current
+        if (!input) return
+        input.focus({ preventScroll: true })
+        const len = input.value.length
+        try {
+          input.setSelectionRange(len, len)
+        } catch {
+          // setSelectionRange may fail on some mobile browsers for type=tel
+        }
+      })
     })
-    e.target.value = formatNational(digits, country)
-  }, [country, onChange])
+  }, [])
+
+  const applyNationalDigits = useCallback(
+    (rawDigits: string) => {
+      const digits = clampNationalDigits(rawDigits, country)
+      setNational(digits)
+      emitChange(country, digits)
+      return digits
+    },
+    [country, emitChange],
+  )
+
+  const handleNationalChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      applyNationalDigits(e.target.value)
+    },
+    [applyNationalDigits],
+  )
+
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      e.preventDefault()
+      const pasted = e.clipboardData.getData('text')
+      applyNationalDigits(pasted)
+    },
+    [applyNationalDigits],
+  )
+
+  const handleBeforeInput = useCallback(
+    (e: React.FormEvent<HTMLInputElement>) => {
+      const inputEvent = e.nativeEvent as InputEvent
+      if (!inputEvent.data || inputEvent.inputType?.startsWith('delete')) return
+      const max = getMaxNationalDigits(country)
+      if (digitsOnly(national).length >= max) {
+        e.preventDefault()
+      }
+    },
+    [country, national],
+  )
 
   const displayValue = formatNational(national, country)
   const describedBy = [error ? errorId : '', hint ? hintId : ''].filter(Boolean).join(' ') || undefined
@@ -891,7 +959,6 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
           disabled && 'opacity-50 pointer-events-none',
         )}
       >
-        {/* Country selector button */}
         <button
           ref={triggerRef}
           type="button"
@@ -914,9 +981,8 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
           <ChevronDown className="h-3 w-3 text-[var(--fg-muted)]" aria-hidden="true" />
         </button>
 
-        {/* National number input */}
         <input
-          ref={ref}
+          ref={mergeRefs}
           id={id}
           type="tel"
           inputMode="numeric"
@@ -924,8 +990,10 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
           disabled={disabled}
           required={required}
           placeholder={country.placeholder}
-          defaultValue={displayValue}
+          value={displayValue}
           onChange={handleNationalChange}
+          onPaste={handlePaste}
+          onBeforeInput={handleBeforeInput}
           aria-describedby={describedBy}
           aria-invalid={!!error}
           autoComplete="tel-national"
@@ -953,6 +1021,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
         onSelect={handleCountrySelect}
         onClose={() => setPickerOpen(false)}
         triggerRef={triggerRef}
+        onAfterSelectClose={focusPhoneInput}
       />
     </div>
   )

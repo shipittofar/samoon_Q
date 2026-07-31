@@ -564,12 +564,13 @@ async function establishAuthenticatedSession(
 export function useLogin() {
   const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
-    mutationFn: (creds: LoginCredentials) => authService.login(creds),
-    onSuccess: async () => {
+    mutationFn: async (creds: LoginCredentials) => {
+      await authService.login(creds)
       await establishAuthenticatedSession(setUser)
     },
   })
 }
+
 
 // P10.9 — mirrors useLogin()/useVerifyOTP(): hydrates the authenticated
 // user and, if present, tenantRoles after a successful registration.

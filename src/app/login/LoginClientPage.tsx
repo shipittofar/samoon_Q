@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl'
 import {
   Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles,
   ShieldCheck, User, Crown, ChefHat, Megaphone,
-  HeadphonesIcon, CreditCard, Layers, Building2, Phone,
+  HeadphonesIcon, CreditCard, Layers, Building2,
 } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -21,8 +21,11 @@ import { useLogin, useSendOTP } from '@/hooks'
 import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
+import { ForgotPasswordPanel } from '@/app/login/ForgotPasswordPanel'
 
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+
+type AuthView = 'phone' | 'email' | 'forgot-password'
 
 // ── Demo accounts ──────────────────────────────────────────────────────────────
 
@@ -41,9 +44,6 @@ const DEMO_ACCOUNTS = [
 
 // ── Email fallback schema ──────────────────────────────────────────────────────
 
-// Schema messages are `validation` namespace keys, not literal English text
-// (Phase E — centralized validation messages) — resolved through
-// `tValidation()` wherever `errors.<field>.message` is rendered below.
 const emailSchema = z.object({
   email: z.string().email('invalid_email'),
   password: z.string().min(6, 'invalid_password'),
@@ -52,32 +52,34 @@ type EmailFormData = z.infer<typeof emailSchema>
 
 // ── Page component ─────────────────────────────────────────────────────────────
 
+type SubmissionState = 'idle' | 'submitting' | 'success' | 'error'
+
 export function LoginClientPage() {
   const router = useRouter()
   const prefersReducedMotion = useReducedMotion()
-  const { mutate: login, isPending: isEmailPending } = useLogin()
+  const { mutate: login } = useLogin()
   const { mutate: sendOTP, isPending: isSendingOTP } = useSendOTP()
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
   const tValidation = useTranslations('validation')
 
-  // P9.1.2 — Runtime Integration: demo grid visibility now additionally gated
-  // by authentication.demo_accounts_visible (platform-locked config), never
-  // replacing the NEXT_PUBLIC_USE_MOCK build flag — both must allow it.
   const { resolved: demoVisibleField } = useConfigurationField('authentication.demo_accounts_visible')
   const USE_MOCK = USE_MOCK_ENV && (demoVisibleField?.value as boolean | undefined) !== false
 
+  const [authView, setAuthView] = useState<AuthView>('phone')
   const [phoneE164, setPhoneE164] = useState('')
   const [dialCode, setDialCode] = useState('')
+  const [nationalNumber, setNationalNumber] = useState('')
   const [phoneValid, setPhoneValid] = useState(false)
-  const [showEmailForm, setShowEmailForm] = useState(false)
+  const [phoneAuthMode, setPhoneAuthMode] = useState<'otp' | 'password'>('otp')
+  const [phonePassword, setPhonePassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [phoneLoginState, setPhoneLoginState] = useState<SubmissionState>('idle')
+  const [emailLoginState, setEmailLoginState] = useState<SubmissionState>('idle')
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
   })
-
-  // ── Phone continue ────────────────────────────────────────────────────────────
 
   const handlePhoneContinue = () => {
     const rateCheck = LOGIN_LIMIT.check(phoneE164)
@@ -85,17 +87,8 @@ export function LoginClientPage() {
       toast.error(t('tooManyAttempts'))
       return
     }
-    // sendOTP(phoneE164, {
-    //   onSuccess: () => {
-    //     router.push(`/verify?phone_number=${encodeURIComponent(phoneE164)}`)
-    //   },
-    //   onError: () => toast.error(t('otpSendFailed')),
-    // })
     sendOTP(
-      {
-        phone_number: phoneE164,
-        dialCode,
-      },
+      { phone_number: phoneE164, dialCode },
       {
         onSuccess: () => {
           router.push(
@@ -107,37 +100,79 @@ export function LoginClientPage() {
     )
   }
 
-  // ── Demo one-click login ──────────────────────────────────────────────────────
+  const handlePhonePasswordLogin = () => {
+    if (phoneLoginState === 'submitting' || phoneLoginState === 'success') return
+    if (!phonePassword) return
+    if (!nationalNumber) {
+      toast.error(t('enterPhoneToContinue'))
+      return
+    }
+    const rateKey = phoneE164 || 'phone-password'
+    const rateCheck = LOGIN_LIMIT.check(rateKey)
+    if (!rateCheck.allowed) {
+      toast.error(t('tooManyLoginAttempts'))
+      return
+    }
+    setPhoneLoginState('submitting')
+    login(
+      {
+        phone_number: nationalNumber,
+        country_code: dialCode,
+        password: phonePassword,
+      },
+      {
+        onSuccess: () => {
+          setPhoneLoginState('success')
+          LOGIN_LIMIT.reset(rateKey)
+          toast.success(t('loginSuccess'))
+        },
+        onError: () => {
+          setPhoneLoginState('idle')
+          toast.error(t('invalidCredentials'))
+        },
+      },
+    )
+  }
 
   const loginAs = (email: string) => {
+    if (emailLoginState === 'submitting' || emailLoginState === 'success') return
     const rateCheck = LOGIN_LIMIT.check(email)
     if (!rateCheck.allowed) {
       toast.error(t('tooManyLoginAttempts'))
       return
     }
+    setEmailLoginState('submitting')
     login({ email, password: 'password' }, {
       onSuccess: () => {
+        setEmailLoginState('success')
         LOGIN_LIMIT.reset(email)
         toast.success(t('loginSuccess'))
       },
-      onError: () => toast.error(t('loginFailed')),
+      onError: () => {
+        setEmailLoginState('idle')
+        toast.error(t('loginFailed'))
+      },
     })
   }
 
-  // ── Email form submit ─────────────────────────────────────────────────────────
-
   const onEmailSubmit = (data: EmailFormData) => {
+    if (emailLoginState === 'submitting' || emailLoginState === 'success') return
     const rateCheck = LOGIN_LIMIT.check(data.email)
     if (!rateCheck.allowed) {
       toast.error(t('tooManyLoginAttempts'))
       return
     }
+    setEmailLoginState('submitting')
     login(data, {
       onSuccess: () => {
+        setEmailLoginState('success')
         LOGIN_LIMIT.reset(data.email)
         toast.success(t('loginSuccess'))
       },
-      onError: () => toast.error(t('invalidCredentials')),
+      onError: () => {
+        setEmailLoginState('idle')
+        toast.error(t('invalidCredentials'))
+      },
     })
   }
 
@@ -150,15 +185,31 @@ export function LoginClientPage() {
     ? {}
     : { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } }
 
-  const isPending = isEmailPending || isSendingOTP
+  const viewMotion = prefersReducedMotion
+    ? {}
+    : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -8 } }
+
+  const isPending = emailLoginState === 'submitting' || (phoneAuthMode === 'otp' && isSendingOTP)
+
+  const headingTitle = authView === 'forgot-password'
+    ? t('forgotTitle')
+    : authView === 'email'
+      ? t('welcome')
+      : t('welcome')
+
+  const headingSubtitle = authView === 'forgot-password'
+    ? t('forgotSubtitle')
+    : authView === 'email'
+      ? t('signInWithEmailSubtitle')
+      : phoneAuthMode === 'password'
+        ? t('signInWithPasswordSubtitle')
+        : t('enterPhoneToContinue')
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex">
-      {/* ── Left: Form ── */}
       <div className="flex-1 flex items-start justify-center p-6 sm:p-8 overflow-y-auto">
         <motion.div {...motionProps} className="w-full max-w-md py-8">
 
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2 mb-8">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
               <span className="text-white font-bold">S</span>
@@ -166,115 +217,68 @@ export function LoginClientPage() {
             <span className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)]">Samoon</span>
           </Link>
 
-          {/* Heading */}
-          <div className="mb-8">
-            <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-2">
-              {t('welcome')}
-            </h1>
-            <p className="text-[var(--fg-muted)]">{t('enterPhoneToContinue')}</p>
-          </div>
+          <AnimatePresence mode="wait">
+            {authView !== 'forgot-password' && (
+              <motion.div
+                key="heading"
+                {...viewMotion}
+                className="mb-8"
+              >
+                <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-2">
+                  {headingTitle}
+                </h1>
+                <p className="text-[var(--fg-muted)]">{headingSubtitle}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* ── Primary: Phone entry ── */}
-          <div className="mb-6 space-y-3">
-            <PhoneInput
-              label={t('phoneNumber')}
-              defaultCountry="US"
-              onChange={(e164, meta) => {
-                setPhoneE164(e164)
-                setDialCode(meta.dialCode)
-                setPhoneValid(meta.isValid)
-              }}
-              hint={t('phoneHint')}
-              required
-            />
-            <Button
-              type="button"
-              className="w-full"
-              size="lg"
-              loading={isSendingOTP}
-              disabled={!phoneValid || isSendingOTP}
-              onClick={handlePhoneContinue}
-              rightIcon={<ArrowRight className="h-4 w-4" />}
-            >
-              {tCommon('continue')}
-            </Button>
-          </div>
+          <AnimatePresence mode="wait">
+            {authView === 'phone' && (
+              <motion.div key="phone-view" {...viewMotion}>
+                <div className="mb-6 space-y-3">
+                  <PhoneInput
+                    label={t('phoneNumber')}
+                    defaultCountry="US"
+                    onChange={(e164, meta) => {
+                      setPhoneE164(e164)
+                      setDialCode(meta.dialCode)
+                      setNationalNumber(meta.nationalNumber)
+                      setPhoneValid(meta.isValid)
+                    }}
+                    hint={phoneAuthMode === 'otp' ? t('phoneHint') : undefined}
+                    required
+                  />
 
-          {/* ── Demo accounts ── */}
-          {USE_MOCK && (
-            <>
-              <Divider label={t('orTryDemo')} className="mb-4" />
-              <div className="mb-6 space-y-2">
-                <p className="text-xs text-[var(--fg-muted)] flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-orange-500" aria-hidden="true" />
-                  {t('oneClickDemoHint')}
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {DEMO_ACCOUNTS.map(({ key, email, phone_number, icon: Icon, color, bg, border }) => (
-                    <button
-                      key={email}
-                      type="button"
-                      onClick={() => loginAs(email)}
-                      disabled={isPending}
-                      className={`flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border text-left transition-colors ${border} ${bg} disabled:opacity-50`}
-                    >
-                      <span className={`flex items-center gap-1.5 text-sm font-semibold ${color}`}>
-                        <Icon className="h-3.5 w-3.5" aria-hidden="true" />{t(`demoAccounts.${key}.label`)}
-                      </span>
-                      <span className="text-[11px] text-[var(--fg-muted)] leading-tight">{t(`demoAccounts.${key}.description`)}</span>
-                      <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{phone_number}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* ── Email fallback (collapsed by default) ── */}
-          <div className="mt-2">
-            <button
-              type="button"
-              onClick={() => setShowEmailForm((v) => !v)}
-              className="w-full text-center text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors py-2"
-              aria-expanded={showEmailForm}
-            >
-              {showEmailForm ? t('hideEmailSignIn') : t('signInWithEmailInstead')}
-            </button>
-
-            <AnimatePresence>
-              {showEmailForm && (
-                <motion.div
-                  initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
-                  animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, height: 'auto' }}
-                  exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
-                  transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="pt-4 space-y-4">
-                    {USE_MOCK && (
-                      <button
+                  {phoneAuthMode === 'otp' ? (
+                    <>
+                      <Button
                         type="button"
-                        onClick={fillDemo}
-                        className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 text-sm hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
+                        className="w-full"
+                        size="lg"
+                        loading={isSendingOTP}
+                        disabled={!phoneValid || isSendingOTP}
+                        onClick={handlePhoneContinue}
+                        rightIcon={<ArrowRight className="h-4 w-4" />}
                       >
-                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> {t('fillDemoCredentials')}
-                      </button>
-                    )}
-                    <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
-                      <Input
-                        label={t('email')}
-                        type="email"
-                        required
-                        leftIcon={<Mail className="h-3.5 w-3.5" />}
-                        placeholder={t('emailPlaceholder')}
-                        {...register('email')}
-                        error={errors.email?.message ? tValidation(errors.email.message) : undefined}
-                        autoComplete="email"
-                      />
+                        {tCommon('continue')}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="lg"
+                        className="w-full active:scale-[0.98]"
+                        onClick={() => setPhoneAuthMode('password')}
+                      >
+                        {t('signInWithPasswordInstead')}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
                       <Input
                         label={t('password')}
                         type={showPassword ? 'text' : 'password'}
-                        required
+                        value={phonePassword}
+                        onChange={(e) => setPhonePassword(e.target.value)}
                         leftIcon={<Lock className="h-3.5 w-3.5" />}
                         rightIcon={
                           <button
@@ -286,32 +290,168 @@ export function LoginClientPage() {
                           </button>
                         }
                         placeholder="••••••••"
-                        {...register('password')}
-                        error={errors.password?.message ? tValidation(errors.password.message) : undefined}
                         autoComplete="current-password"
                       />
-                      <div className="flex items-center justify-end text-sm">
-                        <Link href="/forgot-password" className="text-orange-500 hover:text-orange-600 transition-colors">
-                          {t('forgotPasswordLink')}
-                        </Link>
-                      </div>
                       <Button
-                        type="submit"
+                        type="button"
                         className="w-full"
                         size="lg"
-                        loading={isEmailPending}
+                        loading={phoneLoginState === 'submitting'}
+                        disabled={
+                          !phonePassword
+                          || !nationalNumber
+                          || phoneLoginState === 'submitting'
+                          || phoneLoginState === 'success'
+                        }
+                        onClick={handlePhonePasswordLogin}
                         rightIcon={<ArrowRight className="h-4 w-4" />}
                       >
-                        {t('signInWithEmail')}
+                        {t('signInWithPassword')}
                       </Button>
-                    </form>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="lg"
+                        className="w-full active:scale-[0.98]"
+                        disabled={phoneLoginState === 'submitting' || phoneLoginState === 'success'}
+                        onClick={() => {
+                          setPhoneAuthMode('otp')
+                          setPhoneLoginState('idle')
+                        }}
+                      >
+                        {t('backToOtpLogin')}
+                      </Button>
+                    </>
+                  )}
+                </div>
 
-          {/* Footer note */}
+                {phoneAuthMode === 'otp' && USE_MOCK && (
+                  <>
+                    <Divider label={t('orTryDemo')} className="mb-4" />
+                    <div className="mb-6 space-y-2">
+                      <p className="text-xs text-[var(--fg-muted)] flex items-center gap-1.5">
+                        <Sparkles className="h-3 w-3 text-orange-500" aria-hidden="true" />
+                        {t('oneClickDemoHint')}
+                      </p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {DEMO_ACCOUNTS.map(({ key, email, phone_number, icon: Icon, color, bg, border }) => (
+                          <button
+                            key={email}
+                            type="button"
+                            onClick={() => loginAs(email)}
+                            disabled={isPending}
+                            className={`flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border text-left transition-colors ${border} ${bg} disabled:opacity-50`}
+                          >
+                            <span className={`flex items-center gap-1.5 text-sm font-semibold ${color}`}>
+                              <Icon className="h-3.5 w-3.5" aria-hidden="true" />{t(`demoAccounts.${key}.label`)}
+                            </span>
+                            <span className="text-[11px] text-[var(--fg-muted)] leading-tight">{t(`demoAccounts.${key}.description`)}</span>
+                            <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{phone_number}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {phoneAuthMode === 'otp' && (
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setAuthView('email')}
+                      className="w-full text-center text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors py-2"
+                    >
+                      {t('signInWithEmailInstead')}
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {authView === 'email' && (
+              <motion.div key="email-view" {...viewMotion}>
+                <div className="space-y-4">
+                  {USE_MOCK && (
+                    <button
+                      type="button"
+                      onClick={fillDemo}
+                      className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 text-sm hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> {t('fillDemoCredentials')}
+                    </button>
+                  )}
+                  <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
+                    <Input
+                      label={t('email')}
+                      type="email"
+                      required
+                      leftIcon={<Mail className="h-3.5 w-3.5" />}
+                      placeholder={t('emailPlaceholder')}
+                      {...register('email')}
+                      error={errors.email?.message ? tValidation(errors.email.message) : undefined}
+                      autoComplete="email"
+                    />
+                    <Input
+                      label={t('password')}
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      leftIcon={<Lock className="h-3.5 w-3.5" />}
+                      rightIcon={
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((v) => !v)}
+                          aria-label={showPassword ? tCommon('hidePassword') : tCommon('showPassword')}
+                        >
+                          {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                        </button>
+                      }
+                      placeholder="••••••••"
+                      {...register('password')}
+                      error={errors.password?.message ? tValidation(errors.password.message) : undefined}
+                      autoComplete="current-password"
+                    />
+                    <div className="flex items-center justify-end text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setAuthView('forgot-password')}
+                        className="text-orange-500 hover:text-orange-600 transition-colors"
+                      >
+                        {t('forgotPasswordLink')}
+                      </button>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      size="lg"
+                      loading={emailLoginState === 'submitting'}
+                      disabled={emailLoginState === 'submitting' || emailLoginState === 'success'}
+                      rightIcon={<ArrowRight className="h-4 w-4" />}
+                    >
+                      {t('signInWithEmail')}
+                    </Button>
+                  </form>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthView('phone')
+                      setEmailLoginState('idle')
+                    }}
+                    className="w-full text-center text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors py-2"
+                  >
+                    {t('backToPhoneLogin')}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {authView === 'forgot-password' && (
+              <motion.div key="forgot-view" {...viewMotion}>
+                <ForgotPasswordPanel onBack={() => setAuthView('email')} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <p className="text-center text-xs text-[var(--fg-muted)] mt-8">
             {t('agreeToTerms')}{' '}
             <Link href="/terms" className="text-orange-500 hover:underline">{tCommon('termsOfService')}</Link>
@@ -321,7 +461,6 @@ export function LoginClientPage() {
         </motion.div>
       </div>
 
-      {/* ── Right: Hero (desktop only) ── */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700" aria-hidden="true">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, white 2px, transparent 2px), radial-gradient(circle at 70% 30%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div className="relative flex flex-col items-center justify-center p-12 text-center text-white">
