@@ -373,6 +373,12 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     description: 'San Marzano tomatoes, fresh mozzarella di bufala, hand-torn basil, extra virgin olive oil on our signature 72-hour cold-fermented dough.',
     price: 18.99, discount: 0,
     image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600',
+    images: [
+      'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600',
+      'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600',
+    ],
+    allergens: ['dairy', 'gluten'],
     calories: 850, preparation_time: 20, rating: 4.8, rating_count: 324,
     available: true, is_active: true, is_popular: true, is_featured: true,
     tags: mockItemTags('vegetarian', 'classic'),

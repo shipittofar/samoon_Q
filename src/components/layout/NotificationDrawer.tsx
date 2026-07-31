@@ -262,7 +262,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto scrollbar-thin">
               {isLoading ? (
                 <div className="flex items-center justify-center py-16">
                   <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

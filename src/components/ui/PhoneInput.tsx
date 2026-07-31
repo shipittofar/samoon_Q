@@ -611,14 +611,9 @@ function CountryPicker({
         aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
         onScroll={handleListScroll}
         className={cn(
-          'min-h-0 overflow-y-auto px-2 overscroll-contain',
+          'min-h-0 overflow-y-auto px-2 overscroll-contain scrollbar-thin',
           '[WebkitOverflowScrolling:touch]',
           'pb-[max(0.75rem,env(safe-area-inset-bottom))]',
-          '[&::-webkit-scrollbar]:w-[5px]',
-          '[&::-webkit-scrollbar-track]:bg-transparent',
-          '[&::-webkit-scrollbar-thumb]:rounded-full',
-          '[&::-webkit-scrollbar-thumb]:bg-[var(--border)]',
-          '[&::-webkit-scrollbar-thumb:hover]:bg-[var(--fg-muted)]',
         )}
       >
         {isSearching ? (

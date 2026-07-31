@@ -10,8 +10,8 @@ import { CartDrawer } from '@/components/cart/CartDrawer'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FoodCardSkeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
-import { useFavoritesStore } from '@/stores'
-import { useMenuItems } from '@/hooks'
+import { useFavoritesStore, useBranchStore } from '@/stores'
+import { useMenuItems, useActiveBranchId } from '@/hooks'
 import type { MenuItem } from '@/types'
 
 export default function FavoritesPage() {
@@ -24,6 +24,9 @@ export default function FavoritesPage() {
   // branch (useMenuItems' store fallback) — a favorite saved at a different
   // branch will not appear here until that branch is active again.
   const { data, isLoading } = useMenuItems()
+  const storeBranchId = useBranchStore((s) => s.activeBranch?.id)
+  const activeBranchId = useActiveBranchId()
+  const branchId = storeBranchId ?? activeBranchId
   const t = useTranslations('dashboard')
   const allItems = data?.results || []
   const favoriteItems = allItems.filter((item) => favorites.has(item.id))
@@ -60,7 +63,13 @@ export default function FavoritesPage() {
         </div>
       )}
 
-      <FoodDetailModal item={selectedItem} open={modalOpen} onClose={() => { setModalOpen(false); setTimeout(() => setSelectedItem(null), 300) }} />
+      <FoodDetailModal
+        item={selectedItem}
+        open={modalOpen}
+        branchId={branchId}
+        onClose={() => { setModalOpen(false); setTimeout(() => setSelectedItem(null), 300) }}
+        onOpenRelated={(i) => { setSelectedItem(i); setModalOpen(true) }}
+      />
     </div>
   )
 }

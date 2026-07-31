@@ -100,7 +100,7 @@ function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5" role="navigation">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5 scrollbar-thin" role="navigation">
           {navItems.map((item) => {
             const Icon = item.icon ? ICON_MAP[item.icon] : null
             const isActive = item.exact
@@ -175,7 +175,7 @@ export function AppShell({ children, title }: AppShellProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 sm:p-6 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 overflow-auto scrollbar-thin">
           {children}
         </main>
       </div>

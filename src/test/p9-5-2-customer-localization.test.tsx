@@ -36,7 +36,7 @@ function withLocale(locale: string, messages: any, children: React.ReactNode) {
 describe('Customer surfaces use the localization runtime, not literals', () => {
   const migrated = [
     'components/menu/MenuContent.tsx',
-    'components/menu/FoodDetailModal.tsx',
+    'components/product/ProductDetailView.tsx',
     'components/cart/CartDrawer.tsx',
     'app/checkout/page.tsx',
     'app/reservation/page.tsx',
@@ -133,7 +133,7 @@ describe('Dashboard namespace — greeting template', () => {
 describe('RTL-safe CSS (Phase N) — migrated files use logical properties, not physical ml-/mr-/left-/right-', () => {
   const migrated = [
     'components/menu/MenuContent.tsx',
-    'components/menu/FoodDetailModal.tsx',
+    'components/product/ProductDetailView.tsx',
     'components/cart/CartDrawer.tsx',
     'app/checkout/page.tsx',
     'app/reservation/page.tsx',

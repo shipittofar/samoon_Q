@@ -13,10 +13,15 @@ export interface ModalProps {
   title?: string
   description?: string
   children: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'product'
   className?: string
+  contentClassName?: string
+  /** When false, children manage their own scroll (e.g. product detail). */
+  scrollable?: boolean
   closeOnOverlay?: boolean
   showClose?: boolean
+  /** Visually hidden title for screen readers when showClose is false */
+  ariaTitle?: string
 }
 
 const modalSizes = {
@@ -25,15 +30,19 @@ const modalSizes = {
   lg: 'max-w-lg',
   xl: 'max-w-2xl',
   full: 'max-w-4xl',
+  product: 'max-w-5xl',
 }
 
 export function Modal({
   open, onClose, title, description, children, size = 'md',
-  className, closeOnOverlay = true, showClose = true,
+  className, contentClassName, scrollable = true,
+  closeOnOverlay = true, showClose = true, ariaTitle,
 }: ModalProps) {
   const ref = useRef<HTMLDivElement>(null)
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
+
+  const dialogLabelId = title ? 'modal-title' : ariaTitle ? 'modal-aria-title' : undefined
 
   useEffect(() => {
     if (!open) return
@@ -48,7 +57,6 @@ export function Modal({
         (el) => el.offsetParent !== null,
       )
 
-    // Defer first focus until after the entrance animation frame — once per open only.
     const frameId = requestAnimationFrame(() => getFocusable()[0]?.focus())
 
     const onKey = (e: KeyboardEvent) => {
@@ -79,31 +87,35 @@ export function Modal({
   return (
     <AnimatePresence>
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={title ? 'modal-title' : undefined}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={closeOnOverlay ? onClose : undefined}
+            aria-hidden="true"
           />
           <motion.div
             ref={ref}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={dialogLabelId}
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className={cn(
-              'relative z-10 my-auto w-full bg-[var(--card)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden flex flex-col max-h-[calc(100dvh-2rem)]',
+              'relative z-10 my-auto w-full bg-[var(--card)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden flex flex-col',
+              'max-h-[calc(100dvh-2rem)]',
+              size === 'product' && 'md:min-h-[min(720px,90dvh)]',
               modalSizes[size],
               className,
             )}
           >
+            {ariaTitle && !title && (
+              <h2 id="modal-aria-title" className="sr-only">{ariaTitle}</h2>
+            )}
             {(title || showClose) && (
               <div className="flex items-start justify-between p-6 pb-0 shrink-0">
                 <div>
@@ -123,7 +135,14 @@ export function Modal({
                 )}
               </div>
             )}
-            <div className="p-6 overflow-y-auto min-h-0 flex-1 overscroll-contain">{children}</div>
+            <div
+              className={cn(
+                scrollable ? 'p-6 overflow-y-auto min-h-0 flex-1 overscroll-contain scrollbar-thin' : 'min-h-0 flex-1 flex flex-col overflow-hidden',
+                contentClassName,
+              )}
+            >
+              {children}
+            </div>
           </motion.div>
         </div>
       )}
@@ -169,9 +188,6 @@ export function Drawer({ open, onClose, title, children, side = 'right', size = 
         <div
           className="fixed inset-0 z-50 flex"
           style={{ justifyContent: side === 'left' ? 'flex-start' : side === 'right' ? 'flex-end' : 'flex-end' }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={title ? 'drawer-title' : undefined}
         >
           <motion.div
             initial={{ opacity: 0 }}
@@ -179,8 +195,12 @@ export function Drawer({ open, onClose, title, children, side = 'right', size = 
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
+            aria-hidden="true"
           />
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={title ? 'drawer-title' : undefined}
             initial={drawerMotion[side].hidden}
             animate={drawerMotion[side].visible}
             exit={drawerMotion[side].hidden}

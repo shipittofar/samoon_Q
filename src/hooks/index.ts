@@ -737,14 +737,30 @@ export function useConsoleCategories(branchId?: string) {
   })
 }
 
-export function useExtraGroups(branchId?: string) {
+export function useExtraGroups(branchId?: string, options?: { enabled?: boolean }) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
+  const enabled = options?.enabled ?? true
   return useQuery({
     queryKey: ['extra-groups', tenantId, scopedBranchId],
     queryFn: () => menuService.getExtraGroups(scopedBranchId!),
-    enabled: !!scopedBranchId,
+    enabled: enabled && !!scopedBranchId,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+/** Customer-facing branch extras (menu PDP / cart). */
+export function useMenuExtras(branchId?: string, options?: { enabled?: boolean }) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  const enabled = options?.enabled ?? true
+  return useQuery({
+    queryKey: ['menu-extras', tenantId, scopedBranchId],
+    queryFn: () => menuService.getExtras(scopedBranchId!),
+    enabled: enabled && !!scopedBranchId,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   })
@@ -863,15 +879,20 @@ export function usePopularItems(branchId?: string) {
   })
 }
 
-export function useRelatedItems(branchId: string | undefined, id: string) {
+export function useRelatedItems(
+  branchId: string | undefined,
+  id: string,
+  options?: { enabled?: boolean },
+) {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
+  const enabled = options?.enabled ?? true
   return useQuery({
     queryKey: ['related-items', tenantId, scopedBranchId, id],
     queryFn: () => menuService.getRelated(scopedBranchId!, id),
     staleTime: STALE_TIME,
-    enabled: !!scopedBranchId && !!id,
+    enabled: enabled && !!scopedBranchId && !!id,
   })
 }
 
@@ -923,11 +944,12 @@ export function useValidateDiscount() {
 }
 
 // P4.3 — Review hooks
-export function useItemReviews(itemId: string) {
+export function useItemReviews(itemId: string, options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true
   return useQuery({
     queryKey: ['reviews', itemId],
     queryFn: () => reviewService.getItemReviews(itemId),
-    enabled: Boolean(itemId),
+    enabled: enabled && Boolean(itemId),
     staleTime: STALE_TIME,
   })
 }

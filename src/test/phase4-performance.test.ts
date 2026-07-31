@@ -58,10 +58,10 @@ describe('P4.7.1 — Image optimization: all Image usages have sizes prop', () =
    *   → sizes="48px"
    */
 
-  it('FoodDetailModal Image has sizes prop', () => {
-    const content = src('components/menu/FoodDetailModal.tsx')
+  it('ProductDetailMedia Image has sizes prop', () => {
+    const content = src('components/product/ProductDetailMedia.tsx')
     expect(content).toContain('sizes=')
-    expect(content).toContain('40vw')
+    expect(content).toContain('42vw')
   })
 
   it('FoodCard compact Image has sizes prop', () => {
@@ -116,7 +116,7 @@ describe('P4.7.1 — Image optimization: all Image usages have sizes prop', () =
 
   it('all fill Images in critical components have sizes (no omitted sizes)', () => {
     const files = [
-      'components/menu/FoodDetailModal.tsx',
+      'components/product/ProductDetailView.tsx',
       'components/menu/FoodCard.tsx',
       'components/cart/CartDrawer.tsx',
       'app/page.tsx',
@@ -191,11 +191,9 @@ describe('P4.7.3 — FoodDetailModal lazy chunk', () => {
     expect(content).toContain('<LazyFoodDetailModal')
   })
 
-  it('FoodDetailModal.tsx itself is unchanged (no new deps added)', () => {
+  it('FoodDetailModal.tsx wraps ProductDetailShell (lazy chunk entry preserved)', () => {
     const content = src('components/menu/FoodDetailModal.tsx')
-    expect(content).toContain("from 'framer-motion'")
-    expect(content).toContain("from 'next/image'")
-    // Verify it still exports the component
+    expect(content).toContain('ProductDetailShell')
     expect(content).toContain('export function FoodDetailModal')
   })
 
@@ -416,8 +414,8 @@ describe('P4.7.7 — Bundle splitting & no-duplicate-import checks', () => {
 // ── P4.7.8 — Regression checks ───────────────────────────────────────────────
 
 describe('P4.7.8 — Regression checks', () => {
-  it('FoodDetailModal still imports framer-motion (animation preserved)', () => {
-    const content = src('components/menu/FoodDetailModal.tsx')
+  it('Product detail UI still uses framer-motion (CollapsibleSection)', () => {
+    const content = src('components/ui/CollapsibleSection.tsx')
     expect(content).toContain('framer-motion')
   })
 

@@ -463,7 +463,7 @@ function CheckoutContent() {
               <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 sticky top-24">
                 <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderSummary')}</h2>
 
-                <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                <div className="space-y-3 mb-4 max-h-64 overflow-y-auto scrollbar-thin">
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-3 items-start">
                       <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[var(--card-hover)]">

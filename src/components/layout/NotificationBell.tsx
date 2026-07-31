@@ -201,7 +201,7 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
             </div>
 
             {/* List */}
-            <div className="overflow-y-auto flex-1">
+            <div className="overflow-y-auto flex-1 scrollbar-thin">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <Bell className="w-8 h-8 mb-2 opacity-30" />

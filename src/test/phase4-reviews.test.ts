@@ -87,7 +87,7 @@ describe('hooks/index.ts — P4.3 hooks', () => {
   })
 
   it('useItemReviews is enabled only when itemId truthy', () => {
-    expect(src()).toContain('enabled: Boolean(itemId)')
+    expect(src()).toContain('enabled: enabled && Boolean(itemId)')
   })
 
   it('useCreateReview invalidates reviews query on success', () => {
@@ -96,33 +96,22 @@ describe('hooks/index.ts — P4.3 hooks', () => {
   })
 })
 
-describe('FoodDetailModal.tsx — P4.3 reviews UI', () => {
-  const src = () => readSrc('components/menu/FoodDetailModal.tsx')
+describe('ProductDetailView.tsx — P4.3 reviews UI', () => {
+  const src = () => readSrc('components/product/ProductDetailView.tsx')
 
-  it('imports useItemReviews and useCreateReview', () => {
+  it('imports useItemReviews for review display', () => {
     expect(src()).toContain('useItemReviews')
-    expect(src()).toContain('useCreateReview')
   })
 
-  it('renders reviews toggle button', () => {
-    expect(src()).toContain('Reviews')
+  it('renders reviews section with expand toggle', () => {
+    expect(src()).toContain("t('reviews')")
     expect(src()).toContain('showReviews')
   })
 
-  it('renders review submission form', () => {
-    // P9.5.2: localized via t('writeReview') instead of a literal string.
-    expect(src()).toContain("t('writeReview')")
-    expect(src()).toContain('reviewComment')
-    expect(src()).toContain('reviewRating')
-  })
-
-  it('renders star rating selector for review', () => {
-    expect(src()).toContain('setReviewRating')
-  })
-
-  it('calls handleSubmitReview on submit', () => {
-    expect(src()).toContain('handleSubmitReview')
-    expect(src()).toContain('submitReview')
+  it('does not embed write-review form in purchase flow', () => {
+    expect(src()).not.toContain('useCreateReview')
+    expect(src()).not.toContain('handleSubmitReview')
+    expect(src()).toContain("t('reviewAfterOrder')")
   })
 
   it('shows average_rating from reviewsData', () => {

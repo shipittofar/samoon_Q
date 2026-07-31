@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Minus, Plus, Trash2, Tag, ShoppingBag, ArrowRight } from 'lucide-react'
+import { Trash2, Tag, ShoppingBag, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -11,6 +11,7 @@ import { useValidateDiscount } from '@/hooks'
 import { Drawer } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { Divider } from '@/components/ui'
 import { formatCurrency } from '@/utils'
 import toast from 'react-hot-toast'
@@ -42,23 +43,13 @@ function CartItemRow({ item }: { item: CartItem }) {
           <p className="text-xs text-[var(--fg-subtle)] italic truncate">&quot;{item.notes}&quot;</p>
         )}
         <div className="flex items-center justify-between mt-2">
-          <div className="flex items-center gap-1 rounded-xl border border-[var(--border)] overflow-hidden">
-            <button
-              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-              className="h-7 w-7 flex items-center justify-center text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label={t('decreaseQuantity')}
-            >
-              <Minus className="h-3 w-3" />
-            </button>
-            <span className="w-6 text-center text-sm font-medium text-[var(--fg)]">{item.quantity}</span>
-            <button
-              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-              className="h-7 w-7 flex items-center justify-center text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label={t('increaseQuantity')}
-            >
-              <Plus className="h-3 w-3" />
-            </button>
-          </div>
+          <QuantityStepper
+            size="sm"
+            value={item.quantity}
+            onChange={(q) => updateQuantity(item.id, q)}
+            decreaseLabel={t('decreaseQuantity')}
+            increaseLabel={t('increaseQuantity')}
+          />
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-[var(--fg)]">
               {formatCurrency(item.total_price)}
@@ -140,7 +131,7 @@ export function CartDrawer() {
         ) : (
           <>
             {/* Items */}
-            <div className="flex-1 overflow-y-auto px-4">
+            <div className="flex-1 overflow-y-auto px-4 scrollbar-thin">
               <AnimatePresence mode="popLayout">
                 {items.map((item) => (
                   <CartItemRow key={item.id} item={item} />
