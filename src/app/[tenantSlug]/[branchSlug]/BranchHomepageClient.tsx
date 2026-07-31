@@ -425,7 +425,7 @@ function CategoriesSection({ categories, tenantSlug, branchSlug }: { categories:
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/${tenantSlug}/${branchSlug}/menu?category=${cat.id}`}
+            href={`/${tenantSlug}/${branchSlug}/menu?category=${cat.slug}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)] transition-colors"
           >
             <Tag className="w-3.5 h-3.5" aria-hidden="true" />{cat.name}

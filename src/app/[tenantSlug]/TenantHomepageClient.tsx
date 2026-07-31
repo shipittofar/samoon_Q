@@ -539,7 +539,7 @@ function CategoriesSection({
             // C3: Link instead of non-interactive div
             <Link
               key={cat.id}
-              href={`/${tenantSlug}/${primaryBranchSlug}/menu?category=${cat.slug ?? cat.id}`}
+              href={`/${tenantSlug}/${primaryBranchSlug}/menu?category=${cat.slug}`}
               className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--card-hover)] hover:border-[var(--accent)]/30 transition-colors"
               aria-label={t('browseCategoryAria', { name: cat.name })}
             >
