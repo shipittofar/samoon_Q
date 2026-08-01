@@ -7,7 +7,11 @@ export interface AddressOwnerProfile {
   first_name: string
   last_name: string
   country_code: string
+  /** E.164 phone_number from the authenticated user profile */
+  phone: string
 }
+
+export type AddressProfileField = 'first_name' | 'last_name' | 'country_code' | 'phone'
 
 /** Backend write payload — form fields plus auto-injected owner identity. */
 export interface AddressWriteApiPayload extends UserAddressInput {
@@ -15,6 +19,7 @@ export interface AddressWriteApiPayload extends UserAddressInput {
   first_name: string
   last_name: string
   country_code: string
+  phone: string
 }
 
 export type AddressPatchApiPayload = Partial<UserAddressInput> & {
@@ -22,12 +27,13 @@ export type AddressPatchApiPayload = Partial<UserAddressInput> & {
   first_name?: string
   last_name?: string
   country_code?: string
+  phone?: string
 }
 
 export class AddressProfileIncompleteError extends Error {
-  readonly missing: Array<'first_name' | 'last_name' | 'country_code'>
+  readonly missing: AddressProfileField[]
 
-  constructor(missing: Array<'first_name' | 'last_name' | 'country_code'>) {
+  constructor(missing: AddressProfileField[]) {
     super('Address owner profile is incomplete')
     this.name = 'AddressProfileIncompleteError'
     this.missing = missing
@@ -44,6 +50,11 @@ export function resolveCountryCodeFromUser(user: User | null | undefined): strin
   return match?.dialCode ?? null
 }
 
+export function resolvePhoneFromUser(user: User | null | undefined): string | null {
+  const phone = user?.phone_number?.trim()
+  return phone || null
+}
+
 /**
  * Resolve owner profile from cached auth user.
  * `title` is NOT part of this — it is the address label (see resolveAddressTitle).
@@ -54,19 +65,19 @@ export function resolveAddressOwnerProfile(user: User | null | undefined): Addre
   const first_name = user.first_name?.trim() ?? ''
   const last_name = user.last_name?.trim() ?? ''
   const country_code = resolveCountryCodeFromUser(user) ?? ''
+  const phone = resolvePhoneFromUser(user) ?? ''
 
-  if (!first_name || !last_name || !country_code) return null
+  if (!first_name || !last_name || !country_code || !phone) return null
 
-  return { first_name, last_name, country_code }
+  return { first_name, last_name, country_code, phone }
 }
 
-export function getMissingAddressOwnerFields(
-  user: User | null | undefined,
-): Array<'first_name' | 'last_name' | 'country_code'> {
-  const missing: Array<'first_name' | 'last_name' | 'country_code'> = []
+export function getMissingAddressOwnerFields(user: User | null | undefined): AddressProfileField[] {
+  const missing: AddressProfileField[] = []
   if (!user?.first_name?.trim()) missing.push('first_name')
   if (!user?.last_name?.trim()) missing.push('last_name')
   if (!resolveCountryCodeFromUser(user)) missing.push('country_code')
+  if (!resolvePhoneFromUser(user)) missing.push('phone')
   return missing
 }
 
@@ -84,12 +95,14 @@ export function buildAddressCreatePayload(
   input: UserAddressInput,
   profile: AddressOwnerProfile,
 ): AddressWriteApiPayload {
+  const { phone: _formPhone, ...addressFields } = input
   return {
-    ...input,
+    ...addressFields,
     title: resolveAddressTitle(input),
     first_name: profile.first_name,
     last_name: profile.last_name,
     country_code: profile.country_code,
+    phone: profile.phone,
   }
 }
 
@@ -101,13 +114,15 @@ export function buildAddressUpdatePayload(
   const address_type = input.address_type ?? existing?.address_type ?? 'other'
   const custom_label =
     input.custom_label !== undefined ? input.custom_label : existing?.custom_label
+  const { phone: _formPhone, ...addressFields } = input
 
   return {
-    ...input,
+    ...addressFields,
     title: resolveAddressTitle({ address_type, custom_label }),
     first_name: profile.first_name,
     last_name: profile.last_name,
     country_code: profile.country_code,
+    phone: profile.phone,
   }
 }
 

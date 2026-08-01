@@ -347,6 +347,13 @@
     "failedToDelete": "Failed to delete address",
     "failedToRestore": "Failed to restore address",
     "profileIncomplete": "Please complete your profile (name and phone number) in Settings before saving an address.",
+    "profileIncompleteTitle": "Profile incomplete",
+    "goToSettings": "Go to Settings",
+    "sections": {
+      "required": "Required Information",
+      "requiredDesc": "Fields needed for delivery",
+      "additional": "Additional Information"
+    },
     "undoDelete": "Address deleted.",
     "formattedAddress": "Formatted Address",
     "coordinates": "Coordinates",
@@ -395,10 +402,13 @@
     },
     "map": {
       "useCurrentLocation": "Use current location",
+      "locationLabel": "Location on map",
       "latitude": "Latitude",
       "longitude": "Longitude",
       "mapPreview": "Map preview",
       "noCoordinates": "Set coordinates or use current location",
+      "noCoordinatesTitle": "No location set",
+      "noCoordinatesHint": "Use your current location or enter coordinates in Additional Information",
       "geolocationUnsupported": "Geolocation is not supported in this browser",
       "geolocationDenied": "Location permission denied"
     },

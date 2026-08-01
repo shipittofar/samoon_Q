@@ -347,6 +347,13 @@
     "failedToDelete": "فشل حذف العنوان",
     "failedToRestore": "فشل استعادة العنوان",
     "profileIncomplete": "يرجى إكمال ملفك الشخصي (الاسم ورقم الهاتف) في الإعدادات قبل حفظ عنوان.",
+    "profileIncompleteTitle": "الملف الشخصي غير مكتمل",
+    "goToSettings": "الذهاب إلى الإعدادات",
+    "sections": {
+      "required": "المعلومات المطلوبة",
+      "requiredDesc": "الحقول اللازمة للتوصيل",
+      "additional": "معلومات إضافية"
+    },
     "undoDelete": "تم حذف العنوان.",
     "formattedAddress": "العنوان المنسق",
     "coordinates": "الإحداثيات",
@@ -384,10 +391,13 @@
     },
     "map": {
       "useCurrentLocation": "استخدام الموقع الحالي",
+      "locationLabel": "الموقع على الخريطة",
       "latitude": "خط العرض",
       "longitude": "خط الطول",
       "mapPreview": "معاينة الخريطة",
       "noCoordinates": "حدد الإحداثيات",
+      "noCoordinatesTitle": "لم يتم تحديد موقع",
+      "noCoordinatesHint": "استخدم موقعك الحالي أو أدخل الإحداثيات في المعلومات الإضافية",
       "geolocationUnsupported": "تحديد الموقع غير مدعوم",
       "geolocationDenied": "تم رفض إذن الموقع"
     },

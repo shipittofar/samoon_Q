@@ -347,6 +347,13 @@
     "failedToDelete": "حذف آدرس ناموفق بود",
     "failedToRestore": "بازیابی آدرس ناموفق بود",
     "profileIncomplete": "لطفاً قبل از ذخیره آدرس، نام و شماره تلفن خود را در تنظیمات تکمیل کنید.",
+    "profileIncompleteTitle": "پروفایل ناقص است",
+    "goToSettings": "رفتن به تنظیمات",
+    "sections": {
+      "required": "اطلاعات ضروری",
+      "requiredDesc": "فیلدهای لازم برای تحویل",
+      "additional": "اطلاعات تکمیلی"
+    },
     "undoDelete": "آدرس حذف شد.",
     "formattedAddress": "آدرس قالب‌بندی‌شده",
     "coordinates": "مختصات",
@@ -384,10 +391,13 @@
     },
     "map": {
       "useCurrentLocation": "استفاده از موقعیت فعلی",
+      "locationLabel": "موقعیت روی نقشه",
       "latitude": "عرض جغرافیایی",
       "longitude": "طول جغرافیایی",
       "mapPreview": "پیش‌نمایش نقشه",
       "noCoordinates": "مختصات را تنظیم کنید",
+      "noCoordinatesTitle": "موقعیتی تنظیم نشده",
+      "noCoordinatesHint": "از موقعیت فعلی استفاده کنید یا مختصات را در بخش اطلاعات تکمیلی وارد کنید",
       "geolocationUnsupported": "موقعیت‌یابی پشتیبانی نمی‌شود",
       "geolocationDenied": "دسترسی به موقعیت رد شد"
     },

@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import Image from 'next/image'
 import { MapPin, Navigation } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
 import { cn } from '@/utils'
 
 export interface MapSelectorProps {
@@ -15,26 +15,32 @@ export interface MapSelectorProps {
   disabled?: boolean
 }
 
+function isValidCoord(lat: number | null | undefined, lng: number | null | undefined): lat is number {
+  return lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng)
+}
+
+/** Static OSM tile preview — avoids iframe/X-Frame blocking and works in modals. */
+function buildStaticMapUrl(lat: number, lng: number, zoom = 15): string {
+  const size = '640x320'
+  const markers = `${lat},${lng},red-pushpin`
+  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=${zoom}&size=${size}&markers=${markers}`
+}
+
 export function MapSelector({ latitude, longitude, onChange, className, disabled }: MapSelectorProps) {
   const t = useTranslations('address.map')
-  const [latInput, setLatInput] = useState(latitude?.toString() ?? '')
-  const [lngInput, setLngInput] = useState(longitude?.toString() ?? '')
   const [locating, setLocating] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
+  const [mapError, setMapError] = useState(false)
 
-  useEffect(() => {
-    setLatInput(latitude?.toString() ?? '')
-    setLngInput(longitude?.toString() ?? '')
-  }, [latitude, longitude])
-
-  const lat = latitude ?? (latInput ? parseFloat(latInput) : null)
-  const lng = longitude ?? (lngInput ? parseFloat(lngInput) : null)
-  const hasCoords = lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng)
+  const hasCoords = isValidCoord(latitude, longitude)
+  const mapUrl = useMemo(
+    () => (hasCoords ? buildStaticMapUrl(latitude, longitude) : null),
+    [hasCoords, latitude, longitude],
+  )
 
   const applyCoords = useCallback(
     (la: number, ln: number) => {
-      setLatInput(la.toFixed(6))
-      setLngInput(ln.toFixed(6))
+      setMapError(false)
       onChange({ latitude: la, longitude: ln })
     },
     [onChange],
@@ -60,13 +66,10 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
     )
   }
 
-  const mapUrl = hasCoords
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng! - 0.01}%2C${lat! - 0.01}%2C${lng! + 0.01}%2C${lat! + 0.01}&layer=mapnik&marker=${lat}%2C${lng}`
-    : null
-
   return (
     <div className={cn('space-y-3', className)}>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-medium text-[var(--fg)]">{t('locationLabel')}</p>
         <Button
           type="button"
           variant="secondary"
@@ -80,52 +83,54 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Input
-          label={t('latitude')}
-          type="number"
-          step="any"
-          value={latInput}
-          onChange={(e) => {
-            setLatInput(e.target.value)
-            const v = parseFloat(e.target.value)
-            const ln = parseFloat(lngInput)
-            if (!Number.isNaN(v) && !Number.isNaN(ln)) onChange({ latitude: v, longitude: ln })
-          }}
-          disabled={disabled}
-        />
-        <Input
-          label={t('longitude')}
-          type="number"
-          step="any"
-          value={lngInput}
-          onChange={(e) => {
-            setLngInput(e.target.value)
-            const v = parseFloat(e.target.value)
-            const la = parseFloat(latInput)
-            if (!Number.isNaN(v) && !Number.isNaN(la)) onChange({ latitude: la, longitude: v })
-          }}
-          disabled={disabled}
-        />
-      </div>
-
-      {geoError && <p className="text-xs text-red-500" role="alert">{geoError}</p>}
+      {geoError && (
+        <p className="text-xs text-red-500" role="alert">{geoError}</p>
+      )}
 
       <div
-        className="relative rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--card-hover)] aspect-video"
+        className="relative rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--card-hover)] aspect-[2/1] min-h-[180px]"
         aria-label={t('mapPreview')}
       >
-        {mapUrl ? (
-          <iframe
-            title={t('mapPreview')}
-            src={mapUrl}
-            className="w-full h-full min-h-[200px] border-0"
-            loading="lazy"
-          />
+        {hasCoords && mapUrl && !mapError ? (
+          <>
+            <Image
+              src={mapUrl}
+              alt={t('mapPreview')}
+              fill
+              unoptimized
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 640px"
+              onError={() => setMapError(true)}
+            />
+            {/* Pin overlay — visible even if tile marker fails */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+              <div className="relative -mt-8">
+                <MapPin className="h-10 w-10 text-orange-500 drop-shadow-lg" fill="currentColor" strokeWidth={1.5} />
+              </div>
+            </div>
+            <div className="absolute bottom-2 start-2 end-2 rounded-lg bg-[var(--card)]/90 backdrop-blur-sm border border-[var(--border)] px-3 py-1.5 text-xs font-mono text-[var(--fg-muted)]">
+              {latitude.toFixed(5)}, {longitude.toFixed(5)}
+            </div>
+          </>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-[var(--fg-muted)] gap-2">
-            <MapPin className="h-8 w-8 text-[var(--fg-subtle)]" />
-            <p className="text-sm">{t('noCoordinates')}</p>
+          <div className="flex flex-col items-center justify-center h-full min-h-[180px] text-center px-6 gap-3">
+            <div className="h-14 w-14 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-center">
+              <MapPin className="h-7 w-7 text-[var(--fg-subtle)]" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[var(--fg)]">{t('noCoordinatesTitle')}</p>
+              <p className="text-xs text-[var(--fg-muted)] mt-1">{t('noCoordinatesHint')}</p>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={handleCurrentLocation}
+              loading={locating}
+              disabled={disabled}
+            >
+              {t('useCurrentLocation')}
+            </Button>
           </div>
         )}
       </div>

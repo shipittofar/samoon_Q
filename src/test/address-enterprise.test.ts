@@ -5,10 +5,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { filterMockAddresses, mockServiceability } from '@/lib/address-mock-data'
-import { buildAddressCreatePayload } from '@/lib/address-profile'
+import {
+  buildAddressCreatePayload,
+  getMissingAddressOwnerFields,
+  resolvePhoneFromUser,
+} from '@/lib/address-profile'
 import { userAddressSchema } from '@/lib/address-validation'
 import { addressService } from '@/services/address.service'
 import { serviceabilityService } from '@/services/serviceability.service'
+import type { User } from '@/types'
 
 vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
 vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:8000/api')
@@ -16,48 +21,73 @@ vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:8000/api')
 const ROOT = path.join(__dirname, '..', '..')
 const readSrc = (rel: string) => fs.readFileSync(path.join(ROOT, 'src', rel), 'utf-8')
 
+const validForm = {
+  address_type: 'home' as const,
+  country: 'US',
+  province: 'NY',
+  city: 'New York',
+  district: 'Manhattan',
+  street: 'Main St',
+  postal_code: '10001',
+}
+
+const ownerProfile = {
+  first_name: 'John',
+  last_name: 'Doe',
+  country_code: '+1',
+  phone: '+15551234567',
+}
+
 describe('address types and validation', () => {
-  it('userAddressSchema requires street and city', () => {
+  it('userAddressSchema requires street, city, province, district, and postal_code', () => {
     const result = userAddressSchema.safeParse({
       address_type: 'home',
       country: 'US',
       city: '',
       street: '',
+      province: '',
+      district: '',
+      postal_code: '',
     })
     expect(result.success).toBe(false)
   })
 
+  it('userAddressSchema rejects empty postal_code', () => {
+    const result = userAddressSchema.safeParse({ ...validForm, postal_code: '' })
+    expect(result.success).toBe(false)
+  })
+
   it('userAddressSchema accepts valid payload', () => {
-    const result = userAddressSchema.safeParse({
-      address_type: 'home',
-      country: 'US',
-      city: 'New York',
-      street: 'Main St',
-    })
+    const result = userAddressSchema.safeParse(validForm)
     expect(result.success).toBe(true)
   })
 })
 
 describe('address profile injection', () => {
-  it('maps title from address type and injects owner profile', async () => {
+  it('maps title from address type and injects owner profile including phone', async () => {
     const { resolveAddressTitle, buildAddressCreatePayload } = await import('@/lib/address-profile')
     expect(resolveAddressTitle({ address_type: 'home', custom_label: '' })).toBe('Home')
     expect(resolveAddressTitle({ address_type: 'work', custom_label: 'Office HQ' })).toBe('Office HQ')
 
     const payload = buildAddressCreatePayload(
-      { address_type: 'home', country: 'US', city: 'NYC', street: 'Main' },
-      { first_name: 'John', last_name: 'Doe', country_code: '+1' },
+      { address_type: 'home', country: 'US', city: 'NYC', street: 'Main', province: 'NY', district: 'Downtown', postal_code: '10001' },
+      ownerProfile,
     )
     expect(payload.title).toBe('Home')
     expect(payload.first_name).toBe('John')
     expect(payload.last_name).toBe('Doe')
     expect(payload.country_code).toBe('+1')
+    expect(payload.phone).toBe('+15551234567')
+  })
+
+  it('flags missing phone in profile', () => {
+    const user = { id: '1', phone_number: '', first_name: 'Jane', last_name: 'Doe' } as User
+    expect(resolvePhoneFromUser(user)).toBeNull()
+    expect(getMissingAddressOwnerFields(user)).toContain('phone')
   })
 })
 
 describe('address.service mock CRUD', () => {
-  const ownerProfile = { first_name: 'John', last_name: 'Doe', country_code: '+1' }
-
   beforeEach(() => {
     addressService._resetMockStore()
   })
@@ -71,11 +101,11 @@ describe('address.service mock CRUD', () => {
   it('creates address with formatted_address', async () => {
     const created = await addressService.create(
       buildAddressCreatePayload(
-        { address_type: 'home', country: 'US', city: 'Boston', street: 'Beacon St', building_number: '1' },
+        { ...validForm, building_number: '1' },
         ownerProfile,
       ),
     )
-    expect(created.formatted_address).toContain('Beacon St')
+    expect(created.formatted_address).toContain('Main St')
     expect(created.verification_status).toBe('pending')
   })
 
@@ -185,5 +215,20 @@ describe('hooks export address mutations', () => {
     expect(src).toContain('useUpdateAddress')
     expect(src).toContain('useSetDefaultAddress')
     expect(src).toContain('useCheckServiceability')
+  })
+})
+
+describe('address form UX', () => {
+  const formSrc = () => readSrc('components/address/AddressForm.tsx')
+
+  it('does not render a phone input', () => {
+    expect(formSrc()).not.toMatch(/label=\{t\('phone'\)\}/)
+  })
+
+  it('uses collapsible additional section and required postal code', () => {
+    expect(formSrc()).toContain('CollapsibleSection')
+    expect(formSrc()).toContain("sections.required")
+    expect(formSrc()).toContain("register('postal_code')")
+    expect(formSrc()).toContain("mode: 'onChange'")
   })
 })
