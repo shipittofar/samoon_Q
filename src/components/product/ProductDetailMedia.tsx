@@ -10,6 +10,7 @@ import type { MenuItem } from '@/types'
 interface ProductDetailMediaProps {
   item: MenuItem
   favorited: boolean
+  favoritePending?: boolean
   onFavorite: () => void
   onClose?: () => void
   favoriteLabel: string
@@ -27,6 +28,7 @@ interface ProductDetailMediaProps {
 export function ProductDetailMedia({
   item,
   favorited,
+  favoritePending = false,
   onFavorite,
   onClose,
   favoriteLabel,
@@ -80,12 +82,15 @@ export function ProductDetailMedia({
           <button
             type="button"
             onClick={onFavorite}
+            disabled={favoritePending}
             className={cn(
               'h-9 w-9 rounded-full flex items-center justify-center transition-all shadow-[var(--shadow-soft)]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2',
               favorited ? 'bg-red-500 text-white' : 'bg-white/80 backdrop-blur-sm text-[var(--fg-muted)] hover:bg-white',
+              favoritePending && 'opacity-70 cursor-wait',
             )}
             aria-label={favorited ? unfavoriteLabel : favoriteLabel}
+            aria-busy={favoritePending}
           >
             <Heart className={cn('h-4 w-4', favorited && 'fill-current')} />
           </button>

@@ -292,8 +292,8 @@ describe('Regression — user-related hooks', () => {
     expect(hooks).toMatch(/export function useAddresses/)
   })
 
-  it('useFavorites hook still present', () => {
-    expect(hooks).toMatch(/export function useFavorites/)
+  it('useFavoritesList hook still exported', () => {
+    expect(hooks).toMatch(/useFavoritesList/)
   })
 })
 

@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Star, Clock, Flame, AlertTriangle } from 'lucide-react'
-import { useCartStore, useFavoritesStore } from '@/stores'
+import { useCartStore } from '@/stores'
 import {
-  useToggleFavorite,
+  useFavoriteAction,
   useRelatedItems,
   useItemReviews,
   useActiveBranchId,
@@ -57,8 +57,7 @@ export function ProductDetailView({
   const [isLg, setIsLg] = useState(false)
 
   const { addItem } = useCartStore()
-  const { isFavorite, toggleFavorite } = useFavoritesStore()
-  const { mutate: toggleFav } = useToggleFavorite()
+  const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const activeBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? activeBranchId
 
@@ -91,7 +90,6 @@ export function ProductDetailView({
   const extrasTotal = selectedExtras.reduce((s, e) => s + e.price, 0)
   const unitPrice = discountedPrice + extrasTotal
   const totalPrice = unitPrice * quantity
-  const favorited = isFavorite(item.id)
   const assignedGroups = getAssignedExtraGroups(extraGroups, item.extra_group_ids)
   const ratingBreakdown = reviewsData?.results.length
     ? buildRatingBreakdownFromReviews(reviewsData.results)
@@ -169,11 +167,6 @@ export function ProductDetailView({
     }
   }
 
-  const handleFavorite = () => {
-    toggleFavorite(item.id)
-    toggleFav(item.id)
-  }
-
   const previewReviews = reviewsData?.results.slice(0, 2) ?? []
   const showDetailsTab = !isLg || desktopTab === 'details'
   const showCustomizeTab = !isLg || desktopTab === 'customize'
@@ -188,6 +181,7 @@ export function ProductDetailView({
           <ProductDetailMedia
             item={item}
             favorited={favorited}
+            favoritePending={isPending}
             onFavorite={handleFavorite}
             onClose={onClose}
             favoriteLabel={t('addToFavorites')}

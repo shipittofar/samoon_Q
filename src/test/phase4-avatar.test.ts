@@ -252,11 +252,15 @@ describe('Regression: existing service flows unaffected by P4.7', () => {
     expect(result.first_name).toBe('Jane')
   })
 
-  it('getFavorites still returns array', async () => {
-    const p = userService.getFavorites()
+  it('getFavorites returns FavoritesListResponse envelope', async () => {
+    const { favoritesService } = await import('@/services/favorites.service')
+    const p = favoritesService.getFavorites()
     await vi.runAllTimersAsync()
     const result = await p
-    expect(Array.isArray(result)).toBe(true)
+    expect(result).toHaveProperty('results')
+    expect(result).toHaveProperty('count')
+    expect(result).toHaveProperty('sync')
+    expect(Array.isArray(result.results)).toBe(true)
   })
 })
 

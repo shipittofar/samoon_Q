@@ -5,10 +5,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
-import { useAuthStore, useThemeStore, useLangStore, useFavoritesStore, useTenantStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
+import { useAuthStore, useThemeStore, useLangStore, useTenantStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { authService } from '@/services/auth.service'
 import { getAccessToken, clearTokens } from '@/services/axios.instance'
-import { userService } from '@/services/combined.service'
+import { prefetchFavoritesList, useFavoritesSync } from '@/hooks/favorites'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useNotificationWebSocket, useFcmRegistration } from '@/hooks/client'
 import { STALE_TIME, CACHE_TIME } from '@/constants'
@@ -365,9 +365,13 @@ function FcmRegistrationProvider({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function FavoritesSyncProvider({ children }: { children: ReactNode }) {
+  useFavoritesSync()
+  return <>{children}</>
+}
+
 function AuthBootstrapper({ children }: { children: ReactNode }) {
   const { setUser, setLoading, setSessionCheckFailed } = useAuthStore()
-  const setFavorites = useFavoritesStore((s) => s.setFavorites)
   const qc = useQueryClient()
   const booted = useRef(false)
   // TenantBootstrapper and AuthBootstrapper are unordered sibling effects —
@@ -488,7 +492,6 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     useBranchStore.getState().resetBranchResolution()
     useCartStore.getState().clearCart()
     useDineInStore.getState().clearTable()
-    useFavoritesStore.getState().setFavorites([])
     useRecentlyViewedStore.getState().clear()
     qc.clear()
   }
@@ -569,7 +572,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // fields used to feed entirely. The fields remain on the
       // AuthSessionRbacPayload contract only for forward compatibility with
       // a future backend that might use them server-side.
-      userService.getFavorites().then(setFavorites).catch(() => {})
+      void prefetchFavoritesList(qc)
     }).catch((err: unknown) => {
       // P10.10 — distinguish "session is actually invalid" from "backend
       // is temporarily unreachable." Per docs/P10.10_AUTH_BACKEND_API_CONTRACT.md
@@ -594,7 +597,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     booted.current = true
     checkSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setUser, setLoading, setFavorites])
+  }, [setUser, setLoading])
 
   // Phase 7 — mirrors the 'auth:logout' listener above: a plain
   // (unguarded) effect so retry works correctly under React 18 StrictMode's
@@ -625,6 +628,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <BranchResolutionBootstrapper>
             <TenantThemeProvider>
               <AuthBootstrapper>
+                <FavoritesSyncProvider>
                 <PostLoginRedirectHandler>
                 <ConsoleWorkspaceBootstrapper>
                 <FcmRegistrationProvider>
@@ -639,6 +643,7 @@ export function Providers({ children }: { children: ReactNode }) {
                 </FcmRegistrationProvider>
                 </ConsoleWorkspaceBootstrapper>
                 </PostLoginRedirectHandler>
+                </FavoritesSyncProvider>
               </AuthBootstrapper>
             </TenantThemeProvider>
             </BranchResolutionBootstrapper>

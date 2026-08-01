@@ -54,7 +54,7 @@ import type {
   ChannelPreference,
   NotificationPriority,
 } from '@/types/notification'
-import { useAuthStore, useFavoritesStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
+import { useAuthStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { dispatchPostLoginRedirect } from '@/lib/post-auth-navigation'
 import {
@@ -74,6 +74,19 @@ import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_F
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
 import { reviewService } from '@/services/review.service'
+import {
+  favoritesKeys,
+  prefetchFavoritesList,
+  useFavoritesList,
+  useFavoritesQuery,
+  useFavoritesSync,
+  useAddFavorite,
+  useRemoveFavorite,
+  useIsFavorite,
+  useFavoriteAction,
+  useRefreshFavorites,
+  type UseFavoritesListResult,
+} from './favorites'
 import type { MenuFilters, ConsoleMenuItemsParams, ConsoleMenuTagsParams } from '@/services/menu.service'
 import type { CreateOrderPayload } from '@/services/order.service'
 import type { CreatePaymentIntentPayload } from '@/services/payment.service'
@@ -672,7 +685,6 @@ export function useLogout() {
       useBranchStore.getState().setAdminActiveBranch(null)
       useCartStore.getState().clearCart()
       useDineInStore.getState().clearTable()
-      useFavoritesStore.getState().setFavorites([])
       useRecentlyViewedStore.getState().clear()
       qc.clear()
     },
@@ -1458,26 +1470,18 @@ export function useAddresses() {
   })
 }
 
-export function useFavorites() {
-  const setFavorites = useFavoritesStore((s) => s.setFavorites)
-  return useQuery({
-    queryKey: ['favorites'],
-    queryFn: async () => {
-      const ids = await userService.getFavorites()
-      setFavorites(ids)
-      return ids
-    },
-    staleTime: STALE_TIME,
-  })
-}
-
-export function useToggleFavorite() {
-  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite)
-  return useMutation({
-    mutationFn: (itemId: string) => userService.toggleFavorite(itemId),
-    onMutate: (itemId) => toggleFavorite(itemId), // optimistic
-    onError: (_err, itemId) => toggleFavorite(itemId), // rollback
-  })
+export {
+  favoritesKeys,
+  prefetchFavoritesList,
+  useFavoritesList,
+  useFavoritesQuery,
+  useFavoritesSync,
+  useAddFavorite,
+  useRemoveFavorite,
+  useIsFavorite,
+  useFavoriteAction,
+  useRefreshFavorites,
+  type UseFavoritesListResult,
 }
 
 // P4.8 — Locale switching with server-side re-render trigger

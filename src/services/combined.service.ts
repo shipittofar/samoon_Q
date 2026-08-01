@@ -182,24 +182,6 @@ export const userService = {
     await api.delete(ENDPOINTS.USERS.ADDRESS(id))
   },
 
-  async getFavorites(): Promise<string[]> {
-    if (USE_MOCK) {
-      await delay(300)
-      return ['1', '8', '12']
-    }
-    const { data } = await api.get<string[]>(ENDPOINTS.USERS.FAVORITES)
-    return data
-  },
-
-  async toggleFavorite(itemId: string): Promise<{ favorited: boolean }> {
-    if (USE_MOCK) {
-      await delay(300)
-      return { favorited: Math.random() > 0.5 }
-    }
-    const { data } = await api.post<{ favorited: boolean }>(ENDPOINTS.USERS.TOGGLE_FAVORITE(itemId))
-    return data
-  },
-
   async uploadAvatar(file: File): Promise<{ avatar_url: string }> {
     const validation = validateMenuImageFile(file)
     if (!validation.valid) {

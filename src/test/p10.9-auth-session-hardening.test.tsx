@@ -20,7 +20,6 @@ import {
   useBranchStore,
   useCartStore,
   useDineInStore,
-  useFavoritesStore,
   useRecentlyViewedStore,
 } from '@/stores'
 import { resolveOwnershipIdentity } from '@/services/ownership-resolution.service'
@@ -46,7 +45,6 @@ function clearSession(qc: QueryClient) {
   useBranchStore.getState().setAdminActiveBranch(null)
   useCartStore.getState().clearCart()
   useDineInStore.getState().clearTable()
-  useFavoritesStore.getState().setFavorites([])
   useRecentlyViewedStore.getState().clear()
   qc.clear()
 }
@@ -58,7 +56,6 @@ function explicitLogout(qc: QueryClient) {
   useBranchStore.getState().setAdminActiveBranch(null)
   useCartStore.getState().clearCart()
   useDineInStore.getState().clearTable()
-  useFavoritesStore.getState().setFavorites([])
   useRecentlyViewedStore.getState().clear()
   qc.clear()
 }

@@ -12,7 +12,8 @@
 // ============================================================
 import { describe, it, expect, beforeEach } from 'vitest'
 import { QueryClient } from '@tanstack/react-query'
-import { useRbacStore, useCartStore, useFavoritesStore, useRecentlyViewedStore, useDineInStore, useBranchStore } from '@/stores'
+import { favoritesKeys } from '@/hooks/favorites'
+import { useRbacStore, useCartStore, useRecentlyViewedStore, useDineInStore, useBranchStore } from '@/stores'
 
 function populateTenantAState(qc: QueryClient) {
   qc.setQueryData(['admin-orders', 'tenant-A', {}], [{ id: 'order-a-1' }])
@@ -20,10 +21,14 @@ function populateTenantAState(qc: QueryClient) {
   qc.setQueryData(['branch-orders', 'branch-A-01'], [{ id: 'order-a-branch-1' }])
   qc.setQueryData(['staff', 'tenant-A'], [{ id: 'staff-a-1' }])
   qc.setQueryData(['operations-dashboard', 'tenant-A', 'branch-A-01'], { snapshot: 'tenant-a-data' })
+  qc.setQueryData(favoritesKeys.list(), {
+    sync: { version: '1' },
+    count: 1,
+    results: [{ id: 'fav-a-1', menu_item: { id: 'item-a-1' } }],
+  })
 
   useCartStore.setState({ items: [{ id: 'item-a-1', quantity: 2 }] } as never)
   useDineInStore.getState().setTableNumber(42)
-  useFavoritesStore.getState().setFavorites(['fav-a-1', 'fav-a-2'])
   useRecentlyViewedStore.setState({ items: [{ id: 'viewed-a-1' }] } as never)
   useBranchStore.getState().setAdminActiveBranch({ id: 'branch-A-01' } as never)
   useRbacStore.setState({
@@ -40,7 +45,6 @@ function simulateLogoutCleanup(qc: QueryClient) {
   useBranchStore.getState().setAdminActiveBranch(null)
   useCartStore.getState().clearCart()
   useDineInStore.getState().clearTable()
-  useFavoritesStore.getState().setFavorites([])
   useRecentlyViewedStore.getState().clear()
   qc.clear()
 }
@@ -50,7 +54,6 @@ function simulateTenantSwitchCleanup(qc: QueryClient) {
   useBranchStore.getState().setAdminActiveBranch(null)
   useCartStore.getState().clearCart()
   useDineInStore.getState().clearTable()
-  useFavoritesStore.getState().setFavorites([])
   useRecentlyViewedStore.getState().clear()
   qc.clear()
 }
@@ -76,13 +79,13 @@ describe('P10.3.2 Phase J — Cache Isolation Proof: Scenario 1 (Tenant A → lo
     expect(qc.getQueryCache().getAll()).toHaveLength(0)
   })
 
-  it('no Tenant A cart/favorites/dine-in/branch/RBAC state remains after logout', () => {
+  it('no Tenant A cart/dine-in/favorites-query/branch/RBAC state remains after logout', () => {
     populateTenantAState(qc)
     simulateLogoutCleanup(qc)
 
     expect(useCartStore.getState().items).toEqual([])
     expect(useDineInStore.getState().tableNumber).toBeNull()
-    expect(useFavoritesStore.getState().favorites.size).toBe(0)
+    expect(qc.getQueryData(favoritesKeys.list())).toBeUndefined()
     expect(useRecentlyViewedStore.getState().items).toEqual([])
     expect(useBranchStore.getState().adminActiveBranch).toBeNull()
     expect(useRbacStore.getState().tenantRoles).toEqual([])

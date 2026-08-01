@@ -5,8 +5,8 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Heart, Plus, Clock, Flame, Star } from 'lucide-react'
-import { useCartStore, useFavoritesStore, useRecentlyViewedStore } from '@/stores'
-import { useToggleFavorite } from '@/hooks'
+import { useCartStore, useRecentlyViewedStore } from '@/stores'
+import { useFavoriteAction } from '@/hooks'
 import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -22,13 +22,11 @@ interface FoodCardProps {
 export function FoodCard({ item, onOpenDetail, compact = false, className }: FoodCardProps) {
   const t = useTranslations('menu')
   const { addItem } = useCartStore()
-  const { isFavorite, toggleFavorite } = useFavoritesStore()
-  const { mutate: toggleFav } = useToggleFavorite()
+  const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
   const [addedAnim, setAddedAnim] = useState(false)
 
   const discountedPrice = item.discount ? getDiscountedPrice(item.price, item.discount) : item.price
-  const favorited = isFavorite(item.id)
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -42,10 +40,8 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
     setTimeout(() => setAddedAnim(false), 1200)
   }
 
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    toggleFavorite(item.id)
-    toggleFav(item.id)
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    handleFavorite(e)
   }
 
   const handleClick = () => {
@@ -138,14 +134,18 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
 
         {/* Favorite */}
         <button
-          onClick={handleFavorite}
+          type="button"
+          onClick={handleFavoriteClick}
+          disabled={isPending}
           className={cn(
             'absolute top-3 end-3 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg',
             favorited
               ? 'bg-red-500 text-white scale-110'
               : 'bg-white/80 backdrop-blur-sm text-gray-500 hover:bg-white hover:text-red-500',
+            isPending && 'opacity-70 cursor-wait',
           )}
           aria-label={favorited ? t('removeFromFavorites') : t('addToFavorites')}
+          aria-busy={isPending}
         >
           <Heart className={cn('h-4 w-4', favorited && 'fill-current')} />
         </button>

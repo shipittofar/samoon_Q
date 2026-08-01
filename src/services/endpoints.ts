@@ -121,7 +121,8 @@ export const ENDPOINTS = {
     ADDRESSES: '/users/addresses/',
     ADDRESS: (id: string) => `/users/addresses/${id}/`,
     FAVORITES: '/users/favorites/',
-    TOGGLE_FAVORITE: (itemId: string) => `/users/favorites/${itemId}/`,
+    FAVORITES_SYNC: '/users/favorites/sync/',
+    FAVORITE: (menuItemId: string) => `/users/favorites/${menuItemId}/`,
   },
 
   // Tenants (Phase 1A — P1A.1 / P6.14 — Provisioning / P6.15 — Management)

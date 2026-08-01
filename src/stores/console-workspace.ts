@@ -10,7 +10,6 @@ import { useBranchStore } from '@/stores/index'
 import { useRbacStore } from '@/stores/index'
 import { useCartStore } from '@/stores/index'
 import { useDineInStore } from '@/stores/index'
-import { useFavoritesStore } from '@/stores/index'
 import { useRecentlyViewedStore } from '@/stores/index'
 
 export type ConsoleWorkspacePhase = 'idle' | 'initializing' | 'switching_tenant' | 'switching_branch' | 'ready' | 'error'
@@ -45,7 +44,6 @@ function clearTenantScopedClientState() {
   useRbacStore.getState().clearCurrentTenantSession()
   useCartStore.getState().clearCart()
   useDineInStore.getState().clearTable()
-  useFavoritesStore.getState().setFavorites([])
   useRecentlyViewedStore.getState().clear()
 }
 

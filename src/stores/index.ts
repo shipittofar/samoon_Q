@@ -621,49 +621,6 @@ export const useNotificationStore = create<NotificationState>()((set, get) => ({
     })),
 }))
 
-// ── Favorites Store ───────────────────────────────────────────────────────────
-interface FavoritesState {
-  favorites: Set<string>
-  toggleFavorite: (id: string) => void
-  isFavorite: (id: string) => boolean
-  setFavorites: (ids: string[]) => void
-}
-
-export const useFavoritesStore = create<FavoritesState>()(
-  persist(
-    (set, get) => ({
-      favorites: new Set<string>(),
-      toggleFavorite: (id) =>
-        set((s) => {
-          const next = new Set(s.favorites)
-          next.has(id) ? next.delete(id) : next.add(id)
-          return { favorites: next }
-        }),
-      isFavorite: (id) => get().favorites.has(id),
-      setFavorites: (ids) => set({ favorites: new Set(ids) }),
-    }),
-    {
-      name: 'samoon-favorites',
-      storage: {
-        getItem: (name) => {
-          const str = localStorage.getItem(name)
-          if (!str) return null
-          const { state, version } = JSON.parse(str)
-          return { state: { ...state, favorites: new Set(state.favorites) }, version }
-        },
-        setItem: (name, value) => {
-          const str = JSON.stringify({
-            ...value,
-            state: { ...value.state, favorites: Array.from(value.state.favorites) },
-          })
-          localStorage.setItem(name, str)
-        },
-        removeItem: (name) => localStorage.removeItem(name),
-      },
-    },
-  ),
-)
-
 // ── Recently Viewed ───────────────────────────────────────────────────────────
 interface RecentlyViewedState {
   items: MenuItem[]
