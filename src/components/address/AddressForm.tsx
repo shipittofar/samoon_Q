@@ -14,6 +14,7 @@ import { AddressSuggestionTile } from './AddressSuggestionTile'
 import { useAddressSuggestions } from '@/hooks/address'
 import { useAddressOwnerProfile } from '@/hooks/useAddressOwnerProfile'
 import { ADDRESS_TYPES, userAddressSchema, type UserAddressFormData } from '@/lib/address-validation'
+import { hasOptionalAddressData, sanitizeAddressInput } from '@/lib/address-fields'
 import { getMissingAddressOwnerFields } from '@/lib/address-profile'
 import type { AddressSuggestion, UserAddress, UserAddressInput } from '@/types/address'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
@@ -76,7 +77,7 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
   const { authUser } = useAddressOwnerProfile()
 
   const [suggestionQuery, setSuggestionQuery] = useState('')
-  const [additionalOpen, setAdditionalOpen] = useState(false)
+  const [optionalOpen, setOptionalOpen] = useState(false)
   const debouncedQuery = useDebouncedValue(suggestionQuery, 350)
   const { data: suggestions = [], isFetching: suggestionsLoading } = useAddressSuggestions(
     debouncedQuery,
@@ -108,8 +109,8 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
       Object.entries(defaults).forEach(([key, val]) => {
         setValue(key as keyof UserAddressFormData, val as never, { shouldValidate: true })
       })
-      if (defaults.unit || defaults.floor || defaults.custom_label || defaults.delivery_notes) {
-        setAdditionalOpen(true)
+      if (hasOptionalAddressData(defaults)) {
+        setOptionalOpen(true)
       }
     }
   }, [initial, setValue])
@@ -117,14 +118,15 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
   const applySuggestion = (s: AddressSuggestion) => {
     setValue('street', s.street ?? '', { shouldValidate: true })
     setValue('city', s.city ?? '', { shouldValidate: true })
-    setValue('province', s.province ?? '', { shouldValidate: true })
-    setValue('district', s.district ?? '', { shouldValidate: true })
-    setValue('building_number', s.building_number ?? '', { shouldValidate: true })
+    if (s.province) setValue('province', s.province, { shouldValidate: true })
+    if (s.district) setValue('district', s.district, { shouldValidate: true })
+    if (s.building_number) setValue('building_number', s.building_number, { shouldValidate: true })
     setValue('postal_code', s.postal_code ?? '', { shouldValidate: true })
     setValue('country', s.country ?? 'US', { shouldValidate: true })
     setValue('latitude', s.latitude, { shouldValidate: true })
     setValue('longitude', s.longitude, { shouldValidate: true })
     setSuggestionQuery(s.formatted_address)
+    if (s.province || s.district) setOptionalOpen(true)
   }
 
   const typeOptions = useMemo(
@@ -137,7 +139,7 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
 
   const handleFormSubmit = (data: UserAddressFormData) => {
     if (!profileReady) return
-    onSubmit(data as UserAddressInput)
+    onSubmit(sanitizeAddressInput(data as UserAddressInput))
   }
 
   return (
@@ -158,7 +160,7 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
         </div>
       )}
 
-      <FormSection title={t('sections.required')}>
+      <FormSection title={t('sections.required')} description={t('sections.requiredDesc')}>
         <div>
           <p className="text-sm font-medium text-[var(--fg)] mb-2">
             {t('addressType')}<span className="text-orange-500 ml-1">*</span>
@@ -177,12 +179,6 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
         </div>
 
         <div>
-        <Input
-            label={t('customLabel')}
-            placeholder={t('customLabelPlaceholder')}
-            {...register('custom_label')}
-            error={fieldError('custom_label')}
-          />
           <Input
             label={t('searchAddress')}
             value={suggestionQuery}
@@ -204,19 +200,12 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
 
         <div className="grid grid-cols-2 gap-3">
           <Input label={t('country')} required {...register('country')} error={fieldError('country')} />
-          <Input label={t('province')} required {...register('province')} error={fieldError('province')} />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
           <Input label={t('city')} required {...register('city')} error={fieldError('city')} />
-          <Input label={t('district')} required {...register('district')} error={fieldError('district')} />
         </div>
 
         <Input label={t('street')} required {...register('street')} error={fieldError('street')} />
 
-        <div className="grid grid-cols-2 gap-3">
-          <Input label={t('postalCode')} required {...register('postal_code')} error={fieldError('postal_code')} />
-        </div>
+        <Input label={t('postalCode')} required {...register('postal_code')} error={fieldError('postal_code')} />
 
         <MapSelector
           latitude={latitude}
@@ -230,13 +219,24 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
       </FormSection>
 
       <CollapsibleSection
-        title={t('sections.additional')}
-        open={additionalOpen}
-        onToggle={() => setAdditionalOpen((v) => !v)}
+        title={t('sections.optional')}
+        open={optionalOpen}
+        onToggle={() => setOptionalOpen((v) => !v)}
         className="border-t border-[var(--border)] pt-5"
       >
+        <p className="text-xs text-[var(--fg-muted)] -mt-2 mb-4">{t('sections.optionalDesc')}</p>
         <div className="space-y-4">
-        <Input label={t('buildingNumber')} {...register('building_number')} error={fieldError('building_number')} />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label={t('province')} {...register('province')} error={fieldError('province')} />
+            <Input label={t('district')} {...register('district')} error={fieldError('district')} />
+          </div>
+          <Input
+            label={t('customLabel')}
+            placeholder={t('customLabelPlaceholder')}
+            {...register('custom_label')}
+            error={fieldError('custom_label')}
+          />
+          <Input label={t('buildingNumber')} {...register('building_number')} error={fieldError('building_number')} />
           <div className="grid grid-cols-2 gap-3">
             <Input label={t('floor')} {...register('floor')} error={fieldError('floor')} />
             <Input label={t('unit')} {...register('unit')} error={fieldError('unit')} />

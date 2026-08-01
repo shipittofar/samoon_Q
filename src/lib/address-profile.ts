@@ -1,4 +1,5 @@
 import { COUNTRIES } from '@/data/countries'
+import { sanitizeAddressInput } from '@/lib/address-fields'
 import type { User } from '@/types'
 import type { UserAddressInput, UserAddressUpdateInput } from '@/types/address'
 
@@ -95,7 +96,7 @@ export function buildAddressCreatePayload(
   input: UserAddressInput,
   profile: AddressOwnerProfile,
 ): AddressWriteApiPayload {
-  const { phone: _formPhone, ...addressFields } = input
+  const { phone: _formPhone, ...addressFields } = sanitizeAddressInput(input)
   return {
     ...addressFields,
     title: resolveAddressTitle(input),
@@ -114,7 +115,7 @@ export function buildAddressUpdatePayload(
   const address_type = input.address_type ?? existing?.address_type ?? 'other'
   const custom_label =
     input.custom_label !== undefined ? input.custom_label : existing?.custom_label
-  const { phone: _formPhone, ...addressFields } = input
+  const { phone: _formPhone, ...addressFields } = sanitizeAddressInput(input)
 
   return {
     ...addressFields,

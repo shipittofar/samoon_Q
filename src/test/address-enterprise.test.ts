@@ -24,9 +24,15 @@ const readSrc = (rel: string) => fs.readFileSync(path.join(ROOT, 'src', rel), 'u
 const validForm = {
   address_type: 'home' as const,
   country: 'US',
-  province: 'NY',
   city: 'New York',
-  district: 'Manhattan',
+  street: 'Main St',
+  postal_code: '10001',
+}
+
+const validFormMinimal = {
+  address_type: 'home' as const,
+  country: 'US',
+  city: 'New York',
   street: 'Main St',
   postal_code: '10001',
 }
@@ -39,17 +45,24 @@ const ownerProfile = {
 }
 
 describe('address types and validation', () => {
-  it('userAddressSchema requires street, city, province, district, and postal_code', () => {
+  it('userAddressSchema requires street, city, and postal_code', () => {
     const result = userAddressSchema.safeParse({
       address_type: 'home',
       country: 'US',
       city: '',
       street: '',
-      province: '',
-      district: '',
       postal_code: '',
     })
     expect(result.success).toBe(false)
+  })
+
+  it('userAddressSchema accepts payload without province or district', () => {
+    const result = userAddressSchema.safeParse(validFormMinimal)
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.province).toBeUndefined()
+      expect(result.data.district).toBeUndefined()
+    }
   })
 
   it('userAddressSchema rejects empty postal_code', () => {
@@ -70,7 +83,7 @@ describe('address profile injection', () => {
     expect(resolveAddressTitle({ address_type: 'work', custom_label: 'Office HQ' })).toBe('Office HQ')
 
     const payload = buildAddressCreatePayload(
-      { address_type: 'home', country: 'US', city: 'NYC', street: 'Main', province: 'NY', district: 'Downtown', postal_code: '10001' },
+      { address_type: 'home', country: 'US', city: 'NYC', street: 'Main', postal_code: '10001' },
       ownerProfile,
     )
     expect(payload.title).toBe('Home')
@@ -225,11 +238,36 @@ describe('address form UX', () => {
     expect(formSrc()).not.toMatch(/label=\{t\('phone'\)\}/)
   })
 
-  it('uses collapsible additional section and required postal code', () => {
+  it('uses collapsible optional section without required province/district', () => {
     expect(formSrc()).toContain('CollapsibleSection')
     expect(formSrc()).toContain("sections.required")
+    expect(formSrc()).toContain("sections.optional")
     expect(formSrc()).toContain("register('postal_code')")
+    expect(formSrc()).not.toMatch(/label=\{t\('province'\)\}[^]*required/)
+    expect(formSrc()).not.toMatch(/label=\{t\('district'\)\}[^]*required/)
     expect(formSrc()).toContain("mode: 'onChange'")
+  })
+})
+
+describe('address field contract', () => {
+  it('defines province and district as optional in single source of truth', async () => {
+    const { ADDRESS_REQUIRED_FIELDS, ADDRESS_OPTIONAL_FIELDS, sanitizeAddressInput } = await import('@/lib/address-fields')
+    expect(ADDRESS_REQUIRED_FIELDS).not.toContain('province')
+    expect(ADDRESS_REQUIRED_FIELDS).not.toContain('district')
+    expect(ADDRESS_OPTIONAL_FIELDS).toContain('province')
+    expect(ADDRESS_OPTIONAL_FIELDS).toContain('district')
+
+    const sanitized = sanitizeAddressInput({
+      address_type: 'home',
+      country: 'US',
+      city: 'NYC',
+      street: 'Main',
+      postal_code: '10001',
+      province: '',
+      district: '  ',
+    })
+    expect(sanitized.province).toBeUndefined()
+    expect(sanitized.district).toBeUndefined()
   })
 })
 

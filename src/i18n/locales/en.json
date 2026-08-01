@@ -352,6 +352,8 @@
     "sections": {
       "required": "Required Information",
       "requiredDesc": "Fields needed for delivery",
+      "optional": "Optional Information",
+      "optionalDesc": "Expand to add province, district, unit, and other extra details",
       "additional": "Additional Information"
     },
     "undoDelete": "Address deleted.",
