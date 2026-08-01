@@ -346,6 +346,7 @@
     "failedToUpdate": "بروزرسانی آدرس ناموفق بود",
     "failedToDelete": "حذف آدرس ناموفق بود",
     "failedToRestore": "بازیابی آدرس ناموفق بود",
+    "profileIncomplete": "لطفاً قبل از ذخیره آدرس، نام و شماره تلفن خود را در تنظیمات تکمیل کنید.",
     "undoDelete": "آدرس حذف شد.",
     "formattedAddress": "آدرس قالب‌بندی‌شده",
     "coordinates": "مختصات",

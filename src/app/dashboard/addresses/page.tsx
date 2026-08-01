@@ -23,6 +23,7 @@ import {
   useRestoreAddress,
   useSetDefaultAddress,
 } from '@/hooks'
+import { handleAddressMutationError } from '@/lib/address-errors'
 import type { UserAddress } from '@/types/address'
 
 const PAGE_SIZE = 10
@@ -188,8 +189,8 @@ export default function AddressesPage() {
               await createMutation.mutateAsync(input)
               toast.success(t('addressAdded'))
               setAddOpen(false)
-            } catch {
-              toast.error(t('failedToAdd'))
+            } catch (err) {
+              if (!handleAddressMutationError(err, t)) toast.error(t('failedToAdd'))
             }
           }}
         />
@@ -204,11 +205,11 @@ export default function AddressesPage() {
             loading={updateMutation.isPending}
             onSubmit={async (input) => {
               try {
-                await updateMutation.mutateAsync({ id: editAddress.id, input })
+                await updateMutation.mutateAsync({ id: editAddress.id, input, existingAddress: editAddress })
                 toast.success(t('addressUpdated'))
                 setEditAddress(null)
-              } catch {
-                toast.error(t('failedToUpdate'))
+              } catch (err) {
+                if (!handleAddressMutationError(err, t)) toast.error(t('failedToUpdate'))
               }
             }}
           />

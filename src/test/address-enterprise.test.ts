@@ -5,6 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { filterMockAddresses, mockServiceability } from '@/lib/address-mock-data'
+import { buildAddressCreatePayload } from '@/lib/address-profile'
 import { userAddressSchema } from '@/lib/address-validation'
 import { addressService } from '@/services/address.service'
 import { serviceabilityService } from '@/services/serviceability.service'
@@ -37,7 +38,26 @@ describe('address types and validation', () => {
   })
 })
 
+describe('address profile injection', () => {
+  it('maps title from address type and injects owner profile', async () => {
+    const { resolveAddressTitle, buildAddressCreatePayload } = await import('@/lib/address-profile')
+    expect(resolveAddressTitle({ address_type: 'home', custom_label: '' })).toBe('Home')
+    expect(resolveAddressTitle({ address_type: 'work', custom_label: 'Office HQ' })).toBe('Office HQ')
+
+    const payload = buildAddressCreatePayload(
+      { address_type: 'home', country: 'US', city: 'NYC', street: 'Main' },
+      { first_name: 'John', last_name: 'Doe', country_code: '+1' },
+    )
+    expect(payload.title).toBe('Home')
+    expect(payload.first_name).toBe('John')
+    expect(payload.last_name).toBe('Doe')
+    expect(payload.country_code).toBe('+1')
+  })
+})
+
 describe('address.service mock CRUD', () => {
+  const ownerProfile = { first_name: 'John', last_name: 'Doe', country_code: '+1' }
+
   beforeEach(() => {
     addressService._resetMockStore()
   })
@@ -49,13 +69,12 @@ describe('address.service mock CRUD', () => {
   })
 
   it('creates address with formatted_address', async () => {
-    const created = await addressService.create({
-      address_type: 'home',
-      country: 'US',
-      city: 'Boston',
-      street: 'Beacon St',
-      building_number: '1',
-    })
+    const created = await addressService.create(
+      buildAddressCreatePayload(
+        { address_type: 'home', country: 'US', city: 'Boston', street: 'Beacon St', building_number: '1' },
+        ownerProfile,
+      ),
+    )
     expect(created.formatted_address).toContain('Beacon St')
     expect(created.verification_status).toBe('pending')
   })

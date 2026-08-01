@@ -346,6 +346,7 @@
     "failedToUpdate": "Failed to update address",
     "failedToDelete": "Failed to delete address",
     "failedToRestore": "Failed to restore address",
+    "profileIncomplete": "Please complete your profile (name and phone number) in Settings before saving an address.",
     "undoDelete": "Address deleted.",
     "formattedAddress": "Formatted Address",
     "coordinates": "Coordinates",

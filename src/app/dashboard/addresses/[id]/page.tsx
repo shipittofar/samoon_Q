@@ -24,6 +24,7 @@ import {
   useDeleteAddress,
   useSetDefaultAddress,
 } from '@/hooks'
+import { handleAddressMutationError } from '@/lib/address-errors'
 import { formatDate } from '@/utils'
 
 export default function AddressDetailPage() {
@@ -169,11 +170,11 @@ export default function AddressDetailPage() {
           submitLabel={t('saveChanges')}
           onSubmit={async (input) => {
             try {
-              await updateMutation.mutateAsync({ id, input })
+              await updateMutation.mutateAsync({ id, input, existingAddress: address })
               toast.success(t('addressUpdated'))
               setEditOpen(false)
-            } catch {
-              toast.error(t('failedToUpdate'))
+            } catch (err) {
+              if (!handleAddressMutationError(err, t)) toast.error(t('failedToUpdate'))
             }
           }}
         />

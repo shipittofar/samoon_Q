@@ -1476,7 +1476,9 @@ export {
   useAddressSuggestions,
   useReverseGeocode,
   useCheckServiceability,
+  AddressProfileIncompleteError,
 } from './address'
+export { useAddressOwnerProfile } from './useAddressOwnerProfile'
 
 export {
   favoritesKeys,

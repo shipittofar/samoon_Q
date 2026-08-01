@@ -15,6 +15,7 @@ import type {
   UserAddressInput,
   UserAddressUpdateInput,
 } from '@/types/address'
+import type { AddressPatchApiPayload, AddressWriteApiPayload } from '@/lib/address-profile'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms))
@@ -56,14 +57,14 @@ export const addressService = {
     return data
   },
 
-  async create(input: UserAddressInput): Promise<UserAddress> {
+  async create(input: AddressWriteApiPayload): Promise<UserAddress> {
     if (USE_MOCK) {
       await delay(600)
       const now = new Date().toISOString()
       const created: UserAddress = {
         id: `addr-${Date.now()}`,
         ...input,
-        custom_label: input.custom_label ?? null,
+        custom_label: input.custom_label ?? input.title ?? null,
         formatted_address: buildFormattedAddress(input),
         verification_status: 'pending',
         is_default: input.is_default ?? mockStore.filter((a) => !a.is_deleted).length === 0,
@@ -86,7 +87,7 @@ export const addressService = {
     return data
   },
 
-  async update(id: string, input: UserAddressUpdateInput): Promise<UserAddress> {
+  async update(id: string, input: AddressPatchApiPayload): Promise<UserAddress> {
     if (USE_MOCK) {
       await delay(600)
       const idx = mockStore.findIndex((a) => a.id === id)

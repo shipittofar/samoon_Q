@@ -164,7 +164,10 @@ export const userService = {
 
   async createAddress(address: import('@/types/address').UserAddressInput) {
     const { addressService } = await import('./address.service')
-    return addressService.create(address)
+    const { buildAddressCreatePayload, assertAddressOwnerProfile } = await import('@/lib/address-profile')
+    const { useAuthStore } = await import('@/stores')
+    const profile = assertAddressOwnerProfile(useAuthStore.getState().user)
+    return addressService.create(buildAddressCreatePayload(address, profile))
   },
 
   async deleteAddress(id: string) {

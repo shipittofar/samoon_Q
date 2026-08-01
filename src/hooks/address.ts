@@ -5,7 +5,20 @@ import { useMemo } from 'react'
 import { addressService } from '@/services/address.service'
 import { serviceabilityService } from '@/services/serviceability.service'
 import { STALE_TIME } from '@/constants'
-import type { AddressListParams, CheckServiceabilityPayload, UserAddressInput, UserAddressUpdateInput } from '@/types/address'
+import {
+  buildAddressCreatePayload,
+  buildAddressUpdatePayload,
+} from '@/lib/address-profile'
+import { useAddressOwnerProfile } from '@/hooks/useAddressOwnerProfile'
+import type {
+  AddressListParams,
+  CheckServiceabilityPayload,
+  UserAddress,
+  UserAddressInput,
+  UserAddressUpdateInput,
+} from '@/types/address'
+
+export { AddressProfileIncompleteError } from '@/lib/address-profile'
 
 export const addressKeys = {
   all: ['addresses'] as const,
@@ -68,8 +81,13 @@ export function useAddress(id: string | null) {
 
 export function useCreateAddress() {
   const qc = useQueryClient()
+  const { requireProfile } = useAddressOwnerProfile()
+
   return useMutation({
-    mutationFn: (input: UserAddressInput) => addressService.create(input),
+    mutationFn: async (input: UserAddressInput) => {
+      const profile = await requireProfile()
+      return addressService.create(buildAddressCreatePayload(input, profile))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: addressKeys.all })
     },
@@ -78,9 +96,24 @@ export function useCreateAddress() {
 
 export function useUpdateAddress() {
   const qc = useQueryClient()
+  const { requireProfile } = useAddressOwnerProfile()
+
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UserAddressUpdateInput }) =>
-      addressService.update(id, input),
+    mutationFn: async ({
+      id,
+      input,
+      existingAddress,
+    }: {
+      id: string
+      input: UserAddressUpdateInput
+      existingAddress?: UserAddress
+    }) => {
+      const profile = await requireProfile()
+      return addressService.update(
+        id,
+        buildAddressUpdatePayload(input, profile, existingAddress),
+      )
+    },
     onMutate: async ({ id, input }) => {
       await qc.cancelQueries({ queryKey: addressKeys.detail(id) })
       const prev = qc.getQueryData(addressKeys.detail(id))

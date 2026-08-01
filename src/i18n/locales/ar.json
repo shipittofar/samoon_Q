@@ -346,6 +346,7 @@
     "failedToUpdate": "فشل تحديث العنوان",
     "failedToDelete": "فشل حذف العنوان",
     "failedToRestore": "فشل استعادة العنوان",
+    "profileIncomplete": "يرجى إكمال ملفك الشخصي (الاسم ورقم الهاتف) في الإعدادات قبل حفظ عنوان.",
     "undoDelete": "تم حذف العنوان.",
     "formattedAddress": "العنوان المنسق",
     "coordinates": "الإحداثيات",
