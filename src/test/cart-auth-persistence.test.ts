@@ -30,13 +30,39 @@ describe('Cart auth persistence', () => {
     const before = useCartStore.getState().items
     expect(before.length).toBe(1)
     expect(before[0].quantity).toBe(2)
+    expect(before[0].menu_item.name).toBe('Item burger')
 
     // Simulate auth teardown without cart clear — mirrors clearSession/useLogout.
     useTenantStore.getState().reset()
 
     const after = useCartStore.getState().items
     expect(after).toEqual(before)
+    expect(after[0].menu_item.image).toBeTruthy()
     expect(useCartStore.getState().getItemCount()).toBe(2)
+  })
+
+  it('reconcileItems repairs flat persisted lines missing menu_item', () => {
+    useCartStore.setState({
+      items: [
+        {
+          id: '5-legacy',
+          branch_id: 'branch-1',
+          name: 'Legacy Item',
+          image: 'https://example.com/legacy.jpg',
+          quantity: 2,
+          unit_price: 15,
+          total_price: 30,
+          extras: [],
+        } as never,
+      ],
+    })
+
+    useCartStore.getState().reconcileItems()
+    const items = useCartStore.getState().items
+    expect(items).toHaveLength(1)
+    expect(items[0].menu_item.name).toBe('Legacy Item')
+    expect(items[0].menu_item.image).toBe('https://example.com/legacy.jpg')
+    expect(items[0].menu_item.id).toBe('5')
   })
 
   it('tenant layout bootstrap does not clear cart when tenant is null (re-entry after checkout)', () => {

@@ -1,4 +1,5 @@
 import { parseDecimal } from '@/utils/decimal'
+import { resolveMediaUrl } from '@/utils/media-url'
 import type { DecimalFieldValue, Extra, MenuItem, PaginatedResponse } from '@/types'
 
 /** Wire shape for menu extras — Django serializes DecimalField as a string. */
@@ -24,9 +25,13 @@ export function normalizeExtras(raw: ExtraWire[]): Extra[] {
   return raw.map(normalizeExtra)
 }
 
-/** Normalizes a MenuItem, including nested inline extras. */
+/** Normalizes a MenuItem, including nested inline extras and image URLs. */
 export function normalizeMenuItem(raw: MenuItemWire): MenuItem {
   const category_id = raw.category_id ?? raw.category?.id ?? ''
+  const image = resolveMediaUrl(raw.image)
+  const images = raw.images
+    ?.map((entry) => resolveMediaUrl(entry))
+    .filter((entry) => entry.length > 0)
   return {
     ...raw,
     category_id,
@@ -34,6 +39,8 @@ export function normalizeMenuItem(raw: MenuItemWire): MenuItem {
     price: parseDecimal(raw.price),
     discounted_price:
       raw.discounted_price != null ? parseDecimal(raw.discounted_price) : undefined,
+    image,
+    images: images?.length ? images : undefined,
     extras: raw.extras?.map(normalizeExtra),
   }
 }

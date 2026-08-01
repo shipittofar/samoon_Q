@@ -7,6 +7,8 @@ import type {
 } from '@/types/address'
 import type { Order, OrderType, PaymentMethod, PaginatedResponse } from '@/types'
 import type { CartItem } from '@/types'
+import { normalizeOrder, normalizeOrderItems, normalizeOrderList } from '@/lib/order-normalizers'
+import { MOCK_MENU_ITEMS, MOCK_BRANCH_ITEMS } from '@/lib/mock-data'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms))
@@ -30,6 +32,36 @@ export interface CreateOrderPayload {
 
 let mockOrderCounter = 3902
 
+function findMockMenuItem(menuItemId: string): import('@/types').MenuItem | undefined {
+  for (const items of Object.values(MOCK_BRANCH_ITEMS)) {
+    const match = items.find((i) => i.id === menuItemId)
+    if (match) return match
+  }
+  return MOCK_MENU_ITEMS.find((i) => i.id === menuItemId)
+}
+
+function mockOrderItemsFromPayload(
+  payload: CreateOrderPayload,
+): import('@/types').OrderItem[] {
+  return payload.items.map((line, index) => {
+    const menuItem = findMockMenuItem(line.menu_item_id)
+    const unit_price = menuItem?.discounted_price ?? menuItem?.price ?? 0
+    const extras = line.extras.map((id) => menuItem?.extras?.find((e) => e.id === id)).filter(Boolean) as import('@/types').Extra[]
+    return normalizeOrderItems([{
+      id: String(index + 1),
+      menu_item: menuItem ?? { id: line.menu_item_id, branch_id: payload.branch_id },
+      menu_item_id: line.menu_item_id,
+      quantity: line.quantity,
+      unit_price,
+      total_price: unit_price * line.quantity,
+      notes: line.notes,
+      extras,
+      name: menuItem?.name,
+      image: menuItem?.image,
+    }])[0]!
+  })
+}
+
 export const orderService = {
   async createOrder(payload: CreateOrderPayload): Promise<Order> {
     if (USE_MOCK) {
@@ -52,23 +84,31 @@ export const orderService = {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         status_history: [{ status: 'pending', timestamp: new Date().toISOString() }],
-        items: [],
+        items: mockOrderItemsFromPayload(payload),
       }
-      return order as Order
+      return normalizeOrder(order) as Order
     }
     const { data } = await api.post<Order>(ENDPOINTS.ORDERS.CREATE, payload)
-    return data
+    return normalizeOrder(data) as Order
   },
 
   async getOrders(page = 1): Promise<PaginatedResponse<Order>> {
     if (USE_MOCK) {
       await delay(600)
-      return { count: MOCK_ORDERS.length, next: null, previous: null, results: MOCK_ORDERS as Order[] }
+      return {
+        count: MOCK_ORDERS.length,
+        next: null,
+        previous: null,
+        results: normalizeOrderList(MOCK_ORDERS),
+      }
     }
     const { data } = await api.get<PaginatedResponse<Order>>(ENDPOINTS.ORDERS.LIST, {
       params: { page },
     })
-    return data
+    return {
+      ...data,
+      results: normalizeOrderList(data.results),
+    }
   },
 
   async getOrder(id: string): Promise<Order> {
@@ -76,20 +116,20 @@ export const orderService = {
       await delay(400)
       const order = MOCK_ORDERS.find((o) => o.id === id)
       if (!order) throw new Error('Order not found')
-      return order as Order
+      return normalizeOrder(order)
     }
     const { data } = await api.get<Order>(ENDPOINTS.ORDERS.DETAIL(id))
-    return data
+    return normalizeOrder(data)
   },
 
   async cancelOrder(id: string): Promise<Order> {
     if (USE_MOCK) {
       await delay(600)
       const order = MOCK_ORDERS.find((o) => o.id === id)
-      return { ...order, status: 'cancelled' } as Order
+      return normalizeOrder({ ...order, status: 'cancelled' })
     }
     const { data } = await api.post<Order>(ENDPOINTS.ORDERS.CANCEL(id))
-    return data
+    return normalizeOrder(data)
   },
 
   async validateDiscountCode(code: string, subtotal: number): Promise<{

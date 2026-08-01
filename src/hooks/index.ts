@@ -578,6 +578,8 @@ async function establishAuthenticatedSession(
   if (options?.navigate !== false) {
     dispatchPostLoginRedirect(data.user, p7Roles)
   }
+  // Guest cart lines from localStorage may be flat/order-shaped — normalize after auth.
+  useCartStore.getState().reconcileItems()
   return { user: data.user, p7Roles }
 }
 

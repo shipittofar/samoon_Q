@@ -45,6 +45,7 @@ import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import { membershipBranchesToBranches, resolveConsoleActiveBranch } from '@/lib/console-workspace'
+import { buildMenuItemStub, normalizeCartItems } from '@/lib/cart-normalizers'
 import {
   resolvePublicTenantId,
   type ResolvePublicTenantOptions,
@@ -103,6 +104,8 @@ interface CartState {
   getServiceCharge: () => number
   getTotal: () => number
   getItemCount: () => number
+  /** Re-normalizes persisted/API-shaped lines into the canonical cart model. */
+  reconcileItems: () => void
 }
 
 export const useCartStore = create<CartState>()(
@@ -114,17 +117,19 @@ export const useCartStore = create<CartState>()(
       isOpen: false,
 
       addItem: (menuItem, quantity = 1, extras = [], notes) => {
+        const normalizedMenuItem = buildMenuItemStub(menuItem, menuItem.branch_id)
+
         set((state) => {
           // Branch isolation: a cart can only ever hold one branch's items.
           // Adding an item from a different branch than what's currently in
           // the cart starts a fresh cart instead of mixing branches together.
-          const items = state.items.length > 0 && state.items[0].branch_id !== menuItem.branch_id
+          const items = state.items.length > 0 && state.items[0].branch_id !== normalizedMenuItem.branch_id
             ? []
             : state.items
 
           const existingId = items.find(
             (i) =>
-              i.menu_item.id === menuItem.id &&
+              i.menu_item.id === normalizedMenuItem.id &&
               JSON.stringify(i.extras.map((e) => e.id).sort()) ===
                 JSON.stringify(extras.map((e) => e.id).sort()),
           )?.id
@@ -138,11 +143,11 @@ export const useCartStore = create<CartState>()(
           }
 
           const extraTotal = extras.reduce((sum, e) => sum + e.price, 0)
-          const unitPrice = (menuItem.discounted_price ?? menuItem.price) + extraTotal
+          const unitPrice = (normalizedMenuItem.discounted_price ?? normalizedMenuItem.price) + extraTotal
           const newItem: CartItem = {
-            id: `${menuItem.id}-${Date.now()}`,
-            branch_id: menuItem.branch_id,
-            menu_item: menuItem,
+            id: `${normalizedMenuItem.id}-${Date.now()}`,
+            branch_id: normalizedMenuItem.branch_id,
+            menu_item: normalizedMenuItem,
             quantity,
             extras,
             notes,
@@ -182,10 +187,28 @@ export const useCartStore = create<CartState>()(
         return sub - get().discountAmount + get().getTax() + get().getServiceCharge()
       },
       getItemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+
+      reconcileItems: () =>
+        set((state) => ({
+          items: normalizeCartItems(
+            state.items,
+            state.items[0]?.branch_id ?? state.items[0]?.menu_item?.branch_id,
+          ),
+        })),
     }),
     // Synchronous persistence — debounced writes could lose items on fast
     // navigation (checkout → middleware redirect → login) before flush.
-    { name: CART_KEY },
+    {
+      name: CART_KEY,
+      onRehydrateStorage: () => (state) => {
+        if (state?.items?.length) {
+          state.items = normalizeCartItems(
+            state.items,
+            state.items[0]?.branch_id ?? state.items[0]?.menu_item?.branch_id,
+          )
+        }
+      },
+    },
   ),
 )
 

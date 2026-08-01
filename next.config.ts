@@ -125,6 +125,8 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'hot.ir-central1.arvanstorage.ir' },
       { protocol: 'https', hostname: 'staticmap.openstreetmap.de' },
 
+      { protocol: 'https', hostname: 'cdn.samoon.app' },
+
     ],
   },
   experimental: {

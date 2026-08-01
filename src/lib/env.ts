@@ -33,6 +33,7 @@ const optionalEnvSchema = z.object({
   NEXT_PUBLIC_FIREBASE_PROJECT_ID: z.string().min(1).optional(),
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string().min(1).optional(),
   NEXT_PUBLIC_FIREBASE_VAPID_KEY: z.string().min(1).optional(),
+  NEXT_PUBLIC_MEDIA_BASE_URL: z.string().url().optional(),
 })
 
 function parseEnv() {
@@ -59,6 +60,7 @@ function parseEnv() {
     NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     NEXT_PUBLIC_FIREBASE_VAPID_KEY: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+    NEXT_PUBLIC_MEDIA_BASE_URL: process.env.NEXT_PUBLIC_MEDIA_BASE_URL,
   })
   if (!optResult.success) {
     const issues = optResult.error.issues.map((i) => `  • ${i.path.join('.')}: ${i.message}`).join('\n')

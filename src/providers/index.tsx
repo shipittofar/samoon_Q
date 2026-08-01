@@ -5,7 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
-import { useAuthStore, useThemeStore, useLangStore, useTenantStore, useRbacStore, useBranchStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
+import { useAuthStore, useThemeStore, useLangStore, useTenantStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { authService } from '@/services/auth.service'
 import { getAccessToken, clearTokens } from '@/services/axios.instance'
 import { prefetchFavoritesList, useFavoritesSync } from '@/hooks/favorites'
@@ -572,6 +572,8 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // fields used to feed entirely. The fields remain on the
       // AuthSessionRbacPayload contract only for forward compatibility with
       // a future backend that might use them server-side.
+      // Persisted guest cart lines may be flat/order-shaped — normalize on session restore.
+      useCartStore.getState().reconcileItems()
       void prefetchFavoritesList(qc)
     }).catch((err: unknown) => {
       // P10.10 — distinguish "session is actually invalid" from "backend

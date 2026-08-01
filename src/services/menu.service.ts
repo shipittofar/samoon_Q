@@ -207,7 +207,7 @@ export const menuService = {
         }
       }
 
-      return { count: items.length, next: null, previous: null, results: items }
+      return { count: items.length, next: null, previous: null, results: normalizeMenuItems(items) }
     }
 
     const { data } = await api.get<PaginatedResponse<MenuItemWire>>(
@@ -242,7 +242,7 @@ export const menuService = {
       await delay(400)
       const item = mockItems(branchId).find((i) => i.id === id || i.slug === id)
       if (!item) throw new Error('Item not found')
-      return item
+      return normalizeMenuItem(item)
     }
     const { data } = await api.get<MenuItemWire>(ENDPOINTS.MENU.ITEM(id), {
       params: { branch_id: branchId },
