@@ -24,6 +24,7 @@ import {
   useSetDefaultAddress,
 } from '@/hooks'
 import { handleAddressMutationError } from '@/lib/address-errors'
+import { ENABLE_DELETED_ADDRESSES } from '@/lib/address-features'
 import type { UserAddress } from '@/types/address'
 
 const PAGE_SIZE = 10
@@ -42,7 +43,7 @@ export default function AddressesPage() {
     page,
     page_size: PAGE_SIZE,
     search: search || undefined,
-    include_deleted: includeDeleted,
+    ...(ENABLE_DELETED_ADDRESSES && includeDeleted ? { include_deleted: true } : {}),
   })
 
   const createMutation = useCreateAddress()
@@ -57,36 +58,35 @@ export default function AddressesPage() {
     async (id: string) => {
       try {
         await deleteMutation.mutateAsync(id)
-        toast.success(t('addressRemoved'), {
-          duration: 5000,
-          icon: '↩️',
-        })
-        toast(
-          (toastInstance) => (
-            <span className="flex items-center gap-2">
-              {t('undoDelete')}
-              <button
-                className="font-semibold text-orange-500 underline"
-                onClick={() => {
-                  restoreMutation.mutate(id, {
-                    onSuccess: () => {
-                      toast.success(t('addressRestored'))
-                      toast.dismiss(toastInstance.id)
-                    },
-                  })
-                }}
-              >
-                {tCommon('undo')}
-              </button>
-            </span>
-          ),
-          { duration: 5000 },
-        )
+        toast.success(t('addressRemoved'), ENABLE_DELETED_ADDRESSES ? { duration: 5000, icon: '↩️' } : undefined)
+        if (ENABLE_DELETED_ADDRESSES) {
+          toast(
+            (toastInstance) => (
+              <span className="flex items-center gap-2">
+                {t('undoDelete')}
+                <button
+                  className="font-semibold text-orange-500 underline"
+                  onClick={() => {
+                    restoreMutation.mutate(id, {
+                      onSuccess: () => {
+                        toast.success(t('addressRestored'))
+                        toast.dismiss(toastInstance.id)
+                      },
+                    })
+                  }}
+                >
+                  {tCommon('undo')}
+                </button>
+              </span>
+            ),
+            { duration: 5000 },
+          )
+        }
       } catch {
         toast.error(t('failedToDelete'))
       }
     },
-    [addresses, deleteMutation, restoreMutation, t, tCommon],
+    [deleteMutation, restoreMutation, t, tCommon],
   )
 
   const handleRefresh = () => {
@@ -122,15 +122,17 @@ export default function AddressesPage() {
 
       <AddressSearchBar value={search} onChange={(v) => { setSearch(v); setPage(1) }} />
 
-      <label className="flex items-center gap-2 text-sm text-[var(--fg-muted)] cursor-pointer">
-        <input
-          type="checkbox"
-          checked={includeDeleted}
-          onChange={(e) => { setIncludeDeleted(e.target.checked); setPage(1) }}
-          className="rounded border-[var(--border)]"
-        />
-        {t('showDeleted')}
-      </label>
+      {ENABLE_DELETED_ADDRESSES && (
+        <label className="flex items-center gap-2 text-sm text-[var(--fg-muted)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={includeDeleted}
+            onChange={(e) => { setIncludeDeleted(e.target.checked); setPage(1) }}
+            className="rounded border-[var(--border)]"
+          />
+          {t('showDeleted')}
+        </label>
+      )}
 
       {isLoading ? (
         <AddressListSkeleton />
@@ -155,11 +157,14 @@ export default function AddressesPage() {
                     onError: () => toast.error(t('failedToSetDefault')),
                   })
                 }
-                onRestore={(id) =>
-                  restoreMutation.mutate(id, {
-                    onSuccess: () => toast.success(t('addressRestored')),
-                    onError: () => toast.error(t('failedToRestore')),
-                  })
+                onRestore={
+                  ENABLE_DELETED_ADDRESSES
+                    ? (restoreId) =>
+                        restoreMutation.mutate(restoreId, {
+                          onSuccess: () => toast.success(t('addressRestored')),
+                          onError: () => toast.error(t('failedToRestore')),
+                        })
+                    : undefined
                 }
               />
             ))}

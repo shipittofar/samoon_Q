@@ -9,6 +9,7 @@ import {
   buildAddressCreatePayload,
   buildAddressUpdatePayload,
 } from '@/lib/address-profile'
+import { normalizeAddressListParams, filterActiveAddresses } from '@/lib/address-features'
 import { useAddressOwnerProfile } from '@/hooks/useAddressOwnerProfile'
 import type {
   AddressListParams,
@@ -33,23 +34,31 @@ export const addressKeys = {
 const DEFAULT_PAGE_SIZE = 10
 
 export function useAddressList(params: AddressListParams = {}) {
+  const normalized = normalizeAddressListParams(params)
   return useQuery({
-    queryKey: addressKeys.list(params),
-    queryFn: () => addressService.list(params),
+    queryKey: addressKeys.list(normalized),
+    queryFn: () => addressService.list(normalized),
     staleTime: STALE_TIME,
     placeholderData: (prev) => prev,
+    select: (data) => {
+      const results = filterActiveAddresses(data.results)
+      return results.length === data.results.length ? data : { ...data, results }
+    },
   })
 }
 
 export function useInfiniteAddresses(search = '', includeDeleted = false) {
+  const normalized = normalizeAddressListParams({
+    search,
+    include_deleted: includeDeleted,
+    page_size: DEFAULT_PAGE_SIZE,
+  })
   return useInfiniteQuery({
-    queryKey: addressKeys.list({ search, include_deleted: includeDeleted, page_size: DEFAULT_PAGE_SIZE }),
+    queryKey: addressKeys.list(normalized),
     queryFn: ({ pageParam = 1 }) =>
       addressService.list({
+        ...normalized,
         page: pageParam,
-        page_size: DEFAULT_PAGE_SIZE,
-        search: search || undefined,
-        include_deleted: includeDeleted,
       }),
     initialPageParam: 1,
     getNextPageParam: (last) => {
@@ -58,6 +67,13 @@ export function useInfiniteAddresses(search = '', includeDeleted = false) {
       return match ? Number(match[1]) : undefined
     },
     staleTime: STALE_TIME,
+    select: (data) => ({
+      ...data,
+      pages: data.pages.map((page) => {
+        const results = filterActiveAddresses(page.results)
+        return results.length === page.results.length ? page : { ...page, results }
+      }),
+    }),
   })
 }
 

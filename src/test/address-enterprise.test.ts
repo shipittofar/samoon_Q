@@ -232,3 +232,18 @@ describe('address form UX', () => {
     expect(formSrc()).toContain("mode: 'onChange'")
   })
 })
+
+describe('deleted addresses feature flag', () => {
+  it('ENABLE_DELETED_ADDRESSES is off and strips include_deleted from list params', async () => {
+    const { ENABLE_DELETED_ADDRESSES, normalizeAddressListParams } = await import('@/lib/address-features')
+    expect(ENABLE_DELETED_ADDRESSES).toBe(false)
+    expect(normalizeAddressListParams({ include_deleted: true, page: 1 })).toEqual({ page: 1 })
+  })
+
+  it('addresses page gates deleted-address UI behind feature flag', () => {
+    const src = readSrc('app/dashboard/addresses/page.tsx')
+    expect(src).toContain('ENABLE_DELETED_ADDRESSES')
+    expect(src).toContain('showDeleted')
+    expect(src).toContain('useRestoreAddress')
+  })
+})

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { AddressTypeIcon, AddressTypeChip, DefaultAddressBadge } from './AddressTypeChip'
 import { VerificationBadge } from './VerificationBadge'
 import { CapabilityBadgeList } from './CapabilityBadge'
+import { ENABLE_DELETED_ADDRESSES } from '@/lib/address-features'
 import type { UserAddress } from '@/types/address'
 import { cn } from '@/utils'
 
@@ -43,7 +44,7 @@ export function AddressCard({
             <AddressTypeChip type={address.address_type} label={address.custom_label} showIcon={false} />
             {address.is_default && <DefaultAddressBadge />}
             <VerificationBadge status={address.verification_status} />
-            {address.is_deleted && (
+            {ENABLE_DELETED_ADDRESSES && address.is_deleted && (
               <Badge variant="secondary" className="text-xs">{t('deletedLabel')}</Badge>
             )}
           </div>
@@ -56,7 +57,7 @@ export function AddressCard({
           </div>
         </div>
         <div className="flex gap-1 shrink-0">
-          {address.is_deleted ? (
+          {ENABLE_DELETED_ADDRESSES && address.is_deleted ? (
             onRestore && (
               <Button
                 variant="ghost"

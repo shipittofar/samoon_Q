@@ -25,6 +25,7 @@ import {
   useSetDefaultAddress,
 } from '@/hooks'
 import { handleAddressMutationError } from '@/lib/address-errors'
+import { ENABLE_DELETED_ADDRESSES } from '@/lib/address-features'
 import { formatDate } from '@/utils'
 
 export default function AddressDetailPage() {
@@ -48,6 +49,10 @@ export default function AddressDetailPage() {
   }
 
   if (isError || !address) {
+    return <AddressErrorState onRetry={() => refetch()} />
+  }
+
+  if (!ENABLE_DELETED_ADDRESSES && address.is_deleted) {
     return <AddressErrorState onRetry={() => refetch()} />
   }
 
