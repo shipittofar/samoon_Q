@@ -4,7 +4,7 @@ import { ENDPOINTS } from './endpoints'
 import { validateMenuImageFile } from '@/components/ImageUploader'
 import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 import { MOCK_BRANCHES, MOCK_TENANT_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
-import type { Address, Branch, Notification, PaginatedResponse, Reservation, TableInfo, UpdateProfileRequest, User } from '@/types'
+import type { Branch, Notification, PaginatedResponse, Reservation, TableInfo, UpdateProfileRequest, User } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms))
@@ -156,30 +156,20 @@ export const userService = {
     return res
   },
 
-  async getAddresses(): Promise<Address[]> {
-    if (USE_MOCK) {
-      await delay(400)
-      return [
-        { id: '1', label: 'Home', street: '123 Main St', city: 'New York', is_default: true },
-        { id: '2', label: 'Work', street: '456 Office Ave', city: 'New York', is_default: false },
-      ]
-    }
-    const { data } = await api.get<Address[]>(ENDPOINTS.USERS.ADDRESSES)
-    return data
+  async getAddresses() {
+    const { addressService } = await import('./address.service')
+    const res = await addressService.list({ page_size: 50 })
+    return res.results
   },
 
-  async createAddress(address: Omit<Address, 'id'>): Promise<Address> {
-    if (USE_MOCK) {
-      await delay(600)
-      return { ...address, id: Date.now().toString() }
-    }
-    const { data } = await api.post<Address>(ENDPOINTS.USERS.ADDRESSES, address)
-    return data
+  async createAddress(address: import('@/types/address').UserAddressInput) {
+    const { addressService } = await import('./address.service')
+    return addressService.create(address)
   },
 
-  async deleteAddress(id: string): Promise<void> {
-    if (USE_MOCK) { await delay(400); return }
-    await api.delete(ENDPOINTS.USERS.ADDRESS(id))
+  async deleteAddress(id: string) {
+    const { addressService } = await import('./address.service')
+    return addressService.delete(id)
   },
 
   async uploadAvatar(file: File): Promise<{ avatar_url: string }> {

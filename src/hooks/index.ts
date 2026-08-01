@@ -1461,14 +1461,22 @@ export function useConfirmEmailVerification() {
   })
 }
 
-// ── User Hooks ────────────────────────────────────────────────────────────────
-export function useAddresses() {
-  return useQuery({
-    queryKey: ['addresses'],
-    queryFn: () => userService.getAddresses(),
-    staleTime: STALE_TIME,
-  })
-}
+// ── Address Hooks ─────────────────────────────────────────────────────────────
+export {
+  addressKeys,
+  useAddressList,
+  useInfiniteAddresses,
+  useAddresses,
+  useAddress,
+  useCreateAddress,
+  useUpdateAddress,
+  useDeleteAddress,
+  useRestoreAddress,
+  useSetDefaultAddress,
+  useAddressSuggestions,
+  useReverseGeocode,
+  useCheckServiceability,
+} from './address'
 
 export {
   favoritesKeys,

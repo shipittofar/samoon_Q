@@ -143,7 +143,10 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                   {order.delivery_address && (
                     <div className="flex items-start gap-2 text-[var(--fg-muted)]">
                       <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-orange-500" />
-                      <span>{order.delivery_address.street}, {order.delivery_address.city}</span>
+                      <span>
+                        {order.delivery_address.formatted_address
+                          ?? `${order.delivery_address.street}, ${order.delivery_address.city}`}
+                      </span>
                     </div>
                   )}
                   {order.table_number && (

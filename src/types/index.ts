@@ -323,13 +323,42 @@ export interface OrderItem {
   name: string
 }
 
+export type {
+  AddressType,
+  VerificationStatus,
+  AddressCapabilities,
+  UserAddress,
+  UserAddressInput,
+  UserAddressUpdateInput,
+  DeliveryAddressSnapshot,
+  DeliveryAddressOverride,
+  AddressSuggestion,
+  ReverseGeocodeResult,
+  ServiceabilityBranch,
+  ServiceabilityResult,
+  CheckServiceabilityPayload,
+  AddressListParams,
+} from './address'
+
+/** Order delivery snapshot — prefer formatted_address from backend */
 export interface DeliveryAddress {
+  formatted_address?: string
   street: string
   city: string
   state?: string
   zip?: string
+  province?: string | null
+  district?: string | null
+  building_number?: string | null
+  unit?: string | null
+  floor?: string | null
+  postal_code?: string | null
+  phone?: string | null
+  delivery_notes?: string | null
   lat?: number
   lng?: number
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export interface Order {
@@ -965,19 +994,9 @@ export interface Review {
 }
 
 // ============================================================
-// ADDRESS TYPES
+// ADDRESS TYPES — see re-exports above (./address)
 // ============================================================
-export interface Address {
-  id: string
-  label: string
-  street: string
-  city: string
-  state?: string
-  zip?: string
-  lat?: number
-  lng?: number
-  is_default: boolean
-}
+export type { Address } from './address'
 
 // ============================================================
 // RBAC TYPES  (Phase 1B — P1B.1 / P7.1)

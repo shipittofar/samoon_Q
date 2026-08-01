@@ -1,6 +1,10 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { MOCK_ORDERS } from '@/lib/mock-data'
+import type {
+  DeliveryAddressOverride,
+  DeliveryAddressSnapshot,
+} from '@/types/address'
 import type { Order, OrderType, PaymentMethod, PaginatedResponse } from '@/types'
 import type { CartItem } from '@/types'
 
@@ -12,17 +16,16 @@ export interface CreateOrderPayload {
   items: { menu_item_id: string; quantity: number; notes?: string; extras: string[] }[]
   order_type: OrderType
   payment_method: PaymentMethod
-  delivery_address?: {
-    street: string
-    city: string
-    state?: string
-    zip?: string
-    lat?: number
-    lng?: number
-  }
+  /** Saved user address reference */
+  address_id?: string
+  /** Inline / snapshot delivery address */
+  delivery_address?: DeliveryAddressSnapshot
+  /** Per-order overrides when using address_id */
+  delivery_address_override?: DeliveryAddressOverride
   table_number?: number
   discount_code?: string
   notes?: string
+  payment_intent_id?: string
 }
 
 let mockOrderCounter = 3902

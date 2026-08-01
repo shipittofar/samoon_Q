@@ -17,12 +17,14 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Divider } from '@/components/ui'
 import { useCartStore, useBranchStore, useAuthStore, useDineInStore } from '@/stores'
-import { useCreateOrder, useCreatePaymentIntent } from '@/hooks'
+import { useCreateOrder, useCreatePaymentIntent, useCheckServiceability } from '@/hooks'
 import { formatCurrency, cn } from '@/utils'
 import { orderService } from '@/services/order.service'
 import { StripePaymentForm } from '@/components/checkout/StripePaymentForm'
+import { AddressPicker, DeliveryInfoCard, type AddressPickerValue } from '@/components/address'
 import toast from 'react-hot-toast'
 import type { OrderType, PaymentMethod } from '@/types'
+import type { CheckServiceabilityPayload } from '@/types/address'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useTranslations } from 'next-intl'
 
@@ -33,8 +35,6 @@ const checkoutSchema = z.object({
   last_name: z.string().min(2, 'required'),
   email: z.string().email('invalid_email'),
   phone_number: z.string().min(10, 'invalid_phone'),
-  street: z.string().optional(),
-  city: z.string().optional(),
   table_number: z.string().optional(),
   notes: z.string().optional(),
 })
@@ -94,6 +94,36 @@ function CheckoutContent() {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [pendingFormData, setPendingFormData] = useState<CheckoutFormData | null>(null)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+  const [addressPicker, setAddressPicker] = useState<AddressPickerValue>({ mode: 'saved' })
+
+  const serviceabilityPayload: CheckServiceabilityPayload | null =
+    orderType === 'delivery' && activeBranch
+      ? addressPicker.mode === 'saved' && addressPicker.addressId
+        ? { branch_id: activeBranch.id, address_id: addressPicker.addressId }
+        : addressPicker.mode === 'temporary' && addressPicker.temporaryAddress
+          ? {
+              branch_id: activeBranch.id,
+              delivery_address: {
+                street: addressPicker.temporaryAddress.street,
+                city: addressPicker.temporaryAddress.city,
+                province: addressPicker.temporaryAddress.province,
+                district: addressPicker.temporaryAddress.district,
+                building_number: addressPicker.temporaryAddress.building_number,
+                unit: addressPicker.temporaryAddress.unit,
+                floor: addressPicker.temporaryAddress.floor,
+                postal_code: addressPicker.temporaryAddress.postal_code,
+                phone: addressPicker.temporaryAddress.phone,
+                delivery_notes: addressPicker.temporaryAddress.delivery_notes,
+                latitude: addressPicker.temporaryAddress.latitude,
+                longitude: addressPicker.temporaryAddress.longitude,
+              },
+              latitude: addressPicker.temporaryAddress.latitude ?? undefined,
+              longitude: addressPicker.temporaryAddress.longitude ?? undefined,
+            }
+          : null
+      : null
+
+  const { data: serviceability, isLoading: serviceabilityLoading } = useCheckServiceability(serviceabilityPayload)
 
   const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -172,10 +202,32 @@ function CheckoutContent() {
       payment_method: paymentMethod,
       notes: data.notes,
       table_number: data.table_number ? parseInt(data.table_number) : undefined,
-      delivery_address: orderType === 'delivery' ? {
-        street: data.street || '',
-        city: data.city || '',
-      } : undefined,
+      ...(orderType === 'delivery' && addressPicker.mode === 'saved' && addressPicker.addressId
+        ? {
+            address_id: addressPicker.addressId,
+            ...(addressPicker.override && Object.keys(addressPicker.override).length > 0
+              ? { delivery_address_override: addressPicker.override }
+              : {}),
+          }
+        : {}),
+      ...(orderType === 'delivery' && addressPicker.mode === 'temporary' && addressPicker.temporaryAddress
+        ? {
+            delivery_address: {
+              street: addressPicker.temporaryAddress.street,
+              city: addressPicker.temporaryAddress.city,
+              province: addressPicker.temporaryAddress.province,
+              district: addressPicker.temporaryAddress.district,
+              building_number: addressPicker.temporaryAddress.building_number,
+              unit: addressPicker.temporaryAddress.unit,
+              floor: addressPicker.temporaryAddress.floor,
+              postal_code: addressPicker.temporaryAddress.postal_code,
+              phone: addressPicker.temporaryAddress.phone,
+              delivery_notes: addressPicker.temporaryAddress.delivery_notes,
+              latitude: addressPicker.temporaryAddress.latitude,
+              longitude: addressPicker.temporaryAddress.longitude,
+            },
+          }
+        : {}),
       discount_code: discountCode || undefined,
       ...(paymentIntentId ? { payment_intent_id: paymentIntentId } : {}),
     }
@@ -322,16 +374,18 @@ function CheckoutContent() {
                     {/* Delivery Address */}
                     <AnimatePresence>
                       {orderType === 'delivery' && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
-                          <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 space-y-4">
+                          <h2 className="font-semibold text-[var(--fg)] flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-orange-500" /> {t('deliveryAddress')}
                           </h2>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="sm:col-span-2">
-                              <Input label={t('streetAddress')} required={orderType === 'delivery'} {...register('street')} error={errors.street?.message} placeholder={t('streetAddressPlaceholder')} />
-                            </div>
-                            <Input label={t('city')} required={orderType === 'delivery'} {...register('city')} error={errors.city?.message} />
-                          </div>
+                          <AddressPicker value={addressPicker} onChange={setAddressPicker} />
+                          {serviceabilityLoading && (
+                            <p className="text-sm text-[var(--fg-muted)]">{t('checkingServiceability')}</p>
+                          )}
+                          {serviceability && <DeliveryInfoCard result={serviceability} />}
+                          {serviceability && !serviceability.deliverable && (
+                            <p className="text-sm text-amber-600" role="alert">{t('cannotDeliverHere')}</p>
+                          )}
                         </motion.div>
                       )}
                       {orderType === 'dine_in' && (

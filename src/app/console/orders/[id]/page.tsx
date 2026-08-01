@@ -188,10 +188,18 @@ function OrderDetailContent({ id }: { id: string }) {
             <div className="flex items-start gap-3">
               <MapPin className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
               <div className="text-sm">
-                <div>{order.delivery_address.street}</div>
-                <div className="text-gray-500">
-                  {order.delivery_address.city}{order.delivery_address.state ? `, ${order.delivery_address.state}` : ''} {order.delivery_address.zip ?? ''}
-                </div>
+                {order.delivery_address.formatted_address ? (
+                  <div>{order.delivery_address.formatted_address}</div>
+                ) : (
+                  <>
+                    <div>{order.delivery_address.street}</div>
+                    <div className="text-gray-500">
+                      {order.delivery_address.city}
+                      {order.delivery_address.state ? `, ${order.delivery_address.state}` : ''}
+                      {order.delivery_address.zip ?? order.delivery_address.postal_code ?? ''}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </Section>

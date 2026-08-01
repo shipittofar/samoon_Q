@@ -111,6 +111,12 @@ export const ENDPOINTS = {
     REGISTER_DEVICE: '/notifications/register-device/',
   },
 
+  // Serviceability (delivery zone / branch assignment)
+  SERVICEABILITY: {
+    GET: '/serviceability/',
+    CHECK: '/serviceability/check/',
+  },
+
   // Users
   USERS: {
     PROFILE: '/users/profile/',
@@ -120,6 +126,10 @@ export const ENDPOINTS = {
     AVATAR_UPLOAD: '/auth/profile/avatar/',
     ADDRESSES: '/users/addresses/',
     ADDRESS: (id: string) => `/users/addresses/${id}/`,
+    ADDRESS_RESTORE: (id: string) => `/users/addresses/${id}/restore/`,
+    ADDRESS_SET_DEFAULT: (id: string) => `/users/addresses/${id}/set-default/`,
+    ADDRESS_SUGGESTIONS: '/users/addresses/suggestions/',
+    ADDRESS_REVERSE_GEOCODE: '/users/addresses/reverse-geocode/',
     FAVORITES: '/users/favorites/',
     FAVORITES_SYNC: '/users/favorites/sync/',
     FAVORITE: (menuItemId: string) => `/users/favorites/${menuItemId}/`,
