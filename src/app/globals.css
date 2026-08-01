@@ -87,6 +87,7 @@
 
   html {
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
     font-family: var(--font-body);
   }
 
