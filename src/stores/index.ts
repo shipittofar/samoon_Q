@@ -183,7 +183,9 @@ export const useCartStore = create<CartState>()(
       },
       getItemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
     }),
-    { name: CART_KEY, storage: createDebouncedStorage(50) },
+    // Synchronous persistence — debounced writes could lose items on fast
+    // navigation (checkout → middleware redirect → login) before flush.
+    { name: CART_KEY },
   ),
 )
 

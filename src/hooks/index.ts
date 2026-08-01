@@ -61,7 +61,7 @@ import {
   type AuthTransitionPhase,
   redirectAndAwaitMount,
 } from '@/lib/auth-transition'
-import { getPostLoginRedirect } from '@/utils/auth-redirect'
+import { resolvePostAuthDestination } from '@/utils/auth-redirect'
 import { getAccessToken } from '@/services/axios.instance'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
@@ -608,7 +608,7 @@ export async function performAuthenticatedLoginFlow(
   }
 
   onPhase('redirecting')
-  const path = getPostLoginRedirect(user.accountType, p7Roles)
+  const path = resolvePostAuthDestination(user.accountType, p7Roles)
   await redirectAndAwaitMount(router, path)
 
   onPhase('authenticated')
@@ -683,7 +683,7 @@ export function useLogout() {
       useRbacStore.getState()._resetStore()
       useConsoleWorkspaceStore.getState().resetWorkspace()
       useBranchStore.getState().setAdminActiveBranch(null)
-      useCartStore.getState().clearCart()
+      // Cart survives logout — cleared only on order success or explicit user action.
       useDineInStore.getState().clearTable()
       useRecentlyViewedStore.getState().clear()
       qc.clear()

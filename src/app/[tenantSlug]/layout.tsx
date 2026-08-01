@@ -38,7 +38,11 @@ export default function TenantLayout({
   useEffect(() => {
     if (tenantState === 'resolved' && tenant?.slug === tenantSlug) return
     if (tenant?.slug !== tenantSlug) {
-      clearCart()
+      // Only clear when switching between two different resolved tenants —
+      // never during bootstrap when tenant is null/loading after layout unmount.
+      if (tenantState === 'resolved' && tenant?.slug) {
+        clearCart()
+      }
       const cachedTenants = queryClient.getQueryData<Tenant[]>(PUBLIC_TENANTS_QUERY_KEY)
       void loadTenant(tenantSlug, { cachedTenants })
     }

@@ -123,7 +123,11 @@ export function middleware(request: NextRequest): NextResponse {
   }
 
   const loginUrl = new URL('/login', request.url)
-  loginUrl.searchParams.set('redirect', pathname)
+  // Preserve query params (orderType, table, etc.) so checkout state survives auth.
+  const returnPath = request.nextUrl.search
+    ? `${pathname}${request.nextUrl.search}`
+    : pathname
+  loginUrl.searchParams.set('redirect', returnPath)
   const redirectResponse = NextResponse.redirect(loginUrl)
   // Clear a stale / expired token so the login page starts fresh
   if (token) {

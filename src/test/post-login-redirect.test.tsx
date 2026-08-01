@@ -3,7 +3,8 @@ import { render } from '@testing-library/react'
 import React from 'react'
 import { useAuthStore } from '@/stores'
 import type { User } from '@/types'
-import { POST_LOGIN_REDIRECT_EVENT } from '@/lib/post-auth-navigation'
+import { POST_LOGIN_REDIRECT_EVENT, type PostLoginRedirectDetail } from '@/lib/post-auth-navigation'
+import { INTENDED_AUTH_REDIRECT_KEY } from '@/utils/auth-redirect'
 import { PostLoginRedirectHandler } from '@/providers/PostLoginRedirectHandler'
 
 const mockReplace = vi.fn()
@@ -26,6 +27,7 @@ function userWith(accountType: User['accountType']): User {
 describe('PostLoginRedirectHandler', () => {
   beforeEach(() => {
     mockReplace.mockClear()
+    sessionStorage.removeItem(INTENDED_AUTH_REDIRECT_KEY)
     useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: true, sessionCheckFailed: false })
   })
 
@@ -56,6 +58,21 @@ describe('PostLoginRedirectHandler', () => {
 
     await vi.waitFor(() => {
       expect(mockReplace).toHaveBeenCalledWith('/dashboard')
+    })
+  })
+
+  it('redirects to stored checkout intent instead of dashboard', async () => {
+    const customerUser = userWith('customer')
+    sessionStorage.setItem(INTENDED_AUTH_REDIRECT_KEY, '/checkout?orderType=pickup')
+
+    render(<PostLoginRedirectHandler><div /></PostLoginRedirectHandler>)
+
+    window.dispatchEvent(
+      new CustomEvent(POST_LOGIN_REDIRECT_EVENT, { detail: { user: customerUser } }),
+    )
+
+    await vi.waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/checkout?orderType=pickup')
     })
   })
 

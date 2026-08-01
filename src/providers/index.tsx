@@ -5,7 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
-import { useAuthStore, useThemeStore, useLangStore, useTenantStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
+import { useAuthStore, useThemeStore, useLangStore, useTenantStore, useRbacStore, useBranchStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
 import { authService } from '@/services/auth.service'
 import { getAccessToken, clearTokens } from '@/services/axios.instance'
 import { prefetchFavoritesList, useFavoritesSync } from '@/hooks/favorites'
@@ -490,7 +490,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     useRbacStore.getState()._resetStore()
     useConsoleWorkspaceStore.getState().resetWorkspace()
     useBranchStore.getState().resetBranchResolution()
-    useCartStore.getState().clearCart()
+    // Cart survives session teardown — cleared only on order success or explicit user action.
     useDineInStore.getState().clearTable()
     useRecentlyViewedStore.getState().clear()
     qc.clear()

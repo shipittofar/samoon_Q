@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
@@ -23,6 +23,7 @@ import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
 import { ForgotPasswordPanel } from '@/app/login/ForgotPasswordPanel'
+import { storeIntendedAuthRedirect } from '@/utils/auth-redirect'
 
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -55,6 +56,7 @@ type EmailFormData = z.infer<typeof emailSchema>
 
 export function LoginClientPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const prefersReducedMotion = useReducedMotion()
   const loginTransition = useLoginTransition()
   const { mutate: sendOTP, isPending: isSendingOTP } = useSendOTP()
@@ -75,6 +77,14 @@ export function LoginClientPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   const { isActive: isLoginTransitionActive, labelKey: loginTransitionLabelKey, executeLogin, reset: resetLoginTransition } = loginTransition
+
+  // Preserve checkout (and other protected-route) intent across the full auth flow
+  // (login → verify OTP → complete-profile). Middleware sets ?redirect=; we stash it
+  // in sessionStorage because /verify drops query params.
+  useEffect(() => {
+    const redirect = searchParams.get('redirect')
+    if (redirect) storeIntendedAuthRedirect(redirect)
+  }, [searchParams])
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),

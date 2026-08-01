@@ -10,6 +10,11 @@ import {
   DEMO_EMAIL_REDIRECTS,
   getDemoRedirect,
   getPostLoginRedirect,
+  sanitizeAuthRedirectPath,
+  storeIntendedAuthRedirect,
+  consumeIntendedAuthRedirect,
+  resolvePostAuthDestination,
+  INTENDED_AUTH_REDIRECT_KEY,
 } from '@/utils/auth-redirect'
 
 describe('DEMO_EMAIL_REDIRECTS', () => {
@@ -101,5 +106,43 @@ describe('getPostLoginRedirect', () => {
 
   it('an unrecognized tenant role still lands in /console for a business account (resolveWorkspace default)', () => {
     expect(getPostLoginRedirect('business', ['superuser' as never])).toBe('/console')
+  })
+})
+
+describe('sanitizeAuthRedirectPath', () => {
+  it('accepts checkout with query params', () => {
+    expect(sanitizeAuthRedirectPath('/checkout?orderType=dine_in&table=3')).toBe(
+      '/checkout?orderType=dine_in&table=3',
+    )
+  })
+
+  it('rejects open redirects and auth-loop paths', () => {
+    expect(sanitizeAuthRedirectPath('//evil.com')).toBeNull()
+    expect(sanitizeAuthRedirectPath('/login')).toBeNull()
+    expect(sanitizeAuthRedirectPath('/verify')).toBeNull()
+    expect(sanitizeAuthRedirectPath('https://evil.com/path')).toBeNull()
+  })
+})
+
+describe('resolvePostAuthDestination', () => {
+  beforeEach(() => {
+    sessionStorage.removeItem(INTENDED_AUTH_REDIRECT_KEY)
+  })
+
+  it('honors stored intended redirect over account-type default', () => {
+    storeIntendedAuthRedirect('/checkout?orderType=pickup')
+    expect(resolvePostAuthDestination('customer')).toBe('/checkout?orderType=pickup')
+    expect(sessionStorage.getItem(INTENDED_AUTH_REDIRECT_KEY)).toBeNull()
+  })
+
+  it('falls back to getPostLoginRedirect when no intended path', () => {
+    expect(resolvePostAuthDestination('customer')).toBe('/dashboard')
+    expect(resolvePostAuthDestination('business', ['owner'])).toBe('/console')
+  })
+
+  it('explicit intended path takes precedence over sessionStorage', () => {
+    storeIntendedAuthRedirect('/dashboard')
+    expect(resolvePostAuthDestination('customer', null, '/checkout')).toBe('/checkout')
+    expect(consumeIntendedAuthRedirect()).toBe('/dashboard')
   })
 })

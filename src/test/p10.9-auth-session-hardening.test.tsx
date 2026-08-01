@@ -43,7 +43,7 @@ function clearSession(qc: QueryClient) {
   clearTokens()
   useRbacStore.getState()._resetStore()
   useBranchStore.getState().setAdminActiveBranch(null)
-  useCartStore.getState().clearCart()
+  // Cart survives session teardown — mirrors AuthBootstrapper.clearSession().
   useDineInStore.getState().clearTable()
   useRecentlyViewedStore.getState().clear()
   qc.clear()
@@ -54,7 +54,7 @@ function explicitLogout(qc: QueryClient) {
   useAuthStore.getState().logout()
   useRbacStore.getState()._resetStore()
   useBranchStore.getState().setAdminActiveBranch(null)
-  useCartStore.getState().clearCart()
+  // Cart survives logout — cleared only on order success or explicit user action.
   useDineInStore.getState().clearTable()
   useRecentlyViewedStore.getState().clear()
   qc.clear()
@@ -108,7 +108,8 @@ describe('P10.9 Scenario 1 — User A login, logout, User B login: no User A dat
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
 
     explicitLogout(qc)
-    expect(useCartStore.getState().items).toEqual([])
+    // Cart is intentionally preserved across logout (guest-checkout UX).
+    expect(useCartStore.getState().items.length).toBeGreaterThan(0)
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual([])
     expect(useAuthStore.getState().user).toBeNull()
 
@@ -117,7 +118,7 @@ describe('P10.9 Scenario 1 — User A login, logout, User B login: no User A dat
     await loginB
 
     expect(useAuthStore.getState().user?.email).toBe('cashier@samoon.com')
-    expect(useCartStore.getState().items).toEqual([])
+    expect(useCartStore.getState().items.length).toBeGreaterThan(0)
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['cashier'])
   })
 })
@@ -183,7 +184,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
     expect(useCartStore.getState().items.length).toBeGreaterThan(0)
   })
 
-  it('AFTER the fix, clearSession() (the new handler) removes tokens, RBAC, cart, tenant, and query cache state', async () => {
+  it('AFTER the fix, clearSession() removes tokens and RBAC but preserves the cart', async () => {
     const qc = new QueryClient()
     const loginA = loginAs('owner@samoon.com')
     await vi.runAllTimersAsync()
@@ -198,7 +199,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
     expect(getAccessToken()).toBeNull()
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual([])
-    expect(useCartStore.getState().items).toEqual([])
+    expect(useCartStore.getState().items.length).toBeGreaterThan(0)
     expect(useBranchStore.getState().adminActiveBranch).toBeNull()
   })
 })

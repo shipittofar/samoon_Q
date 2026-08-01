@@ -9,6 +9,58 @@ import { resolveWorkspace } from '@/utils/navigation-intelligence'
 import type { AccountType } from '@/types'
 import type { Role } from '@/types/rbac'
 
+/** sessionStorage key — survives login → verify → complete-profile without URL params. */
+export const INTENDED_AUTH_REDIRECT_KEY = 'samoon-intended-auth-redirect'
+
+/** Auth routes that must never be used as a post-login destination (loop prevention). */
+const AUTH_REDIRECT_BLOCKLIST = ['/login', '/verify', '/complete-profile', '/register'] as const
+
+/**
+ * Validates an internal post-auth destination. Rejects open redirects and auth-loop paths.
+ * Accepts pathname + optional search/hash (e.g. `/checkout?orderType=dine_in&table=3`).
+ */
+export function sanitizeAuthRedirectPath(path: string | null | undefined): string | null {
+  if (!path || typeof path !== 'string') return null
+  const trimmed = path.trim()
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return null
+  if (trimmed.includes('://')) return null
+
+  const pathnameOnly = trimmed.split('?')[0].split('#')[0]
+  for (const blocked of AUTH_REDIRECT_BLOCKLIST) {
+    if (pathnameOnly === blocked || pathnameOnly.startsWith(`${blocked}/`)) return null
+  }
+  return trimmed
+}
+
+/** Persists the route the user intended before authentication (checkout, etc.). */
+export function storeIntendedAuthRedirect(path: string): void {
+  if (typeof sessionStorage === 'undefined') return
+  const safe = sanitizeAuthRedirectPath(path)
+  if (safe) sessionStorage.setItem(INTENDED_AUTH_REDIRECT_KEY, safe)
+}
+
+/** Reads and clears the stored intended redirect (one-shot). */
+export function consumeIntendedAuthRedirect(): string | null {
+  if (typeof sessionStorage === 'undefined') return null
+  const raw = sessionStorage.getItem(INTENDED_AUTH_REDIRECT_KEY)
+  if (!raw) return null
+  sessionStorage.removeItem(INTENDED_AUTH_REDIRECT_KEY)
+  return sanitizeAuthRedirectPath(raw)
+}
+
+/**
+ * Post-auth destination: honor a stored/intended route when safe, else account-type default.
+ */
+export function resolvePostAuthDestination(
+  accountType: AccountType,
+  tenantRoles?: Role[] | null,
+  intendedPath?: string | null,
+): string {
+  const safe = sanitizeAuthRedirectPath(intendedPath) ?? consumeIntendedAuthRedirect()
+  if (safe) return safe
+  return getPostLoginRedirect(accountType, tenantRoles)
+}
+
 /**
  * Maps demo phone_number (E.164) → email, so the mock OTP flow can resolve
  * the correct user from MOCK_CREDENTIALS after OTP verification.

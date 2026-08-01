@@ -235,24 +235,24 @@ describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
     expect(brew).not.toContain('airport')
   })
 
-  it('useLogout clears cart, recently-viewed, dine-in, and RBAC', async () => {
-    // Source-text verification: useLogout must call clearCart, clear(), clearTable
+  it('useLogout clears recently-viewed, dine-in, and RBAC but preserves cart', async () => {
     const hooksSrc = readFileSync(
       join(__dirname, '..', 'hooks', 'index.ts'),
       'utf-8',
     )
-    expect(hooksSrc).toContain('useCartStore.getState().clearCart()')
+    expect(hooksSrc).not.toContain('useCartStore.getState().clearCart()')
     expect(hooksSrc).toContain('useRecentlyViewedStore.getState().clear()')
     expect(hooksSrc).toContain('useDineInStore.getState().clearTable()')
     expect(hooksSrc).toContain('qc.clear()')
   })
 
-  it('TenantLayout clears cart on tenant switch', async () => {
+  it('TenantLayout clears cart only on genuine tenant switch (not bootstrap)', async () => {
     const src = readFileSync(
       join(__dirname, '..', 'app', '[tenantSlug]', 'layout.tsx'),
       'utf-8',
     )
     expect(src).toContain('clearCart()')
+    expect(src).toContain('tenantState === \'resolved\'')
     expect(src).toContain('useCartStore')
   })
 

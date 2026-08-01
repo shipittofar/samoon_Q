@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { getPostLoginRedirect } from '@/utils/auth-redirect'
+import { resolvePostAuthDestination } from '@/utils/auth-redirect'
 import { POST_LOGIN_REDIRECT_EVENT, type PostLoginRedirectDetail } from '@/lib/post-auth-navigation'
 
 /**
@@ -21,7 +21,7 @@ export function PostLoginRedirectHandler({ children }: { children: ReactNode }) 
       if (!user?.accountType) return
 
       redirectedRef.current = true
-      router.replace(getPostLoginRedirect(user.accountType, p7Roles))
+      router.replace(resolvePostAuthDestination(user.accountType, p7Roles))
     }
 
     window.addEventListener(POST_LOGIN_REDIRECT_EVENT, onPostLogin)
