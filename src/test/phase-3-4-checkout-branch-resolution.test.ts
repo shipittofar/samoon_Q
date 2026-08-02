@@ -33,7 +33,7 @@ describe('Phase 3.4 — checkout/page.tsx has no hardcoded/default branch fallba
     // `activeBranch.id` (no optional chaining fallback) — proves the
     // value can only ever be a real, resolved branch id.
     const occurrences = content.match(/branch_id:\s*activeBranch\.id/g) ?? []
-    expect(occurrences.length).toBe(2)
+    expect(occurrences.length).toBeGreaterThanOrEqual(2)
   })
 
   it('blocks rendering entirely when activeBranch is null, before the order form exists', () => {

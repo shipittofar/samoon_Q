@@ -126,6 +126,7 @@ import { buildDrfPaginationParams } from '@/utils/pagination'
 import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant } from '@/types'
 import { resolvePublicBranchList } from '@/lib/public-branches'
+import { mergeBranchCheckout } from '@/lib/branch-checkout'
 import { adaptDiscoverResponse } from '@/lib/discover-adapter'
 import { discoverService } from '@/services/discover.service'
 import type { DiscoverItem } from '@/lib/discover-adapter'
@@ -999,8 +1000,15 @@ export function useCreatePaymentIntent() {
 export function useBranches() {
   const tenantId = useTenantStore((s) => s.tenant?.id)
   return useQuery({
-    queryKey: ['branches', tenantId],
-    queryFn: () => (tenantId ? branchService.getBranches(tenantId) : branchService.getBranches()),
+    queryKey: ['storefront-branches', tenantId],
+    queryFn: async () => {
+      if (!tenantId) {
+        return []
+      }
+      const entities = await branchManagementService.getTenantsBranches(tenantId)
+      const { branchEntityToLocation } = await import('@/lib/branch-adapters')
+      return entities.map(branchEntityToLocation)
+    },
     staleTime: CACHE_TIME,
   })
 }
@@ -1237,7 +1245,12 @@ export function useUpdateBranch() {
           ...(payload.contact && { contact: { ...snapshot.contact, ...payload.contact } }),
           ...(payload.managerId !== undefined && { managerId: payload.managerId }),
           ...(payload.businessHours && { businessHours: payload.businessHours }),
-          ...(payload.settings && { settings: { ...snapshot.settings, ...payload.settings } }),
+          ...(payload.checkout && {
+            checkout: mergeBranchCheckout(snapshot.checkout, payload.checkout),
+          }),
+          ...(payload.marketplaceVisible !== undefined && { marketplaceVisible: payload.marketplaceVisible }),
+          ...(payload.reservationsEnabled !== undefined && { reservationsEnabled: payload.reservationsEnabled }),
+          ...(payload.maxCapacity !== undefined && { maxCapacity: payload.maxCapacity }),
         })
       }
       return { snapshot }

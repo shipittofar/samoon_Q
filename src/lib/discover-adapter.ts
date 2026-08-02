@@ -6,6 +6,7 @@
 import type { Tenant } from '@/types'
 import type { DiscoverBranch, DiscoverResponse, DiscoverTenant } from '@/types/discover'
 import type { MarketplaceMeta, PublicBranchInfo } from '@/types/marketplace'
+import { resolveBranchHoursStatus } from '@/lib/branch-hours'
 
 /** Adapted discover row — TenantWithMeta plus pre-resolved branches for BusinessCard. */
 export type DiscoverItem = {
@@ -15,20 +16,32 @@ export type DiscoverItem = {
 }
 
 export function mapDiscoverBranchToPublicBranchInfo(branch: DiscoverBranch): PublicBranchInfo {
+  const hoursStatus = branch.businessHours?.length
+    ? resolveBranchHoursStatus(branch.businessHours)
+    : { openNow: branch.openNow, todayHours: branch.todayHours }
+
   return {
     id: branch.id,
     slug: branch.slug,
     name: branch.name,
     address: branch.location.address,
     city: branch.location.city,
-    openNow: branch.openNow,
-    todayHours: branch.todayHours,
+    openNow: hoursStatus.openNow,
+    todayHours: hoursStatus.todayHours,
     image: branch.image,
+    checkout: branch.checkout,
+    currency: branch.currency,
+    businessHours: branch.businessHours,
+    marketplaceVisible: branch.marketplaceVisible,
+    reservationsEnabled: branch.reservationsEnabled,
+    maxCapacity: branch.maxCapacity,
   }
 }
 
 export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
-  const branches = (item.branches ?? []).map(mapDiscoverBranchToPublicBranchInfo)
+  const branches = (item.branches ?? [])
+    .map(mapDiscoverBranchToPublicBranchInfo)
+    .filter((b) => b.marketplaceVisible !== false)
 
   const marketplaceInput = item.marketplace ?? {}
   const meta: MarketplaceMeta = {

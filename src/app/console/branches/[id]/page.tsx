@@ -154,14 +154,14 @@ function BranchDetailContent({ id }: { id: string }) {
       <section className="rounded-lg border p-4">
         <h2 className="mb-2 font-semibold">{t('settingsTitle')}</h2>
         <ul className="space-y-1 text-sm">
-          <li>{t('orderingColonValue', { value: branch.settings.orderingEnabled !== false ? t('enabledLabel') : t('disabledLabel') })}</li>
-          <li>{t('deliveryColonValue', { value: branch.settings.deliveryEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
-          <li>{t('pickupColonValue', { value: branch.settings.pickupEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
-          <li>{t('tableOrderingColonValue', { value: branch.settings.tableOrderingEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
-          <li>{t('reservationsColonValue', { value: branch.settings.reservationsEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
-          <li>{t('marketplaceVisibleColonValue', { value: branch.settings.marketplaceVisible !== false ? t('enabledLabel') : t('disabledLabel') })}</li>
-          {branch.settings.maxCapacity !== undefined && (
-            <li>{t('maxCapacityColonValue', { value: branch.settings.maxCapacity })}</li>
+          <li>{t('orderingColonValue', { value: branch.checkout.orderingEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('deliveryColonValue', { value: branch.checkout.orderTypes.delivery ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('pickupColonValue', { value: branch.checkout.orderTypes.pickup ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('tableOrderingColonValue', { value: branch.checkout.orderTypes.dineIn ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('reservationsColonValue', { value: branch.reservationsEnabled ? t('enabledLabel') : t('disabledLabel') })}</li>
+          <li>{t('marketplaceVisibleColonValue', { value: branch.marketplaceVisible !== false ? t('enabledLabel') : t('disabledLabel') })}</li>
+          {branch.maxCapacity !== undefined && (
+            <li>{t('maxCapacityColonValue', { value: branch.maxCapacity })}</li>
           )}
         </ul>
       </section>

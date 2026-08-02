@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Star, Clock, Flame, AlertTriangle } from 'lucide-react'
-import { useCartStore } from '@/stores'
+import { useCartStore, useBranchStore } from '@/stores'
 import {
   useFavoriteAction,
   useRelatedItems,
@@ -25,6 +25,7 @@ import { useProductDetailState } from '@/components/product/useProductDetailStat
 import { ProductDetailSectionTabs, type ProductDetailTab } from '@/components/product/ProductDetailSectionTabs'
 import { buildRatingBreakdownFromReviews, getAssignedExtraGroups, formatNutritionValue } from '@/lib/product-detail-utils'
 import { formatCurrency, getDiscountedPrice } from '@/utils'
+import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import type { MenuItem } from '@/types'
 import toast from 'react-hot-toast'
 import { useTranslations, useLocale } from 'next-intl'
@@ -57,6 +58,7 @@ export function ProductDetailView({
   const [isLg, setIsLg] = useState(false)
 
   const { addItem } = useCartStore()
+  const orderingEnabled = isBranchOrderingEnabled(useBranchStore((s) => s.activeBranch?.checkout))
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const activeBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? activeBranchId
@@ -114,6 +116,7 @@ export function ProductDetailView({
   }, [])
 
   const handleAddToCart = useCallback(() => {
+    if (!orderingEnabled) return
     const validation = validateExtraSelections(assignedGroups, selectedExtras)
     if (!validation.valid) {
       setExtrasError(t('selectGroupRequired', { group: validation.message ?? '' }))
@@ -139,6 +142,7 @@ export function ProductDetailView({
     notes,
     tNotifications,
     setAddedToCart,
+    orderingEnabled,
   ])
 
   useEffect(() => {
@@ -424,6 +428,7 @@ export function ProductDetailView({
         />
       </div>
 
+      {orderingEnabled && (
       <StickyPurchaseBar
         quantity={quantity}
         onQuantityChange={setQuantity}
@@ -437,6 +442,7 @@ export function ProductDetailView({
         decreaseLabel={t('decreaseQuantity')}
         increaseLabel={t('increaseQuantity')}
       />
+      )}
     </div>
   )
 }

@@ -1,4 +1,30 @@
 import type { Branch, BusinessCustomer, BranchCustomer, Category, ConsoleMenuTag, CustomerAnalytics, CustomerCoupon, CustomerMarketing, CustomerNote, CustomerTag, CustomerTimelineEvent, Extra, ExtraGroup, LoyaltyAccount, MenuItem, MenuItemTag, MenuTag, Notification, Order, PlatformUser, Reservation, User } from '@/types'
+import { buildBranchCheckout } from '@/lib/branch-checkout'
+
+/** Attaches backend-shaped checkout config to legacy Location mock branches. */
+function withLocationCheckout(
+  branch: Branch,
+  opts: {
+    delivery?: boolean
+    pickup?: boolean
+    dineIn?: boolean
+    radius?: number | null
+  } = {},
+): Branch {
+  const checkout = buildBranchCheckout({
+    delivery: opts.delivery ?? true,
+    pickup: opts.pickup ?? true,
+    dineIn: opts.dineIn ?? true,
+    radius: opts.radius ?? branch.delivery_radius ?? null,
+  })
+  return {
+    ...branch,
+    checkout,
+    marketplaceVisible: true,
+    reservationsEnabled: false,
+    delivery_radius: checkout.delivery.radius ?? undefined,
+  }
+}
 
 // ── Users ────────────────────────────────────────────────────────────────────
 export const MOCK_USER: User = {
@@ -129,7 +155,7 @@ export const MOCK_MULTI_ROLE_USER: User = {
 }
 
 // ── Branches ─────────────────────────────────────────────────────────────────
-export const MOCK_BRANCHES: Branch[] = [
+const RAW_MOCK_BRANCHES: Branch[] = [
   {
     id: '1',
     name: 'Main Branch',
@@ -224,10 +250,16 @@ export const MOCK_BRANCHES: Branch[] = [
   },
 ]
 
+export const MOCK_BRANCHES: Branch[] = RAW_MOCK_BRANCHES.map((branch, index) =>
+  withLocationCheckout(branch, {
+    radius: branch.delivery_radius ?? [10, 8, 2, 10][index] ?? null,
+  }),
+)
+
 // ── Tenant-scoped branches (id = slug, consistent with publicBranchToLocation) ──
 // P8.7.7.10 — used by branchService.getBranches(tenantId) so the reservation form
 // shows branches that belong to the active tenant and whose ids match activeBranch.id.
-export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
+const RAW_MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
   'tenant-samoon-01': [
     { id: 'main', slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone_number: '+1 (212) 555-0100', lat: 40.7128, lng: -74.006, is_active: true, working_hours: [
       { day: 'Monday', open: '10:00', close: '23:00', is_closed: false },
@@ -322,6 +354,13 @@ export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = {
     ] },
   ],
 }
+
+export const MOCK_TENANT_BRANCHES: Record<string, Branch[]> = Object.fromEntries(
+  Object.entries(RAW_MOCK_TENANT_BRANCHES).map(([tenantId, branches]) => [
+    tenantId,
+    branches.map((branch) => withLocationCheckout(branch)),
+  ]),
+)
 
 // ── Categories ────────────────────────────────────────────────────────────────
 export const MOCK_CATEGORIES: Category[] = [

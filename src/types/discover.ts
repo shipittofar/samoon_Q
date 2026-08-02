@@ -4,6 +4,7 @@
 
 import type { TenantStatus } from '@/types'
 import type { TenantTheme } from '@/types'
+import type { BranchCheckout, BranchBusinessHours } from '@/types/branch'
 import type { MarketplaceMeta } from '@/types/marketplace'
 
 /** Branch summary embedded in a discover tenant result. */
@@ -19,6 +20,12 @@ export interface DiscoverBranch {
     city: string
     country?: string
   }
+  checkout?: BranchCheckout
+  businessHours?: BranchBusinessHours[]
+  currency?: string
+  marketplaceVisible?: boolean
+  reservationsEnabled?: boolean
+  maxCapacity?: number
 }
 
 /** Marketplace display fields on a discover tenant (no embedded branches). */

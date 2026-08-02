@@ -1,10 +1,14 @@
 import type { ImageFieldValue } from '@/components/ImageUploader'
 import { EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { appendImageField } from '@/lib/multipart'
+import {
+  DEFAULT_BRANCH_CHECKOUT,
+  mergeBranchCheckout,
+} from '@/lib/branch-checkout'
 import type {
   Branch,
   BranchBusinessHours,
-  BranchSettings,
+  BranchCheckout,
   BranchType,
 } from './branch'
 
@@ -26,7 +30,10 @@ export interface BranchFormState {
   language: string
   isDefault: boolean
   businessHours: BranchBusinessHours[]
-  settings: BranchSettings
+  checkout: BranchCheckout
+  marketplaceVisible: boolean
+  reservationsEnabled: boolean
+  maxCapacity?: number
 }
 
 const DAYS: BranchBusinessHours['day'][] = [
@@ -35,15 +42,6 @@ const DAYS: BranchBusinessHours['day'][] = [
 
 export function defaultBranchFormBusinessHours(): BranchBusinessHours[] {
   return DAYS.map((day) => ({ day, open: '09:00', close: '22:00', isClosed: false }))
-}
-
-export const DEFAULT_BRANCH_SETTINGS: BranchSettings = {
-  deliveryEnabled: false,
-  pickupEnabled: true,
-  tableOrderingEnabled: false,
-  reservationsEnabled: false,
-  orderingEnabled: true,
-  marketplaceVisible: true,
 }
 
 export const EMPTY_BRANCH_FORM: BranchFormState = {
@@ -64,7 +62,9 @@ export const EMPTY_BRANCH_FORM: BranchFormState = {
   language: '',
   isDefault: false,
   businessHours: defaultBranchFormBusinessHours(),
-  settings: { ...DEFAULT_BRANCH_SETTINGS },
+  checkout: { ...DEFAULT_BRANCH_CHECKOUT },
+  marketplaceVisible: true,
+  reservationsEnabled: false,
 }
 
 const SIMPLE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -102,7 +102,10 @@ export interface BranchWriteRequest {
   }
   managerId?: string
   businessHours?: BranchBusinessHours[]
-  settings?: Partial<BranchSettings>
+  checkout?: BranchCheckout
+  marketplaceVisible?: boolean
+  reservationsEnabled?: boolean
+  maxCapacity?: number
   image?: File
   coverImage?: File
   removeImage?: boolean
@@ -130,7 +133,10 @@ export function branchFormToWriteRequest(form: BranchFormState): BranchWriteRequ
       email: form.email.trim() || undefined,
     },
     businessHours: form.businessHours,
-    settings: form.settings,
+    checkout: form.checkout,
+    marketplaceVisible: form.marketplaceVisible,
+    reservationsEnabled: form.reservationsEnabled,
+    maxCapacity: form.maxCapacity,
     isDefault: form.isDefault,
     timeZone: form.timeZone.trim() || undefined,
     currency: form.currency.trim() || undefined,
@@ -170,7 +176,10 @@ export function buildBranchFormData(
   if (payload.contact != null) form.append('contact', JSON.stringify(payload.contact))
   if (payload.managerId != null) form.append('managerId', payload.managerId)
   if (payload.businessHours != null) form.append('businessHours', JSON.stringify(payload.businessHours))
-  if (payload.settings != null) form.append('settings', JSON.stringify(payload.settings))
+  if (payload.checkout != null) form.append('checkout', JSON.stringify(payload.checkout))
+  if (payload.marketplaceVisible != null) form.append('marketplaceVisible', String(payload.marketplaceVisible))
+  if (payload.reservationsEnabled != null) form.append('reservationsEnabled', String(payload.reservationsEnabled))
+  if (payload.maxCapacity != null) form.append('maxCapacity', String(payload.maxCapacity))
   if (payload.isDefault != null) form.append('isDefault', String(payload.isDefault))
   if (payload.timeZone != null) form.append('timeZone', payload.timeZone)
   if (payload.currency != null) form.append('currency', payload.currency)
@@ -209,6 +218,9 @@ export function branchToFormInput(branch: Branch): BranchFormState {
     language: branch.language ?? '',
     isDefault: branch.isDefault ?? false,
     businessHours: branch.businessHours.length > 0 ? branch.businessHours : defaultBranchFormBusinessHours(),
-    settings: { ...DEFAULT_BRANCH_SETTINGS, ...branch.settings },
+    checkout: mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, branch.checkout),
+    marketplaceVisible: branch.marketplaceVisible,
+    reservationsEnabled: branch.reservationsEnabled,
+    maxCapacity: branch.maxCapacity,
   }
 }

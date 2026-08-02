@@ -10,14 +10,21 @@
 
 import { useTranslations } from 'next-intl'
 import { ImageUploader } from '@/components/ImageUploader'
-import type { BranchBusinessHours, BranchSettings } from '@/types/branch'
+import type { BranchBusinessHours } from '@/types/branch'
 import type { BranchFormState } from '@/types/branch-form'
+import { checkoutConfigKeyToWire } from '@/lib/checkout-options'
+
+function humanizeConfigKey(key: string): string {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim()
+}
 
 export type { BranchFormState } from '@/types/branch-form'
 export {
   validateBranchForm,
   defaultBranchFormBusinessHours,
-  DEFAULT_BRANCH_SETTINGS,
   EMPTY_BRANCH_FORM,
   branchFormToWriteRequest,
   branchToFormInput,
@@ -41,8 +48,26 @@ export function BranchFormFields({
       businessHours: form.businessHours.map((h) => (h.day === day ? { ...h, ...patch } : h)),
     })
 
-  const setSetting = <K extends keyof BranchSettings>(key: K, value: BranchSettings[K]) =>
-    onChange({ ...form, settings: { ...form.settings, [key]: value } })
+  const setCheckout = (patch: Partial<BranchFormState['checkout']>) =>
+    onChange({ ...form, checkout: { ...form.checkout, ...patch } })
+
+  const setOrderTypes = (patch: Partial<BranchFormState['checkout']['orderTypes']>) =>
+    onChange({
+      ...form,
+      checkout: { ...form.checkout, orderTypes: { ...form.checkout.orderTypes, ...patch } },
+    })
+
+  const setPayments = (patch: Partial<BranchFormState['checkout']['payments']>) =>
+    onChange({
+      ...form,
+      checkout: { ...form.checkout, payments: { ...form.checkout.payments, ...patch } },
+    })
+
+  const setDelivery = (patch: Partial<BranchFormState['checkout']['delivery']>) =>
+    onChange({
+      ...form,
+      checkout: { ...form.checkout, delivery: { ...form.checkout.delivery, ...patch } },
+    })
 
   const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400'
 
@@ -209,35 +234,163 @@ export function BranchFormFields({
         </div>
       </fieldset>
 
-      {/* Settings */}
+      {/* Checkout / ordering */}
       <fieldset className="space-y-3 rounded-lg border border-gray-200 p-4">
         <legend className="text-sm font-semibold text-gray-700 px-1">{t('settingsTitle')}</legend>
-        {([
-          ['orderingEnabled', 'orderingEnabledLabel'],
-          ['deliveryEnabled', 'deliveryEnabledLabel'],
-          ['pickupEnabled', 'pickupEnabledLabel'],
-          ['tableOrderingEnabled', 'dineInEnabledLabel'],
-          ['reservationsEnabled', 'reservationsEnabledLabel'],
-          ['marketplaceVisible', 'marketplaceVisibleLabel'],
-        ] as const).map(([key, labelKey]) => (
-          <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.checkout.orderingEnabled}
+            onChange={(e) => setCheckout({ orderingEnabled: e.target.checked })}
+            className="rounded"
+          />
+          {t('orderingEnabledLabel')}
+        </label>
+
+        <div className="pt-2 space-y-2">
+          <p className="text-sm font-medium text-gray-700">{t('orderTypesLabel', { defaultValue: 'Order types' })}</p>
+          {Object.entries(form.checkout.orderTypes)
+            .filter(([key]) => key !== 'default')
+            .map(([key]) => (
+            <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!form.checkout.orderTypes[key]}
+                onChange={(e) => setOrderTypes({ [key]: e.target.checked })}
+                className="rounded"
+              />
+              {t(`${key}EnabledLabel`, { defaultValue: humanizeConfigKey(key) })}
+            </label>
+          ))}
+        </div>
+
+        <div className="pt-2 space-y-2">
+          <p className="text-sm font-medium text-gray-700">{t('paymentMethodsLabel', { defaultValue: 'Payment methods' })}</p>
+          {Object.entries(form.checkout.payments)
+            .filter(([key]) => key !== 'default')
+            .map(([key]) => (
+            <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!form.checkout.payments[key]}
+                onChange={(e) => setPayments({ [key]: e.target.checked })}
+                className="rounded"
+              />
+              {t(`${key}Label`, { defaultValue: humanizeConfigKey(key) })}
+            </label>
+          ))}
+        </div>
+
+        <div className="pt-2 space-y-2">
+          <p className="text-sm font-medium text-gray-700">{t('deliveryOptionsLabel', { defaultValue: 'Delivery options' })}</p>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="branch-delivery-radius">{t('deliveryRadiusLabel', { defaultValue: 'Delivery radius (km)' })}</label>
             <input
-              type="checkbox"
-              checked={!!form.settings[key]}
-              onChange={(e) => setSetting(key, e.target.checked)}
-              className="rounded"
+              id="branch-delivery-radius"
+              type="number"
+              min={0}
+              value={form.checkout.delivery.radius ?? ''}
+              onChange={(e) => setDelivery({ radius: e.target.value ? parseFloat(e.target.value) : null })}
+              className={`${inputClass} max-w-[10rem]`}
             />
-            {t(labelKey)}
-          </label>
-        ))}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="branch-minimum-order">{t('minimumOrder')}</label>
+            <input
+              id="branch-minimum-order"
+              type="text"
+              value={form.checkout.delivery.minimumOrder ?? ''}
+              onChange={(e) => setDelivery({ minimumOrder: e.target.value || null })}
+              className={`${inputClass} max-w-[10rem]`}
+            />
+          </div>
+          {Object.entries(form.checkout.delivery)
+            .filter(([key, value]) => key !== 'radius' && key !== 'minimumOrder' && typeof value === 'boolean')
+            .map(([key]) => (
+            <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!form.checkout.delivery[key]}
+                onChange={(e) => setDelivery({ [key]: e.target.checked })}
+                className="rounded"
+              />
+              {t(`${key}DeliveryLabel`, { defaultValue: humanizeConfigKey(key) })}
+            </label>
+          ))}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="branch-default-order-type">
+                {t('defaultOrderTypeLabel', { defaultValue: 'Default order type' })}
+              </label>
+              <select
+                id="branch-default-order-type"
+                value={form.checkout.orderTypes.default ?? ''}
+                onChange={(e) => setOrderTypes({ default: e.target.value || null })}
+                className={inputClass}
+              >
+                <option value="">{t('noDefaultLabel', { defaultValue: 'No default' })}</option>
+                {Object.entries(form.checkout.orderTypes)
+                  .filter(([key, value]) => key !== 'default' && value === true)
+                  .map(([key]) => (
+                    <option key={key} value={checkoutConfigKeyToWire(key)}>
+                      {t(`${key}EnabledLabel`, { defaultValue: humanizeConfigKey(key) })}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="branch-default-payment">
+                {t('defaultPaymentLabel', { defaultValue: 'Default payment method' })}
+              </label>
+              <select
+                id="branch-default-payment"
+                value={form.checkout.payments.default ?? ''}
+                onChange={(e) => setPayments({ default: e.target.value || null })}
+                className={inputClass}
+              >
+                <option value="">{t('noDefaultLabel', { defaultValue: 'No default' })}</option>
+                {Object.entries(form.checkout.payments)
+                  .filter(([key, value]) => key !== 'default' && value === true)
+                  .map(([key]) => (
+                    <option key={key} value={key}>
+                      {t(`${key}Label`, { defaultValue: humanizeConfigKey(key) })}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.reservationsEnabled}
+            onChange={(e) => set('reservationsEnabled', e.target.checked)}
+            className="rounded"
+          />
+          {t('reservationsEnabledLabel')}
+        </label>
+
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.marketplaceVisible}
+            onChange={(e) => set('marketplaceVisible', e.target.checked)}
+            className="rounded"
+          />
+          {t('marketplaceVisibleLabel')}
+        </label>
+
         <div className="pt-2">
           <label className="block text-sm font-medium mb-1" htmlFor="branch-max-capacity">{t('maxCapacityLabel')}</label>
           <input
             id="branch-max-capacity"
             type="number"
             min={0}
-            value={form.settings.maxCapacity ?? ''}
-            onChange={(e) => setSetting('maxCapacity', e.target.value ? parseInt(e.target.value, 10) : undefined)}
+            value={form.maxCapacity ?? ''}
+            onChange={(e) => set('maxCapacity', e.target.value ? parseInt(e.target.value, 10) : undefined)}
             className={`${inputClass} max-w-[10rem]`}
           />
         </div>

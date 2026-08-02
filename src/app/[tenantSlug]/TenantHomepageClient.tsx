@@ -63,14 +63,28 @@ function Breadcrumb({ name }: { name: string }) {
 
 // ── Hero Section ──────────────────────────────────────────────────────────────
 
-function HeroSection({ tenant, meta }: { tenant: Tenant; meta: MarketplaceMeta }) {
+function HeroSection({
+  tenant,
+  meta,
+  branchCapability,
+}: {
+  tenant: Tenant
+  meta: MarketplaceMeta
+  branchCapability?: { orderingEnabled?: boolean; reservationsEnabled?: boolean }
+}) {
   const t = useTranslations('tenant')
   const tMarketplace = useTranslations('marketplace')
   const accentColor = tenant.settings?.theme?.primaryColor ?? 'var(--accent)'
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
 
   const featureFlags = useTenantStore((s) => s.featureFlags)
-  const cta = getSmartCTA({ tenantSlug: tenant.slug, branchSlug: undefined, featureFlags, meta })
+  const cta = getSmartCTA({
+    tenantSlug: tenant.slug,
+    branchSlug: undefined,
+    featureFlags,
+    meta,
+    branch: branchCapability,
+  })
 
   return (
     <section
@@ -818,6 +832,13 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const { data: publicBranches = [] } = usePublicBranches(tenantId, tenant?.settings)
   const primaryBranch =
     publicBranches.find((b) => b.slug === meta?.primaryBranchSlug) ?? publicBranches[0]
+  const visibleBranches = publicBranches.filter((b) => b.marketplaceVisible !== false)
+  const primaryBranchCapability = primaryBranch
+    ? {
+        orderingEnabled: primaryBranch.checkout?.orderingEnabled,
+        reservationsEnabled: primaryBranch.reservationsEnabled,
+      }
+    : undefined
   const primaryBranchId = primaryBranch?.id
   const { data: categories = [] } = useCategories(primaryBranchId)
   const { data: menuItemsPage } = useMenuItems(primaryBranchId)
@@ -835,7 +856,13 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const sections = buildPublicSections(layout?.sections)
 
   // Smart Customer Journey: business-type-aware CTA priority + section order
-  const ctas = buildPublicCTAs({ tenantSlug, branchSlug: undefined, featureFlags, meta })
+  const ctas = buildPublicCTAs({
+    tenantSlug,
+    branchSlug: undefined,
+    featureFlags,
+    meta,
+    branch: primaryBranchCapability,
+  })
   const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas })
 
   // Section component map — visibility still gated by buildPublicSections().
@@ -853,7 +880,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
     ) : null,
     gallery: sections.gallery ? <GallerySection meta={meta} /> : null,
     branches: sections.branches ? (
-      <BranchesSection branches={publicBranches} tenantSlug={tenantSlug} />
+      <BranchesSection branches={visibleBranches} tenantSlug={tenantSlug} />
     ) : null,
     // CategoriesSection always renders (structural nav); FeaturedItemsSection is section-gated.
     featured_menu: (
@@ -888,7 +915,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
       <Breadcrumb name={tenant.name} />
 
       <main id="main-content">
-        <HeroSection tenant={tenant} meta={meta} />
+        <HeroSection tenant={tenant} meta={meta} branchCapability={primaryBranchCapability} />
 
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-16">
           <QuickActions journey={journey} tenant={tenant} />

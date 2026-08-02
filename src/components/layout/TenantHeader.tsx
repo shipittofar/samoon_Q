@@ -115,6 +115,12 @@ export function TenantHeader() {
     branchSlug,
     featureFlags,
     meta,
+    branch: activeBranch
+      ? {
+          orderingEnabled: activeBranch.checkout?.orderingEnabled,
+          reservationsEnabled: activeBranch.reservationsEnabled,
+        }
+      : undefined,
   })
   const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes ?? [], ctas: journeyCTAs })
 

@@ -6,24 +6,10 @@ export type BranchStatus = 'active' | 'inactive' | 'maintenance'
 
 export type BranchType = 'physical' | 'mobile'
 
+export type BranchOrderTypeDefault = 'delivery' | 'pickup' | 'dine_in' | null
+
 /**
  * Phase 3 — Branch Resolution state machine (useBranchStore.branchState).
- * Deterministic branch lifecycle state — mirrors TenantLifecycle
- * (types/index.ts) so the two resolution flows read the same way.
- *
- *   idle    — initial state, before a tenant has resolved (no fetch yet)
- *   loading — fetching branches for the resolved tenant
- *   ready   — a valid selectedBranch exists (persisted id validated, or
- *             the user explicitly picked one)
- *   empty   — branches loaded successfully but no valid branch is selected
- *             (zero branches for the tenant, or the persisted id no
- *             longer exists) — requires an explicit user choice, never an
- *             automatic one
- *   error   — the branch fetch itself failed
- *
- * `null` is never overloaded to mean any of these — `selectedBranch` only
- * answers "which branch, if any", `branchState` alone answers "where are
- * we in resolving that".
  */
 export type BranchResolutionState = 'idle' | 'loading' | 'ready' | 'empty' | 'error'
 
@@ -49,18 +35,42 @@ export interface BranchContact {
   website?: string
 }
 
-export interface BranchSettings {
-  deliveryEnabled: boolean
-  deliveryRadius?: number
-  pickupEnabled: boolean
-  /** Dine-in / table ordering. */
-  tableOrderingEnabled: boolean
-  reservationsEnabled: boolean
-  maxCapacity?: number
-  /** Master switch for online ordering at this branch. Optional — absent means enabled, matching prior behavior for existing branches. */
-  orderingEnabled?: boolean
-  /** Whether this branch is shown on the tenant's public marketplace listing. Optional — absent means visible, matching prior behavior. */
-  marketplaceVisible?: boolean
+/** Checkout configuration — mirrors backend `branch.checkout` nested serializer. */
+export interface BranchCheckoutOrderTypes {
+  delivery: boolean
+  pickup: boolean
+  dineIn: boolean
+  default: string | null
+  /** Additional order types returned by backend (e.g. driveThrough). */
+  [key: string]: boolean | string | null | undefined
+}
+
+export interface BranchCheckoutPayments {
+  cash: boolean
+  cashOnDelivery: boolean
+  card: boolean
+  online: boolean
+  wallet: boolean
+  default: string | null
+  /** Additional payment methods returned by backend. */
+  [key: string]: boolean | string | null | undefined
+}
+
+export interface BranchCheckoutDelivery {
+  radius: number | null
+  minimumOrder: string | null
+  sameDay: boolean
+  scheduled: boolean
+  contactless: boolean
+  /** Additional delivery flags returned by backend. */
+  [key: string]: boolean | string | number | null | undefined
+}
+
+export interface BranchCheckout {
+  orderingEnabled: boolean
+  orderTypes: BranchCheckoutOrderTypes
+  payments: BranchCheckoutPayments
+  delivery: BranchCheckoutDelivery
 }
 
 export interface BranchMetrics {
@@ -86,12 +96,15 @@ export interface Branch {
   contact: BranchContact
   managerId?: string
   businessHours: BranchBusinessHours[]
-  settings: BranchSettings
+  checkout: BranchCheckout
+  marketplaceVisible: boolean
+  reservationsEnabled: boolean
+  maxCapacity?: number
   /** Logo/branding image URL. */
   image?: string
   /** Cover/hero image URL. */
   coverImage?: string
-  /** Whether this is the tenant's default branch. Exactly one branch per tenant should have this true. */
+  /** Whether this is the tenant's default branch. */
   isDefault?: boolean
   /** IANA time zone, e.g. "America/New_York". */
   timeZone?: string
@@ -101,6 +114,8 @@ export interface Branch {
   language?: string
   created_at: string
   updated_at: string
+  /** Extension-only JSON — never used for operational checkout configuration. */
+  settings?: Record<string, unknown>
   metadata?: Record<string, unknown>
 }
 
@@ -124,7 +139,10 @@ export interface CreateBranchPayload {
   contact?: BranchContact
   managerId?: string
   businessHours?: BranchBusinessHours[]
-  settings?: Partial<BranchSettings>
+  checkout?: Partial<BranchCheckout>
+  marketplaceVisible?: boolean
+  reservationsEnabled?: boolean
+  maxCapacity?: number
   image?: string
   coverImage?: string
   isDefault?: boolean
@@ -141,7 +159,10 @@ export interface UpdateBranchPayload {
   contact?: Partial<BranchContact>
   managerId?: string
   businessHours?: BranchBusinessHours[]
-  settings?: Partial<BranchSettings>
+  checkout?: Partial<BranchCheckout>
+  marketplaceVisible?: boolean
+  reservationsEnabled?: boolean
+  maxCapacity?: number
   image?: string
   coverImage?: string
   isDefault?: boolean

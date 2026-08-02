@@ -3,16 +3,20 @@ import { useTranslations } from 'next-intl'
 import { Card } from '@/components/ui'
 import { CapabilityBadgeList } from './CapabilityBadge'
 import { BranchCard } from './BranchCard'
+import type { BranchCheckout } from '@/types/branch'
 import type { ServiceabilityResult } from '@/types/address'
 import { formatCurrency, cn } from '@/utils'
+import { filterDeliveryCapabilities } from '@/lib/branch-checkout'
 
 export interface DeliveryInfoCardProps {
   result: ServiceabilityResult
+  checkout?: BranchCheckout
   className?: string
 }
 
-export function DeliveryInfoCard({ result, className }: DeliveryInfoCardProps) {
+export function DeliveryInfoCard({ result, checkout, className }: DeliveryInfoCardProps) {
   const t = useTranslations('address.serviceability')
+  const filteredCapabilities = filterDeliveryCapabilities(result.capabilities, checkout)
 
   return (
     <Card className={cn('space-y-4', className)}>
@@ -57,10 +61,10 @@ export function DeliveryInfoCard({ result, className }: DeliveryInfoCardProps) {
 
       {result.branch && <BranchCard branch={result.branch} />}
 
-      {result.capabilities && (
+      {filteredCapabilities && (
         <div>
           <p className="text-xs font-medium text-[var(--fg-muted)] mb-2">{t('capabilitiesTitle')}</p>
-          <CapabilityBadgeList capabilities={result.capabilities} />
+          <CapabilityBadgeList capabilities={filteredCapabilities} />
         </div>
       )}
     </Card>

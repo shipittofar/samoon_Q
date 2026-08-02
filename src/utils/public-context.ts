@@ -56,6 +56,12 @@ export function buildPublicSections(
 
 // ── CTA set ───────────────────────────────────────────────────────────────────
 
+/** Branch-level capability — authoritative over tenant feature flags when provided. */
+export interface BranchCapabilityInput {
+  orderingEnabled?: boolean
+  reservationsEnabled?: boolean
+}
+
 export interface PublicCTALink {
   label: string
   href: string
@@ -91,7 +97,27 @@ interface BuildPublicCTAsOptions {
   branchSlug: string | undefined
   /** Fully resolved feature flags from useTenantStore((s) => s.featureFlags). */
   featureFlags: Record<string, boolean>
+  /** Branch checkout/top-level flags — override tenant feature flags when set. */
+  branch?: BranchCapabilityInput
   meta?: { branchCount?: number; primaryBranchSlug?: string } | null
+}
+
+export function resolveOrderingEnabled(
+  featureFlags: Record<string, boolean>,
+  hasMenu: boolean,
+  branch?: BranchCapabilityInput,
+): boolean {
+  if (!hasMenu) return false
+  if (branch?.orderingEnabled !== undefined) return branch.orderingEnabled
+  return featureFlags['ordering.enabled'] !== false
+}
+
+export function resolveReservationsEnabled(
+  featureFlags: Record<string, boolean>,
+  branch?: BranchCapabilityInput,
+): boolean {
+  if (branch?.reservationsEnabled !== undefined) return branch.reservationsEnabled
+  return featureFlags['reservations.enabled'] === true
 }
 
 /**
@@ -105,7 +131,7 @@ interface BuildPublicCTAsOptions {
  * - Menu label: "Order Online" when ordering is enabled, "View Menu" otherwise.
  */
 export function buildPublicCTAs(opts: BuildPublicCTAsOptions): PublicCTASet {
-  const { tenantSlug, branchSlug, featureFlags, meta } = opts
+  const { tenantSlug, branchSlug, featureFlags, branch, meta } = opts
   const branchCount = meta?.branchCount ?? 1
   const primaryBranchSlug = meta?.primaryBranchSlug
   const resolvedBranchSlug = branchSlug ?? primaryBranchSlug
@@ -114,8 +140,8 @@ export function buildPublicCTAs(opts: BuildPublicCTAsOptions): PublicCTASet {
     : `/${tenantSlug}`
 
   const hasMenu = featureFlags['menu.enabled'] !== false
-  const hasOrdering = hasMenu && featureFlags['ordering.enabled'] !== false
-  const hasReservations = featureFlags['reservations.enabled'] === true
+  const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch)
+  const hasReservations = resolveReservationsEnabled(featureFlags, branch)
 
   // Canonical loyalty check: resolves across all module flag key variants
   const loyaltyRaw =
@@ -154,6 +180,8 @@ interface BuildFooterLinksOptions {
   /** Fully resolved feature flags from useTenantStore((s) => s.featureFlags). */
   featureFlags: Record<string, boolean>
   meta: Pick<MarketplaceMeta, 'primaryBranchSlug'>
+  /** Primary branch capability — authoritative over tenant feature flags when set. */
+  branch?: BranchCapabilityInput
 }
 
 /**
@@ -165,9 +193,9 @@ interface BuildFooterLinksOptions {
  * links to `/{tenantSlug}/{primaryBranchSlug}/reservation`.
  */
 export function buildFooterLinks(opts: BuildFooterLinksOptions): FooterQuickLink[] {
-  const { tenantSlug, featureFlags, meta } = opts
+  const { tenantSlug, featureFlags, meta, branch } = opts
   const primaryBranchSlug = meta.primaryBranchSlug
-  const hasReservations = featureFlags['reservations.enabled'] === true
+  const hasReservations = resolveReservationsEnabled(featureFlags, branch)
 
   const links: FooterQuickLink[] = [{ label: 'Home', href: `/${tenantSlug}` }]
 

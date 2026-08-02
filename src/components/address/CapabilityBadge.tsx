@@ -5,13 +5,6 @@ import { cn } from '@/utils'
 
 type CapabilityKey = keyof AddressCapabilities
 
-const CAPABILITY_KEYS: CapabilityKey[] = [
-  'cash_on_delivery',
-  'scheduled_delivery',
-  'same_day',
-  'contactless_delivery',
-]
-
 export interface CapabilityBadgeProps {
   capability: CapabilityKey
   available?: boolean
@@ -39,7 +32,9 @@ export interface CapabilityBadgeListProps {
 export function CapabilityBadgeList({ capabilities, className, max }: CapabilityBadgeListProps) {
   if (!capabilities) return null
 
-  const active = CAPABILITY_KEYS.filter((k) => capabilities[k])
+  const active = (Object.entries(capabilities) as [CapabilityKey, boolean][])
+    .filter(([, enabled]) => enabled)
+    .map(([key]) => key)
   const shown = max ? active.slice(0, max) : active
 
   if (shown.length === 0) {

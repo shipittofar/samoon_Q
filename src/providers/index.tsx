@@ -303,10 +303,7 @@ function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
       const isConsole = pathname?.startsWith('/console')
       if (isConsole) {
         if (!activeTenantId || tenant.id !== activeTenantId) return
-        const membership = sessionMemberships.find((m) => m.tenantId === tenant.id)
-        if (hasMembershipBranches(membership)) {
-          return useBranchStore.getState().loadBranchesFromMembership(tenant.id, membership.branches)
-        }
+        return useBranchStore.getState().loadBranchesForTenant(tenant.id)
       }
       return useBranchStore.getState().loadBranchesForTenant(tenant.id)
     })()

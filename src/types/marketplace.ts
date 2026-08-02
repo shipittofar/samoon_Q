@@ -7,7 +7,8 @@
  * owner explicitly chooses to show to the public.
  */
 
-import type { Branch } from '@/types/branch'
+import type { Branch, BranchCheckout, BranchBusinessHours } from '@/types/branch'
+import { resolveBranchHoursStatus } from '@/lib/branch-hours'
 
 /** Public-facing branch summary shown on the tenant homepage. */
 export interface PublicBranchInfo {
@@ -29,6 +30,14 @@ export interface PublicBranchInfo {
   todayHours?: string
   /** Optional branch cover/thumbnail image URL. */
   image?: string
+  /** Checkout configuration — preserved for storefront/checkout flows. */
+  checkout?: BranchCheckout
+  /** Branch operating hours from backend businessHours. */
+  businessHours?: BranchBusinessHours[]
+  currency?: string
+  marketplaceVisible?: boolean
+  reservationsEnabled?: boolean
+  maxCapacity?: number
 }
 
 export interface MarketplaceMeta {
@@ -179,6 +188,10 @@ export function publicBranchFromDetail(
   branch: Branch,
   marketplace?: PublicBranchInfo,
 ): PublicBranchInfo {
+  const hoursStatus = branch.businessHours?.length
+    ? resolveBranchHoursStatus(branch.businessHours)
+    : null
+
   return {
     id: branch.id,
     slug: branch.slug,
@@ -186,9 +199,15 @@ export function publicBranchFromDetail(
     address: branch.location.address,
     city: branch.location.city,
     phone_number: branch.contact.phone_number ?? marketplace?.phone_number,
-    openNow: marketplace?.openNow ?? branch.status === 'active',
-    todayHours: marketplace?.todayHours,
+    openNow: hoursStatus?.openNow ?? marketplace?.openNow ?? false,
+    todayHours: hoursStatus?.todayHours ?? marketplace?.todayHours,
     image: branch.image ?? branch.coverImage ?? marketplace?.image,
+    checkout: branch.checkout,
+    businessHours: branch.businessHours,
+    currency: branch.currency,
+    marketplaceVisible: branch.marketplaceVisible,
+    reservationsEnabled: branch.reservationsEnabled,
+    maxCapacity: branch.maxCapacity,
   }
 }
 

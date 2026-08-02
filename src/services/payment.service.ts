@@ -13,6 +13,7 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms))
 
 export interface CreatePaymentIntentPayload {
+  /** Major currency units (e.g. 45.60 USD). Converted to cents before POST. */
   amount: number
   currency?: string
   order_description?: string
@@ -45,7 +46,10 @@ export const paymentService = {
         currency: payload.currency ?? 'usd',
       }
     }
-    const { data } = await api.post<PaymentIntentResult>(ENDPOINTS.PAYMENTS.CREATE_INTENT, payload)
+    const { data } = await api.post<PaymentIntentResult>(ENDPOINTS.PAYMENTS.CREATE_INTENT, {
+      ...payload,
+      amount: Math.round(payload.amount * 100),
+    })
     return data
   },
 

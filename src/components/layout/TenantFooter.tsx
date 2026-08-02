@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { Mail, Phone, Globe, Instagram, Twitter, MapPin } from 'lucide-react'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import { useTenantStore } from '@/stores'
+import { usePublicBranches } from '@/hooks'
 import { buildFooterLinks } from '@/utils'
 
 interface TenantFooterProps {
@@ -16,7 +17,22 @@ interface TenantFooterProps {
 export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps) {
   const t = useTranslations('tenantFooter')
   const featureFlags = useTenantStore((s) => s.featureFlags)
-  const quickLinks = buildFooterLinks({ tenantSlug, featureFlags, meta })
+  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const tenantSettings = useTenantStore((s) => s.tenant?.settings)
+  const { data: publicBranches = [] } = usePublicBranches(tenantId, tenantSettings)
+  const primaryBranch =
+    publicBranches.find((b) => b.slug === meta.primaryBranchSlug) ?? publicBranches[0]
+  const quickLinks = buildFooterLinks({
+    tenantSlug,
+    featureFlags,
+    meta,
+    branch: primaryBranch
+      ? {
+          orderingEnabled: primaryBranch.checkout?.orderingEnabled,
+          reservationsEnabled: primaryBranch.reservationsEnabled,
+        }
+      : undefined,
+  })
 
   const year = new Date().getFullYear()
 

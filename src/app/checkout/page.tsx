@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  MapPin, Package, UtensilsCrossed, CreditCard, Banknote,
-  Smartphone, Wallet, ChevronRight, Lock, ArrowLeft, CheckCircle2
+  MapPin, Package, UtensilsCrossed, CreditCard,
+  ChevronRight, Lock, ArrowLeft, CheckCircle2
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -23,8 +23,26 @@ import { orderService } from '@/services/order.service'
 import { StripePaymentForm } from '@/components/checkout/StripePaymentForm'
 import { AddressPicker, DeliveryInfoCard, type AddressPickerValue } from '@/components/address'
 import toast from 'react-hot-toast'
-import type { OrderType, PaymentMethod } from '@/types'
+import type { PaymentMethod } from '@/types'
 import type { CheckServiceabilityPayload } from '@/types/address'
+import {
+  getCheckoutOrderTypeOptions,
+  getCheckoutPaymentOptions,
+  resolveCheckoutOrderWireType,
+  resolveCheckoutPaymentWireMethod,
+  findCheckoutOrderTypeOption,
+  getCheckoutOrderTypeLabel,
+  getCheckoutOrderTypeDesc,
+  getCheckoutOrderTypeIcon,
+  getCheckoutPaymentLabel,
+  getCheckoutPaymentDesc,
+  getCheckoutPaymentIcon,
+  resolveEffectiveMinimumOrder,
+  resolveBranchCurrencyCode,
+  resolvePaymentCurrencyCode,
+  isBelowMinimumOrder,
+  isDeliveryBlockedByServiceability,
+} from '@/lib/branch-checkout'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useTranslations } from 'next-intl'
 
@@ -41,8 +59,6 @@ const checkoutSchema = z.object({
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>
 
-const VALID_ORDER_TYPES = new Set<OrderType>(['delivery', 'pickup', 'dine_in'])
-
 function CheckoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -52,43 +68,63 @@ function CheckoutContent() {
   const tCart = useTranslations('cart')
   const tValidation = useTranslations('validation')
 
-  const ORDER_TYPES: { value: OrderType; label: string; icon: React.ElementType; desc: string }[] = [
-    { value: 'delivery', label: t('delivery'), icon: Package, desc: t('deliveryDesc') },
-    { value: 'pickup', label: t('pickup'), icon: UtensilsCrossed, desc: t('pickupDesc') },
-    { value: 'dine_in', label: t('dineIn'), icon: UtensilsCrossed, desc: t('dineInDesc') },
-  ]
-
-  const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: React.ElementType; desc: string }[] = [
-    { value: 'card', label: t('card'), icon: CreditCard, desc: t('cardDesc') },
-    { value: 'cash', label: t('cash'), icon: Banknote, desc: t('cashDesc') },
-    { value: 'online', label: t('online'), icon: Smartphone, desc: t('onlineDesc') },
-    { value: 'wallet', label: t('wallet'), icon: Wallet, desc: t('walletDesc') },
-  ]
-
   // P4.4 — Read QR / deep-link params and use as initial state
-  const paramOrderType = searchParams.get('orderType') as OrderType | null
+  const paramOrderType = searchParams.get('orderType')
   const paramTable = searchParams.get('table') ?? ''
-  const initialOrderType: OrderType =
-    paramOrderType && VALID_ORDER_TYPES.has(paramOrderType) ? paramOrderType : 'delivery'
-
-  // P4.4 — Fallback: persisted table number from dine-in store when URL param absent
-  // Must be called before any conditional returns (rules of hooks).
-  const persistedTableNumber = useDineInStore((s) => s.tableNumber)
-
-  // Priority: A) URL param, B) persisted store value, C) empty string
-  const initialTableNumber = paramTable && /^\d+$/.test(paramTable)
-    ? paramTable
-    : persistedTableNumber !== null ? String(persistedTableNumber) : ''
 
   const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart } = useCartStore()
   const { activeBranch } = useBranchStore()
+  const checkoutConfig = activeBranch?.checkout
+
+  const orderTypeOptions = useMemo(
+    () =>
+      getCheckoutOrderTypeOptions(checkoutConfig).map((opt) => ({
+        ...opt,
+        label: getCheckoutOrderTypeLabel(opt.wireType, t),
+        desc: getCheckoutOrderTypeDesc(opt.wireType, t),
+        icon: getCheckoutOrderTypeIcon(opt.wireType),
+      })),
+    [checkoutConfig, t],
+  )
+
+  const initialOrderType = useMemo(
+    () => resolveCheckoutOrderWireType(checkoutConfig, paramOrderType),
+    [checkoutConfig, paramOrderType],
+  )
+
+  const initialPaymentMethod = useMemo(
+    () => resolveCheckoutPaymentWireMethod(checkoutConfig, initialOrderType),
+    [checkoutConfig, initialOrderType],
+  )
   const { user } = useAuthStore()
   const { mutate: createOrder, isPending } = useCreateOrder()
   const { mutateAsync: createPaymentIntent, isPending: isCreatingIntent } = useCreatePaymentIntent()
 
-  const [orderType, setOrderType] = useState<OrderType>(initialOrderType)
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card')
+  const [orderType, setOrderType] = useState(initialOrderType)
+  const [paymentMethod, setPaymentMethod] = useState(initialPaymentMethod)
   const [step, setStep] = useState<'details' | 'payment'>('details')
+
+  // P4.4 — Fallback: persisted table number from dine-in store when URL param absent
+  const persistedTableNumber = useDineInStore((s) => s.tableNumber)
+  const initialTableNumber = paramTable && /^\d+$/.test(paramTable)
+    ? paramTable
+    : persistedTableNumber !== null ? String(persistedTableNumber) : ''
+
+  const paymentMethodOptions = useMemo(
+    () =>
+      getCheckoutPaymentOptions(checkoutConfig, orderType).map((opt) => ({
+        ...opt,
+        label: getCheckoutPaymentLabel(opt.wireMethod, t),
+        desc: getCheckoutPaymentDesc(opt.wireMethod, t),
+        icon: getCheckoutPaymentIcon(opt.wireMethod),
+      })),
+    [checkoutConfig, orderType, t],
+  )
+
+  const selectedOrderOption = useMemo(
+    () => findCheckoutOrderTypeOption(checkoutConfig, orderType),
+    [checkoutConfig, orderType],
+  )
 
   // Card-payment state — populated after PaymentIntent creation
   const [clientSecret, setClientSecret] = useState<string | null>(null)
@@ -97,7 +133,7 @@ function CheckoutContent() {
   const [addressPicker, setAddressPicker] = useState<AddressPickerValue>({ mode: 'saved' })
 
   const serviceabilityPayload: CheckServiceabilityPayload | null =
-    orderType === 'delivery' && activeBranch
+    selectedOrderOption?.requiresDeliveryAddress && activeBranch
       ? addressPicker.mode === 'saved' && addressPicker.addressId
         ? { branch_id: activeBranch.id, address_id: addressPicker.addressId }
         : addressPicker.mode === 'temporary' && addressPicker.temporaryAddress
@@ -125,6 +161,19 @@ function CheckoutContent() {
 
   const { data: serviceability, isLoading: serviceabilityLoading } = useCheckServiceability(serviceabilityPayload)
 
+  useEffect(() => {
+    setOrderType(initialOrderType)
+  }, [initialOrderType])
+
+  useEffect(() => {
+    setPaymentMethod((current) => {
+      const wires = paymentMethodOptions.map((m) => m.wireMethod)
+      return wires.includes(current)
+        ? current
+        : resolveCheckoutPaymentWireMethod(checkoutConfig, orderType)
+    })
+  }, [paymentMethodOptions, checkoutConfig, orderType])
+
   const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
@@ -141,6 +190,34 @@ function CheckoutContent() {
   const tax = getTax()
   const serviceCharge = getServiceCharge()
   const total = getTotal()
+
+  const branchCurrency = resolveBranchCurrencyCode(activeBranch?.currency)
+  const paymentCurrency = resolvePaymentCurrencyCode(activeBranch?.currency)
+  const minimumOrderAmount = resolveEffectiveMinimumOrder(serviceability, checkoutConfig)
+
+  const hasDeliveryAddress =
+    !!selectedOrderOption?.requiresDeliveryAddress &&
+    ((addressPicker.mode === 'saved' && !!addressPicker.addressId) ||
+      (addressPicker.mode === 'temporary' && !!addressPicker.temporaryAddress))
+
+  const deliveryBlocked = isDeliveryBlockedByServiceability(
+    orderType,
+    serviceability,
+    serviceabilityLoading,
+    hasDeliveryAddress,
+    checkoutConfig,
+  )
+
+  const belowMinimum =
+    !!selectedOrderOption?.requiresDeliveryAddress &&
+    isBelowMinimumOrder(subtotal, minimumOrderAmount)
+
+  const canContinueToPayment =
+    !(selectedOrderOption?.requiresDeliveryAddress && !hasDeliveryAddress) &&
+    !deliveryBlocked &&
+    !belowMinimum
+
+  const canPlaceOrder = canContinueToPayment
 
   if (items.length === 0) {
     return (
@@ -181,6 +258,22 @@ function CheckoutContent() {
     )
   }
 
+  if (!checkoutConfig?.orderingEnabled || orderTypeOptions.length === 0) {
+    return (
+      <div className="min-h-screen bg-[var(--bg)]">
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
+          <Package className="h-12 w-12 text-[var(--fg-subtle)]" />
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('orderingDisabledTitle', { defaultValue: 'Ordering unavailable' })}</h2>
+          <p className="text-[var(--fg-muted)]">{t('orderingDisabledDesc', { defaultValue: 'This branch is not accepting orders right now.' })}</p>
+          <Link href="/menu">
+            <Button leftIcon={<ArrowLeft className="h-4 w-4" />}>{tCart('browseMenu')}</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   /**
    * Finalises the order after payment is confirmed (or for non-card methods).
    * Called either directly from onSubmit (cash/wallet/online) or from the
@@ -195,14 +288,28 @@ function CheckoutContent() {
       toast.error(t('noBranchSelectedDesc'))
       return
     }
+    if (!canPlaceOrder) {
+      if (deliveryBlocked) {
+        toast.error(t('cannotDeliverHere'))
+        return
+      }
+      if (belowMinimum) {
+        toast.error(t('minimumOrder', { amount: formatCurrency(minimumOrderAmount ?? 0, branchCurrency) }))
+        return
+      }
+      if (selectedOrderOption?.requiresDeliveryAddress && !hasDeliveryAddress) {
+        toast.error(t('deliveryAddress'))
+        return
+      }
+    }
     const payload = {
       branch_id: activeBranch.id,
       items: orderService.fromCartItems(items),
       order_type: orderType,
-      payment_method: paymentMethod,
+      payment_method: paymentMethod as PaymentMethod,
       notes: data.notes,
       table_number: data.table_number ? parseInt(data.table_number) : undefined,
-      ...(orderType === 'delivery' && addressPicker.mode === 'saved' && addressPicker.addressId
+      ...(selectedOrderOption?.requiresDeliveryAddress && addressPicker.mode === 'saved' && addressPicker.addressId
         ? {
             address_id: addressPicker.addressId,
             ...(addressPicker.override && Object.keys(addressPicker.override).length > 0
@@ -210,7 +317,7 @@ function CheckoutContent() {
               : {}),
           }
         : {}),
-      ...(orderType === 'delivery' && addressPicker.mode === 'temporary' && addressPicker.temporaryAddress
+      ...(selectedOrderOption?.requiresDeliveryAddress && addressPicker.mode === 'temporary' && addressPicker.temporaryAddress
         ? {
             delivery_address: {
               street: addressPicker.temporaryAddress.street,
@@ -258,13 +365,19 @@ function CheckoutContent() {
       toast.error(t('noBranchSelectedDesc'))
       return
     }
+    if (!canPlaceOrder) {
+      if (deliveryBlocked) toast.error(t('cannotDeliverHere'))
+      else if (belowMinimum) toast.error(t('minimumOrder', { amount: formatCurrency(minimumOrderAmount ?? 0, branchCurrency) }))
+      else if (selectedOrderOption?.requiresDeliveryAddress && !hasDeliveryAddress) toast.error(t('deliveryAddress'))
+      return
+    }
     if (paymentMethod === 'card') {
       setPendingFormData(data)
       setPaymentError(null)
       try {
         const intent = await createPaymentIntent({
           amount: total,
-          currency: 'usd',
+          currency: paymentCurrency,
           order_description: `Order for ${data.first_name} ${data.last_name}`,
           branch_id: activeBranch.id,
         })
@@ -304,7 +417,7 @@ function CheckoutContent() {
             </Link>
             <div>
               <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('title')}</h1>
-              <p className="text-sm text-[var(--fg-muted)]">{t('itemsCountTotal', { count: items.length, total: formatCurrency(total) })}</p>
+              <p className="text-sm text-[var(--fg-muted)]">{t('itemsCountTotal', { count: items.length, total: formatCurrency(total, branchCurrency) })}</p>
             </div>
           </div>
 
@@ -322,7 +435,7 @@ function CheckoutContent() {
           </div>
 
           {/* P4.4 — Dine-in context banner when arriving from QR scan */}
-          {initialOrderType === 'dine_in' && initialTableNumber && (
+          {findCheckoutOrderTypeOption(checkoutConfig, initialOrderType)?.requiresTableNumber && initialTableNumber && (
             <div className="mb-6 flex items-center gap-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl px-5 py-3 text-sm text-orange-700 dark:text-orange-300">
               <UtensilsCrossed className="h-4 w-4 shrink-0" />
               <span>{t('dineInBanner', { table: initialTableNumber })}</span>
@@ -340,21 +453,21 @@ function CheckoutContent() {
                     <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
                       <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderType')}</h2>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {ORDER_TYPES.map((type) => (
+                        {orderTypeOptions.map((type) => (
                           <button
-                            key={type.value}
+                            key={type.wireType}
                             type="button"
-                            onClick={() => setOrderType(type.value)}
+                            onClick={() => setOrderType(type.wireType)}
                             className={cn(
                               'flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all',
-                              orderType === type.value
+                              orderType === type.wireType
                                 ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
                                 : 'border-[var(--border)] hover:border-orange-200',
                             )}
                           >
-                            <type.icon className={cn('h-5 w-5', orderType === type.value ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
-                            <span className={cn('text-sm font-medium', orderType === type.value ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{type.label}</span>
-                            <span className="text-xs text-[var(--fg-muted)]">{type.desc}</span>
+                            <type.icon className={cn('h-5 w-5', orderType === type.wireType ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
+                            <span className={cn('text-sm font-medium', orderType === type.wireType ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{type.label}</span>
+                            {type.desc ? <span className="text-xs text-[var(--fg-muted)]">{type.desc}</span> : null}
                           </button>
                         ))}
                       </div>
@@ -373,7 +486,7 @@ function CheckoutContent() {
 
                     {/* Delivery Address */}
                     <AnimatePresence>
-                      {orderType === 'delivery' && (
+                      {selectedOrderOption?.requiresDeliveryAddress && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 space-y-4">
                           <h2 className="font-semibold text-[var(--fg)] flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-orange-500" /> {t('deliveryAddress')}
@@ -382,13 +495,13 @@ function CheckoutContent() {
                           {serviceabilityLoading && (
                             <p className="text-sm text-[var(--fg-muted)]">{t('checkingServiceability')}</p>
                           )}
-                          {serviceability && <DeliveryInfoCard result={serviceability} />}
+                          {serviceability && <DeliveryInfoCard result={serviceability} checkout={checkoutConfig} />}
                           {serviceability && !serviceability.deliverable && (
                             <p className="text-sm text-amber-600" role="alert">{t('cannotDeliverHere')}</p>
                           )}
                         </motion.div>
                       )}
-                      {orderType === 'dine_in' && (
+                      {selectedOrderOption?.requiresTableNumber && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
                           <h2 className="font-semibold text-[var(--fg)] mb-4">{t('tableNumber')}</h2>
                           <Input label={t('tableNumber')} type="number" {...register('table_number')} placeholder={t('tableNumberPlaceholder')} />
@@ -407,7 +520,17 @@ function CheckoutContent() {
                       />
                     </div>
 
-                    <Button type="button" className="w-full" size="lg" rightIcon={<ChevronRight className="h-4 w-4" />} onClick={() => setStep('payment')}>
+                    <Button
+                      type="button"
+                      className="w-full"
+                      size="lg"
+                      rightIcon={<ChevronRight className="h-4 w-4" />}
+                      disabled={!canContinueToPayment}
+                      onClick={() => {
+                        if (!canContinueToPayment) return
+                        setStep('payment')
+                      }}
+                    >
                       {t('continueToPayment')}
                     </Button>
                   </motion.div>
@@ -421,31 +544,31 @@ function CheckoutContent() {
                       <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
                         <h2 className="font-semibold text-[var(--fg)] mb-4">{t('paymentMethod')}</h2>
                         <div className="space-y-3">
-                          {PAYMENT_METHODS.map((method) => (
+                          {paymentMethodOptions.map((method) => (
                             <button
-                              key={method.value}
+                              key={method.wireMethod}
                               type="button"
                               onClick={() => {
-                                setPaymentMethod(method.value)
+                                setPaymentMethod(method.wireMethod)
                                 setClientSecret(null)
                                 setPaymentError(null)
                               }}
                               className={cn(
                                 'flex items-center gap-4 w-full p-4 rounded-xl border-2 text-start transition-all',
-                                paymentMethod === method.value
+                                paymentMethod === method.wireMethod
                                   ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
                                   : 'border-[var(--border)] hover:border-orange-200',
                               )}
                             >
-                              <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', paymentMethod === method.value ? 'bg-orange-500/20' : 'bg-[var(--card-hover)]')}>
-                                <method.icon className={cn('h-5 w-5', paymentMethod === method.value ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
+                              <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', paymentMethod === method.wireMethod ? 'bg-orange-500/20' : 'bg-[var(--card-hover)]')}>
+                                <method.icon className={cn('h-5 w-5', paymentMethod === method.wireMethod ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
                               </div>
                               <div className="flex-1">
-                                <p className={cn('text-sm font-medium', paymentMethod === method.value ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{method.label}</p>
-                                <p className="text-xs text-[var(--fg-muted)]">{method.desc}</p>
+                                <p className={cn('text-sm font-medium', paymentMethod === method.wireMethod ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{method.label}</p>
+                                {method.desc ? <p className="text-xs text-[var(--fg-muted)]">{method.desc}</p> : null}
                               </div>
-                              <div className={cn('h-4 w-4 rounded-full border-2 transition-all', paymentMethod === method.value ? 'border-orange-500 bg-orange-500' : 'border-[var(--border-strong)]')}>
-                                {paymentMethod === method.value && <div className="h-full w-full rounded-full bg-white scale-50" />}
+                              <div className={cn('h-4 w-4 rounded-full border-2 transition-all', paymentMethod === method.wireMethod ? 'border-orange-500 bg-orange-500' : 'border-[var(--border-strong)]')}>
+                                {paymentMethod === method.wireMethod && <div className="h-full w-full rounded-full bg-white scale-50" />}
                               </div>
                             </button>
                           ))}
@@ -498,11 +621,12 @@ function CheckoutContent() {
                             className="flex-1"
                             size="lg"
                             loading={isPending || isCreatingIntent}
+                            disabled={!canPlaceOrder}
                             leftIcon={<Lock className="h-4 w-4" />}
                           >
                             {paymentMethod === 'card'
-                              ? isCreatingIntent ? t('preparingPayment') : t('payWithCard', { total: formatCurrency(total) })
-                              : isPending ? t('placingOrder') : t('placeOrderWithTotal', { total: formatCurrency(total) })}
+                              ? isCreatingIntent ? t('preparingPayment') : t('payWithCard', { total: formatCurrency(total, branchCurrency) })
+                              : isPending ? t('placingOrder') : t('placeOrderWithTotal', { total: formatCurrency(total, branchCurrency) })}
                           </Button>
                         </div>
                       </form>
@@ -528,7 +652,7 @@ function CheckoutContent() {
                         {item.extras.length > 0 && <p className="text-xs text-[var(--fg-muted)]">+{item.extras.map(e => e.name).join(', ')}</p>}
                         <p className="text-xs text-[var(--fg-muted)]">×{item.quantity}</p>
                       </div>
-                      <span className="text-sm font-medium text-[var(--fg)] shrink-0">{formatCurrency(item.total_price)}</span>
+                      <span className="text-sm font-medium text-[var(--fg)] shrink-0">{formatCurrency(item.total_price, branchCurrency)}</span>
                     </div>
                   ))}
                 </div>
@@ -536,13 +660,18 @@ function CheckoutContent() {
                 <Divider className="my-4" />
 
                 <div className="space-y-2.5 text-sm">
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('subtotal')}</span><span>{formatCurrency(subtotal)}</span></div>
-                  {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>{tCart('discount')}</span><span>−{formatCurrency(discountAmount)}</span></div>}
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('tax')}</span><span>{formatCurrency(tax)}</span></div>
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('serviceCharge')}</span><span>{formatCurrency(serviceCharge)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('subtotal')}</span><span>{formatCurrency(subtotal, branchCurrency)}</span></div>
+                  {belowMinimum && minimumOrderAmount != null && (
+                    <p className="text-amber-600 text-xs" role="alert">
+                      {t('minimumOrder', { amount: formatCurrency(minimumOrderAmount, branchCurrency) })}
+                    </p>
+                  )}
+                  {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>{tCart('discount')}</span><span>−{formatCurrency(discountAmount, branchCurrency)}</span></div>}
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('tax')}</span><span>{formatCurrency(tax, branchCurrency)}</span></div>
+                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('serviceCharge')}</span><span>{formatCurrency(serviceCharge, branchCurrency)}</span></div>
                   <Divider />
                   <div className="flex justify-between font-bold text-[var(--fg)] text-base">
-                    <span>{tCart('total')}</span><span>{formatCurrency(total)}</span>
+                    <span>{tCart('total')}</span><span>{formatCurrency(total, branchCurrency)}</span>
                   </div>
                 </div>
 

@@ -10,6 +10,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useBranchStore, useRbacStore } from '@/stores'
 import { branchManagementService } from '@/services/branch.service'
+import { DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 
 const TENANT_ID = 'tenant-samoon-01'
 const BRANCH_A = 'branch-rest-01'
@@ -204,7 +205,9 @@ describe('Phase 3 — Console workspace active branch pointer', () => {
         location: { address: '1', city: 'X', country: 'US' },
         contact: {},
         businessHours: [],
-        settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+        checkout: { ...DEFAULT_BRANCH_CHECKOUT },
+        marketplaceVisible: true,
+        reservationsEnabled: false,
         created_at: '',
         updated_at: '',
       },

@@ -7,6 +7,7 @@ import { MapPin, ChevronDown, Check, Clock } from 'lucide-react'
 import { useBranchStore } from '@/stores'
 import { useBranches } from '@/hooks'
 import { cn } from '@/utils'
+import { resolveLocationHoursStatus } from '@/lib/branch-hours'
 
 export function BranchSelector({ className }: { className?: string }) {
   const t = useTranslations('branchSelector')
@@ -56,9 +57,7 @@ export function BranchSelector({ className }: { className?: string }) {
                 )}
                 {branches.map((branch) => {
                   const isActive = current?.id === branch.id
-                  const now = new Date()
-                  const hour = now.getHours()
-                  const isOpen = hour >= 10 && hour < 23
+                  const { openNow } = resolveLocationHoursStatus(branch.working_hours)
 
                   return (
                     <button
@@ -84,8 +83,8 @@ export function BranchSelector({ className }: { className?: string }) {
                         <p className="text-xs text-[var(--fg-muted)] truncate mt-0.5">{branch.address}</p>
                         <div className="flex items-center gap-1 mt-1">
                           <Clock className="h-3 w-3 text-[var(--fg-subtle)]" />
-                          <span className={cn('text-xs', isOpen ? 'text-emerald-500' : 'text-red-500')}>
-                            {isOpen ? t('openNow') : t('closed')}
+                          <span className={cn('text-xs', openNow ? 'text-emerald-500' : 'text-red-500')}>
+                            {openNow ? t('openNow') : t('closed')}
                           </span>
                         </div>
                       </div>

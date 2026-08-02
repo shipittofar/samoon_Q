@@ -5,6 +5,7 @@ import {
   mapDiscoverTenantToItem,
 } from '@/lib/discover-adapter'
 import type { DiscoverResponse, DiscoverTenant } from '@/types/discover'
+import { DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 import { matchesSearch, matchesFilters, sortItems, DEFAULT_FILTERS } from '@/types/marketplace'
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -60,6 +61,18 @@ const SAMPLE_TENANT: DiscoverTenant = {
 }
 
 describe('discover adapter', () => {
+  it('mapDiscoverBranchToPublicBranchInfo preserves checkout config', () => {
+    const info = mapDiscoverBranchToPublicBranchInfo({
+      ...SAMPLE_TENANT.branches![0],
+      checkout: DEFAULT_BRANCH_CHECKOUT,
+      marketplaceVisible: true,
+      reservationsEnabled: false,
+    })
+    expect(info.checkout).toEqual(DEFAULT_BRANCH_CHECKOUT)
+    expect(info.marketplaceVisible).toBe(true)
+    expect(info.reservationsEnabled).toBe(false)
+  })
+
   it('mapDiscoverBranchToPublicBranchInfo flattens location', () => {
     const info = mapDiscoverBranchToPublicBranchInfo(SAMPLE_TENANT.branches![0])
     expect(info).toMatchObject({

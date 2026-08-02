@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { Divider } from '@/components/ui'
 import { formatCurrency } from '@/utils'
+import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import type { CartItem } from '@/types'
@@ -77,6 +78,7 @@ export function CartDrawer() {
   const router = useRouter()
   const tenantSlug = useTenantStore((s) => s.tenant?.slug)
   const branchSlug = useBranchStore((s) => s.activeBranch?.slug)
+  const orderingEnabled = isBranchOrderingEnabled(useBranchStore((s) => s.activeBranch?.checkout))
 
   const handleBrowseMenu = () => {
     setOpen(false)
@@ -184,11 +186,13 @@ export function CartDrawer() {
               </div>
 
               {/* Checkout CTA */}
+              {orderingEnabled && (
               <Link href="/checkout" onClick={() => setOpen(false)} className="block">
                 <Button className="w-full" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
                   {t('checkout')}
                 </Button>
               </Link>
+              )}
               <button
                 onClick={clearCart}
                 className="w-full text-xs text-[var(--fg-subtle)] hover:text-red-500 transition-colors py-1"

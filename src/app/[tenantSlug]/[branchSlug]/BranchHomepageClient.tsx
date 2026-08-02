@@ -60,7 +60,16 @@ function HeroSection({
   const t = useTranslations('branch')
   const featureFlags = useTenantStore((s) => s.featureFlags)
   const meta = getMarketplaceMeta(tenant.settings)
-  const cta = getSmartCTA({ tenantSlug, branchSlug, featureFlags, meta })
+  const cta = getSmartCTA({
+    tenantSlug,
+    branchSlug,
+    featureFlags,
+    meta,
+    branch: {
+      orderingEnabled: branch.checkout?.orderingEnabled,
+      reservationsEnabled: branch.reservationsEnabled,
+    },
+  })
 
   return (
     // H9: increased height, H7: aria-labelledby
@@ -675,7 +684,15 @@ export default function BranchHomepageClient({
   const sections = buildPublicSections(layout?.sections)
 
   // Smart Customer Journey: business-type-aware CTA priority + section order
-  const ctas = buildPublicCTAs({ tenantSlug, branchSlug, featureFlags })
+  const ctas = buildPublicCTAs({
+    tenantSlug,
+    branchSlug,
+    featureFlags,
+    branch: {
+      orderingEnabled: branch.checkout?.orderingEnabled,
+      reservationsEnabled: branch.reservationsEnabled,
+    },
+  })
   const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas })
 
   const accentColor =

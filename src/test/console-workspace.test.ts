@@ -13,6 +13,7 @@ import { ENDPOINTS } from '@/services/endpoints'
 import { requestConsoleTenantSwitch, useConsoleTenantSwitch, requestConsoleBranchSwitch, useConsoleBranchSwitch } from '@/hooks/console-workspace'
 import type { TenantMembership } from '@/types/rbac'
 import type { Branch } from '@/types/branch'
+import { DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 
 const membership = (tenantId: string, branches?: TenantMembership['branches']): TenantMembership => ({
   tenantId,
@@ -33,7 +34,9 @@ const branch = (id: string, isDefault?: boolean): Branch => ({
   location: { address: 'a', city: 'b', country: 'c' },
   contact: {},
   businessHours: [],
-  settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+  checkout: { ...DEFAULT_BRANCH_CHECKOUT },
+  marketplaceVisible: true,
+  reservationsEnabled: false,
   isDefault,
   created_at: '',
   updated_at: '',

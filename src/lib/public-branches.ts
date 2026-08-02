@@ -23,7 +23,7 @@ export function getLegacyMarketplaceBranches(
 
 /** Whether a branch entity should appear on public marketplace surfaces. */
 export function isPublicMarketplaceBranch(branch: Branch): boolean {
-  return branch.settings.marketplaceVisible !== false
+  return branch.marketplaceVisible !== false
 }
 
 /** Maps canonical branch entities into the public display shape. */
@@ -60,7 +60,7 @@ export async function resolvePublicBranchList(
     // fall through to legacy
   }
 
-  return legacy
+  return legacy.filter((b) => b.marketplaceVisible !== false)
 }
 
 export function findPublicBranchBySlug(

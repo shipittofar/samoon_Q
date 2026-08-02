@@ -18,6 +18,7 @@ import { formatCurrency, cn } from '@/utils'
 import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import type { Reservation } from '@/types'
+import { MapPinOff } from 'lucide-react'
 
 // Schema messages are `validation` namespace keys (Phase E), resolved via
 // `tValidation()` wherever `errors.<field>.message` is rendered below.
@@ -45,11 +46,13 @@ export default function ReservationPage() {
   const t = useTranslations('reservation')
   const tValidation = useTranslations('validation')
   const activeBranchId = useBranchStore((s) => s.activeBranch?.id)
+  const activeBranchReservationsEnabled = useBranchStore((s) => s.activeBranch?.reservationsEnabled)
   const [confirmed, setConfirmed] = useState<Reservation | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedBranch, setSelectedBranch] = useState(() => activeBranchId ?? '')
   const { mutate: createReservation, isPending } = useCreateReservation()
   const { data: branches } = useTenantsBranches()
+  const reservationBranches = (branches ?? []).filter((b) => b.reservationsEnabled === true)
   const { data: slots, isLoading: slotsLoading } = useAvailableSlots(selectedDate, selectedBranch)
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ReservationFormData>({
@@ -71,7 +74,7 @@ export default function ReservationPage() {
     createReservation(data, {
       onSuccess: (res) => {
         toast.success(t('reservationConfirmedToast'))
-        const branchName = branches?.find((b) => b.id === data.branch_id)?.name || ''
+        const branchName = reservationBranches.find((b) => b.id === data.branch_id)?.name || ''
         const params = new URLSearchParams({
           code: res.confirmation_code ?? '',
           date: res.date,
@@ -141,6 +144,32 @@ export default function ReservationPage() {
     )
   }
 
+  if (activeBranchReservationsEnabled === false) {
+    return (
+      <div className="min-h-screen bg-[var(--bg)]">
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
+          <MapPinOff className="h-12 w-12 text-[var(--fg-subtle)]" />
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('reservationsUnavailableTitle', { defaultValue: 'Reservations unavailable' })}</h2>
+          <p className="text-[var(--fg-muted)]">{t('reservationsUnavailableDesc', { defaultValue: 'This branch is not accepting reservations right now.' })}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (reservationBranches.length === 0) {
+    return (
+      <div className="min-h-screen bg-[var(--bg)]">
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
+          <MapPinOff className="h-12 w-12 text-[var(--fg-subtle)]" />
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('reservationsUnavailableTitle', { defaultValue: 'Reservations unavailable' })}</h2>
+          <p className="text-[var(--fg-muted)]">{t('noReservationBranchesDesc', { defaultValue: 'No branches are currently accepting reservations.' })}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
@@ -164,7 +193,7 @@ export default function ReservationPage() {
                 <MapPin className="h-4 w-4 text-orange-500" /> {t('chooseBranch')}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {(branches || []).map((branch) => (
+                {reservationBranches.map((branch) => (
                   <button
                     key={branch.id}
                     type="button"

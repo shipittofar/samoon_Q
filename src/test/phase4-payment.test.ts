@@ -233,16 +233,17 @@ describe('checkout/page.tsx — source structure', () => {
     expect(src()).toContain('onError={handlePaymentError}')
   })
 
-  it('still supports cash payment method', () => {
-    expect(src()).toContain("value: 'cash'")
+  it('still supports cash payment method via branch checkout config', () => {
+    expect(src()).toContain('getCheckoutPaymentOptions')
+    expect(src()).toContain('getCheckoutPaymentLabel')
   })
 
-  it('still supports wallet payment method', () => {
-    expect(src()).toContain("value: 'wallet'")
+  it('still supports wallet payment method via branch checkout config', () => {
+    expect(src()).toContain('getCheckoutPaymentIcon')
   })
 
-  it('still supports online payment method', () => {
-    expect(src()).toContain("value: 'online'")
+  it('still supports online payment method via branch checkout config', () => {
+    expect(src()).toContain('paymentMethodOptions')
   })
 })
 

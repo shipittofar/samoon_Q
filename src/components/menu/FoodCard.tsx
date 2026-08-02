@@ -5,9 +5,10 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Heart, Plus, Clock, Flame, Star } from 'lucide-react'
-import { useCartStore, useRecentlyViewedStore } from '@/stores'
+import { useCartStore, useRecentlyViewedStore, useBranchStore } from '@/stores'
 import { useFavoriteAction } from '@/hooks'
 import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
+import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import type { MenuItem } from '@/types'
@@ -22,6 +23,8 @@ interface FoodCardProps {
 export function FoodCard({ item, onOpenDetail, compact = false, className }: FoodCardProps) {
   const t = useTranslations('menu')
   const { addItem } = useCartStore()
+  const activeBranchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
+  const orderingEnabled = isBranchOrderingEnabled(activeBranchCheckout)
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
   const [addedAnim, setAddedAnim] = useState(false)
@@ -30,7 +33,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!item.available) return
+    if (!orderingEnabled || !item.available) return
     if (item.extras && item.extras.length > 0) {
       onOpenDetail?.(item)
       return
@@ -84,7 +87,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
                 <span className="text-xs text-[var(--fg-subtle)] line-through ms-1">{formatCurrency(item.price)}</span>
               )}
             </div>
-            <Button size="icon-sm" onClick={handleAdd} disabled={!item.available} aria-label={t('addToCart')}>
+            <Button size="icon-sm" onClick={handleAdd} disabled={!orderingEnabled || !item.available} aria-label={t('addToCart')}>
               <Plus className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -199,6 +202,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
               </span>
             )}
           </div>
+          {orderingEnabled && (
           <motion.div animate={addedAnim ? { scale: [1, 1.25, 1] } : {}}>
             <Button
               size="sm"
@@ -211,6 +215,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
               {addedAnim ? t('added') : t('add')}
             </Button>
           </motion.div>
+          )}
         </div>
       </div>
     </motion.div>

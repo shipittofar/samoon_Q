@@ -13,6 +13,8 @@
 import { getMarketplaceMeta } from '@/types/marketplace'
 import type { TenantNavItemConfig } from '@/types/website-builder'
 import type { NavItem, Tenant } from '@/types'
+import type { BranchCapabilityInput } from './public-context'
+import { resolveOrderingEnabled, resolveReservationsEnabled } from './public-context'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -197,6 +199,7 @@ export function buildTenantNavigation(opts: BuildTenantNavOptions): TenantNavLin
   return [marketplaceItem, ...businessItems]
 }
 
+
 // ── Smart CTA ─────────────────────────────────────────────────────────────────
 
 interface SmartCTAOptions {
@@ -213,6 +216,8 @@ interface SmartCTAOptions {
    * the raw override only and misses module defaults + capability flags).
    */
   featureFlags: Record<string, boolean>
+  /** Branch checkout/top-level flags — override tenant feature flags when set. */
+  branch?: BranchCapabilityInput
   /**
    * Marketplace meta for branchCount and primaryBranchSlug.
    * Pass null/undefined when meta is unavailable — falls back to single-branch behavior.
@@ -236,7 +241,7 @@ interface SmartCTAOptions {
  * Single authoritative implementation — never duplicated across pages.
  */
 export function getSmartCTA(opts: SmartCTAOptions): SmartCTA | null {
-  const { tenantSlug, branchSlug, featureFlags, meta } = opts
+  const { tenantSlug, branchSlug, featureFlags, branch, meta } = opts
   const branchCount = meta?.branchCount ?? 1
   const primaryBranchSlug = meta?.primaryBranchSlug
 
@@ -247,8 +252,8 @@ export function getSmartCTA(opts: SmartCTAOptions): SmartCTA | null {
     : `/${tenantSlug}`
 
   const hasMenu = featureFlags['menu.enabled'] !== false
-  const hasOrdering = hasMenu && featureFlags['ordering.enabled'] !== false
-  const hasReservations = featureFlags['reservations.enabled'] === true
+  const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch)
+  const hasReservations = resolveReservationsEnabled(featureFlags, branch)
 
   // Multi-branch tenant homepage: navigate to the locations section first
   if (branchCount > 1 && !branchSlug) {

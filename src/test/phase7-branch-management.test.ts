@@ -96,18 +96,18 @@ describe('C — Branch interface shape', () => {
     expect(readSrc('types/branch.ts')).toContain('location: BranchLocation')
   })
 
-  it('C8: Branch has settings', () => {
-    expect(readSrc('types/branch.ts')).toContain('settings: BranchSettings')
+  it('C8: Branch has checkout', () => {
+    expect(readSrc('types/branch.ts')).toContain('checkout: BranchCheckout')
   })
 
   it('C9: Branch has businessHours', () => {
     expect(readSrc('types/branch.ts')).toContain('businessHours: BranchBusinessHours[]')
   })
 
-  it('C10: Branch has createdAt and updatedAt', () => {
+  it('C10: Branch has created_at and updated_at', () => {
     const src = readSrc('types/branch.ts')
-    expect(src).toContain('createdAt: string')
-    expect(src).toContain('updatedAt: string')
+    expect(src).toContain('created_at: string')
+    expect(src).toContain('updated_at: string')
   })
 })
 
@@ -153,7 +153,7 @@ describe('D — Mock data', () => {
       expect(typeof b.name).toBe('string')
       expect(typeof b.slug).toBe('string')
       expect(b.location).toBeDefined()
-      expect(b.settings).toBeDefined()
+      expect(b.checkout).toBeDefined()
     }
   })
 })
@@ -253,7 +253,7 @@ describe('G — createBranch', () => {
     expect(after).toBe(before + 1)
   })
 
-  it('G5: createBranch sets createdAt and updatedAt', async () => {
+  it('G5: createBranch sets created_at and updated_at', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
@@ -261,8 +261,8 @@ describe('G — createBranch', () => {
       type: 'physical',
       location: { address: '123 Test St', city: 'Testville', country: 'US' },
     })
-    expect(typeof branch.createdAt).toBe('string')
-    expect(typeof branch.updatedAt).toBe('string')
+    expect(typeof branch.created_at).toBe('string')
+    expect(typeof branch.updated_at).toBe('string')
   })
 })
 
@@ -290,13 +290,13 @@ describe('H — updateBranch', () => {
     expect(updated.location.postalCode).toBe('12345')
   })
 
-  it('H3: updateBranch updates updatedAt', async () => {
+  it('H3: updateBranch updates updated_at', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const target = branches[0]
-    const originalUpdatedAt = target.updatedAt
+    const originalUpdatedAt = target.updated_at
     const updated = await branchManagementService.updateBranch(target.id, { name: 'Updated Name' })
-    expect(updated.updatedAt).not.toBe(originalUpdatedAt)
+    expect(updated.updated_at).not.toBe(originalUpdatedAt)
   })
 
   it('H4: updateBranch throws on unknown id', async () => {

@@ -20,6 +20,7 @@ import type {
   BranchBusinessHours,
 } from '@/types/branch'
 import { buildBranchFormData, type BranchWriteRequest } from '@/types/branch-form'
+import { buildBranchCheckout, mergeBranchCheckout, DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 
 import type { PaginatedResponse } from '@/types'
 import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
@@ -59,6 +60,28 @@ function defaultHours(open = '09:00', close = '22:00'): BranchBusinessHours[] {
   }))
 }
 
+function mockCheckoutFields(config: {
+  delivery?: boolean
+  pickup?: boolean
+  dineIn?: boolean
+  radius?: number | null
+  reservationsEnabled?: boolean
+  maxCapacity?: number
+  marketplaceVisible?: boolean
+} = {}) {
+  return {
+    checkout: buildBranchCheckout({
+      delivery: config.delivery,
+      pickup: config.pickup ?? true,
+      dineIn: config.dineIn,
+      radius: config.radius ?? null,
+    }),
+    reservationsEnabled: config.reservationsEnabled ?? false,
+    maxCapacity: config.maxCapacity,
+    marketplaceVisible: config.marketplaceVisible ?? true,
+  }
+}
+
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
 const INITIAL_MOCK_BRANCHES: Branch[] = [
@@ -75,7 +98,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0100', email: 'main@samoon.com' },
     managerId: 'staff-manager-01',
     businessHours: defaultHours('10:00', '23:00'),
-    settings: { deliveryEnabled: true, deliveryRadius: 10, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 120 },
+    ...mockCheckoutFields({ delivery: true, radius: 10, pickup: true, dineIn: true, reservationsEnabled: true, maxCapacity: 120 }),
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -90,7 +113,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0200', email: 'downtown@samoon.com' },
     managerId: 'staff-admin-01',
     businessHours: defaultHours('11:00', '22:00'),
-    settings: { deliveryEnabled: true, deliveryRadius: 8, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 80 },
+    ...mockCheckoutFields({ delivery: true, radius: 8, pickup: true, dineIn: true, reservationsEnabled: true, maxCapacity: 80 }),
     created_at: '2023-03-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -104,7 +127,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: 'JFK Terminal 4', city: 'New York', country: 'US', latitude: 40.6413, longitude: -73.7781 },
     contact: { phone_number: '+1 212 555 0300' },
     businessHours: defaultHours('06:00', '23:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: false, maxCapacity: 40 },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: true, reservationsEnabled: false, maxCapacity: 40 }),
     created_at: '2023-06-01T00:00:00Z',
     updated_at: '2024-05-01T00:00:00Z',
   },
@@ -119,7 +142,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '789 Coffee Lane', city: 'New York', country: 'US', latitude: 40.754, longitude: -73.984 },
     contact: { phone_number: '+1 212 555 0400', email: 'midtown@samoon.com' },
     businessHours: defaultHours('07:00', '20:00'),
-    settings: { deliveryEnabled: true, deliveryRadius: 5, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 50 },
+    ...mockCheckoutFields({ delivery: true, radius: 5, pickup: true, dineIn: false, reservationsEnabled: false, maxCapacity: 50 }),
     created_at: '2023-08-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -133,7 +156,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '321 Brew Boulevard', city: 'Brooklyn', country: 'US', latitude: 40.678, longitude: -73.944 },
     contact: { phone_number: '+1 718 555 0500' },
     businessHours: defaultHours('08:00', '19:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 30 },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false, maxCapacity: 30 }),
     created_at: '2023-09-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -148,7 +171,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '555 Tap Street', city: 'New York', country: 'US', latitude: 40.726, longitude: -73.983 },
     contact: { phone_number: '+1 212 555 0600', email: 'bar@samoon.com' },
     businessHours: defaultHours('16:00', '02:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: false, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 100 },
+    ...mockCheckoutFields({ delivery: false, pickup: false, dineIn: true, reservationsEnabled: true, maxCapacity: 100 }),
     created_at: '2023-07-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -163,7 +186,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '100 Market Street', city: 'New York', country: 'US', latitude: 40.76, longitude: -73.99 },
     contact: { phone_number: '+1 212 555 0700', email: 'foodcourt@samoon.com' },
     businessHours: defaultHours('10:00', '21:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: false, maxCapacity: 300 },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: true, reservationsEnabled: false, maxCapacity: 300 }),
     created_at: '2022-11-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -177,7 +200,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '200 Plaza Drive', city: 'New York', country: 'US', latitude: 40.782, longitude: -73.981 },
     contact: { phone_number: '+1 212 555 0800' },
     businessHours: defaultHours(),
-    settings: { deliveryEnabled: false, pickupEnabled: false, tableOrderingEnabled: false, reservationsEnabled: false },
+    ...mockCheckoutFields({ delivery: false, pickup: false, dineIn: false, reservationsEnabled: false }),
     created_at: '2023-02-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
   },
@@ -192,7 +215,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: 'Bryant Park', city: 'New York', country: 'US', latitude: 40.753, longitude: -73.983 },
     contact: { phone_number: '+1 212 555 0900' },
     businessHours: defaultHours('11:00', '20:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false }),
     created_at: '2023-04-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -206,7 +229,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: 'Madison Square Park', city: 'New York', country: 'US', latitude: 40.742, longitude: -73.988 },
     contact: { phone_number: '+1 212 555 0901' },
     businessHours: defaultHours('11:00', '19:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false }),
     created_at: '2023-05-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -221,7 +244,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: 'Central Park South Entrance', city: 'New York', country: 'US', latitude: 40.767, longitude: -73.977 },
     contact: { phone_number: '+1 212 555 1000' },
     businessHours: defaultHours('07:00', '17:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false }),
     created_at: '2023-10-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -235,7 +258,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: 'Hudson Yards', city: 'New York', country: 'US', latitude: 40.754, longitude: -74.001 },
     contact: { phone_number: '+1 212 555 1001' },
     businessHours: defaultHours(),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false }),
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-02-01T00:00:00Z',
   },
@@ -252,7 +275,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '789 Coffee Lane', city: 'New York', country: 'US', latitude: 40.754, longitude: -73.984 },
     contact: { phone_number: '+1 212 555 0400', email: 'midtown@brewcafe.com' },
     businessHours: defaultHours('07:00', '20:00'),
-    settings: { deliveryEnabled: true, deliveryRadius: 5, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 50 },
+    ...mockCheckoutFields({ delivery: true, radius: 5, pickup: true, dineIn: false, reservationsEnabled: false, maxCapacity: 50 }),
     created_at: '2023-08-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -266,7 +289,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '321 Brew Boulevard', city: 'Brooklyn', country: 'US', latitude: 40.678, longitude: -73.944 },
     contact: { phone_number: '+1 718 555 0500', email: 'brooklyn@brewcafe.com' },
     businessHours: defaultHours('08:00', '19:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false, maxCapacity: 30 },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false, maxCapacity: 30 }),
     created_at: '2023-09-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -283,7 +306,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '555 Tap Street', city: 'New York', country: 'US', latitude: 40.726, longitude: -73.983 },
     contact: { phone_number: '+1 212 555 0600', email: 'bar@theoakbar.com' },
     businessHours: defaultHours('16:00', '02:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: false, tableOrderingEnabled: true, reservationsEnabled: true, maxCapacity: 100 },
+    ...mockCheckoutFields({ delivery: false, pickup: false, dineIn: true, reservationsEnabled: true, maxCapacity: 100 }),
     created_at: '2023-07-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -300,7 +323,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '100 Market Street', city: 'New York', country: 'US', latitude: 40.76, longitude: -73.99 },
     contact: { phone_number: '+1 212 555 0700', email: 'info@centralfoodcourt.com' },
     businessHours: defaultHours('10:00', '21:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: true, reservationsEnabled: false, maxCapacity: 300 },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: true, reservationsEnabled: false, maxCapacity: 300 }),
     created_at: '2022-11-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -317,7 +340,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: 'Central Park South Entrance', city: 'New York', country: 'US', latitude: 40.767, longitude: -73.977 },
     contact: { phone_number: '+1 212 555 1000', email: 'hello@wheelsandbrews.com' },
     businessHours: defaultHours('07:00', '17:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false }),
     created_at: '2023-10-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -334,7 +357,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: 'Various Locations', city: 'New York', country: 'US', latitude: 40.7128, longitude: -74.006 },
     contact: { phone_number: '+1 212 555 0950', email: 'hello@roadbites.com' },
     businessHours: defaultHours('11:00', '20:00'),
-    settings: { deliveryEnabled: false, pickupEnabled: true, tableOrderingEnabled: false, reservationsEnabled: false },
+    ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false }),
     created_at: '2024-05-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -497,15 +520,10 @@ export const branchManagementService = {
         contact: payload.contact ?? {},
         managerId: payload.managerId,
         businessHours: payload.businessHours ?? defaultHours(),
-        settings: {
-          deliveryEnabled: false,
-          pickupEnabled: true,
-          tableOrderingEnabled: false,
-          reservationsEnabled: false,
-          orderingEnabled: true,
-          marketplaceVisible: true,
-          ...payload.settings,
-        },
+        checkout: mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, payload.checkout),
+        marketplaceVisible: payload.marketplaceVisible ?? true,
+        reservationsEnabled: payload.reservationsEnabled ?? false,
+        maxCapacity: payload.maxCapacity,
         image: images.image,
         coverImage: images.coverImage,
         // The tenant's first branch is always the default, regardless of the payload.
@@ -546,15 +564,10 @@ export const branchManagementService = {
         contact: payload.contact ?? {},
         managerId: payload.managerId,
         businessHours: payload.businessHours ?? defaultHours(),
-        settings: {
-          deliveryEnabled: false,
-          pickupEnabled: true,
-          tableOrderingEnabled: false,
-          reservationsEnabled: false,
-          orderingEnabled: true,
-          marketplaceVisible: true,
-          ...payload.settings,
-        },
+        checkout: mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, payload.checkout),
+        marketplaceVisible: payload.marketplaceVisible ?? true,
+        reservationsEnabled: payload.reservationsEnabled ?? false,
+        maxCapacity: payload.maxCapacity,
         image: images.image,
         coverImage: images.coverImage,
         // The tenant's first branch is always the default, regardless of the payload.
@@ -591,7 +604,10 @@ export const branchManagementService = {
       if (payload.contact) branch.contact = { ...branch.contact, ...payload.contact }
       if (payload.managerId !== undefined) branch.managerId = payload.managerId
       if (payload.businessHours) branch.businessHours = payload.businessHours
-      if (payload.settings) branch.settings = { ...branch.settings, ...payload.settings }
+      if (payload.checkout) branch.checkout = mergeBranchCheckout(branch.checkout, payload.checkout)
+      if (payload.marketplaceVisible !== undefined) branch.marketplaceVisible = payload.marketplaceVisible
+      if (payload.reservationsEnabled !== undefined) branch.reservationsEnabled = payload.reservationsEnabled
+      if (payload.maxCapacity !== undefined) branch.maxCapacity = payload.maxCapacity
       const images = mockBranchImagesFromRequest(payload, {
         image: branch.image,
         coverImage: branch.coverImage,

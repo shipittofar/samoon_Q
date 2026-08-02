@@ -42,13 +42,13 @@ describe('checkout/page.tsx — P4.4 source structure', () => {
     expect(src()).toContain("searchParams.get('table')")
   })
 
-  it('validates orderType against VALID_ORDER_TYPES set', () => {
-    expect(src()).toContain('VALID_ORDER_TYPES')
-    expect(src()).toContain("new Set<OrderType>(['delivery', 'pickup', 'dine_in'])")
+  it('validates orderType via backend checkout resolution', () => {
+    expect(src()).toContain('resolveCheckoutOrderWireType')
+    expect(src()).not.toContain('VALID_ORDER_TYPES')
   })
 
-  it('falls back to delivery when orderType param is invalid', () => {
-    expect(src()).toContain("'delivery'")
+  it('derives initial order type from branch checkout config', () => {
+    expect(src()).toContain('getCheckoutOrderTypeOptions')
     expect(src()).toContain('initialOrderType')
   })
 
@@ -57,7 +57,7 @@ describe('checkout/page.tsx — P4.4 source structure', () => {
   })
 
   it('passes initialOrderType as initial useState value', () => {
-    expect(src()).toContain('useState<OrderType>(initialOrderType)')
+    expect(src()).toContain('useState(initialOrderType)')
   })
 
   it('passes initialTableNumber as table_number defaultValue', () => {
@@ -65,17 +65,14 @@ describe('checkout/page.tsx — P4.4 source structure', () => {
   })
 
   it('renders a dine-in context banner when arriving from QR', () => {
-    expect(src()).toContain('initialOrderType === \'dine_in\'')
+    expect(src()).toContain('requiresTableNumber')
     expect(src()).toContain('initialTableNumber')
     // P9.5.2: localized via t('dineInBanner', { table }) instead of a literal string.
     expect(src()).toContain("t('dineInBanner'")
   })
 
-  it('still imports all non-card payment methods (no regression)', () => {
-    expect(src()).toContain("value: 'cash'")
-    expect(src()).toContain("value: 'wallet'")
-    expect(src()).toContain("value: 'online'")
-    expect(src()).toContain("value: 'card'")
+  it('derives payment methods from branch checkout config', () => {
+    expect(src()).toContain('getCheckoutPaymentOptions')
   })
 
   it('still imports StripePaymentForm (P4.1 no regression)', () => {

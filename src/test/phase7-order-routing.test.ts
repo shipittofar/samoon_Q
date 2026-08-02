@@ -43,6 +43,7 @@ function src(rel: string): string {
 }
 
 import type { Branch as BranchEntity } from '@/types/branch'
+import { buildBranchCheckout } from '@/lib/branch-checkout'
 import { branchAccessService, BranchAccessError } from '@/services/branch-access.service'
 
 function makeBranch(
@@ -61,14 +62,15 @@ function makeBranch(
     location: { address: '1 Main St', city: 'City', country: 'US' },
     contact: {},
     businessHours: [],
-    settings: {
-      deliveryEnabled: true,
-      pickupEnabled: true,
-      tableOrderingEnabled: true,
-      reservationsEnabled: true,
-    },
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
+    checkout: buildBranchCheckout({
+      delivery: true,
+      pickup: true,
+      dineIn: true,
+    }),
+    marketplaceVisible: true,
+    reservationsEnabled: true,
+    created_at: '2025-01-01T00:00:00Z',
+    updated_at: '2025-01-01T00:00:00Z',
   }
 }
 

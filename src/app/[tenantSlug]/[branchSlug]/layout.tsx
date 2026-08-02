@@ -18,24 +18,7 @@ import { use, useEffect } from 'react'
 import { useTenantStore, useBranchStore } from '@/stores'
 import { usePublicBranches } from '@/hooks'
 import { findPublicBranchBySlug } from '@/lib/public-branches'
-import type { PublicBranchInfo } from '@/types/marketplace'
-import type { Location } from '@/types'
-
-function publicBranchToLocation(b: PublicBranchInfo, tenantId: string): Location {
-  return {
-    id: b.id,
-    tenant_id: tenantId,
-    name: b.name,
-    slug: b.slug,
-    address: b.address,
-    city: b.city,
-    phone_number: b.phone_number ?? '',
-    lat: 0,
-    lng: 0,
-    working_hours: [],
-    is_active: b.openNow,
-  }
-}
+import { publicBranchToLocation } from '@/lib/branch-adapters'
 
 export default function TenantBranchLayout({
   children,

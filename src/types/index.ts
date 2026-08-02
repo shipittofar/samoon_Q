@@ -623,6 +623,8 @@ export type LocationType =
   | 'mobile_truck'
   | 'mobile_cafe'
 
+import type { BranchCheckout } from '@/types/branch'
+
 /** Location generalises Branch for multi-tenant use. Roadmap: P1A.2. */
 export interface Location {
   id: string
@@ -643,6 +645,12 @@ export interface Location {
   /** Mobile-unit fields — only present when type === 'mobile_truck' */
   is_mobile?: boolean
   mobile_schedule?: string
+  /** Checkout configuration from backend `branch.checkout`. */
+  checkout?: BranchCheckout
+  currency?: string
+  marketplaceVisible?: boolean
+  reservationsEnabled?: boolean
+  maxCapacity?: number
 }
 
 /** Backward-compatible alias — existing code referencing Branch continues to compile. */
@@ -1428,7 +1436,10 @@ export type {
   BranchLocation,
   BranchBusinessHours,
   BranchContact,
-  BranchSettings,
+  BranchCheckout,
+  BranchCheckoutOrderTypes,
+  BranchCheckoutPayments,
+  BranchCheckoutDelivery,
   BranchMetrics,
   Branch as BranchEntity,
   BranchAnalyticsSummary,
@@ -1506,6 +1517,5 @@ export {
   buildBranchFormData,
   validateBranchForm,
   defaultBranchFormBusinessHours,
-  DEFAULT_BRANCH_SETTINGS,
   EMPTY_BRANCH_FORM,
 } from '@/types/branch-form'
