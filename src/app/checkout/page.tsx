@@ -67,6 +67,7 @@ function CheckoutContent() {
   const tCommon = useTranslations('common')
   const tCart = useTranslations('cart')
   const tValidation = useTranslations('validation')
+  const tAddressServiceability = useTranslations('address.serviceability')
 
   // P4.4 — Read QR / deep-link params and use as initial state
   const paramOrderType = searchParams.get('orderType')
@@ -294,7 +295,7 @@ function CheckoutContent() {
         return
       }
       if (belowMinimum) {
-        toast.error(t('minimumOrder', { amount: formatCurrency(minimumOrderAmount ?? 0, branchCurrency) }))
+        toast.error(tAddressServiceability('minimumOrder', { amount: formatCurrency(minimumOrderAmount ?? 0, branchCurrency) }))
         return
       }
       if (selectedOrderOption?.requiresDeliveryAddress && !hasDeliveryAddress) {
@@ -367,7 +368,7 @@ function CheckoutContent() {
     }
     if (!canPlaceOrder) {
       if (deliveryBlocked) toast.error(t('cannotDeliverHere'))
-      else if (belowMinimum) toast.error(t('minimumOrder', { amount: formatCurrency(minimumOrderAmount ?? 0, branchCurrency) }))
+      else if (belowMinimum) toast.error(tAddressServiceability('minimumOrder', { amount: formatCurrency(minimumOrderAmount ?? 0, branchCurrency) }))
       else if (selectedOrderOption?.requiresDeliveryAddress && !hasDeliveryAddress) toast.error(t('deliveryAddress'))
       return
     }
@@ -663,7 +664,7 @@ function CheckoutContent() {
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('subtotal')}</span><span>{formatCurrency(subtotal, branchCurrency)}</span></div>
                   {belowMinimum && minimumOrderAmount != null && (
                     <p className="text-amber-600 text-xs" role="alert">
-                      {t('minimumOrder', { amount: formatCurrency(minimumOrderAmount, branchCurrency) })}
+                      {tAddressServiceability('minimumOrder', { amount: formatCurrency(minimumOrderAmount, branchCurrency) })}
                     </p>
                   )}
                   {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>{tCart('discount')}</span><span>−{formatCurrency(discountAmount, branchCurrency)}</span></div>}

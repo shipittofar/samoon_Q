@@ -451,6 +451,8 @@
     "onlineDesc": "پی‌پال، اپل پی، گوگل پی",
     "wallet": "موجودی کیف پول",
     "walletDesc": "از اعتبار ساور خود استفاده کنید",
+    "deliveryRadiusKm": "شعاع تحویل (کیلومتر)",
+    "minimumOrderAmount": "حداقل مبلغ سفارش",
     "notes": "یادداشت سفارش",
     "notesPlaceholder": "دستورالعمل ویژه‌ای برای سفارش خود دارید؟",
     "placeOrder": "ثبت سفارش",

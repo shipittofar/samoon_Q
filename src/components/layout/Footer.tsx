@@ -6,26 +6,35 @@ import { Instagram, Twitter, Facebook, Youtube, Mail } from 'lucide-react'
 // rather than a single restaurant. Routing structure is unchanged; only
 // labels, sections, and brand copy were updated.
 
-const LINKS = {
+interface FooterLink {
+  /** Stable React key — distinct from href when multiple links share a placeholder URL. */
+  id: string
+  labelKey: string
+  href: string
+}
+
+const LINKS: Record<string, FooterLink[]> = {
   explore: [
-    { labelKey: 'discoverBusinesses', href: '/discover' },
-    { labelKey: 'restaurants', href: '/discover?category=restaurant' },
-    { labelKey: 'cafes', href: '/discover?category=cafe' },
-    { labelKey: 'barsAndVenues', href: '/discover?category=bar' },
-    { labelKey: 'foodTrucks', href: '/discover?category=food_truck' },
+    { id: 'discoverBusinesses', labelKey: 'discoverBusinesses', href: '/discover' },
+    { id: 'restaurants', labelKey: 'restaurants', href: '/discover?category=restaurant' },
+    { id: 'cafes', labelKey: 'cafes', href: '/discover?category=cafe' },
+    { id: 'barsAndVenues', labelKey: 'barsAndVenues', href: '/discover?category=bar' },
+    { id: 'foodTrucks', labelKey: 'foodTrucks', href: '/discover?category=food_truck' },
   ],
   platform: [
-    { labelKey: 'orderOnline', href: '/menu' },
-    { labelKey: 'bookATable', href: '/reservation' },
-    { labelKey: 'trackOrder', href: '/dashboard/orders' },
-    { labelKey: 'becomeAPartner', href: '/restaurant' },
-    { labelKey: 'pricing', href: '/restaurant' },
+    { id: 'orderOnline', labelKey: 'orderOnline', href: '/menu' },
+    { id: 'bookATable', labelKey: 'bookATable', href: '/reservation' },
+    { id: 'trackOrder', labelKey: 'trackOrder', href: '/dashboard/orders' },
+    // becomeAPartner and pricing both route to /restaurant until dedicated pages exist.
+    { id: 'becomeAPartner', labelKey: 'becomeAPartner', href: '/restaurant' },
+    { id: 'pricing', labelKey: 'pricing', href: '/restaurant' },
   ],
   company: [
-    { labelKey: 'aboutSamoon', href: '/restaurant' },
-    { labelKey: 'support', href: '/restaurant' },
-    { labelKey: 'privacyPolicy', href: '/privacy' },
-    { labelKey: 'termsOfService', href: '/terms' },
+    // aboutSamoon and support both route to /restaurant until dedicated pages exist.
+    { id: 'aboutSamoon', labelKey: 'aboutSamoon', href: '/restaurant' },
+    { id: 'support', labelKey: 'support', href: '/restaurant' },
+    { id: 'privacyPolicy', labelKey: 'privacyPolicy', href: '/privacy' },
+    { id: 'termsOfService', labelKey: 'termsOfService', href: '/terms' },
   ],
 }
 
@@ -68,7 +77,7 @@ export function Footer() {
               <h4 className="text-sm font-semibold text-[var(--fg)] mb-4">{t(`sections.${section}`)}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (
-                  <li key={link.href}>
+                  <li key={link.id}>
                     <Link
                       href={link.href}
                       className="text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors"

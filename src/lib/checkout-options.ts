@@ -201,6 +201,13 @@ function humanizeWireValue(value: string): string {
     .join(' ')
 }
 
+function humanizeConfigKey(key: string): string {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim()
+}
+
 type TranslateFn = (key: string) => string
 
 /** Maps wire types to existing checkout i18n keys (presentation only). */
@@ -215,6 +222,29 @@ const LEGACY_PAYMENT_I18N: Record<string, { label: string; desc?: string }> = {
   cash: { label: 'cash', desc: 'cashDesc' },
   online: { label: 'online', desc: 'onlineDesc' },
   wallet: { label: 'wallet', desc: 'walletDesc' },
+}
+
+/** branch.checkout.payments config keys → checkout i18n label keys. */
+const PAYMENT_CONFIG_KEY_I18N: Record<string, string> = {
+  cash: 'cash',
+  cashOnDelivery: 'cash',
+  card: 'card',
+  online: 'online',
+  wallet: 'wallet',
+}
+
+/** branch.checkout.orderTypes config keys → console i18n enabled-toggle keys. */
+const ORDER_TYPE_CONFIG_CONSOLE_ENABLED: Record<string, string> = {
+  delivery: 'deliveryEnabledLabel',
+  pickup: 'pickupEnabledLabel',
+  dineIn: 'dineInEnabledLabel',
+}
+
+/** branch.checkout.delivery flags → address.capabilities i18n keys. */
+const DELIVERY_CONFIG_CAPABILITY_KEY: Record<string, string> = {
+  scheduled: 'scheduled_delivery',
+  sameDay: 'same_day',
+  contactless: 'contactless_delivery',
 }
 
 export function getCheckoutOrderTypeLabel(wireType: string, t: TranslateFn): string {
@@ -247,4 +277,31 @@ export function getCheckoutPaymentDesc(wireMethod: string, t: TranslateFn): stri
 
 export function getCheckoutPaymentIcon(wireMethod: string): ElementType {
   return PAYMENT_ICONS[wireMethod] ?? CreditCard
+}
+
+/** Admin form: label for a branch.checkout.payments config key (reuses checkout namespace). */
+export function getCheckoutPaymentConfigKeyLabel(configKey: string, tCheckout: TranslateFn): string {
+  const checkoutKey = PAYMENT_CONFIG_KEY_I18N[configKey]
+  if (checkoutKey) return tCheckout(checkoutKey)
+  return humanizeConfigKey(configKey)
+}
+
+/** Admin form: enabled-toggle label for a branch.checkout.orderTypes config key. */
+export function getCheckoutOrderTypeConfigKeyEnabledLabel(
+  configKey: string,
+  tConsole: TranslateFn,
+): string {
+  const consoleKey = ORDER_TYPE_CONFIG_CONSOLE_ENABLED[configKey]
+  if (consoleKey) return tConsole(consoleKey)
+  return `${humanizeConfigKey(configKey)} enabled`
+}
+
+/** Admin form: label for a branch.checkout.delivery capability flag (reuses address.capabilities). */
+export function getCheckoutDeliveryOptionLabel(
+  configKey: string,
+  tAddressCapabilities: TranslateFn,
+): string {
+  const capabilityKey = DELIVERY_CONFIG_CAPABILITY_KEY[configKey]
+  if (capabilityKey) return tAddressCapabilities(capabilityKey)
+  return humanizeConfigKey(configKey)
 }

@@ -5,6 +5,9 @@ import {
   resolveCheckoutOrderWireType,
   checkoutConfigKeyToWire,
   filterDeliveryCapabilities,
+  getCheckoutPaymentConfigKeyLabel,
+  getCheckoutOrderTypeConfigKeyEnabledLabel,
+  getCheckoutDeliveryOptionLabel,
 } from '@/lib/checkout-options'
 import { DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 
@@ -86,5 +89,24 @@ describe('checkout-options — backend-driven discovery', () => {
       same_day: true,
       contactless_delivery: false,
     })
+  })
+
+  it('getCheckoutPaymentConfigKeyLabel reuses checkout payment labels', () => {
+    const tCheckout = (key: string) => `checkout:${key}`
+    expect(getCheckoutPaymentConfigKeyLabel('online', tCheckout)).toBe('checkout:online')
+    expect(getCheckoutPaymentConfigKeyLabel('cashOnDelivery', tCheckout)).toBe('checkout:cash')
+    expect(getCheckoutPaymentConfigKeyLabel('applePay', tCheckout)).toBe('Apple Pay')
+  })
+
+  it('getCheckoutOrderTypeConfigKeyEnabledLabel uses console enabled toggles', () => {
+    const tConsole = (key: string) => `console:${key}`
+    expect(getCheckoutOrderTypeConfigKeyEnabledLabel('delivery', tConsole)).toBe('console:deliveryEnabledLabel')
+    expect(getCheckoutOrderTypeConfigKeyEnabledLabel('driveThrough', tConsole)).toBe('Drive Through enabled')
+  })
+
+  it('getCheckoutDeliveryOptionLabel reuses address capability labels', () => {
+    const tCapabilities = (key: string) => `address:${key}`
+    expect(getCheckoutDeliveryOptionLabel('scheduled', tCapabilities)).toBe('address:scheduled_delivery')
+    expect(getCheckoutDeliveryOptionLabel('unknownFlag', tCapabilities)).toBe('Unknown Flag')
   })
 })

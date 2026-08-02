@@ -466,6 +466,8 @@
     "onlineDesc": "PayPal, Apple Pay, Google Pay",
     "wallet": "Wallet Balance",
     "walletDesc": "Use your Samoon credits",
+    "deliveryRadiusKm": "Delivery radius (km)",
+    "minimumOrderAmount": "Minimum order amount",
     "notes": "Order Notes",
     "notesPlaceholder": "Any special instructions for your order?",
     "placeOrder": "Place Order",

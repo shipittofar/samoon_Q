@@ -30,6 +30,9 @@ export {
   getCheckoutPaymentLabel,
   getCheckoutPaymentDesc,
   getCheckoutPaymentIcon,
+  getCheckoutPaymentConfigKeyLabel,
+  getCheckoutOrderTypeConfigKeyEnabledLabel,
+  getCheckoutDeliveryOptionLabel,
 } from '@/lib/checkout-options'
 export type { CheckoutOrderTypeOption, CheckoutPaymentOption } from '@/lib/checkout-options'
 

@@ -451,6 +451,8 @@
     "onlineDesc": "باي بال، آبل باي، جوجل باي",
     "wallet": "رصيد المحفظة",
     "walletDesc": "استخدم أرصدة سيفور الخاصة بك",
+    "deliveryRadiusKm": "نطاق التوصيل (كم)",
+    "minimumOrderAmount": "الحد الأدنى لمبلغ الطلب",
     "notes": "ملاحظات",
     "notesPlaceholder": "أي تعليمات خاصة لطلبك؟",
     "placeOrder": "تأكيد الطلب",

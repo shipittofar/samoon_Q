@@ -12,14 +12,12 @@ import { useTranslations } from 'next-intl'
 import { ImageUploader } from '@/components/ImageUploader'
 import type { BranchBusinessHours } from '@/types/branch'
 import type { BranchFormState } from '@/types/branch-form'
-import { checkoutConfigKeyToWire } from '@/lib/checkout-options'
-
-function humanizeConfigKey(key: string): string {
-  return key
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim()
-}
+import {
+  checkoutConfigKeyToWire,
+  getCheckoutDeliveryOptionLabel,
+  getCheckoutOrderTypeConfigKeyEnabledLabel,
+  getCheckoutPaymentConfigKeyLabel,
+} from '@/lib/checkout-options'
 
 export type { BranchFormState } from '@/types/branch-form'
 export {
@@ -38,6 +36,8 @@ export function BranchFormFields({
   onChange: (next: BranchFormState) => void
 }) {
   const t = useTranslations('console')
+  const tCheckout = useTranslations('checkout')
+  const tAddressCapabilities = useTranslations('address.capabilities')
 
   const set = <K extends keyof BranchFormState>(field: K, value: BranchFormState[K]) =>
     onChange({ ...form, [field]: value })
@@ -249,7 +249,7 @@ export function BranchFormFields({
         </label>
 
         <div className="pt-2 space-y-2">
-          <p className="text-sm font-medium text-gray-700">{t('orderTypesLabel', { defaultValue: 'Order types' })}</p>
+          <p className="text-sm font-medium text-gray-700">{tCheckout('orderType')}</p>
           {Object.entries(form.checkout.orderTypes)
             .filter(([key]) => key !== 'default')
             .map(([key]) => (
@@ -260,13 +260,13 @@ export function BranchFormFields({
                 onChange={(e) => setOrderTypes({ [key]: e.target.checked })}
                 className="rounded"
               />
-              {t(`${key}EnabledLabel`, { defaultValue: humanizeConfigKey(key) })}
+              {getCheckoutOrderTypeConfigKeyEnabledLabel(key, t)}
             </label>
           ))}
         </div>
 
         <div className="pt-2 space-y-2">
-          <p className="text-sm font-medium text-gray-700">{t('paymentMethodsLabel', { defaultValue: 'Payment methods' })}</p>
+          <p className="text-sm font-medium text-gray-700">{tCheckout('paymentMethod')}</p>
           {Object.entries(form.checkout.payments)
             .filter(([key]) => key !== 'default')
             .map(([key]) => (
@@ -277,15 +277,15 @@ export function BranchFormFields({
                 onChange={(e) => setPayments({ [key]: e.target.checked })}
                 className="rounded"
               />
-              {t(`${key}Label`, { defaultValue: humanizeConfigKey(key) })}
+              {getCheckoutPaymentConfigKeyLabel(key, tCheckout)}
             </label>
           ))}
         </div>
 
         <div className="pt-2 space-y-2">
-          <p className="text-sm font-medium text-gray-700">{t('deliveryOptionsLabel', { defaultValue: 'Delivery options' })}</p>
+          <p className="text-sm font-medium text-gray-700">{tCheckout('delivery')}</p>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-delivery-radius">{t('deliveryRadiusLabel', { defaultValue: 'Delivery radius (km)' })}</label>
+            <label className="block text-sm font-medium mb-1" htmlFor="branch-delivery-radius">{tCheckout('deliveryRadiusKm')}</label>
             <input
               id="branch-delivery-radius"
               type="number"
@@ -296,7 +296,7 @@ export function BranchFormFields({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-minimum-order">{t('minimumOrder')}</label>
+            <label className="block text-sm font-medium mb-1" htmlFor="branch-minimum-order">{tCheckout('minimumOrderAmount')}</label>
             <input
               id="branch-minimum-order"
               type="text"
@@ -315,14 +315,14 @@ export function BranchFormFields({
                 onChange={(e) => setDelivery({ [key]: e.target.checked })}
                 className="rounded"
               />
-              {t(`${key}DeliveryLabel`, { defaultValue: humanizeConfigKey(key) })}
+              {getCheckoutDeliveryOptionLabel(key, tAddressCapabilities)}
             </label>
           ))}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="branch-default-order-type">
-                {t('defaultOrderTypeLabel', { defaultValue: 'Default order type' })}
+                {tCheckout('orderType')} ({t('defaultLabel')})
               </label>
               <select
                 id="branch-default-order-type"
@@ -330,19 +330,19 @@ export function BranchFormFields({
                 onChange={(e) => setOrderTypes({ default: e.target.value || null })}
                 className={inputClass}
               >
-                <option value="">{t('noDefaultLabel', { defaultValue: 'No default' })}</option>
+                <option value="">{t('notSetLabel')}</option>
                 {Object.entries(form.checkout.orderTypes)
                   .filter(([key, value]) => key !== 'default' && value === true)
                   .map(([key]) => (
                     <option key={key} value={checkoutConfigKeyToWire(key)}>
-                      {t(`${key}EnabledLabel`, { defaultValue: humanizeConfigKey(key) })}
+                      {getCheckoutOrderTypeConfigKeyEnabledLabel(key, t)}
                     </option>
                   ))}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="branch-default-payment">
-                {t('defaultPaymentLabel', { defaultValue: 'Default payment method' })}
+                {tCheckout('paymentMethod')} ({t('defaultLabel')})
               </label>
               <select
                 id="branch-default-payment"
@@ -350,12 +350,12 @@ export function BranchFormFields({
                 onChange={(e) => setPayments({ default: e.target.value || null })}
                 className={inputClass}
               >
-                <option value="">{t('noDefaultLabel', { defaultValue: 'No default' })}</option>
+                <option value="">{t('notSetLabel')}</option>
                 {Object.entries(form.checkout.payments)
                   .filter(([key, value]) => key !== 'default' && value === true)
                   .map(([key]) => (
                     <option key={key} value={key}>
-                      {t(`${key}Label`, { defaultValue: humanizeConfigKey(key) })}
+                      {getCheckoutPaymentConfigKeyLabel(key, tCheckout)}
                     </option>
                   ))}
               </select>
