@@ -113,8 +113,9 @@ export function resolveOrderingEnabled(
   capabilities?: Record<string, boolean>,
   branch?: BranchCapabilityInput,
 ): boolean {
+  // Branch checkout.orderingEnabled is authoritative when provided.
+  if (branch?.orderingEnabled !== undefined) return branch.orderingEnabled === true
   if (!resolveTenantCapability('menu', capabilities)) return false
-  if (branch?.orderingEnabled !== undefined) return branch.orderingEnabled
   return resolveTenantCapability('ordering', capabilities)
 }
 
@@ -151,7 +152,7 @@ export function buildPublicCTAs(opts: BuildPublicCTAsOptions): PublicCTASet {
   const hasLoyalty = resolveTenantCapability('loyalty', capabilities)
 
   return {
-    menu: hasMenu
+    menu: hasMenu || hasOrdering
       ? { label: hasOrdering ? 'Order Online' : 'View Menu', href: `${basePath}/menu` }
       : null,
     reservation: hasReservations

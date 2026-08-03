@@ -8,6 +8,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildCustomerJourney } from '@/utils/journey'
 import { buildPublicCTAs } from '@/utils/public-context'
+import { getSmartCTA } from '@/utils/navigation'
 import type { PublicCTASet } from '@/utils/public-context'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -249,5 +250,26 @@ describe('buildCustomerJourney integrates with buildPublicCTAs', () => {
     const j = buildCustomerJourney({ businessTypes: ['cafe'], ctas })
     expect(j.primaryCTA?.href).toContain('/menu')
     expect(j.secondaryCTAs[0]?.href).toContain('/loyalty')
+  })
+
+  it('branch checkout orderingEnabled overrides missing tenant menu capability', () => {
+    const ctas = buildPublicCTAs({
+      tenantSlug: 'samoon',
+      branchSlug: 'main',
+      capabilities: undefined,
+      branch: { orderingEnabled: true, reservationsEnabled: true },
+    })
+    expect(ctas.menu).toEqual({ label: 'Order Online', href: '/samoon/main/menu' })
+  })
+
+  it('getSmartCTA shows Order Online on branch page when checkout ordering is enabled', () => {
+    const cta = getSmartCTA({
+      tenantSlug: 'samoon',
+      branchSlug: 'main',
+      capabilities: undefined,
+      branch: { orderingEnabled: true, reservationsEnabled: true },
+    })
+    expect(cta?.primary).toEqual({ label: 'Order Online', href: '/samoon/main/menu' })
+    expect(cta?.secondary).toEqual({ label: 'Reserve a Table', href: '/samoon/main/reservation' })
   })
 })
