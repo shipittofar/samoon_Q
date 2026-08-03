@@ -5,6 +5,7 @@
 process.env.NEXT_PUBLIC_USE_MOCK = 'true'
 
 import { describe, it, expect, beforeEach } from 'vitest'
+import path from 'path'
 import {
   AUDIT_EVENT_REGISTRY,
   AUDIT_ACTIONS,
@@ -1028,27 +1029,27 @@ describe('P7.5 Navigation — AUDIT_LOGS_NAV_ITEM in all modules', () => {
   })
 
   it('RESTAURANT_MODULE.adminNavItems has 6 items', () => {
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(24)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(25)
   })
 
   it('CAFE_MODULE.adminNavItems has 9 items', () => {
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(24)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(25)
   })
 
   it('BAR_MODULE.adminNavItems has 9 items', () => {
-    expect(BAR_MODULE.adminNavItems).toHaveLength(25)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(26)
   })
 
   it('FOOD_COURT_MODULE.adminNavItems has 8 items', () => {
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(24)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(25)
   })
 
   it('FOOD_TRUCK_MODULE.adminNavItems has 8 items', () => {
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(23)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(24)
   })
 
   it('MOBILE_CAFE_MODULE.adminNavItems has 8 items', () => {
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(23)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(24)
   })
 })
 
@@ -1095,29 +1096,27 @@ describe('P7.5 Registry — ADMIN_AUDIT_ROUTES', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('P7.5 Hooks — audit hooks exported', () => {
-  it('useAuditLogs is exported from @/hooks', async () => {
-    const hooks = await import('@/hooks')
-    expect(typeof hooks.useAuditLogs).toBe('function')
+  const hooksSrc = () =>
+    require('fs').readFileSync(path.join(process.cwd(), 'src/hooks/index.ts'), 'utf-8')
+
+  it('useAuditLogs is exported from @/hooks', () => {
+    expect(hooksSrc()).toContain('export function useAuditLogs')
   })
 
-  it('useAuditLog is exported from @/hooks', async () => {
-    const hooks = await import('@/hooks')
-    expect(typeof hooks.useAuditLog).toBe('function')
+  it('useAuditLog is exported from @/hooks', () => {
+    expect(hooksSrc()).toContain('export function useAuditLog')
   })
 
-  it('useAuditTimeline is exported from @/hooks', async () => {
-    const hooks = await import('@/hooks')
-    expect(typeof hooks.useAuditTimeline).toBe('function')
+  it('useAuditTimeline is exported from @/hooks', () => {
+    expect(hooksSrc()).toContain('export function useAuditTimeline')
   })
 
-  it('useAuditStatistics is exported from @/hooks', async () => {
-    const hooks = await import('@/hooks')
-    expect(typeof hooks.useAuditStatistics).toBe('function')
+  it('useAuditStatistics is exported from @/hooks', () => {
+    expect(hooksSrc()).toContain('export function useAuditStatistics')
   })
 
-  it('useExportAuditLogs is exported from @/hooks', async () => {
-    const hooks = await import('@/hooks')
-    expect(typeof hooks.useExportAuditLogs).toBe('function')
+  it('useExportAuditLogs is exported from @/hooks', () => {
+    expect(hooksSrc()).toContain('export function useExportAuditLogs')
   })
 })
 

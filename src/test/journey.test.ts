@@ -206,7 +206,7 @@ describe('buildCustomerJourney integrates with buildPublicCTAs', () => {
     const ctas = buildPublicCTAs({
       tenantSlug: 'acme',
       branchSlug: 'downtown',
-      featureFlags: { 'menu.enabled': true, 'reservations.enabled': true },
+      capabilities: { menu: true, reservations: true, ordering: true },
     })
     const j = buildCustomerJourney({ businessTypes: ['restaurant'], ctas })
     expect(j.primaryCTA?.href).toContain('/reservation')
@@ -216,7 +216,7 @@ describe('buildCustomerJourney integrates with buildPublicCTAs', () => {
     const ctas = buildPublicCTAs({
       tenantSlug: 'truck',
       branchSlug: 'main',
-      featureFlags: { 'menu.enabled': true },
+      capabilities: { menu: true, ordering: true },
       meta: { branchCount: 1 },
     })
     const j = buildCustomerJourney({ businessTypes: ['food_truck'], ctas })
@@ -228,7 +228,7 @@ describe('buildCustomerJourney integrates with buildPublicCTAs', () => {
     const ctas = buildPublicCTAs({
       tenantSlug: 'truck',
       branchSlug: undefined,  // tenant homepage
-      featureFlags: { 'menu.enabled': true },
+      capabilities: { menu: true, ordering: true },
       meta: { branchCount: 3, primaryBranchSlug: 'midtown' },
     })
     const j = buildCustomerJourney({ businessTypes: ['food_truck'], ctas })
@@ -239,10 +239,11 @@ describe('buildCustomerJourney integrates with buildPublicCTAs', () => {
     const ctas = buildPublicCTAs({
       tenantSlug: 'brew',
       branchSlug: 'east',
-      featureFlags: {
-        'menu.enabled': true,
-        'reservations.enabled': true,
-        'loyalty.enabled': true,
+      capabilities: {
+        menu: true,
+        ordering: true,
+        reservations: true,
+        loyalty: true,
       },
     })
     const j = buildCustomerJourney({ businessTypes: ['cafe'], ctas })

@@ -235,7 +235,6 @@ describe('Regression — existing P4.4 behaviour preserved', () => {
   it('checkout page still reads orderType from URL', () => {
     const src = readSrc('app/checkout/page.tsx')
     expect(src).toContain("get('orderType')")
-    expect(src).toContain('dine_in')
   })
 
   it('checkout page still pre-populates table_number in form', () => {

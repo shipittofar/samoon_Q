@@ -371,8 +371,8 @@ describe('P3.6.8 — UI regression guard', () => {
 
   it('OrderTracker still renders progress bar', () => {
     const content = src('components/order/OrderTracker.tsx')
-    expect(content).toContain('STATUS_ORDER')
-    expect(content).toContain('STEPS')
+    expect(content).toContain('timeline')
+    expect(content).toContain('resolvedIdx')
   })
 
   it('OrderTracker still handles cancelled state', () => {
@@ -388,6 +388,6 @@ describe('P3.6.8 — UI regression guard', () => {
 
   it('OrderTracker renders current step description', () => {
     const content = src('components/order/OrderTracker.tsx')
-    expect(content).toContain('step.description')
+    expect(content).toContain('timelineLabel')
   })
 })

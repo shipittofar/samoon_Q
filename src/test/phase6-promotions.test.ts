@@ -42,12 +42,9 @@ async function freshService() {
 // ── A. Type definitions ───────────────────────────────────────────────────────
 
 describe('A. Promotion domain types', () => {
-  it('types source defines PromotionType union', () => {
+  it('PromotionType is extensible (backend-owned values)', () => {
     const src = readSrc('types/index.ts')
-    expect(src).toContain("'percentage_discount'")
-    expect(src).toContain("'fixed_discount'")
-    expect(src).toContain("'buy_one_get_one'")
-    expect(src).toContain("'happy_hour'")
+    expect(src).toMatch(/export type PromotionType = string/)
   })
 
   it('types source defines PromotionSchedule interface', () => {
@@ -435,8 +432,8 @@ describe('I. promotionService.createPromotion() — happy path', () => {
       schedule: { startAt: new Date().toISOString() },
     })
     expect(promo.id).toBeTruthy()
-    expect(promo.createdAt).toBeTruthy()
-    expect(promo.updatedAt).toBeTruthy()
+    expect(promo.created_at).toBeTruthy()
+    expect(promo.updated_at).toBeTruthy()
     expect(promo.name).toBe('New Promo')
   })
 })
@@ -511,14 +508,14 @@ describe('K. promotionService.updatePromotion()', () => {
     ).rejects.toThrow('not found')
   })
 
-  it('updates updatedAt timestamp', async () => {
+  it('updates updated_at timestamp', async () => {
     const { promotionService } = await freshService()
     const before = (await promotionService.getPromotions()).find((p) => p.id === 'promo-10-percent')!
     await new Promise((r) => setTimeout(r, 2))
     await promotionService.updatePromotion('promo-10-percent', { discountPercent: 5 })
     const after = (await promotionService.getPromotions()).find((p) => p.id === 'promo-10-percent')!
-    expect(new Date(after.updatedAt).getTime()).toBeGreaterThanOrEqual(
-      new Date(before.updatedAt).getTime(),
+    expect(new Date(after.updated_at).getTime()).toBeGreaterThanOrEqual(
+      new Date(before.updated_at).getTime(),
     )
   })
 })

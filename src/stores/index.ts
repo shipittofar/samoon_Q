@@ -44,7 +44,7 @@ import {
 import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
-import { resolveConsoleActiveBranch } from '@/lib/console-workspace'
+import { membershipBranchesToBranches, resolveConsoleActiveBranch } from '@/lib/console-workspace'
 import { buildMenuItemStub, normalizeCartItems } from '@/lib/cart-normalizers'
 import {
   resolvePublicTenantId,
@@ -557,8 +557,27 @@ export const useBranchStore = create<BranchState>()(
           set({ branches: [], selectedBranch: null, branchState: 'error', adminActiveBranch: null })
         }
       },
-      loadBranchesFromMembership: async (tenantId: string, _membershipBranches: MembershipBranch[]) => {
-        await get().loadBranchesForTenant(tenantId)
+      loadBranchesFromMembership: async (tenantId: string, membershipBranches: MembershipBranch[]) => {
+        set({ branchState: 'loading' })
+        try {
+          const branches = membershipBranchesToBranches(membershipBranches, tenantId)
+          const activeBranchId = useRbacStore.getState().activeMembership?.branchId
+          const selected = resolveConsoleActiveBranch(branches, activeBranchId)
+          if (selected) {
+            set({
+              branches,
+              selectedBranch: selected,
+              selectedBranchId: selected.id,
+              branchState: 'ready',
+              adminActiveBranch: selected,
+            })
+          } else {
+            set({ branches, selectedBranch: null, selectedBranchId: null, branchState: 'empty', adminActiveBranch: null })
+          }
+        } catch (err) {
+          captureException(err, { context: 'useBranchStore.loadBranchesFromMembership', tenantId })
+          set({ branches: [], selectedBranch: null, branchState: 'error', adminActiveBranch: null })
+        }
       },
       selectBranch: (branch) => {
         set({ selectedBranch: branch, selectedBranchId: branch.id, branchState: 'ready', adminActiveBranch: branch })

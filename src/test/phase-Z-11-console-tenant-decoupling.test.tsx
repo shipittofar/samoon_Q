@@ -25,7 +25,7 @@
 //      never conflated with a transient failure.
 // ============================================================
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, act } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { readFileSync } from 'node:fs'
@@ -191,20 +191,22 @@ describe('Phase Z.11 — authenticated + tenant API failure: Console shell still
 describe('Phase Z.11 — retry behavior', () => {
   it('auto-retries after TENANT_RETRY_DELAY_MS, calling loadTenant() with the last-attempted slug', async () => {
     vi.useFakeTimers()
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockResolvedValue(SAMOON as never)
-    useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantById').mockResolvedValue(SAMOON as never)
+    useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon', lastAttemptedTenantId: SAMOON.id } as never)
 
     render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
     expect(screen.getByText(en.console.tenantRetryCta)).toBeTruthy()
 
-    await vi.advanceTimersByTimeAsync(TENANT_RETRY_DELAY_MS)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(TENANT_RETRY_DELAY_MS)
+    })
 
-    expect(getTenantSpy).toHaveBeenCalledWith('samoon')
+    expect(getTenantSpy).toHaveBeenCalledWith(SAMOON.id)
   })
 
   it('manual retry button re-invokes loadTenant() immediately, without waiting for the auto-retry delay', async () => {
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockResolvedValue(SAMOON as never)
-    useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantById').mockResolvedValue(SAMOON as never)
+    useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon', lastAttemptedTenantId: SAMOON.id } as never)
 
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
@@ -212,19 +214,21 @@ describe('Phase Z.11 — retry behavior', () => {
 
     await user.click(screen.getByText(en.console.tenantRetryCta))
 
-    expect(getTenantSpy).toHaveBeenCalledWith('samoon')
+    expect(getTenantSpy).toHaveBeenCalledWith(SAMOON.id)
   })
 
   it('auto-retry stops after TENANT_MAX_AUTO_RETRIES — no infinite duplicate requests', async () => {
     vi.useFakeTimers()
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValue(new Error('network error'))
-    useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValue(new Error('network error'))
+    useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon', lastAttemptedTenantId: SAMOON.id } as never)
 
     render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
 
     // Advance well past what TENANT_MAX_AUTO_RETRIES auto-retries would consume.
     for (let i = 0; i < TENANT_MAX_AUTO_RETRIES + 2; i++) {
-      await vi.advanceTimersByTimeAsync(TENANT_RETRY_DELAY_MS)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(TENANT_RETRY_DELAY_MS)
+      })
     }
 
     // Called once for the initial failure state plus at most TENANT_MAX_AUTO_RETRIES retries.

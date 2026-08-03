@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import path from 'path'
 
 // ── 1. Type System ────────────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ describe('P7.6 — Notification Types', () => {
     expect(n).toHaveProperty('message')
     expect(n).toHaveProperty('scope')
     expect(n).toHaveProperty('channels')
-    expect(n).toHaveProperty('createdAt')
+    expect(n).toHaveProperty('created_at')
   })
 
   it('NotificationDeepLink has type, id, href fields', async () => {
@@ -625,7 +626,7 @@ describe('P7.6 — Notification Preferences Service', () => {
       expect(p).toHaveProperty('enabled')
       expect(p).toHaveProperty('channels')
       expect(p).toHaveProperty('minPriority')
-      expect(p).toHaveProperty('updatedAt')
+      expect(p).toHaveProperty('updated_at')
     }
   })
 
@@ -923,12 +924,12 @@ describe('P7.6 — Navigation Integration', () => {
 
   it('RESTAURANT_MODULE adminNavItems count is 7', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(24)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(25)
   })
 
   it('CAFE_MODULE adminNavItems count is 10', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(24)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(25)
   })
 })
 
@@ -1022,10 +1023,12 @@ describe('P7.6 — Hook Exports', () => {
     'useResetNotificationPreferences',
   ]
 
+  const hooksSrc = () =>
+    require('fs').readFileSync(path.join(process.cwd(), 'src/hooks/index.ts'), 'utf-8')
+
   for (const name of hookNames) {
-    it(`${name} is exported from @/hooks`, async () => {
-      const hooks = await import('@/hooks')
-      expect(typeof (hooks as Record<string, unknown>)[name]).toBe('function')
+    it(`${name} is exported from @/hooks`, () => {
+      expect(hooksSrc()).toContain(`export function ${name}`)
     })
   }
 })

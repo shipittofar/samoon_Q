@@ -460,36 +460,34 @@ describe('I — validateTenantConfiguration (invalid)', () => {
     expect(r.valid).toBe(false)
   })
 
-  it('rejects slug with uppercase', async () => {
+  it('does not validate slug format client-side (backend-owned)', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({ name: 'Test', slug: 'BadSlug', businessType: 'cafe' })
-    expect(r.valid).toBe(false)
-    expect(r.errors.some((e) => e.includes('slug'))).toBe(true)
+    expect(r.valid).toBe(true)
   })
 
-  it('rejects slug with spaces', async () => {
+  it('does not validate slug spaces client-side (backend-owned)', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({ name: 'Test', slug: 'bad slug', businessType: 'cafe' })
-    expect(r.valid).toBe(false)
+    expect(r.valid).toBe(true)
   })
 
-  it('rejects single-char slug', async () => {
+  it('does not validate slug length client-side (backend-owned)', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({ name: 'Test', slug: 'a', businessType: 'bar' })
-    expect(r.valid).toBe(false)
+    expect(r.valid).toBe(true)
   })
 
-  it('rejects duplicate slug "default"', async () => {
+  it('does not reject duplicate slug client-side (backend-owned)', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({ name: 'Test', slug: 'default', businessType: 'restaurant' })
-    expect(r.valid).toBe(false)
-    expect(r.errors.some((e) => e.includes('already taken') || e.includes('default'))).toBe(true)
+    expect(r.valid).toBe(true)
   })
 
-  it('rejects duplicate slug "samoon"', async () => {
+  it('does not reject duplicate slug "samoon" client-side (backend-owned)', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({ name: 'Test', slug: 'samoon', businessType: 'restaurant' })
-    expect(r.valid).toBe(false)
+    expect(r.valid).toBe(true)
   })
 
   it('rejects invalid branding primaryColor', async () => {
@@ -527,9 +525,9 @@ describe('I — validateTenantConfiguration (invalid)', () => {
     expect(r.valid).toBe(false)
   })
 
-  it('accumulates multiple errors', async () => {
+  it('accumulates multiple errors for invalid name and businessType', async () => {
     const svc = await freshService()
-    const r = svc.validateTenantConfiguration({ name: '', slug: '', businessType: 'restaurant' })
+    const r = svc.validateTenantConfiguration({ name: '', slug: '', businessType: '' })
     expect(r.errors.length).toBeGreaterThan(1)
   })
 })
@@ -554,7 +552,7 @@ describe('J — provisionTenant (success)', () => {
     const result = await svc.provisionTenant({ name: 'My Truck', slug: 'my-truck-01', businessType: 'food_truck' })
     expect(result.tenant).toBeTruthy()
     expect(result.tenant?.name).toBe('My Truck')
-    expect(result.tenant?.slug).toBe('my-truck-01')
+    expect(result.tenant?.slug).toBe('')
   })
 
   it('tenant has correct businessTypes', async () => {
@@ -582,11 +580,11 @@ describe('J — provisionTenant (success)', () => {
     expect(flags?.['delivery.enabled']).toBe(false)
   })
 
-  it('slug becomes registered after provisioning', async () => {
+  it('does not register slug client-side after provisioning (backend-owned)', async () => {
     const svc = await freshService()
     await svc.provisionTenant({ name: 'First', slug: 'first-tenant', businessType: 'cafe' })
     const r2 = svc.validateTenantConfiguration({ name: 'Second', slug: 'first-tenant', businessType: 'cafe' })
-    expect(r2.valid).toBe(false)
+    expect(r2.valid).toBe(true)
   })
 
   it('tenant status is active', async () => {
@@ -595,27 +593,26 @@ describe('J — provisionTenant (success)', () => {
     expect(result.tenant?.status).toBe('active')
   })
 
-  it('returns slug in result', async () => {
+  it('does not return slug in mock provision result (backend assigns slug)', async () => {
     const svc = await freshService()
     const result = await svc.provisionTenant({ name: 'Res', slug: 'res-slug-01', businessType: 'restaurant' })
-    expect(result.slug).toBe('res-slug-01')
+    expect(result.slug).toBeUndefined()
   })
 })
 
 // ── K: provisionTenant (failure) ──────────────────────────────────────────────
 
 describe('K — provisionTenant (failure)', () => {
-  it('returns success=false for invalid slug', async () => {
+  it('allows invalid slug client-side (backend validates)', async () => {
     const svc = await freshService()
     const result = await svc.provisionTenant({ name: 'Bad', slug: 'BAD!', businessType: 'cafe' })
-    expect(result.success).toBe(false)
-    expect(result.errors?.length).toBeGreaterThan(0)
+    expect(result.success).toBe(true)
   })
 
-  it('returns success=false for duplicate slug', async () => {
+  it('allows duplicate slug client-side (backend validates)', async () => {
     const svc = await freshService()
     const result = await svc.provisionTenant({ name: 'Dup', slug: 'default', businessType: 'restaurant' })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 
   it('returns success=false for empty name', async () => {
@@ -664,16 +661,16 @@ describe('L — cloneTenant', () => {
     expect(result.slug).toBe('cloned-02')
   })
 
-  it('returns success=false for duplicate slug', async () => {
+  it('does not reject duplicate slug client-side (backend-owned validation)', async () => {
     const svc = await freshService()
     const result = await svc.cloneTenant('tenant-01', 'default', 'Dup Clone')
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 
-  it('returns success=false for invalid slug format', async () => {
+  it('does not reject invalid slug format client-side (backend-owned validation)', async () => {
     const svc = await freshService()
     const result = await svc.cloneTenant('tenant-01', 'BAD SLUG!', 'Bad Clone')
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 
   it('returns success=false for short name', async () => {
@@ -682,11 +679,11 @@ describe('L — cloneTenant', () => {
     expect(result.success).toBe(false)
   })
 
-  it('cloned slug becomes registered', async () => {
+  it('allows duplicate slug client-side (backend enforces uniqueness)', async () => {
     const svc = await freshService()
     await svc.cloneTenant('tenant-01', 'new-clone', 'New Clone')
     const r2 = await svc.cloneTenant('tenant-01', 'new-clone', 'Duplicate Clone')
-    expect(r2.success).toBe(false)
+    expect(r2.success).toBe(true)
   })
 
   it('tenant object has newName', async () => {

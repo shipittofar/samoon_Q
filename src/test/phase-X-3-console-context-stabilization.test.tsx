@@ -133,6 +133,11 @@ describe('Phase X.3 — tenant selector switches through session refresh', () =>
     }
 
     const switchSpy = vi.spyOn(authService, 'switchActiveTenant').mockResolvedValue(undefined)
+    const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: { id: 'user-multi-01', email: 'user-multi-01@test.com', first_name: 'T', last_name: 'U', accountType: 'business', is_verified: true, created_at: '' },
+      memberships: MULTI_MEMBERSHIPS,
+      activeMembership: { tenantId: BREW_CAFE_ID },
+    } as never)
 
     const user = userEvent.setup()
     render(withProviders(<AdminTenantSwitcher />))
@@ -141,11 +146,11 @@ describe('Phase X.3 — tenant selector switches through session refresh', () =>
     await user.click(await screen.findByText('Brew Cafe'))
 
     await waitFor(() => {
-      expect(switchSpy).toHaveBeenCalledWith({
-        tenantId: BREW_CAFE_ID,
-        tenantSlug: 'brew-cafe',
-      })
+      expect(switchSpy).toHaveBeenCalledWith({ tenantId: BREW_CAFE_ID })
+      expect(getMeSpy).toHaveBeenCalled()
     })
+
+    getMeSpy.mockRestore()
 
     switchSpy.mockRestore()
   })
@@ -209,6 +214,10 @@ describe('Phase X.3 — branch switch invalidates every branch-scoped cache, inc
     useRbacStore.getState()._resetStore()
     useTenantStore.setState({ tenant: { id: 'tenant-1', name: 'Test Tenant' } as never, tenantState: 'resolved' } as never)
     useBranchStore.setState({ branches, selectedBranch: branches[0], branchState: 'ready' } as never)
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 'tenant-1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: 'tenant-1', branchId: 'branch-1' },
+    )
     useRbacStore.getState().setCurrentTenantSession('tenant-1', ['owner'], [], { scope: 'all' })
   })
 

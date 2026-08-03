@@ -444,8 +444,8 @@ describe('hooks/index.ts — P5.1 admin hooks source', () => {
   })
 
   it('useUpdateOrderStatus invalidates orders', () => {
-    const block = src().slice(src().indexOf('useUpdateOrderStatus'))
-    expect(block.slice(0, 1100)).toContain("'orders'")
+    const block = src().slice(src().indexOf('export function useUpdateOrderStatus'))
+    expect(block.slice(0, 2000)).toContain("'orders'")
   })
 
   it('useConfirmReservation invalidates admin-reservations', () => {
@@ -463,12 +463,12 @@ describe('hooks/index.ts — P5.1 admin hooks source', () => {
   // not a blanket ['menu-items'] prefix that would touch every branch's cache.
   it('useCreateMenuItem invalidates menu-items scoped to the branch', () => {
     const block = src().slice(src().indexOf('export function useCreateMenuItem'))
-    expect(block.slice(0, 600)).toContain('menuItemsQueryPredicate(branchId)')
+    expect(block.slice(0, 600)).toContain('invalidateBranchMenuItemsQueries')
   })
 
   it('useDeleteMenuItem invalidates menu-items scoped to the branch', () => {
     const block = src().slice(src().indexOf('export function useDeleteMenuItem'))
-    expect(block.slice(0, 600)).toContain('menuItemsQueryPredicate(branchId)')
+    expect(block.slice(0, 600)).toContain('invalidateBranchMenuItemsQueries')
   })
 
   it('useUpdateMenuItem invalidates specific menu-item query', () => {

@@ -15,6 +15,7 @@ import { render, screen, renderHook, act } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
+import en from '@/i18n/locales/en.json'
 import { useRbacStore, useTenantStore, useBranchStore } from '@/stores'
 import { canAccessBranch } from '@/services/permission.service'
 import { useBranchAccess } from '@/hooks'
@@ -49,7 +50,7 @@ vi.mock('@/hooks', async (importOriginal) => {
 })
 
 function withIntl(node: React.ReactNode) {
-  return <NextIntlClientProvider locale="en" messages={{ console: {}, common: {} }}>{node}</NextIntlClientProvider>
+  return <NextIntlClientProvider locale="en" messages={en}>{node}</NextIntlClientProvider>
 }
 
 function withProviders(node: React.ReactNode) {

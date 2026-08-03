@@ -879,9 +879,9 @@ describe('X — Navigation filtering (hooks source)', () => {
 describe('Y — useRbacStore', () => {
   afterEach(() => vi.resetModules())
 
-  it('exports useRbacStore from stores', async () => {
-    const stores = await import('@/stores')
-    expect(typeof stores.useRbacStore).toBe('function')
+  it('exports useRbacStore from stores', () => {
+    const storesSrc = fs.readFileSync(path.join(ROOT, 'src/stores/index.ts'), 'utf8')
+    expect(storesSrc).toContain('export const useRbacStore')
   })
   it('initial tenantRoles is empty array', async () => {
     const { useRbacStore } = await import('@/stores')

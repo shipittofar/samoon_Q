@@ -79,7 +79,20 @@ describe('P10.9 — authService.register() accepts country_code/phone_number, no
 })
 
 describe('P10.9 — useRegister() hydrates session after successful registration', () => {
-  it('calls setUser() with the returned user', async () => {
+  it('hydrates user via establishAuthenticatedSession (getMe after register)', async () => {
+    const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: {
+        id: 'reg-1',
+        email: 'hydrate-test@phone_number.samoon.local',
+        first_name: 'Jane',
+        last_name: 'Doe',
+        accountType: 'customer',
+        is_verified: true,
+        created_at: new Date().toISOString(),
+      },
+      memberships: [],
+    })
+
     const { result } = renderHook(() => useRegister(), { wrapper })
     const mutatePromise = result.current.mutateAsync({
       email: 'hydrate-test@phone_number.samoon.local',
@@ -91,6 +104,7 @@ describe('P10.9 — useRegister() hydrates session after successful registration
     await vi.runAllTimersAsync()
     await mutatePromise
 
+    expect(getMeSpy).toHaveBeenCalled()
     expect(useAuthStore.getState().user?.first_name).toBe('Jane')
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
   })

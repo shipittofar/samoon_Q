@@ -36,14 +36,9 @@ async function freshRegistry() {
 describe('types/index.ts — Capability type (P6.2)', () => {
   const src = () => readSrc('types/index.ts')
 
-  it('exports Capability type', () => expect(src()).toContain("export type Capability ="))
-  it('Capability includes menu',          () => expect(src()).toContain("'menu'"))
-  it('Capability includes ordering',      () => expect(src()).toContain("'ordering'"))
-  it('Capability includes qr_table',      () => expect(src()).toContain("'qr_table'"))
-  it('Capability includes reservations',  () => expect(src()).toContain("'reservations'"))
-  it('Capability includes reviews',       () => expect(src()).toContain("'reviews'"))
-  it('Capability includes loyalty',       () => expect(src()).toContain("'loyalty'"))
-  it('Capability includes notifications', () => expect(src()).toContain("'notifications'"))
+  it('Capability type is extensible (backend-owned values)', () => {
+    expect(src()).toMatch(/export type Capability = string/)
+  })
 })
 
 describe('types/index.ts — ModuleCapabilitySet interface (P6.2)', () => {

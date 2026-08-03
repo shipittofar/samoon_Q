@@ -23,7 +23,7 @@
 // for RBAC fields.
 // ============================================================
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { authService, MOCK_SESSION_KEY } from '@/services/auth.service'
+import { authService, MOCK_SESSION_KEY, MOCK_SESSION_MEMBERSHIPS_KEY, MOCK_ACTIVE_TENANT_KEY, MOCK_ACTIVE_BRANCH_KEY } from '@/services/auth.service'
 import { resolveSessionRestoreInput } from '@/providers'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { useAuthStore, useTenantStore, useRbacStore } from '@/stores'
@@ -68,16 +68,21 @@ beforeEach(() => {
   vi.useFakeTimers()
   useAuthStore.getState().setUser(null)
   useRbacStore.getState()._resetStore()
-  if (typeof localStorage !== 'undefined') localStorage.removeItem(MOCK_SESSION_KEY)
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(MOCK_SESSION_KEY)
+    localStorage.removeItem(MOCK_SESSION_MEMBERSHIPS_KEY)
+    localStorage.removeItem(MOCK_ACTIVE_TENANT_KEY)
+    localStorage.removeItem(MOCK_ACTIVE_BRANCH_KEY)
+  }
   // These hydration tests exercise the same tenant-scoped setTenantRoles()
   // call AuthBootstrapper makes — which is now a no-op unless a tenant has
   // actually resolved (tenant !== null). Simulate the correctly-ordered
   // case (tenant resolution completed before auth hydration runs) rather
   // than leaving `tenant` at its default `null`.
   useTenantStore.getState().setTenant({
-    id: 'tenant-test-01',
-    name: 'Test Tenant',
-    slug: 'test-tenant',
+    id: 'tenant-samoon-01',
+    name: 'Samoon',
+    slug: 'samoon',
     businessTypes: ['restaurant'],
     status: 'active',
     created_at: '2024-01-01T00:00:00.000Z',

@@ -246,9 +246,11 @@ describe('P4.7.5 — Cart store debounced writes', () => {
     expect(content).toContain('createDebouncedStorage')
   })
 
-  it('cart store uses createDebouncedStorage', () => {
+  it('cart store uses synchronous persistence (no debounced flush race)', () => {
     const content = src('stores/index.ts')
-    expect(content).toContain('storage: createDebouncedStorage(50)')
+    expect(content).toContain('name: CART_KEY')
+    expect(content).toContain('Synchronous persistence')
+    expect(content).not.toContain('storage: createDebouncedStorage(50)')
   })
 
   it('createDebouncedStorage uses setTimeout for write deferral', () => {
@@ -432,7 +434,7 @@ describe('P4.7.8 — Regression checks', () => {
   it('cart store still persists with CART_KEY name', () => {
     const content = src('stores/index.ts')
     expect(content).toContain('CART_KEY')
-    expect(content).toContain('storage: createDebouncedStorage(50)')
+    expect(content).toContain('name: CART_KEY')
   })
 
   it('auth store is unchanged (no persist, no debouncing)', () => {

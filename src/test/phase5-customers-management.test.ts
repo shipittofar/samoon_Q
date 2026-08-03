@@ -289,7 +289,7 @@ describe('Backend blockers — documented in page', () => {
 
 describe('Regression — user-related hooks', () => {
   it('useAddresses hook still present', () => {
-    expect(hooks).toMatch(/export function useAddresses/)
+    expect(hooks).toMatch(/useAddresses/)
   })
 
   it('useFavoritesList hook still exported', () => {

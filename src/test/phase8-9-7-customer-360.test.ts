@@ -29,8 +29,8 @@ describe('P8.9.7 — Mock data integrity', () => {
       expect(note.content).toBeTruthy()
       expect(note.authorId).toBeTruthy()
       expect(note.authorName).toBeTruthy()
-      expect(note.createdAt).toBeTruthy()
-      expect(note.updatedAt).toBeTruthy()
+      expect(note.created_at).toBeTruthy()
+      expect(note.updated_at).toBeTruthy()
     }
   })
 
@@ -131,10 +131,10 @@ describe('P8.9.7 — getCustomerTimeline service', () => {
     }
   })
 
-  it('returns events sorted descending by createdAt', async () => {
+  it('returns events sorted descending by created_at', async () => {
     const events = await adminService.getCustomerTimeline('pu-001', 'tenant-samoon-01')
     for (let i = 1; i < events.length; i++) {
-      expect(events[i - 1].createdAt >= events[i].createdAt).toBe(true)
+      expect(events[i - 1].created_at >= events[i].created_at).toBe(true)
     }
   })
 
@@ -168,10 +168,10 @@ describe('P8.9.7 — Customer notes service', () => {
     }
   })
 
-  it('getCustomerNotes returns notes sorted descending by createdAt', async () => {
+  it('getCustomerNotes returns notes sorted descending by created_at', async () => {
     const notes = await adminService.getCustomerNotes('pu-001', 'tenant-samoon-01')
     for (let i = 1; i < notes.length; i++) {
-      expect(notes[i - 1].createdAt >= notes[i].createdAt).toBe(true)
+      expect(notes[i - 1].created_at >= notes[i].created_at).toBe(true)
     }
   })
 
@@ -196,13 +196,13 @@ describe('P8.9.7 — Customer notes service', () => {
     expect(after.length).toBe(before.length + 1)
   })
 
-  it('updateCustomerNote updates content and updatedAt', async () => {
+  it('updateCustomerNote updates content and updated_at', async () => {
     const created = await adminService.createCustomerNote(
       'pu-001', 'tenant-samoon-01', 'Original content', 'admin-test', 'Test Admin'
     )
     const updated = await adminService.updateCustomerNote(created.id, 'Updated content')
     expect(updated.content).toBe('Updated content')
-    expect(updated.updatedAt >= updated.createdAt).toBe(true)
+    expect(updated.updated_at >= updated.created_at).toBe(true)
   })
 
   it('deleteCustomerNote removes the note', async () => {
@@ -356,10 +356,10 @@ describe('P8.9.7 — Customer coupons service', () => {
     }
   })
 
-  it('getCustomerCoupons returns sorted descending by createdAt', async () => {
+  it('getCustomerCoupons returns sorted descending by created_at', async () => {
     const coupons = await adminService.getCustomerCoupons('pu-001', 'tenant-samoon-01')
     for (let i = 1; i < coupons.length; i++) {
-      expect(coupons[i - 1].createdAt >= coupons[i].createdAt).toBe(true)
+      expect(coupons[i - 1].created_at >= coupons[i].created_at).toBe(true)
     }
   })
 

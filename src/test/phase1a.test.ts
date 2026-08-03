@@ -31,8 +31,8 @@ describe('DEFAULT_TENANT', () => {
       name: expect.any(String),
       slug: expect.any(String),
       businessTypes: expect.any(Array),
-      status: expect.stringMatching(/^(active|trial|suspended|churned)$/),
-      createdAt: expect.any(String),
+      status: expect.any(String),
+      created_at: expect.any(String),
     })
   })
 

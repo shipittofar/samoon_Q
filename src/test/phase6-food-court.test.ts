@@ -349,7 +349,7 @@ describe('I. admin navigation', () => {
 
   it('adminNavItems has 6 items', async () => {
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(24)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(25)
   })
 
   it('Vendor Management links to /console/food-court/vendors', async () => {
@@ -380,7 +380,7 @@ describe('I. admin navigation', () => {
 
   it('getAdminNav(["food_court"]) returns 6 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['food_court'])).toHaveLength(24)
+    expect(getAdminNav(['food_court'])).toHaveLength(25)
   })
 
   it('getAdminNav(["food_court"]) includes Vendor Management', async () => {
@@ -572,7 +572,7 @@ describe('M. cafe regression', () => {
 
   it('cafe admin nav still returns 7 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['cafe'])).toHaveLength(24)
+    expect(getAdminNav(['cafe'])).toHaveLength(25)
   })
 
   it('getHeaderNav(["cafe"]) does not include Vendors', async () => {
@@ -594,7 +594,7 @@ describe('N. bar regression', () => {
 
   it('bar admin nav still returns 7 items', async () => {
     const { getAdminNav } = await freshRegistry()
-    expect(getAdminNav(['bar'])).toHaveLength(25)
+    expect(getAdminNav(['bar'])).toHaveLength(26)
   })
 
   it('getHeaderNav(["bar"]) does not include Vendors or Seating', async () => {

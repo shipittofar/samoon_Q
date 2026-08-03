@@ -169,7 +169,7 @@ describe('C. loyaltyService.getTransactions()', () => {
       type: expect.stringMatching(/^(earn|redeem|expire|adjustment)$/),
       points: expect.any(Number),
       description: expect.any(String),
-      createdAt: expect.any(String),
+      created_at: expect.any(String),
     })
   })
 })
@@ -394,7 +394,7 @@ describe('I. loyaltyService admin — adminGetRewards, adminCreateReward', () =>
     })
     expect(reward.id).toBeTruthy()
     expect(reward.name).toBe('New Perk')
-    expect(reward.createdAt).toBeTruthy()
+    expect(reward.created_at).toBeTruthy()
   })
 
   it('newly created reward appears in customer getRewards()', async () => {

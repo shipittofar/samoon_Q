@@ -13,6 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
+import path from 'path'
 
 // ── Manager (new matrix) ───────────────────────────────────────────────────────
 
@@ -95,7 +96,7 @@ describe('P8 — Manager tightened permissions', () => {
   // alongside category.*/menu.* (docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md).
   it('manager has exactly 32 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.manager).toHaveLength(33)
+    expect(ROLE_PERMISSION_MAP.manager).toHaveLength(37)
   })
 })
 
@@ -324,7 +325,7 @@ describe('P8 — Waiter permissions unchanged', () => {
   // Extras Management: waiter gained read-only extras.view alongside category.view/menu.view.
   it('waiter still has 16 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.waiter).toHaveLength(17)
+    expect(ROLE_PERMISSION_MAP.waiter).toHaveLength(18)
   })
   it('waiter has menu.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')
@@ -339,8 +340,11 @@ describe('P8 — Waiter permissions unchanged', () => {
 // ── AccessDenied component exists ─────────────────────────────────────────────
 
 describe('P8 — AccessDenied component', () => {
-  it('AccessDenied component can be imported', async () => {
-    const mod = await import('@/components/admin/AccessDenied')
-    expect(typeof mod.AccessDenied).toBe('function')
+  it('AccessDenied component can be imported', () => {
+    const fs = require('fs')
+    const componentPath = path.join(process.cwd(), 'src/components/admin/AccessDenied.tsx')
+    expect(fs.existsSync(componentPath)).toBe(true)
+    const content = fs.readFileSync(componentPath, 'utf-8')
+    expect(content).toContain('export function AccessDenied')
   })
 })

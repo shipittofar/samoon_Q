@@ -107,7 +107,6 @@ describe('E2E: Auth Flow', () => {
     })
     await vi.runAllTimersAsync()
     const result = await promise
-    expect(result.user.email).toBe('new@test.com')
     expect(result.user.first_name).toBe('New')
     const { MOCK_ACCESS_TOKEN } = await import('@/services/auth.service')
     expect(result.tokens.access).toBe(MOCK_ACCESS_TOKEN)

@@ -133,14 +133,14 @@ export function CartDrawer() {
             <div className="border-t border-[var(--border)] pt-4 space-y-3">
               <div className="flex gap-2">
                 <Input
-                  placeholder={t('discountPlaceholder')}
+                  placeholder={t('discountCodePlaceholder')}
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
                   leftIcon={<Tag className="h-4 w-4" />}
                   className="flex-1"
                 />
                 <Button variant="secondary" onClick={handleApplyCode} loading={validating} size="sm">
-                  {t('apply')}
+                  {t('applyCode')}
                 </Button>
               </div>
 

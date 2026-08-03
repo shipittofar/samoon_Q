@@ -28,10 +28,12 @@ const localStorageMock = (() => {
 })()
 Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn(),
-})) as unknown as typeof IntersectionObserver
+// Mock IntersectionObserver (plain class — not vi.fn — so vi.restoreAllMocks() in tests cannot break it)
+global.IntersectionObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as unknown as typeof IntersectionObserver
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {

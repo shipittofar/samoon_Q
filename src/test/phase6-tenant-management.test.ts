@@ -276,10 +276,10 @@ describe('H — status transitions', () => {
     expect(t.status).toBe('archived')
   })
 
-  it('TenantStatus includes archived', () => {
-    const src = readSrc('types/index.ts')
+  it('TenantStatus includes archived in tenant service', () => {
+    const src = readSrc('services/tenant.service.ts')
     expect(src).toContain("'archived'")
-    expect(src).toContain('TenantStatus')
+    expect(src).toContain('archiveTenant')
   })
 
   it('tenant.service.ts has activateTenant method', () => {
@@ -410,16 +410,16 @@ describe('K — cloneTenant preserves branding', () => {
 // ── L: Clone validation ───────────────────────────────────────────────────────
 
 describe('L — cloneTenant validation', () => {
-  it('rejects duplicate slug', async () => {
+  it('does not reject duplicate slug client-side (backend-owned)', async () => {
     const svc = await freshProvisioningService()
     const r = await svc.cloneTenant('src', 'default', 'Dup')
-    expect(r.success).toBe(false)
+    expect(r.success).toBe(true)
   })
 
-  it('rejects invalid slug', async () => {
+  it('does not reject invalid slug client-side (backend-owned)', async () => {
     const svc = await freshProvisioningService()
     const r = await svc.cloneTenant('src', 'INVALID!', 'Name')
-    expect(r.success).toBe(false)
+    expect(r.success).toBe(true)
   })
 
   it('rejects short name', async () => {
@@ -693,24 +693,8 @@ describe('Q — tenant analytics computed from list', () => {
 // ── R: TenantStatus type ──────────────────────────────────────────────────────
 
 describe('R — TenantStatus type', () => {
-  it('includes active', () => {
-    expect(readSrc('types/index.ts')).toContain("'active'")
-  })
-
-  it('includes trial', () => {
-    expect(readSrc('types/index.ts')).toContain("'trial'")
-  })
-
-  it('includes suspended', () => {
-    expect(readSrc('types/index.ts')).toContain("'suspended'")
-  })
-
-  it('includes churned', () => {
-    expect(readSrc('types/index.ts')).toContain("'churned'")
-  })
-
-  it('includes archived', () => {
-    expect(readSrc('types/index.ts')).toContain("'archived'")
+  it('TenantStatus is extensible (backend-owned values)', () => {
+    expect(readSrc('types/index.ts')).toMatch(/export type TenantStatus = string/)
   })
 })
 
@@ -741,11 +725,11 @@ describe('S — status management resolves in mock mode without network', () => 
 // ── T: Mock data completeness ────────────────────────────────────────────────
 
 describe('T — mock data has required fields on all tenants', () => {
-  it('all tenants have createdAt', async () => {
+  it('all tenants have created_at', async () => {
     const svc = await freshTenantService()
     const tenants = await svc.getTenants()
     for (const t of tenants) {
-      expect(t.createdAt).toBeTruthy()
+      expect(t.created_at).toBeTruthy()
     }
   })
 
@@ -793,32 +777,32 @@ describe('V — adminNavItems counts after P6.15 (all modules +1 Tenants item)',
 
   it('restaurant has 4 adminNavItems', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(24)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(25)
   })
 
   it('cafe has 7 adminNavItems', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(24)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(25)
   })
 
   it('bar has 7 adminNavItems', async () => {
     const { BAR_MODULE } = await freshRegistry()
-    expect(BAR_MODULE.adminNavItems).toHaveLength(25)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(26)
   })
 
   it('food_court has 6 adminNavItems', async () => {
     const { FOOD_COURT_MODULE } = await freshRegistry()
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(24)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(25)
   })
 
   it('food_truck has 6 adminNavItems', async () => {
     const { FOOD_TRUCK_MODULE } = await freshRegistry()
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(23)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(24)
   })
 
   it('mobile_cafe has 6 adminNavItems', async () => {
     const { MOBILE_CAFE_MODULE } = await freshRegistry()
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(23)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(24)
   })
 
   it('all modules have Tenants nav item', async () => {

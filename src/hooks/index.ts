@@ -1004,9 +1004,7 @@ export function useBranches() {
       if (!tenantId) {
         return []
       }
-      const entities = await branchManagementService.getTenantsBranches(tenantId)
-      const { branchEntityToLocation } = await import('@/lib/branch-adapters')
-      return entities.map(branchEntityToLocation)
+      return branchService.getBranches(tenantId)
     },
     staleTime: CACHE_TIME,
   })

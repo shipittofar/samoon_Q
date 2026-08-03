@@ -203,10 +203,7 @@ describe('Phase Z.10 — tenant selection cases (activeMembership vs memberships
     await user.click(screen.getByText('Other Business'))
 
     await waitFor(() => {
-      expect(switchSpy).toHaveBeenCalledWith({
-        tenantId: 'tenant-b-02',
-        tenantSlug: 'other-business',
-      })
+      expect(switchSpy).toHaveBeenCalledWith({ tenantId: 'tenant-b-02' })
       expect(getMeSpy).toHaveBeenCalled()
     })
 
