@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Star, ThumbsUp, ChevronDown, ChevronUp, BadgeCheck, MessageSquare, Camera } from 'lucide-react'
 import { cn } from '@/utils'
+import { humanizeOrderWireType } from '@/lib/checkout-options'
 import type { BusinessReview } from '@/types/business-review'
 
 interface ReviewCardProps {
@@ -58,12 +59,6 @@ function Avatar({ name, avatar }: { name: string; avatar?: string }) {
   )
 }
 
-const VISIT_TYPE_KEYS: Record<NonNullable<BusinessReview['visitType']>, string> = {
-  dine_in: 'dineIn',
-  takeaway: 'takeaway',
-  delivery: 'delivery',
-}
-
 export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = false, className }: ReviewCardProps) {
   const t = useTranslations('reviewCard')
   const [expanded, setExpanded] = useState(false)
@@ -107,7 +102,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             <StarRow rating={review.rating} />
             <span className="text-xs text-[var(--fg-muted)]">{dateStr}</span>
             {review.visitType && (
-              <span className="text-xs text-[var(--fg-muted)]">· {t(`visitTypes.${VISIT_TYPE_KEYS[review.visitType]}`)}</span>
+              <span className="text-xs text-[var(--fg-muted)]">· {humanizeOrderWireType(review.visitType)}</span>
             )}
           </div>
         </div>

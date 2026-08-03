@@ -58,12 +58,12 @@ function HeroSection({
   branchSlug: string
 }) {
   const t = useTranslations('branch')
-  const featureFlags = useTenantStore((s) => s.featureFlags)
   const meta = getMarketplaceMeta(tenant.settings)
+  const capabilities = tenant.capabilities
   const cta = getSmartCTA({
     tenantSlug,
     branchSlug,
-    featureFlags,
+    capabilities,
     meta,
     branch: {
       orderingEnabled: branch.checkout?.orderingEnabled,
@@ -671,7 +671,6 @@ export default function BranchHomepageClient({
   const { data: menuItemsPage } = useMenuItems(branchId)
   const { data: promotions = [] } = useActivePromotions()
   const { data: layout } = useHomepageLayout(tenantId)
-  const featureFlags = useTenantStore((s) => s.featureFlags)
 
   const menuItems: MenuItem[] = menuItemsPage?.results ?? []
 
@@ -680,6 +679,8 @@ export default function BranchHomepageClient({
     return <BranchNotFound tenantSlug={tenantSlug} />
   }
 
+  const capabilities = tenant.capabilities
+
   const meta = getMarketplaceMeta(tenant.settings)
   const sections = buildPublicSections(layout?.sections)
 
@@ -687,7 +688,7 @@ export default function BranchHomepageClient({
   const ctas = buildPublicCTAs({
     tenantSlug,
     branchSlug,
-    featureFlags,
+    capabilities,
     branch: {
       orderingEnabled: branch.checkout?.orderingEnabled,
       reservationsEnabled: branch.reservationsEnabled,

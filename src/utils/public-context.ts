@@ -95,29 +95,35 @@ interface BuildPublicCTAsOptions {
   tenantSlug: string
   /** Current branch slug. Undefined when on the tenant homepage. */
   branchSlug: string | undefined
-  /** Fully resolved feature flags from useTenantStore((s) => s.featureFlags). */
-  featureFlags: Record<string, boolean>
-  /** Branch checkout/top-level flags — override tenant feature flags when set. */
+  /** First-class capability booleans from tenant.capabilities. */
+  capabilities?: Record<string, boolean>
+  /** Branch checkout/top-level flags — override tenant capabilities when set. */
   branch?: BranchCapabilityInput
   meta?: { branchCount?: number; primaryBranchSlug?: string } | null
 }
 
+export function resolveTenantCapability(
+  key: string,
+  capabilities?: Record<string, boolean>,
+): boolean {
+  return capabilities?.[key] === true
+}
+
 export function resolveOrderingEnabled(
-  featureFlags: Record<string, boolean>,
-  hasMenu: boolean,
+  capabilities?: Record<string, boolean>,
   branch?: BranchCapabilityInput,
 ): boolean {
-  if (!hasMenu) return false
+  if (!resolveTenantCapability('menu', capabilities)) return false
   if (branch?.orderingEnabled !== undefined) return branch.orderingEnabled
-  return featureFlags['ordering.enabled'] !== false
+  return resolveTenantCapability('ordering', capabilities)
 }
 
 export function resolveReservationsEnabled(
-  featureFlags: Record<string, boolean>,
+  capabilities?: Record<string, boolean>,
   branch?: BranchCapabilityInput,
 ): boolean {
   if (branch?.reservationsEnabled !== undefined) return branch.reservationsEnabled
-  return featureFlags['reservations.enabled'] === true
+  return resolveTenantCapability('reservations', capabilities)
 }
 
 /**
@@ -131,7 +137,7 @@ export function resolveReservationsEnabled(
  * - Menu label: "Order Online" when ordering is enabled, "View Menu" otherwise.
  */
 export function buildPublicCTAs(opts: BuildPublicCTAsOptions): PublicCTASet {
-  const { tenantSlug, branchSlug, featureFlags, branch, meta } = opts
+  const { tenantSlug, branchSlug, capabilities, branch, meta } = opts
   const branchCount = meta?.branchCount ?? 1
   const primaryBranchSlug = meta?.primaryBranchSlug
   const resolvedBranchSlug = branchSlug ?? primaryBranchSlug
@@ -139,17 +145,10 @@ export function buildPublicCTAs(opts: BuildPublicCTAsOptions): PublicCTASet {
     ? `/${tenantSlug}/${resolvedBranchSlug}`
     : `/${tenantSlug}`
 
-  const hasMenu = featureFlags['menu.enabled'] !== false
-  const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch)
-  const hasReservations = resolveReservationsEnabled(featureFlags, branch)
-
-  // Canonical loyalty check: resolves across all module flag key variants
-  const loyaltyRaw =
-    featureFlags['loyalty.enabled'] ??
-    featureFlags['cafe.loyalty.enabled'] ??
-    featureFlags['mobile_cafe.loyalty.enabled'] ??
-    false
-  const hasLoyalty = loyaltyRaw === true
+  const hasOrdering = resolveOrderingEnabled(capabilities, branch)
+  const hasReservations = resolveReservationsEnabled(capabilities, branch)
+  const hasMenu = resolveTenantCapability('menu', capabilities)
+  const hasLoyalty = resolveTenantCapability('loyalty', capabilities)
 
   return {
     menu: hasMenu
@@ -177,25 +176,15 @@ export interface FooterQuickLink {
 
 interface BuildFooterLinksOptions {
   tenantSlug: string
-  /** Fully resolved feature flags from useTenantStore((s) => s.featureFlags). */
-  featureFlags: Record<string, boolean>
+  capabilities?: Record<string, boolean>
   meta: Pick<MarketplaceMeta, 'primaryBranchSlug'>
-  /** Primary branch capability — authoritative over tenant feature flags when set. */
   branch?: BranchCapabilityInput
 }
 
-/**
- * Builds the feature-flag-aware quick links list for TenantFooter.
- *
- * Previously TenantFooter had a hardcoded flat `/reservation` link that
- * was neither branch-aware nor flag-gated. This function fixes both issues:
- * Reservations appears only when `reservations.enabled` is true, and it
- * links to `/{tenantSlug}/{primaryBranchSlug}/reservation`.
- */
 export function buildFooterLinks(opts: BuildFooterLinksOptions): FooterQuickLink[] {
-  const { tenantSlug, featureFlags, meta, branch } = opts
+  const { tenantSlug, capabilities, meta, branch } = opts
   const primaryBranchSlug = meta.primaryBranchSlug
-  const hasReservations = resolveReservationsEnabled(featureFlags, branch)
+  const hasReservations = resolveReservationsEnabled(capabilities, branch)
 
   const links: FooterQuickLink[] = [{ label: 'Home', href: `/${tenantSlug}` }]
 
@@ -291,13 +280,13 @@ export function buildTenantJsonLd(opts: {
   tenantName: string
   tenantSlug: string
   meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'phone_number' | 'coverImage' | 'cuisines'> | null
-  /** Resolved feature flags. When absent, reviews default to enabled (safe for SEO). */
-  featureFlags?: Record<string, boolean>
+  /** Resolved capability booleans from tenant.capabilities. */
+  capabilities?: Record<string, boolean>
 }): string | null {
-  const { tenantName, tenantSlug, meta, featureFlags } = opts
+  const { tenantName, tenantSlug, meta, capabilities } = opts
   if (!meta?.rating || !meta.reviewCount) return null
 
-  const reviewsEnabled = featureFlags ? featureFlags['reviews.enabled'] !== false : true
+  const reviewsEnabled = capabilities?.reviews === true
 
   const ld = buildRestaurantJsonLd({
     name: tenantName,
@@ -335,7 +324,7 @@ export function buildBranchJsonLd(opts: {
   branchPhone?: string
   branchImage?: string
   meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'cuisines'> | null
-  featureFlags?: Record<string, boolean>
+  capabilities?: Record<string, boolean>
 }): string | null {
   const {
     branchName,
@@ -346,12 +335,12 @@ export function buildBranchJsonLd(opts: {
     branchPhone,
     branchImage,
     meta,
-    featureFlags,
+    capabilities,
   } = opts
 
   if (!meta?.rating || !meta.reviewCount) return null
 
-  const reviewsEnabled = featureFlags ? featureFlags['reviews.enabled'] !== false : true
+  const reviewsEnabled = capabilities?.reviews === true
 
   const ld = buildRestaurantJsonLd({
     name: branchName,

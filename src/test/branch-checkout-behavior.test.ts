@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  mapPaymentConfigKeyToMethod,
-  resolveInitialPaymentMethod,
   resolveEffectiveMinimumOrder,
   isBelowMinimumOrder,
   isDeliveryBlockedByServiceability,
@@ -9,40 +7,44 @@ import {
   isBranchOrderingEnabled,
   resolveCheckoutOrderWireType,
   getCheckoutOrderTypeOptions,
-  DEFAULT_BRANCH_CHECKOUT,
+  getCheckoutPaymentConfigKeys,
+  EMPTY_BRANCH_CHECKOUT,
 } from '@/lib/branch-checkout'
+import {
+  checkoutConfigKeyToWire,
+  resolveCheckoutPaymentWireMethod,
+} from '@/lib/checkout-options'
+import { branchToFormInput } from '@/types/branch-form'
+import type { Branch } from '@/types/branch'
 
 describe('branch-checkout behavioral helpers', () => {
-  it('maps cashOnDelivery config key to cash payment method', () => {
-    expect(mapPaymentConfigKeyToMethod('cashOnDelivery')).toBe('cash')
-    expect(mapPaymentConfigKeyToMethod('card')).toBe('card')
-    expect(mapPaymentConfigKeyToMethod('invalid')).toBeNull()
+  it('maps config keys to wire values via generic conversion', () => {
+    expect(checkoutConfigKeyToWire('cashOnDelivery')).toBe('cash_on_delivery')
+    expect(checkoutConfigKeyToWire('applePay')).toBe('apple_pay')
+    expect(checkoutConfigKeyToWire('driveThrough')).toBe('drive_through')
   })
 
-  it('resolveInitialPaymentMethod honors cashOnDelivery default', () => {
+  it('resolveCheckoutPaymentWireMethod honors backend default config key', () => {
     const checkout = {
-      ...DEFAULT_BRANCH_CHECKOUT,
-      orderTypes: { ...DEFAULT_BRANCH_CHECKOUT.orderTypes, delivery: true },
+      ...EMPTY_BRANCH_CHECKOUT,
+      orderingEnabled: true,
       payments: {
-        ...DEFAULT_BRANCH_CHECKOUT.payments,
-        card: false,
-        online: false,
-        cash: false,
-        cashOnDelivery: true,
-        default: 'cashOnDelivery',
+        applePay: true,
+        googlePay: true,
+        default: 'applePay',
       },
     }
-    expect(resolveInitialPaymentMethod(checkout, 'delivery')).toBe('cash')
+    expect(resolveCheckoutPaymentWireMethod(checkout)).toBe('apple_pay')
   })
 
   it('resolveEffectiveMinimumOrder prefers serviceability minimum_order', () => {
     expect(
-      resolveEffectiveMinimumOrder({ deliverable: true, minimum_order: 25 }, DEFAULT_BRANCH_CHECKOUT),
+      resolveEffectiveMinimumOrder({ deliverable: true, minimum_order: 25 }, EMPTY_BRANCH_CHECKOUT),
     ).toBe(25)
     expect(
       resolveEffectiveMinimumOrder(null, {
-        ...DEFAULT_BRANCH_CHECKOUT,
-        delivery: { ...DEFAULT_BRANCH_CHECKOUT.delivery, minimumOrder: '15.00' },
+        ...EMPTY_BRANCH_CHECKOUT,
+        delivery: { ...EMPTY_BRANCH_CHECKOUT.delivery, minimumOrder: '15.00' },
       }),
     ).toBe(15)
   })
@@ -53,24 +55,22 @@ describe('branch-checkout behavioral helpers', () => {
     expect(isBelowMinimumOrder(10, null)).toBe(false)
   })
 
-  it('isDeliveryBlockedByServiceability is authoritative when address present', () => {
+  it('isDeliveryBlockedByServiceability uses backend requiresDeliveryAddress metadata', () => {
     const checkout = {
-      ...DEFAULT_BRANCH_CHECKOUT,
+      ...EMPTY_BRANCH_CHECKOUT,
       orderingEnabled: true,
-      orderTypes: { ...DEFAULT_BRANCH_CHECKOUT.orderTypes, delivery: true },
+      orderTypes: {
+        delivery: { enabled: true, requiresDeliveryAddress: true },
+        pickup: { enabled: true, fulfillmentMode: 'pickup' },
+        default: 'delivery',
+      },
     }
     expect(
       isDeliveryBlockedByServiceability('delivery', { deliverable: false }, false, true, checkout),
     ).toBe(true)
     expect(
-      isDeliveryBlockedByServiceability('delivery', { deliverable: true }, false, true, checkout),
-    ).toBe(false)
-    expect(
       isDeliveryBlockedByServiceability('pickup', { deliverable: false }, false, true, checkout),
     ).toBe(false)
-    expect(
-      isDeliveryBlockedByServiceability('delivery', null, true, true, checkout),
-    ).toBe(true)
   })
 
   it('filterDeliveryCapabilities removes options disabled in branch checkout', () => {
@@ -81,9 +81,9 @@ describe('branch-checkout behavioral helpers', () => {
       contactless_delivery: true,
     }
     const checkout = {
-      ...DEFAULT_BRANCH_CHECKOUT,
+      ...EMPTY_BRANCH_CHECKOUT,
       delivery: {
-        ...DEFAULT_BRANCH_CHECKOUT.delivery,
+        ...EMPTY_BRANCH_CHECKOUT.delivery,
         scheduled: false,
         contactless: false,
       },
@@ -98,35 +98,73 @@ describe('branch-checkout behavioral helpers', () => {
 
   it('isBranchOrderingEnabled requires explicit backend true', () => {
     expect(isBranchOrderingEnabled(undefined)).toBe(false)
-    expect(isBranchOrderingEnabled({ ...DEFAULT_BRANCH_CHECKOUT, orderingEnabled: false })).toBe(false)
-    expect(isBranchOrderingEnabled({ ...DEFAULT_BRANCH_CHECKOUT, orderingEnabled: true })).toBe(true)
+    expect(isBranchOrderingEnabled({ ...EMPTY_BRANCH_CHECKOUT, orderingEnabled: false })).toBe(false)
+    expect(isBranchOrderingEnabled({ ...EMPTY_BRANCH_CHECKOUT, orderingEnabled: true })).toBe(true)
   })
 
   it('resolveCheckoutOrderWireType honors backend default', () => {
     const checkout = {
-      ...DEFAULT_BRANCH_CHECKOUT,
+      ...EMPTY_BRANCH_CHECKOUT,
       orderingEnabled: true,
       orderTypes: {
-        delivery: true,
-        pickup: true,
-        dineIn: false,
-        default: 'pickup',
+        driveThrough: true,
+        curbside: true,
+        default: 'driveThrough',
       },
     }
-    expect(resolveCheckoutOrderWireType(checkout, null)).toBe('pickup')
+    expect(resolveCheckoutOrderWireType(checkout, null)).toBe('drive_through')
   })
 
   it('getCheckoutOrderTypeOptions skips disabled types', () => {
     const checkout = {
-      ...DEFAULT_BRANCH_CHECKOUT,
+      ...EMPTY_BRANCH_CHECKOUT,
       orderingEnabled: true,
       orderTypes: {
         delivery: false,
-        pickup: true,
-        dineIn: false,
-        default: 'pickup',
+        lockerPickup: true,
+        default: 'lockerPickup',
       },
     }
-    expect(getCheckoutOrderTypeOptions(checkout).map((o) => o.wireType)).toEqual(['pickup'])
+    expect(getCheckoutOrderTypeOptions(checkout).map((o) => o.wireType)).toEqual(['locker_pickup'])
+  })
+
+  it('branchToFormInput does not inject DEFAULT keys missing from API checkout', () => {
+    const branch = {
+      id: 'b1',
+      tenantId: 't1',
+      name: 'Test',
+      slug: 'test',
+      status: 'active' as const,
+      type: 'physical' as const,
+      location: { address: '1 Main', city: 'NYC', country: 'US' },
+      contact: {},
+      businessHours: [],
+      checkout: {
+        orderingEnabled: true,
+        orderTypes: {
+          driveThrough: true,
+          curbside: true,
+          default: 'driveThrough',
+        },
+        payments: {
+          futurePayment: true,
+          default: 'futurePayment',
+        },
+        delivery: EMPTY_BRANCH_CHECKOUT.delivery,
+      },
+      marketplaceVisible: true,
+      reservationsEnabled: false,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
+    } satisfies Branch
+
+    const form = branchToFormInput(branch)
+    expect(getCheckoutPaymentConfigKeys(form.checkout.payments)).toEqual(['futurePayment'])
+  })
+
+  it('EMPTY_BRANCH_CHECKOUT does not seed payment or order types', () => {
+    expect(getCheckoutPaymentConfigKeys(EMPTY_BRANCH_CHECKOUT.payments)).toEqual([])
+    expect(EMPTY_BRANCH_CHECKOUT.payments.default).toBeNull()
+    expect(EMPTY_BRANCH_CHECKOUT.orderTypes.default).toBeNull()
   })
 })

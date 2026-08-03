@@ -3,68 +3,46 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { Check, Clock, ChefHat, Bell, Bike, Truck, X } from 'lucide-react'
+import { Check, Clock, X } from 'lucide-react'
 import { simulateOrderUpdates } from '@/services/websocket.service'
 import { useOrderWebSocket } from '@/hooks/client'
 import { cn } from '@/utils'
-import { getTrackerStatusOrder, usesPickupFulfillment } from '@/lib/order-status'
-import type { OrderStatus, OrderType } from '@/types'
-
-const DELIVERY_STEPS: {
-  status: OrderStatus
-  labelKey: string
-  icon: React.ElementType
-  descriptionKey: string
-}[] = [
-  { status: 'pending', labelKey: 'orderPlaced', icon: Clock, descriptionKey: 'orderPlacedDesc' },
-  { status: 'accepted', labelKey: 'accepted', icon: Check, descriptionKey: 'acceptedDesc' },
-  { status: 'preparing', labelKey: 'preparing', icon: ChefHat, descriptionKey: 'preparingDesc' },
-  { status: 'ready', labelKey: 'ready', icon: Bell, descriptionKey: 'readyDesc' },
-  { status: 'delivered', labelKey: 'delivered', icon: Bike, descriptionKey: 'deliveredDesc' },
-]
-
-const PICKUP_STEPS: {
-  status: OrderStatus
-  labelKey: string
-  icon: React.ElementType
-  descriptionKey: string
-}[] = [
-  { status: 'pending', labelKey: 'orderPlaced', icon: Clock, descriptionKey: 'orderPlacedDesc' },
-  { status: 'accepted', labelKey: 'accepted', icon: Check, descriptionKey: 'acceptedDesc' },
-  { status: 'preparing', labelKey: 'preparing', icon: ChefHat, descriptionKey: 'preparingDesc' },
-  { status: 'ready', labelKey: 'ready', icon: Bell, descriptionKey: 'readyDesc' },
-  { status: 'picked_up', labelKey: 'pickedUp', icon: Truck, descriptionKey: 'pickedUpDesc' },
-]
+import { getOrderStatusTimeline } from '@/lib/order-status'
+import { humanizeWireValue } from '@/lib/humanize'
+import type { Order, OrderStatusTimelineEntry } from '@/types'
 
 interface OrderTrackerProps {
   orderId: string
-  initialStatus?: OrderStatus
-  orderType?: OrderType
+  order?: Pick<Order, 'status' | 'status_label' | 'status_timeline' | 'status_history' | 'estimated_time'>
+  initialStatus?: string
   useMockSimulation?: boolean
+}
+
+function timelineLabel(entry: OrderStatusTimelineEntry): string {
+  return entry.label ?? humanizeWireValue(entry.status)
 }
 
 export function OrderTracker({
   orderId,
+  order,
   initialStatus = 'pending',
-  orderType,
   useMockSimulation = true,
 }: OrderTrackerProps) {
   const t = useTranslations('orderTracker')
-  const [currentStatus, setCurrentStatus] = useState<OrderStatus>(initialStatus)
-  const [estimatedTime, setEstimatedTime] = useState<number | null>(null)
-  const [isCancelled, setIsCancelled] = useState(initialStatus === 'cancelled')
-
-  const orderContext = useMemo(
-    () => ({ status: currentStatus, order_type: orderType ?? 'delivery' as const }),
-    [currentStatus, orderType],
+  const timeline = useMemo(
+    () => (order ? getOrderStatusTimeline(order as Order) : []),
+    [order],
   )
-  const pickupWorkflow = usesPickupFulfillment(orderContext)
-  const statusOrder = useMemo(() => getTrackerStatusOrder(orderContext), [orderContext])
-  const steps = pickupWorkflow ? PICKUP_STEPS : DELIVERY_STEPS
-  const terminalStatuses: OrderStatus[] = pickupWorkflow ? ['picked_up'] : ['delivered']
+
+  const [currentStatus, setCurrentStatus] = useState(initialStatus)
+  const [estimatedTime, setEstimatedTime] = useState<number | null>(
+    order?.estimated_time ?? null,
+  )
+  const [isCancelled, setIsCancelled] = useState(
+    initialStatus === 'cancelled' || order?.status === 'cancelled',
+  )
 
   const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
-
   const shouldConnectWs = !isMockMode && useMockSimulation && !isCancelled
   const { status: wsStatus, estimatedTime: wsEta } = useOrderWebSocket(shouldConnectWs ? orderId : null)
 
@@ -79,20 +57,30 @@ export function OrderTracker({
   }, [isMockMode, wsEta])
 
   useEffect(() => {
-    setCurrentStatus(initialStatus)
-    setIsCancelled(initialStatus === 'cancelled')
-  }, [initialStatus])
-
-  const currentIdx = statusOrder.indexOf(currentStatus)
+    if (order?.status) {
+      setCurrentStatus(order.status)
+      setIsCancelled(order.status === 'cancelled')
+    } else {
+      setCurrentStatus(initialStatus)
+      setIsCancelled(initialStatus === 'cancelled')
+    }
+    if (order?.estimated_time != null) setEstimatedTime(order.estimated_time)
+  }, [order?.status, order?.estimated_time, initialStatus])
 
   useEffect(() => {
     if (!isMockMode || !useMockSimulation || isCancelled) return
     const cleanup = simulateOrderUpdates(orderId, (status, eta) => {
-      setCurrentStatus(status as OrderStatus)
+      setCurrentStatus(status)
       setEstimatedTime(eta)
     })
     return cleanup
   }, [orderId, isMockMode, useMockSimulation, isCancelled])
+
+  const currentIdx = timeline.findIndex(
+    (step) => step.current === true || step.status === currentStatus,
+  )
+  const resolvedIdx = currentIdx >= 0 ? currentIdx : timeline.length - 1
+  const currentEntry = timeline.find((s) => s.status === currentStatus)
 
   if (isCancelled) {
     return (
@@ -108,10 +96,28 @@ export function OrderTracker({
     )
   }
 
+  if (!timeline.length) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-sm font-medium text-[var(--fg)]">
+          {order?.status_label ?? humanizeWireValue(currentStatus)}
+        </p>
+        {estimatedTime != null && estimatedTime > 0 && (
+          <p className="text-sm text-[var(--fg-muted)] mt-2">
+            {t('minutesCount', { count: estimatedTime })}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  const terminal = timeline[timeline.length - 1]
+  const isTerminal = currentStatus === terminal.status
+
   return (
     <div className="space-y-6">
       <AnimatePresence>
-        {estimatedTime !== null && estimatedTime > 0 && !terminalStatuses.includes(currentStatus) && (
+        {estimatedTime !== null && estimatedTime > 0 && !isTerminal && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -134,18 +140,22 @@ export function OrderTracker({
         <motion.div
           className="absolute top-5 start-5 h-0.5 bg-orange-500"
           initial={{ width: '0%' }}
-          animate={{ width: currentIdx === -1 ? '0%' : `${(currentIdx / (steps.length - 1)) * 100}%` }}
+          animate={{
+            width:
+              resolvedIdx <= 0
+                ? '0%'
+                : `${(resolvedIdx / (timeline.length - 1)) * 100}%`,
+          }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
         />
 
         <div className="relative flex justify-between">
-          {steps.map((step) => {
-            const stepIdx = statusOrder.indexOf(step.status)
-            const done = stepIdx < currentIdx
-            const active = stepIdx === currentIdx
+          {timeline.map((step, stepIdx) => {
+            const done = stepIdx < resolvedIdx || step.completed === true
+            const active = stepIdx === resolvedIdx || step.current === true
 
             return (
-              <div key={step.status} className="flex flex-col items-center gap-2 relative">
+              <div key={`${step.status}-${stepIdx}`} className="flex flex-col items-center gap-2 relative">
                 <motion.div
                   className={cn(
                     'relative h-10 w-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10',
@@ -158,11 +168,7 @@ export function OrderTracker({
                   animate={active ? { scale: [1, 1.1, 1] } : {}}
                   transition={active ? { repeat: Infinity, duration: 2 } : {}}
                 >
-                  {done ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <step.icon className={cn('h-4 w-4', active && 'animate-pulse')} />
-                  )}
+                  {done ? <Check className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
                   {active && (
                     <motion.div
                       className="absolute inset-0 rounded-full border-2 border-orange-500"
@@ -172,8 +178,13 @@ export function OrderTracker({
                   )}
                 </motion.div>
                 <div className="text-center hidden sm:block">
-                  <p className={cn('text-xs font-medium', active ? 'text-orange-500' : done ? 'text-[var(--fg)]' : 'text-[var(--fg-subtle)]')}>
-                    {t(step.labelKey)}
+                  <p
+                    className={cn(
+                      'text-xs font-medium',
+                      active ? 'text-orange-500' : done ? 'text-[var(--fg)]' : 'text-[var(--fg-subtle)]',
+                    )}
+                  >
+                    {timelineLabel(step)}
                   </p>
                 </div>
               </div>
@@ -183,7 +194,7 @@ export function OrderTracker({
       </div>
 
       <AnimatePresence mode="wait">
-        {steps.find((s) => s.status === currentStatus) && (
+        {(currentEntry || timeline[resolvedIdx]) && (
           <motion.div
             key={currentStatus}
             initial={{ opacity: 0, y: 10 }}
@@ -192,15 +203,11 @@ export function OrderTracker({
             className="text-center py-4"
           >
             <div className="inline-flex items-center gap-2 bg-[var(--card-hover)] rounded-full px-4 py-2">
-              {(() => {
-                const step = steps.find((s) => s.status === currentStatus)!
-                return (
-                  <>
-                    <step.icon className="h-4 w-4 text-orange-500" />
-                    <span className="text-sm font-medium text-[var(--fg)]">{t(step.descriptionKey)}</span>
-                  </>
-                )
-              })()}
+              <Clock className="h-4 w-4 text-orange-500" />
+              <span className="text-sm font-medium text-[var(--fg)]">
+                {currentEntry?.description ??
+                  timelineLabel(currentEntry ?? timeline[resolvedIdx])}
+              </span>
             </div>
           </motion.div>
         )}

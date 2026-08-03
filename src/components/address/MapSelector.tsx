@@ -34,7 +34,10 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
 
   const hasCoords = isValidCoord(latitude, longitude)
   const mapUrl = useMemo(
-    () => (hasCoords ? buildStaticMapUrl(latitude, longitude) : null),
+    () =>
+      hasCoords && latitude != null && longitude != null
+        ? buildStaticMapUrl(latitude, longitude)
+        : null,
     [hasCoords, latitude, longitude],
   )
 
@@ -109,7 +112,7 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
               </div>
             </div>
             <div className="absolute bottom-2 start-2 end-2 rounded-lg bg-[var(--card)]/90 backdrop-blur-sm border border-[var(--border)] px-3 py-1.5 text-xs font-mono text-[var(--fg-muted)]">
-              {latitude.toFixed(5)}, {longitude.toFixed(5)}
+              {latitude!.toFixed(5)}, {longitude!.toFixed(5)}
             </div>
           </>
         ) : (

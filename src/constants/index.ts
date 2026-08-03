@@ -37,29 +37,19 @@ export const DEFAULT_TENANT: Tenant = {
   slug: 'default',
   businessTypes: ['restaurant'],
   status: 'active',
+  capabilities: {
+    menu: true,
+    ordering: true,
+    reservations: true,
+    reviews: true,
+    loyalty: false,
+    notifications: true,
+  },
   created_at: '2024-01-01T00:00:00.000Z',
 }
 
 export const STALE_TIME = 1000 * 60 * 5       // 5 minutes
 export const CACHE_TIME = 1000 * 60 * 30      // 30 minutes
-
-export const ORDER_STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending',
-  accepted: 'Accepted',
-  preparing: 'Preparing',
-  ready: 'Ready',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled',
-}
-
-export const ORDER_STATUS_COLORS: Record<string, string> = {
-  pending: 'amber',
-  accepted: 'blue',
-  preparing: 'purple',
-  ready: 'green',
-  delivered: 'emerald',
-  cancelled: 'red',
-}
 
 export const CATEGORY_ICONS: Record<string, string> = {
   pizza: '🍕',
@@ -72,8 +62,5 @@ export const CATEGORY_ICONS: Record<string, string> = {
   chicken: '🍗',
   seafood: '🦞',
 }
-
-export const TAX_RATE = 0.09
-export const SERVICE_CHARGE_RATE = 0.05
 
 export const MOCK_DELAY = 800

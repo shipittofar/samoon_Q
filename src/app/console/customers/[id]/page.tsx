@@ -28,8 +28,9 @@ import {
 import { formatCurrency, formatDate } from '@/utils'
 import type {
   AdminCustomerTier, CustomerTimelineEvent, CustomerNote,
-  CustomerTagColor, CustomerPayment, OrderType, PaymentMethod,
+  CustomerTagColor, CustomerPayment,
 } from '@/types'
+import { humanizeOrderWireType, humanizePaymentWireMethod } from '@/lib/checkout-options'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -45,8 +46,6 @@ const TIER_KEY: Record<AdminCustomerTier, string> = {
   new: 'tierNew',
 }
 
-const ORDER_TYPE_KEY: Record<OrderType, string> = { delivery: 'delivery', pickup: 'pickup', dine_in: 'dineIn' }
-const PAYMENT_METHOD_KEY: Record<PaymentMethod, string> = { card: 'card', cash: 'cash', online: 'online', wallet: 'wallet' }
 const PAYMENT_STATUS_KEY: Record<string, string> = {
   pending: 'paymentStatusPending', paid: 'paymentStatusPaid', failed: 'paymentStatusFailed', refunded: 'paymentStatusRefunded', completed: 'paymentStatusPaid',
 }
@@ -444,7 +443,7 @@ function OrdersPanel({ id }: { id: string }) {
                 <span className={`text-xs font-medium capitalize ${statusColor[order.status ?? ''] ?? 'text-[var(--fg-muted)]'}`}>
                   {order.status ? tOrder(`status.${order.status}`) : ''}
                 </span>
-                <span className="text-xs text-[var(--fg-muted)] capitalize">{order.order_type ? tCheckout(ORDER_TYPE_KEY[order.order_type] ?? order.order_type) : ''}</span>
+                <span className="text-xs text-[var(--fg-muted)]">{order.order_type ? humanizeOrderWireType(order.order_type) : ''}</span>
               </div>
               {order.items && (
                 <p className="text-xs text-[var(--fg-muted)] mt-1 truncate">
@@ -458,7 +457,7 @@ function OrdersPanel({ id }: { id: string }) {
             </div>
             <div className="text-right shrink-0">
               <p className="text-sm font-bold text-[var(--fg)]">{formatCurrency(order.total ?? 0)}</p>
-              <p className="text-xs text-[var(--fg-muted)] capitalize">{order.payment_method ? tCheckout(PAYMENT_METHOD_KEY[order.payment_method as PaymentMethod] ?? order.payment_method) : ''}</p>
+              <p className="text-xs text-[var(--fg-muted)]">{order.payment_method ? humanizePaymentWireMethod(order.payment_method) : ''}</p>
             </div>
           </div>
           <div className="mt-3 flex gap-2 flex-wrap">
@@ -1021,7 +1020,7 @@ function AnalyticsPanel({ id }: { id: string }) {
               <div key={pay.id} className="py-3 first:pt-0 last:pb-0 flex justify-between items-center text-sm">
                 <div>
                   <p className="font-medium text-[var(--fg)]">{formatCurrency(pay.amount)}</p>
-                  <p className="text-xs text-[var(--fg-muted)] capitalize">{pay.method} · {formatDate(pay.processedAt)}</p>
+                  <p className="text-xs text-[var(--fg-muted)]">{humanizePaymentWireMethod(pay.method)} · {formatDate(pay.processedAt)}</p>
                 </div>
                 <span className={`text-xs capitalize ${pay.status === 'completed' ? 'text-emerald-500' : 'text-orange-400'}`}>{t(PAYMENT_STATUS_KEY[pay.status] ?? pay.status)}</span>
               </div>

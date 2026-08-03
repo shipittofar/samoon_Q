@@ -13,8 +13,9 @@
 import { getMarketplaceMeta } from '@/types/marketplace'
 import type { TenantNavItemConfig } from '@/types/website-builder'
 import type { NavItem, Tenant } from '@/types'
+import { humanizeWireValue } from '@/lib/humanize'
 import type { BranchCapabilityInput } from './public-context'
-import { resolveOrderingEnabled, resolveReservationsEnabled } from './public-context'
+import { resolveOrderingEnabled, resolveReservationsEnabled, resolveTenantCapability } from './public-context'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,43 +41,12 @@ export interface SmartCTA {
 
 // ── Business type badge ──────────────────────────────────────────────────────
 
-const BUSINESS_TYPE_EMOJIS: Record<string, string> = {
-  restaurant:  '🍽️',
-  cafe:        '☕',
-  bar:         '🍺',
-  food_truck:  '🚚',
-  food_court:  '🏪',
-  mobile_cafe: '☕',
-  bakery:      '🥐',
-  pizzeria:    '🍕',
-  hotel:       '🏨',
-}
-
-const BUSINESS_TYPE_DISPLAY: Record<string, string> = {
-  restaurant:  'Restaurant',
-  cafe:        'Cafe',
-  bar:         'Bar',
-  food_truck:  'Food Truck',
-  food_court:  'Food Court',
-  mobile_cafe: 'Mobile Cafe',
-  bakery:      'Bakery',
-  pizzeria:    'Pizzeria',
-  hotel:       'Hotel',
-}
-
 /**
- * Returns a short emoji + label badge for the primary business type,
- * or null if the type is unknown. Never hardcodes per-tenant values.
- *
- * Example: getBusinessTypeBadge(['cafe', 'bakery']) → '☕ Cafe'
+ * Returns a humanized label for the primary business type from backend data.
  */
 export function getBusinessTypeBadge(businessTypes: string[]): string | null {
-  if (!businessTypes || businessTypes.length === 0) return null
-  const primary = businessTypes[0]
-  const emoji = BUSINESS_TYPE_EMOJIS[primary]
-  const label = BUSINESS_TYPE_DISPLAY[primary]
-  if (!emoji || !label) return null
-  return `${emoji} ${label}`
+  if (!businessTypes?.length) return null
+  return humanizeWireValue(businessTypes[0])
 }
 
 // ── Navigation builder ────────────────────────────────────────────────────────
@@ -211,11 +181,9 @@ interface SmartCTAOptions {
    */
   branchSlug: string | undefined
   /**
-   * Fully-resolved feature flag map from useTenantStore().featureFlags.
-   * Must be the resolved map, NOT tenant.settings.featureFlags (which is
-   * the raw override only and misses module defaults + capability flags).
+   * First-class capability booleans from tenant.capabilities.
    */
-  featureFlags: Record<string, boolean>
+  capabilities?: Record<string, boolean>
   /** Branch checkout/top-level flags — override tenant feature flags when set. */
   branch?: BranchCapabilityInput
   /**
@@ -241,19 +209,18 @@ interface SmartCTAOptions {
  * Single authoritative implementation — never duplicated across pages.
  */
 export function getSmartCTA(opts: SmartCTAOptions): SmartCTA | null {
-  const { tenantSlug, branchSlug, featureFlags, branch, meta } = opts
+  const { tenantSlug, branchSlug, capabilities, branch, meta } = opts
   const branchCount = meta?.branchCount ?? 1
   const primaryBranchSlug = meta?.primaryBranchSlug
 
-  // On the tenant homepage with no active branchSlug, use the primary branch
   const resolvedBranchSlug = branchSlug ?? primaryBranchSlug
   const basePath = resolvedBranchSlug
     ? `/${tenantSlug}/${resolvedBranchSlug}`
     : `/${tenantSlug}`
 
-  const hasMenu = featureFlags['menu.enabled'] !== false
-  const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch)
-  const hasReservations = resolveReservationsEnabled(featureFlags, branch)
+  const hasMenu = resolveTenantCapability('menu', capabilities)
+  const hasOrdering = resolveOrderingEnabled(capabilities, branch)
+  const hasReservations = resolveReservationsEnabled(capabilities, branch)
 
   // Multi-branch tenant homepage: navigate to the locations section first
   if (branchCount > 1 && !branchSlug) {

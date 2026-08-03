@@ -23,7 +23,6 @@ import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
 import { PUBLIC_TENANTS_QUERY_KEY, fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
-import { resolveStatusUpdate, type OrderStatusContext } from '@/lib/order-status'
 import { staffService } from '@/services/staff.service'
 import type {
   InviteStaffPayload,
@@ -70,7 +69,7 @@ import type { P7Permission, PermissionCheckOptions, Role } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
 // owner.service.ts, or staff-assignment.service.ts remain in this file.
 // Access decisions come from usePermissions()/currentTenantSession only.
-import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability, CAPABILITY_FLAG_MAP } from '@/modules/registry'
+import { getHeaderNav, getDashboardNav, getAdminNav, hasCapability } from '@/modules/registry'
 import { CACHE_TIME, STALE_TIME } from '@/constants'
 import { paymentService } from '@/services/payment.service'
 import { reviewService } from '@/services/review.service'
@@ -450,9 +449,9 @@ export function useCapability(cap: Capability): boolean {
  * Canonical usage:
  *   const loyaltyOn = useCapabilityFlag('loyalty')  // reads 'loyalty.enabled'
  */
-export function useCapabilityFlag(cap: Capability): boolean {
-  const flagKey = CAPABILITY_FLAG_MAP[cap]
-  return useTenantStore((s) => s.featureFlags[flagKey] ?? false)
+export function useCapabilityFlag(cap: string): boolean {
+  const tenant = useTenantStore((s) => s.tenant)
+  return tenant?.capabilities?.[cap] === true
 }
 
 /**
@@ -1645,16 +1644,15 @@ export function useUpdateOrderStatus() {
   const user = useAuthStore((s) => s.user)
   const tenant = useTenantStore((s) => s.tenant)
   return useMutation({
-    mutationFn: ({ id, status, order }: { id: string; status: OrderStatus; order?: OrderStatusContext }) =>
-      adminService.updateOrderStatus(id, status, order),
-    onMutate: async ({ id, status, order }) => {
-      const resolvedStatus = resolveStatusUpdate(order, status)
+    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
+      adminService.updateOrderStatus(id, status),
+    onMutate: async ({ id, status }) => {
       await qc.cancelQueries({ queryKey: ['admin-orders'] })
       const snapshots = qc.getQueriesData<PaginatedResponse<Order>>({ queryKey: ['admin-orders'] })
       qc.setQueriesData<PaginatedResponse<Order>>(
         { queryKey: ['admin-orders'] },
         (old) => old
-          ? { ...old, results: old.results.map((o) => o.id === id ? { ...o, status: resolvedStatus } : o) }
+          ? { ...old, results: old.results.map((o) => o.id === id ? { ...o, status } : o) }
           : old,
       )
       return { snapshots }

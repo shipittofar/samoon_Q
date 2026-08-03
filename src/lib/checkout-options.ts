@@ -1,24 +1,20 @@
 /**
  * Backend-driven checkout option discovery.
  *
- * Availability, defaults, and wire values are derived exclusively from
- * `branch.checkout` — never from frontend capability enums.
+ * Availability, defaults, wire values, and UI requirements are derived from
+ * `branch.checkout` — never from frontend enums, allow-lists, or name inference.
  *
- * Presentation (labels/icons) uses i18n with graceful fallbacks so new
- * backend keys (e.g. driveThrough) render without code changes.
+ * Presentation uses generic humanization so new backend keys render without code changes.
  */
 
 import type { ElementType } from 'react'
-import {
-  Package,
-  UtensilsCrossed,
-  CreditCard,
-  Banknote,
-  Smartphone,
-  Wallet,
-  ShoppingBag,
-} from 'lucide-react'
-import type { BranchCheckout } from '@/types/branch'
+import { CreditCard, ShoppingBag } from 'lucide-react'
+import { humanizeWireValue } from '@/lib/humanize'
+import type {
+  BranchCheckout,
+  BranchCheckoutOrderTypeConfig,
+  BranchCheckoutPaymentMethodConfig,
+} from '@/types/branch'
 import type { AddressCapabilities } from '@/types/address'
 
 const RESERVED_ORDER_TYPE_KEYS = new Set(['default'])
@@ -35,26 +31,65 @@ export function wireToCheckoutConfigKey(wireValue: string): string {
 }
 
 export interface CheckoutOrderTypeOption {
-  /** Key in branch.checkout.orderTypes (e.g. dineIn). */
   configKey: string
-  /** Value sent as order_type on the order API (e.g. dine_in). */
   wireType: string
   requiresDeliveryAddress: boolean
   requiresTableNumber: boolean
+  fulfillmentMode?: string
 }
 
 export interface CheckoutPaymentOption {
-  /** Key in branch.checkout.payments (e.g. cashOnDelivery). */
   configKey: string
-  /** Value sent as payment_method on the order API (e.g. cash). */
   wireMethod: string
+  requiresPaymentIntent: boolean
 }
 
-function isEnabledFlag(value: unknown): value is true {
-  return value === true
+function isOrderTypeConfigObject(value: unknown): value is BranchCheckoutOrderTypeConfig {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
-/** Discovers enabled order types from branch.checkout.orderTypes. */
+function isPaymentConfigObject(value: unknown): value is BranchCheckoutPaymentMethodConfig {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+export function isOrderTypeConfigEnabled(value: unknown): boolean {
+  if (value === true) return true
+  if (isOrderTypeConfigObject(value)) return value.enabled === true
+  return false
+}
+
+export function isPaymentConfigEnabled(value: unknown): boolean {
+  if (value === true) return true
+  if (isPaymentConfigObject(value)) return value.enabled === true
+  return false
+}
+
+function orderTypeConfigRequiresDeliveryAddress(value: unknown): boolean {
+  if (!isOrderTypeConfigObject(value)) return false
+  return value.requiresDeliveryAddress === true || value.requires_delivery_address === true
+}
+
+function orderTypeConfigRequiresTableNumber(value: unknown): boolean {
+  if (!isOrderTypeConfigObject(value)) return false
+  return value.requiresTableNumber === true || value.requires_table_number === true
+}
+
+function orderTypeConfigFulfillmentMode(value: unknown): string | undefined {
+  if (!isOrderTypeConfigObject(value)) return undefined
+  const mode = value.fulfillmentMode ?? value.fulfillment_mode
+  return typeof mode === 'string' ? mode : undefined
+}
+
+export function paymentConfigRequiresPaymentIntent(value: unknown): boolean {
+  if (!isPaymentConfigObject(value)) return false
+  if (value.requiresPaymentIntent === true || value.requires_payment_intent === true) return true
+  const flow = typeof value.flow === 'string' ? value.flow.toLowerCase() : ''
+  if (flow === 'payment_intent' || flow === 'stripe_payment_intent') return true
+  const action = typeof value.payment_action === 'string' ? value.payment_action.toLowerCase() : ''
+  if (action === 'payment_intent' || action === 'create_payment_intent') return true
+  return false
+}
+
 export function getCheckoutOrderTypeOptions(
   checkout: BranchCheckout | undefined,
 ): CheckoutOrderTypeOption[] {
@@ -62,48 +97,40 @@ export function getCheckoutOrderTypeOptions(
 
   const options: CheckoutOrderTypeOption[] = []
   for (const [configKey, value] of Object.entries(checkout.orderTypes)) {
-    if (RESERVED_ORDER_TYPE_KEYS.has(configKey) || !isEnabledFlag(value)) continue
-    const wireType = checkoutConfigKeyToWire(configKey)
+    if (RESERVED_ORDER_TYPE_KEYS.has(configKey) || !isOrderTypeConfigEnabled(value)) continue
     options.push({
       configKey,
-      wireType,
-      requiresDeliveryAddress: configKey === 'delivery',
-      requiresTableNumber: wireType === 'dine_in',
+      wireType: checkoutConfigKeyToWire(configKey),
+      requiresDeliveryAddress: orderTypeConfigRequiresDeliveryAddress(value),
+      requiresTableNumber: orderTypeConfigRequiresTableNumber(value),
+      fulfillmentMode: orderTypeConfigFulfillmentMode(value),
     })
   }
   return options
 }
 
-function resolvePaymentWireMethod(
-  configKey: string,
-  orderWireType: string | undefined,
-): string | null {
-  if (configKey === 'cashOnDelivery') {
-    return orderWireType === 'delivery' ? 'cash' : null
-  }
-  if (configKey === 'cash') return 'cash'
-  return checkoutConfigKeyToWire(configKey)
-}
-
-/** Discovers enabled payment methods from branch.checkout.payments. */
 export function getCheckoutPaymentOptions(
   checkout: BranchCheckout | undefined,
-  orderWireType?: string,
 ): CheckoutPaymentOption[] {
   if (!checkout?.orderingEnabled) return []
 
   const options: CheckoutPaymentOption[] = []
-  const seenWire = new Set<string>()
-
   for (const [configKey, value] of Object.entries(checkout.payments)) {
-    if (RESERVED_PAYMENT_KEYS.has(configKey) || !isEnabledFlag(value)) continue
-    const wireMethod = resolvePaymentWireMethod(configKey, orderWireType)
-    if (!wireMethod || seenWire.has(wireMethod)) continue
-    seenWire.add(wireMethod)
-    options.push({ configKey, wireMethod })
+    if (RESERVED_PAYMENT_KEYS.has(configKey) || !isPaymentConfigEnabled(value)) continue
+    options.push({
+      configKey,
+      wireMethod: checkoutConfigKeyToWire(configKey),
+      requiresPaymentIntent: paymentConfigRequiresPaymentIntent(value),
+    })
   }
-
   return options
+}
+
+export function findCheckoutPaymentOption(
+  checkout: BranchCheckout | undefined,
+  wireMethod: string,
+): CheckoutPaymentOption | undefined {
+  return getCheckoutPaymentOptions(checkout).find((o) => o.wireMethod === wireMethod)
 }
 
 export function findCheckoutOrderTypeOption(
@@ -124,11 +151,13 @@ export function resolveCheckoutOrderWireType(
     return paramWireType
   }
 
-  const backendDefault = checkout?.orderTypes.default
-  if (backendDefault) {
-    if (wireTypes.includes(backendDefault)) return backendDefault
-    const defaultWire = checkoutConfigKeyToWire(backendDefault)
+  const defaultKey = checkout?.orderTypes.default
+  if (defaultKey) {
+    if (wireTypes.includes(defaultKey)) return defaultKey
+    const defaultWire = checkoutConfigKeyToWire(defaultKey)
     if (wireTypes.includes(defaultWire)) return defaultWire
+    const match = available.find((o) => o.configKey === defaultKey)
+    if (match && wireTypes.includes(match.wireType)) return match.wireType
   }
 
   return wireTypes[0] ?? ''
@@ -136,29 +165,36 @@ export function resolveCheckoutOrderWireType(
 
 export function resolveCheckoutPaymentWireMethod(
   checkout: BranchCheckout | undefined,
-  orderWireType?: string,
 ): string {
-  const available = getCheckoutPaymentOptions(checkout, orderWireType)
+  const available = getCheckoutPaymentOptions(checkout)
   const wireMethods = available.map((o) => o.wireMethod)
 
   const defaultKey = checkout?.payments.default
   if (defaultKey) {
-    const fromDefault = resolvePaymentWireMethod(defaultKey, orderWireType)
-    if (fromDefault && wireMethods.includes(fromDefault)) return fromDefault
-    const defaultWire = checkoutConfigKeyToWire(defaultKey)
-    if (wireMethods.includes(defaultWire)) return defaultWire
+    const fromDefault = checkoutConfigKeyToWire(defaultKey)
+    if (wireMethods.includes(fromDefault)) return fromDefault
+    const match = available.find((o) => o.configKey === defaultKey)
+    if (match && wireMethods.includes(match.wireMethod)) return match.wireMethod
   }
 
   return wireMethods[0] ?? ''
 }
 
-/** Maps serviceability capability keys → branch.checkout.delivery keys. */
-const SERVICEABILITY_TO_DELIVERY_KEY: Partial<Record<keyof AddressCapabilities, string>> = {
-  scheduled_delivery: 'scheduled',
-  same_day: 'sameDay',
-  contactless_delivery: 'contactless',
+function capabilityKeyToDeliveryKey(
+  capKey: string,
+  delivery: Record<string, unknown>,
+): string | null {
+  const candidates = [
+    wireToCheckoutConfigKey(capKey),
+    wireToCheckoutConfigKey(capKey.replace(/_delivery$/, '')),
+  ]
+  for (const key of candidates) {
+    if (key in delivery) return key
+  }
+  return null
 }
 
+/** Filters serviceability capabilities using branch.checkout.delivery flags. */
 export function filterDeliveryCapabilities(
   capabilities: AddressCapabilities | null | undefined,
   checkout: BranchCheckout | undefined,
@@ -168,140 +204,77 @@ export function filterDeliveryCapabilities(
   const delivery = checkout?.delivery
   if (!delivery) return capabilities
 
+  const deliveryRecord = delivery as Record<string, unknown>
   const result = { ...capabilities }
-  for (const key of Object.keys(capabilities) as (keyof AddressCapabilities)[]) {
-    const deliveryKey = SERVICEABILITY_TO_DELIVERY_KEY[key]
+  for (const capKey of Object.keys(capabilities) as (keyof AddressCapabilities)[]) {
+    const deliveryKey = capabilityKeyToDeliveryKey(capKey, deliveryRecord)
     if (!deliveryKey) continue
     if (delivery[deliveryKey] !== true) {
-      result[key] = false
+      result[capKey] = false
     }
   }
   return result
 }
 
-// ── Presentation (labels/icons only — never used for availability) ─────────
-
-const ORDER_TYPE_ICONS: Record<string, ElementType> = {
-  delivery: Package,
-  pickup: UtensilsCrossed,
-  dine_in: UtensilsCrossed,
+export function humanizeCheckoutConfigKey(key: string): string {
+  return humanizeWireValue(key)
 }
 
-const PAYMENT_ICONS: Record<string, ElementType> = {
-  card: CreditCard,
-  cash: Banknote,
-  online: Smartphone,
-  wallet: Wallet,
+export function humanizeOrderWireType(wireType: string): string {
+  if (!wireType) return ''
+  return humanizeWireValue(wireToCheckoutConfigKey(wireType))
 }
 
-function humanizeWireValue(value: string): string {
-  return value
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
+export function humanizePaymentWireMethod(wireMethod: string): string {
+  if (!wireMethod) return ''
+  return humanizeWireValue(wireToCheckoutConfigKey(wireMethod))
 }
 
-function humanizeConfigKey(key: string): string {
-  return key
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, (c) => c.toUpperCase())
-    .trim()
+export function getCheckoutOrderTypeIcon(): ElementType {
+  return ShoppingBag
 }
 
-type TranslateFn = (key: string) => string
-
-/** Maps wire types to existing checkout i18n keys (presentation only). */
-const LEGACY_ORDER_TYPE_I18N: Record<string, { label: string; desc?: string }> = {
-  delivery: { label: 'delivery', desc: 'deliveryDesc' },
-  pickup: { label: 'pickup', desc: 'pickupDesc' },
-  dine_in: { label: 'dineIn', desc: 'dineInDesc' },
+export function getCheckoutPaymentIcon(): ElementType {
+  return CreditCard
 }
 
-const LEGACY_PAYMENT_I18N: Record<string, { label: string; desc?: string }> = {
-  card: { label: 'card', desc: 'cardDesc' },
-  cash: { label: 'cash', desc: 'cashDesc' },
-  online: { label: 'online', desc: 'onlineDesc' },
-  wallet: { label: 'wallet', desc: 'walletDesc' },
+export function getCheckoutOrderTypeConfigKeyLabel(configKey: string): string {
+  return humanizeCheckoutConfigKey(configKey)
 }
 
-/** branch.checkout.payments config keys → checkout i18n label keys. */
-const PAYMENT_CONFIG_KEY_I18N: Record<string, string> = {
-  cash: 'cash',
-  cashOnDelivery: 'cash',
-  card: 'card',
-  online: 'online',
-  wallet: 'wallet',
+export function getCheckoutPaymentConfigKeyLabel(configKey: string): string {
+  return humanizeCheckoutConfigKey(configKey)
 }
 
-/** branch.checkout.orderTypes config keys → console i18n enabled-toggle keys. */
-const ORDER_TYPE_CONFIG_CONSOLE_ENABLED: Record<string, string> = {
-  delivery: 'deliveryEnabledLabel',
-  pickup: 'pickupEnabledLabel',
-  dineIn: 'dineInEnabledLabel',
+export function getCheckoutOrderTypeConfigKeys(
+  orderTypes: Record<string, unknown> | undefined,
+): string[] {
+  if (!orderTypes) return []
+  return Object.keys(orderTypes).filter((key) => !RESERVED_ORDER_TYPE_KEYS.has(key))
 }
 
-/** branch.checkout.delivery flags → address.capabilities i18n keys. */
-const DELIVERY_CONFIG_CAPABILITY_KEY: Record<string, string> = {
-  scheduled: 'scheduled_delivery',
-  sameDay: 'same_day',
-  contactless: 'contactless_delivery',
+export function getCheckoutPaymentConfigKeys(
+  payments: Record<string, unknown> | undefined,
+): string[] {
+  if (!payments) return []
+  return Object.keys(payments).filter((key) => !RESERVED_PAYMENT_KEYS.has(key))
 }
 
-export function getCheckoutOrderTypeLabel(wireType: string, t: TranslateFn): string {
-  const legacy = LEGACY_ORDER_TYPE_I18N[wireType]
-  if (legacy) return t(legacy.label)
-  return humanizeWireValue(wireType)
+export function getCheckoutDeliveryConfigKeys(
+  delivery: Record<string, unknown> | undefined,
+): string[] {
+  if (!delivery) return []
+  return Object.keys(delivery).filter((key) => key !== 'radius' && key !== 'minimumOrder')
 }
 
-export function getCheckoutOrderTypeDesc(wireType: string, t: TranslateFn): string {
-  const legacy = LEGACY_ORDER_TYPE_I18N[wireType]
-  if (legacy?.desc) return t(legacy.desc)
+export function getCheckoutDeliveryOptionLabel(configKey: string): string {
+  return humanizeCheckoutConfigKey(configKey)
+}
+
+export function getCheckoutOrderTypeLabel(wireType: string): string {
+  return humanizeOrderWireType(wireType)
+}
+
+export function getCheckoutOrderTypeDesc(_wireType: string): string {
   return ''
-}
-
-export function getCheckoutOrderTypeIcon(wireType: string): ElementType {
-  return ORDER_TYPE_ICONS[wireType] ?? ShoppingBag
-}
-
-export function getCheckoutPaymentLabel(wireMethod: string, t: TranslateFn): string {
-  const legacy = LEGACY_PAYMENT_I18N[wireMethod]
-  if (legacy) return t(legacy.label)
-  return humanizeWireValue(wireMethod)
-}
-
-export function getCheckoutPaymentDesc(wireMethod: string, t: TranslateFn): string {
-  const legacy = LEGACY_PAYMENT_I18N[wireMethod]
-  if (legacy?.desc) return t(legacy.desc)
-  return ''
-}
-
-export function getCheckoutPaymentIcon(wireMethod: string): ElementType {
-  return PAYMENT_ICONS[wireMethod] ?? CreditCard
-}
-
-/** Admin form: label for a branch.checkout.payments config key (reuses checkout namespace). */
-export function getCheckoutPaymentConfigKeyLabel(configKey: string, tCheckout: TranslateFn): string {
-  const checkoutKey = PAYMENT_CONFIG_KEY_I18N[configKey]
-  if (checkoutKey) return tCheckout(checkoutKey)
-  return humanizeConfigKey(configKey)
-}
-
-/** Admin form: enabled-toggle label for a branch.checkout.orderTypes config key. */
-export function getCheckoutOrderTypeConfigKeyEnabledLabel(
-  configKey: string,
-  tConsole: TranslateFn,
-): string {
-  const consoleKey = ORDER_TYPE_CONFIG_CONSOLE_ENABLED[configKey]
-  if (consoleKey) return tConsole(consoleKey)
-  return `${humanizeConfigKey(configKey)} enabled`
-}
-
-/** Admin form: label for a branch.checkout.delivery capability flag (reuses address.capabilities). */
-export function getCheckoutDeliveryOptionLabel(
-  configKey: string,
-  tAddressCapabilities: TranslateFn,
-): string {
-  const capabilityKey = DELIVERY_CONFIG_CAPABILITY_KEY[configKey]
-  if (capabilityKey) return tAddressCapabilities(capabilityKey)
-  return humanizeConfigKey(configKey)
 }

@@ -42,7 +42,7 @@ export function Header() {
   const t = useTranslations('header')
   const pathname = usePathname()
   const { isAuthenticated, user } = useAuthStore()
-  const { getItemCount, setOpen: setCartOpen, getTotal } = useCartStore()
+  const { getItemCount, setOpen: setCartOpen, getSubtotal } = useCartStore()
   const { unreadCount } = useNotificationStore()
   const { locale } = useLangStore()
   const setLocale = useSetLocale()

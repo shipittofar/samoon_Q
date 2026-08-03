@@ -34,7 +34,7 @@ import type { Branch as AdminBranch, BranchResolutionState } from '@/types/branc
 import type { Role, Permission, CurrentTenantSession, BranchAccess } from '@/types/rbac'
 import type { TenantRoleAssignment, UserPermissionOverride, CustomRoleTemplate, RbacAuditEvent } from '@/types/rbac'
 import { resolveBranchAccess } from '@/services/permission.service'
-import { BRANCH_KEY, CART_KEY, DINE_IN_KEY, LANG_KEY, TAX_RATE, SERVICE_CHARGE_RATE, TENANT_KEY, THEME_KEY } from '@/constants'
+import { BRANCH_KEY, CART_KEY, DINE_IN_KEY, LANG_KEY, TENANT_KEY, THEME_KEY } from '@/constants'
 import {
   tenantService,
   TenantNotFoundError,
@@ -99,10 +99,8 @@ interface CartState {
   clearCart: () => void
   setDiscount: (code: string, amount: number) => void
   setOpen: (v: boolean) => void
+  /** Sum of cart line totals — prices sourced from menu API, not tax/fee invention. */
   getSubtotal: () => number
-  getTax: () => number
-  getServiceCharge: () => number
-  getTotal: () => number
   getItemCount: () => number
   /** Re-normalizes persisted/API-shaped lines into the canonical cart model. */
   reconcileItems: () => void
@@ -117,7 +115,10 @@ export const useCartStore = create<CartState>()(
       isOpen: false,
 
       addItem: (menuItem, quantity = 1, extras = [], notes) => {
-        const normalizedMenuItem = buildMenuItemStub(menuItem, menuItem.branch_id)
+        const normalizedMenuItem = buildMenuItemStub(
+          menuItem as unknown as Record<string, unknown>,
+          menuItem.branch_id,
+        )
 
         set((state) => {
           // Branch isolation: a cart can only ever hold one branch's items.
@@ -180,12 +181,6 @@ export const useCartStore = create<CartState>()(
       setOpen: (isOpen) => set({ isOpen }),
 
       getSubtotal: () => get().items.reduce((sum, i) => sum + i.total_price, 0),
-      getTax: () => get().getSubtotal() * TAX_RATE,
-      getServiceCharge: () => get().getSubtotal() * SERVICE_CHARGE_RATE,
-      getTotal: () => {
-        const sub = get().getSubtotal()
-        return sub - get().discountAmount + get().getTax() + get().getServiceCharge()
-      },
       getItemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
 
       reconcileItems: () =>

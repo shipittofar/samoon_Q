@@ -9,6 +9,7 @@
 
 import type { Branch, BranchCheckout, BranchBusinessHours } from '@/types/branch'
 import { resolveBranchHoursStatus } from '@/lib/branch-hours'
+import { humanizeWireValue } from '@/lib/humanize'
 
 /** Public-facing branch summary shown on the tenant homepage. */
 export interface PublicBranchInfo {
@@ -105,17 +106,6 @@ export interface MarketplaceMeta {
   }
   /** Hero / banner image URL (used on the full-page tenant hero; falls back to coverImage). */
   heroImage?: string
-}
-
-export const BUSINESS_TYPE_LABELS: Record<string, string> = {
-  restaurant:  'Restaurant',
-  cafe:        'Café',
-  bar:         'Bar',
-  food_court:  'Food Court',
-  food_truck:  'Food Truck',
-  mobile_cafe: 'Mobile Café',
-  hotel:       'Hotel',
-  other:       'Other',
 }
 
 export const PRICE_LEVEL_LABELS: Record<number, string> = {
@@ -237,10 +227,7 @@ export function matchesSearch(
     (meta.cuisines ?? []).some((c) => normalize(c).includes(q)) ||
     (meta.tags ?? []).some((t) => normalize(t).includes(q)) ||
     (meta.amenities ?? []).some((a) => normalize(a).includes(q)) ||
-    businessTypes.some((bt) => {
-      const label = BUSINESS_TYPE_LABELS[bt]
-      return label ? normalize(label).includes(q) : false
-    }) ||
+    businessTypes.some((bt) => normalize(humanizeWireValue(bt)).includes(q)) ||
     (meta.branches ?? []).some((b) => normalize(b.name).includes(q))
   )
 }

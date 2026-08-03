@@ -23,7 +23,6 @@ import { orderService } from '@/services/order.service'
 import { StripePaymentForm } from '@/components/checkout/StripePaymentForm'
 import { AddressPicker, DeliveryInfoCard, type AddressPickerValue } from '@/components/address'
 import toast from 'react-hot-toast'
-import type { PaymentMethod } from '@/types'
 import type { CheckServiceabilityPayload } from '@/types/address'
 import {
   getCheckoutOrderTypeOptions,
@@ -31,11 +30,11 @@ import {
   resolveCheckoutOrderWireType,
   resolveCheckoutPaymentWireMethod,
   findCheckoutOrderTypeOption,
+  findCheckoutPaymentOption,
   getCheckoutOrderTypeLabel,
   getCheckoutOrderTypeDesc,
   getCheckoutOrderTypeIcon,
-  getCheckoutPaymentLabel,
-  getCheckoutPaymentDesc,
+  getCheckoutPaymentConfigKeyLabel,
   getCheckoutPaymentIcon,
   resolveEffectiveMinimumOrder,
   resolveBranchCurrencyCode,
@@ -73,7 +72,7 @@ function CheckoutContent() {
   const paramOrderType = searchParams.get('orderType')
   const paramTable = searchParams.get('table') ?? ''
 
-  const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart } = useCartStore()
+  const { items, getSubtotal, discountAmount, discountCode, clearCart } = useCartStore()
   const { activeBranch } = useBranchStore()
   const checkoutConfig = activeBranch?.checkout
 
@@ -81,9 +80,9 @@ function CheckoutContent() {
     () =>
       getCheckoutOrderTypeOptions(checkoutConfig).map((opt) => ({
         ...opt,
-        label: getCheckoutOrderTypeLabel(opt.wireType, t),
-        desc: getCheckoutOrderTypeDesc(opt.wireType, t),
-        icon: getCheckoutOrderTypeIcon(opt.wireType),
+        label: getCheckoutOrderTypeLabel(opt.wireType),
+        desc: getCheckoutOrderTypeDesc(opt.wireType),
+        icon: getCheckoutOrderTypeIcon(),
       })),
     [checkoutConfig, t],
   )
@@ -94,8 +93,8 @@ function CheckoutContent() {
   )
 
   const initialPaymentMethod = useMemo(
-    () => resolveCheckoutPaymentWireMethod(checkoutConfig, initialOrderType),
-    [checkoutConfig, initialOrderType],
+    () => resolveCheckoutPaymentWireMethod(checkoutConfig),
+    [checkoutConfig],
   )
   const { user } = useAuthStore()
   const { mutate: createOrder, isPending } = useCreateOrder()
@@ -113,13 +112,17 @@ function CheckoutContent() {
 
   const paymentMethodOptions = useMemo(
     () =>
-      getCheckoutPaymentOptions(checkoutConfig, orderType).map((opt) => ({
+      getCheckoutPaymentOptions(checkoutConfig).map((opt) => ({
         ...opt,
-        label: getCheckoutPaymentLabel(opt.wireMethod, t),
-        desc: getCheckoutPaymentDesc(opt.wireMethod, t),
-        icon: getCheckoutPaymentIcon(opt.wireMethod),
+        label: getCheckoutPaymentConfigKeyLabel(opt.configKey),
+        icon: getCheckoutPaymentIcon(),
       })),
-    [checkoutConfig, orderType, t],
+    [checkoutConfig],
+  )
+
+  const selectedPaymentOption = useMemo(
+    () => findCheckoutPaymentOption(checkoutConfig, paymentMethod),
+    [checkoutConfig, paymentMethod],
   )
 
   const selectedOrderOption = useMemo(
@@ -171,9 +174,9 @@ function CheckoutContent() {
       const wires = paymentMethodOptions.map((m) => m.wireMethod)
       return wires.includes(current)
         ? current
-        : resolveCheckoutPaymentWireMethod(checkoutConfig, orderType)
+        : resolveCheckoutPaymentWireMethod(checkoutConfig)
     })
-  }, [paymentMethodOptions, checkoutConfig, orderType])
+  }, [paymentMethodOptions, checkoutConfig])
 
   const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -188,9 +191,8 @@ function CheckoutContent() {
   })
 
   const subtotal = getSubtotal()
-  const tax = getTax()
-  const serviceCharge = getServiceCharge()
-  const total = getTotal()
+  // TODO: fetch cart quote from ENDPOINTS.ORDERS.QUOTE — frontend must not invent tax/fees/grand_total
+  const displayAmount = subtotal - discountAmount
 
   const branchCurrency = resolveBranchCurrencyCode(activeBranch?.currency)
   const paymentCurrency = resolvePaymentCurrencyCode(activeBranch?.currency)
@@ -307,7 +309,7 @@ function CheckoutContent() {
       branch_id: activeBranch.id,
       items: orderService.fromCartItems(items),
       order_type: orderType,
-      payment_method: paymentMethod as PaymentMethod,
+      payment_method: paymentMethod,
       notes: data.notes,
       table_number: data.table_number ? parseInt(data.table_number) : undefined,
       ...(selectedOrderOption?.requiresDeliveryAddress && addressPicker.mode === 'saved' && addressPicker.addressId
@@ -372,12 +374,12 @@ function CheckoutContent() {
       else if (selectedOrderOption?.requiresDeliveryAddress && !hasDeliveryAddress) toast.error(t('deliveryAddress'))
       return
     }
-    if (paymentMethod === 'card') {
+    if (selectedPaymentOption?.requiresPaymentIntent) {
       setPendingFormData(data)
       setPaymentError(null)
       try {
         const intent = await createPaymentIntent({
-          amount: total,
+          amount: displayAmount,
           currency: paymentCurrency,
           order_description: `Order for ${data.first_name} ${data.last_name}`,
           branch_id: activeBranch.id,
@@ -402,7 +404,7 @@ function CheckoutContent() {
     toast.error(message)
   }
 
-  const showStripeForm = paymentMethod === 'card' && clientSecret !== null
+  const showStripeForm = selectedPaymentOption?.requiresPaymentIntent && clientSecret !== null
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -418,7 +420,7 @@ function CheckoutContent() {
             </Link>
             <div>
               <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('title')}</h1>
-              <p className="text-sm text-[var(--fg-muted)]">{t('itemsCountTotal', { count: items.length, total: formatCurrency(total, branchCurrency) })}</p>
+              <p className="text-sm text-[var(--fg-muted)]">{t('itemsCountTotal', { count: items.length, total: formatCurrency(displayAmount, branchCurrency) })}</p>
             </div>
           </div>
 
@@ -547,7 +549,7 @@ function CheckoutContent() {
                         <div className="space-y-3">
                           {paymentMethodOptions.map((method) => (
                             <button
-                              key={method.wireMethod}
+                              key={method.configKey}
                               type="button"
                               onClick={() => {
                                 setPaymentMethod(method.wireMethod)
@@ -566,7 +568,6 @@ function CheckoutContent() {
                               </div>
                               <div className="flex-1">
                                 <p className={cn('text-sm font-medium', paymentMethod === method.wireMethod ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{method.label}</p>
-                                {method.desc ? <p className="text-xs text-[var(--fg-muted)]">{method.desc}</p> : null}
                               </div>
                               <div className={cn('h-4 w-4 rounded-full border-2 transition-all', paymentMethod === method.wireMethod ? 'border-orange-500 bg-orange-500' : 'border-[var(--border-strong)]')}>
                                 {paymentMethod === method.wireMethod && <div className="h-full w-full rounded-full bg-white scale-50" />}
@@ -598,7 +599,7 @@ function CheckoutContent() {
                         </div>
                         <StripePaymentForm
                           clientSecret={clientSecret}
-                          total={total}
+                          total={displayAmount}
                           onSuccess={handlePaymentSuccess}
                           onError={handlePaymentError}
                         />
@@ -625,9 +626,9 @@ function CheckoutContent() {
                             disabled={!canPlaceOrder}
                             leftIcon={<Lock className="h-4 w-4" />}
                           >
-                            {paymentMethod === 'card'
-                              ? isCreatingIntent ? t('preparingPayment') : t('payWithCard', { total: formatCurrency(total, branchCurrency) })
-                              : isPending ? t('placingOrder') : t('placeOrderWithTotal', { total: formatCurrency(total, branchCurrency) })}
+                            {selectedPaymentOption?.requiresPaymentIntent
+                              ? isCreatingIntent ? t('preparingPayment') : t('payWithCard', { total: formatCurrency(displayAmount, branchCurrency) })
+                              : isPending ? t('placingOrder') : t('placeOrderWithTotal', { total: formatCurrency(displayAmount, branchCurrency) })}
                           </Button>
                         </div>
                       </form>
@@ -668,11 +669,10 @@ function CheckoutContent() {
                     </p>
                   )}
                   {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>{tCart('discount')}</span><span>−{formatCurrency(discountAmount, branchCurrency)}</span></div>}
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('tax')}</span><span>{formatCurrency(tax, branchCurrency)}</span></div>
-                  <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('serviceCharge')}</span><span>{formatCurrency(serviceCharge, branchCurrency)}</span></div>
+                  {/* TODO: render quote.lines from ENDPOINTS.ORDERS.QUOTE when backend ships contract */}
                   <Divider />
                   <div className="flex justify-between font-bold text-[var(--fg)] text-base">
-                    <span>{tCart('total')}</span><span>{formatCurrency(total, branchCurrency)}</span>
+                    <span>{tCart('total')}</span><span>{formatCurrency(displayAmount, branchCurrency)}</span>
                   </div>
                 </div>
 

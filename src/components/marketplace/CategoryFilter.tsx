@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
-import { BUSINESS_TYPE_LABELS } from '@/types/marketplace'
+import { humanizeWireValue } from '@/lib/humanize'
 
 const ICONS: Record<string, string> = {
   restaurant:  '🍽️',
@@ -72,7 +72,7 @@ export function CategoryFilter({
               )}
             >
               <span aria-hidden="true">{ICONS[cat] ?? '🍴'}</span>
-              {BUSINESS_TYPE_LABELS[cat] ? t(`businessTypes.${cat}`) : cat}
+              {humanizeWireValue(cat)}
               {/* H6: show per-category count */}
               {counts && counts[cat] != null && (
                 <span className="text-xs opacity-60">({counts[cat]})</span>

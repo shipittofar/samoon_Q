@@ -236,6 +236,8 @@ const VALID_BUSINESS_TYPES = new Set<string>([
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
 ])
 
+// Used only for provisioning template lookup — not runtime validation of wire values.
+
 // ── Service ───────────────────────────────────────────────────────────────────
 
 export const tenantProvisioningService = {
@@ -335,12 +337,11 @@ export const tenantProvisioningService = {
     // }
 
     // Business type
-    if (!VALID_BUSINESS_TYPES.has(req.businessType)) {
-      errors.push(`invalid businessType "${req.businessType}"`)
+    if (!req.businessType?.trim()) {
+      errors.push('businessType is required')
     }
 
-    // Missing required capability check — required flags must not be overridden to false
-    if (req.capabilityOverrides && VALID_BUSINESS_TYPES.has(req.businessType)) {
+    if (req.capabilityOverrides && req.businessType) {
       const preset = CAPABILITY_PRESETS[req.businessType as ProvisionableBusinessType]
       for (const reqFlag of preset.required) {
         if (req.capabilityOverrides[reqFlag] === false) {

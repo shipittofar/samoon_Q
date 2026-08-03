@@ -75,7 +75,7 @@ export function normalizeOrderItems(raw: unknown): OrderItem[] {
 export function normalizeOrder(raw: unknown): Order {
   if (!isRecord(raw)) return raw as Order
   return {
-    ...(raw as Order),
+    ...(raw as unknown as Order),
     items: normalizeOrderItems(raw.items),
   }
 }

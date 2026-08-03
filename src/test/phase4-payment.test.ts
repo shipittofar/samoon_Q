@@ -205,8 +205,9 @@ describe('checkout/page.tsx — source structure', () => {
     expect(src()).toContain('StripePaymentForm')
   })
 
-  it('calls createPaymentIntent when paymentMethod is card', () => {
+  it('calls createPaymentIntent when backend marks method requires payment intent', () => {
     expect(src()).toContain('createPaymentIntent')
+    expect(src()).toContain('requiresPaymentIntent')
   })
 
   it('has finaliseOrder function that handles non-card methods', () => {
@@ -233,12 +234,12 @@ describe('checkout/page.tsx — source structure', () => {
     expect(src()).toContain('onError={handlePaymentError}')
   })
 
-  it('still supports cash payment method via branch checkout config', () => {
+  it('discovers payment methods from branch checkout config', () => {
     expect(src()).toContain('getCheckoutPaymentOptions')
-    expect(src()).toContain('getCheckoutPaymentLabel')
+    expect(src()).toContain('getCheckoutPaymentConfigKeyLabel')
   })
 
-  it('still supports wallet payment method via branch checkout config', () => {
+  it('uses generic payment icon from checkout config', () => {
     expect(src()).toContain('getCheckoutPaymentIcon')
   })
 

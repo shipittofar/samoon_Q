@@ -6,7 +6,7 @@ export type BranchStatus = 'active' | 'inactive' | 'maintenance'
 
 export type BranchType = 'physical' | 'mobile'
 
-export type BranchOrderTypeDefault = 'delivery' | 'pickup' | 'dine_in' | null
+export type BranchOrderTypeDefault = string | null
 
 /**
  * Phase 3 — Branch Resolution state machine (useBranchStore.branchState).
@@ -37,32 +37,60 @@ export interface BranchContact {
 
 /** Checkout configuration — mirrors backend `branch.checkout` nested serializer. */
 export interface BranchCheckoutOrderTypes {
-  delivery: boolean
-  pickup: boolean
-  dineIn: boolean
   default: string | null
-  /** Additional order types returned by backend (e.g. driveThrough). */
-  [key: string]: boolean | string | null | undefined
+  /** Order type flags or metadata objects returned by backend. */
+  [key: string]: BranchCheckoutOrderTypeValue
+}
+
+export type BranchCheckoutOrderTypeValue =
+  | boolean
+  | BranchCheckoutOrderTypeConfig
+  | string
+  | null
+  | undefined
+
+/** Optional per-order-type checkout metadata from backend. */
+export interface BranchCheckoutOrderTypeConfig {
+  enabled?: boolean
+  requiresDeliveryAddress?: boolean
+  requires_delivery_address?: boolean
+  requiresTableNumber?: boolean
+  requires_table_number?: boolean
+  fulfillmentMode?: string
+  fulfillment_mode?: string
+  [key: string]: unknown
 }
 
 export interface BranchCheckoutPayments {
-  cash: boolean
-  cashOnDelivery: boolean
-  card: boolean
-  online: boolean
-  wallet: boolean
   default: string | null
-  /** Additional payment methods returned by backend. */
-  [key: string]: boolean | string | null | undefined
+  /** Payment method flags or metadata objects returned by backend. */
+  [key: string]: BranchCheckoutPaymentValue
+}
+
+/** Backend payment entry — boolean enabled flag or metadata object. */
+export type BranchCheckoutPaymentValue =
+  | boolean
+  | BranchCheckoutPaymentMethodConfig
+  | string
+  | null
+  | undefined
+
+/** Optional per-method checkout metadata from backend (processor flow, etc.). */
+export interface BranchCheckoutPaymentMethodConfig {
+  enabled?: boolean
+  requiresPaymentIntent?: boolean
+  requires_payment_intent?: boolean
+  flow?: string
+  processor?: string
+  payment_action?: string
+  integration?: string
+  [key: string]: unknown
 }
 
 export interface BranchCheckoutDelivery {
-  radius: number | null
-  minimumOrder: string | null
-  sameDay: boolean
-  scheduled: boolean
-  contactless: boolean
-  /** Additional delivery flags returned by backend. */
+  radius?: number | null
+  minimumOrder?: string | null
+  /** Delivery capability flags returned by backend. */
   [key: string]: boolean | string | number | null | undefined
 }
 

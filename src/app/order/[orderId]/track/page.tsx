@@ -10,8 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { useOrder } from '@/hooks'
-import { getOrderStatusBadgeVariant } from '@/lib/order-status'
-import type { OrderStatus } from '@/types'
+import { getOrderStatusLabel } from '@/lib/order-status'
 
 export default function OrderTrackPage({ params }: { params: Promise<{ orderId: string }> }) {
   const t = useTranslations('orderDetail')
@@ -60,8 +59,8 @@ export default function OrderTrackPage({ params }: { params: Promise<{ orderId: 
                 {t('trackingNumber', { number: order.order_number })}
               </h1>
             </div>
-            <Badge variant={getOrderStatusBadgeVariant(order.status as OrderStatus)} className="capitalize shrink-0">
-              {tOrder(`status.${order.status}`)}
+            <Badge variant="secondary" className="capitalize shrink-0">
+              {getOrderStatusLabel(order)}
             </Badge>
           </div>
 
@@ -78,9 +77,9 @@ export default function OrderTrackPage({ params }: { params: Promise<{ orderId: 
             <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
               <OrderTracker
                 orderId={order.id}
+                order={order}
                 initialStatus={order.status}
-                orderType={order.order_type}
-                useMockSimulation={order.status !== 'delivered' && order.status !== 'picked_up'}
+                useMockSimulation={!order.status_timeline?.length}
               />
             </div>
           )}

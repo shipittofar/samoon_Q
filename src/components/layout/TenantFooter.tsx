@@ -16,7 +16,7 @@ interface TenantFooterProps {
 
 export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps) {
   const t = useTranslations('tenantFooter')
-  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const capabilities = useTenantStore((s) => s.tenant?.capabilities)
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const tenantSettings = useTenantStore((s) => s.tenant?.settings)
   const { data: publicBranches = [] } = usePublicBranches(tenantId, tenantSettings)
@@ -24,7 +24,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
     publicBranches.find((b) => b.slug === meta.primaryBranchSlug) ?? publicBranches[0]
   const quickLinks = buildFooterLinks({
     tenantSlug,
-    featureFlags,
+    capabilities,
     meta,
     branch: primaryBranch
       ? {

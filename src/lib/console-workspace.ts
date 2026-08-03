@@ -1,6 +1,6 @@
 import type { MembershipBranch, TenantMembership } from '@/types/rbac'
 import type { Branch } from '@/types/branch'
-import { DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
+import { EMPTY_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 
 /**
  * Resolves the Console default tenant — ONLY from activeMembership.tenantId.
@@ -33,7 +33,7 @@ export function membershipBranchToBranch(mb: MembershipBranch, tenantId: string)
     location: { address: '', city: '', country: '' },
     contact: {},
     businessHours: [],
-    checkout: { ...DEFAULT_BRANCH_CHECKOUT },
+    checkout: { ...EMPTY_BRANCH_CHECKOUT },
     marketplaceVisible: true,
     reservationsEnabled: false,
     isDefault: mb.isDefault,

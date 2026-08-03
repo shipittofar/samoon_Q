@@ -12,7 +12,9 @@ import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/utils'
 import { useAdminReservations, useConfirmReservation, useCancelReservation, useBranches, useAdminBranches, useBulkConfirmReservations, useBulkCancelReservations } from '@/hooks'
 import { useTenantStore } from '@/stores'
-import type { AdminReservationFilters, ReservationStatus } from '@/types'
+import { getReservationStatusLabel } from '@/lib/order-status'
+import { humanizeWireValue } from '@/lib/humanize'
+import type { AdminReservationFilters } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -20,19 +22,11 @@ import { BulkActionBar } from '@/components/admin/BulkActionBar'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 
 
-const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary'> = {
-  confirmed: 'success', pending: 'warning', cancelled: 'danger', completed: 'secondary',
-}
-
-const STATUS_KEY: Record<string, string> = {
-  confirmed: 'statusConfirmed', pending: 'statusPending', cancelled: 'statusCancelled', completed: 'statusCompleted',
-}
-
 export default function AdminReservationsPage() {
   const t = useTranslations('console')
   const tCommon = useTranslations('common')
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<ReservationStatus | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [branchFilter, setBranchFilter] = useState<string>('all')
   const [currentDate, setCurrentDate] = useState(new Date())
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
@@ -71,12 +65,18 @@ export default function AdminReservationsPage() {
 
   const selectedArr = Array.from(selectedIds)
 
-  const counts = useMemo(() => ({
-    all: data?.count ?? 0,
-    pending: reservations.filter((r) => r.status === 'pending').length,
-    confirmed: reservations.filter((r) => r.status === 'confirmed').length,
-    cancelled: reservations.filter((r) => r.status === 'cancelled').length,
-  }), [data, reservations])
+  const statusCounts = useMemo(() => {
+    const map: Record<string, number> = { all: data?.count ?? reservations.length }
+    for (const r of reservations) {
+      map[r.status] = (map[r.status] ?? 0) + 1
+    }
+    return map
+  }, [data, reservations])
+
+  const discoveredStatuses = useMemo(
+    () => Object.keys(statusCounts).filter((k) => k !== 'all').sort(),
+    [statusCounts],
+  )
 
   const getBranchName = (branchId: string) =>
     (branches ?? []).find((b) => b.id === branchId)?.name ?? '—'
@@ -118,15 +118,12 @@ export default function AdminReservationsPage() {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            {[
-              { label: t('totalLabel'),       value: counts.all,       color: 'text-[var(--fg)]',      bg: 'bg-[var(--card-hover)]' },
-              { label: t('statusPending'),   value: counts.pending,   color: 'text-amber-600',         bg: 'bg-amber-50 dark:bg-amber-950/20' },
-              { label: t('statusConfirmed'), value: counts.confirmed, color: 'text-emerald-600',        bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
-              { label: t('statusCancelled'), value: counts.cancelled, color: 'text-red-500',            bg: 'bg-red-50 dark:bg-red-950/20' },
-            ].map(({ label, value, color, bg }) => (
-              <div key={label} className={`${bg} rounded-xl p-4 border border-[var(--border)]`}>
-                <p className={`text-2xl font-bold ${color}`}>{value}</p>
-                <p className="text-sm text-[var(--fg-muted)]">{label}</p>
+            {Object.entries(statusCounts).map(([status, value]) => (
+              <div key={status} className="bg-[var(--card-hover)] rounded-xl p-4 border border-[var(--border)]">
+                <p className="text-2xl font-bold text-[var(--fg)]">{value}</p>
+                <p className="text-sm text-[var(--fg-muted)]">
+                  {status === 'all' ? t('totalLabel') : humanizeWireValue(status)}
+                </p>
               </div>
             ))}
           </div>
@@ -155,14 +152,22 @@ export default function AdminReservationsPage() {
                 ))}
               </select>
             )}
-            <div className="flex gap-2">
-              {(['all', 'pending', 'confirmed', 'cancelled'] as const).map((s) => (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setStatusFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all capitalize ${statusFilter === 'all' ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
+              >
+                {t('allStatuses')}
+              </button>
+              {discoveredStatuses.map((s) => (
                 <button
                   key={s}
+                  type="button"
                   onClick={() => setStatusFilter(s)}
                   className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all capitalize ${statusFilter === s ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
                 >
-                  {s === 'all' ? t('allStatuses') : t(STATUS_KEY[s])}
+                  {humanizeWireValue(s)}
                 </button>
               ))}
             </div>
@@ -261,35 +266,32 @@ export default function AdminReservationsPage() {
                             <span className="truncate block italic">{res.notes || '—'}</span>
                           </td>
                           <td className="px-4 py-3.5">
-                            <Badge variant={STATUS_BADGE[res.status] || 'secondary'} className="capitalize">
-                              {STATUS_KEY[res.status] ? t(STATUS_KEY[res.status]) : res.status}
+                            <Badge variant="secondary" className="capitalize">
+                              {getReservationStatusLabel(res)}
                             </Badge>
                           </td>
                           <td className="px-4 py-3.5">
-                            {res.status === 'pending' && (
-                              <div className="flex gap-1">
-                                <Button
-                                  size="icon-sm"
-                                  onClick={() => confirmMutation.mutate(res.id)}
-                                  disabled={isConfirming || isCancelling}
-                                  className="bg-emerald-500 hover:bg-emerald-600"
-                                  aria-label={t('confirm')}
-                                >
-                                  {isConfirming
-                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    : <Check className="h-3.5 w-3.5" />}
-                                </Button>
-                                <Button
-                                  size="icon-sm"
-                                  variant="destructive"
-                                  onClick={() => cancelMutation.mutate(res.id)}
-                                  disabled={isConfirming || isCancelling}
-                                  aria-label={t('cancel')}
-                                >
-                                  {isCancelling
-                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    : <X className="h-3.5 w-3.5" />}
-                                </Button>
+                            {(res.allowed_transitions?.length ?? 0) > 0 && (
+                              <div className="flex gap-1 flex-wrap">
+                                {res.allowed_transitions!.map((tr) => {
+                                  const status = typeof tr === 'string' ? tr : tr.status
+                                  const label = typeof tr === 'string' ? humanizeWireValue(tr) : (tr.label ?? humanizeWireValue(tr.status))
+                                  return (
+                                    <Button
+                                      key={status}
+                                      size="sm"
+                                      variant="secondary"
+                                      onClick={() => {
+                                        if (status === 'confirmed') confirmMutation.mutate(res.id)
+                                        else if (status === 'cancelled') cancelMutation.mutate(res.id)
+                                      }}
+                                      disabled={isConfirming || isCancelling}
+                                      className="text-xs h-7"
+                                    >
+                                      {label}
+                                    </Button>
+                                  )
+                                })}
                               </div>
                             )}
                           </td>

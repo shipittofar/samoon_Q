@@ -18,28 +18,18 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { formatCurrency } from '@/utils'
 import { useOrder } from '@/hooks'
-import { ORDER_STATUS_CONFIG } from '@/lib/order-status'
-import type { OrderStatusHistory, OrderType, PaymentMethod, PaymentStatus } from '@/types'
-
-const ORDER_TYPE_KEY: Record<OrderType, string> = { delivery: 'delivery', pickup: 'pickup', dine_in: 'dineIn' }
-const PAYMENT_METHOD_KEY: Record<PaymentMethod, string> = { card: 'card', cash: 'cash', online: 'online', wallet: 'wallet' }
-const PAYMENT_STATUS_KEY: Record<PaymentStatus, string> = {
-  pending: 'paymentStatusPending',
-  paid: 'paymentStatusPaid',
-  failed: 'paymentStatusFailed',
-  refunded: 'paymentStatusRefunded',
-}
+import { getOrderStatusLabel, getPaymentStatusLabel, normalizeAllowedTransitions } from '@/lib/order-status'
+import { humanizeWireValue } from '@/lib/humanize'
+import { humanizeOrderWireType, humanizePaymentWireMethod } from '@/lib/checkout-options'
+import type { Order, OrderStatusHistory } from '@/types'
 
 function TimelineItem({ entry, isLast }: { entry: OrderStatusHistory; isLast: boolean }) {
-  const tOrder = useTranslations('order')
-  const cfg = ORDER_STATUS_CONFIG[entry.status]
-  const label = cfg ? tOrder(`status.${cfg.labelKey}`) : entry.status
-  const Icon = cfg?.icon ?? Clock
+  const label = entry.status_label ?? humanizeWireValue(entry.status)
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
         <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center shrink-0">
-          <Icon className="w-4 h-4 text-gray-600" />
+          <Clock className="w-4 h-4 text-gray-600" />
         </div>
         {!isLast && <div className="w-px flex-1 bg-gray-200 my-1" />}
       </div>
@@ -96,8 +86,8 @@ function OrderDetailContent({ id }: { id: string }) {
     )
   }
 
-  const statusCfg = ORDER_STATUS_CONFIG[order.status]
-  const statusLabel = statusCfg ? tOrder(`status.${statusCfg.labelKey}`) : order.status
+  const statusLabel = getOrderStatusLabel(order)
+  const transitions = normalizeAllowedTransitions(order.allowed_transitions)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,7 +99,7 @@ function OrderDetailContent({ id }: { id: string }) {
           </Link>
           <div className="flex items-center gap-3 flex-1">
             <h1 className="text-lg font-semibold">{t('orderNumberHeading', { number: order.order_number })}</h1>
-            <Badge variant={statusCfg?.badge ?? 'secondary'}>{statusLabel}</Badge>
+            <Badge variant="secondary">{statusLabel}</Badge>
           </div>
           <span className="text-xs text-gray-400">{new Date(order.created_at).toLocaleString()}</span>
         </div>
@@ -119,7 +109,7 @@ function OrderDetailContent({ id }: { id: string }) {
         {/* Summary */}
         <Section title={t('orderSummary')}>
           <Row label={t('tableHeaders.order')} value={`#${order.order_number}`} />
-          <Row label={t('orderType')} value={<span className="capitalize">{tCheckout(ORDER_TYPE_KEY[order.order_type])}</span>} />
+          <Row label={t('orderType')} value={humanizeOrderWireType(order.order_type)} />
           <Row label={t('breadcrumbs.branches')} value={order.branch?.name ?? order.branch_id} />
           {order.table_number != null && <Row label={t('table')} value={order.table_number} />}
           <Row label={t('created')} value={new Date(order.created_at).toLocaleString()} />
@@ -210,8 +200,8 @@ function OrderDetailContent({ id }: { id: string }) {
           <div className="flex items-center gap-3">
             <CreditCard className="w-5 h-5 text-gray-400 shrink-0" />
             <div className="text-sm space-y-0.5">
-              <Row label={t('method')} value={tCheckout(PAYMENT_METHOD_KEY[order.payment_method])} />
-              <Row label={t('tableHeaders.status')} value={t(PAYMENT_STATUS_KEY[order.payment_status])} />
+              <Row label={t('method')} value={humanizePaymentWireMethod(order.payment_method)} />
+              <Row label={t('tableHeaders.status')} value={getPaymentStatusLabel(order)} />
             </div>
           </div>
         </Section>

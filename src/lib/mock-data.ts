@@ -12,10 +12,22 @@ function withLocationCheckout(
   } = {},
 ): Branch {
   const checkout = buildBranchCheckout({
-    delivery: opts.delivery ?? true,
-    pickup: opts.pickup ?? true,
-    dineIn: opts.dineIn ?? true,
-    radius: opts.radius ?? branch.delivery_radius ?? null,
+    orderingEnabled: true,
+    orderTypes: {
+      default: 'delivery',
+      delivery: (opts.delivery ?? true) ? { enabled: true, requiresDeliveryAddress: true, fulfillmentMode: 'delivery' } : false,
+      pickup: (opts.pickup ?? true) ? { enabled: true, fulfillmentMode: 'pickup' } : false,
+      dineIn: (opts.dineIn ?? true) ? { enabled: true, requiresTableNumber: true } : false,
+    },
+    delivery: {
+      radius: opts.radius ?? branch.delivery_radius ?? null,
+      minimumOrder: null,
+    },
+    payments: {
+      cash: true,
+      card: { enabled: true, requiresPaymentIntent: true },
+      default: 'card',
+    },
   })
   return {
     ...branch,

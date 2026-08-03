@@ -296,20 +296,15 @@ export interface Cart {
 // ============================================================
 // ORDER TYPES
 // ============================================================
-export type OrderStatus =
-  | 'pending'
-  | 'accepted'
-  | 'preparing'
-  | 'ready'
-  | 'delivered'
-  | 'picked_up'
-  | 'cancelled'
+/** Backend-defined wire value — not a closed enum. */
+export type OrderStatus = string
 
-export type OrderType = 'delivery' | 'pickup' | 'dine_in'
+export type OrderType = string
 
-export type PaymentMethod = 'card' | 'cash' | 'online' | 'wallet'
+/** Wire value from order API — backend-defined, not a closed enum. */
+export type PaymentMethod = string
 
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded'
+export type PaymentStatus = string
 
 export interface OrderItem {
   id: string
@@ -361,6 +356,20 @@ export interface DeliveryAddress {
   longitude?: number | null
 }
 
+export interface OrderStatusTimelineEntry {
+  status: string
+  label?: string
+  description?: string
+  timestamp?: string
+  completed?: boolean
+  current?: boolean
+}
+
+export interface OrderAllowedTransition {
+  status: string
+  label?: string
+}
+
 export interface Order {
   id: string
   order_number: string
@@ -369,9 +378,17 @@ export interface Order {
   branch?: Branch
   items: OrderItem[]
   order_type: OrderType
+  /** Backend fulfillment workflow — never inferred from order_type. */
+  fulfillment_mode?: string
   status: OrderStatus
+  status_label?: string
   payment_method: PaymentMethod
   payment_status: PaymentStatus
+  payment_status_label?: string
+  /** Backend-owned workflow — UI must not infer next status. */
+  allowed_transitions?: Array<OrderAllowedTransition | string>
+  /** Backend-owned tracker timeline — UI must not use hardcoded steps. */
+  status_timeline?: OrderStatusTimelineEntry[]
   delivery_address?: DeliveryAddress
   table_number?: number
   subtotal: number
@@ -389,6 +406,7 @@ export interface Order {
 
 export interface OrderStatusHistory {
   status: OrderStatus
+  status_label?: string
   timestamp: string
   note?: string
 }
@@ -396,7 +414,7 @@ export interface OrderStatusHistory {
 // ============================================================
 // RESERVATION TYPES
 // ============================================================
-export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed'
+export type ReservationStatus = string
 
 export interface Reservation {
   id: string
@@ -409,6 +427,8 @@ export interface Reservation {
   notes?: string
   name: string
   phone_number: string
+  status_label?: string
+  allowed_transitions?: Array<{ status: string; label?: string } | string>
   email?: string
   status: ReservationStatus
   confirmation_code?: string
@@ -418,17 +438,9 @@ export interface Reservation {
 // ============================================================
 // TENANT TYPES  (Phase 1A — P1A.1)
 // ============================================================
-export type BusinessType =
-  | 'restaurant'
-  | 'cafe'
-  | 'bar'
-  | 'food_court'
-  | 'food_truck'
-  | 'mobile_cafe'
-  | 'hotel'
-  | 'other'
+export type BusinessType = string
 
-export type TenantStatus = 'active' | 'trial' | 'suspended' | 'churned' | 'archived'
+export type TenantStatus = string
 
 /**
  * Runtime-only lifecycle state for the tenant bootstrap sequence.
@@ -570,6 +582,8 @@ export interface Tenant {
   /** Phase Z.6 — added; backend's `/api/tenants/` response field. Optional: not every write path (e.g. activate/suspend/archive mutations) returns an updated timestamp today. */
   updated_at?: string
   settings?: TenantSettings
+  /** First-class capability booleans from backend — replaces settings.featureFlags for runtime gating. */
+  capabilities?: Record<string, boolean>
   /**
    * P10.2.1 — FK to Owner.ownerId (src/types/ownership.ts). Additive and
    * optional during the migration window described in
@@ -670,14 +684,7 @@ export type Branch = Location
  *
  * P6.2 — Multi-Business Foundation
  */
-export type Capability =
-  | 'menu'
-  | 'ordering'
-  | 'qr_table'
-  | 'reservations'
-  | 'reviews'
-  | 'loyalty'
-  | 'notifications'
+export type Capability = string
 
 /**
  * Declares the capability contract for a business-type module.
@@ -868,11 +875,7 @@ export const LOYALTY_TIER_THRESHOLDS: Record<LoyaltyTier, number> = {
 
 // ── Promotion & Happy Hour Domain Types (P6.10) ───────────────────────────────
 
-export type PromotionType =
-  | 'percentage_discount'
-  | 'fixed_discount'
-  | 'buy_one_get_one'
-  | 'happy_hour'
+export type PromotionType = string
 
 /** Days of the week using ISO numeric convention (1=Mon … 7=Sun). */
 export type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7
@@ -1347,7 +1350,7 @@ export interface CustomerPayment {
   orderId?: string
   amount: number
   currency: string
-  method: 'card' | 'cash' | 'wallet' | 'gift_card'
+  method: string
   status: 'completed' | 'refunded' | 'partial_refund' | 'failed'
   refundAmount?: number
   processedAt: string

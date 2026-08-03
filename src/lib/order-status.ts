@@ -1,17 +1,6 @@
 import { AxiosError } from 'axios'
-import {
-  CheckCircle,
-  ChefHat,
-  Clock,
-  Package,
-  Truck,
-  XCircle,
-  type LucideIcon,
-} from 'lucide-react'
-import type { Order, OrderStatus } from '@/types'
-
-export const PICKUP_DELIVERY_REJECTION_MESSAGE =
-  'Only delivery orders can be marked as out for delivery.'
+import { humanizeWireValue } from '@/lib/humanize'
+import type { Order, OrderStatusTimelineEntry } from '@/types'
 
 interface ApiErrorBody {
   status_code?: number
@@ -19,193 +8,65 @@ interface ApiErrorBody {
   message?: string
 }
 
-export type OrderStatusBadgeVariant =
-  | 'warning'
-  | 'info'
-  | 'purple'
-  | 'success'
-  | 'danger'
-  | 'secondary'
-
-export interface OrderStatusMeta {
-  labelKey: string
-  icon: LucideIcon
-  color: string
-  bg: string
-  badge: OrderStatusBadgeVariant
+export function getOrderStatusLabel(
+  order: Pick<Order, 'status' | 'status_label'>,
+): string {
+  return order.status_label ?? humanizeWireValue(order.status)
 }
 
-export type OrderStatusContext = Pick<Order, 'status' | 'order_type'>
-
-export const ORDER_STATUS_CONFIG: Record<OrderStatus, OrderStatusMeta> = {
-  pending: {
-    labelKey: 'pending',
-    icon: Clock,
-    color: 'text-amber-500',
-    bg: 'bg-amber-50 dark:bg-amber-950/30',
-    badge: 'warning',
-  },
-  accepted: {
-    labelKey: 'accepted',
-    icon: CheckCircle,
-    color: 'text-blue-500',
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    badge: 'info',
-  },
-  preparing: {
-    labelKey: 'preparing',
-    icon: ChefHat,
-    color: 'text-purple-500',
-    bg: 'bg-purple-50 dark:bg-purple-950/30',
-    badge: 'purple',
-  },
-  ready: {
-    labelKey: 'ready',
-    icon: Package,
-    color: 'text-green-500',
-    bg: 'bg-green-50 dark:bg-green-950/30',
-    badge: 'success',
-  },
-  delivered: {
-    labelKey: 'delivered',
-    icon: Truck,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-    badge: 'success',
-  },
-  picked_up: {
-    labelKey: 'picked_up',
-    icon: Truck,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-    badge: 'success',
-  },
-  cancelled: {
-    labelKey: 'cancelled',
-    icon: XCircle,
-    color: 'text-red-500',
-    bg: 'bg-red-50 dark:bg-red-950/30',
-    badge: 'danger',
-  },
+export function getPaymentStatusLabel(
+  order: Pick<Order, 'payment_status' | 'payment_status_label'>,
+): string {
+  return order.payment_status_label ?? humanizeWireValue(order.payment_status)
 }
 
-/** Backend console-orders statuses not in the canonical OrderStatus union. */
-const BACKEND_ORDER_STATUS_META: Record<string, OrderStatusMeta> = {
-  confirmed: {
-    labelKey: 'confirmed',
-    icon: CheckCircle,
-    color: 'text-blue-500',
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    badge: 'info',
-  },
-  processing: {
-    labelKey: 'processing',
-    icon: ChefHat,
-    color: 'text-purple-500',
-    bg: 'bg-purple-50 dark:bg-purple-950/30',
-    badge: 'purple',
-  },
-  completed: {
-    labelKey: 'completed',
-    icon: Truck,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-    badge: 'success',
-  },
-  rejected: {
-    labelKey: 'rejected',
-    icon: XCircle,
-    color: 'text-red-500',
-    bg: 'bg-red-50 dark:bg-red-950/30',
-    badge: 'danger',
-  },
+export function getReservationStatusLabel(
+  reservation: { status: string; status_label?: string },
+): string {
+  return reservation.status_label ?? humanizeWireValue(reservation.status)
 }
 
-/** Map backend alias statuses onto canonical workflow statuses. */
-export const BACKEND_ORDER_STATUS_ALIASES: Partial<Record<string, OrderStatus>> = {
-  confirmed: 'accepted',
-  processing: 'preparing',
-  completed: 'delivered',
-  rejected: 'cancelled',
+export function normalizeAllowedTransitions(
+  transitions: Order['allowed_transitions'],
+): Array<{ status: string; label: string }> {
+  if (!transitions?.length) return []
+  return transitions.map((entry) => {
+    if (typeof entry === 'string') {
+      return { status: entry, label: humanizeWireValue(entry) }
+    }
+    return {
+      status: entry.status,
+      label: entry.label ?? humanizeWireValue(entry.status),
+    }
+  })
 }
 
-export function resolveOrderStatus(status: string): OrderStatus {
-  if (status in ORDER_STATUS_CONFIG) return status as OrderStatus
-  return BACKEND_ORDER_STATUS_ALIASES[status] ?? 'pending'
+export function getOrderStatusTimeline(order: Order): OrderStatusTimelineEntry[] {
+  if (order.status_timeline?.length) return order.status_timeline
+  if (order.status_history?.length) {
+    return order.status_history.map((entry) => ({
+      status: entry.status,
+      label: entry.status_label ?? humanizeWireValue(entry.status),
+      timestamp: entry.timestamp,
+      description: entry.note,
+      completed: true,
+    }))
+  }
+  return []
 }
 
-export function getOrderStatusMeta(status: string): OrderStatusMeta {
-  if (status in ORDER_STATUS_CONFIG) return ORDER_STATUS_CONFIG[status as OrderStatus]
-  if (status in BACKEND_ORDER_STATUS_META) return BACKEND_ORDER_STATUS_META[status]
-  return ORDER_STATUS_CONFIG.pending
-}
-
-const DELIVERY_STATUS_NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
-  pending: 'accepted',
-  accepted: 'preparing',
-  preparing: 'ready',
-  ready: 'delivered',
-}
-
-const PICKUP_STATUS_NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
-  pending: 'accepted',
-  accepted: 'preparing',
-  preparing: 'ready',
-  ready: 'picked_up',
-}
-
-/** Single source of truth: whether an order completes via picked_up instead of delivered. */
-export function usesPickupFulfillment(order: Pick<Order, 'order_type'>): boolean {
-  return order.order_type === 'pickup'
-}
-
-export function getNextOrderStatus(order: OrderStatusContext): OrderStatus | undefined {
-  const nextMap = usesPickupFulfillment(order) ? PICKUP_STATUS_NEXT : DELIVERY_STATUS_NEXT
-  return nextMap[resolveOrderStatus(order.status)]
-}
-
-/** Defensive guard when callers pass an explicit status instead of getNextOrderStatus(). */
-export function resolveStatusUpdate(
-  order: OrderStatusContext | undefined,
-  status: OrderStatus,
-): OrderStatus {
-  if (!order) return status
-  if (status === 'delivered' && usesPickupFulfillment(order)) return 'picked_up'
-  return status
-}
-
-export function isPickupDeliveryRejectionError(error: unknown): boolean {
+export function isInvalidOrderStatusTransitionError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
   const axiosError = error as AxiosError<ApiErrorBody>
   const body = axiosError.response?.data
   if (!body) return false
   return (
     axiosError.response?.status === 400 &&
-    body.code === 'invalid_order_status_transition' &&
-    body.message === PICKUP_DELIVERY_REJECTION_MESSAGE
+    body.code === 'invalid_order_status_transition'
   )
 }
 
-export const DELIVERY_TRACKER_STATUSES: OrderStatus[] = [
-  'pending',
-  'accepted',
-  'preparing',
-  'ready',
-  'delivered',
-]
-
-export const PICKUP_TRACKER_STATUSES: OrderStatus[] = [
-  'pending',
-  'accepted',
-  'preparing',
-  'ready',
-  'picked_up',
-]
-
-export function getTrackerStatusOrder(order?: OrderStatusContext): OrderStatus[] {
-  return order && usesPickupFulfillment(order) ? PICKUP_TRACKER_STATUSES : DELIVERY_TRACKER_STATUSES
-}
-
-export function getOrderStatusBadgeVariant(status: OrderStatus): OrderStatusBadgeVariant {
-  return getOrderStatusMeta(status).badge
+/** @deprecated Use isInvalidOrderStatusTransitionError */
+export function isPickupDeliveryRejectionError(error: unknown): boolean {
+  return isInvalidOrderStatusTransitionError(error)
 }

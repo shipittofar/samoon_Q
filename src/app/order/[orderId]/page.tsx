@@ -13,12 +13,13 @@ import { Skeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useOrder } from '@/hooks'
 import { formatCurrency, formatDate, formatTime } from '@/utils'
-import { getOrderStatusBadgeVariant } from '@/lib/order-status'
-import type { OrderStatus } from '@/types'
+import { getOrderStatusLabel } from '@/lib/order-status'
+import { humanizeOrderWireType, humanizePaymentWireMethod } from '@/lib/checkout-options'
 
 export default function OrderPage({ params }: { params: Promise<{ orderId: string }> }) {
   const t = useTranslations('orderDetail')
   const tOrder = useTranslations('order')
+  const tCheckout = useTranslations('checkout')
   const { orderId } = use(params)
   const { data: order, isLoading } = useOrder(orderId)
 
@@ -62,8 +63,8 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{tOrder('orderNumber', { number: order.order_number })}</h1>
               <p className="text-sm text-[var(--fg-muted)]">{t('dateAtTime', { date: formatDate(order.created_at), time: formatTime(order.created_at) })}</p>
             </div>
-            <Badge variant={getOrderStatusBadgeVariant(order.status as OrderStatus)} className="ms-auto capitalize text-sm py-1.5 px-3">
-              {tOrder(`status.${order.status}`)}
+            <Badge variant="secondary" className="ms-auto capitalize text-sm py-1.5 px-3">
+              {getOrderStatusLabel(order)}
             </Badge>
           </div>
 
@@ -78,9 +79,9 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                   </h2>
                   <OrderTracker
                     orderId={order.id}
+                    order={order}
                     initialStatus={order.status}
-                    orderType={order.order_type}
-                    useMockSimulation={order.status !== 'delivered' && order.status !== 'picked_up'}
+                    useMockSimulation={!order.status_timeline?.length}
                   />
                 </Card>
               )}
@@ -126,6 +127,12 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                   {order.discount_amount > 0 && <div className="flex justify-between text-emerald-600"><span>{t('discount')}</span><span>−{formatCurrency(order.discount_amount)}</span></div>}
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('tax')}</span><span>{formatCurrency(order.tax || 0)}</span></div>
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('service')}</span><span>{formatCurrency(order.service_charge || 0)}</span></div>
+                  {order.payment_method && (
+                    <div className="flex justify-between text-[var(--fg-muted)]">
+                      <span>{tCheckout('paymentMethod')}</span>
+                      <span>{humanizePaymentWireMethod(order.payment_method)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-[var(--fg)] text-base pt-2 border-t border-[var(--border)]">
                     <span>{t('total')}</span><span>{formatCurrency(order.total)}</span>
                   </div>
@@ -138,7 +145,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                 <div className="space-y-3 text-sm">
                   <div className="flex items-start gap-2 text-[var(--fg-muted)]">
                     <Package className="h-4 w-4 mt-0.5 shrink-0 text-orange-500" />
-                    <span className="capitalize">{order.order_type?.replace('_', ' ')}</span>
+                    <span>{humanizeOrderWireType(order.order_type)}</span>
                   </div>
                   {order.delivery_address && (
                     <div className="flex items-start gap-2 text-[var(--fg-muted)]">

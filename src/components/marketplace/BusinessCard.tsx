@@ -7,7 +7,8 @@ import { useTranslations } from 'next-intl'
 import { Star, MapPin, Calendar, Award, ChevronDown, ChevronUp } from 'lucide-react'
 import { cn } from '@/utils'
 import type { Tenant } from '@/types'
-import { type MarketplaceMeta, type PublicBranchInfo, BUSINESS_TYPE_LABELS } from '@/types/marketplace'
+import { type MarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
+import { humanizeWireValue } from '@/lib/humanize'
 import { usePublicBranches } from '@/hooks'
 import { BranchPreview } from './BranchPreview'
 
@@ -51,7 +52,7 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
   const branches = branchesProp ?? resolvedBranches ?? meta.branches ?? []
   const visibleBranches = branches.filter((b) => b.marketplaceVisible !== false)
 
-  const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')
+  const label = tenant.businessTypes.map((bt) => humanizeWireValue(bt)).join(' · ')
   const accentColor = tenant.settings?.theme?.primaryColor
   const featureFlags = tenant.settings?.featureFlags ?? {}
   const hasReservations =

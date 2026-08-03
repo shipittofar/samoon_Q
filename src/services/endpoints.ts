@@ -62,6 +62,8 @@ export const ENDPOINTS = {
     REORDER: (id: string) => `/orders/${id}/reorder/`,
     TRACK: (id: string) => `/orders/${id}/track/`,
     VALIDATE_DISCOUNT: '/orders/validate-discount/',
+    /** TODO: backend quote API — frontend must not invent tax/fees/totals */
+    QUOTE: '/orders/quote/',
     STATUS: (id: string) => `/orders/${id}/status/`,
   },
 

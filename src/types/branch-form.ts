@@ -2,8 +2,7 @@ import type { ImageFieldValue } from '@/components/ImageUploader'
 import { EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { appendImageField } from '@/lib/multipart'
 import {
-  DEFAULT_BRANCH_CHECKOUT,
-  mergeBranchCheckout,
+  EMPTY_BRANCH_CHECKOUT,
 } from '@/lib/branch-checkout'
 import type {
   Branch,
@@ -62,7 +61,7 @@ export const EMPTY_BRANCH_FORM: BranchFormState = {
   language: '',
   isDefault: false,
   businessHours: defaultBranchFormBusinessHours(),
-  checkout: { ...DEFAULT_BRANCH_CHECKOUT },
+  checkout: { ...EMPTY_BRANCH_CHECKOUT },
   marketplaceVisible: true,
   reservationsEnabled: false,
 }
@@ -218,7 +217,7 @@ export function branchToFormInput(branch: Branch): BranchFormState {
     language: branch.language ?? '',
     isDefault: branch.isDefault ?? false,
     businessHours: branch.businessHours.length > 0 ? branch.businessHours : defaultBranchFormBusinessHours(),
-    checkout: mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, branch.checkout),
+    checkout: branch.checkout ?? { ...EMPTY_BRANCH_CHECKOUT },
     marketplaceVisible: branch.marketplaceVisible,
     reservationsEnabled: branch.reservationsEnabled,
     maxCapacity: branch.maxCapacity,

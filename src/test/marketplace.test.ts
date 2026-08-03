@@ -3,7 +3,6 @@ import {
   matchesSearch,
   matchesCategory,
   getMarketplaceMeta,
-  BUSINESS_TYPE_LABELS,
 } from '@/types/marketplace'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import { tenantService } from '@/services/tenant.service'
@@ -106,20 +105,13 @@ describe('getMarketplaceMeta', () => {
   })
 })
 
-// ── BUSINESS_TYPE_LABELS ──────────────────────────────────────────────────────
+// ── humanizeWireValue for business types ─────────────────────────────────────
 
-describe('BUSINESS_TYPE_LABELS', () => {
-  it('has labels for all core business types', () => {
-    const types = ['restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe']
-    types.forEach((t) => {
-      expect(BUSINESS_TYPE_LABELS[t]).toBeTruthy()
-    })
-  })
-
-  it('has distinct labels for each type', () => {
-    const labels = Object.values(BUSINESS_TYPE_LABELS)
-    const unique = new Set(labels)
-    expect(unique.size).toBe(labels.length)
+describe('humanizeWireValue — business types', () => {
+  it('humanizes wire business type values', async () => {
+    const { humanizeWireValue } = await import('@/lib/humanize')
+    expect(humanizeWireValue('food_court')).toBe('Food Court')
+    expect(humanizeWireValue('robotDelivery')).toBe('Robot Delivery')
   })
 })
 

@@ -11,20 +11,17 @@ import { cn } from '@/utils'
 import { useAdminOrders, useUpdateOrderStatus, useAdminBranches, useBulkUpdateOrderStatus, useBulkCancelOrders } from '@/hooks'
 import { ADMIN_ORDERS_PAGE_SIZE } from '@/services/admin.service'
 import { useConsoleWorkspace } from '@/hooks/console-workspace'
-import { getNextOrderStatus, getOrderStatusMeta, ORDER_STATUS_CONFIG, resolveOrderStatus } from '@/lib/order-status'
-import type { AdminOrdersScope, Order, OrderStatus, OrderType } from '@/types'
+import { getOrderStatusLabel, normalizeAllowedTransitions } from '@/lib/order-status'
+import { humanizeOrderWireType } from '@/lib/checkout-options'
+import { humanizeWireValue } from '@/lib/humanize'
+import type { Order } from '@/types'
+import type { AdminOrdersScope } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 
-
-const ORDER_TYPE_KEY: Record<OrderType, string> = {
-  delivery: 'delivery',
-  pickup: 'pickup',
-  dine_in: 'dineIn',
-}
 
 function orderCustomerName(order: Order): string {
   if (order.user) return `${order.user.first_name} ${order.user.last_name}`.trim()
@@ -40,7 +37,7 @@ export default function AdminOrdersPage() {
   const tOrder = useTranslations('order')
   const tCheckout = useTranslations('checkout')
   const tCommon = useTranslations('common')
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [branchFilter, setBranchFilter] = useState<string>('all')
   const [allOrdersMode, setAllOrdersMode] = useState(false)
@@ -83,16 +80,20 @@ export default function AdminOrdersPage() {
 
   const statusCounts = useMemo(() => {
     const all = data?.results ?? []
-    return (Object.keys(ORDER_STATUS_CONFIG) as OrderStatus[]).reduce<Record<string, number>>((acc, s) => {
-      acc[s] = all.filter((o) => resolveOrderStatus(o.status) === s).length
-      return acc
-    }, {})
+    const counts: Record<string, number> = {}
+    for (const o of all) {
+      counts[o.status] = (counts[o.status] ?? 0) + 1
+    }
+    return counts
   }, [data])
 
-  const advance = (order: Order) => {
-    const next = getNextOrderStatus(order)
-    if (!next) return
-    updateStatus.mutate({ id: order.id, status: next, order })
+  const discoveredStatuses = useMemo(() => {
+    const keys = Object.keys(statusCounts)
+    return keys.sort()
+  }, [statusCounts])
+
+  const advance = (order: Order, nextStatus: string) => {
+    updateStatus.mutate({ id: order.id, status: nextStatus })
   }
 
   const toggleSelect = (id: string) => {
@@ -171,8 +172,8 @@ export default function AdminOrdersPage() {
 
           {/* Status Summary — counts are page-local; backend does not expose aggregates */}
           <p className="text-xs text-[var(--fg-muted)] mb-2">{t('ordersStatusOnPage')}</p>
-          <div className="grid grid-cols-3 sm:grid-cols-7 gap-3 mb-6">
-            {(Object.entries(ORDER_STATUS_CONFIG) as [OrderStatus, typeof ORDER_STATUS_CONFIG[OrderStatus]][]).map(([status, cfg]) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
+            {discoveredStatuses.map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(statusFilter === status ? 'all' : status)}
@@ -183,9 +184,8 @@ export default function AdminOrdersPage() {
                     : 'border-[var(--border)] bg-[var(--card)] hover:border-orange-200',
                 )}
               >
-                <cfg.icon className={cn('h-4 w-4', cfg.color)} />
                 <span className="text-xs font-semibold text-[var(--fg)]">{statusCounts[status] ?? 0}</span>
-                <span className="text-[10px] text-[var(--fg-muted)]">{tOrder(`status.${cfg.labelKey}`)}</span>
+                <span className="text-[10px] text-[var(--fg-muted)]">{humanizeWireValue(status)}</span>
               </button>
             ))}
           </div>
@@ -256,8 +256,7 @@ export default function AdminOrdersPage() {
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
                     {orders.map((order, i) => {
-                      const cfg = getOrderStatusMeta(order.status)
-                      const nextStatus = getNextOrderStatus(order)
+                      const transitions = normalizeAllowedTransitions(order.allowed_transitions)
                       const isPending = updateStatus.isPending && updateStatus.variables?.id === order.id
                       return (
                         <motion.tr
@@ -285,35 +284,37 @@ export default function AdminOrdersPage() {
                           </td>
                           <td className="px-4 py-3.5">
                             <Badge variant="secondary" className="capitalize text-xs">
-                              {order.order_type === 'dine_in' && order.table_number
+                              {order.table_number != null
                                 ? t('tableNumberLabel', { number: order.table_number })
-                                : tCheckout(ORDER_TYPE_KEY[order.order_type])}
+                                : humanizeOrderWireType(order.order_type)}
                             </Badge>
                           </td>
                           <td className="px-4 py-3.5 font-semibold text-[var(--fg)] whitespace-nowrap">{formatCurrency(order.total)}</td>
                           <td className="px-4 py-3.5">
-                            <Badge variant={cfg.badge} className="capitalize whitespace-nowrap">
-                              <cfg.icon className="h-3 w-3 me-1" />
-                              {tOrder(`status.${cfg.labelKey}`)}
+                            <Badge variant="secondary" className="capitalize whitespace-nowrap">
+                              {getOrderStatusLabel(order)}
                             </Badge>
                           </td>
                           <td className="px-4 py-3.5 text-[var(--fg-muted)] whitespace-nowrap">
                             {formatRelativeTime(order.created_at)}
                           </td>
                           <td className="px-4 py-3.5">
-                            {nextStatus && (
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => advance(order)}
-                                disabled={isPending}
-                                className="whitespace-nowrap text-xs h-7"
-                              >
-                                {isPending
-                                  ? <Loader2 className="h-3 w-3 animate-spin" />
-                                  : t('advanceToStatus', { status: tOrder(`status.${getOrderStatusMeta(nextStatus).labelKey}`) })}
-                              </Button>
-                            )}
+                            <div className="flex flex-wrap gap-1">
+                              {transitions.map((tr) => (
+                                <Button
+                                  key={tr.status}
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => advance(order, tr.status)}
+                                  disabled={isPending}
+                                  className="whitespace-nowrap text-xs h-7"
+                                >
+                                  {isPending
+                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                    : tr.label}
+                                </Button>
+                              ))}
+                            </div>
                           </td>
                         </motion.tr>
                       )
@@ -365,7 +366,16 @@ export default function AdminOrdersPage() {
         actions={[
           {
             label: t('acceptSelected'),
-            onClick: () => { bulkUpdateStatus.mutate({ ids: selectedArr, status: 'accepted' }); setSelectedIds(new Set()) },
+            onClick: () => {
+              const firstTransition = orders.find((o) => selectedIds.has(o.id))?.allowed_transitions?.[0]
+              const status = typeof firstTransition === 'string'
+                ? firstTransition
+                : firstTransition?.status
+              if (status) {
+                bulkUpdateStatus.mutate({ ids: selectedArr, status })
+              }
+              setSelectedIds(new Set())
+            },
             variant: 'primary',
             disabled: bulkUpdateStatus.isPending,
           },

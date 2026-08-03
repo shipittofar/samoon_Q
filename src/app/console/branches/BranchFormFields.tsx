@@ -13,10 +13,14 @@ import { ImageUploader } from '@/components/ImageUploader'
 import type { BranchBusinessHours } from '@/types/branch'
 import type { BranchFormState } from '@/types/branch-form'
 import {
-  checkoutConfigKeyToWire,
+  getCheckoutDeliveryConfigKeys,
   getCheckoutDeliveryOptionLabel,
-  getCheckoutOrderTypeConfigKeyEnabledLabel,
+  getCheckoutOrderTypeConfigKeyLabel,
+  getCheckoutOrderTypeConfigKeys,
   getCheckoutPaymentConfigKeyLabel,
+  getCheckoutPaymentConfigKeys,
+  isOrderTypeConfigEnabled,
+  isPaymentConfigEnabled,
 } from '@/lib/checkout-options'
 
 export type { BranchFormState } from '@/types/branch-form'
@@ -37,7 +41,6 @@ export function BranchFormFields({
 }) {
   const t = useTranslations('console')
   const tCheckout = useTranslations('checkout')
-  const tAddressCapabilities = useTranslations('address.capabilities')
 
   const set = <K extends keyof BranchFormState>(field: K, value: BranchFormState[K]) =>
     onChange({ ...form, [field]: value })
@@ -250,34 +253,52 @@ export function BranchFormFields({
 
         <div className="pt-2 space-y-2">
           <p className="text-sm font-medium text-gray-700">{tCheckout('orderType')}</p>
-          {Object.entries(form.checkout.orderTypes)
-            .filter(([key]) => key !== 'default')
-            .map(([key]) => (
+          {getCheckoutOrderTypeConfigKeys(form.checkout.orderTypes).map((key) => (
             <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
               <input
                 type="checkbox"
-                checked={!!form.checkout.orderTypes[key]}
-                onChange={(e) => setOrderTypes({ [key]: e.target.checked })}
+                checked={isOrderTypeConfigEnabled(form.checkout.orderTypes[key])}
+                onChange={(e) => {
+                  const current = form.checkout.orderTypes[key]
+                  if (isOrderTypeConfigEnabled(current) || (current && typeof current === 'object')) {
+                    setOrderTypes({
+                      [key]: typeof current === 'object' && current !== null
+                        ? { ...current, enabled: e.target.checked }
+                        : e.target.checked,
+                    })
+                  } else {
+                    setOrderTypes({ [key]: e.target.checked })
+                  }
+                }}
                 className="rounded"
               />
-              {getCheckoutOrderTypeConfigKeyEnabledLabel(key, t)}
+              {getCheckoutOrderTypeConfigKeyLabel(key)}
             </label>
           ))}
         </div>
 
         <div className="pt-2 space-y-2">
           <p className="text-sm font-medium text-gray-700">{tCheckout('paymentMethod')}</p>
-          {Object.entries(form.checkout.payments)
-            .filter(([key]) => key !== 'default')
-            .map(([key]) => (
+          {getCheckoutPaymentConfigKeys(form.checkout.payments).map((key) => (
             <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
               <input
                 type="checkbox"
-                checked={!!form.checkout.payments[key]}
-                onChange={(e) => setPayments({ [key]: e.target.checked })}
+                checked={isPaymentConfigEnabled(form.checkout.payments[key])}
+                onChange={(e) => {
+                  const current = form.checkout.payments[key]
+                  if (isPaymentConfigEnabled(current) || (current && typeof current === 'object')) {
+                    setPayments({
+                      [key]: typeof current === 'object' && current !== null
+                        ? { ...current, enabled: e.target.checked }
+                        : e.target.checked,
+                    })
+                  } else {
+                    setPayments({ [key]: e.target.checked })
+                  }
+                }}
                 className="rounded"
               />
-              {getCheckoutPaymentConfigKeyLabel(key, tCheckout)}
+              {getCheckoutPaymentConfigKeyLabel(key)}
             </label>
           ))}
         </div>
@@ -305,17 +326,15 @@ export function BranchFormFields({
               className={`${inputClass} max-w-[10rem]`}
             />
           </div>
-          {Object.entries(form.checkout.delivery)
-            .filter(([key, value]) => key !== 'radius' && key !== 'minimumOrder' && typeof value === 'boolean')
-            .map(([key]) => (
+          {getCheckoutDeliveryConfigKeys(form.checkout.delivery).map((key) => (
             <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
               <input
                 type="checkbox"
-                checked={!!form.checkout.delivery[key]}
+                checked={form.checkout.delivery[key] === true}
                 onChange={(e) => setDelivery({ [key]: e.target.checked })}
                 className="rounded"
               />
-              {getCheckoutDeliveryOptionLabel(key, tAddressCapabilities)}
+              {getCheckoutDeliveryOptionLabel(key)}
             </label>
           ))}
 
@@ -331,11 +350,11 @@ export function BranchFormFields({
                 className={inputClass}
               >
                 <option value="">{t('notSetLabel')}</option>
-                {Object.entries(form.checkout.orderTypes)
-                  .filter(([key, value]) => key !== 'default' && value === true)
-                  .map(([key]) => (
-                    <option key={key} value={checkoutConfigKeyToWire(key)}>
-                      {getCheckoutOrderTypeConfigKeyEnabledLabel(key, t)}
+                {getCheckoutOrderTypeConfigKeys(form.checkout.orderTypes)
+                  .filter((key) => isOrderTypeConfigEnabled(form.checkout.orderTypes[key]))
+                  .map((key) => (
+                    <option key={key} value={key}>
+                      {getCheckoutOrderTypeConfigKeyLabel(key)}
                     </option>
                   ))}
               </select>
@@ -351,11 +370,11 @@ export function BranchFormFields({
                 className={inputClass}
               >
                 <option value="">{t('notSetLabel')}</option>
-                {Object.entries(form.checkout.payments)
-                  .filter(([key, value]) => key !== 'default' && value === true)
-                  .map(([key]) => (
+                {getCheckoutPaymentConfigKeys(form.checkout.payments)
+                  .filter((key) => isPaymentConfigEnabled(form.checkout.payments[key]))
+                  .map((key) => (
                     <option key={key} value={key}>
-                      {getCheckoutPaymentConfigKeyLabel(key, tCheckout)}
+                      {getCheckoutPaymentConfigKeyLabel(key)}
                     </option>
                   ))}
               </select>

@@ -545,11 +545,11 @@ describe('P3.10 — Cart store tests', async () => {
     expect(subtotal).toBe(20)
   })
 
-  it('getTotal includes tax and service charge', () => {
+  it('getSubtotal sums line totals without inventing tax or fees', () => {
     useCartStore.getState().addItem(mockItem, 1)
-    const total = useCartStore.getState().getTotal()
-    // price=10, tax=9%, service=5%, total=11.40
-    expect(total).toBeCloseTo(11.4, 1)
+    const subtotal = useCartStore.getState().getSubtotal()
+    expect(subtotal).toBe(10)
+    expect(useCartStore.getState().getTax).toBeUndefined()
   })
 
   it('clearCart empties all items', () => {

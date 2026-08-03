@@ -17,9 +17,9 @@ import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout, usePublicBranches } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import { humanizeWireValue } from '@/lib/humanize'
 import {
   getMarketplaceMeta,
-  BUSINESS_TYPE_LABELS,
   type MarketplaceMeta,
   type PublicBranchInfo,
 } from '@/types/marketplace'
@@ -75,13 +75,13 @@ function HeroSection({
   const t = useTranslations('tenant')
   const tMarketplace = useTranslations('marketplace')
   const accentColor = tenant.settings?.theme?.primaryColor ?? 'var(--accent)'
-  const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
+  const label = tenant.businessTypes.map((bt) => humanizeWireValue(bt)).join(' · ')
 
-  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const capabilities = tenant.capabilities
   const cta = getSmartCTA({
     tenantSlug: tenant.slug,
     branchSlug: undefined,
-    featureFlags,
+    capabilities,
     meta,
     branch: branchCapability,
   })
@@ -846,11 +846,12 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const { data: promotions = [] } = useActivePromotions()
   // Website Builder section config — optional, fails open to DEFAULT_SECTIONS
   const { data: layout } = useHomepageLayout(tenantId)
-  const featureFlags = useTenantStore((s) => s.featureFlags)
 
   if (isLoading) return <LoadingSkeleton />
   if (!tenant || tenant.slug !== tenantSlug || tenantState !== 'resolved') return <TenantNotFoundState />
   if (!meta) return <TenantNotFoundState />
+
+  const capabilities = tenant.capabilities
 
   // Section visibility: Website Builder config or DEFAULT_SECTIONS
   const sections = buildPublicSections(layout?.sections)
@@ -859,7 +860,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const ctas = buildPublicCTAs({
     tenantSlug,
     branchSlug: undefined,
-    featureFlags,
+    capabilities,
     meta,
     branch: primaryBranchCapability,
   })

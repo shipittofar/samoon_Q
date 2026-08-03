@@ -22,7 +22,7 @@ export interface BusinessReview {
   comment: string
   images?: string[]
   visitDate?: string
-  visitType?: 'dine_in' | 'takeaway' | 'delivery'
+  visitType?: string
   created_at: string
   updated_at: string
   ownerReply?: OwnerReply

@@ -4,7 +4,6 @@ import type {
   BranchCheckoutOrderTypes,
   BranchCheckoutPayments,
 } from '@/types/branch'
-import type { OrderType, PaymentMethod } from '@/types'
 import type { ServiceabilityResult } from '@/types/address'
 import {
   getCheckoutOrderTypeOptions,
@@ -13,6 +12,8 @@ import {
   resolveCheckoutPaymentWireMethod,
   filterDeliveryCapabilities,
   findCheckoutOrderTypeOption,
+  findCheckoutPaymentOption,
+  checkoutConfigKeyToWire,
 } from '@/lib/checkout-options'
 
 export {
@@ -22,99 +23,60 @@ export {
   resolveCheckoutPaymentWireMethod,
   filterDeliveryCapabilities,
   findCheckoutOrderTypeOption,
+  findCheckoutPaymentOption,
   checkoutConfigKeyToWire,
   wireToCheckoutConfigKey,
+  humanizeCheckoutConfigKey,
+  humanizeOrderWireType,
+  humanizePaymentWireMethod,
+  isOrderTypeConfigEnabled,
+  isPaymentConfigEnabled,
+  paymentConfigRequiresPaymentIntent,
   getCheckoutOrderTypeLabel,
   getCheckoutOrderTypeDesc,
   getCheckoutOrderTypeIcon,
-  getCheckoutPaymentLabel,
-  getCheckoutPaymentDesc,
   getCheckoutPaymentIcon,
   getCheckoutPaymentConfigKeyLabel,
-  getCheckoutOrderTypeConfigKeyEnabledLabel,
+  getCheckoutOrderTypeConfigKeyLabel,
+  getCheckoutPaymentConfigKeys,
+  getCheckoutOrderTypeConfigKeys,
+  getCheckoutDeliveryConfigKeys,
   getCheckoutDeliveryOptionLabel,
 } from '@/lib/checkout-options'
 export type { CheckoutOrderTypeOption, CheckoutPaymentOption } from '@/lib/checkout-options'
 
-/** Console/form seed only — never used for runtime storefront availability. */
-export const DEFAULT_BRANCH_CHECKOUT: BranchCheckout = {
-  orderingEnabled: true,
-  orderTypes: {
-    delivery: false,
-    pickup: true,
-    dineIn: false,
-    default: 'pickup',
-  },
-  payments: {
-    cash: true,
-    cashOnDelivery: true,
-    card: true,
-    online: true,
-    wallet: false,
-    default: 'card',
-  },
+/** Empty checkout shell — no invented business flags. Used for forms only. */
+export const EMPTY_BRANCH_CHECKOUT: BranchCheckout = {
+  orderingEnabled: false,
+  orderTypes: { default: null },
+  payments: { default: null },
   delivery: {
     radius: null,
     minimumOrder: null,
-    sameDay: true,
-    scheduled: true,
-    contactless: true,
   },
 }
 
+/** @deprecated Use EMPTY_BRANCH_CHECKOUT */
+export const DEFAULT_BRANCH_CHECKOUT = EMPTY_BRANCH_CHECKOUT
+
 export interface BuildBranchCheckoutOptions {
   orderingEnabled?: boolean
-  delivery?: boolean
-  pickup?: boolean
-  dineIn?: boolean
-  defaultOrderType?: string | null
-  radius?: number | null
-  minimumOrder?: string | null
-  sameDay?: boolean
-  scheduled?: boolean
-  contactless?: boolean
-  cash?: boolean
-  cashOnDelivery?: boolean
-  card?: boolean
-  online?: boolean
-  wallet?: boolean
-  defaultPayment?: string | null
+  orderTypes?: BranchCheckoutOrderTypes
+  payments?: BranchCheckoutPayments
+  delivery?: BranchCheckoutDelivery
 }
 
-/** Builds a full checkout config with sensible defaults (console forms only). */
+/** Builds checkout config for mocks — passes through explicit options only. */
 export function buildBranchCheckout(options: BuildBranchCheckoutOptions = {}): BranchCheckout {
-  const orderTypes: BranchCheckoutOrderTypes = {
-    delivery: options.delivery ?? DEFAULT_BRANCH_CHECKOUT.orderTypes.delivery,
-    pickup: options.pickup ?? DEFAULT_BRANCH_CHECKOUT.orderTypes.pickup,
-    dineIn: options.dineIn ?? DEFAULT_BRANCH_CHECKOUT.orderTypes.dineIn,
-    default: options.defaultOrderType ?? DEFAULT_BRANCH_CHECKOUT.orderTypes.default,
-  }
-
-  const payments: BranchCheckoutPayments = {
-    cash: options.cash ?? DEFAULT_BRANCH_CHECKOUT.payments.cash,
-    cashOnDelivery: options.cashOnDelivery ?? DEFAULT_BRANCH_CHECKOUT.payments.cashOnDelivery,
-    card: options.card ?? DEFAULT_BRANCH_CHECKOUT.payments.card,
-    online: options.online ?? DEFAULT_BRANCH_CHECKOUT.payments.online,
-    wallet: options.wallet ?? DEFAULT_BRANCH_CHECKOUT.payments.wallet,
-    default: options.defaultPayment ?? DEFAULT_BRANCH_CHECKOUT.payments.default,
-  }
-
-  const delivery: BranchCheckoutDelivery = {
-    radius: options.radius !== undefined ? options.radius : DEFAULT_BRANCH_CHECKOUT.delivery.radius,
-    minimumOrder: options.minimumOrder !== undefined ? options.minimumOrder : DEFAULT_BRANCH_CHECKOUT.delivery.minimumOrder,
-    sameDay: options.sameDay ?? DEFAULT_BRANCH_CHECKOUT.delivery.sameDay,
-    scheduled: options.scheduled ?? DEFAULT_BRANCH_CHECKOUT.delivery.scheduled,
-    contactless: options.contactless ?? DEFAULT_BRANCH_CHECKOUT.delivery.contactless,
-  }
-
   return {
-    orderingEnabled: options.orderingEnabled ?? DEFAULT_BRANCH_CHECKOUT.orderingEnabled,
-    orderTypes,
-    payments,
-    delivery,
+    orderingEnabled: options.orderingEnabled ?? false,
+    orderTypes: options.orderTypes ?? { default: null },
+    payments: options.payments ?? { default: null },
+    delivery: options.delivery ?? { radius: null, minimumOrder: null },
   }
 }
 
+/** Replaces checkout sections when provided — does not merge with frontend defaults. */
 export function mergeBranchCheckout(
   base: BranchCheckout,
   patch?: Partial<BranchCheckout>,
@@ -122,49 +84,10 @@ export function mergeBranchCheckout(
   if (!patch) return base
   return {
     orderingEnabled: patch.orderingEnabled ?? base.orderingEnabled,
-    orderTypes: { ...base.orderTypes, ...patch.orderTypes },
-    payments: { ...base.payments, ...patch.payments },
-    delivery: { ...base.delivery, ...patch.delivery },
+    orderTypes: patch.orderTypes ?? base.orderTypes,
+    payments: patch.payments ?? base.payments,
+    delivery: patch.delivery ?? base.delivery,
   }
-}
-
-/** @deprecated Use getCheckoutOrderTypeOptions — returns wire types for backward compatibility. */
-export function getAvailableOrderTypes(checkout: BranchCheckout | undefined): OrderType[] {
-  return getCheckoutOrderTypeOptions(checkout).map((o) => o.wireType as OrderType)
-}
-
-/** @deprecated Use resolveCheckoutOrderWireType */
-export function resolveInitialOrderType(
-  checkout: BranchCheckout | undefined,
-  paramOrderType: OrderType | null,
-  _validTypes?: Set<OrderType>,
-): OrderType {
-  return resolveCheckoutOrderWireType(checkout, paramOrderType) as OrderType
-}
-
-/** @deprecated Use getCheckoutPaymentOptions */
-export function getAvailablePaymentMethods(
-  checkout: BranchCheckout | undefined,
-  orderType?: OrderType,
-): PaymentMethod[] {
-  return getCheckoutPaymentOptions(checkout, orderType).map((o) => o.wireMethod as PaymentMethod)
-}
-
-/** @deprecated Use resolveCheckoutPaymentWireMethod */
-export function mapPaymentConfigKeyToMethod(configKey: string | null | undefined): PaymentMethod | null {
-  if (!configKey) return null
-  if (configKey === 'cashOnDelivery') return 'cash'
-  const known = new Set<PaymentMethod>(['cash', 'card', 'online', 'wallet'])
-  if (known.has(configKey as PaymentMethod)) return configKey as PaymentMethod
-  return null
-}
-
-/** @deprecated Use resolveCheckoutPaymentWireMethod */
-export function resolveInitialPaymentMethod(
-  checkout: BranchCheckout | undefined,
-  orderType?: OrderType,
-): PaymentMethod {
-  return resolveCheckoutPaymentWireMethod(checkout, orderType) as PaymentMethod
 }
 
 /** ISO 4217 currency for display/payment — branch field is authoritative. */
@@ -178,10 +101,6 @@ export function resolvePaymentCurrencyCode(currency?: string | null): string {
   return resolveBranchCurrencyCode(currency).toLowerCase()
 }
 
-/**
- * Minimum order: serviceability response is authoritative when present;
- * otherwise fall back to branch checkout config.
- */
 export function resolveEffectiveMinimumOrder(
   serviceability: ServiceabilityResult | null | undefined,
   checkout: BranchCheckout | undefined,
@@ -196,7 +115,6 @@ export function isBelowMinimumOrder(subtotal: number, minimum: number | null): b
   return minimum != null && subtotal < minimum
 }
 
-/** Serviceability API is authoritative for delivery eligibility. */
 export function isDeliveryBlockedByServiceability(
   orderWireType: string,
   serviceability: ServiceabilityResult | null | undefined,
@@ -213,16 +131,14 @@ export function isDeliveryBlockedByServiceability(
 
 export function parseMinimumOrderAmount(minimumOrder: string | null | undefined): number | null {
   if (minimumOrder == null || minimumOrder === '') return null
-  const parsed = Number.parseFloat(minimumOrder)
+  const parsed = Number.parseFloat(String(minimumOrder))
   return Number.isFinite(parsed) ? parsed : null
 }
 
-/** True only when backend explicitly enables ordering for this branch. */
 export function isBranchOrderingEnabled(checkout: BranchCheckout | undefined): boolean {
   return checkout?.orderingEnabled === true
 }
 
-/** @deprecated Use filterDeliveryCapabilities from checkout-options */
 export function hasVisibleDeliveryCapabilities(
   capabilities: import('@/types/address').AddressCapabilities | null | undefined,
   checkout: BranchCheckout | undefined,

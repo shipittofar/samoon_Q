@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { formatCurrency, formatDate, formatRelativeTime } from '@/utils'
-import { ORDER_STATUS_COLORS } from '@/constants'
 import { useTranslations } from 'next-intl'
 
 

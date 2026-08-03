@@ -85,10 +85,6 @@ export function TenantHeader() {
   const cartCount = getItemCount()
   const branchSlug = activeBranch?.slug
 
-  // P8.8.11.4: journey nav priority — business-type-aware nav ordering hint.
-  // Website Builder config (layoutNavConfig) overrides this when present.
-  const featureFlags = useTenantStore((s) => s.featureFlags)
-
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', onScroll)
@@ -101,19 +97,15 @@ export function TenantHeader() {
     setLangMenuOpen(false)
   }, [pathname])
 
-  // This is a tenant-branded storefront header — it has nothing meaningful
-  // to render without a resolved tenant. All hooks above this point run
-  // unconditionally (Rules of Hooks); everything below is plain computation,
-  // so it's safe to bail out here rather than null-guard every `tenant.`
-  // access individually.
   if (!tenant) return null
 
   const logoUrl = tenant.settings?.theme?.logoUrl
   const meta = tenant.settings?.marketplace
+  const capabilities = tenant.capabilities
   const journeyCTAs = buildPublicCTAs({
     tenantSlug: tenant.slug,
     branchSlug,
-    featureFlags,
+    capabilities,
     meta,
     branch: activeBranch
       ? {

@@ -72,7 +72,7 @@ function CartItemRow({ item }: { item: CartItem }) {
 export function CartDrawer() {
   const t = useTranslations('cart')
   const tNotifications = useTranslations('notifications')
-  const { items, isOpen, setOpen, discountCode, discountAmount, setDiscount, clearCart, getSubtotal, getTax, getServiceCharge, getTotal } = useCartStore()
+  const { items, isOpen, setOpen, discountCode, discountAmount, setDiscount, clearCart, getSubtotal } = useCartStore()
   const { mutate: validateDiscount, isPending: validating } = useValidateDiscount()
   const [codeInput, setCodeInput] = useState(discountCode || '')
   const router = useRouter()
@@ -92,9 +92,8 @@ export function CartDrawer() {
   }
 
   const subtotal = getSubtotal()
-  const tax = getTax()
-  const serviceCharge = getServiceCharge()
-  const total = getTotal()
+  // TODO: fetch cart quote from ENDPOINTS.ORDERS.QUOTE — frontend must not invent tax/fees/grand_total
+  const displayAmount = subtotal - discountAmount
 
   const handleApplyCode = () => {
     if (!codeInput.trim()) return
@@ -118,87 +117,66 @@ export function CartDrawer() {
     <Drawer open={isOpen} onClose={() => setOpen(false)} title={t('title')} side="right" size="md">
       <div className="flex flex-col h-full">
         {items.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-4">
-            <div className="h-20 w-20 rounded-full bg-[var(--card-hover)] flex items-center justify-center">
-              <ShoppingBag className="h-8 w-8 text-[var(--fg-subtle)]" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-[var(--fg)] mb-1">{t('empty')}</h3>
-              <p className="text-sm text-[var(--fg-muted)]">{t('emptyDesc')}</p>
-            </div>
-            <Button onClick={handleBrowseMenu} variant="outline">
-              {t('browseMenu')}
-            </Button>
+          <div className="flex flex-col items-center justify-center flex-1 gap-4 text-center py-12">
+            <ShoppingBag className="h-12 w-12 text-[var(--fg-subtle)]" />
+            <p className="text-[var(--fg-muted)]">{t('empty')}</p>
+            <Button onClick={handleBrowseMenu}>{t('browseMenu')}</Button>
           </div>
         ) : (
           <>
-            {/* Items */}
-            <div className="flex-1 overflow-y-auto px-4 scrollbar-thin">
-              <AnimatePresence mode="popLayout">
-                {items.map((item) => (
-                  <CartItemRow key={item.id} item={item} />
-                ))}
+            <div className="flex-1 overflow-y-auto scrollbar-thin px-1">
+              <AnimatePresence>
+                {items.map((item) => <CartItemRow key={item.id} item={item} />)}
               </AnimatePresence>
             </div>
 
-            {/* Summary */}
-            <div className="border-t border-[var(--border)] p-4 space-y-4 bg-[var(--card)]">
-              {/* Discount Code */}
+            <div className="border-t border-[var(--border)] pt-4 space-y-3">
               <div className="flex gap-2">
                 <Input
+                  placeholder={t('discountPlaceholder')}
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
-                  placeholder={t('discountCodePlaceholder')}
-                  leftIcon={<Tag className="h-3.5 w-3.5" />}
-                  className="flex-1 h-9 text-xs"
-                  onKeyDown={(e) => e.key === 'Enter' && handleApplyCode()}
+                  leftIcon={<Tag className="h-4 w-4" />}
+                  className="flex-1"
                 />
-                <Button variant="secondary" size="sm" onClick={handleApplyCode} loading={validating}>
-                  {t('applyCode')}
+                <Button variant="secondary" onClick={handleApplyCode} loading={validating} size="sm">
+                  {t('apply')}
                 </Button>
               </div>
 
-              {/* Totals */}
-              <div className="space-y-2 text-sm">
+              <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between text-[var(--fg-muted)]">
                   <span>{t('subtotal')}</span>
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
                 {discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
-                    <span>{t('discountLabel', { code: discountCode })}</span>
+                  <div className="flex justify-between text-emerald-600">
+                    <span>{t('discount')}</span>
                     <span>−{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-[var(--fg-muted)]">
-                  <span>{t('tax')}</span>
-                  <span>{formatCurrency(tax)}</span>
-                </div>
-                <div className="flex justify-between text-[var(--fg-muted)]">
-                  <span>{t('serviceCharge')}</span>
-                  <span>{formatCurrency(serviceCharge)}</span>
-                </div>
+                {/* TODO: render quote.lines from ENDPOINTS.ORDERS.QUOTE when backend ships contract */}
                 <Divider />
-                <div className="flex justify-between font-bold text-[var(--fg)] text-base">
+                <div className="flex justify-between font-bold text-[var(--fg)]">
                   <span>{t('total')}</span>
-                  <span>{formatCurrency(total)}</span>
+                  <span>{formatCurrency(displayAmount)}</span>
                 </div>
               </div>
 
-              {/* Checkout CTA */}
-              {orderingEnabled && (
-              <Link href="/checkout" onClick={() => setOpen(false)} className="block">
-                <Button className="w-full" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
-                  {t('checkout')}
+              {orderingEnabled ? (
+                <Link href="/checkout" onClick={() => setOpen(false)}>
+                  <Button className="w-full" rightIcon={<ArrowRight className="h-4 w-4" />}>
+                    {t('checkout')}
+                  </Button>
+                </Link>
+              ) : (
+                <Button className="w-full" variant="secondary" onClick={handleBrowseMenu}>
+                  {t('browseMenu')}
                 </Button>
-              </Link>
               )}
-              <button
-                onClick={clearCart}
-                className="w-full text-xs text-[var(--fg-subtle)] hover:text-red-500 transition-colors py-1"
-              >
+              <Button variant="ghost" className="w-full text-[var(--fg-muted)]" onClick={clearCart}>
                 {t('clearCart')}
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -207,11 +185,11 @@ export function CartDrawer() {
   )
 }
 
-// ── Floating Cart Button ───────────────────────────────────────────────────────
 export function FloatingCart() {
   const t = useTranslations('cart')
-  const { getItemCount, setOpen, getTotal } = useCartStore()
+  const { getItemCount, setOpen, getSubtotal, discountAmount } = useCartStore()
   const count = getItemCount()
+  const displayAmount = getSubtotal() - discountAmount
 
   return (
     <AnimatePresence>
@@ -234,7 +212,7 @@ export function FloatingCart() {
             </div>
             <span className="font-medium text-sm">{t('viewCart')}</span>
           </div>
-          <span className="font-bold text-sm md:ms-2">{formatCurrency(getTotal())}</span>
+          <span className="font-bold text-sm md:ms-2">{formatCurrency(displayAmount)}</span>
         </motion.button>
       )}
     </AnimatePresence>

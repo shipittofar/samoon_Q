@@ -20,7 +20,7 @@ import type {
   BranchBusinessHours,
 } from '@/types/branch'
 import { buildBranchFormData, type BranchWriteRequest } from '@/types/branch-form'
-import { buildBranchCheckout, mergeBranchCheckout, DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
+import { buildBranchCheckout, EMPTY_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 
 import type { PaginatedResponse } from '@/types'
 import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
@@ -69,12 +69,35 @@ function mockCheckoutFields(config: {
   maxCapacity?: number
   marketplaceVisible?: boolean
 } = {}) {
+  const orderTypes: Record<string, unknown> = { default: config.delivery ? 'delivery' : 'pickup' }
+  if (config.delivery) {
+    orderTypes.delivery = { enabled: true, requiresDeliveryAddress: true, fulfillmentMode: 'delivery' }
+  }
+  if (config.pickup ?? true) {
+    orderTypes.pickup = { enabled: true, fulfillmentMode: 'pickup' }
+  }
+  if (config.dineIn) {
+    orderTypes.dineIn = { enabled: true, requiresTableNumber: true }
+  }
+
   return {
     checkout: buildBranchCheckout({
-      delivery: config.delivery,
-      pickup: config.pickup ?? true,
-      dineIn: config.dineIn,
-      radius: config.radius ?? null,
+      orderingEnabled: true,
+      orderTypes: orderTypes as import('@/types/branch').BranchCheckoutOrderTypes,
+      delivery: {
+        radius: config.radius ?? null,
+        minimumOrder: null,
+        sameDay: true,
+        scheduled: true,
+        contactless: true,
+      },
+      payments: {
+        cash: true,
+        card: { enabled: true, requiresPaymentIntent: true },
+        online: true,
+        wallet: true,
+        default: 'card',
+      },
     }),
     reservationsEnabled: config.reservationsEnabled ?? false,
     maxCapacity: config.maxCapacity,
@@ -520,7 +543,7 @@ export const branchManagementService = {
         contact: payload.contact ?? {},
         managerId: payload.managerId,
         businessHours: payload.businessHours ?? defaultHours(),
-        checkout: mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, payload.checkout),
+        checkout: payload.checkout ?? { ...EMPTY_BRANCH_CHECKOUT },
         marketplaceVisible: payload.marketplaceVisible ?? true,
         reservationsEnabled: payload.reservationsEnabled ?? false,
         maxCapacity: payload.maxCapacity,
@@ -564,7 +587,7 @@ export const branchManagementService = {
         contact: payload.contact ?? {},
         managerId: payload.managerId,
         businessHours: payload.businessHours ?? defaultHours(),
-        checkout: mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, payload.checkout),
+        checkout: payload.checkout ?? { ...EMPTY_BRANCH_CHECKOUT },
         marketplaceVisible: payload.marketplaceVisible ?? true,
         reservationsEnabled: payload.reservationsEnabled ?? false,
         maxCapacity: payload.maxCapacity,
@@ -604,7 +627,7 @@ export const branchManagementService = {
       if (payload.contact) branch.contact = { ...branch.contact, ...payload.contact }
       if (payload.managerId !== undefined) branch.managerId = payload.managerId
       if (payload.businessHours) branch.businessHours = payload.businessHours
-      if (payload.checkout) branch.checkout = mergeBranchCheckout(branch.checkout, payload.checkout)
+      if (payload.checkout) branch.checkout = payload.checkout
       if (payload.marketplaceVisible !== undefined) branch.marketplaceVisible = payload.marketplaceVisible
       if (payload.reservationsEnabled !== undefined) branch.reservationsEnabled = payload.reservationsEnabled
       if (payload.maxCapacity !== undefined) branch.maxCapacity = payload.maxCapacity
