@@ -251,7 +251,7 @@ export function getSmartCTA(opts: SmartCTAOptions): SmartCTA | null {
     ? `/${tenantSlug}/${resolvedBranchSlug}`
     : `/${tenantSlug}`
 
-  const hasMenu = featureFlags['menu.enabled'] !== false
+  const hasMenu = featureFlags['menu.enabled'] === true
   const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch)
   const hasReservations = resolveReservationsEnabled(featureFlags, branch)
 

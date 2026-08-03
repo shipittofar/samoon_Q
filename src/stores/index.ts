@@ -50,6 +50,7 @@ import {
   resolvePublicTenantId,
   type ResolvePublicTenantOptions,
 } from '@/lib/public-tenant-resolution'
+import { featureFlagsService } from '@/services/feature-flags.service'
 import type { MembershipBranch } from '@/types/rbac'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
@@ -387,18 +388,43 @@ export const useTenantStore = create<TenantState>()(
           // ineligible (suspended/archived/churned) — that is access denial,
           // not a resolved, usable tenant. Console must never render against it.
           if (!ELIGIBLE_TENANT_STATUSES.includes(tenant.status)) {
-            set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
+            set({
+              tenant: null,
+              isLoading: false,
+              tenantState: 'forbidden',
+              featureFlags: {},
+              featureFlagsInitialized: true,
+            })
             return
           }
-          set({ tenant, isLoading: false, tenantState: 'resolved', lastAttemptedTenantId: tenantId })
+          set({
+            tenant,
+            isLoading: false,
+            tenantState: 'resolved',
+            lastAttemptedTenantId: tenantId,
+            featureFlags: featureFlagsService.resolve(tenant),
+            featureFlagsInitialized: true,
+          })
         } catch (err) {
           // Never substitute a fake tenant here. Classify the failure and
           // leave `tenant` null so nothing downstream can mistake an
           // unresolved tenant for a real one.
           if (err instanceof TenantNotFoundError) {
-            set({ tenant: null, isLoading: false, tenantState: 'not_found' })
+            set({
+              tenant: null,
+              isLoading: false,
+              tenantState: 'not_found',
+              featureFlags: {},
+              featureFlagsInitialized: true,
+            })
           } else if (err instanceof TenantForbiddenError) {
-            set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
+            set({
+              tenant: null,
+              isLoading: false,
+              tenantState: 'forbidden',
+              featureFlags: {},
+              featureFlagsInitialized: true,
+            })
           } else {
             // Unclassified failure (network error, 5xx, malformed response,
             // etc.) — report it so it doesn't vanish silently. No response
@@ -407,7 +433,13 @@ export const useTenantStore = create<TenantState>()(
             if (process.env.NODE_ENV !== 'production') {
               console.error('[useTenantStore.loadTenant] tenant resolution failed:', slug, err)
             }
-            set({ tenant: null, isLoading: false, tenantState: 'error' })
+            set({
+              tenant: null,
+              isLoading: false,
+              tenantState: 'error',
+              featureFlags: {},
+              featureFlagsInitialized: true,
+            })
           }
         }
       },
@@ -416,21 +448,51 @@ export const useTenantStore = create<TenantState>()(
         try {
           const tenant = await tenantService.getTenantById(tenantId)
           if (!ELIGIBLE_TENANT_STATUSES.includes(tenant.status)) {
-            set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
+            set({
+              tenant: null,
+              isLoading: false,
+              tenantState: 'forbidden',
+              featureFlags: {},
+              featureFlagsInitialized: true,
+            })
             return
           }
-          set({ tenant, isLoading: false, tenantState: 'resolved' })
+          set({
+            tenant,
+            isLoading: false,
+            tenantState: 'resolved',
+            featureFlags: featureFlagsService.resolve(tenant),
+            featureFlagsInitialized: true,
+          })
         } catch (err) {
           if (err instanceof TenantNotFoundError) {
-            set({ tenant: null, isLoading: false, tenantState: 'not_found' })
+            set({
+              tenant: null,
+              isLoading: false,
+              tenantState: 'not_found',
+              featureFlags: {},
+              featureFlagsInitialized: true,
+            })
           } else if (err instanceof TenantForbiddenError) {
-            set({ tenant: null, isLoading: false, tenantState: 'forbidden' })
+            set({
+              tenant: null,
+              isLoading: false,
+              tenantState: 'forbidden',
+              featureFlags: {},
+              featureFlagsInitialized: true,
+            })
           } else {
             captureException(err, { context: 'useTenantStore.loadTenantById', tenantId })
             if (process.env.NODE_ENV !== 'production') {
               console.error('[useTenantStore.loadTenantById] tenant resolution failed:', tenantId, err)
             }
-            set({ tenant: null, isLoading: false, tenantState: 'error' })
+            set({
+              tenant: null,
+              isLoading: false,
+              tenantState: 'error',
+              featureFlags: {},
+              featureFlagsInitialized: true,
+            })
           }
         }
       },

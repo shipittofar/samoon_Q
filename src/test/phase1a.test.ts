@@ -714,16 +714,17 @@ describe("useSystemReady() — 'loading' state", () => {
 
   it('canExecute is false when tenant is resolved but RBAC not initialized', async () => {
     await useTenantStore.getState().loadTenant('default')
-    // rbacInitialized and featureFlagsInitialized are still false (not bootstrapped)
+    // loadTenant resolves feature flags; RBAC is still initialized by TenantBootstrapper
     expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('resolved')
+    expect(useTenantStore.getState().featureFlagsInitialized).toBe(true)
     expect(getSystemReady().canExecute).toBe(false)
   })
 
-  it('canExecute is false when tenant is resolved and RBAC initialized but feature flags are not', async () => {
+  it('canExecute is true when tenant is resolved, feature flags resolved, and RBAC initialized', async () => {
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setRbacInitialized(true)
-    // featureFlagsInitialized still false
-    expect(getSystemReady().canExecute).toBe(false)
+    expect(useTenantStore.getState().featureFlagsInitialized).toBe(true)
+    expect(getSystemReady().canExecute).toBe(true)
   })
 
   it('canExecute is false when tenant is resolved and feature flags initialized but RBAC is not', async () => {
@@ -839,16 +840,13 @@ describe('useSystemReady() — derivation, architecture, and hook contract', () 
     // 1. loading → all false → canExecute false
     expect(getSystemReady().canExecute).toBe(false)
 
-    // 2. tenant ready but subsystems not yet initialized → canExecute still false
+    // 2. tenant ready, flags resolved by loadTenant, but RBAC not yet initialized → canExecute false
     await useTenantStore.getState().loadTenant('default')
+    expect(useTenantStore.getState().featureFlagsInitialized).toBe(true)
     expect(getSystemReady().canExecute).toBe(false)
 
-    // 3. RBAC initialized but flags still pending → canExecute still false
+    // 3. RBAC initialized → all three satisfied → canExecute true
     useTenantStore.getState().setRbacInitialized(true)
-    expect(getSystemReady().canExecute).toBe(false)
-
-    // 4. All three satisfied → canExecute true
-    useTenantStore.getState().setFeatureFlagsInitialized(true)
     expect(getSystemReady().canExecute).toBe(true)
   })
 
@@ -856,7 +854,8 @@ describe('useSystemReady() — derivation, architecture, and hook contract', () 
     const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setRbacInitialized(true)
-    useTenantStore.getState().setFeatureFlagsInitialized(true)
+    // loadTenant failure still marks featureFlagsInitialized true (empty map)
+    expect(useTenantStore.getState().featureFlagsInitialized).toBe(true)
     expect(getSystemReady().canExecute).toBe(true)
     spy.mockRestore()
   })

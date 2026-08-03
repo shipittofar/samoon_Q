@@ -109,7 +109,7 @@ export function resolveOrderingEnabled(
 ): boolean {
   if (!hasMenu) return false
   if (branch?.orderingEnabled !== undefined) return branch.orderingEnabled
-  return featureFlags['ordering.enabled'] !== false
+  return featureFlags['ordering.enabled'] === true
 }
 
 export function resolveReservationsEnabled(
@@ -139,7 +139,7 @@ export function buildPublicCTAs(opts: BuildPublicCTAsOptions): PublicCTASet {
     ? `/${tenantSlug}/${resolvedBranchSlug}`
     : `/${tenantSlug}`
 
-  const hasMenu = featureFlags['menu.enabled'] !== false
+  const hasMenu = featureFlags['menu.enabled'] === true
   const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch)
   const hasReservations = resolveReservationsEnabled(featureFlags, branch)
 
