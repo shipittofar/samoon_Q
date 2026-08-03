@@ -61,6 +61,9 @@ function Breadcrumb({ name }: { name: string }) {
   )
 }
 
+/** Tenant homepage omits the Order Online entry point; branch pages keep it. */
+const ORDER_ONLINE_LABEL = 'Order Online' as const
+
 // ── Hero Section ──────────────────────────────────────────────────────────────
 
 function HeroSection({
@@ -85,6 +88,12 @@ function HeroSection({
     meta,
     branch: branchCapability,
   })
+  const heroPrimary =
+    cta && cta.primary.label !== ORDER_ONLINE_LABEL ? cta.primary : undefined
+  const heroSecondary =
+    cta?.secondary && cta.secondary.label !== ORDER_ONLINE_LABEL
+      ? cta.secondary
+      : undefined
 
   return (
     <section
@@ -186,24 +195,26 @@ function HeroSection({
             </div>
 
             {/* C1: Primary CTA in hero — driven by getSmartCTA (resolved feature flags) */}
-            {cta && (
+            {(heroPrimary || heroSecondary) && (
               <div className="flex flex-wrap gap-3 mt-4">
-                <Link
-                  href={cta.primary.href}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
-                >
-                  <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
-                  {cta.primary.label}
-                </Link>
-                {cta.secondary ? (
+                {heroPrimary && (
                   <Link
-                    href={cta.secondary.href}
+                    href={heroPrimary.href}
+                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
+                  >
+                    <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+                    {heroPrimary.label}
+                  </Link>
+                )}
+                {heroSecondary ? (
+                  <Link
+                    href={heroSecondary.href}
                     className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
                   >
                     <MapPin className="w-4 h-4" aria-hidden="true" />
-                    {cta.secondary.label}
+                    {heroSecondary.label}
                   </Link>
-                ) : (
+                ) : heroPrimary ? (
                   <a
                     href="#branches"
                     className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
@@ -211,7 +222,7 @@ function HeroSection({
                     <MapPin className="w-4 h-4" aria-hidden="true" />
                     {t('allLocations')}
                   </a>
-                )}
+                ) : null}
               </div>
             )}
           </div>
@@ -863,7 +874,11 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
     meta,
     branch: primaryBranchCapability,
   })
-  const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas })
+  const homepageCTAs = {
+    ...ctas,
+    menu: ctas.menu?.label === ORDER_ONLINE_LABEL ? null : ctas.menu,
+  }
+  const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas: homepageCTAs })
 
   // Section component map — visibility still gated by buildPublicSections().
   // The featured_menu slot always includes CategoriesSection so it moves with
