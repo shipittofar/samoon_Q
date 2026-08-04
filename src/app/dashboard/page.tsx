@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Package, Heart, Calendar, MapPin, ArrowRight, Clock, TrendingUp, Star } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useAuthStore, useTenantStore } from '@/stores'
 import { useOrders, useReservations } from '@/hooks'
 import { resolveBestDashboardActions } from '@/utils/navigation-intelligence'
@@ -11,12 +12,13 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
 import { Skeleton } from '@/components/ui'
 import { formatCurrency, formatDate, formatRelativeTime } from '@/utils'
-import { ORDER_STATUS_COLORS } from '@/constants'
-import { useTranslations } from 'next-intl'
+import { isTerminalOrderStatus, getOrderStatusLabelKey } from '@/lib/order-status'
 
 
 const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple' | 'danger' | 'secondary'> = {
   delivered: 'success',
+  picked_up: 'success',
+  served: 'success',
   pending: 'warning',
   accepted: 'info',
   preparing: 'purple',
@@ -26,6 +28,7 @@ const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple'
 
 export default function DashboardPage() {
   const t = useTranslations('dashboard')
+  const tOrder = useTranslations('order')
   const tCommon = useTranslations('common')
   const { user } = useAuthStore()
   const tenantSlug = useTenantStore((s) => s.tenant?.slug)
@@ -35,7 +38,7 @@ export default function DashboardPage() {
 
   const orders = ordersData?.results || []
   const reservations = reservationsData?.results || []
-  const activeOrder = orders.find((o) => !['delivered', 'cancelled'].includes(o.status))
+  const activeOrder = orders.find((o) => !isTerminalOrderStatus(o) && o.status !== 'cancelled')
 
   const stats = [
     { label: t('totalOrders'), value: ordersData?.count || 0, icon: Package, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30' },
@@ -68,7 +71,9 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="font-semibold">{t('activeOrderLabel', { number: activeOrder.order_number })}</p>
-                <p className="text-white/80 text-sm capitalize">{t('statusLabel', { status: activeOrder.status?.replace('_', ' ') })}</p>
+                <p className="text-white/80 text-sm capitalize">
+                  {tOrder(`status.${getOrderStatusLabelKey(activeOrder.status)}`)}
+                </p>
               </div>
             </div>
             <Link href={`/order/${activeOrder.id}`}>
@@ -150,7 +155,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-end shrink-0">
                     <Badge variant={STATUS_BADGE_MAP[order.status] || 'secondary'} className="mb-1 capitalize">
-                      {order.status?.replace('_', ' ')}
+                      {tOrder(`status.${getOrderStatusLabelKey(order.status)}`)}
                     </Badge>
                     <p className="text-sm font-semibold text-[var(--fg)]">{formatCurrency(order.total)}</p>
                   </div>

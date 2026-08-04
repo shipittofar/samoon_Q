@@ -31,6 +31,9 @@
  */
 import { configurationService } from '@/config'
 import { parseDecimal } from '@/utils/decimal'
+import enMessages from './locales/en.json'
+import faMessages from './locales/fa.json'
+import arMessages from './locales/ar.json'
 import {
   ALL_LANGUAGE_CODES,
   getLanguageMetadata,
@@ -166,7 +169,17 @@ export function __resetMissingTranslationLogForTests(): void {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Messages = Record<string, any>
 
+/** Locales with full message bundles — statically imported so dev bundlers (Turbopack) never serve a stale dynamic-import chunk missing newly added keys. */
+const BUNDLED_LOCALE_MESSAGES: Record<string, Messages> = {
+  en: enMessages,
+  fa: faMessages,
+  ar: arMessages,
+}
+
 async function importLocaleMessages(locale: string): Promise<Messages | undefined> {
+  if (BUNDLED_LOCALE_MESSAGES[locale]) {
+    return BUNDLED_LOCALE_MESSAGES[locale]
+  }
   try {
     const mod = (await import(`./locales/${locale}.json`)) as { default: Messages }
     return mod.default

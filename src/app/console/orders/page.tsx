@@ -11,7 +11,7 @@ import { cn } from '@/utils'
 import { useAdminOrders, useUpdateOrderStatus, useAdminBranches, useBulkUpdateOrderStatus, useBulkCancelOrders } from '@/hooks'
 import { ADMIN_ORDERS_PAGE_SIZE } from '@/services/admin.service'
 import { useConsoleWorkspace } from '@/hooks/console-workspace'
-import { getNextOrderStatus, getOrderStatusMeta, ORDER_STATUS_CONFIG, resolveOrderStatus } from '@/lib/order-status'
+import { getNextOrderStatus, getOrderStatusMeta, ORDER_STATUS_CONFIG, resolveOrderStatus, translateOrderStatusLabel } from '@/lib/order-status'
 import type { AdminOrdersScope, Order, OrderStatus, OrderType } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -185,7 +185,7 @@ export default function AdminOrdersPage() {
               >
                 <cfg.icon className={cn('h-4 w-4', cfg.color)} />
                 <span className="text-xs font-semibold text-[var(--fg)]">{statusCounts[status] ?? 0}</span>
-                <span className="text-[10px] text-[var(--fg-muted)]">{tOrder(`status.${cfg.labelKey}`)}</span>
+                <span className="text-[10px] text-[var(--fg-muted)]">{translateOrderStatusLabel(tOrder, cfg.labelKey)}</span>
               </button>
             ))}
           </div>
@@ -294,7 +294,7 @@ export default function AdminOrdersPage() {
                           <td className="px-4 py-3.5">
                             <Badge variant={cfg.badge} className="capitalize whitespace-nowrap">
                               <cfg.icon className="h-3 w-3 me-1" />
-                              {tOrder(`status.${cfg.labelKey}`)}
+                              {translateOrderStatusLabel(tOrder, cfg.labelKey)}
                             </Badge>
                           </td>
                           <td className="px-4 py-3.5 text-[var(--fg-muted)] whitespace-nowrap">
@@ -311,7 +311,7 @@ export default function AdminOrdersPage() {
                               >
                                 {isPending
                                   ? <Loader2 className="h-3 w-3 animate-spin" />
-                                  : t('advanceToStatus', { status: tOrder(`status.${getOrderStatusMeta(nextStatus).labelKey}`) })}
+                                  : t('advanceToStatus', { status: translateOrderStatusLabel(tOrder, getOrderStatusMeta(nextStatus).labelKey) })}
                               </Button>
                             )}
                           </td>

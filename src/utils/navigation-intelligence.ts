@@ -64,19 +64,21 @@ export function resolveBestMenu(tenantSlug?: string | null): string {
 
 /**
  * Resolves the branch-scoped menu URL for reordering from an existing order.
- * Prefers branch slug from the order payload; optional `branchSlugFallback`
- * covers cases where the API returns only `branch_id` (e.g. active cart branch).
+ * Prefers `tenant_slug` and `branch_slug` from the order API response.
+ * Falls back to embedded `branch.slug` and optional caller-provided slugs when absent.
  */
 export function resolveOrderBranchMenuUrl(
-  order: Pick<Order, 'branch_id' | 'branch'>,
-  tenantSlug?: string | null,
+  order: Pick<Order, 'branch' | 'tenant_slug' | 'branch_slug'>,
+  tenantSlugFallback?: string | null,
   branchSlugFallback?: string | null,
 ): string {
-  const branchSlug = order.branch?.slug ?? branchSlugFallback ?? null
-  const effectiveTenantSlug =
-    tenantSlug && tenantSlug !== 'default' ? tenantSlug : null
+  const tenantSlug =
+    order.tenant_slug ??
+    (tenantSlugFallback && tenantSlugFallback !== 'default' ? tenantSlugFallback : null)
+  const branchSlug =
+    order.branch_slug ?? order.branch?.slug ?? branchSlugFallback ?? null
   return buildPublicUrl({
-    tenantSlug: effectiveTenantSlug,
+    tenantSlug,
     branchSlug,
     module: 'menu',
   })

@@ -49,6 +49,8 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   preparing: 'Preparing',
   ready: 'Ready',
   delivered: 'Delivered',
+  picked_up: 'Picked up',
+  served: 'Served',
   cancelled: 'Cancelled',
 }
 
@@ -58,6 +60,8 @@ export const ORDER_STATUS_COLORS: Record<string, string> = {
   preparing: 'purple',
   ready: 'green',
   delivered: 'emerald',
+  picked_up: 'emerald',
+  served: 'emerald',
   cancelled: 'red',
 }
 

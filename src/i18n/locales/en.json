@@ -519,6 +519,7 @@
       "delivered": "Delivered",
       "completed": "Completed",
       "picked_up": "Picked up",
+      "served": "Served",
       "cancelled": "Cancelled",
       "rejected": "Rejected"
     },
@@ -1253,6 +1254,7 @@
     "statusPending": "Pending",
     "statusPreparing": "Preparing",
     "statusReady": "Ready",
+    "statusServed": "Served",
     "priority": "Priority",
     "orderSlaBreachedAria": "Order {number}, SLA breached",
     "orderNumberAria": "Order {number}",
@@ -5066,6 +5068,8 @@
     "orderPlacedDesc": "Your order has been received",
     "accepted": "Accepted",
     "acceptedDesc": "Restaurant accepted your order",
+    "confirmed": "Confirmed",
+    "confirmedDesc": "Your order has been confirmed",
     "preparing": "Preparing",
     "preparingDesc": "Chef is crafting your meal",
     "ready": "Ready",
@@ -5073,7 +5077,9 @@
     "delivered": "Delivered",
     "deliveredDesc": "Enjoy your meal 🎉",
     "pickedUp": "Picked up",
-    "pickedUpDesc": "Your order has been picked up"
+    "pickedUpDesc": "Your order has been picked up",
+    "served": "Served",
+    "servedDesc": "Your meal has been served — enjoy!"
   },
   "checkoutResult": {
     "orderConfirmed": "Order Confirmed!",

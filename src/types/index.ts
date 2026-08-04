@@ -303,6 +303,7 @@ export type OrderStatus =
   | 'ready'
   | 'delivered'
   | 'picked_up'
+  | 'served'
   | 'cancelled'
 
 export type OrderType = 'delivery' | 'pickup' | 'dine_in'
@@ -367,6 +368,10 @@ export interface Order {
   user?: User
   branch_id: string
   branch?: Branch
+  /** Public tenant slug from GET /orders/{id}/ — preferred for branch menu URLs. */
+  tenant_slug?: string
+  /** Public branch slug from GET /orders/{id}/ — preferred for branch menu URLs. */
+  branch_slug?: string
   items: OrderItem[]
   order_type: OrderType
   status: OrderStatus

@@ -18,7 +18,7 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { formatCurrency } from '@/utils'
 import { useOrder } from '@/hooks'
-import { ORDER_STATUS_CONFIG } from '@/lib/order-status'
+import { ORDER_STATUS_CONFIG, getOrderStatusMeta } from '@/lib/order-status'
 import type { OrderStatusHistory, OrderType, PaymentMethod, PaymentStatus } from '@/types'
 
 const ORDER_TYPE_KEY: Record<OrderType, string> = { delivery: 'delivery', pickup: 'pickup', dine_in: 'dineIn' }
@@ -32,9 +32,9 @@ const PAYMENT_STATUS_KEY: Record<PaymentStatus, string> = {
 
 function TimelineItem({ entry, isLast }: { entry: OrderStatusHistory; isLast: boolean }) {
   const tOrder = useTranslations('order')
-  const cfg = ORDER_STATUS_CONFIG[entry.status]
-  const label = cfg ? tOrder(`status.${cfg.labelKey}`) : entry.status
-  const Icon = cfg?.icon ?? Clock
+  const meta = getOrderStatusMeta(entry.status)
+  const label = tOrder(`status.${meta.labelKey}`)
+  const Icon = meta.icon
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
@@ -96,8 +96,8 @@ function OrderDetailContent({ id }: { id: string }) {
     )
   }
 
-  const statusCfg = ORDER_STATUS_CONFIG[order.status]
-  const statusLabel = statusCfg ? tOrder(`status.${statusCfg.labelKey}`) : order.status
+  const statusMeta = getOrderStatusMeta(order.status)
+  const statusLabel = tOrder(`status.${statusMeta.labelKey}`)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,7 +109,7 @@ function OrderDetailContent({ id }: { id: string }) {
           </Link>
           <div className="flex items-center gap-3 flex-1">
             <h1 className="text-lg font-semibold">{t('orderNumberHeading', { number: order.order_number })}</h1>
-            <Badge variant={statusCfg?.badge ?? 'secondary'}>{statusLabel}</Badge>
+            <Badge variant={statusMeta.badge}>{statusLabel}</Badge>
           </div>
           <span className="text-xs text-gray-400">{new Date(order.created_at).toLocaleString()}</span>
         </div>

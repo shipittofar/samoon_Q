@@ -26,6 +26,7 @@ import {
   useAdminCustomerReviews,
 } from '@/hooks'
 import { formatCurrency, formatDate } from '@/utils'
+import { getOrderStatusLabelKey } from '@/lib/order-status'
 import type {
   AdminCustomerTier, CustomerTimelineEvent, CustomerNote,
   CustomerTagColor, CustomerPayment, OrderType, PaymentMethod,
@@ -429,8 +430,14 @@ function OrdersPanel({ id }: { id: string }) {
   if (!data?.results.length) return <EmptyState message={t('noOrdersFoundForCustomer')} />
 
   const statusColor: Record<string, string> = {
-    delivered: 'text-emerald-500', preparing: 'text-amber-500',
-    cancelled: 'text-red-400', pending: 'text-blue-500', ready: 'text-purple-500',
+    delivered: 'text-emerald-500',
+    picked_up: 'text-emerald-500',
+    served: 'text-emerald-500',
+    accepted: 'text-blue-500',
+    preparing: 'text-amber-500',
+    cancelled: 'text-red-400',
+    pending: 'text-blue-500',
+    ready: 'text-purple-500',
   }
 
   return (
@@ -442,7 +449,7 @@ function OrdersPanel({ id }: { id: string }) {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-semibold text-[var(--fg)]">{order.order_number}</span>
                 <span className={`text-xs font-medium capitalize ${statusColor[order.status ?? ''] ?? 'text-[var(--fg-muted)]'}`}>
-                  {order.status ? tOrder(`status.${order.status}`) : ''}
+                  {order.status ? tOrder(`status.${getOrderStatusLabelKey(order.status)}`) : ''}
                 </span>
                 <span className="text-xs text-[var(--fg-muted)] capitalize">{order.order_type ? tCheckout(ORDER_TYPE_KEY[order.order_type] ?? order.order_type) : ''}</span>
               </div>

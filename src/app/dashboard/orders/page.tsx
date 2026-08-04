@@ -9,10 +9,17 @@ import { Badge, Skeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useOrders, useCreateReview } from '@/hooks'
 import { formatCurrency, formatDate } from '@/utils'
+import { getOrderStatusLabelKey } from '@/lib/order-status'
 
 const STATUS_BADGE_MAP: Record<string, 'success' | 'warning' | 'info' | 'purple' | 'danger' | 'secondary'> = {
-  delivered: 'success', pending: 'warning', accepted: 'info',
-  preparing: 'purple', ready: 'success', cancelled: 'danger',
+  delivered: 'success',
+  picked_up: 'success',
+  served: 'success',
+  pending: 'warning',
+  accepted: 'info',
+  preparing: 'purple',
+  ready: 'success',
+  cancelled: 'danger',
 }
 
 function WriteReviewButton({ orderId, itemId }: { orderId: string; itemId: string }) {
@@ -73,6 +80,7 @@ export default function OrdersPage() {
   const { data, isLoading, refetch } = useOrders()
   const [search, setSearch] = useState('')
   const t = useTranslations('dashboard')
+  const tOrder = useTranslations('order')
   const orders = (data?.results || []).filter((o) =>
     !search || o.order_number?.toLowerCase().includes(search.toLowerCase()),
   )
@@ -133,7 +141,7 @@ export default function OrdersPage() {
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-semibold text-[var(--fg)]">{order.order_number}</p>
                         <Badge variant={STATUS_BADGE_MAP[order.status] || 'secondary'} className="capitalize text-xs">
-                          {order.status?.replace('_', ' ')}
+                          {tOrder(`status.${getOrderStatusLabelKey(order.status)}`)}
                         </Badge>
                       </div>
                       <p className="text-sm text-[var(--fg-muted)]">

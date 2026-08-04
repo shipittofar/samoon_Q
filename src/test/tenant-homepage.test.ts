@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
 import { getMarketplaceMeta } from '@/types/marketplace'
 import { buildPublicUrl, hrefToPublicUrl } from '@/utils/public-url'
+import { resolveOrderBranchMenuUrl } from '@/utils/navigation-intelligence'
 import type { PublicBranchInfo } from '@/types/marketplace'
 
 // ── public-url.ts — buildPublicUrl ────────────────────────────────────────────
@@ -35,6 +36,32 @@ describe('buildPublicUrl', () => {
     expect(buildPublicUrl({ tenantSlug: 'samoon', branchSlug: 'main', module: '' })).toBe(
       '/samoon/main',
     )
+  })
+})
+
+// ── navigation-intelligence — resolveOrderBranchMenuUrl ─────────────────────
+
+describe('resolveOrderBranchMenuUrl', () => {
+  it('prefers tenant_slug and branch_slug from the order response', () => {
+    expect(
+      resolveOrderBranchMenuUrl({
+        tenant_slug: 'cafe-noon',
+        branch_slug: 'izad-shahr',
+      }),
+    ).toBe('/cafe-noon/izad-shahr/menu')
+  })
+
+  it('falls back to branch.slug and tenantSlugFallback when API slugs are absent', () => {
+    expect(
+      resolveOrderBranchMenuUrl(
+        { branch: { slug: 'main' } as import('@/types').Branch },
+        'samoon',
+      ),
+    ).toBe('/samoon/main/menu')
+  })
+
+  it('falls back to flat /menu when no slug context is available', () => {
+    expect(resolveOrderBranchMenuUrl({})).toBe('/menu')
   })
 })
 

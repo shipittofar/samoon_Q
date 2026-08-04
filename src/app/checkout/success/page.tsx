@@ -10,9 +10,8 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui'
 import { OrderTracker } from '@/components/order/OrderTracker'
 import { useOrder } from '@/hooks'
-import { useTenantStore, useBranchStore } from '@/stores'
 import { resolveOrderBranchMenuUrl } from '@/utils/navigation-intelligence'
-import { resolveOrderStatus } from '@/lib/order-status'
+import { isTerminalOrderStatus, resolveOrderStatus } from '@/lib/order-status'
 import confetti from 'canvas-confetti'
 
 function SuccessLoading() {
@@ -83,8 +82,6 @@ function SuccessContent() {
   const params = useSearchParams()
   const orderId = params.get('orderId') || ''
   const { data: order, isLoading, isError, refetch } = useOrder(orderId)
-  const tenantSlug = useTenantStore((s) => s.tenant?.slug)
-  const activeBranch = useBranchStore((s) => s.activeBranch)
 
   useEffect(() => {
     if (!order) return
@@ -119,14 +116,9 @@ function SuccessContent() {
     )
   }
 
-  const branchSlugFallback =
-    activeBranch?.id === order.branch_id ? activeBranch.slug : undefined
-  const menuHref = resolveOrderBranchMenuUrl(order, tenantSlug, branchSlugFallback)
-  const resolvedStatus = resolveOrderStatus(order.status)
-  const trackerActive =
-    resolvedStatus !== 'delivered' &&
-    resolvedStatus !== 'picked_up' &&
-    resolvedStatus !== 'cancelled'
+  const menuHref = resolveOrderBranchMenuUrl(order)
+  const resolvedStatus = resolveOrderStatus(order.status, order.order_type)
+  const trackerActive = !isTerminalOrderStatus(order) && resolvedStatus !== 'cancelled'
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">

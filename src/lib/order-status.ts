@@ -5,10 +5,12 @@ import {
   Clock,
   Package,
   Truck,
+  UtensilsCrossed,
   XCircle,
   type LucideIcon,
 } from 'lucide-react'
-import type { Order, OrderStatus } from '@/types'
+import type { Order, OrderStatus, OrderType } from '@/types'
+import { ORDER_STATUS_LABELS } from '@/constants'
 
 export const PICKUP_DELIVERY_REJECTION_MESSAGE =
   'Only delivery orders can be marked as out for delivery.'
@@ -80,6 +82,13 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, OrderStatusMeta> = {
     bg: 'bg-emerald-50 dark:bg-emerald-950/30',
     badge: 'success',
   },
+  served: {
+    labelKey: 'served',
+    icon: UtensilsCrossed,
+    color: 'text-emerald-500',
+    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+    badge: 'success',
+  },
   cancelled: {
     labelKey: 'cancelled',
     icon: XCircle,
@@ -129,8 +138,9 @@ export const BACKEND_ORDER_STATUS_ALIASES: Partial<Record<string, OrderStatus>> 
   rejected: 'cancelled',
 }
 
-export function resolveOrderStatus(status: string): OrderStatus {
+export function resolveOrderStatus(status: string, orderType?: OrderType): OrderStatus {
   if (status in ORDER_STATUS_CONFIG) return status as OrderStatus
+  if (orderType === 'dine_in' && status === 'completed') return 'served'
   return BACKEND_ORDER_STATUS_ALIASES[status] ?? 'pending'
 }
 
@@ -154,14 +164,31 @@ const PICKUP_STATUS_NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
   ready: 'picked_up',
 }
 
-/** Single source of truth: whether an order completes via picked_up instead of delivered. */
+const DINE_IN_STATUS_NEXT: Partial<Record<OrderStatus, OrderStatus>> = {
+  pending: 'accepted',
+  accepted: 'preparing',
+  preparing: 'ready',
+  ready: 'served',
+}
+
+/** Dine-in orders complete at served — not delivered or picked_up. */
+export function usesDineInFulfillment(order: Pick<Order, 'order_type'>): boolean {
+  return order.order_type === 'dine_in'
+}
+
+/** Pickup orders complete at picked_up instead of delivered. */
 export function usesPickupFulfillment(order: Pick<Order, 'order_type'>): boolean {
   return order.order_type === 'pickup'
 }
 
 export function getNextOrderStatus(order: OrderStatusContext): OrderStatus | undefined {
-  const nextMap = usesPickupFulfillment(order) ? PICKUP_STATUS_NEXT : DELIVERY_STATUS_NEXT
-  return nextMap[resolveOrderStatus(order.status)]
+  const resolved = resolveOrderStatus(order.status, order.order_type)
+  const nextMap = usesDineInFulfillment(order)
+    ? DINE_IN_STATUS_NEXT
+    : usesPickupFulfillment(order)
+      ? PICKUP_STATUS_NEXT
+      : DELIVERY_STATUS_NEXT
+  return nextMap[resolved]
 }
 
 /** Defensive guard when callers pass an explicit status instead of getNextOrderStatus(). */
@@ -170,6 +197,7 @@ export function resolveStatusUpdate(
   status: OrderStatus,
 ): OrderStatus {
   if (!order) return status
+  if (status === 'delivered' && usesDineInFulfillment(order)) return 'served'
   if (status === 'delivered' && usesPickupFulfillment(order)) return 'picked_up'
   return status
 }
@@ -202,10 +230,50 @@ export const PICKUP_TRACKER_STATUSES: OrderStatus[] = [
   'picked_up',
 ]
 
+export const DINE_IN_TRACKER_STATUSES: OrderStatus[] = [
+  'pending',
+  'accepted',
+  'preparing',
+  'ready',
+  'served',
+]
+
 export function getTrackerStatusOrder(order?: OrderStatusContext): OrderStatus[] {
-  return order && usesPickupFulfillment(order) ? PICKUP_TRACKER_STATUSES : DELIVERY_TRACKER_STATUSES
+  if (order && usesDineInFulfillment(order)) return DINE_IN_TRACKER_STATUSES
+  if (order && usesPickupFulfillment(order)) return PICKUP_TRACKER_STATUSES
+  return DELIVERY_TRACKER_STATUSES
+}
+
+/** Terminal statuses per order type — no further customer/admin progression. */
+export function getTerminalOrderStatuses(order?: OrderStatusContext): OrderStatus[] {
+  if (order && usesDineInFulfillment(order)) return ['served']
+  if (order && usesPickupFulfillment(order)) return ['picked_up']
+  return ['delivered']
+}
+
+export function isTerminalOrderStatus(order: OrderStatusContext): boolean {
+  const resolved = resolveOrderStatus(order.status, order.order_type)
+  return getTerminalOrderStatuses(order).includes(resolved)
 }
 
 export function getOrderStatusBadgeVariant(status: OrderStatus): OrderStatusBadgeVariant {
   return getOrderStatusMeta(status).badge
+}
+
+/** `order.status.*` i18n suffix — always resolves aliases to a defined label key. */
+export function getOrderStatusLabelKey(status: string): string {
+  return getOrderStatusMeta(status).labelKey
+}
+
+/** Scoped `useTranslations('order')` — resolves `status.<labelKey>` with a safe fallback. */
+export type OrderStatusTranslator = {
+  has: (key: string) => boolean
+  (key: string): string
+}
+
+/** Translate an order status label via `order.status.*`, never emitting MISSING_MESSAGE. */
+export function translateOrderStatusLabel(tOrder: OrderStatusTranslator, labelKey: string): string {
+  const key = `status.${labelKey}`
+  if (tOrder.has(key)) return tOrder(key)
+  return ORDER_STATUS_LABELS[labelKey] ?? labelKey.replace(/_/g, ' ')
 }

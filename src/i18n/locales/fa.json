@@ -504,6 +504,7 @@
       "delivered": "تحویل داده شده",
       "completed": "تکمیل شده",
       "picked_up": "تحویل گرفته شد",
+      "served": "سرو شد",
       "cancelled": "لغو شده",
       "rejected": "رد شده"
     },
@@ -1238,6 +1239,7 @@
     "statusPending": "در انتظار",
     "statusPreparing": "در حال آماده‌سازی",
     "statusReady": "آماده",
+    "statusServed": "سرو شد",
     "priority": "اولویت",
     "orderSlaBreachedAria": "سفارش {number}، SLA نقض شد",
     "orderNumberAria": "سفارش {number}",
@@ -5051,6 +5053,8 @@
     "orderPlacedDesc": "سفارش شما دریافت شد",
     "accepted": "پذیرفته شد",
     "acceptedDesc": "رستوران سفارش شما را پذیرفت",
+    "confirmed": "تأیید شد",
+    "confirmedDesc": "سفارش شما تأیید شد",
     "preparing": "در حال آماده‌سازی",
     "preparingDesc": "سرآشپز در حال آماده‌سازی غذای شماست",
     "ready": "آماده",
@@ -5058,7 +5062,9 @@
     "delivered": "تحویل داده شد",
     "deliveredDesc": "از غذای خود لذت ببرید 🎉",
     "pickedUp": "تحویل گرفته شد",
-    "pickedUpDesc": "سفارش شما تحویل گرفته شد"
+    "pickedUpDesc": "سفارش شما تحویل گرفته شد",
+    "served": "سرو شد",
+    "servedDesc": "غذای شما سرو شد — نوش جان!"
   },
   "checkoutResult": {
     "orderConfirmed": "سفارش تأیید شد!",

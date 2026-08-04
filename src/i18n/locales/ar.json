@@ -504,6 +504,7 @@
       "delivered": "تم التوصيل",
       "completed": "مكتمل",
       "picked_up": "تم الاستلام",
+      "served": "تم التقديم",
       "cancelled": "ملغي",
       "rejected": "مرفوض"
     },
@@ -1238,6 +1239,7 @@
     "statusPending": "قيد الانتظار",
     "statusPreparing": "قيد التحضير",
     "statusReady": "جاهز",
+    "statusServed": "تم التقديم",
     "priority": "الأولوية",
     "orderSlaBreachedAria": "الطلب {number}، تم خرق اتفاقية مستوى الخدمة",
     "orderNumberAria": "الطلب {number}",
@@ -5051,6 +5053,8 @@
     "orderPlacedDesc": "تم استلام طلبك",
     "accepted": "تم القبول",
     "acceptedDesc": "قبل المطعم طلبك",
+    "confirmed": "تم التأكيد",
+    "confirmedDesc": "تم تأكيد طلبك",
     "preparing": "قيد التحضير",
     "preparingDesc": "الشيف يُحضّر وجبتك",
     "ready": "جاهز",
@@ -5058,7 +5062,9 @@
     "delivered": "تم التوصيل",
     "deliveredDesc": "استمتع بوجبتك 🎉",
     "pickedUp": "تم الاستلام",
-    "pickedUpDesc": "تم استلام طلبك"
+    "pickedUpDesc": "تم استلام طلبك",
+    "served": "تم التقديم",
+    "servedDesc": "تم تقديم وجبتك — بالهناء والشفاء!"
   },
   "checkoutResult": {
     "orderConfirmed": "تم تأكيد الطلب!",

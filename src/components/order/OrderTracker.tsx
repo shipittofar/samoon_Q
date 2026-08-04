@@ -3,11 +3,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { Check, Clock, ChefHat, Bell, Bike, Truck, X } from 'lucide-react'
+import { Check, Clock, ChefHat, Bell, Bike, Truck, X, UtensilsCrossed } from 'lucide-react'
 import { simulateOrderUpdates } from '@/services/websocket.service'
 import { useOrderWebSocket } from '@/hooks/client'
 import { cn } from '@/utils'
-import { getTrackerStatusOrder, usesPickupFulfillment } from '@/lib/order-status'
+import {
+  getTrackerStatusOrder,
+  getTerminalOrderStatuses,
+  usesDineInFulfillment,
+  usesPickupFulfillment,
+} from '@/lib/order-status'
 import type { OrderStatus, OrderType } from '@/types'
 
 const DELIVERY_STEPS: {
@@ -36,6 +41,19 @@ const PICKUP_STEPS: {
   { status: 'picked_up', labelKey: 'pickedUp', icon: Truck, descriptionKey: 'pickedUpDesc' },
 ]
 
+const DINE_IN_STEPS: {
+  status: OrderStatus
+  labelKey: string
+  icon: React.ElementType
+  descriptionKey: string
+}[] = [
+  { status: 'pending', labelKey: 'orderPlaced', icon: Clock, descriptionKey: 'orderPlacedDesc' },
+  { status: 'accepted', labelKey: 'confirmed', icon: Check, descriptionKey: 'confirmedDesc' },
+  { status: 'preparing', labelKey: 'preparing', icon: ChefHat, descriptionKey: 'preparingDesc' },
+  { status: 'ready', labelKey: 'ready', icon: Bell, descriptionKey: 'readyDesc' },
+  { status: 'served', labelKey: 'served', icon: UtensilsCrossed, descriptionKey: 'servedDesc' },
+]
+
 interface OrderTrackerProps {
   orderId: string
   initialStatus?: OrderStatus
@@ -60,10 +78,11 @@ export function OrderTracker({
     () => ({ status: currentStatus, order_type: orderType ?? 'delivery' as const }),
     [currentStatus, orderType],
   )
+  const dineInWorkflow = usesDineInFulfillment(orderContext)
   const pickupWorkflow = usesPickupFulfillment(orderContext)
   const statusOrder = useMemo(() => getTrackerStatusOrder(orderContext), [orderContext])
-  const steps = pickupWorkflow ? PICKUP_STEPS : DELIVERY_STEPS
-  const terminalStatuses: OrderStatus[] = pickupWorkflow ? ['picked_up'] : ['delivered']
+  const steps = dineInWorkflow ? DINE_IN_STEPS : pickupWorkflow ? PICKUP_STEPS : DELIVERY_STEPS
+  const terminalStatuses = getTerminalOrderStatuses(orderContext)
 
   const isMockMode = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
