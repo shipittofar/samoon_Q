@@ -1,8 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useTenantStore } from '@/stores'
-import { useAdminBranches } from '@/hooks'
+import { useAdminBranches, useConsoleTenantId } from '@/hooks'
 import { branchManagementService } from '@/services/branch.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -118,7 +117,7 @@ function BranchList({ tenantId }: { tenantId: string }) {
 
 function BranchManagementContent() {
   const t = useTranslations('console')
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const tenantId = useConsoleTenantId() ?? ''
 
   return (
     <div className="space-y-6 p-6">

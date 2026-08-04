@@ -220,7 +220,7 @@ describe('useConsoleTenantSwitch', () => {
     expect(result.current.switching).toBe(false)
   })
 
-  it('ignores concurrent switch requests', async () => {
+  it('last concurrent switch request wins', async () => {
     const memberships = [
       { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
       { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
@@ -228,14 +228,16 @@ describe('useConsoleTenantSwitch', () => {
     ]
     useRbacStore.getState().setSessionMemberships(memberships, { tenantId: 'tenant-a' })
 
-    let resolveSwitch: (() => void) | undefined
+    const resolvers: Array<() => void> = []
     const switchSpy = vi.spyOn(authService, 'switchActiveTenant').mockImplementation(
-      () => new Promise<void>((resolve) => { resolveSwitch = resolve }),
+      () => new Promise<void>((resolve) => {
+        resolvers.push(resolve)
+      }),
     )
-    vi.spyOn(authService, 'getMe').mockResolvedValue({
+    const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
       user: { id: 'u1', email: 'a@b.com', first_name: 'A', last_name: 'B', accountType: 'business', is_verified: true, created_at: '' },
       memberships,
-      activeMembership: { tenantId: 'tenant-b' },
+      activeMembership: { tenantId: 'tenant-c' },
     } as never)
 
     const { result } = renderHook(() => useConsoleTenantSwitch())
@@ -247,20 +249,22 @@ describe('useConsoleTenantSwitch', () => {
       second = result.current.switchTenant('tenant-c')
     })
 
-    expect(switchSpy).toHaveBeenCalledTimes(1)
-    expect(switchSpy).toHaveBeenCalledWith({ tenantId: 'tenant-b', tenantSlug: undefined })
+    expect(switchSpy).toHaveBeenCalledTimes(2)
+    expect(switchSpy).toHaveBeenNthCalledWith(1, { tenantId: 'tenant-b' })
+    expect(switchSpy).toHaveBeenNthCalledWith(2, { tenantId: 'tenant-c' })
 
     await act(async () => {
-      resolveSwitch?.()
-      await first
-      await second
+      while (resolvers.length > 0) resolvers.shift()?.()
+      await Promise.all([first, second])
     })
 
     await waitFor(() => {
       expect(result.current.switchingToTenantId).toBeNull()
     })
+    expect(useRbacStore.getState().activeMembership?.tenantId).toBe('tenant-c')
 
     switchSpy.mockRestore()
+    getMeSpy.mockRestore()
   })
 })
 
@@ -378,14 +382,18 @@ describe('useConsoleBranchSwitch', () => {
     const { result } = renderHook(() => useConsoleBranchSwitch())
 
     await act(async () => {
-      await expect(result.current.switchBranch('branch-b')).rejects.toThrow('switch failed')
+      try {
+        await result.current.switchBranch('branch-b')
+      } catch (err) {
+        expect((err as Error).message).toBe('switch failed')
+      }
     })
 
     expect(result.current.switchingToBranchId).toBeNull()
     expect(result.current.switching).toBe(false)
   })
 
-  it('ignores concurrent switch requests', async () => {
+  it('last concurrent switch request wins', async () => {
     const branches = [branch('branch-a'), branch('branch-b'), branch('branch-c')]
     useBranchStore.setState({
       branches,
@@ -398,14 +406,16 @@ describe('useConsoleBranchSwitch', () => {
       { tenantId: 't1' },
     )
 
-    let resolveSwitch: (() => void) | undefined
+    const resolvers: Array<() => void> = []
     const switchSpy = vi.spyOn(authService, 'switchActiveBranch').mockImplementation(
-      () => new Promise<void>((resolve) => { resolveSwitch = resolve }),
+      () => new Promise<void>((resolve) => {
+        resolvers.push(resolve)
+      }),
     )
-    vi.spyOn(authService, 'getMe').mockResolvedValue({
+    const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
       user: { id: 'u1', email: 'a@b.com', first_name: 'A', last_name: 'B', accountType: 'business', is_verified: true, created_at: '' },
       memberships: [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
-      activeMembership: { tenantId: 't1', branchId: 'branch-b' },
+      activeMembership: { tenantId: 't1', branchId: 'branch-c' },
     } as never)
 
     const { result } = renderHook(() => useConsoleBranchSwitch())
@@ -417,19 +427,21 @@ describe('useConsoleBranchSwitch', () => {
       second = result.current.switchBranch('branch-c')
     })
 
-    expect(switchSpy).toHaveBeenCalledTimes(1)
-    expect(switchSpy).toHaveBeenCalledWith({ branchId: 'branch-b' })
+    expect(switchSpy).toHaveBeenCalledTimes(2)
+    expect(switchSpy).toHaveBeenNthCalledWith(1, { branchId: 'branch-b' })
+    expect(switchSpy).toHaveBeenNthCalledWith(2, { branchId: 'branch-c' })
 
     await act(async () => {
-      resolveSwitch?.()
-      await first
-      await second
+      while (resolvers.length > 0) resolvers.shift()?.()
+      await Promise.all([first, second])
     })
 
     await waitFor(() => {
       expect(result.current.switchingToBranchId).toBeNull()
     })
+    expect(useBranchStore.getState().selectedBranch?.id).toBe('branch-c')
 
     switchSpy.mockRestore()
+    getMeSpy.mockRestore()
   })
 })

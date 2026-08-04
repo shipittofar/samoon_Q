@@ -274,8 +274,8 @@ export function usePermission(permission: P7Permission, opts?: PermissionCheckOp
  */
 export function useBranchAccess(branchId: string | null | undefined): boolean {
   const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
-  const tenantId = useTenantStore((s) => s.tenant?.id)
-  const branchAccess = currentTenantSession && currentTenantSession.tenantId === tenantId
+  const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
+  const branchAccess = currentTenantSession && currentTenantSession.tenantId === activeTenantId
     ? currentTenantSession.branchAccess
     : undefined
   return canAccessBranch(branchAccess, branchId)

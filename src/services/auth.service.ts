@@ -368,13 +368,26 @@ export const authService = {
               (membership) => membership.tenantId === pendingActiveTenantId,
             ) ?? session.activeMembership
           : session.activeMembership
+          let branchId = pendingActiveBranchId ?? undefined
+          if (branchId && activeMembership) {
+            const membershipForTenant = memberships.find(
+              (m) => m.tenantId === activeMembership.tenantId,
+            )
+            if (
+              membershipForTenant?.branches?.length &&
+              !membershipForTenant.branches.some((b) => b.id === branchId)
+            ) {
+              branchId = undefined
+              localStorage.removeItem(MOCK_ACTIVE_BRANCH_KEY)
+            }
+          }
           const response: GetMeResponse = {
             user: entry.user,
             memberships,
             activeMembership: activeMembership
               ? {
                   ...activeMembership,
-                  ...(pendingActiveBranchId ? { branchId: pendingActiveBranchId } : {}),
+                  ...(branchId ? { branchId } : {}),
                 }
               : activeMembership,
           }
@@ -402,6 +415,7 @@ export const authService = {
       await delay(MOCK_DELAY)
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(MOCK_ACTIVE_TENANT_KEY, params.tenantId)
+        localStorage.removeItem(MOCK_ACTIVE_BRANCH_KEY)
       }
       return
     }

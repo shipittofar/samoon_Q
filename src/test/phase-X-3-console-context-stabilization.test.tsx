@@ -143,7 +143,6 @@ describe('Phase X.3 — tenant selector switches through session refresh', () =>
     await waitFor(() => {
       expect(switchSpy).toHaveBeenCalledWith({
         tenantId: BREW_CAFE_ID,
-        tenantSlug: 'brew-cafe',
       })
     })
 
@@ -201,14 +200,18 @@ describe('Phase X.3 — AuthGuard permission denial renders in place, never redi
 
 describe('Phase X.3 — branch switch invalidates every branch-scoped cache, including the newly-added keys', () => {
   const branches: AdminBranch[] = [
-    { id: 'branch-1', name: 'Branch One', status: 'active', location: { address: '1 Main St' } } as never,
-    { id: 'branch-2', name: 'Branch Two', status: 'active', location: { address: '2 Main St' } } as never,
+    { id: 'branch-1', tenantId: 'tenant-1', name: 'Branch One', status: 'active', location: { address: '1 Main St' } } as never,
+    { id: 'branch-2', tenantId: 'tenant-1', name: 'Branch Two', status: 'active', location: { address: '2 Main St' } } as never,
   ]
 
   beforeEach(() => {
     useRbacStore.getState()._resetStore()
     useTenantStore.setState({ tenant: { id: 'tenant-1', name: 'Test Tenant' } as never, tenantState: 'resolved' } as never)
     useBranchStore.setState({ branches, selectedBranch: branches[0], branchState: 'ready' } as never)
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 'tenant-1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: 'tenant-1', branchId: 'branch-1' },
+    )
     useRbacStore.getState().setCurrentTenantSession('tenant-1', ['owner'], [], { scope: 'all' })
   })
 

@@ -1,6 +1,15 @@
 import type { MembershipBranch, TenantMembership } from '@/types/rbac'
-import type { Branch } from '@/types/branch'
+import type { Branch, BranchResolutionState } from '@/types/branch'
+import type { TenantLifecycle } from '@/types'
 import { DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
+
+type ConsoleWorkspacePhase =
+  | 'idle'
+  | 'initializing'
+  | 'switching_tenant'
+  | 'switching_branch'
+  | 'ready'
+  | 'error'
 
 /**
  * Resolves the Console default tenant — ONLY from activeMembership.tenantId.
@@ -75,6 +84,44 @@ export function resolveConsoleDefaultBranch(
 
 export function membershipLabel(membership: TenantMembership): string {
   return membership.tenantName ?? membership.tenantSlug ?? membership.tenantId
+}
+
+const UNSETTLED_WORKSPACE_PHASES: ReadonlySet<ConsoleWorkspacePhase> = new Set([
+  'idle',
+  'initializing',
+  'switching_tenant',
+  'switching_branch',
+])
+
+const SETTLED_BRANCH_STATES: ReadonlySet<BranchResolutionState> = new Set([
+  'ready',
+  'empty',
+  'error',
+])
+
+/**
+ * Single readiness gate for Console tenant + branch selectors.
+ * Both switchers must stay hidden/skeleton until this returns true.
+ */
+export function isConsoleSelectorsReady(params: {
+  sessionMemberships: readonly TenantMembership[] | null
+  workspacePhase: ConsoleWorkspacePhase
+  tenantState: TenantLifecycle
+  branchState: BranchResolutionState
+  activeTenantId?: string | null
+}): boolean {
+  const { sessionMemberships, workspacePhase, tenantState, branchState, activeTenantId } = params
+  if (sessionMemberships === null) return false
+  if (UNSETTLED_WORKSPACE_PHASES.has(workspacePhase)) return false
+
+  // Boot finished but no active tenant pointer — tenant switcher must remain usable.
+  if (!activeTenantId) {
+    return workspacePhase === 'ready' || workspacePhase === 'error'
+  }
+
+  if (tenantState !== 'resolved') return false
+  if (!SETTLED_BRANCH_STATES.has(branchState)) return false
+  return true
 }
 
 /** True when /auth/me provided a non-empty branches list for this membership. */

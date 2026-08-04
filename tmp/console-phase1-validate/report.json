@@ -1,0 +1,652 @@
+{
+  "generatedAt": "2026-08-04T14:45:37.204Z",
+  "baseline": {
+    "loadTenant": 1,
+    "loadTenantById": 1,
+    "loadBranchesForTenant": 2,
+    "note": "Pre-Phase-1 audit estimate from bootstrap trace"
+  },
+  "after": {
+    "loadTenant": 0,
+    "loadTenantById": 1,
+    "loadBranchesForTenant": 1,
+    "loadBranchesFromMembership": 0
+  },
+  "ordering": {
+    "branchBeforeTenant": false,
+    "firstTenantResolved": {
+      "t": 8252,
+      "skeleton": false,
+      "tenant": "Samoon Restaurant",
+      "tenantSpin": false,
+      "branch": "Select branch",
+      "branchSpin": false
+    }
+  },
+  "refresh": {
+    "label": "refresh",
+    "metrics": {
+      "loads": {
+        "loadTenant": 0,
+        "loadTenantById": 1,
+        "loadBranchesForTenant": 1,
+        "loadBranchesFromMembership": 0
+      },
+      "timeline": [
+        {
+          "t": 5726,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5848,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5965,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 6085,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 6217,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 6327,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 6451,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 6578,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 6687,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 6814,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 6925,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 7055,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 7265,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 7298,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 7409,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 7528,
+          "skeleton": true,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 7648,
+          "skeleton": true,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 7881,
+          "skeleton": true,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 8015,
+          "skeleton": true,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 8130,
+          "skeleton": true,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 8252,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 8372,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 8495,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 8610,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 8729,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 8849,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 8965,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 9086,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 9220,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 9332,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 9460,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 9575,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 9695,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 9817,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 9927,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 10052,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 10177,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 10286,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 10411,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 10535,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 10662,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 10772,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 10898,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11008,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11134,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11257,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11367,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11493,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11619,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11728,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11854,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 11978,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 12087,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 12209,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 12333,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 12457,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 12580,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 12688,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 12810,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 12935,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 13046,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 13172,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 13298,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 13407,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 13532,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 13656,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 13765,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 13891,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 14016,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 14140,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 14248,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 14375,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 14499,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 14607,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 14730,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        },
+        {
+          "t": 14856,
+          "skeleton": false,
+          "tenant": "Samoon Restaurant",
+          "tenantSpin": false,
+          "branch": "Select branch",
+          "branchSpin": false
+        }
+      ],
+      "final": {
+        "skeleton": false,
+        "tenant": "Samoon Restaurant",
+        "branch": "Select branch"
+      }
+    }
+  }
+}

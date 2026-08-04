@@ -6,8 +6,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { useAuthStore, useRbacStore } from '@/stores'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
-import { clearConsoleWorkspaceQueryCache, invalidateConsoleWorkspaceQueries } from '@/hooks/console-workspace'
+import { clearConsoleWorkspaceQueryCache, invalidateConsoleWorkspaceQueries, syncConsoleBranchFromRoute } from '@/hooks/console-workspace'
 import { shouldSkipConsoleRouteWork } from '@/lib/console-account-access'
+import { reconcileConsoleWorkspaceConsistency } from '@/lib/console-workspace-consistency'
 
 /**
  * Console Workspace bootstrap — activates tenant context from GET /auth/me
@@ -19,6 +20,7 @@ export function ConsoleWorkspaceBootstrapper({ children }: { children: ReactNode
   const user = useAuthStore((s) => s.user)
   const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
   const initializeFromSession = useConsoleWorkspaceStore((s) => s.initializeFromSession)
+  const workspacePhase = useConsoleWorkspaceStore((s) => s.workspacePhase)
   const qc = useQueryClient()
 
   useEffect(() => {
@@ -27,6 +29,14 @@ export function ConsoleWorkspaceBootstrapper({ children }: { children: ReactNode
     if (sessionMemberships === null) return
     void initializeFromSession()
   }, [pathname, user, sessionMemberships, initializeFromSession])
+
+  useEffect(() => {
+    if (!pathname?.startsWith('/console')) return
+    if (sessionMemberships === null) return
+    if (workspacePhase !== 'ready' && workspacePhase !== 'error') return
+    reconcileConsoleWorkspaceConsistency()
+    void syncConsoleBranchFromRoute(pathname)
+  }, [pathname, sessionMemberships, workspacePhase])
 
   useEffect(() => {
     function onTenantChanged() {

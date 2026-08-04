@@ -220,13 +220,30 @@ function readTenantSlug(): string | undefined {
  * resolved." Authenticated Console flows must gate on tenantState === 'resolved'
  * specifically (see AuthGuard), not on canExecute alone.
  */
+function isConsolePath(pathname: string | null | undefined): boolean {
+  if (pathname?.startsWith('/console')) return true
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/console')) return true
+  return false
+}
+
 function TenantBootstrapper({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
   const { loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags } = useTenantStore()
   const booted = useRef(false)
   useEffect(() => {
     if (booted.current) return
     booted.current = true
     setEnvironmentTags()
+
+    // Phase 1 — Console resolves tenant by activeMembership.tenantId via
+    // ConsoleWorkspaceBootstrapper only; subdomain slug bootstrap is storefront-only.
+    if (isConsolePath(pathname)) {
+      setRbacInitialized(true)
+      setFeatureFlags(featureFlagsService.resolve(null))
+      setFeatureFlagsInitialized(true)
+      return
+    }
+
     const slug = readTenantSlug()
     loadTenant(slug).then(() => {
       // P1B.1 — RBAC: static permission map; initialization is synchronous
@@ -243,7 +260,7 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
       // P4.6.3 — Tag Sentry events with the resolved tenant slug, when there is one.
       if (tenantState === 'resolved' && tenant) setSentryTenant(tenant.slug)
     })
-  }, [loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags])
+  }, [pathname, loadTenant, setRbacInitialized, setFeatureFlagsInitialized, setFeatureFlags])
   return <>{children}</>
 }
 
@@ -277,6 +294,9 @@ function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
   const lastLoadedKey = useRef<string | null>(null)
 
   useEffect(() => {
+    // Phase 1 — Console branch loading is owned solely by ConsoleWorkspaceBootstrapper.
+    if (isConsolePath(pathname)) return
+
     if (tenantState !== 'resolved' || !tenant) {
       if (lastLoadedKey.current !== null) {
         lastLoadedKey.current = null
@@ -286,7 +306,6 @@ function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
     }
     if (sessionMemberships === null) return
 
-    const activeTenantId = activeMembership?.tenantId
     const loadKey = `${tenant.id}:${activeBranchId ?? ''}`
     if (lastLoadedKey.current === loadKey) return
 
@@ -299,14 +318,7 @@ function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
       useBranchStore.getState().resetBranchResolution()
     }
 
-    void (() => {
-      const isConsole = pathname?.startsWith('/console')
-      if (isConsole) {
-        if (!activeTenantId || tenant.id !== activeTenantId) return
-        return useBranchStore.getState().loadBranchesForTenant(tenant.id)
-      }
-      return useBranchStore.getState().loadBranchesForTenant(tenant.id)
-    })()
+    void useBranchStore.getState().loadBranchesForTenant(tenant.id)
   }, [tenant, tenantState, pathname, sessionMemberships, activeMembership, activeBranchId])
 
   return <>{children}</>

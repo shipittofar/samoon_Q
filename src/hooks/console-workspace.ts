@@ -1,7 +1,14 @@
 import { useCallback, useState, useRef, useEffect } from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import { useRbacStore, useTenantStore, useBranchStore } from '@/stores'
-import { hasMembershipBranches } from '@/lib/console-workspace'
+import { hasMembershipBranches, isConsoleSelectorsReady } from '@/lib/console-workspace'
+import { reconcileConsoleWorkspaceConsistency, parseConsoleBranchIdFromPath } from '@/lib/console-workspace-consistency'
+import {
+  isCurrentBranchSwitch,
+  isCurrentTenantSwitch,
+  nextBranchSwitchGeneration,
+  nextTenantSwitchGeneration,
+} from '@/lib/console-workspace-switch'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { authService, MOCK_SESSION_MEMBERSHIPS_KEY } from '@/services/auth.service'
 import type { GetMeResponse } from '@/services/auth.service'
@@ -85,8 +92,11 @@ export function clearConsoleWorkspaceQueryCache(qc: QueryClient) {
  * Re-fetches GET /auth/me, updates session memberships/activeMembership,
  * and re-runs Console workspace initialization (tenant + branches).
  */
-export async function refreshConsoleWorkspaceSession(): Promise<void> {
+export async function refreshConsoleWorkspaceSession(generation?: number): Promise<void> {
+  if (generation !== undefined && !isCurrentTenantSwitch(generation)) return
   const data = await authService.getMe()
+  if (generation !== undefined && !isCurrentTenantSwitch(generation)) return
+
   useRbacStore.getState().setHasTenantMembership(hasAnyMembership(data))
   useRbacStore.getState().setSessionMemberships(
     data.memberships !== undefined && data.memberships !== null ? data.memberships : null,
@@ -94,6 +104,8 @@ export async function refreshConsoleWorkspaceSession(): Promise<void> {
   )
   useConsoleWorkspaceStore.getState().resetWorkspace()
   await useConsoleWorkspaceStore.getState().initializeFromSession()
+  if (generation !== undefined && !isCurrentTenantSwitch(generation)) return
+  reconcileConsoleWorkspaceConsistency()
 }
 
 function resolveConsoleActiveBranchId(
@@ -115,8 +127,14 @@ function resolveConsoleActiveBranchId(
  * Re-fetches GET /auth/me and applies the backend's active branch pointer
  * to the Console workspace (selectedBranch in useBranchStore).
  */
-export async function refreshConsoleBranchSession(fallbackBranchId?: string): Promise<void> {
+export async function refreshConsoleBranchSession(
+  fallbackBranchId?: string,
+  generation?: number,
+): Promise<void> {
+  if (generation !== undefined && !isCurrentBranchSwitch(generation)) return
   const data = await authService.getMe()
+  if (generation !== undefined && !isCurrentBranchSwitch(generation)) return
+
   useRbacStore.getState().setHasTenantMembership(hasAnyMembership(data))
   useRbacStore.getState().setSessionMemberships(
     data.memberships !== undefined && data.memberships !== null ? data.memberships : null,
@@ -124,9 +142,24 @@ export async function refreshConsoleBranchSession(fallbackBranchId?: string): Pr
   )
 
   const resolvedBranchId = resolveConsoleActiveBranchId(data, fallbackBranchId)
-  if (!resolvedBranchId) return
+  if (!resolvedBranchId) {
+    reconcileConsoleWorkspaceConsistency()
+    return
+  }
+
+  const activeTenantId = data.activeMembership?.tenantId
+  if (activeTenantId) {
+    const branchState = useBranchStore.getState().branchState
+    const hasBranch = useBranchStore.getState().branches.some((b) => b.id === resolvedBranchId)
+    if (!hasBranch && branchState !== 'loading') {
+      await useBranchStore.getState().loadBranchesForTenant(activeTenantId)
+    }
+  }
+
+  if (generation !== undefined && !isCurrentBranchSwitch(generation)) return
 
   useConsoleWorkspaceStore.getState().switchBranch(resolvedBranchId)
+  reconcileConsoleWorkspaceConsistency()
 }
 
 /**
@@ -141,6 +174,8 @@ export async function requestConsoleTenantSwitch(tenantId: string): Promise<void
   const membership = memberships.find((m) => m.tenantId === tenantId)
   if (!membership) return
 
+  const generation = nextTenantSwitchGeneration()
+
   if (typeof localStorage !== 'undefined' && memberships.length > 0) {
     localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify(memberships))
   }
@@ -148,7 +183,12 @@ export async function requestConsoleTenantSwitch(tenantId: string): Promise<void
   await authService.switchActiveTenant({
     tenantId,
   })
-  await refreshConsoleWorkspaceSession()
+  if (!isCurrentTenantSwitch(generation)) return
+
+  await refreshConsoleWorkspaceSession(generation)
+  if (!isCurrentTenantSwitch(generation)) return
+
+  reconcileConsoleWorkspaceConsistency()
 }
 
 /**
@@ -162,8 +202,12 @@ export async function requestConsoleBranchSwitch(branchId: string): Promise<void
   const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
   if (!activeTenantId) return
 
+  const generation = nextBranchSwitchGeneration()
+
   await authService.switchActiveBranch({ branchId })
-  await refreshConsoleBranchSession(branchId)
+  if (!isCurrentBranchSwitch(generation)) return
+
+  await refreshConsoleBranchSession(branchId, generation)
 }
 
 /** Shared refresh action for no-active-tenant UX (selector + gate). */
@@ -183,10 +227,10 @@ export function useConsoleSessionRefresh() {
   return { refresh, refreshing }
 }
 
-/** Tenant switch orchestration for AdminTenantSwitcher. */
+/** Tenant switch orchestration for AdminTenantSwitcher — last click wins. */
 export function useConsoleTenantSwitch() {
   const [switchingToTenantId, setSwitchingToTenantId] = useState<string | null>(null)
-  const switchingRef = useRef(false)
+  const latestTenantIdRef = useRef<string | null>(null)
   const mountedRef = useRef(true)
 
   useEffect(() => {
@@ -197,14 +241,12 @@ export function useConsoleTenantSwitch() {
   }, [])
 
   const switchTenant = useCallback(async (tenantId: string) => {
-    if (switchingRef.current) return
-    switchingRef.current = true
+    latestTenantIdRef.current = tenantId
     setSwitchingToTenantId(tenantId)
     try {
       await requestConsoleTenantSwitch(tenantId)
     } finally {
-      switchingRef.current = false
-      if (mountedRef.current) {
+      if (mountedRef.current && latestTenantIdRef.current === tenantId) {
         setSwitchingToTenantId(null)
       }
     }
@@ -217,10 +259,10 @@ export function useConsoleTenantSwitch() {
   }
 }
 
-/** Branch switch orchestration for AdminBranchSwitcher. */
+/** Branch switch orchestration for AdminBranchSwitcher — last click wins. */
 export function useConsoleBranchSwitch() {
   const [switchingToBranchId, setSwitchingToBranchId] = useState<string | null>(null)
-  const switchingRef = useRef(false)
+  const latestBranchIdRef = useRef<string | null>(null)
   const mountedRef = useRef(true)
 
   useEffect(() => {
@@ -231,14 +273,12 @@ export function useConsoleBranchSwitch() {
   }, [])
 
   const switchBranch = useCallback(async (branchId: string) => {
-    if (switchingRef.current) return
-    switchingRef.current = true
+    latestBranchIdRef.current = branchId
     setSwitchingToBranchId(branchId)
     try {
       await requestConsoleBranchSwitch(branchId)
     } finally {
-      switchingRef.current = false
-      if (mountedRef.current) {
+      if (mountedRef.current && latestBranchIdRef.current === branchId) {
         setSwitchingToBranchId(null)
       }
     }
@@ -294,6 +334,23 @@ export function useConsoleWorkspace() {
   }
 }
 
+/** Whether both Console selectors may render (not skeleton). */
+export function useConsoleSelectorsReady(): boolean {
+  const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
+  const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
+  const workspacePhase = useConsoleWorkspaceStore((s) => s.workspacePhase)
+  const tenantState = useTenantStore((s) => s.tenantState)
+  const branchState = useBranchStore((s) => s.branchState)
+
+  return isConsoleSelectorsReady({
+    sessionMemberships,
+    workspacePhase,
+    tenantState,
+    branchState,
+    activeTenantId,
+  })
+}
+
 export function useConsoleTenantId(): string | undefined {
   const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
   const tenantId = useTenantStore((s) => s.tenant?.id)
@@ -305,4 +362,21 @@ export function useConsoleTenantId(): string | undefined {
 
 export function useConsoleBranchId(): string | undefined {
   return useBranchStore((s) => s.selectedBranch?.id)
+}
+
+/**
+ * When a console route embeds a branch id (`/console/branches/:id`), align
+ * session + store + selector with that branch.
+ */
+export async function syncConsoleBranchFromRoute(pathname: string | null | undefined): Promise<void> {
+  const branchId = parseConsoleBranchIdFromPath(pathname)
+  if (!branchId) return
+
+  const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
+  if (!activeTenantId) return
+
+  const selectedBranchId = useBranchStore.getState().selectedBranch?.id
+  if (selectedBranchId === branchId) return
+
+  await requestConsoleBranchSwitch(branchId)
 }

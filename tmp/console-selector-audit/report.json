@@ -1,0 +1,1448 @@
+{
+  "scenarios": [
+    {
+      "id": "1",
+      "title": "Initial login",
+      "steps": [
+        {
+          "label": "after-login",
+          "url": "http://localhost:3001/console/tenants",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": null,
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Select branch",
+          "pageHeading": "Tenants",
+          "branchContextOnPage": [],
+          "selectBranchPrompt": true,
+          "menuRowCount": 7,
+          "mainTextSample": "Tenants\n\nManage and provision tenants\n\nPreview Public Site\n+ New Tenant\n\n7\n\nTotal Tenants\n\n5\n\nActive\n\n1\n\nSuspended\n\nBy Type\n\nrestaurant: 2\n\ncafe: 1\n\nbar: 1\n\nfood court: 1\n\nfood truck: 1\n\nmobile cafe: 1\n\nName / Slug\tBusiness Type\tStatus\tCreated\tActions\nSavor\n\ndefault\n\n\trestaurant\tActive\t1/1/2024\tSuspendArchive\nSamoon Restaurant\n\nsamoon\n\n\trestaurant\tActive\t1/1/2024\tSuspendArchive\nBrew Cafe\n\nbrew-cafe\n\n\tcafe\tActive\t2/1/2024\tSuspendArchive\nThe Oak Bar\n\nthe-oak-bar\n\n\tbar\tActive\t3/1/2024\tSuspendArchive\nCentral Food Court\n\ncentral-food-court\n\n\tfood court\tTrial\t4/1/2024\tActivateArchive\nRoad Bites\n\nroad-bites\n\n\tfood truck\tSuspended\t5/1/2024\tActivateArchive\nWheels & Brews\n\nwheels-and-brews\n\n\tmobile cafe\tActive\t6/1/2024\tSuspendArchive",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853086246
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853085904,
+              "url": "undefined",
+              "method": "GET"
+            },
+            {
+              "ts": 1785853085905,
+              "url": "undefined",
+              "method": "GET"
+            },
+            {
+              "ts": 1785853086008,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:18:11.582Z"
+        }
+      ],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\01-initial-login.png"
+      ],
+      "inconsistencies": [
+        "Branch selector shows \"select branch\" but mock_active_branch_id unset"
+      ],
+      "networkSample": [],
+      "status": "completed"
+    },
+    {
+      "id": "2",
+      "title": "Browser refresh",
+      "steps": [
+        {
+          "before": {
+            "label": "pre-refresh",
+            "url": "http://localhost:3001/console/tenants",
+            "mockSessionEmail": "owner@samoon.com",
+            "mockActiveTenantId": null,
+            "mockActiveBranchId": null,
+            "mockSessionMemberships": [
+              {
+                "tenantId": "tenant-samoon-01",
+                "tenantSlug": "samoon",
+                "roles": [
+                  "owner"
+                ],
+                "branchAccess": {
+                  "scope": "all"
+                }
+              }
+            ],
+            "rbacPersist": {
+              "state": {
+                "tenantRoles": [
+                  {
+                    "tenantId": "tenant-samoon-01",
+                    "roles": [
+                      "owner"
+                    ]
+                  }
+                ],
+                "userOverrides": [],
+                "customRoles": [],
+                "rbacAuditLog": []
+              },
+              "version": 0
+            },
+            "branchPersist": {
+              "state": {
+                "activeBranch": null
+              },
+              "version": 3
+            },
+            "tenantPersist": {
+              "state": {},
+              "version": 2
+            },
+            "consoleWorkspacePersist": {
+              "state": {},
+              "version": 2
+            },
+            "tenantSwitcherLabel": "Samoon Restaurant",
+            "branchSwitcherLabel": "Select branch",
+            "pageHeading": "Tenants",
+            "branchContextOnPage": [],
+            "selectBranchPrompt": true,
+            "menuRowCount": 7,
+            "mainTextSample": "Tenants\n\nManage and provision tenants\n\nPreview Public Site\n+ New Tenant\n\n7\n\nTotal Tenants\n\n5\n\nActive\n\n1\n\nSuspended\n\nBy Type\n\nrestaurant: 2\n\ncafe: 1\n\nbar: 1\n\nfood court: 1\n\nfood truck: 1\n\nmobile cafe: 1\n\nName / Slug\tBusiness Type\tStatus\tCreated\tActions\nSavor\n\ndefault\n\n\trestaurant\tActive\t1/1/2024\tSuspendArchive\nSamoon Restaurant\n\nsamoon\n\n\trestaurant\tActive\t1/1/2024\tSuspendArchive\nBrew Cafe\n\nbrew-cafe\n\n\tcafe\tActive\t2/1/2024\tSuspendArchive\nThe Oak Bar\n\nthe-oak-bar\n\n\tbar\tActive\t3/1/2024\tSuspendArchive\nCentral Food Court\n\ncentral-food-court\n\n\tfood court\tTrial\t4/1/2024\tActivateArchive\nRoad Bites\n\nroad-bites\n\n\tfood truck\tSuspended\t5/1/2024\tActivateArchive\nWheels & Brews\n\nwheels-and-brews\n\n\tmobile cafe\tActive\t6/1/2024\tSuspendArchive",
+            "auditEvents": [
+              {
+                "type": "console:tenant-changed",
+                "detail": {
+                  "tenantId": "tenant-samoon-01"
+                },
+                "ts": 1785853086246
+              }
+            ],
+            "auditNetwork": [
+              {
+                "ts": 1785853085904,
+                "url": "undefined",
+                "method": "GET"
+              },
+              {
+                "ts": 1785853085905,
+                "url": "undefined",
+                "method": "GET"
+              },
+              {
+                "ts": 1785853086008,
+                "url": "/__nextjs_original-stack-frames",
+                "method": "POST"
+              }
+            ],
+            "ts": "2026-08-04T14:18:11.775Z"
+          },
+          "after": {
+            "label": "post-refresh",
+            "url": "http://localhost:3001/console/tenants",
+            "mockSessionEmail": "owner@samoon.com",
+            "mockActiveTenantId": null,
+            "mockActiveBranchId": null,
+            "mockSessionMemberships": [
+              {
+                "tenantId": "tenant-samoon-01",
+                "tenantSlug": "samoon",
+                "roles": [
+                  "owner"
+                ],
+                "branchAccess": {
+                  "scope": "all"
+                }
+              }
+            ],
+            "rbacPersist": {
+              "state": {
+                "tenantRoles": [
+                  {
+                    "tenantId": "tenant-samoon-01",
+                    "roles": [
+                      "owner"
+                    ]
+                  }
+                ],
+                "userOverrides": [],
+                "customRoles": [],
+                "rbacAuditLog": []
+              },
+              "version": 0
+            },
+            "branchPersist": {
+              "state": {
+                "activeBranch": null
+              },
+              "version": 3
+            },
+            "tenantPersist": {
+              "state": {},
+              "version": 2
+            },
+            "consoleWorkspacePersist": {
+              "state": {},
+              "version": 2
+            },
+            "tenantSwitcherLabel": "Samoon Restaurant",
+            "branchSwitcherLabel": "Select branch",
+            "pageHeading": "Tenants",
+            "branchContextOnPage": [],
+            "selectBranchPrompt": true,
+            "menuRowCount": 7,
+            "mainTextSample": "Tenants\n\nManage and provision tenants\n\nPreview Public Site\n+ New Tenant\n\n7\n\nTotal Tenants\n\n5\n\nActive\n\n1\n\nSuspended\n\nBy Type\n\nrestaurant: 2\n\ncafe: 1\n\nbar: 1\n\nfood court: 1\n\nfood truck: 1\n\nmobile cafe: 1\n\nName / Slug\tBusiness Type\tStatus\tCreated\tActions\nSavor\n\ndefault\n\n\trestaurant\tActive\t1/1/2024\tSuspendArchive\nSamoon Restaurant\n\nsamoon\n\n\trestaurant\tActive\t1/1/2024\tSuspendArchive\nBrew Cafe\n\nbrew-cafe\n\n\tcafe\tActive\t2/1/2024\tSuspendArchive\nThe Oak Bar\n\nthe-oak-bar\n\n\tbar\tActive\t3/1/2024\tSuspendArchive\nCentral Food Court\n\ncentral-food-court\n\n\tfood court\tTrial\t4/1/2024\tActivateArchive\nRoad Bites\n\nroad-bites\n\n\tfood truck\tSuspended\t5/1/2024\tActivateArchive\nWheels & Brews\n\nwheels-and-brews\n\n\tmobile cafe\tActive\t6/1/2024\tSuspendArchive",
+            "auditEvents": [
+              {
+                "type": "console:tenant-changed",
+                "detail": {
+                  "tenantId": "tenant-samoon-01"
+                },
+                "ts": 1785853094264
+              }
+            ],
+            "auditNetwork": [
+              {
+                "ts": 1785853093908,
+                "url": "/__nextjs_original-stack-frames",
+                "method": "POST"
+              }
+            ],
+            "ts": "2026-08-04T14:18:16.468Z"
+          },
+          "diff": []
+        }
+      ],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\02-after-refresh.png"
+      ],
+      "inconsistencies": [],
+      "status": "completed"
+    },
+    {
+      "id": "3",
+      "title": "Tenant switch (multi-tenant)",
+      "steps": [],
+      "screenshots": [],
+      "inconsistencies": [],
+      "status": "failed",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('option', { name: /Brew Cafe/i })\n"
+    },
+    {
+      "id": "4",
+      "title": "Branch switch",
+      "steps": [],
+      "screenshots": [],
+      "inconsistencies": [],
+      "status": "failed",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('option', { name: /Samoon/i })\n"
+    },
+    {
+      "id": "5",
+      "title": "Rapid tenant switching",
+      "steps": [],
+      "screenshots": [],
+      "inconsistencies": [],
+      "status": "failed",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('option', { name: /Brew Cafe/i })\n"
+    },
+    {
+      "id": "6",
+      "title": "Rapid branch switching",
+      "steps": [],
+      "screenshots": [],
+      "inconsistencies": [],
+      "status": "failed",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('option', { name: /Samoon/i })\n"
+    },
+    {
+      "id": "7",
+      "title": "Navigate between console pages",
+      "steps": [
+        {
+          "label": "/console",
+          "url": "http://localhost:3001/console",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-02",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Downtown Branch",
+          "pageHeading": null,
+          "branchContextOnPage": [
+            "Downtown Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 0,
+          "mainTextSample": "",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853220104
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853219746,
+              "url": "undefined",
+              "method": "GET"
+            },
+            {
+              "ts": 1785853219746,
+              "url": "undefined",
+              "method": "GET"
+            },
+            {
+              "ts": 1785853219783,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:20:20.220Z"
+        },
+        {
+          "label": "/console/orders",
+          "url": "http://localhost:3001/console/orders",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-02",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Downtown Branch",
+          "pageHeading": "Orders",
+          "branchContextOnPage": [
+            "Downtown Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 0,
+          "mainTextSample": "Orders\nLive\n\nManage and track all incoming orders in real time.\n\nThis Branch\nAll Orders\nPreview Menu\nRefresh\n\nStatus counts reflect the current page only\n\n0\nPending\n0\nAccepted\n0\nPreparing\n0\nReady\n0\nDelivered\n0\nPicked up\n0\nServed\n0\nCancelled\nLoading orders…",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853223953
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853223662,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:20:24.066Z"
+        },
+        {
+          "label": "/console/analytics",
+          "url": "http://localhost:3001/console/analytics",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-02",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Downtown Branch",
+          "pageHeading": "Analytics",
+          "branchContextOnPage": [
+            "Downtown Branch",
+            "Downtown Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 4,
+          "mainTextSample": "Analytics\nDowntown Branch\nView branch analytics →\nAnalytics Summary\nRevenue\nReservations\nLoyalty\nPromotions\nVendors\nMenu Performance\nCSV\nJSON\nPDF (Print)\nExport\n\nRevenue\n\n$48,295\n\n12.5%\n\nOrders\n\n1,284\n\n8.2%\n\nReservations\n\n92\n\n3.1%\n\nNew Customers\n\n348\n\n15.3%\n\nActive Vendors\n\n4\n\nActive Promotions\n\n3\n\nPeriod Comparison\nPeriod Comparison\nDay\nWeek\nMonth\nQuarter\nYear\n\nLoading…\n\nRevenue & Orders\n\nTotal Revenue\n\n$48,295\n\n12.5%\n\nTotal Orders\n\n1,284\n\nAvg Order Value\n\n$37.60\n\nReservations\n\nTotal Reservations\n\n92\n\n3.1%\n\n⚠ Missing Translation: console.upcoming\n\n18\n\n⚠ Missing Translation: console.breadcrumbs.cancelled\n\n7\n\nOccupancy Rate\n\n33%\n\nMenu Performance\n\nTotal Items Sold\n\n2,462\n\nMenu Revenue\n\n$29,812\n\nTop Sellers\nSlow Movers\nBy Category\nSignature BurgerMains\n284 orders\n$7,098\n18.0%\nTruffle FriesSi",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853229021
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853228604,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            },
+            {
+              "ts": 1785853229026,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            },
+            {
+              "ts": 1785853229056,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:20:29.070Z"
+        },
+        {
+          "label": "/console/staff",
+          "url": "http://localhost:3001/console/staff",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-02",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Downtown Branch",
+          "pageHeading": null,
+          "branchContextOnPage": [
+            "Downtown Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 0,
+          "mainTextSample": "Loading staff...",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853232499
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853231996,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:20:32.600Z"
+        }
+      ],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\07-console-navigation.png"
+      ],
+      "inconsistencies": [],
+      "status": "completed"
+    },
+    {
+      "id": "8",
+      "title": "Open /console/menu after switching",
+      "steps": [
+        {
+          "label": "menu-main-branch",
+          "url": "http://localhost:3001/console/menu",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-01",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Main Branch",
+          "pageHeading": "Menu Management",
+          "branchContextOnPage": [
+            "Main Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 0,
+          "mainTextSample": "Menu Management\n0 items\n\nAdd, edit, and manage your menu offerings\n\nPreview Menu\nAdd Item\nAll\nLoading…\nLoading menu…",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853237952
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853237460,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:20:38.864Z"
+        },
+        {
+          "label": "menu-downtown-branch",
+          "url": "http://localhost:3001/console/menu",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-02",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Downtown Branch",
+          "pageHeading": "Menu Management",
+          "branchContextOnPage": [
+            "Downtown Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 0,
+          "mainTextSample": "Menu Management\n2 items\n\nAdd, edit, and manage your menu offerings\n\nPreview Menu\nAdd Item\nAll\n🥗 Express Bowls\n☕ Coffee\nPopular\n0\nAvailable\nPublished\n\nDowntown Power Bowl\n\nQuinoa, grilled chicken, avocado, lime dressing — built for a fast lunch break.\n\n💚\nHealthy\n4.6\n8m\n540\n$13.50\n0\nAvailable\nPublished\n\nDowntown Espresso\n\nDouble shot, locally roasted beans.\n\n☕\nCoffee\n4.7\n3m\n5\n$3.50",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853237952
+            },
+            {
+              "type": "console:branch-changed",
+              "detail": {
+                "branchId": "branch-rest-02"
+              },
+              "ts": 1785853240270
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853237460,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:20:42.385Z"
+        }
+      ],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\08-menu-main-branch.png",
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\08-menu-downtown-branch.png"
+      ],
+      "inconsistencies": [],
+      "status": "completed"
+    },
+    {
+      "id": "9",
+      "title": "Open /console/orders after switching",
+      "steps": [
+        {
+          "label": "orders-downtown",
+          "url": "http://localhost:3001/console/orders",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-02",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Downtown Branch",
+          "pageHeading": "Orders",
+          "branchContextOnPage": [
+            "Downtown Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 1,
+          "mainTextSample": "Orders\nLive\n\nManage and track all incoming orders in real time.\n\nThis Branch\nAll Orders\nPreview Menu\nRefresh\n\nStatus counts reflect the current page only\n\n0\nPending\n0\nAccepted\n1\nPreparing\n0\nReady\n0\nDelivered\n0\nPicked up\n0\nServed\n0\nCancelled\n\tORDER\tCUSTOMER\tITEMS\tTYPE\tTOTAL\tSTATUS\tTIME\tACTIONS\n\t#3901\t—\t\nBacon x3, Bacon, Bacon, Bacon, Bacon, Bacon x2, Bacon, Bacon, Bacon x2, Bacon, Bacon, Bacon, Bacon\n\tDine In\t$228.86\t\nPreparing\t30m ago\t→ Ready",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853245212
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853244910,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:20:46.062Z"
+        }
+      ],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\09-orders-downtown.png"
+      ],
+      "inconsistencies": [],
+      "status": "completed"
+    },
+    {
+      "id": "10",
+      "title": "Open /console/branches/[id] after switching",
+      "steps": [
+        {
+          "label": "branch-detail-rest-02",
+          "url": "http://localhost:3001/console/branches/branch-rest-02",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-01",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Main Branch",
+          "pageHeading": null,
+          "branchContextOnPage": [
+            "Main Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 0,
+          "mainTextSample": "Loading branch…",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853254931
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853254400,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:20:55.847Z"
+        }
+      ],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\10-branch-detail-mismatch.png"
+      ],
+      "inconsistencies": [],
+      "status": "completed"
+    },
+    {
+      "id": "11",
+      "title": "Multi-tenant user session",
+      "steps": [
+        {
+          "label": "multi-tenant-final",
+          "url": "http://localhost:3001/console/branches/branch-rest-02",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": "branch-rest-01",
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Main Branch",
+          "pageHeading": null,
+          "branchContextOnPage": [
+            "Main Branch"
+          ],
+          "selectBranchPrompt": false,
+          "menuRowCount": 0,
+          "mainTextSample": "Loading branch…",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853254931
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853254400,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:21:25.963Z"
+        }
+      ],
+      "screenshots": [],
+      "inconsistencies": [],
+      "membershipCount": 2,
+      "status": "completed"
+    },
+    {
+      "id": "12",
+      "title": "Multi-branch user (owner on Samoon)",
+      "steps": [],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\12-multi-branch-options.png"
+      ],
+      "inconsistencies": [],
+      "branchOptionCount": 12,
+      "branchOptions": [
+        "Main Branch123 Culinary Avenue",
+        "Downtown Branch456 Urban Street",
+        "Airport BranchJFK Terminal 4",
+        "Midtown Cafe789 Coffee Lane",
+        "Brooklyn Cafe321 Brew Boulevard",
+        "East Village Bar555 Tap Street",
+        "Westside Food Court100 Market Street",
+        "Uptown Food Hall200 Plaza Drive",
+        "Samoon Truck AlphaBryant Park",
+        "Samoon Truck BetaMadison Square Park",
+        "Mobile Brew CartCentral Park South Entrance",
+        "Espresso ExpressHudson Yards"
+      ],
+      "status": "completed"
+    },
+    {
+      "id": "13",
+      "title": "Single tenant user (staff)",
+      "steps": [
+        {
+          "label": "single-tenant-staff",
+          "url": "http://localhost:3001/console/orders",
+          "mockSessionEmail": "staff@samoon.com",
+          "mockActiveTenantId": null,
+          "mockActiveBranchId": null,
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "roles": [
+                "manager"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": []
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "manager"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Samoon Restaurant",
+          "branchSwitcherLabel": "Select branch",
+          "pageHeading": "Orders",
+          "branchContextOnPage": [],
+          "selectBranchPrompt": true,
+          "menuRowCount": 0,
+          "mainTextSample": "Orders\nLive\n\nManage and track all incoming orders in real time.\n\nThis Branch\nAll Orders\nPreview Menu\nRefresh\n\nStatus counts reflect the current page only\n\n0\nPending\n0\nAccepted\n0\nPreparing\n0\nReady\n0\nDelivered\n0\nPicked up\n0\nServed\n0\nCancelled\nLoading orders…",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853295319
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853294835,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            },
+            {
+              "ts": 1785853294949,
+              "url": "undefined",
+              "method": "GET"
+            },
+            {
+              "ts": 1785853294949,
+              "url": "undefined",
+              "method": "GET"
+            }
+          ],
+          "ts": "2026-08-04T14:21:38.692Z"
+        }
+      ],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\13-single-tenant-staff.png"
+      ],
+      "inconsistencies": [],
+      "tenantOptionCount": 1,
+      "status": "completed"
+    },
+    {
+      "id": "14",
+      "title": "Single branch user (brew cafe cashier after switch)",
+      "steps": [
+        {
+          "label": "single-branch-brew",
+          "url": "http://localhost:3001/console/tenants",
+          "mockSessionEmail": "owner@samoon.com",
+          "mockActiveTenantId": "tenant-brew-cafe-01",
+          "mockActiveBranchId": null,
+          "mockSessionMemberships": [
+            {
+              "tenantId": "tenant-samoon-01",
+              "tenantSlug": "samoon",
+              "tenantName": "Samoon Restaurant",
+              "roles": [
+                "owner"
+              ],
+              "branchAccess": {
+                "scope": "all"
+              }
+            },
+            {
+              "tenantId": "tenant-brew-cafe-01",
+              "tenantSlug": "brew-cafe",
+              "tenantName": "Brew Cafe",
+              "roles": [
+                "cashier"
+              ],
+              "branchAccess": {
+                "scope": "selected",
+                "branchIds": [
+                  "branch-brewcafe-01"
+                ]
+              }
+            }
+          ],
+          "rbacPersist": {
+            "state": {
+              "tenantRoles": [
+                {
+                  "tenantId": "tenant-samoon-01",
+                  "roles": [
+                    "owner"
+                  ]
+                },
+                {
+                  "tenantId": "tenant-brew-cafe-01",
+                  "roles": [
+                    "cashier"
+                  ]
+                }
+              ],
+              "userOverrides": [],
+              "customRoles": [],
+              "rbacAuditLog": []
+            },
+            "version": 0
+          },
+          "branchPersist": {
+            "state": {
+              "activeBranch": null
+            },
+            "version": 3
+          },
+          "tenantPersist": {
+            "state": {},
+            "version": 2
+          },
+          "consoleWorkspacePersist": {
+            "state": {},
+            "version": 2
+          },
+          "tenantSwitcherLabel": "Brew Cafe",
+          "branchSwitcherLabel": "Select branch",
+          "pageHeading": null,
+          "branchContextOnPage": [],
+          "selectBranchPrompt": true,
+          "menuRowCount": 0,
+          "mainTextSample": "Access denied\n\nYou don't have permission to view this page.\n\nGo to My Workspace",
+          "auditEvents": [
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-samoon-01"
+              },
+              "ts": 1785853304629
+            },
+            {
+              "type": "console:tenant-changed",
+              "detail": {
+                "tenantId": "tenant-brew-cafe-01"
+              },
+              "ts": 1785853306970
+            }
+          ],
+          "auditNetwork": [
+            {
+              "ts": 1785853304165,
+              "url": "/__nextjs_original-stack-frames",
+              "method": "POST"
+            }
+          ],
+          "ts": "2026-08-04T14:21:47.365Z"
+        }
+      ],
+      "screenshots": [
+        "F:\\AP\\Samoon\\samoon_Q\\tmp\\console-selector-audit\\14-single-branch-brew.png"
+      ],
+      "inconsistencies": [],
+      "branchOptions": [
+        "Midtown Cafe789 Coffee Lane"
+      ],
+      "status": "completed"
+    }
+  ],
+  "inconsistencies": [
+    {
+      "scenario": "1",
+      "title": "Initial login",
+      "message": "Branch selector shows \"select branch\" but mock_active_branch_id unset"
+    }
+  ],
+  "meta": {
+    "base": "http://localhost:3001",
+    "ranAt": "2026-08-04T14:17:54.981Z"
+  },
+  "networkLog": []
+}

@@ -8,8 +8,9 @@ import {
   useAdminBranch, useAdminBranches, useAdminBranchMetrics, useConsoleAdminBranchMetrics,
   useActivateBranch, useDeactivateBranch, useMaintenanceBranch,
   useDeleteBranch, useSetDefaultBranch, useBranchAccess, useConsoleDeleteBranch,
+  useConsoleTenantId,
 } from '@/hooks'
-import { useBranchStore, useTenantStore } from '@/stores'
+import { useConsoleWorkspace } from '@/hooks/console-workspace'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -33,7 +34,8 @@ const BRANCH_STATUS_KEY: Record<BranchStatus, string> = {
 function BranchDetailContent({ id }: { id: string }) {
   const t = useTranslations('console')
   const router = useRouter()
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const tenantId = useConsoleTenantId() ?? ''
+  const { selectedBranch } = useConsoleWorkspace()
   const { data: branch, isLoading, error } = useAdminBranch(id)
   const { data: siblingBranches = [] } = useAdminBranches(tenantId)
   // const { data: metrics } = useAdminBranchMetrics(id)
@@ -44,7 +46,7 @@ function BranchDetailContent({ id }: { id: string }) {
   // const deleteBranch = useDeleteBranch()
   const deleteBranch = useConsoleDeleteBranch()
   const setDefault = useSetDefaultBranch()
-  const adminActiveBranch = useBranchStore((s) => s.adminActiveBranch)
+  const adminActiveBranch = selectedBranch
 
   const [deleteOpen, setDeleteOpen] = useState(false)
 

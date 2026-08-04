@@ -44,7 +44,8 @@ import {
 import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
-import { resolveConsoleActiveBranch } from '@/lib/console-workspace'
+import { resolveConsoleActiveBranch, membershipBranchesToBranches } from '@/lib/console-workspace'
+import { filterBranchesForTenant } from '@/lib/console-workspace-consistency'
 import { normalizeCartItems } from '@/lib/cart-normalizers'
 import {
   resolvePublicTenantId,
@@ -52,6 +53,7 @@ import {
 } from '@/lib/public-tenant-resolution'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import type { MembershipBranch } from '@/types/rbac'
+import { recordConsoleBootMetric } from '@/lib/console-boot-metrics'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
 interface AuthState {
@@ -363,6 +365,7 @@ export const useTenantStore = create<TenantState>()(
       lastAttemptedTenantId: undefined,
       setTenant: (tenant) => set({ tenant }),
       loadTenant: async (slug?: string, options?: ResolvePublicTenantOptions) => {
+        recordConsoleBootMetric('loadTenant')
         // No slug to resolve against (e.g. the platform domain with no
         // tenant subdomain) — never guess a tenant. Leave tenant null and
         // let the Console's own membership-based fallback
@@ -442,6 +445,7 @@ export const useTenantStore = create<TenantState>()(
         }
       },
       loadTenantById: async (tenantId: string) => {
+        recordConsoleBootMetric('loadTenantById')
         set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedTenantId: tenantId, lastAttemptedSlug: undefined })
         try {
           const tenant = await tenantService.getTenantById(tenantId)
@@ -580,6 +584,38 @@ interface BranchState {
   setAdminActiveBranch: (branch: AdminBranch | null) => void
 }
 
+/** In-flight dedup + last successful load — module scope, not persisted. */
+const branchesLoadInflight = new Map<string, Promise<void>>()
+let lastLoadedBranchesTenantId: string | null = null
+
+function applyLoadedBranches(
+  set: (partial: Partial<BranchState>) => void,
+  tenantId: string,
+  branches: AdminBranch[],
+) {
+  const scopedBranches = filterBranchesForTenant(branches, tenantId)
+  const activeBranchId = useRbacStore.getState().activeMembership?.branchId
+  const selected = resolveConsoleActiveBranch(scopedBranches, activeBranchId)
+  lastLoadedBranchesTenantId = tenantId
+  if (selected) {
+    set({
+      branches: scopedBranches,
+      selectedBranch: selected,
+      selectedBranchId: selected.id,
+      branchState: 'ready',
+      adminActiveBranch: selected,
+    })
+  } else {
+    set({
+      branches: scopedBranches,
+      selectedBranch: null,
+      selectedBranchId: null,
+      branchState: 'empty',
+      adminActiveBranch: null,
+    })
+  }
+}
+
 export const useBranchStore = create<BranchState>()(
   persist(
     (set, get) => ({
@@ -601,34 +637,74 @@ export const useBranchStore = create<BranchState>()(
       branches: [],
 
       loadBranchesForTenant: async (tenantId: string) => {
-        set({ branchState: 'loading' })
-        try {
-          const branches = await branchManagementService.getTenantsBranches(tenantId)
-          const activeBranchId = useRbacStore.getState().activeMembership?.branchId
-          const selected = resolveConsoleActiveBranch(branches, activeBranchId)
-          if (selected) {
-            set({
-              branches,
-              selectedBranch: selected,
-              selectedBranchId: selected.id,
-              branchState: 'ready',
-              adminActiveBranch: selected,
-            })
-          } else {
-            set({ branches, selectedBranch: null, selectedBranchId: null, branchState: 'empty', adminActiveBranch: null })
+        recordConsoleBootMetric('loadBranchesForTenant')
+        const inflight = branchesLoadInflight.get(tenantId)
+        if (inflight) return inflight
+
+        const state = get()
+        if (
+          lastLoadedBranchesTenantId === tenantId &&
+          (state.branchState === 'ready' || state.branchState === 'empty')
+        ) {
+          return
+        }
+
+        const promise = (async () => {
+          set({ branchState: 'loading' })
+          try {
+            const branches = await branchManagementService.getTenantsBranches(tenantId)
+            applyLoadedBranches(set, tenantId, branches)
+          } catch (err) {
+            captureException(err, { context: 'useBranchStore.loadBranchesForTenant', tenantId })
+            set({ branches: [], selectedBranch: null, branchState: 'error', adminActiveBranch: null })
           }
-        } catch (err) {
-          captureException(err, { context: 'useBranchStore.loadBranchesForTenant', tenantId })
-          set({ branches: [], selectedBranch: null, branchState: 'error', adminActiveBranch: null })
+        })()
+
+        branchesLoadInflight.set(tenantId, promise)
+        try {
+          await promise
+        } finally {
+          branchesLoadInflight.delete(tenantId)
         }
       },
-      loadBranchesFromMembership: async (tenantId: string, _membershipBranches: MembershipBranch[]) => {
-        await get().loadBranchesForTenant(tenantId)
+      loadBranchesFromMembership: async (tenantId: string, membershipBranches: MembershipBranch[]) => {
+        recordConsoleBootMetric('loadBranchesFromMembership')
+        const inflight = branchesLoadInflight.get(tenantId)
+        if (inflight) return inflight
+
+        const state = get()
+        if (
+          lastLoadedBranchesTenantId === tenantId &&
+          (state.branchState === 'ready' || state.branchState === 'empty')
+        ) {
+          return
+        }
+
+        const promise = (async () => {
+          set({ branchState: 'loading' })
+          try {
+            const branches = membershipBranchesToBranches(membershipBranches, tenantId)
+            applyLoadedBranches(set, tenantId, branches)
+          } catch (err) {
+            captureException(err, { context: 'useBranchStore.loadBranchesFromMembership', tenantId })
+            set({ branches: [], selectedBranch: null, branchState: 'error', adminActiveBranch: null })
+          }
+        })()
+
+        branchesLoadInflight.set(tenantId, promise)
+        try {
+          await promise
+        } finally {
+          branchesLoadInflight.delete(tenantId)
+        }
       },
       selectBranch: (branch) => {
+        const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
+        if (activeTenantId && branch.tenantId !== activeTenantId) return
         set({ selectedBranch: branch, selectedBranchId: branch.id, branchState: 'ready', adminActiveBranch: branch })
       },
       resetBranchResolution: () => {
+        lastLoadedBranchesTenantId = null
         set({ branches: [], selectedBranch: null, selectedBranchId: null, branchState: 'idle', adminActiveBranch: null })
       },
 

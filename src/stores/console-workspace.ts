@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { TenantMembership } from '@/types/rbac'
 import type { Branch } from '@/types/branch'
 import { hasMembershipBranches, membershipLabel, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId } from '@/lib/console-workspace'
+import { reconcileConsoleWorkspaceConsistency } from '@/lib/console-workspace-consistency'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useTenantStore } from '@/stores/index'
@@ -112,6 +113,12 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
 
         const currentTenantId = useTenantStore.getState().tenant?.id
         if (currentTenantId === targetTenantId && useTenantStore.getState().tenantState === 'resolved') {
+          const branchState = useBranchStore.getState().branchState
+          if (branchState === 'ready' || branchState === 'empty') {
+            set({ selectedTenantId: targetTenantId, workspacePhase: 'ready', _bootstrapped: true })
+            return
+          }
+
           const membership = memberships.find((m) => m.tenantId === targetTenantId)
           if (hasMembershipBranches(membership)) {
             await useBranchStore.getState().loadBranchesFromMembership(targetTenantId, membership.branches)
@@ -119,6 +126,7 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
             await useBranchStore.getState().loadBranchesForTenant(targetTenantId)
           }
           set({ selectedTenantId: targetTenantId, workspacePhase: 'ready', _bootstrapped: true })
+          reconcileConsoleWorkspaceConsistency()
           return
         }
 
@@ -126,6 +134,7 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
         try {
           await get().switchTenant(targetTenantId)
           set({ _bootstrapped: true, workspacePhase: 'ready', workspaceError: null })
+          reconcileConsoleWorkspaceConsistency()
         } catch (err) {
           set({
             workspacePhase: 'error',
@@ -198,14 +207,17 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
 
       switchBranch: (branchId: string) => {
         const branches = useBranchStore.getState().branches
+        const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
         const branch = branches.find((b) => b.id === branchId)
         if (!branch) return
+        if (activeTenantId && branch.tenantId !== activeTenantId) return
         set({ workspacePhase: 'switching_branch' })
         useBranchStore.getState().selectBranch(branch)
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('console:branch-changed', { detail: { branchId } }))
         }
         set({ workspacePhase: 'ready' })
+        reconcileConsoleWorkspaceConsistency()
       },
 
       resetWorkspace: () => {
