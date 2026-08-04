@@ -45,7 +45,7 @@ import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import { resolveConsoleActiveBranch } from '@/lib/console-workspace'
-import { buildMenuItemStub, normalizeCartItems } from '@/lib/cart-normalizers'
+import { normalizeCartItems } from '@/lib/cart-normalizers'
 import {
   resolvePublicTenantId,
   type ResolvePublicTenantOptions,
@@ -118,19 +118,17 @@ export const useCartStore = create<CartState>()(
       isOpen: false,
 
       addItem: (menuItem, quantity = 1, extras = [], notes) => {
-        const normalizedMenuItem = buildMenuItemStub(menuItem, menuItem.branch_id)
-
         set((state) => {
           // Branch isolation: a cart can only ever hold one branch's items.
           // Adding an item from a different branch than what's currently in
           // the cart starts a fresh cart instead of mixing branches together.
-          const items = state.items.length > 0 && state.items[0].branch_id !== normalizedMenuItem.branch_id
+          const items = state.items.length > 0 && state.items[0].branch_id !== menuItem.branch_id
             ? []
             : state.items
 
           const existingId = items.find(
             (i) =>
-              i.menu_item.id === normalizedMenuItem.id &&
+              i.menu_item.id === menuItem.id &&
               JSON.stringify(i.extras.map((e) => e.id).sort()) ===
                 JSON.stringify(extras.map((e) => e.id).sort()),
           )?.id
@@ -144,11 +142,11 @@ export const useCartStore = create<CartState>()(
           }
 
           const extraTotal = extras.reduce((sum, e) => sum + e.price, 0)
-          const unitPrice = (normalizedMenuItem.discounted_price ?? normalizedMenuItem.price) + extraTotal
+          const unitPrice = (menuItem.discounted_price ?? menuItem.price) + extraTotal
           const newItem: CartItem = {
-            id: `${normalizedMenuItem.id}-${Date.now()}`,
-            branch_id: normalizedMenuItem.branch_id,
-            menu_item: normalizedMenuItem,
+            id: `${menuItem.id}-${Date.now()}`,
+            branch_id: menuItem.branch_id,
+            menu_item: menuItem,
             quantity,
             extras,
             notes,
