@@ -37,11 +37,13 @@ describe('category image upload', () => {
     expect(form.get('image')).toBe(file)
   })
 
-  it('categories page uses ImageUploader not image URL input', () => {
+  it('category form uses ImageUploader not image URL input', () => {
+    const formFields = read('src/components/console/CategoryFormFields.tsx')
+    expect(formFields).toContain('ImageUploader')
+    expect(formFields).not.toMatch(/imageUrlLabel.*form\.image/)
     const page = read('src/app/console/categories/page.tsx')
-    expect(page).toContain('ImageUploader')
-    expect(page).not.toMatch(/imageUrlLabel.*form\.image/)
     expect(page).toContain('categoryFormToWriteRequest')
+    expect(page).toContain('CategoryCreateModal')
   })
 
   it('menu service createCategory uses FormData', () => {

@@ -2112,10 +2112,11 @@ async function updateBranchMenuItemsQueries(
   return { snapshots }
 }
 
-/** Matches only this branch's cached `categories` entries. */
+/** Matches this branch's cached category list queries (`categories` + `console-categories`). */
 function categoriesQueryPredicate(branchId: string) {
   return (query: { queryKey: readonly unknown[] }) =>
-    query.queryKey[0] === 'categories' && query.queryKey[2] === branchId
+    (query.queryKey[0] === 'categories' || query.queryKey[0] === 'console-categories') &&
+    query.queryKey[2] === branchId
 }
 
 // ── Category Admin Hooks ─────────────────────────────────────────────────────
@@ -2129,8 +2130,17 @@ export function useCreateCategory(branchId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CategoryWriteRequest) => menuService.createCategory(branchId, payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ predicate: categoriesQueryPredicate(branchId) })
+    onSuccess: (newCategory) => {
+      const predicate = categoriesQueryPredicate(branchId)
+      qc.setQueriesData<Category[]>(
+        { predicate },
+        (old) => {
+          if (!old) return [newCategory]
+          if (old.some((c) => c.id === newCategory.id)) return old
+          return [...old, newCategory]
+        },
+      )
+      qc.invalidateQueries({ predicate })
     },
   })
 }

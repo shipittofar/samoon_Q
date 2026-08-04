@@ -2450,6 +2450,8 @@
     "selectBranchToManageCategories": "Select a branch to manage its categories",
     "categoryPageNoBranchHint": "Choose an active branch from the branch switcher to view and manage its categories.",
     "addCategory": "Add Category",
+    "createCategoryQuick": "+ Create Category",
+    "categoryCreatedSuccessfully": "Category \"{name}\" created successfully.",
     "searchCategoriesPlaceholder": "Search categories...",
     "loadingCategories": "Loading categories...",
     "failedToLoadCategories": "Failed to load categories.",

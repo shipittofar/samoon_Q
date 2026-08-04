@@ -2435,6 +2435,8 @@
     "selectBranchToManageCategories": "اختر فرعًا لإدارة فئاته",
     "categoryPageNoBranchHint": "اختر فرعًا نشطًا من محول الفروع لعرض فئاته وإدارتها.",
     "addCategory": "إضافة فئة",
+    "createCategoryQuick": "+ إنشاء فئة",
+    "categoryCreatedSuccessfully": "تم إنشاء الفئة «{name}» بنجاح.",
     "searchCategoriesPlaceholder": "بحث في الفئات...",
     "loadingCategories": "جارٍ تحميل الفئات...",
     "failedToLoadCategories": "فشل تحميل الفئات.",

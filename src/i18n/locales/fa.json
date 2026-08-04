@@ -2435,6 +2435,8 @@
     "selectBranchToManageCategories": "شعبه‌ای را برای مدیریت دسته‌بندی‌هایش انتخاب کنید",
     "categoryPageNoBranchHint": "یک شعبه فعال را از انتخاب‌گر شعبه انتخاب کنید تا دسته‌بندی‌های آن را مشاهده و مدیریت کنید.",
     "addCategory": "افزودن دسته",
+    "createCategoryQuick": "+ ایجاد دسته",
+    "categoryCreatedSuccessfully": "دسته «{name}» با موفقیت ایجاد شد.",
     "searchCategoriesPlaceholder": "جستجوی دسته‌ها...",
     "loadingCategories": "در حال بارگذاری دسته‌ها...",
     "failedToLoadCategories": "بارگذاری دسته‌ها ناموفق بود.",

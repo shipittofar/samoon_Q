@@ -9,12 +9,11 @@ import {
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
-import { Input, Textarea } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@/components/ui/Table'
 import { formatDate } from '@/utils'
 import {
-  useConsoleCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useReorderCategories,
+  useConsoleCategories, useUpdateCategory, useDeleteCategory, useReorderCategories,
   usePermission, useSelectedBranch, useBranchState, useIsBranchReady,
 } from '@/hooks'
 import type { Category } from '@/types'
@@ -23,23 +22,14 @@ import {
   categoryToFormInput,
   type CategoryFormInput,
 } from '@/types'
-import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
+import { CategoryCreateModal } from '@/components/console/CategoryCreateModal'
+import { CategoryFormFields } from '@/components/console/CategoryFormFields'
+import { EMPTY_CATEGORY_FORM, validateCategoryForm } from '@/lib/category-form'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
-
-const EMPTY_FORM: CategoryFormInput = {
-  name: '', description: '', image: { ...EMPTY_IMAGE_FIELD }, sort_order: '', is_active: true,
-}
-
-/** Empty/whitespace-only name, or a non-numeric/negative sort order. */
-function validateForm(form: CategoryFormInput): string | null {
-  if (!form.name.trim()) return 'nameRequired'
-  if (form.sort_order && (!/^\d+$/.test(form.sort_order) || parseInt(form.sort_order, 10) < 1)) return 'invalidSortOrder'
-  return null
-}
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -49,12 +39,10 @@ export default function AdminCategoriesPage() {
   const [search, setSearch] = useState('')
 
   const [createOpen, setCreateOpen] = useState(false)
-  const [createForm, setCreateForm] = useState<CategoryFormInput>(EMPTY_FORM)
-  const [createError, setCreateError] = useState<string | null>(null)
 
   const [editCategory, setEditCategory] = useState<Category | null>(null)
   const [editOpen, setEditOpen] = useState(false)
-  const [editForm, setEditForm] = useState<CategoryFormInput>(EMPTY_FORM)
+  const [editForm, setEditForm] = useState<CategoryFormInput>(EMPTY_CATEGORY_FORM)
   const [editError, setEditError] = useState<string | null>(null)
 
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null)
@@ -73,7 +61,6 @@ export default function AdminCategoriesPage() {
   const canUpdate = usePermission('category.update')
   const canDelete = usePermission('category.delete')
 
-  const createMutation = useCreateCategory(adminBranchId ?? '')
   const updateMutation = useUpdateCategory(adminBranchId ?? '')
   const deleteMutation = useDeleteCategory(adminBranchId ?? '')
   const reorderMutation = useReorderCategories(adminBranchId ?? '')
@@ -91,19 +78,7 @@ export default function AdminCategoriesPage() {
   // ── Handlers ────────────────────────────────────────────────────────────────
 
   const openCreate = () => {
-    setCreateForm(EMPTY_FORM)
-    setCreateError(null)
     setCreateOpen(true)
-  }
-
-  const submitCreate = () => {
-    if (createMutation.isPending) return // guards against duplicate submission (double-click/double-Enter)
-    const validationError = validateForm(createForm)
-    if (validationError) { setCreateError(validationError); return }
-    setCreateError(null)
-    createMutation.mutate(categoryFormToWriteRequest(createForm), {
-      onSuccess: () => { setCreateOpen(false); setCreateForm(EMPTY_FORM) },
-    })
   }
 
   const openEdit = (category: Category) => {
@@ -115,7 +90,7 @@ export default function AdminCategoriesPage() {
 
   const submitEdit = () => {
     if (!editCategory || updateMutation.isPending) return
-    const validationError = validateForm(editForm)
+    const validationError = validateCategoryForm(editForm)
     if (validationError) { setEditError(validationError); return }
     setEditError(null)
     updateMutation.mutate({ id: editCategory.id, payload: categoryFormToWriteRequest(editForm) }, {
@@ -337,18 +312,11 @@ export default function AdminCategoriesPage() {
       </div>
 
       {/* Create Modal */}
-      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={t('addCategory')} size="md">
-        <CategoryFormFields form={createForm} onChange={setCreateForm} error={createError} />
-        <div className="flex gap-3 pt-2">
-          <Button variant="secondary" onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
-          <Button onClick={submitCreate} disabled={createMutation.isPending} className="flex-1">
-            {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('addCategory')}
-          </Button>
-        </div>
-        {createMutation.isError && (
-          <p className="text-sm text-red-500 mt-2">{t('failedToCreateCategoryRetry')}</p>
-        )}
-      </Modal>
+      <CategoryCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        branchId={adminBranchId}
+      />
 
       {/* Edit Modal */}
       <Modal
@@ -396,40 +364,5 @@ export default function AdminCategoriesPage() {
     </div>
     </ErrorBoundary>
     </PermissionGuard>
-  )
-}
-
-// ── Shared form fields component ──────────────────────────────────────────────
-
-function CategoryFormFields({
-  form,
-  onChange,
-  error,
-}: {
-  form: CategoryFormInput
-  onChange: (f: CategoryFormInput) => void
-  error: string | null
-}) {
-  const t = useTranslations('console')
-  const set = (field: Exclude<keyof CategoryFormInput, 'image'>) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
-
-  return (
-    <div className="space-y-4 mb-4">
-      <Input label={t('categoryNameLabel')} value={form.name} onChange={set('name')} />
-      <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
-      <ImageUploader
-        label={t('imageLabel')}
-        value={form.image}
-        onChange={(image) => onChange({ ...form, image })}
-      />
-      <Input label={t('sortOrderLabel')} type="number" min={1} value={form.sort_order} onChange={set('sort_order')} />
-      <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-        <input type="checkbox" checked={form.is_active} onChange={set('is_active')} className="rounded" />
-        {t('active')}
-      </label>
-      {error && <p className="text-sm text-red-500">{t(`categoryFormError.${error}`)}</p>}
-    </div>
   )
 }

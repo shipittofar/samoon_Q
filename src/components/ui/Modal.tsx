@@ -22,6 +22,8 @@ export interface ModalProps {
   showClose?: boolean
   /** Visually hidden title for screen readers when showClose is false */
   ariaTitle?: string
+  /** Stacking order for nested modals (default 50). */
+  zIndex?: number
 }
 
 const modalSizes = {
@@ -36,7 +38,7 @@ const modalSizes = {
 export function Modal({
   open, onClose, title, description, children, size = 'md',
   className, contentClassName, scrollable = true,
-  closeOnOverlay = true, showClose = true, ariaTitle,
+  closeOnOverlay = true, showClose = true, ariaTitle, zIndex = 50,
 }: ModalProps) {
   const ref = useRef<HTMLDivElement>(null)
   const onCloseRef = useRef(onClose)
@@ -87,7 +89,7 @@ export function Modal({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
+        <div className="fixed inset-0 flex items-center justify-center p-4 overflow-hidden" style={{ zIndex }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

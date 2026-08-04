@@ -15,8 +15,8 @@ import { Input, Textarea } from '@/components/ui/Input'
 import { formatCurrency } from '@/utils'
 import { getTotalPages } from '@/utils/pagination'
 import { applyConsoleMenuClientFilters } from '@/lib/console-menu-client-filters'
-import { useConsoleMenuItems, useConsoleCategories, useCreateMenuItem, useConsoleCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useConsoleMenuTags, useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
-import type { MenuItem, MenuItemFormInput } from '@/types'
+import { useConsoleMenuItems, useConsoleCategories, useConsoleCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useConsoleMenuTags, useSelectedBranch, useBranchState, useIsBranchReady, usePermission } from '@/hooks'
+import type { Category, MenuItem, MenuItemFormInput } from '@/types'
 import { menuItemFormToWriteRequest, menuItemToFormInput } from '@/types'
 import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -25,6 +25,7 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { MenuTagBadge } from '@/components/menu/MenuTagBadge'
 import { MenuTagMultiSelect } from '@/components/console/MenuTagMultiSelect'
+import { CategoryCreateModal } from '@/components/console/CategoryCreateModal'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
 
@@ -53,6 +54,9 @@ export default function AdminMenuPage() {
   const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
+  const [categoryCreateOpen, setCategoryCreateOpen] = useState(false)
+  const [categoryCreateTarget, setCategoryCreateTarget] = useState<'create' | 'edit'>('create')
+
   // Console operates on whichever branch the admin has selected via
   // AdminBranchSwitcher — menu items/categories/mutations are all scoped to
   // it, never to a tenant-wide "all branches" collection (there is no such
@@ -76,6 +80,7 @@ export default function AdminMenuPage() {
     { page },
   )
   const { data: categories, isLoading: catsLoading } = useConsoleCategories(adminBranchId)
+  const canCreateCategory = usePermission('category.create')
   const { data: extraGroups } = useConsoleExtraGroups(adminBranchId)
   const { data: branchTagsData, isLoading: tagsLoading } = useConsoleMenuTags(adminBranchId, { page_size: 200 })
   const branchTags = branchTagsData?.results ?? []
@@ -168,6 +173,20 @@ export default function AdminMenuPage() {
     deleteMutation.mutate(deleteTarget.id, {
       onSuccess: () => { setDeleteOpen(false); setDeleteTarget(null) },
     })
+  }
+
+  const openCategoryCreate = (target: 'create' | 'edit') => {
+    if (!canCreateCategory || !adminBranchId) return
+    setCategoryCreateTarget(target)
+    setCategoryCreateOpen(true)
+  }
+
+  const handleCategoryCreated = (category: Category) => {
+    if (categoryCreateTarget === 'create') {
+      setCreateForm((form) => ({ ...form, category_id: category.id }))
+    } else {
+      setEditForm((form) => ({ ...form, category_id: category.id }))
+    }
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -399,6 +418,8 @@ export default function AdminMenuPage() {
           extraGroups={extraGroups ?? []}
           branchTags={branchTags}
           tagsLoading={tagsLoading}
+          canCreateCategory={canCreateCategory}
+          onCreateCategory={() => openCategoryCreate('create')}
         />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary" onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
@@ -429,6 +450,8 @@ export default function AdminMenuPage() {
           extraGroups={extraGroups ?? []}
           branchTags={branchTags}
           tagsLoading={tagsLoading}
+          canCreateCategory={canCreateCategory}
+          onCreateCategory={() => openCategoryCreate('edit')}
         />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary" onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
@@ -469,6 +492,15 @@ export default function AdminMenuPage() {
           <p className="text-sm text-red-500 mt-2">{t('failedToDeleteItemRetry')}</p>
         )}
       </Modal>
+
+      <CategoryCreateModal
+        open={categoryCreateOpen}
+        onClose={() => setCategoryCreateOpen(false)}
+        branchId={adminBranchId}
+        onSuccess={handleCategoryCreated}
+        showSuccessToast
+        zIndex={60}
+      />
     </div>
     </ErrorBoundary>
   
@@ -479,7 +511,7 @@ export default function AdminMenuPage() {
 
 // ── Shared form fields component ──────────────────────────────────────────────
 
-import type { Category, ConsoleMenuTag, ExtraGroup } from '@/types'
+import type { ConsoleMenuTag, ExtraGroup } from '@/types'
 
 function MenuItemFormFields({
   form,
@@ -488,6 +520,8 @@ function MenuItemFormFields({
   extraGroups,
   branchTags,
   tagsLoading,
+  canCreateCategory,
+  onCreateCategory,
 }: {
   form: MenuItemFormInput
   onChange: (f: MenuItemFormInput) => void
@@ -495,6 +529,8 @@ function MenuItemFormFields({
   extraGroups: ExtraGroup[]
   branchTags: ConsoleMenuTag[]
   tagsLoading?: boolean
+  canCreateCategory?: boolean
+  onCreateCategory?: () => void
 }) {
   const t = useTranslations('console')
   const set = (field: Exclude<keyof MenuItemFormInput, 'image' | 'extra_group_ids'>) =>
@@ -518,15 +554,28 @@ function MenuItemFormFields({
         </div>
         <div className="col-span-2">
           <label htmlFor="menu-category" className="block text-sm font-medium text-[var(--fg)] mb-1">{t('category')}</label>
-          <select
-            id="menu-category"
-            value={form.category_id}
-            onChange={set('category_id')}
-            className="w-full h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
-          >
-            <option value="">{t('selectCategoryEllipsis')}</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <select
+              id="menu-category"
+              value={form.category_id}
+              onChange={set('category_id')}
+              className="flex-1 min-w-0 h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+            >
+              <option value="">{t('selectCategoryEllipsis')}</option>
+              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            {canCreateCategory && onCreateCategory && (
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                onClick={onCreateCategory}
+                className="shrink-0 self-start sm:self-center"
+              >
+                {t('createCategoryQuick')}
+              </Button>
+            )}
+          </div>
         </div>
         <Input label={t('priceDollarLabel')} type="number" value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">$</span>} />
         <Input label={t('discountPercentSignLabel')} type="number" value={form.discount} onChange={set('discount')} />
