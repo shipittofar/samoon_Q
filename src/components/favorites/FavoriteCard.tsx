@@ -1,15 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Heart, MapPin, Store, Clock, Star, Zap } from 'lucide-react'
-import { useCartStore } from '@/stores'
 import { useFavoriteAction } from '@/hooks'
 import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
 import { Badge } from '@/components/ui'
-import { Button } from '@/components/ui/Button'
+import { MenuItemCartControls } from '@/components/menu/MenuItemCartControls'
 import type { UserFavorite } from '@/types/favorites'
 import type { MenuItem } from '@/types'
 
@@ -23,27 +21,14 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
   const tMenu = useTranslations('menu')
   const tDashboard = useTranslations('dashboard')
   const { menu_item: item, tenant, branch } = favorite
-  const { addItem } = useCartStore()
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
-  const [addedAnim, setAddedAnim] = useState(false)
 
   const discountedPrice = item.discount ? getDiscountedPrice(item.price, item.discount) : item.price
   const hasDiscount = !!item.discount && item.discount > 0
 
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('[data-menu-item-cart-controls]')) return
     onOpenDetail?.(item)
-  }
-
-  const handleQuickAdd = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!item.available) return
-    if (item.extras && item.extras.length > 0) {
-      onOpenDetail?.(item)
-      return
-    }
-    addItem({ ...item, discounted_price: discountedPrice })
-    setAddedAnim(true)
-    setTimeout(() => setAddedAnim(false), 1200)
   }
 
   return (
@@ -143,28 +128,14 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
             )}
           </div>
 
-          <motion.div animate={addedAnim ? { scale: [1, 1.02, 1] } : {}}>
-            <Button
-              size="md"
-              onClick={handleQuickAdd}
-              disabled={!item.available}
-              leftIcon={
-                addedAnim ? (
-                  <span aria-hidden="true">✓</span>
-                ) : (
-                  <Zap className="h-4 w-4" aria-hidden="true" />
-                )
-              }
-              className={cn(
-                'w-full font-semibold shadow-sm',
-                addedAnim && 'bg-emerald-500 hover:bg-emerald-500 border-emerald-500',
-              )}
-            >
-              {addedAnim
-                ? tMenu('added')
-                : tDashboard('favoriteQuickOrder', { price: formatCurrency(discountedPrice) })}
-            </Button>
-          </motion.div>
+          <MenuItemCartControls
+            item={item}
+            onOpenDetail={onOpenDetail}
+            disabled={!item.available}
+            layout="full"
+            addLabel={tDashboard('favoriteQuickOrder', { price: formatCurrency(discountedPrice) })}
+            addIcon={<Zap className="h-4 w-4" aria-hidden="true" />}
+          />
         </div>
       </div>
     </motion.article>

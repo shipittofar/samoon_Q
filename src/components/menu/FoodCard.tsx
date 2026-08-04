@@ -1,16 +1,15 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { Heart, Plus, Clock, Flame, Star } from 'lucide-react'
-import { useCartStore, useRecentlyViewedStore, useBranchStore } from '@/stores'
+import { Heart, Clock, Flame, Star } from 'lucide-react'
+import { useRecentlyViewedStore, useBranchStore } from '@/stores'
 import { useFavoriteAction } from '@/hooks'
 import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
 import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import { Badge } from '@/components/ui'
-import { Button } from '@/components/ui/Button'
+import { MenuItemCartControls } from '@/components/menu/MenuItemCartControls'
 import type { MenuItem } from '@/types'
 
 interface FoodCardProps {
@@ -22,32 +21,20 @@ interface FoodCardProps {
 
 export function FoodCard({ item, onOpenDetail, compact = false, className }: FoodCardProps) {
   const t = useTranslations('menu')
-  const { addItem } = useCartStore()
   const activeBranchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
   const orderingEnabled = isBranchOrderingEnabled(activeBranchCheckout)
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
-  const [addedAnim, setAddedAnim] = useState(false)
 
   const discountedPrice = item.discount ? getDiscountedPrice(item.price, item.discount) : item.price
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (!orderingEnabled || !item.available) return
-    if (item.extras && item.extras.length > 0) {
-      onOpenDetail?.(item)
-      return
-    }
-    addItem({ ...item, discounted_price: discountedPrice })
-    setAddedAnim(true)
-    setTimeout(() => setAddedAnim(false), 1200)
-  }
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     handleFavorite(e)
   }
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    // Guard against Add/qty clicks that bubble through motion/button layers.
+    if ((e.target as HTMLElement).closest('[data-menu-item-cart-controls]')) return
     addRecentlyViewed(item)
     onOpenDetail?.(item)
   }
@@ -87,9 +74,14 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
                 <span className="text-xs text-[var(--fg-subtle)] line-through ms-1">{formatCurrency(item.price)}</span>
               )}
             </div>
-            <Button size="icon-sm" onClick={handleAdd} disabled={!orderingEnabled || !item.available} aria-label={t('addToCart')}>
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
+            {orderingEnabled && (
+              <MenuItemCartControls
+                item={item}
+                onOpenDetail={onOpenDetail}
+                disabled={!orderingEnabled || !item.available}
+                layout="icon"
+              />
+            )}
           </div>
         </div>
       </motion.div>
@@ -203,18 +195,12 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
             )}
           </div>
           {orderingEnabled && (
-          <motion.div animate={addedAnim ? { scale: [1, 1.25, 1] } : {}}>
-            <Button
-              size="sm"
-              onClick={handleAdd}
-              disabled={!item.available}
-              leftIcon={addedAnim ? <span>✓</span> : <Plus className="h-3.5 w-3.5" />}
-              className={cn(addedAnim && 'bg-emerald-500 hover:bg-emerald-500')}
-            >
-              {/* H4: "Add" label for all items — customization opens naturally in the modal */}
-              {addedAnim ? t('added') : t('add')}
-            </Button>
-          </motion.div>
+            <MenuItemCartControls
+              item={item}
+              onOpenDetail={onOpenDetail}
+              disabled={!orderingEnabled || !item.available}
+              layout="button"
+            />
           )}
         </div>
       </div>
