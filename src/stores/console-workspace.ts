@@ -2,7 +2,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { TenantMembership } from '@/types/rbac'
 import type { Branch } from '@/types/branch'
-import { hasMembershipBranches, membershipLabel, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId } from '@/lib/console-workspace'
+import { hasMembershipBranches, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId } from '@/lib/console-workspace'
+import { canBootTenantFromMembership, hydrateConsoleTenantFromMembership } from '@/lib/console-membership-hydration'
 import { reconcileConsoleWorkspaceConsistency } from '@/lib/console-workspace-consistency'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
@@ -166,7 +167,11 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
           clearTenantScopedClientState()
           useBranchStore.getState().resetBranchResolution()
 
-          await useTenantStore.getState().loadTenantById(tenantId)
+          if (canBootTenantFromMembership(membership)) {
+            hydrateConsoleTenantFromMembership(membership)
+          } else {
+            await useTenantStore.getState().loadTenantById(tenantId)
+          }
 
           const tenant = useTenantStore.getState().tenant
           const tenantState = useTenantStore.getState().tenantState
@@ -179,9 +184,11 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
           }
 
           seedRbacForTenant(tenantId)
-          useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(tenant))
-          useTenantStore.getState().setFeatureFlagsInitialized(true)
-          useTenantStore.getState().setRbacInitialized(true)
+          if (!canBootTenantFromMembership(membership)) {
+            useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(tenant))
+            useTenantStore.getState().setFeatureFlagsInitialized(true)
+            useTenantStore.getState().setRbacInitialized(true)
+          }
 
           if (hasMembershipBranches(membership)) {
             await useBranchStore.getState().loadBranchesFromMembership(tenantId, membership.branches)
@@ -238,4 +245,5 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
   ),
 )
 
-export { membershipLabel, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId }
+export { getTenantDisplayName, membershipLabel } from '@/lib/console-tenant-display'
+export { resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId }

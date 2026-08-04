@@ -2,6 +2,7 @@ import { useCallback, useState, useRef, useEffect } from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import { useRbacStore, useTenantStore, useBranchStore } from '@/stores'
 import { hasMembershipBranches, isConsoleSelectorsReady } from '@/lib/console-workspace'
+import { getTenantDisplayName } from '@/lib/console-tenant-display'
 import { reconcileConsoleWorkspaceConsistency, parseConsoleBranchIdFromPath } from '@/lib/console-workspace-consistency'
 import {
   isCurrentBranchSwitch,
@@ -114,13 +115,7 @@ function resolveConsoleActiveBranchId(
 ): string | null {
   if (data.activeMembership?.branchId) return data.activeMembership.branchId
   if (fallbackBranchId) return fallbackBranchId
-
-  const activeTenantId = data.activeMembership?.tenantId
-  if (!activeTenantId) return null
-
-  const membership = data.memberships?.find((m) => m.tenantId === activeTenantId)
-  const defaultBranch = membership?.branches?.find((b) => b.isDefault === true)
-  return defaultBranch?.id ?? null
+  return null
 }
 
 /**
@@ -152,7 +147,12 @@ export async function refreshConsoleBranchSession(
     const branchState = useBranchStore.getState().branchState
     const hasBranch = useBranchStore.getState().branches.some((b) => b.id === resolvedBranchId)
     if (!hasBranch && branchState !== 'loading') {
-      await useBranchStore.getState().loadBranchesForTenant(activeTenantId)
+      const membership = data.memberships?.find((m) => m.tenantId === activeTenantId)
+      if (hasMembershipBranches(membership)) {
+        await useBranchStore.getState().loadBranchesFromMembership(activeTenantId, membership.branches)
+      } else {
+        await useBranchStore.getState().loadBranchesForTenant(activeTenantId)
+      }
     }
   }
 
@@ -317,6 +317,12 @@ export function useConsoleWorkspace() {
     selectedTenantId: activeTenantId ?? null,
     selectedBranchId: selectedBranch?.id ?? null,
     selectedTenant: resolvedActiveTenant,
+    tenantDisplayName: activeTenantId
+      ? getTenantDisplayName(activeTenantId, {
+          memberships: sessionMemberships,
+          loadedTenant: resolvedActiveTenant,
+        })
+      : '',
     selectedBranch,
     availableTenants: sessionMemberships ?? [],
     availableBranches: branches,

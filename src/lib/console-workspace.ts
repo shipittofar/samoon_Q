@@ -2,6 +2,7 @@ import type { MembershipBranch, TenantMembership } from '@/types/rbac'
 import type { Branch, BranchResolutionState } from '@/types/branch'
 import type { TenantLifecycle } from '@/types'
 import { DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
+import { getTenantDisplayName } from '@/lib/console-tenant-display'
 
 type ConsoleWorkspacePhase =
   | 'idle'
@@ -83,8 +84,10 @@ export function resolveConsoleDefaultBranch(
 }
 
 export function membershipLabel(membership: TenantMembership): string {
-  return membership.tenantName ?? membership.tenantSlug ?? membership.tenantId
+  return getTenantDisplayName(membership.tenantId, { memberships: [membership] })
 }
+
+export { getTenantDisplayName } from '@/lib/console-tenant-display'
 
 const UNSETTLED_WORKSPACE_PHASES: ReadonlySet<ConsoleWorkspacePhase> = new Set([
   'idle',

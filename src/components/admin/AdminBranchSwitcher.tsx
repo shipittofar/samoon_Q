@@ -25,6 +25,7 @@ import { cn } from '@/utils'
 import { useRbacStore } from '@/stores'
 import { useBranchState, useRetryLoadBranches } from '@/hooks'
 import { useConsoleWorkspace, useConsoleBranchSwitch } from '@/hooks/console-workspace'
+import { getTenantDisplayName } from '@/lib/console-tenant-display'
 import { canAccessBranch } from '@/services/permission.service'
 import type { Branch as AdminBranch } from '@/types/branch'
 
@@ -32,7 +33,8 @@ export function AdminBranchSwitcher() {
   const t = useTranslations('console')
   const tCommon = useTranslations('common')
   const {
-    selectedTenant,
+    activeTenantId,
+    tenantDisplayName,
     selectedBranch,
     availableBranches,
     branchesSource,
@@ -46,6 +48,7 @@ export function AdminBranchSwitcher() {
   // authoritative; canAccessBranch() still applies branchAccess.branchIds for
   // scope:'selected' (defense-in-depth on API fallback path).
   const branchAccess = useRbacStore((s) => s.currentTenantSession?.branchAccess)
+  const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
   const accessibleBranches = useMemo(
     () =>
       branchesSource === 'membership'
@@ -87,7 +90,7 @@ export function AdminBranchSwitcher() {
       {/* Tenant label */}
       <div className="hidden sm:flex items-center gap-1.5 text-[var(--fg-muted)]">
         <Building2 className="h-3.5 w-3.5 shrink-0" />
-        <span className="font-medium truncate max-w-[200px]">{selectedTenant?.name ?? '—'}</span>
+        <span className="font-medium truncate max-w-[200px]">{tenantDisplayName || '—'}</span>
       </div>
 
       <span className="hidden sm:block text-[var(--border)] select-none">/</span>
@@ -157,7 +160,7 @@ export function AdminBranchSwitcher() {
           )}
         >
           <p className="px-3 py-1.5 text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide">
-            {selectedTenant?.name}
+            {getTenantDisplayName(activeTenantId, { memberships: sessionMemberships })}
           </p>
           {accessibleBranches.length === 0 ? (
             <p className="px-3 py-2 text-sm text-[var(--fg-muted)]">{t('noBranchesFoundForTenant')}</p>

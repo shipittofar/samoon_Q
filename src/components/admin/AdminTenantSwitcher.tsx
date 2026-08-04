@@ -12,7 +12,7 @@ import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Layers, Check, Loader2, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
-import { membershipLabel } from '@/lib/console-workspace'
+import { getTenantDisplayName } from '@/lib/console-tenant-display'
 import {
   useConsoleWorkspace,
   useConsoleSessionRefresh,
@@ -26,9 +26,8 @@ export function AdminTenantSwitcher() {
   const t = useTranslations('console')
   const {
     activeTenantId,
-    activeMembershipRecord,
-    selectedTenant,
     availableTenants,
+    tenantDisplayName,
     tenantLoading,
   } = useConsoleWorkspace()
   const { refresh, refreshing } = useConsoleSessionRefresh()
@@ -81,18 +80,7 @@ export function AdminTenantSwitcher() {
     )
   }
 
-  const activeLabel = activeTenantId
-    ? (selectedTenant?.name ??
-      activeMembershipRecord?.tenantName ??
-      membershipLabel(
-        activeMembershipRecord ??
-          availableTenants.find((m) => m.tenantId === activeTenantId) ?? {
-            tenantId: activeTenantId,
-            roles: [],
-            branchAccess: { scope: 'all' },
-          },
-      ))
-    : t('selectTenant')
+  const activeLabel = activeTenantId ? tenantDisplayName || t('selectTenant') : t('selectTenant')
 
   async function handleOptionSelect(tenantId: string) {
     if (pending) return
@@ -160,7 +148,11 @@ export function AdminTenantSwitcher() {
                 )}
               >
                 <div className="min-w-0">
-                  <p className="font-medium truncate">{membershipLabel(membership)}</p>
+                  <p className="font-medium truncate">
+                    {getTenantDisplayName(membership.tenantId, {
+                      memberships: availableTenants,
+                    })}
+                  </p>
                   <p className="text-xs text-[var(--fg-muted)] truncate">
                     {membership.roles.join(', ')}
                   </p>

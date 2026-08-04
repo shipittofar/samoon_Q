@@ -13,6 +13,8 @@ import {
   MOCK_MULTI_ROLE_USER,
   MOCK_PLATFORM_ADMIN_USER,
 } from '@/lib/mock-data'
+import { buildSamoonMembership } from '@/lib/mock-console-memberships'
+import { normalizeGetMeResponse, assertMembershipBranchIsolation } from '@/lib/auth-me-normalizer'
 import { MOCK_DELAY } from '@/constants'
 import { configurationService } from '@/config'
 import type {
@@ -28,7 +30,6 @@ import type {
 } from '@/types'
 import type { Role, TenantMembership } from '@/types/rbac'
 import type { AuthSessionRbacPayload } from '@/types/ownership'
-import { resolveBranchAccess, MOCK_TENANT_ID } from '@/services/permission.service'
 
 /**
  * P10.8 — verifyOTP()'s result is a discriminated union, matching the
@@ -179,12 +180,7 @@ function deriveMockAuthSession(
   p7Roles: Role[],
 ): { memberships: TenantMembership[]; activeMembership?: TenantMembership } {
   if (p7Roles.length === 0) return { memberships: [] }
-  const membership: TenantMembership = {
-    tenantId: MOCK_TENANT_ID,
-    tenantSlug: 'samoon',
-    roles: p7Roles,
-    branchAccess: resolveBranchAccess(undefined, p7Roles),
-  }
+  const membership = buildSamoonMembership(p7Roles)
   return { memberships: [membership], activeMembership: membership }
 }
 
@@ -402,8 +398,12 @@ export const authService = {
     // Real mode: `memberships`/`activeMembership`/`ownership`/
     // `staffAssignments` are all optional — a backend that doesn't send
     // them yet still satisfies this type (only `user` is required).
-    const { data } = await api.get<GetMeResponse>(ENDPOINTS.AUTH.ME)
-    return data
+    const { data } = await api.get<unknown>(ENDPOINTS.AUTH.ME)
+    const normalized = normalizeGetMeResponse(data)
+    if (normalized.memberships) {
+      assertMembershipBranchIsolation(normalized.memberships)
+    }
+    return normalized
   },
 
   /**

@@ -1,40 +1,22 @@
 {
-  "generatedAt": "2026-08-04T14:45:37.204Z",
+  "generatedAt": "2026-08-04T15:09:06.022Z",
   "baseline": {
     "loadTenant": 1,
     "loadTenantById": 1,
     "loadBranchesForTenant": 2,
     "note": "Pre-Phase-1 audit estimate from bootstrap trace"
   },
-  "after": {
-    "loadTenant": 0,
-    "loadTenantById": 1,
-    "loadBranchesForTenant": 1,
-    "loadBranchesFromMembership": 0
-  },
+  "after": null,
   "ordering": {
-    "branchBeforeTenant": false,
-    "firstTenantResolved": {
-      "t": 8252,
-      "skeleton": false,
-      "tenant": "Samoon Restaurant",
-      "tenantSpin": false,
-      "branch": "Select branch",
-      "branchSpin": false
-    }
+    "branchBeforeTenant": false
   },
   "refresh": {
     "label": "refresh",
     "metrics": {
-      "loads": {
-        "loadTenant": 0,
-        "loadTenantById": 1,
-        "loadBranchesForTenant": 1,
-        "loadBranchesFromMembership": 0
-      },
+      "loads": null,
       "timeline": [
         {
-          "t": 5726,
+          "t": 683,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -42,7 +24,7 @@
           "branchSpin": false
         },
         {
-          "t": 5848,
+          "t": 804,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -50,7 +32,343 @@
           "branchSpin": false
         },
         {
-          "t": 5965,
+          "t": 923,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 1044,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 1163,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 1291,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 1407,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 1531,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 1643,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 1765,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 1892,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2015,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2124,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2249,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2363,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2498,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2606,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2730,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2855,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 2966,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 3083,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 3252,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 3324,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 3449,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 3574,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 3687,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 3806,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 3931,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 4044,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 4164,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 4290,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 4414,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 4524,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 4651,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 4776,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 4884,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5010,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5133,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5257,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5368,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5494,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5603,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5729,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5854,
+          "skeleton": false,
+          "tenant": null,
+          "tenantSpin": false,
+          "branch": null,
+          "branchSpin": false
+        },
+        {
+          "t": 5978,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -66,7 +384,7 @@
           "branchSpin": false
         },
         {
-          "t": 6217,
+          "t": 6210,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -74,7 +392,7 @@
           "branchSpin": false
         },
         {
-          "t": 6327,
+          "t": 6335,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -82,7 +400,7 @@
           "branchSpin": false
         },
         {
-          "t": 6451,
+          "t": 6445,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -90,7 +408,7 @@
           "branchSpin": false
         },
         {
-          "t": 6578,
+          "t": 6570,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -98,7 +416,7 @@
           "branchSpin": false
         },
         {
-          "t": 6687,
+          "t": 6696,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -106,7 +424,7 @@
           "branchSpin": false
         },
         {
-          "t": 6814,
+          "t": 6805,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -114,7 +432,7 @@
           "branchSpin": false
         },
         {
-          "t": 6925,
+          "t": 6930,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -130,7 +448,7 @@
           "branchSpin": false
         },
         {
-          "t": 7265,
+          "t": 7164,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -138,7 +456,7 @@
           "branchSpin": false
         },
         {
-          "t": 7298,
+          "t": 7288,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -146,7 +464,7 @@
           "branchSpin": false
         },
         {
-          "t": 7409,
+          "t": 7413,
           "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
@@ -154,8 +472,8 @@
           "branchSpin": false
         },
         {
-          "t": 7528,
-          "skeleton": true,
+          "t": 7523,
+          "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
           "branch": null,
@@ -163,489 +481,87 @@
         },
         {
           "t": 7648,
-          "skeleton": true,
+          "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
           "branch": null,
           "branchSpin": false
         },
         {
-          "t": 7881,
-          "skeleton": true,
+          "t": 7772,
+          "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
           "branch": null,
           "branchSpin": false
         },
         {
-          "t": 8015,
-          "skeleton": true,
+          "t": 7896,
+          "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
           "branch": null,
           "branchSpin": false
         },
         {
-          "t": 8130,
-          "skeleton": true,
+          "t": 8007,
+          "skeleton": false,
           "tenant": null,
           "tenantSpin": false,
           "branch": null,
           "branchSpin": false
         },
         {
-          "t": 8252,
+          "t": 8131,
           "skeleton": false,
-          "tenant": "Samoon Restaurant",
+          "tenant": null,
           "tenantSpin": false,
-          "branch": "Select branch",
+          "branch": null,
           "branchSpin": false
         },
         {
-          "t": 8372,
+          "t": 8257,
           "skeleton": false,
-          "tenant": "Samoon Restaurant",
+          "tenant": null,
           "tenantSpin": false,
-          "branch": "Select branch",
+          "branch": null,
           "branchSpin": false
         },
         {
-          "t": 8495,
+          "t": 8365,
           "skeleton": false,
-          "tenant": "Samoon Restaurant",
+          "tenant": null,
           "tenantSpin": false,
-          "branch": "Select branch",
+          "branch": null,
           "branchSpin": false
         },
         {
-          "t": 8610,
+          "t": 8491,
           "skeleton": false,
-          "tenant": "Samoon Restaurant",
+          "tenant": null,
           "tenantSpin": false,
-          "branch": "Select branch",
+          "branch": null,
           "branchSpin": false
         },
         {
-          "t": 8729,
+          "t": 8617,
           "skeleton": false,
-          "tenant": "Samoon Restaurant",
+          "tenant": null,
           "tenantSpin": false,
-          "branch": "Select branch",
+          "branch": null,
           "branchSpin": false
         },
         {
-          "t": 8849,
+          "t": 8725,
           "skeleton": false,
-          "tenant": "Samoon Restaurant",
+          "tenant": null,
           "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 8965,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 9086,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 9220,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 9332,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 9460,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 9575,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 9695,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 9817,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 9927,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 10052,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 10177,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 10286,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 10411,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 10535,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 10662,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 10772,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 10898,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11008,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11134,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11257,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11367,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11493,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11619,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11728,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11854,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 11978,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 12087,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 12209,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 12333,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 12457,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 12580,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 12688,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 12810,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 12935,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 13046,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 13172,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 13298,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 13407,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 13532,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 13656,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 13765,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 13891,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 14016,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 14140,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 14248,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 14375,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 14499,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 14607,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 14730,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
-          "branchSpin": false
-        },
-        {
-          "t": 14856,
-          "skeleton": false,
-          "tenant": "Samoon Restaurant",
-          "tenantSpin": false,
-          "branch": "Select branch",
+          "branch": null,
           "branchSpin": false
         }
       ],
       "final": {
-        "skeleton": false,
-        "tenant": "Samoon Restaurant",
-        "branch": "Select branch"
+        "skeleton": false
       }
     }
   }

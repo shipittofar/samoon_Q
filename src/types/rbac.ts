@@ -203,10 +203,14 @@ export interface TenantMembership {
   tenantId: string
   tenantSlug?: string
   tenantName?: string
+  /** Logo URL from GET /auth/me membership — used by Console selectors before full tenant load. */
+  tenantLogo?: string | null
   roles: Role[]
   branchAccess: BranchAccessInput
   /** Active branch pointer from GET /auth/me `activeMembership` after switch-branch. */
   branchId?: string
+  /** Display label from activeMembership when branch is selected. */
+  branchName?: string | null
   /** Branches available to this membership — Console source of truth when non-empty. */
   branches?: MembershipBranch[]
   status?: 'active' | 'suspended' | 'revoked'
