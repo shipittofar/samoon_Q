@@ -5,28 +5,128 @@ import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { CheckCircle2, Package, ArrowRight, Home, Clock } from 'lucide-react'
+import { CheckCircle2, Package, ArrowRight, Home, Clock, AlertCircle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { Skeleton } from '@/components/ui'
 import { OrderTracker } from '@/components/order/OrderTracker'
-import { useTenantStore } from '@/stores'
-import { resolveBestMenu } from '@/utils/navigation-intelligence'
+import { useOrder } from '@/hooks'
+import { useTenantStore, useBranchStore } from '@/stores'
+import { resolveOrderBranchMenuUrl } from '@/utils/navigation-intelligence'
+import { resolveOrderStatus } from '@/lib/order-status'
 import confetti from 'canvas-confetti'
+
+function SuccessLoading() {
+  const tCommon = useTranslations('common')
+
+  return (
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
+      <div className="max-w-lg w-full bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-2xl overflow-hidden p-6 space-y-6">
+        <div className="flex flex-col items-center gap-3 py-4">
+          <Skeleton className="h-20 w-20 rounded-full" />
+          <Skeleton className="h-7 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-16 w-full rounded-2xl" />
+        <Skeleton className="h-32 w-full rounded-2xl" />
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+        </div>
+        <p className="text-center text-sm text-[var(--fg-muted)]">{tCommon('loading')}</p>
+      </div>
+    </div>
+  )
+}
+
+function SuccessError({
+  onRetry,
+  message,
+}: {
+  onRetry?: () => void
+  message: string
+}) {
+  const tCommon = useTranslations('common')
+
+  return (
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
+      <div
+        className="max-w-lg w-full bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-2xl p-8 text-center"
+        role="alert"
+      >
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500 mx-auto mb-4">
+          <AlertCircle className="h-8 w-8" />
+        </div>
+        <h2 className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)] mb-2">
+          {message}
+        </h2>
+        {onRetry && (
+          <Button
+            variant="secondary"
+            className="mt-4"
+            onClick={onRetry}
+            leftIcon={<RefreshCw className="h-4 w-4" />}
+          >
+            {tCommon('retry')}
+          </Button>
+        )}
+        <Link href="/discover" className="mt-4 inline-block text-sm text-[var(--fg-muted)] hover:text-[var(--fg)]">
+          {tCommon('back')}
+        </Link>
+      </div>
+    </div>
+  )
+}
 
 function SuccessContent() {
   const t = useTranslations('checkoutResult')
+  const tOrderDetail = useTranslations('orderDetail')
   const params = useSearchParams()
   const orderId = params.get('orderId') || ''
-  const orderNumber = params.get('orderNumber') || '#0000'
+  const { data: order, isLoading, isError, refetch } = useOrder(orderId)
   const tenantSlug = useTenantStore((s) => s.tenant?.slug)
-  const menuHref = resolveBestMenu(tenantSlug)
+  const activeBranch = useBranchStore((s) => s.activeBranch)
 
   useEffect(() => {
+    if (!order) return
     const fire = () => {
-      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: ['#f97316', '#fb923c', '#fdba74', '#fff7ed'] })
+      confetti({
+        particleCount: 120,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#f97316', '#fb923c', '#fdba74', '#fff7ed'],
+      })
     }
-    const t = setTimeout(fire, 300)
-    return () => clearTimeout(t)
-  }, [])
+    const timer = setTimeout(fire, 300)
+    return () => clearTimeout(timer)
+  }, [order])
+
+  if (!orderId) {
+    return (
+      <SuccessError message={tOrderDetail('orderNotFound')} />
+    )
+  }
+
+  if (isLoading) {
+    return <SuccessLoading />
+  }
+
+  if (isError || !order) {
+    return (
+      <SuccessError
+        message={tOrderDetail('orderNotFound')}
+        onRetry={() => refetch()}
+      />
+    )
+  }
+
+  const branchSlugFallback =
+    activeBranch?.id === order.branch_id ? activeBranch.slug : undefined
+  const menuHref = resolveOrderBranchMenuUrl(order, tenantSlug, branchSlugFallback)
+  const resolvedStatus = resolveOrderStatus(order.status)
+  const trackerActive =
+    resolvedStatus !== 'delivered' &&
+    resolvedStatus !== 'picked_up' &&
+    resolvedStatus !== 'cancelled'
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
@@ -37,7 +137,6 @@ function SuccessContent() {
           transition={{ type: 'spring', damping: 20, stiffness: 200 }}
           className="bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-2xl overflow-hidden"
         >
-          {/* Header */}
           <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 p-8 text-center">
             <motion.div
               initial={{ scale: 0 }}
@@ -47,28 +146,39 @@ function SuccessContent() {
             >
               <CheckCircle2 className="h-10 w-10 text-white" />
             </motion.div>
-            <h1 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">{t('orderConfirmed')}</h1>
+            <h1 className="font-[var(--font-display)] text-2xl font-bold text-white mb-1">
+              {t('orderConfirmed')}
+            </h1>
             <p className="text-white/80 text-sm">{t('orderConfirmedDesc')}</p>
           </div>
 
           <div className="p-6 space-y-6">
-            {/* Order Number */}
             <div className="text-center bg-[var(--card-hover)] rounded-2xl p-4">
-              <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider mb-1">{t('orderNumberLabel')}</p>
-              <p className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{orderNumber}</p>
+              <p className="text-xs text-[var(--fg-muted)] uppercase tracking-wider mb-1">
+                {t('orderNumberLabel')}
+              </p>
+              <p className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
+                {order.order_number}
+              </p>
             </div>
 
-            {/* Tracker */}
-            <div>
-              <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-orange-500" /> {t('liveOrderTracking')}
-              </h2>
-              <OrderTracker orderId={orderId} initialStatus="pending" useMockSimulation />
-            </div>
+            {resolvedStatus !== 'cancelled' && (
+              <div>
+                <h2 className="font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-orange-500" /> {t('liveOrderTracking')}
+                </h2>
+                <OrderTracker
+                  orderId={order.id}
+                  initialStatus={resolvedStatus}
+                  orderType={order.order_type}
+                  initialEstimatedTime={order.estimated_time}
+                  useMockSimulation={trackerActive}
+                />
+              </div>
+            )}
 
-            {/* Actions */}
             <div className="grid grid-cols-2 gap-3">
-              <Link href={`/order/${orderId}`}>
+              <Link href={`/order/${order.id}`}>
                 <Button variant="secondary" className="w-full" leftIcon={<Package className="h-4 w-4" />}>
                   {t('trackOrder')}
                 </Button>
@@ -79,7 +189,10 @@ function SuccessContent() {
                 </Button>
               </Link>
             </div>
-            <Link href="/" className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors">
+            <Link
+              href="/discover"
+              className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
+            >
               <Home className="h-3.5 w-3.5" /> {t('backToHome')}
             </Link>
           </div>
@@ -90,5 +203,9 @@ function SuccessContent() {
 }
 
 export default function CheckoutSuccessPage() {
-  return <Suspense><SuccessContent /></Suspense>
+  return (
+    <Suspense fallback={<SuccessLoading />}>
+      <SuccessContent />
+    </Suspense>
+  )
 }

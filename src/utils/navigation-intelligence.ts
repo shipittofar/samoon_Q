@@ -9,6 +9,9 @@
  * server components, and middleware alike.
  */
 
+import type { Order } from '@/types'
+import { buildPublicUrl } from './public-url'
+
 // ── Workspace resolution ────────────────────────────────────────────────────
 /**
  * Maps a user's primary role to their best console workspace destination.
@@ -57,6 +60,26 @@ export function resolveBestMenu(tenantSlug?: string | null): string {
     return `/menu`
   }
   return '/menu'
+}
+
+/**
+ * Resolves the branch-scoped menu URL for reordering from an existing order.
+ * Prefers branch slug from the order payload; optional `branchSlugFallback`
+ * covers cases where the API returns only `branch_id` (e.g. active cart branch).
+ */
+export function resolveOrderBranchMenuUrl(
+  order: Pick<Order, 'branch_id' | 'branch'>,
+  tenantSlug?: string | null,
+  branchSlugFallback?: string | null,
+): string {
+  const branchSlug = order.branch?.slug ?? branchSlugFallback ?? null
+  const effectiveTenantSlug =
+    tenantSlug && tenantSlug !== 'default' ? tenantSlug : null
+  return buildPublicUrl({
+    tenantSlug: effectiveTenantSlug,
+    branchSlug,
+    module: 'menu',
+  })
 }
 
 /**

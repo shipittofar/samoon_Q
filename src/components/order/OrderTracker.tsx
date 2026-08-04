@@ -40,6 +40,7 @@ interface OrderTrackerProps {
   orderId: string
   initialStatus?: OrderStatus
   orderType?: OrderType
+  initialEstimatedTime?: number | null
   useMockSimulation?: boolean
 }
 
@@ -47,11 +48,12 @@ export function OrderTracker({
   orderId,
   initialStatus = 'pending',
   orderType,
+  initialEstimatedTime = null,
   useMockSimulation = true,
 }: OrderTrackerProps) {
   const t = useTranslations('orderTracker')
   const [currentStatus, setCurrentStatus] = useState<OrderStatus>(initialStatus)
-  const [estimatedTime, setEstimatedTime] = useState<number | null>(null)
+  const [estimatedTime, setEstimatedTime] = useState<number | null>(initialEstimatedTime)
   const [isCancelled, setIsCancelled] = useState(initialStatus === 'cancelled')
 
   const orderContext = useMemo(
@@ -82,6 +84,12 @@ export function OrderTracker({
     setCurrentStatus(initialStatus)
     setIsCancelled(initialStatus === 'cancelled')
   }, [initialStatus])
+
+  useEffect(() => {
+    if (initialEstimatedTime != null) {
+      setEstimatedTime(initialEstimatedTime)
+    }
+  }, [initialEstimatedTime])
 
   const currentIdx = statusOrder.indexOf(currentStatus)
 

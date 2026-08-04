@@ -343,6 +343,18 @@ describe('P3.6.7 — Callers preserved', () => {
     expect(content).toContain('useMockSimulation')
   })
 
+  it('checkout/success/page.tsx passes initialStatus from fetched order', () => {
+    const content = src('app/checkout/success/page.tsx')
+    expect(content).toContain('initialStatus={resolvedStatus}')
+    expect(content).not.toContain('initialStatus="pending"')
+  })
+
+  it('checkout/success/page.tsx fetches order via useOrder before rendering tracker', () => {
+    const content = src('app/checkout/success/page.tsx')
+    expect(content).toContain('useOrder(orderId)')
+    expect(content).toContain('order.order_type')
+  })
+
   it('order/[orderId]/page.tsx renders OrderTracker with orderId', () => {
     const content = src('app/order/[orderId]/page.tsx')
     expect(content).toContain('OrderTracker')
@@ -352,11 +364,6 @@ describe('P3.6.7 — Callers preserved', () => {
   it('order/[orderId]/page.tsx still passes initialStatus', () => {
     const content = src('app/order/[orderId]/page.tsx')
     expect(content).toContain('initialStatus={order.status}')
-  })
-
-  it('checkout/success/page.tsx still passes initialStatus pending', () => {
-    const content = src('app/checkout/success/page.tsx')
-    expect(content).toContain('initialStatus="pending"')
   })
 })
 
