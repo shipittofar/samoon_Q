@@ -36,6 +36,26 @@ describe('normalizeWireMembership', () => {
     })
   })
 
+  it('normalizes singular role field', () => {
+    const membership = normalizeWireMembership({
+      tenantId: 'tenant-1',
+      tenantSlug: 'samoon',
+      role: 'owner',
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.roles).toEqual(['owner'])
+  })
+
+  it('normalizes tenantRoles object array', () => {
+    const membership = normalizeWireMembership({
+      tenantId: 'tenant-1',
+      tenantSlug: 'samoon',
+      tenantRoles: [{ role: 'owner' }],
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.roles).toEqual(['owner'])
+  })
+
   it('drops branches that belong to another tenant', () => {
     const membership = normalizeWireMembership({
       tenantId: 'tenant-a',

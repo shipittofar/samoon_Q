@@ -41,11 +41,25 @@ export function calculateCommission(
 
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
+const FALLBACK_TENANT = 'tenant-samoon-01'
+
+/** Mock branch → tenant map for vendor scoping (matches admin.service). */
+const MOCK_BRANCH_TENANT_IDS: Record<string, string> = {
+  'branch-fc-01': FALLBACK_TENANT,
+  'branch-fc-02': FALLBACK_TENANT,
+}
+
+function vendorBelongsToTenant(vendor: Vendor, tenantId: string): boolean {
+  const branchIds = vendor.branchIds?.length ? vendor.branchIds : ['branch-fc-01']
+  return branchIds.some((branchId) => MOCK_BRANCH_TENANT_IDS[branchId] === tenantId)
+}
+
 let mockVendors: Vendor[] = [
   {
     id: 'vendor-1',
     name: "Chang's Asian Kitchen",
     description: 'Authentic Asian cuisine with fresh ingredients and bold flavors.',
+    branchIds: ['branch-fc-01'],
     category: 'asian',
     status: 'active',
     rating: 4.7,
@@ -62,6 +76,7 @@ let mockVendors: Vendor[] = [
     id: 'vendor-2',
     name: 'Burgers & Co.',
     description: 'Gourmet burgers made with 100% grass-fed beef.',
+    branchIds: ['branch-fc-01'],
     category: 'western',
     status: 'active',
     rating: 4.4,
@@ -77,6 +92,7 @@ let mockVendors: Vendor[] = [
     id: 'vendor-3',
     name: 'Spice Garden',
     description: 'Traditional Indian curries and street food.',
+    branchIds: ['branch-fc-01'],
     category: 'indian',
     status: 'active',
     rating: 4.6,
@@ -92,6 +108,7 @@ let mockVendors: Vendor[] = [
     id: 'vendor-4',
     name: 'Sweet Tooth Desserts',
     description: 'Artisan cakes, gelato and pastries.',
+    branchIds: ['branch-fc-01'],
     category: 'desserts',
     status: 'active',
     rating: 4.8,
@@ -107,6 +124,7 @@ let mockVendors: Vendor[] = [
     id: 'vendor-5',
     name: 'Healthy Bites',
     description: 'Salads, wraps, and smoothie bowls.',
+    branchIds: ['branch-fc-01'],
     category: 'healthy',
     status: 'inactive',
     rating: 4.1,
@@ -122,6 +140,7 @@ let mockVendors: Vendor[] = [
     id: 'vendor-6',
     name: 'Taco Fiesta',
     description: 'Authentic Mexican tacos, burritos and quesadillas.',
+    branchIds: ['branch-fc-01'],
     category: 'mexican',
     status: 'pending',
     rating: 0,
@@ -253,43 +272,55 @@ export type CreateSettlementPayload = {
 export const vendorService = {
   // ── Customer methods ────────────────────────────────────────────────────────
 
-  async getVendors(): Promise<Vendor[]> {
+  async getVendors(tenantId: string): Promise<Vendor[]> {
     if (USE_MOCK) {
       await delay(400)
-      return [...mockVendors]
+      return mockVendors.filter((v) => vendorBelongsToTenant(v, tenantId)).map((v) => ({ ...v }))
     }
-    const { data } = await api.get<Vendor[]>(ENDPOINTS.VENDORS.LIST)
+    const { data } = await api.get<Vendor[]>(ENDPOINTS.VENDORS.LIST, { params: { tenantId } })
     return data
   },
 
-  async getVendor(id: string): Promise<Vendor> {
+  async getVendor(id: string, tenantId: string): Promise<Vendor> {
     if (USE_MOCK) {
       await delay(350)
       const vendor = mockVendors.find((v) => v.id === id)
-      if (!vendor) throw new Error(`Vendor "${id}" not found`)
+      if (!vendor || !vendorBelongsToTenant(vendor, tenantId)) {
+        throw new Error(`Vendor "${id}" not found`)
+      }
       return { ...vendor }
     }
-    const { data } = await api.get<Vendor>(ENDPOINTS.VENDORS.DETAIL(id))
+    const { data } = await api.get<Vendor>(ENDPOINTS.VENDORS.DETAIL(id), { params: { tenantId } })
     return data
   },
 
-  async getVendorStats(id: string): Promise<VendorStats> {
+  async getVendorStats(id: string, tenantId: string): Promise<VendorStats> {
     if (USE_MOCK) {
       await delay(400)
+      const vendor = mockVendors.find((v) => v.id === id)
+      if (!vendor || !vendorBelongsToTenant(vendor, tenantId)) {
+        throw new Error(`Stats for vendor "${id}" not found`)
+      }
       const stats = mockStats[id]
       if (!stats) throw new Error(`Stats for vendor "${id}" not found`)
       return { ...stats }
     }
-    const { data } = await api.get<VendorStats>(ENDPOINTS.VENDORS.STATS(id))
+    const { data } = await api.get<VendorStats>(ENDPOINTS.VENDORS.STATS(id), { params: { tenantId } })
     return data
   },
 
-  async getVendorSettlements(id: string): Promise<VendorSettlement[]> {
+  async getVendorSettlements(id: string, tenantId: string): Promise<VendorSettlement[]> {
     if (USE_MOCK) {
       await delay(450)
+      const vendor = mockVendors.find((v) => v.id === id)
+      if (!vendor || !vendorBelongsToTenant(vendor, tenantId)) {
+        throw new Error(`Vendor "${id}" not found`)
+      }
       return mockSettlements.filter((s) => s.vendorId === id)
     }
-    const { data } = await api.get<VendorSettlement[]>(ENDPOINTS.VENDORS.SETTLEMENTS(id))
+    const { data } = await api.get<VendorSettlement[]>(ENDPOINTS.VENDORS.SETTLEMENTS(id), {
+      params: { tenantId },
+    })
     return data
   },
 
@@ -311,29 +342,33 @@ export const vendorService = {
     return data
   },
 
-  async updateVendor(id: string, payload: UpdateVendorPayload): Promise<Vendor> {
+  async updateVendor(id: string, tenantId: string, payload: UpdateVendorPayload): Promise<Vendor> {
     if (USE_MOCK) {
       await delay(500)
-      const idx = mockVendors.findIndex((v) => v.id === id)
-      if (idx === -1) throw new Error(`Vendor "${id}" not found`)
+      const vendor = mockVendors.find((v) => v.id === id)
+      if (!vendor || !vendorBelongsToTenant(vendor, tenantId)) {
+        throw new Error(`Vendor "${id}" not found`)
+      }
       mockVendors = mockVendors.map((v) =>
         v.id === id ? { ...v, ...payload, updated_at: new Date().toISOString() } : v,
       )
       return { ...mockVendors.find((v) => v.id === id)! }
     }
-    const { data } = await api.patch<Vendor>(ENDPOINTS.VENDORS.ADMIN_DETAIL(id), payload)
+    const { data } = await api.patch<Vendor>(ENDPOINTS.VENDORS.ADMIN_DETAIL(id), payload, {
+      params: { tenantId },
+    })
     return data
   },
 
-  async disableVendor(id: string): Promise<Vendor> {
-    return vendorService.updateVendor(id, { status: 'inactive' })
+  async disableVendor(id: string, tenantId: string): Promise<Vendor> {
+    return vendorService.updateVendor(id, tenantId, { status: 'inactive' })
   },
 
-  async createSettlement(payload: CreateSettlementPayload): Promise<VendorSettlement> {
+  async createSettlement(payload: CreateSettlementPayload, tenantId: string): Promise<VendorSettlement> {
     if (USE_MOCK) {
       await delay(700)
       const vendor = mockVendors.find((v) => v.id === payload.vendorId)
-      if (!vendor) throw new Error(`Vendor "${payload.vendorId}" not found`)
+      if (!vendor || !vendorBelongsToTenant(vendor, tenantId)) throw new Error(`Vendor "${payload.vendorId}" not found`)
       const commission = calculateCommission(payload.grossRevenue, vendor.commissionRate)
       commission.vendorId = payload.vendorId
       const settlement: VendorSettlement = {

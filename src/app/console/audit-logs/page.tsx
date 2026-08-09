@@ -10,6 +10,7 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { AuditTimeline } from '@/components/admin/AuditTimeline'
 import { useAuditLogs, useAuditTimeline, useAuditStatistics, useExportAuditLogs } from '@/hooks'
+import { useConsoleTenantId } from '@/hooks/console-workspace'
 import { AUDIT_DOMAINS } from '@/services/audit-event-registry'
 import type { AuditFilter, AuditSeverity, AuditTargetType } from '@/types/audit-log'
 
@@ -36,8 +37,10 @@ function AuditLogsContent() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
+  const tenantId = useConsoleTenantId()
 
   const filter = useMemo<AuditFilter>(() => ({
+    ...(tenantId ? { tenantId } : {}),
     ...(severity !== 'all' ? { severity } : {}),
     ...(search ? { search } : {}),
     ...(dateFrom ? { dateFrom } : {}),
@@ -47,7 +50,7 @@ function AuditLogsContent() {
     pageSize: 20,
     sortBy: 'timestamp',
     sortOrder: 'desc',
-  }), [severity, search, dateFrom, dateTo, targetType, page])
+  }), [tenantId, severity, search, dateFrom, dateTo, targetType, page])
 
   const { data: logsPage, isLoading: logsLoading, isError: logsError, refetch } = useAuditLogs(filter)
   const { data: timeline, isLoading: timelineLoading } = useAuditTimeline(filter)

@@ -4,6 +4,8 @@
  */
 let tenantSwitchGeneration = 0
 let branchSwitchGeneration = 0
+/** Guards in-flight `loadTenantById` / enrichment — stale completions are ignored. */
+let tenantLoadGeneration = 0
 
 export function nextTenantSwitchGeneration(): number {
   tenantSwitchGeneration += 1
@@ -21,4 +23,18 @@ export function isCurrentTenantSwitch(generation: number): boolean {
 
 export function isCurrentBranchSwitch(generation: number): boolean {
   return generation === branchSwitchGeneration
+}
+
+export function nextTenantLoadGeneration(): number {
+  tenantLoadGeneration += 1
+  return tenantLoadGeneration
+}
+
+export function isCurrentTenantLoad(generation: number): boolean {
+  return generation === tenantLoadGeneration
+}
+
+/** Invalidates any in-flight tenant enrichment loads (e.g. on tenant switch). */
+export function invalidateTenantLoads(): number {
+  return nextTenantLoadGeneration()
 }

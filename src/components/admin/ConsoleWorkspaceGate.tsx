@@ -83,6 +83,7 @@ export function resolveConsoleTenantPhase(params: {
   hasTenantMembership: boolean | null
   sessionMembershipCount: number | null
   activeTenantId: string | null | undefined
+  resolvedTenantId: string | null | undefined
   tenantState: TenantLifecycle
   hasDashboardAccess: boolean
   retryCount: number
@@ -91,6 +92,7 @@ export function resolveConsoleTenantPhase(params: {
     hasTenantMembership,
     sessionMembershipCount,
     activeTenantId,
+    resolvedTenantId,
     tenantState,
     hasDashboardAccess,
     retryCount,
@@ -116,7 +118,13 @@ export function resolveConsoleTenantPhase(params: {
     return retryCount > 0 && retryCount < TENANT_MAX_AUTO_RETRIES ? 'tenant_retrying' : 'tenant_network_error'
   }
 
-  // tenantState === 'resolved'
+  // tenantState === 'resolved' — block children until tenant record matches session pointer
+  if (tenantState === 'resolved') {
+    if (!activeTenantId || !resolvedTenantId || resolvedTenantId !== activeTenantId) {
+      return retryCount > 0 ? 'tenant_retrying' : 'tenant_loading'
+    }
+  }
+
   return hasDashboardAccess ? 'resolved' : 'access_denied'
 }
 
@@ -126,14 +134,13 @@ export function resolveConsoleTenantPhase(params: {
  * clears itself the moment `tenantState` leaves `'error'`, and resets
  * `retryCount` to 0 on a successful resolution so a LATER unrelated
  * failure (e.g. after a tenant switch) gets its own fresh retry budget.
- * Re-attempts the exact slug the last `loadTenant()` call used
- * (`useTenantStore.lastAttemptedSlug`), whichever caller originally chose
- * it (subdomain resolution or the Console membership-based fallback).
+ * Re-attempts load for the active membership tenant id from GET /auth/me
+ * (`activeMembership.tenantId`) — never a historical lastAttempted* pointer.
  */
 function retryLastTenantResolution() {
-  const { lastAttemptedTenantId, lastAttemptedSlug, loadTenantById, loadTenant } = useTenantStore.getState()
-  if (lastAttemptedTenantId) return loadTenantById(lastAttemptedTenantId)
-  return loadTenant(lastAttemptedSlug)
+  const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
+  if (!activeTenantId) return Promise.resolve()
+  return useTenantStore.getState().loadTenantById(activeTenantId)
 }
 
 function useTenantAutoRetry(tenantState: TenantLifecycle) {
@@ -206,6 +213,7 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
   const hasTenantMembership = useRbacStore((s) => s.hasTenantMembership)
   const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
   const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
+  const resolvedTenantId = useTenantStore((s) => s.tenant?.id)
   const tenantState = useTenantStore((s) => s.tenantState)
   const hasDashboardAccess = usePermission('dashboard:access')
   const { retryCount, retryNow } = useTenantAutoRetry(tenantState)
@@ -218,6 +226,7 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
     hasTenantMembership,
     sessionMembershipCount,
     activeTenantId,
+    resolvedTenantId,
     tenantState,
     hasDashboardAccess,
     retryCount,

@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useBranchStore, useRbacStore, useTenantStore } from '@/stores'
+import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import {
   parseConsoleBranchIdFromPath,
   reconcileConsoleWorkspaceConsistency,
@@ -33,6 +34,7 @@ beforeEach(() => {
   useRbacStore.getState()._resetStore()
   useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
   useBranchStore.getState().resetBranchResolution()
+  useConsoleWorkspaceStore.getState().resetWorkspace()
 })
 
 describe('parseConsoleBranchIdFromPath', () => {
@@ -86,6 +88,27 @@ describe('reconcileConsoleWorkspaceConsistency', () => {
     reconcileConsoleWorkspaceConsistency()
 
     expect(useBranchStore.getState().selectedBranch?.id).toBe('branch-rest-02')
+  })
+
+  it('re-syncs workspace when tenant store drifts from activeMembership', async () => {
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: 'tenant-a' },
+    )
+    useTenantStore.setState({
+      tenant: { id: 'tenant-b', slug: 'b', name: 'B' } as never,
+      tenantState: 'resolved',
+    } as never)
+    useConsoleWorkspaceStore.setState({ _bootstrapped: true, workspacePhase: 'ready' } as never)
+
+    const initSpy = vi.spyOn(useConsoleWorkspaceStore.getState(), 'initializeFromSession').mockResolvedValue()
+
+    reconcileConsoleWorkspaceConsistency()
+    await Promise.resolve()
+
+    expect(useConsoleWorkspaceStore.getState()._bootstrapped).toBe(false)
+    expect(initSpy).toHaveBeenCalled()
+    initSpy.mockRestore()
   })
 })
 

@@ -65,7 +65,11 @@ import { resolvePostAuthDestination } from '@/utils/auth-redirect'
 import { getAccessToken } from '@/services/axios.instance'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
-import { applyOverrides, normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
+import { logRbacDiagnostics } from '@/lib/rbac-diagnostics'
+import { usePermissionStore } from '@/stores/permission-store'
+import { normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
+import { refreshPermissionCache, clearPermissionCache } from '@/lib/permission-cache'
+import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
 import type { P7Permission, PermissionCheckOptions, Role } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
 // owner.service.ts, or staff-assignment.service.ts remain in this file.
@@ -130,6 +134,20 @@ import { mergeBranchCheckout } from '@/lib/branch-checkout'
 import { adaptDiscoverResponse } from '@/lib/discover-adapter'
 import { discoverService } from '@/services/discover.service'
 import type { DiscoverItem } from '@/lib/discover-adapter'
+import { invalidateRbacStaffQueries, invalidatePermissionCatalog, invalidateRbacWave4Mutations, invalidateRbacAssignmentMutations, invalidatePermissionOverrides, invalidateEffectivePermissions, invalidatePermissionAudit, invalidateRolePermissions } from '@/lib/rbac-query-invalidation'
+import { fetchTenantRoles, listAssignments, createAssignment, updateAssignment, revokeAssignment } from '@/api/rbac'
+import { fetchPermissionCatalog } from '@/api/permissions'
+import {
+  listPermissionOverrides,
+  createPermissionOverride,
+  updatePermissionOverride,
+  deletePermissionOverride,
+  fetchEffectivePermissions,
+  listPermissionAudit,
+  fetchRolePermissions,
+  replaceRolePermissions,
+} from '@/api/authorization'
+import type { CreateAssignmentPayload, UpdateAssignmentPayload, CreatePermissionOverridePayload, UpdatePermissionOverridePayload, ReplaceRolePermissionsPayload } from '@/types/rbac-api'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -199,21 +217,29 @@ export function useSystemReady(): SystemReadiness {
  * restore, and every tenant switch — never computed here.
  */
 export function usePermissions(): readonly P7Permission[] {
-  const user = useAuthStore((s) => s.user)
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
+  const storePermissions = usePermissionStore((s) => s.permissions)
+  const storeTenantId = usePermissionStore((s) => s.tenantId)
   const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
-  const userOverrides = useRbacStore((s) => s.userOverrides)
 
   return useMemo(() => {
-    // Defensive: only trust the session if it's actually for the active
-    // tenant — guards against one stale render between a tenant switch
-    // and the session reseed that follows it.
-    const base = currentTenantSession && currentTenantSession.tenantId === tenantId
-      ? currentTenantSession.permissions
-      : []
-    const override = userOverrides.find((o) => o.userId === user?.id && o.tenantId === tenantId)
-    return applyOverrides(base, override)
-  }, [user?.id, tenantId, currentTenantSession, userOverrides])
+    const sessionPerms =
+      currentTenantSession && currentTenantSession.tenantId === tenantId
+        ? currentTenantSession.permissions
+        : []
+
+    let resolved: P7Permission[]
+    if (storeTenantId === tenantId && storePermissions.length > 0) {
+      // Union session + store — never let a partial API permissions response
+      // override role-derived session permissions (e.g. missing dashboard:access).
+      resolved = [...new Set([...sessionPerms, ...storePermissions])] as P7Permission[]
+    } else {
+      resolved = sessionPerms as P7Permission[]
+    }
+
+    logRbacDiagnostics(resolved)
+    return resolved
+  }, [tenantId, storePermissions, storeTenantId, currentTenantSession])
 }
 
 // P10.6 Phase G — shared per-resource feature-flag gate, previously
@@ -476,10 +502,12 @@ export function useCapabilityFlag(cap: Capability): boolean {
  */
 export function useAdminModuleNav(): NavItem[] {
   const { canExecute } = useSystemReady()
+  const tenantId = useConsoleTenantId()
   const tenant = useTenantStore((s) => s.tenant)
   const featureFlags = useTenantStore((s) => s.featureFlags)
+  const alignedTenant = tenantId && tenant?.id === tenantId ? tenant : null
   const permissions = usePermissions()
-  const allAdminNav = getAdminNav(tenant?.businessTypes ?? [])
+  const allAdminNav = getAdminNav(alignedTenant?.businessTypes ?? [])
   if (!canExecute) return allAdminNav
   return allAdminNav.filter((item) => {
     if (item.featureFlagKey && featureFlags[item.featureFlagKey] === false) return false
@@ -511,12 +539,11 @@ function seedTenantSession(
     activeMembership?: import('@/types/rbac').TenantMembership
   },
 ) {
-  const { roles, permissions, branchAccess } = normalizeTenantPermissions(response, tenantId)
-  useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions, branchAccess)
-  // setTenantRoles() is retained for the admin role-management UI (view/edit
-  // assignments across tenants) — a separate concern from "what can I do
-  // right now," which currentTenantSession alone answers.
-  if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenantId, roles)
+  applyTenantSessionRbac(tenantId, {
+    memberships: response.memberships,
+    activeMembership: response.activeMembership,
+    p7Roles: response.p7Roles,
+  })
 }
 
 function seedAuthSessionMemberships(
@@ -686,6 +713,7 @@ export function useLogout() {
       useRbacStore.getState()._resetStore()
       useConsoleWorkspaceStore.getState().resetWorkspace()
       useBranchStore.getState().setAdminActiveBranch(null)
+      clearPermissionCache()
       // Cart survives logout — cleared only on order success or explicit user action.
       useDineInStore.getState().clearTable()
       useRecentlyViewedStore.getState().clear()
@@ -740,13 +768,13 @@ export function useAvailableMenuTags(branchId?: string) {
 }
 
 export function useConsoleCategories(branchId?: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
     queryKey: ['console-categories', tenantId, scopedBranchId],
     queryFn: () => menuService.getConsoleCategories(scopedBranchId!),
-    enabled: !!scopedBranchId,
+    enabled: Boolean(tenantId) && !!scopedBranchId,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   })
@@ -789,15 +817,27 @@ export function useConsoleExtraGroups(branchId?: string) {
   return useQuery({
     queryKey: ['console-extra-groups', tenantId, scopedBranchId],
     queryFn: () => menuService.getConsoleExtraGroups(scopedBranchId!),
-    enabled: !!scopedBranchId, 
+    enabled: Boolean(tenantId) && !!scopedBranchId,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   }) // #+ch001 #+ch001 #+ch001
 }
 
-export function useExtras(branchId?: string, groupId?: string) {
-  // const tenantId = useTenantStore((s) => s.tenant?.id) #-ch001
+export function useConsoleExtras(branchId?: string, groupId?: string) {
   const tenantId = useConsoleTenantId()
+  const fallbackBranchId = useActiveBranchId()
+  const scopedBranchId = branchId ?? fallbackBranchId
+  return useQuery({
+    queryKey: ['console-extras', tenantId, scopedBranchId, groupId],
+    queryFn: () => menuService.getExtras(scopedBranchId!, groupId),
+    enabled: Boolean(tenantId) && !!scopedBranchId,
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useExtras(branchId?: string, groupId?: string) {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
   return useQuery({
@@ -822,7 +862,7 @@ export function useMenuItems(branchId?: string, filters?: MenuFilters) {
 }
 
 export function useConsoleMenuItems(branchId?: string, params?: ConsoleMenuItemsParams) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
 
@@ -839,7 +879,7 @@ export function useConsoleMenuItems(branchId?: string, params?: ConsoleMenuItems
   const query = useQuery({
     queryKey: ['console-menu-items', tenantId, scopedBranchId, queryParams],
     queryFn: () => menuService.getConsoleItems(scopedBranchId!, params),
-    enabled: !!scopedBranchId,
+    enabled: Boolean(tenantId) && !!scopedBranchId,
   })
 
   return {
@@ -935,9 +975,21 @@ export function useOrders() {
 
 export function useOrder(id: string) {
   return useQuery({
-    queryKey: ['order', id],
+    queryKey: ['order', 'public', id],
     queryFn: () => orderService.getOrder(id),
     enabled: !!id,
+    staleTime: 10_000,
+    refetchInterval: 30_000,
+  })
+}
+
+/** Console order detail — tenant-scoped via activeMembership. */
+export function useConsoleOrder(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
+  return useQuery({
+    queryKey: ['order', tenantId, id],
+    queryFn: () => orderService.getOrder(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: 10_000,
     refetchInterval: 30_000,
   })
@@ -1142,7 +1194,7 @@ export function useIsBranchReady(): boolean {
  * else changes.
  */
 export function useRetryLoadBranches(): () => void {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const loadBranchesForTenant = useBranchStore((s) => s.loadBranchesForTenant)
   const loadBranchesFromMembership = useBranchStore((s) => s.loadBranchesFromMembership)
   const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
@@ -1181,28 +1233,31 @@ export function useAdminBranches(tenantId: string) {
 }
 
 export function useAdminBranch(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    queryKey: ['admin-branch', id],
-    queryFn: () => branchManagementService.getBranch(id),
-    enabled: !!id,
+    queryKey: ['admin-branch', tenantId, id],
+    queryFn: () => branchManagementService.getBranch(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
   })
 }
 
 export function useAdminBranchMetrics(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    queryKey: ['admin-branch-metrics', id],
-    queryFn: () => branchManagementService.getBranchMetrics(id),
-    enabled: !!id,
+    queryKey: ['admin-branch-metrics', tenantId, id],
+    queryFn: () => branchManagementService.getBranchMetrics(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: 30_000,
   })
 }
 
 export function useConsoleAdminBranchMetrics(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    queryKey: ['console-admin-branch-metrics', id],
-    queryFn: () => branchManagementService.getConsoleBranchMetrics(id),
-    enabled: !!id,
+    queryKey: ['console-admin-branch-metrics', tenantId, id],
+    queryFn: () => branchManagementService.getConsoleBranchMetrics(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: 30_000,
   })
 }
@@ -1231,14 +1286,15 @@ export function useConsoleCreateBranch(tenantId: string) {
 
 export function useUpdateBranch() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: BranchWriteRequest }) =>
-      branchManagementService.updateBranch(id, payload),
+      branchManagementService.updateBranch(id, tenantId, payload),
     onMutate: async ({ id, payload }) => {
-      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
-      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      await qc.cancelQueries({ queryKey: ['admin-branch', tenantId, id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', tenantId, id])
       if (snapshot) {
-        qc.setQueryData<BranchEntity>(['admin-branch', id], {
+        qc.setQueryData<BranchEntity>(['admin-branch', tenantId, id], {
           ...snapshot,
           ...(payload.name !== undefined && { name: payload.name }),
           ...(payload.location && { location: { ...snapshot.location, ...payload.location } }),
@@ -1256,10 +1312,10 @@ export function useUpdateBranch() {
       return { snapshot }
     },
     onError: (_err, { id }, ctx) => {
-      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
     onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
     },
   })
@@ -1267,21 +1323,22 @@ export function useUpdateBranch() {
 
 export function useActivateBranch() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (id: string) => branchManagementService.activateBranch(id),
+    mutationFn: (id: string) => branchManagementService.activateBranch(id, tenantId),
     onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
-      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      await qc.cancelQueries({ queryKey: ['admin-branch', tenantId, id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', tenantId, id])
       if (snapshot) {
-        qc.setQueryData<BranchEntity>(['admin-branch', id], { ...snapshot, status: 'active' })
+        qc.setQueryData<BranchEntity>(['admin-branch', tenantId, id], { ...snapshot, status: 'active' })
       }
       return { snapshot }
     },
     onError: (_err, id, ctx) => {
-      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
     onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
     },
   })
@@ -1289,21 +1346,22 @@ export function useActivateBranch() {
 
 export function useDeactivateBranch() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (id: string) => branchManagementService.deactivateBranch(id),
+    mutationFn: (id: string) => branchManagementService.deactivateBranch(id, tenantId),
     onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
-      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      await qc.cancelQueries({ queryKey: ['admin-branch', tenantId, id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', tenantId, id])
       if (snapshot) {
-        qc.setQueryData<BranchEntity>(['admin-branch', id], { ...snapshot, status: 'inactive' })
+        qc.setQueryData<BranchEntity>(['admin-branch', tenantId, id], { ...snapshot, status: 'inactive' })
       }
       return { snapshot }
     },
     onError: (_err, id, ctx) => {
-      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
     onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
     },
   })
@@ -1311,21 +1369,22 @@ export function useDeactivateBranch() {
 
 export function useMaintenanceBranch() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (id: string) => branchManagementService.setMaintenanceMode(id),
+    mutationFn: (id: string) => branchManagementService.setMaintenanceMode(id, tenantId),
     onMutate: async (id) => {
-      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
-      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      await qc.cancelQueries({ queryKey: ['admin-branch', tenantId, id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', tenantId, id])
       if (snapshot) {
-        qc.setQueryData<BranchEntity>(['admin-branch', id], { ...snapshot, status: 'maintenance' })
+        qc.setQueryData<BranchEntity>(['admin-branch', tenantId, id], { ...snapshot, status: 'maintenance' })
       }
       return { snapshot }
     },
     onError: (_err, id, ctx) => {
-      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
     onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
     },
   })
@@ -1333,14 +1392,15 @@ export function useMaintenanceBranch() {
 
 export function useAssignBranchManager() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: AssignManagerPayload }) =>
       branchManagementService.assignManager(id, payload),
     onMutate: async ({ id, payload }) => {
-      await qc.cancelQueries({ queryKey: ['admin-branch', id] })
-      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', id])
+      await qc.cancelQueries({ queryKey: ['admin-branch', tenantId, id] })
+      const snapshot = qc.getQueryData<BranchEntity>(['admin-branch', tenantId, id])
       if (snapshot) {
-        qc.setQueryData<BranchEntity>(['admin-branch', id], {
+        qc.setQueryData<BranchEntity>(['admin-branch', tenantId, id], {
           ...snapshot,
           managerId: payload.managerId,
         })
@@ -1348,10 +1408,10 @@ export function useAssignBranchManager() {
       return { snapshot }
     },
     onError: (_err, { id }, ctx) => {
-      if (ctx?.snapshot) qc.setQueryData(['admin-branch', id], ctx.snapshot)
+      if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
     onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', id] })
+      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
     },
   })
@@ -1359,8 +1419,9 @@ export function useAssignBranchManager() {
 
 export function useDeleteBranch() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (id: string) => branchManagementService.deleteBranch(id),
+    mutationFn: (id: string) => branchManagementService.deleteBranch(id, tenantId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
     },
@@ -1369,8 +1430,9 @@ export function useDeleteBranch() {
 
 export function useConsoleDeleteBranch() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (branch_id: string) => branchManagementService.consoleDeleteBranch(branch_id),
+    mutationFn: (branch_id: string) => branchManagementService.consoleDeleteBranch(branch_id, tenantId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
     },
@@ -1379,10 +1441,11 @@ export function useConsoleDeleteBranch() {
 
 export function useSetDefaultBranch() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (id: string) => branchManagementService.setDefaultBranch(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-branch'] })
+    mutationFn: (id: string) => branchManagementService.setDefaultBranch(id, tenantId),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
     },
   })
@@ -1521,65 +1584,72 @@ export function useSetLocale() {
 
 // P6.13 — Analytics hooks
 export function useAnalyticsSummary() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['analytics-summary', tenantId],
-    queryFn: () => analyticsService.getAnalyticsSummary(),
+    queryFn: () => analyticsService.getAnalyticsSummary(tenantId!),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
 export function useRevenueAnalytics() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['analytics-revenue', tenantId],
-    queryFn: () => analyticsService.getRevenueAnalytics(),
+    queryFn: () => analyticsService.getRevenueAnalytics(tenantId!),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
 export function useReservationAnalytics() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['analytics-reservations', tenantId],
-    queryFn: () => analyticsService.getReservationAnalytics(),
+    queryFn: () => analyticsService.getReservationAnalytics(tenantId!),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
 export function useLoyaltyAnalytics() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['analytics-loyalty', tenantId],
-    queryFn: () => analyticsService.getLoyaltyAnalytics(),
+    queryFn: () => analyticsService.getLoyaltyAnalytics(tenantId!),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
 export function usePromotionAnalytics() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['analytics-promotions', tenantId],
-    queryFn: () => analyticsService.getPromotionAnalytics(),
+    queryFn: () => analyticsService.getPromotionAnalytics(tenantId!),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
 export function useVendorAnalytics() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['analytics-vendors', tenantId],
-    queryFn: () => analyticsService.getVendorAnalytics(),
+    queryFn: () => analyticsService.getVendorAnalytics(tenantId!),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
 export function useMenuAnalytics() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['analytics-menu', tenantId],
-    queryFn: () => analyticsService.getMenuAnalytics(),
+    queryFn: () => analyticsService.getMenuAnalytics(tenantId!),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
@@ -1605,11 +1675,12 @@ export function useTableInfo(tableId: string | null) {
 // ── Admin Hooks (P5.1) ────────────────────────────────────────────────────────
 
 export function useAdminStats() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['admin-stats', tenantId],
     queryFn: () => adminService.getStats(),
     staleTime: 60_000,
+    enabled: Boolean(tenantId),
   })
 }
 
@@ -1643,10 +1714,12 @@ export function useAdminOrders(
 export function useUpdateOrderStatus() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
-    mutationFn: ({ id, status, order }: { id: string; status: OrderStatus; order?: OrderStatusContext }) =>
-      adminService.updateOrderStatus(id, status, order),
+    mutationFn: ({ id, status, order }: { id: string; status: OrderStatus; order?: OrderStatusContext }) => {
+      if (!tenantId) throw new Error('No tenant')
+      return adminService.updateOrderStatus(id, status, tenantId, order)
+    },
     onMutate: async ({ id, status, order }) => {
       const resolvedStatus = resolveStatusUpdate(order, status)
       await qc.cancelQueries({ queryKey: ['admin-orders'] })
@@ -1669,14 +1742,14 @@ export function useUpdateOrderStatus() {
           ? { ...old, results: old.results.map((o) => o.id === id ? { ...o, status: data.status } : o) }
           : old,
       )
-      qc.setQueryData<Order>(['order', id], (old) => old ? { ...old, status: data.status } : old)
+      qc.setQueryData<Order>(['order', tenantId, id], (old) => old ? { ...old, status: data.status } : old)
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })
       auditLogService.record(
         'ORDER_STATUS_CHANGED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'order', id, displayName: `Order ${id}` },
-        { tenantId: tenant?.id ?? '' },
+        { tenantId: tenantId ?? '' },
         { before: null, after: { status: data.status }, changedFields: ['status'] },
       )
     },
@@ -1685,20 +1758,22 @@ export function useUpdateOrderStatus() {
 
 /** Phase 2 — same scoping approach as useAdminOrders() above. */
 export function useAdminReservations(filters: AdminReservationFilters = {}) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
+  const scopedFilters = { ...filters, ...(tenantId ? { tenantId } : {}) }
   return useQuery({
-    queryKey: ['admin-reservations', tenantId, filters],
-    queryFn: () => adminService.getAdminReservations(filters),
+    queryKey: ['admin-reservations', tenantId, scopedFilters],
+    queryFn: () => adminService.getAdminReservations(scopedFilters),
     staleTime: 30_000,
     enabled: !!tenantId,
   })
 }
 
 export function useAdminReservation(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    queryKey: ['admin-reservation', id],
-    queryFn: () => adminService.getAdminReservation(id),
-    enabled: !!id,
+    queryKey: ['admin-reservation', tenantId, id],
+    queryFn: () => adminService.getAdminReservation(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: 10_000,
   })
 }
@@ -1706,9 +1781,12 @@ export function useAdminReservation(id: string) {
 export function useConfirmReservation() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
-    mutationFn: (id: string) => adminService.confirmReservation(id),
+    mutationFn: (id: string) => {
+      if (!tenantId) throw new Error('No tenant')
+      return adminService.confirmReservation(id, tenantId)
+    },
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ['admin-reservations'] })
       const snapshots = qc.getQueriesData<PaginatedResponse<Reservation>>({ queryKey: ['admin-reservations'] })
@@ -1730,7 +1808,7 @@ export function useConfirmReservation() {
         'RESERVATION_CONFIRMED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'reservation', id, displayName: `Reservation ${id}` },
-        { tenantId: tenant?.id ?? '' },
+        { tenantId: tenantId ?? '' },
         { before: { status: 'pending' }, after: { status: 'confirmed' }, changedFields: ['status'] },
       )
     },
@@ -1740,9 +1818,12 @@ export function useConfirmReservation() {
 export function useCancelReservation() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
-    mutationFn: (id: string) => reservationService.cancelReservation(id),
+    mutationFn: (id: string) => {
+      if (!tenantId) throw new Error('No tenant')
+      return reservationService.cancelReservation(id, tenantId)
+    },
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ['admin-reservations'] })
       const snapshots = qc.getQueriesData<PaginatedResponse<Reservation>>({ queryKey: ['admin-reservations'] })
@@ -1764,7 +1845,7 @@ export function useCancelReservation() {
         'RESERVATION_CANCELLED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'reservation', id, displayName: `Reservation ${id}` },
-        { tenantId: tenant?.id ?? '' },
+        { tenantId: tenantId ?? '' },
         { before: { status: 'confirmed' }, after: { status: 'cancelled' }, changedFields: ['status'] },
       )
     },
@@ -1772,7 +1853,7 @@ export function useCancelReservation() {
 }
 
 export function useAdminCustomers(filters: AdminCustomerFilters = {}) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['admin-customers', tenantId, filters],
     queryFn: () => adminService.getCustomers({ ...filters, tenantId: tenantId ?? undefined }),
@@ -1782,7 +1863,7 @@ export function useAdminCustomers(filters: AdminCustomerFilters = {}) {
 }
 
 export function useAdminCustomer(id: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['admin-customer', tenantId, id],
     queryFn: () => adminService.getCustomer(id, tenantId ?? undefined),
@@ -1792,7 +1873,7 @@ export function useAdminCustomer(id: string) {
 }
 
 export function useAdminCustomerStats(id: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['admin-customer-stats', tenantId, id],
     queryFn: () => adminService.getCustomerStats(id, tenantId ?? undefined),
@@ -1802,7 +1883,7 @@ export function useAdminCustomerStats(id: string) {
 }
 
 export function useAdminCustomerReviews(id: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['admin-customer-reviews', tenantId, id],
     queryFn: () => adminService.getCustomerReviews(id, tenantId ?? undefined),
@@ -1814,7 +1895,7 @@ export function useAdminCustomerReviews(id: string) {
 // ── P8.9.6 — BusinessCustomer / BranchCustomer hooks ─────────────────────────
 
 export function useBusinessCustomer(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['business-customer', tenantId, userId],
     queryFn: () => adminService.getBusinessCustomer(userId, tenantId ?? ''),
@@ -1824,7 +1905,7 @@ export function useBusinessCustomer(userId: string) {
 }
 
 export function useBranchCustomers(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['branch-customers', tenantId, userId],
     queryFn: () => adminService.getBranchCustomers(userId, tenantId ?? ''),
@@ -1834,7 +1915,7 @@ export function useBranchCustomers(userId: string) {
 }
 
 export function useCustomerLoyalty(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-loyalty', tenantId, userId],
     queryFn: () => loyaltyService.getAccount(userId, tenantId ?? undefined),
@@ -1846,7 +1927,7 @@ export function useCustomerLoyalty(userId: string) {
 // ── P8.9.7 Customer 360° CRM Hooks ───────────────────────────────────────────
 
 export function useCustomerTimeline(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-timeline', tenantId, userId],
     queryFn: () => adminService.getCustomerTimeline(userId, tenantId ?? ''),
@@ -1856,7 +1937,7 @@ export function useCustomerTimeline(userId: string) {
 }
 
 export function useCustomerNotes(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-notes', tenantId, userId],
     queryFn: () => adminService.getCustomerNotes(userId, tenantId ?? ''),
@@ -1866,7 +1947,7 @@ export function useCustomerNotes(userId: string) {
 }
 
 export function useCreateCustomerNote(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ content, authorId, authorName }: { content: string; authorId: string; authorName: string }) =>
@@ -1876,7 +1957,7 @@ export function useCreateCustomerNote(userId: string) {
 }
 
 export function useUpdateCustomerNote(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ noteId, content }: { noteId: string; content: string }) =>
@@ -1886,7 +1967,7 @@ export function useUpdateCustomerNote(userId: string) {
 }
 
 export function useDeleteCustomerNote(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (noteId: string) => adminService.deleteCustomerNote(noteId),
@@ -1895,7 +1976,7 @@ export function useDeleteCustomerNote(userId: string) {
 }
 
 export function useCustomerTags(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-tags', tenantId, userId],
     queryFn: () => adminService.getCustomerTags(userId, tenantId ?? ''),
@@ -1905,7 +1986,7 @@ export function useCustomerTags(userId: string) {
 }
 
 export function useTenantTagDefinitions() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['tenant-tags', tenantId],
     queryFn: () => adminService.getTenantTagDefinitions(tenantId ?? ''),
@@ -1915,7 +1996,7 @@ export function useTenantTagDefinitions() {
 }
 
 export function useUpdateCustomerTags(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (tagIds: string[]) => adminService.updateCustomerTags(userId, tenantId ?? '', tagIds),
@@ -1924,7 +2005,7 @@ export function useUpdateCustomerTags(userId: string) {
 }
 
 export function useCustomerAnalytics(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-analytics', tenantId, userId],
     queryFn: () => adminService.getCustomerAnalytics(userId, tenantId ?? ''),
@@ -1934,7 +2015,7 @@ export function useCustomerAnalytics(userId: string) {
 }
 
 export function useCustomerMarketing(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-marketing', tenantId, userId],
     queryFn: () => adminService.getCustomerMarketing(userId, tenantId ?? ''),
@@ -1944,7 +2025,7 @@ export function useCustomerMarketing(userId: string) {
 }
 
 export function useCustomerCoupons(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-coupons', tenantId, userId],
     queryFn: () => adminService.getCustomerCoupons(userId, tenantId ?? ''),
@@ -1954,7 +2035,7 @@ export function useCustomerCoupons(userId: string) {
 }
 
 export function useCustomerPayments(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-payments', tenantId, userId],
     queryFn: () => adminService.getCustomerPayments(userId, tenantId ?? ''),
@@ -1964,7 +2045,7 @@ export function useCustomerPayments(userId: string) {
 }
 
 export function useCustomerOrders360(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-orders-360', tenantId, userId],
     queryFn: () => adminService.getCustomerOrders(userId, tenantId ?? ''),
@@ -1974,7 +2055,7 @@ export function useCustomerOrders360(userId: string) {
 }
 
 export function useCustomerReservations360(userId: string) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['customer-reservations-360', tenantId, userId],
     queryFn: () => adminService.getCustomerReservations(userId, tenantId ?? ''),
@@ -1987,9 +2068,12 @@ export function useCustomerReservations360(userId: string) {
 
 export function useBulkUpdateOrderStatus() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: ({ ids, status }: { ids: string[]; status: OrderStatus }) =>
-      Promise.all(ids.map((id) => adminService.updateOrderStatus(id, status))),
+    mutationFn: ({ ids, status }: { ids: string[]; status: OrderStatus }) => {
+      if (!tenantId) throw new Error('No tenant')
+      return Promise.all(ids.map((id) => adminService.updateOrderStatus(id, status, tenantId)))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })
@@ -1999,9 +2083,12 @@ export function useBulkUpdateOrderStatus() {
 
 export function useBulkCancelOrders() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (ids: string[]) =>
-      Promise.all(ids.map((id) => adminService.updateOrderStatus(id, 'cancelled'))),
+    mutationFn: (ids: string[]) => {
+      if (!tenantId) throw new Error('No tenant')
+      return Promise.all(ids.map((id) => adminService.updateOrderStatus(id, 'cancelled', tenantId)))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })
@@ -2011,9 +2098,12 @@ export function useBulkCancelOrders() {
 
 export function useBulkConfirmReservations() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (ids: string[]) =>
-      Promise.all(ids.map((id) => adminService.confirmReservation(id))),
+    mutationFn: (ids: string[]) => {
+      if (!tenantId) throw new Error('No tenant')
+      return Promise.all(ids.map((id) => adminService.confirmReservation(id, tenantId)))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
@@ -2023,9 +2113,12 @@ export function useBulkConfirmReservations() {
 
 export function useBulkCancelReservations() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (ids: string[]) =>
-      Promise.all(ids.map((id) => reservationService.cancelReservation(id))),
+    mutationFn: (ids: string[]) => {
+      if (!tenantId) throw new Error('No tenant')
+      return Promise.all(ids.map((id) => reservationService.cancelReservation(id, tenantId)))
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
@@ -2250,7 +2343,7 @@ function invalidateBranchTagQueries(
 }
 
 export function useConsoleMenuTags(branchId?: string, params?: ConsoleMenuTagsParams) {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const fallbackBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? fallbackBranchId
 
@@ -2267,7 +2360,7 @@ export function useConsoleMenuTags(branchId?: string, params?: ConsoleMenuTagsPa
   const query = useQuery({
     queryKey: ['console-menu-tags', tenantId, scopedBranchId, queryParams],
     queryFn: () => menuService.getConsoleTags(scopedBranchId!, params),
-    enabled: !!scopedBranchId,
+    enabled: Boolean(tenantId) && !!scopedBranchId,
     staleTime: STALE_TIME,
     gcTime: CACHE_TIME,
   })
@@ -2615,76 +2708,89 @@ export function useUpdateMenuItem(branchId: string) {
 // ── Vendor Hooks (P6.11) ─────────────────────────────────────────────────────
 
 export function useVendors() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['vendors', tenantId],
-    queryFn: () => vendorService.getVendors(),
+    queryFn: () => vendorService.getVendors(tenantId!),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
 export function useVendor(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    queryKey: ['vendor', id],
-    queryFn: () => vendorService.getVendor(id),
-    enabled: !!id,
+    queryKey: ['vendor', tenantId, id],
+    queryFn: () => vendorService.getVendor(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
   })
 }
 
 export function useCreateVendor() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
     mutationFn: (payload: CreateVendorPayload) => vendorService.createVendor(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['vendors'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['vendors', tenantId] }),
   })
 }
 
 export function useUpdateVendor() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateVendorPayload }) =>
-      vendorService.updateVendor(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateVendorPayload }) => {
+      if (!tenantId) throw new Error('No tenant')
+      return vendorService.updateVendor(id, tenantId, payload)
+    },
     onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ queryKey: ['vendors'] })
-      qc.invalidateQueries({ queryKey: ['vendor', id] })
+      qc.invalidateQueries({ queryKey: ['vendors', tenantId] })
+      qc.invalidateQueries({ queryKey: ['vendor', tenantId, id] })
     },
   })
 }
 
 export function useDisableVendor() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (id: string) => vendorService.disableVendor(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['vendors'] }),
+    mutationFn: (id: string) => {
+      if (!tenantId) throw new Error('No tenant')
+      return vendorService.disableVendor(id, tenantId)
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['vendors', tenantId] }),
   })
 }
 
 export function useVendorStats(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    queryKey: ['vendor-stats', id],
-    queryFn: () => vendorService.getVendorStats(id),
-    enabled: !!id,
+    queryKey: ['vendor-stats', tenantId, id],
+    queryFn: () => vendorService.getVendorStats(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: 60_000,
   })
 }
 
 export function useVendorSettlements(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    queryKey: ['vendor-settlements', id],
-    queryFn: () => vendorService.getVendorSettlements(id),
-    enabled: !!id,
+    queryKey: ['vendor-settlements', tenantId, id],
+    queryFn: () => vendorService.getVendorSettlements(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
   })
 }
 
 export function useCreateSettlement() {
+  const tenantId = useConsoleTenantId() ?? ''
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: CreateSettlementPayload) => vendorService.createSettlement(payload),
+    mutationFn: (payload: CreateSettlementPayload) => vendorService.createSettlement(payload, tenantId),
     onSuccess: (_data, { vendorId }) => {
-      qc.invalidateQueries({ queryKey: ['vendor-settlements', vendorId] })
-      qc.invalidateQueries({ queryKey: ['vendor-stats', vendorId] })
+      qc.invalidateQueries({ queryKey: ['vendor-settlements', tenantId, vendorId] })
+      qc.invalidateQueries({ queryKey: ['vendor-stats', tenantId, vendorId] })
     },
   })
 }
@@ -2692,65 +2798,93 @@ export function useCreateSettlement() {
 // ── Promotion Hooks (P6.10) ───────────────────────────────────────────────────
 
 export function usePromotions() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['promotions', tenantId],
-    queryFn: () => promotionService.getPromotions(),
+    queryFn: () => promotionService.getPromotions(tenantId!),
+    staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
+  })
+}
+
+export function usePromotion(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
+  return useQuery({
+    queryKey: ['promotion', tenantId, id],
+    queryFn: () => promotionService.getPromotion(id, tenantId),
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
   })
 }
 
 export function useActivePromotions() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['active-promotions', tenantId],
-    queryFn: () => promotionService.getActivePromotions(),
+    queryFn: () => promotionService.getActivePromotions(tenantId!),
     staleTime: 30_000,
     refetchInterval: 60_000,
+    enabled: Boolean(tenantId),
   })
 }
 
 export function useCreatePromotion() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (payload: CreatePromotionPayload) => promotionService.createPromotion(payload),
+    mutationFn: (payload: CreatePromotionPayload) => {
+      if (!tenantId) throw new Error('No tenant')
+      return promotionService.createPromotion(tenantId, payload)
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['promotions'] })
-      qc.invalidateQueries({ queryKey: ['active-promotions'] })
+      qc.invalidateQueries({ queryKey: ['promotions', tenantId] })
+      qc.invalidateQueries({ queryKey: ['active-promotions', tenantId] })
     },
   })
 }
 
 export function useUpdatePromotion() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdatePromotionPayload }) =>
-      promotionService.updatePromotion(id, payload),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['promotions'] })
-      qc.invalidateQueries({ queryKey: ['active-promotions'] })
+    mutationFn: ({ id, payload }: { id: string; payload: UpdatePromotionPayload }) => {
+      if (!tenantId) throw new Error('No tenant')
+      return promotionService.updatePromotion(id, tenantId, payload)
+    },
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ['promotions', tenantId] })
+      qc.invalidateQueries({ queryKey: ['active-promotions', tenantId] })
+      qc.invalidateQueries({ queryKey: ['promotion', tenantId, id] })
     },
   })
 }
 
 export function useDisablePromotion() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (id: string) => promotionService.disablePromotion(id),
+    mutationFn: (id: string) => {
+      if (!tenantId) throw new Error('No tenant')
+      return promotionService.disablePromotion(id, tenantId)
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['promotions'] })
-      qc.invalidateQueries({ queryKey: ['active-promotions'] })
+      qc.invalidateQueries({ queryKey: ['promotions', tenantId] })
+      qc.invalidateQueries({ queryKey: ['active-promotions', tenantId] })
     },
   })
 }
 
 export function useActivatePromotion() {
   const qc = useQueryClient()
+  const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
-    mutationFn: (id: string) => promotionService.activatePromotion(id),
+    mutationFn: (id: string) => {
+      if (!tenantId) throw new Error('No tenant')
+      return promotionService.activatePromotion(id, tenantId)
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['promotions'] })
-      qc.invalidateQueries({ queryKey: ['active-promotions'] })
+      qc.invalidateQueries({ queryKey: ['promotions', tenantId] })
+      qc.invalidateQueries({ queryKey: ['active-promotions', tenantId] })
     },
   })
 }
@@ -2807,11 +2941,12 @@ export function useEarnPoints() {
 }
 
 export function useAdminLoyaltyRewards() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   return useQuery({
     queryKey: ['admin-loyalty-rewards', tenantId],
     queryFn: () => loyaltyService.adminGetRewards(),
     staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
   })
 }
 
@@ -2900,11 +3035,11 @@ export function useCloneTenant() {
 
 export function useUpdateTenantSettings() {
   const qc = useQueryClient()
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
     mutationFn: (patch: Record<string, unknown>) => {
-      if (!tenant) throw new Error('No tenant')
-      return tenantService.updateTenantSettings(tenant.id, patch)
+      if (!tenantId) throw new Error('No tenant')
+      return tenantService.updateTenantSettings(tenantId, patch)
     },
     onSuccess: (updated) => {
       useTenantStore.getState().setTenant(updated)
@@ -3112,7 +3247,210 @@ export function useArchiveTenant() {
   })
 }
 
+// ── RBAC D2 Hooks ─────────────────────────────────────────────────────────────
+
+export function useTenantRoles(tenantId: string) {
+  return useQuery({
+    queryKey: ['tenant-roles', tenantId],
+    queryFn: () => fetchTenantRoles(tenantId),
+    staleTime: CACHE_TIME,
+    enabled: Boolean(tenantId),
+  })
+}
+
+export function usePermissionCatalog() {
+  return useQuery({
+    queryKey: ['permission-catalog'],
+    queryFn: () => fetchPermissionCatalog(),
+    staleTime: CACHE_TIME,
+  })
+}
+
+export function useAssignments(tenantId: string, params?: import('@/api/rbac').ListAssignmentsParams) {
+  return useQuery({
+    queryKey: ['assignments', tenantId, params],
+    queryFn: () => listAssignments(tenantId, params),
+    staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
+  })
+}
+
+export function useCreateAssignment(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateAssignmentPayload) => createAssignment(tenantId, payload),
+    onSuccess: (_data, payload) => {
+      invalidateRbacAssignmentMutations(qc, tenantId, {
+        userId: payload.user_id,
+        membershipId: payload.membership_id,
+      })
+    },
+  })
+}
+
+export function useUpdateAssignment(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      assignmentId,
+      payload,
+      userId,
+    }: {
+      assignmentId: string
+      payload: UpdateAssignmentPayload
+      userId?: string
+    }) => updateAssignment(tenantId, assignmentId, payload),
+    onSuccess: (_data, { userId }) => {
+      invalidateRbacAssignmentMutations(qc, tenantId, { userId })
+    },
+  })
+}
+
+export function useRevokeAssignment(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      assignmentId,
+      userId,
+      membershipId,
+    }: {
+      assignmentId: string
+      userId?: string
+      membershipId?: string
+    }) => revokeAssignment(tenantId, assignmentId),
+    onSuccess: (_data, { userId, membershipId }) => {
+      invalidateRbacAssignmentMutations(qc, tenantId, { userId, membershipId })
+    },
+  })
+}
+
+// ── RBAC Wave 4 Hooks ─────────────────────────────────────────────────────────
+
+export function usePermissionOverrides(
+  tenantId: string,
+  params?: import('@/api/authorization').ListPermissionOverridesParams,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['permission-overrides', tenantId, params],
+    queryFn: () => listPermissionOverrides(tenantId, params),
+    staleTime: STALE_TIME,
+    enabled: Boolean(tenantId) && enabled,
+  })
+}
+
+export function useCreatePermissionOverride(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreatePermissionOverridePayload) =>
+      createPermissionOverride(tenantId, payload),
+    onSuccess: (_data, payload) => {
+      invalidateRbacWave4Mutations(qc, tenantId, {
+        membershipId: payload.membership_id,
+        userId: payload.user_id,
+      })
+    },
+  })
+}
+
+export function useUpdatePermissionOverride(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      overrideId,
+      payload,
+      membershipId,
+      userId,
+    }: {
+      overrideId: string
+      payload: UpdatePermissionOverridePayload
+      membershipId?: string
+      userId?: string
+    }) => updatePermissionOverride(tenantId, overrideId, payload),
+    onSuccess: (_data, { membershipId, userId }) => {
+      invalidateRbacWave4Mutations(qc, tenantId, { membershipId, userId })
+    },
+  })
+}
+
+export function useDeletePermissionOverride(tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      overrideId,
+      membershipId,
+      userId,
+    }: {
+      overrideId: string
+      membershipId?: string
+      userId?: string
+    }) => deletePermissionOverride(tenantId, overrideId),
+    onSuccess: (_data, { membershipId, userId }) => {
+      invalidateRbacWave4Mutations(qc, tenantId, { membershipId, userId })
+    },
+  })
+}
+
+export function useEffectivePermissions(
+  params?: import('@/api/authorization').EffectivePermissionsParams,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['effective-permissions', params],
+    queryFn: () => fetchEffectivePermissions(params),
+    staleTime: STALE_TIME,
+    enabled,
+  })
+}
+
+export function usePermissionAudit(
+  tenantId: string,
+  params?: import('@/types/rbac-api').ListPermissionAuditParams,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['permission-audit', tenantId, params],
+    queryFn: () => listPermissionAudit(tenantId, params),
+    staleTime: STALE_TIME,
+    enabled: Boolean(tenantId) && enabled,
+  })
+}
+
+export function useRolePermissions(roleId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['role-permissions', roleId],
+    queryFn: () => fetchRolePermissions(roleId),
+    staleTime: STALE_TIME,
+    enabled: Boolean(roleId) && enabled,
+  })
+}
+
+export function useReplaceRolePermissions(roleId: string, tenantId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: ReplaceRolePermissionsPayload) =>
+      replaceRolePermissions(roleId, payload),
+    onSuccess: () => {
+      invalidateRolePermissions(qc, roleId)
+      invalidatePermissionAudit(qc, tenantId)
+      invalidateEffectivePermissions(qc)
+      invalidatePermissionCatalog(qc)
+      qc.invalidateQueries({ queryKey: ['me-permissions'] })
+    },
+  })
+}
+
 // ── Staff Management Hooks (P7.2) ─────────────────────────────────────────────
+
+/** Paginated staff list — uses backend pagination/filtering when not in mock mode. */
+export function useStaffPage(tenantId: string, params?: import('@/api/staff').ListStaffParams) {
+  return useQuery({
+    queryKey: ['staff', tenantId, params],
+    queryFn: () => staffService.listStaffPage(tenantId, params),
+    staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
+  })
+}
 
 /** Phase 2 — tenant scoping via `tenantId` only; access enforcement is the backend's job. */
 export function useStaff(tenantId: string) {
@@ -3125,11 +3463,12 @@ export function useStaff(tenantId: string) {
 }
 
 export function useStaffMember(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    queryKey: ['staff-member', id],
-    queryFn: () => staffService.getStaffMember(id),
+    queryKey: ['staff-member', tenantId, id],
+    queryFn: () => staffService.getStaffMember(id, tenantId),
     staleTime: STALE_TIME,
-    enabled: !!id,
+    enabled: !!id && !!tenantId,
   })
 }
 
@@ -3145,17 +3484,19 @@ export function useInvites(tenantId: string) {
 export function useInviteStaff(tenantId: string) {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const activeTenantId = useConsoleTenantId()
   return useMutation({
     mutationFn: (payload: InviteStaffPayload) => staffService.inviteStaff(tenantId, payload),
     onSuccess: (_data, variables) => {
+      invalidateRbacStaffQueries(qc, tenantId)
+      invalidatePermissionCatalog(qc)
       qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] })
       auditLogService.record(
         'STAFF_CREATED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'staff', id: variables.email, displayName: variables.email },
-        { tenantId: tenant?.id ?? tenantId },
-        { before: null, after: { email: variables.email, roles: variables.roles } },
+        { tenantId: activeTenantId ?? tenantId },
+        { before: null, after: { email: variables.email, role_id: variables.role_id } },
       )
     },
   })
@@ -3164,21 +3505,18 @@ export function useInviteStaff(tenantId: string) {
 export function useUpdateStaffRoles() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateStaffRolesPayload }) =>
       staffService.updateStaffRoles(id, payload),
     onSuccess: (_data, { id, payload }) => {
       const member = qc.getQueryData<Awaited<ReturnType<typeof staffService.getStaffMember>>>(['staff-member', id])
-      if (member) {
-        qc.invalidateQueries({ queryKey: ['staff', member.tenantId] })
-      }
-      qc.invalidateQueries({ queryKey: ['staff-member', id] })
+      invalidateRbacStaffQueries(qc, member?.tenantId ?? tenantId ?? '', id, member?.userId)
       auditLogService.record(
         'STAFF_UPDATED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'staff', id, displayName: id },
-        { tenantId: tenant?.id ?? '' },
+        { tenantId: tenantId ?? '' },
         { before: null, after: { roles: payload.roles }, changedFields: ['roles'] },
       )
     },
@@ -3188,9 +3526,9 @@ export function useUpdateStaffRoles() {
 export function useSuspendStaff() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
-    mutationFn: (id: string) => staffService.suspendStaff(id),
+    mutationFn: (id: string) => staffService.suspendStaff(id, tenantId ?? ''),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ['staff-member', id] })
       const snapshot = qc.getQueryData(['staff-member', id])
@@ -3203,12 +3541,13 @@ export function useSuspendStaff() {
       if (ctx?.snapshot) qc.setQueryData(['staff-member', id], ctx.snapshot)
     },
     onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['staff-member', id] })
+      const member = qc.getQueryData<Awaited<ReturnType<typeof staffService.getStaffMember>>>(['staff-member', id])
+      invalidateRbacStaffQueries(qc, member?.tenantId ?? tenantId ?? '', id, member?.userId)
       auditLogService.record(
         'STAFF_SUSPENDED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'staff', id, displayName: id },
-        { tenantId: tenant?.id ?? '' },
+        { tenantId: tenantId ?? '' },
         { before: { status: 'active' }, after: { status: 'suspended' }, changedFields: ['status'] },
       )
     },
@@ -3218,9 +3557,9 @@ export function useSuspendStaff() {
 export function useActivateStaff() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
-    mutationFn: (id: string) => staffService.activateStaff(id),
+    mutationFn: (id: string) => staffService.activateStaff(id, tenantId ?? ''),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ['staff-member', id] })
       const snapshot = qc.getQueryData(['staff-member', id])
@@ -3233,12 +3572,13 @@ export function useActivateStaff() {
       if (ctx?.snapshot) qc.setQueryData(['staff-member', id], ctx.snapshot)
     },
     onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['staff-member', id] })
+      const member = qc.getQueryData<Awaited<ReturnType<typeof staffService.getStaffMember>>>(['staff-member', id])
+      invalidateRbacStaffQueries(qc, member?.tenantId ?? tenantId ?? '', id, member?.userId)
       auditLogService.record(
         'STAFF_REACTIVATED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'staff', id, displayName: id },
-        { tenantId: tenant?.id ?? '' },
+        { tenantId: tenantId ?? '' },
         { before: { status: 'suspended' }, after: { status: 'active' }, changedFields: ['status'] },
       )
     },
@@ -3248,9 +3588,9 @@ export function useActivateStaff() {
 export function useRemoveStaff() {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
-    mutationFn: (id: string) => staffService.removeStaff(id),
+    mutationFn: (id: string) => staffService.removeStaff(id, tenantId ?? ''),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ['staff-member', id] })
       const snapshot = qc.getQueryData(['staff-member', id])
@@ -3263,12 +3603,13 @@ export function useRemoveStaff() {
       if (ctx?.snapshot) qc.setQueryData(['staff-member', id], ctx.snapshot)
     },
     onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['staff-member', id] })
+      const member = qc.getQueryData<Awaited<ReturnType<typeof staffService.getStaffMember>>>(['staff-member', id])
+      invalidateRbacStaffQueries(qc, member?.tenantId ?? tenantId ?? '', id, member?.userId)
       auditLogService.record(
         'STAFF_REMOVED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
         { type: 'staff', id, displayName: id },
-        { tenantId: tenant?.id ?? '' },
+        { tenantId: tenantId ?? '' },
         { before: { status: 'active' }, after: { status: 'removed' }, changedFields: ['status'] },
       )
     },
@@ -3278,7 +3619,7 @@ export function useRemoveStaff() {
 export function useTransferOwnership(tenantId: string) {
   const qc = useQueryClient()
   const user = useAuthStore((s) => s.user)
-  const tenant = useTenantStore((s) => s.tenant)
+  const activeTenantId = useConsoleTenantId()
   return useMutation({
     mutationFn: ({
       currentOwnerId,
@@ -3288,12 +3629,12 @@ export function useTransferOwnership(tenantId: string) {
       payload: TransferOwnershipPayload
     }) => staffService.transferOwnership(currentOwnerId, payload.targetMemberId),
     onSuccess: (_data, { payload }) => {
-      qc.invalidateQueries({ queryKey: ['staff', tenantId] })
+      invalidateRbacStaffQueries(qc, tenantId)
       auditLogService.record(
         'OWNERSHIP_TRANSFERRED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: ['owner'] },
         { type: 'staff', id: payload.targetMemberId, displayName: payload.targetMemberId },
-        { tenantId: tenant?.id ?? tenantId },
+        { tenantId: activeTenantId ?? tenantId },
         { before: null, after: { newOwnerId: payload.targetMemberId } },
       )
     },
@@ -3303,16 +3644,22 @@ export function useTransferOwnership(tenantId: string) {
 export function useCancelInvite(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => staffService.cancelInvite(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] }),
+    mutationFn: (id: string) => staffService.cancelInvite(tenantId, id),
+    onSuccess: () => {
+      invalidateRbacStaffQueries(qc, tenantId)
+      qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] })
+    },
   })
 }
 
 export function useResendInvite(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (id: string) => staffService.resendInvite(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] }),
+    mutationFn: (id: string) => staffService.resendInvite(tenantId, id),
+    onSuccess: () => {
+      invalidateRbacStaffQueries(qc, tenantId)
+      qc.invalidateQueries({ queryKey: ['staff-invites', tenantId] })
+    },
   })
 }
 
@@ -3391,11 +3738,12 @@ export function useAuditLogs(filter: AuditFilter = {}) {
 
 /** Fetches a single audit log entry by ID. */
 export function useAuditLog(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    enabled: !!id,
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
-    queryKey: ['audit-log', id],
-    queryFn: () => auditLogService.getAuditLog(id),
+    queryKey: ['audit-log', tenantId, id],
+    queryFn: () => auditLogService.getAuditLog(id, tenantId),
   })
 }
 
@@ -3450,11 +3798,12 @@ export function useUnreadNotifications(filter: Omit<NotificationFilter, 'status'
 
 /** Fetches a single rich notification by ID. */
 export function useNotification(id: string) {
+  const tenantId = useConsoleTenantId() ?? ''
   return useQuery({
-    enabled: !!id,
+    enabled: !!id && !!tenantId,
     staleTime: STALE_TIME,
-    queryKey: ['rich-notification', id],
-    queryFn: () => notificationRichService.getNotification(id),
+    queryKey: ['rich-notification', tenantId, id],
+    queryFn: () => notificationRichService.getNotification(id, tenantId),
   })
 }
 
@@ -3726,32 +4075,25 @@ export function useOperationsStream(scope: OperationsScope, limit = 50) {
 import { featureFlagsService } from '@/services/feature-flags.service'
 
 export function useFeatureFlags() {
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useQuery({
-    queryKey: ['feature-flags', tenant?.id],
+    queryKey: ['feature-flags', tenantId],
     queryFn: () => {
-      if (!tenant) return []
-      return featureFlagsService.listFlags(tenant)
+      if (!tenantId) return []
+      return featureFlagsService.listFlagsForTenant(tenantId)
     },
-    enabled: !!tenant,
+    enabled: Boolean(tenantId),
     staleTime: 60_000,
   })
 }
 
 export function useUpdateFeatureFlag() {
   const qc = useQueryClient()
-  const tenant = useTenantStore((s) => s.tenant)
+  const tenantId = useConsoleTenantId()
   return useMutation({
     mutationFn: ({ key, value }: { key: string; value: boolean }) => {
-      if (!tenant) throw new Error('No tenant')
-      const newOverrides = featureFlagsService.updateFlag(tenant, key, value)
-      const updatedTenant = {
-        ...tenant,
-        settings: { ...tenant.settings, featureFlags: newOverrides },
-      }
-      useTenantStore.getState().setTenant(updatedTenant)
-      useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(updatedTenant))
-      return Promise.resolve({ key, value })
+      if (!tenantId) throw new Error('No tenant')
+      return featureFlagsService.updateFlagForTenant(tenantId, key, value)
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['feature-flags'] })
@@ -3900,6 +4242,7 @@ interface ComparisonResult<T> {
 }
 
 export function useAnalyticsComparison(period: ComparisonPeriod = 'week'): ComparisonResult<AnalyticsSummaryPair> {
+  const tenantId = useConsoleTenantId() ?? ''
   const now = new Date()
   const periodDays = period === 'day' ? 1 : period === 'month' ? 30 : period === 'quarter' ? 90 : period === 'year' ? 365 : 7
   const currentStart = new Date(now.getTime() - periodDays * 86_400_000).toISOString()
@@ -3907,14 +4250,16 @@ export function useAnalyticsComparison(period: ComparisonPeriod = 'week'): Compa
   const previousEnd = currentStart
 
   const currentQ = useQuery({
-    queryKey: ['analytics-summary', 'current', period, currentStart],
-    queryFn: () => analyticsService.getAnalyticsSummary({ dateFrom: currentStart }),
+    queryKey: ['analytics-summary', tenantId, 'current', period, currentStart],
+    queryFn: () => analyticsService.getAnalyticsSummary(tenantId, { dateFrom: currentStart }),
     staleTime: 60_000,
+    enabled: !!tenantId,
   })
   const previousQ = useQuery({
-    queryKey: ['analytics-summary', 'previous', period, previousStart],
-    queryFn: () => analyticsService.getAnalyticsSummary({ dateFrom: previousStart, dateTo: previousEnd }),
+    queryKey: ['analytics-summary', tenantId, 'previous', period, previousStart],
+    queryFn: () => analyticsService.getAnalyticsSummary(tenantId, { dateFrom: previousStart, dateTo: previousEnd }),
     staleTime: 60_000,
+    enabled: !!tenantId,
   })
   return {
     current: currentQ.data ? { ...currentQ.data, _period: 'current' as const } : undefined,

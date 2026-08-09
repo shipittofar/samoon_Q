@@ -8,6 +8,7 @@ import type {
 import type { Order, OrderType, PaymentMethod, PaginatedResponse } from '@/types'
 import type { CartItem } from '@/types'
 import { normalizeOrder, normalizeOrderItems, normalizeOrderList } from '@/lib/order-normalizers'
+import { branchBelongsToMockTenant } from '@/lib/mock-tenant-scope'
 import { MOCK_MENU_ITEMS, MOCK_BRANCH_ITEMS } from '@/lib/mock-data'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -111,14 +112,19 @@ export const orderService = {
     }
   },
 
-  async getOrder(id: string): Promise<Order> {
+  async getOrder(id: string, tenantId?: string): Promise<Order> {
     if (USE_MOCK) {
       await delay(400)
       const order = MOCK_ORDERS.find((o) => o.id === id)
       if (!order) throw new Error('Order not found')
+      if (tenantId && !branchBelongsToMockTenant(order.branch_id, tenantId)) {
+        throw new Error('Order not found')
+      }
       return normalizeOrder(order)
     }
-    const { data } = await api.get<Order>(ENDPOINTS.ORDERS.DETAIL(id))
+    const { data } = await api.get<Order>(ENDPOINTS.ORDERS.DETAIL(id), {
+      ...(tenantId ? { params: { tenantId } } : {}),
+    })
     return normalizeOrder(data)
   },
 

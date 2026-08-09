@@ -54,6 +54,8 @@ import {
 import { featureFlagsService } from '@/services/feature-flags.service'
 import type { MembershipBranch } from '@/types/rbac'
 import { recordConsoleBootMetric } from '@/lib/console-boot-metrics'
+import { setActiveTenantSlugForRequests } from '@/lib/tenant-request-context'
+import { isCurrentTenantLoad, nextTenantLoadGeneration } from '@/lib/console-workspace-switch'
 
 // ── Auth Store ────────────────────────────────────────────────────────────────
 interface AuthState {
@@ -406,6 +408,7 @@ export const useTenantStore = create<TenantState>()(
             featureFlags: featureFlagsService.resolve(tenant),
             featureFlagsInitialized: true,
           })
+          setActiveTenantSlugForRequests(tenant.slug)
         } catch (err) {
           // Never substitute a fake tenant here. Classify the failure and
           // leave `tenant` null so nothing downstream can mistake an
@@ -446,10 +449,15 @@ export const useTenantStore = create<TenantState>()(
       },
       loadTenantById: async (tenantId: string) => {
         recordConsoleBootMetric('loadTenantById')
+        const generation = nextTenantLoadGeneration()
         set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedTenantId: tenantId, lastAttemptedSlug: undefined })
         try {
           const tenant = await tenantService.getTenantById(tenantId)
+          if (!isCurrentTenantLoad(generation)) return
+          const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
+          if (activeTenantId && activeTenantId !== tenantId) return
           if (!ELIGIBLE_TENANT_STATUSES.includes(tenant.status)) {
+            if (!isCurrentTenantLoad(generation)) return
             set({
               tenant: null,
               isLoading: false,
@@ -459,6 +467,11 @@ export const useTenantStore = create<TenantState>()(
             })
             return
           }
+          if (!isCurrentTenantLoad(generation)) return
+          if (useRbacStore.getState().activeMembership?.tenantId &&
+              useRbacStore.getState().activeMembership?.tenantId !== tenantId) {
+            return
+          }
           set({
             tenant,
             isLoading: false,
@@ -466,7 +479,9 @@ export const useTenantStore = create<TenantState>()(
             featureFlags: featureFlagsService.resolve(tenant),
             featureFlagsInitialized: true,
           })
+          setActiveTenantSlugForRequests(tenant.slug)
         } catch (err) {
+          if (!isCurrentTenantLoad(generation)) return
           if (err instanceof TenantNotFoundError) {
             set({
               tenant: null,
@@ -935,8 +950,13 @@ export const useRbacStore = create<RbacStoreState>()(
         }),
       clearCurrentTenantSession: () => set({ currentTenantSession: null }),
       setHasTenantMembership: (value) => set({ hasTenantMembership: value }),
-      setSessionMemberships: (memberships, activeMembership = null) =>
-        set({ sessionMemberships: memberships, activeMembership: activeMembership ?? null }),
+      setSessionMemberships: (memberships, activeMembership = null) => {
+        set({ sessionMemberships: memberships, activeMembership: activeMembership ?? null })
+        if (memberships && activeMembership?.tenantId) {
+          const membership = memberships.find((m) => m.tenantId === activeMembership.tenantId)
+          if (membership?.tenantSlug) setActiveTenantSlugForRequests(membership.tenantSlug)
+        }
+      },
 
       setTenantRoles: (tenantId, roles) =>
         set((s) => {

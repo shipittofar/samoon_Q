@@ -15,7 +15,7 @@ import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@
 import { formatCurrency } from '@/utils'
 import {
   useExtraGroups, useConsoleExtraGroups, useCreateExtraGroup, useUpdateExtraGroup, useDeleteExtraGroup, useReorderExtraGroups,
-  useExtras, useCreateExtra, useUpdateExtra, useDeleteExtra,
+  useConsoleExtras, useCreateExtra, useUpdateExtra, useDeleteExtra,
   usePermission, useSelectedBranch, useBranchState, useIsBranchReady,
 } from '@/hooks'
 import type { Extra, ExtraGroup, ExtraGroupSelectionType, ExtraFormInput } from '@/types'
@@ -134,12 +134,12 @@ export default function AdminExtrasPage() {
   const adminBranch = useSelectedBranch()
   const branchState = useBranchState()
   // Phase 3 — '' (not undefined): see console/menu/page.tsx's comment on
-  // the same pattern — undefined would let useExtraGroups()/useExtras()
+  // the same pattern — undefined would let useConsoleExtraGroups()/useConsoleExtras()
   // silently fall back to the unrelated customer-storefront active branch.
   const adminBranchId = useIsBranchReady() ? adminBranch?.id ?? '' : ''
 
   const { data: groups, isLoading: groupsLoading, isError: groupsError, refetch: refetchGroups } = useConsoleExtraGroups(adminBranchId)
-  const { data: extras, isLoading: extrasLoading, isError: extrasError, refetch: refetchExtras } = useExtras(adminBranchId)
+  const { data: extras, isLoading: extrasLoading, isError: extrasError, refetch: refetchExtras } = useConsoleExtras(adminBranchId)
 
   const canCreate = usePermission('extras.create')
   const canUpdate = usePermission('extras.update')

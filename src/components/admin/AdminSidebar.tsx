@@ -49,7 +49,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useAdminModuleNav, useLogout } from '@/hooks'
-import { useAuthStore, useTenantStore, useRbacStore } from '@/stores'
+import { useAuthStore, useRbacStore } from '@/stores'
+import { useConsoleTenantId } from '@/hooks/console-workspace'
 import { Button } from '@/components/ui/Button'
 import type { NavItem } from '@/types'
 
@@ -146,7 +147,7 @@ function groupNavItems(items: NavItem[]): { group: string; items: NavItem[] }[] 
 // ── Role chip ─────────────────────────────────────────────────────────────────
 
 function RoleChip() {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   // Phase X.3 — reads the live currentTenantSession instead of the
   // persisted tenantRoles array (via getRolesForTenant()), which can
   // retain a stale role entry for a tenant across a switch — see the

@@ -824,7 +824,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
 export const MOCK_RESERVATIONS: Reservation[] = [
   {
     id: 'res-001',
-    branch_id: '1',
+    branch_id: 'branch-rest-01',
     date: '2025-02-15',
     time: '19:30',
     guests: 4,

@@ -23,6 +23,7 @@ import {
   useDeleteNotification,
   useUpdateNotificationPreference,
   useResetNotificationPreferences,
+  useConsoleTenantId,
 } from '@/hooks'
 import { NOTIFICATION_CATEGORIES_WITH_LABELS } from '@/services/notification-preferences.service'
 import type {
@@ -32,7 +33,7 @@ import type {
   NotificationCategory,
   NotificationPreference,
 } from '@/types/notification'
-import { useAuthStore, useTenantStore } from '@/stores'
+import { useAuthStore } from '@/stores'
 import { cn } from '@/utils'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -509,8 +510,7 @@ function NotificationsContent() {
   }
   const [tab, setTab] = useState<Tab>('inbox')
   const { user } = useAuthStore()
-  const { tenant } = useTenantStore()
-  const tenantId = tenant?.id
+  const tenantId = useConsoleTenantId()
   const userId = user?.id ?? ''
 
   return (

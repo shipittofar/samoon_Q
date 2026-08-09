@@ -9,7 +9,7 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
-import { usePromotions } from '@/hooks'
+import { usePromotion } from '@/hooks'
 import { formatDate } from '@/utils'
 import type { PromotionType } from '@/types'
 
@@ -22,8 +22,7 @@ const TYPE_LABEL_KEY: Record<PromotionType, string> = {
 
 function PromotionDetailContent({ id }: { id: string }) {
   const t = useTranslations('console')
-  const { data: promotions, isLoading, isError } = usePromotions()
-  const promotion = promotions?.find((p) => p.id === id)
+  const { data: promotion, isLoading, isError } = usePromotion(id)
 
   if (isLoading) {
     return (

@@ -11,8 +11,7 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ReviewCard } from '@/components/reviews/ReviewCard'
 import { RatingBreakdown } from '@/components/reviews/RatingBreakdown'
-import { useBusinessReviews, useReplyToReview, useModerateReview, useReviewAnalytics } from '@/hooks'
-import { useTenantStore } from '@/stores'
+import { useBusinessReviews, useReplyToReview, useModerateReview, useReviewAnalytics, useConsoleTenantId } from '@/hooks'
 import type { ReviewStatus, BusinessReview } from '@/types/business-review'
 
 type Tab = 'published' | 'pending' | 'hidden' | 'spam' | 'analytics'
@@ -148,7 +147,7 @@ function AnalyticsPanel({ tenantId }: { tenantId: string }) {
 
 export default function AdminReviewsPage() {
   const t = useTranslations('console')
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const tenantId = useConsoleTenantId() ?? ''
   const [activeTab, setActiveTab] = useState<Tab>('published')
   const [replyTarget, setReplyTarget] = useState<BusinessReview | null>(null)
 

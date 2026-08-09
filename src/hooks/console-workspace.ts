@@ -14,6 +14,8 @@ import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { authService, MOCK_SESSION_MEMBERSHIPS_KEY } from '@/services/auth.service'
 import type { GetMeResponse } from '@/services/auth.service'
 import { hasAnyMembership } from '@/services/permission.service'
+import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
+import { clearPermissionCache } from '@/lib/permission-cache'
 
 /** Branch-scoped query prefixes — keep in sync with hooks/index.ts BRANCH_SCOPED_QUERY_KEYS. */
 const BRANCH_SCOPED_QUERY_KEYS = [
@@ -38,6 +40,7 @@ export const TENANT_SCOPED_QUERY_KEYS = [
   'categories',
   'extra-groups',
   'console-extra-groups',
+  'console-extras',
   'extras',
   'menu-items',
   'menu-item',
@@ -95,6 +98,7 @@ export function clearConsoleWorkspaceQueryCache(qc: QueryClient) {
  */
 export async function refreshConsoleWorkspaceSession(generation?: number): Promise<void> {
   if (generation !== undefined && !isCurrentTenantSwitch(generation)) return
+  clearPermissionCache()
   const data = await authService.getMe()
   if (generation !== undefined && !isCurrentTenantSwitch(generation)) return
 
@@ -103,6 +107,15 @@ export async function refreshConsoleWorkspaceSession(generation?: number): Promi
     data.memberships !== undefined && data.memberships !== null ? data.memberships : null,
     data.activeMembership ?? null,
   )
+
+  const tenantId = data.activeMembership?.tenantId ?? data.memberships?.[0]?.tenantId
+  if (tenantId) {
+    applyTenantSessionRbac(tenantId, {
+      memberships: data.memberships,
+      activeMembership: data.activeMembership,
+    })
+  }
+
   useConsoleWorkspaceStore.getState().resetWorkspace()
   await useConsoleWorkspaceStore.getState().initializeFromSession()
   if (generation !== undefined && !isCurrentTenantSwitch(generation)) return
@@ -357,13 +370,9 @@ export function useConsoleSelectorsReady(): boolean {
   })
 }
 
+/** Console API scope — always from GET /auth/me activeMembership, never the tenant record. */
 export function useConsoleTenantId(): string | undefined {
-  const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
-  const tenantId = useTenantStore((s) => s.tenant?.id)
-
-  return activeTenantId
-    ? (tenantId === activeTenantId ? tenantId : activeTenantId)
-    : undefined
+  return useRbacStore((s) => s.activeMembership?.tenantId)
 }
 
 export function useConsoleBranchId(): string | undefined {

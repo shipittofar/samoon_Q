@@ -33,6 +33,7 @@ vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:8000/api')
 
 const ROOT = path.join(__dirname, '..', '..')
 const readSrc = (rel: string) => fs.readFileSync(path.join(ROOT, 'src', rel), 'utf-8')
+const TENANT_SAMOON = 'tenant-samoon-01'
 
 async function freshService() {
   vi.resetModules()
@@ -325,28 +326,28 @@ describe('F. validateSchedule()', () => {
 
 // ── G. Service — getPromotions() ──────────────────────────────────────────────
 
-describe('G. promotionService.getPromotions()', () => {
+describe('G. promotionService.getPromotions(TENANT_SAMOON)', () => {
   it('returns an array', async () => {
     const { promotionService } = await freshService()
-    const all = await promotionService.getPromotions()
+    const all = await promotionService.getPromotions(TENANT_SAMOON)
     expect(Array.isArray(all)).toBe(true)
   })
 
   it('initial mock has 5 promotions', async () => {
     const { promotionService } = await freshService()
-    const all = await promotionService.getPromotions()
+    const all = await promotionService.getPromotions(TENANT_SAMOON)
     expect(all).toHaveLength(5)
   })
 
   it('includes disabled promotions', async () => {
     const { promotionService } = await freshService()
-    const all = await promotionService.getPromotions()
+    const all = await promotionService.getPromotions(TENANT_SAMOON)
     expect(all.some((p) => !p.active)).toBe(true)
   })
 
   it('promotion shape is correct', async () => {
     const { promotionService } = await freshService()
-    const all = await promotionService.getPromotions()
+    const all = await promotionService.getPromotions(TENANT_SAMOON)
     const p = all[0]
     expect(p).toMatchObject({
       id: expect.any(String),
@@ -361,12 +362,12 @@ describe('G. promotionService.getPromotions()', () => {
 
 // ── H. Service — getActivePromotions() ───────────────────────────────────────
 
-describe('H. promotionService.getActivePromotions()', () => {
+describe('H. promotionService.getActivePromotions(TENANT_SAMOON)', () => {
   it('returns only promotions active at the given time', async () => {
     const { promotionService } = await freshService()
     // Use a Tuesday at 17:30 — happy-hour promo (Mon–Fri 16–19) should be active
     const tuesdayAfternoon = new Date('2025-06-03T17:30:00')
-    const active = await promotionService.getActivePromotions(tuesdayAfternoon)
+    const active = await promotionService.getActivePromotions(TENANT_SAMOON, tuesdayAfternoon)
     expect(Array.isArray(active)).toBe(true)
     expect(active.every((p) => p.active)).toBe(true)
   })
@@ -375,7 +376,7 @@ describe('H. promotionService.getActivePromotions()', () => {
     const { promotionService } = await freshService()
     // Use a time far in the future beyond all endAt dates
     const future = new Date('2099-01-01T00:00:00')
-    const active = await promotionService.getActivePromotions(future)
+    const active = await promotionService.getActivePromotions(TENANT_SAMOON, future)
     expect(active).toHaveLength(0)
   })
 
@@ -387,7 +388,7 @@ describe('H. promotionService.getActivePromotions()', () => {
     const wednesday17 = new Date(now)
     wednesday17.setDate(now.getDate() + (daysToWed <= 6 ? daysToWed : 0))
     wednesday17.setHours(17, 0, 0, 0)
-    const active = await promotionService.getActivePromotions(wednesday17)
+    const active = await promotionService.getActivePromotions(TENANT_SAMOON, wednesday17)
     expect(active.some((p) => p.type === 'happy_hour')).toBe(true)
   })
 
@@ -399,7 +400,7 @@ describe('H. promotionService.getActivePromotions()', () => {
     const wednesday9 = new Date(now)
     wednesday9.setDate(now.getDate() + (daysToWed <= 6 ? daysToWed : 0))
     wednesday9.setHours(9, 0, 0, 0)
-    const active = await promotionService.getActivePromotions(wednesday9)
+    const active = await promotionService.getActivePromotions(TENANT_SAMOON, wednesday9)
     expect(active.every((p) => p.type !== 'happy_hour')).toBe(true)
   })
 })
@@ -409,8 +410,8 @@ describe('H. promotionService.getActivePromotions()', () => {
 describe('I. promotionService.createPromotion() — happy path', () => {
   it('adds the promotion to the store', async () => {
     const { promotionService } = await freshService()
-    const before = (await promotionService.getPromotions()).length
-    await promotionService.createPromotion({
+    const before = (await promotionService.getPromotions(TENANT_SAMOON)).length
+    await promotionService.createPromotion(TENANT_SAMOON, {
       name: 'Test Deal',
       description: 'Test',
       type: 'percentage_discount',
@@ -419,13 +420,13 @@ describe('I. promotionService.createPromotion() — happy path', () => {
       active: true,
       schedule: { startAt: new Date().toISOString() },
     })
-    const after = (await promotionService.getPromotions()).length
+    const after = (await promotionService.getPromotions(TENANT_SAMOON)).length
     expect(after).toBe(before + 1)
   })
 
   it('returns the created promotion with id and timestamps', async () => {
     const { promotionService } = await freshService()
-    const promo = await promotionService.createPromotion({
+    const promo = await promotionService.createPromotion(TENANT_SAMOON, {
       name: 'New Promo',
       description: 'Desc',
       type: 'fixed_discount',
@@ -449,7 +450,7 @@ describe('J. promotionService.createPromotion() — schedule validation', () => 
     const now = new Date()
     const past = new Date(now.getTime() - 3_600_000).toISOString()
     await expect(
-      promotionService.createPromotion({
+      promotionService.createPromotion(TENANT_SAMOON, {
         name: 'Bad Promo',
         description: 'X',
         type: 'percentage_discount',
@@ -467,7 +468,7 @@ describe('J. promotionService.createPromotion() — schedule validation', () => 
   it('throws when time window is reversed', async () => {
     const { promotionService } = await freshService()
     await expect(
-      promotionService.createPromotion({
+      promotionService.createPromotion(TENANT_SAMOON, {
         name: 'Bad Window',
         description: 'X',
         type: 'happy_hour',
@@ -489,7 +490,7 @@ describe('J. promotionService.createPromotion() — schedule validation', () => 
 describe('K. promotionService.updatePromotion()', () => {
   it('updates promotion fields', async () => {
     const { promotionService } = await freshService()
-    const updated = await promotionService.updatePromotion('promo-10-percent', {
+    const updated = await promotionService.updatePromotion('promo-10-percent', TENANT_SAMOON, {
       discountPercent: 25,
     })
     expect(updated.discountPercent).toBe(25)
@@ -497,7 +498,7 @@ describe('K. promotionService.updatePromotion()', () => {
 
   it('preserves unchanged fields', async () => {
     const { promotionService } = await freshService()
-    const updated = await promotionService.updatePromotion('promo-10-percent', {
+    const updated = await promotionService.updatePromotion('promo-10-percent', TENANT_SAMOON, {
       discountPercent: 25,
     })
     expect(updated.name).toBe('10% Off Your Next Order')
@@ -507,16 +508,16 @@ describe('K. promotionService.updatePromotion()', () => {
   it('throws when promotion not found', async () => {
     const { promotionService } = await freshService()
     await expect(
-      promotionService.updatePromotion('no-such', { discountPercent: 5 }),
+      promotionService.updatePromotion('no-such', TENANT_SAMOON, { discountPercent: 5 }),
     ).rejects.toThrow('not found')
   })
 
   it('updates updatedAt timestamp', async () => {
     const { promotionService } = await freshService()
-    const before = (await promotionService.getPromotions()).find((p) => p.id === 'promo-10-percent')!
+    const before = (await promotionService.getPromotions(TENANT_SAMOON)).find((p) => p.id === 'promo-10-percent')!
     await new Promise((r) => setTimeout(r, 2))
-    await promotionService.updatePromotion('promo-10-percent', { discountPercent: 5 })
-    const after = (await promotionService.getPromotions()).find((p) => p.id === 'promo-10-percent')!
+    await promotionService.updatePromotion('promo-10-percent', TENANT_SAMOON, { discountPercent: 5 })
+    const after = (await promotionService.getPromotions(TENANT_SAMOON)).find((p) => p.id === 'promo-10-percent')!
     expect(new Date(after.updatedAt).getTime()).toBeGreaterThanOrEqual(
       new Date(before.updatedAt).getTime(),
     )
@@ -528,21 +529,21 @@ describe('K. promotionService.updatePromotion()', () => {
 describe('L. disablePromotion() / activatePromotion()', () => {
   it('disablePromotion sets active=false', async () => {
     const { promotionService } = await freshService()
-    const result = await promotionService.disablePromotion('promo-10-percent')
+    const result = await promotionService.disablePromotion('promo-10-percent', TENANT_SAMOON)
     expect(result.active).toBe(false)
   })
 
   it('disabled promotion not returned by getActivePromotions', async () => {
     const { promotionService } = await freshService()
-    await promotionService.disablePromotion('promo-10-percent')
-    const active = await promotionService.getActivePromotions()
+    await promotionService.disablePromotion('promo-10-percent', TENANT_SAMOON)
+    const active = await promotionService.getActivePromotions(TENANT_SAMOON)
     expect(active.every((p) => p.id !== 'promo-10-percent')).toBe(true)
   })
 
   it('activatePromotion sets active=true', async () => {
     const { promotionService } = await freshService()
-    await promotionService.disablePromotion('promo-10-percent')
-    const result = await promotionService.activatePromotion('promo-10-percent')
+    await promotionService.disablePromotion('promo-10-percent', TENANT_SAMOON)
+    const result = await promotionService.activatePromotion('promo-10-percent', TENANT_SAMOON)
     expect(result.active).toBe(true)
   })
 })
@@ -552,16 +553,16 @@ describe('L. disablePromotion() / activatePromotion()', () => {
 describe('M. promotionService._resetMockStore()', () => {
   it('restores disabled promotions to active', async () => {
     const { promotionService } = await freshService()
-    await promotionService.disablePromotion('promo-happy-hour-1')
+    await promotionService.disablePromotion('promo-happy-hour-1', TENANT_SAMOON)
     promotionService._resetMockStore()
-    const all = await promotionService.getPromotions()
+    const all = await promotionService.getPromotions(TENANT_SAMOON)
     expect(all.find((p) => p.id === 'promo-happy-hour-1')?.active).toBe(true)
   })
 
   it('promo-disabled remains inactive after reset (it starts disabled)', async () => {
     const { promotionService } = await freshService()
     promotionService._resetMockStore()
-    const all = await promotionService.getPromotions()
+    const all = await promotionService.getPromotions(TENANT_SAMOON)
     expect(all.find((p) => p.id === 'promo-disabled')?.active).toBe(false)
   })
 })
@@ -710,8 +711,13 @@ describe('Q. Promotion hooks source-text', () => {
     expect(src).toContain("from '@/services/promotion.service'")
   })
 
-  it('invalidates active-promotions on useCreatePromotion success', () => {
-    expect(src).toContain("queryKey: ['active-promotions']")
+  it('invalidates tenant-scoped active-promotions on useCreatePromotion success', () => {
+    expect(src).toContain("queryKey: ['active-promotions', tenantId]")
+  })
+
+  it('exports usePromotion detail hook with tenant-scoped key', () => {
+    expect(src).toContain('export function usePromotion')
+    expect(src).toContain("queryKey: ['promotion', tenantId, id]")
   })
 })
 
@@ -837,8 +843,8 @@ describe('T. Mock mode compatibility', () => {
 
   it('state persists across calls in same module instance', async () => {
     const { promotionService } = await freshService()
-    const before = (await promotionService.getPromotions()).length
-    await promotionService.createPromotion({
+    const before = (await promotionService.getPromotions(TENANT_SAMOON)).length
+    await promotionService.createPromotion(TENANT_SAMOON, {
       name: 'Persistent',
       description: 'X',
       type: 'fixed_discount',
@@ -847,19 +853,19 @@ describe('T. Mock mode compatibility', () => {
       active: true,
       schedule: { startAt: new Date().toISOString() },
     })
-    const after = (await promotionService.getPromotions()).length
+    const after = (await promotionService.getPromotions(TENANT_SAMOON)).length
     expect(after).toBe(before + 1)
   })
 
   it('happy_hour type included in mock promotions', async () => {
     const { promotionService } = await freshService()
-    const all = await promotionService.getPromotions()
+    const all = await promotionService.getPromotions(TENANT_SAMOON)
     expect(all.some((p) => p.type === 'happy_hour')).toBe(true)
   })
 
   it('buy_one_get_one type included in mock promotions', async () => {
     const { promotionService } = await freshService()
-    const all = await promotionService.getPromotions()
+    const all = await promotionService.getPromotions(TENANT_SAMOON)
     expect(all.some((p) => p.type === 'buy_one_get_one')).toBe(true)
   })
 })

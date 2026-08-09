@@ -95,6 +95,7 @@ describe('Phase Z.11 — resolveConsoleTenantPhase(): pure state coverage', () =
     hasTenantMembership: true as boolean | null,
     sessionMembershipCount: 1 as number | null,
     activeTenantId: 'tenant-1' as string | null,
+    resolvedTenantId: 'tenant-1' as string | null | undefined,
     tenantState: 'resolved' as const,
     hasDashboardAccess: true,
     retryCount: 0,
@@ -140,6 +141,24 @@ describe('Phase Z.11 — resolveConsoleTenantPhase(): pure state coverage', () =
   })
   it('resolved when resolved and dashboard:access granted', () => {
     expect(resolveConsoleTenantPhase({ ...base, tenantState: 'resolved', hasDashboardAccess: true })).toBe('resolved')
+  })
+  it('tenant_loading when resolved tenant id mismatches activeMembership', () => {
+    expect(resolveConsoleTenantPhase({
+      ...base,
+      tenantState: 'resolved',
+      activeTenantId: 'tenant-a',
+      resolvedTenantId: 'tenant-b',
+      retryCount: 0,
+    })).toBe('tenant_loading')
+  })
+  it('tenant_retrying when tenant id mismatch persists after retry', () => {
+    expect(resolveConsoleTenantPhase({
+      ...base,
+      tenantState: 'resolved',
+      activeTenantId: 'tenant-a',
+      resolvedTenantId: 'tenant-b',
+      retryCount: 1,
+    })).toBe('tenant_retrying')
   })
 })
 
@@ -189,9 +208,9 @@ describe('Phase Z.11 — authenticated + tenant API failure: Console shell still
 })
 
 describe('Phase Z.11 — retry behavior', () => {
-  it('auto-retries after TENANT_RETRY_DELAY_MS, calling loadTenant() with the last-attempted slug', async () => {
+  it('auto-retries after TENANT_RETRY_DELAY_MS, calling loadTenantById with activeMembership.tenantId', async () => {
     vi.useFakeTimers()
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockResolvedValue(SAMOON as never)
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantById').mockResolvedValue(SAMOON as never)
     useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
 
     render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
@@ -199,11 +218,11 @@ describe('Phase Z.11 — retry behavior', () => {
 
     await vi.advanceTimersByTimeAsync(TENANT_RETRY_DELAY_MS)
 
-    expect(getTenantSpy).toHaveBeenCalledWith('samoon')
+    expect(getTenantSpy).toHaveBeenCalledWith(SAMOON.id)
   })
 
-  it('manual retry button re-invokes loadTenant() immediately, without waiting for the auto-retry delay', async () => {
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockResolvedValue(SAMOON as never)
+  it('manual retry button re-invokes loadTenantById immediately with activeMembership.tenantId', async () => {
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantById').mockResolvedValue(SAMOON as never)
     useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
 
     const { default: userEvent } = await import('@testing-library/user-event')
@@ -212,12 +231,12 @@ describe('Phase Z.11 — retry behavior', () => {
 
     await user.click(screen.getByText(en.console.tenantRetryCta))
 
-    expect(getTenantSpy).toHaveBeenCalledWith('samoon')
+    expect(getTenantSpy).toHaveBeenCalledWith(SAMOON.id)
   })
 
   it('auto-retry stops after TENANT_MAX_AUTO_RETRIES — no infinite duplicate requests', async () => {
     vi.useFakeTimers()
-    const getTenantSpy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValue(new Error('network error'))
+    const getTenantSpy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValue(new Error('network error'))
     useTenantStore.setState({ tenant: null, tenantState: 'error', lastAttemptedSlug: 'samoon' } as never)
 
     render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
@@ -227,7 +246,7 @@ describe('Phase Z.11 — retry behavior', () => {
       await vi.advanceTimersByTimeAsync(TENANT_RETRY_DELAY_MS)
     }
 
-    // Called once for the initial failure state plus at most TENANT_MAX_AUTO_RETRIES retries.
+    // Called at most TENANT_MAX_AUTO_RETRIES times from auto-retry orchestration.
     expect(getTenantSpy.mock.calls.length).toBeLessThanOrEqual(TENANT_MAX_AUTO_RETRIES)
     // Manual retry remains available even after auto-retry is exhausted.
     expect(screen.getByText(en.console.tenantRetryCta)).toBeTruthy()

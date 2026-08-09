@@ -1,8 +1,11 @@
 import type { Branch } from '@/types/branch'
 import { useRbacStore, useTenantStore, useBranchStore } from '@/stores'
+import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 
 /** Reserved console branch route segments that are not branch ids. */
 const RESERVED_BRANCH_SEGMENTS = new Set(['new', 'analytics'])
+
+let tenantDriftHealInflight = false
 
 /**
  * Extracts a branch id from console routes such as
@@ -84,7 +87,25 @@ export function reconcileConsoleWorkspaceConsistency(): void {
   }
 
   if (tenant && tenant.id !== activeTenantId) {
-    // Tenant record is stale relative to session — workspace boot must reload it.
-    return
+    if (tenantDriftHealInflight) return
+    tenantDriftHealInflight = true
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('[console-workspace] tenant drift detected — re-syncing from activeMembership', {
+        activeMembershipTenantId: activeTenantId,
+        tenantStoreId: tenant.id,
+        workspacePhase: useConsoleWorkspaceStore.getState().workspacePhase,
+        _bootstrapped: useConsoleWorkspaceStore.getState()._bootstrapped,
+      })
+    }
+
+    void (async () => {
+      try {
+        useConsoleWorkspaceStore.getState().resetWorkspace()
+        await useConsoleWorkspaceStore.getState().initializeFromSession()
+      } finally {
+        tenantDriftHealInflight = false
+      }
+    })()
   }
 }

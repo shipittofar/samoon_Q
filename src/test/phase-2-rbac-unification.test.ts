@@ -59,6 +59,10 @@ describe('Phase 2 Scope H.2 — no frontend ownership decision exists', () => {
     // seeded directly, proving those services are not consulted.
     useTenantStore.getState().setTenant({ id: 'tenant-x', name: 'X', slug: 'x' } as never)
     const { permissions, roles } = normalizeTenantPermissions(['owner'])
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 'tenant-x', roles, branchAccess: { scope: 'all' } }],
+      { tenantId: 'tenant-x' },
+    )
     useRbacStore.getState().setCurrentTenantSession('tenant-x', roles, permissions)
 
     const { result: hasAccess } = renderHook(() => useHasDashboardAccess())
@@ -101,10 +105,18 @@ describe('Phase 2 Scope H.4 — refresh reconstructs permissions, nothing truste
 describe('Phase 2 Scope H.5 — direct URL to another tenant grants no access from stale roles', () => {
   it('a currentTenantSession scoped to tenant A grants nothing when the active tenant becomes tenant B without a matching session', () => {
     const { roles, permissions } = normalizeTenantPermissions(['owner'])
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 'tenant-a', roles, branchAccess: { scope: 'all' } }],
+      { tenantId: 'tenant-a' },
+    )
     useRbacStore.getState().setCurrentTenantSession('tenant-a', roles, permissions)
 
     // usePermissions() must compare currentTenantSession.tenantId against
-    // the ACTIVE tenant, not just trust any populated session.
+    // the ACTIVE membership tenant, not just trust any populated session.
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 'tenant-b', roles: ['cashier'], branchAccess: { scope: 'all' } }],
+      { tenantId: 'tenant-b' },
+    )
     useTenantStore.getState().setTenant({ id: 'tenant-b', name: 'B', slug: 'b' } as never)
 
     const { result } = renderHook(() => usePermissions())

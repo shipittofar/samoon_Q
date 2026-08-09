@@ -12,8 +12,8 @@
  * Consumers attach listeners for P7.6 Audit Log integration.
  */
 
-import api from './axios.instance'
-import { ENDPOINTS } from './endpoints'
+import * as staffApi from '@/api/staff'
+import * as invitationsApi from '@/api/invitations'
 import { MOCK_TENANT_OWNER_MAP, ownerService } from './owner.service'
 import { tenantService } from './tenant.service'
 import type {
@@ -29,6 +29,7 @@ import type {
   TenantMembership,
 } from '@/types/staff'
 import type { Role } from '@/types/rbac'
+import { groupAssignmentsByUserId, activeRoleLabels } from '@/lib/assignments'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
@@ -536,24 +537,66 @@ function setStaffStatus(id: string, status: StaffStatus): StaffMember {
 export const staffService = {
   // ── Reads ──────────────────────────────────────────────────────────────────
 
-  async getStaff(tenantId: string): Promise<StaffMember[]> {
-    if (USE_MOCK) {
-      await delay()
-      return MOCK_STAFF_LIST.filter((s) => s.tenantId === tenantId).map((s) => ({ ...s }))
-    }
-    const res = await api.get<StaffMember[]>(ENDPOINTS.STAFF.LIST(tenantId))
-    return res.data
+  async getStaff(tenantId: string, params?: staffApi.ListStaffParams): Promise<StaffMember[]> {
+    const page = await this.listStaffPage(tenantId, params)
+    return page.results
   },
 
-  async getStaffMember(id: string): Promise<StaffMember> {
+  async listStaffPage(
+    tenantId: string,
+    params?: staffApi.ListStaffParams,
+  ): Promise<import('@/types/rbac-api').PaginatedResponse<StaffMember>> {
+    if (USE_MOCK) {
+      await delay()
+      let results = MOCK_STAFF_LIST.filter((s) => s.tenantId === tenantId).map((s) => ({ ...s }))
+      if (params?.search) {
+        const q = params.search.toLowerCase()
+        results = results.filter(
+          (s) =>
+            s.email.toLowerCase().includes(q) ||
+            s.firstName.toLowerCase().includes(q) ||
+            s.lastName.toLowerCase().includes(q),
+        )
+      }
+      if (params?.status) {
+        results = results.filter((s) => s.status === params.status)
+      }
+      if (params?.role) {
+        results = results.filter((s) => s.roles.includes(params.role as Role))
+      }
+      if (params?.location_id) {
+        results = results.filter(
+          (s) =>
+            s.locationIds?.includes(params.location_id!) ||
+            s.branchIds?.includes(params.location_id!),
+        )
+      }
+      const page = params?.page ?? 1
+      const pageSize = params?.page_size ?? 20
+      const start = (page - 1) * pageSize
+      const slice = results.slice(start, start + pageSize)
+      return {
+        count: results.length,
+        next: start + pageSize < results.length ? String(page + 1) : null,
+        previous: page > 1 ? String(page - 1) : null,
+        results: slice,
+      }
+    }
+    return staffApi.listStaff(tenantId, params)
+  },
+
+  async getStaffMember(id: string, tenantId?: string): Promise<StaffMember> {
     if (USE_MOCK) {
       await delay()
       const member = findStaff(id)
       if (!member) throw new Error(`Staff member not found: ${id}`)
+      if (tenantId && member.tenantId !== tenantId) {
+        throw new Error(`Staff member not found: ${id}`)
+      }
       return { ...member }
     }
-    const res = await api.get<StaffMember>(ENDPOINTS.STAFF.DETAIL(id))
-    return res.data
+    if (!tenantId) throw new Error('tenantId is required to load staff member from API')
+    return staffApi.getStaffMember(tenantId, id)
   },
 
   async getInvites(tenantId: string): Promise<StaffInvite[]> {
@@ -561,8 +604,7 @@ export const staffService = {
       await delay()
       return MOCK_INVITE_LIST.filter((i) => i.tenantId === tenantId).map((i) => ({ ...i }))
     }
-    const res = await api.get<StaffInvite[]>(ENDPOINTS.STAFF.INVITES(tenantId))
-    return res.data
+    return invitationsApi.listInvites(tenantId)
   },
 
   // ── Mutations ──────────────────────────────────────────────────────────────
@@ -571,28 +613,53 @@ export const staffService = {
     if (USE_MOCK) {
       await delay()
       _inviteCounter += 1
+      const roleSlug = payload.role_id as Role
       const invite: StaffInvite = {
         id: `invite-${_inviteCounter}`,
         tenantId,
         email: payload.email,
-        roles: [...payload.roles],
+        role: roleSlug,
+        roleId: payload.role_id,
+        mode: payload.mode,
+        allLocations: payload.all_locations,
+        validFrom: payload.valid_from ?? undefined,
+        validUntil: payload.valid_until ?? undefined,
+        roles: [roleSlug],
         invitedBy: MOCK_OWNER_ID,
         expiresAt: daysFromNow(7),
         status: 'pending',
-        ...(payload.branchIds ? { branchIds: [...payload.branchIds] } : {}),
+        ...(payload.all_locations
+          ? {}
+          : (payload.location_ids ?? []).length > 0
+            ? { locationIds: [...payload.location_ids!] }
+            : {}),
       }
       MOCK_INVITE_LIST.push(invite)
       emitAudit('staff.invited', tenantId, {
         inviteId: invite.id,
-        metadata: { email: payload.email, roles: payload.roles, branchIds: payload.branchIds },
+        metadata: {
+          email: payload.email,
+          role_id: payload.role_id,
+          location_ids: payload.location_ids,
+        },
       })
       return { ...invite }
     }
-    const res = await api.post<StaffInvite>(ENDPOINTS.STAFF.INVITE(tenantId), payload)
-    return res.data
+    const res = await invitationsApi.inviteStaff(tenantId, {
+      email: payload.email,
+      first_name: payload.firstName,
+      last_name: payload.lastName,
+      role_id: payload.role_id,
+      location_ids: payload.location_ids,
+      all_locations: payload.all_locations,
+      mode: payload.mode,
+      valid_from: payload.valid_from,
+      valid_until: payload.valid_until,
+    })
+    return res
   },
 
-  async cancelInvite(id: string): Promise<StaffInvite> {
+  async cancelInvite(tenantId: string, id: string): Promise<StaffInvite> {
     if (USE_MOCK) {
       await delay()
       const invite = findInvite(id)
@@ -605,11 +672,10 @@ export const staffService = {
       })
       return { ...invite }
     }
-    const res = await api.post<StaffInvite>(ENDPOINTS.STAFF.CANCEL_INVITE(id))
-    return res.data
+    return invitationsApi.cancelInvite(tenantId, id)
   },
 
-  async resendInvite(id: string): Promise<StaffInvite> {
+  async resendInvite(tenantId: string, id: string): Promise<StaffInvite> {
     if (USE_MOCK) {
       await delay()
       const invite = findInvite(id)
@@ -625,11 +691,10 @@ export const staffService = {
       })
       return { ...invite }
     }
-    const res = await api.post<StaffInvite>(ENDPOINTS.STAFF.RESEND_INVITE(id))
-    return res.data
+    return invitationsApi.resendInvite(tenantId, id)
   },
 
-  async acceptInvite(id: string): Promise<StaffMember> {
+  async acceptInvite(id: string, tenantId?: string): Promise<StaffMember> {
     if (USE_MOCK) {
       await delay()
       const invite = findInvite(id)
@@ -643,7 +708,7 @@ export const staffService = {
       if (member) {
         member.status = 'active'
         member.activatedAt = new Date().toISOString()
-        if (invite.branchIds) member.branchIds = [...invite.branchIds]
+        if (invite.locationIds) member.locationIds = [...invite.locationIds]
         return { ...member }
       }
       // Create new staff member if not found
@@ -655,17 +720,18 @@ export const staffService = {
         firstName: invite.email.split('@')[0]!,
         lastName: '',
         status: 'active',
-        roles: [...invite.roles],
+        roles: invite.roles ? [...invite.roles] : invite.role ? [invite.role as Role] : [],
         invitedAt: invite.id,
         activatedAt: new Date().toISOString(),
         createdBy: invite.invitedBy,
-        ...(invite.branchIds ? { branchIds: [...invite.branchIds] } : {}),
+        ...(invite.locationIds ? { locationIds: [...invite.locationIds] } : {}),
       }
       MOCK_STAFF_LIST.push(newMember)
       return { ...newMember }
     }
-    const res = await api.post<StaffMember>(ENDPOINTS.STAFF.ACCEPT_INVITE(id))
-    return res.data
+    const member = await invitationsApi.acceptInvite(tenantId ?? '', id)
+    if (member) return member
+    throw new Error('Invite accepted — refresh staff list to see the new member')
   },
 
   async updateStaffRoles(id: string, payload: UpdateStaffRolesPayload): Promise<StaffMember> {
@@ -675,58 +741,65 @@ export const staffService = {
       if (!member) throw new Error(`Staff member not found: ${id}`)
       if (member.status === 'removed') throw new Error('Cannot update roles of a removed member')
       const prevRoles = [...member.roles]
-      const prevBranchIds = member.branchIds ? [...member.branchIds] : undefined
+      const prevLocationIds = member.locationIds
+        ? [...member.locationIds]
+        : member.branchIds
+          ? [...member.branchIds]
+          : undefined
       member.roles = [...payload.roles]
-      // Replaces (not merges) the branch assignment when provided — omitting
-      // payload.branchIds entirely leaves the member's current assignment
-      // untouched, for callers that only ever update roles.
-      if (payload.branchIds) member.branchIds = [...payload.branchIds]
+      const locUpdate = payload.locationIds ?? payload.branchIds
+      if (locUpdate) {
+        member.locationIds = [...locUpdate]
+        member.branchIds = [...locUpdate]
+      }
       emitAudit('staff.role_changed', member.tenantId, {
         staffMemberId: id,
-        metadata: { prevRoles, newRoles: payload.roles, prevBranchIds, newBranchIds: member.branchIds },
+        metadata: { prevRoles, newRoles: payload.roles, prevLocationIds, newLocationIds: member.locationIds },
       })
       return { ...member }
     }
-    const res = await api.patch<StaffMember>(ENDPOINTS.STAFF.UPDATE_ROLES(id), payload)
-    return res.data
+    throw new Error(
+      'Staff role updates must use assignment APIs (/authorization/tenants/{tenantId}/staff-assignments/)',
+    )
   },
 
-  async activateStaff(id: string): Promise<StaffMember> {
+  async activateStaff(id: string, tenantId?: string): Promise<StaffMember> {
     if (USE_MOCK) {
       await delay()
       const result = setStaffStatus(id, 'active')
       emitAudit('staff.activated', result.tenantId, { staffMemberId: id })
       return result
     }
-    const res = await api.post<StaffMember>(ENDPOINTS.STAFF.ACTIVATE(id))
-    return res.data
+    if (!tenantId) throw new Error('tenantId is required to activate staff via API')
+    return staffApi.activateStaffMember(tenantId, id)
   },
 
-  async suspendStaff(id: string): Promise<StaffMember> {
+  async suspendStaff(id: string, tenantId?: string): Promise<StaffMember> {
     if (USE_MOCK) {
       await delay()
       const member = findStaff(id)
       if (!member) throw new Error(`Staff member not found: ${id}`)
-      if (member.roles.includes('owner')) throw new Error('Cannot suspend the owner')
+      if (member.roles.includes('owner')) throw new Error('Cannot suspend owner')
       const result = setStaffStatus(id, 'suspended')
       emitAudit('staff.suspended', result.tenantId, { staffMemberId: id })
       return result
     }
-    const res = await api.post<StaffMember>(ENDPOINTS.STAFF.SUSPEND(id))
-    return res.data
+    if (!tenantId) throw new Error('tenantId is required to suspend staff via API')
+    return staffApi.suspendStaffMember(tenantId, id)
   },
 
-  async removeStaff(id: string): Promise<void> {
+  async removeStaff(id: string, tenantId?: string): Promise<void> {
     if (USE_MOCK) {
       await delay()
       const member = findStaff(id)
       if (!member) throw new Error(`Staff member not found: ${id}`)
-      if (member.roles.includes('owner')) throw new Error('Cannot remove the owner')
+      if (member.roles.includes('owner')) throw new Error('Cannot remove owner')
       member.status = 'removed'
       emitAudit('staff.removed', member.tenantId, { staffMemberId: id })
       return
     }
-    await api.post(ENDPOINTS.STAFF.REMOVE(id))
+    if (!tenantId) throw new Error('tenantId is required to remove staff via API')
+    await staffApi.removeStaffMember(tenantId, id)
   },
 
   /**
@@ -794,26 +867,38 @@ export const staffService = {
 
       return { owner: { ...target }, prevOwner: { ...current } }
     }
-    const res = await api.post<{ owner: StaffMember; prevOwner: StaffMember }>(
-      ENDPOINTS.STAFF.TRANSFER_OWNERSHIP(
-        MOCK_STAFF_LIST.find((s) => s.id === currentOwnerId)?.tenantId ?? '',
-      ),
-      { currentOwnerId, targetMemberId },
-    )
-    return res.data
+    const current = findStaff(currentOwnerId)
+    const tenantId = current?.tenantId ?? ''
+    return staffApi.transferOwnership(tenantId, currentOwnerId, targetMemberId)
   },
 
   // ── Analytics (derived) ────────────────────────────────────────────────────
 
-  computeAnalytics(staff: StaffMember[], invites: StaffInvite[]): StaffAnalytics {
+  computeAnalytics(
+    staff: StaffMember[],
+    invites: StaffInvite[],
+    assignments?: import('@/types/rbac-api').RbacAssignment[],
+  ): StaffAnalytics {
     const byRole: Record<string, number> = {}
-    staff
-      .filter((s) => s.status !== 'removed')
-      .forEach((s) => {
-        s.roles.forEach((r) => {
-          byRole[r] = (byRole[r] ?? 0) + 1
+    if (assignments && assignments.length > 0) {
+      const byUser = groupAssignmentsByUserId(assignments)
+      staff
+        .filter((s) => s.status !== 'removed')
+        .forEach((s) => {
+          const roles = activeRoleLabels(byUser.get(s.userId) ?? [])
+          roles.forEach((r) => {
+            byRole[r] = (byRole[r] ?? 0) + 1
+          })
         })
-      })
+    } else {
+      staff
+        .filter((s) => s.status !== 'removed')
+        .forEach((s) => {
+          s.roles.forEach((r) => {
+            byRole[r] = (byRole[r] ?? 0) + 1
+          })
+        })
+    }
 
     return {
       totalStaff: staff.filter((s) => s.status !== 'removed').length,

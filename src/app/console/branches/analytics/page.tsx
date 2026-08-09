@@ -1,8 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { useTenantStore } from '@/stores'
-import { useAdminBranches } from '@/hooks'
+import { useAdminBranches, useConsoleTenantId } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -42,7 +41,7 @@ function BranchAnalyticsRow({ id, name, city, status, t }: { id: string; name: s
 
 function BranchAnalyticsOverviewContent() {
   const t = useTranslations('console')
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const tenantId = useConsoleTenantId() ?? ''
   const { data: branches = [], isLoading } = useAdminBranches(tenantId)
 
   const active = branches.filter((b) => b.status === 'active')

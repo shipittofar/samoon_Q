@@ -30,6 +30,8 @@ export interface CapabilityBadgeListProps {
 }
 
 export function CapabilityBadgeList({ capabilities, className, max }: CapabilityBadgeListProps) {
+  const t = useTranslations('address.capabilities')
+
   if (!capabilities) return null
 
   const active = (Object.entries(capabilities) as [CapabilityKey, boolean][])
@@ -38,7 +40,6 @@ export function CapabilityBadgeList({ capabilities, className, max }: Capability
   const shown = max ? active.slice(0, max) : active
 
   if (shown.length === 0) {
-    const t = useTranslations('address.capabilities')
     return (
       <span className={cn('text-xs text-[var(--fg-subtle)]', className)}>{t('unavailable')}</span>
     )

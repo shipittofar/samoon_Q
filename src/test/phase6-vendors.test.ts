@@ -32,6 +32,9 @@ vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:8000/api')
 const ROOT = path.join(__dirname, '..', '..')
 const readSrc = (rel: string) => fs.readFileSync(path.join(ROOT, 'src', rel), 'utf-8')
 
+const TENANT_SAMOON = 'tenant-samoon-01'
+const TENANT_BREW_CAFE = 'tenant-brew-cafe-01'
+
 async function freshService() {
   vi.resetModules()
   return import('@/services/vendor.service')
@@ -100,19 +103,19 @@ describe('A. Vendor domain types', () => {
 describe('B. vendorService.getVendors()', () => {
   it('returns an array', async () => {
     const { vendorService } = await freshService()
-    const vendors = await vendorService.getVendors()
+    const vendors = await vendorService.getVendors(TENANT_SAMOON)
     expect(Array.isArray(vendors)).toBe(true)
   })
 
   it('initial mock has 6 vendors', async () => {
     const { vendorService } = await freshService()
-    const vendors = await vendorService.getVendors()
+    const vendors = await vendorService.getVendors(TENANT_SAMOON)
     expect(vendors).toHaveLength(6)
   })
 
   it('vendor shape is correct', async () => {
     const { vendorService } = await freshService()
-    const vendors = await vendorService.getVendors()
+    const vendors = await vendorService.getVendors(TENANT_SAMOON)
     const v = vendors[0]
     expect(v).toMatchObject({
       id: expect.any(String),
@@ -128,15 +131,21 @@ describe('B. vendorService.getVendors()', () => {
 
   it('includes vendors with different statuses', async () => {
     const { vendorService } = await freshService()
-    const vendors = await vendorService.getVendors()
+    const vendors = await vendorService.getVendors(TENANT_SAMOON)
     const statuses = new Set(vendors.map((v) => v.status))
     expect(statuses.size).toBeGreaterThan(1)
   })
 
   it('includes featured vendors', async () => {
     const { vendorService } = await freshService()
-    const vendors = await vendorService.getVendors()
+    const vendors = await vendorService.getVendors(TENANT_SAMOON)
     expect(vendors.some((v) => v.featured)).toBe(true)
+  })
+
+  it('returns no vendors for a tenant without food-court branches', async () => {
+    const { vendorService } = await freshService()
+    const vendors = await vendorService.getVendors(TENANT_BREW_CAFE)
+    expect(vendors).toHaveLength(0)
   })
 })
 
@@ -145,22 +154,22 @@ describe('B. vendorService.getVendors()', () => {
 describe('C. vendorService.getVendor(id)', () => {
   it('returns the correct vendor', async () => {
     const { vendorService } = await freshService()
-    const vendor = await vendorService.getVendor('vendor-1')
+    const vendor = await vendorService.getVendor('vendor-1', TENANT_SAMOON)
     expect(vendor.id).toBe('vendor-1')
     expect(vendor.name).toBe("Chang's Asian Kitchen")
   })
 
   it('returns a copy — mutations do not affect internal state', async () => {
     const { vendorService } = await freshService()
-    const vendor = await vendorService.getVendor('vendor-1')
+    const vendor = await vendorService.getVendor('vendor-1', TENANT_SAMOON)
     vendor.name = 'Hacked'
-    const again = await vendorService.getVendor('vendor-1')
+    const again = await vendorService.getVendor('vendor-1', TENANT_SAMOON)
     expect(again.name).toBe("Chang's Asian Kitchen")
   })
 
   it('throws when vendor not found', async () => {
     const { vendorService } = await freshService()
-    await expect(vendorService.getVendor('no-such')).rejects.toThrow('not found')
+    await expect(vendorService.getVendor('no-such', TENANT_SAMOON)).rejects.toThrow('not found')
   })
 })
 
@@ -169,7 +178,7 @@ describe('C. vendorService.getVendor(id)', () => {
 describe('D. vendorService.createVendor()', () => {
   it('adds the vendor to the store', async () => {
     const { vendorService } = await freshService()
-    const before = (await vendorService.getVendors()).length
+    const before = (await vendorService.getVendors(TENANT_SAMOON)).length
     await vendorService.createVendor({
       name: 'New Stall',
       description: 'Test',
@@ -181,7 +190,7 @@ describe('D. vendorService.createVendor()', () => {
       commissionRate: 10,
       contactEmail: 'new@example.com',
     })
-    const after = (await vendorService.getVendors()).length
+    const after = (await vendorService.getVendors(TENANT_SAMOON)).length
     expect(after).toBe(before + 1)
   })
 
@@ -217,7 +226,7 @@ describe('D. vendorService.createVendor()', () => {
       commissionRate: 8,
       contactEmail: 'v@example.com',
     })
-    const vendors = await vendorService.getVendors()
+    const vendors = await vendorService.getVendors(TENANT_SAMOON)
     expect(vendors.some((v) => v.id === created.id)).toBe(true)
   })
 })
@@ -227,13 +236,13 @@ describe('D. vendorService.createVendor()', () => {
 describe('E. vendorService.updateVendor()', () => {
   it('updates vendor fields', async () => {
     const { vendorService } = await freshService()
-    const updated = await vendorService.updateVendor('vendor-2', { commissionRate: 20 })
+    const updated = await vendorService.updateVendor('vendor-2', TENANT_SAMOON, { commissionRate: 20 })
     expect(updated.commissionRate).toBe(20)
   })
 
   it('preserves unchanged fields', async () => {
     const { vendorService } = await freshService()
-    const updated = await vendorService.updateVendor('vendor-2', { commissionRate: 20 })
+    const updated = await vendorService.updateVendor('vendor-2', TENANT_SAMOON, { commissionRate: 20 })
     expect(updated.name).toBe('Burgers & Co.')
     expect(updated.id).toBe('vendor-2')
   })
@@ -241,16 +250,16 @@ describe('E. vendorService.updateVendor()', () => {
   it('throws when vendor not found', async () => {
     const { vendorService } = await freshService()
     await expect(
-      vendorService.updateVendor('no-such', { commissionRate: 5 }),
+      vendorService.updateVendor('no-such', TENANT_SAMOON, { commissionRate: 5 }),
     ).rejects.toThrow('not found')
   })
 
   it('updates updatedAt timestamp', async () => {
     const { vendorService } = await freshService()
-    const before = await vendorService.getVendor('vendor-2')
+    const before = await vendorService.getVendor('vendor-2', TENANT_SAMOON)
     await new Promise((r) => setTimeout(r, 2))
-    await vendorService.updateVendor('vendor-2', { featured: true })
-    const after = await vendorService.getVendor('vendor-2')
+    await vendorService.updateVendor('vendor-2', TENANT_SAMOON, { featured: true })
+    const after = await vendorService.getVendor('vendor-2', TENANT_SAMOON)
     expect(new Date(after.updatedAt).getTime()).toBeGreaterThanOrEqual(
       new Date(before.updatedAt).getTime(),
     )
@@ -258,7 +267,7 @@ describe('E. vendorService.updateVendor()', () => {
 
   it('can toggle featured status', async () => {
     const { vendorService } = await freshService()
-    const updated = await vendorService.updateVendor('vendor-2', { featured: true })
+    const updated = await vendorService.updateVendor('vendor-2', TENANT_SAMOON, { featured: true })
     expect(updated.featured).toBe(true)
   })
 })
@@ -268,21 +277,21 @@ describe('E. vendorService.updateVendor()', () => {
 describe('F. vendorService.disableVendor()', () => {
   it('sets status to inactive', async () => {
     const { vendorService } = await freshService()
-    const result = await vendorService.disableVendor('vendor-1')
+    const result = await vendorService.disableVendor('vendor-1', TENANT_SAMOON)
     expect(result.status).toBe('inactive')
   })
 
   it('disabled vendor still appears in getVendors()', async () => {
     const { vendorService } = await freshService()
-    await vendorService.disableVendor('vendor-1')
-    const vendors = await vendorService.getVendors()
+    await vendorService.disableVendor('vendor-1', TENANT_SAMOON)
+    const vendors = await vendorService.getVendors(TENANT_SAMOON)
     const v = vendors.find((v) => v.id === 'vendor-1')
     expect(v?.status).toBe('inactive')
   })
 
   it('throws when vendor not found', async () => {
     const { vendorService } = await freshService()
-    await expect(vendorService.disableVendor('no-such')).rejects.toThrow('not found')
+    await expect(vendorService.disableVendor('no-such', TENANT_SAMOON)).rejects.toThrow('not found')
   })
 })
 
@@ -291,7 +300,7 @@ describe('F. vendorService.disableVendor()', () => {
 describe('G. vendorService.getVendorStats()', () => {
   it('returns stats for an existing vendor', async () => {
     const { vendorService } = await freshService()
-    const stats = await vendorService.getVendorStats('vendor-1')
+    const stats = await vendorService.getVendorStats('vendor-1', TENANT_SAMOON)
     expect(stats.vendorId).toBe('vendor-1')
     expect(stats.ordersCount).toBeGreaterThan(0)
     expect(stats.revenue).toBeGreaterThan(0)
@@ -299,7 +308,7 @@ describe('G. vendorService.getVendorStats()', () => {
 
   it('stats shape is correct', async () => {
     const { vendorService } = await freshService()
-    const stats = await vendorService.getVendorStats('vendor-1')
+    const stats = await vendorService.getVendorStats('vendor-1', TENANT_SAMOON)
     expect(stats).toMatchObject({
       vendorId: expect.any(String),
       ordersCount: expect.any(Number),
@@ -313,13 +322,13 @@ describe('G. vendorService.getVendorStats()', () => {
 
   it('throws when stats not found', async () => {
     const { vendorService } = await freshService()
-    await expect(vendorService.getVendorStats('no-such')).rejects.toThrow()
+    await expect(vendorService.getVendorStats('no-such', TENANT_SAMOON)).rejects.toThrow()
   })
 
   it('commissionPaid is consistent with revenue and commissionRate', async () => {
     const { vendorService } = await freshService()
-    const stats = await vendorService.getVendorStats('vendor-1')
-    const vendor = await vendorService.getVendor('vendor-1')
+    const stats = await vendorService.getVendorStats('vendor-1', TENANT_SAMOON)
+    const vendor = await vendorService.getVendor('vendor-1', TENANT_SAMOON)
     const expectedCommission = Math.round(stats.revenue * (vendor.commissionRate / 100) * 100) / 100
     expect(stats.commissionPaid).toBeCloseTo(expectedCommission, 0)
   })
@@ -330,7 +339,7 @@ describe('G. vendorService.getVendorStats()', () => {
 describe('H. vendorService.getVendorSettlements()', () => {
   it('returns settlements for vendor-1', async () => {
     const { vendorService } = await freshService()
-    const settlements = await vendorService.getVendorSettlements('vendor-1')
+    const settlements = await vendorService.getVendorSettlements('vendor-1', TENANT_SAMOON)
     expect(Array.isArray(settlements)).toBe(true)
     expect(settlements.length).toBeGreaterThan(0)
     expect(settlements.every((s) => s.vendorId === 'vendor-1')).toBe(true)
@@ -338,13 +347,13 @@ describe('H. vendorService.getVendorSettlements()', () => {
 
   it('returns empty array for vendor with no settlements', async () => {
     const { vendorService } = await freshService()
-    const settlements = await vendorService.getVendorSettlements('vendor-6')
+    const settlements = await vendorService.getVendorSettlements('vendor-6', TENANT_SAMOON)
     expect(settlements).toHaveLength(0)
   })
 
   it('settlement shape is correct', async () => {
     const { vendorService } = await freshService()
-    const settlements = await vendorService.getVendorSettlements('vendor-1')
+    const settlements = await vendorService.getVendorSettlements('vendor-1', TENANT_SAMOON)
     const s = settlements[0]
     expect(s).toMatchObject({
       id: expect.any(String),
@@ -364,9 +373,9 @@ describe('H. vendorService.getVendorSettlements()', () => {
   it('includes settlements with different statuses', async () => {
     const { vendorService } = await freshService()
     // Gather settlements across multiple vendors to check status variety
-    const s1 = await vendorService.getVendorSettlements('vendor-1')
-    const s3 = await vendorService.getVendorSettlements('vendor-3')
-    const s4 = await vendorService.getVendorSettlements('vendor-4')
+    const s1 = await vendorService.getVendorSettlements('vendor-1', TENANT_SAMOON)
+    const s3 = await vendorService.getVendorSettlements('vendor-3', TENANT_SAMOON)
+    const s4 = await vendorService.getVendorSettlements('vendor-4', TENANT_SAMOON)
     const statuses = new Set([...s1, ...s3, ...s4].map((s) => s.status))
     expect(statuses.size).toBeGreaterThan(1)
   })
@@ -377,21 +386,21 @@ describe('H. vendorService.getVendorSettlements()', () => {
 describe('I. vendorService.createSettlement()', () => {
   it('creates a settlement for a vendor', async () => {
     const { vendorService } = await freshService()
-    const before = (await vendorService.getVendorSettlements('vendor-1')).length
-    await vendorService.createSettlement({ vendorId: 'vendor-1', grossRevenue: 1000 })
-    const after = (await vendorService.getVendorSettlements('vendor-1')).length
+    const before = (await vendorService.getVendorSettlements('vendor-1', TENANT_SAMOON)).length
+    await vendorService.createSettlement({ vendorId: 'vendor-1', grossRevenue: 1000 }, TENANT_SAMOON)
+    const after = (await vendorService.getVendorSettlements('vendor-1', TENANT_SAMOON)).length
     expect(after).toBe(before + 1)
   })
 
   it('settlement starts with pending status', async () => {
     const { vendorService } = await freshService()
-    const s = await vendorService.createSettlement({ vendorId: 'vendor-2', grossRevenue: 500 })
+    const s = await vendorService.createSettlement({ vendorId: 'vendor-2', grossRevenue: 500 }, TENANT_SAMOON)
     expect(s.status).toBe('pending')
   })
 
   it('settlement amount equals netPayout from commission', async () => {
     const { vendorService } = await freshService()
-    const s = await vendorService.createSettlement({ vendorId: 'vendor-1', grossRevenue: 10000 })
+    const s = await vendorService.createSettlement({ vendorId: 'vendor-1', grossRevenue: 10000 }, TENANT_SAMOON)
     // vendor-1 has 15% commission → netPayout = 8500
     expect(s.amount).toBeCloseTo(8500, 1)
     expect(s.commission.commissionAmount).toBeCloseTo(1500, 1)
@@ -403,14 +412,14 @@ describe('I. vendorService.createSettlement()', () => {
       vendorId: 'vendor-2',
       grossRevenue: 2000,
       payoutReference: 'REF-001',
-    })
+    }, TENANT_SAMOON)
     expect(s.payoutReference).toBe('REF-001')
   })
 
   it('throws when vendor not found', async () => {
     const { vendorService } = await freshService()
     await expect(
-      vendorService.createSettlement({ vendorId: 'no-such', grossRevenue: 100 }),
+      vendorService.createSettlement({ vendorId: 'no-such', grossRevenue: 100 }, TENANT_SAMOON),
     ).rejects.toThrow('not found')
   })
 })
@@ -462,31 +471,31 @@ describe('J. calculateCommission()', () => {
 describe('K. vendorService._resetMockStore()', () => {
   it('restores vendor-1 to active after disable', async () => {
     const { vendorService } = await freshService()
-    await vendorService.disableVendor('vendor-1')
+    await vendorService.disableVendor('vendor-1', TENANT_SAMOON)
     vendorService._resetMockStore()
-    const vendor = await vendorService.getVendor('vendor-1')
+    const vendor = await vendorService.getVendor('vendor-1', TENANT_SAMOON)
     expect(vendor.status).toBe('active')
   })
 
   it('vendor-5 remains inactive after reset', async () => {
     const { vendorService } = await freshService()
     vendorService._resetMockStore()
-    const vendor = await vendorService.getVendor('vendor-5')
+    const vendor = await vendorService.getVendor('vendor-5', TENANT_SAMOON)
     expect(vendor.status).toBe('inactive')
   })
 
   it('vendor-6 remains pending after reset', async () => {
     const { vendorService } = await freshService()
     vendorService._resetMockStore()
-    const vendor = await vendorService.getVendor('vendor-6')
+    const vendor = await vendorService.getVendor('vendor-6', TENANT_SAMOON)
     expect(vendor.status).toBe('pending')
   })
 
   it('newly created settlements are cleared', async () => {
     const { vendorService } = await freshService()
-    await vendorService.createSettlement({ vendorId: 'vendor-1', grossRevenue: 1000 })
+    await vendorService.createSettlement({ vendorId: 'vendor-1', grossRevenue: 1000 }, TENANT_SAMOON)
     vendorService._resetMockStore()
-    const settlements = await vendorService.getVendorSettlements('vendor-1')
+    const settlements = await vendorService.getVendorSettlements('vendor-1', TENANT_SAMOON)
     // Only the initial seed settlement should remain
     expect(settlements.every((s) => ['settle-1', 'settle-2', 'settle-3', 'settle-4'].includes(s.id))).toBe(true)
   })
@@ -739,7 +748,7 @@ describe('S. Mock mode compatibility', () => {
 
   it('state persists across calls within same module instance', async () => {
     const { vendorService } = await freshService()
-    const before = (await vendorService.getVendors()).length
+    const before = (await vendorService.getVendors(TENANT_SAMOON)).length
     await vendorService.createVendor({
       name: 'Persist Test',
       description: 'X',
@@ -751,13 +760,13 @@ describe('S. Mock mode compatibility', () => {
       commissionRate: 5,
       contactEmail: 'p@e.com',
     })
-    const after = (await vendorService.getVendors()).length
+    const after = (await vendorService.getVendors(TENANT_SAMOON)).length
     expect(after).toBe(before + 1)
   })
 
   it('mock vendors cover multiple VendorCategory values', async () => {
     const { vendorService } = await freshService()
-    const vendors = await vendorService.getVendors()
+    const vendors = await vendorService.getVendors(TENANT_SAMOON)
     const categories = new Set(vendors.map((v) => v.category))
     expect(categories.size).toBeGreaterThan(3)
   })

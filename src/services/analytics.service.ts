@@ -123,119 +123,160 @@ const MOCK_VENDORS_LIST = [
   { vendorId: 'vendor-4', name: 'Sweet Treats',     revenue: 29960, commissionPaid: 2996, ordersCount: 1248, avgRating: 4.1 },
 ]
 
+function mockTenantScale(tenantId: string): number {
+  if (tenantId === 'tenant-samoon-01') return 1
+  if (tenantId === 'tenant-brew-cafe-01') return 0.35
+  return 0.15
+}
+
 export const analyticsService = {
-  async getAnalyticsSummary(params?: { dateFrom?: string; dateTo?: string }): Promise<AnalyticsSummary> {
+  async getAnalyticsSummary(
+    tenantId: string,
+    params?: { dateFrom?: string; dateTo?: string },
+  ): Promise<AnalyticsSummary> {
     if (USE_MOCK) {
       await delay(200)
+      const scale = mockTenantScale(tenantId)
+      const base = {
+        ...MOCK_SUMMARY,
+        totalRevenue: Math.round(MOCK_SUMMARY.totalRevenue * scale),
+        totalOrders: Math.round(MOCK_SUMMARY.totalOrders * scale),
+        totalReservations: Math.round(MOCK_SUMMARY.totalReservations * scale),
+        newCustomers: Math.round(MOCK_SUMMARY.newCustomers * scale),
+      }
       if (params?.dateTo) {
         return {
-          ...MOCK_SUMMARY,
-          totalRevenue: Math.round(MOCK_SUMMARY.totalRevenue * 0.87),
-          totalOrders: Math.round(MOCK_SUMMARY.totalOrders * 0.91),
-          totalReservations: Math.round(MOCK_SUMMARY.totalReservations * 1.04),
-          newCustomers: Math.round(MOCK_SUMMARY.newCustomers * 0.82),
+          ...base,
+          totalRevenue: Math.round(base.totalRevenue * 0.87),
+          totalOrders: Math.round(base.totalOrders * 0.91),
+          totalReservations: Math.round(base.totalReservations * 1.04),
+          newCustomers: Math.round(base.newCustomers * 0.82),
         }
       }
-      return { ...MOCK_SUMMARY }
+      return base
     }
-    const { data } = await api.get<AnalyticsSummary>(ENDPOINTS.ANALYTICS.SUMMARY, { params })
+    const { data } = await api.get<AnalyticsSummary>(ENDPOINTS.ANALYTICS.SUMMARY, {
+      params: { tenantId, ...params },
+    })
     return data
   },
 
-  async getRevenueAnalytics(): Promise<RevenueAnalytics> {
+  async getRevenueAnalytics(tenantId: string): Promise<RevenueAnalytics> {
     if (USE_MOCK) {
       await delay(200)
+      const scale = mockTenantScale(tenantId)
       return {
-        totalRevenue: 48295,
+        totalRevenue: Math.round(48295 * scale),
         revenueChangePct: 12.5,
         averageOrderValue: 37.6,
-        totalOrders: 1284,
-        dailyRevenue: buildDailySeries(30, 1600, REVENUE_PATTERN),
-        topItems: MOCK_TOP_ITEMS.map((i) => ({ ...i })),
+        totalOrders: Math.round(1284 * scale),
+        dailyRevenue: buildDailySeries(30, 1600 * scale, REVENUE_PATTERN),
+        topItems: MOCK_TOP_ITEMS.map((i) => ({ ...i, revenue: Math.round(i.revenue * scale) })),
       }
     }
-    const { data } = await api.get<RevenueAnalytics>(ENDPOINTS.ANALYTICS.REVENUE)
+    const { data } = await api.get<RevenueAnalytics>(ENDPOINTS.ANALYTICS.REVENUE, { params: { tenantId } })
     return data
   },
 
-  async getReservationAnalytics(): Promise<ReservationAnalytics> {
+  async getReservationAnalytics(tenantId: string): Promise<ReservationAnalytics> {
     if (USE_MOCK) {
       await delay(200)
+      const scale = mockTenantScale(tenantId)
       return {
-        totalReservations: 92,
+        totalReservations: Math.round(92 * scale),
         reservationsChangePct: -3.1,
-        upcomingReservations: 18,
-        cancelledReservations: 7,
+        upcomingReservations: Math.round(18 * scale),
+        cancelledReservations: Math.round(7 * scale),
         tablesTotal: 24,
-        tablesOccupied: 8,
+        tablesOccupied: Math.round(8 * scale),
         occupancyRate: 33,
-        dailyReservations: buildDailySeries(30, 3, RESERVATION_PATTERN),
+        dailyReservations: buildDailySeries(30, 3 * scale, RESERVATION_PATTERN),
       }
     }
-    const { data } = await api.get<ReservationAnalytics>(ENDPOINTS.ANALYTICS.RESERVATIONS)
+    const { data } = await api.get<ReservationAnalytics>(ENDPOINTS.ANALYTICS.RESERVATIONS, {
+      params: { tenantId },
+    })
     return data
   },
 
-  async getLoyaltyAnalytics(): Promise<LoyaltyAnalytics> {
+  async getLoyaltyAnalytics(tenantId: string): Promise<LoyaltyAnalytics> {
     if (USE_MOCK) {
       await delay(200)
+      const scale = mockTenantScale(tenantId)
       return {
-        totalMembers: 512,
-        activeMembersThisMonth: 124,
-        pointsIssued: 48320,
-        pointsRedeemed: 19240,
+        totalMembers: Math.round(512 * scale),
+        activeMembersThisMonth: Math.round(124 * scale),
+        pointsIssued: Math.round(48320 * scale),
+        pointsRedeemed: Math.round(19240 * scale),
         redemptionRate: 39.8,
         tierDistribution: { ...MOCK_TIER_DISTRIBUTION },
         topRewards: MOCK_TOP_REWARDS.map((r) => ({ ...r })),
       }
     }
-    const { data } = await api.get<LoyaltyAnalytics>(ENDPOINTS.ANALYTICS.LOYALTY)
+    const { data } = await api.get<LoyaltyAnalytics>(ENDPOINTS.ANALYTICS.LOYALTY, { params: { tenantId } })
     return data
   },
 
-  async getPromotionAnalytics(): Promise<PromotionAnalytics> {
+  async getPromotionAnalytics(tenantId: string): Promise<PromotionAnalytics> {
     if (USE_MOCK) {
       await delay(200)
+      const scale = mockTenantScale(tenantId)
       return {
-        totalPromotions: 5,
-        activePromotions: 3,
-        totalDiscountGiven: 3842,
+        totalPromotions: Math.max(1, Math.round(5 * scale)),
+        activePromotions: Math.max(0, Math.round(3 * scale)),
+        totalDiscountGiven: Math.round(3842 * scale),
         discountChangePct: 7.4,
         usageByType: { ...MOCK_PROMOTION_USAGE },
         topPromotions: MOCK_TOP_PROMOTIONS.map((p) => ({ ...p })),
       }
     }
-    const { data } = await api.get<PromotionAnalytics>(ENDPOINTS.ANALYTICS.PROMOTIONS)
+    const { data } = await api.get<PromotionAnalytics>(ENDPOINTS.ANALYTICS.PROMOTIONS, { params: { tenantId } })
     return data
   },
 
-  async getVendorAnalytics(): Promise<VendorAnalytics> {
+  async getVendorAnalytics(tenantId: string): Promise<VendorAnalytics> {
     if (USE_MOCK) {
       await delay(200)
+      const scale = mockTenantScale(tenantId)
       return {
-        totalVendors: 6,
-        activeVendors: 4,
-        totalRevenue: 184240,
-        totalCommission: 25640,
+        totalVendors: Math.max(0, Math.round(6 * scale)),
+        activeVendors: Math.max(0, Math.round(4 * scale)),
+        totalRevenue: Math.round(184240 * scale),
+        totalCommission: Math.round(25640 * scale),
         avgRating: 4.4,
         vendors: MOCK_VENDORS_LIST.map((v) => ({ ...v })),
       }
     }
-    const { data } = await api.get<VendorAnalytics>(ENDPOINTS.ANALYTICS.VENDORS)
+    const { data } = await api.get<VendorAnalytics>(ENDPOINTS.ANALYTICS.VENDORS, { params: { tenantId } })
     return data
   },
 
-  async getMenuAnalytics(): Promise<MenuAnalytics> {
+  async getMenuAnalytics(tenantId: string): Promise<MenuAnalytics> {
     if (USE_MOCK) {
       await delay(200)
+      const scale = mockTenantScale(tenantId)
       return {
         ...MOCK_MENU_ANALYTICS_DATA,
-        topSellers: MOCK_MENU_ANALYTICS_DATA.topSellers.map((i) => ({ ...i })),
-        slowMovers: MOCK_MENU_ANALYTICS_DATA.slowMovers.map((i) => ({ ...i })),
-        categoryPerformance: MOCK_MENU_ANALYTICS_DATA.categoryPerformance.map((c) => ({ ...c })),
+        topSellers: MOCK_MENU_ANALYTICS_DATA.topSellers.map((i) => ({
+          ...i,
+          orderCount: Math.round(i.orderCount * scale),
+          revenue: Math.round(i.revenue * scale),
+        })),
+        slowMovers: MOCK_MENU_ANALYTICS_DATA.slowMovers.map((i) => ({
+          ...i,
+          orderCount: Math.round(i.orderCount * scale),
+          revenue: Math.round(i.revenue * scale),
+        })),
+        categoryPerformance: MOCK_MENU_ANALYTICS_DATA.categoryPerformance.map((c) => ({
+          ...c,
+          orderCount: Math.round(c.orderCount * scale),
+          revenue: Math.round(c.revenue * scale),
+        })),
+        totalItemsSold: Math.round(MOCK_MENU_ANALYTICS_DATA.totalItemsSold * scale),
+        totalMenuRevenue: Math.round(MOCK_MENU_ANALYTICS_DATA.totalMenuRevenue * scale),
       }
     }
-    const { data } = await api.get<MenuAnalytics>(ENDPOINTS.ANALYTICS.MENU)
+    const { data } = await api.get<MenuAnalytics>(ENDPOINTS.ANALYTICS.MENU, { params: { tenantId } })
     return data
   },
 }

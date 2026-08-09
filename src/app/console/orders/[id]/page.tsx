@@ -17,7 +17,7 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { Badge } from '@/components/ui'
 import { formatCurrency } from '@/utils'
-import { useOrder } from '@/hooks'
+import { useConsoleOrder } from '@/hooks'
 import { ORDER_STATUS_CONFIG, getOrderStatusMeta } from '@/lib/order-status'
 import type { OrderStatusHistory, OrderType, PaymentMethod, PaymentStatus } from '@/types'
 
@@ -74,7 +74,7 @@ function OrderDetailContent({ id }: { id: string }) {
   const t = useTranslations('console')
   const tOrder = useTranslations('order')
   const tCheckout = useTranslations('checkout')
-  const { data: order, isLoading, isError } = useOrder(id)
+  const { data: order, isLoading, isError } = useConsoleOrder(id)
 
   if (isLoading) {
     return (

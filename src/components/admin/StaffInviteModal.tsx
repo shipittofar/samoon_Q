@@ -1,19 +1,20 @@
 'use client'
 
 /**
- * Console Staff — replaces the previous stub invite button
- * (`inviteStaff.mutate({ email: '', roles: ['waiter'] })`) with a real
- * form: email, first/last name, one-or-more roles, one-or-more branches.
- * Wired to the existing useInviteStaff() mutation — no new service/hook
- * is introduced for submission, only for collecting valid input.
+ * Console Staff — D2 invite form with canonical initial assignment fields.
  */
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Modal } from '@/components/ui/Modal'
-import { StaffRoleBranchFields, requiresBranchSelection } from '@/components/admin/StaffRoleBranchFields'
+import {
+  AssignmentFormFields,
+  emptyAssignmentForm,
+  requiresAssignmentLocations,
+  type AssignmentFormState,
+} from '@/components/admin/AssignmentFormFields'
 import { useInviteStaff } from '@/hooks'
-import type { Role } from '@/types/rbac'
+import { getApiErrorMessage } from '@/api/errors'
 import toast from 'react-hot-toast'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -31,16 +32,14 @@ export function StaffInviteModal({ tenantId, open, onClose }: StaffInviteModalPr
   const [email, setEmail] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
-  const [roles, setRoles] = useState<Role[]>([])
-  const [branchIds, setBranchIds] = useState<string[]>([])
-  const [errors, setErrors] = useState<{ email?: string; roles?: string; branches?: string }>({})
+  const [form, setForm] = useState<AssignmentFormState>(emptyAssignmentForm())
+  const [errors, setErrors] = useState<{ email?: string; role?: string; locations?: string }>({})
 
   function reset() {
     setEmail('')
     setFirstName('')
     setLastName('')
-    setRoles([])
-    setBranchIds([])
+    setForm(emptyAssignmentForm())
     setErrors({})
   }
 
@@ -54,9 +53,9 @@ export function StaffInviteModal({ tenantId, open, onClose }: StaffInviteModalPr
     const trimmedEmail = email.trim()
     if (!trimmedEmail) next.email = t('emailRequiredError')
     else if (!EMAIL_RE.test(trimmedEmail)) next.email = t('invalidEmailError')
-    if (roles.length === 0) next.roles = t('roleRequiredError')
-    if (roles.length > 0 && requiresBranchSelection(roles) && branchIds.length === 0) {
-      next.branches = t('branchRequiredForRoleError')
+    if (!form.roleId) next.role = t('roleRequiredError')
+    if (requiresAssignmentLocations(form.allLocations, form.locationIds)) {
+      next.locations = t('branchRequiredForRoleError')
     }
     setErrors(next)
     return Object.keys(next).length === 0
@@ -72,16 +71,20 @@ export function StaffInviteModal({ tenantId, open, onClose }: StaffInviteModalPr
         email: email.trim(),
         firstName: firstName.trim() || undefined,
         lastName: lastName.trim() || undefined,
-        roles,
-        branchIds: branchIds.length > 0 ? branchIds : undefined,
+        role_id: form.roleId,
+        location_ids: form.allLocations ? [] : form.locationIds,
+        all_locations: form.allLocations,
+        mode: form.mode,
+        valid_from: form.validFrom || null,
+        valid_until: form.validUntil || null,
       },
       {
         onSuccess: () => {
           toast.success(t('inviteSentSuccessfully'))
           handleClose()
         },
-        onError: () => {
-          toast.error(t('failedToSendInviteRetry'))
+        onError: (err) => {
+          toast.error(getApiErrorMessage(err, t('failedToSendInviteRetry')))
         },
       },
     )
@@ -132,14 +135,12 @@ export function StaffInviteModal({ tenantId, open, onClose }: StaffInviteModalPr
           </div>
         </div>
 
-        <StaffRoleBranchFields
+        <AssignmentFormFields
           tenantId={tenantId}
-          selectedRoles={roles}
-          selectedBranchIds={branchIds}
-          onChangeRoles={setRoles}
-          onChangeBranchIds={setBranchIds}
-          roleError={errors.roles}
-          branchError={errors.branches}
+          form={form}
+          onChange={setForm}
+          roleError={errors.role}
+          locationsError={errors.locations}
         />
 
         <div className="flex justify-end gap-3 pt-2">

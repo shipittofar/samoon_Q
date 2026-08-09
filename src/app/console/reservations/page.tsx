@@ -10,8 +10,7 @@ import {
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/utils'
-import { useAdminReservations, useConfirmReservation, useCancelReservation, useBranches, useAdminBranches, useBulkConfirmReservations, useBulkCancelReservations } from '@/hooks'
-import { useTenantStore } from '@/stores'
+import { useAdminReservations, useConfirmReservation, useCancelReservation, useAdminBranches, useBulkConfirmReservations, useBulkCancelReservations, useConsoleTenantId } from '@/hooks'
 import type { AdminReservationFilters, ReservationStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -35,7 +34,7 @@ export default function AdminReservationsPage() {
   const [statusFilter, setStatusFilter] = useState<ReservationStatus | 'all'>('all')
   const [branchFilter, setBranchFilter] = useState<string>('all')
   const [currentDate, setCurrentDate] = useState(new Date())
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const tenantId = useConsoleTenantId() ?? ''
   const { data: adminBranches = [] } = useAdminBranches(tenantId)
 
   const todayStr = currentDate.toISOString().split('T')[0]
@@ -49,7 +48,6 @@ export default function AdminReservationsPage() {
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const { data, isLoading, isError, refetch } = useAdminReservations(filters)
-  const { data: branches } = useBranches()
   const confirmMutation = useConfirmReservation()
   const cancelMutation = useCancelReservation()
   const bulkConfirm = useBulkConfirmReservations()
@@ -79,7 +77,7 @@ export default function AdminReservationsPage() {
   }), [data, reservations])
 
   const getBranchName = (branchId: string) =>
-    (branches ?? []).find((b) => b.id === branchId)?.name ?? '—'
+    adminBranches.find((b) => b.id === branchId)?.name ?? '—'
 
   return (
 

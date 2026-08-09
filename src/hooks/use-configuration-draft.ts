@@ -18,8 +18,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import { configurationAudit, configurationService, configurationValidator } from '@/config'
 import type { ConfigAuditEntry, ConfigInheritanceLevel, ConfigResolutionScope } from '@/config'
-import { useAuthStore, useBranchStore, useTenantStore } from '@/stores'
+import { useAuthStore, useBranchStore } from '@/stores'
 import { useConfigurationModule } from './use-platform-configuration'
+import { useConsoleTenantId } from '@/hooks/console-workspace'
 
 export interface ConfigurationSaveResult {
   ok: boolean
@@ -32,7 +33,7 @@ export function useConfigurationDraft(moduleId: string) {
   const [isSaving, setIsSaving] = useState(false)
   const [lastError, setLastError] = useState<string | null>(null)
 
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const branchId = useBranchStore((s) => s.adminActiveBranch?.id)
   const actorUser = useAuthStore((s) => s.user)
 

@@ -16,7 +16,8 @@ import { ExternalLink } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { hrefToPublicUrl } from '@/utils/public-url'
-import { useTenantStore, useBranchStore } from '@/stores'
+import { useBranchStore, useRbacStore } from '@/stores'
+import { useConsoleTenantId } from '@/hooks/console-workspace'
 
 export interface PreviewButtonProps {
   /** Flat module href (e.g. "/menu", "/reservation", "/"). Upgraded to context-aware URL. */
@@ -36,7 +37,12 @@ export function PreviewButton({
   className,
 }: PreviewButtonProps) {
   const t = useTranslations('console')
-  const tenantSlug = useTenantStore((s) => s.tenant?.slug)
+  const activeTenantId = useConsoleTenantId()
+  const tenantSlug = useRbacStore((s) => {
+    const memberships = s.sessionMemberships
+    if (!activeTenantId || !memberships) return undefined
+    return memberships.find((m) => m.tenantId === activeTenantId)?.tenantSlug
+  })
   const branchSlug = useBranchStore((s) => s.adminActiveBranch?.slug)
 
   const publicUrl = hrefToPublicUrl(href, tenantSlug, branchSlug)

@@ -1,59 +1,72 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { Search, Users, Shield, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react'
+import { Search, Shield, ChevronDown, ChevronRight, CheckCircle, XCircle, User, ChevronRight as ChevronRightIcon } from 'lucide-react'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { useRbacStore } from '@/stores'
-import { useTenantStore } from '@/stores'
-import { MOCK_RBAC_USERS, getPermissionsForRole, ROLE_PERMISSION_MAP } from '@/services/permission.service'
-import Link from 'next/link'
-import type { Role } from '@/types/rbac'
-
-const ROLE_COLORS: Record<Role, string> = {
-  owner: 'bg-purple-100 text-purple-700',
-  admin: 'bg-orange-100 text-orange-700',
-  manager: 'bg-green-100 text-green-700',
-  cashier: 'bg-cyan-100 text-cyan-700',
-  waiter: 'bg-blue-100 text-blue-700',
-  kitchen: 'bg-amber-100 text-amber-700',
-  marketing: 'bg-pink-100 text-pink-700',
-  support: 'bg-indigo-100 text-indigo-700',
-}
+import { StaffRoleBadges } from '@/components/admin/StaffRoleBadges'
+import { useTenantRoles, usePermissionCatalog, useStaffPage, useAssignments, useConsoleTenantId } from '@/hooks'
+import { groupAssignmentsByUserId } from '@/lib/assignments'
 
 export default function PermissionsPage() {
   const t = useTranslations('console')
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
-  const userOverrides = useRbacStore((s) => s.userOverrides)
+  const tenantId = useConsoleTenantId() ?? ''
+  const { data: roles = [], isLoading: rolesLoading } = useTenantRoles(tenantId)
+  const { data: catalog = [], isLoading: catalogLoading } = usePermissionCatalog()
+  const { data: staffPage, isLoading: staffLoading } = useStaffPage(tenantId, { page_size: 100 })
+  const { data: assignmentPage } = useAssignments(tenantId, { page_size: 500 })
+  const assignmentsByUser = groupAssignmentsByUserId(assignmentPage?.results ?? [])
+  const staff = staffPage?.results ?? []
   const [search, setSearch] = useState('')
+  const [expandedRoleId, setExpandedRoleId] = useState<string | null>(null)
+  const [expandedResources, setExpandedResources] = useState<Record<string, boolean>>({})
 
-  const filtered = MOCK_RBAC_USERS
-    .filter(
-      (u) =>
-        u.email.toLowerCase().includes(search.toLowerCase()) ||
-        `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase()),
+  const permissionCategories = useMemo(() => {
+    const byResource: Record<string, { label: string; permissions: string[] }> = {}
+    for (const entry of catalog) {
+      const key = entry.resource || 'general'
+      if (!byResource[key]) {
+        byResource[key] = { label: entry.resource || 'General', permissions: [] }
+      }
+      byResource[key].permissions.push(entry.key)
+    }
+    return byResource
+  }, [catalog])
+
+  const filteredCatalog = catalog.filter(
+    (p) =>
+      !search ||
+      p.key.toLowerCase().includes(search.toLowerCase()) ||
+      p.description.toLowerCase().includes(search.toLowerCase()) ||
+      p.resource.toLowerCase().includes(search.toLowerCase()),
+  )
+
+  const filteredRoles = roles.filter(
+    (role) =>
+      !search ||
+      role.name.toLowerCase().includes(search.toLowerCase()) ||
+      role.slug.toLowerCase().includes(search.toLowerCase()) ||
+      role.permissions.some((p) => p.toLowerCase().includes(search.toLowerCase())),
+  )
+
+  const filteredStaff = staff.filter(
+    (m) =>
+      !search ||
+      m.firstName.toLowerCase().includes(search.toLowerCase()) ||
+      m.lastName.toLowerCase().includes(search.toLowerCase()) ||
+      m.email.toLowerCase().includes(search.toLowerCase()),
+  )
+
+  if (rolesLoading || catalogLoading || staffLoading) {
+    return (
+      <PermissionGuard permission="staff.manage" fallback={<AccessDenied />}>
+        <main className="p-6">{t('loadingStaffEllipsis')}</main>
+      </PermissionGuard>
     )
-    .sort((a, b) => {
-      const aAssignment = a.tenantAssignments.find(
-        (t) => t.tenantId === 'tenant-samoon-01'
-      )
-      const bAssignment = b.tenantAssignments.find(
-        (t) => t.tenantId === 'tenant-samoon-01'
-      )
-
-      const aCount = getPermissionsForRole(aAssignment?.roles ?? []).length
-      const bCount = getPermissionsForRole(bAssignment?.roles ?? []).length
-
-      return bCount - aCount
-    })
-
-  // const filtered = MOCK_RBAC_USERS.filter(
-  //   (u) =>
-  //     u.email.toLowerCase().includes(search.toLowerCase()) ||
-  //     `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase()),
-  // )
+  }
 
   return (
     <ErrorBoundary feature="Permission Management">
@@ -61,119 +74,197 @@ export default function PermissionsPage() {
         <main className="p-6 space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('permissionManagementTitle')}</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {t('assignRolesConfigureOverridesHint')}
-            </p>
+            <p className="text-sm text-gray-500 mt-1">{t('permissionCatalogHint')}</p>
           </div>
 
-          {/* Search */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="rounded-xl border border-gray-200 p-4 text-center">
+              <div className="text-2xl font-bold text-gray-900">{catalog.length}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{t('totalPermissionsLabel')}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 p-4 text-center">
+              <div className="text-2xl font-bold text-gray-900">{roles.length}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{t('totalRolesLabel')}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 p-4 text-center">
+              <div className="text-2xl font-bold text-gray-900">
+                {Object.keys(permissionCategories).length}
+              </div>
+              <div className="text-xs text-gray-400 mt-0.5">{t('permissionResourcesLabel')}</div>
+            </div>
+            <div className="rounded-xl border border-gray-200 p-4 text-center">
+              <div className="text-2xl font-bold text-gray-900">
+                {roles.length > 0
+                  ? Math.round(
+                      roles.reduce((a, r) => a + r.permissions.length, 0) / roles.length,
+                    )
+                  : 0}
+              </div>
+              <div className="text-xs text-gray-400 mt-0.5">{t('avgPermissionsPerRoleLabel')}</div>
+            </div>
+          </div>
+
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('searchUsersEllipsisPlaceholder')}
+              placeholder={t('searchPermissionsEllipsisPlaceholder')}
               className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
 
-          {/* User list */}
-          <div className="rounded-xl border border-gray-200 divide-y divide-gray-100">
-            {filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                <Users className="h-8 w-8 mb-2 opacity-40" />
-                <p className="text-sm">{t('noUsersMatchSearch')}</p>
-              </div>
-            ) : (
-              filtered.map((user) => {
-                // For demo: use mock tenant assignment roles
-                const mockAssignment = user.tenantAssignments.find((a) => a.tenantId === 'tenant-samoon-01')
-                const roles = mockAssignment?.roles ?? []
-                const permissions = getPermissionsForRole(roles)
-                const override = userOverrides.find(
-                  (o) => o.userId === user.id && o.tenantId === tenantId,
-                )
-                const hasOverride = override && (override.allow.length > 0 || override.deny.length > 0)
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <User className="h-5 w-5 text-gray-500" />
+              {t('userRbacManagementSectionTitle')}
+            </h2>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              {filteredStaff.length === 0 ? (
+                <p className="p-6 text-sm text-gray-500 text-center">{t('noUsersMatchFilters')}</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left px-4 py-3 font-medium text-gray-600">{t('userColumnLabel')}</th>
+                      <th className="text-left px-4 py-3 font-medium text-gray-600">{t('rolesTabLabel')}</th>
+                      <th className="px-4 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filteredStaff.map((member) => (
+                      <tr key={member.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-gray-900">
+                            {member.firstName} {member.lastName}
+                          </div>
+                          <div className="text-xs text-gray-400">{member.email}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <StaffRoleBadges assignments={assignmentsByUser.get(member.userId) ?? []} />
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            href={`/console/permissions/${member.userId}`}
+                            className="flex items-center justify-end gap-1 text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                          >
+                            {t('managePermissionsLabel')}
+                            <ChevronRightIcon className="w-3.5 h-3.5" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </section>
 
-                return (
-                  <Link
-                    key={user.id}
-                    href={`/console/permissions/${user.id}`}
-                    className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group"
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Shield className="h-5 w-5 text-gray-500" />
+              {t('rolesAndPermissionsLabel')}
+            </h2>
+            {filteredRoles.map((role) => {
+              const isExpanded = expandedRoleId === role.id
+              return (
+                <div key={role.id} className="rounded-xl border border-gray-200 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedRoleId(isExpanded ? null : role.id)}
+                    className="w-full flex items-center justify-between px-5 py-4 bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
-                    {/* Avatar */}
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600 flex-shrink-0">
-                      {user.first_name[0]}{user.last_name[0]}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900 text-sm truncate">
-                          {user.first_name} {user.last_name}
-                        </p>
-                        {hasOverride && (
-                          <span className="flex items-center gap-0.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                            <AlertCircle className="h-3 w-3" />
-                            {t('overridesLabel')}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                      <div className="flex flex-wrap gap-1 mt-1.5">
-                        {roles.length === 0 ? (
-                          <span className="text-xs text-gray-400 italic">{t('noRolesAssigned')}</span>
-                        ) : (
-                          roles.map((role) => (
-                            <span
-                              key={role}
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_COLORS[role] ?? 'bg-gray-100 text-gray-700'}`}
-                            >
-                              {role}
-                            </span>
-                          ))
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Permission count */}
-                    <div className="text-right flex-shrink-0">
-                      <div className="flex items-center gap-1 text-sm text-gray-700">
-                        <Shield className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="font-medium">{permissions.length}</span>
-                        <span className="text-gray-400 text-xs">{t('permissionsLowercaseLabel')}</span>
-                      </div>
-                      {override && (
-                        <div className="flex items-center gap-2 text-xs mt-0.5">
-                          {override.allow.length > 0 && (
-                            <span className="text-green-600">+{override.allow.length}</span>
-                          )}
-                          {override.deny.length > 0 && (
-                            <span className="text-red-500">−{override.deny.length}</span>
-                          )}
-                        </div>
+                    <div>
+                      <span className="font-semibold text-gray-900">{role.name}</span>
+                      {role.description && (
+                        <p className="text-xs text-gray-500 mt-0.5">{role.description}</p>
                       )}
                     </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-700">
+                        {role.permissions.length} {t('permissionsLowercaseLabel')}
+                      </span>
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+                  </button>
+                  {isExpanded && (
+                    <div className="divide-y divide-gray-100 bg-white">
+                      {Object.entries(permissionCategories).map(([catKey, cat]) => {
+                        const granted = cat.permissions.filter((p) => role.permissions.includes(p))
+                        if (granted.length === 0 && search) return null
+                        const catExpanded = expandedResources[`${role.id}:${catKey}`] !== false
+                        return (
+                          <div key={catKey}>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedResources((prev) => ({
+                                  ...prev,
+                                  [`${role.id}:${catKey}`]: !catExpanded,
+                                }))
+                              }
+                              className="w-full flex items-center justify-between px-5 py-2.5 hover:bg-gray-50"
+                            >
+                              <span className="text-xs font-medium text-gray-700">
+                                {cat.label} ({granted.length}/{cat.permissions.length})
+                              </span>
+                              {catExpanded ? (
+                                <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+                              ) : (
+                                <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+                              )}
+                            </button>
+                            {catExpanded && (
+                              <div className="px-5 pb-2 grid grid-cols-2 sm:grid-cols-3 gap-1">
+                                {cat.permissions.map((p) => {
+                                  const hasIt = role.permissions.includes(p)
+                                  return (
+                                    <div key={p} className="flex items-center gap-1.5">
+                                      {hasIt ? (
+                                        <CheckCircle className="h-3 w-3 text-green-500" />
+                                      ) : (
+                                        <XCircle className="h-3 w-3 text-gray-200" />
+                                      )}
+                                      <span
+                                        className={`text-[10px] font-mono ${hasIt ? 'text-gray-700' : 'text-gray-300'}`}
+                                      >
+                                        {p}
+                                      </span>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </section>
 
-                    <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 flex-shrink-0" />
-                  </Link>
-                )
-              })
-            )}
-          </div>
-
-          {/* Legend */}
-          <div className="flex items-center gap-6 text-xs text-gray-500">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle className="h-3.5 w-3.5 text-green-500" />
-              {t('permissionFromRoleLabel')}
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold">{t('permissionCatalogTitle')}</h2>
+            <div className="rounded-xl border border-gray-200 divide-y divide-gray-100">
+              {filteredCatalog.length === 0 ? (
+                <p className="p-6 text-sm text-gray-500 text-center">{t('noPermissionsInCatalog')}</p>
+              ) : (
+                filteredCatalog.map((perm) => (
+                  <div key={perm.key} className="px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                    <code className="text-xs font-mono text-gray-800">{perm.key}</code>
+                    <span className="text-xs text-gray-500">{perm.description || perm.resource}</span>
+                  </div>
+                ))
+              )}
             </div>
-            <div className="flex items-center gap-1.5">
-              <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-              {t('userHasOverridesAppliedLabel')}
-            </div>
-          </div>
+          </section>
         </main>
       </PermissionGuard>
     </ErrorBoundary>

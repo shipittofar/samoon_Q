@@ -6,8 +6,7 @@ import { KitchenDisplay } from '@/components/admin/KitchenDisplay'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { useTenantStore } from '@/stores'
-import { useSelectedBranch, useBranchState, useIsBranchReady } from '@/hooks'
+import { useSelectedBranch, useBranchState, useIsBranchReady, useConsoleTenantId } from '@/hooks'
 import { Maximize2, Minimize2, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 
 const REFRESH_OPTIONS = [
@@ -29,7 +28,6 @@ function ConnectionStatus({ connected }: { connected: boolean }) {
 
 function KitchenPageContent() {
   const t = useTranslations('console')
-  const { tenant } = useTenantStore()
   // Phase 3 — the console's Kitchen Display is admin-context, not
   // customer-storefront: it must read the branch the AdminBranchSwitcher
   // (AdminContextBar, rendered once by the console layout) resolved, not
@@ -46,7 +44,7 @@ function KitchenPageContent() {
   const [connected, setConnected] = useState(true)
 
   const branchId = useIsBranchReady() ? selectedBranch?.id ?? '' : ''
-  const tenantId = tenant?.id ?? ''
+  const tenantId = useConsoleTenantId() ?? ''
 
   const refresh = useCallback(() => {
     setLastRefresh(Date.now())

@@ -50,6 +50,10 @@ async function samoonTenant(): Promise<Tenant> {
 function seedSession(tenantId: string, roles: Role[]) {
   const { permissions } = normalizeTenantPermissions(roles)
   act(() => {
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId, roles, branchAccess: { scope: 'all' } }],
+      { tenantId },
+    )
     useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions)
   })
 }
@@ -212,6 +216,10 @@ describe('P10.6 Phase H — Archived Tenant', () => {
     const archived: Tenant = { ...samoon, id: 'tenant-archived-different', status: 'archived' as Tenant['status'] }
     act(() => {
       useTenantStore.getState().setTenant(archived)
+      useRbacStore.getState().setSessionMemberships(
+        [{ tenantId: archived.id, roles: ['cashier'], branchAccess: { scope: 'all' } }],
+        { tenantId: archived.id },
+      )
     })
 
     const after = renderHook(() => useHasDashboardAccess())

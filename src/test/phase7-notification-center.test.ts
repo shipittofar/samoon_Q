@@ -370,14 +370,14 @@ describe('P7.6 — Notification Service (mock mode)', () => {
     const { notificationRichService } = await import('@/services/notification.service')
     const all = await notificationRichService.getNotifications({})
     const id = all.results[0].id
-    const single = await notificationRichService.getNotification(id)
+    const single = await notificationRichService.getNotification(id, 'tenant-samoon-01')
     expect(single).not.toBeNull()
     expect(single!.id).toBe(id)
   })
 
   it('getNotification returns null for unknown id', async () => {
     const { notificationRichService } = await import('@/services/notification.service')
-    const result = await notificationRichService.getNotification('nonexistent-id')
+    const result = await notificationRichService.getNotification('nonexistent-id', 'tenant-samoon-01')
     expect(result).toBeNull()
   })
 

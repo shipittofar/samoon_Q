@@ -28,8 +28,8 @@ import {
   useAuditBroadcastSync,
   useSelectedBranch,
   useBranchState,
+  useConsoleTenantId,
 } from '@/hooks'
-import { useTenantStore } from '@/stores'
 import type { OperationsScope } from '@/types/realtime-operations'
 
 const SECTIONS = [
@@ -74,7 +74,7 @@ function OperationsContent() {
   // branch filter is applied, shown explicitly rather than silently.
   const selectedBranch = useSelectedBranch()
   const branchState = useBranchState()
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const tenantId = useConsoleTenantId() ?? ''
   const branchFilter = branchState === 'ready' ? selectedBranch?.id : undefined
 
   const scope: OperationsScope = {

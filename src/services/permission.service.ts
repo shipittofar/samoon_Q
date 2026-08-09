@@ -101,6 +101,7 @@ export const ALL_PERMISSIONS: readonly P7Permission[] = [
   // Tenant
   'tenant.view',
   'tenant.manage',
+  'rbac.manage_roles',
   // Audit
   'audit.view',
   'audit.export',
@@ -374,7 +375,6 @@ export function resolveBranchAccess(
     return { scope: 'selected', branchIds: [] }
   }
 
-  if (roles.includes('owner')) return { scope: 'all' }
   return { scope: 'selected', branchIds: [] }
 }
 

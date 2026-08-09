@@ -2,6 +2,7 @@
 // P7.2 — Staff Management Domain Types
 // ============================================================
 import type { Role } from './rbac'
+import type { AssignmentMode } from './rbac-api'
 
 export type StaffStatus = 'pending' | 'active' | 'suspended' | 'removed'
 export type InviteStatus = 'pending' | 'accepted' | 'expired' | 'cancelled'
@@ -47,9 +48,13 @@ export interface StaffMember {
   activatedAt?: string
   lastSeenAt?: string
   createdBy: string
-  /** P7.3 — Branch assignment readiness. Superseded by StaffAssignment
-   *  (P10.1 §1.1/§10.3 — "no live consumer today"); kept, unused, pending
-   *  a P10.2+ cleanup removal per the architecture doc's migration notes. */
+  /** Location ids granted by assignments (D2). */
+  locationIds?: string[]
+  /** Tenant membership id for assignment CRUD (D2). */
+  membershipId?: string
+  /**
+   * Legacy alias — prefer `locationIds`. Kept for mock fixtures only.
+   */
   branchIds?: string[]
   /**
    * P10.2.1 — FK to Owner.ownerId (src/types/ownership.ts). Additive and
@@ -69,16 +74,20 @@ export interface StaffInvite {
   id: string
   tenantId: string
   email: string
-  roles: Role[]
+  /** Initial role slug/name from assignment preview (D2). */
+  role?: string
+  roleId?: string
+  mode?: AssignmentMode
+  allLocations?: boolean
+  validFrom?: string | null
+  validUntil?: string | null
+  /** Legacy mock display — not used in production UI. */
+  roles?: Role[]
   invitedBy: string
   expiresAt: string
   status: InviteStatus
-  /**
-   * Console Staff — branches this invite grants visibility into, carried
-   * over onto the `StaffMember` created when the invite is accepted (see
-   * `staffService.acceptInvite()`). Optional for backward compatibility —
-   * an invite for an owner/admin role legitimately has no branch scope.
-   */
+  locationIds?: string[]
+  /** @deprecated mock compat */
   branchIds?: string[]
 }
 
@@ -111,27 +120,20 @@ export interface StaffAnalytics {
 
 export interface InviteStaffPayload {
   email: string
-  roles: Role[]
   firstName?: string
   lastName?: string
-  /**
-   * Console Staff — branches to grant this invite. Optional for backward
-   * compatibility with existing callers/tests that predate branch
-   * assignment (e.g. an owner/admin invite that legitimately has no
-   * branch scope) — omitted or empty means "no branch assignment," never
-   * "all branches."
-   */
-  branchIds?: string[]
+  role_id: string
+  location_ids: string[]
+  all_locations: boolean
+  mode: AssignmentMode
+  valid_from?: string | null
+  valid_until?: string | null
 }
 
 export interface UpdateStaffRolesPayload {
   roles: Role[]
-  /**
-   * Console Staff — replaces the member's full branch assignment (not a
-   * merge). Optional for backward compatibility with existing callers
-   * that only ever updated roles — omitting it leaves the member's
-   * current `branchIds` untouched (see `staffService.updateStaffRoles()`).
-   */
+  locationIds?: string[]
+  /** @deprecated use locationIds */
   branchIds?: string[]
 }
 

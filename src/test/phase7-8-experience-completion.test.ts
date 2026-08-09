@@ -15,6 +15,8 @@
 
 import { describe, it, expect, vi } from 'vitest'
 
+const TENANT_SAMOON = 'tenant-samoon-01'
+
 // ── A: Order Detail Page ──────────────────────────────────────────────────────
 
 describe('P7.8-A: Order Detail Page', () => {
@@ -55,7 +57,7 @@ describe('P7.8-B: adminService.getAdminReservation', () => {
 
     if (MOCK_RESERVATIONS.length === 0) return
     const first = MOCK_RESERVATIONS[0]
-    const result = await adminService.getAdminReservation(first.id)
+    const result = await adminService.getAdminReservation(first.id, TENANT_SAMOON)
     expect(result.id).toBe(first.id)
     expect(result.name).toBe(first.name)
   })
@@ -63,7 +65,7 @@ describe('P7.8-B: adminService.getAdminReservation', () => {
   it('throws for unknown reservation id', async () => {
     vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
     const { adminService } = await import('@/services/admin.service')
-    await expect(adminService.getAdminReservation('nonexistent-id-xyz')).rejects.toThrow()
+    await expect(adminService.getAdminReservation('nonexistent-id-xyz', TENANT_SAMOON)).rejects.toThrow()
   })
 })
 

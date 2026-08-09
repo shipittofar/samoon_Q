@@ -3,12 +3,12 @@
  *
  * Sections:
  *  A. Analytics types — file existence and field assertions
- *  B. analyticsService.getAnalyticsSummary() — shape and values
- *  C. analyticsService.getRevenueAnalytics() — shape and time series
- *  D. analyticsService.getReservationAnalytics() — shape and values
- *  E. analyticsService.getLoyaltyAnalytics() — shape and tier distribution
- *  F. analyticsService.getPromotionAnalytics() — shape and usage by type
- *  G. analyticsService.getVendorAnalytics() — shape and vendor list
+ *  B. analyticsService.getAnalyticsSummary(TENANT_SAMOON) — shape and values
+ *  C. analyticsService.getRevenueAnalytics(TENANT_SAMOON) — shape and time series
+ *  D. analyticsService.getReservationAnalytics(TENANT_SAMOON) — shape and values
+ *  E. analyticsService.getLoyaltyAnalytics(TENANT_SAMOON) — shape and tier distribution
+ *  F. analyticsService.getPromotionAnalytics(TENANT_SAMOON) — shape and usage by type
+ *  G. analyticsService.getVendorAnalytics(TENANT_SAMOON) — shape and vendor list
  *  H. Time series — deterministic and 30-day length
  *  I. Business invariants — rates, ratios, consistency
  *  J. Registry — analytics.enabled flag on all modules
@@ -36,6 +36,7 @@ vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
 vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:8000/api')
 
 const ROOT = resolve(__dirname, '../..')
+const TENANT_SAMOON = 'tenant-samoon-01'
 
 function src(rel: string) {
   return readFileSync(resolve(ROOT, 'src', rel), 'utf-8')
@@ -112,17 +113,17 @@ describe('A. Analytics types — file existence and fields', () => {
 
 // ── B. getAnalyticsSummary() ──────────────────────────────────────────────────
 
-describe('B. analyticsService.getAnalyticsSummary()', () => {
+describe('B. analyticsService.getAnalyticsSummary(TENANT_SAMOON)', () => {
   it('returns a Promise', async () => {
     const svc = await freshService()
-    const p = svc.getAnalyticsSummary()
+    const p = svc.getAnalyticsSummary(TENANT_SAMOON)
     expect(p).toBeInstanceOf(Promise)
     await p
   })
 
   it('resolves with correct shape', async () => {
     const svc = await freshService()
-    const summary = await svc.getAnalyticsSummary()
+    const summary = await svc.getAnalyticsSummary(TENANT_SAMOON)
     expect(typeof summary.periodDays).toBe('number')
     expect(typeof summary.totalRevenue).toBe('number')
     expect(typeof summary.revenueChangePct).toBe('number')
@@ -139,29 +140,29 @@ describe('B. analyticsService.getAnalyticsSummary()', () => {
 
   it('totalRevenue is positive', async () => {
     const svc = await freshService()
-    const summary = await svc.getAnalyticsSummary()
+    const summary = await svc.getAnalyticsSummary(TENANT_SAMOON)
     expect(summary.totalRevenue).toBeGreaterThan(0)
   })
 
   it('totalOrders is positive', async () => {
     const svc = await freshService()
-    const summary = await svc.getAnalyticsSummary()
+    const summary = await svc.getAnalyticsSummary(TENANT_SAMOON)
     expect(summary.totalOrders).toBeGreaterThan(0)
   })
 
   it('periodDays is 30', async () => {
     const svc = await freshService()
-    const summary = await svc.getAnalyticsSummary()
+    const summary = await svc.getAnalyticsSummary(TENANT_SAMOON)
     expect(summary.periodDays).toBe(30)
   })
 })
 
 // ── C. getRevenueAnalytics() ──────────────────────────────────────────────────
 
-describe('C. analyticsService.getRevenueAnalytics()', () => {
+describe('C. analyticsService.getRevenueAnalytics(TENANT_SAMOON)', () => {
   it('resolves with correct shape', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     expect(typeof data.totalRevenue).toBe('number')
     expect(typeof data.revenueChangePct).toBe('number')
     expect(typeof data.averageOrderValue).toBe('number')
@@ -172,13 +173,13 @@ describe('C. analyticsService.getRevenueAnalytics()', () => {
 
   it('dailyRevenue has 30 entries', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     expect(data.dailyRevenue).toHaveLength(30)
   })
 
   it('dailyRevenue entries have date and value', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     const entry = data.dailyRevenue[0]
     expect(typeof entry.date).toBe('string')
     expect(typeof entry.value).toBe('number')
@@ -186,7 +187,7 @@ describe('C. analyticsService.getRevenueAnalytics()', () => {
 
   it('dailyRevenue dates are ISO format', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     data.dailyRevenue.forEach((d) => {
       expect(d.date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
     })
@@ -194,13 +195,13 @@ describe('C. analyticsService.getRevenueAnalytics()', () => {
 
   it('topItems array is non-empty', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     expect(data.topItems.length).toBeGreaterThan(0)
   })
 
   it('topItems entries have name, revenue, orderCount, trendPct', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     const item = data.topItems[0]
     expect(typeof item.name).toBe('string')
     expect(typeof item.revenue).toBe('number')
@@ -210,17 +211,17 @@ describe('C. analyticsService.getRevenueAnalytics()', () => {
 
   it('averageOrderValue is positive', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     expect(data.averageOrderValue).toBeGreaterThan(0)
   })
 })
 
 // ── D. getReservationAnalytics() ──────────────────────────────────────────────
 
-describe('D. analyticsService.getReservationAnalytics()', () => {
+describe('D. analyticsService.getReservationAnalytics(TENANT_SAMOON)', () => {
   it('resolves with correct shape', async () => {
     const svc = await freshService()
-    const data = await svc.getReservationAnalytics()
+    const data = await svc.getReservationAnalytics(TENANT_SAMOON)
     expect(typeof data.totalReservations).toBe('number')
     expect(typeof data.reservationsChangePct).toBe('number')
     expect(typeof data.upcomingReservations).toBe('number')
@@ -233,19 +234,19 @@ describe('D. analyticsService.getReservationAnalytics()', () => {
 
   it('dailyReservations has 30 entries', async () => {
     const svc = await freshService()
-    const data = await svc.getReservationAnalytics()
+    const data = await svc.getReservationAnalytics(TENANT_SAMOON)
     expect(data.dailyReservations).toHaveLength(30)
   })
 
   it('tablesOccupied <= tablesTotal', async () => {
     const svc = await freshService()
-    const data = await svc.getReservationAnalytics()
+    const data = await svc.getReservationAnalytics(TENANT_SAMOON)
     expect(data.tablesOccupied).toBeLessThanOrEqual(data.tablesTotal)
   })
 
   it('occupancyRate is between 0 and 100', async () => {
     const svc = await freshService()
-    const data = await svc.getReservationAnalytics()
+    const data = await svc.getReservationAnalytics(TENANT_SAMOON)
     expect(data.occupancyRate).toBeGreaterThanOrEqual(0)
     expect(data.occupancyRate).toBeLessThanOrEqual(100)
   })
@@ -253,10 +254,10 @@ describe('D. analyticsService.getReservationAnalytics()', () => {
 
 // ── E. getLoyaltyAnalytics() ──────────────────────────────────────────────────
 
-describe('E. analyticsService.getLoyaltyAnalytics()', () => {
+describe('E. analyticsService.getLoyaltyAnalytics(TENANT_SAMOON)', () => {
   it('resolves with correct shape', async () => {
     const svc = await freshService()
-    const data = await svc.getLoyaltyAnalytics()
+    const data = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     expect(typeof data.totalMembers).toBe('number')
     expect(typeof data.activeMembersThisMonth).toBe('number')
     expect(typeof data.pointsIssued).toBe('number')
@@ -268,7 +269,7 @@ describe('E. analyticsService.getLoyaltyAnalytics()', () => {
 
   it('tierDistribution has bronze, silver, gold, platinum', async () => {
     const svc = await freshService()
-    const data = await svc.getLoyaltyAnalytics()
+    const data = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     expect(typeof data.tierDistribution.bronze).toBe('number')
     expect(typeof data.tierDistribution.silver).toBe('number')
     expect(typeof data.tierDistribution.gold).toBe('number')
@@ -277,7 +278,7 @@ describe('E. analyticsService.getLoyaltyAnalytics()', () => {
 
   it('topRewards entries have name and redemptions', async () => {
     const svc = await freshService()
-    const data = await svc.getLoyaltyAnalytics()
+    const data = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     const reward = data.topRewards[0]
     expect(typeof reward.name).toBe('string')
     expect(typeof reward.redemptions).toBe('number')
@@ -285,30 +286,30 @@ describe('E. analyticsService.getLoyaltyAnalytics()', () => {
 
   it('activeMembersThisMonth <= totalMembers', async () => {
     const svc = await freshService()
-    const data = await svc.getLoyaltyAnalytics()
+    const data = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     expect(data.activeMembersThisMonth).toBeLessThanOrEqual(data.totalMembers)
   })
 
   it('redemptionRate is between 0 and 100', async () => {
     const svc = await freshService()
-    const data = await svc.getLoyaltyAnalytics()
+    const data = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     expect(data.redemptionRate).toBeGreaterThanOrEqual(0)
     expect(data.redemptionRate).toBeLessThanOrEqual(100)
   })
 
   it('pointsRedeemed <= pointsIssued', async () => {
     const svc = await freshService()
-    const data = await svc.getLoyaltyAnalytics()
+    const data = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     expect(data.pointsRedeemed).toBeLessThanOrEqual(data.pointsIssued)
   })
 })
 
 // ── F. getPromotionAnalytics() ────────────────────────────────────────────────
 
-describe('F. analyticsService.getPromotionAnalytics()', () => {
+describe('F. analyticsService.getPromotionAnalytics(TENANT_SAMOON)', () => {
   it('resolves with correct shape', async () => {
     const svc = await freshService()
-    const data = await svc.getPromotionAnalytics()
+    const data = await svc.getPromotionAnalytics(TENANT_SAMOON)
     expect(typeof data.totalPromotions).toBe('number')
     expect(typeof data.activePromotions).toBe('number')
     expect(typeof data.totalDiscountGiven).toBe('number')
@@ -319,7 +320,7 @@ describe('F. analyticsService.getPromotionAnalytics()', () => {
 
   it('usageByType has all 4 promotion types', async () => {
     const svc = await freshService()
-    const data = await svc.getPromotionAnalytics()
+    const data = await svc.getPromotionAnalytics(TENANT_SAMOON)
     expect(typeof data.usageByType.percentage_discount).toBe('number')
     expect(typeof data.usageByType.fixed_discount).toBe('number')
     expect(typeof data.usageByType.buy_one_get_one).toBe('number')
@@ -328,13 +329,13 @@ describe('F. analyticsService.getPromotionAnalytics()', () => {
 
   it('activePromotions <= totalPromotions', async () => {
     const svc = await freshService()
-    const data = await svc.getPromotionAnalytics()
+    const data = await svc.getPromotionAnalytics(TENANT_SAMOON)
     expect(data.activePromotions).toBeLessThanOrEqual(data.totalPromotions)
   })
 
   it('topPromotions entries have name, usageCount, discountGiven', async () => {
     const svc = await freshService()
-    const data = await svc.getPromotionAnalytics()
+    const data = await svc.getPromotionAnalytics(TENANT_SAMOON)
     const promo = data.topPromotions[0]
     expect(typeof promo.name).toBe('string')
     expect(typeof promo.usageCount).toBe('number')
@@ -343,17 +344,17 @@ describe('F. analyticsService.getPromotionAnalytics()', () => {
 
   it('totalDiscountGiven is positive', async () => {
     const svc = await freshService()
-    const data = await svc.getPromotionAnalytics()
+    const data = await svc.getPromotionAnalytics(TENANT_SAMOON)
     expect(data.totalDiscountGiven).toBeGreaterThan(0)
   })
 })
 
 // ── G. getVendorAnalytics() ───────────────────────────────────────────────────
 
-describe('G. analyticsService.getVendorAnalytics()', () => {
+describe('G. analyticsService.getVendorAnalytics(TENANT_SAMOON)', () => {
   it('resolves with correct shape', async () => {
     const svc = await freshService()
-    const data = await svc.getVendorAnalytics()
+    const data = await svc.getVendorAnalytics(TENANT_SAMOON)
     expect(typeof data.totalVendors).toBe('number')
     expect(typeof data.activeVendors).toBe('number')
     expect(typeof data.totalRevenue).toBe('number')
@@ -364,13 +365,13 @@ describe('G. analyticsService.getVendorAnalytics()', () => {
 
   it('vendors array is non-empty', async () => {
     const svc = await freshService()
-    const data = await svc.getVendorAnalytics()
+    const data = await svc.getVendorAnalytics(TENANT_SAMOON)
     expect(data.vendors.length).toBeGreaterThan(0)
   })
 
   it('vendor entries have required fields', async () => {
     const svc = await freshService()
-    const data = await svc.getVendorAnalytics()
+    const data = await svc.getVendorAnalytics(TENANT_SAMOON)
     const v = data.vendors[0]
     expect(typeof v.vendorId).toBe('string')
     expect(typeof v.name).toBe('string')
@@ -382,13 +383,13 @@ describe('G. analyticsService.getVendorAnalytics()', () => {
 
   it('activeVendors <= totalVendors', async () => {
     const svc = await freshService()
-    const data = await svc.getVendorAnalytics()
+    const data = await svc.getVendorAnalytics(TENANT_SAMOON)
     expect(data.activeVendors).toBeLessThanOrEqual(data.totalVendors)
   })
 
   it('avgRating is between 0 and 5', async () => {
     const svc = await freshService()
-    const data = await svc.getVendorAnalytics()
+    const data = await svc.getVendorAnalytics(TENANT_SAMOON)
     expect(data.avgRating).toBeGreaterThanOrEqual(0)
     expect(data.avgRating).toBeLessThanOrEqual(5)
   })
@@ -399,7 +400,7 @@ describe('G. analyticsService.getVendorAnalytics()', () => {
 describe('H. Time series determinism and shape', () => {
   it('dailyRevenue dates are consecutive', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     for (let i = 1; i < data.dailyRevenue.length; i++) {
       const prev = new Date(data.dailyRevenue[i - 1].date)
       const curr = new Date(data.dailyRevenue[i].date)
@@ -410,7 +411,7 @@ describe('H. Time series determinism and shape', () => {
 
   it('last dailyRevenue entry is today or yesterday', async () => {
     const svc = await freshService()
-    const data = await svc.getRevenueAnalytics()
+    const data = await svc.getRevenueAnalytics(TENANT_SAMOON)
     const lastDate = new Date(data.dailyRevenue[data.dailyRevenue.length - 1].date)
     const now = new Date()
     const diffMs = now.getTime() - lastDate.getTime()
@@ -419,7 +420,7 @@ describe('H. Time series determinism and shape', () => {
 
   it('dailyReservations dates are consecutive', async () => {
     const svc = await freshService()
-    const data = await svc.getReservationAnalytics()
+    const data = await svc.getReservationAnalytics(TENANT_SAMOON)
     for (let i = 1; i < data.dailyReservations.length; i++) {
       const prev = new Date(data.dailyReservations[i - 1].date)
       const curr = new Date(data.dailyReservations[i].date)
@@ -430,8 +431,8 @@ describe('H. Time series determinism and shape', () => {
 
   it('second call returns same structure as first call', async () => {
     const svc = await freshService()
-    const a = await svc.getRevenueAnalytics()
-    const b = await svc.getRevenueAnalytics()
+    const a = await svc.getRevenueAnalytics(TENANT_SAMOON)
+    const b = await svc.getRevenueAnalytics(TENANT_SAMOON)
     expect(a.totalRevenue).toBe(b.totalRevenue)
     expect(a.dailyRevenue.length).toBe(b.dailyRevenue.length)
   })
@@ -442,13 +443,13 @@ describe('H. Time series determinism and shape', () => {
 describe('I. Business invariants', () => {
   it('vendor totalRevenue >= totalCommission', async () => {
     const svc = await freshService()
-    const data = await svc.getVendorAnalytics()
+    const data = await svc.getVendorAnalytics(TENANT_SAMOON)
     expect(data.totalRevenue).toBeGreaterThanOrEqual(data.totalCommission)
   })
 
   it('loyalty redemptionRate ≈ pointsRedeemed/pointsIssued * 100', async () => {
     const svc = await freshService()
-    const data = await svc.getLoyaltyAnalytics()
+    const data = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     const computed = (data.pointsRedeemed / data.pointsIssued) * 100
     expect(Math.abs(data.redemptionRate - computed)).toBeLessThan(1)
   })
@@ -456,8 +457,8 @@ describe('I. Business invariants', () => {
   it('summary activeVendors matches vendor analytics activeVendors', async () => {
     const svc = await freshService()
     const [summary, vendors] = await Promise.all([
-      svc.getAnalyticsSummary(),
-      svc.getVendorAnalytics(),
+      svc.getAnalyticsSummary(TENANT_SAMOON),
+      svc.getVendorAnalytics(TENANT_SAMOON),
     ])
     expect(summary.activeVendors).toBe(vendors.activeVendors)
   })
@@ -465,8 +466,8 @@ describe('I. Business invariants', () => {
   it('summary activePromotions matches promotion analytics activePromotions', async () => {
     const svc = await freshService()
     const [summary, promotions] = await Promise.all([
-      svc.getAnalyticsSummary(),
-      svc.getPromotionAnalytics(),
+      svc.getAnalyticsSummary(TENANT_SAMOON),
+      svc.getPromotionAnalytics(TENANT_SAMOON),
     ])
     expect(summary.activePromotions).toBe(promotions.activePromotions)
   })
@@ -810,8 +811,8 @@ describe('W. Mock mode compatibility', () => {
 
   it('buildDailySeries generates deterministic output', async () => {
     const svc = await freshService()
-    const a = await svc.getRevenueAnalytics()
-    const b = await svc.getRevenueAnalytics()
+    const a = await svc.getRevenueAnalytics(TENANT_SAMOON)
+    const b = await svc.getRevenueAnalytics(TENANT_SAMOON)
     expect(a.dailyRevenue[0].date).toBe(b.dailyRevenue[0].date)
     expect(a.dailyRevenue[0].value).toBe(b.dailyRevenue[0].value)
   })
@@ -822,28 +823,28 @@ describe('W. Mock mode compatibility', () => {
 describe('X. Copy semantics', () => {
   it('mutating summary does not affect next call', async () => {
     const svc = await freshService()
-    const a = await svc.getAnalyticsSummary()
+    const a = await svc.getAnalyticsSummary(TENANT_SAMOON)
     const original = a.totalRevenue
     a.totalRevenue = 0
-    const b = await svc.getAnalyticsSummary()
+    const b = await svc.getAnalyticsSummary(TENANT_SAMOON)
     expect(b.totalRevenue).toBe(original)
   })
 
   it('mutating vendor list does not affect next call', async () => {
     const svc = await freshService()
-    const a = await svc.getVendorAnalytics()
+    const a = await svc.getVendorAnalytics(TENANT_SAMOON)
     const originalLen = a.vendors.length
     a.vendors.pop()
-    const b = await svc.getVendorAnalytics()
+    const b = await svc.getVendorAnalytics(TENANT_SAMOON)
     expect(b.vendors.length).toBe(originalLen)
   })
 
   it('mutating tierDistribution does not affect next call', async () => {
     const svc = await freshService()
-    const a = await svc.getLoyaltyAnalytics()
+    const a = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     const original = a.tierDistribution.platinum
     a.tierDistribution.platinum = 999
-    const b = await svc.getLoyaltyAnalytics()
+    const b = await svc.getLoyaltyAnalytics(TENANT_SAMOON)
     expect(b.tierDistribution.platinum).toBe(original)
   })
 })

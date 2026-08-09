@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { useTenantStore } from '@/stores'
 import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
   useStaff,
   useInvites,
+  useAssignments,
   useSuspendStaff,
   useActivateStaff,
   useRemoveStaff,
@@ -15,12 +15,16 @@ import {
   useTransferOwnership,
   useSelectedBranch,
   useBranchState,
+  usePermission,
+  useConsoleTenantId,
 } from '@/hooks'
 import { staffService } from '@/services/staff.service'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { StaffInviteModal } from '@/components/admin/StaffInviteModal'
+import { StaffRoleBadges } from '@/components/admin/StaffRoleBadges'
+import { groupAssignmentsByUserId, userHasLocationAccess } from '@/lib/assignments'
 
 export default function StaffManagementPage() {
   return (
@@ -34,8 +38,7 @@ export default function StaffManagementPage() {
 
 function StaffManagementContent() {
   const t = useTranslations('console')
-  const tenant = useTenantStore((s) => s.tenant)
-  const tenantId = tenant?.id ?? ''
+  const tenantId = useConsoleTenantId() ?? ''
   // Phase 3.2 — this page previously read `activeBranch` (the unrelated,
   // unvalidated customer-storefront branch, still persisted in full) for
   // its branch filter. The admin branch-resolution state machine
@@ -49,6 +52,8 @@ function StaffManagementContent() {
 
   const { data: staff = [], isLoading: staffLoading } = useStaff(tenantId)
   const { data: invites = [], isLoading: invitesLoading } = useInvites(tenantId)
+  const { data: assignmentPage } = useAssignments(tenantId, { page_size: 500 })
+  const assignmentsByUser = groupAssignmentsByUserId(assignmentPage?.results ?? [])
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const suspendStaff = useSuspendStaff()
   const activateStaff = useActivateStaff()
@@ -56,12 +61,18 @@ function StaffManagementContent() {
   const cancelInvite = useCancelInvite(tenantId)
   const resendInvite = useResendInvite(tenantId)
   const transferOwnership = useTransferOwnership(tenantId)
+  const canTransferOwnership = usePermission('tenant.manage')
+  const ownerMember = staff.find((m) => {
+    if (m.status !== 'active') return false
+    const userAssignments = assignmentsByUser.get(m.userId) ?? []
+    return userAssignments.some((a) => a.status === 'active' && a.role === 'owner')
+  })
 
   const filteredStaff = branchState === 'ready' && selectedBranch
-    ? staff.filter((m) => !m.branchIds || m.branchIds.includes(selectedBranch.id))
+    ? staff.filter((m) => userHasLocationAccess(assignmentsByUser.get(m.userId) ?? [], selectedBranch.id))
     : staff
 
-  const analytics = staffService.computeAnalytics(filteredStaff, invites)
+  const analytics = staffService.computeAnalytics(filteredStaff, invites, assignmentPage?.results)
 
   const activeStaff = filteredStaff.filter((s) => s.status === 'active')
   const suspendedStaff = filteredStaff.filter((s) => s.status === 'suspended')
@@ -126,14 +137,7 @@ function StaffManagementContent() {
                 </p>
                 <p className="text-sm text-gray-500">{member.email}</p>
                 <div className="flex gap-1 mt-1 flex-wrap">
-                  {member.roles.map((r) => (
-                    <span
-                      key={r}
-                      className="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-700"
-                    >
-                      {r}
-                    </span>
-                  ))}
+                  <StaffRoleBadges assignments={assignmentsByUser.get(member.userId) ?? []} />
                 </div>
               </div>
               <PermissionGuard permission="staff.manage">
@@ -150,12 +154,12 @@ function StaffManagementContent() {
                   >
                     {t('removeLabel')}
                   </button>
-                  {!member.roles.includes('owner') && (
+                  {ownerMember && member.id !== ownerMember.id && canTransferOwnership && (
                     <button
                       className="text-xs text-purple-600 hover:underline"
                       onClick={() =>
                         transferOwnership.mutate({
-                          currentOwnerId: member.id,
+                          currentOwnerId: ownerMember.id,
                           payload: { targetMemberId: member.id },
                         })
                       }

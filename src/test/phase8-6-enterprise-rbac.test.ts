@@ -399,7 +399,7 @@ describe('J — P8.6 admin pages exist', () => {
   it('/console/users/[id]/page.tsx exists and uses PermissionGuard', () => {
     const content = src('src/app/console/users/[id]/page.tsx')
     expect(content).toContain('PermissionGuard')
-    expect(content).toContain('staff.manage')
+    expect(content).toContain('staff.view')
   })
 
   it('/console/roles/new/page.tsx exists and uses PermissionGuard', () => {
@@ -420,19 +420,16 @@ describe('J — P8.6 admin pages exist', () => {
     expect(content).toContain('inviteUserLabel')
   })
 
-  it('/console/users/[id]/page.tsx has tab navigation', () => {
+  it('/console/users/[id]/page.tsx redirects to permissions RBAC page', () => {
     const content = src('src/app/console/users/[id]/page.tsx')
-    expect(content).toContain('Profile')
-    expect(content).toContain('Roles')
-    expect(content).toContain('Permissions')
-    expect(content).toContain('Security')
+    expect(content).toContain('router.replace')
+    expect(content).toContain('/console/permissions/')
   })
 
-  it('/console/roles/new/page.tsx has Role Builder UI', () => {
+  it('/console/roles/new/page.tsx redirects to roles list', () => {
     const content = src('src/app/console/roles/new/page.tsx')
-    expect(content).toContain('roleBuilderTitle')
-    expect(content).toContain('saveRoleLabel')
-    expect(content).toContain('cloneFromRoleLabel')
+    expect(content).toContain('router.replace')
+    expect(content).toContain('/console/roles')
   })
 
   it('/console/permissions/simulator/page.tsx has simulation UI', () => {
@@ -445,8 +442,8 @@ describe('J — P8.6 admin pages exist', () => {
 // ── R — Regression ────────────────────────────────────────────────────────────
 
 describe('R — Regression', () => {
-  it('permission.service ALL_PERMISSIONS has 64 entries', () => {
-    expect(ALL_PERMISSIONS).toHaveLength(64)
+  it('permission.service ALL_PERMISSIONS has 65 entries', () => {
+    expect(ALL_PERMISSIONS).toHaveLength(65)
   })
 
   it('rbac types file defines all P8.6 interfaces', () => {

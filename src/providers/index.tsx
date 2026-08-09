@@ -22,6 +22,8 @@ import { getDirection } from '@/i18n/runtime'
 import { usePathname } from 'next/navigation'
 import type { Role, TenantMembership } from '@/types/rbac'
 import { normalizeTenantPermissions, selectActiveMembership, hasAnyMembership } from '@/services/permission.service'
+import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
+import { clearPermissionCache } from '@/lib/permission-cache'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { TENANT_OVERRIDABLE_VARS } from '@/lib/tokens'
 import { DEFAULT_TENANT } from '@/constants'
@@ -439,14 +441,16 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     const currentTenant = useTenantStore.getState().tenant
 
     // Console workspace resolves tenant by membership id — never slug.
+    // RBAC seeding is independent of tenant record resolution: permissions
+    // must be available before loadTenantById completes so
+    // ConsoleWorkspaceGate can evaluate dashboard:access on first paint.
     if (pathname?.startsWith('/console') && sessionInput.memberships && sessionInput.memberships.length > 0) {
       pendingAuthSessionRef.current = null
       const activeTenantId = sessionInput.activeMembership?.tenantId
       if (!activeTenantId) return
-      if (currentTenant?.id === activeTenantId) {
-        const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, currentTenant.id)
-        useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions, branchAccess)
-        if (roles.length > 0) useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
+      applyTenantSessionRbac(activeTenantId, sessionInput)
+      if (currentTenant?.id !== activeTenantId) {
+        void useTenantStore.getState().loadTenantById(activeTenantId)
       }
       return
     }
@@ -463,18 +467,14 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       useTenantStore.getState().loadTenantById(fallbackTenantId).then(() => {
         const resolved = useTenantStore.getState().tenant
         if (resolved) {
-          const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, resolved.id)
-          useRbacStore.getState().setCurrentTenantSession(resolved.id, roles, permissions, branchAccess)
-          if (roles.length > 0) useRbacStore.getState().setTenantRoles(resolved.id, roles)
+          applyTenantSessionRbac(resolved.id, sessionInput)
         }
       })
       return
     }
 
     if (currentTenant) {
-      const { roles, permissions, branchAccess } = normalizeTenantPermissions(sessionInput, currentTenant.id)
-      useRbacStore.getState().setCurrentTenantSession(currentTenant.id, roles, permissions, branchAccess)
-      if (roles.length > 0) useRbacStore.getState().setTenantRoles(currentTenant.id, roles)
+      applyTenantSessionRbac(currentTenant.id, sessionInput)
       pendingAuthSessionRef.current = null
     }
   }
@@ -499,6 +499,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     useRbacStore.getState()._resetStore()
     useConsoleWorkspaceStore.getState().resetWorkspace()
     useBranchStore.getState().resetBranchResolution()
+    clearPermissionCache()
     // Cart survives session teardown — cleared only on order success or explicit user action.
     useDineInStore.getState().clearTable()
     useRecentlyViewedStore.getState().clear()

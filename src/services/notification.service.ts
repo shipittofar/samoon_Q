@@ -373,8 +373,10 @@ async function getNotificationsMock(filter: NotificationFilter): Promise<Paginat
   return paginate(filtered, page, pageSize)
 }
 
-async function getNotificationMock(id: string): Promise<RichNotification | null> {
-  return _mockStore.find((n) => n.id === id) ?? null
+async function getNotificationMock(id: string, tenantId: string): Promise<RichNotification | null> {
+  const notification = _mockStore.find((n) => n.id === id) ?? null
+  if (!notification || notification.scope.tenantId !== tenantId) return null
+  return notification
 }
 
 async function markAsReadMock(id: string): Promise<RichNotification> {
@@ -476,9 +478,9 @@ async function getNotificationsReal(filter: NotificationFilter): Promise<Paginat
   return res.data
 }
 
-async function getNotificationReal(id: string): Promise<RichNotification | null> {
+async function getNotificationReal(id: string, tenantId: string): Promise<RichNotification | null> {
   const { default: api } = await import('@/services/axios.instance')
-  const res = await api.get<RichNotification>(`/notifications/${id}/`)
+  const res = await api.get<RichNotification>(`/notifications/${id}/`, { params: { tenantId } })
   return res.data
 }
 

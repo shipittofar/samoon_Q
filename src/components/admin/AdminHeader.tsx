@@ -19,8 +19,10 @@ import { usePathname } from 'next/navigation'
 import { ExternalLink, Sun, Moon, Monitor, Globe } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslations } from 'next-intl'
-import { useAuthStore, useThemeStore, useTenantStore, useLangStore } from '@/stores'
+import { useAuthStore, useThemeStore, useLangStore, useRbacStore } from '@/stores'
 import { useLogout, useSetLocale, useModuleNav, usePermission } from '@/hooks'
+import { useConsoleTenantId } from '@/hooks/console-workspace'
+import { getTenantDisplayName } from '@/lib/console-tenant-display'
 import { Avatar } from '@/components/ui'
 import { cn } from '@/utils'
 import { Button } from '@/components/ui/Button'
@@ -42,7 +44,13 @@ export function AdminHeader() {
   const { locale } = useLangStore()
   const user = useAuthStore((s) => s.user)
   const { theme, setTheme } = useThemeStore()
-  const tenant = useTenantStore((s) => s.tenant)
+  const activeTenantId = useConsoleTenantId()
+  const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
+  const tenantDisplayName = getTenantDisplayName(activeTenantId, { memberships: sessionMemberships })
+  const tenantSlug =
+    activeTenantId
+      ? sessionMemberships?.find((m) => m.tenantId === activeTenantId)?.tenantSlug ?? ''
+      : ''
   const t = useTranslations('console')
   const tHeader = useTranslations('header')
   const [langMenuOpen, setLangMenuOpen] = useState(false)
@@ -74,14 +82,14 @@ export function AdminHeader() {
             <Link
               href="/console"
               className="flex items-center gap-2 group"
-              aria-label={t('adminConsoleLinkAria', { name: tenant?.name ?? 'Samoon' })}
+              aria-label={t('adminConsoleLinkAria', { name: tenantDisplayName || 'Samoon' })}
             >
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
                 <span className="text-white text-sm font-bold">S</span>
               </div>
               <div className="flex flex-col leading-tight">
                 <span className="text-sm font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors">
-                  {tenant?.name ?? 'Samoon'}
+                  {tenantDisplayName || 'Samoon'}
                 </span>
                 <span className="text-[10px] font-medium text-[var(--fg-muted)] uppercase tracking-wider">
                   {t('admin')}
@@ -154,9 +162,9 @@ export function AdminHeader() {
 
             {/* Public site link — deep-links to this tenant's public page when slug is available */}
             <Link
-              href={tenant?.slug ? `/${tenant.slug}` : '/'}
+              href={tenantSlug ? `/${tenantSlug}` : '/'}
               className="hidden sm:flex h-9 items-center gap-1.5 px-3 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-              aria-label={tenant?.name ? t('viewPublicSiteAria', { name: tenant.name }) : t('openPublicWebsiteAria')}
+              aria-label={tenantDisplayName ? t('viewPublicSiteAria', { name: tenantDisplayName }) : t('openPublicWebsiteAria')}
             >
               <ExternalLink className="h-3.5 w-3.5" />
               <span className="hidden md:inline">{t('publicSite')}</span>

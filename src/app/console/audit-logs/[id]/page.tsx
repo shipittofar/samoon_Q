@@ -12,6 +12,7 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useAuditLog, useAuditTimeline } from '@/hooks'
+import { useConsoleTenantId } from '@/hooks/console-workspace'
 import type { AuditSeverity } from '@/types/audit-log'
 
 const SEVERITY_ICON: Record<AuditSeverity, React.ElementType> = {
@@ -49,8 +50,13 @@ function TargetLink({ type, id }: { type: string; id: string }) {
 
 function AuditLogDetailContent({ id }: { id: string }) {
   const t = useTranslations('console')
+  const tenantId = useConsoleTenantId()
   const { data: log, isLoading, isError } = useAuditLog(id)
-  const { data: timelineItems } = useAuditTimeline({ actorId: id, pageSize: 10 })
+  const { data: timelineItems } = useAuditTimeline({
+    ...(tenantId ? { tenantId } : {}),
+    actorId: id,
+    pageSize: 10,
+  })
 
   if (isLoading) {
     return (

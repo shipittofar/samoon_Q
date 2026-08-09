@@ -12,12 +12,13 @@
 import { useMemo } from 'react'
 import { configurationService } from '@/config'
 import type { ConfigFieldPreview, ConfigModuleDefinition, ConfigResolutionScope, ResolvedConfigValue } from '@/config'
-import { useAuthStore, useBranchStore, useTenantStore } from '@/stores'
+import { useAuthStore, useBranchStore } from '@/stores'
 import { usePermissions } from '@/hooks'
+import { useConsoleTenantId } from '@/hooks/console-workspace'
 
 /** Exported (P9.3) so the Studio's Inspector/Inheritance components can resolve the same tenant/branch/user scope other hooks in this file use, without re-deriving it from the stores themselves. */
 export function useConfigScope(): ConfigResolutionScope {
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const branchId = useBranchStore((s) => s.adminActiveBranch?.id)
   const userId = useAuthStore((s) => s.user?.id)
   return useMemo(() => ({ tenantId, branchId, userId }), [tenantId, branchId, userId])

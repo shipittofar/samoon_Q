@@ -11,6 +11,7 @@
 
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
+import { FALLBACK_TENANT } from '@/lib/mock-tenant-scope'
 import type { PromotionRule, PromotionSchedule, PromotionType, Weekday } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -115,9 +116,10 @@ const IN_30_DAYS = new Date(Date.now() + 30 * 86_400_000).toISOString()
 const YESTERDAY = new Date(Date.now() - 86_400_000).toISOString()
 const IN_7_DAYS = new Date(Date.now() + 7 * 86_400_000).toISOString()
 
-let mockPromotions: PromotionRule[] = [
+let mockPromotions: Array<PromotionRule & { tenantId: string }> = [
   {
     id: 'promo-happy-hour-1',
+    tenantId: FALLBACK_TENANT,
     name: 'Afternoon Happy Hour',
     description: 'Get 20% off all drinks Monday–Friday from 4pm to 7pm.',
     type: 'happy_hour',
@@ -136,6 +138,7 @@ let mockPromotions: PromotionRule[] = [
   },
   {
     id: 'promo-10-percent',
+    tenantId: FALLBACK_TENANT,
     name: '10% Off Your Next Order',
     description: '10% off for all customers this month.',
     type: 'percentage_discount',
@@ -151,6 +154,7 @@ let mockPromotions: PromotionRule[] = [
   },
   {
     id: 'promo-bogo-latte',
+    tenantId: FALLBACK_TENANT,
     name: 'Buy One Get One Latte',
     description: 'Buy any latte and get a second one free.',
     type: 'buy_one_get_one',
@@ -166,6 +170,7 @@ let mockPromotions: PromotionRule[] = [
   },
   {
     id: 'promo-fixed-2-off',
+    tenantId: FALLBACK_TENANT,
     name: '$2 Off Any Pastry',
     description: 'Get $2 off any pastry item.',
     type: 'fixed_discount',
@@ -181,6 +186,7 @@ let mockPromotions: PromotionRule[] = [
   },
   {
     id: 'promo-disabled',
+    tenantId: FALLBACK_TENANT,
     name: 'Expired Weekend Deal',
     description: 'This promotion has been disabled.',
     type: 'percentage_discount',
@@ -204,67 +210,89 @@ export type UpdatePromotionPayload = Partial<Omit<PromotionRule, 'id' | 'created
 // ── Service ───────────────────────────────────────────────────────────────────
 
 export const promotionService = {
-  async getPromotions(): Promise<PromotionRule[]> {
+  async getPromotions(tenantId: string): Promise<PromotionRule[]> {
     if (USE_MOCK) {
       await delay(400)
-      return [...mockPromotions]
+      return mockPromotions.filter((p) => p.tenantId === tenantId).map(({ tenantId: _tid, ...p }) => ({ ...p }))
     }
-    const { data } = await api.get<PromotionRule[]>(ENDPOINTS.PROMOTIONS.LIST)
+    const { data } = await api.get<PromotionRule[]>(ENDPOINTS.PROMOTIONS.LIST, { params: { tenantId } })
     return data
   },
 
-  async getActivePromotions(now = new Date()): Promise<PromotionRule[]> {
+  async getPromotion(id: string, tenantId: string): Promise<PromotionRule> {
     if (USE_MOCK) {
       await delay(350)
-      return mockPromotions.filter((p) => isPromotionActive(p, now))
+      const promotion = mockPromotions.find((p) => p.id === id && p.tenantId === tenantId)
+      if (!promotion) throw new Error(`Promotion "${id}" not found`)
+      const { tenantId: _tid, ...rest } = promotion
+      return { ...rest }
     }
-    const { data } = await api.get<PromotionRule[]>(ENDPOINTS.PROMOTIONS.ACTIVE)
+    const { data } = await api.get<PromotionRule>(ENDPOINTS.PROMOTIONS.DETAIL(id), { params: { tenantId } })
     return data
   },
 
-  async createPromotion(payload: CreatePromotionPayload): Promise<PromotionRule> {
+  async getActivePromotions(tenantId: string, now = new Date()): Promise<PromotionRule[]> {
+    if (USE_MOCK) {
+      await delay(350)
+      return mockPromotions
+        .filter((p) => p.tenantId === tenantId && isPromotionActive(p, now))
+        .map(({ tenantId: _tid, ...p }) => ({ ...p }))
+    }
+    const { data } = await api.get<PromotionRule[]>(ENDPOINTS.PROMOTIONS.ACTIVE, { params: { tenantId } })
+    return data
+  },
+
+  async createPromotion(tenantId: string, payload: CreatePromotionPayload): Promise<PromotionRule> {
     if (USE_MOCK) {
       await delay(600)
       const errors = validateSchedule(payload.schedule)
       if (errors.length) throw new Error(`Invalid schedule: ${errors.join('; ')}`)
 
-      const promotion: PromotionRule = {
+      const promotion: PromotionRule & { tenantId: string } = {
         ...payload,
+        tenantId,
         id: `promo-${Date.now()}`,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
       mockPromotions = [...mockPromotions, promotion]
-      return promotion
+      const { tenantId: _tid, ...rest } = promotion
+      return rest
     }
-    const { data } = await api.post<PromotionRule>(ENDPOINTS.PROMOTIONS.LIST, payload)
+    const { data } = await api.post<PromotionRule>(ENDPOINTS.PROMOTIONS.LIST, payload, { params: { tenantId } })
     return data
   },
 
-  async updatePromotion(id: string, payload: UpdatePromotionPayload): Promise<PromotionRule> {
+  async updatePromotion(id: string, tenantId: string, payload: UpdatePromotionPayload): Promise<PromotionRule> {
     if (USE_MOCK) {
       await delay(500)
-      const idx = mockPromotions.findIndex((p) => p.id === id)
+      const idx = mockPromotions.findIndex((p) => p.id === id && p.tenantId === tenantId)
       if (idx === -1) throw new Error(`Promotion "${id}" not found`)
       if (payload.schedule) {
         const errors = validateSchedule({ ...mockPromotions[idx].schedule, ...payload.schedule })
         if (errors.length) throw new Error(`Invalid schedule: ${errors.join('; ')}`)
       }
       mockPromotions = mockPromotions.map((p) =>
-        p.id === id ? { ...p, ...payload, updated_at: new Date().toISOString() } : p,
+        p.id === id && p.tenantId === tenantId
+          ? { ...p, ...payload, updated_at: new Date().toISOString() }
+          : p,
       )
-      return mockPromotions.find((p) => p.id === id)!
+      const updated = mockPromotions.find((p) => p.id === id && p.tenantId === tenantId)!
+      const { tenantId: _tid, ...rest } = updated
+      return rest
     }
-    const { data } = await api.patch<PromotionRule>(ENDPOINTS.PROMOTIONS.DETAIL(id), payload)
+    const { data } = await api.patch<PromotionRule>(ENDPOINTS.PROMOTIONS.DETAIL(id), payload, {
+      params: { tenantId },
+    })
     return data
   },
 
-  async disablePromotion(id: string): Promise<PromotionRule> {
-    return promotionService.updatePromotion(id, { active: false })
+  async disablePromotion(id: string, tenantId: string): Promise<PromotionRule> {
+    return promotionService.updatePromotion(id, tenantId, { active: false })
   },
 
-  async activatePromotion(id: string): Promise<PromotionRule> {
-    return promotionService.updatePromotion(id, { active: true })
+  async activatePromotion(id: string, tenantId: string): Promise<PromotionRule> {
+    return promotionService.updatePromotion(id, tenantId, { active: true })
   },
 
   isPromotionActive,

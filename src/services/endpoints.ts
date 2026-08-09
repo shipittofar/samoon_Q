@@ -12,6 +12,8 @@ export const ENDPOINTS = {
     LOGOUT: '/auth/logout/',
     REFRESH: '/auth/token/refresh/',
     ME: '/auth/me/',
+    ME_PERMISSIONS: '/auth/me/permissions/',
+    ME_EFFECTIVE_PERMISSIONS: '/auth/me/effective-permissions/',
     FORGOT_PASSWORD: '/auth/forgot-password/',
     RESET_PASSWORD: '/auth/reset-password/',
     VERIFY_OTP: '/auth/verify-otp/',
@@ -242,19 +244,57 @@ export const ENDPOINTS = {
     VENDORS: '/admin/analytics/vendors/',
     MENU: '/admin/analytics/menu/',
   },
-  // Staff Management (P7.2)
+  // RBAC — verified backend contract (paths relative to API base `/api`)
+  RBAC: {
+    PERMISSIONS: '/permissions/',
+    TENANT_ROLES: (tenantId: string) => `/tenants/${tenantId}/roles/`,
+    STAFF_MEMBERSHIPS: (tenantId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/`,
+    STAFF_MEMBERSHIP: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/`,
+    STAFF_MEMBERSHIP_REMOVE: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/remove/`,
+    STAFF_MEMBERSHIP_RESEND: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/resend/`,
+    ASSIGNMENTS: (tenantId: string) =>
+      `/authorization/tenants/${tenantId}/staff-assignments/`,
+    ASSIGNMENT: (tenantId: string, assignmentId: string) =>
+      `/authorization/tenants/${tenantId}/staff-assignments/${assignmentId}/`,
+    PERMISSION_OVERRIDES: (tenantId: string) =>
+      `/authorization/tenants/${tenantId}/permission-overrides/`,
+    MEMBERSHIP_PERMISSION_OVERRIDES: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/memberships/${membershipId}/permission-overrides/`,
+    PERMISSION_OVERRIDE: (tenantId: string, overrideId: string) =>
+      `/authorization/tenants/${tenantId}/permission-overrides/${overrideId}/`,
+    PERMISSION_AUDIT: (tenantId: string) =>
+      `/authorization/tenants/${tenantId}/permission-audit/`,
+    ROLE_PERMISSIONS: (roleId: string) => `/authorization/roles/${roleId}/permissions/`,
+  },
+
+  // Staff Management (P7.2) — aliases verified RBAC staff-membership paths
   STAFF: {
-    LIST: (tenantId: string) => `/tenants/${tenantId}/staff/`,
-    DETAIL: (id: string) => `/staff/${id}/`,
-    INVITE: (tenantId: string) => `/tenants/${tenantId}/staff/invite/`,
-    UPDATE_ROLES: (id: string) => `/staff/${id}/roles/`,
-    ACTIVATE: (id: string) => `/staff/${id}/activate/`,
-    SUSPEND: (id: string) => `/staff/${id}/suspend/`,
-    REMOVE: (id: string) => `/staff/${id}/remove/`,
-    INVITES: (tenantId: string) => `/tenants/${tenantId}/invites/`,
-    CANCEL_INVITE: (id: string) => `/invites/${id}/cancel/`,
-    RESEND_INVITE: (id: string) => `/invites/${id}/resend/`,
-    ACCEPT_INVITE: (id: string) => `/invites/${id}/accept/`,
+    LIST: (tenantId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/`,
+    DETAIL: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/`,
+    INVITE: (tenantId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/`,
+    UPDATE_ROLES: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-assignments/`,
+    ACTIVATE: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/activate/`,
+    SUSPEND: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/suspend/`,
+    REMOVE: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/remove/`,
+    INVITES: (tenantId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/`,
+    CANCEL_INVITE: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/remove/`,
+    RESEND_INVITE: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/resend/`,
+    ACCEPT_INVITE: (tenantId: string, membershipId: string) =>
+      `/authorization/tenants/${tenantId}/staff-memberships/${membershipId}/`,
     TRANSFER_OWNERSHIP: (tenantId: string) => `/tenants/${tenantId}/transfer-ownership/`,
   },
 } as const

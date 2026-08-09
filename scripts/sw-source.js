@@ -66,15 +66,27 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return
 
   // API routes — network-first, cache fallback for offline reads.
-  if (url.pathname.startsWith('/api/')) {
+  // Only same-origin /api/* (Next.js routes). Cross-origin backend calls
+  // (NEXT_PUBLIC_API_BASE_URL) must bypass the SW — intercepting them causes
+  // CORS/credential failures that surface as synthetic 503 responses.
+  if (url.pathname.startsWith('/api/') && url.origin === self.location.origin) {
     e.respondWith(
       fetch(e.request)
         .then((r) => {
-          const clone = r.clone()
-          caches.open(API_CACHE).then((cache) => cache.put(e.request, clone))
+          if (r.ok) {
+            const clone = r.clone()
+            caches.open(API_CACHE).then((cache) => cache.put(e.request, clone))
+          }
           return r
         })
-        .catch(() => caches.match(e.request)),
+        .catch(async () => {
+          const cached = await caches.match(e.request)
+          if (cached) return cached
+          return new Response(JSON.stringify({ error: 'Network unavailable' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        }),
     )
     return
   }

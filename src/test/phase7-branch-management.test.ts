@@ -191,13 +191,13 @@ describe('F — getBranch', () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const first = branches[0]
-    const found = await branchManagementService.getBranch(first.id)
+    const found = await branchManagementService.getBranch(first.id, 'tenant-samoon-01')
     expect(found.id).toBe(first.id)
   })
 
   it('F2: getBranch throws on unknown id', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    await expect(branchManagementService.getBranch('nonexistent-id')).rejects.toThrow()
+    await expect(branchManagementService.getBranch('nonexistent-id', 'tenant-samoon-01')).rejects.toThrow()
   })
 })
 

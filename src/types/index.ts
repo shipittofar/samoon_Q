@@ -1128,6 +1128,7 @@ export interface AdminOrdersRequest {
 
 /** Filter params accepted by getAdminReservations() */
 export interface AdminReservationFilters {
+  tenantId?: string
   status?: ReservationStatus
   branch_id?: string
   date?: string

@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTenantStore, useRbacStore } from '@/stores'
+import { useConsoleTenantId } from '@/hooks'
 
 /**
  * Role-aware admin dashboard router (P8.9.4 Phase B).
@@ -23,7 +24,7 @@ import { useTenantStore, useRbacStore } from '@/stores'
  */
 export default function AdminIndexPage() {
   const router = useRouter()
-  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const tenantId = useConsoleTenantId()
   const tenantState = useTenantStore((s) => s.tenantState)
   const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
 

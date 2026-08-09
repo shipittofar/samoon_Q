@@ -43,6 +43,12 @@ describe('P4.8.1 — Service worker audit', () => {
     expect(file('public/sw.js')).toContain("'activate'")
   })
 
+  it('sw.js only intercepts same-origin /api/ GET requests', () => {
+    const content = file('public/sw.js')
+    expect(content).toContain('url.origin === self.location.origin')
+    expect(content).toContain("url.pathname.startsWith('/api/')")
+  })
+
   it('sw.js has API cache strategy (network-first)', () => {
     expect(file('public/sw.js')).toContain('/api/')
     expect(file('public/sw.js')).toContain('fetch(e.request)')

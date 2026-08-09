@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import { API_BASE_URL, CSRF_COOKIE, CSRF_HEADER, JWT_ACCESS_KEY, JWT_REFRESH_KEY } from '@/constants'
 import { configurationService } from '@/config'
+import { resolveTenantSlugForApi } from '@/lib/tenant-request-context'
 
 // ── Cookie helpers ───────────────────────────────────────────────────────────
 function getCookie(name: string): string | null {
@@ -55,6 +56,10 @@ const api: AxiosInstance = axios.create({
 })
 
 // ── Request interceptor: attach JWT or CSRF ──────────────────────────────────
+const AXIOS_DEBUG =
+  process.env.NEXT_PUBLIC_AXIOS_DEBUG === 'true' ||
+  process.env.NODE_ENV === 'development'
+
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getAccessToken()
@@ -62,11 +67,31 @@ api.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`
     }
 
+    // Tenant context for Django — browser calls do not receive Next.js middleware headers.
+    if (typeof window !== 'undefined' && !config.headers['X-Tenant-Slug']) {
+      const tenantSlug = resolveTenantSlugForApi()
+      if (tenantSlug) {
+        config.headers['X-Tenant-Slug'] = tenantSlug
+      }
+    }
+
     // Django CSRF for session auth (POST/PUT/DELETE/PATCH)
     const csrfSafe = /^(GET|HEAD|OPTIONS|TRACE)$/i.test(config.method || '')
     if (!csrfSafe) {
       const csrf = getCookie(CSRF_COOKIE)
       if (csrf) config.headers[CSRF_HEADER] = csrf
+    }
+
+    if (AXIOS_DEBUG && typeof window !== 'undefined') {
+      const base = config.baseURL ?? ''
+      const path = config.url ?? ''
+      const url = path.startsWith('http') ? path : `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
+      console.debug('[axios:request]', config.method?.toUpperCase() ?? 'GET', url, {
+        Authorization: config.headers['Authorization'] ? 'Bearer <present>' : undefined,
+        'X-Tenant-Slug': config.headers['X-Tenant-Slug'],
+        Accept: config.headers['Accept'],
+        'Content-Type': config.headers['Content-Type'],
+      })
     }
 
     return config
@@ -85,8 +110,24 @@ function processQueue(error: unknown, token: string | null) {
 
 // ── Response interceptor: auto-refresh on 401 ────────────────────────────────
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (AXIOS_DEBUG && typeof window !== 'undefined') {
+      const cfg = response.config
+      const path = cfg.url ?? ''
+      console.debug('[axios:response]', cfg.method?.toUpperCase() ?? 'GET', path, response.status)
+    }
+    return response
+  },
   async (error: AxiosError) => {
+    if (AXIOS_DEBUG && typeof window !== 'undefined') {
+      const cfg = error.config
+      const path = cfg?.url ?? ''
+      console.debug('[axios:error]', cfg?.method?.toUpperCase() ?? 'GET', path, {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      })
+    }
     const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
     if (error.response?.status === 401 && !original._retry) {

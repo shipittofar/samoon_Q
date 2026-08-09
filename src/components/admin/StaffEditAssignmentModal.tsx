@@ -1,113 +1,255 @@
 'use client'
 
-/**
- * Console Staff — "Edit roles & branches" for an existing staff member.
- * Wired to the existing useUpdateStaffRoles() mutation (already
- * functioning, previously never called from any UI) — no new
- * mutation/service is introduced.
- */
-
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { useQueryClient } from '@tanstack/react-query'
 import { Modal } from '@/components/ui/Modal'
-import { StaffRoleBranchFields, requiresBranchSelection } from '@/components/admin/StaffRoleBranchFields'
-import { useUpdateStaffRoles } from '@/hooks'
+import { AssignmentCard } from '@/components/admin/AssignmentCard'
+import {
+  AssignmentFormFields,
+  emptyAssignmentForm,
+  requiresAssignmentLocations,
+  type AssignmentFormState,
+} from '@/components/admin/AssignmentFormFields'
+import {
+  useAssignments,
+  useCreateAssignment,
+  useUpdateAssignment,
+  useRevokeAssignment,
+} from '@/hooks'
 import type { StaffMember } from '@/types/staff'
-import type { Role } from '@/types/rbac'
+import type { RbacAssignment } from '@/types/rbac-api'
+import { getApiErrorMessage } from '@/api/errors'
 import toast from 'react-hot-toast'
 
 export interface StaffEditAssignmentModalProps {
   member: StaffMember
   open: boolean
   onClose: () => void
+  /** When set, modal opens in edit mode for this assignment. */
+  initialEditAssignment?: RbacAssignment | null
+  /** Hide assignment list inside modal when assignments are shown on the parent page. */
+  showAssignmentList?: boolean
 }
 
-export function StaffEditAssignmentModal({ member, open, onClose }: StaffEditAssignmentModalProps) {
+type FormMode = 'create' | 'edit'
+
+function assignmentToForm(a: RbacAssignment): AssignmentFormState {
+  return {
+    roleId: a.roleId ?? '',
+    locationIds: a.locations.map((l) => l.id),
+    allLocations: a.allLocations,
+    mode: a.mode,
+    validFrom: a.validFrom ?? '',
+    validUntil: a.validUntil ?? '',
+  }
+}
+
+export function StaffEditAssignmentModal({
+  member,
+  open,
+  onClose,
+  initialEditAssignment = null,
+  showAssignmentList = true,
+}: StaffEditAssignmentModalProps) {
   const t = useTranslations('console')
-  const qc = useQueryClient()
-  const updateStaffRoles = useUpdateStaffRoles()
+  const tenantId = member.tenantId
+  const assignmentParams = useMemo(() => ({ user_id: member.userId }), [member.userId])
 
-  const [roles, setRoles] = useState<Role[]>(member.roles)
-  const [branchIds, setBranchIds] = useState<string[]>(member.branchIds ?? [])
-  const [errors, setErrors] = useState<{ roles?: string; branches?: string }>({})
+  const { data: assignmentPage, isLoading } = useAssignments(tenantId, assignmentParams)
+  const createAssignment = useCreateAssignment(tenantId)
+  const updateAssignment = useUpdateAssignment(tenantId)
+  const revokeAssignment = useRevokeAssignment(tenantId)
 
-  // Re-sync local state whenever a different member is opened (or the
-  // modal re-opens after a prior edit), instead of carrying stale edits
-  // across members.
+  const assignments = assignmentPage?.results ?? []
+
+  const [formMode, setFormMode] = useState<FormMode>('create')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [form, setForm] = useState<AssignmentFormState>(emptyAssignmentForm())
+  const [errors, setErrors] = useState<{ role?: string; locations?: string }>({})
+
   useEffect(() => {
     if (open) {
-      setRoles(member.roles)
-      setBranchIds(member.branchIds ?? [])
+      if (initialEditAssignment) {
+        setFormMode('edit')
+        setEditingId(initialEditAssignment.assignmentId)
+        setForm(assignmentToForm(initialEditAssignment))
+      } else {
+        setFormMode('create')
+        setEditingId(null)
+        setForm(emptyAssignmentForm())
+      }
       setErrors({})
     }
-  }, [open, member])
+  }, [open, member.id, initialEditAssignment])
+
+  function membershipRef(): string | undefined {
+    return member.membershipId ?? member.id
+  }
 
   function validate(): boolean {
     const next: typeof errors = {}
-    if (roles.length === 0) next.roles = t('roleRequiredError')
-    if (roles.length > 0 && requiresBranchSelection(roles) && branchIds.length === 0) {
-      next.branches = t('branchRequiredForRoleError')
+    if (formMode === 'create' && !form.roleId) next.role = t('roleRequiredError')
+    if (requiresAssignmentLocations(form.allLocations, form.locationIds)) {
+      next.locations = t('branchRequiredForRoleError')
     }
     setErrors(next)
     return Object.keys(next).length === 0
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleCreate(e: React.FormEvent) {
     e.preventDefault()
-    if (updateStaffRoles.isPending) return
     if (!validate()) return
-
-    updateStaffRoles.mutate(
-      { id: member.id, payload: { roles, branchIds } },
+    const membership_id = membershipRef()
+    createAssignment.mutate(
+      {
+        membership_id,
+        user_id: member.userId,
+        role_id: form.roleId,
+        location_ids: form.allLocations ? [] : form.locationIds,
+        all_locations: form.allLocations,
+        mode: form.mode,
+        valid_from: form.validFrom || null,
+        valid_until: form.validUntil || null,
+      },
       {
         onSuccess: () => {
-          // useUpdateStaffRoles() already invalidates ['staff', tenantId]
-          // and ['staff-member', id] — this call is a defense-in-depth
-          // refresh so the detail page reflects the change immediately
-          // even if a caller reuses this modal outside that hook's own
-          // onSuccess timing.
-          qc.invalidateQueries({ queryKey: ['staff-member', member.id] })
-          toast.success(t('staffAssignmentUpdatedSuccessfully'))
-          onClose()
+          toast.success(t('assignmentCreatedSuccessfully'))
+          setForm(emptyAssignmentForm())
+          setFormMode('create')
         },
-        onError: () => {
-          toast.error(t('failedToUpdateStaffAssignmentRetry'))
-        },
+        onError: (err) => toast.error(getApiErrorMessage(err, t('failedToCreateAssignment'))),
       },
     )
   }
 
-  return (
-    <Modal open={open} onClose={onClose} title={t('editStaffAssignmentModalTitle')} size="md">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <StaffRoleBranchFields
-          tenantId={member.tenantId}
-          selectedRoles={roles}
-          selectedBranchIds={branchIds}
-          onChangeRoles={setRoles}
-          onChangeBranchIds={setBranchIds}
-          roleError={errors.roles}
-          branchError={errors.branches}
-        />
+  function handleUpdate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!editingId || !validate()) return
+    updateAssignment.mutate(
+      {
+        assignmentId: editingId,
+        userId: member.userId,
+        payload: {
+          location_ids: form.allLocations ? [] : form.locationIds,
+          all_locations: form.allLocations,
+          mode: form.mode,
+          valid_from: form.validFrom || null,
+          valid_until: form.validUntil || null,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success(t('staffAssignmentUpdatedSuccessfully'))
+          setEditingId(null)
+          setFormMode('create')
+          setForm(emptyAssignmentForm())
+        },
+        onError: (err) => toast.error(getApiErrorMessage(err, t('failedToUpdateStaffAssignmentRetry'))),
+      },
+    )
+  }
 
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            {t('cancel')}
-          </button>
-          <button
-            type="submit"
-            disabled={updateStaffRoles.isPending}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-          >
-            {updateStaffRoles.isPending ? t('savingEllipsis') : t('saveChanges')}
-          </button>
-        </div>
-      </form>
+  function startEdit(assignment: RbacAssignment) {
+    setFormMode('edit')
+    setEditingId(assignment.assignmentId)
+    setForm(assignmentToForm(assignment))
+    setErrors({})
+  }
+
+  function handleRevoke(assignmentId: string) {
+    revokeAssignment.mutate(
+      { assignmentId, userId: member.userId },
+      {
+        onSuccess: () => toast.success(t('assignmentRevokedSuccessfully')),
+        onError: (err) => toast.error(getApiErrorMessage(err, t('failedToRevokeAssignment'))),
+      },
+    )
+  }
+
+  const pending =
+    createAssignment.isPending || updateAssignment.isPending || revokeAssignment.isPending
+
+  const modalTitle =
+    formMode === 'create' ? t('addRoleLabel') : t('editAssignmentLabel')
+
+  return (
+    <Modal open={open} onClose={onClose} title={modalTitle} size="lg">
+      <div className="space-y-6">
+        {showAssignmentList && (
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-gray-900">{t('locationAssignmentsLabel')}</h3>
+          {isLoading ? (
+            <p className="text-sm text-gray-500">{t('loadingEllipsis')}</p>
+          ) : assignments.length === 0 ? (
+            <p className="text-sm text-gray-500">{t('noAssignmentsYet')}</p>
+          ) : (
+            <div className="space-y-3">
+              {assignments.map((a) => (
+                <AssignmentCard
+                  key={a.assignmentId}
+                  assignment={a}
+                  onEdit={() => startEdit(a)}
+                  onRevoke={() => handleRevoke(a.assignmentId)}
+                  revoking={revokeAssignment.isPending}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+        )}
+
+        <form
+          onSubmit={formMode === 'create' ? handleCreate : handleUpdate}
+          className={`space-y-4 ${showAssignmentList ? 'border-t pt-4' : ''}`}
+        >
+          <h3 className="text-sm font-semibold text-gray-900">
+            {formMode === 'create' ? t('addAssignmentLabel') : t('editAssignmentLabel')}
+          </h3>
+
+          <AssignmentFormFields
+            tenantId={tenantId}
+            form={form}
+            onChange={setForm}
+            showRoleSelect={formMode === 'create'}
+            roleError={errors.role}
+            locationsError={errors.locations}
+          />
+
+          <div className="flex justify-end gap-3">
+            {formMode === 'edit' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormMode('create')
+                  setEditingId(null)
+                  setForm(emptyAssignmentForm())
+                }}
+                className="rounded-md border px-4 py-2 text-sm"
+              >
+                {t('cancelEdit')}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={pending}
+              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {pending
+                ? t('savingEllipsis')
+                : formMode === 'create'
+                  ? t('createAssignmentLabel')
+                  : t('saveChanges')}
+            </button>
+          </div>
+        </form>
+      </div>
     </Modal>
   )
 }

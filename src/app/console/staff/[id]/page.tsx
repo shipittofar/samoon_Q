@@ -1,29 +1,26 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use } from 'react'
 import { useTranslations } from 'next-intl'
-import { useStaffMember, useAdminBranch, useAdminBranches } from '@/hooks'
-import { getPermissionsForRole } from '@/services/permission.service'
+import { useStaffMember } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { StaffEditAssignmentModal } from '@/components/admin/StaffEditAssignmentModal'
+import { StaffAssignedRolesSection } from '@/components/admin/StaffAssignedRolesSection'
+import { StaffPermissionOverridesSection } from '@/components/admin/StaffPermissionOverridesSection'
+import { StaffEffectivePermissionsSection } from '@/components/admin/StaffEffectivePermissionsSection'
+import { StaffPermissionAuditSection } from '@/components/admin/StaffPermissionAuditSection'
 import Link from 'next/link'
-
-function BranchBadge({ branchId }: { branchId: string }) {
-  const { data: branch } = useAdminBranch(branchId)
-  return (
-    <Link
-      href={`/console/branches/${branchId}`}
-      className="rounded bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700 hover:underline"
-    >
-      {branch?.name ?? branchId}
-    </Link>
-  )
-}
 
 interface PageProps {
   params: Promise<{ id: string }>
+}
+
+const STAFF_STATUS_KEY: Record<string, string> = {
+  active: 'statusActive',
+  suspended: 'statusSuspended',
+  removed: 'staffStatusRemoved',
+  pending: 'statusPending',
 }
 
 export default function StaffDetailPage({ params }: PageProps) {
@@ -37,58 +34,18 @@ export default function StaffDetailPage({ params }: PageProps) {
   )
 }
 
-function BranchAccessMatrix({ tenantId, assignedBranchIds }: { tenantId: string; assignedBranchIds: string[] }) {
-  const t = useTranslations('console')
-  const { data: allBranches = [] } = useAdminBranches(tenantId)
-  const assigned = new Set(assignedBranchIds)
-  return (
-    <section>
-      <h2 className="text-lg font-semibold mb-2">{t('branchAccessMatrixLabel')}</h2>
-      <ul className="space-y-1 text-sm">
-        {allBranches.map((b) => (
-          <li key={b.id} className="flex items-center gap-2">
-            <span className={assigned.has(b.id) ? 'text-green-600' : 'text-gray-400'}>
-              {assigned.has(b.id) ? '✓' : '✗'}
-            </span>
-            <Link href={`/console/branches/${b.id}`} className="hover:underline">
-              {b.name}
-            </Link>
-            <span className="text-xs text-gray-400">{b.location.city}</span>
-          </li>
-        ))}
-        {allBranches.length === 0 && <li className="text-gray-500">{t('noBranchesConfigured')}</li>}
-      </ul>
-    </section>
-  )
-}
-
-const STAFF_STATUS_KEY: Record<string, string> = {
-  active: 'statusActive',
-  suspended: 'statusSuspended',
-  removed: 'staffStatusRemoved',
-  pending: 'statusPending',
-}
-
 function StaffDetailContent({ id }: { id: string }) {
   const t = useTranslations('console')
   const { data: member, isLoading } = useStaffMember(id)
-  const [editOpen, setEditOpen] = useState(false)
 
   if (isLoading) return <div className="p-6">{t('loadingEllipsis')}</div>
   if (!member) return <div className="p-6">{t('staffMemberNotFound')}</div>
 
-  const derivedPermissions = getPermissionsForRole(member.roles)
+  const membershipId = member.membershipId ?? member.id
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl">
-      <div className="flex items-center gap-4">
-        {member.avatar && (
-          <img
-            src={member.avatar}
-            alt={`${member.firstName} ${member.lastName}`}
-            className="h-16 w-16 rounded-full object-cover"
-          />
-        )}
+    <div className="p-6 space-y-8 max-w-3xl">
+      <div className="flex items-start gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold">
             {member.firstName} {member.lastName}
@@ -108,46 +65,29 @@ function StaffDetailContent({ id }: { id: string }) {
         >
           {t(STAFF_STATUS_KEY[member.status] ?? 'statusInactive')}
         </span>
-        {member.status !== 'removed' && (
-          <PermissionGuard permission="staff.manage">
-            <button
-              type="button"
-              onClick={() => setEditOpen(true)}
-              className="ml-auto rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-gray-50"
-            >
-              {t('editAssignmentLabel')}
-            </button>
-          </PermissionGuard>
-        )}
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold mb-2">{t('rolesTabLabel')}</h2>
-        <div className="flex gap-2 flex-wrap">
-          {member.roles.map((r) => (
-            <span key={r} className="px-3 py-1 rounded bg-blue-100 text-blue-700 text-sm">
-              {r}
-            </span>
-          ))}
-        </div>
-      </section>
+      <StaffAssignedRolesSection member={member} />
 
-      <section>
-        <h2 className="text-lg font-semibold mb-2">{t('derivedPermissionsLabel')}</h2>
-        <div className="flex gap-2 flex-wrap">
-          {derivedPermissions.map((p) => (
-            <span key={p} className="px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-xs font-mono">
-              {p}
-            </span>
-          ))}
-        </div>
-      </section>
+      <StaffPermissionOverridesSection
+        tenantId={member.tenantId}
+        membershipId={membershipId}
+        userId={member.userId}
+      />
+
+      <StaffEffectivePermissionsSection membershipId={membershipId} userId={member.userId} />
+
+      <StaffPermissionAuditSection tenantId={member.tenantId} membershipId={membershipId} />
 
       <section>
         <h2 className="text-lg font-semibold mb-2">{t('membershipLabel')}</h2>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <dt className="text-gray-500">{t('tenantLabelShort')}</dt>
-          <dd>{member.tenantId}</dd>
+          <dd>
+            <Link href="/console/settings" className="text-indigo-600 hover:underline">
+              {member.tenantId}
+            </Link>
+          </dd>
           <dt className="text-gray-500">{t('invitedLabel')}</dt>
           <dd>{new Date(member.invitedAt).toLocaleDateString()}</dd>
           {member.activatedAt && (
@@ -164,25 +104,6 @@ function StaffDetailContent({ id }: { id: string }) {
           )}
         </dl>
       </section>
-
-      {member.branchIds && member.branchIds.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold mb-2">{t('assignedBranchesLabel')}</h2>
-          <div className="flex flex-wrap gap-2">
-            {member.branchIds.map((bid) => (
-              <BranchBadge key={bid} branchId={bid} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <BranchAccessMatrix tenantId={member.tenantId} assignedBranchIds={member.branchIds ?? []} />
-
-      <StaffEditAssignmentModal
-        member={member}
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-      />
     </div>
   )
 }

@@ -3,10 +3,12 @@ import { persist } from 'zustand/middleware'
 import type { TenantMembership } from '@/types/rbac'
 import type { Branch } from '@/types/branch'
 import { hasMembershipBranches, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId } from '@/lib/console-workspace'
-import { canBootTenantFromMembership, hydrateConsoleTenantFromMembership } from '@/lib/console-membership-hydration'
+import { canBootTenantFromMembership, hydrateConsoleTenantFromMembership, ensureFullTenantRecord } from '@/lib/console-membership-hydration'
 import { reconcileConsoleWorkspaceConsistency } from '@/lib/console-workspace-consistency'
+import { invalidateTenantLoads } from '@/lib/console-workspace-switch'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
+import { refreshPermissionCache } from '@/lib/permission-cache'
 import { useTenantStore } from '@/stores/index'
 import { useBranchStore } from '@/stores/index'
 import { useRbacStore } from '@/stores/index'
@@ -35,7 +37,7 @@ export interface ConsoleWorkspaceState {
   isBranchLoading: () => boolean
 
   initializeFromSession: () => Promise<void>
-  switchTenant: (tenantId: string) => Promise<void>
+  switchTenant: (tenantId: string) => Promise<boolean>
   switchBranch: (branchId: string) => void
   resetWorkspace: () => void
 }
@@ -62,7 +64,7 @@ function clearConsoleActiveTenantState() {
   })
 }
 
-function seedRbacForTenant(tenantId: string) {
+async function seedRbacAndRefreshForTenant(tenantId: string): Promise<void> {
   const memberships = useRbacStore.getState().sessionMemberships ?? []
   const membership = memberships.find((m) => m.tenantId === tenantId)
   const { roles, permissions, branchAccess } = normalizeTenantPermissions(
@@ -73,6 +75,12 @@ function seedRbacForTenant(tenantId: string) {
   )
   useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions, branchAccess)
   if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenantId, roles)
+  await refreshPermissionCache({
+    tenantId,
+    memberships,
+    activeMembership: membership ?? { tenantId, roles, branchAccess },
+    tenantSlug: membership?.tenantSlug,
+  })
 }
 
 export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
@@ -113,7 +121,9 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
         }
 
         const currentTenantId = useTenantStore.getState().tenant?.id
-        if (currentTenantId === targetTenantId && useTenantStore.getState().tenantState === 'resolved') {
+        const currentTenantState = useTenantStore.getState().tenantState
+        if (currentTenantId === targetTenantId && currentTenantState === 'resolved') {
+          await seedRbacAndRefreshForTenant(targetTenantId)
           const branchState = useBranchStore.getState().branchState
           if (branchState === 'ready' || branchState === 'empty') {
             set({ selectedTenantId: targetTenantId, workspacePhase: 'ready', _bootstrapped: true })
@@ -132,34 +142,44 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
         }
 
         set({ workspacePhase: 'initializing', workspaceError: null })
-        try {
-          await get().switchTenant(targetTenantId)
+        const switched = await get().switchTenant(targetTenantId)
+        if (switched) {
           set({ _bootstrapped: true, workspacePhase: 'ready', workspaceError: null })
           reconcileConsoleWorkspaceConsistency()
-        } catch (err) {
+        } else {
           set({
             workspacePhase: 'error',
-            workspaceError: err instanceof Error ? err.message : 'Failed to initialize Console workspace',
-            _bootstrapped: true,
+            workspaceError: 'Failed to synchronize tenant workspace with the active session',
+            _bootstrapped: false,
           })
         }
       },
 
-      switchTenant: async (tenantId: string) => {
-        if (get()._switching) return
+      switchTenant: async (tenantId: string): Promise<boolean> => {
+        if (get()._switching) return false
 
         const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
-        if (!activeTenantId || tenantId !== activeTenantId) return
+        if (!activeTenantId || tenantId !== activeTenantId) return false
 
         const memberships = useRbacStore.getState().sessionMemberships ?? []
         const membership = memberships.find((m) => m.tenantId === tenantId)
-        if (!membership) return
+        if (!membership) return false
 
         const currentTenantId = useTenantStore.getState().tenant?.id
-        if (currentTenantId === tenantId && useTenantStore.getState().tenantState === 'resolved') {
+        const currentTenantState = useTenantStore.getState().tenantState
+        if (currentTenantId === tenantId && currentTenantState === 'resolved') {
+          await seedRbacAndRefreshForTenant(tenantId)
           set({ selectedTenantId: tenantId, workspacePhase: 'ready' })
-          return
+          return true
         }
+
+        // P3 — clear stale tenant record synchronously before any async work
+        invalidateTenantLoads()
+        useTenantStore.setState({
+          tenant: null,
+          isLoading: true,
+          tenantState: 'loading',
+        })
 
         set({ _switching: true, workspacePhase: 'switching_tenant', workspaceError: null, selectedTenantId: tenantId })
 
@@ -169,21 +189,22 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
 
           if (canBootTenantFromMembership(membership)) {
             hydrateConsoleTenantFromMembership(membership)
+            void ensureFullTenantRecord(tenantId)
           } else {
             await useTenantStore.getState().loadTenantById(tenantId)
           }
 
           const tenant = useTenantStore.getState().tenant
           const tenantState = useTenantStore.getState().tenantState
-          if (tenantState !== 'resolved' || !tenant) {
+          if (tenantState !== 'resolved' || !tenant || tenant.id !== tenantId) {
             set({
               workspacePhase: 'error',
               workspaceError: `Tenant could not be resolved (${tenantState})`,
             })
-            return
+            return false
           }
 
-          seedRbacForTenant(tenantId)
+          await seedRbacAndRefreshForTenant(tenantId)
           if (!canBootTenantFromMembership(membership)) {
             useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(tenant))
             useTenantStore.getState().setFeatureFlagsInitialized(true)
@@ -201,12 +222,13 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
           }
 
           set({ workspacePhase: 'ready', workspaceError: null })
+          return true
         } catch (err) {
           set({
             workspacePhase: 'error',
             workspaceError: err instanceof Error ? err.message : 'Failed to switch tenant',
           })
-          throw err
+          return false
         } finally {
           set({ _switching: false })
         }

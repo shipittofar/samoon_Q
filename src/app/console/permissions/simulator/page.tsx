@@ -3,24 +3,25 @@
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { ArrowLeft, Play, ShieldCheck, ShieldX, Info } from 'lucide-react'
+import { ArrowLeft, Play, ShieldCheck, ShieldX } from 'lucide-react'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
-import { useRbacStore } from '@/stores'
-import {
-  ROLE_TEMPLATES,
-  PERMISSION_CATEGORIES,
-  ALL_PERMISSIONS,
-  applyOverrides,
-} from '@/services/permission.service'
+import { useTenantRoles, usePermissionCatalog, useConsoleTenantId } from '@/hooks'
+import { PERMISSION_CATEGORIES } from '@/services/permission.service'
 import type { Role, P7Permission, SimulationResult } from '@/types/rbac'
 
 function SimulatorContent() {
   const t = useTranslations('console')
-  const { userOverrides } = useRbacStore()
+  const tenantId = useConsoleTenantId() ?? ''
+  const { data: roleCatalog = [] } = useTenantRoles(tenantId)
+  const { data: permissionCatalog = [] } = usePermissionCatalog()
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
-  const [applyUserOverrideId, setApplyUserOverrideId] = useState<string>('')
   const [result, setResult] = useState<SimulationResult | null>(null)
+
+  const allPermissionKeys = useMemo(
+    () => permissionCatalog.map((p) => p.key) as P7Permission[],
+    [permissionCatalog],
+  )
 
   function toggleRole(role: Role) {
     setSelectedRoles((prev) =>
@@ -30,29 +31,21 @@ function SimulatorContent() {
 
   function runSimulation() {
     const basePerms = new Set<P7Permission>()
-    for (const role of selectedRoles) {
-      const tmpl = ROLE_TEMPLATES.find((t) => t.role === role)
-      if (tmpl) tmpl.permissions.forEach((p) => basePerms.add(p))
+    for (const slug of selectedRoles) {
+      const role = roleCatalog.find((r) => r.slug === slug)
+      if (role) role.permissions.forEach((p) => basePerms.add(p as P7Permission))
     }
 
-    const override = applyUserOverrideId
-      ? userOverrides.find((o) => o.userId === applyUserOverrideId)
-      : undefined
-
-    const effective = override
-      ? applyOverrides(Array.from(basePerms), override)
-      : Array.from(basePerms)
-
+    const effective = Array.from(basePerms)
     const effectiveSet = new Set(effective)
-    const grantedByOverride = override ? override.allow.filter((p) => effectiveSet.has(p)) : []
-    const deniedPerms = ALL_PERMISSIONS.filter((p) => !effectiveSet.has(p))
+    const deniedPerms = allPermissionKeys.filter((p) => !effectiveSet.has(p))
 
     setResult({
       label: selectedRoles.length > 0 ? selectedRoles.join(' + ') : t('noRolesLabel'),
       roles: selectedRoles,
       effectivePermissions: effective,
       deniedPermissions: deniedPerms,
-      grantedByOverride,
+      grantedByOverride: [],
       permissionCount: effective.length,
     })
   }
@@ -69,7 +62,6 @@ function SimulatorContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/console/permissions" className="text-gray-400 hover:text-gray-600 transition-colors">
           <ArrowLeft className="w-5 h-5" />
@@ -81,7 +73,6 @@ function SimulatorContent() {
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        {/* Config panel */}
         <div className="col-span-1 space-y-4">
           <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h3 className="font-semibold text-gray-900">{t('simulateAsLabel')}</h3>
@@ -89,37 +80,21 @@ function SimulatorContent() {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-2">{t('selectRolesLabel')}</label>
               <div className="space-y-2">
-                {ROLE_TEMPLATES.map((rt) => (
-                  <label key={rt.role} className="flex items-center gap-2.5 cursor-pointer group">
+                {roleCatalog.map((rt) => (
+                  <label key={rt.id} className="flex items-center gap-2.5 cursor-pointer group">
                     <input
                       type="checkbox"
-                      checked={selectedRoles.includes(rt.role)}
-                      onChange={() => toggleRole(rt.role)}
+                      checked={selectedRoles.includes(rt.slug as Role)}
+                      onChange={() => toggleRole(rt.slug as Role)}
                       className="accent-indigo-600"
                     />
-                    <span className="text-sm text-gray-700 group-hover:text-gray-900">{rt.label}</span>
-                    <span className="text-xs text-gray-400 ml-auto">{t('permsCount', { count: rt.permissions.length })}</span>
+                    <span className="text-sm text-gray-700 group-hover:text-gray-900">{rt.name}</span>
+                    <span className="text-xs text-gray-400 ml-auto">
+                      {t('permsCount', { count: rt.permissions.length })}
+                    </span>
                   </label>
                 ))}
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">{t('applyUserOverrideOptionalLabel')}</label>
-              <select
-                value={applyUserOverrideId}
-                onChange={(e) => setApplyUserOverrideId(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">{t('none')}</option>
-                {userOverrides
-                  .filter((o) => o.allow.length > 0 || o.deny.length > 0)
-                  .map((o) => (
-                    <option key={o.userId} value={o.userId}>
-                      {t('userGrantDenyLabel', { id: o.userId, grant: o.allow.length, deny: o.deny.length })}
-                    </option>
-                  ))}
-              </select>
             </div>
 
             <button
@@ -144,17 +119,10 @@ function SimulatorContent() {
                   <div className="text-xs text-red-500">{t('deniedLabel')}</div>
                 </div>
               </div>
-              {result.grantedByOverride.length > 0 && (
-                <div className="flex items-start gap-1.5 text-xs text-indigo-600 bg-indigo-50 rounded-lg p-2">
-                  <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                  {t('permissionsGrantedViaOverride', { count: result.grantedByOverride.length })}
-                </div>
-              )}
             </div>
           )}
         </div>
 
-        {/* Results panel */}
         <div className="col-span-2">
           {!result ? (
             <div className="bg-white rounded-xl border border-dashed border-gray-200 p-12 text-center">

@@ -6,8 +6,7 @@ import { useTranslations } from 'next-intl'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { useTenantStore } from '@/stores'
-import { useConsoleCreateBranch } from '@/hooks'
+import { useConsoleCreateBranch, useConsoleTenantId } from '@/hooks'
 import {
   BranchFormFields,
   validateBranchForm,
@@ -19,7 +18,7 @@ import toast from 'react-hot-toast'
 export default function NewBranchPage() {
   const t = useTranslations('console')
   const router = useRouter()
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
+  const tenantId = useConsoleTenantId() ?? ''
   const { mutate: createBranch, isPending } = useConsoleCreateBranch(tenantId)
 
   const [form, setForm] = useState(EMPTY_BRANCH_FORM)

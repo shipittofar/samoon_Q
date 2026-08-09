@@ -22,6 +22,7 @@ import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { MOCK_MENU_ITEMS, MOCK_ORDERS, MOCK_PLATFORM_USERS, MOCK_BUSINESS_CUSTOMERS, MOCK_BRANCH_CUSTOMERS, MOCK_RESERVATIONS, MOCK_CUSTOMER_NOTES, MOCK_CUSTOMER_TAG_DEFINITIONS, MOCK_CUSTOMER_TAG_ASSIGNMENTS, MOCK_CUSTOMER_ANALYTICS, MOCK_CUSTOMER_MARKETING, MOCK_CUSTOMER_COUPONS, MOCK_CUSTOMER_TIMELINE } from '@/lib/mock-data'
 import { isPickupDeliveryRejectionError, resolveStatusUpdate, type OrderStatusContext } from '@/lib/order-status'
+import { branchBelongsToMockTenant, mockBranchTenantId } from '@/lib/mock-tenant-scope'
 import type {
   AdminCustomer,
   AdminCustomerFilters,
@@ -187,6 +188,12 @@ function applyReservationFilters(
   filters: AdminReservationFilters,
 ): Reservation[] {
   let result = [...reservations]
+  if (filters.tenantId) {
+    result = result.filter((r) => {
+      const reservationTenantId = mockBranchTenantId(r.branch_id)
+      return reservationTenantId === filters.tenantId
+    })
+  }
   if (filters.status) result = result.filter((r) => r.status === filters.status)
   if (filters.branch_id) result = result.filter((r) => r.branch_id === filters.branch_id)
   if (filters.date) result = result.filter((r) => r.date === filters.date)
@@ -217,22 +224,6 @@ function applyCustomerFilters(customers: AdminCustomer[], filters: AdminCustomer
 const FALLBACK_TENANT = 'tenant-samoon-01'
 
 export const ADMIN_ORDERS_PAGE_SIZE = 20
-
-/** Mock branch → tenant map (matches branch.service INITIAL_MOCK_BRANCHES). */
-const MOCK_BRANCH_TENANT_IDS: Record<string, string> = {
-  'branch-rest-01': FALLBACK_TENANT,
-  'branch-rest-02': FALLBACK_TENANT,
-  'branch-rest-03': FALLBACK_TENANT,
-  'branch-cafe-01': FALLBACK_TENANT,
-  'branch-cafe-02': FALLBACK_TENANT,
-  'branch-bar-01': FALLBACK_TENANT,
-  'branch-fc-01': FALLBACK_TENANT,
-  'branch-fc-02': FALLBACK_TENANT,
-}
-
-function mockBranchTenantId(branchId: string): string | undefined {
-  return MOCK_BRANCH_TENANT_IDS[branchId]
-}
 
 function applyMockOrdersScope(
   orders: Partial<Order>[],
@@ -314,12 +305,16 @@ export const adminService = {
   async updateOrderStatus(
     id: string,
     status: OrderStatus,
+    tenantId: string,
     orderContext?: OrderStatusContext,
   ): Promise<Order> {
     const resolvedStatus = resolveStatusUpdate(orderContext, status)
     if (USE_MOCK) {
       await delay(400)
       const order = MOCK_ORDERS.find((o) => o.id === id)
+      if (!order || !branchBelongsToMockTenant(order.branch_id, tenantId)) {
+        throw new Error('Order not found')
+      }
       return { ...(order as Order), status: resolvedStatus }
     }
     try {
@@ -336,14 +331,18 @@ export const adminService = {
     }
   },
 
-  async getAdminReservation(id: string): Promise<Reservation> {
+  async getAdminReservation(id: string, tenantId: string): Promise<Reservation> {
     if (USE_MOCK) {
       await delay(400)
       const res = MOCK_RESERVATIONS.find((r) => r.id === id)
-      if (!res) throw new Error(`Reservation ${id} not found`)
+      if (!res || !branchBelongsToMockTenant(res.branch_id, tenantId)) {
+        throw new Error(`Reservation ${id} not found`)
+      }
       return res
     }
-    const { data } = await api.get<Reservation>(ENDPOINTS.RESERVATIONS.DETAIL(id))
+    const { data } = await api.get<Reservation>(ENDPOINTS.RESERVATIONS.DETAIL(id), {
+      params: { tenantId },
+    })
     return data
   },
 
@@ -361,17 +360,22 @@ export const adminService = {
   },
 
   // ⚠️ Backend blocker: POST /reservations/{id}/confirm/ not yet deployed
-  async confirmReservation(id: string): Promise<Reservation> {
+  async confirmReservation(id: string, tenantId: string): Promise<Reservation> {
     if (USE_MOCK) {
       await delay(400)
       const res = MOCK_RESERVATIONS.find((r) => r.id === id)
+      if (!res || !branchBelongsToMockTenant(res.branch_id, tenantId)) {
+        throw new Error(`Reservation ${id} not found`)
+      }
       return {
         ...(res as Reservation),
         status: 'confirmed',
         confirmation_code: `SAV-${Math.floor(Math.random() * 9000) + 1000}`,
       }
     }
-    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CONFIRM(id))
+    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CONFIRM(id), null, {
+      params: { tenantId },
+    })
     return data
   },
 

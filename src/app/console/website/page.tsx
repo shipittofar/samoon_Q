@@ -14,6 +14,7 @@ import { useTenantStore, useBranchStore } from '@/stores'
 import {
   useHomepageLayout, useSaveLayout, usePublishLayout,
   useRestoreVersion, useBranchOverrides, useSaveBranchOverrides,
+  useConsoleTenantId,
 } from '@/hooks'
 import type {
   HomepageLayout, SectionConfig, SectionKey, HeroContent,
@@ -830,8 +831,11 @@ function BranchesTab({ tenantId }: { tenantId: string }) {
 
 function WebsiteBuilderContent() {
   const t = useTranslations('console')
-  const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
-  const tenantSlug = useTenantStore((s) => s.tenant?.slug ?? '')
+  const tenantId = useConsoleTenantId() ?? ''
+  const tenantSlug = useTenantStore((s) => {
+    const tenant = s.tenant
+    return tenant?.id === tenantId ? tenant.slug ?? '' : ''
+  })
   const { data: layout, isLoading, error } = useHomepageLayout(tenantId)
   const saveLayout = useSaveLayout(tenantId)
   const publishLayout = usePublishLayout(tenantId)

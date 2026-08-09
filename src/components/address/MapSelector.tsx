@@ -15,8 +15,19 @@ export interface MapSelectorProps {
   disabled?: boolean
 }
 
-function isValidCoord(lat: number | null | undefined, lng: number | null | undefined): lat is number {
+function isValidCoord(
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+): lat is number {
   return lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng)
+}
+
+function coordsOrNull(
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+): { lat: number; lng: number } | null {
+  if (lat == null || lng == null || Number.isNaN(lat) || Number.isNaN(lng)) return null
+  return { lat, lng }
 }
 
 /** Static OSM tile preview — avoids iframe/X-Frame blocking and works in modals. */
@@ -32,11 +43,11 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
   const [geoError, setGeoError] = useState<string | null>(null)
   const [mapError, setMapError] = useState(false)
 
-  const hasCoords = isValidCoord(latitude, longitude)
-  const mapUrl = useMemo(
-    () => (hasCoords ? buildStaticMapUrl(latitude, longitude) : null),
-    [hasCoords, latitude, longitude],
-  )
+  const mapUrl = useMemo(() => {
+    const coords = coordsOrNull(latitude, longitude)
+    if (!coords) return null
+    return buildStaticMapUrl(coords.lat, coords.lng)
+  }, [latitude, longitude])
 
   const applyCoords = useCallback(
     (la: number, ln: number) => {
@@ -91,7 +102,7 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
         className="relative rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--card-hover)] aspect-[2/1] min-h-[180px]"
         aria-label={t('mapPreview')}
       >
-        {hasCoords && mapUrl && !mapError ? (
+        {mapUrl && !mapError ? (
           <>
             <Image
               src={mapUrl}
@@ -109,7 +120,7 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
               </div>
             </div>
             <div className="absolute bottom-2 start-2 end-2 rounded-lg bg-[var(--card)]/90 backdrop-blur-sm border border-[var(--border)] px-3 py-1.5 text-xs font-mono text-[var(--fg-muted)]">
-              {latitude.toFixed(5)}, {longitude.toFixed(5)}
+              {coordsOrNull(latitude, longitude)?.lat.toFixed(5)}, {coordsOrNull(latitude, longitude)?.lng.toFixed(5)}
             </div>
           </>
         ) : (

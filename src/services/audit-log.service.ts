@@ -348,8 +348,10 @@ async function getAuditLogsMock(filter: AuditFilter): Promise<PaginatedAuditLogs
   return paginate(filtered, page, pageSize)
 }
 
-async function getAuditLogMock(id: string): Promise<AuditLog | null> {
-  return _mockStore.find((l) => l.id === id) ?? null
+async function getAuditLogMock(id: string, tenantId: string): Promise<AuditLog | null> {
+  const log = _mockStore.find((l) => l.id === id) ?? null
+  if (!log || log.scope.tenantId !== tenantId) return null
+  return log
 }
 
 async function createAuditLogMock(
@@ -405,9 +407,9 @@ async function getAuditLogsReal(filter: AuditFilter): Promise<PaginatedAuditLogs
   return res.data
 }
 
-async function getAuditLogReal(id: string): Promise<AuditLog | null> {
+async function getAuditLogReal(id: string, tenantId: string): Promise<AuditLog | null> {
   const { default: api } = await import('@/services/axios.instance')
-  const res = await api.get<AuditLog>(`/audit-logs/${id}/`)
+  const res = await api.get<AuditLog>(`/audit-logs/${id}/`, { params: { tenantId } })
   return res.data
 }
 

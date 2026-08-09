@@ -276,7 +276,10 @@ describe('F. inviteStaff', () => {
     const { staffService } = await freshService()
     const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'new.hire@test.com',
-      roles: ['waiter'],
+      role_id: 'waiter',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
     })
     expect(invite.status).toBe('pending')
   })
@@ -285,7 +288,10 @@ describe('F. inviteStaff', () => {
     const { staffService } = await freshService()
     const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'hire2@test.com',
-      roles: ['cashier'],
+      role_id: 'cashier',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
     })
     expect(invite.email).toBe('hire2@test.com')
   })
@@ -294,16 +300,22 @@ describe('F. inviteStaff', () => {
     const { staffService } = await freshService()
     const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'hire3@test.com',
-      roles: ['manager'],
+      role_id: 'manager',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
     })
-    expect(invite.roles).toContain('manager')
+    expect(invite.role).toBe('manager')
   })
 
   it('F4: invite appears in getInvites', async () => {
     const { staffService } = await freshService()
     await staffService.inviteStaff('tenant-samoon-01', {
       email: 'hire4@test.com',
-      roles: ['support'],
+      role_id: 'support',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
     })
     const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.some((i) => i.email === 'hire4@test.com')).toBe(true)
@@ -315,7 +327,10 @@ describe('F. inviteStaff', () => {
     staffAuditHooks.subscribe((e) => events.push(e))
     await staffService.inviteStaff('tenant-samoon-01', {
       email: 'audit.hire@test.com',
-      roles: ['waiter'],
+      role_id: 'waiter',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
     })
     expect(events.length).toBe(1)
     expect(events[0]!.action).toBe('staff.invited')
@@ -325,7 +340,10 @@ describe('F. inviteStaff', () => {
     const { staffService } = await freshService()
     const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'future@test.com',
-      roles: ['waiter'],
+      role_id: 'waiter',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
     })
     expect(new Date(invite.expiresAt).getTime()).toBeGreaterThan(Date.now())
   })
@@ -334,7 +352,10 @@ describe('F. inviteStaff', () => {
     const { staffService } = await freshService()
     const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'idholder@test.com',
-      roles: ['kitchen'],
+      role_id: 'kitchen',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
     })
     expect(invite.id).toBeDefined()
     expect(invite.id.length).toBeGreaterThan(0)
@@ -344,7 +365,10 @@ describe('F. inviteStaff', () => {
     const { staffService } = await freshService()
     const invite = await staffService.inviteStaff('tenant-samoon-01', {
       email: 'tenant@test.com',
-      roles: ['marketing'],
+      role_id: 'marketing',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
     })
     expect(invite.tenantId).toBe('tenant-samoon-01')
   })
@@ -355,28 +379,28 @@ describe('F. inviteStaff', () => {
 describe('G. cancelInvite', () => {
   it('G1: cancels a pending invite', async () => {
     const { staffService } = await freshService()
-    const result = await staffService.cancelInvite('invite-001')
+    const result = await staffService.cancelInvite('tenant-samoon-01', 'invite-001')
     expect(result.status).toBe('cancelled')
   })
 
   it('G2: throws on already-cancelled invite', async () => {
     const { staffService } = await freshService()
-    await expect(staffService.cancelInvite('invite-004')).rejects.toThrow()
+    await expect(staffService.cancelInvite('tenant-samoon-01', 'invite-004')).rejects.toThrow()
   })
 
   it('G3: throws on expired invite', async () => {
     const { staffService } = await freshService()
-    await expect(staffService.cancelInvite('invite-003')).rejects.toThrow()
+    await expect(staffService.cancelInvite('tenant-samoon-01', 'invite-003')).rejects.toThrow()
   })
 
   it('G4: throws on unknown invite id', async () => {
     const { staffService } = await freshService()
-    await expect(staffService.cancelInvite('no-such-invite')).rejects.toThrow()
+    await expect(staffService.cancelInvite('tenant-samoon-01', 'no-such-invite')).rejects.toThrow()
   })
 
   it('G5: cancelled invite persists in list', async () => {
     const { staffService } = await freshService()
-    await staffService.cancelInvite('invite-001')
+    await staffService.cancelInvite('tenant-samoon-01', 'invite-001')
     const invites = await staffService.getInvites('tenant-samoon-01')
     const invite = invites.find((i) => i.id === 'invite-001')
     expect(invite?.status).toBe('cancelled')
@@ -388,30 +412,30 @@ describe('G. cancelInvite', () => {
 describe('H. resendInvite', () => {
   it('H1: resends a pending invite — stays pending', async () => {
     const { staffService } = await freshService()
-    const result = await staffService.resendInvite('invite-002')
+    const result = await staffService.resendInvite('tenant-samoon-01', 'invite-002')
     expect(result.status).toBe('pending')
   })
 
   it('H2: resends an expired invite — restores to pending', async () => {
     const { staffService } = await freshService()
-    const result = await staffService.resendInvite('invite-003')
+    const result = await staffService.resendInvite('tenant-samoon-01', 'invite-003')
     expect(result.status).toBe('pending')
   })
 
   it('H3: extends expiresAt after resend', async () => {
     const { staffService } = await freshService()
-    const result = await staffService.resendInvite('invite-003')
+    const result = await staffService.resendInvite('tenant-samoon-01', 'invite-003')
     expect(new Date(result.expiresAt).getTime()).toBeGreaterThan(Date.now())
   })
 
   it('H4: throws on cancelled invite', async () => {
     const { staffService } = await freshService()
-    await expect(staffService.resendInvite('invite-004')).rejects.toThrow()
+    await expect(staffService.resendInvite('tenant-samoon-01', 'invite-004')).rejects.toThrow()
   })
 
   it('H5: throws on unknown id', async () => {
     const { staffService } = await freshService()
-    await expect(staffService.resendInvite('no-such-invite')).rejects.toThrow()
+    await expect(staffService.resendInvite('tenant-samoon-01', 'no-such-invite')).rejects.toThrow()
   })
 })
 
@@ -886,7 +910,13 @@ describe('R. _resetMockStore', () => {
   it('R1: restores original staff count after mutation', async () => {
     const { staffService } = await freshService()
     const before = (await staffService.getStaff('tenant-samoon-01')).length
-    await staffService.inviteStaff('tenant-samoon-01', { email: 'x@x.com', roles: ['waiter'] })
+    await staffService.inviteStaff('tenant-samoon-01', {
+      email: 'x@x.com',
+      role_id: 'waiter',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
+    })
     staffService._resetMockStore()
     const after = (await staffService.getStaff('tenant-samoon-01')).length
     expect(after).toBe(before)
@@ -894,7 +924,13 @@ describe('R. _resetMockStore', () => {
 
   it('R2: restores original invite count after mutation', async () => {
     const { staffService } = await freshService()
-    await staffService.inviteStaff('tenant-samoon-01', { email: 'x@x.com', roles: ['waiter'] })
+    await staffService.inviteStaff('tenant-samoon-01', {
+      email: 'x@x.com',
+      role_id: 'waiter',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
+    })
     staffService._resetMockStore()
     const invites = await staffService.getInvites('tenant-samoon-01')
     expect(invites.length).toBe(4)
@@ -1087,7 +1123,13 @@ describe('U. StaffAuditEvent shape', () => {
     const { staffService, staffAuditHooks } = await freshService()
     const events: Array<{ inviteId?: string }> = []
     staffAuditHooks.subscribe((e) => events.push(e as { inviteId?: string }))
-    await staffService.inviteStaff('tenant-samoon-01', { email: 'x@x.com', roles: ['waiter'] })
+    await staffService.inviteStaff('tenant-samoon-01', {
+      email: 'x@x.com',
+      role_id: 'waiter',
+      location_ids: [],
+      all_locations: true,
+      mode: 'manage',
+    })
     expect(events[0]?.inviteId).toBeDefined()
   })
 })
@@ -1209,9 +1251,12 @@ describe('W. Staff page source', () => {
     expect(detailSrc).toContain('use(params)')
   })
 
-  it('W10: detail page shows derived permissions', () => {
+  it('W10: detail page shows Wave 4 permission sections from backend', () => {
     const detailSrc = readSrc('src/app/console/staff/[id]/page.tsx')
-    expect(detailSrc).toContain('getPermissionsForRole')
+    expect(detailSrc).toContain('StaffAssignedRolesSection')
+    expect(detailSrc).toContain('StaffPermissionOverridesSection')
+    expect(detailSrc).toContain('StaffEffectivePermissionsSection')
+    expect(detailSrc).toContain('StaffPermissionAuditSection')
   })
 
   it('W11: detail page guards staff.view', () => {

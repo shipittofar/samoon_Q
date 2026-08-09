@@ -4,6 +4,7 @@ import { ENDPOINTS } from './endpoints'
 import { validateMenuImageFile } from '@/components/ImageUploader'
 import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 import { MOCK_BRANCHES, MOCK_TENANT_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
+import { branchBelongsToMockTenant } from '@/lib/mock-tenant-scope'
 import type { Branch, Notification, PaginatedResponse, Reservation, TableInfo, UpdateProfileRequest, User } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -45,13 +46,19 @@ export const reservationService = {
     return data
   },
 
-  async cancelReservation(id: string): Promise<Reservation> {
+  async cancelReservation(id: string, tenantId?: string): Promise<Reservation> {
     if (USE_MOCK) {
       await delay(600)
       const res = MOCK_RESERVATIONS.find((r) => r.id === id)
+      if (!res) throw new Error(`Reservation ${id} not found`)
+      if (tenantId && !branchBelongsToMockTenant(res.branch_id, tenantId)) {
+          throw new Error(`Reservation ${id} not found`)
+        }
       return { ...res!, status: 'cancelled' }
     }
-    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CANCEL(id))
+    const { data } = await api.post<Reservation>(ENDPOINTS.RESERVATIONS.CANCEL(id), null, {
+      ...(tenantId ? { params: { tenantId } } : {}),
+    })
     return data
   },
 

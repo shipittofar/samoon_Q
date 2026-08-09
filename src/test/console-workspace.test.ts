@@ -119,10 +119,59 @@ describe('useConsoleWorkspaceStore.switchTenant', () => {
       { tenantId: 'tenant-a' },
     )
 
-    await useConsoleWorkspaceStore.getState().switchTenant('tenant-b')
+    const switched = await useConsoleWorkspaceStore.getState().switchTenant('tenant-b')
 
+    expect(switched).toBe(false)
     expect(useTenantStore.getState().tenant).toBeNull()
     expect(useConsoleWorkspaceStore.getState().selectedTenantId).toBeNull()
+  })
+
+  it('clears the tenant record synchronously before async load begins', async () => {
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: 'tenant-a', tenantSlug: 'a', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: 'tenant-a' },
+    )
+    useTenantStore.setState({
+      tenant: { id: 'tenant-a', slug: 'a', name: 'A' } as never,
+      tenantState: 'resolved',
+    } as never)
+
+    const loadSpy = vi.spyOn(useTenantStore.getState(), 'loadTenantById').mockImplementation(async () => {
+      expect(useTenantStore.getState().tenant).toBeNull()
+      expect(useTenantStore.getState().tenantState).toBe('loading')
+    })
+
+    await useConsoleWorkspaceStore.getState().switchTenant('tenant-a')
+
+    loadSpy.mockRestore()
+  })
+})
+
+describe('useConsoleWorkspaceStore.initializeFromSession', () => {
+  beforeEach(() => {
+    useRbacStore.getState()._resetStore()
+    useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
+    useConsoleWorkspaceStore.getState().resetWorkspace()
+  })
+
+  it('marks workspace error when switchTenant guard fails', async () => {
+    useRbacStore.getState().setSessionMemberships(
+      [
+        { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
+        { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
+      ],
+      { tenantId: 'tenant-a' },
+    )
+    useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
+
+    const switchSpy = vi.spyOn(useConsoleWorkspaceStore.getState(), 'switchTenant').mockResolvedValue(false)
+
+    await useConsoleWorkspaceStore.getState().initializeFromSession()
+
+    expect(useConsoleWorkspaceStore.getState()._bootstrapped).toBe(false)
+    expect(useConsoleWorkspaceStore.getState().workspacePhase).toBe('error')
+    expect(useConsoleWorkspaceStore.getState().workspaceError).toBeTruthy()
+    switchSpy.mockRestore()
   })
 })
 
@@ -148,7 +197,7 @@ describe('requestConsoleTenantSwitch', () => {
 
     await requestConsoleTenantSwitch('tenant-b')
 
-    expect(switchSpy).toHaveBeenCalledWith({ tenantId: 'tenant-b', tenantSlug: undefined })
+    expect(switchSpy).toHaveBeenCalledWith({ tenantId: 'tenant-b' })
     expect(getMeSpy).toHaveBeenCalled()
     expect(useRbacStore.getState().activeMembership?.tenantId).toBe('tenant-b')
 

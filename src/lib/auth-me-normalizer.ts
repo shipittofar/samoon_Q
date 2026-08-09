@@ -30,8 +30,26 @@ function pickNullableString(record: WireRecord, ...keys: string[]): string | nul
 
 function pickRoles(record: WireRecord): Role[] {
   const raw = record.roles ?? record.tenant_roles ?? record.tenantRoles
-  if (!Array.isArray(raw)) return []
-  return raw.filter((r): r is Role => typeof r === 'string')
+  if (Array.isArray(raw)) {
+    const roles: Role[] = []
+    for (const entry of raw) {
+      if (typeof entry === 'string') {
+        roles.push(entry as Role)
+        continue
+      }
+      const roleRecord = asRecord(entry)
+      const roleName = roleRecord
+        ? pickString(roleRecord, 'role', 'name', 'code', 'key')
+        : undefined
+      if (roleName) roles.push(roleName as Role)
+    }
+    if (roles.length > 0) return [...new Set(roles)]
+  }
+
+  const singularRole = pickString(record, 'role')
+  if (singularRole) return [singularRole as Role]
+
+  return []
 }
 
 function normalizeBranchAccess(record: WireRecord): TenantMembership['branchAccess'] {
@@ -120,10 +138,10 @@ function normalizeUser(raw: unknown): User | null {
   return {
     id,
     email: pickString(record, 'email') ?? null,
-    phone_number: pickString(record, 'phone_number', 'phoneNumber') ?? null,
+    phone_number: pickString(record, 'phone_number', 'phoneNumber') ?? undefined,
     first_name: pickString(record, 'first_name', 'firstName') ?? '',
     last_name: pickString(record, 'last_name', 'lastName') ?? '',
-    avatar: pickNullableString(record, 'avatar') ?? null,
+    avatar: pickNullableString(record, 'avatar') ?? undefined,
     accountType:
       (pickString(record, 'accountType', 'account_type') as User['accountType'] | undefined) ??
       'customer',

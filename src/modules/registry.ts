@@ -59,7 +59,13 @@ export const ADMIN_TENANT_ROUTES: readonly string[] = [
 ]
 
 /** Staff management routes — spread into each module's routes array. */
-export const ADMIN_STAFF_ROUTES: readonly string[] = ['/console/staff']
+export const ADMIN_STAFF_ROUTES: readonly string[] = ['/console/staff', '/console/staff/[id]']
+
+/** RBAC Wave 4 routes */
+export const ADMIN_RBAC_ROUTES: readonly string[] = [
+  '/console/rbac/audit',
+  '/console/roles/[id]',
+]
 
 /** Branch management routes — spread into each module's routes array. */
 export const ADMIN_BRANCHES_ROUTES: readonly string[] = ['/console/branches', '/console/branches/[id]']
@@ -183,6 +189,15 @@ const ROLES_NAV_ITEM = {
   group: 'People',
   featureFlagKey: 'admin.staff.enabled',
   permissionKey: 'staff.manage',
+} as const
+
+const RBAC_AUDIT_NAV_ITEM = {
+  href: '/console/rbac/audit',
+  label: 'RBAC Audit',
+  icon: 'ScrollText',
+  group: 'People',
+  featureFlagKey: 'admin.staff.enabled',
+  permissionKey: 'tenant.manage',
 } as const
 
 // P8.6 — User management nav item
@@ -346,7 +361,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/console/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_USERS_ROUTES, ...ADMIN_REVIEWS_ROUTES, ...ADMIN_WEBSITE_ROUTES],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/console/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_USERS_ROUTES, ...ADMIN_RBAC_ROUTES, ...ADMIN_REVIEWS_ROUTES, ...ADMIN_WEBSITE_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -384,6 +399,7 @@ export const RESTAURANT_MODULE: Module = {
     USERS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     // Platform
     TENANTS_NAV_ITEM,
     BRANCHES_NAV_ITEM,
@@ -433,6 +449,7 @@ export const CAFE_MODULE: Module = {
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
     ...ADMIN_USERS_ROUTES,
+    ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
   ],
   navItems: [
@@ -480,6 +497,7 @@ export const CAFE_MODULE: Module = {
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],
@@ -516,6 +534,7 @@ export const BAR_MODULE: Module = {
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
     ...ADMIN_USERS_ROUTES,
+    ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
   ],
   navItems: [
@@ -562,6 +581,7 @@ export const BAR_MODULE: Module = {
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],
@@ -597,6 +617,7 @@ export const FOOD_COURT_MODULE: Module = {
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
     ...ADMIN_USERS_ROUTES,
+    ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
   ],
   navItems: [
@@ -642,6 +663,7 @@ export const FOOD_COURT_MODULE: Module = {
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],
@@ -677,6 +699,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
     ...ADMIN_USERS_ROUTES,
+    ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
   ],
   navItems: [
@@ -722,6 +745,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],
@@ -758,6 +782,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     ...ADMIN_OPERATIONS_ROUTES,
     ...ADMIN_SETTINGS_ROUTES,
     ...ADMIN_USERS_ROUTES,
+    ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
   ],
   navItems: [
@@ -806,6 +831,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],

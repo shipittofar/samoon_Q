@@ -389,9 +389,14 @@ function findBranch(id: string): Branch | undefined {
   return MOCK_BRANCH_LIST.find((b) => b.id === id || b.slug === id)
 }
 
-function setBranchStatus(id: string, status: BranchStatus): Branch {
+/** Platform/ownership helper — resolves tenant id for a branch id without a scoped fetch. */
+export function resolveMockBranchTenantId(branchId: string): string | undefined {
+  return findBranch(branchId)?.tenantId
+}
+
+function setBranchStatus(id: string, tenantId: string, status: BranchStatus): Branch {
   const branch = findBranch(id)
-  if (!branch) throw new Error(`Branch not found: ${id}`)
+  if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
   branch.status = status
   branch.updated_at = new Date().toISOString()
   return { ...branch }
@@ -434,14 +439,14 @@ export const branchManagementService = {
     return res.data.results
   },
 
-  async getBranch(id: string): Promise<Branch> {
+  async getBranch(id: string, tenantId: string): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
       const branch = findBranch(id)
-      if (!branch) throw new Error(`Branch not found: ${id}`)
+      if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
       return { ...branch }
     }
-    const res = await api.get<Branch>(ENDPOINTS.BRANCHES.GET(id))
+    const res = await api.get<Branch>(ENDPOINTS.BRANCHES.GET(id), { params: { tenantId } })
     return res.data
   },
 
@@ -461,10 +466,11 @@ export const branchManagementService = {
     return res.data
   },
 
-  async getBranchMetrics(id: string): Promise<BranchMetrics> {
+  async getBranchMetrics(id: string, tenantId: string): Promise<BranchMetrics> {
     if (USE_MOCK) {
       await delay()
-      if (!findBranch(id)) throw new Error(`Branch not found: ${id}`)
+      const branch = findBranch(id)
+      if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
       return MOCK_METRICS[id] ?? {
         branchId: id,
         totalOrders: 0,
@@ -476,14 +482,15 @@ export const branchManagementService = {
         period: 'month',
       }
     }
-    const res = await api.get<BranchMetrics>(ENDPOINTS.BRANCHES.METRICS(id))
+    const res = await api.get<BranchMetrics>(ENDPOINTS.BRANCHES.METRICS(id), { params: { tenantId } })
     return res.data
   },
 
-  async getConsoleBranchMetrics(id: string): Promise<BranchMetrics> {
+  async getConsoleBranchMetrics(id: string, tenantId: string): Promise<BranchMetrics> {
     if (USE_MOCK) {
       await delay()
-      if (!findBranch(id)) throw new Error(`Branch not found: ${id}`)
+      const branch = findBranch(id)
+      if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
       return MOCK_METRICS[id] ?? {
         branchId: id,
         totalOrders: 0,
@@ -495,7 +502,7 @@ export const branchManagementService = {
         period: 'month',
       }
     }
-    const res = await api.get<BranchMetrics>(ENDPOINTS.BRANCHES.CONSOLE_METRICS(id))
+    const res = await api.get<BranchMetrics>(ENDPOINTS.BRANCHES.CONSOLE_METRICS(id), { params: { tenantId } })
     return res.data   
   },
   
@@ -589,11 +596,11 @@ export const branchManagementService = {
     return res.data
   },
 
-  async updateBranch(id: string, payload: BranchWriteRequest): Promise<Branch> {
+  async updateBranch(id: string, tenantId: string, payload: BranchWriteRequest): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
       const branch = findBranch(id)
-      if (!branch) throw new Error(`Branch not found: ${id}`)
+      if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
       if (payload.slug && payload.slug !== branch.slug) {
         assertSlugAvailable(branch.tenantId, payload.slug, branch.id)
         branch.slug = payload.slug
@@ -624,7 +631,10 @@ export const branchManagementService = {
       return { ...branch }
     }
     const formData = buildBranchFormData(payload)
-    const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), formData, multipartRequestConfig())
+    const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), formData, {
+      ...multipartRequestConfig(),
+      params: { tenantId },
+    })
     return res.data
   },
 
@@ -635,11 +645,11 @@ export const branchManagementService = {
    * Console UI concern — see console/branches/[id]/page.tsx) but never the
    * last one, since there would be nothing left to fall back to.
    */
-  async deleteBranch(id: string): Promise<void> {
+  async deleteBranch(id: string, tenantId: string): Promise<void> {
     if (USE_MOCK) {
       await delay()
       const branch = findBranch(id)
-      if (!branch) throw new Error(`Branch not found: ${id}`)
+      if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
       const siblingCount = MOCK_BRANCH_LIST.filter((b) => b.tenantId === branch.tenantId).length
       if (siblingCount <= 1) throw new Error('last_branch')
       MOCK_BRANCH_LIST = MOCK_BRANCH_LIST.filter((b) => b.id !== branch.id)
@@ -650,14 +660,14 @@ export const branchManagementService = {
       }
       return
     }
-    await api.delete(ENDPOINTS.BRANCHES.DELETE(id))
+    await api.delete(ENDPOINTS.BRANCHES.DELETE(id), { params: { tenantId } })
   },
 
-  async consoleDeleteBranch(branch_id: string): Promise<void> {
+  async consoleDeleteBranch(branch_id: string, tenantId: string): Promise<void> {
     if (USE_MOCK) {
       await delay()
       const branch = findBranch(branch_id)
-      if (!branch) throw new Error(`Branch not found: ${branch_id}`)
+      if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${branch_id}`)
       const siblingCount = MOCK_BRANCH_LIST.filter((b) => b.tenantId === branch.tenantId).length
       if (siblingCount <= 1) throw new Error('last_branch')
       MOCK_BRANCH_LIST = MOCK_BRANCH_LIST.filter((b) => b.id !== branch.id)
@@ -668,47 +678,47 @@ export const branchManagementService = {
       }
       return
     }
-    await api.delete(ENDPOINTS.BRANCHES.CONSOLE_DELETE(branch_id))
+    await api.delete(ENDPOINTS.BRANCHES.CONSOLE_DELETE(branch_id), { params: { tenantId } })
   },
 
   /** Sets this branch as the tenant's default, unsetting the previous default. */
-  async setDefaultBranch(id: string): Promise<Branch> {
+  async setDefaultBranch(id: string, tenantId: string): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
       const branch = findBranch(id)
-      if (!branch) throw new Error(`Branch not found: ${id}`)
+      if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
       MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === branch.tenantId) b.isDefault = b.id === branch.id })
       branch.updated_at = new Date().toISOString()
       return { ...branch }
     }
-    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.SET_DEFAULT(id))
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.SET_DEFAULT(id), null, { params: { tenantId } })
     return res.data
   },
 
-  async activateBranch(id: string): Promise<Branch> {
+  async activateBranch(id: string, tenantId: string): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
-      return setBranchStatus(id, 'active')
+      return setBranchStatus(id, tenantId, 'active')
     }
-    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.ACTIVATE(id))
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.ACTIVATE(id), null, { params: { tenantId } })
     return res.data
   },
 
-  async deactivateBranch(id: string): Promise<Branch> {
+  async deactivateBranch(id: string, tenantId: string): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
-      return setBranchStatus(id, 'inactive')
+      return setBranchStatus(id, tenantId, 'inactive')
     }
-    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.DEACTIVATE(id))
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.DEACTIVATE(id), null, { params: { tenantId } })
     return res.data
   },
 
-  async setMaintenanceMode(id: string): Promise<Branch> {
+  async setMaintenanceMode(id: string, tenantId: string): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
-      return setBranchStatus(id, 'maintenance')
+      return setBranchStatus(id, tenantId, 'maintenance')
     }
-    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.MAINTENANCE(id))
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.MAINTENANCE(id), null, { params: { tenantId } })
     return res.data
   },
 

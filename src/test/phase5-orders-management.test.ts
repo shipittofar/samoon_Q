@@ -23,6 +23,8 @@
 
 import { describe, it, expect } from 'vitest'
 import * as fs from 'fs'
+
+const TENANT_SAMOON = 'tenant-samoon-01'
 import * as path from 'path'
 
 const ROOT = path.resolve(__dirname, '../../')
@@ -219,7 +221,7 @@ describe('adminService mock mode — orders path', () => {
   it('J: mock status update works', async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true'
     const { adminService } = await import('@/services/admin.service')
-    const order = await adminService.updateOrderStatus('ord-001', 'preparing')
+    const order = await adminService.updateOrderStatus('ord-001', 'preparing', TENANT_SAMOON)
     expect(order.status).toBe('preparing')
   })
 })

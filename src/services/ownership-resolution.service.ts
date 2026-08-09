@@ -70,7 +70,7 @@ import { ownerService } from './owner.service'
 import { staffAssignmentService } from './staff-assignment.service'
 import { staffService } from './staff.service'
 import { tenantService } from './tenant.service'
-import { branchManagementService } from './branch.service'
+import { branchManagementService, resolveMockBranchTenantId } from './branch.service'
 import { branchAccessService, BranchAccessError } from './branch-access.service'
 import type { P7Permission, Role } from '@/types/rbac'
 import type { Owner, StaffAssignment } from '@/types/ownership'
@@ -324,7 +324,11 @@ export async function assertOwnershipBranchAccess(
   email: string | null | undefined,
   branchId: string,
 ): Promise<void> {
-  const branch = await branchManagementService.getBranch(branchId)
+  const branchTenantId = resolveMockBranchTenantId(branchId)
+  if (!branchTenantId) {
+    throw new BranchAccessError(branchId, 'unknown')
+  }
+  const branch = await branchManagementService.getBranch(branchId, branchTenantId)
   const tenants = await tenantService.getTenants()
   const tenant = tenants.find((t) => t.id === branch.tenantId)
   if (!tenant || !isTenantEligible(tenant)) {

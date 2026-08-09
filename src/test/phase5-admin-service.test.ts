@@ -16,6 +16,8 @@ import * as path from 'node:path'
 vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
 vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'http://localhost:8000/api')
 
+const TENANT_SAMOON = 'tenant-samoon-01'
+
 const ROOT = path.join(__dirname, '..', '..')
 const readSrc = (rel: string) => fs.readFileSync(path.join(ROOT, 'src', rel), 'utf-8')
 
@@ -262,7 +264,7 @@ describe('adminService — mock mode runtime', () => {
 
   it('updateOrderStatus returns order with new status', async () => {
     const { adminService } = await import('@/services/admin.service')
-    const result = await adminService.updateOrderStatus('ord-001', 'accepted')
+    const result = await adminService.updateOrderStatus('ord-001', 'accepted', TENANT_SAMOON)
     expect(result.status).toBe('accepted')
   })
 
@@ -283,7 +285,7 @@ describe('adminService — mock mode runtime', () => {
 
   it('confirmReservation returns confirmed reservation', async () => {
     const { adminService } = await import('@/services/admin.service')
-    const result = await adminService.confirmReservation('res-001')
+    const result = await adminService.confirmReservation('res-001', TENANT_SAMOON)
     expect(result.status).toBe('confirmed')
   })
 

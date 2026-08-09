@@ -14,6 +14,8 @@
  */
 import { getDefaultFeatureFlags, getCapabilityFeatureFlags } from '@/modules/registry'
 import type { Tenant } from '@/types'
+import { tenantService } from '@/services/tenant.service'
+import { useTenantStore } from '@/stores'
 
 export interface FeatureFlagEntry {
   key: string
@@ -82,5 +84,30 @@ export const featureFlagsService = {
   bulkUpdateFlags(tenant: Tenant, updates: Record<string, boolean>): Record<string, boolean> {
     const current = tenant.settings?.featureFlags ?? {}
     return { ...current, ...updates }
+  },
+
+  /** Console authority — resolves flags by canonical tenant id (never store pointer). */
+  async listFlagsForTenant(tenantId: string): Promise<FeatureFlagEntry[]> {
+    const tenant = await tenantService.getTenantById(tenantId)
+    return featureFlagsService.listFlags(tenant)
+  },
+
+  /** Console authority — updates flags by tenant id via settings API. */
+  async updateFlagForTenant(
+    tenantId: string,
+    key: string,
+    value: boolean,
+  ): Promise<{ key: string; value: boolean }> {
+    const tenant = await tenantService.getTenantById(tenantId)
+    const newOverrides = featureFlagsService.updateFlag(tenant, key, value)
+    const updated = await tenantService.updateTenantSettings(tenantId, {
+      featureFlags: newOverrides,
+    })
+    const store = useTenantStore.getState()
+    if (store.tenant?.id === tenantId) {
+      store.setTenant(updated)
+      store.setFeatureFlags(featureFlagsService.resolve(updated))
+    }
+    return { key, value }
   },
 }

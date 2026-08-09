@@ -8,11 +8,13 @@ import { describe, it, expect } from 'vitest'
 import { analyticsService } from '@/services/analytics.service'
 import type { MenuAnalytics } from '@/types/analytics'
 
+const TENANT_SAMOON = 'tenant-samoon-01'
+
 // ── Menu Analytics ────────────────────────────────────────────────────────────
 
 describe('analyticsService.getMenuAnalytics()', () => {
   it('returns menu analytics with topSellers', async () => {
-    const data = await analyticsService.getMenuAnalytics()
+    const data = await analyticsService.getMenuAnalytics(TENANT_SAMOON)
     expect(data.topSellers.length).toBeGreaterThan(0)
     expect(data.topSellers[0]).toHaveProperty('itemId')
     expect(data.topSellers[0]).toHaveProperty('name')
@@ -22,7 +24,7 @@ describe('analyticsService.getMenuAnalytics()', () => {
   })
 
   it('returns slowMovers with fewer orders than top sellers', async () => {
-    const data = await analyticsService.getMenuAnalytics()
+    const data = await analyticsService.getMenuAnalytics(TENANT_SAMOON)
     expect(data.slowMovers.length).toBeGreaterThan(0)
     const topMin = Math.min(...data.topSellers.map((i) => i.orderCount))
     const slowMax = Math.max(...data.slowMovers.map((i) => i.orderCount))
@@ -30,7 +32,7 @@ describe('analyticsService.getMenuAnalytics()', () => {
   })
 
   it('returns categoryPerformance with required fields', async () => {
-    const data = await analyticsService.getMenuAnalytics()
+    const data = await analyticsService.getMenuAnalytics(TENANT_SAMOON)
     expect(data.categoryPerformance.length).toBeGreaterThan(0)
     for (const cat of data.categoryPerformance) {
       expect(cat).toHaveProperty('category')
@@ -41,13 +43,13 @@ describe('analyticsService.getMenuAnalytics()', () => {
   })
 
   it('totalItemsSold and totalMenuRevenue are positive numbers', async () => {
-    const data = await analyticsService.getMenuAnalytics()
+    const data = await analyticsService.getMenuAnalytics(TENANT_SAMOON)
     expect(data.totalItemsSold).toBeGreaterThan(0)
     expect(data.totalMenuRevenue).toBeGreaterThan(0)
   })
 
   it('satisfies MenuAnalytics type shape', async () => {
-    const data: MenuAnalytics = await analyticsService.getMenuAnalytics()
+    const data: MenuAnalytics = await analyticsService.getMenuAnalytics(TENANT_SAMOON)
     expect(typeof data.totalItemsSold).toBe('number')
     expect(typeof data.totalMenuRevenue).toBe('number')
     expect(Array.isArray(data.topSellers)).toBe(true)
@@ -60,8 +62,8 @@ describe('analyticsService.getMenuAnalytics()', () => {
 
 describe('analyticsService — comparison period data', () => {
   it('returns different data for previous period (dateTo param)', async () => {
-    const current = await analyticsService.getAnalyticsSummary()
-    const previous = await analyticsService.getAnalyticsSummary({
+    const current = await analyticsService.getAnalyticsSummary(TENANT_SAMOON)
+    const previous = await analyticsService.getAnalyticsSummary(TENANT_SAMOON, {
       dateFrom: new Date(Date.now() - 14 * 86_400_000).toISOString(),
       dateTo: new Date(Date.now() - 7 * 86_400_000).toISOString(),
     })
@@ -71,7 +73,7 @@ describe('analyticsService — comparison period data', () => {
   })
 
   it('current period has positive totalRevenue', async () => {
-    const data = await analyticsService.getAnalyticsSummary()
+    const data = await analyticsService.getAnalyticsSummary(TENANT_SAMOON)
     expect(data.totalRevenue).toBeGreaterThan(0)
     expect(data.totalOrders).toBeGreaterThan(0)
   })
@@ -110,13 +112,13 @@ describe('Analytics export domain coverage', () => {
     const domains = ['summary', 'revenue', 'reservations', 'loyalty', 'promotions', 'vendors', 'menu'] as const
     for (const domain of domains) {
       let result: unknown
-      if (domain === 'summary')      result = await analyticsService.getAnalyticsSummary()
-      else if (domain === 'revenue') result = await analyticsService.getRevenueAnalytics()
-      else if (domain === 'reservations') result = await analyticsService.getReservationAnalytics()
-      else if (domain === 'loyalty') result = await analyticsService.getLoyaltyAnalytics()
+      if (domain === 'summary')      result = await analyticsService.getAnalyticsSummary(TENANT_SAMOON)
+      else if (domain === 'revenue') result = await analyticsService.getRevenueAnalytics(TENANT_SAMOON)
+      else if (domain === 'reservations') result = await analyticsService.getReservationAnalytics(TENANT_SAMOON)
+      else if (domain === 'loyalty') result = await analyticsService.getLoyaltyAnalytics(TENANT_SAMOON)
       else if (domain === 'promotions') result = await analyticsService.getPromotionAnalytics()
       else if (domain === 'vendors') result = await analyticsService.getVendorAnalytics()
-      else if (domain === 'menu')    result = await analyticsService.getMenuAnalytics()
+      else if (domain === 'menu')    result = await analyticsService.getMenuAnalytics(TENANT_SAMOON)
       expect(result).toBeTruthy()
       expect(typeof result).toBe('object')
     }

@@ -98,6 +98,8 @@ export type P7Permission =
   // ── Tenant ────────────────────────────────────────────────
   | 'tenant.view'
   | 'tenant.manage'
+  // ── RBAC administration ───────────────────────────────────
+  | 'rbac.manage_roles'
   // ── Audit ─────────────────────────────────────────────────
   | 'audit.view'
   | 'audit.export'
