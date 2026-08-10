@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { ChevronRight, Shield } from 'lucide-react'
 import { BranchContextIndicator } from '@/components/admin/RealtimeDashboardWidgets'
 import {
   useStaff,
@@ -25,6 +27,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { StaffInviteModal } from '@/components/admin/StaffInviteModal'
 import { StaffRoleBadges } from '@/components/admin/StaffRoleBadges'
 import { groupAssignmentsByUserId, userHasLocationAccess } from '@/lib/assignments'
+import type { StaffMember } from '@/types/staff'
 
 export default function StaffManagementPage() {
   return (
@@ -84,18 +87,21 @@ function StaffManagementContent() {
 
   return (
     <div className="p-6 space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">{t('staffManagementTitle')}</h1>
-          {branchState === 'loading' && (
-            <span className="text-xs text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</span>
-          )}
-          {branchState === 'error' && (
-            <span className="text-xs text-red-600 dark:text-red-400">{t('failedToLoadBranches')}</span>
-          )}
-          {(branchState === 'ready' || branchState === 'empty') && (
-            <BranchContextIndicator branchId={selectedBranch?.id} branchName={selectedBranch?.name} />
-          )}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold">{t('staffManagementTitle')}</h1>
+            {branchState === 'loading' && (
+              <span className="text-xs text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</span>
+            )}
+            {branchState === 'error' && (
+              <span className="text-xs text-red-600 dark:text-red-400">{t('failedToLoadBranches')}</span>
+            )}
+            {(branchState === 'ready' || branchState === 'empty') && (
+              <BranchContextIndicator branchId={selectedBranch?.id} branchName={selectedBranch?.name} />
+            )}
+          </div>
+          <p className="text-sm text-gray-500">{t('staffAccessManagementHint')}</p>
         </div>
         <PermissionGuard permission="staff.manage">
           <button
@@ -127,49 +133,42 @@ function StaffManagementContent() {
         <div className="space-y-2">
           {activeStaff.length === 0 && <p className="text-sm text-gray-500">{t('noActiveStaffPeriod')}</p>}
           {activeStaff.map((member) => (
-            <div
+            <StaffRow
               key={member.id}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
-              <div>
-                <p className="font-medium">
-                  {member.firstName} {member.lastName}
-                </p>
-                <p className="text-sm text-gray-500">{member.email}</p>
-                <div className="flex gap-1 mt-1 flex-wrap">
-                  <StaffRoleBadges assignments={assignmentsByUser.get(member.userId) ?? []} />
-                </div>
-              </div>
-              <PermissionGuard permission="staff.manage">
-                <div className="flex gap-2">
-                  <button
-                    className="text-xs text-yellow-600 hover:underline"
-                    onClick={() => suspendStaff.mutate(member.id)}
-                  >
-                    {t('suspendLabel')}
-                  </button>
-                  <button
-                    className="text-xs text-red-600 hover:underline"
-                    onClick={() => removeStaff.mutate(member.id)}
-                  >
-                    {t('removeLabel')}
-                  </button>
-                  {ownerMember && member.id !== ownerMember.id && canTransferOwnership && (
+              member={member}
+              assignments={assignmentsByUser.get(member.userId) ?? []}
+              actions={
+                <PermissionGuard permission="staff.manage">
+                  <div className="flex gap-2 flex-wrap justify-end">
                     <button
-                      className="text-xs text-purple-600 hover:underline"
-                      onClick={() =>
-                        transferOwnership.mutate({
-                          currentOwnerId: ownerMember.id,
-                          payload: { targetMemberId: member.id },
-                        })
-                      }
+                      className="text-xs text-yellow-600 hover:underline"
+                      onClick={() => suspendStaff.mutate(member.id)}
                     >
-                      {t('transferOwnershipLabel')}
+                      {t('suspendLabel')}
                     </button>
-                  )}
-                </div>
-              </PermissionGuard>
-            </div>
+                    <button
+                      className="text-xs text-red-600 hover:underline"
+                      onClick={() => removeStaff.mutate(member.id)}
+                    >
+                      {t('removeLabel')}
+                    </button>
+                    {ownerMember && member.id !== ownerMember.id && canTransferOwnership && (
+                      <button
+                        className="text-xs text-purple-600 hover:underline"
+                        onClick={() =>
+                          transferOwnership.mutate({
+                            currentOwnerId: ownerMember.id,
+                            payload: { targetMemberId: member.id },
+                          })
+                        }
+                      >
+                        {t('transferOwnershipLabel')}
+                      </button>
+                    )}
+                  </div>
+                </PermissionGuard>
+              }
+            />
           ))}
         </div>
       </section>
@@ -219,29 +218,75 @@ function StaffManagementContent() {
           <h2 className="text-lg font-semibold mb-3">{t('suspendedStaffLabel')}</h2>
           <div className="space-y-2">
             {suspendedStaff.map((member) => (
-              <div
+              <StaffRow
                 key={member.id}
-                className="flex items-center justify-between rounded-lg border p-3 opacity-70"
-              >
-                <div>
-                  <p className="font-medium">
-                    {member.firstName} {member.lastName}
-                  </p>
-                  <p className="text-sm text-gray-500">{member.email}</p>
-                </div>
-                <PermissionGuard permission="staff.manage">
-                  <button
-                    className="text-xs text-green-600 hover:underline"
-                    onClick={() => activateStaff.mutate(member.id)}
-                  >
-                    {t('reactivateLabel')}
-                  </button>
-                </PermissionGuard>
-              </div>
+                member={member}
+                assignments={assignmentsByUser.get(member.userId) ?? []}
+                dimmed
+                actions={
+                  <PermissionGuard permission="staff.manage">
+                    <button
+                      className="text-xs text-green-600 hover:underline"
+                      onClick={() => activateStaff.mutate(member.id)}
+                    >
+                      {t('reactivateLabel')}
+                    </button>
+                  </PermissionGuard>
+                }
+              />
             ))}
           </div>
         </section>
       )}
+    </div>
+  )
+}
+
+/** Canonical staff access management destination: /console/permissions/{userId} */
+function ManagePermissionsLink({ userId }: { userId: string }) {
+  const t = useTranslations('console')
+  return (
+    <Link
+      href={`/console/permissions/${userId}`}
+      className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+    >
+      <Shield className="h-3.5 w-3.5" />
+      {t('managePermissionsLabel')}
+      <ChevronRight className="h-3.5 w-3.5" />
+    </Link>
+  )
+}
+
+function StaffRow({
+  member,
+  assignments,
+  actions,
+  dimmed,
+}: {
+  member: StaffMember
+  assignments: import('@/types/rbac-api').RbacAssignment[]
+  actions?: ReactNode
+  dimmed?: boolean
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-3 rounded-lg border p-3 flex-wrap ${
+        dimmed ? 'opacity-70' : ''
+      }`}
+    >
+      <div className="min-w-0">
+        <p className="font-medium">
+          {member.firstName} {member.lastName}
+        </p>
+        <p className="text-sm text-gray-500">{member.email}</p>
+        <div className="flex gap-1 mt-1 flex-wrap">
+          <StaffRoleBadges assignments={assignments} />
+        </div>
+      </div>
+      <div className="flex items-center gap-3 flex-wrap justify-end">
+        <ManagePermissionsLink userId={member.userId} />
+        {actions}
+      </div>
     </div>
   )
 }

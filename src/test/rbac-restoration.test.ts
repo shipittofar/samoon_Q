@@ -77,6 +77,22 @@ describe('RBAC restoration — source files', () => {
     expect(content).toContain('StaffPermissionAuditSection')
   })
 
+  it('staff list and permissions hub expose Manage Permissions to /console/permissions/{userId}', () => {
+    const staffList = src('src/app/console/staff/page.tsx')
+    const permissionsHub = src('src/app/console/permissions/page.tsx')
+    expect(staffList).toContain('/console/permissions/${userId}')
+    expect(staffList).toContain('managePermissionsLabel')
+    expect(permissionsHub).toContain('/console/permissions/${member.userId}')
+    expect(permissionsHub).toContain('managePermissionsLabel')
+    expect(permissionsHub).toContain('staffAccessManagementHint')
+  })
+
+  it('assignment CRUD uses staff.manage (not owner-only tenant.manage)', () => {
+    const section = src('src/components/admin/StaffAssignedRolesSection.tsx')
+    expect(section).toContain("usePermission('staff.manage')")
+    expect(section).not.toContain("usePermission('tenant.manage')")
+  })
+
   it('roles/[id] uses rbac.manage_roles read-only for system roles', () => {
     const content = src('src/app/console/roles/[id]/page.tsx')
     expect(content).toContain('rbac.manage_roles')

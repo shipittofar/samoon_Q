@@ -21,7 +21,9 @@ export interface StaffAssignedRolesSectionProps {
 export function StaffAssignedRolesSection({ member }: StaffAssignedRolesSectionProps) {
   const t = useTranslations('console')
   const tenantId = member.tenantId
-  const canManageAssignments = usePermission('tenant.manage')
+  // Align with invite/staff pages: assignment CRUD is staff.manage, not
+  // owner-only tenant.manage (transfer ownership / tenant lifecycle).
+  const canManageAssignments = usePermission('staff.manage')
 
   const { data: assignmentPage, isLoading } = useAssignments(tenantId, { user_id: member.userId })
   const revokeAssignment = useRevokeAssignment(tenantId)
@@ -58,12 +60,17 @@ export function StaffAssignedRolesSection({ member }: StaffAssignedRolesSectionP
   return (
     <section>
       <div className="flex items-center justify-between mb-3 gap-2">
-        <h2 className="text-lg font-semibold">{t('assignedRolesLabel')}</h2>
+        <div>
+          <h2 className="text-lg font-semibold">{t('assignedRolesLabel')}</h2>
+          {!canManageAssignments && (
+            <p className="text-xs text-gray-500 mt-0.5">{t('assignmentViewOnlyHint')}</p>
+          )}
+        </div>
         {canManageAssignments && member.status !== 'removed' && (
           <button
             type="button"
             onClick={openAddRole}
-            className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-gray-50"
+            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
           >
             {t('addRoleLabel')}
           </button>

@@ -2424,6 +2424,8 @@
     "viewStaffProfileLabel": "View staff profile",
     "userRbacManagementSectionTitle": "User RBAC Management",
     "managePermissionsLabel": "Manage permissions",
+    "staffAccessManagementHint": "Select a staff member to manage their roles, branches, and access mode.",
+    "assignmentViewOnlyHint": "You can view assignments. Staff manage permission is required to add, edit, or revoke them.",
     "customRolesLabel": "Custom Roles",
     "protectedRoleLabel": "Protected Role",
     "readOnlyLabel": "Read only",

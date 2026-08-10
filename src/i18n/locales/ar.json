@@ -2367,6 +2367,8 @@
     "viewStaffProfileLabel": "عرض ملف الطاقم",
     "userRbacManagementSectionTitle": "إدارة RBAC للمستخدم",
     "managePermissionsLabel": "إدارة الأذونات",
+    "staffAccessManagementHint": "اختر موظفًا لإدارة أدواره وفروعه ووضع الوصول.",
+    "assignmentViewOnlyHint": "يمكنك عرض التعيينات. يلزم إذن إدارة الموظفين للإضافة أو التعديل أو الإلغاء.",
     "customRolesLabel": "أدوار مخصصة",
     "protectedRoleLabel": "دور محمي",
     "readOnlyLabel": "للقراءة فقط",

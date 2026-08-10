@@ -1,10 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, User, ChevronRight } from 'lucide-react'
+import { ArrowLeft, User } from 'lucide-react'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -49,18 +48,27 @@ export default function UserPermissionsPage() {
     <ErrorBoundary feature="User Permissions">
       <PermissionGuard permission="staff.view" fallback={<AccessDenied />}>
         <main className="p-6 space-y-6 max-w-3xl">
-          <Link
-            href="/console/permissions"
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ArrowLeft className="h-4 w-4" /> {t('backToPermissionsLabel')}
-          </Link>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <Link
+              href="/console/staff"
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
+            >
+              <ArrowLeft className="h-4 w-4" /> {t('staffManagementTitle')}
+            </Link>
+            <Link
+              href="/console/permissions"
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
+            >
+              {t('backToPermissionsLabel')}
+            </Link>
+          </div>
 
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               {member.firstName} {member.lastName}
             </h1>
             <p className="text-sm text-gray-500">{member.email}</p>
+            <p className="text-sm text-gray-500 mt-1">{t('staffAccessManagementHint')}</p>
             <Link
               href={`/console/staff/${member.id}`}
               className="text-xs text-indigo-600 hover:underline mt-1 inline-block"

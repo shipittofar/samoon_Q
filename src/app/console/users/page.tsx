@@ -196,10 +196,10 @@ function UsersContent() {
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(member.lastSeenAt)}</td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-2 items-start">
                       <Link
                         href={`/console/permissions/${member.userId}`}
-                        className="flex items-center gap-1 text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                        className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
                       >
                         {t('managePermissionsLabel')}
                         <ChevronRight className="w-3.5 h-3.5" />

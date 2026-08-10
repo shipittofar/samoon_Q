@@ -2367,6 +2367,8 @@
     "viewStaffProfileLabel": "مشاهده پروفایل کارکنان",
     "userRbacManagementSectionTitle": "مدیریت RBAC کاربر",
     "managePermissionsLabel": "مدیریت مجوزها",
+    "staffAccessManagementHint": "یک عضو کارکنان را انتخاب کنید تا نقش‌ها، شعبه‌ها و حالت دسترسی او را مدیریت کنید.",
+    "assignmentViewOnlyHint": "می‌توانید انتساب‌ها را ببینید. برای افزودن، ویرایش یا لغو، مجوز مدیریت کارکنان لازم است.",
     "customRolesLabel": "نقش‌های سفارشی",
     "protectedRoleLabel": "نقش محافظت‌شده",
     "readOnlyLabel": "فقط خواندنی",

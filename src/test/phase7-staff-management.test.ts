@@ -1263,6 +1263,20 @@ describe('W. Staff page source', () => {
     const detailSrc = readSrc('src/app/console/staff/[id]/page.tsx')
     expect(detailSrc).toContain('staff.view')
   })
+
+  it('W12: staff list links Manage Permissions to canonical /console/permissions/{userId}', () => {
+    const pageSrc = readSrc('src/app/console/staff/page.tsx')
+    expect(pageSrc).toContain('managePermissionsLabel')
+    expect(pageSrc).toContain('/console/permissions/${userId}')
+    expect(pageSrc).toContain('staffAccessManagementHint')
+  })
+
+  it('W13: StaffAssignedRolesSection gates assignment CRUD with staff.manage', () => {
+    const sectionSrc = readSrc('src/components/admin/StaffAssignedRolesSection.tsx')
+    expect(sectionSrc).toContain("usePermission('staff.manage')")
+    expect(sectionSrc).not.toContain("usePermission('tenant.manage')")
+    expect(sectionSrc).toContain('assignmentViewOnlyHint')
+  })
 })
 
 // ── X. TenantMembership shape ─────────────────────────────────────────────────

@@ -74,7 +74,8 @@ export default function PermissionsPage() {
         <main className="p-6 space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('permissionManagementTitle')}</h1>
-            <p className="text-sm text-gray-500 mt-1">{t('permissionCatalogHint')}</p>
+            <p className="text-sm text-gray-500 mt-1">{t('staffAccessManagementHint')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('permissionCatalogHint')}</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -120,6 +121,7 @@ export default function PermissionsPage() {
               <User className="h-5 w-5 text-gray-500" />
               {t('userRbacManagementSectionTitle')}
             </h2>
+            <p className="text-sm text-gray-500">{t('staffAccessManagementHint')}</p>
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               {filteredStaff.length === 0 ? (
                 <p className="p-6 text-sm text-gray-500 text-center">{t('noUsersMatchFilters')}</p>
@@ -129,7 +131,9 @@ export default function PermissionsPage() {
                     <tr className="bg-gray-50 border-b border-gray-200">
                       <th className="text-left px-4 py-3 font-medium text-gray-600">{t('userColumnLabel')}</th>
                       <th className="text-left px-4 py-3 font-medium text-gray-600">{t('rolesTabLabel')}</th>
-                      <th className="px-4 py-3" />
+                      <th className="text-right px-4 py-3 font-medium text-gray-600">
+                        {t('managePermissionsLabel')}
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -147,7 +151,7 @@ export default function PermissionsPage() {
                         <td className="px-4 py-3 text-right">
                           <Link
                             href={`/console/permissions/${member.userId}`}
-                            className="flex items-center justify-end gap-1 text-indigo-600 hover:text-indigo-800 text-xs font-medium"
+                            className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
                           >
                             {t('managePermissionsLabel')}
                             <ChevronRightIcon className="w-3.5 h-3.5" />
