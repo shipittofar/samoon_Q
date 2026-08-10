@@ -62,25 +62,36 @@ export async function createPermissionOverride(
   const { data } = await api.post<unknown>(path, body)
   const override = normalizePermissionOverride(data)
   if (!override) throw new Error('Invalid permission override response')
-  return override
+  return {
+    ...override,
+    tenantId: override.tenantId || tenantId,
+    membershipId: override.membershipId ?? membershipId,
+  }
 }
 
 export async function updatePermissionOverride(
   tenantId: string,
+  membershipId: string,
   overrideId: string,
   payload: UpdatePermissionOverridePayload,
 ): Promise<PermissionOverride> {
   const { data } = await api.patch<unknown>(
-    ENDPOINTS.RBAC.PERMISSION_OVERRIDE(tenantId, overrideId),
+    ENDPOINTS.RBAC.MEMBERSHIP_PERMISSION_OVERRIDE(tenantId, membershipId, overrideId),
     payload,
   )
   const override = normalizePermissionOverride(data)
   if (!override) throw new Error('Invalid permission override response')
-  return override
+  return { ...override, tenantId: override.tenantId || tenantId, membershipId }
 }
 
-export async function deletePermissionOverride(tenantId: string, overrideId: string): Promise<void> {
-  await api.delete(ENDPOINTS.RBAC.PERMISSION_OVERRIDE(tenantId, overrideId))
+export async function deletePermissionOverride(
+  tenantId: string,
+  membershipId: string,
+  overrideId: string,
+): Promise<void> {
+  await api.delete(
+    ENDPOINTS.RBAC.MEMBERSHIP_PERMISSION_OVERRIDE(tenantId, membershipId, overrideId),
+  )
 }
 
 export async function fetchEffectivePermissions(

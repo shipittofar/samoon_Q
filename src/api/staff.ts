@@ -54,7 +54,7 @@ export function normalizeStaffMember(raw: unknown): StaffMember | null {
 
   const userObj = asRecord(r.user)
   const id = pickString(r, 'id', 'membership_id', 'membershipId')
-  const tenantId = pickString(r, 'tenantId', 'tenant_id')
+  const tenantId = pickString(r, 'tenantId', 'tenant_id', 'tenant')
   const userId =
     pickString(r, 'userId', 'user_id') ??
     (userObj ? pickString(userObj, 'id') : undefined)

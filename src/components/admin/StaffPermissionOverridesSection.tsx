@@ -15,8 +15,10 @@ import {
   usePermissionCatalog,
   useAssignments,
 } from '@/hooks'
-import type { PermissionOverride } from '@/types/rbac-api'
+import type { PermissionOverride, PermissionOverrideEffect } from '@/types/rbac-api'
 import { getApiErrorMessage } from '@/api/errors'
+import { resolvePermissionIdForKey } from '@/lib/permission-catalog'
+import { planPermissionOverrideMutation } from '@/lib/permission-override-lifecycle'
 import toast from 'react-hot-toast'
 
 export interface StaffPermissionOverridesSectionProps {
@@ -52,80 +54,60 @@ export function StaffPermissionOverridesSection({
   const roleNames = activeAssignments.map((a) => a.role)
 
   function permissionIdForKey(key: string): string | undefined {
-    const entry = catalog.find((p) => p.key === key)
-    return entry?.id ?? entry?.key
+    return resolvePermissionIdForKey(catalog, key)
+  }
+
+  function applyEffect(permissionKey: string, effect: PermissionOverrideEffect) {
+    const permission_id = permissionIdForKey(permissionKey)
+    if (!permission_id) {
+      toast.error(t('permissionRequiredError'))
+      return
+    }
+
+    const plan = planPermissionOverrideMutation(overrides, {
+      permissionId: permission_id,
+      permissionKey,
+      effect,
+    })
+
+    if (plan.action === 'noop') return
+
+    if (plan.action === 'update') {
+      updateOverride.mutate(
+        {
+          overrideId: plan.overrideId,
+          payload: { effect: plan.effect },
+          membershipId,
+          userId,
+        },
+        {
+          onSuccess: () => toast.success(t('overrideUpdatedSuccessfully')),
+          onError: (err) => toast.error(getApiErrorMessage(err, t('failedToSaveOverride'))),
+        },
+      )
+      return
+    }
+
+    createOverride.mutate(
+      {
+        membership_id: membershipId,
+        user_id: userId,
+        permission_id: plan.permissionId,
+        effect: plan.effect,
+      },
+      {
+        onSuccess: () => toast.success(t('overrideCreatedSuccessfully')),
+        onError: (err) => toast.error(getApiErrorMessage(err, t('failedToSaveOverride'))),
+      },
+    )
   }
 
   function handleAllow(permissionKey: string) {
-    const permission_id = permissionIdForKey(permissionKey)
-    if (!permission_id) {
-      toast.error(t('permissionRequiredError'))
-      return
-    }
-    const existing = overrides.find((o) => o.permission === permissionKey)
-    if (existing) {
-      updateOverride.mutate(
-        {
-          overrideId: existing.id,
-          payload: { effect: 'allow' },
-          membershipId,
-          userId,
-        },
-        {
-          onSuccess: () => toast.success(t('overrideUpdatedSuccessfully')),
-          onError: (err) => toast.error(getApiErrorMessage(err, t('failedToSaveOverride'))),
-        },
-      )
-    } else {
-      createOverride.mutate(
-        {
-          membership_id: membershipId,
-          user_id: userId,
-          permission_id,
-          effect: 'allow',
-        },
-        {
-          onSuccess: () => toast.success(t('overrideCreatedSuccessfully')),
-          onError: (err) => toast.error(getApiErrorMessage(err, t('failedToSaveOverride'))),
-        },
-      )
-    }
+    applyEffect(permissionKey, 'allow')
   }
 
   function handleDeny(permissionKey: string) {
-    const permission_id = permissionIdForKey(permissionKey)
-    if (!permission_id) {
-      toast.error(t('permissionRequiredError'))
-      return
-    }
-    const existing = overrides.find((o) => o.permission === permissionKey)
-    if (existing) {
-      updateOverride.mutate(
-        {
-          overrideId: existing.id,
-          payload: { effect: 'deny' },
-          membershipId,
-          userId,
-        },
-        {
-          onSuccess: () => toast.success(t('overrideUpdatedSuccessfully')),
-          onError: (err) => toast.error(getApiErrorMessage(err, t('failedToSaveOverride'))),
-        },
-      )
-    } else {
-      createOverride.mutate(
-        {
-          membership_id: membershipId,
-          user_id: userId,
-          permission_id,
-          effect: 'deny',
-        },
-        {
-          onSuccess: () => toast.success(t('overrideCreatedSuccessfully')),
-          onError: (err) => toast.error(getApiErrorMessage(err, t('failedToSaveOverride'))),
-        },
-      )
-    }
+    applyEffect(permissionKey, 'deny')
   }
 
   function handleDeleteConfirm() {

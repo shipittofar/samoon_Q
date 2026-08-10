@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useMemo } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { menuService } from '@/services/menu.service'
 import { orderService } from '@/services/order.service'
@@ -135,6 +135,7 @@ import { adaptDiscoverResponse } from '@/lib/discover-adapter'
 import { discoverService } from '@/services/discover.service'
 import type { DiscoverItem } from '@/lib/discover-adapter'
 import { invalidateRbacStaffQueries, invalidatePermissionCatalog, invalidateRbacWave4Mutations, invalidateRbacAssignmentMutations, invalidatePermissionOverrides, invalidateEffectivePermissions, invalidatePermissionAudit, invalidateRolePermissions } from '@/lib/rbac-query-invalidation'
+import { upsertOverrideInList } from '@/lib/permission-override-lifecycle'
 import { fetchTenantRoles, listAssignments, createAssignment, updateAssignment, revokeAssignment } from '@/api/rbac'
 import { fetchPermissionCatalog } from '@/api/permissions'
 import {
@@ -147,7 +148,14 @@ import {
   fetchRolePermissions,
   replaceRolePermissions,
 } from '@/api/authorization'
-import type { CreateAssignmentPayload, UpdateAssignmentPayload, CreatePermissionOverridePayload, UpdatePermissionOverridePayload, ReplaceRolePermissionsPayload } from '@/types/rbac-api'
+import type {
+  CreateAssignmentPayload,
+  UpdateAssignmentPayload,
+  CreatePermissionOverridePayload,
+  UpdatePermissionOverridePayload,
+  ReplaceRolePermissionsPayload,
+  PermissionOverride,
+} from '@/types/rbac-api'
 
 // ── Tenant Lifecycle Hook (Phase 1B stabilization) ────────────────────────────
 /**
@@ -3339,12 +3347,49 @@ export function usePermissionOverrides(
   })
 }
 
+function patchPermissionOverridesCache(
+  qc: QueryClient,
+  tenantId: string,
+  membershipId: string | undefined,
+  next: PermissionOverride,
+) {
+  const apply = (old: unknown) => {
+    if (!Array.isArray(old)) return old
+    return upsertOverrideInList(old as PermissionOverride[], next)
+  }
+  if (membershipId) {
+    qc.setQueriesData(
+      { queryKey: ['permission-overrides', tenantId, { membership_id: membershipId }] },
+      apply,
+    )
+  }
+  qc.setQueriesData({ queryKey: ['permission-overrides', tenantId] }, apply)
+}
+
+function removePermissionOverrideFromCache(
+  qc: QueryClient,
+  tenantId: string,
+  membershipId: string,
+  overrideId: string,
+) {
+  const apply = (old: unknown) =>
+    Array.isArray(old)
+      ? (old as PermissionOverride[]).filter((o) => o.id !== overrideId)
+      : old
+  qc.setQueriesData(
+    { queryKey: ['permission-overrides', tenantId, { membership_id: membershipId }] },
+    apply,
+  )
+  qc.setQueriesData({ queryKey: ['permission-overrides', tenantId] }, apply)
+}
+
 export function useCreatePermissionOverride(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CreatePermissionOverridePayload) =>
       createPermissionOverride(tenantId, payload),
-    onSuccess: (_data, payload) => {
+    onSuccess: (data, payload) => {
+      patchPermissionOverridesCache(qc, tenantId, payload.membership_id, data)
       invalidateRbacWave4Mutations(qc, tenantId, {
         membershipId: payload.membership_id,
         userId: payload.user_id,
@@ -3364,10 +3409,11 @@ export function useUpdatePermissionOverride(tenantId: string) {
     }: {
       overrideId: string
       payload: UpdatePermissionOverridePayload
-      membershipId?: string
+      membershipId: string
       userId?: string
-    }) => updatePermissionOverride(tenantId, overrideId, payload),
-    onSuccess: (_data, { membershipId, userId }) => {
+    }) => updatePermissionOverride(tenantId, membershipId, overrideId, payload),
+    onSuccess: (data, { membershipId, userId }) => {
+      patchPermissionOverridesCache(qc, tenantId, membershipId, data)
       invalidateRbacWave4Mutations(qc, tenantId, { membershipId, userId })
     },
   })
@@ -3382,10 +3428,11 @@ export function useDeletePermissionOverride(tenantId: string) {
       userId,
     }: {
       overrideId: string
-      membershipId?: string
+      membershipId: string
       userId?: string
-    }) => deletePermissionOverride(tenantId, overrideId),
-    onSuccess: (_data, { membershipId, userId }) => {
+    }) => deletePermissionOverride(tenantId, membershipId, overrideId),
+    onSuccess: (_data, { overrideId, membershipId, userId }) => {
+      removePermissionOverrideFromCache(qc, tenantId, membershipId, overrideId)
       invalidateRbacWave4Mutations(qc, tenantId, { membershipId, userId })
     },
   })

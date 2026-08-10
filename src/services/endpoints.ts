@@ -264,6 +264,12 @@ export const ENDPOINTS = {
       `/authorization/tenants/${tenantId}/permission-overrides/`,
     MEMBERSHIP_PERMISSION_OVERRIDES: (tenantId: string, membershipId: string) =>
       `/authorization/tenants/${tenantId}/memberships/${membershipId}/permission-overrides/`,
+    MEMBERSHIP_PERMISSION_OVERRIDE: (
+      tenantId: string,
+      membershipId: string,
+      overrideId: string,
+    ) =>
+      `/authorization/tenants/${tenantId}/memberships/${membershipId}/permission-overrides/${overrideId}/`,
     PERMISSION_OVERRIDE: (tenantId: string, overrideId: string) =>
       `/authorization/tenants/${tenantId}/permission-overrides/${overrideId}/`,
     PERMISSION_AUDIT: (tenantId: string) =>

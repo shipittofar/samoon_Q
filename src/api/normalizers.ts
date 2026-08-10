@@ -219,16 +219,17 @@ export function normalizePermissionOverride(raw: unknown): PermissionOverride | 
   if (!id) return null
   const tenantId = pickString(r, 'tenant_id', 'tenantId') ?? ''
   const permObj = asRecord(r.permission)
+  // Backend may return permission as slug string OR nested { id, slug|key, ... }
   const permission =
-    pickString(r, 'permission') ??
+    (typeof r.permission === 'string' ? r.permission : undefined) ??
     pickString(r, 'permission_key', 'permissionKey') ??
-    (permObj ? pickString(permObj, 'key', 'code') : undefined) ??
+    (permObj ? pickString(permObj, 'key', 'slug', 'code') : undefined) ??
     ''
   return {
     id,
     tenantId,
-    membershipId: pickString(r, 'membership_id', 'membershipId'),
-    userId: pickString(r, 'user_id', 'userId'),
+    membershipId: pickString(r, 'membership_id', 'membershipId', 'membership'),
+    userId: pickString(r, 'user_id', 'userId', 'user'),
     permission,
     permissionId:
       pickString(r, 'permission_id', 'permissionId') ??

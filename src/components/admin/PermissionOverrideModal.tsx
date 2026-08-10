@@ -35,6 +35,7 @@ export function PermissionOverrideModal({
 }: PermissionOverrideModalProps) {
   const t = useTranslations('console')
   const { data: catalog = [], isLoading } = usePermissionCatalog()
+  const selectableCatalog = catalog.filter((p) => typeof p.id === 'string' && p.id.length > 0)
   const [permissionId, setPermissionId] = useState('')
   const [effect, setEffect] = useState<PermissionOverrideEffect>('allow')
   const [error, setError] = useState<string | undefined>()
@@ -84,8 +85,8 @@ export function PermissionOverrideModal({
               className="w-full rounded-md border px-3 py-2 text-sm"
             >
               <option value="">{t('selectPermissionPlaceholder')}</option>
-              {catalog.map((p) => (
-                <option key={p.id ?? p.key} value={p.id ?? p.key}>
+              {selectableCatalog.map((p) => (
+                <option key={p.id!} value={p.id!}>
                   {p.key}
                 </option>
               ))}
