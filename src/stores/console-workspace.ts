@@ -5,10 +5,11 @@ import type { Branch } from '@/types/branch'
 import { hasMembershipBranches, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId } from '@/lib/console-workspace'
 import { canBootTenantFromMembership, hydrateConsoleTenantFromMembership, ensureFullTenantRecord } from '@/lib/console-membership-hydration'
 import { reconcileConsoleWorkspaceConsistency } from '@/lib/console-workspace-consistency'
-import { invalidateTenantLoads } from '@/lib/console-workspace-switch'
-import { normalizeTenantPermissions } from '@/services/permission.service'
+import { invalidateTenantLoads, nextBranchSwitchGeneration } from '@/lib/console-workspace-switch'
+import { hasAnyMembership, normalizeTenantPermissions } from '@/services/permission.service'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { refreshPermissionCache } from '@/lib/permission-cache'
+import { authService } from '@/services/auth.service'
 import { useTenantStore } from '@/stores/index'
 import { useBranchStore } from '@/stores/index'
 import { useRbacStore } from '@/stores/index'
@@ -37,6 +38,13 @@ export interface ConsoleWorkspaceState {
   isBranchLoading: () => boolean
 
   initializeFromSession: () => Promise<void>
+  /**
+   * Mark tenant switch as pending and discard the previous tenant's branch
+   * before the backend switch completes. Cancels in-flight branch switches.
+   */
+  beginTenantSwitch: (targetTenantId: string) => void
+  /** Clear tenant-switch pending state after failure (does not hard-reload). */
+  endTenantSwitch: (opts?: { error?: string | null }) => void
   switchTenant: (tenantId: string) => Promise<boolean>
   switchBranch: (branchId: string) => void
   resetWorkspace: () => void
@@ -108,15 +116,56 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
       },
 
       initializeFromSession: async () => {
-        if (get()._bootstrapped || get()._switching) return
+        // Allow continuation while switching_tenant (post switchActiveTenant hydrate).
+        // Block only unrelated concurrent boots.
+        if (get()._bootstrapped) return
+        if (get()._switching && get().workspacePhase !== 'switching_tenant' && get().workspacePhase !== 'initializing') {
+          return
+        }
         const memberships = useRbacStore.getState().sessionMemberships
         if (memberships === null) return
 
-        const activeMembership = useRbacStore.getState().activeMembership
-        const targetTenantId = resolveConsoleActiveTenantId(memberships, activeMembership)
+        let activeMembership = useRbacStore.getState().activeMembership
+        let targetTenantId = resolveConsoleActiveTenantId(memberships, activeMembership)
+
+        // Sole membership + no backend active tenant → activate that tenant before
+        // any branch work. Multi-tenant without a pointer still awaits manual selection.
+        if (!targetTenantId && memberships.length === 1) {
+          const soleTenantId = memberships[0].tenantId
+          // Blocks branch switches (_switching + switching_tenant) until activation finishes.
+          get().beginTenantSwitch(soleTenantId)
+          try {
+            await authService.switchActiveTenant({ tenantId: soleTenantId })
+            const data = await authService.getMe()
+            useRbacStore.getState().setHasTenantMembership(hasAnyMembership(data))
+            useRbacStore.getState().setSessionMemberships(
+              data.memberships !== undefined && data.memberships !== null ? data.memberships : null,
+              data.activeMembership ?? null,
+            )
+            activeMembership = useRbacStore.getState().activeMembership
+            targetTenantId = resolveConsoleActiveTenantId(
+              useRbacStore.getState().sessionMemberships,
+              activeMembership,
+            )
+            if (!targetTenantId) {
+              get().endTenantSwitch({
+                error: 'Sole tenant could not be activated as the active session tenant',
+              })
+              set({ _bootstrapped: false })
+              return
+            }
+          } catch (err) {
+            get().endTenantSwitch({
+              error: err instanceof Error ? err.message : 'Failed to activate sole tenant',
+            })
+            set({ _bootstrapped: false })
+            return
+          }
+        }
+
         if (!targetTenantId) {
           clearConsoleActiveTenantState()
-          set({ selectedTenantId: null, workspacePhase: 'ready', workspaceError: null, _bootstrapped: true })
+          set({ selectedTenantId: null, workspacePhase: 'ready', workspaceError: null, _bootstrapped: true, _switching: false })
           return
         }
 
@@ -126,37 +175,64 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
           await seedRbacAndRefreshForTenant(targetTenantId)
           const branchState = useBranchStore.getState().branchState
           if (branchState === 'ready' || branchState === 'empty') {
-            set({ selectedTenantId: targetTenantId, workspacePhase: 'ready', _bootstrapped: true })
+            set({ selectedTenantId: targetTenantId, workspacePhase: 'ready', _bootstrapped: true, _switching: false })
             return
           }
 
-          const membership = memberships.find((m) => m.tenantId === targetTenantId)
+          const membership = (useRbacStore.getState().sessionMemberships ?? []).find((m) => m.tenantId === targetTenantId)
           if (hasMembershipBranches(membership)) {
             await useBranchStore.getState().loadBranchesFromMembership(targetTenantId, membership.branches)
           } else {
             await useBranchStore.getState().loadBranchesForTenant(targetTenantId)
           }
-          set({ selectedTenantId: targetTenantId, workspacePhase: 'ready', _bootstrapped: true })
+          set({ selectedTenantId: targetTenantId, workspacePhase: 'ready', _bootstrapped: true, _switching: false })
           reconcileConsoleWorkspaceConsistency()
           return
         }
 
-        set({ workspacePhase: 'initializing', workspaceError: null })
+        if (get().workspacePhase !== 'switching_tenant') {
+          set({ workspacePhase: 'initializing', workspaceError: null })
+        }
         const switched = await get().switchTenant(targetTenantId)
         if (switched) {
-          set({ _bootstrapped: true, workspacePhase: 'ready', workspaceError: null })
+          set({ _bootstrapped: true, workspacePhase: 'ready', workspaceError: null, _switching: false })
           reconcileConsoleWorkspaceConsistency()
         } else {
           set({
             workspacePhase: 'error',
             workspaceError: 'Failed to synchronize tenant workspace with the active session',
             _bootstrapped: false,
+            _switching: false,
           })
         }
       },
 
+      beginTenantSwitch: (targetTenantId: string) => {
+        // Cancel in-flight branch switches so a stale Branch A cannot land after Tenant B.
+        nextBranchSwitchGeneration()
+        invalidateTenantLoads()
+        // Discard previous tenant branch immediately — do not keep Branch A selected.
+        useBranchStore.getState().resetBranchResolution()
+        set({
+          _switching: true,
+          workspacePhase: 'switching_tenant',
+          workspaceError: null,
+          selectedTenantId: targetTenantId,
+        })
+      },
+
+      endTenantSwitch: (opts) => {
+        set({
+          _switching: false,
+          workspacePhase: opts?.error ? 'error' : 'ready',
+          workspaceError: opts?.error ?? null,
+        })
+      },
+
       switchTenant: async (tenantId: string): Promise<boolean> => {
-        if (get()._switching) return false
+        // Allow continuation when beginTenantSwitch already marked _switching.
+        const alreadyPending = get()._switching && get().workspacePhase === 'switching_tenant'
+        if (get()._switching && !alreadyPending) return false
 
         const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
         if (!activeTenantId || tenantId !== activeTenantId) return false
@@ -169,7 +245,7 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
         const currentTenantState = useTenantStore.getState().tenantState
         if (currentTenantId === tenantId && currentTenantState === 'resolved') {
           await seedRbacAndRefreshForTenant(tenantId)
-          set({ selectedTenantId: tenantId, workspacePhase: 'ready' })
+          set({ selectedTenantId: tenantId, workspacePhase: 'ready', _switching: false })
           return true
         }
 
@@ -235,6 +311,9 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
       },
 
       switchBranch: (branchId: string) => {
+        // Never apply a branch while the active tenant is changing.
+        if (get().workspacePhase === 'switching_tenant' || get()._switching) return
+
         const branches = useBranchStore.getState().branches
         const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
         const branch = branches.find((b) => b.id === branchId)

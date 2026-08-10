@@ -1,15 +1,30 @@
 import type { Metadata, Viewport } from 'next'
 import { getLocale, getMessages } from 'next-intl/server'
 import { headers } from 'next/headers'
-import { Playfair_Display, DM_Sans } from 'next/font/google'
+import localFont from 'next/font/local'
 import { Providers } from '@/providers'
 import { getDirection } from '@/i18n/runtime'
 import { ClientIntlProvider } from '@/i18n/ClientIntlProvider'
 import { getLocalizedPageMetadata } from '@/lib/seo'
+import { getLanguageMetadata } from '@/i18n/language-registry'
 import './globals.css'
 
-const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-display', display: 'swap' })
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
+// Self-hosted latin variable faces (same families as next/font/google).
+// Turbopack's Rust Google Fonts fetcher fails on some Windows/TLS setups and
+// then leaves CSS referencing `@vercel/turbopack-next/internal/font/google/font`
+// unresolved. Local fonts avoid that compile-time network path entirely.
+const playfair = localFont({
+  src: '../fonts/PlayfairDisplay-latin-variable.woff2',
+  variable: '--font-display',
+  display: 'swap',
+  weight: '400 900',
+})
+const dmSans = localFont({
+  src: '../fonts/DMSans-latin-variable.woff2',
+  variable: '--font-body',
+  display: 'swap',
+  weight: '100 1000',
+})
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
@@ -47,6 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale = await getLocale()
   const messages = await getMessages()
   const direction = getDirection(locale)
+  const timeZone = getLanguageMetadata(locale)?.defaultTimezone ?? 'UTC'
   // P1B.3 — Read tenant slug injected by middleware and expose it to the client
   // bootstrapper via a <meta> tag. The bootstrapper calls readTenantSlug() which
   // queries this tag, so it knows which tenant to load without re-parsing the host.
@@ -64,7 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: `try{const t=localStorage.getItem('samoon-theme');const th=t?JSON.parse(t).state?.theme:'system';if(th==='dark'||(th==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}` }} />
       </head>
       <body className={`${playfair.variable} ${dmSans.variable} antialiased`}>
-        <ClientIntlProvider locale={locale} messages={messages}>
+        <ClientIntlProvider locale={locale} messages={messages} timeZone={timeZone}>
           <Providers>{children}</Providers>
         </ClientIntlProvider>
       </body>

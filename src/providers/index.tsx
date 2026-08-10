@@ -5,9 +5,9 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
-import { useAuthStore, useThemeStore, useLangStore, useTenantStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
+import { useAuthStore, useThemeStore, useLangStore, useTenantStore, useRbacStore, useBranchStore, useCartStore } from '@/stores'
 import { authService } from '@/services/auth.service'
-import { getAccessToken, clearTokens } from '@/services/axios.instance'
+import { getAccessToken } from '@/services/axios.instance'
 import { prefetchFavoritesList, useFavoritesSync } from '@/hooks/favorites'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useNotificationWebSocket, useFcmRegistration } from '@/hooks/client'
@@ -17,17 +17,16 @@ import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { MissingTranslationInspector } from '@/components/dev/MissingTranslationInspector'
 import { ConsoleWorkspaceBootstrapper } from '@/providers/ConsoleWorkspaceBootstrapper'
 import { PostLoginRedirectHandler } from '@/providers/PostLoginRedirectHandler'
-import { setSentryUser, clearSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
+import { setSentryUser, setSentryTenant, setEnvironmentTags } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import { usePathname } from 'next/navigation'
 import type { Role, TenantMembership } from '@/types/rbac'
 import { normalizeTenantPermissions, selectActiveMembership, hasAnyMembership } from '@/services/permission.service'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
-import { clearPermissionCache } from '@/lib/permission-cache'
+import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { TENANT_OVERRIDABLE_VARS } from '@/lib/tokens'
 import { DEFAULT_TENANT } from '@/constants'
-import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 
 /**
  * Auth-refresh-persistence fix — the exact shape `normalizeTenantPermissions()`
@@ -493,17 +492,9 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
   // leaving RBAC/tenant/cart/query-cache state behind
   // (docs/P10.9_AUTH_SESSION_HARDENING_AUDIT.md Phase D).
   function clearSession() {
-    setUser(null)
-    clearSentryUser()
-    clearTokens()
-    useRbacStore.getState()._resetStore()
-    useConsoleWorkspaceStore.getState().resetWorkspace()
-    useBranchStore.getState().resetBranchResolution()
-    clearPermissionCache()
-    // Cart survives session teardown — cleared only on order success or explicit user action.
-    useDineInStore.getState().clearTable()
-    useRecentlyViewedStore.getState().clear()
-    qc.clear()
+    // Full auth-boundary teardown shared with useLogout — tenant/slug/workspace
+    // must not survive into the next account (no hard reload required).
+    clearAuthenticatedClientState({ queryClient: qc })
   }
 
   // P10.9 — deliberately a SEPARATE effect from the one-time bootstrap

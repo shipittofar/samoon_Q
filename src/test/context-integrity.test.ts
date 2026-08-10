@@ -236,14 +236,20 @@ describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
   })
 
   it('useLogout clears recently-viewed, dine-in, and RBAC but preserves cart', async () => {
+    const teardownSrc = readFileSync(
+      join(__dirname, '..', 'lib', 'auth-session-teardown.ts'),
+      'utf-8',
+    )
     const hooksSrc = readFileSync(
       join(__dirname, '..', 'hooks', 'index.ts'),
       'utf-8',
     )
-    expect(hooksSrc).not.toContain('useCartStore.getState().clearCart()')
-    expect(hooksSrc).toContain('useRecentlyViewedStore.getState().clear()')
-    expect(hooksSrc).toContain('useDineInStore.getState().clearTable()')
-    expect(hooksSrc).toContain('qc.clear()')
+    expect(hooksSrc).toContain('clearAuthenticatedClientState')
+    expect(teardownSrc).not.toContain('useCartStore.getState().clearCart()')
+    expect(teardownSrc).toContain('useRecentlyViewedStore.getState().clear()')
+    expect(teardownSrc).toContain('useDineInStore.getState().clearTable()')
+    expect(teardownSrc).toContain('queryClient?.clear()')
+    expect(teardownSrc).toContain('useTenantStore.getState().reset()')
   })
 
   it('TenantLayout clears cart only on genuine tenant switch (not bootstrap)', async () => {

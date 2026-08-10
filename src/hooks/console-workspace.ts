@@ -16,6 +16,7 @@ import type { GetMeResponse } from '@/services/auth.service'
 import { hasAnyMembership } from '@/services/permission.service'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
 import { clearPermissionCache } from '@/lib/permission-cache'
+import { assertCanSubmitConsoleBranchSwitch } from '@/lib/console-branch-switch-guard'
 
 /** Branch-scoped query prefixes — keep in sync with hooks/index.ts BRANCH_SCOPED_QUERY_KEYS. */
 const BRANCH_SCOPED_QUERY_KEYS = [
@@ -116,7 +117,22 @@ export async function refreshConsoleWorkspaceSession(generation?: number): Promi
     })
   }
 
-  useConsoleWorkspaceStore.getState().resetWorkspace()
+  // Do NOT resetWorkspace() here — that cleared switching_tenant and opened a
+  // window where switch-branch could run with Tenant B active + Branch A pending.
+  const prior = useConsoleWorkspaceStore.getState()
+  const keepTenantSwitchPending =
+    generation !== undefined ||
+    prior._switching ||
+    prior.workspacePhase === 'switching_tenant'
+
+  useConsoleWorkspaceStore.setState({
+    _bootstrapped: false,
+    _switching: keepTenantSwitchPending ? true : prior._switching,
+    workspacePhase: keepTenantSwitchPending ? 'switching_tenant' : 'initializing',
+    workspaceError: null,
+    selectedTenantId: prior.selectedTenantId ?? tenantId ?? null,
+  })
+
   await useConsoleWorkspaceStore.getState().initializeFromSession()
   if (generation !== undefined && !isCurrentTenantSwitch(generation)) return
   reconcileConsoleWorkspaceConsistency()
@@ -193,32 +209,68 @@ export async function requestConsoleTenantSwitch(tenantId: string): Promise<void
     localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify(memberships))
   }
 
-  await authService.switchActiveTenant({
-    tenantId,
-  })
-  if (!isCurrentTenantSwitch(generation)) return
+  // Mark pending + discard Branch A before the backend tenant pointer moves.
+  useConsoleWorkspaceStore.getState().beginTenantSwitch(tenantId)
 
-  await refreshConsoleWorkspaceSession(generation)
-  if (!isCurrentTenantSwitch(generation)) return
+  try {
+    await authService.switchActiveTenant({
+      tenantId,
+    })
+    if (!isCurrentTenantSwitch(generation)) return
 
-  reconcileConsoleWorkspaceConsistency()
+    await refreshConsoleWorkspaceSession(generation)
+    if (!isCurrentTenantSwitch(generation)) return
+
+    reconcileConsoleWorkspaceConsistency()
+  } catch (err) {
+    if (isCurrentTenantSwitch(generation)) {
+      useConsoleWorkspaceStore.getState().endTenantSwitch({
+        error: err instanceof Error ? err.message : 'Failed to switch tenant',
+      })
+      // Restore workspace from the still-active session tenant (no hard reload).
+      try {
+        useConsoleWorkspaceStore.getState().resetWorkspace()
+        await useConsoleWorkspaceStore.getState().initializeFromSession()
+      } catch {
+        /* keep error phase from endTenantSwitch / initialize */
+      }
+    }
+    throw err
+  }
+}
+
+/**
+ * True when a Console tenant switch is in progress — branch switches must not run.
+ */
+export function isConsoleTenantSwitchPending(): boolean {
+  const { workspacePhase, _switching } = useConsoleWorkspaceStore.getState()
+  return _switching || workspacePhase === 'switching_tenant'
 }
 
 /**
  * Requests a backend branch switch, then refreshes /auth/me so
  * activeMembership.branchId remains the sole source of truth for branch context.
+ *
+ * Invariant: branch.tenantId === activeTenant.id at the moment switch-branch is called.
+ * Enforced here and again inside authService.switchActiveBranch immediately before POST.
  */
 export async function requestConsoleBranchSwitch(branchId: string): Promise<void> {
   const currentBranchId = useBranchStore.getState().selectedBranch?.id
   if (currentBranchId === branchId) return
 
-  const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
-  if (!activeTenantId) return
+  if (!assertCanSubmitConsoleBranchSwitch(branchId)) return
 
+  const expectedTenantId = useRbacStore.getState().activeMembership?.tenantId
   const generation = nextBranchSwitchGeneration()
+
+  // Final pre-flight immediately before handing off to the API layer.
+  if (!assertCanSubmitConsoleBranchSwitch(branchId)) return
+  if (useRbacStore.getState().activeMembership?.tenantId !== expectedTenantId) return
 
   await authService.switchActiveBranch({ branchId })
   if (!isCurrentBranchSwitch(generation)) return
+  if (isConsoleTenantSwitchPending()) return
+  if (useRbacStore.getState().activeMembership?.tenantId !== expectedTenantId) return
 
   await refreshConsoleBranchSession(branchId, generation)
 }
@@ -286,6 +338,7 @@ export function useConsoleBranchSwitch() {
   }, [])
 
   const switchBranch = useCallback(async (branchId: string) => {
+    if (isConsoleTenantSwitchPending()) return
     latestBranchIdRef.current = branchId
     setSwitchingToBranchId(branchId)
     try {
@@ -346,7 +399,11 @@ export function useConsoleWorkspace() {
       tenantState === 'loading' ||
       workspacePhase === 'initializing' ||
       workspacePhase === 'switching_tenant',
-    branchLoading: branchState === 'loading' || workspacePhase === 'switching_branch',
+    branchLoading:
+      branchState === 'loading' ||
+      workspacePhase === 'switching_branch' ||
+      workspacePhase === 'switching_tenant',
+    tenantSwitching: workspacePhase === 'switching_tenant',
     workspacePhase,
     workspaceError,
     switchBranch,
@@ -384,6 +441,8 @@ export function useConsoleBranchId(): string | undefined {
  * session + store + selector with that branch.
  */
 export async function syncConsoleBranchFromRoute(pathname: string | null | undefined): Promise<void> {
+  if (isConsoleTenantSwitchPending()) return
+
   const branchId = parseConsoleBranchIdFromPath(pathname)
   if (!branchId) return
 
@@ -392,6 +451,9 @@ export async function syncConsoleBranchFromRoute(pathname: string | null | undef
 
   const selectedBranchId = useBranchStore.getState().selectedBranch?.id
   if (selectedBranchId === branchId) return
+
+  // URL may still contain Tenant A's branch after switching to Tenant B — never POST it.
+  if (!assertCanSubmitConsoleBranchSwitch(branchId)) return
 
   await requestConsoleBranchSwitch(branchId)
 }

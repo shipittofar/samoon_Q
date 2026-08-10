@@ -11,12 +11,16 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 describe('P10.3 Phase G — useLogout clears full RBAC state', () => {
-  it('hooks/index.ts calls _resetStore(), not the partial clearRoles()', () => {
+  it('hooks/index.ts tears down via clearAuthenticatedClientState (includes _resetStore)', () => {
     const src = readFileSync(join(__dirname, '..', 'hooks', 'index.ts'), 'utf-8')
     const start = src.indexOf('export function useLogout')
     const logoutBody = src.slice(start, start + 800)
-    expect(logoutBody).toContain('useRbacStore.getState()._resetStore()')
+    expect(logoutBody).toContain('clearAuthenticatedClientState')
     expect(logoutBody).not.toContain('useRbacStore.getState().clearRoles()')
+    const teardownSrc = readFileSync(join(__dirname, '..', 'lib', 'auth-session-teardown.ts'), 'utf-8')
+    expect(teardownSrc).toContain('useRbacStore.getState()._resetStore()')
+    expect(teardownSrc).toContain('useTenantStore.getState().reset()')
+    expect(teardownSrc).toContain('setActiveTenantSlugForRequests(undefined)')
   })
 
   it('_resetStore clears every RBAC field, not just tenantRoles', () => {

@@ -54,7 +54,7 @@ import type {
   ChannelPreference,
   NotificationPriority,
 } from '@/types/notification'
-import { useAuthStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore, useDineInStore, useRecentlyViewedStore } from '@/stores'
+import { useAuthStore, useNotificationStore, useTenantStore, useLangStore, useRbacStore, useBranchStore, useCartStore } from '@/stores'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { dispatchPostLoginRedirect } from '@/lib/post-auth-navigation'
 import {
@@ -63,12 +63,12 @@ import {
 } from '@/lib/auth-transition'
 import { resolvePostAuthDestination } from '@/utils/auth-redirect'
 import { getAccessToken } from '@/services/axios.instance'
-import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
 import { logRbacDiagnostics } from '@/lib/rbac-diagnostics'
 import { usePermissionStore } from '@/stores/permission-store'
 import { normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
-import { refreshPermissionCache, clearPermissionCache } from '@/lib/permission-cache'
+import { refreshPermissionCache } from '@/lib/permission-cache'
+import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
 import type { P7Permission, PermissionCheckOptions, Role } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
@@ -603,9 +603,11 @@ async function establishAuthenticatedSession(
     activeMembership: data.activeMembership,
     p7Roles,
   })
-  const tenant = useTenantStore.getState().tenant
-  if (tenant) {
-    seedTenantSession(tenant.id, {
+  // Seed RBAC against the new session's active membership only — never against
+  // a leftover useTenantStore.tenant from a previous account (auth boundary).
+  const seedTenantId = data.activeMembership?.tenantId
+  if (seedTenantId) {
+    seedTenantSession(seedTenantId, {
       memberships: data.memberships,
       activeMembership: data.activeMembership,
       p7Roles,
@@ -709,23 +711,12 @@ export function useVerifyOTP() {
 
 export function useLogout() {
   const qc = useQueryClient()
-  const logout = useAuthStore((s) => s.logout)
   return useMutation({
     mutationFn: () => authService.logout(),
     onSettled: () => {
-      logout()
-      // P10.3 Phase G — _resetStore() clears every persisted RBAC field
-      // (tenantRoles, userOverrides, customRoles, rbacAuditLog); the
-      // previous clearRoles() only reset tenantRoles, leaving stale
-      // authorization state behind after logout (P10.2.3 finding F-5).
-      useRbacStore.getState()._resetStore()
-      useConsoleWorkspaceStore.getState().resetWorkspace()
-      useBranchStore.getState().setAdminActiveBranch(null)
-      clearPermissionCache()
-      // Cart survives logout — cleared only on order success or explicit user action.
-      useDineInStore.getState().clearTable()
-      useRecentlyViewedStore.getState().clear()
-      qc.clear()
+      // Full auth-boundary teardown (tenant/slug/workspace/branches/RBAC/cache).
+      // Cart intentionally survives — cleared only on order success or explicit clear.
+      clearAuthenticatedClientState({ queryClient: qc })
     },
   })
 }
@@ -4247,16 +4238,18 @@ function toPDF(data: unknown, domain: string, timestamp: string): string {
 }
 
 export function useExportAnalytics() {
+  const tenantId = useConsoleTenantId()
   return useMutation({
     mutationFn: async ({ domain, format }: { domain: ExportDomain; format: ExportFormat }) => {
+      if (!tenantId) throw new Error('No active tenant')
       const fetchMap: Record<ExportDomain, () => Promise<unknown>> = {
-        summary: () => analyticsService.getAnalyticsSummary(),
-        revenue: () => analyticsService.getRevenueAnalytics(),
-        reservations: () => analyticsService.getReservationAnalytics(),
-        loyalty: () => analyticsService.getLoyaltyAnalytics(),
-        promotions: () => analyticsService.getPromotionAnalytics(),
-        vendors: () => analyticsService.getVendorAnalytics(),
-        menu: () => analyticsService.getMenuAnalytics(),
+        summary: () => analyticsService.getAnalyticsSummary(tenantId),
+        revenue: () => analyticsService.getRevenueAnalytics(tenantId),
+        reservations: () => analyticsService.getReservationAnalytics(tenantId),
+        loyalty: () => analyticsService.getLoyaltyAnalytics(tenantId),
+        promotions: () => analyticsService.getPromotionAnalytics(tenantId),
+        vendors: () => analyticsService.getVendorAnalytics(tenantId),
+        menu: () => analyticsService.getMenuAnalytics(tenantId),
       }
       const data = await fetchMap[domain]()
       const timestamp = new Date().toISOString().split('T')[0]

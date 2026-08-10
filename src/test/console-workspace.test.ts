@@ -57,7 +57,7 @@ describe('resolveConsoleActiveTenantId', () => {
     expect(resolveConsoleActiveTenantId([membership('only')], { tenantId: '' })).toBeNull()
   })
 
-  it('returns null for sole membership without activeMembership — never auto-selects', () => {
+  it('returns null for sole membership without activeMembership — local resolve does not invent (activation is via initializeFromSession)', () => {
     expect(resolveConsoleActiveTenantId([membership('only')], null)).toBeNull()
   })
 
@@ -151,6 +151,7 @@ describe('useConsoleWorkspaceStore.initializeFromSession', () => {
   beforeEach(() => {
     useRbacStore.getState()._resetStore()
     useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
+    useBranchStore.getState().resetBranchResolution()
     useConsoleWorkspaceStore.getState().resetWorkspace()
   })
 
@@ -172,6 +173,209 @@ describe('useConsoleWorkspaceStore.initializeFromSession', () => {
     expect(useConsoleWorkspaceStore.getState().workspacePhase).toBe('error')
     expect(useConsoleWorkspaceStore.getState().workspaceError).toBeTruthy()
     switchSpy.mockRestore()
+  })
+
+  it('sole membership without activeMembership → activates that tenant via switchActiveTenant', async () => {
+    const sole = membership('tenant-only', [
+      { id: 'branch-1', name: 'Main', slug: 'main', status: 'active', isDefault: true },
+    ])
+    useRbacStore.getState().setSessionMemberships([sole], null)
+
+    const switchSpy = vi.spyOn(authService, 'switchActiveTenant').mockResolvedValue(undefined)
+    const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: {
+        id: 'u1',
+        email: 'a@b.com',
+        first_name: 'A',
+        last_name: 'B',
+        accountType: 'business',
+        is_verified: true,
+        created_at: '',
+      },
+      memberships: [sole],
+      activeMembership: { tenantId: 'tenant-only' },
+    } as never)
+
+    const loadById = vi.spyOn(useTenantStore.getState(), 'loadTenantById').mockImplementation(async (id) => {
+      useTenantStore.setState({
+        tenant: {
+          id,
+          name: 'Only',
+          slug: 'only',
+          businessTypes: ['restaurant'],
+          status: 'active',
+          created_at: '',
+        },
+        tenantState: 'resolved',
+        isLoading: false,
+      } as never)
+    })
+
+    await useConsoleWorkspaceStore.getState().initializeFromSession()
+
+    expect(switchSpy).toHaveBeenCalledWith({ tenantId: 'tenant-only' })
+    expect(getMeSpy).toHaveBeenCalled()
+    expect(useRbacStore.getState().activeMembership?.tenantId).toBe('tenant-only')
+    expect(useConsoleWorkspaceStore.getState().workspacePhase).toBe('ready')
+    expect(useConsoleWorkspaceStore.getState()._bootstrapped).toBe(true)
+
+    switchSpy.mockRestore()
+    getMeSpy.mockRestore()
+    loadById.mockRestore()
+  })
+
+  it('multiple memberships without activeMembership → does not auto-activate; awaits selection', async () => {
+    useRbacStore.getState().setSessionMemberships(
+      [membership('tenant-a'), membership('tenant-b')],
+      null,
+    )
+
+    const switchSpy = vi.spyOn(authService, 'switchActiveTenant')
+
+    await useConsoleWorkspaceStore.getState().initializeFromSession()
+
+    expect(switchSpy).not.toHaveBeenCalled()
+    expect(useRbacStore.getState().activeMembership).toBeNull()
+    expect(useConsoleWorkspaceStore.getState().workspacePhase).toBe('ready')
+    expect(useConsoleWorkspaceStore.getState().selectedTenantId).toBeNull()
+    expect(useConsoleWorkspaceStore.getState()._bootstrapped).toBe(true)
+
+    switchSpy.mockRestore()
+  })
+
+  it('sole-tenant activation blocks branch switch until activeMembership is set', async () => {
+    const sole = membership('tenant-only')
+    useRbacStore.getState().setSessionMemberships([sole], null)
+
+    let resolveSwitch!: () => void
+    const switchGate = new Promise<void>((r) => {
+      resolveSwitch = r
+    })
+
+    vi.spyOn(authService, 'switchActiveTenant').mockImplementation(async () => {
+      await switchGate
+    })
+    vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: {
+        id: 'u1',
+        email: 'a@b.com',
+        first_name: 'A',
+        last_name: 'B',
+        accountType: 'business',
+        is_verified: true,
+        created_at: '',
+      },
+      memberships: [sole],
+      activeMembership: { tenantId: 'tenant-only' },
+    } as never)
+    vi.spyOn(useTenantStore.getState(), 'loadTenantById').mockImplementation(async (id) => {
+      useTenantStore.setState({
+        tenant: {
+          id,
+          name: 'Only',
+          slug: 'only',
+          businessTypes: ['restaurant'],
+          status: 'active',
+          created_at: '',
+        },
+        tenantState: 'resolved',
+        isLoading: false,
+      } as never)
+    })
+
+    const boot = useConsoleWorkspaceStore.getState().initializeFromSession()
+
+    // While sole-tenant switch is in flight, branch POST must be blocked.
+    await Promise.resolve()
+    expect(useConsoleWorkspaceStore.getState()._switching).toBe(true)
+    expect(useConsoleWorkspaceStore.getState().workspacePhase).toBe('switching_tenant')
+
+    const branchSpy = vi.spyOn(authService, 'switchActiveBranch')
+    await requestConsoleBranchSwitch('branch-1')
+    expect(branchSpy).not.toHaveBeenCalled()
+    expect(useRbacStore.getState().activeMembership?.tenantId ?? null).toBeNull()
+
+    resolveSwitch()
+    await boot
+
+    expect(useRbacStore.getState().activeMembership?.tenantId).toBe('tenant-only')
+    branchSpy.mockRestore()
+  })
+
+  it('after sole-tenant boot, branch switch sees non-null activeMembership.tenantId', async () => {
+    const sole = membership('tenant-only', [
+      { id: 'branch-1', name: 'Main', slug: 'main', status: 'active', isDefault: true },
+    ])
+    useRbacStore.getState().setSessionMemberships([sole], null)
+
+    vi.spyOn(authService, 'switchActiveTenant').mockResolvedValue(undefined)
+    vi.spyOn(authService, 'getMe').mockResolvedValue({
+      user: {
+        id: 'u1',
+        email: 'a@b.com',
+        first_name: 'A',
+        last_name: 'B',
+        accountType: 'business',
+        is_verified: true,
+        created_at: '',
+      },
+      memberships: [sole],
+      activeMembership: { tenantId: 'tenant-only', branchId: undefined },
+    } as never)
+    vi.spyOn(useTenantStore.getState(), 'loadTenantById').mockImplementation(async (id) => {
+      useTenantStore.setState({
+        tenant: {
+          id,
+          name: 'Only',
+          slug: 'only',
+          businessTypes: ['restaurant'],
+          status: 'active',
+          created_at: '',
+        },
+        tenantState: 'resolved',
+        isLoading: false,
+      } as never)
+    })
+
+    await useConsoleWorkspaceStore.getState().initializeFromSession()
+
+    expect(useRbacStore.getState().activeMembership?.tenantId).toBe('tenant-only')
+    expect(useRbacStore.getState().activeMembership?.tenantId).not.toBeNull()
+
+    // Branch list available for the active tenant
+    const loaded = useBranchStore.getState().branches
+    expect(loaded.some((b) => b.id === 'branch-1')).toBe(true)
+    expect(loaded.every((b) => b.tenantId === 'tenant-only')).toBe(true)
+  })
+
+  it('session restore with sole activeMembership still initializes that tenant (no redundant switch)', async () => {
+    const sole = membership('tenant-only')
+    useRbacStore.getState().setSessionMemberships([sole], { tenantId: 'tenant-only' })
+
+    const switchSpy = vi.spyOn(authService, 'switchActiveTenant')
+    const loadById = vi.spyOn(useTenantStore.getState(), 'loadTenantById').mockImplementation(async (id) => {
+      useTenantStore.setState({
+        tenant: {
+          id,
+          name: 'Only',
+          slug: 'only',
+          businessTypes: ['restaurant'],
+          status: 'active',
+          created_at: '',
+        },
+        tenantState: 'resolved',
+        isLoading: false,
+      } as never)
+    })
+
+    await useConsoleWorkspaceStore.getState().initializeFromSession()
+
+    expect(switchSpy).not.toHaveBeenCalled()
+    expect(useRbacStore.getState().activeMembership?.tenantId).toBe('tenant-only')
+    expect(useConsoleWorkspaceStore.getState().workspacePhase).toBe('ready')
+
+    switchSpy.mockRestore()
+    loadById.mockRestore()
   })
 })
 
@@ -326,6 +530,7 @@ describe('requestConsoleBranchSwitch', () => {
     useRbacStore.getState()._resetStore()
     useConsoleWorkspaceStore.getState().resetWorkspace()
     useBranchStore.getState().resetBranchResolution()
+    useTenantStore.setState({ tenant: null, tenantState: 'not_found', isLoading: false } as never)
   })
 
   it('calls switchActiveBranch then refreshes /auth/me without mutating selectedBranch locally first', async () => {
@@ -340,6 +545,24 @@ describe('requestConsoleBranchSwitch', () => {
       [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
       { tenantId: 't1' },
     )
+    useTenantStore.setState({
+      tenant: {
+        id: 't1',
+        name: 'T1',
+        slug: 't1',
+        businessTypes: ['restaurant'],
+        status: 'active',
+        created_at: '',
+      },
+      tenantState: 'resolved',
+      isLoading: false,
+    } as never)
+    useConsoleWorkspaceStore.setState({
+      selectedTenantId: 't1',
+      workspacePhase: 'ready',
+      _bootstrapped: true,
+      _switching: false,
+    })
 
     const switchSpy = vi.spyOn(authService, 'switchActiveBranch').mockResolvedValue(undefined)
     const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({

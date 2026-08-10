@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { QueryClient } from '@tanstack/react-query'
 import { favoritesKeys } from '@/hooks/favorites'
 import { useRbacStore, useCartStore, useRecentlyViewedStore, useDineInStore, useBranchStore } from '@/stores'
+import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 
 function populateTenantAState(qc: QueryClient) {
   qc.setQueryData(['admin-orders', 'tenant-A', {}], [{ id: 'order-a-1' }])
@@ -41,12 +42,7 @@ function populateTenantAState(qc: QueryClient) {
 
 /** Mirrors exactly the reset sequence inside useLogout()'s onSettled (hooks/index.ts). */
 function simulateLogoutCleanup(qc: QueryClient) {
-  useRbacStore.getState()._resetStore()
-  useBranchStore.getState().setAdminActiveBranch(null)
-  useCartStore.getState().clearCart()
-  useDineInStore.getState().clearTable()
-  useRecentlyViewedStore.getState().clear()
-  qc.clear()
+  clearAuthenticatedClientState({ queryClient: qc })
 }
 
 /** Mirrors exactly the reset sequence inside AdminTenantSwitcher.switchTenant() (tenant-scoped state only). */
@@ -79,11 +75,12 @@ describe('P10.3.2 Phase J — Cache Isolation Proof: Scenario 1 (Tenant A → lo
     expect(qc.getQueryCache().getAll()).toHaveLength(0)
   })
 
-  it('no Tenant A cart/dine-in/favorites-query/branch/RBAC state remains after logout', () => {
+  it('no Tenant A dine-in/favorites-query/branch/RBAC state remains after logout (cart survives)', () => {
     populateTenantAState(qc)
     simulateLogoutCleanup(qc)
 
-    expect(useCartStore.getState().items).toEqual([])
+    // Cart is intentionally preserved across logout (guest-checkout UX).
+    expect(useCartStore.getState().items.length).toBeGreaterThan(0)
     expect(useDineInStore.getState().tableNumber).toBeNull()
     expect(qc.getQueryData(favoritesKeys.list())).toBeUndefined()
     expect(useRecentlyViewedStore.getState().items).toEqual([])

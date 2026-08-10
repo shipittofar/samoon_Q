@@ -25,11 +25,22 @@ import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl'
 import type { ReactNode } from 'react'
 import { recordMissingTranslation } from './runtime'
 
-export function ClientIntlProvider({ locale, messages, children }: { locale: string; messages: AbstractIntlMessages; children: ReactNode }) {
+export function ClientIntlProvider({
+  locale,
+  messages,
+  timeZone,
+  children,
+}: {
+  locale: string
+  messages: AbstractIntlMessages
+  timeZone: string
+  children: ReactNode
+}) {
   return (
     <NextIntlClientProvider
       locale={locale}
       messages={messages}
+      timeZone={timeZone}
       onError={(error) => {
         if (process.env.NODE_ENV !== 'production') {
           console.error(error)

@@ -13,14 +13,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { QueryClient } from '@tanstack/react-query'
 import { authService, MOCK_SESSION_KEY } from '@/services/auth.service'
 import { getAccessToken, clearTokens } from '@/services/axios.instance'
+import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
+import { MOCK_TENANT_ID } from '@/config/mock-data'
 import {
   useAuthStore,
   useTenantStore,
   useRbacStore,
   useBranchStore,
   useCartStore,
-  useDineInStore,
-  useRecentlyViewedStore,
 } from '@/stores'
 import { resolveOwnershipIdentity } from '@/services/ownership-resolution.service'
 
@@ -33,38 +33,27 @@ vi.mock('@/constants', async (importOriginal) => {
 })
 
 /**
- * Mirrors AuthBootstrapper's clearSession() (src/providers/index.tsx)
- * exactly — full teardown used both on a failed getMe() and on the
- * 'auth:logout' event. Not a reimplementation of auth logic, purely a
- * test double for the store-clearing side effects.
+ * Mirrors AuthBootstrapper's clearSession() / useLogout onSettled —
+ * both call clearAuthenticatedClientState.
  */
 function clearSession(qc: QueryClient) {
-  useAuthStore.getState().setUser(null)
-  clearTokens()
-  useRbacStore.getState()._resetStore()
-  useBranchStore.getState().setAdminActiveBranch(null)
-  // Cart survives session teardown — mirrors AuthBootstrapper.clearSession().
-  useDineInStore.getState().clearTable()
-  useRecentlyViewedStore.getState().clear()
-  qc.clear()
+  clearAuthenticatedClientState({ queryClient: qc })
 }
 
 /** Mirrors useLogout()'s onSettled cleanup (src/hooks/index.ts). */
 function explicitLogout(qc: QueryClient) {
-  useAuthStore.getState().logout()
-  useRbacStore.getState()._resetStore()
-  useBranchStore.getState().setAdminActiveBranch(null)
-  // Cart survives logout — cleared only on order success or explicit user action.
-  useDineInStore.getState().clearTable()
-  useRecentlyViewedStore.getState().clear()
-  qc.clear()
+  clearAuthenticatedClientState({ queryClient: qc })
 }
 
 async function loginAs(email: string) {
   const result = await authService.login({ email, password: 'password' })
-  const tenant = useTenantStore.getState().tenant
-  if (tenant && result.p7Roles && result.p7Roles.length > 0) {
-    useRbacStore.getState().setTenantRoles(tenant.id, result.p7Roles)
+  // Seed against the new session's membership tenant — never a leftover store tenant.
+  const tenantId =
+    result.activeMembership?.tenantId ??
+    result.memberships?.[0]?.tenantId ??
+    useTenantStore.getState().tenant?.id
+  if (tenantId && result.p7Roles && result.p7Roles.length > 0) {
+    useRbacStore.getState().setTenantRoles(tenantId, result.p7Roles)
   }
   useAuthStore.getState().setUser(result.user)
   return result
@@ -77,12 +66,11 @@ beforeEach(() => {
   useAuthStore.getState().setUser(null)
   useRbacStore.getState()._resetStore()
   useCartStore.getState().clearCart()
-  // Tenant-scoped role hydration (loginAs()) is a no-op unless a tenant has
-  // actually resolved — simulate the correctly-ordered case.
+  // Align store tenant with mock membership tenant so role assertions share one id.
   useTenantStore.getState().setTenant({
-    id: 'tenant-test-01',
-    name: 'Test Tenant',
-    slug: 'test-tenant',
+    id: MOCK_TENANT_ID,
+    name: 'Samoon Restaurant',
+    slug: 'samoon',
     businessTypes: ['restaurant'],
     status: 'active',
     created_at: '2024-01-01T00:00:00.000Z',

@@ -1,6 +1,7 @@
 import { getRequestConfig } from 'next-intl/server'
 import { cookies, headers } from 'next/headers'
 import { resolveRequestLocale, loadMessages, recordMissingTranslation } from './runtime'
+import { getLanguageMetadata } from './language-registry'
 
 export default getRequestConfig(async () => {
   const cookieStore = await cookies()
@@ -18,9 +19,14 @@ export default getRequestConfig(async () => {
   // if this locale has no message file yet, never bundling every language.
   const { messages } = await loadMessages(locale)
 
+  // next-intl requires an explicit IANA time zone; without it, render emits
+  // ENVIRONMENT_FALLBACK (and can surface as Internal Server Error in dev).
+  const timeZone = getLanguageMetadata(locale)?.defaultTimezone ?? 'UTC'
+
   return {
     locale,
     messages,
+    timeZone,
     // Phase F — missing translation handler: next-intl calls onError for
     // every resolution failure (missing key, missing namespace, etc.) and
     // getMessageFallback to decide what to render instead of throwing.

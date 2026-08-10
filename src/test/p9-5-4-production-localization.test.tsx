@@ -127,8 +127,11 @@ describe('Missing-translation dev inspector (Phase H) — never crashes, records
     const clientProvider = readSrc('i18n/ClientIntlProvider.tsx')
     expect(clientProvider).toContain('getMessageFallback')
     expect(clientProvider).toContain('onError')
+    expect(clientProvider).toContain('timeZone')
     const requestConfig = readSrc('i18n/request.ts')
     expect(requestConfig).toContain('getMessageFallback')
+    expect(requestConfig).toContain('timeZone')
+    expect(requestConfig).toContain('defaultTimezone')
   })
 })
 

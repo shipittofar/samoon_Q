@@ -17,6 +17,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 import en from '@/i18n/locales/en.json'
 import { useAuthStore, useTenantStore, useRbacStore, useBranchStore } from '@/stores'
+import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { hasAnyTenantAccess, normalizeTenantPermissions } from '@/services/permission.service'
 import { BRANCH_SCOPED_QUERY_KEYS } from '@/hooks'
 import { AdminTenantSwitcher } from '@/components/admin/AdminTenantSwitcher'
@@ -206,8 +207,16 @@ describe('Phase X.3 — branch switch invalidates every branch-scoped cache, inc
 
   beforeEach(() => {
     useRbacStore.getState()._resetStore()
+    useConsoleWorkspaceStore.getState().resetWorkspace()
+    useConsoleWorkspaceStore.setState({
+      workspacePhase: 'ready',
+      _bootstrapped: true,
+      _switching: false,
+      selectedTenantId: 'tenant-1',
+      workspaceError: null,
+    })
     useTenantStore.setState({ tenant: { id: 'tenant-1', name: 'Test Tenant' } as never, tenantState: 'resolved' } as never)
-    useBranchStore.setState({ branches, selectedBranch: branches[0], branchState: 'ready' } as never)
+    useBranchStore.setState({ branches, selectedBranch: branches[0], selectedBranchId: 'branch-1', branchState: 'ready' } as never)
     useRbacStore.getState().setSessionMemberships(
       [{ tenantId: 'tenant-1', roles: ['owner'], branchAccess: { scope: 'all' } }],
       { tenantId: 'tenant-1', branchId: 'branch-1' },

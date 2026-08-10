@@ -427,15 +427,29 @@ export const authService = {
   /**
    * Switches the server-side active branch (mirror of switchActiveTenant).
    * The frontend must follow with GET /auth/me via refreshConsoleBranchSession().
+   *
+   * Last-line invariant: never POST if the branch is missing from the active
+   * tenant's loaded list or a tenant switch is in progress.
    */
   async switchActiveBranch(params: { branchId: string }): Promise<void> {
+    const { assertCanSubmitConsoleBranchSwitch } = await import('@/lib/console-branch-switch-guard')
+    // Re-evaluate immediately before any network I/O (closes TOCTOU with tenant switch).
+    if (!assertCanSubmitConsoleBranchSwitch(params.branchId)) {
+      return
+    }
+
     if (mockActive()) {
+      // Re-check after mock scheduling point — tenant may have switched.
+      if (!assertCanSubmitConsoleBranchSwitch(params.branchId)) return
       await delay(MOCK_DELAY)
+      if (!assertCanSubmitConsoleBranchSwitch(params.branchId)) return
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(MOCK_ACTIVE_BRANCH_KEY, params.branchId)
       }
       return
     }
+
+    if (!assertCanSubmitConsoleBranchSwitch(params.branchId)) return
     await api.post(ENDPOINTS.AUTH.SWITCH_BRANCH, {
       branchId: params.branchId,
     })

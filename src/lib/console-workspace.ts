@@ -16,7 +16,9 @@ type ConsoleWorkspacePhase =
  * Resolves the Console default tenant — ONLY from activeMembership.tenantId.
  *
  * Returns null when activeMembership.tenantId is missing or not in memberships.
- * Does not auto-select from the memberships list; the user may pick manually.
+ * Does not invent a local active tenant from the memberships list — sole-tenant
+ * activation is performed by initializeFromSession via POST switch-tenant so the
+ * backend active_tenant_id is set before branch operations.
  */
 export function resolveConsoleActiveTenantId(
   memberships: readonly TenantMembership[] | null | undefined,

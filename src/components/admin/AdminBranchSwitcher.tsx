@@ -39,6 +39,8 @@ export function AdminBranchSwitcher() {
     availableBranches,
     branchesSource,
     branchLoading,
+    tenantLoading,
+    tenantSwitching,
   } = useConsoleWorkspace()
   const { switchBranch, switchingToBranchId, switching } = useConsoleBranchSwitch()
   const branchState = useBranchState()
@@ -60,7 +62,8 @@ export function AdminBranchSwitcher() {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
-  const pending = switching || branchLoading
+  // Disable while tenant OR branch is switching — never submit Branch A during Tenant B switch.
+  const pending = switching || branchLoading || tenantLoading || tenantSwitching
 
   // Close on outside click
   useEffect(() => {
@@ -71,8 +74,15 @@ export function AdminBranchSwitcher() {
     return () => document.removeEventListener('mousedown', handle)
   }, [])
 
+  // Close the menu as soon as a tenant switch starts so stale options cannot be clicked.
+  useEffect(() => {
+    if (pending) setOpen(false)
+  }, [pending])
+
   async function select(branch: AdminBranch) {
     if (pending) return
+    // Defense-in-depth: never call switch-branch for another tenant's branch.
+    if (activeTenantId && branch.tenantId !== activeTenantId) return
     if (branch.id === selectedBranch?.id) {
       setOpen(false)
       return

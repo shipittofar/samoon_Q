@@ -608,8 +608,17 @@ function applyLoadedBranches(
   tenantId: string,
   branches: AdminBranch[],
 ) {
-  const scopedBranches = filterBranchesForTenant(branches, tenantId)
+  // Never keep cross-tenant rows, even if the API omits/wrongly sets tenantId.
+  const scopedBranches = filterBranchesForTenant(
+    branches.map((b) => ({
+      ...b,
+      // Only accept an explicit matching tenantId — do not invent ownership.
+      tenantId: b.tenantId,
+    })),
+    tenantId,
+  )
   const activeBranchId = useRbacStore.getState().activeMembership?.branchId
+  // Ignore activeMembership.branchId when it points at a branch not in this tenant.
   const selected = resolveConsoleActiveBranch(scopedBranches, activeBranchId)
   lastLoadedBranchesTenantId = tenantId
   if (selected) {
@@ -625,7 +634,7 @@ function applyLoadedBranches(
       branches: scopedBranches,
       selectedBranch: null,
       selectedBranchId: null,
-      branchState: 'empty',
+      branchState: scopedBranches.length === 0 ? 'empty' : 'empty',
       adminActiveBranch: null,
     })
   }
