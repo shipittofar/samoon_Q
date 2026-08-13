@@ -24,6 +24,7 @@ import {
   type PublicBranchInfo,
 } from '@/types/marketplace'
 import type { Tenant, Category, MenuItem, PromotionRule } from '@/types'
+import { resolveTenantBranding, resolveTenantImage } from '@/lib/tenant-branding'
 
 // ── Price level helper ────────────────────────────────────────────────────────
 
@@ -70,14 +71,20 @@ function HeroSection({
   tenant,
   meta,
   branchCapability,
+  layoutBranding,
 }: {
   tenant: Tenant
   meta: MarketplaceMeta
   branchCapability?: { orderingEnabled?: boolean; reservationsEnabled?: boolean }
+  /** Public Website `branding` — prefer over CRUD settings.theme when present. */
+  layoutBranding?: import('@/types').TenantBranding
 }) {
   const t = useTranslations('tenant')
   const tMarketplace = useTranslations('marketplace')
-  const accentColor = tenant.settings?.theme?.primaryColor ?? 'var(--accent)'
+  const accentColor =
+    resolveTenantBranding({ branding: layoutBranding, settings: tenant.settings })?.primaryColor ??
+    'var(--accent)'
+  const logoImage = resolveTenantImage(tenant)
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
 
   const featureFlags = useTenantStore((s) => s.featureFlags)
@@ -150,11 +157,16 @@ function HeroSection({
         <div className="flex items-end gap-4">
           {/* Logo circle */}
           <div
-            className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl flex items-center justify-center text-white font-bold text-2xl sm:text-3xl shadow-lg border-2 border-white/20"
+            className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl flex items-center justify-center text-white font-bold text-2xl sm:text-3xl shadow-lg border-2 border-white/20 overflow-hidden"
             style={{ background: accentColor }}
             aria-hidden="true"
           >
-            {tenant.name[0]}
+            {logoImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoImage} alt="" className="h-full w-full object-cover" />
+            ) : (
+              tenant.name[0]
+            )}
           </div>
 
           <div className="min-w-0">
@@ -930,7 +942,12 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
       <Breadcrumb name={tenant.name} />
 
       <main id="main-content">
-        <HeroSection tenant={tenant} meta={meta} branchCapability={primaryBranchCapability} />
+        <HeroSection
+          tenant={tenant}
+          meta={meta}
+          branchCapability={primaryBranchCapability}
+          layoutBranding={layout?.branding}
+        />
 
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-16">
           <QuickActions journey={journey} tenant={tenant} />

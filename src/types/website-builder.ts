@@ -1,3 +1,5 @@
+import type { TenantBranding } from '@/types'
+
 // P8.8.6 — Business Website Builder & Public Content Management
 
 export type SectionKey =
@@ -100,13 +102,18 @@ export type CardStyle = 'flat' | 'elevated' | 'outlined'
 export type DarkModePreference = 'light' | 'dark' | 'system'
 
 export interface ThemeSettings {
+  /** Layout tokens only — not tenant branding colors/fonts. */
+  borderRadius?: BorderRadius
+  cardStyle?: CardStyle
+  darkModePreference?: DarkModePreference
+  /**
+   * Legacy Website Builder color fields (opinionated brand themes).
+   * Not TenantBranding — do not treat as canonical tenant branding.
+   */
   primaryColor?: string
   accentColor?: string
   backgroundColor?: string
-  borderRadius?: BorderRadius
-  cardStyle?: CardStyle
   fontFamily?: string
-  darkModePreference?: DarkModePreference
 }
 
 export type PublishStatus = 'draft' | 'published'
@@ -129,7 +136,12 @@ export interface HomepageLayout {
   about: AboutContent
   contact: ContactContent
   faq: FAQItem[]
+  /** Website Builder layout theme (radius/card/dark-mode) — not tenant branding. */
   theme: ThemeSettings
+  /** Tenant branding (colors/fonts) — separate from layout `theme`. */
+  branding?: TenantBranding
+  /** Tenant logo URL — same as Tenant.image. */
+  image?: string
   status: PublishStatus
   lastPublishedAt?: string
   lastSavedAt?: string

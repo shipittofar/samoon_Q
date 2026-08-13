@@ -26,6 +26,7 @@ import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
 import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { TENANT_OVERRIDABLE_VARS } from '@/lib/tokens'
+import { resolveFontCssFamily, resolveTenantBranding } from '@/lib/tenant-branding'
 import { DEFAULT_TENANT } from '@/constants'
 
 /**
@@ -327,31 +328,40 @@ function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
 
 /**
  * Applies per-tenant CSS variable overrides at runtime (Phase 2 — P2.2).
- * Reads Tenant.settings.theme and mutates document root CSS vars.
+ * Reads Tenant.settings.theme (CRUD branding) and mutates document root CSS vars.
  * Isolated from the bootstrap sequence: reacts to tenant changes reactively.
  * Cleans up overrides on unmount or when tenant changes back to no theme.
  *
  * Permitted override targets: --accent, --accent-hover, --font-body.
  * See TENANT_OVERRIDABLE_VARS in src/lib/tokens.ts.
+ * Logo is Tenant.image — never applied here.
  */
 function TenantThemeProvider({ children }: { children: ReactNode }) {
   const tenant = useTenantStore((s) => s.tenant)
+  const locale = useLangStore((s) => s.locale)
   useEffect(() => {
-    const theme = tenant?.settings?.theme
+    const branding = resolveTenantBranding({ settings: tenant?.settings })
     const root = document.documentElement
-    if (theme?.primaryColor) {
-      root.style.setProperty('--accent', theme.primaryColor)
-      root.style.setProperty('--accent-hover', theme.accentHoverColor ?? theme.primaryColor)
+    if (branding?.primaryColor) {
+      root.style.setProperty('--accent', branding.primaryColor)
+      root.style.setProperty(
+        '--accent-hover',
+        branding.accentHoverColor ?? branding.primaryColor,
+      )
     }
-    if (theme?.fontBody) {
-      root.style.setProperty('--font-body', theme.fontBody)
+    const fontCss = resolveFontCssFamily(branding?.fontBody, {
+      locale,
+      fontsByLocale: branding?.fontsByLocale,
+    })
+    if (fontCss) {
+      root.style.setProperty('--font-body', fontCss)
     }
     return () => {
       for (const cssVar of TENANT_OVERRIDABLE_VARS) {
         root.style.removeProperty(cssVar)
       }
     }
-  }, [tenant])
+  }, [tenant, locale])
   return <>{children}</>
 }
 

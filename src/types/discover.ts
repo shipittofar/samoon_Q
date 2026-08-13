@@ -2,8 +2,7 @@
  * Wire contract for GET /api/public/discover/
  */
 
-import type { TenantStatus } from '@/types'
-import type { TenantTheme } from '@/types'
+import type { TenantStatus, TenantBranding, TenantTheme } from '@/types'
 import type { BranchCheckout, BranchBusinessHours } from '@/types/branch'
 import type { MarketplaceMeta } from '@/types/marketplace'
 
@@ -39,7 +38,15 @@ export interface DiscoverTenant {
   status: TenantStatus
   created_at: string
   businessTypes: string[]
+  /** Tenant logo — canonical Discover image field. */
+  image?: string
   featureFlags?: Record<string, boolean>
+  /** Canonical tenant branding (colors/fonts). Prefer over legacy `theme`. */
+  branding?: TenantBranding
+  /**
+   * Legacy Discover branding mirror — compatibility only.
+   * New frontend logic must prefer `branding`.
+   */
   theme?: TenantTheme
   marketplace?: DiscoverMarketplace
   branches?: DiscoverBranch[]

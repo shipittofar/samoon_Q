@@ -1,4 +1,4 @@
-import type { Tenant, TenantTheme } from '@/types'
+import type { Tenant, TenantBranding } from '@/types'
 
 export type ProvisionableBusinessType =
   | 'restaurant'
@@ -8,12 +8,8 @@ export type ProvisionableBusinessType =
   | 'food_truck'
   | 'mobile_cafe'
 
-export interface TenantBrandingConfig {
-  primaryColor?: string
-  accentHoverColor?: string
-  logoUrl?: string
-  fontBody?: string
-}
+/** Step 3 branding — maps to Tenant CRUD `settings.theme` (no logo fields). */
+export type TenantBrandingConfig = TenantBranding
 
 export interface TenantProvisionRequest {
   /** Display name for the new tenant. */
@@ -24,6 +20,11 @@ export interface TenantProvisionRequest {
   /** Optional per-flag overrides applied on top of the template defaults. */
   capabilityOverrides?: Record<string, boolean>
   branding?: TenantBrandingConfig
+  /**
+   * Tenant logo file — uploaded as multipart `image` (Tenant.image).
+   * Never nested under settings.theme / branding.
+   */
+  image?: File | null
   /** Additional feature flag overrides (highest priority). */
   featureFlagOverrides?: Record<string, boolean>
 }

@@ -116,18 +116,18 @@ describe('TENANT_OVERRIDABLE_VARS', () => {
 
 // ── TenantTheme type contract (P2.2) ─────────────────────────────────────────
 
-describe('TenantTheme type', () => {
-  it('accepts a valid theme object with optional fields', () => {
+describe('TenantBranding type', () => {
+  it('accepts a valid branding object with optional fields', () => {
     const theme: TenantTheme = {
       primaryColor: '#f97316',
       accentHoverColor: '#ea580c',
-      fontBody: 'Inter',
-      logoUrl: 'https://example.com/logo.png',
+      fontBody: 'inter',
+      fontsByLocale: { en: 'inter', fa: 'vazirmatn' },
     }
     expect(theme.primaryColor).toBe('#f97316')
     expect(theme.accentHoverColor).toBe('#ea580c')
-    expect(theme.fontBody).toBe('Inter')
-    expect(theme.logoUrl).toBeDefined()
+    expect(theme.fontBody).toBe('inter')
+    expect(theme.fontsByLocale?.fa).toBe('vazirmatn')
   })
 
   it('accepts partial theme (all fields optional)', () => {

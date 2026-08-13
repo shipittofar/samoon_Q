@@ -19,7 +19,15 @@ const SAMPLE_TENANT: DiscoverTenant = {
   status: 'active',
   created_at: '2024-01-01T00:00:00.000Z',
   businessTypes: ['restaurant'],
+  image: 'https://example.com/logo.png',
   featureFlags: { 'reservations.enabled': true },
+  branding: {
+    primaryColor: '#1a1a2e',
+    accentHoverColor: '#e85d04',
+    fontBody: 'inter',
+    fontsByLocale: { en: 'inter', fa: 'vazir' },
+  },
+  // Legacy Discover field — must NOT become the canonical branding source
   theme: { primaryColor: '#e85d04' },
   marketplace: {
     description: 'Fine dining',
@@ -86,17 +94,31 @@ describe('discover adapter', () => {
     })
   })
 
-  it('mapDiscoverTenantToItem builds Tenant-compatible settings.marketplace', () => {
+  it('mapDiscoverTenantToItem prefers branding over legacy theme and preserves image', () => {
     const item = mapDiscoverTenantToItem(SAMPLE_TENANT)
     expect(item.tenant.slug).toBe('samoon')
     expect(item.tenant.businessTypes).toEqual(['restaurant'])
+    expect(item.tenant.image).toBe('https://example.com/logo.png')
     expect(item.tenant.settings?.featureFlags?.['reservations.enabled']).toBe(true)
-    expect(item.tenant.settings?.theme?.primaryColor).toBe('#e85d04')
+    // Canonical branding from `branding`, not legacy theme.primaryColor
+    expect(item.tenant.settings?.theme?.primaryColor).toBe('#1a1a2e')
+    expect(item.tenant.settings?.theme?.accentHoverColor).toBe('#e85d04')
+    expect(item.tenant.settings?.theme?.fontBody).toBe('inter')
+    expect(item.tenant.settings?.theme?.fontsByLocale).toEqual({ en: 'inter', fa: 'vazir' })
     expect(item.meta.coverImage).toBe('https://example.com/cover.jpg')
     expect(item.meta.branches).toHaveLength(2)
     expect(item.branches).toHaveLength(2)
     expect(item.meta.primaryBranchSlug).toBe('main')
     expect(item.meta.branchCount).toBe(2)
+  })
+
+  it('falls back to legacy theme when branding is absent', () => {
+    const { branding: _b, ...legacyOnly } = SAMPLE_TENANT
+    const item = mapDiscoverTenantToItem({
+      ...legacyOnly,
+      theme: { primaryColor: '#abcdef' },
+    })
+    expect(item.tenant.settings?.theme?.primaryColor).toBe('#abcdef')
   })
 
   it('adaptDiscoverResponse filters default and non-public statuses', () => {

@@ -10,6 +10,7 @@ import type { Tenant } from '@/types'
 import { type MarketplaceMeta, type PublicBranchInfo, BUSINESS_TYPE_LABELS } from '@/types/marketplace'
 import { usePublicBranches } from '@/hooks'
 import { BranchPreview } from './BranchPreview'
+import { resolveTenantBranding, resolveTenantImage } from '@/lib/tenant-branding'
 
 interface BusinessCardProps {
   tenant: Tenant
@@ -52,7 +53,8 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
   const visibleBranches = branches.filter((b) => b.marketplaceVisible !== false)
 
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')
-  const accentColor = tenant.settings?.theme?.primaryColor
+  const accentColor = resolveTenantBranding({ settings: tenant.settings })?.primaryColor
+  const tenantImage = resolveTenantImage(tenant)
   const featureFlags = tenant.settings?.featureFlags ?? {}
   const hasReservations =
     branches.length > 0
@@ -116,11 +118,16 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
         {/* Logo + name + price */}
         <div className="flex items-start gap-3 mb-2">
           <div
-            className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-sm"
+            className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-sm overflow-hidden"
             style={{ background: accentColor ?? 'var(--accent)' }}
             aria-hidden="true"
           >
-            {tenant.name[0]}
+            {tenantImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={tenantImage} alt="" className="h-full w-full object-cover" />
+            ) : (
+              tenant.name[0]
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-between gap-1">

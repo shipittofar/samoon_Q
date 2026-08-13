@@ -7,6 +7,7 @@ import type { Tenant } from '@/types'
 import type { DiscoverBranch, DiscoverResponse, DiscoverTenant } from '@/types/discover'
 import type { MarketplaceMeta, PublicBranchInfo } from '@/types/marketplace'
 import { resolveBranchHoursStatus } from '@/lib/branch-hours'
+import { resolveTenantBranding } from '@/lib/tenant-branding'
 
 /** Adapted discover row — TenantWithMeta plus pre-resolved branches for BusinessCard. */
 export type DiscoverItem = {
@@ -58,6 +59,12 @@ export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
     branches,
   }
 
+  // Prefer Discover `branding`; fall back to legacy `theme` for older responses.
+  const branding = resolveTenantBranding({
+    branding: item.branding,
+    theme: item.theme,
+  })
+
   const tenant: Tenant = {
     id: item.id,
     slug: item.slug,
@@ -65,9 +72,11 @@ export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
     status: item.status,
     created_at: item.created_at,
     businessTypes: item.businessTypes ?? [],
+    image: item.image,
     settings: {
       featureFlags: item.featureFlags,
-      theme: item.theme,
+      // CRUD-shaped store: settings.theme holds branding values for shared consumers
+      theme: branding,
       marketplace: meta,
     },
   }

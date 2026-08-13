@@ -36,6 +36,7 @@ import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 import { UserMenuBusinessConsoleLink } from '@/components/layout/UserMenuBusinessConsoleLink'
 import { cn, buildPublicCTAs, buildCustomerJourney } from '@/utils'
 import { buildTenantNavigation, getBusinessTypeBadge } from '@/utils/navigation'
+import { resolveTenantImage } from '@/lib/tenant-branding'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useHomepageLayout } from '@/hooks'
@@ -108,7 +109,7 @@ export function TenantHeader() {
   // access individually.
   if (!tenant) return null
 
-  const logoUrl = tenant.settings?.theme?.logoUrl
+  const tenantImage = resolveTenantImage(tenant) ?? resolveTenantImage(layout)
   const meta = tenant.settings?.marketplace
   const journeyCTAs = buildPublicCTAs({
     tenantSlug: tenant.slug,
@@ -170,10 +171,10 @@ export function TenantHeader() {
                 className="flex items-center gap-2.5 group shrink-0"
                 aria-label={t('tenantHomeAria', { name: tenant.name })}
               >
-                {logoUrl ? (
+                {tenantImage ? (
                   <div className="relative h-8 w-24">
                     <Image
-                      src={logoUrl}
+                      src={tenantImage}
                       alt={t('logoAlt', { name: tenant.name })}
                       fill
                       className="object-contain dark:brightness-0 dark:invert"

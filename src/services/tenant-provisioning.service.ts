@@ -8,10 +8,31 @@ import type {
   TenantProvisionResult,
   TenantTemplate,
 } from '@/types/provisioning'
-import type { Tenant } from '@/types'
+import type { Tenant, TenantBranding } from '@/types'
+import { sanitizeBrandingForWrite } from '@/lib/tenant-branding'
+import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 200) => new Promise<void>((r) => setTimeout(r, ms))
+
+/**
+ * Builds multipart FormData for tenant provision when a logo File is present.
+ * Branding lives under `settings` JSON; logo is the top-level `image` file field.
+ * Never includes logoUrl / theme.logo.
+ */
+export function buildTenantProvisionFormData(input: {
+  name: string
+  businessType: ProvisionableBusinessType
+  settings: { featureFlags: Record<string, boolean>; theme: TenantBranding }
+  image: File
+}): FormData {
+  const form = new FormData()
+  form.append('name', input.name)
+  form.append('businessTypes', JSON.stringify([input.businessType]))
+  form.append('settings', JSON.stringify(input.settings))
+  form.append('image', input.image)
+  return form
+}
 
 // ── Seed data for clone source lookup in mock mode ────────────────────────────
 // Mirrors the slugs/IDs registered in tenant.service.ts MOCK_TENANTS.
@@ -58,7 +79,7 @@ const TEMPLATES: Record<ProvisionableBusinessType, TenantTemplate> = {
       'analytics.enabled': true,
       'notifications.enabled': true,
     },
-    brandingDefaults: { primaryColor: '#e85d04', fontBody: '"Inter", sans-serif' },
+    brandingDefaults: { primaryColor: '#e85d04', fontBody: 'inter' },
   },
   cafe: {
     businessType: 'cafe',
@@ -81,7 +102,7 @@ const TEMPLATES: Record<ProvisionableBusinessType, TenantTemplate> = {
       'analytics.enabled': true,
       'notifications.enabled': true,
     },
-    brandingDefaults: { primaryColor: '#6f4e37', fontBody: '"Inter", sans-serif' },
+    brandingDefaults: { primaryColor: '#6f4e37', fontBody: 'inter' },
   },
   bar: {
     businessType: 'bar',
@@ -101,7 +122,7 @@ const TEMPLATES: Record<ProvisionableBusinessType, TenantTemplate> = {
       'analytics.enabled': true,
       'notifications.enabled': true,
     },
-    brandingDefaults: { primaryColor: '#1a1a2e', fontBody: '"Inter", sans-serif' },
+    brandingDefaults: { primaryColor: '#1a1a2e', fontBody: 'inter' },
   },
   food_court: {
     businessType: 'food_court',
@@ -122,7 +143,7 @@ const TEMPLATES: Record<ProvisionableBusinessType, TenantTemplate> = {
       'analytics.enabled': true,
       'notifications.enabled': true,
     },
-    brandingDefaults: { primaryColor: '#2d6a4f', fontBody: '"Inter", sans-serif' },
+    brandingDefaults: { primaryColor: '#2d6a4f', fontBody: 'inter' },
   },
   food_truck: {
     businessType: 'food_truck',
@@ -142,7 +163,7 @@ const TEMPLATES: Record<ProvisionableBusinessType, TenantTemplate> = {
       'analytics.enabled': true,
       'notifications.enabled': true,
     },
-    brandingDefaults: { primaryColor: '#f4a261', fontBody: '"Inter", sans-serif' },
+    brandingDefaults: { primaryColor: '#f4a261', fontBody: 'inter' },
   },
   mobile_cafe: {
     businessType: 'mobile_cafe',
@@ -165,7 +186,7 @@ const TEMPLATES: Record<ProvisionableBusinessType, TenantTemplate> = {
       'analytics.enabled': true,
       'notifications.enabled': true,
     },
-    brandingDefaults: { primaryColor: '#457b9d', fontBody: '"Inter", sans-serif' },
+    brandingDefaults: { primaryColor: '#457b9d', fontBody: 'inter' },
   },
 }
 
@@ -350,12 +371,12 @@ export const tenantProvisioningService = {
     }
 
     // Branding validation
-    if (req.branding?.primaryColor !== undefined) {
+    if (req.branding?.primaryColor != null) {
       if (!/^#[0-9a-fA-F]{3,8}$/.test(req.branding.primaryColor)) {
         errors.push('branding.primaryColor must be a valid hex color (e.g. "#ff0000")')
       }
     }
-    if (req.branding?.accentHoverColor !== undefined) {
+    if (req.branding?.accentHoverColor != null) {
       if (!/^#[0-9a-fA-F]{3,8}$/.test(req.branding.accentHoverColor)) {
         errors.push('branding.accentHoverColor must be a valid hex color')
       }
@@ -381,7 +402,10 @@ export const tenantProvisioningService = {
         req.businessType,
         { ...req.capabilityOverrides, ...req.featureFlagOverrides },
       )
-      const branding = { ...this.generateBrandingDefaults(req.businessType), ...req.branding }
+      const branding = sanitizeBrandingForWrite({
+        ...this.generateBrandingDefaults(req.businessType),
+        ...req.branding,
+      } as TenantBranding & Record<string, unknown>)
 
       const tenant: Tenant = {
         id: tenantId,
@@ -390,6 +414,10 @@ export const tenantProvisioningService = {
         businessTypes: [req.businessType],
         status: 'active',
         created_at: new Date().toISOString(),
+        image:
+          req.image instanceof File
+            ? mockImageUrlFromFile(req.image) || `mock-image://${req.image.name}`
+            : undefined,
         settings: { featureFlags, theme: branding },
       }
 
@@ -404,12 +432,33 @@ export const tenantProvisioningService = {
         req.businessType,
         { ...req.capabilityOverrides, ...req.featureFlagOverrides },
       )
-      const branding = { ...this.generateBrandingDefaults(req.businessType), ...req.branding }
+      const branding = sanitizeBrandingForWrite({
+        ...this.generateBrandingDefaults(req.businessType),
+        ...req.branding,
+      } as TenantBranding & Record<string, unknown>)
+      const settings = { featureFlags, theme: branding }
+
+      // Logo via multipart `image`; branding stays under settings.theme (JSON).
+      if (req.image instanceof File) {
+        const form = buildTenantProvisionFormData({
+          name: req.name,
+          businessType: req.businessType,
+          settings,
+          image: req.image,
+        })
+        const { data } = await api.post<Tenant>(
+          ENDPOINTS.TENANTS.PROVISION,
+          form,
+          multipartRequestConfig(),
+        )
+        return { success: true, tenantId: data.id, slug: data.slug, tenant: data }
+      }
+
       const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.PROVISION, {
         name: req.name,
         // slug: req.slug,
         businessTypes: [req.businessType],
-        settings: { featureFlags, theme: branding },
+        settings,
       })
       return { success: true, tenantId: data.id, slug: data.slug, tenant: data }
     } catch (err: unknown) {

@@ -527,7 +527,7 @@ export interface TenantSettings {
   featureFlags?: Record<string, boolean>
   /** Ordering/checkout configuration (delivery, pickup, minimums, etc.). */
   ordering?: Record<string, unknown>
-  /** Branding overrides — accent color, logo, font. */
+  /** Branding overrides — accent color, fonts (logo is Tenant.image). */
   theme?: TenantTheme
   /** Public marketplace/discovery display data — see MarketplaceMeta's own doc comment. Absent for a tenant that hasn't configured public discovery content. */
   marketplace?: MarketplaceMeta
@@ -1031,6 +1031,27 @@ export type {
 // ============================================================
 
 /**
+ * Per-tenant visual branding (colors + fonts).
+ *
+ * On Tenant CRUD this is stored at `settings.theme`.
+ * On Discover / Public Website it is exposed as top-level `branding`.
+ *
+ * Logo is NOT part of branding — use top-level `image`.
+ */
+export interface TenantBranding {
+  primaryColor?: string | null
+  accentHoverColor?: string | null
+  fontBody?: string | null
+  fontsByLocale?: Record<string, string> | null
+}
+
+/**
+ * @deprecated Prefer `TenantBranding`. Kept as an alias so CRUD `settings.theme`
+ * readers remain type-compatible without inventing a second schema.
+ */
+export type TenantTheme = TenantBranding
+
+/**
  * Per-tenant visual overrides applied as CSS variable mutations at runtime.
  * Stored in Tenant.settings.theme — consumed by TenantThemeProvider in providers.
  *
@@ -1039,20 +1060,10 @@ export type {
  *
  * Supported override targets: --accent, --accent-hover, --font-body.
  * See TENANT_OVERRIDABLE_VARS in src/lib/tokens.ts for the full allowed set.
+ *
+ * Logo: use Tenant.image — never theme.logo / theme.logoUrl.
  */
-export interface TenantTheme {
-  /** Overrides --accent (primary action colour). CSS color value, e.g. '#3b82f6'. */
-  primaryColor?: string
-  /**
-   * Overrides --accent-hover. Defaults to primaryColor if omitted.
-   * Provide a slightly darker/lighter variant for accessible hover states.
-   */
-  accentHoverColor?: string
-  /** URL to the tenant's logo image. Rendered in the Header instead of the default wordmark. */
-  logoUrl?: string
-  /** CSS font-family string overriding --font-body, e.g. '"Inter", sans-serif'. */
-  fontBody?: string
-}
+// TenantTheme alias declared above — historical doc retained for searchability.
 
 // ── Admin Types (P5.1) ────────────────────────────────────────────────────────
 

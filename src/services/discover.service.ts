@@ -71,6 +71,7 @@ async function buildMockDiscoverTenant(
   }
 
   const { branches: _omit, ...marketplaceFields } = marketplace ?? {}
+  const theme = tenant.settings?.theme
 
   return {
     id: tenant.id,
@@ -79,8 +80,18 @@ async function buildMockDiscoverTenant(
     status: tenant.status,
     created_at: tenant.created_at,
     businessTypes: tenant.businessTypes,
+    image: tenant.image,
     featureFlags: tenant.settings?.featureFlags,
-    theme: tenant.settings?.theme,
+    branding: theme
+      ? {
+          primaryColor: theme.primaryColor,
+          accentHoverColor: theme.accentHoverColor,
+          fontBody: theme.fontBody,
+          fontsByLocale: theme.fontsByLocale,
+        }
+      : undefined,
+    // Legacy Discover field — keep for compatibility with older clients/tests
+    theme,
     marketplace: marketplaceFields,
     branches,
   }

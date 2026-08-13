@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui'
 import { useTenantStore } from '@/stores'
 import { useUpdateTenantSettings, useFeatureFlags, useUpdateFeatureFlag } from '@/hooks'
 import type { TenantTheme } from '@/types'
+import { resolveTenantImage, sanitizeBrandingForWrite } from '@/lib/tenant-branding'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
 
@@ -146,26 +147,24 @@ function BrandingTab() {
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
   const existingTheme = tenant?.settings?.theme
+  const existingImage = resolveTenantImage(tenant)
   const [primaryColor, setPrimaryColor] = useState(existingTheme?.primaryColor ?? '#2563eb')
-  const [logoUrl, setLogoUrl] = useState(existingTheme?.logoUrl ?? '')
   const [fontBody, setFontBody] = useState(existingTheme?.fontBody ?? '')
 
   useEffect(() => {
     const theme = tenant?.settings?.theme
     if (theme) {
       setPrimaryColor(theme.primaryColor ?? '#2563eb')
-      setLogoUrl(theme.logoUrl ?? '')
       setFontBody(theme.fontBody ?? '')
     }
   }, [tenant?.slug])
 
   function handleSave() {
-    const theme: TenantTheme = {
+    const theme: TenantTheme = sanitizeBrandingForWrite({
       ...(existingTheme ?? {}),
       primaryColor,
-      logoUrl: logoUrl || undefined,
       fontBody: fontBody || undefined,
-    }
+    } as TenantTheme & Record<string, unknown>)
     save({ theme })
   }
 
@@ -188,23 +187,25 @@ function BrandingTab() {
           />
         </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('logoUrlLabel')}</label>
-        <input
-          type="url"
-          value={logoUrl}
-          onChange={(e) => setLogoUrl(e.target.value)}
-          placeholder="https://example.com/logo.png"
-          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+      {existingImage ? (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t('logoUploadLabel')}</label>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={existingImage}
+            alt={t('logoPreviewLabel')}
+            className="h-12 w-auto object-contain border rounded-md bg-white p-1"
+          />
+          <p className="text-xs text-gray-500 mt-1">{t('logoUploadHint')}</p>
+        </div>
+      ) : null}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">{t('bodyFontLabel')}</label>
         <input
           type="text"
           value={fontBody}
           onChange={(e) => setFontBody(e.target.value)}
-          placeholder='"Inter", sans-serif'
+          placeholder="inter"
           className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>

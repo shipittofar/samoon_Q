@@ -75,9 +75,15 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     businessTypes: ['restaurant'],
     status: 'active',
     created_at: '2024-01-01T00:00:00.000Z',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&q=80',
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'reviews.enabled': true, 'analytics.enabled': true },
-      theme: { primaryColor: '#e85d04' },
+      theme: {
+        primaryColor: '#e85d04',
+        accentHoverColor: '#c2410c',
+        fontBody: 'inter',
+        fontsByLocale: { en: 'inter', fa: 'vazirmatn' },
+      },
       marketplace: {
         description: 'Fine dining with contemporary Mediterranean cuisine crafted with passion in an elegant atmosphere.',
         coverImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',

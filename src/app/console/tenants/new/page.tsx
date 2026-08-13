@@ -9,6 +9,7 @@ import type { ProvisionableBusinessType, TenantBrandingConfig } from '@/types/pr
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { BrandingDefaultsStep } from '@/components/admin/tenant-provisioning/BrandingDefaultsStep'
 
 const BUSINESS_TYPES: ProvisionableBusinessType[] = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
@@ -82,6 +83,7 @@ export default function NewTenantPage() {
   const [businessType, setBusinessType] = useState<ProvisionableBusinessType>('restaurant')
   const [capabilityOverrides, setCapabilityOverrides] = useState<Record<string, boolean>>({})
   const [branding, setBranding] = useState<TenantBrandingConfig>({})
+  const [logoFile, setLogoFile] = useState<File | null>(null)
   const [featureFlagOverrides, setFeatureFlagOverrides] = useState<Record<string, boolean>>({})
   const [provisionResult, setProvisionResult] = useState<{ success: boolean; tenantId?: string; errors?: string[] } | null>(null)
   const [isProvisioning, setIsProvisioning] = useState(false)
@@ -102,7 +104,7 @@ export default function NewTenantPage() {
 
   async function handleProvision() {
     // const req = { name, slug, businessType, capabilityOverrides, branding, featureFlagOverrides }
-    const req = { name, businessType, capabilityOverrides, branding, featureFlagOverrides }
+    const req = { name, businessType, capabilityOverrides, branding, featureFlagOverrides, image: logoFile }
     const validation = tenantProvisioningService.validateTenantConfiguration(req)
     if (!validation.valid) {
       setValidationErrors(validation.errors)
@@ -227,28 +229,13 @@ export default function NewTenantPage() {
           <p className="text-sm text-gray-600 mb-4">
             {t('defaultsDerivedFromTemplateHint', { type: t(BUSINESS_TYPE_LABEL_KEYS[businessType]) })}
           </p>
-          {[
-            { labelKey: 'primaryColorLabel', key: 'primaryColor', placeholder: '#e85d04' },
-            { labelKey: 'accentHoverColorLabel', key: 'accentHoverColor', placeholder: '#c24b00' },
-            { labelKey: 'logoUrlLabel', key: 'logoUrl', placeholder: 'https://…/logo.png' },
-            { labelKey: 'bodyFontLabel', key: 'fontBody', placeholder: '"Inter", sans-serif' },
-          ].map(({ labelKey, key, placeholder }) => (
-            <div key={key} className="mb-4">
-              <label className="block text-sm font-medium mb-1" htmlFor={`branding-${key}`}>
-                {t(labelKey)}
-              </label>
-              <input
-                id={`branding-${key}`}
-                type="text"
-                value={(branding as Record<string, string>)[key] ?? ''}
-                onChange={(e) =>
-                  setBranding((prev) => ({ ...prev, [key]: e.target.value || undefined }))
-                }
-                placeholder={placeholder}
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-          ))}
+          <BrandingDefaultsStep
+            branding={branding}
+            onChange={setBranding}
+            logoFile={logoFile}
+            onLogoFileChange={setLogoFile}
+            templateDefaults={template.brandingDefaults}
+          />
         </section>
       )}
 
@@ -304,6 +291,10 @@ export default function NewTenantPage() {
             <div>
               <dt className="font-medium text-gray-500">{t('primaryColorLabel')}</dt>
               <dd>{branding.primaryColor ?? template.brandingDefaults.primaryColor ?? '—'}</dd>
+            </div>
+            <div>
+              <dt className="font-medium text-gray-500">{t('logoUploadLabel')}</dt>
+              <dd>{logoFile ? logoFile.name : '—'}</dd>
             </div>
             <div>
               <dt className="font-medium text-gray-500">{t('featureFlagsLabel')}</dt>

@@ -18,6 +18,7 @@ const PLATFORM_NAV: (NavItem & { labelKey: string })[] = [
   { href: '/restaurant', label: 'For Business', labelKey: 'navForBusiness' },
 ]
 import { cn, formatCurrency } from '@/utils'
+import { resolveTenantImage } from '@/lib/tenant-branding'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui'
@@ -57,7 +58,7 @@ export function Header() {
   // restaurant-specific module nav (P8.8.2 — Phase I).
   const moduleNav = useModuleNav()
   const navLinks = !tenant || tenant.slug === 'default' ? PLATFORM_NAV : moduleNav
-  const logoUrl = tenant?.settings?.theme?.logoUrl
+  const tenantImage = resolveTenantImage(tenant)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
@@ -106,10 +107,10 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            {logoUrl ? (
+            {tenantImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={logoUrl}
+                src={tenantImage}
                 alt={t('logoAlt', { name: tenant?.name ?? '' })}
                 width={120}
                 height={32}

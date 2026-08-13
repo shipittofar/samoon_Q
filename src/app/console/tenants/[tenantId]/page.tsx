@@ -11,6 +11,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 import { tenantService } from '@/services/tenant.service'
 import type { Tenant } from '@/types'
+import { resolveTenantImage } from '@/lib/tenant-branding'
 
 const STATUS_COLORS: Record<string, string> = {
   active: 'text-green-700 bg-green-100',
@@ -70,8 +71,10 @@ function BusinessTypeSection({ tenant }: { tenant: Tenant }) {
 
 function BrandingSection({ tenant }: { tenant: Tenant }) {
   const t = useTranslations('console')
-  const theme = (tenant.settings?.theme ?? {}) as Record<string, string>
-  const hasBranding = Object.keys(theme).length > 0
+  const theme = tenant.settings?.theme ?? {}
+  const tenantImage = resolveTenantImage(tenant)
+  const hasBranding =
+    Boolean(theme.primaryColor || theme.accentHoverColor || theme.fontBody || tenantImage)
 
   return (
     <section aria-label={t('brandingSectionAria')} className="border rounded-lg p-6 mb-4">
@@ -97,10 +100,10 @@ function BrandingSection({ tenant }: { tenant: Tenant }) {
               <dd className="font-mono">{theme.accentHoverColor}</dd>
             </div>
           )}
-          {theme.logoUrl && (
+          {tenantImage && (
             <div className="col-span-2">
-              <dt className="text-gray-500">{t('logoUrlLabel')}</dt>
-              <dd className="font-mono text-xs break-all">{theme.logoUrl}</dd>
+              <dt className="text-gray-500">{t('logoUploadLabel')}</dt>
+              <dd className="font-mono text-xs break-all">{tenantImage}</dd>
             </div>
           )}
           {theme.fontBody && (

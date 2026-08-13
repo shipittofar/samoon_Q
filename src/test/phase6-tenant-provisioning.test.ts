@@ -74,11 +74,18 @@ describe('A — types', () => {
     }
   })
 
-  it('TenantBrandingConfig has primaryColor, logoUrl', () => {
-    const src = fs.readFileSync(path.join(ROOT, 'src/types/provisioning.ts'), 'utf8')
-    expect(src).toContain('TenantBrandingConfig')
-    expect(src).toContain('primaryColor?')
-    expect(src).toContain('logoUrl?')
+  it('TenantBrandingConfig has primaryColor; logo is request.image not branding', () => {
+    const provisioning = fs.readFileSync(path.join(ROOT, 'src/types/provisioning.ts'), 'utf8')
+    const types = fs.readFileSync(path.join(ROOT, 'src/types/index.ts'), 'utf8')
+    expect(provisioning).toContain('TenantBrandingConfig')
+    expect(provisioning).toContain('image?: File')
+    expect(provisioning).not.toContain('logoUrl?')
+    const start = types.indexOf('export interface TenantBranding')
+    const end = types.indexOf('export type TenantTheme', start)
+    const brandingBlock = types.slice(start, end)
+    expect(brandingBlock).toContain('primaryColor')
+    expect(brandingBlock).toContain('fontBody')
+    expect(brandingBlock).not.toContain('logoUrl')
   })
 })
 
@@ -1077,15 +1084,33 @@ describe('W — branding validation', () => {
     expect(r.errors.some((e) => e.includes('accentHoverColor'))).toBe(true)
   })
 
-  it('accepts logoUrl without color validation', async () => {
+  it('accepts branding without logo fields; logo is multipart image', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({
       name: 'Logo Only',
       slug: 'logo-only',
       businessType: 'restaurant',
-      branding: { logoUrl: 'https://example.com/logo.png' },
+      branding: { primaryColor: '#e85d04' },
     })
     expect(r.valid).toBe(true)
+  })
+
+  it('provision strips logoUrl from settings.theme and sets tenant.image from File', async () => {
+    const svc = await freshService()
+    const file = new File(['logo'], 'logo.png', { type: 'image/png' })
+    const result = await svc.provisionTenant({
+      name: 'With Logo',
+      businessType: 'restaurant',
+      branding: {
+        primaryColor: '#e85d04',
+        logoUrl: 'https://evil.example/logo.png',
+      } as Record<string, unknown>,
+      image: file,
+    })
+    expect(result.success).toBe(true)
+    expect(result.tenant?.image).toBeTruthy()
+    expect((result.tenant?.settings?.theme as Record<string, unknown>)?.logoUrl).toBeUndefined()
+    expect(result.tenant?.settings?.theme?.primaryColor).toBe('#e85d04')
   })
 })
 

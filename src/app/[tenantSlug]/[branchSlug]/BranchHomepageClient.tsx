@@ -20,6 +20,7 @@ import { usePublicBranch, usePublicBranches, useCategories, useMenuItems, useAct
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
+import { resolveTenantBranding } from '@/lib/tenant-branding'
 
 // ── Breadcrumb ────────────────────────────────────────────────────────────────
 
@@ -700,7 +701,8 @@ export default function BranchHomepageClient({
   const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas })
 
   const accentColor =
-    tenant.settings?.theme?.primaryColor ?? '#e85d04'
+    resolveTenantBranding({ branding: layout?.branding, settings: tenant.settings })?.primaryColor ??
+    '#e85d04'
 
   const allBranches = publicBranches
   const tenantGallery = meta?.gallery ?? []

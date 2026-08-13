@@ -33,6 +33,9 @@ function extractLayout(settings: Record<string, unknown>): HomepageLayout {
     sections: wb.sections ?? DEFAULT_SECTIONS.map((s) => ({ ...s })),
     hero: { ...DEFAULT_HERO, ...wb.hero },
     theme: { ...DEFAULT_THEME, ...wb.theme },
+    // Preserve tenant branding / image when present — never merge into layout theme
+    branding: wb.branding,
+    image: wb.image,
   }
 }
 
