@@ -1,11 +1,10 @@
 import { permissionStore } from '@/stores/permission-store'
-import { useTenantStore } from '@/stores'
+import { useRbacStore, useTenantStore } from '@/stores'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { setActiveTenantSlugForRequests } from '@/lib/tenant-request-context'
+import { isMockAuthMode, sessionHasRoles, withDashboardAccess } from '@/lib/effective-permissions'
 import type { TenantMembership } from '@/types/rbac'
 import type { Role } from '@/types/rbac'
-
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 export interface RefreshPermissionCacheInput {
   tenantId?: string
@@ -17,8 +16,30 @@ export interface RefreshPermissionCacheInput {
 }
 
 /**
+ * Sync currentTenantSession.permissions to the API permission list so every
+ * consumer (nav, PermissionGuard, console index redirect) shares one source.
+ */
+function syncSessionPermissionsFromApi(tenantId: string | undefined, apiPermissions: string[]): void {
+  if (!tenantId) return
+  const session = useRbacStore.getState().currentTenantSession
+  if (!session || session.tenantId !== tenantId) return
+  const next = withDashboardAccess(apiPermissions, { hasTenantRoles: sessionHasRoles(session.roles) })
+  useRbacStore.getState().setCurrentTenantSession(
+    session.tenantId,
+    session.roles,
+    next,
+    session.branchAccess,
+  )
+  permissionStore.setPermissions(next, tenantId)
+}
+
+/**
  * Loads effective permissions from GET /auth/me/permissions (real backend)
  * or derives from session roles in mock mode only.
+ *
+ * Real backend: API response is the source of truth. Session permissions are
+ * rewritten to match (plus synthesized `dashboard:access`), never merged with
+ * client-side ROLE_PERMISSION_MAP expansions.
  */
 export async function refreshPermissionCache(input: RefreshPermissionCacheInput = {}): Promise<string[]> {
   const tenantId =
@@ -32,10 +53,14 @@ export async function refreshPermissionCache(input: RefreshPermissionCacheInput 
     input.memberships?.find((m) => m.tenantId === tenantId)?.tenantSlug ??
     (typeof window !== 'undefined' ? useTenantStore.getState().tenant?.slug : undefined)
 
-  if (!USE_MOCK) {
+  if (!isMockAuthMode()) {
     permissionStore.clear()
     if (tenantSlug) setActiveTenantSlugForRequests(tenantSlug)
-    return await permissionStore.fetchPermissions(tenantSlug, tenantId)
+    const apiPermissions = await permissionStore.fetchPermissions(tenantSlug, tenantId)
+    syncSessionPermissionsFromApi(tenantId, apiPermissions)
+    return withDashboardAccess(apiPermissions, {
+      hasTenantRoles: sessionHasRoles(useRbacStore.getState().currentTenantSession?.roles),
+    })
   }
 
   const normalized = normalizeTenantPermissions(

@@ -81,7 +81,15 @@ async function seedRbacAndRefreshForTenant(tenantId: string): Promise<void> {
       : { memberships, activeMembership: { tenantId, roles: [], branchAccess: { scope: 'selected', branchIds: [] } } },
     tenantId,
   )
-  useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions, branchAccess)
+  // Real backend: roles/branchAccess only until /auth/me/permissions returns.
+  // Mock: ROLE_PERMISSION_MAP-derived permissions remain the session source.
+  const useMock = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+  useRbacStore.getState().setCurrentTenantSession(
+    tenantId,
+    roles,
+    useMock ? permissions : [],
+    branchAccess,
+  )
   if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenantId, roles)
   await refreshPermissionCache({
     tenantId,

@@ -1,6 +1,7 @@
 import { useRbacStore } from '@/stores'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { refreshPermissionCache } from '@/lib/permission-cache'
+import { isMockAuthMode } from '@/lib/effective-permissions'
 import type { Role, TenantMembership } from '@/types/rbac'
 
 export interface AuthSessionRbacInput {
@@ -13,10 +14,15 @@ export interface AuthSessionRbacInput {
 /**
  * Seeds currentTenantSession + tenant role catalog and refreshes the
  * permission cache from GET /auth/me/permissions (or mock fallback).
+ *
+ * Real backend: seed roles/branchAccess immediately, but leave permissions
+ * empty until the API cache refresh completes — ROLE_PERMISSION_MAP must
+ * not authorize UI while waiting for /auth/me/permissions.
  */
 export function applyTenantSessionRbac(tenantId: string, input: AuthSessionRbacInput): void {
   const { roles, permissions, branchAccess } = normalizeTenantPermissions(input, tenantId)
-  useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions, branchAccess)
+  const sessionPermissions = isMockAuthMode() ? permissions : []
+  useRbacStore.getState().setCurrentTenantSession(tenantId, roles, sessionPermissions, branchAccess)
   if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenantId, roles)
   const tenantSlug =
     input.activeMembership?.tenantSlug ??

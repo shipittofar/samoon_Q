@@ -33,6 +33,9 @@
 import type { ReactNode } from 'react'
 import type { P7Permission } from '@/types/rbac'
 import { usePermission, useAnyPermission, useAllPermissions } from '@/hooks'
+import { useConsoleTenantId } from '@/hooks/console-workspace'
+import { usePermissionStore } from '@/stores/permission-store'
+import { isMockAuthMode } from '@/lib/effective-permissions'
 
 export interface PermissionGuardProps {
   /** Single permission to check. Mutually exclusive with `permissions`. */
@@ -46,6 +49,14 @@ export interface PermissionGuardProps {
   children: ReactNode
 }
 
+function usePermissionsSettled(): boolean {
+  const tenantId = useConsoleTenantId()
+  const loading = usePermissionStore((s) => s.loading)
+  const storeTenantId = usePermissionStore((s) => s.tenantId)
+  if (isMockAuthMode()) return true
+  return !loading && storeTenantId === tenantId
+}
+
 // ── Internal sub-guards (avoid conditional hook calls) ────────────────────────
 
 function SinglePermissionGuard({
@@ -57,7 +68,9 @@ function SinglePermissionGuard({
   fallback: ReactNode
   children: ReactNode
 }) {
+  const settled = usePermissionsSettled()
   const granted = usePermission(permission)
+  if (!settled) return null
   return granted ? <>{children}</> : <>{fallback}</>
 }
 
@@ -70,7 +83,9 @@ function AnyPermissionGuard({
   fallback: ReactNode
   children: ReactNode
 }) {
+  const settled = usePermissionsSettled()
   const granted = useAnyPermission(permissions)
+  if (!settled) return null
   return granted ? <>{children}</> : <>{fallback}</>
 }
 
@@ -83,7 +98,9 @@ function AllPermissionsGuard({
   fallback: ReactNode
   children: ReactNode
 }) {
+  const settled = usePermissionsSettled()
   const granted = useAllPermissions(permissions)
+  if (!settled) return null
   return granted ? <>{children}</> : <>{fallback}</>
 }
 

@@ -47,7 +47,7 @@ import { cn } from '@/utils'
 import { useTranslations } from 'next-intl'
 import { RefreshCw } from 'lucide-react'
 import { useTenantStore, useRbacStore } from '@/stores'
-import { usePermission, useConsoleSessionRefresh } from '@/hooks'
+import { useConsoleSessionRefresh, useHasDashboardAccess } from '@/hooks'
 import type { TenantLifecycle } from '@/types'
 import { AccessDenied } from './AccessDenied'
 import { ConsoleOnboarding } from './ConsoleOnboarding'
@@ -215,7 +215,7 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
   const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
   const resolvedTenantId = useTenantStore((s) => s.tenant?.id)
   const tenantState = useTenantStore((s) => s.tenantState)
-  const hasDashboardAccess = usePermission('dashboard:access')
+  const hasDashboardAccess = useHasDashboardAccess()
   const { retryCount, retryNow } = useTenantAutoRetry(tenantState)
   const { refresh, refreshing } = useConsoleSessionRefresh()
 

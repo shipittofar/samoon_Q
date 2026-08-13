@@ -446,6 +446,11 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     if (pathname?.startsWith('/console') && sessionInput.memberships && sessionInput.memberships.length > 0) {
       pendingAuthSessionRef.current = null
       const activeTenantId = sessionInput.activeMembership?.tenantId
+      // Intentional: memberships without an active tenant pointer leave
+      // currentTenantSession null. ConsoleWorkspaceGate must treat that as
+      // tenant_awaiting_selection / no_active_tenant — never assume a session
+      // exists. useHasDashboardAccess must tolerate null (not vacuous
+      // undefined===undefined equality on tenantId).
       if (!activeTenantId) return
       applyTenantSessionRbac(activeTenantId, sessionInput)
       if (currentTenant?.id !== activeTenantId) {

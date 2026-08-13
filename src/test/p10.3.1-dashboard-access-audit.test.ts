@@ -38,7 +38,7 @@ async function tenantById(id: string): Promise<Tenant> {
 beforeEach(() => {
   tenantService._resetMockList()
   useAuthStore.getState().setUser(null)
-  useRbacStore.getState().clearCurrentTenantSession()
+  useRbacStore.getState()._resetStore()
 })
 
 describe('P10.3.1 — useHasDashboardAccess reads only currentTenantSession', () => {
@@ -47,6 +47,10 @@ describe('P10.3.1 — useHasDashboardAccess reads only currentTenantSession', ()
     useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('someone@samoon.com', 'customer'))
     const { permissions } = normalizeTenantPermissions(['owner'])
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: samoon.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: samoon.id },
+    )
     useRbacStore.getState().setCurrentTenantSession(samoon.id, ['owner'], permissions)
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -57,6 +61,10 @@ describe('P10.3.1 — useHasDashboardAccess reads only currentTenantSession', ()
     const samoon = await tenantById('tenant-samoon-01')
     useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('someone@samoon.com', 'business'))
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: samoon.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: samoon.id },
+    )
     // No setCurrentTenantSession call — must not fall back to any
     // ownership/staff/role-string check.
 
@@ -69,6 +77,10 @@ describe('P10.3.1 — useHasDashboardAccess reads only currentTenantSession', ()
     useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('someone@samoon.com', 'business'))
     const { permissions } = normalizeTenantPermissions(['owner'])
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: samoon.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+      { tenantId: samoon.id },
+    )
     useRbacStore.getState().setCurrentTenantSession('some-other-tenant', ['owner'], permissions)
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -79,6 +91,10 @@ describe('P10.3.1 — useHasDashboardAccess reads only currentTenantSession', ()
     const samoon = await tenantById('tenant-samoon-01')
     useTenantStore.getState().setTenant(samoon)
     useAuthStore.getState().setUser(userFor('someone@samoon.com', 'customer'))
+    useRbacStore.getState().setSessionMemberships(
+      [{ tenantId: samoon.id, roles: [], branchAccess: { scope: 'selected', branchIds: [] } }],
+      { tenantId: samoon.id },
+    )
     useRbacStore.getState().setCurrentTenantSession(samoon.id, [], [])
 
     const { result } = renderHook(() => useHasDashboardAccess())

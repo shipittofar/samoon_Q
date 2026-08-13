@@ -68,6 +68,11 @@ import { logRbacDiagnostics } from '@/lib/rbac-diagnostics'
 import { usePermissionStore } from '@/stores/permission-store'
 import { normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
 import { refreshPermissionCache } from '@/lib/permission-cache'
+import {
+  isMockAuthMode,
+  sessionHasRoles,
+  withDashboardAccess,
+} from '@/lib/effective-permissions'
 import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
 import type { P7Permission, PermissionCheckOptions, Role } from '@/types/rbac'
@@ -212,17 +217,16 @@ export function useSystemReady(): SystemReadiness {
 
 /**
  * Returns all P7 permissions effective for the current user in the active
- * tenant. Applies user-level allow/deny overrides on top of
- * `currentTenantSession.permissions` — evaluation order: User Deny → User
- * Allow → Session Permissions → Default Deny.
+ * tenant.
  *
- * Phase 2 (RBAC unification) — this is now THE single permission source.
- * The parallel ownership/StaffAssignment-derived permission union
- * (src/services/ownership-resolution.service.ts) has been removed
- * entirely: the frontend does not decide access from client-held
- * Owner/StaffAssignment data. `currentTenantSession` is seeded by
- * normalizeTenantPermissions() (permission.service.ts) at login, session
- * restore, and every tenant switch — never computed here.
+ * Real backend: GET /auth/me/permissions (permission store) is the source of
+ * truth. Client ROLE_PERMISSION_MAP expansions must not widen that set.
+ * `dashboard:access` is synthesized when the API omits it but the user has
+ * tenant roles or any API permission.
+ *
+ * Mock mode: session permissions (role-derived) remain authoritative, with
+ * an optional union when the permission store is also populated for the
+ * active tenant.
  */
 export function usePermissions(): readonly P7Permission[] {
   const tenantId = useConsoleTenantId()
@@ -231,15 +235,23 @@ export function usePermissions(): readonly P7Permission[] {
   const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
 
   return useMemo(() => {
-    const sessionPerms =
+    const sessionAligned =
       currentTenantSession && currentTenantSession.tenantId === tenantId
-        ? currentTenantSession.permissions
-        : []
+        ? currentTenantSession
+        : null
+    const sessionPerms = sessionAligned?.permissions ?? []
+    const hasRoles = sessionHasRoles(sessionAligned?.roles)
 
     let resolved: P7Permission[]
-    if (storeTenantId === tenantId && storePermissions.length > 0) {
-      // Union session + store — never let a partial API permissions response
-      // override role-derived session permissions (e.g. missing dashboard:access).
+    if (!isMockAuthMode()) {
+      // API cache for this tenant is authoritative once present (including []).
+      if (storeTenantId === tenantId) {
+        resolved = withDashboardAccess(storePermissions, { hasTenantRoles: hasRoles })
+      } else {
+        // Permissions not loaded yet — deny fine-grained access (empty nav / guards).
+        resolved = []
+      }
+    } else if (storeTenantId === tenantId && storePermissions.length > 0) {
       resolved = [...new Set([...sessionPerms, ...storePermissions])] as P7Permission[]
     } else {
       resolved = sessionPerms as P7Permission[]
@@ -432,13 +444,33 @@ export function useModuleNav(): NavItem[] {
  * `customer`'s destination) is granted dashboard access.
  */
 export function useHasDashboardAccess(): boolean {
-  // Phase 2 (RBAC unification) — no longer a second, ownership-derived
-  // access model. `dashboard:access` is now a real permission granted to
-  // every assignable role in ROLE_PERMISSION_MAP (permission.service.ts):
-  // holding ANY tenant-scoped role is what makes the Console reachable.
-  // This hook is kept only because it's a widely-imported, self-describing
-  // name — it is a thin wrapper, not a duplicate permission path.
-  return usePermission('dashboard:access')
+  // Phase 2 (RBAC unification) — `dashboard:access` is a real permission.
+  // Real backend: while /auth/me/permissions is in flight, provisionally
+  // allow console shell entry when the session already has tenant roles —
+  // fine-grained nav/guards still deny until the API cache is ready.
+  //
+  // Require a concrete tenantId AND a non-null session before reading
+  // `.roles`. `currentTenantSession?.tenantId === tenantId` is vacuously
+  // true when BOTH are undefined (pre-bootstrap / no activeMembership),
+  // which used to evaluate `currentTenantSession.roles` and crash
+  // ConsoleWorkspaceGate on /console before AuthBootstrapper finished.
+  const tenantId = useConsoleTenantId()
+  const loading = usePermissionStore((s) => s.loading)
+  const storeTenantId = usePermissionStore((s) => s.tenantId)
+  const currentTenantSession = useRbacStore((s) => s.currentTenantSession)
+  const hasPermission = usePermission('dashboard:access')
+
+  if (
+    !isMockAuthMode() &&
+    tenantId != null &&
+    currentTenantSession != null &&
+    currentTenantSession.tenantId === tenantId &&
+    sessionHasRoles(currentTenantSession.roles) &&
+    (loading || storeTenantId !== tenantId)
+  ) {
+    return true
+  }
+  return hasPermission
 }
 
 /**
@@ -490,33 +522,34 @@ export function useCapabilityFlag(cap: Capability): boolean {
 }
 
 /**
- * Returns admin nav items for the active tenant's modules, filtered by feature flags.
+ * Returns admin nav items for the active tenant's modules, filtered by
+ * feature flags and permission keys.
  *
  * Filtering rules:
- *   - Items without `featureFlagKey` are always shown.
+ *   - Items without `featureFlagKey` are always shown (flag-wise).
  *   - Items with `featureFlagKey` are hidden when the flag resolves to false.
- *   - When system is not yet ready, all admin nav items are returned.
+ *   - Items with `permissionKey` require an exact permission match.
+ *   - When system is not ready, or real-backend permissions are still
+ *     loading, returns [] — never flash unauthorized items.
  *
  * Canonical usage in admin layouts:
  *   const adminNav = useAdminModuleNav()
- *
- * P10.2.2 — now calls `usePermissions()` (the single source of truth,
- * ownership/StaffAssignment-aware as of this phase) instead of
- * recomputing `tenantRoles.find(...) → getPermissionsForRole()` inline.
- * The inline recomputation was a duplicate implementation of exactly what
- * `usePermissions()` already does (P10.2.2 Phase A/F finding) — it would
- * have silently kept nav filtering on the pre-ownership permission set
- * forever, since nothing routed StaffAssignment/Owner data through it.
  */
 export function useAdminModuleNav(): NavItem[] {
   const { canExecute } = useSystemReady()
   const tenantId = useConsoleTenantId()
   const tenant = useTenantStore((s) => s.tenant)
   const featureFlags = useTenantStore((s) => s.featureFlags)
+  const permissionsLoading = usePermissionStore((s) => s.loading)
+  const storeTenantId = usePermissionStore((s) => s.tenantId)
   const alignedTenant = tenantId && tenant?.id === tenantId ? tenant : null
   const permissions = usePermissions()
   const allAdminNav = getAdminNav(alignedTenant?.businessTypes ?? [])
-  if (!canExecute) return allAdminNav
+
+  // Deny-by-default while bootstrap or API permissions are unsettled.
+  if (!canExecute) return []
+  if (!isMockAuthMode() && (permissionsLoading || storeTenantId !== tenantId)) return []
+
   return allAdminNav.filter((item) => {
     if (item.featureFlagKey && featureFlags[item.featureFlagKey] === false) return false
     if (item.permissionKey && !permissions.includes(item.permissionKey)) return false
