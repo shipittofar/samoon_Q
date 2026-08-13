@@ -45,15 +45,15 @@ function Breadcrumb({ name }: { name: string }) {
   return (
     <nav aria-label={t('breadcrumbAria')} className="bg-[var(--bg)] border-b border-[var(--border)]">
       <ol className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1.5 text-sm text-[var(--fg-muted)]">
-        <li>
+        <li className="inline-flex items-center">
           <Link href="/discover" className="hover:text-[var(--fg)] transition-colors">
             {t('discover')}
           </Link>
         </li>
-        <li aria-hidden="true">
-          <ChevronRight className="w-3.5 h-3.5" />
+        <li aria-hidden="true" className="inline-flex items-center">
+          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
         </li>
-        <li className="font-medium text-[var(--fg)] truncate max-w-[200px]" aria-current="page">
+        <li className="inline-flex items-center font-medium text-[var(--fg)] truncate max-w-[200px]" aria-current="page">
           {name}
         </li>
       </ol>

@@ -28,15 +28,19 @@ function Breadcrumb({ tenantSlug, tenantName, branchName }: { tenantSlug: string
   return (
     <nav aria-label={t('breadcrumbAria')} className="bg-[var(--bg)] border-b border-[var(--border)]">
       <ol className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1.5 text-sm text-[var(--fg-muted)] flex-wrap">
-        <li>
+        <li className="inline-flex items-center">
           <Link href="/discover" className="hover:text-[var(--fg)] transition-colors">{t('discover')}</Link>
         </li>
-        <li aria-hidden="true"><ChevronRight className="w-3.5 h-3.5" /></li>
-        <li>
-          <Link href={`/${tenantSlug}`} className="hover:text-[var(--fg)] transition-colors truncate max-w-[160px] inline-block">{tenantName}</Link>
+        <li aria-hidden="true" className="inline-flex items-center">
+          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
         </li>
-        <li aria-hidden="true"><ChevronRight className="w-3.5 h-3.5" /></li>
-        <li className="font-medium text-[var(--fg)] truncate max-w-[160px]" aria-current="page">{branchName}</li>
+        <li className="inline-flex items-center min-w-0">
+          <Link href={`/${tenantSlug}`} className="hover:text-[var(--fg)] transition-colors truncate max-w-[160px]">{tenantName}</Link>
+        </li>
+        <li aria-hidden="true" className="inline-flex items-center">
+          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+        </li>
+        <li className="inline-flex items-center min-w-0 font-medium text-[var(--fg)] truncate max-w-[160px]" aria-current="page">{branchName}</li>
       </ol>
     </nav>
   )
