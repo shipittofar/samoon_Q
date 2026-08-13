@@ -476,6 +476,8 @@ export function TenantHeader() {
           )}
         </AnimatePresence>
       </header>
+      {/* Fixed header is out of flow — reserve its h-16 so breadcrumbs/heroes start below it */}
+      <div className="h-16 shrink-0" aria-hidden="true" />
     </>
   )
 }

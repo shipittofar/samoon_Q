@@ -181,7 +181,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Hero */}
-      <div className="pt-16 bg-gradient-to-b from-orange-50/80 to-transparent dark:from-orange-950/20 dark:to-transparent">
+      <div className="bg-gradient-to-b from-orange-50/80 to-transparent dark:from-orange-950/20 dark:to-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="text-center mb-8">
             <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('explore')}</p>
