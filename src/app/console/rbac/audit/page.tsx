@@ -12,7 +12,7 @@ import { usePermissionAudit, useConsoleTenantId } from '@/hooks'
 export default function RbacAuditPage() {
   return (
     <ErrorBoundary feature="RBAC Audit">
-      <PermissionGuard permission="tenant.manage" fallback={<AccessDenied />}>
+      <PermissionGuard permission="audit.view" fallback={<AccessDenied />}>
         <RbacAuditContent />
       </PermissionGuard>
     </ErrorBoundary>

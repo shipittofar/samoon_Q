@@ -63,7 +63,6 @@ export const ADMIN_STAFF_ROUTES: readonly string[] = ['/console/staff', '/consol
 
 /** RBAC Wave 4 routes */
 export const ADMIN_RBAC_ROUTES: readonly string[] = [
-  '/console/rbac/audit',
   '/console/roles/[id]',
 ]
 
@@ -77,7 +76,10 @@ export const ADMIN_BRANCH_ANALYTICS_ROUTES: readonly string[] = [
 ]
 
 /** Audit log routes (P7.5) — spread into each module's routes array. */
-export const ADMIN_AUDIT_ROUTES: readonly string[] = ['/console/audit-logs']
+export const ADMIN_AUDIT_ROUTES: readonly string[] = [
+  '/console/audit-logs',
+  '/console/rbac/audit',
+]
 
 /** Notification center routes (P7.6) — spread into each module's routes array. */
 export const ADMIN_NOTIFICATION_ROUTES: readonly string[] = ['/console/notifications']
@@ -195,9 +197,9 @@ const RBAC_AUDIT_NAV_ITEM = {
   href: '/console/rbac/audit',
   label: 'RBAC Audit',
   icon: 'ScrollText',
-  group: 'People',
-  featureFlagKey: 'admin.staff.enabled',
-  permissionKey: 'tenant.manage',
+  group: 'Platform',
+  featureFlagKey: 'admin.audit.enabled',
+  permissionKey: 'audit.view',
 } as const
 
 // P8.6 — User management nav item
@@ -400,12 +402,12 @@ export const RESTAURANT_MODULE: Module = {
     USERS_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
-    RBAC_AUDIT_NAV_ITEM,
     // Platform
     TENANTS_NAV_ITEM,
     BRANCHES_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
     AUDIT_LOGS_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     // System
     NOTIFICATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
@@ -492,13 +494,13 @@ export const CAFE_MODULE: Module = {
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
     AUDIT_LOGS_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
-    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],
@@ -576,13 +578,13 @@ export const BAR_MODULE: Module = {
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
     AUDIT_LOGS_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
-    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],
@@ -658,13 +660,13 @@ export const FOOD_COURT_MODULE: Module = {
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
     AUDIT_LOGS_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
-    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],
@@ -740,13 +742,13 @@ export const FOOD_TRUCK_MODULE: Module = {
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
     AUDIT_LOGS_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
-    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],
@@ -826,13 +828,13 @@ export const MOBILE_CAFE_MODULE: Module = {
     BRANCHES_NAV_ITEM,
     BRANCH_ANALYTICS_NAV_ITEM,
     AUDIT_LOGS_NAV_ITEM,
+    RBAC_AUDIT_NAV_ITEM,
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
-    RBAC_AUDIT_NAV_ITEM,
     USERS_NAV_ITEM,
     WEBSITE_BUILDER_NAV_ITEM,
   ],

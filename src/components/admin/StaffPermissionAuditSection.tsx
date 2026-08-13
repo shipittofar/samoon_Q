@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { PermissionAuditTable } from '@/components/admin/PermissionAuditTable'
-import { usePermissionAudit } from '@/hooks'
+import { usePermission, usePermissionAudit } from '@/hooks'
 
 export interface StaffPermissionAuditSectionProps {
   tenantId: string
@@ -15,11 +15,18 @@ export function StaffPermissionAuditSection({
   membershipId,
 }: StaffPermissionAuditSectionProps) {
   const t = useTranslations('console')
-  const { data, isLoading } = usePermissionAudit(tenantId, {
-    membership_id: membershipId,
-    page_size: 10,
-    ordering: '-timestamp',
-  })
+  const canViewAudit = usePermission('audit.view')
+  const { data, isLoading } = usePermissionAudit(
+    tenantId,
+    {
+      membership_id: membershipId,
+      page_size: 10,
+      ordering: '-timestamp',
+    },
+    canViewAudit,
+  )
+
+  if (!canViewAudit) return null
 
   const entries = data?.results ?? []
 
