@@ -27,7 +27,7 @@ function RoleCreateRedirect() {
 
 export default function AdminRolesNewPage() {
   return (
-    <PermissionGuard permission="staff.manage" fallback={<AccessDenied />}>
+    <PermissionGuard permission="rbac.manage_roles" fallback={<AccessDenied />}>
       <RoleCreateRedirect />
     </PermissionGuard>
   )

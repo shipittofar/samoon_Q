@@ -173,7 +173,7 @@ function SimulatorContent() {
 
 export default function PermissionSimulatorPage() {
   return (
-    <PermissionGuard permission="staff.manage" fallback={<AccessDenied />}>
+    <PermissionGuard permission="rbac.manage_roles" fallback={<AccessDenied />}>
       <SimulatorContent />
     </PermissionGuard>
   )

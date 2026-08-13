@@ -13,6 +13,12 @@ export interface RefreshPermissionCacheInput {
   activeMembership?: TenantMembership | null
   p7Roles?: Role[]
   tenantRoles?: Role[]
+  /**
+   * Explicit effective permissions from GET /auth/me (membership /
+   * tenantRoles[].permissions). Used as real-mode seed + API-failure
+   * fallback. Never a ROLE_PERMISSION_MAP expansion.
+   */
+  explicitPermissions?: string[]
 }
 
 /**
@@ -34,12 +40,13 @@ function syncSessionPermissionsFromApi(tenantId: string | undefined, apiPermissi
 }
 
 /**
- * Loads effective permissions from GET /auth/me/permissions (real backend)
- * or derives from session roles in mock mode only.
+ * Loads effective permissions for feature authorization.
  *
- * Real backend: API response is the source of truth. Session permissions are
- * rewritten to match (plus synthesized `dashboard:access`), never merged with
- * client-side ROLE_PERMISSION_MAP expansions.
+ * Authoritative sources:
+ *   Real backend — GET /auth/me/permissions (canonical after successful fetch).
+ *     Before fetch / on failure: explicitPermissions from GET /auth/me when present.
+ *     Never ROLE_PERMISSION_MAP / getPermissionsForRole (owner ≠ ALL_PERMISSIONS).
+ *   Mock mode — role-map via normalizeTenantPermissions (fixtures only).
  */
 export async function refreshPermissionCache(input: RefreshPermissionCacheInput = {}): Promise<string[]> {
   const tenantId =
@@ -54,13 +61,37 @@ export async function refreshPermissionCache(input: RefreshPermissionCacheInput 
     (typeof window !== 'undefined' ? useTenantStore.getState().tenant?.slug : undefined)
 
   if (!isMockAuthMode()) {
-    permissionStore.clear()
+    // Seed from explicit /auth/me permissions so owner+restricted list is
+    // visible immediately and role-map never fills an empty store.
+    if (input.explicitPermissions !== undefined && tenantId) {
+      const seeded = withDashboardAccess(input.explicitPermissions, {
+        hasTenantRoles: sessionHasRoles(useRbacStore.getState().currentTenantSession?.roles),
+      })
+      permissionStore.setPermissions(seeded, tenantId)
+      syncSessionPermissionsFromApi(tenantId, input.explicitPermissions)
+    } else {
+      permissionStore.clear()
+    }
+
     if (tenantSlug) setActiveTenantSlugForRequests(tenantSlug)
-    const apiPermissions = await permissionStore.fetchPermissions(tenantSlug, tenantId)
-    syncSessionPermissionsFromApi(tenantId, apiPermissions)
-    return withDashboardAccess(apiPermissions, {
-      hasTenantRoles: sessionHasRoles(useRbacStore.getState().currentTenantSession?.roles),
-    })
+    try {
+      const apiPermissions = await permissionStore.fetchPermissions(tenantSlug, tenantId)
+      syncSessionPermissionsFromApi(tenantId, apiPermissions)
+      return withDashboardAccess(apiPermissions, {
+        hasTenantRoles: sessionHasRoles(useRbacStore.getState().currentTenantSession?.roles),
+      })
+    } catch {
+      // fetchPermissions clears to [] on error — restore explicit /auth/me seed.
+      if (input.explicitPermissions !== undefined && tenantId) {
+        const restored = withDashboardAccess(input.explicitPermissions, {
+          hasTenantRoles: sessionHasRoles(useRbacStore.getState().currentTenantSession?.roles),
+        })
+        permissionStore.setPermissions(restored, tenantId)
+        syncSessionPermissionsFromApi(tenantId, input.explicitPermissions)
+        return restored
+      }
+      return []
+    }
   }
 
   const normalized = normalizeTenantPermissions(
@@ -69,11 +100,19 @@ export async function refreshPermissionCache(input: RefreshPermissionCacheInput 
       activeMembership: input.activeMembership,
       p7Roles: input.p7Roles,
       tenantRoles: input.tenantRoles,
+      permissions: input.explicitPermissions as never,
     },
     tenantId,
   )
-  permissionStore.setPermissions(normalized.permissions, tenantId ?? normalized.tenantId)
-  return normalized.permissions
+  // Prefer explicit when provided even in mock (tests asserting restricted owner).
+  const mockPermissions =
+    input.explicitPermissions !== undefined
+      ? input.explicitPermissions
+      : normalized.permissionsSource === 'explicit'
+        ? normalized.permissions
+        : normalized.permissions
+  permissionStore.setPermissions(mockPermissions, tenantId ?? normalized.tenantId)
+  return mockPermissions
 }
 
 export function clearPermissionCache(): void {

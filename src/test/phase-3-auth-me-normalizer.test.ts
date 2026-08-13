@@ -46,6 +46,17 @@ describe('normalizeWireMembership', () => {
     expect(membership?.roles).toEqual(['owner'])
   })
 
+  it('preserves permissions on membership wire', () => {
+    const membership = normalizeWireMembership({
+      tenantId: 'tenant-1',
+      tenantSlug: 'samoon',
+      roles: ['owner'],
+      permissions: ['menu.view', 'orders.view'],
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.permissions).toEqual(['menu.view', 'orders.view'])
+  })
+
   it('normalizes tenantRoles object array', () => {
     const membership = normalizeWireMembership({
       tenantId: 'tenant-1',

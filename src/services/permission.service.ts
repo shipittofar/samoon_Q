@@ -129,19 +129,12 @@ const BASE_ROLE_PERMISSION_MAP: Record<Role, readonly P7Permission[]> = {
   admin: ALL_PERMISSIONS.filter((p) => p !== 'tenant.manage' && p !== 'tenant.view'),
 
   /**
-   * Full access — every permission including tenant ownership actions.
+   * Full access catalog entry for fixtures / ROLE_TEMPLATES / mock role→perm
+   * expansion when the backend did NOT send an explicit permission list.
    *
-   * Phase 2 (RBAC unification) — previously `owner` held a hand-maintained
-   * subset here and received the rest (customers.manage, orders.delete,
-   * analytics.export, settings.manage, audit.export/manage,
-   * notifications.manage/preferences, operations.manage, tenant.*) via a
-   * parallel client-side "ownership short-circuit"
-   * (src/services/ownership-resolution.service.ts, now removed). That
-   * engine decided access from browser-held mock Owner/StaffAssignment
-   * data — an authorization decision that must never be made client-side.
-   * This role map is now the ONLY permission source; Owner's full access
-   * is expressed directly here instead of being reconstructed by a second
-   * system.
+   * Live feature authorization must NOT treat `owner` as ALL_PERMISSIONS.
+   * When GET /auth/me (or membership) includes `permissions`, that list is
+   * authoritative — see normalizeTenantPermissions() `permissionsSource`.
    */
   owner: ALL_PERMISSIONS,
 
@@ -462,35 +455,22 @@ export function selectActiveMembership(
 
 /**
  * Phase 2 (RBAC unification) — the ONE place that translates a raw auth
- * response into `{ tenantId, roles, permissions, branchAccess }`. Every
- * auth entry point (login, register, verify-otp, getMe, tenant switch)
- * has historically used a different field name for the same roles concept
- * (`p7Roles` at login/register/verify-otp, `tenantRoles` from getMe()) —
- * no consumer downstream of this function needs to know which one it was.
+ * response into `{ tenantId, roles, permissions, branchAccess }`.
  *
- * `permissions` is derived from `roles` via ROLE_PERMISSION_MAP (the single
- * role→permission source — see BASE_ROLE_PERMISSION_MAP above) purely
- * because no backend exists yet to return a pre-resolved permission set.
- * Once a real backend implements `TenantSession` (types/index.ts) and
- * starts returning `permissions` directly, this function's body becomes
- * `{ roles: response.roles, permissions: response.permissions }` — its
- * call sites do not change.
+ * Authorization contract:
+ *   role            = identity / classification (e.g. "owner")
+ *   permission set  = feature authorization (menus, routes, guards)
  *
- * Phase 9 — also accepts the target `{ memberships, activeMembership }`
- * shape (see `TenantMembership` in types/rbac.ts) alongside the legacy
- * `roles`/`p7Roles`/`tenantRoles` shape, and always resolves a
- * `branchAccess` value (see `resolveBranchAccess()` above) — neither
- * input shape can produce a session with a missing/undefined branch
- * scope. `currentTenantId` (normally `useTenantStore.tenant?.id`) is used
- * only to disambiguate which membership applies when a `memberships` list
- * has more than one entry and no `activeMembership` was sent — it has no
- * effect on the legacy shape, which has no per-tenant structure to select
- * from in the first place.
+ * When the backend sends an explicit effective permission list (membership
+ * `permissions`, top-level `permissions`, or legacy `tenantRoles[].permissions`
+ * merged onto the membership), that list is authoritative — including `[]`.
+ * `ROLE_PERMISSION_MAP` / `getPermissionsForRole()` must NEVER override it.
  *
- * No backend sends the `memberships`/`activeMembership` shape yet (mock
- * mode and the real-mode contract both still only ever produce
- * `tenantRoles`) — this is data-model preparation (Phase 9.2), not a
- * behavior change for any call site that exists today.
+ * Role→permission expansion remains only when no explicit list is present
+ * (mock fixtures / legacy Role[] helpers). Live real-backend UI authorization
+ * must not rely on that expansion: `applyTenantSessionRbac` seeds empty
+ * session permissions in real mode until GET /auth/me/permissions (or an
+ * explicit /auth/me list) populates the permission store.
  */
 export function normalizeTenantPermissions(
   response:
@@ -506,7 +486,14 @@ export function normalizeTenantPermissions(
     | null
     | undefined,
   currentTenantId?: string,
-): { tenantId?: string; roles: Role[]; permissions: P7Permission[]; branchAccess: BranchAccess } {
+): {
+  tenantId?: string
+  roles: Role[]
+  permissions: P7Permission[]
+  branchAccess: BranchAccess
+  /** How `permissions` was produced — live auth must not treat role-map as backend truth. */
+  permissionsSource: 'explicit' | 'role-map' | 'none'
+} {
   if (Array.isArray(response)) {
     const roles = response
     return {
@@ -514,6 +501,7 @@ export function normalizeTenantPermissions(
       roles,
       permissions: [...getPermissionsForRole(roles)],
       branchAccess: resolveBranchAccess(undefined, roles),
+      permissionsSource: roles.length > 0 ? 'role-map' : 'none',
     }
   }
 
@@ -525,27 +513,60 @@ export function normalizeTenantPermissions(
   if (response?.memberships !== undefined && response?.memberships !== null) {
     const selected = selectActiveMembership(response.memberships, response.activeMembership, currentTenantId)
     if (!selected) {
-      // Ambiguous (multiple memberships, no hint to pick one) or an empty
-      // list — deny by default, exactly like a missing branchAccess: never
-      // guess which tenant's roles apply.
-      return { tenantId: currentTenantId, roles: [], permissions: [], branchAccess: resolveBranchAccess(undefined, []) }
+      return {
+        tenantId: currentTenantId,
+        roles: [],
+        permissions: [],
+        branchAccess: resolveBranchAccess(undefined, []),
+        permissionsSource: 'none',
+      }
     }
     const roles = selected.roles
+    // Explicit membership permissions (including []) beat ROLE_PERMISSION_MAP.
+    if (selected.permissions !== undefined) {
+      return {
+        tenantId: selected.tenantId,
+        roles,
+        permissions: [...new Set(selected.permissions)] as P7Permission[],
+        branchAccess: resolveBranchAccess(selected.branchAccess, roles, selected.branches),
+        permissionsSource: 'explicit',
+      }
+    }
+    // Top-level permissions alongside memberships (rare) — still explicit.
+    if (response.permissions !== undefined && response.permissions !== null) {
+      return {
+        tenantId: selected.tenantId,
+        roles,
+        permissions: [...new Set(response.permissions)] as P7Permission[],
+        branchAccess: resolveBranchAccess(selected.branchAccess, roles, selected.branches),
+        permissionsSource: 'explicit',
+      }
+    }
     return {
       tenantId: selected.tenantId,
       roles,
       permissions: [...getPermissionsForRole(roles)],
       branchAccess: resolveBranchAccess(selected.branchAccess, roles, selected.branches),
+      permissionsSource: roles.length > 0 ? 'role-map' : 'none',
     }
   }
 
   const roles = response?.roles ?? response?.p7Roles ?? response?.tenantRoles ?? []
-  const permissions = response?.permissions ?? [...getPermissionsForRole(roles)]
+  if (response?.permissions !== undefined && response?.permissions !== null) {
+    return {
+      tenantId: currentTenantId,
+      roles,
+      permissions: [...new Set(response.permissions)] as P7Permission[],
+      branchAccess: resolveBranchAccess(undefined, roles),
+      permissionsSource: 'explicit',
+    }
+  }
   return {
     tenantId: currentTenantId,
     roles,
-    permissions,
+    permissions: [...getPermissionsForRole(roles)],
     branchAccess: resolveBranchAccess(undefined, roles),
+    permissionsSource: roles.length > 0 ? 'role-map' : 'none',
   }
 }
 

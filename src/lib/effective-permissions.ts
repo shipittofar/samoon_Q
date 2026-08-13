@@ -9,6 +9,9 @@ export function isMockAuthMode(): boolean {
  * `dashboard:access` console-entry permission. Synthesize it when the user
  * has tenant roles and/or any API-granted permission so ConsoleWorkspaceGate
  * can open without falling back to ROLE_PERMISSION_MAP.
+ *
+ * This only adds shell entry — it must never expand a role into feature
+ * permissions. Feature auth uses the effective permission set only.
  */
 export function withDashboardAccess(
   permissions: readonly string[],

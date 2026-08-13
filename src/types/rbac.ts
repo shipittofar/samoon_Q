@@ -208,6 +208,14 @@ export interface TenantMembership {
   /** Logo URL from GET /auth/me membership — used by Console selectors before full tenant load. */
   tenantLogo?: string | null
   roles: Role[]
+  /**
+   * Effective permissions for this membership from the backend (GET /auth/me).
+   * When present (including `[]`), feature authorization must use this list —
+   * never expand `roles` via ROLE_PERMISSION_MAP. Absent (`undefined`) means
+   * the wire payload did not include an effective set (legacy/mock may fall
+   * back to role-map expansion).
+   */
+  permissions?: Permission[]
   branchAccess: BranchAccessInput
   /** Active branch pointer from GET /auth/me `activeMembership` after switch-branch. */
   branchId?: string
@@ -216,6 +224,17 @@ export interface TenantMembership {
   /** Branches available to this membership — Console source of truth when non-empty. */
   branches?: MembershipBranch[]
   status?: 'active' | 'suspended' | 'revoked'
+}
+
+/**
+ * Legacy GET /auth/me `tenantRoles` entry — role name plus optional effective
+ * permission list for that role/tenant. Permissions must be preserved through
+ * normalization; role alone must not imply ALL_PERMISSIONS in live auth.
+ */
+export interface TenantRolePermissionGrant {
+  role: Role
+  permissions?: Permission[]
+  tenantId?: string
 }
 
 /**

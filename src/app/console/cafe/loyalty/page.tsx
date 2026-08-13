@@ -10,7 +10,7 @@ export default function CafeLoyaltyPage() {
   const t = useTranslations('console')
   return (
     <ErrorBoundary feature="Cafe Loyalty Management">
-      <PermissionGuard permission="loyalty.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="loyalty.manage" fallback={<AccessDenied />}>
         <main className="p-6 max-w-4xl mx-auto">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-2xl font-bold">{t('cafeLoyaltyManagementTitle')}</h1>

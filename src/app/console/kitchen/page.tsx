@@ -150,7 +150,7 @@ function KitchenPageContent() {
 export default function KitchenPage() {
   return (
     <ErrorBoundary feature="Kitchen Display">
-      <PermissionGuard permission="operations.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="kitchen.view" fallback={<AccessDenied />}>
         <KitchenPageContent />
       </PermissionGuard>
     </ErrorBoundary>

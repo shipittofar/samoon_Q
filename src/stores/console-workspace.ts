@@ -75,19 +75,24 @@ function clearConsoleActiveTenantState() {
 async function seedRbacAndRefreshForTenant(tenantId: string): Promise<void> {
   const memberships = useRbacStore.getState().sessionMemberships ?? []
   const membership = memberships.find((m) => m.tenantId === tenantId)
-  const { roles, permissions, branchAccess } = normalizeTenantPermissions(
+  const { roles, permissions, branchAccess, permissionsSource } = normalizeTenantPermissions(
     membership
       ? { memberships, activeMembership: membership }
       : { memberships, activeMembership: { tenantId, roles: [], branchAccess: { scope: 'selected', branchIds: [] } } },
     tenantId,
   )
-  // Real backend: roles/branchAccess only until /auth/me/permissions returns.
-  // Mock: ROLE_PERMISSION_MAP-derived permissions remain the session source.
+  // Real: never seed ROLE_PERMISSION_MAP; keep explicit /auth/me list when present.
+  // Mock: role-map (or explicit) remains the session source.
   const useMock = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+  const sessionPermissions = useMock
+    ? permissions
+    : permissionsSource === 'explicit'
+      ? permissions
+      : []
   useRbacStore.getState().setCurrentTenantSession(
     tenantId,
     roles,
-    useMock ? permissions : [],
+    sessionPermissions,
     branchAccess,
   )
   if (roles.length > 0) useRbacStore.getState().setTenantRoles(tenantId, roles)
@@ -96,6 +101,7 @@ async function seedRbacAndRefreshForTenant(tenantId: string): Promise<void> {
     memberships,
     activeMembership: membership ?? { tenantId, roles, branchAccess },
     tenantSlug: membership?.tenantSlug,
+    explicitPermissions: permissionsSource === 'explicit' ? permissions : undefined,
   })
 }
 

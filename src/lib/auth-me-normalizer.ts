@@ -1,5 +1,11 @@
 import type { User } from '@/types'
-import type { MembershipBranch, Role, TenantMembership } from '@/types/rbac'
+import type {
+  MembershipBranch,
+  Permission,
+  Role,
+  TenantMembership,
+  TenantRolePermissionGrant,
+} from '@/types/rbac'
 import type { GetMeResponse } from '@/services/auth.service'
 
 type WireRecord = Record<string, unknown>
@@ -50,6 +56,65 @@ function pickRoles(record: WireRecord): Role[] {
   if (singularRole) return [singularRole as Role]
 
   return []
+}
+
+/** Extract an explicit permission string list from a wire record (or undefined if absent). */
+function pickPermissions(record: WireRecord): Permission[] | undefined {
+  const raw = record.permissions ?? record.permission_keys ?? record.permissionKeys
+  if (!Array.isArray(raw)) return undefined
+  const permissions = raw.filter((p): p is string => typeof p === 'string') as Permission[]
+  // Empty array is an explicit deny set — preserve it (do not treat as "absent").
+  return permissions
+}
+
+/**
+ * Parses root-level legacy `tenantRoles: [{ role, permissions, tenantId? }]`.
+ * Role names alone are insufficient for live auth when permissions are present.
+ */
+export function pickTenantRoleGrants(raw: unknown): TenantRolePermissionGrant[] {
+  if (!Array.isArray(raw)) return []
+  const grants: TenantRolePermissionGrant[] = []
+  for (const entry of raw) {
+    if (typeof entry === 'string') {
+      grants.push({ role: entry as Role })
+      continue
+    }
+    const record = asRecord(entry)
+    if (!record) continue
+    const role = pickString(record, 'role', 'name', 'code', 'key')
+    if (!role) continue
+    const permissions = pickPermissions(record)
+    const tenantId = pickString(record, 'tenantId', 'tenant_id')
+    grants.push({
+      role: role as Role,
+      ...(permissions !== undefined ? { permissions } : {}),
+      ...(tenantId ? { tenantId } : {}),
+    })
+  }
+  return grants
+}
+
+/**
+ * Merge explicit permissions from root `tenantRoles` grants onto memberships.
+ * Matching: tenantId when grant carries one; otherwise apply to memberships
+ * that include the grant's role (typically the active tenant's owner grant).
+ */
+export function mergeTenantRolePermissionsOntoMemberships(
+  memberships: TenantMembership[],
+  grants: TenantRolePermissionGrant[],
+): TenantMembership[] {
+  if (grants.length === 0) return memberships
+  return memberships.map((membership) => {
+    if (membership.permissions !== undefined) return membership
+    const matched = grants.filter((g) => {
+      if (g.tenantId && g.tenantId !== membership.tenantId) return false
+      return membership.roles.includes(g.role)
+    })
+    const withPerms = matched.filter((g) => g.permissions !== undefined)
+    if (withPerms.length === 0) return membership
+    const permissions = [...new Set(withPerms.flatMap((g) => g.permissions ?? []))] as Permission[]
+    return { ...membership, permissions }
+  })
 }
 
 function normalizeBranchAccess(record: WireRecord): TenantMembership['branchAccess'] {
@@ -123,6 +188,11 @@ export function normalizeWireMembership(raw: unknown): TenantMembership | null {
       return status === 'suspended' || status === 'revoked' ? status : 'active'
     })(),
     branches: normalizeMembershipBranches(record.branches, tenantId),
+  }
+
+  const permissions = pickPermissions(record)
+  if (permissions !== undefined) {
+    membership.permissions = permissions
   }
 
   return membership
@@ -231,17 +301,46 @@ export function normalizeGetMeResponse(data: unknown): GetMeResponse {
   }
 
   const membershipsRaw = root.memberships
-  const memberships = Array.isArray(membershipsRaw)
+  let memberships = Array.isArray(membershipsRaw)
     ? membershipsRaw
         .map((entry) => normalizeWireMembership(entry))
         .filter((m): m is TenantMembership => m !== null)
     : undefined
 
+  // Root-level tenantRoles may carry { role, permissions } — merge onto memberships
+  // so explicit effective permissions are not discarded by role-name extraction.
+  const tenantRoleGrants = pickTenantRoleGrants(root.tenantRoles ?? root.tenant_roles)
+  if (memberships && tenantRoleGrants.length > 0) {
+    memberships = mergeTenantRolePermissionsOntoMemberships(memberships, tenantRoleGrants)
+  }
+
   let activeMembership = normalizeActiveMembership(root.activeMembership ?? root.active_membership, memberships ?? [])
 
   const legacyRoles = pickRoles({ roles: root.tenantRoles ?? root.tenant_roles })
   if (!activeMembership && legacyRoles.length > 0 && memberships?.length === 1) {
-    activeMembership = { ...memberships[0], roles: legacyRoles }
+    const sole = memberships[0]
+    const grantPerms = tenantRoleGrants
+      .filter((g) => g.permissions !== undefined)
+      .flatMap((g) => g.permissions ?? [])
+    activeMembership = {
+      ...sole,
+      roles: legacyRoles,
+      ...(grantPerms.length > 0 || tenantRoleGrants.some((g) => g.permissions !== undefined)
+        ? { permissions: [...new Set(grantPerms)] as Permission[] }
+        : {}),
+    }
+  }
+
+  // When memberships are absent but tenantRoles grants carry permissions, synthesize
+  // a single-membership session only when we also have an active tenant pointer later
+  // via consumers — leave memberships undefined for pure legacy role-string shape.
+  // Explicit permissions for the active membership are attached above when possible.
+
+  if (activeMembership && memberships) {
+    const fromList = memberships.find((m) => m.tenantId === activeMembership!.tenantId)
+    if (fromList?.permissions !== undefined && activeMembership.permissions === undefined) {
+      activeMembership = { ...activeMembership, permissions: fromList.permissions }
+    }
   }
 
   return {

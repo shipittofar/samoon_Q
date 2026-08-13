@@ -54,7 +54,7 @@ export default function RoleDetailPage({ params }: PageProps) {
 
     <ErrorBoundary feature="Role Permissions">
 
-      <PermissionGuard permission="staff.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="rbac.manage_roles" fallback={<AccessDenied />}>
 
         <main className="p-6 space-y-6 max-w-4xl">
 

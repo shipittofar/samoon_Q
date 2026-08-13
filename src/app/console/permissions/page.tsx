@@ -62,7 +62,7 @@ export default function PermissionsPage() {
 
   if (rolesLoading || catalogLoading || staffLoading) {
     return (
-      <PermissionGuard permission="staff.manage" fallback={<AccessDenied />}>
+      <PermissionGuard permission="rbac.manage_roles" fallback={<AccessDenied />}>
         <main className="p-6">{t('loadingStaffEllipsis')}</main>
       </PermissionGuard>
     )
@@ -70,7 +70,7 @@ export default function PermissionsPage() {
 
   return (
     <ErrorBoundary feature="Permission Management">
-      <PermissionGuard permission="staff.manage" fallback={<AccessDenied />}>
+      <PermissionGuard permission="rbac.manage_roles" fallback={<AccessDenied />}>
         <main className="p-6 space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{t('permissionManagementTitle')}</h1>

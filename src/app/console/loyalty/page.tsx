@@ -185,7 +185,7 @@ export default function AdminLoyaltyPage() {
 
   return (
     <ErrorBoundary feature="Loyalty Management">
-    <PermissionGuard permission="loyalty.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="loyalty.manage" fallback={<AccessDenied />}>
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">{t('loyaltyManagement')}</h1>

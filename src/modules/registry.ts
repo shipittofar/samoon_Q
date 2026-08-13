@@ -179,7 +179,7 @@ const PERMISSIONS_NAV_ITEM = {
   icon: 'Shield',
   group: 'People',
   featureFlagKey: 'admin.staff.enabled',
-  permissionKey: 'staff.manage',
+  permissionKey: 'rbac.manage_roles',
 } as const
 
 const ROLES_NAV_ITEM = {
@@ -188,7 +188,7 @@ const ROLES_NAV_ITEM = {
   icon: 'KeyRound',
   group: 'People',
   featureFlagKey: 'admin.staff.enabled',
-  permissionKey: 'staff.manage',
+  permissionKey: 'rbac.manage_roles',
 } as const
 
 const RBAC_AUDIT_NAV_ITEM = {
@@ -279,7 +279,8 @@ const LOYALTY_NAV_ITEM = {
   icon: 'Heart',
   group: 'Content',
   featureFlagKey: 'loyalty.enabled',
-  permissionKey: 'loyalty.view',
+  // Console loyalty management requires manage, not view-only.
+  permissionKey: 'loyalty.manage',
 } as const
 
 const KITCHEN_NAV_ITEM = {
@@ -288,7 +289,7 @@ const KITCHEN_NAV_ITEM = {
   icon: 'ChefHat',
   group: 'Operations',
   featureFlagKey: 'ordering.enabled',
-  permissionKey: 'operations.view',
+  permissionKey: 'kitchen.view',
 } as const
 
 const CUSTOMERS_NAV_ITEM = {
@@ -482,7 +483,7 @@ export const CAFE_MODULE: Module = {
     EXTRAS_NAV_ITEM,
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
-    { href: '/console/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
+    { href: '/console/cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'cafe.loyalty.enabled', permissionKey: 'loyalty.manage' },
     { href: '/console/cafe/happy-hour', label: 'Happy Hour Settings', featureFlagKey: 'cafe.happy_hour.enabled', permissionKey: 'promotions.view' },
     { href: '/console/promotions', label: 'Promotions', featureFlagKey: 'promotions.enabled', permissionKey: 'promotions.view' },
     KITCHEN_NAV_ITEM,
@@ -818,7 +819,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     CUSTOMERS_NAV_ITEM,
     REVIEWS_NAV_ITEM,
     { href: '/console/mobile-cafe/routes', label: 'Route Management', featureFlagKey: 'mobile_cafe.route_tracking.enabled', permissionKey: 'operations.view' },
-    { href: '/console/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled', permissionKey: 'loyalty.view' },
+    { href: '/console/mobile-cafe/loyalty', label: 'Loyalty Management', featureFlagKey: 'mobile_cafe.loyalty.enabled', permissionKey: 'loyalty.manage' },
     KITCHEN_NAV_ITEM,
     TENANTS_NAV_ITEM,
     STAFF_NAV_ITEM,

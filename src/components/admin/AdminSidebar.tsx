@@ -48,7 +48,7 @@ import {
   Plus,
 } from 'lucide-react'
 import { cn } from '@/utils'
-import { useAdminModuleNav, useLogout } from '@/hooks'
+import { useAdminModuleNav, useLogout, usePermissions } from '@/hooks'
 import { useAuthStore, useRbacStore } from '@/stores'
 import { useConsoleTenantId } from '@/hooks/console-workspace'
 import { Button } from '@/components/ui/Button'
@@ -87,14 +87,18 @@ const ICON_MAP: Record<string, React.ElementType> = {
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
-  { key: 'newMenuItem', href: '/console/menu', icon: UtensilsCrossed },
-  { key: 'newPromotion', href: '/console/promotions', icon: Tag },
-  { key: 'newReservation', href: '/console/reservations', icon: CalendarDays },
-  { key: 'inviteStaff', href: '/console/staff', icon: Users },
+  { key: 'newMenuItem', href: '/console/menu', icon: UtensilsCrossed, permissionKey: 'menu.manage' as const },
+  { key: 'newPromotion', href: '/console/promotions', icon: Tag, permissionKey: 'promotions.manage' as const },
+  { key: 'newReservation', href: '/console/reservations', icon: CalendarDays, permissionKey: 'reservations.manage' as const },
+  { key: 'inviteStaff', href: '/console/staff', icon: Users, permissionKey: 'staff.manage' as const },
 ] as const
 
 function QuickActions({ onClose }: { onClose: () => void }) {
   const t = useTranslations('console')
+  const permissions = usePermissions()
+  const visible = QUICK_ACTIONS.filter((action) => permissions.includes(action.permissionKey))
+  if (visible.length === 0) return null
+
   return (
     <div className="shrink-0 border-t border-[var(--border)] px-2 pt-2 pb-1">
       <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)] opacity-60 select-none flex items-center gap-1">
@@ -102,7 +106,7 @@ function QuickActions({ onClose }: { onClose: () => void }) {
         {t('quickActions')}
       </p>
       <div className="grid grid-cols-2 gap-1">
-        {QUICK_ACTIONS.map(({ key, href, icon: Icon }) => (
+        {visible.map(({ key, href }) => (
           <a
             key={href}
             href={href}
