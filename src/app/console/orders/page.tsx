@@ -171,7 +171,7 @@ export default function AdminOrdersPage() {
 
           {/* Status Summary — counts are page-local; backend does not expose aggregates */}
           <p className="text-xs text-[var(--fg-muted)] mb-2">{t('ordersStatusOnPage')}</p>
-          <div className="grid grid-cols-3 sm:grid-cols-7 gap-3 mb-6">
+          <div className="grid grid-cols-3 sm:grid-cols-8 gap-3 mb-6">
             {(Object.entries(ORDER_STATUS_CONFIG) as [OrderStatus, typeof ORDER_STATUS_CONFIG[OrderStatus]][]).map(([status, cfg]) => (
               <button
                 key={status}
