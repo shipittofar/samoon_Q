@@ -410,7 +410,8 @@ export const tenantProvisioningService = {
       const tenant: Tenant = {
         id: tenantId,
         name: req.name,
-        slug: '',
+        // Mock stand-in for backend assign_unique_slug() — not used by Step 6 UI logic.
+        slug: `provisioned-${tenantId}`,
         businessTypes: [req.businessType],
         status: 'active',
         created_at: new Date().toISOString(),
@@ -423,8 +424,7 @@ export const tenantProvisioningService = {
 
       // MOCK_EXISTING_SLUGS.add(req.slug)
       MOCK_EXISTING_SLUGS.add(req.name)
-      // return { success: true, tenantId, slug: req.slug, tenant }
-      return { success: true, tenantId, tenant }
+      return { success: true, tenantId, slug: tenant.slug, tenant }
     }
 
     try {

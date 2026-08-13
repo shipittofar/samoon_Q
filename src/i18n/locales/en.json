@@ -2163,6 +2163,7 @@
     "provisionSuccessAria": "Provision success",
     "tenantProvisionedSuccessfully": "Tenant provisioned successfully!",
     "tenantIdColonValue": "Tenant ID: {id}",
+    "provisionSlugMissingHint": "Tenant was created, but the response did not include a slug. Refresh the tenants list or contact support.",
     "provisionErrorAria": "Provision error",
     "provisioningFailedLabel": "Provisioning failed",
     "previousStepAria": "Previous step",

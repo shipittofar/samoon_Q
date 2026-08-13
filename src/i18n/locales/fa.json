@@ -2148,6 +2148,7 @@
     "provisionSuccessAria": "راه‌اندازی موفق",
     "tenantProvisionedSuccessfully": "تنانت با موفقیت راه‌اندازی شد!",
     "tenantIdColonValue": "شناسه تنانت: {id}",
+    "provisionSlugMissingHint": "تنانت ایجاد شد، اما پاسخ شامل اسلاگ نبود. فهرست تنانت‌ها را تازه‌سازی کنید یا با پشتیبانی تماس بگیرید.",
     "provisionErrorAria": "خطای راه‌اندازی",
     "provisioningFailedLabel": "راه‌اندازی ناموفق بود",
     "previousStepAria": "مرحله قبلی",

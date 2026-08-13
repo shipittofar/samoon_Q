@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useProvisionTenant } from '@/hooks'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
-import type { ProvisionableBusinessType, TenantBrandingConfig } from '@/types/provisioning'
+import type { ProvisionableBusinessType, TenantBrandingConfig, TenantProvisionResult } from '@/types/provisioning'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { BrandingDefaultsStep } from '@/components/admin/tenant-provisioning/BrandingDefaultsStep'
+import { getProvisionedTenantDisplay } from '@/lib/provision-result-display'
 
 const BUSINESS_TYPES: ProvisionableBusinessType[] = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
@@ -69,6 +70,66 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
   )
 }
 
+function ProvisionSuccessPanel({
+  result,
+  onBackToTenants,
+}: {
+  result: TenantProvisionResult
+  onBackToTenants: () => void
+}) {
+  const t = useTranslations('console')
+  const { name: responseName, slug: responseSlug, slugMissing } = getProvisionedTenantDisplay(result)
+
+  if (slugMissing) {
+    return (
+      <div aria-label={t('provisionErrorAria')}>
+        <p className="text-amber-700 font-semibold mb-2">{t('tenantProvisionedSuccessfully')}</p>
+        <p className="text-sm text-red-600 mb-4">{t('provisionSlugMissingHint')}</p>
+        {responseName ? (
+          <dl className="space-y-3 text-sm mb-4">
+            <div>
+              <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
+              <dd>{responseName}</dd>
+            </div>
+          </dl>
+        ) : null}
+        <button
+          type="button"
+          onClick={onBackToTenants}
+          className="mt-2 text-sm text-accent underline"
+        >
+          {t('backToTenantsLabel')}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div aria-label={t('provisionSuccessAria')}>
+      <p className="text-green-700 font-semibold mb-4">{t('tenantProvisionedSuccessfully')}</p>
+      <dl className="space-y-3 text-sm">
+        <div>
+          <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
+          <dd data-testid="provisioned-tenant-name">{responseName ?? '—'}</dd>
+        </div>
+        <div>
+          <dt className="font-medium text-gray-500">{t('slugLabel')}</dt>
+          <dd data-testid="provisioned-tenant-slug" className="font-mono">
+            {responseSlug}
+          </dd>
+        </div>
+      </dl>
+      <button
+        type="button"
+        onClick={onBackToTenants}
+        className="mt-4 text-sm text-accent underline"
+      >
+        {t('backToTenantsLabel')}
+      </button>
+    </div>
+  )
+}
+
 export default function NewTenantPage() {
   const t = useTranslations('console')
   const router = useRouter()
@@ -85,7 +146,7 @@ export default function NewTenantPage() {
   const [branding, setBranding] = useState<TenantBrandingConfig>({})
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [featureFlagOverrides, setFeatureFlagOverrides] = useState<Record<string, boolean>>({})
-  const [provisionResult, setProvisionResult] = useState<{ success: boolean; tenantId?: string; errors?: string[] } | null>(null)
+  const [provisionResult, setProvisionResult] = useState<TenantProvisionResult | null>(null)
   const [isProvisioning, setIsProvisioning] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
 
@@ -342,19 +403,10 @@ export default function NewTenantPage() {
               </button>
             </>
           ) : provisionResult.success ? (
-            <div aria-label={t('provisionSuccessAria')}>
-              <p className="text-green-700 font-semibold mb-2">{t('tenantProvisionedSuccessfully')}</p>
-              <p className="text-sm text-gray-600">
-                {t('tenantIdColonValue', { id: provisionResult.tenantId ?? '' })}
-              </p>
-              <button
-                type="button"
-                onClick={() => router.push('/console/tenants')}
-                className="mt-4 text-sm text-accent underline"
-              >
-                {t('backToTenantsLabel')}
-              </button>
-            </div>
+            <ProvisionSuccessPanel
+              result={provisionResult}
+              onBackToTenants={() => router.push('/console/tenants')}
+            />
           ) : (
             <div aria-label={t('provisionErrorAria')}>
               <p className="text-red-700 font-semibold mb-2">{t('provisioningFailedLabel')}</p>

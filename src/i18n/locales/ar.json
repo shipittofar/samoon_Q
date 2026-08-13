@@ -2148,6 +2148,7 @@
     "provisionSuccessAria": "نجاح التزويد",
     "tenantProvisionedSuccessfully": "تم تزويد المستأجر بنجاح!",
     "tenantIdColonValue": "معرف المستأجر: {id}",
+    "provisionSlugMissingHint": "تم إنشاء المستأجر، لكن الاستجابة لم تتضمن الاسم المختصر. حدّث قائمة المستأجرين أو تواصل مع الدعم.",
     "provisionErrorAria": "خطأ في التزويد",
     "provisioningFailedLabel": "فشل التزويد",
     "previousStepAria": "الخطوة السابقة",
