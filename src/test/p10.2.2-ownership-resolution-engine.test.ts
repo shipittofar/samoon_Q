@@ -340,11 +340,13 @@ describe('P10.3 Phase A/B/C — centralized eligibility predicates', () => {
     expect(isStaffMemberEligible({ status: 'pending' } as Parameters<typeof isStaffMemberEligible>[0])).toBe(false)
   })
 
-  it('isTenantEligible is false only for status "archived"', () => {
+  it('isTenantEligible is false for CLOSED (legacy archived/suspended map to CLOSED)', () => {
+    expect(isTenantEligible({ status: 'ACTIVE' })).toBe(true)
+    expect(isTenantEligible({ status: 'INACTIVE' })).toBe(true)
+    expect(isTenantEligible({ status: 'CLOSED' })).toBe(false)
+    // Legacy aliases still normalize correctly via helpers
     expect(isTenantEligible({ status: 'active' })).toBe(true)
     expect(isTenantEligible({ status: 'trial' })).toBe(true)
-    expect(isTenantEligible({ status: 'suspended' })).toBe(true)
-    expect(isTenantEligible({ status: 'churned' })).toBe(true)
     expect(isTenantEligible({ status: 'archived' })).toBe(false)
   })
 })
@@ -431,13 +433,30 @@ describe('P10.3 Phase C — Tenant status enforcement', () => {
     expect(resolveOwnershipDrivenPermissions('owner@samoon.com', archived)).toEqual([])
   })
 
-  it('a non-archived, non-active tenant status (e.g. "suspended") is unaffected — not a verified P10.2.3 finding', () => {
+  it('INACTIVE tenants remain eligible for console permission resolution (visibility is separate)', () => {
     const identity = resolveOwnershipIdentity('owner@samoon.com')
-    const suspendedTenant: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
+    const inactiveTenant: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
       id: 'tenant-samoon-01',
       ownerId: 'owner-001',
-      status: 'suspended',
+      status: 'INACTIVE',
     }
-    expect(resolveOwnerPermissions(identity, suspendedTenant)).toEqual(ALL_PERMISSIONS)
+    expect(resolveOwnerPermissions(identity, inactiveTenant)).toEqual(ALL_PERMISSIONS)
+  })
+
+  it('CLOSED / legacy suspended tenants are not eligible for permission resolution', () => {
+    const identity = resolveOwnershipIdentity('owner@samoon.com')
+    const closedTenant: Pick<Tenant, 'id' | 'ownerId' | 'status'> = {
+      id: 'tenant-samoon-01',
+      ownerId: 'owner-001',
+      status: 'CLOSED',
+    }
+    expect(resolveOwnerPermissions(identity, closedTenant)).toEqual([])
+    expect(
+      resolveOwnerPermissions(identity, {
+        id: 'tenant-samoon-01',
+        ownerId: 'owner-001',
+        status: 'suspended',
+      }),
+    ).toEqual([])
   })
 })

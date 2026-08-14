@@ -130,10 +130,10 @@ describe('Tenant marketplace metadata', () => {
     tenantService._resetMockList()
   })
 
-  it('all active/trial tenants have marketplace metadata', async () => {
+  it('all publicly visible tenants have marketplace metadata', async () => {
     const tenants = await tenantService.getTenants()
     const publicTenants = tenants.filter(
-      (t) => t.slug !== 'default' && (t.status === 'active' || t.status === 'trial'),
+      (t) => t.slug !== 'default' && t.is_active === true,
     )
     expect(publicTenants.length).toBeGreaterThan(0)
     publicTenants.forEach((t) => {
@@ -146,18 +146,18 @@ describe('Tenant marketplace metadata', () => {
     })
   })
 
-  it('returns 5 public tenants (active=4 + trial=1, suspended excluded)', async () => {
+  it('returns 5 public tenants (is_active, excludes hidden)', async () => {
     const all = await tenantService.getTenants()
     const pub = all.filter(
-      (t) => t.slug !== 'default' && (t.status === 'active' || t.status === 'trial'),
+      (t) => t.slug !== 'default' && t.is_active === true,
     )
     expect(pub.length).toBe(5)
   })
 
-  it('suspended tenants are excluded from public list', async () => {
+  it('non-visible tenants are excluded from public list', async () => {
     const all = await tenantService.getTenants()
     const pub = all.filter(
-      (t) => t.slug !== 'default' && (t.status === 'active' || t.status === 'trial'),
+      (t) => t.slug !== 'default' && t.is_active === true,
     )
     expect(pub.some((t) => t.slug === 'road-bites')).toBe(false)
   })
@@ -201,7 +201,7 @@ describe('Tenant marketplace metadata', () => {
   it('search filters correctly by name', async () => {
     const tenants = await tenantService.getTenants()
     const pub = tenants.filter(
-      (t) => t.slug !== 'default' && (t.status === 'active' || t.status === 'trial'),
+      (t) => t.slug !== 'default' && t.is_active === true,
     )
     const withMeta = pub.filter((t) => getMarketplaceMeta(t.settings))
     const results = withMeta.filter((t) => {
@@ -214,14 +214,14 @@ describe('Tenant marketplace metadata', () => {
 
   it('category filter returns only matching business types', async () => {
     const tenants = await tenantService.getTenants()
-    const pub = tenants.filter((t) => t.status === 'active' || t.status === 'trial')
+    const pub = tenants.filter((t) => t.is_active === true)
     const cafes = pub.filter((t) => matchesCategory(t.businessTypes, 'cafe'))
     expect(cafes.every((t) => t.businessTypes.includes('cafe'))).toBe(true)
   })
 
   it('empty search query matches everything', async () => {
     const tenants = await tenantService.getTenants()
-    const pub = tenants.filter((t) => t.status === 'active' || t.status === 'trial')
+    const pub = tenants.filter((t) => t.is_active === true)
     const withMeta = pub.filter((t) => getMarketplaceMeta(t.settings))
     const results = withMeta.filter((t) => {
       const meta = getMarketplaceMeta(t.settings)!

@@ -78,6 +78,7 @@ async function buildMockDiscoverTenant(
     slug: tenant.slug,
     name: tenant.name,
     status: tenant.status,
+    is_active: tenant.is_active,
     created_at: tenant.created_at,
     businessTypes: tenant.businessTypes,
     image: tenant.image,

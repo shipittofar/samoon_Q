@@ -69,6 +69,7 @@ export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
     id: item.id,
     slug: item.slug,
     name: item.name,
+    is_active: item.is_active === true,
     status: item.status,
     created_at: item.created_at,
     businessTypes: item.businessTypes ?? [],
@@ -84,12 +85,9 @@ export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
   return { tenant, meta, branches }
 }
 
-/** Filters to the same public tenants Discover showed before migration. */
+/** Filters to publicly visible discover tenants (`is_active`, not status). */
 export function isPublicDiscoverTenant(item: DiscoverTenant): boolean {
-  return (
-    item.slug !== 'default' &&
-    (item.status === 'active' || item.status === 'trial')
-  )
+  return item.slug !== 'default' && item.is_active === true
 }
 
 export function adaptDiscoverResponse(response: DiscoverResponse): DiscoverItem[] {

@@ -152,7 +152,7 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   it('all public tenants have tagline', async () => {
     const tenants = await tenantService.getTenants()
     const pub = tenants.filter(
-      (t) => t.slug !== 'default' && (t.status === 'active' || t.status === 'trial'),
+      (t) => t.slug !== 'default' && t.is_active === true,
     )
     pub.forEach((t) => {
       const meta = getMarketplaceMeta(t.settings)
@@ -163,7 +163,7 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   it('all public tenants have priceLevel in valid range', async () => {
     const tenants = await tenantService.getTenants()
     const pub = tenants.filter(
-      (t) => t.slug !== 'default' && (t.status === 'active' || t.status === 'trial'),
+      (t) => t.slug !== 'default' && t.is_active === true,
     )
     pub.forEach((t) => {
       const meta = getMarketplaceMeta(t.settings)

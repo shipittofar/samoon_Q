@@ -21,6 +21,7 @@ import { DEFAULT_SECTIONS } from '@/types/website-builder'
 import type { SectionConfig, SectionKey } from '@/types/website-builder'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import { buildRestaurantJsonLd, serializeJsonLd } from '@/lib/json-ld'
+import { canOrderFromTenant } from '@/lib/tenant-state'
 
 // ── Shared constant ───────────────────────────────────────────────────────────
 
@@ -100,13 +101,17 @@ interface BuildPublicCTAsOptions {
   /** Branch checkout/top-level flags — override tenant feature flags when set. */
   branch?: BranchCapabilityInput
   meta?: { branchCount?: number; primaryBranchSlug?: string } | null
+  /** Tenant operational state — ordering requires status ACTIVE. */
+  tenant?: { status?: string | null } | null
 }
 
 export function resolveOrderingEnabled(
   featureFlags: Record<string, boolean>,
   hasMenu: boolean,
   branch?: BranchCapabilityInput,
+  tenant?: { status?: string | null } | null,
 ): boolean {
+  if (tenant && !canOrderFromTenant(tenant)) return false
   if (!hasMenu) return false
   if (branch?.orderingEnabled !== undefined) return branch.orderingEnabled
   return featureFlags['ordering.enabled'] === true
@@ -131,7 +136,7 @@ export function resolveReservationsEnabled(
  * - Menu label: "Order Online" when ordering is enabled, "View Menu" otherwise.
  */
 export function buildPublicCTAs(opts: BuildPublicCTAsOptions): PublicCTASet {
-  const { tenantSlug, branchSlug, featureFlags, branch, meta } = opts
+  const { tenantSlug, branchSlug, featureFlags, branch, meta, tenant } = opts
   const branchCount = meta?.branchCount ?? 1
   const primaryBranchSlug = meta?.primaryBranchSlug
   const resolvedBranchSlug = branchSlug ?? primaryBranchSlug
@@ -140,7 +145,7 @@ export function buildPublicCTAs(opts: BuildPublicCTAsOptions): PublicCTASet {
     : `/${tenantSlug}`
 
   const hasMenu = featureFlags['menu.enabled'] === true
-  const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch)
+  const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch, tenant)
   const hasReservations = resolveReservationsEnabled(featureFlags, branch)
 
   // Canonical loyalty check: resolves across all module flag key variants

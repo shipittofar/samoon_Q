@@ -223,6 +223,8 @@ interface SmartCTAOptions {
    * Pass null/undefined when meta is unavailable — falls back to single-branch behavior.
    */
   meta?: { branchCount?: number; primaryBranchSlug?: string } | null
+  /** Tenant operational state — ordering requires status ACTIVE. */
+  tenant?: { status?: string | null } | null
 }
 
 /**
@@ -241,7 +243,7 @@ interface SmartCTAOptions {
  * Single authoritative implementation — never duplicated across pages.
  */
 export function getSmartCTA(opts: SmartCTAOptions): SmartCTA | null {
-  const { tenantSlug, branchSlug, featureFlags, branch, meta } = opts
+  const { tenantSlug, branchSlug, featureFlags, branch, meta, tenant } = opts
   const branchCount = meta?.branchCount ?? 1
   const primaryBranchSlug = meta?.primaryBranchSlug
 
@@ -252,7 +254,7 @@ export function getSmartCTA(opts: SmartCTAOptions): SmartCTA | null {
     : `/${tenantSlug}`
 
   const hasMenu = featureFlags['menu.enabled'] === true
-  const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch)
+  const hasOrdering = resolveOrderingEnabled(featureFlags, hasMenu, branch, tenant)
   const hasReservations = resolveReservationsEnabled(featureFlags, branch)
 
   // Multi-branch tenant homepage: navigate to the locations section first

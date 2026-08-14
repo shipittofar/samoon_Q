@@ -1678,6 +1678,7 @@
     "statusActive": "نشط",
     "statusSuspended": "معلّق",
     "statusInactive": "غير نشط",
+    "statusClosed": "مغلق",
     "ratingWithCount": "{rating} ({count} تقييم)",
     "stallNumberLabel": "الكشك {number}",
     "contactEmailLabel": "بريد التواصل",

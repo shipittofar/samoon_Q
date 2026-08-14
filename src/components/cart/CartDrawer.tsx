@@ -15,6 +15,7 @@ import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { Divider } from '@/components/ui'
 import { formatCurrency } from '@/utils'
 import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
+import { canOrderFromTenant } from '@/lib/tenant-state'
 import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import type { CartItem } from '@/types'
@@ -77,8 +78,11 @@ export function CartDrawer() {
   const [codeInput, setCodeInput] = useState(discountCode || '')
   const router = useRouter()
   const tenantSlug = useTenantStore((s) => s.tenant?.slug)
+  const tenant = useTenantStore((s) => s.tenant)
   const branchSlug = useBranchStore((s) => s.activeBranch?.slug)
-  const orderingEnabled = isBranchOrderingEnabled(useBranchStore((s) => s.activeBranch?.checkout))
+  const orderingEnabled =
+    canOrderFromTenant(tenant) &&
+    isBranchOrderingEnabled(useBranchStore((s) => s.activeBranch?.checkout))
 
   const handleBrowseMenu = () => {
     setOpen(false)

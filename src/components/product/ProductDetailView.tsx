@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Star, Clock, Flame, AlertTriangle } from 'lucide-react'
-import { useCartStore, useBranchStore } from '@/stores'
+import { useCartStore, useBranchStore, useTenantStore } from '@/stores'
 import {
   useFavoriteAction,
   useRelatedItems,
@@ -26,6 +26,7 @@ import { ProductDetailSectionTabs, type ProductDetailTab } from '@/components/pr
 import { buildRatingBreakdownFromReviews, getAssignedExtraGroups, formatNutritionValue } from '@/lib/product-detail-utils'
 import { formatCurrency, getDiscountedPrice } from '@/utils'
 import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
+import { canOrderFromTenant } from '@/lib/tenant-state'
 import type { MenuItem } from '@/types'
 import toast from 'react-hot-toast'
 import { useTranslations, useLocale } from 'next-intl'
@@ -58,7 +59,9 @@ export function ProductDetailView({
   const [isLg, setIsLg] = useState(false)
 
   const { addItem } = useCartStore()
-  const orderingEnabled = isBranchOrderingEnabled(useBranchStore((s) => s.activeBranch?.checkout))
+  const orderingEnabled =
+    canOrderFromTenant(useTenantStore((s) => s.tenant)) &&
+    isBranchOrderingEnabled(useBranchStore((s) => s.activeBranch?.checkout))
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const activeBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? activeBranchId

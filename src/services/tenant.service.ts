@@ -2,6 +2,11 @@ import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { DEFAULT_TENANT } from '@/constants'
 import { MOCK_TENANT_OWNER_MAP } from './owner.service'
+import {
+  coerceTenantIsActive,
+  isTenantVisible,
+  normalizeTenantStatus,
+} from '@/lib/tenant-state'
 import type { Tenant, TenantStatus, PaginatedResponse } from '@/types'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -34,31 +39,30 @@ export class TenantServerError extends Error {
   }
 }
 
-/** Statuses under which a resolved tenant is still eligible to be used (mapped to 'resolved'). Anything else (suspended/archived/churned) is treated as forbidden. */
-export const ELIGIBLE_TENANT_STATUSES: TenantStatus[] = ['active', 'trial']
+/**
+ * @deprecated Public eligibility is `is_active` (visibility), not status.
+ * Kept as a no-op re-export name for any lingering imports; prefer
+ * `isTenantVisible` from `@/lib/tenant-state`.
+ */
+export function isPubliclyEligibleTenant(tenant: Pick<Tenant, 'is_active'>): boolean {
+  return isTenantVisible(tenant)
+}
 
 /**
  * Phase Z.6 — normalizes a raw backend Tenant response into the frontend's
  * Tenant shape. Every raw field is preserved (spread first, nothing is
- * dropped or filtered) — the only thing this adds is `businessTypes`
- * (camelCase, module-key semantics — src/types/index.ts's Tenant doc
- * comment) when the response doesn't already carry that exact key, filled
- * in from the backend's real field name, `business_types`. Without this,
- * every one of the ~20 call sites that read `tenant.businessTypes`
- * (module routing, feature-flag resolution, tenant cards/lists, the
- * discover page's category filter) would silently see `undefined` against
- * a real backend and either render nothing or throw
- * (`tenant.businessTypes.forEach is not a function`) — see
- * docs/TENANT_LIST_CONTRACT_ALIGNMENT_AUDIT.md.
- *
- * Mock mode already returns `businessTypes` directly (MOCK_TENANTS below),
- * so this is a no-op there — `raw.businessTypes ?? ...` short-circuits on
- * the already-correct value.
+ * dropped or filtered) — this adds:
+ *   - `businessTypes` from `business_types` when needed
+ *   - canonical `status` (ACTIVE | INACTIVE | CLOSED)
+ *   - `is_active` (visibility; never inferred from ACTIVE alone)
  */
-function normalizeTenant(raw: Tenant & { business_types?: string[] }): Tenant {
+function normalizeTenant(raw: Tenant & { business_types?: string[]; is_active?: boolean }): Tenant {
+  const status = normalizeTenantStatus(raw.status)
   return {
     ...raw,
     businessTypes: raw.businessTypes ?? raw.business_types ?? [],
+    status,
+    is_active: coerceTenantIsActive(raw.is_active, raw.status as string),
   }
 }
 
@@ -73,7 +77,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     name: 'Samoon Restaurant',
     slug: 'samoon',
     businessTypes: ['restaurant'],
-    status: 'active',
+    is_active: true,
+    status: 'ACTIVE',
     created_at: '2024-01-01T00:00:00.000Z',
     image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&q=80',
     settings: {
@@ -123,7 +128,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     name: 'Brew Cafe',
     slug: 'brew-cafe',
     businessTypes: ['cafe'],
-    status: 'active',
+    is_active: true,
+    status: 'ACTIVE',
     created_at: '2024-02-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'loyalty.enabled': true, 'cafe.loyalty.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true },
@@ -162,7 +168,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     name: 'The Oak Bar',
     slug: 'the-oak-bar',
     businessTypes: ['bar'],
-    status: 'active',
+    is_active: true,
+    status: 'ACTIVE',
     created_at: '2024-03-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'promotions.enabled': true, 'analytics.enabled': true },
@@ -200,7 +207,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     name: 'Central Food Court',
     slug: 'central-food-court',
     businessTypes: ['food_court'],
-    status: 'trial',
+    is_active: true,
+    status: 'ACTIVE',
     created_at: '2024-04-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_court.vendor_management.enabled': true, 'analytics.enabled': true },
@@ -238,7 +246,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     name: 'Road Bites',
     slug: 'road-bites',
     businessTypes: ['food_truck'],
-    status: 'suspended',
+    is_active: false,
+    status: 'CLOSED',
     created_at: '2024-05-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_truck.live_location.enabled': true, 'analytics.enabled': true },
@@ -262,7 +271,8 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     name: 'Wheels & Brews',
     slug: 'wheels-and-brews',
     businessTypes: ['mobile_cafe'],
-    status: 'active',
+    is_active: true,
+    status: 'ACTIVE',
     created_at: '2024-06-01T00:00:00.000Z',
     settings: {
       featureFlags: { 'menu.enabled': true, 'mobile_cafe.loyalty.enabled': true, 'mobile_cafe.live_location.enabled': true, 'analytics.enabled': true },
@@ -313,10 +323,15 @@ function findInList(slugOrId: string): Tenant | undefined {
   return MOCK_TENANT_LIST.find((t) => t.id === slugOrId || t.slug === slugOrId)
 }
 
-function setMockStatus(slugOrId: string, status: TenantStatus): Tenant | null {
+function setMockStatus(
+  slugOrId: string,
+  status: TenantStatus,
+  opts?: { is_active?: boolean },
+): Tenant | null {
   const tenant = findInList(slugOrId)
   if (!tenant) return null
   tenant.status = status
+  if (opts?.is_active !== undefined) tenant.is_active = opts.is_active
   return { ...tenant }
 }
 
@@ -450,7 +465,8 @@ export const tenantService = {
   async activateTenant(tenantId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      const result = setMockStatus(tenantId, 'active')
+      // Operational ACTIVE; keep/restore public visibility for mock admin flows.
+      const result = setMockStatus(tenantId, 'ACTIVE', { is_active: true })
       if (!result) throw new Error(`Tenant not found: ${tenantId}`)
       return result
     }
@@ -459,12 +475,12 @@ export const tenantService = {
   },
 
   /**
-   * Suspend an active tenant.
+   * Suspend an active tenant → operational CLOSED (visibility unchanged).
    */
   async suspendTenant(tenantId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      const result = setMockStatus(tenantId, 'suspended')
+      const result = setMockStatus(tenantId, 'CLOSED')
       if (!result) throw new Error(`Tenant not found: ${tenantId}`)
       return result
     }
@@ -473,12 +489,12 @@ export const tenantService = {
   },
 
   /**
-   * Archive a tenant (terminal state).
+   * Archive a tenant: hide from public (`is_active=false`) and mark CLOSED.
    */
   async archiveTenant(tenantId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      const result = setMockStatus(tenantId, 'archived')
+      const result = setMockStatus(tenantId, 'CLOSED', { is_active: false })
       if (!result) throw new Error(`Tenant not found: ${tenantId}`)
       return result
     }
@@ -537,7 +553,9 @@ export const tenantService = {
   _resetMockList(): void {
     MOCK_TENANT_LIST.length = 0
     Object.values(MOCK_TENANTS).forEach((t) => MOCK_TENANT_LIST.push({ ...t }))
-    MOCK_TENANTS['road-bites'].status = 'suspended'
-    MOCK_TENANTS['central-food-court'].status = 'trial'
+    MOCK_TENANTS['road-bites'].status = 'CLOSED'
+    MOCK_TENANTS['road-bites'].is_active = false
+    MOCK_TENANTS['central-food-court'].status = 'ACTIVE'
+    MOCK_TENANTS['central-food-court'].is_active = true
   },
 }

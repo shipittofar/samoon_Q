@@ -116,6 +116,7 @@ export function TenantHeader() {
     branchSlug,
     featureFlags,
     meta,
+    tenant,
     branch: activeBranch
       ? {
           orderingEnabled: activeBranch.checkout?.orderingEnabled,

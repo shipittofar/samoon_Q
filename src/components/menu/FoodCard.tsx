@@ -4,10 +4,11 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import { Heart, Clock, Flame, Star } from 'lucide-react'
-import { useRecentlyViewedStore, useBranchStore } from '@/stores'
+import { useRecentlyViewedStore, useBranchStore, useTenantStore } from '@/stores'
 import { useFavoriteAction } from '@/hooks'
 import { cn, formatCurrency, getDiscountedPrice } from '@/utils'
 import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
+import { canOrderFromTenant } from '@/lib/tenant-state'
 import { Badge } from '@/components/ui'
 import { MenuItemCartControls } from '@/components/menu/MenuItemCartControls'
 import type { MenuItem } from '@/types'
@@ -22,7 +23,9 @@ interface FoodCardProps {
 export function FoodCard({ item, onOpenDetail, compact = false, className }: FoodCardProps) {
   const t = useTranslations('menu')
   const activeBranchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
-  const orderingEnabled = isBranchOrderingEnabled(activeBranchCheckout)
+  const orderingEnabled =
+    canOrderFromTenant(useTenantStore((s) => s.tenant)) &&
+    isBranchOrderingEnabled(activeBranchCheckout)
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
 

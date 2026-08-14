@@ -413,8 +413,9 @@ export const tenantProvisioningService = {
         // Mock stand-in for backend assign_unique_slug() — not used by Step 6 UI logic.
         slug: `provisioned-${tenantId}`,
         businessTypes: [req.businessType],
-        // Backend: 0 branches → inactive
-        status: 'inactive',
+        // Backend: 0 branches → operational INACTIVE (may still be visible or not)
+        is_active: true,
+        status: 'INACTIVE',
         created_at: new Date().toISOString(),
         image:
           req.image instanceof File
@@ -498,7 +499,8 @@ export const tenantProvisioningService = {
         slug: newSlug,
         // Preserve source business type; fall back to restaurant when source unknown
         businessTypes: source?.businessTypes ? [...source.businessTypes] : ['restaurant'],
-        status: 'active',
+        is_active: true,
+        status: 'ACTIVE',
         created_at: new Date().toISOString(),
         // Preserve source settings (feature flags + branding), override name
         settings: source?.settings

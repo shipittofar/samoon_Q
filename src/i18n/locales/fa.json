@@ -1678,6 +1678,7 @@
     "statusActive": "فعال",
     "statusSuspended": "معلق",
     "statusInactive": "غیرفعال",
+    "statusClosed": "بسته",
     "ratingWithCount": "{rating} ({count} امتیاز)",
     "stallNumberLabel": "غرفه {number}",
     "contactEmailLabel": "ایمیل تماس",

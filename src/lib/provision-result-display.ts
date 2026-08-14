@@ -1,5 +1,9 @@
 import type { TenantStatus } from '@/types'
 import type { TenantProvisionResult } from '@/types/provisioning'
+import {
+  isTenantInactive,
+  normalizeTenantStatus,
+} from '@/lib/tenant-state'
 
 /**
  * Step 6 display fields — always from the provision API response tenant,
@@ -18,7 +22,8 @@ export function getProvisionedTenantDisplay(result: TenantProvisionResult): {
     (result.tenant?.slug && result.tenant.slug.trim()) ||
     (result.slug && result.slug.trim()) ||
     undefined
-  const status = result.tenant?.status
+  const rawStatus = result.tenant?.status
+  const status = rawStatus != null ? normalizeTenantStatus(rawStatus) : undefined
   const tenantId = result.tenant?.id || result.tenantId
   return {
     name,
@@ -26,7 +31,8 @@ export function getProvisionedTenantDisplay(result: TenantProvisionResult): {
     status,
     tenantId,
     slugMissing: Boolean(result.success) && !slug,
-    isInactive: status === 'inactive',
+    // Operational INACTIVE (not visibility) — newly provisioned, 0 branches.
+    isInactive: status != null ? isTenantInactive({ status }) : false,
   }
 }
 
@@ -41,19 +47,13 @@ export function getCreateFirstBranchHref(tenantId: string): string {
 
 /** i18n key under `console` for a TenantStatus value. */
 export function tenantStatusLabelKey(status: TenantStatus | string | undefined): string {
-  switch (status) {
-    case 'active':
+  switch (normalizeTenantStatus(status)) {
+    case 'ACTIVE':
       return 'statusActive'
-    case 'inactive':
+    case 'INACTIVE':
       return 'statusInactive'
-    case 'trial':
-      return 'tenantStatusTrial'
-    case 'suspended':
-      return 'statusSuspended'
-    case 'churned':
-      return 'tenantStatusChurned'
-    case 'archived':
-      return 'tenantStatusArchived'
+    case 'CLOSED':
+      return 'statusClosed'
     default:
       return 'statusInactive'
   }

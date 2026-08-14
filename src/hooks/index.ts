@@ -3138,7 +3138,7 @@ export function useConsoleTenants() {
 
 /**
  * P8.7.7.1 — Public marketplace discovery hook.
- * Returns all tenants visible in the public /discover page (active + trial).
+ * Returns tenants visible in the public /discover page (`is_active`).
  * No RBAC guard — this is explicitly public data for business discovery.
  * Uses a separate query key so it never collides with the admin useTenants().
  */
@@ -3148,9 +3148,7 @@ export function usePublicTenants() {
     queryFn: () => tenantService.getTenants(),
     staleTime: STALE_TIME,
     select: (tenants) =>
-      tenants.filter(
-        (t) => t.slug !== 'default' && (t.status === 'active' || t.status === 'trial'),
-      ),
+      tenants.filter((t) => t.slug !== 'default' && t.is_active === true),
   })
 }
 

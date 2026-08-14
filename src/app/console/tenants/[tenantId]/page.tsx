@@ -12,21 +12,16 @@ import { PreviewButton } from '@/components/admin/PreviewButton'
 import { tenantService } from '@/services/tenant.service'
 import type { Tenant } from '@/types'
 import { resolveTenantImage } from '@/lib/tenant-branding'
+import {
+  isTenantOperational,
+  isTenantVisible,
+} from '@/lib/tenant-state'
+import { tenantStatusLabelKey } from '@/lib/provision-result-display'
 
 const STATUS_COLORS: Record<string, string> = {
-  active: 'text-green-700 bg-green-100',
-  trial: 'text-blue-700 bg-blue-100',
-  suspended: 'text-amber-700 bg-amber-100',
-  churned: 'text-gray-500 bg-gray-100',
-  archived: 'text-red-700 bg-red-100',
-}
-
-const TENANT_STATUS_KEY: Record<string, string> = {
-  active: 'statusActive',
-  trial: 'tenantStatusTrial',
-  suspended: 'statusSuspended',
-  churned: 'tenantStatusChurned',
-  archived: 'tenantStatusArchived',
+  ACTIVE: 'text-green-700 bg-green-100',
+  INACTIVE: 'text-gray-600 bg-gray-100',
+  CLOSED: 'text-amber-700 bg-amber-100',
 }
 
 function ProfileSection({ tenant }: { tenant: Tenant }) {
@@ -43,7 +38,7 @@ function ProfileSection({ tenant }: { tenant: Tenant }) {
           <dt className="text-gray-500">{t('tableHeaders.status')}</dt>
           <dd>
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusClass}`}>
-              {t(TENANT_STATUS_KEY[tenant.status] ?? 'statusInactive')}
+              {t(tenantStatusLabelKey(tenant.status))}
             </span>
           </dd>
         </div>
@@ -165,19 +160,22 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
   const activate = useActivateTenant()
   const suspend = useSuspendTenant()
   const archive = useArchiveTenant()
-  const isArchived = tenant.status === 'archived'
+  const operational = isTenantOperational(tenant)
+  const visible = isTenantVisible(tenant)
+  // Archived from public catalog: hidden + closed — console treats as terminal for these actions.
+  const isArchived = !visible && !operational
 
   return (
     <section aria-label={t('statusManagementLabel')} className="border rounded-lg p-6 mb-4">
       <h2 className="text-lg font-semibold mb-4">{t('statusManagementLabel')}</h2>
       <p className="text-sm text-gray-600 mb-4">
-        {t('currentStatusColon', { status: t(TENANT_STATUS_KEY[tenant.status] ?? 'statusInactive') })}
+        {t('currentStatusColon', { status: t(tenantStatusLabelKey(tenant.status)) })}
       </p>
       {isArchived ? (
         <p className="text-sm text-gray-400">{t('tenantArchivedCannotModifyHint')}</p>
       ) : (
         <div className="flex flex-wrap gap-3">
-          {tenant.status !== 'active' && (
+          {!operational && (
             <button
               type="button"
               onClick={() => activate.mutate(tenant.id)}
@@ -188,7 +186,7 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
               {activate.isPending ? t('activatingEllipsis') : t('activateLabel')}
             </button>
           )}
-          {tenant.status === 'active' && (
+          {operational && (
             <button
               type="button"
               onClick={() => suspend.mutate(tenant.id)}
@@ -199,15 +197,17 @@ function StatusActionsSection({ tenant }: { tenant: Tenant }) {
               {suspend.isPending ? t('suspendingEllipsis') : t('suspendLabel')}
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => archive.mutate(tenant.id)}
-            disabled={archive.isPending}
-            className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg disabled:opacity-50"
-            aria-label={t('archiveTenantAria')}
-          >
-            {archive.isPending ? t('archivingEllipsis') : t('archiveTitle')}
-          </button>
+          {visible && (
+            <button
+              type="button"
+              onClick={() => archive.mutate(tenant.id)}
+              disabled={archive.isPending}
+              className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg disabled:opacity-50"
+              aria-label={t('archiveTenantAria')}
+            >
+              {archive.isPending ? t('archivingEllipsis') : t('archiveTitle')}
+            </button>
+          )}
         </div>
       )}
     </section>

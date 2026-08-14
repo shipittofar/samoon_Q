@@ -19,8 +19,9 @@ function makeTenant(overrides: Partial<Tenant> = {}): Tenant {
     name: 'Path Tenant',
     slug: 'path-tenant',
     businessTypes: ['restaurant'],
-    status: 'active',
-    createdAt: '2025-01-01T00:00:00.000Z',
+    is_active: true,
+    status: 'ACTIVE',
+    created_at: '2025-01-01T00:00:00.000Z',
     settings: { featureFlags: {} },
     ...overrides,
   }
@@ -39,8 +40,31 @@ describe('public-context — fail-closed ordering/menu flags', () => {
     ).toBe(false)
   })
 
-  it('resolveOrderingEnabled: missing flags → disabled (not fail-open)', () => {
-    expect(resolveOrderingEnabled({}, true)).toBe(false)
+  it('resolveOrderingEnabled: non-ACTIVE tenant status disables ordering', () => {
+    expect(
+      resolveOrderingEnabled(
+        { 'ordering.enabled': true, 'menu.enabled': true },
+        true,
+        undefined,
+        { status: 'INACTIVE' },
+      ),
+    ).toBe(false)
+    expect(
+      resolveOrderingEnabled(
+        { 'ordering.enabled': true, 'menu.enabled': true },
+        true,
+        undefined,
+        { status: 'CLOSED' },
+      ),
+    ).toBe(false)
+    expect(
+      resolveOrderingEnabled(
+        { 'ordering.enabled': true, 'menu.enabled': true },
+        true,
+        undefined,
+        { status: 'ACTIVE' },
+      ),
+    ).toBe(true)
   })
 
   it('buildPublicCTAs: missing menu.enabled → no menu CTA', () => {

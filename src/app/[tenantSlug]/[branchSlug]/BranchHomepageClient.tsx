@@ -70,6 +70,7 @@ function HeroSection({
     branchSlug,
     featureFlags,
     meta,
+    tenant,
     branch: {
       orderingEnabled: branch.checkout?.orderingEnabled,
       reservationsEnabled: branch.reservationsEnabled,
@@ -693,6 +694,7 @@ export default function BranchHomepageClient({
     tenantSlug,
     branchSlug,
     featureFlags,
+    tenant,
     branch: {
       orderingEnabled: branch.checkout?.orderingEnabled,
       reservationsEnabled: branch.reservationsEnabled,

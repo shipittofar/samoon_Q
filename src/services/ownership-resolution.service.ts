@@ -77,6 +77,7 @@ import type { Owner, StaffAssignment } from '@/types/ownership'
 import type { StaffMember } from '@/types/staff'
 import type { Tenant } from '@/types'
 import type { Branch } from '@/types/branch'
+import { isTenantClosed } from '@/lib/tenant-state'
 import type { BranchAccessContext } from '@/types/branch-routing'
 
 export interface OwnershipIdentity {
@@ -107,15 +108,13 @@ export function isStaffMemberEligible(staffMember: StaffMember): boolean {
 }
 
 /**
- * P10.3 Phase C — a Tenant only grants access while not `'archived'`.
- * Scoped exactly to the verified finding (P10.2.3 F-8: "archived tenants
- * don't lose access") — `'trial'`/`'suspended'`/`'churned'` tenants are
- * unaffected by this phase; broadening the check to those states was not
- * a verified finding and is left as documented remaining debt (see the
- * P10.3 report).
+ * P10.3 Phase C — a Tenant only grants access while not operationally CLOSED.
+ * Visibility (`is_active`) must not gate console permission resolution: a
+ * hidden tenant can still be managed. CLOSED is the operational stand-in for
+ * the former `'archived'` RBAC denial (P10.2.3 F-8).
  */
 export function isTenantEligible(tenant: Pick<Tenant, 'status'>): boolean {
-  return tenant.status !== 'archived'
+  return !isTenantClosed(tenant)
 }
 
 /**

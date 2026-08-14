@@ -433,17 +433,39 @@ export type BusinessType =
   | 'hotel'
   | 'other'
 
-export type TenantStatus = 'active' | 'inactive' | 'trial' | 'suspended' | 'churned' | 'archived'
+/**
+ * Tenant operational state (not visibility).
+ * Canonical values: ACTIVE | INACTIVE | CLOSED — see `src/lib/tenant-state.ts`.
+ * Legacy lowercase lifecycle labels remain in the union only for transitional
+ * wire/fixtures; `normalizeTenant()` / helpers always coerce to the canonical set.
+ * Visibility uses `Tenant.is_active`, never `status`.
+ */
+export type TenantStatus =
+  | 'ACTIVE'
+  | 'INACTIVE'
+  | 'CLOSED'
+  /** @deprecated Prefer ACTIVE */
+  | 'active'
+  /** @deprecated Prefer INACTIVE */
+  | 'inactive'
+  /** @deprecated Maps to ACTIVE */
+  | 'trial'
+  /** @deprecated Maps to CLOSED */
+  | 'suspended'
+  /** @deprecated Maps to CLOSED */
+  | 'churned'
+  /** @deprecated Maps to CLOSED */
+  | 'archived'
 
 /**
  * Runtime-only lifecycle state for the tenant bootstrap sequence.
  * Never persisted to localStorage — always starts as 'loading' on each page load.
  *
  *   loading    → TenantBootstrapper has not yet completed loadTenant()
- *   resolved   → loadTenant() succeeded against a live, active/trial tenant
+ *   resolved   → loadTenant() succeeded against a publicly visible tenant (`is_active`)
  *   not_found  → the resolved slug does not correspond to any tenant (404)
  *   forbidden  → the request was rejected (403), or the tenant exists but is
- *                suspended/archived/churned — access is denied either way
+ *                not publicly visible (`is_active === false`) — access is denied either way
  *   error      → network failure or a 5xx — the tenant's real state is unknown
  *
  * `tenant` (useTenantStore.tenant) is `Tenant | null` and is ONLY non-null
@@ -451,6 +473,9 @@ export type TenantStatus = 'active' | 'inactive' | 'trial' | 'suspended' | 'chur
  * for any other state — every non-'resolved' state must be handled by
  * rendering an explicit loading/error/forbidden/not-found UI, never by
  * substituting a placeholder tenant and continuing as if nothing failed.
+ *
+ * Operational state (`status`: ACTIVE | INACTIVE | CLOSED) is separate from
+ * visibility and must not be used as a public show/hide check.
  */
 export type TenantLifecycle = 'loading' | 'resolved' | 'not_found' | 'forbidden' | 'error'
 
@@ -568,6 +593,16 @@ export interface Tenant {
   businessTypes: string[]
   /** Phase Z.6 — added; the raw `business_types` array exactly as the backend sent it, before any normalization. Prefer `businessTypes` (above) for module-routing/feature-flag decisions — this is for display/debugging parity with the wire contract. */
   business_types?: string[]
+  /**
+   * Public / catalog visibility. Use for "should this tenant be shown?".
+   * Do not use `status` for visibility — see `src/lib/tenant-state.ts`.
+   * Optional on raw fixtures; `normalizeTenant()` always sets a boolean.
+   */
+  is_active?: boolean
+  /**
+   * Operational state: ACTIVE | INACTIVE | CLOSED (legacy aliases accepted on wire).
+   * Use for ordering/service availability and ops UI — not for visibility.
+   */
   status: TenantStatus
   /** Phase Z.6 — added; backend's `/api/tenants/` response field. */
   tax_percentage?: number

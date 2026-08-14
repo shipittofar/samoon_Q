@@ -93,6 +93,7 @@ function HeroSection({
     branchSlug: undefined,
     featureFlags,
     meta,
+    tenant,
     branch: branchCapability,
   })
   const heroPrimary =
@@ -884,6 +885,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
     branchSlug: undefined,
     featureFlags,
     meta,
+    tenant,
     branch: primaryBranchCapability,
   })
   const homepageCTAs = {

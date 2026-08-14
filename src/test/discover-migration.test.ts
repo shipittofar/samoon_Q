@@ -16,7 +16,8 @@ const SAMPLE_TENANT: DiscoverTenant = {
   id: 'tenant-1',
   slug: 'samoon',
   name: 'Samoon Restaurant',
-  status: 'active',
+  is_active: true,
+  status: 'ACTIVE',
   created_at: '2024-01-01T00:00:00.000Z',
   businessTypes: ['restaurant'],
   image: 'https://example.com/logo.png',
@@ -121,13 +122,13 @@ describe('discover adapter', () => {
     expect(item.tenant.settings?.theme?.primaryColor).toBe('#abcdef')
   })
 
-  it('adaptDiscoverResponse filters default and non-public statuses', () => {
+  it('adaptDiscoverResponse filters default and non-visible tenants (is_active)', () => {
     const response: DiscoverResponse = {
       count: 3,
       results: [
         SAMPLE_TENANT,
-        { ...SAMPLE_TENANT, id: 'default', slug: 'default', status: 'active' },
-        { ...SAMPLE_TENANT, id: 'suspended', slug: 'closed', status: 'suspended' },
+        { ...SAMPLE_TENANT, id: 'default', slug: 'default', is_active: true, status: 'ACTIVE' },
+        { ...SAMPLE_TENANT, id: 'hidden', slug: 'hidden', is_active: false, status: 'ACTIVE' },
       ],
     }
     const items = adaptDiscoverResponse(response)

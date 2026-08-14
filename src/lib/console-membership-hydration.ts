@@ -11,7 +11,12 @@ function membershipToTenantShell(membership: TenantMembership): Tenant {
     slug: membership.tenantSlug ?? membership.tenantId,
     image: membership.tenantLogo ?? undefined,
     businessTypes: [],
-    status: membership.status === 'suspended' || membership.status === 'revoked' ? 'suspended' : 'active',
+    // Console shell: visible for workspace UI; operational state from membership.
+    is_active: true,
+    status:
+      membership.status === 'suspended' || membership.status === 'revoked'
+        ? 'CLOSED'
+        : 'ACTIVE',
     created_at: '',
     settings: {},
   }

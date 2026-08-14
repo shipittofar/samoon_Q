@@ -16,7 +16,7 @@ import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Divider } from '@/components/ui'
-import { useCartStore, useBranchStore, useAuthStore, useDineInStore } from '@/stores'
+import { useCartStore, useBranchStore, useAuthStore, useDineInStore, useTenantStore } from '@/stores'
 import { useCreateOrder, useCreatePaymentIntent, useCheckServiceability } from '@/hooks'
 import { formatCurrency, cn } from '@/utils'
 import { orderService } from '@/services/order.service'
@@ -25,6 +25,7 @@ import { AddressPicker, DeliveryInfoCard, type AddressPickerValue } from '@/comp
 import toast from 'react-hot-toast'
 import type { PaymentMethod } from '@/types'
 import type { CheckServiceabilityPayload } from '@/types/address'
+import { canOrderFromTenant } from '@/lib/tenant-state'
 import {
   getCheckoutOrderTypeOptions,
   getCheckoutPaymentOptions,
@@ -75,7 +76,9 @@ function CheckoutContent() {
 
   const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart } = useCartStore()
   const { activeBranch } = useBranchStore()
+  const tenant = useTenantStore((s) => s.tenant)
   const checkoutConfig = activeBranch?.checkout
+  const tenantOrderingAllowed = canOrderFromTenant(tenant)
 
   const orderTypeOptions = useMemo(
     () =>
@@ -259,7 +262,7 @@ function CheckoutContent() {
     )
   }
 
-  if (!checkoutConfig?.orderingEnabled || orderTypeOptions.length === 0) {
+  if (!tenantOrderingAllowed || !checkoutConfig?.orderingEnabled || orderTypeOptions.length === 0) {
     return (
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />

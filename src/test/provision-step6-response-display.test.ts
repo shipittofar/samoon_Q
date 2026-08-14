@@ -27,8 +27,9 @@ function inactiveResult(): TenantProvisionResult {
       name: 'My Restaurant',
       slug: 'my-restaurant',
       businessTypes: ['restaurant'],
-      status: 'inactive',
+      status: 'INACTIVE',
       created_at: '2026-01-01T00:00:00.000Z',
+      is_active: true,
     },
   }
 }
@@ -43,7 +44,7 @@ describe('getProvisionedTenantDisplay — backend response is authoritative', ()
 
   it('reads inactive status from backend response', () => {
     const display = getProvisionedTenantDisplay(inactiveResult())
-    expect(display.status).toBe('inactive')
+    expect(display.status).toBe('INACTIVE')
     expect(display.isInactive).toBe(true)
     expect(display.tenantId).toBe('tenant-123')
     expect(tenantStatusLabelKey(display.status)).toBe('statusInactive')
@@ -58,12 +59,12 @@ describe('getProvisionedTenantDisplay — backend response is authoritative', ()
         name: 'My Restaurant',
         slug: 'my-restaurant',
         businessTypes: ['restaurant'],
-        status: 'active',
+        status: 'ACTIVE',
         created_at: '2026-01-01T00:00:00.000Z',
       },
     }
     const display = getProvisionedTenantDisplay(result)
-    expect(display.status).toBe('active')
+    expect(display.status).toBe('ACTIVE')
     expect(display.isInactive).toBe(false)
     expect(tenantStatusLabelKey(display.status)).toBe('statusActive')
   })
@@ -85,8 +86,9 @@ describe('getProvisionedTenantDisplay — backend response is authoritative', ()
         name: 'My Restaurant',
         slug: '',
         businessTypes: ['restaurant'],
-        status: 'inactive',
+        status: 'INACTIVE',
         created_at: '2026-01-01T00:00:00.000Z',
+        is_active: true,
       },
     }
     const display = getProvisionedTenantDisplay(result)
@@ -98,7 +100,7 @@ describe('getProvisionedTenantDisplay — backend response is authoritative', ()
   it('does not mutate status to active', () => {
     const result = inactiveResult()
     getProvisionedTenantDisplay(result)
-    expect(result.tenant?.status).toBe('inactive')
+    expect(result.tenant?.status).toBe('INACTIVE')
   })
 })
 

@@ -39,8 +39,8 @@ import {
   tenantService,
   TenantNotFoundError,
   TenantForbiddenError,
-  ELIGIBLE_TENANT_STATUSES,
 } from '@/services/tenant.service'
+import { isTenantVisible } from '@/lib/tenant-state'
 import { branchManagementService } from '@/services/branch.service'
 import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
@@ -387,10 +387,9 @@ export const useTenantStore = create<TenantState>()(
           // Public slug routes resolve slug → UUID, then fetch via GET /tenants/{id}/.
           const tenantId = await resolvePublicTenantId(slug, options)
           const tenant = await tenantService.getTenantById(tenantId)
-          // A tenant record can be fetched successfully and still be
-          // ineligible (suspended/archived/churned) — that is access denial,
-          // not a resolved, usable tenant. Console must never render against it.
-          if (!ELIGIBLE_TENANT_STATUSES.includes(tenant.status)) {
+          // Public storefronts require visibility (`is_active`), not operational ACTIVE.
+          // INACTIVE/CLOSED tenants may still render if publicly visible; ordering is gated separately.
+          if (!isTenantVisible(tenant)) {
             set({
               tenant: null,
               isLoading: false,
@@ -456,17 +455,7 @@ export const useTenantStore = create<TenantState>()(
           if (!isCurrentTenantLoad(generation)) return
           const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
           if (activeTenantId && activeTenantId !== tenantId) return
-          if (!ELIGIBLE_TENANT_STATUSES.includes(tenant.status)) {
-            if (!isCurrentTenantLoad(generation)) return
-            set({
-              tenant: null,
-              isLoading: false,
-              tenantState: 'forbidden',
-              featureFlags: {},
-              featureFlagsInitialized: true,
-            })
-            return
-          }
+          // Console may manage non-visible or non-operational tenants; do not gate on is_active/status.
           if (!isCurrentTenantLoad(generation)) return
           if (useRbacStore.getState().activeMembership?.tenantId &&
               useRbacStore.getState().activeMembership?.tenantId !== tenantId) {

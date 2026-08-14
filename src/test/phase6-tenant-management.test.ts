@@ -190,13 +190,13 @@ describe('E — activateTenant()', () => {
   it('sets suspended tenant to active', async () => {
     const svc = await freshTenantService()
     const updated = await svc.activateTenant('tenant-road-bites-01')
-    expect(updated.status).toBe('active')
+    expect(updated.status).toBe('ACTIVE')
   })
 
   it('sets trial tenant to active', async () => {
     const svc = await freshTenantService()
     const updated = await svc.activateTenant('tenant-central-fc-01')
-    expect(updated.status).toBe('active')
+    expect(updated.status).toBe('ACTIVE')
   })
 
   it('returns a Tenant object with name and slug', async () => {
@@ -211,7 +211,7 @@ describe('E — activateTenant()', () => {
     await svc.activateTenant('tenant-road-bites-01')
     const tenants = await svc.getTenants()
     const t = tenants.find((x) => x.slug === 'road-bites')
-    expect(t?.status).toBe('active')
+    expect(t?.status).toBe('ACTIVE')
   })
 })
 
@@ -221,7 +221,7 @@ describe('F — suspendTenant()', () => {
   it('sets active tenant to suspended', async () => {
     const svc = await freshTenantService()
     const updated = await svc.suspendTenant('tenant-samoon-01')
-    expect(updated.status).toBe('suspended')
+    expect(updated.status).toBe('CLOSED')
   })
 
   it('returns Tenant object with id', async () => {
@@ -235,7 +235,7 @@ describe('F — suspendTenant()', () => {
     await svc.suspendTenant('tenant-samoon-01')
     const tenants = await svc.getTenants()
     const t = tenants.find((x) => x.slug === 'samoon')
-    expect(t?.status).toBe('suspended')
+    expect(t?.status).toBe('CLOSED')
   })
 })
 
@@ -245,13 +245,15 @@ describe('G — archiveTenant()', () => {
   it('sets active tenant to archived', async () => {
     const svc = await freshTenantService()
     const updated = await svc.archiveTenant('tenant-samoon-01')
-    expect(updated.status).toBe('archived')
+    expect(updated.status).toBe('CLOSED')
+    expect(updated.is_active).toBe(false)
   })
 
   it('sets suspended tenant to archived', async () => {
     const svc = await freshTenantService()
     const updated = await svc.archiveTenant('tenant-road-bites-01')
-    expect(updated.status).toBe('archived')
+    expect(updated.status).toBe('CLOSED')
+    expect(updated.is_active).toBe(false)
   })
 
   it('status persists in subsequent getTenants()', async () => {
@@ -259,7 +261,8 @@ describe('G — archiveTenant()', () => {
     await svc.archiveTenant('tenant-brew-cafe-01')
     const tenants = await svc.getTenants()
     const t = tenants.find((x) => x.slug === 'brew-cafe')
-    expect(t?.status).toBe('archived')
+    expect(t?.status).toBe('CLOSED')
+    expect(t?.is_active).toBe(false)
   })
 })
 
@@ -269,16 +272,20 @@ describe('H — status transitions', () => {
   it('activate → suspend → archive lifecycle', async () => {
     const svc = await freshTenantService()
     let t = await svc.activateTenant('tenant-road-bites-01')
-    expect(t.status).toBe('active')
+    expect(t.status).toBe('ACTIVE')
+    expect(t.is_active).toBe(true)
     t = await svc.suspendTenant('tenant-road-bites-01')
-    expect(t.status).toBe('suspended')
+    expect(t.status).toBe('CLOSED')
     t = await svc.archiveTenant('tenant-road-bites-01')
-    expect(t.status).toBe('archived')
+    expect(t.status).toBe('CLOSED')
+    expect(t.is_active).toBe(false)
   })
 
-  it('TenantStatus includes archived', () => {
+  it('TenantStatus includes canonical ACTIVE/INACTIVE/CLOSED', () => {
     const src = readSrc('types/index.ts')
-    expect(src).toContain("'archived'")
+    expect(src).toContain("'ACTIVE'")
+    expect(src).toContain("'INACTIVE'")
+    expect(src).toContain("'CLOSED'")
     expect(src).toContain('TenantStatus')
   })
 
@@ -536,12 +543,9 @@ describe('O — admin tenants page (/console/tenants)', () => {
     expect(src()).toContain('Tenant Management')
   })
 
-  it('uses usePlatformTenants hook (not just templates)', () => {
-    // Phase Z.1 — this page manages every tenant on the platform, so it
-    // was repointed from the ambiguous useTenants() to the explicitly
-    // "all platform tenants" hook (AdminTenantSwitcher, which means "my
-    // accessible tenants," uses useMyTenants() instead).
-    expect(src()).toContain('usePlatformTenants')
+  it('uses useConsoleTenants hook (not just templates)', () => {
+    // Console tenant admin list — workspace-scoped console tenants hook.
+    expect(src()).toContain('useConsoleTenants')
   })
 
   it('has a link to /console/tenants/new', () => {
@@ -564,8 +568,8 @@ describe('O — admin tenants page (/console/tenants)', () => {
     expect(src()).toContain('Active')
   })
 
-  it('shows Suspended count KPI', () => {
-    expect(src()).toContain('Suspended')
+  it('shows Closed count KPI', () => {
+    expect(src()).toContain('statusClosed')
   })
 
   it('shows business type distribution', () => {
@@ -672,10 +676,10 @@ describe('Q — tenant analytics computed from list', () => {
   it('getTenants() returns tenants that can be counted by status', async () => {
     const svc = await freshTenantService()
     const tenants = await svc.getTenants()
-    const active = tenants.filter((t) => t.status === 'active')
-    const suspended = tenants.filter((t) => t.status === 'suspended')
+    const active = tenants.filter((t) => t.status === 'ACTIVE')
+    const closed = tenants.filter((t) => t.status === 'CLOSED')
     expect(active.length).toBeGreaterThan(0)
-    expect(suspended.length).toBeGreaterThan(0)
+    expect(closed.length).toBeGreaterThan(0)
   })
 
   it('getTenants() supports grouping by businessType', async () => {
@@ -693,24 +697,16 @@ describe('Q — tenant analytics computed from list', () => {
 // ── R: TenantStatus type ──────────────────────────────────────────────────────
 
 describe('R — TenantStatus type', () => {
-  it('includes active', () => {
-    expect(readSrc('types/index.ts')).toContain("'active'")
+  it('includes ACTIVE', () => {
+    expect(readSrc('types/index.ts')).toContain("'ACTIVE'")
   })
 
-  it('includes trial', () => {
-    expect(readSrc('types/index.ts')).toContain("'trial'")
+  it('includes INACTIVE', () => {
+    expect(readSrc('types/index.ts')).toContain("'INACTIVE'")
   })
 
-  it('includes suspended', () => {
-    expect(readSrc('types/index.ts')).toContain("'suspended'")
-  })
-
-  it('includes churned', () => {
-    expect(readSrc('types/index.ts')).toContain("'churned'")
-  })
-
-  it('includes archived', () => {
-    expect(readSrc('types/index.ts')).toContain("'archived'")
+  it('includes CLOSED', () => {
+    expect(readSrc('types/index.ts')).toContain("'CLOSED'")
   })
 })
 
@@ -760,7 +756,7 @@ describe('T — mock data has required fields on all tenants', () => {
   it('all tenants have valid status', async () => {
     const svc = await freshTenantService()
     const tenants = await svc.getTenants()
-    const validStatuses = new Set(['active', 'trial', 'suspended', 'churned', 'archived'])
+    const validStatuses = new Set(['ACTIVE', 'INACTIVE', 'CLOSED'])
     for (const t of tenants) {
       expect(validStatuses.has(t.status)).toBe(true)
     }
@@ -878,8 +874,9 @@ describe('X — tenant detail page sections', () => {
     expect(src()).toContain('businessTypes')
   })
 
-  it('StatusActionsSection checks for archived state', () => {
-    expect(src()).toContain('archived')
+  it('StatusActionsSection checks for archived/hidden state via visibility helpers', () => {
+    expect(src()).toContain('isTenantVisible')
+    expect(src()).toContain('isArchived')
   })
 
   it('archived tenant shows no action buttons', () => {
