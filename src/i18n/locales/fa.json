@@ -489,7 +489,9 @@
     "paymentConfirmed": "پرداخت تأیید شد",
     "paymentCouldNotBeProcessed": "پرداخت پردازش نشد",
     "noBranchSelectedTitle": "شعبه‌ای انتخاب نشده است",
-    "noBranchSelectedDesc": "مشخص نیست سفارش از کدام شعبه ثبت شود. لطفاً پیش از پرداخت، شعبه‌ای را از منو انتخاب کنید."
+    "noBranchSelectedDesc": "مشخص نیست سفارش از کدام شعبه ثبت شود. لطفاً پیش از پرداخت، شعبه‌ای را از منو انتخاب کنید.",
+    "orderingDisabledTitle": "سفارش‌گیری در دسترس نیست",
+    "orderingDisabledDesc": "این شعبه در حال حاضر سفارش نمی‌پذیرد."
   },
   "order": {
     "title": "پیگیری سفارش",

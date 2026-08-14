@@ -489,7 +489,9 @@
     "paymentConfirmed": "تم تأكيد الدفع",
     "paymentCouldNotBeProcessed": "تعذرت معالجة الدفع",
     "noBranchSelectedTitle": "لم يتم اختيار فرع",
-    "noBranchSelectedDesc": "تعذر تحديد الفرع الذي سيتم الطلب منه. يرجى اختيار فرع من القائمة قبل إتمام الدفع."
+    "noBranchSelectedDesc": "تعذر تحديد الفرع الذي سيتم الطلب منه. يرجى اختيار فرع من القائمة قبل إتمام الدفع.",
+    "orderingDisabledTitle": "الطلب غير متاح",
+    "orderingDisabledDesc": "هذا الفرع لا يقبل الطلبات في الوقت الحالي."
   },
   "order": {
     "title": "تتبع الطلب",

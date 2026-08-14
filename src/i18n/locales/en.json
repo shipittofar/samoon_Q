@@ -504,7 +504,9 @@
     "paymentConfirmed": "Payment confirmed",
     "paymentCouldNotBeProcessed": "Payment could not be processed",
     "noBranchSelectedTitle": "No branch selected",
-    "noBranchSelectedDesc": "We could not determine which branch to order from. Please choose a branch from the menu before checking out."
+    "noBranchSelectedDesc": "We could not determine which branch to order from. Please choose a branch from the menu before checking out.",
+    "orderingDisabledTitle": "Ordering unavailable",
+    "orderingDisabledDesc": "This branch is not accepting orders right now."
   },
   "order": {
     "title": "Order Tracking",

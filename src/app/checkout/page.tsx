@@ -286,8 +286,8 @@ function CheckoutContent() {
         <Header />
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
           <Package className="h-12 w-12 text-[var(--fg-subtle)]" />
-          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('orderingDisabledTitle', { defaultValue: 'Ordering unavailable' })}</h2>
-          <p className="text-[var(--fg-muted)]">{t('orderingDisabledDesc', { defaultValue: 'This branch is not accepting orders right now.' })}</p>
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('orderingDisabledTitle')}</h2>
+          <p className="text-[var(--fg-muted)]">{t('orderingDisabledDesc')}</p>
           <Link href="/menu">
             <Button leftIcon={<ArrowLeft className="h-4 w-4" />}>{tCart('browseMenu')}</Button>
           </Link>
