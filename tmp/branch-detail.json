@@ -1,0 +1,137 @@
+﻿{
+    "deliveryEnabled":  false,
+    "pickupEnabled":  false,
+    "tableOrderingEnabled":  false,
+    "orderingEnabled":  true,
+    "deliveryRadius":  null,
+    "minimumOrder":  null,
+    "defaultOrderType":  null,
+    "cashPaymentEnabled":  true,
+    "cardPaymentEnabled":  true,
+    "onlinePaymentEnabled":  false,
+    "walletPaymentEnabled":  false,
+    "cashOnDeliveryEnabled":  true,
+    "defaultPaymentMethod":  null,
+    "sameDayDeliveryEnabled":  false,
+    "scheduledDeliveryEnabled":  true,
+    "contactlessDeliveryEnabled":  false,
+    "marketplaceVisible":  true,
+    "reservationsEnabled":  false,
+    "maxCapacity":  44,
+    "id":  "c918cce2-8fa8-43a7-9152-ca87c02a3df8",
+    "tenantId":  "eb26dae4-20f7-4427-9eeb-60206ca072d5",
+    "tenant":  {
+                   "id":  "c918cce2-8fa8-43a7-9152-ca87c02a3df8",
+                   "name":  "ytyrtyrty",
+                   "slug":  "az14q4so",
+                   "is_active":  true,
+                   "status":  "active"
+               },
+    "name":  "ytyrtyrty",
+    "slug":  "az14q4so",
+    "description":  "",
+    "status":  "active",
+    "type":  "physical",
+    "location":  {
+                     "address":  "fddfg fdgdfg fgdfg",
+                     "city":  "ffff",
+                     "country":  "ffff",
+                     "postalCode":  "",
+                     "latitude":  null,
+                     "longitude":  null
+                 },
+    "contact":  {
+                    "phone_number":  "",
+                    "email":  "",
+                    "website":  ""
+                },
+    "managerId":  null,
+    "businessHours":  [
+                          {
+                              "day":  "Monday",
+                              "open":  "09:00",
+                              "close":  "22:00",
+                              "isClosed":  false
+                          },
+                          {
+                              "day":  "Tuesday",
+                              "open":  "09:00",
+                              "close":  "22:00",
+                              "isClosed":  false
+                          },
+                          {
+                              "day":  "Wednesday",
+                              "open":  "09:00",
+                              "close":  "22:00",
+                              "isClosed":  false
+                          },
+                          {
+                              "day":  "Thursday",
+                              "open":  "09:00",
+                              "close":  "22:00",
+                              "isClosed":  false
+                          },
+                          {
+                              "day":  "Friday",
+                              "open":  "09:00",
+                              "close":  "22:00",
+                              "isClosed":  true
+                          },
+                          {
+                              "day":  "Saturday",
+                              "open":  "09:00",
+                              "close":  "22:00",
+                              "isClosed":  true
+                          },
+                          {
+                              "day":  "Sunday",
+                              "open":  "09:00",
+                              "close":  "22:00",
+                              "isClosed":  false
+                          }
+                      ],
+    "checkout":  {
+                     "orderingEnabled":  true,
+                     "orderTypes":  {
+                                        "delivery":  false,
+                                        "pickup":  false,
+                                        "dineIn":  false,
+                                        "default":  null
+                                    },
+                     "payments":  {
+                                      "cash":  true,
+                                      "cashOnDelivery":  true,
+                                      "card":  true,
+                                      "online":  false,
+                                      "wallet":  false,
+                                      "default":  null
+                                  },
+                     "delivery":  {
+                                      "radius":  null,
+                                      "minimumOrder":  null,
+                                      "sameDay":  false,
+                                      "scheduled":  true,
+                                      "contactless":  false
+                                  }
+                 },
+    "settings":  {
+
+                 },
+    "image":  null,
+    "coverImage":  null,
+    "isDefault":  false,
+    "cuisines":  [
+
+                 ],
+    "amenities":  [
+
+                  ],
+    "timeZone":  "UTC",
+    "currency":  "USD",
+    "language":  "en",
+    "created_at":  "2026-08-13T21:05:49.554638Z",
+    "updated_at":  "2026-08-13T21:05:49.554618Z",
+    "metadata":  {
+
+                 }
+}
