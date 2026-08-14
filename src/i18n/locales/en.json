@@ -2164,6 +2164,8 @@
     "tenantProvisionedSuccessfully": "Tenant provisioned successfully!",
     "tenantIdColonValue": "Tenant ID: {id}",
     "provisionSlugMissingHint": "Tenant was created, but the response did not include a slug. Refresh the tenants list or contact support.",
+    "provisionInactiveNoBranchExplanation": "This Tenant has been created successfully, but it is inactive because it does not have any Branches yet. Create the first Branch to activate it.",
+    "createFirstBranchLabel": "Create First Branch",
     "provisionErrorAria": "Provision error",
     "provisioningFailedLabel": "Provisioning failed",
     "previousStepAria": "Previous step",

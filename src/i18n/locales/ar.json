@@ -2149,6 +2149,8 @@
     "tenantProvisionedSuccessfully": "تم تزويد المستأجر بنجاح!",
     "tenantIdColonValue": "معرف المستأجر: {id}",
     "provisionSlugMissingHint": "تم إنشاء المستأجر، لكن الاستجابة لم تتضمن الاسم المختصر. حدّث قائمة المستأجرين أو تواصل مع الدعم.",
+    "provisionInactiveNoBranchExplanation": "تم إنشاء هذا المستأجر بنجاح، لكنه غير نشط لأنه لا يحتوي على أي فروع بعد. أنشئ الفرع الأول لتفعيله.",
+    "createFirstBranchLabel": "إنشاء الفرع الأول",
     "provisionErrorAria": "خطأ في التزويد",
     "provisioningFailedLabel": "فشل التزويد",
     "previousStepAria": "الخطوة السابقة",

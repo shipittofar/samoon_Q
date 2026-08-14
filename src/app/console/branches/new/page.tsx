@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -18,7 +18,12 @@ import toast from 'react-hot-toast'
 export default function NewBranchPage() {
   const t = useTranslations('console')
   const router = useRouter()
-  const tenantId = useConsoleTenantId() ?? ''
+  const searchParams = useSearchParams()
+  // Prefer explicit tenantId from Step 6 CTA so the new Branch attaches to the
+  // newly provisioned Tenant, not whatever was previously active in the workspace.
+  const queryTenantId = searchParams.get('tenantId')?.trim() || undefined
+  const workspaceTenantId = useConsoleTenantId()
+  const tenantId = queryTenantId || workspaceTenantId || ''
   const { mutate: createBranch, isPending } = useConsoleCreateBranch(tenantId)
 
   const [form, setForm] = useState(EMPTY_BRANCH_FORM)
@@ -68,7 +73,7 @@ export default function NewBranchPage() {
               </button>
               <button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || !tenantId}
                 className="px-6 py-2 text-sm bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50 transition-colors"
               >
                 {isPending ? t('creatingEllipsis') : t('createBranchLabel')}

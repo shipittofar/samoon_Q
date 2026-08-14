@@ -596,10 +596,10 @@ describe('J — provisionTenant (success)', () => {
     expect(r2.valid).toBe(false)
   })
 
-  it('tenant status is active', async () => {
+  it('tenant status is inactive until first branch (backend lifecycle)', async () => {
     const svc = await freshService()
     const result = await svc.provisionTenant({ name: 'Active Bar', slug: 'active-bar-01', businessType: 'bar' })
-    expect(result.tenant?.status).toBe('active')
+    expect(result.tenant?.status).toBe('inactive')
   })
 
   it('returns slug in result', async () => {

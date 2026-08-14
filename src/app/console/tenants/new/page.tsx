@@ -10,7 +10,7 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { BrandingDefaultsStep } from '@/components/admin/tenant-provisioning/BrandingDefaultsStep'
-import { getProvisionedTenantDisplay } from '@/lib/provision-result-display'
+import { getProvisionedTenantDisplay, getCreateFirstBranchHref, tenantStatusLabelKey } from '@/lib/provision-result-display'
 
 const BUSINESS_TYPES: ProvisionableBusinessType[] = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
@@ -73,12 +73,21 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 function ProvisionSuccessPanel({
   result,
   onBackToTenants,
+  onCreateFirstBranch,
 }: {
   result: TenantProvisionResult
   onBackToTenants: () => void
+  onCreateFirstBranch: (tenantId: string) => void
 }) {
   const t = useTranslations('console')
-  const { name: responseName, slug: responseSlug, slugMissing } = getProvisionedTenantDisplay(result)
+  const {
+    name: responseName,
+    slug: responseSlug,
+    status,
+    tenantId,
+    slugMissing,
+    isInactive,
+  } = getProvisionedTenantDisplay(result)
 
   if (slugMissing) {
     return (
@@ -106,7 +115,12 @@ function ProvisionSuccessPanel({
 
   return (
     <div aria-label={t('provisionSuccessAria')}>
-      <p className="text-green-700 font-semibold mb-4">{t('tenantProvisionedSuccessfully')}</p>
+      <p className="text-green-700 font-semibold mb-2">{t('tenantProvisionedSuccessfully')}</p>
+      {isInactive ? (
+        <p className="text-sm text-gray-600 mb-4" data-testid="provision-inactive-explanation">
+          {t('provisionInactiveNoBranchExplanation')}
+        </p>
+      ) : null}
       <dl className="space-y-3 text-sm">
         <div>
           <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
@@ -118,14 +132,33 @@ function ProvisionSuccessPanel({
             {responseSlug}
           </dd>
         </div>
+        {status ? (
+          <div>
+            <dt className="font-medium text-gray-500">{t('statusColumnLabel')}</dt>
+            <dd data-testid="provisioned-tenant-status">{t(tenantStatusLabelKey(status))}</dd>
+          </div>
+        ) : null}
       </dl>
-      <button
-        type="button"
-        onClick={onBackToTenants}
-        className="mt-4 text-sm text-accent underline"
-      >
-        {t('backToTenantsLabel')}
-      </button>
+      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+        {tenantId ? (
+          <button
+            type="button"
+            data-testid="create-first-branch-cta"
+            data-tenant-id={tenantId}
+            onClick={() => onCreateFirstBranch(tenantId)}
+            className="px-4 py-2 text-sm bg-accent text-white rounded-lg font-medium"
+          >
+            {t('createFirstBranchLabel')}
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={onBackToTenants}
+          className="px-4 py-2 text-sm text-accent underline"
+        >
+          {t('backToTenantsLabel')}
+        </button>
+      </div>
     </div>
   )
 }
@@ -406,6 +439,9 @@ export default function NewTenantPage() {
             <ProvisionSuccessPanel
               result={provisionResult}
               onBackToTenants={() => router.push('/console/tenants')}
+              onCreateFirstBranch={(tenantId) => {
+                router.push(getCreateFirstBranchHref(tenantId))
+              }}
             />
           ) : (
             <div aria-label={t('provisionErrorAria')}>

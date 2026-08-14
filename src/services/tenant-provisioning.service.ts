@@ -413,7 +413,8 @@ export const tenantProvisioningService = {
         // Mock stand-in for backend assign_unique_slug() — not used by Step 6 UI logic.
         slug: `provisioned-${tenantId}`,
         businessTypes: [req.businessType],
-        status: 'active',
+        // Backend: 0 branches → inactive
+        status: 'inactive',
         created_at: new Date().toISOString(),
         image:
           req.image instanceof File
