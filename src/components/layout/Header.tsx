@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Bell, User, Menu, X, Sun, Moon, Globe, ChevronDown, LogOut, Settings, Package, Heart, MapPin } from 'lucide-react'
-import { useCartStore, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
+import { useCartStore, useCartItemCount, useAuthStore, useNotificationStore, useLangStore, useThemeStore, useTenantStore } from '@/stores'
 import type { NavItem } from '@/types'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 import { UserMenuBusinessConsoleLink } from '@/components/layout/UserMenuBusinessConsoleLink'
@@ -17,7 +17,7 @@ const PLATFORM_NAV: (NavItem & { labelKey: string })[] = [
   { href: '/reservation', label: 'Reservations', labelKey: 'navReservations' },
   { href: '/restaurant', label: 'For Business', labelKey: 'navForBusiness' },
 ]
-import { cn, formatCurrency } from '@/utils'
+import { cn } from '@/utils'
 import { resolveTenantImage } from '@/lib/tenant-branding'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
@@ -43,7 +43,8 @@ export function Header() {
   const t = useTranslations('header')
   const pathname = usePathname()
   const { isAuthenticated, user } = useAuthStore()
-  const { getItemCount, setOpen: setCartOpen, getTotal } = useCartStore()
+  const { setOpen: setCartOpen } = useCartStore()
+  const cartCount = useCartItemCount()
   const { unreadCount } = useNotificationStore()
   const { locale } = useLangStore()
   const setLocale = useSetLocale()
@@ -68,7 +69,7 @@ export function Header() {
   // WCAG AA contrast (dark tokens on dark background = ~1:1 contrast ratio).
   const isTransparentHero = pathname === '/' && !scrolled
 
-  const cartCount = getItemCount()
+  // cartCount from useCartItemCount() — hydration-safe (0 until persist rehydrates)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)

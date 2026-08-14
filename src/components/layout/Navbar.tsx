@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, UtensilsCrossed, ShoppingCart, User, Calendar } from 'lucide-react'
-import { useCartStore } from '@/stores'
 import { cn } from '@/utils'
 
 const NAV_ITEMS = [
@@ -15,7 +14,6 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname()
-  const cartCount = useCartStore((s) => s.getItemCount())
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[var(--card)]/95 backdrop-blur-xl border-t border-[var(--border)]" aria-label="Mobile navigation">

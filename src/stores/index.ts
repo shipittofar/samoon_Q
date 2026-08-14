@@ -97,6 +97,12 @@ interface CartState {
   discountCode: string
   discountAmount: number
   isOpen: boolean
+  /**
+   * False until client persist rehydration finishes.
+   * SSR and the first client render must both see false so cart UI stays
+   * hydration-safe (localStorage must not affect the initial HTML).
+   */
+  hasHydrated: boolean
   addItem: (item: MenuItem, quantity?: number, extras?: Extra[], notes?: string) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
@@ -120,6 +126,7 @@ export const useCartStore = create<CartState>()(
       discountCode: '',
       discountAmount: 0,
       isOpen: false,
+      hasHydrated: false,
 
       addItem: (menuItem, quantity = 1, extras = [], notes) => {
         set((state) => {
@@ -199,21 +206,52 @@ export const useCartStore = create<CartState>()(
           ),
         })),
     }),
-    // Synchronous persistence — debounced writes could lose items on fast
+    // Synchronous writes — debounced writes could lose items on fast
     // navigation (checkout → middleware redirect → login) before flush.
+    // skipHydration: localStorage must not mutate state before React hydrates.
     {
       name: CART_KEY,
-      onRehydrateStorage: () => (state) => {
-        if (state?.items?.length) {
-          state.items = normalizeCartItems(
-            state.items,
-            state.items[0]?.branch_id ?? state.items[0]?.menu_item?.branch_id,
-          )
+      skipHydration: true,
+      partialize: (state) => ({
+        items: state.items,
+        discountCode: state.discountCode,
+        discountAmount: state.discountAmount,
+        isOpen: state.isOpen,
+      }),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          useCartStore.setState({ hasHydrated: true })
+          return
+        }
+        const items = state?.items
+        if (items?.length) {
+          useCartStore.setState({
+            items: normalizeCartItems(
+              items,
+              items[0]?.branch_id ?? items[0]?.menu_item?.branch_id,
+            ),
+            hasHydrated: true,
+          })
+        } else {
+          useCartStore.setState({ hasHydrated: true })
         }
       },
     },
   ),
 )
+
+/** True after client cart persist rehydration (always false during SSR / first paint). */
+export function useCartHasHydrated(): boolean {
+  return useCartStore((s) => s.hasHydrated)
+}
+
+/**
+ * Item count safe for SSR + hydration: 0 until the cart store has rehydrated
+ * from localStorage, then the real count.
+ */
+export function useCartItemCount(): number {
+  return useCartStore((s) => (s.hasHydrated ? s.getItemCount() : 0))
+}
 
 // ── Theme Store ───────────────────────────────────────────────────────────────
 interface ThemeState {

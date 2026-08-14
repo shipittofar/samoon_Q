@@ -30,6 +30,18 @@ import { resolveFontCssFamily, resolveTenantBranding } from '@/lib/tenant-brandi
 import { DEFAULT_TENANT } from '@/constants'
 
 /**
+ * Rehydrates the cart persist store after mount.
+ * Must run only on the client so SSR HTML and the first client render match
+ * (empty / hasHydrated=false) before localStorage is applied.
+ */
+function CartHydrationBootstrapper({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    void useCartStore.persist.rehydrate()
+  }, [])
+  return <>{children}</>
+}
+
+/**
  * Auth-refresh-persistence fix — the exact shape `normalizeTenantPermissions()`
  * needs to seed a session, or `null` when the getMe() response carries
  * neither the legacy `tenantRoles` field nor the frozen-contract
@@ -642,6 +654,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <RTLProvider>
+          <CartHydrationBootstrapper>
           <TenantBootstrapper>
             <BranchResolutionBootstrapper>
             <TenantThemeProvider>
@@ -666,6 +679,7 @@ export function Providers({ children }: { children: ReactNode }) {
             </TenantThemeProvider>
             </BranchResolutionBootstrapper>
           </TenantBootstrapper>
+          </CartHydrationBootstrapper>
         </RTLProvider>
       </ThemeProvider>
       {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}

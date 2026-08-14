@@ -29,7 +29,7 @@ import {
   ChevronDown, LogOut, Settings, Package, Heart, MapPin,
 } from 'lucide-react'
 import {
-  useCartStore, useAuthStore, useLangStore, useThemeStore,
+  useCartStore, useCartItemCount, useAuthStore, useLangStore, useThemeStore,
   useTenantStore, useBranchStore,
 } from '@/stores'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
@@ -57,7 +57,8 @@ export function TenantHeader() {
   const t = useTranslations('header')
   const pathname = usePathname()
   const { isAuthenticated, user } = useAuthStore()
-  const { getItemCount, setOpen: setCartOpen } = useCartStore()
+  const { setOpen: setCartOpen } = useCartStore()
+  const cartCount = useCartItemCount()
   const { locale } = useLangStore()
   const setLocale = useSetLocale()
   const { theme, setTheme } = useThemeStore()
@@ -83,7 +84,6 @@ export function TenantHeader() {
 
   const prefersReducedMotion = useReducedMotion()
 
-  const cartCount = getItemCount()
   const branchSlug = activeBranch?.slug
 
   // P8.8.11.4: journey nav priority — business-type-aware nav ordering hint.

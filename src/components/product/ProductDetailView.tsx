@@ -59,9 +59,10 @@ export function ProductDetailView({
   const [isLg, setIsLg] = useState(false)
 
   const { addItem } = useCartStore()
+  const tenant = useTenantStore((s) => s.tenant)
+  const branchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
   const orderingEnabled =
-    canOrderFromTenant(useTenantStore((s) => s.tenant)) &&
-    isBranchOrderingEnabled(useBranchStore((s) => s.activeBranch?.checkout))
+    canOrderFromTenant(tenant) && isBranchOrderingEnabled(branchCheckout)
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const activeBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? activeBranchId

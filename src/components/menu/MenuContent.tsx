@@ -14,7 +14,7 @@ import { MenuTagLabel } from '@/components/menu/MenuTagBadge'
 import { FoodCardSkeleton, Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useCategories, useMenuItems, useAvailableMenuTags, useActiveBranchId } from '@/hooks'
-import { useRecentlyViewedStore, useCartStore, useTenantStore, useBranchStore } from '@/stores'
+import { useRecentlyViewedStore, useCartItemCount, useTenantStore, useBranchStore } from '@/stores'
 import { cn, debounce } from '@/utils'
 import { useTranslations } from 'next-intl'
 import type { MenuItem } from '@/types'
@@ -67,7 +67,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
   const [modalOpen, setModalOpen] = useState(false)
   const categoryBarRef = useRef<HTMLDivElement>(null)
   const { items: recentlyViewed } = useRecentlyViewedStore()
-  const cartCount = useCartStore((s) => s.getItemCount())
+  const cartCount = useCartItemCount()
   const tenantName = useTenantStore((s) => s.tenant?.name)
   const branchName = useBranchStore((s) => s.activeBranch?.name)
   const fallbackBranchId = useActiveBranchId()

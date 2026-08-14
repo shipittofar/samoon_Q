@@ -16,7 +16,7 @@ import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Divider } from '@/components/ui'
-import { useCartStore, useBranchStore, useAuthStore, useDineInStore, useTenantStore } from '@/stores'
+import { useCartStore, useCartHasHydrated, useBranchStore, useAuthStore, useDineInStore, useTenantStore } from '@/stores'
 import { useCreateOrder, useCreatePaymentIntent, useCheckServiceability } from '@/hooks'
 import { formatCurrency, cn } from '@/utils'
 import { orderService } from '@/services/order.service'
@@ -75,6 +75,7 @@ function CheckoutContent() {
   const paramTable = searchParams.get('table') ?? ''
 
   const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart } = useCartStore()
+  const cartHasHydrated = useCartHasHydrated()
   const { activeBranch } = useBranchStore()
   const tenant = useTenantStore((s) => s.tenant)
   const checkoutConfig = activeBranch?.checkout
@@ -222,6 +223,23 @@ function CheckoutContent() {
     !belowMinimum
 
   const canPlaceOrder = canContinueToPayment
+
+  // SSR + first client paint: identical shell until localStorage cart rehydrates.
+  // Do not treat an empty in-memory cart as "empty cart" before hydration.
+  if (!cartHasHydrated) {
+    return (
+      <div className="min-h-screen bg-[var(--bg)]">
+        <Header />
+        <div
+          className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          <p className="text-[var(--fg-muted)]">{tCommon('loading')}</p>
+        </div>
+      </div>
+    )
+  }
 
   if (items.length === 0) {
     return (

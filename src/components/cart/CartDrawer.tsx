@@ -6,7 +6,7 @@ import { Trash2, Tag, ShoppingBag, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useCartStore, useTenantStore, useBranchStore } from '@/stores'
+import { useCartStore, useCartItemCount, useTenantStore, useBranchStore } from '@/stores'
 import { useValidateDiscount } from '@/hooks'
 import { Drawer } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
@@ -80,9 +80,9 @@ export function CartDrawer() {
   const tenantSlug = useTenantStore((s) => s.tenant?.slug)
   const tenant = useTenantStore((s) => s.tenant)
   const branchSlug = useBranchStore((s) => s.activeBranch?.slug)
+  const branchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
   const orderingEnabled =
-    canOrderFromTenant(tenant) &&
-    isBranchOrderingEnabled(useBranchStore((s) => s.activeBranch?.checkout))
+    canOrderFromTenant(tenant) && isBranchOrderingEnabled(branchCheckout)
 
   const handleBrowseMenu = () => {
     setOpen(false)
@@ -214,8 +214,8 @@ export function CartDrawer() {
 // ── Floating Cart Button ───────────────────────────────────────────────────────
 export function FloatingCart() {
   const t = useTranslations('cart')
-  const { getItemCount, setOpen, getTotal } = useCartStore()
-  const count = getItemCount()
+  const { setOpen, getTotal } = useCartStore()
+  const count = useCartItemCount()
 
   return (
     <AnimatePresence>
