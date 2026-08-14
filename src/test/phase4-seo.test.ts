@@ -333,6 +333,8 @@ describe('P4.4.6 — JSON-LD generation', () => {
     const { DEFAULT_RESTAURANT_JSON_LD } = await import('@/lib/json-ld')
     expect(DEFAULT_RESTAURANT_JSON_LD['@type']).toContain('Restaurant')
     expect(DEFAULT_RESTAURANT_JSON_LD['name']).toBe('Samoon')
+    // Cuisine is Branch-owned — default sample must not inject servesCuisine
+    expect(DEFAULT_RESTAURANT_JSON_LD).not.toHaveProperty('servesCuisine')
   })
 
   it('DEFAULT_MENU_JSON_LD is exported and references /menu', async () => {

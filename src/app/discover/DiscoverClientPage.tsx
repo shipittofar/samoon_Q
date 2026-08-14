@@ -22,6 +22,8 @@ import {
   countActiveFilters,
   DEFAULT_FILTERS,
   getMarketplaceMeta,
+  collectBranchCuisines,
+  collectBranchAmenities,
 } from '@/types/marketplace'
 import type { FilterState, SortOption } from '@/types/marketplace'
 import { debounce } from '@/utils'
@@ -267,7 +269,9 @@ export function DiscoverClientPage() {
 
   const availableCuisines = useMemo(() => {
     const seen = new Set<string>()
-    allWithMeta.forEach(({ meta }) => (meta.cuisines ?? []).forEach((c) => seen.add(c)))
+    allWithMeta.forEach(({ branches, meta }) => {
+      collectBranchCuisines(branches ?? meta.branches).forEach((c) => seen.add(c))
+    })
     return Array.from(seen).sort()
   }, [allWithMeta])
 
@@ -279,7 +283,9 @@ export function DiscoverClientPage() {
 
   const availableAmenities = useMemo(() => {
     const seen = new Set<string>()
-    allWithMeta.forEach(({ meta }) => (meta.amenities ?? []).forEach((a) => seen.add(a)))
+    allWithMeta.forEach(({ branches, meta }) => {
+      collectBranchAmenities(branches ?? meta.branches).forEach((a) => seen.add(a))
+    })
     return Array.from(seen).sort()
   }, [allWithMeta])
 

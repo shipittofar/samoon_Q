@@ -36,6 +36,8 @@ export function mapDiscoverBranchToPublicBranchInfo(branch: DiscoverBranch): Pub
     marketplaceVisible: branch.marketplaceVisible,
     reservationsEnabled: branch.reservationsEnabled,
     maxCapacity: branch.maxCapacity,
+    cuisines: branch.cuisines,
+    amenities: branch.amenities,
   }
 }
 
@@ -44,18 +46,35 @@ export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
     .map(mapDiscoverBranchToPublicBranchInfo)
     .filter((b) => b.marketplaceVisible !== false)
 
-  const marketplaceInput = item.marketplace ?? {}
+  const m = item.marketplace ?? {}
+  // Explicit MarketplaceMeta fields only — never spread raw wire (prevents unknown keys).
   const meta: MarketplaceMeta = {
-    ...marketplaceInput,
-    branchCount: marketplaceInput.branchCount ?? branches.length,
+    description: m.description,
+    coverImage: m.coverImage,
+    tags: m.tags,
+    rating: m.rating,
+    reviewCount: m.reviewCount,
+    city: m.city,
+    branchCount: m.branchCount ?? branches.length,
     openNow:
-      marketplaceInput.openNow !== undefined
-        ? marketplaceInput.openNow
+      m.openNow !== undefined
+        ? m.openNow
         : branches.length > 0
           ? branches.some((b) => b.openNow)
           : undefined,
-    primaryBranchSlug:
-      marketplaceInput.primaryBranchSlug ?? branches[0]?.slug,
+    primaryBranchSlug: m.primaryBranchSlug ?? branches[0]?.slug,
+    featured: m.featured,
+    popular: m.popular,
+    isNew: m.isNew,
+    tagline: m.tagline,
+    priceLevel: m.priceLevel,
+    phone_number: m.phone_number,
+    email: m.email,
+    website: m.website,
+    gallery: m.gallery,
+    story: m.story,
+    socialLinks: m.socialLinks,
+    heroImage: m.heroImage,
     branches,
   }
 

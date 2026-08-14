@@ -295,7 +295,7 @@ export function buildBranchMetadata(opts: {
 export function buildTenantJsonLd(opts: {
   tenantName: string
   tenantSlug: string
-  meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'phone_number' | 'coverImage' | 'cuisines'> | null
+  meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'phone_number' | 'coverImage'> | null
   /** Resolved feature flags. When absent, reviews default to enabled (safe for SEO). */
   featureFlags?: Record<string, boolean>
 }): string | null {
@@ -310,7 +310,6 @@ export function buildTenantJsonLd(opts: {
     description: meta.description,
     telephone: meta.phone_number,
     image: meta.coverImage,
-    servesCuisine: meta.cuisines,
   })
 
   if (reviewsEnabled) {
@@ -339,7 +338,9 @@ export function buildBranchJsonLd(opts: {
   branchCity?: string
   branchPhone?: string
   branchImage?: string
-  meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'cuisines'> | null
+  /** Branch-owned cuisine labels — never taken from tenant marketplace. */
+  cuisines?: string[]
+  meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description'> | null
   featureFlags?: Record<string, boolean>
 }): string | null {
   const {
@@ -350,6 +351,7 @@ export function buildBranchJsonLd(opts: {
     branchCity,
     branchPhone,
     branchImage,
+    cuisines,
     meta,
     featureFlags,
   } = opts
@@ -364,7 +366,8 @@ export function buildBranchJsonLd(opts: {
     description: meta.description,
     telephone: branchPhone,
     image: branchImage,
-    servesCuisine: meta.cuisines,
+    // Branch-only: omit when empty/absent — never inject defaults
+    servesCuisine: cuisines?.length ? cuisines : undefined,
     address:
       branchAddress && branchCity
         ? { streetAddress: branchAddress, addressLocality: branchCity }

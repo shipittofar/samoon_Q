@@ -62,6 +62,7 @@ export default async function BranchPage({
     branchCity: branch.city,
     branchPhone: branch.phone_number,
     branchImage: branch.image,
+    cuisines: branch.cuisines,
     meta,
   })
 

@@ -394,6 +394,36 @@ export function BranchFormFields({
             className={`${inputClass} max-w-[10rem]`}
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1" htmlFor="branch-cuisines">
+            {t('cuisinesSpecialtiesLabel')}
+          </label>
+          <input
+            id="branch-cuisines"
+            type="text"
+            value={form.cuisines}
+            onChange={(e) => set('cuisines', e.target.value)}
+            placeholder={t('cuisinesExamplePlaceholder')}
+            className={inputClass}
+          />
+          <p className="text-xs text-gray-400 mt-1">{t('commaSeparatedSearchHint')}</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1" htmlFor="branch-amenities">
+            {t('amenitiesLabel')}
+          </label>
+          <input
+            id="branch-amenities"
+            type="text"
+            value={form.amenities}
+            onChange={(e) => set('amenities', e.target.value)}
+            placeholder={t('amenitiesExamplePlaceholder')}
+            className={inputClass}
+          />
+          <p className="text-xs text-gray-400 mt-1">{t('amenitiesHint')}</p>
+        </div>
       </fieldset>
 
       {/* Working Hours */}

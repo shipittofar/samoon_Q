@@ -25,6 +25,10 @@ export interface DiscoverBranch {
   marketplaceVisible?: boolean
   reservationsEnabled?: boolean
   maxCapacity?: number
+  /** Cuisine / specialty labels for this location (branch-owned). */
+  cuisines?: string[]
+  /** Amenity labels for this location (branch-owned). */
+  amenities?: string[]
 }
 
 /** Marketplace display fields on a discover tenant (no embedded branches). */

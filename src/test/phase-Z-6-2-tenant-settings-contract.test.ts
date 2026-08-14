@@ -47,7 +47,7 @@ describe('Phase Z.6.2 — withMeta() keeps every tenant, even without settings.m
   })
 
   it('a tenant with full marketplace data keeps it intact', () => {
-    const marketplace: MarketplaceMeta = { description: 'Great food', rating: 4.5, cuisines: ['Italian'] }
+    const marketplace: MarketplaceMeta = { description: 'Great food', rating: 4.5, tags: ['Italian'] }
     const result = withMeta([makeTenant({ settings: { marketplace } })])
     expect(result[0]!.meta).toEqual(marketplace)
   })
@@ -67,7 +67,7 @@ describe('Phase Z.6.2 — withMeta() keeps every tenant, even without settings.m
 describe('Phase Z.6.2 — marketplace helpers do not crash on a partial MarketplaceMeta', () => {
   const bareMeta: MarketplaceMeta = {}
 
-  it('matchesSearch() does not throw when description/city/cuisines/tags are all absent', () => {
+  it('matchesSearch() does not throw when description/city/tags/branches are all absent', () => {
     expect(() => matchesSearch('Test Tenant', bareMeta, ['restaurant'], 'test')).not.toThrow()
     expect(matchesSearch('Test Tenant', bareMeta, ['restaurant'], 'test')).toBe(true)
   })
@@ -76,11 +76,11 @@ describe('Phase Z.6.2 — marketplace helpers do not crash on a partial Marketpl
     expect(matchesSearch('Samoon Restaurant', bareMeta, [], 'samoon')).toBe(true)
   })
 
-  it('matchesFilters() does not throw when cuisines/city/priceLevel/amenities are absent', () => {
+  it('matchesFilters() does not throw when branch cuisines/city/priceLevel/amenities are absent', () => {
     expect(() => matchesFilters(bareMeta, {}, DEFAULT_FILTERS)).not.toThrow()
   })
 
-  it('matchesFilters() correctly rejects a cuisine filter against an empty cuisines list', () => {
+  it('matchesFilters() correctly rejects a cuisine filter against empty branch cuisines', () => {
     expect(matchesFilters(bareMeta, {}, { ...DEFAULT_FILTERS, cuisines: ['Italian'] })).toBe(false)
   })
 

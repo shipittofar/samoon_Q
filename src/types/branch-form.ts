@@ -34,6 +34,9 @@ export interface BranchFormState {
   marketplaceVisible: boolean
   reservationsEnabled: boolean
   maxCapacity?: number
+  /** Comma-separated input in the form UI; stored as string[]. */
+  cuisines: string
+  amenities: string
 }
 
 const DAYS: BranchBusinessHours['day'][] = [
@@ -65,6 +68,8 @@ export const EMPTY_BRANCH_FORM: BranchFormState = {
   checkout: { ...DEFAULT_BRANCH_CHECKOUT },
   marketplaceVisible: true,
   reservationsEnabled: false,
+  cuisines: '',
+  amenities: '',
 }
 
 const SIMPLE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -114,6 +119,12 @@ export interface BranchWriteRequest {
   timeZone?: string
   currency?: string
   language?: string
+  cuisines?: string[]
+  amenities?: string[]
+}
+
+function parseCommaList(value: string): string[] {
+  return value.split(',').map((v) => v.trim()).filter(Boolean)
 }
 
 export function branchFormToWriteRequest(form: BranchFormState): BranchWriteRequest {
@@ -141,6 +152,8 @@ export function branchFormToWriteRequest(form: BranchFormState): BranchWriteRequ
     timeZone: form.timeZone.trim() || undefined,
     currency: form.currency.trim() || undefined,
     language: form.language.trim() || undefined,
+    cuisines: parseCommaList(form.cuisines),
+    amenities: parseCommaList(form.amenities),
   }
 
   if (form.image.file) {
@@ -184,6 +197,8 @@ export function buildBranchFormData(
   if (payload.timeZone != null) form.append('timeZone', payload.timeZone)
   if (payload.currency != null) form.append('currency', payload.currency)
   if (payload.language != null) form.append('language', payload.language)
+  if (payload.cuisines != null) form.append('cuisines', JSON.stringify(payload.cuisines))
+  if (payload.amenities != null) form.append('amenities', JSON.stringify(payload.amenities))
 
   appendImageField(form, 'image', payload.image, payload.removeImage)
   appendImageField(form, 'coverImage', payload.coverImage, payload.removeCoverImage)
@@ -222,5 +237,7 @@ export function branchToFormInput(branch: Branch): BranchFormState {
     marketplaceVisible: branch.marketplaceVisible,
     reservationsEnabled: branch.reservationsEnabled,
     maxCapacity: branch.maxCapacity,
+    cuisines: (branch.cuisines ?? []).join(', '),
+    amenities: (branch.amenities ?? []).join(', '),
   }
 }

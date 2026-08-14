@@ -288,6 +288,38 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
             <span>{t('todayHours', { hours: branch.todayHours })}</span>
           </div>
         )}
+        {(branch.cuisines?.length ?? 0) > 0 && (
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--fg-subtle)] mb-2">{t('cuisines')}</p>
+            <div className="flex flex-wrap gap-1.5" role="list" aria-label={t('cuisinesAria')}>
+              {branch.cuisines!.map((c) => (
+                <span
+                  key={c}
+                  role="listitem"
+                  className="text-xs px-2.5 py-1 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] border border-[var(--border)]"
+                >
+                  {c}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {(branch.amenities?.length ?? 0) > 0 && (
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--fg-subtle)] mb-2">{t('amenities')}</p>
+            <div className="flex flex-wrap gap-1.5" role="list" aria-label={t('amenitiesAria')}>
+              {branch.amenities!.map((a) => (
+                <span
+                  key={a}
+                  role="listitem"
+                  className="text-xs px-2.5 py-1 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] border border-[var(--border)]"
+                >
+                  {a}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       {/* H5: converted to <button> for keyboard accessibility, increased height */}
       <button

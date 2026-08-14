@@ -1,5 +1,9 @@
 # Tenant Settings Contract Migration Audit (Phase Z.6.2)
 
+> **SUPERSEDED (cuisines / amenities):** `settings.marketplace` no longer owns
+> `cuisines` or `amenities`. Branch is the sole source of truth. See
+> `docs/BACKEND_API_CONTRACT.md` §30.4.
+
 **Status: complete.** `Tenant.settings` is fully typed
 (`featureFlags`/`theme`/`marketplace`), every marketplace-display surface
 reads exclusively from `tenant.settings.marketplace.*`, and every optional

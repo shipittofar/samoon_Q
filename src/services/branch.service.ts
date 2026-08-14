@@ -99,6 +99,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     managerId: 'staff-manager-01',
     businessHours: defaultHours('10:00', '23:00'),
     ...mockCheckoutFields({ delivery: true, radius: 10, pickup: true, dineIn: true, reservationsEnabled: true, maxCapacity: 120 }),
+    cuisines: ['Mediterranean', 'Italian', 'Contemporary'],
+    amenities: ['WiFi', 'Parking', 'Outdoor Seating', 'Accessible'],
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -114,6 +116,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     managerId: 'staff-admin-01',
     businessHours: defaultHours('11:00', '22:00'),
     ...mockCheckoutFields({ delivery: true, radius: 8, pickup: true, dineIn: true, reservationsEnabled: true, maxCapacity: 80 }),
+    cuisines: ['Mediterranean', 'Italian'],
+    amenities: ['WiFi', 'Parking'],
     created_at: '2023-03-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -128,6 +132,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0300' },
     businessHours: defaultHours('06:00', '23:00'),
     ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: true, reservationsEnabled: false, maxCapacity: 40 }),
+    cuisines: ['Mediterranean', 'Contemporary'],
+    amenities: ['Accessible'],
     created_at: '2023-06-01T00:00:00Z',
     updated_at: '2024-05-01T00:00:00Z',
   },
@@ -276,6 +282,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0400', email: 'midtown@brewcafe.com' },
     businessHours: defaultHours('07:00', '20:00'),
     ...mockCheckoutFields({ delivery: true, radius: 5, pickup: true, dineIn: false, reservationsEnabled: false, maxCapacity: 50 }),
+    cuisines: ['Coffee', 'Pastries', 'Light Bites'],
+    amenities: ['WiFi', 'Outdoor Seating'],
     created_at: '2023-08-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -290,6 +298,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 718 555 0500', email: 'brooklyn@brewcafe.com' },
     businessHours: defaultHours('08:00', '19:00'),
     ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false, maxCapacity: 30 }),
+    cuisines: ['Coffee', 'Pastries'],
+    amenities: ['WiFi'],
     created_at: '2023-09-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -307,6 +317,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0600', email: 'bar@theoakbar.com' },
     businessHours: defaultHours('16:00', '02:00'),
     ...mockCheckoutFields({ delivery: false, pickup: false, dineIn: true, reservationsEnabled: true, maxCapacity: 100 }),
+    cuisines: ['Cocktails', 'Craft Beer', 'Bar Bites'],
+    amenities: ['Parking', 'Pet Friendly'],
     created_at: '2023-07-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -324,6 +336,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0700', email: 'info@centralfoodcourt.com' },
     businessHours: defaultHours('10:00', '21:00'),
     ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: true, reservationsEnabled: false, maxCapacity: 300 }),
+    cuisines: ['International', 'Asian', 'Middle Eastern', 'Western'],
+    amenities: ['Parking', 'Accessible', 'Family Area'],
     created_at: '2022-11-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -341,6 +355,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 1000', email: 'hello@wheelsandbrews.com' },
     businessHours: defaultHours('07:00', '17:00'),
     ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false }),
+    cuisines: ['Coffee', 'Brunch', 'Smoothies'],
+    amenities: ['Outdoor Seating', 'Pet Friendly'],
     created_at: '2023-10-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -358,6 +374,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     contact: { phone_number: '+1 212 555 0950', email: 'hello@roadbites.com' },
     businessHours: defaultHours('11:00', '20:00'),
     ...mockCheckoutFields({ delivery: false, pickup: true, dineIn: false, reservationsEnabled: false }),
+    cuisines: ['Street Food', 'Burgers', 'Wraps'],
+    amenities: [],
     created_at: '2024-05-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
@@ -538,6 +556,8 @@ export const branchManagementService = {
         timeZone: payload.timeZone,
         currency: payload.currency,
         language: payload.language,
+        cuisines: payload.cuisines ?? [],
+        amenities: payload.amenities ?? [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -582,6 +602,8 @@ export const branchManagementService = {
         timeZone: payload.timeZone,
         currency: payload.currency,
         language: payload.language,
+        cuisines: payload.cuisines ?? [],
+        amenities: payload.amenities ?? [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -624,6 +646,8 @@ export const branchManagementService = {
       if (payload.timeZone !== undefined) branch.timeZone = payload.timeZone
       if (payload.currency !== undefined) branch.currency = payload.currency
       if (payload.language !== undefined) branch.language = payload.language
+      if (payload.cuisines !== undefined) branch.cuisines = payload.cuisines
+      if (payload.amenities !== undefined) branch.amenities = payload.amenities
       if (payload.isDefault) {
         MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === branch.tenantId) b.isDefault = b.id === branch.id })
       }

@@ -112,6 +112,10 @@ export interface Branch {
   currency?: string
   /** BCP 47 language tag, e.g. "en". */
   language?: string
+  /** Cuisine / specialty labels for this location (branch-owned). */
+  cuisines?: string[]
+  /** Amenity labels for this location (branch-owned). */
+  amenities?: string[]
   created_at: string
   updated_at: string
   /** Extension-only JSON — never used for operational checkout configuration. */
@@ -149,6 +153,8 @@ export interface CreateBranchPayload {
   timeZone?: string
   currency?: string
   language?: string
+  cuisines?: string[]
+  amenities?: string[]
 }
 
 export interface UpdateBranchPayload {
@@ -169,6 +175,8 @@ export interface UpdateBranchPayload {
   timeZone?: string
   currency?: string
   language?: string
+  cuisines?: string[]
+  amenities?: string[]
 }
 
 export interface AssignManagerPayload {

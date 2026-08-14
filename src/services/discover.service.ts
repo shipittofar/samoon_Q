@@ -25,6 +25,7 @@ function legacyBranchToDiscoverBranch(
       address: legacy.address,
       city: legacy.city,
     },
+    // Cuisines/amenities are Branch-entity-owned only — omit on legacy summary fallback.
   }
 }
 
@@ -44,6 +45,14 @@ function branchEntityToDiscoverBranch(
       city: branch.location.city,
       country: branch.location.country,
     },
+    checkout: branch.checkout,
+    businessHours: branch.businessHours,
+    currency: branch.currency,
+    marketplaceVisible: branch.marketplaceVisible,
+    reservationsEnabled: branch.reservationsEnabled,
+    maxCapacity: branch.maxCapacity,
+    cuisines: branch.cuisines,
+    amenities: branch.amenities,
   }
 }
 

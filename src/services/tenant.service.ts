@@ -92,7 +92,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
       marketplace: {
         description: 'Fine dining with contemporary Mediterranean cuisine crafted with passion in an elegant atmosphere.',
         coverImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
-        cuisines: ['Mediterranean', 'Italian', 'Contemporary'],
         tags: ['Fine Dining', 'Date Night', 'Family Friendly'],
         rating: 4.8,
         reviewCount: 1247,
@@ -104,7 +103,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         popular: true,
         tagline: 'Where every dish tells a story.',
         priceLevel: 3,
-        amenities: ['WiFi', 'Parking', 'Outdoor Seating', 'Accessible'],
         phone_number: '+1 (212) 555-0100',
         email: 'hello@samoon.com',
         website: 'https://www.samoon.com',
@@ -137,7 +135,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
       marketplace: {
         description: 'Specialty coffee roasters with artisan pastries and a cozy, work-friendly atmosphere.',
         coverImage: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
-        cuisines: ['Coffee', 'Pastries', 'Light Bites'],
         tags: ['Specialty Coffee', 'Remote-Work Friendly', 'Vegan Options'],
         rating: 4.6,
         reviewCount: 892,
@@ -148,7 +145,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         popular: true,
         tagline: 'Your daily ritual, elevated.',
         priceLevel: 2,
-        amenities: ['WiFi', 'Outdoor Seating'],
         phone_number: '+1 (212) 555-0400',
         email: 'hello@brewcafe.com',
         gallery: [
@@ -177,7 +173,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
       marketplace: {
         description: 'Sophisticated cocktail bar with live music, craft beer and an extensive spirits collection.',
         coverImage: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80',
-        cuisines: ['Cocktails', 'Craft Beer', 'Bar Bites'],
         tags: ['Live Music', 'Happy Hour', 'Date Night'],
         rating: 4.7,
         reviewCount: 634,
@@ -188,7 +183,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         featured: true,
         tagline: 'Craft cocktails. Live music. Good company.',
         priceLevel: 2,
-        amenities: ['Parking', 'Pet Friendly'],
         phone_number: '+1 (212) 555-0600',
         email: 'hello@theoakbar.com',
         gallery: [
@@ -216,7 +210,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
       marketplace: {
         description: 'Multi-vendor food court with diverse cuisines from around the world under one roof.',
         coverImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
-        cuisines: ['International', 'Asian', 'Middle Eastern', 'Western'],
         tags: ['Family Friendly', 'Variety', 'Large Portions'],
         rating: 4.3,
         reviewCount: 2108,
@@ -227,7 +220,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         isNew: true,
         tagline: 'Every cuisine under one roof.',
         priceLevel: 1,
-        amenities: ['Parking', 'Accessible', 'Family Area'],
         phone_number: '+1 (212) 555-0700',
         email: 'hello@centralfoodcourt.com',
         gallery: [
@@ -255,7 +247,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
       marketplace: {
         description: 'Street food on the move — bold flavours, fast service, live GPS tracking.',
         coverImage: 'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
-        cuisines: ['Street Food', 'Burgers', 'Wraps'],
         tags: ['Mobile', 'Fast Casual', 'Live Location'],
         rating: 4.4,
         reviewCount: 511,
@@ -280,7 +271,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
       marketplace: {
         description: 'Mobile coffee and brunch on wheels — find our daily stops and enjoy fresh espresso anywhere.',
         coverImage: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
-        cuisines: ['Coffee', 'Brunch', 'Smoothies'],
         tags: ['Mobile', 'Outdoor', 'Healthy', 'Loyalty Rewards'],
         rating: 4.5,
         reviewCount: 312,
@@ -291,7 +281,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         isNew: true,
         tagline: 'Good coffee wherever life takes you.',
         priceLevel: 1,
-        amenities: ['Outdoor Seating', 'Pet Friendly'],
         phone_number: '+1 (212) 555-1000',
         email: 'hello@wheelsandbrews.com',
         gallery: [

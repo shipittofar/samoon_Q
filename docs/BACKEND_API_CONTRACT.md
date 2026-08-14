@@ -3127,9 +3127,7 @@ The `settings.marketplace` object is returned as part of the tenant response. Fr
     "tagline": "string",
     "description": "string",
     "story": "string",
-    "cuisines": ["string"],
     "tags": ["string"],
-    "amenities": ["string"],
     "priceLevel": 1,
     "phone_number": "string",
     "email": "string",
@@ -3149,6 +3147,10 @@ The `settings.marketplace` object is returned as part of the tenant response. Fr
 
 All fields are optional. The backend must merge (not replace) the `marketplace` object to avoid overwriting fields not included in the request.
 
+> **Ownership (hard cutover):** `cuisines` and `amenities` are **not** marketplace fields.
+> **Branch** is the sole source of truth. Do not accept, store, or return them under
+> `settings.marketplace`.
+
 **Permissions:** `settings.edit` — Admin role required.
 
 **Tenant scope:** The `{slug}` must match the authenticated user's tenant. Super-admins may target any slug.
@@ -3161,9 +3163,7 @@ interface MarketplaceMeta {
   tagline?: string
   description?: string
   story?: string          // Long-form about / story text
-  cuisines?: string[]
   tags?: string[]
-  amenities?: string[]    // e.g. "WiFi", "Parking", "Outdoor Seating"
   priceLevel?: 1 | 2 | 3 | 4
 
   // Contact
@@ -3187,16 +3187,32 @@ interface MarketplaceMeta {
 
   // Discovery
   primaryBranchSlug?: string
-  branches?: PublicBranchInfo[]
+  branches?: PublicBranchInfo[]  // display summaries; cuisines/amenities live on Branch entity
   rating?: number
   reviewCount?: number
   isOpen?: boolean
 }
 ```
 
-### 30.4 Branch Scope
+### 30.4 Branch Scope — Cuisines & Amenities
 
-Branch-level overrides are not currently supported at the `marketplace` level. Branch-specific data (hours, address, phone_number) is stored in `Branch` records and aggregated into `meta.branches[]` by the backend when returning the tenant.
+**Branch owns `cuisines` and `amenities`.** They describe a specific location and must
+never be rendered from tenant or marketplace data.
+
+```typescript
+interface Branch {
+  // ...
+  cuisines?: string[]   // e.g. "Mediterranean", "Italian"
+  amenities?: string[]  // e.g. "WiFi", "Parking", "Outdoor Seating"
+}
+```
+
+| Field | Owner | Display surfaces |
+|-------|-------|------------------|
+| `cuisines` | Branch | Branch public page, branch cards/preview, branch SEO/JSON-LD, discover filters |
+| `amenities` | Branch | Branch public page, branch admin forms, discover filters |
+
+Tenant pages must **not** display tenant/marketplace cuisines or amenities.
 
 ### 30.5 Validation Rules
 
@@ -3208,18 +3224,19 @@ Branch-level overrides are not currently supported at the `marketplace` level. B
 | `coverImage`, `heroImage`, `gallery[]` | Valid URL per entry |
 | `socialLinks.*` | Valid URL per entry |
 | `gallery` | Max 20 entries recommended |
-| `amenities` | Max 20 entries recommended |
+| `Branch.cuisines` | Max 20 entries recommended |
+| `Branch.amenities` | Max 20 entries recommended |
 
 ### 30.6 Public Endpoints
 
-The following public (unauthenticated) read paths expose marketplace content:
+The following public (unauthenticated) read paths expose marketplace / branch content:
 
 | Path | Data Source |
 |------|------------|
-| `/{tenantSlug}` | `meta.tagline`, `meta.coverImage`, `meta.branches` |
-| `/{tenantSlug}/{branchSlug}` | Branch-scoped, falls back to tenant meta |
-| `/restaurant` | `tenantService.getTenant('samoon')` → full meta |
-| `/discover` | Aggregated across tenants — `tagline`, `coverImage`, `cuisines`, `rating` |
+| `/{tenantSlug}` | `meta.tagline`, `meta.coverImage`, `meta.branches` (no cuisines/amenities) |
+| `/{tenantSlug}/{branchSlug}` | Branch entity — including `branch.cuisines` / `branch.amenities` |
+| `/restaurant` | `tenantService.getTenant('samoon')` → marketplace meta (no cuisines/amenities) |
+| `/discover` | Tenant marketplace + `branches[]` with Branch-owned `cuisines` / `amenities` |
 
 ---
 
@@ -3249,13 +3266,13 @@ GET /tenants/search
 
 | Param | Type | Description |
 |-------|------|-------------|
-| `q` | string | Full-text search (name, tagline, description, cuisines, tags, amenities, branch names) |
+| `q` | string | Full-text search (name, tagline, description, tags, branch names, **branch** cuisines/amenities) |
 | `category` | string | Business type key (e.g. `restaurant`, `cafe`) |
 | `city` | string | Exact city match |
-| `cuisine` | string | Cuisine type match |
+| `cuisine` | string | Match against **branch** cuisine labels |
 | `priceLevel` | `1\|2\|3\|4` | Exact price level |
 | `openNow` | boolean | Filter to currently open businesses |
-| `amenities` | string (comma-sep) | Must include ALL listed amenities |
+| `amenities` | string (comma-sep) | Must include ALL listed amenities on **branch** data |
 | `services` | string (comma-sep) | Feature flag keys, e.g. `reservations.enabled,loyalty.enabled` |
 | `sort` | string | One of: `recommended`, `highest_rated`, `most_reviewed`, `newest`, `alphabetical`, `price_asc`, `open_now` |
 | `page` | integer | 1-based page number (default: 1) |

@@ -34,9 +34,7 @@ const SAMPLE_TENANT: DiscoverTenant = {
     description: 'Fine dining',
     coverImage: 'https://example.com/cover.jpg',
     city: 'New York',
-    cuisines: ['Mediterranean'],
     tags: ['Family Friendly'],
-    amenities: ['WiFi'],
     rating: 4.8,
     reviewCount: 100,
     featured: true,
@@ -57,6 +55,8 @@ const SAMPLE_TENANT: DiscoverTenant = {
       todayHours: '10:00–22:00',
       image: 'https://example.com/branch.jpg',
       location: { address: '123 Main St', city: 'New York', country: 'US' },
+      cuisines: ['Mediterranean'],
+      amenities: ['WiFi'],
     },
     {
       id: 'branch-2',
@@ -65,6 +65,8 @@ const SAMPLE_TENANT: DiscoverTenant = {
       openNow: false,
       todayHours: '11:00–21:00',
       location: { address: '456 Center St', city: 'New York' },
+      cuisines: ['Mediterranean'],
+      amenities: ['Parking'],
     },
   ],
 }
@@ -93,6 +95,12 @@ describe('discover adapter', () => {
       openNow: true,
       todayHours: '10:00–22:00',
     })
+  })
+
+  it('mapDiscoverBranchToPublicBranchInfo maps branch cuisines and amenities', () => {
+    const info = mapDiscoverBranchToPublicBranchInfo(SAMPLE_TENANT.branches![0])
+    expect(info.cuisines).toEqual(['Mediterranean'])
+    expect(info.amenities).toEqual(['WiFi'])
   })
 
   it('mapDiscoverTenantToItem prefers branding over legacy theme and preserves image', () => {
@@ -153,6 +161,10 @@ describe('discover adapter', () => {
         openNow: true,
       }),
     ).toBe(true)
+    // Cuisine/amenity filters resolve from branch payloads only.
+    expect(item.branches.some((b) => b.cuisines?.includes('Mediterranean'))).toBe(true)
+    expect(Object.prototype.hasOwnProperty.call(item.meta, 'cuisines')).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(item.meta, 'amenities')).toBe(false)
     const sorted = sortItems([row], 'highest_rated')
     expect(sorted[0].meta.rating).toBe(4.8)
   })

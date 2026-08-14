@@ -1,5 +1,9 @@
 # Frontend Tenant List Contract Alignment Audit (Phase Z.6)
 
+> **SUPERSEDED (cuisines / amenities):** Discover/search cuisine & amenity facets
+> read from **Branch** payloads only — not `meta.cuisines` / `meta.amenities`.
+> See `docs/BACKEND_API_CONTRACT.md` §30.4.
+
 **Status: root cause found and fixed for the core Tenant contract. One
 downstream discover-page issue found and documented as a tracked,
 deliberately-deferred follow-up (explained in §6 — fixing it would require

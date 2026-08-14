@@ -165,15 +165,16 @@ export const DEFAULT_PLATFORM_JSON_LD = buildWebSiteJsonLd({
 })
 
 /**
- * Legacy Restaurant JSON-LD retained for tenant-level pages that reference it.
+ * Legacy Restaurant JSON-LD sample for tests / platform demos.
  * Do NOT use on platform-level pages — use DEFAULT_PLATFORM_JSON_LD instead.
+ * Do NOT inject servesCuisine here — cuisine data is Branch-owned and must
+ * come from branch.cuisines via buildBranchJsonLd (omit when absent).
  */
 export const DEFAULT_RESTAURANT_JSON_LD = buildRestaurantJsonLd({
   name: 'Samoon',
   description: 'Fine dining and delivery. Handcrafted dishes made with the finest ingredients.',
   url: BASE_URL,
   image: `${BASE_URL}/og-image.jpg`,
-  servesCuisine: ['American', 'Italian', 'International'],
   priceRange: '$$',
 })
 

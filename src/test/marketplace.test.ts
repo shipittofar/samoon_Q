@@ -13,7 +13,6 @@ import { tenantService } from '@/services/tenant.service'
 const mockMeta: MarketplaceMeta = {
   description: 'Fine dining Mediterranean cuisine',
   coverImage: 'https://example.com/cover.jpg',
-  cuisines: ['Mediterranean', 'Italian'],
   tags: ['Date Night', 'Fine Dining'],
   rating: 4.8,
   reviewCount: 1200,
@@ -23,6 +22,18 @@ const mockMeta: MarketplaceMeta = {
   primaryBranchSlug: 'main',
   featured: true,
   popular: true,
+  branches: [
+    {
+      id: 'branch-1',
+      slug: 'main',
+      name: 'Main Branch',
+      address: '123 Main St',
+      city: 'New York',
+      openNow: true,
+      cuisines: ['Mediterranean', 'Italian'],
+      amenities: ['WiFi'],
+    },
+  ],
 }
 
 // ── matchesSearch ─────────────────────────────────────────────────────────────

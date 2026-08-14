@@ -358,7 +358,6 @@ function PublicProfileTab() {
   const [tagline, setTagline] = useState(existingMeta?.tagline ?? '')
   const [description, setDescription] = useState(existingMeta?.description ?? '')
   const [story, setStory] = useState(existingMeta?.story ?? '')
-  const [cuisines, setCuisines] = useState(existingMeta?.cuisines?.join(', ') ?? '')
   const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
   const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
   const [phone_number, setPhone] = useState(existingMeta?.phone_number ?? '')
@@ -366,7 +365,6 @@ function PublicProfileTab() {
   const [website, setWebsite] = useState(existingMeta?.website ?? '')
   const [coverImage, setCoverImage] = useState(existingMeta?.coverImage ?? '')
   const [gallery, setGallery] = useState(existingMeta?.gallery?.join('\n') ?? '')
-  const [amenities, setAmenities] = useState(existingMeta?.amenities?.join(', ') ?? '')
   const [instagram, setInstagram] = useState(existingMeta?.socialLinks?.instagram ?? '')
   const [twitter, setTwitter] = useState(existingMeta?.socialLinks?.twitter ?? '')
 
@@ -376,7 +374,6 @@ function PublicProfileTab() {
       setTagline(m.tagline ?? '')
       setDescription(m.description ?? '')
       setStory(m.story ?? '')
-      setCuisines(m.cuisines?.join(', ') ?? '')
       setTags(m.tags?.join(', ') ?? '')
       setPriceLevel(String(m.priceLevel ?? ''))
       setPhone(m.phone_number ?? '')
@@ -384,7 +381,6 @@ function PublicProfileTab() {
       setWebsite(m.website ?? '')
       setCoverImage(m.coverImage ?? '')
       setGallery(m.gallery?.join('\n') ?? '')
-      setAmenities(m.amenities?.join(', ') ?? '')
       setInstagram(m.socialLinks?.instagram ?? '')
       setTwitter(m.socialLinks?.twitter ?? '')
     }
@@ -399,7 +395,6 @@ function PublicProfileTab() {
         tagline: tagline || undefined,
         description: description || existingMeta?.description || '',
         story: story || undefined,
-        cuisines: cuisines ? toArr(cuisines) : (existingMeta?.cuisines ?? []),
         tags: tags ? toArr(tags) : (existingMeta?.tags ?? []),
         priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
         phone_number: phone_number || undefined,
@@ -407,7 +402,6 @@ function PublicProfileTab() {
         website: website || undefined,
         coverImage: coverImage || existingMeta?.coverImage || '',
         gallery: gallery ? toLines(gallery) : existingMeta?.gallery,
-        amenities: amenities ? toArr(amenities) : existingMeta?.amenities,
         socialLinks: {
           ...existingMeta?.socialLinks,
           instagram: instagram || undefined,
@@ -451,24 +445,10 @@ function PublicProfileTab() {
       </div>
 
       <div>
-        <label className={labelClass}>{t('cuisinesSpecialtiesLabel')}</label>
-        <input type="text" value={cuisines} onChange={(e) => setCuisines(e.target.value)}
-          placeholder={t('cuisinesExamplePlaceholder')} className={inputClass} />
-        <p className={hintClass}>{t('commaSeparatedSearchHint')}</p>
-      </div>
-
-      <div>
         <label className={labelClass}>{t('discoveryTagsLabel')}</label>
         <input type="text" value={tags} onChange={(e) => setTags(e.target.value)}
           placeholder={t('tagsExamplePlaceholder')} className={inputClass} />
         <p className={hintClass}>{t('discoveryTagsHint')}</p>
-      </div>
-
-      <div>
-        <label className={labelClass}>{t('amenitiesLabel')}</label>
-        <input type="text" value={amenities} onChange={(e) => setAmenities(e.target.value)}
-          placeholder={t('amenitiesExamplePlaceholder')} className={inputClass} />
-        <p className={hintClass}>{t('amenitiesHint')}</p>
       </div>
 
       <div>

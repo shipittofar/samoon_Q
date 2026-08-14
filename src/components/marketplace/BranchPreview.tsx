@@ -45,6 +45,11 @@ export function BranchPreview({ branches, tenantSlug }: BranchPreviewProps) {
                 </Link>
               </div>
               <p className="text-xs text-[var(--fg-muted)] truncate">{b.address}, {b.city}</p>
+              {(b.cuisines?.length ?? 0) > 0 && (
+                <p className="text-xs text-[var(--fg-subtle)] mt-0.5 truncate">
+                  {b.cuisines!.slice(0, 2).join(' · ')}
+                </p>
+              )}
               {b.todayHours && (
                 <p className="text-xs text-[var(--fg-subtle)] flex items-center gap-1 mt-0.5">
                   <Clock className="w-2.5 h-2.5" aria-hidden="true" />

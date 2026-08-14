@@ -166,23 +166,8 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
           )}
         </div>
 
-        {/* Cuisine tags */}
-        {(meta.cuisines?.length ?? 0) > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2" role="list" aria-label={t('cuisinesAria')}>
-            {meta.cuisines!.slice(0, 3).map((c) => (
-              <span
-                key={c}
-                role="listitem"
-                className="text-xs px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] border border-[var(--border)]"
-              >
-                {c}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Service & amenity badges */}
-        {(hasReservations || hasLoyalty || (meta.amenities ?? []).length > 0) && (
+        {/* Service badges (amenities are branch-owned — not shown on tenant cards) */}
+        {(hasReservations || hasLoyalty) && (
           <div className="flex flex-wrap gap-1 mb-3" role="list" aria-label={t('featuresAndAmenitiesAria')}>
             {hasReservations && (
               <span
@@ -202,15 +187,6 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
                 {t('loyalty')}
               </span>
             )}
-            {(meta.amenities ?? []).slice(0, 2).map((a) => (
-              <span
-                key={a}
-                role="listitem"
-                className="text-xs px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-subtle)] border border-[var(--border)]"
-              >
-                {a}
-              </span>
-            ))}
           </div>
         )}
 

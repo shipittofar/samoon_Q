@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import {
   Star, MapPin, Phone, Mail, Globe, Clock,
   UtensilsCrossed, Tag, Share2, Check, ExternalLink,
-  ChevronRight, Store, ArrowLeft, Wifi, ParkingSquare, Wind,
+  ChevronRight, Store, ArrowLeft,
 } from 'lucide-react'
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
@@ -332,33 +332,6 @@ function QuickActions({ journey, tenant }: { journey: CustomerJourney; tenant: T
   )
 }
 
-// ── Amenities Strip ───────────────────────────────────────────────────────────
-
-const AMENITY_ICONS: Record<string, React.ReactNode> = {
-  wifi: <Wifi className="w-3.5 h-3.5" aria-hidden="true" />,
-  parking: <ParkingSquare className="w-3.5 h-3.5" aria-hidden="true" />,
-  'air conditioning': <Wind className="w-3.5 h-3.5" aria-hidden="true" />,
-}
-
-function AmenitiesStrip({ amenities }: { amenities: string[] }) {
-  const t = useTranslations('tenant')
-  if (amenities.length === 0) return null
-  return (
-    <div className="flex flex-wrap gap-2 mt-4" role="list" aria-label={t('amenitiesAria')}>
-      {amenities.map((a) => (
-        <span
-          key={a}
-          role="listitem"
-          className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] border border-[var(--border)]"
-        >
-          {AMENITY_ICONS[a.toLowerCase()] ?? null}
-          {a}
-        </span>
-      ))}
-    </div>
-  )
-}
-
 // ── Business Info ─────────────────────────────────────────────────────────────
 
 function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
@@ -387,19 +360,6 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
             </div>
           )}
 
-          {(meta.cuisines?.length ?? 0) > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {meta.cuisines!.map((c) => (
-                <span
-                  key={c}
-                  className="text-xs px-2.5 py-1 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] border border-[var(--border)]"
-                >
-                  {c}
-                </span>
-              ))}
-            </div>
-          )}
-
           {(meta.tags?.length ?? 0) > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {meta.tags!.map((tag) => (
@@ -412,9 +372,6 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
               ))}
             </div>
           )}
-
-          {/* C5: Amenities */}
-          <AmenitiesStrip amenities={meta.amenities ?? []} />
         </div>
 
         {/* Contact info */}

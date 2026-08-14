@@ -38,6 +38,10 @@ export interface PublicBranchInfo {
   marketplaceVisible?: boolean
   reservationsEnabled?: boolean
   maxCapacity?: number
+  /** Cuisine / specialty labels for this location (branch-owned). */
+  cuisines?: string[]
+  /** Amenity labels for this location (branch-owned). */
+  amenities?: string[]
 }
 
 export interface MarketplaceMeta {
@@ -56,8 +60,6 @@ export interface MarketplaceMeta {
   description?: string
   /** URL of the cover/hero image for the card. */
   coverImage?: string
-  /** Cuisine types or beverage styles (e.g. "Mediterranean", "Coffee"). */
-  cuisines?: string[]
   /** Discovery tags (e.g. "Date Night", "Pet Friendly"). */
   tags?: string[]
   /** Average star rating (0–5, two decimal places). */
@@ -94,8 +96,6 @@ export interface MarketplaceMeta {
   gallery?: string[]
   /** Long-form about / story text shown on the public About page. */
   story?: string
-  /** Amenities the business offers (e.g. "WiFi", "Parking", "Outdoor Seating"). */
-  amenities?: string[]
   /** Public social media profile URLs. */
   socialLinks?: {
     instagram?: string
@@ -208,7 +208,27 @@ export function publicBranchFromDetail(
     marketplaceVisible: branch.marketplaceVisible,
     reservationsEnabled: branch.reservationsEnabled,
     maxCapacity: branch.maxCapacity,
+    cuisines: branch.cuisines,
+    amenities: branch.amenities,
   }
+}
+
+/** Union of cuisine labels across public branch summaries. */
+export function collectBranchCuisines(branches?: PublicBranchInfo[]): string[] {
+  const seen = new Set<string>()
+  for (const b of branches ?? []) {
+    for (const c of b.cuisines ?? []) seen.add(c)
+  }
+  return Array.from(seen)
+}
+
+/** Union of amenity labels across public branch summaries. */
+export function collectBranchAmenities(branches?: PublicBranchInfo[]): string[] {
+  const seen = new Set<string>()
+  for (const b of branches ?? []) {
+    for (const a of b.amenities ?? []) seen.add(a)
+  }
+  return Array.from(seen)
 }
 
 /** Accent-strip + lowercase for accent-insensitive matching. */
@@ -218,8 +238,8 @@ function normalize(s: string): string {
 
 /**
  * Client-side search: returns true if the tenant matches the query string.
- * Searches name, city, description, tagline, cuisines, tags, amenities,
- * business type labels, and branch names (case + accent insensitive).
+ * Searches name, city, description, tagline, tags, business type labels,
+ * branch names, and branch-owned cuisines/amenities (case + accent insensitive).
  */
 export function matchesSearch(
   tenantName: string,
@@ -229,19 +249,20 @@ export function matchesSearch(
 ): boolean {
   if (!query.trim()) return true
   const q = normalize(query)
+  const branches = meta.branches ?? []
   return (
     normalize(tenantName).includes(q) ||
     normalize(meta.city ?? '').includes(q) ||
     normalize(meta.description ?? '').includes(q) ||
     (meta.tagline ? normalize(meta.tagline).includes(q) : false) ||
-    (meta.cuisines ?? []).some((c) => normalize(c).includes(q)) ||
     (meta.tags ?? []).some((t) => normalize(t).includes(q)) ||
-    (meta.amenities ?? []).some((a) => normalize(a).includes(q)) ||
+    collectBranchCuisines(branches).some((c) => normalize(c).includes(q)) ||
+    collectBranchAmenities(branches).some((a) => normalize(a).includes(q)) ||
     businessTypes.some((bt) => {
       const label = BUSINESS_TYPE_LABELS[bt]
       return label ? normalize(label).includes(q) : false
     }) ||
-    (meta.branches ?? []).some((b) => normalize(b.name).includes(q))
+    branches.some((b) => normalize(b.name).includes(q))
   )
 }
 
@@ -253,6 +274,7 @@ export function matchesCategory(businessTypes: string[], category: string): bool
 
 /**
  * Apply advanced filters to a tenant.
+ * Cuisine/amenity filters operate on branch-owned values only.
  * featureFlags is Tenant.settings.featureFlags cast to Record<string, boolean>.
  */
 export function matchesFilters(
@@ -260,11 +282,14 @@ export function matchesFilters(
   featureFlags: Record<string, boolean | undefined>,
   filters: FilterState,
 ): boolean {
-  if (filters.cuisines.length > 0 && !filters.cuisines.some((c) => (meta.cuisines ?? []).includes(c))) return false
+  const branchCuisines = collectBranchCuisines(meta.branches)
+  const branchAmenities = collectBranchAmenities(meta.branches)
+
+  if (filters.cuisines.length > 0 && !filters.cuisines.some((c) => branchCuisines.includes(c))) return false
   if (filters.cities.length > 0 && !filters.cities.includes(meta.city ?? '')) return false
   if (filters.priceLevels.length > 0 && (!meta.priceLevel || !filters.priceLevels.includes(meta.priceLevel))) return false
   if (filters.openNow && !meta.openNow) return false
-  if (filters.amenities.length > 0 && !filters.amenities.every((a) => (meta.amenities ?? []).includes(a))) return false
+  if (filters.amenities.length > 0 && !filters.amenities.every((a) => branchAmenities.includes(a))) return false
   if (filters.services.length > 0) {
     const hasAll = filters.services.every((svc) => {
       if (svc === 'loyalty.enabled') {
