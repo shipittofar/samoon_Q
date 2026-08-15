@@ -20,7 +20,7 @@ export function MainLayout({ children, showCart = true, fullWidth = false }: Mai
           <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
         </>
       )}
-      <main className={`flex-1 pt-16 ${fullWidth ? '' : ''}`}>
+      <main className={`flex-1 ${fullWidth ? '' : ''}`}>
         {children}
       </main>
       <Footer />

@@ -26,7 +26,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
     return (
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
-        <div className="pt-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-48 rounded-2xl" />
           <Skeleton className="h-64 rounded-2xl" />
@@ -39,7 +39,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
     return (
       <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
         <Header />
-        <div className="text-center pt-24">
+        <div className="text-center">
           <Package className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4" />
           <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">{t('orderNotFound')}</h2>
           <Link href="/dashboard/orders"><Button>{t('myOrders')}</Button></Link>
@@ -51,7 +51,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
-      <div className="pt-20 pb-16">
+      <div className="pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back */}
           <div className="flex items-center gap-4 mb-8 pt-4">

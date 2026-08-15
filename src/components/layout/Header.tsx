@@ -39,7 +39,11 @@ const LANGUAGES = resolveSupportedLocales().map((code) => ({
   flag: FLAG_BY_CODE[code] ?? '🌐',
 }))
 
-export function Header() {
+interface HeaderProps {
+  overlay?: boolean
+}
+
+export function Header({ overlay = false }: HeaderProps) {
   const t = useTranslations('header')
   const pathname = usePathname()
   const { isAuthenticated, user } = useAuthStore()
@@ -387,6 +391,7 @@ export function Header() {
         )}
       </AnimatePresence>
     </header>
+    {!overlay && <div className="h-16 shrink-0" aria-hidden="true" />}
     </>
   )
 }

@@ -75,7 +75,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(DEFAULT_PLATFORM_JSON_LD) }}
       />
-      <Header />
+      <Header overlay />
       <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 

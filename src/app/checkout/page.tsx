@@ -418,7 +418,7 @@ function CheckoutContent() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
-      <div className="pt-20 pb-16">
+      <div className="pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8 flex items-center gap-4">

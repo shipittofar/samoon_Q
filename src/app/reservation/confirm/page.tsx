@@ -29,7 +29,7 @@ function ReservationConfirmContent() {
     return (
       <div className="min-h-screen bg-[var(--bg)] flex flex-col">
         <Header />
-        <div className="flex-1 flex items-center justify-center p-4 pt-24">
+        <div className="flex-1 flex items-center justify-center p-4">
           <div className="max-w-md w-full bg-[var(--card)] rounded-3xl border border-[var(--border)] shadow-xl p-8 text-center">
             <Calendar className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4" />
             <h1 className="font-[var(--font-display)] text-xl font-bold text-[var(--fg)] mb-2">{t('noReservationFoundTitle')}</h1>
@@ -78,7 +78,7 @@ function ReservationConfirmContent() {
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       <Header />
-      <div className="flex-1 flex items-center justify-center p-4 pt-24 pb-16">
+      <div className="flex-1 flex items-center justify-center p-4 pb-16">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

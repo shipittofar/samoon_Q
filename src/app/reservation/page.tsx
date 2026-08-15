@@ -96,7 +96,7 @@ export default function ReservationPage() {
     return (
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
-        <div className="pt-24 pb-16 flex items-center justify-center min-h-screen">
+        <div className="pb-16 flex items-center justify-center min-h-screen">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -173,7 +173,7 @@ export default function ReservationPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
-      <div className="pt-20 pb-16">
+      <div className="pb-16">
         {/* Hero */}
         <div className="bg-gradient-to-b from-orange-50/80 to-transparent dark:from-orange-950/20 dark:to-transparent py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -98,7 +98,7 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Welcome banner */}
-      <div className="pt-20">
+      <div>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

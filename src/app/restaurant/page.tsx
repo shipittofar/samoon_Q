@@ -52,7 +52,7 @@ export default async function RestaurantPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <Header />
+      <Header overlay />
       <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
