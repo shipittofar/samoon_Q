@@ -6,14 +6,13 @@ import { Fragment, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Star, MapPin, Phone, Mail, Globe, Clock,
-  UtensilsCrossed, Tag, Share2, Check, ExternalLink,
+  UtensilsCrossed, Share2, Check, ExternalLink,
   ChevronRight, Store, ArrowLeft,
 } from 'lucide-react'
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
-import { cn, formatCurrency, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
-import type { CustomerJourney } from '@/utils'
+import { cn, formatCurrency, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout, usePublicBranches } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
@@ -70,12 +69,10 @@ const ORDER_ONLINE_LABEL = 'Order Online' as const
 function HeroSection({
   tenant,
   meta,
-  branchCapability,
   layoutBranding,
 }: {
   tenant: Tenant
   meta: MarketplaceMeta
-  branchCapability?: { orderingEnabled?: boolean; reservationsEnabled?: boolean }
   /** Public Website `branding` — prefer over CRUD settings.theme when present. */
   layoutBranding?: import('@/types').TenantBranding
 }) {
@@ -86,22 +83,6 @@ function HeroSection({
     'var(--accent)'
   const logoImage = resolveTenantImage(tenant)
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
-
-  const featureFlags = useTenantStore((s) => s.featureFlags)
-  const cta = getSmartCTA({
-    tenantSlug: tenant.slug,
-    branchSlug: undefined,
-    featureFlags,
-    meta,
-    tenant,
-    branch: branchCapability,
-  })
-  const heroPrimary =
-    cta && cta.primary.label !== ORDER_ONLINE_LABEL ? cta.primary : undefined
-  const heroSecondary =
-    cta?.secondary && cta.secondary.label !== ORDER_ONLINE_LABEL
-      ? cta.secondary
-      : undefined
 
   return (
     <section
@@ -206,38 +187,6 @@ function HeroSection({
               )}
               <PriceLevel level={meta.priceLevel} />
             </div>
-
-            {/* C1: Primary CTA in hero — driven by getSmartCTA (resolved feature flags) */}
-            {(heroPrimary || heroSecondary) && (
-              <div className="flex flex-wrap gap-3 mt-4">
-                {heroPrimary && (
-                  <Link
-                    href={heroPrimary.href}
-                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
-                  >
-                    <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
-                    {heroPrimary.label}
-                  </Link>
-                )}
-                {heroSecondary ? (
-                  <Link
-                    href={heroSecondary.href}
-                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
-                  >
-                    <MapPin className="w-4 h-4" aria-hidden="true" />
-                    {heroSecondary.label}
-                  </Link>
-                ) : heroPrimary ? (
-                  <a
-                    href="#branches"
-                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
-                  >
-                    <MapPin className="w-4 h-4" aria-hidden="true" />
-                    {t('allLocations')}
-                  </a>
-                ) : null}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -288,44 +237,49 @@ function ShareButton({ tenant }: { tenant: Tenant }) {
 
 // ── Quick Actions ─────────────────────────────────────────────────────────────
 
-/** Selects the icon for a CTA based on its destination href. */
-function ctaIcon(href: string): React.ReactNode {
-  if (href.includes('/menu'))        return <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
-  if (href.includes('/reservation')) return <Clock           className="w-4 h-4" aria-hidden="true" />
-  if (href.includes('/loyalty'))     return <Tag             className="w-4 h-4" aria-hidden="true" />
-  if (href.includes('#branches'))    return <MapPin          className="w-4 h-4" aria-hidden="true" />
-  return                                    <ExternalLink    className="w-4 h-4" aria-hidden="true" />
-}
-
-/**
- * Renders the quick-action bar in journey priority order.
- * Receives a pre-computed CustomerJourney so CTA resolution and ordering
- * happen once in the parent, not in every sub-component.
- */
-function QuickActions({ journey, tenant }: { journey: CustomerJourney; tenant: Tenant }) {
+function QuickActions({
+  tenant,
+  tenantSlug,
+  visibleBranches,
+  featureFlags,
+  primaryBranch,
+  locationsCTA,
+}: {
+  tenant: Tenant
+  tenantSlug: string
+  visibleBranches: PublicBranchInfo[]
+  featureFlags: Record<string, boolean>
+  primaryBranch?: PublicBranchInfo
+  locationsCTA: { label: string; href: string } | null
+}) {
   const t = useTranslations('tenant')
-  const allCTAs = [journey.primaryCTA, ...journey.secondaryCTAs].filter(
-    (c): c is NonNullable<typeof c> => c !== null,
-  )
+  const tMarketplace = useTranslations('marketplace')
+  const branchCount = visibleBranches.length
+  const hasMenu = featureFlags['menu.enabled'] === true
+  const showViewMenu = branchCount === 1 && hasMenu && !!primaryBranch
+  const showLocationSelector = branchCount > 1 && !!locationsCTA
 
   return (
     <section aria-label={t('quickActionsAria')}>
       <div className="flex flex-wrap gap-2">
-        {allCTAs.map((cta, i) => (
+        {showLocationSelector && (
           <Link
-            key={cta.href}
-            href={cta.href}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm transition-colors',
-              i === 0
-                ? 'bg-[var(--accent)] text-[var(--accent-fg)] font-semibold hover:bg-[var(--accent-hover)]'
-                : 'border border-[var(--border)] font-medium text-[var(--fg)] hover:bg-[var(--card-hover)]',
-            )}
+            href={locationsCTA.href}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
           >
-            {ctaIcon(cta.href)}
-            {cta.label}
+            <MapPin className="w-4 h-4" aria-hidden="true" />
+            {locationsCTA.label}
           </Link>
-        ))}
+        )}
+        {showViewMenu && (
+          <Link
+            href={`/${tenantSlug}/${primaryBranch!.slug}/menu`}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
+          >
+            <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+            {tMarketplace('viewMenu')}
+          </Link>
+        )}
         <ShareButton tenant={tenant} />
       </div>
     </section>
@@ -904,12 +858,18 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
         <HeroSection
           tenant={tenant}
           meta={meta}
-          branchCapability={primaryBranchCapability}
           layoutBranding={layout?.branding}
         />
 
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-16">
-          <QuickActions journey={journey} tenant={tenant} />
+          <QuickActions
+            tenant={tenant}
+            tenantSlug={tenantSlug}
+            visibleBranches={visibleBranches}
+            featureFlags={featureFlags}
+            primaryBranch={primaryBranch}
+            locationsCTA={homepageCTAs.locations}
+          />
           {journey.sectionOrder.map((key) => {
             const node = sectionNodes[key]
             if (node === null || node === undefined) return null
