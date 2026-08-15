@@ -13,6 +13,7 @@ import {
   resolveCheckoutPaymentWireMethod,
   filterDeliveryCapabilities,
   findCheckoutOrderTypeOption,
+  isCheckoutOrderingEnabled,
 } from '@/lib/checkout-options'
 
 export {
@@ -33,8 +34,10 @@ export {
   getCheckoutPaymentConfigKeyLabel,
   getCheckoutOrderTypeConfigKeyEnabledLabel,
   getCheckoutDeliveryOptionLabel,
+  isCheckoutOrderingEnabled,
+  pickRandomCheckoutOption,
 } from '@/lib/checkout-options'
-export type { CheckoutOrderTypeOption, CheckoutPaymentOption } from '@/lib/checkout-options'
+export type { CheckoutOrderTypeOption, CheckoutPaymentOption, CheckoutRandomFn } from '@/lib/checkout-options'
 
 /** Console/form seed only — never used for runtime storefront availability. */
 export const DEFAULT_BRANCH_CHECKOUT: BranchCheckout = {
@@ -219,7 +222,7 @@ export function parseMinimumOrderAmount(minimumOrder: string | null | undefined)
 
 /** True only when backend explicitly enables ordering for this branch. */
 export function isBranchOrderingEnabled(checkout: BranchCheckout | undefined): boolean {
-  return checkout?.orderingEnabled === true
+  return isCheckoutOrderingEnabled(checkout)
 }
 
 /** @deprecated Use filterDeliveryCapabilities from checkout-options */

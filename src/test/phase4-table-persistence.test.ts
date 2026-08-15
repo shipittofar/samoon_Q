@@ -235,7 +235,8 @@ describe('Regression — existing P4.4 behaviour preserved', () => {
   it('checkout page still reads orderType from URL', () => {
     const src = readSrc('app/checkout/page.tsx')
     expect(src).toContain("get('orderType')")
-    expect(src).toContain('dine_in')
+    expect(src).toContain('paramOrderType')
+    expect(src).toContain('resolveCheckoutOrderWireType')
   })
 
   it('checkout page still pre-populates table_number in form', () => {
@@ -245,7 +246,7 @@ describe('Regression — existing P4.4 behaviour preserved', () => {
 
   it('checkout page still shows dine-in banner', () => {
     const src = readSrc('app/checkout/page.tsx')
-    expect(src).toContain('initialOrderType')
+    expect(src).toContain('requiresTableNumber')
     expect(src).toContain('initialTableNumber')
   })
 

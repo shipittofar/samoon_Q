@@ -16,7 +16,7 @@ import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Divider } from '@/components/ui'
-import { useCartStore, useCartHasHydrated, useBranchStore, useAuthStore, useDineInStore, useTenantStore } from '@/stores'
+import { useCartStore, useCartHasHydrated, useBranchStore, useAuthStore, useDineInStore } from '@/stores'
 import { useCreateOrder, useCreatePaymentIntent, useCheckServiceability } from '@/hooks'
 import { formatCurrency, cn } from '@/utils'
 import { orderService } from '@/services/order.service'
@@ -25,7 +25,6 @@ import { AddressPicker, DeliveryInfoCard, type AddressPickerValue } from '@/comp
 import toast from 'react-hot-toast'
 import type { PaymentMethod } from '@/types'
 import type { CheckServiceabilityPayload } from '@/types/address'
-import { canOrderFromTenant } from '@/lib/tenant-state'
 import {
   getCheckoutOrderTypeOptions,
   getCheckoutPaymentOptions,
@@ -43,6 +42,7 @@ import {
   resolvePaymentCurrencyCode,
   isBelowMinimumOrder,
   isDeliveryBlockedByServiceability,
+  isCheckoutOrderingEnabled,
 } from '@/lib/branch-checkout'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useTranslations } from 'next-intl'
@@ -77,9 +77,8 @@ function CheckoutContent() {
   const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart } = useCartStore()
   const cartHasHydrated = useCartHasHydrated()
   const { activeBranch } = useBranchStore()
-  const tenant = useTenantStore((s) => s.tenant)
   const checkoutConfig = activeBranch?.checkout
-  const tenantOrderingAllowed = canOrderFromTenant(tenant)
+  const orderingAvailable = isCheckoutOrderingEnabled(checkoutConfig)
 
   const orderTypeOptions = useMemo(
     () =>
@@ -92,22 +91,18 @@ function CheckoutContent() {
     [checkoutConfig, t],
   )
 
-  const initialOrderType = useMemo(
-    () => resolveCheckoutOrderWireType(checkoutConfig, paramOrderType),
-    [checkoutConfig, paramOrderType],
-  )
-
-  const initialPaymentMethod = useMemo(
-    () => resolveCheckoutPaymentWireMethod(checkoutConfig, initialOrderType),
-    [checkoutConfig, initialOrderType],
-  )
   const { user } = useAuthStore()
   const { mutate: createOrder, isPending } = useCreateOrder()
   const { mutateAsync: createPaymentIntent, isPending: isCreatingIntent } = useCreatePaymentIntent()
 
-  const [orderType, setOrderType] = useState(initialOrderType)
-  const [paymentMethod, setPaymentMethod] = useState(initialPaymentMethod)
+  // Resolve defaults only on checkout/branch/param change — never during render (random fallback).
+  const [orderType, setOrderType] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('')
   const [step, setStep] = useState<'details' | 'payment'>('details')
+
+  useEffect(() => {
+    setOrderType(resolveCheckoutOrderWireType(checkoutConfig, paramOrderType))
+  }, [checkoutConfig, paramOrderType, activeBranch?.id])
 
   // P4.4 — Fallback: persisted table number from dine-in store when URL param absent
   const persistedTableNumber = useDineInStore((s) => s.tableNumber)
@@ -167,17 +162,12 @@ function CheckoutContent() {
   const { data: serviceability, isLoading: serviceabilityLoading } = useCheckServiceability(serviceabilityPayload)
 
   useEffect(() => {
-    setOrderType(initialOrderType)
-  }, [initialOrderType])
-
-  useEffect(() => {
     setPaymentMethod((current) => {
       const wires = paymentMethodOptions.map((m) => m.wireMethod)
-      return wires.includes(current)
-        ? current
-        : resolveCheckoutPaymentWireMethod(checkoutConfig, orderType)
+      if (current && wires.includes(current)) return current
+      return resolveCheckoutPaymentWireMethod(checkoutConfig, orderType)
     })
-  }, [paymentMethodOptions, checkoutConfig, orderType])
+  }, [paymentMethodOptions, checkoutConfig, orderType, activeBranch?.id])
 
   const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -280,7 +270,7 @@ function CheckoutContent() {
     )
   }
 
-  if (!tenantOrderingAllowed || !checkoutConfig?.orderingEnabled || orderTypeOptions.length === 0) {
+  if (!orderingAvailable) {
     return (
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
@@ -457,7 +447,7 @@ function CheckoutContent() {
           </div>
 
           {/* P4.4 — Dine-in context banner when arriving from QR scan */}
-          {findCheckoutOrderTypeOption(checkoutConfig, initialOrderType)?.requiresTableNumber && initialTableNumber && (
+          {findCheckoutOrderTypeOption(checkoutConfig, orderType || paramOrderType || '')?.requiresTableNumber && initialTableNumber && (
             <div className="mb-6 flex items-center gap-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl px-5 py-3 text-sm text-orange-700 dark:text-orange-300">
               <UtensilsCrossed className="h-4 w-4 shrink-0" />
               <span>{t('dineInBanner', { table: initialTableNumber })}</span>

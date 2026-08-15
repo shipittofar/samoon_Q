@@ -49,15 +49,18 @@ describe('checkout/page.tsx — P4.4 source structure', () => {
 
   it('derives initial order type from branch checkout config', () => {
     expect(src()).toContain('getCheckoutOrderTypeOptions')
-    expect(src()).toContain('initialOrderType')
+    expect(src()).toContain('resolveCheckoutOrderWireType')
+    expect(src()).toContain('paramOrderType')
   })
 
   it('validates table param as numeric', () => {
     expect(src()).toContain('/^\\d+$/.test(paramTable)')
   })
 
-  it('passes initialOrderType as initial useState value', () => {
-    expect(src()).toContain('useState(initialOrderType)')
+  it('resolves order type on checkout/branch change (not continuous randomize)', () => {
+    expect(src()).toContain('resolveCheckoutOrderWireType(checkoutConfig, paramOrderType)')
+    expect(src()).toContain('activeBranch?.id')
+    expect(src()).toContain('setOrderType')
   })
 
   it('passes initialTableNumber as table_number defaultValue', () => {

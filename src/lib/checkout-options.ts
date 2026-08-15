@@ -54,11 +54,41 @@ function isEnabledFlag(value: unknown): value is true {
   return value === true
 }
 
+/** Customer checkout master switch — only `checkout.orderingEnabled === true` enables ordering. */
+export function isCheckoutOrderingEnabled(checkout: BranchCheckout | undefined): boolean {
+  return checkout?.orderingEnabled === true
+}
+
+export type CheckoutRandomFn = () => number
+
+/** Pick one option at random. Empty list → undefined (never invent a value). */
+export function pickRandomCheckoutOption<T>(
+  options: readonly T[],
+  random: CheckoutRandomFn = Math.random,
+): T | undefined {
+  if (options.length === 0) return undefined
+  const index = Math.floor(random() * options.length)
+  return options[Math.min(Math.max(index, 0), options.length - 1)]
+}
+
+function matchEnabledOrderType(
+  available: CheckoutOrderTypeOption[],
+  rawDefault: string | null | undefined,
+): CheckoutOrderTypeOption | undefined {
+  if (rawDefault == null || rawDefault === '') return undefined
+  const asWire = available.find((o) => o.wireType === rawDefault)
+  if (asWire) return asWire
+  const asConfig = available.find((o) => o.configKey === rawDefault)
+  if (asConfig) return asConfig
+  const defaultWire = checkoutConfigKeyToWire(rawDefault)
+  return available.find((o) => o.wireType === defaultWire)
+}
+
 /** Discovers enabled order types from branch.checkout.orderTypes. */
 export function getCheckoutOrderTypeOptions(
   checkout: BranchCheckout | undefined,
 ): CheckoutOrderTypeOption[] {
-  if (!checkout?.orderingEnabled) return []
+  if (!isCheckoutOrderingEnabled(checkout) || !checkout) return []
 
   const options: CheckoutOrderTypeOption[] = []
   for (const [configKey, value] of Object.entries(checkout.orderTypes)) {
@@ -90,7 +120,7 @@ export function getCheckoutPaymentOptions(
   checkout: BranchCheckout | undefined,
   orderWireType?: string,
 ): CheckoutPaymentOption[] {
-  if (!checkout?.orderingEnabled) return []
+  if (!isCheckoutOrderingEnabled(checkout) || !checkout) return []
 
   const options: CheckoutPaymentOption[] = []
   const seenWire = new Set<string>()
@@ -113,43 +143,71 @@ export function findCheckoutOrderTypeOption(
   return getCheckoutOrderTypeOptions(checkout).find((o) => o.wireType === wireType)
 }
 
+/**
+ * Resolve initial/reset order type from checkout config.
+ *
+ * Priority: URL/param (if enabled) → valid `orderTypes.default` → random enabled → ''.
+ * Pass `random` only from init/reset paths — never call this during render for its randomness.
+ */
 export function resolveCheckoutOrderWireType(
   checkout: BranchCheckout | undefined,
   paramWireType: string | null,
+  random: CheckoutRandomFn = Math.random,
 ): string {
   const available = getCheckoutOrderTypeOptions(checkout)
-  const wireTypes = available.map((o) => o.wireType)
+  if (available.length === 0) return ''
 
-  if (paramWireType && wireTypes.includes(paramWireType)) {
-    return paramWireType
+  if (paramWireType) {
+    const fromParam = available.find((o) => o.wireType === paramWireType)
+    if (fromParam) return fromParam.wireType
   }
 
-  const backendDefault = checkout?.orderTypes.default
-  if (backendDefault) {
-    if (wireTypes.includes(backendDefault)) return backendDefault
-    const defaultWire = checkoutConfigKeyToWire(backendDefault)
-    if (wireTypes.includes(defaultWire)) return defaultWire
-  }
+  const fromDefault = matchEnabledOrderType(available, checkout?.orderTypes.default)
+  if (fromDefault) return fromDefault.wireType
 
-  return wireTypes[0] ?? ''
+  return pickRandomCheckoutOption(available, random)?.wireType ?? ''
 }
 
+function matchEnabledPayment(
+  available: CheckoutPaymentOption[],
+  checkout: BranchCheckout | undefined,
+  orderWireType: string | undefined,
+  rawDefault: string | null | undefined,
+): CheckoutPaymentOption | undefined {
+  if (rawDefault == null || rawDefault === '') return undefined
+  const fromDefault = resolvePaymentWireMethod(rawDefault, orderWireType)
+  if (fromDefault) {
+    const match = available.find((o) => o.wireMethod === fromDefault)
+    if (match) return match
+  }
+  const asConfig = available.find((o) => o.configKey === rawDefault)
+  if (asConfig) return asConfig
+  const defaultWire = checkoutConfigKeyToWire(rawDefault)
+  return available.find((o) => o.wireMethod === defaultWire)
+}
+
+/**
+ * Resolve initial/reset payment method from checkout config.
+ *
+ * Priority: valid `payments.default` → random enabled → ''.
+ */
 export function resolveCheckoutPaymentWireMethod(
   checkout: BranchCheckout | undefined,
   orderWireType?: string,
+  random: CheckoutRandomFn = Math.random,
 ): string {
   const available = getCheckoutPaymentOptions(checkout, orderWireType)
-  const wireMethods = available.map((o) => o.wireMethod)
+  if (available.length === 0) return ''
 
-  const defaultKey = checkout?.payments.default
-  if (defaultKey) {
-    const fromDefault = resolvePaymentWireMethod(defaultKey, orderWireType)
-    if (fromDefault && wireMethods.includes(fromDefault)) return fromDefault
-    const defaultWire = checkoutConfigKeyToWire(defaultKey)
-    if (wireMethods.includes(defaultWire)) return defaultWire
-  }
+  const fromDefault = matchEnabledPayment(
+    available,
+    checkout,
+    orderWireType,
+    checkout?.payments.default,
+  )
+  if (fromDefault) return fromDefault.wireMethod
 
-  return wireMethods[0] ?? ''
+  return pickRandomCheckoutOption(available, random)?.wireMethod ?? ''
 }
 
 /** Maps serviceability capability keys → branch.checkout.delivery keys. */
