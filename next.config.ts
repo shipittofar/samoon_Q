@@ -113,6 +113,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   allowedDevOrigins: [
     "http://77.221.156.197:3000",
+    "http://78.157.60.7:3000",
     "http://localhost:3000",
   ],
   images: {
@@ -122,7 +123,7 @@ const nextConfig: NextConfig = {
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: '*.amazonaws.com' },
 
-      { protocol: 'https', hostname: 'hot.ir-central1.arvanstorage.ir' },
+      { protocol: 'https', hostname: 'samoon.s3.ir-thr-at1.arvanstorage.ir' },
       { protocol: 'https', hostname: 'staticmap.openstreetmap.de' },
 
       { protocol: 'https', hostname: 'cdn.samoon.app' },
