@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function LoginPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="min-h-screen bg-[var(--bg)]" data-testid="login-session-restore" />}>
       <LoginClientPage />
     </Suspense>
   )

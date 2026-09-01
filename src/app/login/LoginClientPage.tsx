@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -23,7 +23,11 @@ import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
 import { ForgotPasswordPanel } from '@/app/login/ForgotPasswordPanel'
-import { sanitizeAuthRedirectPath, storeIntendedAuthRedirect } from '@/utils/auth-redirect'
+import {
+  sanitizeAuthRedirectPath,
+  shouldHoldLoginFormForSessionRestore,
+  storeIntendedAuthRedirect,
+} from '@/utils/auth-redirect'
 import { useAuthStore } from '@/stores'
 
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -216,6 +220,25 @@ export function LoginClientPage() {
       : phoneAuthMode === 'password'
         ? t('signInWithPasswordSubtitle')
         : t('enterPhoneToContinue')
+
+  const holdLoginForm = shouldHoldLoginFormForSessionRestore({
+    isLoading: isAuthLoading,
+    isAuthenticated,
+    redirect: searchParams.get('redirect'),
+  })
+
+  if (holdLoginForm) {
+    return (
+      <div
+        className="min-h-screen bg-[var(--bg)] flex items-center justify-center"
+        role="status"
+        aria-live="polite"
+        data-testid="login-session-restore"
+      >
+        <p className="text-[var(--fg-muted)]">{tCommon('loadingEllipsis')}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex">

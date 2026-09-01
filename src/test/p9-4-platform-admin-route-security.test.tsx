@@ -206,6 +206,23 @@ describe('Platform Admin route security', () => {
     expect(screen.getByText('Loading')).toBeTruthy()
   })
 
+  it('auth hydration: isLoading does not send the user to Login', () => {
+    mockReplace.mockClear()
+    useAuthStore.setState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: true,
+      sessionCheckFailed: false,
+    })
+    renderWithIntl(
+      <PlatformAdminLayout>
+        <div>Platform Admin Shell</div>
+      </PlatformAdminLayout>,
+    )
+    expect(mockReplace).not.toHaveBeenCalled()
+    expect(screen.queryByText('Platform Admin Shell')).toBeNull()
+  })
+
   it('authenticated tenant owner with is_superuser false is denied Platform Admin', () => {
     loginAsTenantOwner()
     usePlatformAdminStore.getState().setPlatformRole(null)

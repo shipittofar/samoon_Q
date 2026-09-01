@@ -69,6 +69,18 @@ describe('Phase 7 — AuthGuard does not redirect to login on a transient sessio
     useTenantStore.setState({ tenantState: 'resolved' } as never)
   })
 
+  it('isLoading true does not redirect to /login', () => {
+    useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: true, sessionCheckFailed: false })
+    render(
+      <AuthGuard fallback={<div>Auth loading</div>}>
+        <div>Protected</div>
+      </AuthGuard>,
+    )
+    expect(mockReplace).not.toHaveBeenCalled()
+    expect(screen.getByText('Auth loading')).toBeTruthy()
+    expect(screen.queryByText('Protected')).toBeNull()
+  })
+
   it('genuinely unauthenticated (no session-check failure): redirects to /login', () => {
     render(<AuthGuard>{<div>Protected</div>}</AuthGuard>)
     expect(mockReplace).toHaveBeenCalledWith('/login')

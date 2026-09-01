@@ -32,6 +32,22 @@ export function sanitizeAuthRedirectPath(path: string | null | undefined): strin
   return trimmed
 }
 
+/**
+ * Middleware sends unauthenticated document requests to `/login?redirect=…`.
+ * Until AuthBootstrapper finishes GET /auth/me, the login form must not paint:
+ * an already-authenticated user would otherwise flash the form, then bounce.
+ * Applies to every protected prefix (`/platform-admin`, `/console`, `/dashboard`,
+ * `/checkout`) — not a Platform Admin special case.
+ */
+export function shouldHoldLoginFormForSessionRestore(opts: {
+  isLoading: boolean
+  isAuthenticated: boolean
+  redirect: string | null | undefined
+}): boolean {
+  if (!sanitizeAuthRedirectPath(opts.redirect)) return false
+  return opts.isLoading || opts.isAuthenticated
+}
+
 /** Persists the route the user intended before authentication (checkout, etc.). */
 export function storeIntendedAuthRedirect(path: string): void {
   if (typeof sessionStorage === 'undefined') return

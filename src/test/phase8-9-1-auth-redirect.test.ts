@@ -11,6 +11,7 @@ import {
   getDemoRedirect,
   getPostLoginRedirect,
   sanitizeAuthRedirectPath,
+  shouldHoldLoginFormForSessionRestore,
   storeIntendedAuthRedirect,
   consumeIntendedAuthRedirect,
   resolvePostAuthDestination,
@@ -121,6 +122,46 @@ describe('sanitizeAuthRedirectPath', () => {
     expect(sanitizeAuthRedirectPath('/login')).toBeNull()
     expect(sanitizeAuthRedirectPath('/verify')).toBeNull()
     expect(sanitizeAuthRedirectPath('https://evil.com/path')).toBeNull()
+  })
+})
+
+describe('shouldHoldLoginFormForSessionRestore', () => {
+  it('holds the login form while hydrating a middleware redirect (all protected prefixes)', () => {
+    for (const redirect of ['/platform-admin', '/console', '/dashboard', '/checkout']) {
+      expect(shouldHoldLoginFormForSessionRestore({
+        isLoading: true,
+        isAuthenticated: false,
+        redirect,
+      })).toBe(true)
+    }
+  })
+
+  it('holds the login form after hydrate while bounce to redirect is in progress', () => {
+    expect(shouldHoldLoginFormForSessionRestore({
+      isLoading: false,
+      isAuthenticated: true,
+      redirect: '/platform-admin',
+    })).toBe(true)
+  })
+
+  it('shows the login form when hydration finished and there is no session', () => {
+    expect(shouldHoldLoginFormForSessionRestore({
+      isLoading: false,
+      isAuthenticated: false,
+      redirect: '/platform-admin',
+    })).toBe(false)
+  })
+
+  it('does not hold the form on a plain /login visit (no middleware redirect)', () => {
+    expect(shouldHoldLoginFormForSessionRestore({
+      isLoading: true,
+      isAuthenticated: false,
+      redirect: null,
+    })).toBe(false)
+  })
+
+  it('preserves redirect=/platform-admin as a valid restore destination', () => {
+    expect(sanitizeAuthRedirectPath('/platform-admin')).toBe('/platform-admin')
   })
 })
 

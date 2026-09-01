@@ -159,10 +159,10 @@ describe('Token stores stay aligned', () => {
     )
   })
 
-  it('login page bounces middleware redirects after session hydrate, not AuthGuard', () => {
+  it('login page holds the form during session restore; AuthGuard does not build ?redirect=', () => {
     const loginSrc = readFileSync(join(__dirname, '..', 'app', 'login', 'LoginClientPage.tsx'), 'utf-8')
-    expect(loginSrc).toContain('sanitizeAuthRedirectPath')
-    expect(loginSrc).toContain('searchParams.get(\'redirect\')')
+    expect(loginSrc).toContain('shouldHoldLoginFormForSessionRestore')
+    expect(loginSrc).toContain('login-session-restore')
     const guardSrc = readFileSync(join(__dirname, '..', 'components', 'auth', 'AuthGuard.tsx'), 'utf-8')
     expect(guardSrc).not.toContain('redirect=')
     const mw = readFileSync(join(__dirname, '..', 'middleware.ts'), 'utf-8')
