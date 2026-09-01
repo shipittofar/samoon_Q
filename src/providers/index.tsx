@@ -7,7 +7,7 @@ import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
 import { useAuthStore, useThemeStore, useLangStore, useTenantStore, useRbacStore, useBranchStore, useCartStore } from '@/stores'
 import { authService } from '@/services/auth.service'
-import { getAccessToken } from '@/services/axios.instance'
+import { getAccessToken, syncAccessTokenCookieFromStorage } from '@/services/axios.instance'
 import { prefetchFavoritesList, useFavoritesSync } from '@/hooks/favorites'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useNotificationWebSocket, useFcmRegistration } from '@/hooks/client'
@@ -556,6 +556,10 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       setLoading(false)
       return
     }
+    // A new tab has no Zustand store. Middleware only sees the cookie.
+    // Re-mirror localStorage so a follow-up document request (e.g. bounce
+    // from /login?redirect=) carries the same session Tab A created.
+    syncAccessTokenCookieFromStorage()
     authService.getMe().then((data) => {
       // Contract update — getMe() nests the User under a `user` key,
       // alongside `memberships`/`activeMembership` as siblings (NOT a flat

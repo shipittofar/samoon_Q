@@ -21,27 +21,70 @@ export function getRefreshToken(): string | null {
   return localStorage.getItem(JWT_REFRESH_KEY)
 }
 
+/** Host-only session cookie for Edge middleware. Must stay in lockstep with localStorage. */
+const ACCESS_TOKEN_COOKIE_ATTRS = 'path=/; SameSite=Strict'
+const DEFAULT_REFRESH_TTL_DAYS = 7
+/** Browsers typically cap cookies near 4KB; leave room for attributes. */
+const MAX_ACCESS_TOKEN_COOKIE_CHARS = 3500
+/**
+ * Compact cookie value when the JWT cannot fit. Middleware treats a present
+ * non-JWT cookie as an authenticated browser session (heuristic only).
+ */
+export const ACCESS_TOKEN_COOKIE_SENTINEL = '1'
+
+function resolveAccessCookieMaxAgeSeconds(): number {
+  try {
+    const days = configurationService.resolveField('authentication.jwt_refresh_ttl_days', {}).value
+    if (typeof days === 'number' && Number.isFinite(days) && days > 0) {
+      return 60 * 60 * 24 * days
+    }
+  } catch {
+    // Cookie write must never fail because the configuration registry is unavailable.
+  }
+  return 60 * 60 * 24 * DEFAULT_REFRESH_TTL_DAYS
+}
+
+/** Cookie payload written for middleware. Encodes the JWT when it fits. */
+export function accessTokenCookieValue(access: string): string {
+  const encoded = encodeURIComponent(access)
+  if (encoded.length > MAX_ACCESS_TOKEN_COOKIE_CHARS) {
+    return ACCESS_TOKEN_COOKIE_SENTINEL
+  }
+  return encoded
+}
+
+export function writeAccessTokenCookie(access: string): void {
+  if (typeof document === 'undefined') return
+  const maxAge = resolveAccessCookieMaxAgeSeconds()
+  document.cookie = `${JWT_ACCESS_KEY}=${accessTokenCookieValue(access)}; ${ACCESS_TOKEN_COOKIE_ATTRS}; max-age=${maxAge}`
+}
+
+export function clearAccessTokenCookie(): void {
+  if (typeof document === 'undefined') return
+  document.cookie = `${JWT_ACCESS_KEY}=; ${ACCESS_TOKEN_COOKIE_ATTRS}; max-age=0`
+}
+
+/** Re-mirror localStorage → cookie so a new tab's later document requests see the session. */
+export function syncAccessTokenCookieFromStorage(): void {
+  const access = getAccessToken()
+  if (access) writeAccessTokenCookie(access)
+}
+
 export function setTokens(access: string, refresh: string) {
   localStorage.setItem(JWT_ACCESS_KEY, access)
   localStorage.setItem(JWT_REFRESH_KEY, refresh)
   // Mirror access token to a cookie so Next.js middleware (Edge runtime) can read it.
   // Not HttpOnly — deliberately set from JS to enable middleware auth checks.
-  // P9.1.2 — Runtime Integration: lifetime now resolves through the Platform
-  // Configuration Foundation (authentication.jwt_refresh_ttl_days, platform
-  // scope) instead of a hardcoded 7-day literal. Default is unchanged (7
-  // days), so behavior is identical; a Platform Administrator can now change
-  // it without a deploy. See docs/P9.1.1_IMPLEMENTATION_PLAN.md §H for the
-  // reconciliation note on this value vs. the backend contract's 30-day figure.
-  const refreshTtlDays = configurationService.resolveField('authentication.jwt_refresh_ttl_days', {}).value as number
-  const maxAge = 60 * 60 * 24 * refreshTtlDays
-  document.cookie = `${JWT_ACCESS_KEY}=${encodeURIComponent(access)}; path=/; max-age=${maxAge}; SameSite=Strict`
+  // Lifetime prefers authentication.jwt_refresh_ttl_days; falls back to 7 days
+  // if the registry cannot be read so login cannot leave localStorage-only state.
+  writeAccessTokenCookie(access)
 }
 
 export function clearTokens() {
   localStorage.removeItem(JWT_ACCESS_KEY)
   localStorage.removeItem(JWT_REFRESH_KEY)
   // Expire the auth cookie so middleware immediately treats the session as unauthenticated.
-  document.cookie = `${JWT_ACCESS_KEY}=; path=/; max-age=0; SameSite=Strict`
+  clearAccessTokenCookie()
 }
 
 // ── Axios instance ───────────────────────────────────────────────────────────

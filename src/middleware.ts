@@ -57,7 +57,7 @@ function resolveTenantSlug(request: NextRequest): string | undefined {
  * "can't parse" the same as "invalid" caused a real, reproducible loop:
  * a genuinely valid access token that merely didn't match this parser's
  * assumptions got classified as invalid, middleware redirected to
- * `/login?redirect=...` AND deleted the cookie (see below) — but
+ * `/login?redirect=...`. Previously it also deleted the cookie — but
  * `localStorage`'s copy of the same token was untouched, so the app's
  * own client-side auth state still read "authenticated" and kept sending
  * the user right back to the protected route, which middleware rejected
@@ -128,12 +128,11 @@ export function middleware(request: NextRequest): NextResponse {
     ? `${pathname}${request.nextUrl.search}`
     : pathname
   loginUrl.searchParams.set('redirect', returnPath)
-  const redirectResponse = NextResponse.redirect(loginUrl)
-  // Clear a stale / expired token so the login page starts fresh
-  if (token) {
-    redirectResponse.cookies.delete(JWT_ACCESS_KEY)
-  }
-  return redirectResponse
+  // Do not delete the access_token cookie here. Middleware cannot clear
+  // localStorage; deleting only the cookie leaves Tab A "logged in" (client)
+  // while Tab B's next document request looks logged out. Login / getMe 401 /
+  // clearTokens() remain the places that tear down both stores together.
+  return NextResponse.redirect(loginUrl)
 }
 
 export const config = {

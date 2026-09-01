@@ -23,7 +23,8 @@ import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
 import { ForgotPasswordPanel } from '@/app/login/ForgotPasswordPanel'
-import { storeIntendedAuthRedirect } from '@/utils/auth-redirect'
+import { sanitizeAuthRedirectPath, storeIntendedAuthRedirect } from '@/utils/auth-redirect'
+import { useAuthStore } from '@/stores'
 
 const USE_MOCK_ENV = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -77,6 +78,8 @@ export function LoginClientPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   const { isActive: isLoginTransitionActive, labelKey: loginTransitionLabelKey, executeLogin, reset: resetLoginTransition } = loginTransition
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isAuthLoading = useAuthStore((s) => s.isLoading)
 
   // Preserve checkout (and other protected-route) intent across the full auth flow
   // (login → verify OTP → complete-profile). Middleware sets ?redirect=; we stash it
@@ -85,6 +88,17 @@ export function LoginClientPage() {
     const redirect = searchParams.get('redirect')
     if (redirect) storeIntendedAuthRedirect(redirect)
   }, [searchParams])
+
+  // Middleware-only URL: /login?redirect=… A second tab can land here when the
+  // session cookie was missing on the document request even though localStorage
+  // still has tokens. After AuthBootstrapper hydrates (and re-mirrors the cookie),
+  // continue to the intended protected route. Skip during an in-progress login
+  // so PostLoginRedirectHandler remains the post-submit owner.
+  useEffect(() => {
+    if (isAuthLoading || !isAuthenticated || isLoginTransitionActive) return
+    const dest = sanitizeAuthRedirectPath(searchParams.get('redirect'))
+    if (dest) router.replace(dest)
+  }, [isAuthLoading, isAuthenticated, isLoginTransitionActive, router, searchParams])
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),

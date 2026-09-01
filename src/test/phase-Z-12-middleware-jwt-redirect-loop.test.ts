@@ -19,6 +19,7 @@
 // is not proof the user is logged out; it only proves the heuristic
 // couldn't read it. Worse, the middleware's redirect response ALSO
 // deletes the cookie on any rejection — but `localStorage`'s copy of the
+
 // same token survives untouched (setTokens() writes both), so the
 // client-side app kept believing it was authenticated and kept sending
 // the user right back to /console, which the now-cookie-less middleware
@@ -131,9 +132,10 @@ describe('Phase Z.12 — /platform-admin is a protected prefix (auth cookie), sa
     expect(dashRes.headers.get('location')).toContain('/login?redirect=%2Fdashboard')
   })
 
-  it('/console and /dashboard still accept a valid JWT', () => {
+  it('/console, /dashboard, and /checkout still accept a valid JWT', () => {
     expect(middleware(req('/console', futureJwt())).status).toBe(200)
     expect(middleware(req('/dashboard', futureJwt())).status).toBe(200)
+    expect(middleware(req('/checkout', futureJwt())).status).toBe(200)
   })
 })
 
@@ -147,7 +149,8 @@ describe('Phase Z.12 — token persistence: setTokens() writes localStorage and 
     const axiosSrc = readFileSync(join(__dirname, '..', 'services', 'axios.instance.ts'), 'utf-8')
     const setTokensBlock = axiosSrc.slice(axiosSrc.indexOf('export function setTokens'), axiosSrc.indexOf('export function clearTokens'))
     expect(setTokensBlock).toContain('localStorage.setItem(JWT_ACCESS_KEY')
-    expect(setTokensBlock).toContain('document.cookie')
+    expect(setTokensBlock).toContain('writeAccessTokenCookie(access)')
+    expect(axiosSrc).toContain('document.cookie')
 
     const authSrc = readFileSync(join(__dirname, '..', 'services', 'auth.service.ts'), 'utf-8')
     // The real-mode login() branch calls setTokens() before `return data` —
