@@ -28,6 +28,7 @@
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور",
     "termsOfService": "الشروط",
+    "loadingEllipsis": "جاري التحميل...",
     "privacyPolicy": "سياسة الخصوصية",
     "capabilityNotAvailableAria": "{capability} غير متوفر",
     "featureNotAvailable": "هذه الميزة غير متوفرة",

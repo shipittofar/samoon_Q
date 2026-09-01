@@ -29,6 +29,7 @@
     "hidePassword": "Hide password",
     "termsOfService": "Terms",
     "privacyPolicy": "Privacy Policy",
+    "loadingEllipsis": "Loading...",
     "capabilityNotAvailableAria": "{capability} not available",
     "featureNotAvailable": "This feature is not available",
     "capabilityNotEnabled": "The {capability} capability is not enabled for your current plan. Contact your administrator to enable it."

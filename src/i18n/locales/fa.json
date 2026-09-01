@@ -29,6 +29,7 @@
     "hidePassword": "پنهان کردن رمز عبور",
     "termsOfService": "شرایط استفاده",
     "privacyPolicy": "حریم خصوصی",
+    "loadingEllipsis": "در حال بارگذاری...",
     "capabilityNotAvailableAria": "{capability} در دسترس نیست",
     "featureNotAvailable": "این ویژگی در دسترس نیست",
     "capabilityNotEnabled": "قابلیت {capability} برای طرح فعلی شما فعال نیست. برای فعال‌سازی آن با مدیر خود تماس بگیرید."
