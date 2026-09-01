@@ -28,6 +28,12 @@ import './modules/website-builder'
 import './modules/rbac'
 import './modules/system'
 import './modules/api'
+// Platform Administration modules must register in this same barrel so the
+// first `@/config` import (root layout → i18n/runtime → getField) cannot
+// seal the registry before `platform.overview` exists. `/platform-admin`
+// pages import `@/platform-admin` later (client chunk); that must be a
+// no-op, not a late register(). See docs/P9.5.5.2_STARTUP_REGISTRATION.md.
+import '@/platform-admin/modules'
 
 export { platformConfigurationRegistry } from './registry'
 export { configurationService } from './service'

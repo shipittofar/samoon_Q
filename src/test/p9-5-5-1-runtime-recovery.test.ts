@@ -55,6 +55,7 @@ describe('P9.5.5.1 — registration order independence', () => {
     const { platformConfigurationRegistry: registryFromBarrel } = await import('@/config')
     expect(registryFromBarrel.getModule('countries')).toBeDefined()
     expect(registryFromBarrel.getField('languages.supported')).toBeDefined()
+    expect(registryFromBarrel.getModule('platform.overview')).toBeDefined()
   })
 
   it('platform-admin registration (register-module.ts) also forces the barrel first, regardless of import order', async () => {
@@ -68,5 +69,6 @@ describe('P9.5.5.1 — registration order independence', () => {
     expect(registry.getModule('countries')).toBeDefined()
     expect(registry.getModule('languages')).toBeDefined()
     expect(registry.getField('languages.supported')).toBeDefined()
+    expect(registry.getModule('platform.overview')).toBeDefined()
   })
 })
