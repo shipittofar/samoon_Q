@@ -47,6 +47,15 @@ export interface User {
   avatar?: string
   accountType: AccountType
   is_verified: boolean
+  /**
+   * Django `User.is_superuser` from GET /auth/me.
+   * Only `true` grants Platform Admin. Omitted/undefined/false must deny.
+   */
+  is_superuser?: boolean
+  /**
+   * Django `User.is_staff`. Never used for Platform Admin authorization.
+   */
+  is_staff?: boolean
   created_at: string
 }
 

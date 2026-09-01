@@ -20,6 +20,8 @@ import { usePlatformConfiguration } from '@/hooks/use-platform-configuration'
 import { useConfigurationStudioNav } from '@/hooks/use-configuration-studio-nav'
 import { usePlatformRole } from '@/platform-admin/hooks'
 import { hasPlatformPermission } from '@/platform-admin/permissions'
+import { useAuthStore } from '@/stores'
+import { isPlatformSuperuser } from '@/lib/platform-admin-access'
 import { resolvePlatformAdminIcon } from '@/platform-admin/icon-map'
 import { buildSearchHaystack } from './configUiHelpers'
 
@@ -60,17 +62,19 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
   const allModules = usePlatformConfiguration()
   const { pinned, recent, togglePinned, isPinned } = useConfigurationStudioNav()
   const platformRole = usePlatformRole()
+  const isSuperuser = useAuthStore((s) => isPlatformSuperuser(s.user))
   const [search, setSearch] = useState('')
   const [focusedIndex, setFocusedIndex] = useState(0)
   const itemRefs = useRef<HTMLButtonElement[]>([])
 
-  // P9.4 Phase E — a module with no `platformPermission` (every pre-P9.4
-  // module) stays visible to every platform role, exactly as before;
-  // Platform Administration modules (Phase C) additionally gate on the
-  // separate platform permission model (src/platform-admin/permissions.ts).
+  // Platform Administration modules gate on platformPermission for in-center
+  // UI metadata. Django superusers see every module; that is not a route grant.
   const modules = useMemo(
-    () => allModules.filter((m) => !m.platformPermission || hasPlatformPermission(platformRole, m.platformPermission)),
-    [allModules, platformRole],
+    () =>
+      isSuperuser
+        ? allModules
+        : allModules.filter((m) => !m.platformPermission || hasPlatformPermission(platformRole, m.platformPermission)),
+    [allModules, platformRole, isSuperuser],
   )
 
   const filtered = useMemo(() => {

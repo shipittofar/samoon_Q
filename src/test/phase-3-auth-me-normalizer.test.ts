@@ -118,9 +118,63 @@ describe('normalizeGetMeResponse', () => {
     })
 
     expect(response.user.id).toBe('u1')
+    expect(response.user.is_verified).toBe(true)
+    expect(response.user.is_superuser).toBe(false)
     expect(response.memberships).toHaveLength(1)
     expect(response.activeMembership?.tenantId).toBe('tenant-samoon-01')
     expect(response.activeMembership?.tenantName).toBe('Samoon Restaurant')
+  })
+
+  it('preserves is_superuser and is_verified from nested /auth/me user', () => {
+    const response = normalizeGetMeResponse({
+      user: {
+        id: 'u1',
+        email: 'su@samoon.com',
+        first_name: 'Su',
+        last_name: 'Per',
+        accountType: 'business',
+        is_verified: true,
+        is_superuser: true,
+        is_staff: true,
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+    })
+    expect(response.user.is_superuser).toBe(true)
+    expect(response.user.is_verified).toBe(true)
+    expect(response.user.is_staff).toBe(true)
+  })
+
+  it('treats missing is_superuser as false, not as a grant', () => {
+    const response = normalizeGetMeResponse({
+      user: {
+        id: 'u1',
+        email: 'a@b.com',
+        first_name: 'A',
+        last_name: 'B',
+        accountType: 'business',
+        is_verified: false,
+        created_at: '',
+      },
+    })
+    expect(response.user.is_superuser).toBe(false)
+    expect(response.user.is_verified).toBe(false)
+  })
+
+  it('maps camelCase isSuperuser / isVerified on nested user', () => {
+    const response = normalizeGetMeResponse({
+      user: {
+        id: 'u1',
+        email: 'a@b.com',
+        first_name: 'A',
+        last_name: 'B',
+        accountType: 'business',
+        isVerified: true,
+        isSuperuser: true,
+        created_at: '',
+      },
+    })
+    expect(response.user.is_superuser).toBe(true)
+    expect(response.user.is_verified).toBe(true)
   })
 
   it('rejects active branch outside membership branch list', () => {

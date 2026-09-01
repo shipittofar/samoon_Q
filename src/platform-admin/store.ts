@@ -1,33 +1,27 @@
 /**
- * Platform Admin Store — P9.4 Phase G
+ * Platform Admin Store — in-center UI metadata only.
  *
- * Holds the current user's Platform Role. Deliberately a separate,
- * standalone zustand store rather than an addition to `useAuthStore`/
- * `useRbacStore` (src/stores/index.ts) — those model tenant-scoped
- * identity/roles; a platform role has no tenant at all, so bolting it onto
- * either would blur exactly the boundary docs/P9.4_PLATFORM_ADMIN_AUDIT.md
- * calls out as worth keeping separate.
+ * `platformRole` is NOT an authorization source for `/platform-admin`.
+ * Route access is `user.is_superuser === true` from GET /auth/me.
  *
- * Defaults to 'platform_super_admin' — matching the mock-mode-friendly
- * defaults used throughout the app so the Platform Admin Center is fully
- * explorable out of the box; a real backend would derive this from the
- * authenticated platform user record instead of a persisted client default.
+ * Fail closed: `null` by default. Not persisted. Session restore always
+ * clears this field so a leftover `platform_super_admin` cannot grant access
+ * or override Django superuser.
  */
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { PlatformRole } from './permissions'
+import { parsePlatformRole, type PlatformRole } from './permissions'
 
 interface PlatformAdminState {
-  platformRole: PlatformRole
-  setPlatformRole: (role: PlatformRole) => void
+  platformRole: PlatformRole | null
+  setPlatformRole: (role: PlatformRole | null) => void
 }
 
-export const usePlatformAdminStore = create<PlatformAdminState>()(
-  persist(
-    (set) => ({
-      platformRole: 'platform_super_admin',
-      setPlatformRole: (role) => set({ platformRole: role }),
-    }),
-    { name: 'platform-admin-store' },
-  ),
-)
+export const usePlatformAdminStore = create<PlatformAdminState>()((set) => ({
+  platformRole: null,
+  setPlatformRole: (role) => set({ platformRole: role }),
+}))
+
+/** Clear or set in-center UI role. Unknown wire values become null. Never used for route access. */
+export function applyPlatformRoleFromSession(role: unknown): void {
+  usePlatformAdminStore.getState().setPlatformRole(parsePlatformRole(role))
+}

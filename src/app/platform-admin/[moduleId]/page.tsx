@@ -8,12 +8,10 @@
  * Configuration Studio module (Authentication, Countries, …) and every
  * newly-registered Platform Administration module (Tenants, Platform
  * Users, Billing, …) already share — this route file only wires
- * routing + the platform-scoped permission guard.
+ * routing. Route authorization lives on the layout (`user.is_superuser`).
  */
 import { useParams, useRouter } from 'next/navigation'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { PlatformPermissionGuard } from '@/components/auth/PlatformPermissionGuard'
-import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ConfigurationStudioLayout } from '@/components/admin/configuration/ConfigurationStudioLayout'
 import { PlatformDashboard } from '@/components/admin/platform-admin/PlatformDashboard'
 import '@/platform-admin'
@@ -25,13 +23,12 @@ export default function PlatformAdminModuleRoute() {
 
   return (
     <ErrorBoundary feature={`Platform Administration — ${moduleId}`}>
-      <PlatformPermissionGuard permission="platform.dashboard.view" fallback={<AccessDenied />}>
-        <ConfigurationStudioLayout
-          activeModuleId={moduleId}
-          onNavigate={(nextModuleId) => router.push(`/platform-admin/${nextModuleId}`)}
-          emptyWorkspace={<PlatformDashboard />}
-        />
-      </PlatformPermissionGuard>
+      <ConfigurationStudioLayout
+        activeModuleId={moduleId}
+        onNavigate={(nextModuleId) => router.push(`/platform-admin/${nextModuleId}`)}
+        emptyWorkspace={<PlatformDashboard />}
+        permissionContext="platform"
+      />
     </ErrorBoundary>
   )
 }

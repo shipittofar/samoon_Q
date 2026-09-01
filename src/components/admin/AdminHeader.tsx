@@ -26,6 +26,7 @@ import { getTenantDisplayName } from '@/lib/console-tenant-display'
 import { Avatar } from '@/components/ui'
 import { cn } from '@/utils'
 import { Button } from '@/components/ui/Button'
+import { PlatformAdminNavLink } from '@/components/admin/PlatformAdminNavLink'
 import { resolveSupportedLocales, getLanguageInfo } from '@/i18n/runtime'
 
 
@@ -159,6 +160,8 @@ export function AdminHeader() {
             >
               <ThemeIcon className="h-4 w-4" />
             </button>
+
+            <PlatformAdminNavLink />
 
             {/* Public site link — deep-links to this tenant's public page when slug is available */}
             <Link

@@ -27,6 +27,7 @@ import { ConfigurationInspector } from './ConfigurationInspector'
 import { ConfigurationCommandPalette } from './ConfigurationCommandPalette'
 import { ConfigurationModulePage } from './ConfigurationModulePage'
 import { ConfigurationWorkspaceSkeleton } from './ConfigurationWorkspaceSkeleton'
+import type { ConfigurationPermissionContext } from '@/lib/configuration-studio-permissions'
 
 function useIsDesktop(): boolean {
   const [isDesktop, setIsDesktop] = useState(true)
@@ -51,9 +52,19 @@ export interface ConfigurationStudioLayoutProps {
    * `<PlatformDashboard />` here instead of introducing a second shell.
    */
   emptyWorkspace?: React.ReactNode
+  /**
+   * `'tenant'` (default) keeps Console Settings on tenant RBAC.
+   * Platform Admin routes must pass `'platform'` explicitly.
+   */
+  permissionContext?: ConfigurationPermissionContext
 }
 
-export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWorkspace }: ConfigurationStudioLayoutProps) {
+export function ConfigurationStudioLayout({
+  activeModuleId,
+  onNavigate,
+  emptyWorkspace,
+  permissionContext = 'tenant',
+}: ConfigurationStudioLayoutProps) {
   const t = useTranslations('console')
   const modules = usePlatformConfiguration()
   const activeModule = modules.find((m) => m.id === activeModuleId)
@@ -111,6 +122,7 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
       onFieldSelect={handleFieldSelect}
       onDraftStateChange={setDraftStatus}
       onActionsReady={setActions}
+      permissionContext={permissionContext}
     />
   ) : emptyWorkspace ? (
     <div className="mx-auto max-w-6xl p-4 sm:p-6">{emptyWorkspace}</div>
@@ -120,7 +132,7 @@ export function ConfigurationStudioLayout({ activeModuleId, onNavigate, emptyWor
     </div>
   )
 
-  const inspectorPanel = <ConfigurationInspector fieldId={selectedFieldId} actor={actor} />
+  const inspectorPanel = <ConfigurationInspector fieldId={selectedFieldId} actor={actor} permissionContext={permissionContext} />
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[var(--bg)]">

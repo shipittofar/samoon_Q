@@ -23,6 +23,7 @@ import { usePathname } from 'next/navigation'
 import type { Role, TenantMembership } from '@/types/rbac'
 import { normalizeTenantPermissions, selectActiveMembership, hasAnyMembership } from '@/services/permission.service'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
+import { applyPlatformRoleFromSession } from '@/platform-admin/store'
 import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { TENANT_OVERRIDABLE_VARS } from '@/lib/tokens'
@@ -550,7 +551,11 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
   // avoid redirecting to /login on a temporary backend outage.
   function checkSession() {
     const token = getAccessToken()
-    if (!token) { setLoading(false); return }
+    if (!token) {
+      applyPlatformRoleFromSession(null)
+      setLoading(false)
+      return
+    }
     authService.getMe().then((data) => {
       // Contract update — getMe() nests the User under a `user` key,
       // alongside `memberships`/`activeMembership` as siblings (NOT a flat
@@ -558,6 +563,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       // carries identity fields; `data` itself (not `data.user`) carries
       // the RBAC-relevant `memberships`/`activeMembership` fields
       // resolveSessionRestoreInput() reads.
+      applyPlatformRoleFromSession(null)
       setUser(data.user)
       setSentryUser({ id: data.user.id, email: data.user.email, accountType: data.user.accountType })
       // Phase Z.10 — set independently of tenant resolution (unlike the

@@ -216,6 +216,8 @@ function normalizeUser(raw: unknown): User | null {
       (pickString(record, 'accountType', 'account_type') as User['accountType'] | undefined) ??
       'customer',
     is_verified: record.is_verified === true || record.isVerified === true,
+    is_superuser: record.is_superuser === true || record.isSuperuser === true,
+    is_staff: record.is_staff === true || record.isStaff === true,
     created_at: pickString(record, 'created_at', 'createdAt') ?? '',
   }
 }
@@ -293,6 +295,8 @@ export function normalizeGetMeResponse(data: unknown): GetMeResponse {
       avatar: root.avatar,
       accountType: root.accountType ?? root.account_type,
       is_verified: root.is_verified,
+      is_superuser: root.is_superuser ?? root.isSuperuser,
+      is_staff: root.is_staff ?? root.isStaff,
       created_at: root.created_at,
     })
 

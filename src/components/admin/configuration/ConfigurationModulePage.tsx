@@ -15,10 +15,17 @@ import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import { ChevronDown, RotateCcw, Search, ShieldCheck } from 'lucide-react'
 import { Badge } from '@/components/ui'
-import { configurationService, platformConfigurationRegistry, resolveConfigText } from '@/config'
+import { platformConfigurationRegistry, resolveConfigText } from '@/config'
 import { seedAuthenticationMockOverrides } from '@/config/mock-data'
 import { usePermission, usePermissions } from '@/hooks'
+import { useAuthStore } from '@/stores'
 import { useConfigurationDraft } from '@/hooks/use-configuration-draft'
+import { isPlatformSuperuser } from '@/lib/platform-admin-access'
+import {
+  canEditStudioField,
+  canViewStudioField,
+  type ConfigurationPermissionContext,
+} from '@/lib/configuration-studio-permissions'
 import { ConfigurationFieldRow } from './ConfigurationFieldRow'
 import { ConfigurationSaveBar } from './ConfigurationSaveBar'
 import { isFieldEnabled, isFieldVisible, matchesSearch } from './configUiHelpers'
@@ -41,9 +48,20 @@ export interface ConfigurationModulePageProps {
   onDraftStateChange?: (state: { isDirty: boolean; dirtyCount: number; isSaving: boolean }) => void
   /** P9.3 Phase D — hands the Studio toolbar imperative save/discard handles; the toolbar invokes these rather than re-implementing save/discard itself (Rule 3 — one save pipeline). */
   onActionsReady?: (actions: { save: () => void; discard: () => void }) => void
+  /**
+   * `'tenant'` (default) uses Console RBAC via usePermissions().
+   * `'platform'` uses Django `user.is_superuser` only — never tenant settings.view.
+   */
+  permissionContext?: ConfigurationPermissionContext
 }
 
-export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateChange, onActionsReady }: ConfigurationModulePageProps) {
+export function ConfigurationModulePage({
+  moduleId,
+  onFieldSelect,
+  onDraftStateChange,
+  onActionsReady,
+  permissionContext = 'tenant',
+}: ConfigurationModulePageProps) {
   const t = useTranslations('console')
   const tFields = useTranslations('configFields')
   // P9.1.3 Phase N — seeds a handful of real (not merely displayed) config
@@ -63,7 +81,9 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
   } = useConfigurationDraft(moduleId)
 
   const permissions = usePermissions()
-  const isPlatformAdmin = usePermission('tenant.manage')
+  const user = useAuthStore((s) => s.user)
+  const isTenantPlatformAdmin = usePermission('tenant.manage')
+  const isPlatformAdmin = permissionContext === 'platform' ? isPlatformSuperuser(user) : isTenantPlatformAdmin
   const [search, setSearch] = useState('')
   const [reason, setReason] = useState('')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
@@ -97,7 +117,7 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
       .map((section) => {
         const fields = section.fields
           .filter((field) => {
-            if (!configurationService.canView(field, permissions)) return false
+            if (!canViewStudioField(field, permissionContext, permissions, user)) return false
             if (field.governance?.internalOnly && !isPlatformAdmin) return false
             if (!isFieldVisible(field, effectiveValues)) return false
             if (!matchesSearch(
@@ -113,7 +133,7 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
       })
       .filter(({ fields }) => fields.length > 0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configModule, permissions, isPlatformAdmin, effectiveValues, search])
+  }, [configModule, permissions, isPlatformAdmin, effectiveValues, search, permissionContext, user])
 
   useEffect(() => {
     onDraftStateChange?.({ isDirty, dirtyCount: dirtyFieldIds.length, isSaving })
@@ -261,7 +281,7 @@ export function ConfigurationModulePage({ moduleId, onFieldSelect, onDraftStateC
                     const resolved = values[field.id]
                     if (!resolved) return null
                     const currentValue = field.id in drafts ? drafts[field.id] : resolved.value
-                    const canEdit = configurationService.canEdit(field, permissions)
+                    const canEdit = canEditStudioField(field, permissionContext, permissions, user)
                     const enabled = isFieldEnabled(field, effectiveValues)
                     return (
                       <ConfigurationFieldRow

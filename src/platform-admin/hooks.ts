@@ -4,9 +4,9 @@
  * Platform Admin hooks — P9.4 Phase G
  */
 import { usePlatformAdminStore } from './store'
-import { hasPlatformPermission, type PlatformPermission } from './permissions'
+import { hasPlatformPermission, type PlatformPermission, type PlatformRole } from './permissions'
 
-export function usePlatformRole() {
+export function usePlatformRole(): PlatformRole | null {
   return usePlatformAdminStore((s) => s.platformRole)
 }
 

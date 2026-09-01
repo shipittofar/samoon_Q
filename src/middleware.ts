@@ -7,7 +7,7 @@ import { JWT_ACCESS_KEY } from '@/constants'
  * original destination preserved in `?redirect=` so the login page can
  * restore the user's intent after they authenticate.
  */
-const PROTECTED_PREFIXES = ['/dashboard', '/checkout', '/console'] as const
+const PROTECTED_PREFIXES = ['/dashboard', '/checkout', '/console', '/platform-admin'] as const
 
 /** Returns true when the pathname starts with any protected prefix. */
 function isProtectedRoute(pathname: string): boolean {

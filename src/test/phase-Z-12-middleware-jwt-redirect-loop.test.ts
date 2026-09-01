@@ -96,6 +96,47 @@ describe('Phase Z.12 — middleware no longer redirect-loops on a present-but-un
   })
 })
 
+describe('Phase Z.12 — /platform-admin is a protected prefix (auth cookie), same as /console', () => {
+  it('no cookie on /platform-admin redirects to /login?redirect=%2Fplatform-admin', () => {
+    const res = middleware(req('/platform-admin'))
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toContain('/login?redirect=%2Fplatform-admin')
+  })
+
+  it('no cookie on /platform-admin/<module> redirects with the module path preserved', () => {
+    const res = middleware(req('/platform-admin/system'))
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toContain('/login?redirect=%2Fplatform-admin%2Fsystem')
+  })
+
+  it('a well-formed unexpired JWT is accepted on /platform-admin (middleware is auth-only, matching /console)', () => {
+    const res = middleware(req('/platform-admin', futureJwt()))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('location')).toBeNull()
+  })
+
+  it('an expired JWT on /platform-admin is rejected (refresh of a stale session cannot keep the route open)', () => {
+    const res = middleware(req('/platform-admin/system', expiredJwt()))
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toContain('/login?redirect=%2Fplatform-admin%2Fsystem')
+  })
+
+  it('/console and /dashboard unauthenticated behavior is unchanged', () => {
+    const consoleRes = middleware(req('/console'))
+    expect(consoleRes.status).toBe(307)
+    expect(consoleRes.headers.get('location')).toContain('/login?redirect=%2Fconsole')
+
+    const dashRes = middleware(req('/dashboard'))
+    expect(dashRes.status).toBe(307)
+    expect(dashRes.headers.get('location')).toContain('/login?redirect=%2Fdashboard')
+  })
+
+  it('/console and /dashboard still accept a valid JWT', () => {
+    expect(middleware(req('/console', futureJwt())).status).toBe(200)
+    expect(middleware(req('/dashboard', futureJwt())).status).toBe(200)
+  })
+})
+
 describe('Phase Z.12 — token persistence: setTokens() writes localStorage and the cookie synchronously (no race)', () => {
   it('axios.instance.ts setTokens() source writes both before returning, and login() calls it before resolving', async () => {
     const { readFileSync } = await import('node:fs')
@@ -113,9 +154,9 @@ describe('Phase Z.12 — token persistence: setTokens() writes localStorage and 
     // i.e. before LoginClientPage's router.push() can ever fire.
     const loginFnStart = authSrc.indexOf('async login(')
     const loginFnBlock = authSrc.slice(loginFnStart, authSrc.indexOf('async register(', loginFnStart))
-    const setTokensIndex = loginFnBlock.lastIndexOf('setTokens(')
-    const returnDataIndex = loginFnBlock.lastIndexOf('return data')
+    const setTokensIndex = loginFnBlock.lastIndexOf('extractAndPersistTokens(')
+    const returnTokensIndex = loginFnBlock.lastIndexOf('return {')
     expect(setTokensIndex).toBeGreaterThan(-1)
-    expect(returnDataIndex).toBeGreaterThan(setTokensIndex)
+    expect(returnTokensIndex).toBeGreaterThan(setTokensIndex)
   })
 })

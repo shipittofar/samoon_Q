@@ -13,18 +13,21 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { LayoutDashboard } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { platformDashboardRegistry } from '@/platform-admin/dashboard'
-import { usePlatformPermission, usePlatformRole } from '@/platform-admin/hooks'
+import { usePlatformRole } from '@/platform-admin/hooks'
 import { hasPlatformPermission } from '@/platform-admin/permissions'
+import { useAuthStore } from '@/stores'
+import { isPlatformSuperuser } from '@/lib/platform-admin-access'
 import { PlatformDashboardWidgetCard } from './PlatformDashboardWidgetCard'
 
 export function PlatformDashboard() {
   const t = useTranslations('console')
   const role = usePlatformRole()
-  const canViewDashboard = usePlatformPermission('platform.dashboard.view')
+  const isSuperuser = useAuthStore((s) => isPlatformSuperuser(s.user))
+  const canViewDashboard = isSuperuser || hasPlatformPermission(role, 'platform.dashboard.view')
 
   const widgets = platformDashboardRegistry
     .getWidgets()
-    .filter((w) => !w.platformPermission || hasPlatformPermission(role, w.platformPermission))
+    .filter((w) => isSuperuser || !w.platformPermission || hasPlatformPermission(role, w.platformPermission))
 
   if (!canViewDashboard) {
     return (

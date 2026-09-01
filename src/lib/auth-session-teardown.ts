@@ -15,6 +15,7 @@ import {
 } from '@/stores'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { clearPermissionCache } from '@/lib/permission-cache'
+import { applyPlatformRoleFromSession } from '@/platform-admin/store'
 import { setActiveTenantSlugForRequests } from '@/lib/tenant-request-context'
 import {
   invalidateTenantLoads,
@@ -43,6 +44,7 @@ export function clearAuthenticatedClientState(
   const { clearCredentials = true, queryClient } = options
 
   useAuthStore.getState().logout()
+  applyPlatformRoleFromSession(null)
   clearSentryUser()
 
   if (clearCredentials) {

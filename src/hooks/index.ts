@@ -75,6 +75,7 @@ import {
 } from '@/lib/effective-permissions'
 import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
+import { applyPlatformRoleFromSession } from '@/platform-admin/store'
 import type { P7Permission, PermissionCheckOptions, Role } from '@/types/rbac'
 // Phase 2 (RBAC unification) — no imports from ownership-resolution.service.ts,
 // owner.service.ts, or staff-assignment.service.ts remain in this file.
@@ -630,6 +631,7 @@ async function establishAuthenticatedSession(
     throw new Error('Authenticated profile is missing accountType')
   }
   const p7Roles = tenantRolesForPostLoginRedirect(data)
+  applyPlatformRoleFromSession(null)
   setUser(data.user)
   seedAuthSessionMemberships({
     memberships: data.memberships,

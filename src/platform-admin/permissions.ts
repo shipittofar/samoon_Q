@@ -153,11 +153,17 @@ export const PLATFORM_ROLE_PERMISSIONS: Record<PlatformRole, readonly PlatformPe
 }
 
 /** True if `role` grants `permission`, honoring the `'*'` wildcard and resource-level `'<resource>.*'` grants. */
-export function hasPlatformPermission(role: PlatformRole | undefined, permission: PlatformPermission): boolean {
+export function hasPlatformPermission(role: PlatformRole | undefined | null, permission: PlatformPermission): boolean {
   if (!role) return false
   const grants = PLATFORM_ROLE_PERMISSIONS[role] ?? []
   if (grants.includes(ALL)) return true
   const resource = permission.split('.')[0]
   if (grants.includes(`${resource}.*`)) return true
   return grants.includes(permission)
+}
+
+/** Parse a session/wire value into a PlatformRole. Unknown strings (including tenant roles like `'owner'`) return null — fail closed. */
+export function parsePlatformRole(value: unknown): PlatformRole | null {
+  if (typeof value !== 'string') return null
+  return (PLATFORM_ROLES as readonly string[]).includes(value) ? (value as PlatformRole) : null
 }

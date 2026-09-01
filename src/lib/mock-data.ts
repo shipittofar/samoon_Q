@@ -138,6 +138,7 @@ export const MOCK_PLATFORM_ADMIN_USER: User = {
   last_name: 'Platform',
   accountType: 'business',
   is_verified: true,
+  is_superuser: true,
   created_at: '2024-01-01T00:00:00Z',
 }
 

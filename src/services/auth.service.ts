@@ -159,7 +159,8 @@ export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> =
   'owner@samoon.com':     { user: MOCK_OWNER_USER,     p7Roles: ['owner'] },
   // P8.5 — Multi-role demo: Cashier + Kitchen combined (orders + kitchen display + payments)
   'multirole@samoon.com': { user: MOCK_MULTI_ROLE_USER, p7Roles: ['cashier', 'kitchen'] },
-  // P8.9.1 — Platform Admin: cross-tenant management (owner P7 role grants full platform access)
+  // Platform Admin: Django is_superuser on the user is the only grant.
+  // Tenant `owner` here does not authorize /platform-admin for other owner personas.
   'platform@samoon.com':  { user: MOCK_PLATFORM_ADMIN_USER, p7Roles: ['owner'] },
 }
 

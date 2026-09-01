@@ -71,6 +71,7 @@ describe('middleware.ts — source structure', () => {
     expect(src()).toContain('/dashboard')
     expect(src()).toContain('/checkout')
     expect(src()).toContain('/console')
+    expect(src()).toContain('/platform-admin')
   })
 
   it('passes modified headers to NextResponse.next()', () => {

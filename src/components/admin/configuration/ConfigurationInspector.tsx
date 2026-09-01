@@ -20,6 +20,11 @@ import { configurationAudit, configurationService, configurationValidator, resol
 import type { ConfigActor } from '@/config'
 import { useConfigScope } from '@/hooks/use-platform-configuration'
 import { usePermissions } from '@/hooks'
+import { useAuthStore } from '@/stores'
+import {
+  canEditStudioField,
+  type ConfigurationPermissionContext,
+} from '@/lib/configuration-studio-permissions'
 import { ConfigurationFieldBadges } from './ConfigurationFieldBadges'
 import { ConfigurationFieldPreview } from './ConfigurationFieldPreview'
 import { ConfigurationInheritanceTree } from './ConfigurationInheritanceTree'
@@ -41,15 +46,17 @@ function formatTimestamp(iso: string): string {
 export interface ConfigurationInspectorProps {
   fieldId: string | null
   actor: ConfigActor
+  permissionContext?: ConfigurationPermissionContext
 }
 
-export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspectorProps) {
+export function ConfigurationInspector({ fieldId, actor, permissionContext = 'tenant' }: ConfigurationInspectorProps) {
   const t = useTranslations('console')
   const tFields = useTranslations('configFields')
   const TABS: { id: InspectorTab; label: string }[] = TAB_IDS.map((id) => ({ id, label: t(`inspectorTab_${id}`) }))
   const [tab, setTab] = useState<InspectorTab>('overview')
   const scope = useConfigScope()
   const permissions = usePermissions()
+  const user = useAuthStore((s) => s.user)
 
   const field = fieldId ? configurationService.getField(fieldId) : undefined
 
@@ -78,7 +85,7 @@ export function ConfigurationInspector({ fieldId, actor }: ConfigurationInspecto
   const resolved = configurationService.resolveField(fieldId, scope)
   const validation = configurationValidator.validate(field, resolved.value)
   const auditEntries = configurationAudit.listForField(fieldId)
-  const canEdit = configurationService.canEdit(field, permissions)
+  const canEdit = canEditStudioField(field, permissionContext, permissions, user)
   const state = deriveFieldState(field, resolved)
   const title = field.display?.displayName ?? resolveConfigText(tFields, field.id, 'title', field.title)
   const description = resolveConfigText(tFields, field.id, 'description', field.description)

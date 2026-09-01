@@ -13,8 +13,6 @@
  */
 import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
-import { PlatformPermissionGuard } from '@/components/auth/PlatformPermissionGuard'
-import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ConfigurationStudioLayout } from '@/components/admin/configuration/ConfigurationStudioLayout'
 import { PlatformDashboard } from '@/components/admin/platform-admin/PlatformDashboard'
 import '@/platform-admin'
@@ -25,6 +23,7 @@ function PlatformAdminIndexContent() {
     <ConfigurationStudioLayout
       onNavigate={(moduleId) => router.push(`/platform-admin/${moduleId}`)}
       emptyWorkspace={<PlatformDashboard />}
+      permissionContext="platform"
     />
   )
 }
@@ -32,9 +31,7 @@ function PlatformAdminIndexContent() {
 export default function PlatformAdminIndexPage() {
   return (
     <ErrorBoundary feature="Platform Administration Center">
-      <PlatformPermissionGuard permission="platform.dashboard.view" fallback={<AccessDenied />}>
-        <PlatformAdminIndexContent />
-      </PlatformPermissionGuard>
+      <PlatformAdminIndexContent />
     </ErrorBoundary>
   )
 }
