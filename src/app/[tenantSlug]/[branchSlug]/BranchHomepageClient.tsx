@@ -327,11 +327,6 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
           </div>
         )}
       </div>
-      {branch.coverImage ? (
-        <div className="relative w-full h-48 rounded-xl overflow-hidden border border-[var(--border)]">
-          <Image src={branch.coverImage} alt="" fill className="object-cover" sizes="(max-width: 1024px) 100vw, 33vw" />
-        </div>
-      ) : null}
       {/* H5: converted to <button> for keyboard accessibility, increased height */}
       <button
         type="button"
@@ -558,7 +553,7 @@ function GallerySection({ images, label }: { images: string[]; label: string }) 
   if (!images.length) return null
   return (
     <section aria-labelledby="gallery-heading">
-      {/* H6: upgraded heading; C4: label makes source clear ("Business Gallery" vs branch) */}
+      {/* H6: upgraded heading; C4: label makes source clear ("Gallery" vs branch) */}
       <h2
         id="gallery-heading"
         className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
@@ -751,10 +746,14 @@ export default function BranchHomepageClient({
 
   const allBranches = publicBranches
   const tenantGallery = meta?.gallery ?? []
+  const galleryImages = [
+    ...(branch.coverImage ? [branch.coverImage] : []),
+    ...tenantGallery.filter((url) => url !== branch.coverImage),
+  ]
   const rating = meta?.rating
   const reviewCount = meta?.reviewCount
 
-  const hasGallery = tenantGallery.length > 0
+  const hasGallery = galleryImages.length > 0
 
   return (
     <>
@@ -799,7 +798,7 @@ export default function BranchHomepageClient({
                 // C4: Branch-specific photo first, then labeled tenant gallery
                 gallery: sections.gallery ? (
                   <>
-                    {hasGallery && <GallerySection images={tenantGallery} label={t('businessGallery')} />}
+                    {hasGallery && <GallerySection images={galleryImages} label={t('businessGallery')} />}
                   </>
                 ) : null,
                 promotions: sections.promotions ? (

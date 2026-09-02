@@ -264,4 +264,23 @@ describe('render sources do not collapse image concepts', () => {
     expect(src).not.toContain('branch.image')
     expect(src).not.toContain('coverImage ??')
   })
+
+  it('Branch Information does not render coverImage; Gallery does, labeled Gallery', () => {
+    const src = readSrc('app/[tenantSlug]/[branchSlug]/BranchHomepageClient.tsx')
+    const infoStart = src.indexOf('function BranchInfo')
+    const infoEnd = src.indexOf('function BranchSwitcher')
+    const branchInfo = src.slice(infoStart, infoEnd)
+    expect(branchInfo).toContain("t('branchInformation')")
+    expect(branchInfo).not.toContain('branch.coverImage')
+    expect(branchInfo).not.toContain('branch.heroImage')
+    expect(branchInfo).not.toContain('branch.image')
+
+    expect(src).toContain('const galleryImages')
+    expect(src).toMatch(/branch\.coverImage \? \[branch\.coverImage\]/)
+    expect(src).toContain("label={t('businessGallery')}")
+    expect(src).not.toContain('branch.avatar')
+
+    const en = JSON.parse(readSrc('i18n/locales/en.json')) as { branch: { businessGallery: string } }
+    expect(en.branch.businessGallery).toBe('Gallery')
+  })
 })

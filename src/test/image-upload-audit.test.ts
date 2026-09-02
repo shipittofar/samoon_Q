@@ -122,6 +122,11 @@ describe('branch image upload', () => {
     expect(src).toContain('ImageUploader')
     expect(src).not.toMatch(/imageUrlLabel.*form\.image/)
     expect(src).toContain('branchFormToWriteRequest')
+    expect(src).toContain('form.image')
+    expect(src).toContain('form.coverImage')
+    expect(src).toContain('form.heroImage')
+    expect(src).not.toContain('form.avatar')
+    expect(src).not.toContain('branch.avatar')
   })
 
   it('branch service createBranch uses FormData', () => {
