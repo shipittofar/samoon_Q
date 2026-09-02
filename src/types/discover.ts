@@ -4,16 +4,20 @@
 
 import type { TenantStatus, TenantBranding, TenantTheme } from '@/types'
 import type { BranchCheckout, BranchBusinessHours } from '@/types/branch'
-import type { MarketplaceMeta } from '@/types/marketplace'
+import type { TenantMarketplaceSettings } from '@/types/marketplace'
 
 /** Branch summary embedded in a discover tenant result. */
 export interface DiscoverBranch {
   id: string
   slug: string
   name: string
+  description?: string
   image?: string
+  coverImage?: string
   openNow: boolean
   todayHours?: string
+  phone_number?: string
+  email?: string
   location: {
     address: string
     city: string
@@ -25,14 +29,19 @@ export interface DiscoverBranch {
   marketplaceVisible?: boolean
   reservationsEnabled?: boolean
   maxCapacity?: number
-  /** Cuisine / specialty labels for this location (branch-owned). */
   cuisines?: string[]
-  /** Amenity labels for this location (branch-owned). */
   amenities?: string[]
 }
 
-/** Marketplace display fields on a discover tenant (no embedded branches). */
-export type DiscoverMarketplace = Omit<MarketplaceMeta, 'branches'>
+/**
+ * Discover marketplace projection: tenant listing metadata plus optional
+ * computed fields provided by the public Discover API (not Tenant.settings).
+ */
+export type DiscoverMarketplace = TenantMarketplaceSettings & {
+  openNow?: boolean
+  branchCount?: number
+  primaryBranchSlug?: string
+}
 
 /** Single tenant entry in the discover response. */
 export interface DiscoverTenant {
@@ -48,6 +57,8 @@ export interface DiscoverTenant {
   /** Tenant logo — canonical Discover image field. */
   image?: string
   featureFlags?: Record<string, boolean>
+  contactEmail?: string
+  contactPhone?: string
   /** Canonical tenant branding (colors/fonts). Prefer over legacy `theme`. */
   branding?: TenantBranding
   /**

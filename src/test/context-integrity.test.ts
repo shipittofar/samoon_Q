@@ -3,10 +3,10 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
+import { findPublicBranchBySlug, resolvePublicBranchList } from '@/lib/public-branches'
 import { branchManagementService } from '@/services/branch.service'
 import { getMockRoles } from '@/services/permission.service'
 import { hrefToPublicUrl } from '@/utils/public-url'
-import { getMarketplaceMeta } from '@/types/marketplace'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -121,17 +121,16 @@ describe('Bug 7 — Public context initialization', () => {
     await expect(tenantService.getTenantBySlug('nonexistent-slug')).rejects.toBeInstanceOf(TenantNotFoundError)
   })
 
-  it('usePublicBranch equivalent: unknown branch returns undefined from marketplace meta', async () => {
+  it('usePublicBranch equivalent: unknown branch is absent from the Branch API list', async () => {
     const tenant = await tenantService.getTenantBySlug('samoon')
-    const meta = getMarketplaceMeta(tenant.settings)
-    const branch = meta?.branches?.find((b) => b.slug === 'nonexistent-branch')
-    expect(branch).toBeUndefined()
+    const branches = await resolvePublicBranchList(tenant.id)
+    expect(findPublicBranchBySlug(branches, 'nonexistent-branch')).toBeUndefined()
   })
 
   it('known tenant + known branch slug resolves to correct PublicBranchInfo', async () => {
     const tenant = await tenantService.getTenantBySlug('brew-cafe')
-    const meta = getMarketplaceMeta(tenant.settings)
-    const branch = meta?.branches?.find((b) => b.slug === 'brooklyn-cafe')
+    const branches = await resolvePublicBranchList(tenant.id)
+    const branch = findPublicBranchBySlug(branches, 'brooklyn-cafe')
     expect(branch).toBeDefined()
     expect(branch?.city).toBe('Brooklyn')
   })

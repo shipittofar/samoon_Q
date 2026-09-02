@@ -31,9 +31,6 @@ const SAMPLE_TENANT: DiscoverTenant = {
   // Legacy Discover field — must NOT become the canonical branding source
   theme: { primaryColor: '#e85d04' },
   marketplace: {
-    description: 'Fine dining',
-    coverImage: 'https://example.com/cover.jpg',
-    city: 'New York',
     tags: ['Family Friendly'],
     rating: 4.8,
     reviewCount: 100,
@@ -114,7 +111,7 @@ describe('discover adapter', () => {
     expect(item.tenant.settings?.theme?.accentHoverColor).toBe('#e85d04')
     expect(item.tenant.settings?.theme?.fontBody).toBe('inter')
     expect(item.tenant.settings?.theme?.fontsByLocale).toEqual({ en: 'inter', fa: 'vazir' })
-    expect(item.meta.coverImage).toBe('https://example.com/cover.jpg')
+    expect(item.meta.coverImage).toBe('https://example.com/branch.jpg')
     expect(item.meta.branches).toHaveLength(2)
     expect(item.branches).toHaveLength(2)
     expect(item.meta.primaryBranchSlug).toBe('main')

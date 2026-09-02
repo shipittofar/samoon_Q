@@ -76,23 +76,23 @@ describe('Phase Z.6 — normalizeTenant() via getTenants() (real mode)', () => {
       slug: 'real-backend-tenant',
       image: 'https://example.com/logo.png',
       business_types: ['restaurant', 'cafe'],
-      status: 'active',
+      status: 'ACTIVE',
       tax_percentage: 8.5,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-06-01T00:00:00Z',
     })
   })
 
-  it('settings.featureFlags and settings.ordering survive untouched', async () => {
+  it('settings.featureFlags survive; deprecated Branch-owned settings are stripped', async () => {
     const { tenantService, api } = await freshTenantServiceRealMode()
     api.get.mockResolvedValueOnce({ data: { results: [RAW_BACKEND_TENANT] } })
 
     const [tenant] = await tenantService.getTenants()
     expect(tenant!.settings?.featureFlags).toEqual({ loyalty: true, delivery: false })
-    expect(tenant!.settings?.ordering).toEqual({ minimumOrder: 15 })
-    expect(tenant!.settings?.currency).toBe('USD')
-    expect(tenant!.settings?.language).toBe('en')
-    expect(tenant!.settings?.timezone).toBe('America/New_York')
+    expect(tenant!.settings && 'ordering' in tenant!.settings).toBe(false)
+    expect(tenant!.settings && 'currency' in tenant!.settings).toBe(false)
+    expect(tenant!.settings && 'language' in tenant!.settings).toBe(false)
+    expect(tenant!.settings && 'timezone' in tenant!.settings).toBe(false)
   })
 
   it('a response that already has businessTypes (mock-shaped) is left alone, not overwritten by business_types', async () => {

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { Settings, Palette, Clock, Plug, Bell, Shield, Save, CheckCircle, Loader2, Globe, ToggleLeft, ToggleRight, XCircle, Flag } from 'lucide-react'
-import { getMarketplaceMeta } from '@/types/marketplace'
+import { Settings, Palette, Clock, Plug, Bell, Save, CheckCircle, Loader2, Globe, ToggleLeft, ToggleRight, XCircle, Flag } from 'lucide-react'
+import { getMarketplaceMeta, pickTenantMarketplace } from '@/types/marketplace'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -28,21 +29,6 @@ const TAB_CONFIG: Record<Tab, { labelKey: string; icon: React.ElementType }> = {
   integrations:   { labelKey: 'settingsTabIntegrations',   icon: Plug         },
   notifications:  { labelKey: 'breadcrumbs.notifications',  icon: Bell         },
   'feature-flags':{ labelKey: 'settingsTabFeatureFlags',  icon: Flag         },
-}
-
-const DAY_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
-
-type DayKey = (typeof DAYS)[number]
-
-interface HoursEntry { open: string; close: string; isOpen: boolean }
-type HoursMap = Record<DayKey, HoursEntry>
-
-function defaultHours(existing?: unknown): HoursMap {
-  const map = existing as Record<string, HoursEntry> | undefined
-  return Object.fromEntries(
-    DAYS.map((day) => [day, map?.[day] ?? { open: '09:00', close: '22:00', isOpen: true }]),
-  ) as HoursMap
 }
 
 interface SaveBarProps { isPending: boolean; saved: boolean; onSave: () => void }
@@ -72,12 +58,8 @@ function GeneralTab() {
   const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
-  const [contactEmail, setContactEmail] = useState(
-    (tenant?.settings?.contactEmail as string | undefined) ?? '',
-  )
-  const [contactPhone, setContactPhone] = useState(
-    (tenant?.settings?.contactPhone as string | undefined) ?? '',
-  )
+  const [contactEmail, setContactEmail] = useState(tenant?.settings?.contactEmail ?? '')
+  const [contactPhone, setContactPhone] = useState(tenant?.settings?.contactPhone ?? '')
 
   function handleSave() {
     save({ contactEmail: contactEmail || undefined, contactPhone: contactPhone || undefined })
@@ -216,52 +198,12 @@ function BrandingTab() {
 
 function HoursTab() {
   const t = useTranslations('console')
-  const tenant = useTenantStore((s) => s.tenant)
-  const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
-  const [hours, setHours] = useState<HoursMap>(() =>
-    defaultHours(tenant?.settings?.businessHours),
-  )
-
-  function setDay(day: DayKey, patch: Partial<HoursEntry>) {
-    setHours((prev) => ({ ...prev, [day]: { ...prev[day], ...patch } }))
-  }
-
-  function handleSave() {
-    save({ businessHours: hours })
-  }
-
   return (
-    <div className="space-y-3">
-      {DAYS.map((day, i) => (
-        <div key={day} className="flex items-center gap-4 text-sm">
-          <span className="w-28 text-gray-600 shrink-0">{t(`weekday.${DAY_KEYS[i]}`)}</span>
-          <input
-            type="time"
-            value={hours[day].open}
-            onChange={(e) => setDay(day, { open: e.target.value })}
-            disabled={!hours[day].isOpen}
-            className="border rounded px-2 py-1 text-sm disabled:opacity-40"
-          />
-          <span className="text-gray-400">–</span>
-          <input
-            type="time"
-            value={hours[day].close}
-            onChange={(e) => setDay(day, { close: e.target.value })}
-            disabled={!hours[day].isOpen}
-            className="border rounded px-2 py-1 text-sm disabled:opacity-40"
-          />
-          <label className="flex items-center gap-1.5 text-gray-500 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={hours[day].isOpen}
-              onChange={(e) => setDay(day, { isOpen: e.target.checked })}
-              className="rounded"
-            />
-            {t('openLabel')}
-          </label>
-        </div>
-      ))}
-      <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
+    <div className="space-y-3 text-sm text-gray-600">
+      <p>{t('hoursManagedPerBranch')}</p>
+      <Link href="/console/branches" className="inline-flex text-blue-600 hover:underline">
+        {t('manageBranchesLink')}
+      </Link>
     </div>
   )
 }
@@ -350,6 +292,185 @@ function NotificationsTab() {
 }
 
 function PublicProfileTab() {
+  const t = useTranslations('console')
+  const tenant = useTenantStore((s) => s.tenant)
+  const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
+  const existingMeta = getMarketplaceMeta(tenant?.settings)
+
+  const [tagline, setTagline] = useState(existingMeta?.tagline ?? '')
+  const [story, setStory] = useState(existingMeta?.story ?? '')
+  const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
+  const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
+  const [website, setWebsite] = useState(existingMeta?.website ?? '')
+  const [heroImage, setHeroImage] = useState(existingMeta?.heroImage ?? '')
+  const [gallery, setGallery] = useState(existingMeta?.gallery?.join('\n') ?? '')
+  const [instagram, setInstagram] = useState(existingMeta?.socialLinks?.instagram ?? '')
+  const [twitter, setTwitter] = useState(existingMeta?.socialLinks?.twitter ?? '')
+  const [facebook, setFacebook] = useState(existingMeta?.socialLinks?.facebook ?? '')
+  const [youtube, setYoutube] = useState(existingMeta?.socialLinks?.youtube ?? '')
+  const [featured, setFeatured] = useState(existingMeta?.featured ?? false)
+  const [popular, setPopular] = useState(existingMeta?.popular ?? false)
+  const [isNew, setIsNew] = useState(existingMeta?.isNew ?? false)
+
+  useEffect(() => {
+    const m = getMarketplaceMeta(tenant?.settings)
+    if (m) {
+      setTagline(m.tagline ?? '')
+      setStory(m.story ?? '')
+      setTags(m.tags?.join(', ') ?? '')
+      setPriceLevel(String(m.priceLevel ?? ''))
+      setWebsite(m.website ?? '')
+      setHeroImage(m.heroImage ?? '')
+      setGallery(m.gallery?.join('\n') ?? '')
+      setInstagram(m.socialLinks?.instagram ?? '')
+      setTwitter(m.socialLinks?.twitter ?? '')
+      setFacebook(m.socialLinks?.facebook ?? '')
+      setYoutube(m.socialLinks?.youtube ?? '')
+      setFeatured(m.featured ?? false)
+      setPopular(m.popular ?? false)
+      setIsNew(m.isNew ?? false)
+    }
+  }, [tenant?.slug])
+
+  function handleSave() {
+    const toArr = (s: string) => s.split(',').map((v) => v.trim()).filter(Boolean)
+    const toLines = (s: string) => s.split('\n').map((v) => v.trim()).filter(Boolean)
+    save({
+      marketplace: pickTenantMarketplace({
+        ...existingMeta,
+        tagline: tagline || undefined,
+        story: story || undefined,
+        tags: tags ? toArr(tags) : existingMeta?.tags,
+        priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
+        website: website || undefined,
+        heroImage: heroImage || undefined,
+        gallery: gallery ? toLines(gallery) : existingMeta?.gallery,
+        featured,
+        popular,
+        isNew,
+        socialLinks: {
+          instagram: instagram || undefined,
+          twitter: twitter || undefined,
+          facebook: facebook || undefined,
+          youtube: youtube || undefined,
+        },
+      }),
+    })
+  }
+
+  const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
+  const hintClass = 'text-xs text-gray-400 mt-1'
+
+  return (
+    <div className="space-y-5">
+      <p className="text-sm text-gray-500 mb-4">
+        {t('publicProfileDescription')}
+      </p>
+
+      <div>
+        <label className={labelClass}>{t('taglineLabel')}</label>
+        <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)}
+          placeholder={t('taglinePlaceholder')} className={inputClass} maxLength={120} />
+        <p className={hintClass}>{t('taglineHint')}</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>{t('aboutStoryLabel')}</label>
+        <textarea value={story} onChange={(e) => setStory(e.target.value)}
+          placeholder={t('aboutStoryPlaceholder')} rows={5}
+          className={inputClass} />
+        <p className={hintClass}>{t('aboutStoryHint')}</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>{t('discoveryTagsLabel')}</label>
+        <input type="text" value={tags} onChange={(e) => setTags(e.target.value)}
+          placeholder={t('tagsExamplePlaceholder')} className={inputClass} />
+        <p className={hintClass}>{t('discoveryTagsHint')}</p>
+      </div>
+
+      <div>
+        <label className={labelClass}>{t('priceLevelLabel')}</label>
+        <select value={priceLevel} onChange={(e) => setPriceLevel(e.target.value)}
+          className={inputClass}>
+          <option value="">{t('selectDash')}</option>
+          <option value="1">{t('priceLevelBudget')}</option>
+          <option value="2">{t('priceLevelModerate')}</option>
+          <option value="3">{t('priceLevelUpscale')}</option>
+          <option value="4">{t('priceLevelFineDining')}</option>
+        </select>
+      </div>
+
+      <div className="flex flex-wrap gap-4 text-sm text-gray-700">
+        <label className="inline-flex items-center gap-2">
+          <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="rounded" />
+          {t('featured')}
+        </label>
+        <label className="inline-flex items-center gap-2">
+          <input type="checkbox" checked={popular} onChange={(e) => setPopular(e.target.checked)} className="rounded" />
+          {t('popular')}
+        </label>
+        <label className="inline-flex items-center gap-2">
+          <input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} className="rounded" />
+          {t('isNewLabel')}
+        </label>
+      </div>
+
+      <div>
+        <label className={labelClass}>{t('websiteLabel')}</label>
+        <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)}
+          placeholder="https://yourbusiness.com" className={inputClass} />
+      </div>
+
+      <div className="border-t pt-5">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('socialMediaLabel')}</h3>
+        <div className="space-y-4">
+          <div>
+            <label className={labelClass}>{t('instagramUrlLabel')}</label>
+            <input type="url" value={instagram} onChange={(e) => setInstagram(e.target.value)}
+              placeholder="https://instagram.com/yourbusiness" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>{t('twitterUrlLabel')}</label>
+            <input type="url" value={twitter} onChange={(e) => setTwitter(e.target.value)}
+              placeholder="https://twitter.com/yourbusiness" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Facebook</label>
+            <input type="url" value={facebook} onChange={(e) => setFacebook(e.target.value)}
+              placeholder="https://facebook.com/yourbusiness" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>YouTube</label>
+            <input type="url" value={youtube} onChange={(e) => setYoutube(e.target.value)}
+              placeholder="https://youtube.com/@yourbusiness" className={inputClass} />
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t pt-5">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('mediaLabel')}</h3>
+        <div className="space-y-4">
+          <div>
+            <label className={labelClass}>{t('heroImageUrlLabel')}</label>
+            <input type="url" value={heroImage} onChange={(e) => setHeroImage(e.target.value)}
+              placeholder="https://example.com/hero.jpg" className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>{t('galleryImageUrlsLabel')}</label>
+            <textarea value={gallery} onChange={(e) => setGallery(e.target.value)}
+              placeholder={'https://example.com/image1.jpg\nhttps://example.com/image2.jpg'} rows={4}
+              className={inputClass} />
+            <p className={hintClass}>{t('galleryImageUrlsHint')}</p>
+          </div>
+        </div>
+      </div>
+
+      <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
+    </div>
+  )
+}
   const t = useTranslations('console')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()

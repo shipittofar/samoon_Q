@@ -18,10 +18,12 @@ import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout, us
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   getMarketplaceMeta,
+  composeMarketplacePresentation,
   BUSINESS_TYPE_LABELS,
   type MarketplaceMeta,
   type PublicBranchInfo,
 } from '@/types/marketplace'
+import { pickTenantContact } from '@/lib/tenant-settings'
 import type { Tenant, Category, MenuItem, PromotionRule } from '@/types'
 import { resolveTenantBranding, resolveTenantImage } from '@/lib/tenant-branding'
 
@@ -90,9 +92,9 @@ function HeroSection({
       className="relative h-[55vh] min-h-[340px] max-h-[600px] overflow-hidden"
     >
       {/* C1/H1: Next.js Image with priority for above-fold hero */}
-      {meta.coverImage ? (
+      {meta.heroImage || meta.coverImage ? (
         <Image
-          src={meta.coverImage}
+          src={(meta.heroImage || meta.coverImage)!}
           alt=""
           aria-hidden="true"
           fill
@@ -763,8 +765,15 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   // The tenant homepage previews the tenant's primary branch's menu — there is
   // no single "tenant menu"; each branch (including the primary one) owns its
   // own independent categories/items. See docs/BRANCH_MENU_ANALYSIS.md.
-  const meta = tenant ? getMarketplaceMeta(tenant.settings) : undefined
-  const { data: publicBranches = [] } = usePublicBranches(tenantId, tenant?.settings)
+  const listing = tenant ? getMarketplaceMeta(tenant.settings) : undefined
+  const { data: publicBranches = [] } = usePublicBranches(tenantId)
+  const meta = tenant
+    ? composeMarketplacePresentation({
+        listing,
+        branches: publicBranches,
+        tenantContact: pickTenantContact(tenant.settings),
+      })
+    : undefined
   const primaryBranch =
     publicBranches.find((b) => b.slug === meta?.primaryBranchSlug) ?? publicBranches[0]
   const visibleBranches = publicBranches.filter((b) => b.marketplaceVisible !== false)
@@ -784,8 +793,7 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const featureFlags = useTenantStore((s) => s.featureFlags)
 
   if (isLoading) return <LoadingSkeleton />
-  if (!tenant || tenant.slug !== tenantSlug || tenantState !== 'resolved') return <TenantNotFoundState />
-  if (!meta) return <TenantNotFoundState />
+  if (!tenant || tenant.slug !== tenantSlug || tenantState !== 'resolved' || !meta) return <TenantNotFoundState />
 
   // Section visibility: Website Builder config or DEFAULT_SECTIONS
   const sections = buildPublicSections(layout?.sections)

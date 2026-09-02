@@ -111,9 +111,14 @@ describe('getMarketplaceMeta', () => {
     expect(getMarketplaceMeta({ theme: { primaryColor: '#fff' } })).toBeUndefined()
   })
 
-  it('returns marketplace meta when present', () => {
+  it('returns tenant listing fields only when marketplace is present', () => {
     const meta = getMarketplaceMeta({ marketplace: mockMeta })
-    expect(meta).toEqual(mockMeta)
+    expect(meta?.tags).toEqual(mockMeta.tags)
+    expect(meta?.rating).toBe(mockMeta.rating)
+    expect(meta?.featured).toBe(true)
+    expect(meta && 'city' in meta).toBe(false)
+    expect(meta && 'coverImage' in meta).toBe(false)
+    expect(meta && 'branches' in meta).toBe(false)
   })
 })
 
@@ -150,10 +155,7 @@ describe('Tenant marketplace metadata', () => {
     publicTenants.forEach((t) => {
       const meta = getMarketplaceMeta(t.settings)
       expect(meta).toBeDefined()
-      expect(meta!.description).toBeTruthy()
-      expect(meta!.city).toBeTruthy()
       expect(meta!.rating).toBeGreaterThan(0)
-      expect(meta!.primaryBranchSlug).toBeTruthy()
     })
   })
 
@@ -187,13 +189,12 @@ describe('Tenant marketplace metadata', () => {
     expect(meta?.isNew).toBe(true)
   })
 
-  it('all tenants have a valid primaryBranchSlug', async () => {
+  it('listing metadata does not persist computed primaryBranchSlug', async () => {
     const tenants = await tenantService.getTenants()
     tenants.forEach((t) => {
       const meta = getMarketplaceMeta(t.settings)
       if (meta) {
-        expect(typeof meta.primaryBranchSlug).toBe('string')
-        expect(meta.primaryBranchSlug!.length).toBeGreaterThan(0)
+        expect(meta && 'primaryBranchSlug' in meta).toBe(false)
       }
     })
   })

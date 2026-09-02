@@ -46,10 +46,10 @@ function PriceDots({ level }: { level?: number }) {
 export function BusinessCard({ tenant, meta, branches: branchesProp, className }: BusinessCardProps) {
   const t = useTranslations('marketplace')
   const [branchesOpen, setBranchesOpen] = useState(false)
-  const { data: resolvedBranches } = usePublicBranches(tenant.id, tenant.settings, {
+  const { data: resolvedBranches } = usePublicBranches(tenant.id, {
     enabled: branchesProp === undefined,
   })
-  const branches = branchesProp ?? resolvedBranches ?? meta.branches ?? []
+  const branches = branchesProp ?? resolvedBranches ?? []
   const visibleBranches = branches.filter((b) => b.marketplaceVisible !== false)
 
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')

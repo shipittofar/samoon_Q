@@ -32,7 +32,7 @@ export default function TenantBranchLayout({
   const tenant = useTenantStore((s) => s.tenant)
   const tenantState = useTenantStore((s) => s.tenantState)
   const setActiveBranch = useBranchStore((s) => s.setActiveBranch)
-  const { data: publicBranches } = usePublicBranches(tenant?.id ?? '', tenant?.settings)
+  const { data: publicBranches } = usePublicBranches(tenant?.id ?? '')
 
   // Tenant bootstrap is owned by the parent [tenantSlug]/layout.tsx — never
   // call loadTenant(slug) here; that duplicated GET /tenants/{slug}/ after

@@ -1,10 +1,11 @@
 /**
- * P8.7.7.1 — Public Marketplace Discovery Layer
+ * Public marketplace display types.
  *
- * MarketplaceMeta is stored in Tenant.settings.marketplace and contains
- * display-only fields curated for the public /discover page.
- * These fields are never security-sensitive — they are what a business
- * owner explicitly chooses to show to the public.
+ * Tenant.settings.marketplace holds only tenant listing metadata
+ * (`TenantMarketplaceSettings`). Branch-owned fields (city, contact,
+ * cover, description, cuisines, amenities, hours) come from Branch APIs.
+ * Computed fields (openNow, branchCount, primaryBranchSlug) come from
+ * the Discover/public projection or a local presentation compose step.
  */
 
 import type { Branch, BranchCheckout, BranchBusinessHours } from '@/types/branch'
@@ -24,6 +25,10 @@ export interface PublicBranchInfo {
   city: string
   /** Public phone_number number. */
   phone_number?: string
+  /** Public email for this location. */
+  email?: string
+  /** Short description of this location (branch-owned). */
+  description?: string
   /** Whether the branch is open right now. */
   openNow: boolean
   /** Today's opening hours string, e.g. "10:00–23:00" or "Closed today". */
@@ -44,67 +49,96 @@ export interface PublicBranchInfo {
   amenities?: string[]
 }
 
-export interface MarketplaceMeta {
-  /**
-   * Phase Z.6.2 — every field below is optional: the backend contract
-   * guarantees `settings.marketplace` may be present or absent as a
-   * whole (see Tenant.settings on `TenantSettings`), but does not
-   * guarantee every sub-field is populated the moment marketplace exists
-   * (e.g. a newly onboarded tenant with zero reviews yet, or one that
-   * hasn't set a cover image). Every consumer of this type must degrade
-   * gracefully — see BusinessCard.tsx / DiscoverClientPage.tsx for the
-   * fallback conventions (0 for numbers, [] for arrays, hidden UI
-   * sections for absent optional content).
-   */
-  /** Short pitch shown on the business card (max ~120 chars). */
-  description?: string
-  /** URL of the cover/hero image for the card. */
-  coverImage?: string
-  /** Discovery tags (e.g. "Date Night", "Pet Friendly"). */
-  tags?: string[]
-  /** Average star rating (0–5, two decimal places). */
-  rating?: number
-  /** Number of reviews that contributed to the rating. */
-  reviewCount?: number
-  /** City where the business (or its primary branch) is located. */
-  city?: string
-  /** Total number of active branches. */
-  branchCount?: number
-  /** Whether the business is currently open. */
-  openNow?: boolean
-  /** Slug of the primary/default branch (used to build preview links). */
-  primaryBranchSlug?: string
-  /** Pin this business in the "Featured" section. */
-  featured?: boolean
-  /** Pin this business in the "Popular" section. */
-  popular?: boolean
-  /** Mark as newly onboarded in the "New" section. */
-  isNew?: boolean
-  /** Public branch summaries for display on the tenant homepage. */
-  branches?: PublicBranchInfo[]
-  /** Tagline displayed below the business name on the tenant homepage. */
+/** Persisted Tenant.settings.marketplace — tenant listing metadata only. */
+export interface TenantMarketplaceSettings {
   tagline?: string
-  /** Price level indicator: 1 = $, 2 = $$, 3 = $$$, 4 = $$$$ */
+  featured?: boolean
+  popular?: boolean
+  isNew?: boolean
   priceLevel?: 1 | 2 | 3 | 4
-  /** Public contact phone_number. */
-  phone_number?: string
-  /** Public contact email. */
-  email?: string
-  /** Public website URL. */
-  website?: string
-  /** Gallery image URLs (in addition to coverImage). */
+  tags?: string[]
   gallery?: string[]
-  /** Long-form about / story text shown on the public About page. */
+  rating?: number
+  reviewCount?: number
   story?: string
-  /** Public social media profile URLs. */
+  website?: string
   socialLinks?: {
     instagram?: string
     twitter?: string
     facebook?: string
     youtube?: string
   }
-  /** Hero / banner image URL (used on the full-page tenant hero; falls back to coverImage). */
   heroImage?: string
+}
+
+/**
+ * Presentation shape for marketplace cards and tenant homepage.
+ * Listing fields come from Tenant.settings.marketplace.
+ * city / cover / description / contact / branches come from Branch (or compose).
+ * openNow / branchCount / primaryBranchSlug are computed or API-provided.
+ */
+export interface MarketplaceMeta extends TenantMarketplaceSettings {
+  description?: string
+  coverImage?: string
+  city?: string
+  branchCount?: number
+  openNow?: boolean
+  primaryBranchSlug?: string
+  branches?: PublicBranchInfo[]
+  phone_number?: string
+  email?: string
+}
+
+export const TENANT_MARKETPLACE_KEYS = [
+  'tagline',
+  'featured',
+  'popular',
+  'isNew',
+  'priceLevel',
+  'tags',
+  'gallery',
+  'rating',
+  'reviewCount',
+  'story',
+  'website',
+  'socialLinks',
+  'heroImage',
+] as const
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/** One-way: keep only tenant-owned listing keys from a marketplace bag. */
+export function pickTenantMarketplace(raw?: unknown): TenantMarketplaceSettings | undefined {
+  if (!isPlainObject(raw)) return undefined
+  const listing: TenantMarketplaceSettings = {}
+
+  if (typeof raw.tagline === 'string') listing.tagline = raw.tagline
+  if (typeof raw.featured === 'boolean') listing.featured = raw.featured
+  if (typeof raw.popular === 'boolean') listing.popular = raw.popular
+  if (typeof raw.isNew === 'boolean') listing.isNew = raw.isNew
+  if (raw.priceLevel === 1 || raw.priceLevel === 2 || raw.priceLevel === 3 || raw.priceLevel === 4) {
+    listing.priceLevel = raw.priceLevel
+  }
+  if (Array.isArray(raw.tags)) listing.tags = raw.tags.filter((t): t is string => typeof t === 'string')
+  if (Array.isArray(raw.gallery)) listing.gallery = raw.gallery.filter((t): t is string => typeof t === 'string')
+  if (typeof raw.rating === 'number') listing.rating = raw.rating
+  if (typeof raw.reviewCount === 'number') listing.reviewCount = raw.reviewCount
+  if (typeof raw.story === 'string') listing.story = raw.story
+  if (typeof raw.website === 'string') listing.website = raw.website
+  if (typeof raw.heroImage === 'string') listing.heroImage = raw.heroImage
+
+  if (isPlainObject(raw.socialLinks)) {
+    const social: NonNullable<TenantMarketplaceSettings['socialLinks']> = {}
+    if (typeof raw.socialLinks.instagram === 'string') social.instagram = raw.socialLinks.instagram
+    if (typeof raw.socialLinks.twitter === 'string') social.twitter = raw.socialLinks.twitter
+    if (typeof raw.socialLinks.facebook === 'string') social.facebook = raw.socialLinks.facebook
+    if (typeof raw.socialLinks.youtube === 'string') social.youtube = raw.socialLinks.youtube
+    if (Object.keys(social).length > 0) listing.socialLinks = social
+  }
+
+  return Object.keys(listing).length > 0 ? listing : undefined
 }
 
 export const BUSINESS_TYPE_LABELS: Record<string, string> = {
@@ -173,21 +207,17 @@ export function hasActiveFilters(f: FilterState): boolean {
 // ── Core helpers ──────────────────────────────────────────────────────────────
 
 /**
- * Returns the MarketplaceMeta stored in Tenant.settings.marketplace, or
- * undefined. Phase Z.6.2 — no longer a cast: `settings.marketplace` is
- * typed directly (src/types/index.ts's TenantSettings), since
- * `getMarketplaceMeta()`'s only real job left is the `undefined`
- * shorthand for "no settings object at all."
+ * Tenant listing metadata from Tenant.settings.marketplace.
+ * Does not return Branch-owned or computed fields even if a stale payload still contains them.
  */
-export function getMarketplaceMeta(settings?: { marketplace?: MarketplaceMeta; [key: string]: unknown }): MarketplaceMeta | undefined {
-  return settings?.marketplace
+export function getMarketplaceMeta(
+  settings?: { marketplace?: TenantMarketplaceSettings | MarketplaceMeta; [key: string]: unknown },
+): TenantMarketplaceSettings | undefined {
+  return pickTenantMarketplace(settings?.marketplace)
 }
 
 /** Maps a canonical branch detail response into the public display shape. */
-export function publicBranchFromDetail(
-  branch: Branch,
-  marketplace?: PublicBranchInfo,
-): PublicBranchInfo {
+export function publicBranchFromDetail(branch: Branch): PublicBranchInfo {
   const hoursStatus = branch.businessHours?.length
     ? resolveBranchHoursStatus(branch.businessHours)
     : null
@@ -198,10 +228,12 @@ export function publicBranchFromDetail(
     name: branch.name,
     address: branch.location.address,
     city: branch.location.city,
-    phone_number: branch.contact.phone_number ?? marketplace?.phone_number,
-    openNow: hoursStatus?.openNow ?? marketplace?.openNow ?? false,
-    todayHours: hoursStatus?.todayHours ?? marketplace?.todayHours,
-    image: branch.image ?? branch.coverImage ?? marketplace?.image,
+    phone_number: branch.contact.phone_number,
+    email: branch.contact.email,
+    description: branch.description,
+    openNow: hoursStatus?.openNow ?? false,
+    todayHours: hoursStatus?.todayHours,
+    image: branch.coverImage ?? branch.image,
     checkout: branch.checkout,
     businessHours: branch.businessHours,
     currency: branch.currency,
@@ -210,6 +242,41 @@ export function publicBranchFromDetail(
     maxCapacity: branch.maxCapacity,
     cuisines: branch.cuisines,
     amenities: branch.amenities,
+  }
+}
+
+/**
+ * Compose public marketplace presentation from tenant listing + branches + contact fallback.
+ * Computed values prefer an API projection when provided.
+ */
+export function composeMarketplacePresentation(input: {
+  listing?: TenantMarketplaceSettings
+  branches: PublicBranchInfo[]
+  tenantContact?: { contactEmail?: string; contactPhone?: string }
+  computed?: { openNow?: boolean; branchCount?: number; primaryBranchSlug?: string }
+}): MarketplaceMeta {
+  const branches = input.branches.filter((b) => b.marketplaceVisible !== false)
+  const listing = pickTenantMarketplace(input.listing) ?? {}
+  const primarySlug = input.computed?.primaryBranchSlug ?? branches[0]?.slug
+  const primary = branches.find((b) => b.slug === primarySlug) ?? branches[0]
+  const openNow =
+    input.computed?.openNow !== undefined
+      ? input.computed.openNow
+      : branches.length > 0
+        ? branches.some((b) => b.openNow)
+        : undefined
+
+  return {
+    ...listing,
+    branches,
+    city: primary?.city,
+    description: primary?.description,
+    coverImage: primary?.image,
+    phone_number: primary?.phone_number || input.tenantContact?.contactPhone,
+    email: primary?.email || input.tenantContact?.contactEmail,
+    branchCount: input.computed?.branchCount ?? branches.length,
+    openNow,
+    primaryBranchSlug: primarySlug,
   }
 }
 

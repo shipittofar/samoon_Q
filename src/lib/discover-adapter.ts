@@ -1,18 +1,23 @@
 /**
- * Maps GET /api/public/discover/ wire types into existing UI shapes so
- * Discover components require no contract changes.
+ * Maps GET /api/public/discover/ wire types into existing UI shapes.
+ * One-way toward Branch-owned location/contact/media and Tenant listing metadata.
  */
 
 import type { Tenant } from '@/types'
 import type { DiscoverBranch, DiscoverResponse, DiscoverTenant } from '@/types/discover'
-import type { MarketplaceMeta, PublicBranchInfo } from '@/types/marketplace'
+import {
+  composeMarketplacePresentation,
+  pickTenantMarketplace,
+  type PublicBranchInfo,
+} from '@/types/marketplace'
 import { resolveBranchHoursStatus } from '@/lib/branch-hours'
+import { pickTenantContact } from '@/lib/tenant-settings'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
 
 /** Adapted discover row — TenantWithMeta plus pre-resolved branches for BusinessCard. */
 export type DiscoverItem = {
   tenant: Tenant
-  meta: MarketplaceMeta
+  meta: ReturnType<typeof composeMarketplacePresentation>
   branches: PublicBranchInfo[]
 }
 
@@ -25,11 +30,14 @@ export function mapDiscoverBranchToPublicBranchInfo(branch: DiscoverBranch): Pub
     id: branch.id,
     slug: branch.slug,
     name: branch.name,
+    description: branch.description,
     address: branch.location.address,
     city: branch.location.city,
+    phone_number: branch.phone_number,
+    email: branch.email,
     openNow: hoursStatus.openNow,
     todayHours: hoursStatus.todayHours,
-    image: branch.image,
+    image: branch.coverImage ?? branch.image,
     checkout: branch.checkout,
     currency: branch.currency,
     businessHours: branch.businessHours,
@@ -46,39 +54,23 @@ export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
     .map(mapDiscoverBranchToPublicBranchInfo)
     .filter((b) => b.marketplaceVisible !== false)
 
-  const m = item.marketplace ?? {}
-  // Explicit MarketplaceMeta fields only — never spread raw wire (prevents unknown keys).
-  const meta: MarketplaceMeta = {
-    description: m.description,
-    coverImage: m.coverImage,
-    tags: m.tags,
-    rating: m.rating,
-    reviewCount: m.reviewCount,
-    city: m.city,
-    branchCount: m.branchCount ?? branches.length,
-    openNow:
-      m.openNow !== undefined
-        ? m.openNow
-        : branches.length > 0
-          ? branches.some((b) => b.openNow)
-          : undefined,
-    primaryBranchSlug: m.primaryBranchSlug ?? branches[0]?.slug,
-    featured: m.featured,
-    popular: m.popular,
-    isNew: m.isNew,
-    tagline: m.tagline,
-    priceLevel: m.priceLevel,
-    phone_number: m.phone_number,
-    email: m.email,
-    website: m.website,
-    gallery: m.gallery,
-    story: m.story,
-    socialLinks: m.socialLinks,
-    heroImage: m.heroImage,
-    branches,
-  }
+  const listing = pickTenantMarketplace(item.marketplace)
+  const tenantContact = pickTenantContact({
+    contactEmail: item.contactEmail,
+    contactPhone: item.contactPhone,
+  })
 
-  // Prefer Discover `branding`; fall back to legacy `theme` for older responses.
+  const meta = composeMarketplacePresentation({
+    listing,
+    branches,
+    tenantContact,
+    computed: {
+      openNow: item.marketplace?.openNow,
+      branchCount: item.marketplace?.branchCount,
+      primaryBranchSlug: item.marketplace?.primaryBranchSlug,
+    },
+  })
+
   const branding = resolveTenantBranding({
     branding: item.branding,
     theme: item.theme,
@@ -95,9 +87,10 @@ export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
     image: item.image,
     settings: {
       featureFlags: item.featureFlags,
-      // CRUD-shaped store: settings.theme holds branding values for shared consumers
       theme: branding,
-      marketplace: meta,
+      marketplace: listing,
+      contactEmail: item.contactEmail,
+      contactPhone: item.contactPhone,
     },
   }
 

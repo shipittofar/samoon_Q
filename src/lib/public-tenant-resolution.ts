@@ -4,26 +4,28 @@ import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/serv
 import { branchManagementService } from '@/services/branch.service'
 import {
   findPublicBranchBySlug,
-  getLegacyMarketplaceBranches,
   resolvePublicBranchList,
 } from '@/lib/public-branches'
-import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
+import {
+  composeMarketplacePresentation,
+  getMarketplaceMeta,
+  publicBranchFromDetail,
+  type MarketplaceMeta,
+  type PublicBranchInfo,
+} from '@/types/marketplace'
+import { pickTenantContact } from '@/lib/tenant-settings'
 import type { Tenant } from '@/types'
 
 /** React Query key for the Discover tenant list — shared with usePublicTenants(). */
 export const PUBLIC_TENANTS_QUERY_KEY = ['public-tenants'] as const
 
 export type ResolvePublicTenantOptions = {
-  /**
-   * Pre-fetched tenants (e.g. React Query discover cache).
-   * When a match is found, avoids an extra GET /tenants/ list round-trip.
-   */
   cachedTenants?: Tenant[]
 }
 
 export type PublicBranchPageData = {
   tenant: Tenant
-  meta: ReturnType<typeof getMarketplaceMeta>
+  meta: MarketplaceMeta
   marketplaceBranch: PublicBranchInfo
   branch: PublicBranchInfo
 }
@@ -34,12 +36,6 @@ function findTenantIdBySlug(tenants: Tenant[], slug: string): string | undefined
 
 /**
  * Single source of truth: map a public URL slug to the canonical tenant UUID.
- *
- * Priority:
- *   1. `cachedTenants` (Discover / usePublicTenants React Query cache)
- *   2. GET /api/tenants/ list lookup
- *
- * Never calls GET /api/tenants/{slug}/ — the production backend is UUID-only.
  */
 export async function resolvePublicTenantId(
   slug: string,
@@ -58,9 +54,6 @@ export async function resolvePublicTenantId(
   return tenantId
 }
 
-/**
- * Fetch full tenant detail for a public URL slug via the UUID detail endpoint.
- */
 export async function fetchPublicTenantBySlug(
   slug: string,
   options: ResolvePublicTenantOptions = {},
@@ -69,10 +62,6 @@ export async function fetchPublicTenantBySlug(
   return tenantService.getTenantById(tenantId)
 }
 
-/**
- * SSR/RSC tenant resolver — dedupes across generateMetadata() and page() within
- * one Next.js request via React.cache().
- */
 export const resolvePublicTenantForPage = cache(async (slug: string): Promise<Tenant> => {
   try {
     return await fetchPublicTenantBySlug(slug)
@@ -84,34 +73,31 @@ export const resolvePublicTenantForPage = cache(async (slug: string): Promise<Te
   }
 })
 
-/**
- * SSR/RSC branch page resolver — reuses the cached tenant fetch above and
- * dedupes the full branch bootstrap across generateMetadata() and page().
- */
 export const resolvePublicBranchPageForPage = cache(async (
   tenantSlug: string,
   branchSlug: string,
 ): Promise<PublicBranchPageData> => {
   const tenant = await resolvePublicTenantForPage(tenantSlug)
-  const meta = getMarketplaceMeta(tenant.settings)
-  const branchList = await resolvePublicBranchList(tenant.id, tenant.settings)
+  const branchList = await resolvePublicBranchList(tenant.id)
   const listMatch = findPublicBranchBySlug(branchList, branchSlug)
 
   if (!listMatch?.id) {
     notFound()
   }
 
-  const legacyMatch = getLegacyMarketplaceBranches(tenant.settings).find(
-    (b) => b.slug === branchSlug,
-  )
-
   let branch: PublicBranchInfo
   try {
     const detail = await branchManagementService.getPublicBranch(tenant.id, listMatch.id)
-    branch = publicBranchFromDetail(detail, legacyMatch ?? listMatch)
+    branch = publicBranchFromDetail(detail)
   } catch {
     notFound()
   }
 
-  return { tenant, meta, marketplaceBranch: legacyMatch ?? listMatch, branch }
+  const meta = composeMarketplacePresentation({
+    listing: getMarketplaceMeta(tenant.settings),
+    branches: branchList,
+    tenantContact: pickTenantContact(tenant.settings),
+  })
+
+  return { tenant, meta, marketplaceBranch: listMatch, branch }
 })

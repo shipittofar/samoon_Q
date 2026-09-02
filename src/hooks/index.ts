@@ -133,7 +133,7 @@ import type {
   VerifyOTPRequest,
 } from '@/types'
 import { buildDrfPaginationParams } from '@/utils/pagination'
-import { getMarketplaceMeta, publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
+import { publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant } from '@/types'
 import { resolvePublicBranchList } from '@/lib/public-branches'
 import { mergeBranchCheckout } from '@/lib/branch-checkout'
@@ -1351,6 +1351,8 @@ export function useUpdateBranch() {
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
       qc.invalidateQueries({ queryKey: ['admin-branches'] })
+      qc.invalidateQueries({ queryKey: ['public-branches', tenantId] })
+      qc.invalidateQueries({ queryKey: ['public-discover'] })
     },
   })
 }
@@ -3203,7 +3205,7 @@ export function usePublicBranch(
     queryKey: ['public-branch', tenantId, branchId],
     queryFn: async (): Promise<PublicBranchInfo | null> => {
       const detail = await branchManagementService.getPublicBranch(tenantId, branchId)
-      return publicBranchFromDetail(detail, options?.marketplaceBranch)
+      return publicBranchFromDetail(detail)
     },
     initialData: options?.initialData,
     staleTime: STALE_TIME,
@@ -3211,15 +3213,14 @@ export function usePublicBranch(
   })
 }
 
-/** Canonical public branch list for a tenant (API-first, legacy fallback). */
+/** Canonical public branch list for a tenant (Branch API). */
 export function usePublicBranches(
   tenantId: string,
-  settings?: Tenant['settings'],
   options?: { enabled?: boolean },
 ) {
   return useQuery<PublicBranchInfo[]>({
     queryKey: ['public-branches', tenantId],
-    queryFn: () => resolvePublicBranchList(tenantId, settings),
+    queryFn: () => resolvePublicBranchList(tenantId),
     staleTime: STALE_TIME,
     enabled: !!tenantId && (options?.enabled ?? true),
   })

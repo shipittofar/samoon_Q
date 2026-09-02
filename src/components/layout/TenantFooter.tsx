@@ -18,8 +18,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
   const t = useTranslations('tenantFooter')
   const featureFlags = useTenantStore((s) => s.featureFlags)
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
-  const tenantSettings = useTenantStore((s) => s.tenant?.settings)
-  const { data: publicBranches = [] } = usePublicBranches(tenantId, tenantSettings)
+  const { data: publicBranches = [] } = usePublicBranches(tenantId)
   const primaryBranch =
     publicBranches.find((b) => b.slug === meta.primaryBranchSlug) ?? publicBranches[0]
   const quickLinks = buildFooterLinks({

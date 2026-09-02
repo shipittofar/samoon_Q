@@ -10,6 +10,7 @@ import type {
 } from '@/types/provisioning'
 import type { Tenant, TenantBranding } from '@/types'
 import { sanitizeBrandingForWrite } from '@/lib/tenant-branding'
+import { sanitizeTenantSettings } from '@/lib/tenant-settings'
 import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
@@ -504,7 +505,7 @@ export const tenantProvisioningService = {
         created_at: new Date().toISOString(),
         // Preserve source settings (feature flags + branding), override name
         settings: source?.settings
-          ? { ...(source.settings as Record<string, unknown>) }
+          ? sanitizeTenantSettings(source.settings as Record<string, unknown>)
           : undefined,
       }
       MOCK_EXISTING_SLUGS.add(newSlug)

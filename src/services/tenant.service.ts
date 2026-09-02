@@ -8,6 +8,7 @@ import {
   normalizeTenantStatus,
 } from '@/lib/tenant-state'
 import type { Tenant, TenantStatus, PaginatedResponse } from '@/types'
+import { sanitizeTenantSettings, sanitizeTenantSettingsPatch } from '@/lib/tenant-settings'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms))
@@ -63,6 +64,7 @@ function normalizeTenant(raw: Tenant & { business_types?: string[]; is_active?: 
     businessTypes: raw.businessTypes ?? raw.business_types ?? [],
     status,
     is_active: coerceTenantIsActive(raw.is_active, raw.status as string),
+    settings: sanitizeTenantSettings(raw.settings),
   }
 }
 
@@ -89,34 +91,24 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         fontBody: 'inter',
         fontsByLocale: { en: 'inter', fa: 'vazirmatn' },
       },
+      contactEmail: 'hello@samoon.com',
+      contactPhone: '+1 (212) 555-0100',
       marketplace: {
-        description: 'Fine dining with contemporary Mediterranean cuisine crafted with passion in an elegant atmosphere.',
-        coverImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
         tags: ['Fine Dining', 'Date Night', 'Family Friendly'],
         rating: 4.8,
         reviewCount: 1247,
-        city: 'New York',
-        branchCount: 3,
-        openNow: true,
-        primaryBranchSlug: 'main',
         featured: true,
         popular: true,
         tagline: 'Where every dish tells a story.',
         priceLevel: 3,
-        phone_number: '+1 (212) 555-0100',
-        email: 'hello@samoon.com',
         website: 'https://www.samoon.com',
+        heroImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
           'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=800&q=80',
           'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&q=80',
           'https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=800&q=80',
           'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80',
-        ],
-        branches: [
-          { id: 'branch-rest-01', slug: 'main', name: 'Main Branch', address: '123 Culinary Avenue', city: 'New York', phone_number: '+1 212 555 0100', openNow: true, todayHours: '10:00–23:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
-          { id: 'branch-rest-02', slug: 'downtown', name: 'Downtown Branch', address: '456 Urban Street', city: 'New York', phone_number: '+1 212 555 0200', openNow: true, todayHours: '11:00–22:00', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80' },
-          { id: 'branch-rest-03', slug: 'airport', name: 'Airport Branch', address: 'JFK Terminal 4', city: 'New York', phone_number: '+1 212 555 0300', openNow: false, todayHours: '06:00–23:00', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80' },
         ],
       },
     },
@@ -132,29 +124,20 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'loyalty.enabled': true, 'cafe.loyalty.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#6f4e37' },
+      contactEmail: 'hello@brewcafe.com',
+      contactPhone: '+1 (212) 555-0400',
       marketplace: {
-        description: 'Specialty coffee roasters with artisan pastries and a cozy, work-friendly atmosphere.',
-        coverImage: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
         tags: ['Specialty Coffee', 'Remote-Work Friendly', 'Vegan Options'],
         rating: 4.6,
         reviewCount: 892,
-        city: 'New York',
-        branchCount: 2,
-        openNow: true,
-        primaryBranchSlug: 'main',
         popular: true,
         tagline: 'Your daily ritual, elevated.',
         priceLevel: 2,
-        phone_number: '+1 (212) 555-0400',
-        email: 'hello@brewcafe.com',
+        heroImage: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
           'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&q=80',
           'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80',
-        ],
-        branches: [
-          { id: 'branch-brewcafe-01', slug: 'main', name: 'Midtown Cafe', address: '789 Coffee Lane', city: 'New York', phone_number: '+1 212 555 0400', openNow: true, todayHours: '07:00–20:00', image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=80' },
-          { id: 'branch-brewcafe-02', slug: 'brooklyn-cafe', name: 'Brooklyn Cafe', address: '321 Brew Boulevard', city: 'Brooklyn', phone_number: '+1 718 555 0500', openNow: true, todayHours: '08:00–19:00', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&q=80' },
         ],
       },
     },
@@ -170,28 +153,20 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'promotions.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#1a1a2e' },
+      contactEmail: 'hello@theoakbar.com',
+      contactPhone: '+1 (212) 555-0600',
       marketplace: {
-        description: 'Sophisticated cocktail bar with live music, craft beer and an extensive spirits collection.',
-        coverImage: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80',
         tags: ['Live Music', 'Happy Hour', 'Date Night'],
         rating: 4.7,
         reviewCount: 634,
-        city: 'New York',
-        branchCount: 1,
-        openNow: false,
-        primaryBranchSlug: 'main',
         featured: true,
         tagline: 'Craft cocktails. Live music. Good company.',
         priceLevel: 2,
-        phone_number: '+1 (212) 555-0600',
-        email: 'hello@theoakbar.com',
+        heroImage: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1543007631-283050bb3e8c?w=800&q=80',
           'https://images.unsplash.com/photo-1525268323446-0505b6fe7778?w=800&q=80',
           'https://images.unsplash.com/photo-1514362453360-8f94243c9996?w=800&q=80',
-        ],
-        branches: [
-          { id: 'branch-oakbar-01', slug: 'main', name: 'East Village', address: '555 Tap Street', city: 'New York', phone_number: '+1 212 555 0600', openNow: false, todayHours: '16:00–02:00', image: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&q=80' },
         ],
       },
     },
@@ -207,28 +182,20 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_court.vendor_management.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#2d6a4f' },
+      contactEmail: 'hello@centralfoodcourt.com',
+      contactPhone: '+1 (212) 555-0700',
       marketplace: {
-        description: 'Multi-vendor food court with diverse cuisines from around the world under one roof.',
-        coverImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
         tags: ['Family Friendly', 'Variety', 'Large Portions'],
         rating: 4.3,
         reviewCount: 2108,
-        city: 'New York',
-        branchCount: 1,
-        openNow: true,
-        primaryBranchSlug: 'main',
         isNew: true,
         tagline: 'Every cuisine under one roof.',
         priceLevel: 1,
-        phone_number: '+1 (212) 555-0700',
-        email: 'hello@centralfoodcourt.com',
+        heroImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
           'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80',
           'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
-        ],
-        branches: [
-          { id: 'branch-centralfc-01', slug: 'main', name: 'Westside Food Court', address: '100 Market Street', city: 'New York', phone_number: '+1 212 555 0700', openNow: true, todayHours: '10:00–21:00', image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80' },
         ],
       },
     },
@@ -244,16 +211,13 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_truck.live_location.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#f4a261' },
+      contactEmail: 'hello@roadbites.com',
+      contactPhone: '+1 (212) 555-0800',
       marketplace: {
-        description: 'Street food on the move — bold flavours, fast service, live GPS tracking.',
-        coverImage: 'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
         tags: ['Mobile', 'Fast Casual', 'Live Location'],
         rating: 4.4,
         reviewCount: 511,
-        city: 'New York',
-        branchCount: 1,
-        openNow: false,
-        primaryBranchSlug: 'main',
+        heroImage: 'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
       },
     },
   },
@@ -268,28 +232,20 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     settings: {
       featureFlags: { 'menu.enabled': true, 'mobile_cafe.loyalty.enabled': true, 'mobile_cafe.live_location.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#457b9d' },
+      contactEmail: 'hello@wheelsandbrews.com',
+      contactPhone: '+1 (212) 555-1000',
       marketplace: {
-        description: 'Mobile coffee and brunch on wheels — find our daily stops and enjoy fresh espresso anywhere.',
-        coverImage: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
         tags: ['Mobile', 'Outdoor', 'Healthy', 'Loyalty Rewards'],
         rating: 4.5,
         reviewCount: 312,
-        city: 'New York',
-        branchCount: 1,
-        openNow: true,
-        primaryBranchSlug: 'main',
         isNew: true,
         tagline: 'Good coffee wherever life takes you.',
         priceLevel: 1,
-        phone_number: '+1 (212) 555-1000',
-        email: 'hello@wheelsandbrews.com',
+        heroImage: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80',
           'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&q=80',
           'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
-        ],
-        branches: [
-          { id: 'branch-wheelsbrews-01', slug: 'main', name: 'Brew Cart (Central Park)', address: 'Central Park South Entrance', city: 'New York', phone_number: '+1 212 555 1000', openNow: true, todayHours: '07:00–17:00', image: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=400&q=80' },
         ],
       },
     },
@@ -513,17 +469,21 @@ export const tenantService = {
   },
 
   /**
-   * Persist tenant settings (general, branding, hours, integrations, notifications).
-   * In mock mode: patches the in-memory tenant record and returns the updated object.
+   * Persist canonical tenant settings (theme, featureFlags, marketplace listing, contact, notifications).
+   * Branch-owned keys in the patch are stripped and never written.
    */
   async updateTenantSettings(tenantId: string, patch: Record<string, unknown>): Promise<Tenant> {
+    const cleaned = sanitizeTenantSettingsPatch(patch, { allowMockExtras: USE_MOCK })
     if (USE_MOCK) {
       await delay(250)
       const existing = MOCK_TENANT_LIST.find((t) => t.id === tenantId) ?? findInList(tenantId)
       if (!existing) throw new Error(`Tenant not found: ${tenantId}`)
       const updated: Tenant = {
         ...existing,
-        settings: { ...(existing.settings ?? {}), ...patch },
+        settings: sanitizeTenantSettings(
+          { ...(existing.settings ?? {}), ...cleaned },
+          { allowMockExtras: true },
+        ),
       }
       const idx = MOCK_TENANT_LIST.findIndex((t) => t.id === tenantId)
       if (idx !== -1) MOCK_TENANT_LIST[idx] = updated
@@ -531,7 +491,7 @@ export const tenantService = {
       if (mockKey) MOCK_TENANTS[mockKey] = updated
       return updated
     }
-    const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.SETTINGS(tenantId), patch)
+    const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.SETTINGS(tenantId), cleaned)
     return normalizeTenant(data)
   },
 

@@ -41,13 +41,13 @@ describe('Phase Z.6.2 — withMeta() keeps every tenant, even without settings.m
   })
 
   it('a tenant with settings but no marketplace key is still included', () => {
-    const result = withMeta([makeTenant({ settings: { currency: 'USD' } })])
+    const result = withMeta([makeTenant({ settings: { featureFlags: { x: true } } })])
     expect(result).toHaveLength(1)
     expect(result[0]!.meta).toEqual({})
   })
 
-  it('a tenant with full marketplace data keeps it intact', () => {
-    const marketplace: MarketplaceMeta = { description: 'Great food', rating: 4.5, tags: ['Italian'] }
+  it('a tenant with full marketplace data keeps listing fields intact', () => {
+    const marketplace = { story: 'Great food', rating: 4.5, tags: ['Italian'] }
     const result = withMeta([makeTenant({ settings: { marketplace } })])
     expect(result[0]!.meta).toEqual(marketplace)
   })
@@ -99,12 +99,12 @@ describe('Phase Z.6.2 — getMarketplaceMeta()', () => {
   })
 
   it('returns undefined when marketplace is absent', () => {
-    expect(getMarketplaceMeta({ currency: 'USD' })).toBeUndefined()
+    expect(getMarketplaceMeta({ featureFlags: { a: true } })).toBeUndefined()
   })
 
-  it('returns the marketplace object when present', () => {
-    const marketplace: MarketplaceMeta = { description: 'x' }
-    expect(getMarketplaceMeta({ marketplace })).toBe(marketplace)
+  it('returns only tenant listing fields when present', () => {
+    const marketplace = { story: 'x', city: 'Paris', coverImage: 'img' }
+    expect(getMarketplaceMeta({ marketplace })).toEqual({ story: 'x' })
   })
 })
 

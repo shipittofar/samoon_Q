@@ -9,7 +9,8 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Badge } from '@/components/ui'
 import { fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
 import { resolvePublicBranchList } from '@/lib/public-branches'
-import { getMarketplaceMeta } from '@/types/marketplace'
+import { composeMarketplacePresentation, getMarketplaceMeta } from '@/types/marketplace'
+import { pickTenantContact, resolvePublicContact } from '@/lib/tenant-settings'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
@@ -23,24 +24,22 @@ export default async function RestaurantPage() {
   const t = await getTranslations('restaurant')
   // Load the samoon tenant data so all public content is driven by admin settings.
   const tenant = await fetchPublicTenantBySlug('samoon').catch(() => null)
-  const meta = tenant ? getMarketplaceMeta(tenant.settings) : undefined
+  const publicBranches = tenant ? await resolvePublicBranchList(tenant.id) : []
+  const meta = tenant
+    ? composeMarketplacePresentation({
+        listing: getMarketplaceMeta(tenant.settings),
+        branches: publicBranches,
+        tenantContact: pickTenantContact(tenant.settings),
+      })
+    : undefined
 
-  // Phase Z.6.2 — no hardcoded fallback content. Every field below comes
-  // exclusively from tenant.settings.marketplace; sections are hidden
-  // (not backfilled with placeholder copy/images) when the tenant hasn't
-  // configured them yet — see the `story`/`gallery`/`branches` empty-state
-  // guards in the JSX below.
   const story = meta?.story
   const tagline = meta?.tagline
   const gallery = meta?.gallery ?? []
-  const contactPhone = meta?.phone_number || tenant?.settings?.contactPhone as string | undefined
-  const contactEmail = meta?.email || tenant?.settings?.contactEmail as string | undefined
+  const contact = resolvePublicContact(publicBranches[0], pickTenantContact(tenant?.settings))
+  const contactPhone = contact.phone_number
+  const contactEmail = contact.email
   const contactWebsite = meta?.website
-
-  // Derive public branch list from tenant → branch relation (legacy fallback).
-  const publicBranches = tenant
-    ? await resolvePublicBranchList(tenant.id, tenant.settings)
-    : []
   const branches = publicBranches.map((b) => ({
     name: b.name,
     address: b.address,

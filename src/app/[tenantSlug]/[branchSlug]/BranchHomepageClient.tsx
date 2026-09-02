@@ -704,7 +704,7 @@ export default function BranchHomepageClient({
     marketplaceBranch,
     initialData: initialBranch,
   })
-  const { data: publicBranches = [] } = usePublicBranches(tenantId, tenant?.settings)
+  const { data: publicBranches = [] } = usePublicBranches(tenantId)
   const { data: categories = [] } = useCategories(branchId)
   const { data: menuItemsPage } = useMenuItems(branchId)
   const { data: promotions = [] } = useActivePromotions()
