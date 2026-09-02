@@ -12,7 +12,6 @@ import { tenantService } from '@/services/tenant.service'
 
 const mockMeta: MarketplaceMeta = {
   description: 'Fine dining Mediterranean cuisine',
-  coverImage: 'https://example.com/cover.jpg',
   tags: ['Date Night', 'Fine Dining'],
   rating: 4.8,
   reviewCount: 1200,

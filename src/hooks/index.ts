@@ -3110,6 +3110,29 @@ export function useUpdateTenantSettings(explicitTenantId?: string) {
   })
 }
 
+export function useUpdateTenantMedia(explicitTenantId?: string) {
+  const qc = useQueryClient()
+  const workspaceTenantId = useConsoleTenantId()
+  const tenantId = explicitTenantId || workspaceTenantId
+  return useMutation({
+    mutationFn: (payload: import('@/lib/tenant-media').TenantMediaWriteRequest) => {
+      if (!tenantId) throw new Error('No tenant')
+      return tenantService.updateTenantMedia(tenantId, payload)
+    },
+    onSuccess: (updated) => {
+      const store = useTenantStore.getState()
+      if (store.tenant?.id === updated.id) {
+        store.setTenant(updated)
+      }
+      qc.invalidateQueries({ queryKey: ['tenant'] })
+      qc.invalidateQueries({ queryKey: ['tenants'] })
+      qc.invalidateQueries({ queryKey: ['console-tenants'] })
+      qc.invalidateQueries({ queryKey: ['console-platform-tenants'] })
+      qc.invalidateQueries({ queryKey: ['public-discover'] })
+    },
+  })
+}
+
 // ── Tenant Management Hooks (P6.15) ──────────────────────────────────────────
 
 export function useTenants() {

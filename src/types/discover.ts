@@ -12,8 +12,10 @@ export interface DiscoverBranch {
   slug: string
   name: string
   description?: string
+  /** Branch logo. */
   image?: string
   coverImage?: string
+  heroImage?: string
   openNow: boolean
   todayHours?: string
   phone_number?: string
@@ -54,8 +56,11 @@ export interface DiscoverTenant {
   status: TenantStatus
   created_at: string
   businessTypes: string[]
-  /** Tenant logo — canonical Discover image field. */
+  /** Tenant logo. Not Discover avatar or cover. */
   image?: string
+  discoverAvatar?: string
+  discoverCover?: string
+  heroImage?: string
   featureFlags?: Record<string, boolean>
   contactEmail?: string
   contactPhone?: string

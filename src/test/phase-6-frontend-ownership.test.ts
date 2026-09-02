@@ -101,7 +101,7 @@ describe('Phase 6 — marketplace compose from Branch', () => {
       tenantContact: { contactEmail: tenant.settings?.contactEmail, contactPhone: tenant.settings?.contactPhone },
     })
     expect(meta.city).toBe('New York')
-    expect(meta.coverImage).toBeTruthy()
+    expect(meta.coverImage).toBeUndefined()
     expect(meta.branchCount).toBeGreaterThan(0)
     expect(meta.primaryBranchSlug).toBeTruthy()
     expect(typeof meta.openNow).toBe('boolean')
@@ -145,7 +145,7 @@ describe('Phase 6 — Discover adapter ownership', () => {
     expect(item.tenant.settings?.marketplace).toEqual(pickTenantMarketplace(wire.marketplace))
     expect(item.tenant.settings?.marketplace && 'city' in item.tenant.settings.marketplace).toBe(false)
     expect(item.meta.city).toBe('Brooklyn')
-    expect(item.meta.coverImage).toBe('https://example.com/branch.jpg')
+    expect(item.tenant.discoverCover).toBeUndefined()
     expect(item.meta.description).toBe('Branch desc')
     expect(item.meta.phone_number).toBe('+1 branch')
     expect(item.meta.openNow).toBe(true)

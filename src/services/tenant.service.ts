@@ -9,6 +9,8 @@ import {
 } from '@/lib/tenant-state'
 import type { Tenant, TenantStatus, PaginatedResponse } from '@/types'
 import { sanitizeTenantSettings, sanitizeTenantSettingsPatch } from '@/lib/tenant-settings'
+import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
+import { buildTenantMediaFormData, type TenantMediaWriteRequest } from '@/lib/tenant-media'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms))
@@ -57,7 +59,13 @@ export function isPubliclyEligibleTenant(tenant: Pick<Tenant, 'is_active'>): boo
  *   - canonical `status` (ACTIVE | INACTIVE | CLOSED)
  *   - `is_active` (visibility; never inferred from ACTIVE alone)
  */
-function normalizeTenant(raw: Tenant & { business_types?: string[]; is_active?: boolean }): Tenant {
+function normalizeTenant(raw: Tenant & {
+  business_types?: string[]
+  is_active?: boolean
+  discover_avatar?: string
+  discover_cover?: string
+  hero_image?: string
+}): Tenant {
   const status = normalizeTenantStatus(raw.status)
   return {
     ...raw,
@@ -65,6 +73,9 @@ function normalizeTenant(raw: Tenant & { business_types?: string[]; is_active?: 
     status,
     is_active: coerceTenantIsActive(raw.is_active, raw.status as string),
     settings: sanitizeTenantSettings(raw.settings),
+    discoverAvatar: raw.discoverAvatar ?? raw.discover_avatar,
+    discoverCover: raw.discoverCover ?? raw.discover_cover,
+    heroImage: raw.heroImage ?? raw.hero_image,
   }
 }
 
@@ -83,6 +94,9 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     status: 'ACTIVE',
     created_at: '2024-01-01T00:00:00.000Z',
     image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&q=80',
+    discoverAvatar: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=200&q=80',
+    discoverCover: 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'reviews.enabled': true, 'analytics.enabled': true },
       theme: {
@@ -102,7 +116,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         tagline: 'Where every dish tells a story.',
         priceLevel: 3,
         website: 'https://www.samoon.com',
-        heroImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
           'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=800&q=80',
@@ -121,6 +134,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     is_active: true,
     status: 'ACTIVE',
     created_at: '2024-02-01T00:00:00.000Z',
+    heroImage: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
     settings: {
       featureFlags: { 'menu.enabled': true, 'loyalty.enabled': true, 'cafe.loyalty.enabled': true, 'reservations.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#6f4e37' },
@@ -133,7 +147,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         popular: true,
         tagline: 'Your daily ritual, elevated.',
         priceLevel: 2,
-        heroImage: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
           'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&q=80',
@@ -150,6 +163,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     is_active: true,
     status: 'ACTIVE',
     created_at: '2024-03-01T00:00:00.000Z',
+    heroImage: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80',
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'promotions.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#1a1a2e' },
@@ -162,7 +176,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         featured: true,
         tagline: 'Craft cocktails. Live music. Good company.',
         priceLevel: 2,
-        heroImage: 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1543007631-283050bb3e8c?w=800&q=80',
           'https://images.unsplash.com/photo-1525268323446-0505b6fe7778?w=800&q=80',
@@ -179,6 +192,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     is_active: true,
     status: 'ACTIVE',
     created_at: '2024-04-01T00:00:00.000Z',
+    heroImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_court.vendor_management.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#2d6a4f' },
@@ -191,7 +205,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         isNew: true,
         tagline: 'Every cuisine under one roof.',
         priceLevel: 1,
-        heroImage: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
           'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80',
@@ -208,6 +221,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     is_active: false,
     status: 'CLOSED',
     created_at: '2024-05-01T00:00:00.000Z',
+    heroImage: 'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
     settings: {
       featureFlags: { 'menu.enabled': true, 'food_truck.live_location.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#f4a261' },
@@ -217,7 +231,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         tags: ['Mobile', 'Fast Casual', 'Live Location'],
         rating: 4.4,
         reviewCount: 511,
-        heroImage: 'https://images.unsplash.com/photo-1565123409695-7b5ef63a2efb?w=800&q=80',
       },
     },
   },
@@ -229,6 +242,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     is_active: true,
     status: 'ACTIVE',
     created_at: '2024-06-01T00:00:00.000Z',
+    heroImage: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
     settings: {
       featureFlags: { 'menu.enabled': true, 'mobile_cafe.loyalty.enabled': true, 'mobile_cafe.live_location.enabled': true, 'analytics.enabled': true },
       theme: { primaryColor: '#457b9d' },
@@ -241,7 +255,6 @@ const MOCK_TENANTS: Record<string, Tenant> = {
         isNew: true,
         tagline: 'Good coffee wherever life takes you.',
         priceLevel: 1,
-        heroImage: 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80',
         gallery: [
           'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&q=80',
           'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&q=80',
@@ -492,6 +505,49 @@ export const tenantService = {
       return updated
     }
     const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.SETTINGS(tenantId), cleaned)
+    return normalizeTenant(data)
+  },
+
+  /**
+   * PATCH tenant identity images (logo, discover avatar, discover cover, hero).
+   * Distinct from updateTenantSettings — does not write settings.theme or marketplace.
+   */
+  async updateTenantMedia(tenantId: string, payload: TenantMediaWriteRequest): Promise<Tenant> {
+    if (USE_MOCK) {
+      await delay(250)
+      const existing = MOCK_TENANT_LIST.find((t) => t.id === tenantId) ?? findInList(tenantId)
+      if (!existing) throw new Error(`Tenant not found: ${tenantId}`)
+      const updated: Tenant = { ...existing }
+      if (payload.image || payload.removeImage) {
+        updated.image = payload.removeImage ? undefined : mockImageUrlFromFile(payload.image, existing.image)
+      }
+      if (payload.discoverAvatar || payload.removeDiscoverAvatar) {
+        updated.discoverAvatar = payload.removeDiscoverAvatar
+          ? undefined
+          : mockImageUrlFromFile(payload.discoverAvatar, existing.discoverAvatar)
+      }
+      if (payload.discoverCover || payload.removeDiscoverCover) {
+        updated.discoverCover = payload.removeDiscoverCover
+          ? undefined
+          : mockImageUrlFromFile(payload.discoverCover, existing.discoverCover)
+      }
+      if (payload.heroImage || payload.removeHeroImage) {
+        updated.heroImage = payload.removeHeroImage
+          ? undefined
+          : mockImageUrlFromFile(payload.heroImage, existing.heroImage)
+      }
+      const idx = MOCK_TENANT_LIST.findIndex((t) => t.id === tenantId)
+      if (idx !== -1) MOCK_TENANT_LIST[idx] = updated
+      const mockKey = Object.keys(MOCK_TENANTS).find((k) => MOCK_TENANTS[k].id === tenantId)
+      if (mockKey) MOCK_TENANTS[mockKey] = updated
+      return updated
+    }
+    const form = buildTenantMediaFormData(payload)
+    const { data } = await api.patch<Tenant>(
+      ENDPOINTS.TENANTS.MEDIA(tenantId),
+      form,
+      multipartRequestConfig(),
+    )
     return normalizeTenant(data)
   },
 

@@ -91,10 +91,11 @@ describe('avatar image upload', () => {
 })
 
 describe('branch image upload', () => {
-  it('buildBranchFormData appends image and coverImage Files', async () => {
+  it('buildBranchFormData appends image, coverImage, and heroImage Files', async () => {
     const { buildBranchFormData } = await import('@/types/branch-form')
     const logo = makeFile('logo.jpg', 'image/jpeg')
     const cover = makeFile('cover.png', 'image/png')
+    const hero = makeFile('hero.jpg', 'image/jpeg')
     const form = buildBranchFormData(
       {
         name: 'Downtown',
@@ -103,13 +104,16 @@ describe('branch image upload', () => {
         location: { address: '1 Main', city: 'NYC', country: 'US' },
         image: logo,
         coverImage: cover,
+        heroImage: hero,
       },
       { tenantId: 't1' },
     )
     expect(form.get('name')).toBe('Downtown')
     expect(form.get('tenantId')).toBe('t1')
     expect(form.get('image')).toBe(logo)
+    expect(form.get('avatar')).toBeNull()
     expect(form.get('coverImage')).toBe(cover)
+    expect(form.get('heroImage')).toBe(hero)
     expect(form.get('location')).toBe(JSON.stringify({ address: '1 Main', city: 'NYC', country: 'US' }))
   })
 
@@ -128,11 +132,29 @@ describe('branch image upload', () => {
 })
 
 describe('remaining URL-based image inputs', () => {
-  it('console tenant listing uses heroImage URL, not branch coverImage', () => {
+  it('console tenant listing does not use ImageUploader or branch cover for public profile media', () => {
     const src = read('src/app/console/settings/page.tsx')
-    expect(src).toContain('heroImageUrlLabel')
     expect(src).not.toContain('coverImageUrlLabel')
     expect(src).not.toContain('ImageUploader')
+    expect(src).not.toContain('heroImage: heroImage')
+  })
+
+  it('buildTenantMediaFormData appends independent tenant image fields', async () => {
+    const { buildTenantMediaFormData } = await import('@/lib/tenant-media')
+    const logo = makeFile('logo.jpg', 'image/jpeg')
+    const avatar = makeFile('avatar.jpg', 'image/jpeg')
+    const cover = makeFile('cover.jpg', 'image/jpeg')
+    const hero = makeFile('hero.jpg', 'image/jpeg')
+    const form = buildTenantMediaFormData({
+      image: logo,
+      discoverAvatar: avatar,
+      discoverCover: cover,
+      heroImage: hero,
+    })
+    expect(form.get('image')).toBe(logo)
+    expect(form.get('discoverAvatar')).toBe(avatar)
+    expect(form.get('discoverCover')).toBe(cover)
+    expect(form.get('heroImage')).toBe(hero)
   })
 })
 

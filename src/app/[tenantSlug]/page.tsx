@@ -16,6 +16,7 @@ export async function generateMetadata({
   const { title, description, url, image } = buildTenantMetadata({
     tenantName: tenant.name,
     tenantSlug,
+    tenantHeroImage: tenant.heroImage,
     meta,
   })
 
@@ -49,7 +50,12 @@ export default async function TenantPage({
   const tenant = await resolvePublicTenantForPage(tenantSlug)
 
   const meta = getMarketplaceMeta(tenant.settings)
-  const jsonLd = buildTenantJsonLd({ tenantName: tenant.name, tenantSlug, meta })
+  const jsonLd = buildTenantJsonLd({
+    tenantName: tenant.name,
+    tenantSlug,
+    tenantHeroImage: tenant.heroImage,
+    meta,
+  })
 
   return (
     <>

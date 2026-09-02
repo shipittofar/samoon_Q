@@ -106,12 +106,11 @@ describe('discover adapter', () => {
     expect(item.tenant.businessTypes).toEqual(['restaurant'])
     expect(item.tenant.image).toBe('https://example.com/logo.png')
     expect(item.tenant.settings?.featureFlags?.['reservations.enabled']).toBe(true)
-    // Canonical branding from `branding`, not legacy theme.primaryColor
     expect(item.tenant.settings?.theme?.primaryColor).toBe('#1a1a2e')
     expect(item.tenant.settings?.theme?.accentHoverColor).toBe('#e85d04')
     expect(item.tenant.settings?.theme?.fontBody).toBe('inter')
     expect(item.tenant.settings?.theme?.fontsByLocale).toEqual({ en: 'inter', fa: 'vazir' })
-    expect(item.meta.coverImage).toBe('https://example.com/branch.jpg')
+    expect(item.tenant.discoverCover).toBeUndefined()
     expect(item.meta.branches).toHaveLength(2)
     expect(item.branches).toHaveLength(2)
     expect(item.meta.primaryBranchSlug).toBe('main')

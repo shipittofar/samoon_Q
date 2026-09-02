@@ -33,8 +33,12 @@ export interface PublicBranchInfo {
   openNow: boolean
   /** Today's opening hours string, e.g. "10:00–23:00" or "Closed today". */
   todayHours?: string
-  /** Optional branch cover/thumbnail image URL. */
-  image?: string
+  /** Branch logo (`Branch.image`). */
+  logo?: string
+  /** Branch page cover and branch page avatar (`Branch.coverImage`). */
+  coverImage?: string
+  /** Branch homepage hero (`Branch.heroImage`). */
+  heroImage?: string
   /** Checkout configuration — preserved for storefront/checkout flows. */
   checkout?: BranchCheckout
   /** Branch operating hours from backend businessHours. */
@@ -74,12 +78,12 @@ export interface TenantMarketplaceSettings {
 /**
  * Presentation shape for marketplace cards and tenant homepage.
  * Listing fields come from Tenant.settings.marketplace.
- * city / cover / description / contact / branches come from Branch (or compose).
+ * city / description / contact / branches come from Branch (or compose).
+ * Tenant visual assets (logo, discover avatar/cover, hero) are never composed from Branch.
  * openNow / branchCount / primaryBranchSlug are computed or API-provided.
  */
 export interface MarketplaceMeta extends TenantMarketplaceSettings {
   description?: string
-  coverImage?: string
   city?: string
   branchCount?: number
   openNow?: boolean
@@ -233,7 +237,9 @@ export function publicBranchFromDetail(branch: Branch): PublicBranchInfo {
     description: branch.description,
     openNow: hoursStatus?.openNow ?? false,
     todayHours: hoursStatus?.todayHours,
-    image: branch.coverImage ?? branch.image,
+    logo: branch.image,
+    coverImage: branch.coverImage ?? (branch as Branch & { cover_image?: string }).cover_image,
+    heroImage: branch.heroImage ?? (branch as Branch & { hero_image?: string }).hero_image,
     checkout: branch.checkout,
     businessHours: branch.businessHours,
     currency: branch.currency,
@@ -271,7 +277,6 @@ export function composeMarketplacePresentation(input: {
     branches,
     city: primary?.city,
     description: primary?.description,
-    coverImage: primary?.image,
     phone_number: primary?.phone_number || input.tenantContact?.contactPhone,
     email: primary?.email || input.tenantContact?.contactEmail,
     branchCount: input.computed?.branchCount ?? branches.length,

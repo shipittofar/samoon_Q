@@ -18,7 +18,7 @@ export async function generateMetadata({
     branchSlug,
     branchAddress: branch.address,
     branchCity: branch.city,
-    branchImage: branch.image,
+    branchHeroImage: branch.heroImage,
     meta,
   })
 
@@ -61,7 +61,7 @@ export default async function BranchPage({
     branchAddress: branch.address,
     branchCity: branch.city,
     branchPhone: branch.phone_number,
-    branchImage: branch.image,
+    branchHeroImage: branch.heroImage,
     cuisines: branch.cuisines,
     meta,
   })

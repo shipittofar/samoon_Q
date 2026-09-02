@@ -155,6 +155,7 @@ export const ENDPOINTS = {
     SUSPEND: (tenantId: string) => `/tenants/${tenantId}/suspend/`,
     ARCHIVE: (tenantId: string) => `/tenants/${tenantId}/archive/`,
     SETTINGS: (tenantId: string) => `/tenants/${tenantId}/settings/`,
+    MEDIA: (tenantId: string) => `/tenants/${tenantId}/`,
     TRANSFER_OWNERSHIP: (tenantId: string) => `/tenants/${tenantId}/transfer-ownership/`,
   },
 

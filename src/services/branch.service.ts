@@ -30,11 +30,12 @@ const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
 function mockBranchImagesFromRequest(
   payload: BranchWriteRequest,
-  existing: { image?: string; coverImage?: string } = {},
-): { image?: string; coverImage?: string } {
+  existing: { image?: string; coverImage?: string; heroImage?: string } = {},
+): { image?: string; coverImage?: string; heroImage?: string } {
   return {
     image: payload.removeImage ? undefined : mockImageUrlFromFile(payload.image, existing.image),
     coverImage: payload.removeCoverImage ? undefined : mockImageUrlFromFile(payload.coverImage, existing.coverImage),
+    heroImage: payload.removeHeroImage ? undefined : mockImageUrlFromFile(payload.heroImage, existing.heroImage),
   }
 }
 
@@ -97,8 +98,9 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     type: 'physical',
     location: { address: '123 Culinary Avenue', city: 'New York', country: 'US', latitude: 40.7128, longitude: -74.006 },
     contact: { phone_number: '+1 212 555 0100', email: 'main@samoon.com' },
-    coverImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80',
     image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=800&q=80',
     managerId: 'staff-manager-01',
     businessHours: defaultHours('10:00', '23:00'),
     ...mockCheckoutFields({ delivery: true, radius: 10, pickup: true, dineIn: true, reservationsEnabled: true, maxCapacity: 120 }),
@@ -117,6 +119,9 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     location: { address: '456 Urban Street', city: 'New York', country: 'US', latitude: 40.72, longitude: -73.99 },
     contact: { phone_number: '+1 212 555 0200', email: 'downtown@samoon.com' },
     managerId: 'staff-admin-01',
+    image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    heroImage: 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&q=80',
     businessHours: defaultHours('11:00', '22:00'),
     ...mockCheckoutFields({ delivery: true, radius: 8, pickup: true, dineIn: true, reservationsEnabled: true, maxCapacity: 80 }),
     cuisines: ['Mediterranean', 'Italian'],
@@ -564,6 +569,7 @@ export const branchManagementService = {
         maxCapacity: payload.maxCapacity,
         image: images.image,
         coverImage: images.coverImage,
+        heroImage: images.heroImage,
         // The tenant's first branch is always the default, regardless of the payload.
         isDefault: isFirstBranch || payload.isDefault,
         timeZone: payload.timeZone,
@@ -610,6 +616,7 @@ export const branchManagementService = {
         maxCapacity: payload.maxCapacity,
         image: images.image,
         coverImage: images.coverImage,
+        heroImage: images.heroImage,
         // The tenant's first branch is always the default, regardless of the payload.
         isDefault: isFirstBranch || payload.isDefault,
         timeZone: payload.timeZone,
@@ -653,9 +660,11 @@ export const branchManagementService = {
       const images = mockBranchImagesFromRequest(payload, {
         image: branch.image,
         coverImage: branch.coverImage,
+        heroImage: branch.heroImage,
       })
       if (payload.image || payload.removeImage) branch.image = images.image
       if (payload.coverImage || payload.removeCoverImage) branch.coverImage = images.coverImage
+      if (payload.heroImage || payload.removeHeroImage) branch.heroImage = images.heroImage
       if (payload.timeZone !== undefined) branch.timeZone = payload.timeZone
       if (payload.currency !== undefined) branch.currency = payload.currency
       if (payload.language !== undefined) branch.language = payload.language

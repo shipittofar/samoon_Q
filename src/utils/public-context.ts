@@ -237,14 +237,15 @@ interface PublicMetadataFields {
 export function buildTenantMetadata(opts: {
   tenantName: string
   tenantSlug: string
-  meta?: Pick<MarketplaceMeta, 'description' | 'coverImage'> | null
+  tenantHeroImage?: string | null
+  meta?: Pick<MarketplaceMeta, 'description'> | null
 }): PublicMetadataFields {
-  const { tenantName, tenantSlug, meta } = opts
+  const { tenantName, tenantSlug, tenantHeroImage, meta } = opts
   return {
     title: `${tenantName} — Samoon Platform`,
     description: meta?.description ?? `Discover ${tenantName} on the Samoon platform.`,
     url: `${PUBLIC_BASE_URL}/${tenantSlug}`,
-    image: meta?.coverImage ?? `${PUBLIC_BASE_URL}/og-image.jpg`,
+    image: tenantHeroImage || `${PUBLIC_BASE_URL}/og-image.jpg`,
   }
 }
 
@@ -259,8 +260,8 @@ export function buildBranchMetadata(opts: {
   branchSlug: string
   branchAddress?: string
   branchCity?: string
-  branchImage?: string
-  meta?: Pick<MarketplaceMeta, 'description' | 'coverImage'> | null
+  branchHeroImage?: string
+  meta?: Pick<MarketplaceMeta, 'description'> | null
 }): PublicMetadataFields {
   const {
     branchName,
@@ -268,7 +269,7 @@ export function buildBranchMetadata(opts: {
     branchSlug,
     branchAddress,
     branchCity,
-    branchImage,
+    branchHeroImage,
     meta,
   } = opts
   const locationStr =
@@ -277,7 +278,7 @@ export function buildBranchMetadata(opts: {
     title: `${branchName} — ${opts.tenantName}`,
     description: `Visit ${branchName}${locationStr} ${meta?.description ?? ''}`.trim(),
     url: `${PUBLIC_BASE_URL}/${tenantSlug}/${branchSlug}`,
-    image: branchImage ?? meta?.coverImage ?? `${PUBLIC_BASE_URL}/og-image.jpg`,
+    image: branchHeroImage ?? `${PUBLIC_BASE_URL}/og-image.jpg`,
   }
 }
 
@@ -295,11 +296,12 @@ export function buildBranchMetadata(opts: {
 export function buildTenantJsonLd(opts: {
   tenantName: string
   tenantSlug: string
-  meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'phone_number' | 'coverImage'> | null
+  tenantHeroImage?: string | null
+  meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description' | 'phone_number'> | null
   /** Resolved feature flags. When absent, reviews default to enabled (safe for SEO). */
   featureFlags?: Record<string, boolean>
 }): string | null {
-  const { tenantName, tenantSlug, meta, featureFlags } = opts
+  const { tenantName, tenantSlug, tenantHeroImage, meta, featureFlags } = opts
   if (!meta?.rating || !meta.reviewCount) return null
 
   const reviewsEnabled = featureFlags ? featureFlags['reviews.enabled'] !== false : true
@@ -309,7 +311,7 @@ export function buildTenantJsonLd(opts: {
     url: `${PUBLIC_BASE_URL}/${tenantSlug}`,
     description: meta.description,
     telephone: meta.phone_number,
-    image: meta.coverImage,
+    image: tenantHeroImage || undefined,
   })
 
   if (reviewsEnabled) {
@@ -337,7 +339,7 @@ export function buildBranchJsonLd(opts: {
   branchAddress?: string
   branchCity?: string
   branchPhone?: string
-  branchImage?: string
+  branchHeroImage?: string
   /** Branch-owned cuisine labels — never taken from tenant marketplace. */
   cuisines?: string[]
   meta?: Pick<MarketplaceMeta, 'rating' | 'reviewCount' | 'description'> | null
@@ -350,7 +352,7 @@ export function buildBranchJsonLd(opts: {
     branchAddress,
     branchCity,
     branchPhone,
-    branchImage,
+    branchHeroImage,
     cuisines,
     meta,
     featureFlags,
@@ -365,7 +367,7 @@ export function buildBranchJsonLd(opts: {
     url: `${PUBLIC_BASE_URL}/${tenantSlug}/${branchSlug}`,
     description: meta.description,
     telephone: branchPhone,
-    image: branchImage,
+    image: branchHeroImage,
     // Branch-only: omit when empty/absent — never inject defaults
     servesCuisine: cuisines?.length ? cuisines : undefined,
     address:

@@ -201,9 +201,10 @@ export function BranchFormFields({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ImageUploader
             id="branch-image"
-            label={t('imageLabel')}
+            label={t('logoUploadLabel')}
             value={form.image}
             onChange={(image) => onChange({ ...form, image })}
+            hint={t('logoUploadHint')}
           />
           <ImageUploader
             id="branch-cover-image"
@@ -211,6 +212,12 @@ export function BranchFormFields({
             value={form.coverImage}
             onChange={(coverImage) => onChange({ ...form, coverImage })}
             hint={t('coverImageHint')}
+          />
+          <ImageUploader
+            id="branch-hero-image"
+            label={t('branchHeroLabel')}
+            value={form.heroImage}
+            onChange={(heroImage) => onChange({ ...form, heroImage })}
           />
         </div>
       </fieldset>

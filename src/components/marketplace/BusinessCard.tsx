@@ -10,7 +10,7 @@ import type { Tenant } from '@/types'
 import { type MarketplaceMeta, type PublicBranchInfo, BUSINESS_TYPE_LABELS } from '@/types/marketplace'
 import { usePublicBranches } from '@/hooks'
 import { BranchPreview } from './BranchPreview'
-import { resolveTenantBranding, resolveTenantImage } from '@/lib/tenant-branding'
+import { resolveTenantBranding } from '@/lib/tenant-branding'
 
 interface BusinessCardProps {
   tenant: Tenant
@@ -54,7 +54,7 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
 
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')
   const accentColor = resolveTenantBranding({ settings: tenant.settings })?.primaryColor
-  const tenantImage = resolveTenantImage(tenant)
+  const discoverAvatar = tenant.discoverAvatar
   const featureFlags = tenant.settings?.featureFlags ?? {}
   const hasReservations =
     branches.length > 0
@@ -85,9 +85,9 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
     >
       {/* Cover image — H4: use Next.js Image for format negotiation + lazy loading */}
       <div className="relative h-48 overflow-hidden bg-[var(--bg-secondary)] shrink-0">
-        {meta.coverImage ? (
+        {tenant.discoverCover ? (
           <Image
-            src={meta.coverImage}
+            src={tenant.discoverCover}
             alt=""
             aria-hidden="true"
             fill
@@ -122,9 +122,9 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
             style={{ background: accentColor ?? 'var(--accent)' }}
             aria-hidden="true"
           >
-            {tenantImage ? (
+            {discoverAvatar ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={tenantImage} alt="" className="h-full w-full object-cover" />
+              <img src={discoverAvatar} alt="" className="h-full w-full object-cover" />
             ) : (
               tenant.name[0]
             )}

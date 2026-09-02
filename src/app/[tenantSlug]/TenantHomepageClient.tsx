@@ -25,7 +25,7 @@ import {
 } from '@/types/marketplace'
 import { pickTenantContact } from '@/lib/tenant-settings'
 import type { Tenant, Category, MenuItem, PromotionRule } from '@/types'
-import { resolveTenantBranding, resolveTenantImage } from '@/lib/tenant-branding'
+import { resolveTenantBranding } from '@/lib/tenant-branding'
 
 // ── Price level helper ────────────────────────────────────────────────────────
 
@@ -83,7 +83,8 @@ function HeroSection({
   const accentColor =
     resolveTenantBranding({ branding: layoutBranding, settings: tenant.settings })?.primaryColor ??
     'var(--accent)'
-  const logoImage = resolveTenantImage(tenant)
+  const pageAvatar = tenant.discoverCover
+  const heroBackground = tenant.heroImage
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
 
   return (
@@ -92,9 +93,9 @@ function HeroSection({
       className="relative h-[55vh] min-h-[340px] max-h-[600px] overflow-hidden"
     >
       {/* C1/H1: Next.js Image with priority for above-fold hero */}
-      {meta.heroImage || meta.coverImage ? (
+      {heroBackground ? (
         <Image
-          src={(meta.heroImage || meta.coverImage)!}
+          src={heroBackground}
           alt=""
           aria-hidden="true"
           fill
@@ -145,9 +146,9 @@ function HeroSection({
             style={{ background: accentColor }}
             aria-hidden="true"
           >
-            {logoImage ? (
+            {pageAvatar ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoImage} alt="" className="h-full w-full object-cover" />
+              <img src={pageAvatar} alt="" className="h-full w-full object-cover" />
             ) : (
               tenant.name[0]
             )}
@@ -374,11 +375,11 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
   const t = useTranslations('tenant')
   return (
     <article className="flex flex-col bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden shadow-[var(--shadow-soft)] hover:shadow-md transition-shadow">
-      {branch.image && (
+      {branch.coverImage && (
         <div className="relative h-36 overflow-hidden bg-[var(--bg-secondary)]">
           {/* H10: Next.js Image for branch card */}
           <Image
-            src={branch.image}
+            src={branch.coverImage}
             alt=""
             aria-hidden="true"
             fill
@@ -652,7 +653,7 @@ function PromotionsSection({
 
 function GallerySection({ meta }: { meta: MarketplaceMeta }) {
   const t = useTranslations('tenant')
-  const images = [meta.coverImage, ...(meta.gallery ?? [])].filter(Boolean).slice(0, 6)
+  const images = [...(meta.gallery ?? [])].filter(Boolean).slice(0, 6)
   // H5: Show gallery even with a single image (was <= 1)
   if (images.length === 0) return null
 

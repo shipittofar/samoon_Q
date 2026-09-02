@@ -100,10 +100,12 @@ export interface Branch {
   marketplaceVisible: boolean
   reservationsEnabled: boolean
   maxCapacity?: number
-  /** Logo/branding image URL. */
+  /** Branch brand logo URL. Not cover or hero. */
   image?: string
-  /** Cover/hero image URL. */
+  /** Branch page cover and branch page avatar. Independent of logo and hero. */
   coverImage?: string
+  /** Branch homepage hero/background. Independent of logo and cover. */
+  heroImage?: string
   /** Whether this is the tenant's default branch. */
   isDefault?: boolean
   /** IANA time zone, e.g. "America/New_York". */
@@ -149,6 +151,7 @@ export interface CreateBranchPayload {
   maxCapacity?: number
   image?: string
   coverImage?: string
+  heroImage?: string
   isDefault?: boolean
   timeZone?: string
   currency?: string
@@ -171,6 +174,7 @@ export interface UpdateBranchPayload {
   maxCapacity?: number
   image?: string
   coverImage?: string
+  heroImage?: string
   isDefault?: boolean
   timeZone?: string
   currency?: string

@@ -7,6 +7,9 @@ import { getMarketplaceMeta, pickTenantMarketplace } from '@/types/marketplace'
 import type { AddressCapabilities } from '@/types/address'
 import type { Tenant, TenantTheme } from '@/types'
 import { sanitizeBrandingForWrite } from '@/lib/tenant-branding'
+import { ImageUploader, EMPTY_IMAGE_FIELD, type ImageFieldValue } from '@/components/ImageUploader'
+import { imageFieldToMediaPatch } from '@/lib/tenant-media'
+import { useUpdateTenantMedia } from '@/hooks'
 
 const ADDRESS_CAPABILITY_KEYS: (keyof AddressCapabilities)[] = [
   'cash_on_delivery',
@@ -83,6 +86,20 @@ export function TenantCanonicalSettingsForm({
   const existingMeta = getMarketplaceMeta(tenant.settings)
   const existingCaps = tenant.settings?.addressCapabilities
   const existingMatrix = tenant.settings?.notificationMatrix as NotifMatrix | undefined
+  const { mutate: saveMedia, isPending: mediaPending } = useUpdateTenantMedia(tenant.id)
+
+  const [logoField, setLogoField] = useState<ImageFieldValue>({
+    ...EMPTY_IMAGE_FIELD,
+    existingUrl: tenant.image ?? '',
+  })
+  const [discoverAvatarField, setDiscoverAvatarField] = useState<ImageFieldValue>({
+    ...EMPTY_IMAGE_FIELD,
+    existingUrl: tenant.discoverAvatar ?? '',
+  })
+  const [discoverCoverField, setDiscoverCoverField] = useState<ImageFieldValue>({
+    ...EMPTY_IMAGE_FIELD,
+    existingUrl: tenant.discoverCover ?? '',
+  })
 
   const [contactEmail, setContactEmail] = useState(tenant.settings?.contactEmail ?? '')
   const [contactPhone, setContactPhone] = useState(tenant.settings?.contactPhone ?? '')
@@ -99,7 +116,10 @@ export function TenantCanonicalSettingsForm({
   const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
   const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
   const [website, setWebsite] = useState(existingMeta?.website ?? '')
-  const [heroImage, setHeroImage] = useState(existingMeta?.heroImage ?? '')
+  const [heroField, setHeroField] = useState<ImageFieldValue>({
+    ...EMPTY_IMAGE_FIELD,
+    existingUrl: tenant.heroImage ?? '',
+  })
   const [gallery, setGallery] = useState(existingMeta?.gallery?.join('\n') ?? '')
   const [instagram, setInstagram] = useState(existingMeta?.socialLinks?.instagram ?? '')
   const [twitter, setTwitter] = useState(existingMeta?.socialLinks?.twitter ?? '')
@@ -138,7 +158,7 @@ export function TenantCanonicalSettingsForm({
     setTags(m?.tags?.join(', ') ?? '')
     setPriceLevel(String(m?.priceLevel ?? ''))
     setWebsite(m?.website ?? '')
-    setHeroImage(m?.heroImage ?? '')
+    setHeroField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.heroImage ?? '' })
     setGallery(m?.gallery?.join('\n') ?? '')
     setInstagram(m?.socialLinks?.instagram ?? '')
     setTwitter(m?.socialLinks?.twitter ?? '')
@@ -147,7 +167,10 @@ export function TenantCanonicalSettingsForm({
     setFeatured(m?.featured ?? false)
     setPopular(m?.popular ?? false)
     setIsNew(m?.isNew ?? false)
-  }, [tenant.id, tenant.settings])
+    setLogoField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.image ?? '' })
+    setDiscoverAvatarField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.discoverAvatar ?? '' })
+    setDiscoverCoverField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.discoverCover ?? '' })
+  }, [tenant.id, tenant.settings, tenant.image, tenant.discoverAvatar, tenant.discoverCover, tenant.heroImage])
 
   const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
   const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
@@ -162,6 +185,14 @@ export function TenantCanonicalSettingsForm({
       fontBody: fontBody || undefined,
     } as TenantTheme & Record<string, unknown>)
 
+    const media = {
+      ...imageFieldToMediaPatch(logoField, 'image', 'removeImage'),
+      ...imageFieldToMediaPatch(discoverAvatarField, 'discoverAvatar', 'removeDiscoverAvatar'),
+      ...imageFieldToMediaPatch(discoverCoverField, 'discoverCover', 'removeDiscoverCover'),
+      ...imageFieldToMediaPatch(heroField, 'heroImage', 'removeHeroImage'),
+    }
+    if (Object.keys(media).length > 0) saveMedia(media)
+
     onSave({
       contactEmail: contactEmail || undefined,
       contactPhone: contactPhone || undefined,
@@ -175,7 +206,6 @@ export function TenantCanonicalSettingsForm({
         tags: tags ? toArr(tags) : existingMeta?.tags,
         priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
         website: website || undefined,
-        heroImage: heroImage || undefined,
         gallery: gallery ? toLines(gallery) : existingMeta?.gallery,
         featured,
         popular,
@@ -243,6 +273,31 @@ export function TenantCanonicalSettingsForm({
           <label className={labelClass}>{t('bodyFontLabel')}</label>
           <input type="text" value={fontBody} onChange={(e) => setFontBody(e.target.value)} placeholder="inter" className={inputClass} />
         </div>
+        <ImageUploader
+          id="tenant-logo"
+          label={t('logoUploadLabel')}
+          value={logoField}
+          onChange={setLogoField}
+          hint={t('logoUploadHint')}
+        />
+        <ImageUploader
+          id="tenant-discover-avatar"
+          label={t('discoverAvatarLabel')}
+          value={discoverAvatarField}
+          onChange={setDiscoverAvatarField}
+        />
+        <ImageUploader
+          id="tenant-discover-cover"
+          label={t('discoverCoverLabel')}
+          value={discoverCoverField}
+          onChange={setDiscoverCoverField}
+        />
+        <ImageUploader
+          id="tenant-hero"
+          label={t('heroImageUrlLabel')}
+          value={heroField}
+          onChange={setHeroField}
+        />
       </section>
 
       <section className="space-y-4">
@@ -305,10 +360,6 @@ export function TenantCanonicalSettingsForm({
           <input type="url" value={youtube} onChange={(e) => setYoutube(e.target.value)} className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>{t('heroImageUrlLabel')}</label>
-          <input type="url" value={heroImage} onChange={(e) => setHeroImage(e.target.value)} className={inputClass} />
-        </div>
-        <div>
           <label className={labelClass}>{t('galleryImageUrlsLabel')}</label>
           <textarea value={gallery} onChange={(e) => setGallery(e.target.value)} rows={3} className={inputClass} />
         </div>
@@ -352,7 +403,7 @@ export function TenantCanonicalSettingsForm({
         </div>
       </section>
 
-      <SaveBar isPending={isPending} saved={saved} onSave={handleSave} />
+      <SaveBar isPending={isPending || mediaPending} saved={saved} onSave={handleSave} />
     </div>
   )
 }

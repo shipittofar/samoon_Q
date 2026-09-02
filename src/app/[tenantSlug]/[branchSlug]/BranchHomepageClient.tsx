@@ -83,10 +83,10 @@ function HeroSection({
       aria-labelledby="branch-hero-heading"
       className="relative h-[45vh] min-h-[300px] max-h-[480px] overflow-hidden bg-gray-900"
     >
-      {branch.image ? (
+      {branch.heroImage ? (
         // C3: next/image with priority for LCP, H7: decorative alt
         <Image
-          src={branch.image}
+          src={branch.heroImage}
           alt=""
           aria-hidden="true"
           fill
@@ -101,6 +101,12 @@ function HeroSection({
 
       <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-8 pb-8">
         <div className="flex items-end gap-4">
+          {branch.coverImage ? (
+            <div className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg bg-white/10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={branch.coverImage} alt="" className="h-full w-full object-cover" />
+            </div>
+          ) : null}
           <div className="flex-1 min-w-0">
             <p className="text-white/70 text-sm font-medium mb-0.5">{tenant.name}</p>
             {/* H7: id for aria-labelledby */}
@@ -321,6 +327,11 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
           </div>
         )}
       </div>
+      {branch.coverImage ? (
+        <div className="relative w-full h-48 rounded-xl overflow-hidden border border-[var(--border)]">
+          <Image src={branch.coverImage} alt="" fill className="object-cover" sizes="(max-width: 1024px) 100vw, 33vw" />
+        </div>
+      ) : null}
       {/* H5: converted to <button> for keyboard accessibility, increased height */}
       <button
         type="button"
@@ -743,9 +754,6 @@ export default function BranchHomepageClient({
   const rating = meta?.rating
   const reviewCount = meta?.reviewCount
 
-  // C4: use branch.image as the branch-specific photo if available;
-  // label tenant gallery clearly so it doesn't imply branch-specific imagery
-  const branchPhotos = branch.image ? [branch.image] : []
   const hasGallery = tenantGallery.length > 0
 
   return (
@@ -791,7 +799,6 @@ export default function BranchHomepageClient({
                 // C4: Branch-specific photo first, then labeled tenant gallery
                 gallery: sections.gallery ? (
                   <>
-                    {branchPhotos.length > 0 && <GallerySection images={branchPhotos} label={t('thisLocation')} />}
                     {hasGallery && <GallerySection images={tenantGallery} label={t('businessGallery')} />}
                   </>
                 ) : null,

@@ -555,8 +555,14 @@ export interface Tenant {
   id: string
   name: string
   slug: string
-  /** Phase Z.6 — added; backend's `/api/tenants/` response field. Optional: mock tenants and any tenant fetched before this field existed have no image. */
+  /** Tenant brand logo URL. Header / branding logo only — not Discover avatar, cover, or hero. */
   image?: string
+  /** Discover card avatar. Independent of `image`. Not the public Tenant page avatar. */
+  discoverAvatar?: string
+  /** Discover listing cover/banner and public Tenant page avatar. Independent of logo, hero, and all Branch media. */
+  discoverCover?: string
+  /** Tenant homepage hero/background. Independent of logo, Discover media, and Branch media. */
+  heroImage?: string
   /**
    * Active module keys for this tenant (e.g. ['restaurant']).
    *

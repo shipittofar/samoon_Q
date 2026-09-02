@@ -25,6 +25,7 @@ export interface BranchFormState {
   email: string
   image: ImageFieldValue
   coverImage: ImageFieldValue
+  heroImage: ImageFieldValue
   timeZone: string
   currency: string
   language: string
@@ -60,6 +61,7 @@ export const EMPTY_BRANCH_FORM: BranchFormState = {
   email: '',
   image: { ...EMPTY_IMAGE_FIELD },
   coverImage: { ...EMPTY_IMAGE_FIELD },
+  heroImage: { ...EMPTY_IMAGE_FIELD },
   timeZone: '',
   currency: '',
   language: '',
@@ -113,8 +115,10 @@ export interface BranchWriteRequest {
   maxCapacity?: number
   image?: File
   coverImage?: File
+  heroImage?: File
   removeImage?: boolean
   removeCoverImage?: boolean
+  removeHeroImage?: boolean
   isDefault?: boolean
   timeZone?: string
   currency?: string
@@ -168,6 +172,12 @@ export function branchFormToWriteRequest(form: BranchFormState): BranchWriteRequ
     request.removeCoverImage = true
   }
 
+  if (form.heroImage.file) {
+    request.heroImage = form.heroImage.file
+  } else if (form.heroImage.cleared) {
+    request.removeHeroImage = true
+  }
+
   return request
 }
 
@@ -202,6 +212,7 @@ export function buildBranchFormData(
 
   appendImageField(form, 'image', payload.image, payload.removeImage)
   appendImageField(form, 'coverImage', payload.coverImage, payload.removeCoverImage)
+  appendImageField(form, 'heroImage', payload.heroImage, payload.removeHeroImage)
 
   return form
 }
@@ -226,6 +237,11 @@ export function branchToFormInput(branch: Branch): BranchFormState {
     coverImage: {
       file: null,
       existingUrl: branch.coverImage ?? '',
+      cleared: false,
+    },
+    heroImage: {
+      file: null,
+      existingUrl: branch.heroImage ?? '',
       cleared: false,
     },
     timeZone: branch.timeZone ?? '',

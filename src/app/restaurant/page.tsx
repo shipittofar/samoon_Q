@@ -57,9 +57,9 @@ export default async function RestaurantPage() {
 
       {/* Hero */}
       <div className="relative h-[60vh] overflow-hidden">
-        {meta?.heroImage || meta?.coverImage ? (
+        {tenant?.heroImage ? (
           <Image
-            src={(meta.heroImage || meta.coverImage)!}
+            src={tenant.heroImage}
             alt={`${tenant?.name ?? ''} interior`}
             fill
             className="object-cover"

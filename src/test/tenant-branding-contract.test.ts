@@ -57,6 +57,7 @@ describe('resolveTenantBranding', () => {
 describe('resolveTenantImage', () => {
   it('reads top-level image only', () => {
     expect(resolveTenantImage({ image: 'https://cdn/logo.png' })).toBe('https://cdn/logo.png')
+    expect(resolveTenantImage({ image: 'https://cdn/logo.png', discoverAvatar: 'https://cdn/av.png' } as { image: string })).toBe('https://cdn/logo.png')
     expect(resolveTenantImage({})).toBeUndefined()
     expect(resolveTenantImage(null)).toBeUndefined()
   })

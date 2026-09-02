@@ -331,7 +331,6 @@ function PublicProfileTab() {
   const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
   const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
   const [website, setWebsite] = useState(existingMeta?.website ?? '')
-  const [heroImage, setHeroImage] = useState(existingMeta?.heroImage ?? '')
   const [gallery, setGallery] = useState(existingMeta?.gallery?.join('\n') ?? '')
   const [instagram, setInstagram] = useState(existingMeta?.socialLinks?.instagram ?? '')
   const [twitter, setTwitter] = useState(existingMeta?.socialLinks?.twitter ?? '')
@@ -349,7 +348,6 @@ function PublicProfileTab() {
       setTags(m.tags?.join(', ') ?? '')
       setPriceLevel(String(m.priceLevel ?? ''))
       setWebsite(m.website ?? '')
-      setHeroImage(m.heroImage ?? '')
       setGallery(m.gallery?.join('\n') ?? '')
       setInstagram(m.socialLinks?.instagram ?? '')
       setTwitter(m.socialLinks?.twitter ?? '')
@@ -372,7 +370,6 @@ function PublicProfileTab() {
         tags: tags ? toArr(tags) : existingMeta?.tags,
         priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
         website: website || undefined,
-        heroImage: heroImage || undefined,
         gallery: gallery ? toLines(gallery) : existingMeta?.gallery,
         featured,
         popular,
@@ -481,11 +478,6 @@ function PublicProfileTab() {
       <div className="border-t pt-5">
         <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('mediaLabel')}</h3>
         <div className="space-y-4">
-          <div>
-            <label className={labelClass}>{t('heroImageUrlLabel')}</label>
-            <input type="url" value={heroImage} onChange={(e) => setHeroImage(e.target.value)}
-              placeholder="https://example.com/hero.jpg" className={inputClass} />
-          </div>
           <div>
             <label className={labelClass}>{t('galleryImageUrlsLabel')}</label>
             <textarea value={gallery} onChange={(e) => setGallery(e.target.value)}
