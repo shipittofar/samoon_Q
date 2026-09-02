@@ -46,6 +46,7 @@ import { captureException } from '@/lib/sentry'
 import { getDirection } from '@/i18n/runtime'
 import { resolveConsoleActiveBranch, membershipBranchesToBranches } from '@/lib/console-workspace'
 import { filterBranchesForTenant } from '@/lib/console-workspace-consistency'
+import { branchEntityToLocation } from '@/lib/branch-adapters'
 import { normalizeCartItems } from '@/lib/cart-normalizers'
 import {
   resolvePublicTenantId,
@@ -382,7 +383,15 @@ interface TenantState {
   lastAttemptedSlug: string | undefined
   /** Canonical id from the most recent `loadTenantById()` call — used for console retries. */
   lastAttemptedTenantId: string | undefined
+  /**
+   * Bumped when the current Tenant object is replaced with authoritative data
+   * (settings, media, status). Public layouts can observe this without refetching
+   * on every render.
+   */
+  dataRevision: number
   setTenant: (tenant: Tenant | null) => void
+  /** Replace current tenant and re-resolve feature flags from that object. */
+  applyResolvedTenant: (tenant: Tenant) => void
   loadTenant: (slug?: string, options?: ResolvePublicTenantOptions) => Promise<void>
   /** Console workspace — resolves tenant by canonical id (never slug). */
   loadTenantById: (tenantId: string) => Promise<void>
@@ -403,7 +412,15 @@ export const useTenantStore = create<TenantState>()(
       featureFlags: {},
       lastAttemptedSlug: undefined,
       lastAttemptedTenantId: undefined,
+      dataRevision: 0,
       setTenant: (tenant) => set({ tenant }),
+      applyResolvedTenant: (tenant) =>
+        set((s) => ({
+          tenant,
+          featureFlags: featureFlagsService.resolve(tenant),
+          featureFlagsInitialized: true,
+          dataRevision: (s.dataRevision ?? 0) + 1,
+        })),
       loadTenant: async (slug?: string, options?: ResolvePublicTenantOptions) => {
         recordConsoleBootMetric('loadTenant')
         // No slug to resolve against (e.g. the platform domain with no
@@ -416,11 +433,25 @@ export const useTenantStore = create<TenantState>()(
           return
         }
         const current = useTenantStore.getState()
-        // Already bootstrapped for this URL slug — never re-fetch.
-        if (current.tenant?.slug === slug && current.tenantState === 'resolved') return
+        // Already bootstrapped for this URL slug — skip unless a Console mutation
+        // asked for a forced reload (`options.force`).
+        if (
+          !options?.force &&
+          current.tenant?.slug === slug &&
+          current.tenantState === 'resolved'
+        ) {
+          return
+        }
         // Parallel layout/effect callers share one in-flight slug bootstrap.
         if (current.isLoading && current.lastAttemptedSlug === slug) return
-        set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedSlug: slug, lastAttemptedTenantId: undefined })
+        const keepTenant = Boolean(options?.force && current.tenant?.slug === slug)
+        set({
+          isLoading: true,
+          tenantState: keepTenant ? current.tenantState : 'loading',
+          tenant: keepTenant ? current.tenant : null,
+          lastAttemptedSlug: slug,
+          lastAttemptedTenantId: undefined,
+        })
         try {
           // Public slug routes resolve slug → UUID, then fetch via GET /tenants/{id}/.
           const tenantId = await resolvePublicTenantId(slug, options)
@@ -553,6 +584,7 @@ export const useTenantStore = create<TenantState>()(
         featureFlags: {},
         lastAttemptedSlug: undefined,
         lastAttemptedTenantId: undefined,
+        dataRevision: 0,
       }),
     }),
     {
@@ -619,6 +651,10 @@ interface BranchState {
   selectBranch: (branch: AdminBranch) => void
   /** Resets to `idle`/null — called on tenant switch/logout so no branch (or its id) survives into a different tenant's context. */
   resetBranchResolution: () => void
+  /** Merge an authoritative Branch from a mutation into the in-memory list/selection. */
+  applyBranchMutationResult: (branch: AdminBranch) => void
+  /** Remove a deleted Branch and repair selected/active state if needed. */
+  applyBranchDeleted: (tenantId: string, branchId: string) => void
 
   /** @deprecated Phase 3 alias retained only for components not yet migrated off the old field name; identical to `selectedBranch`. */
   adminActiveBranch: AdminBranch | null
@@ -757,6 +793,76 @@ export const useBranchStore = create<BranchState>()(
       resetBranchResolution: () => {
         lastLoadedBranchesTenantId = null
         set({ branches: [], selectedBranch: null, selectedBranchId: null, branchState: 'idle', adminActiveBranch: null })
+      },
+      applyBranchMutationResult: (branch) => {
+        const activeTenantId = useRbacStore.getState().activeMembership?.tenantId
+        if (activeTenantId && branch.tenantId !== activeTenantId) {
+          if (lastLoadedBranchesTenantId !== branch.tenantId) return
+        }
+        if (lastLoadedBranchesTenantId && lastLoadedBranchesTenantId !== branch.tenantId) return
+
+        const state = get()
+        const idx = state.branches.findIndex((b) => b.id === branch.id)
+        const next =
+          idx >= 0
+            ? state.branches.map((b) => (b.id === branch.id ? branch : b))
+            : [...state.branches, branch]
+
+        const selected =
+          state.selectedBranch?.id === branch.id ? branch : state.selectedBranch
+        const adminActive =
+          state.adminActiveBranch?.id === branch.id ? branch : state.adminActiveBranch
+        const activeBranch =
+          state.activeBranch?.id === branch.id
+            ? branchEntityToLocation(branch)
+            : state.activeBranch
+
+        if (lastLoadedBranchesTenantId === branch.tenantId) {
+          set({
+            branches: next,
+            selectedBranch: selected,
+            selectedBranchId: selected?.id ?? state.selectedBranchId,
+            adminActiveBranch: adminActive,
+            activeBranch,
+            branchState: selected
+              ? 'ready'
+              : next.length === 0
+                ? 'empty'
+                : state.branchState,
+          })
+          return
+        }
+
+        // List not marked loaded yet — merge without setting lastLoaded so
+        // loadBranchesForTenant can still fetch the full list.
+        set({
+          branches: next,
+          selectedBranch: selected,
+          selectedBranchId: selected?.id ?? state.selectedBranchId,
+          adminActiveBranch: adminActive,
+          activeBranch,
+        })
+      },
+      applyBranchDeleted: (tenantId, branchId) => {
+        if (lastLoadedBranchesTenantId && lastLoadedBranchesTenantId !== tenantId) return
+        const state = get()
+        const next = filterBranchesForTenant(
+          state.branches.filter((b) => b.id !== branchId),
+          tenantId,
+        )
+        const membershipBranchId = useRbacStore.getState().activeMembership?.branchId
+        const selected =
+          state.selectedBranch?.id === branchId
+            ? resolveConsoleActiveBranch(next, membershipBranchId === branchId ? undefined : membershipBranchId)
+            : state.selectedBranch
+        set({
+          branches: next,
+          selectedBranch: selected,
+          selectedBranchId: selected?.id ?? null,
+          branchState: selected ? 'ready' : next.length === 0 ? 'empty' : 'empty',
+          adminActiveBranch: selected,
+          activeBranch: state.activeBranch?.id === branchId ? null : state.activeBranch,
+        })
       },
 
       // Deprecated alias — kept in sync (not a getter, which zustand's

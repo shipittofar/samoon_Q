@@ -21,6 +21,8 @@ export const PUBLIC_TENANTS_QUERY_KEY = ['public-tenants'] as const
 
 export type ResolvePublicTenantOptions = {
   cachedTenants?: Tenant[]
+  /** Bypass the same-slug skip so a public page can reload after a Console mutation. */
+  force?: boolean
 }
 
 export type PublicBranchPageData = {

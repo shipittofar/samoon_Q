@@ -64,6 +64,11 @@ import {
 import { resolvePostAuthDestination } from '@/utils/auth-redirect'
 import { getAccessToken } from '@/services/axios.instance'
 import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
+import {
+  synchronizeTenantMutation,
+  synchronizeBranchMutation,
+  synchronizeBranchDeleted,
+} from '@/lib/entity-sync'
 import { logRbacDiagnostics } from '@/lib/rbac-diagnostics'
 import { usePermissionStore } from '@/stores/permission-store'
 import { normalizeTenantPermissions, canAccessBranch, hasAnyMembership } from '@/services/permission.service'
@@ -1296,20 +1301,13 @@ export function useConsoleAdminBranchMetrics(id: string) {
   })
 }
 
-function invalidateBranchPublicCaches(qc: QueryClient, tenantId: string) {
-  qc.invalidateQueries({ queryKey: ['admin-branches', tenantId] })
-  qc.invalidateQueries({ queryKey: ['console-admin-branches', tenantId] })
-  qc.invalidateQueries({ queryKey: ['public-branches', tenantId] })
-  qc.invalidateQueries({ queryKey: ['public-discover'] })
-}
-
 export function useCreateBranch(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: BranchWriteRequest) =>
       branchManagementService.createBranch(tenantId, payload),
-    onSuccess: () => {
-      invalidateBranchPublicCaches(qc, tenantId)
+    onSuccess: (branch) => {
+      synchronizeBranchMutation(qc, tenantId, branch)
     },
   })
 }
@@ -1319,8 +1317,8 @@ export function useConsoleCreateBranch(tenantId: string) {
   return useMutation({
     mutationFn: (payload: BranchWriteRequest) =>
       branchManagementService.consoleCreateBranch(tenantId, payload),
-    onSuccess: () => {
-      invalidateBranchPublicCaches(qc, tenantId)
+    onSuccess: (branch) => {
+      synchronizeBranchMutation(qc, tenantId, branch)
     },
   })
 }
@@ -1361,11 +1359,8 @@ export function useUpdateBranch() {
     onError: (_err, { id }, ctx) => {
       if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
-    onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
-      qc.invalidateQueries({ queryKey: ['admin-branches'] })
-      qc.invalidateQueries({ queryKey: ['public-branches', tenantId] })
-      qc.invalidateQueries({ queryKey: ['public-discover'] })
+    onSuccess: (data) => {
+      synchronizeBranchMutation(qc, tenantId, data)
     },
   })
 }
@@ -1386,9 +1381,8 @@ export function useActivateBranch() {
     onError: (_err, id, ctx) => {
       if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
-    onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
-      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    onSuccess: (data) => {
+      synchronizeBranchMutation(qc, tenantId, data)
     },
   })
 }
@@ -1409,9 +1403,8 @@ export function useDeactivateBranch() {
     onError: (_err, id, ctx) => {
       if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
-    onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
-      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    onSuccess: (data) => {
+      synchronizeBranchMutation(qc, tenantId, data)
     },
   })
 }
@@ -1432,9 +1425,8 @@ export function useMaintenanceBranch() {
     onError: (_err, id, ctx) => {
       if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
-    onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
-      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    onSuccess: (data) => {
+      synchronizeBranchMutation(qc, tenantId, data)
     },
   })
 }
@@ -1459,9 +1451,8 @@ export function useAssignBranchManager() {
     onError: (_err, { id }, ctx) => {
       if (ctx?.snapshot) qc.setQueryData(['admin-branch', tenantId, id], ctx.snapshot)
     },
-    onSuccess: (_data, { id }) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
-      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    onSuccess: (data) => {
+      synchronizeBranchMutation(qc, tenantId, data)
     },
   })
 }
@@ -1471,8 +1462,8 @@ export function useDeleteBranch() {
   const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
     mutationFn: (id: string) => branchManagementService.deleteBranch(id, tenantId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    onSuccess: (_void, id) => {
+      synchronizeBranchDeleted(qc, tenantId, id)
     },
   })
 }
@@ -1482,8 +1473,8 @@ export function useConsoleDeleteBranch() {
   const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
     mutationFn: (branch_id: string) => branchManagementService.consoleDeleteBranch(branch_id, tenantId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    onSuccess: (_void, branch_id) => {
+      synchronizeBranchDeleted(qc, tenantId, branch_id)
     },
   })
 }
@@ -1493,9 +1484,8 @@ export function useSetDefaultBranch() {
   const tenantId = useConsoleTenantId() ?? ''
   return useMutation({
     mutationFn: (id: string) => branchManagementService.setDefaultBranch(id, tenantId),
-    onSuccess: (_data, id) => {
-      qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, id] })
-      qc.invalidateQueries({ queryKey: ['admin-branches'] })
+    onSuccess: (data) => {
+      synchronizeBranchMutation(qc, tenantId, data)
     },
   })
 }
@@ -3062,10 +3052,14 @@ export function useProvisionTenant() {
   return useMutation({
     mutationFn: (req: Parameters<typeof tenantProvisioningService.provisionTenant>[0]) =>
       tenantProvisioningService.provisionTenant(req),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['tenant-templates'] })
-      qc.invalidateQueries({ queryKey: ['tenants'] })
-      qc.invalidateQueries({ queryKey: ['console-platform-tenants'] })
+    onSuccess: async (result) => {
+      if (!result.success) return
+      await synchronizeTenantMutation(qc, result.tenant, {
+        session: true,
+        templates: true,
+        discover: true,
+        publicTenants: true,
+      })
     },
   })
 }
@@ -3082,7 +3076,15 @@ export function useCloneTenant() {
       newSlug: string
       newName: string
     }) => tenantProvisioningService.cloneTenant(sourceTenantId, newSlug, newName),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenant-templates'] }),
+    onSuccess: async (result) => {
+      if (!result.success) return
+      await synchronizeTenantMutation(qc, result.tenant, {
+        session: true,
+        templates: true,
+        discover: true,
+        publicTenants: true,
+      })
+    },
   })
 }
 
@@ -3095,17 +3097,12 @@ export function useUpdateTenantSettings(explicitTenantId?: string) {
       if (!tenantId) throw new Error('No tenant')
       return tenantService.updateTenantSettings(tenantId, patch)
     },
-    onSuccess: (updated) => {
-      const store = useTenantStore.getState()
-      if (store.tenant?.id === updated.id) {
-        store.setTenant(updated)
-      }
-      qc.invalidateQueries({ queryKey: ['tenant'] })
-      qc.invalidateQueries({ queryKey: ['tenants'] })
-      qc.invalidateQueries({ queryKey: ['console-tenants'] })
-      qc.invalidateQueries({ queryKey: ['console-platform-tenants'] })
-      qc.invalidateQueries({ queryKey: ['public-discover'] })
-      qc.invalidateQueries({ queryKey: ['feature-flags', tenantId] })
+    onSuccess: async (updated) => {
+      await synchronizeTenantMutation(qc, updated, {
+        featureFlags: true,
+        discover: true,
+        publicTenants: true,
+      })
     },
   })
 }
@@ -3119,16 +3116,11 @@ export function useUpdateTenantMedia(explicitTenantId?: string) {
       if (!tenantId) throw new Error('No tenant')
       return tenantService.updateTenantMedia(tenantId, payload)
     },
-    onSuccess: (updated) => {
-      const store = useTenantStore.getState()
-      if (store.tenant?.id === updated.id) {
-        store.setTenant(updated)
-      }
-      qc.invalidateQueries({ queryKey: ['tenant'] })
-      qc.invalidateQueries({ queryKey: ['tenants'] })
-      qc.invalidateQueries({ queryKey: ['console-tenants'] })
-      qc.invalidateQueries({ queryKey: ['console-platform-tenants'] })
-      qc.invalidateQueries({ queryKey: ['public-discover'] })
+    onSuccess: async (updated) => {
+      await synchronizeTenantMutation(qc, updated, {
+        discover: true,
+        publicTenants: true,
+      })
     },
   })
 }
@@ -3280,8 +3272,8 @@ export function useActivateTenant() {
   const user = useAuthStore((s) => s.user)
   return useMutation({
     mutationFn: (tenantId: string) => tenantService.activateTenant(tenantId),
-    onSuccess: (_data, tenantId) => {
-      qc.invalidateQueries({ queryKey: ['tenants'] })
+    onSuccess: async (data, tenantId) => {
+      await synchronizeTenantMutation(qc, data, { discover: true, publicTenants: true })
       auditLogService.record(
         'TENANT_ACTIVATED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
@@ -3298,8 +3290,8 @@ export function useSuspendTenant() {
   const user = useAuthStore((s) => s.user)
   return useMutation({
     mutationFn: (tenantId: string) => tenantService.suspendTenant(tenantId),
-    onSuccess: (_data, tenantId) => {
-      qc.invalidateQueries({ queryKey: ['tenants'] })
+    onSuccess: async (data, tenantId) => {
+      await synchronizeTenantMutation(qc, data, { discover: true, publicTenants: true })
       auditLogService.record(
         'TENANT_SUSPENDED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
@@ -3316,8 +3308,8 @@ export function useArchiveTenant() {
   const user = useAuthStore((s) => s.user)
   return useMutation({
     mutationFn: (tenantId: string) => tenantService.archiveTenant(tenantId),
-    onSuccess: (_data, tenantId) => {
-      qc.invalidateQueries({ queryKey: ['tenants'] })
+    onSuccess: async (data, tenantId) => {
+      await synchronizeTenantMutation(qc, data, { discover: true, publicTenants: true })
       auditLogService.record(
         'TENANT_ARCHIVED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
@@ -4218,6 +4210,12 @@ export function useUpdateFeatureFlag() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['feature-flags'] })
+      qc.invalidateQueries({ queryKey: ['tenant'] })
+      qc.invalidateQueries({ queryKey: ['tenants'] })
+      qc.invalidateQueries({ queryKey: ['console-tenants'] })
+      qc.invalidateQueries({ queryKey: ['console-platform-tenants'] })
+      qc.invalidateQueries({ queryKey: ['public-discover'] })
+      qc.invalidateQueries({ queryKey: PUBLIC_TENANTS_QUERY_KEY })
     },
   })
 }

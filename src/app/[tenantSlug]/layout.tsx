@@ -33,20 +33,32 @@ export default function TenantLayout({
   const loadTenant = useTenantStore((s) => s.loadTenant)
   const tenant = useTenantStore((s) => s.tenant)
   const tenantState = useTenantStore((s) => s.tenantState)
+  const dataRevision = useTenantStore((s) => s.dataRevision)
   const clearCart = useCartStore((s) => s.clearCart)
 
   useEffect(() => {
-    if (tenantState === 'resolved' && tenant?.slug === tenantSlug) return
-    if (tenant?.slug !== tenantSlug) {
+    const publicTenantQuery = queryClient.getQueryState(['public-tenant', tenantSlug])
+    const needsForcedReload =
+      tenantState === 'resolved' &&
+      tenant?.slug === tenantSlug &&
+      publicTenantQuery?.isInvalidated === true
+
+    if (tenantState === 'resolved' && tenant?.slug === tenantSlug && !needsForcedReload) {
+      return
+    }
+    if (tenant?.slug !== tenantSlug || needsForcedReload) {
       // Only clear when switching between two different resolved tenants —
       // never during bootstrap when tenant is null/loading after layout unmount.
-      if (tenantState === 'resolved' && tenant?.slug) {
+      if (!needsForcedReload && tenantState === 'resolved' && tenant?.slug) {
         clearCart()
       }
       const cachedTenants = queryClient.getQueryData<Tenant[]>(PUBLIC_TENANTS_QUERY_KEY)
-      void loadTenant(tenantSlug, { cachedTenants })
+      void loadTenant(tenantSlug, {
+        cachedTenants: needsForcedReload ? undefined : cachedTenants,
+        force: needsForcedReload,
+      })
     }
-  }, [tenantSlug, tenant?.slug, tenantState, loadTenant, clearCart, queryClient])
+  }, [tenantSlug, tenant?.slug, tenantState, dataRevision, loadTenant, clearCart, queryClient])
 
   useEffect(() => {
     return () => {
