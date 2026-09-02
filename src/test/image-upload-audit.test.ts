@@ -128,9 +128,10 @@ describe('branch image upload', () => {
 })
 
 describe('remaining URL-based image inputs', () => {
-  it('console marketplace settings still use cover image URL input', () => {
+  it('console tenant listing uses heroImage URL, not branch coverImage', () => {
     const src = read('src/app/console/settings/page.tsx')
-    expect(src).toContain('coverImageUrlLabel')
+    expect(src).toContain('heroImageUrlLabel')
+    expect(src).not.toContain('coverImageUrlLabel')
     expect(src).not.toContain('ImageUploader')
   })
 })

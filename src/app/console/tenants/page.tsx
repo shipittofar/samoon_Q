@@ -78,6 +78,12 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
           {tenant.name}
         </Link>
         <p className="text-xs text-gray-500 font-mono">{tenant.slug}</p>
+        <Link
+          href={`/console/tenants/${tenant.id}/edit`}
+          className="text-xs text-accent hover:underline"
+        >
+          {t('editTenantSettingsLabel')}
+        </Link>
       </td>
       <td className="px-4 py-3 text-sm">
         {tenant.businessTypes?.[0]?.replace(/_/g, ' ') ?? '—'}

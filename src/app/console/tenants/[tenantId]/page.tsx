@@ -249,7 +249,15 @@ function TenantDetailContent({ tenantId }: { tenantId: string }) {
           </Link>
           <h1 className="text-2xl font-bold">{tenant.name}</h1>
         </div>
-        <PreviewButton href="/" label={t('previewTenantSiteLabel')} size="sm" />
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/console/tenants/${tenant.id}/edit`}
+            className="text-sm text-accent hover:underline"
+          >
+            {t('editTenantSettingsLabel')}
+          </Link>
+          <PreviewButton href="/" label={t('previewTenantSiteLabel')} size="sm" />
+        </div>
       </div>
 
       <ProfileSection tenant={tenant} />

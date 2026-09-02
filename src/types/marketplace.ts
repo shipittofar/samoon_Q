@@ -211,7 +211,7 @@ export function hasActiveFilters(f: FilterState): boolean {
  * Does not return Branch-owned or computed fields even if a stale payload still contains them.
  */
 export function getMarketplaceMeta(
-  settings?: { marketplace?: TenantMarketplaceSettings | MarketplaceMeta; [key: string]: unknown },
+  settings?: { marketplace?: TenantMarketplaceSettings | MarketplaceMeta },
 ): TenantMarketplaceSettings | undefined {
   return pickTenantMarketplace(settings?.marketplace)
 }

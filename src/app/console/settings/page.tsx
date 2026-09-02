@@ -56,13 +56,25 @@ function SaveBar({ isPending, saved, onSave }: SaveBarProps) {
 
 function GeneralTab() {
   const t = useTranslations('console')
+  const tCaps = useTranslations('address.capabilities')
   const tenant = useTenantStore((s) => s.tenant)
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
   const [contactEmail, setContactEmail] = useState(tenant?.settings?.contactEmail ?? '')
   const [contactPhone, setContactPhone] = useState(tenant?.settings?.contactPhone ?? '')
+  const existingCaps = tenant?.settings?.addressCapabilities
+  const [caps, setCaps] = useState({
+    cash_on_delivery: existingCaps?.cash_on_delivery === true,
+    scheduled_delivery: existingCaps?.scheduled_delivery === true,
+    same_day: existingCaps?.same_day === true,
+    contactless_delivery: existingCaps?.contactless_delivery === true,
+  })
 
   function handleSave() {
-    save({ contactEmail: contactEmail || undefined, contactPhone: contactPhone || undefined })
+    save({
+      contactEmail: contactEmail || undefined,
+      contactPhone: contactPhone || undefined,
+      addressCapabilities: caps,
+    })
   }
 
   return (
@@ -114,6 +126,23 @@ function GeneralTab() {
           placeholder="+1 555-000-0000"
           className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+      </div>
+      <div>
+        <p className="text-sm font-medium text-gray-700 mb-2">{t('tenantAddressCapabilitiesLabel')}</p>
+        <p className="text-xs text-gray-400 mb-2">{t('tenantAddressCapabilitiesHint')}</p>
+        <div className="space-y-2">
+          {(['cash_on_delivery', 'scheduled_delivery', 'same_day', 'contactless_delivery'] as const).map((key) => (
+            <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={caps[key]}
+                onChange={(e) => setCaps((prev) => ({ ...prev, [key]: e.target.checked }))}
+                className="rounded"
+              />
+              {tCaps(key)}
+            </label>
+          ))}
+        </div>
       </div>
       <CopyUrlWidget
         url={`${APP_URL}/${tenant?.slug ?? ''}`}
@@ -456,179 +485,6 @@ function PublicProfileTab() {
             <label className={labelClass}>{t('heroImageUrlLabel')}</label>
             <input type="url" value={heroImage} onChange={(e) => setHeroImage(e.target.value)}
               placeholder="https://example.com/hero.jpg" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>{t('galleryImageUrlsLabel')}</label>
-            <textarea value={gallery} onChange={(e) => setGallery(e.target.value)}
-              placeholder={'https://example.com/image1.jpg\nhttps://example.com/image2.jpg'} rows={4}
-              className={inputClass} />
-            <p className={hintClass}>{t('galleryImageUrlsHint')}</p>
-          </div>
-        </div>
-      </div>
-
-      <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
-    </div>
-  )
-}
-  const t = useTranslations('console')
-  const tenant = useTenantStore((s) => s.tenant)
-  const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
-  const existingMeta = getMarketplaceMeta(tenant?.settings)
-
-  const [tagline, setTagline] = useState(existingMeta?.tagline ?? '')
-  const [description, setDescription] = useState(existingMeta?.description ?? '')
-  const [story, setStory] = useState(existingMeta?.story ?? '')
-  const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
-  const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
-  const [phone_number, setPhone] = useState(existingMeta?.phone_number ?? '')
-  const [email, setEmail] = useState(existingMeta?.email ?? '')
-  const [website, setWebsite] = useState(existingMeta?.website ?? '')
-  const [coverImage, setCoverImage] = useState(existingMeta?.coverImage ?? '')
-  const [gallery, setGallery] = useState(existingMeta?.gallery?.join('\n') ?? '')
-  const [instagram, setInstagram] = useState(existingMeta?.socialLinks?.instagram ?? '')
-  const [twitter, setTwitter] = useState(existingMeta?.socialLinks?.twitter ?? '')
-
-  useEffect(() => {
-    const m = getMarketplaceMeta(tenant?.settings)
-    if (m) {
-      setTagline(m.tagline ?? '')
-      setDescription(m.description ?? '')
-      setStory(m.story ?? '')
-      setTags(m.tags?.join(', ') ?? '')
-      setPriceLevel(String(m.priceLevel ?? ''))
-      setPhone(m.phone_number ?? '')
-      setEmail(m.email ?? '')
-      setWebsite(m.website ?? '')
-      setCoverImage(m.coverImage ?? '')
-      setGallery(m.gallery?.join('\n') ?? '')
-      setInstagram(m.socialLinks?.instagram ?? '')
-      setTwitter(m.socialLinks?.twitter ?? '')
-    }
-  }, [tenant?.slug])
-
-  function handleSave() {
-    const toArr = (s: string) => s.split(',').map((v) => v.trim()).filter(Boolean)
-    const toLines = (s: string) => s.split('\n').map((v) => v.trim()).filter(Boolean)
-    save({
-      marketplace: {
-        ...existingMeta,
-        tagline: tagline || undefined,
-        description: description || existingMeta?.description || '',
-        story: story || undefined,
-        tags: tags ? toArr(tags) : (existingMeta?.tags ?? []),
-        priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
-        phone_number: phone_number || undefined,
-        email: email || undefined,
-        website: website || undefined,
-        coverImage: coverImage || existingMeta?.coverImage || '',
-        gallery: gallery ? toLines(gallery) : existingMeta?.gallery,
-        socialLinks: {
-          ...existingMeta?.socialLinks,
-          instagram: instagram || undefined,
-          twitter: twitter || undefined,
-        },
-      },
-    })
-  }
-
-  const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
-  const hintClass = 'text-xs text-gray-400 mt-1'
-
-  return (
-    <div className="space-y-5">
-      <p className="text-sm text-gray-500 mb-4">
-        {t('publicProfileDescription')}
-      </p>
-
-      <div>
-        <label className={labelClass}>{t('taglineLabel')}</label>
-        <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)}
-          placeholder={t('taglinePlaceholder')} className={inputClass} maxLength={120} />
-        <p className={hintClass}>{t('taglineHint')}</p>
-      </div>
-
-      <div>
-        <label className={labelClass}>{t('shortDescriptionLabel')}</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-          placeholder={t('shortDescriptionPlaceholder')} rows={3}
-          className={inputClass} maxLength={200} />
-        <p className={hintClass}>{t('shortDescriptionHint')}</p>
-      </div>
-
-      <div>
-        <label className={labelClass}>{t('aboutStoryLabel')}</label>
-        <textarea value={story} onChange={(e) => setStory(e.target.value)}
-          placeholder={t('aboutStoryPlaceholder')} rows={5}
-          className={inputClass} />
-        <p className={hintClass}>{t('aboutStoryHint')}</p>
-      </div>
-
-      <div>
-        <label className={labelClass}>{t('discoveryTagsLabel')}</label>
-        <input type="text" value={tags} onChange={(e) => setTags(e.target.value)}
-          placeholder={t('tagsExamplePlaceholder')} className={inputClass} />
-        <p className={hintClass}>{t('discoveryTagsHint')}</p>
-      </div>
-
-      <div>
-        <label className={labelClass}>{t('priceLevelLabel')}</label>
-        <select value={priceLevel} onChange={(e) => setPriceLevel(e.target.value)}
-          className={inputClass}>
-          <option value="">{t('selectDash')}</option>
-          <option value="1">{t('priceLevelBudget')}</option>
-          <option value="2">{t('priceLevelModerate')}</option>
-          <option value="3">{t('priceLevelUpscale')}</option>
-          <option value="4">{t('priceLevelFineDining')}</option>
-        </select>
-      </div>
-
-      <div className="border-t pt-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('contactInformationLabel')}</h3>
-        <div className="space-y-4">
-          <div>
-            <label className={labelClass}>{t('publicPhoneLabel')}</label>
-            <input type="tel" value={phone_number} onChange={(e) => setPhone(e.target.value)}
-              placeholder="+1 555-000-0000" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>{t('publicEmailLabel')}</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="hello@yourbusiness.com" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>{t('websiteLabel')}</label>
-            <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://yourbusiness.com" className={inputClass} />
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t pt-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('socialMediaLabel')}</h3>
-        <div className="space-y-4">
-          <div>
-            <label className={labelClass}>{t('instagramUrlLabel')}</label>
-            <input type="url" value={instagram} onChange={(e) => setInstagram(e.target.value)}
-              placeholder="https://instagram.com/yourbusiness" className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>{t('twitterUrlLabel')}</label>
-            <input type="url" value={twitter} onChange={(e) => setTwitter(e.target.value)}
-              placeholder="https://twitter.com/yourbusiness" className={inputClass} />
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t pt-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('mediaLabel')}</h3>
-        <div className="space-y-4">
-          <div>
-            <label className={labelClass}>{t('coverImageUrlLabel')}</label>
-            <input type="url" value={coverImage} onChange={(e) => setCoverImage(e.target.value)}
-              placeholder="https://example.com/cover.jpg" className={inputClass} />
-            <p className={hintClass}>{t('coverImageHint')}</p>
           </div>
           <div>
             <label className={labelClass}>{t('galleryImageUrlsLabel')}</label>

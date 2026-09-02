@@ -1296,13 +1296,20 @@ export function useConsoleAdminBranchMetrics(id: string) {
   })
 }
 
+function invalidateBranchPublicCaches(qc: QueryClient, tenantId: string) {
+  qc.invalidateQueries({ queryKey: ['admin-branches', tenantId] })
+  qc.invalidateQueries({ queryKey: ['console-admin-branches', tenantId] })
+  qc.invalidateQueries({ queryKey: ['public-branches', tenantId] })
+  qc.invalidateQueries({ queryKey: ['public-discover'] })
+}
+
 export function useCreateBranch(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: BranchWriteRequest) =>
       branchManagementService.createBranch(tenantId, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-branches', tenantId] })
+      invalidateBranchPublicCaches(qc, tenantId)
     },
   })
 }
@@ -1313,7 +1320,7 @@ export function useConsoleCreateBranch(tenantId: string) {
     mutationFn: (payload: BranchWriteRequest) =>
       branchManagementService.consoleCreateBranch(tenantId, payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['console-admin-branches', tenantId] })
+      invalidateBranchPublicCaches(qc, tenantId)
     },
   })
 }
@@ -1338,9 +1345,15 @@ export function useUpdateBranch() {
           ...(payload.checkout && {
             checkout: mergeBranchCheckout(snapshot.checkout, payload.checkout),
           }),
+          ...(payload.description !== undefined && { description: payload.description }),
           ...(payload.marketplaceVisible !== undefined && { marketplaceVisible: payload.marketplaceVisible }),
           ...(payload.reservationsEnabled !== undefined && { reservationsEnabled: payload.reservationsEnabled }),
           ...(payload.maxCapacity !== undefined && { maxCapacity: payload.maxCapacity }),
+          ...(payload.timeZone !== undefined && { timeZone: payload.timeZone }),
+          ...(payload.currency !== undefined && { currency: payload.currency }),
+          ...(payload.language !== undefined && { language: payload.language }),
+          ...(payload.cuisines !== undefined && { cuisines: payload.cuisines }),
+          ...(payload.amenities !== undefined && { amenities: payload.amenities }),
         })
       }
       return { snapshot }
@@ -3049,7 +3062,11 @@ export function useProvisionTenant() {
   return useMutation({
     mutationFn: (req: Parameters<typeof tenantProvisioningService.provisionTenant>[0]) =>
       tenantProvisioningService.provisionTenant(req),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenant-templates'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tenant-templates'] })
+      qc.invalidateQueries({ queryKey: ['tenants'] })
+      qc.invalidateQueries({ queryKey: ['console-platform-tenants'] })
+    },
   })
 }
 
@@ -3069,17 +3086,26 @@ export function useCloneTenant() {
   })
 }
 
-export function useUpdateTenantSettings() {
+export function useUpdateTenantSettings(explicitTenantId?: string) {
   const qc = useQueryClient()
-  const tenantId = useConsoleTenantId()
+  const workspaceTenantId = useConsoleTenantId()
+  const tenantId = explicitTenantId || workspaceTenantId
   return useMutation({
     mutationFn: (patch: Record<string, unknown>) => {
       if (!tenantId) throw new Error('No tenant')
       return tenantService.updateTenantSettings(tenantId, patch)
     },
     onSuccess: (updated) => {
-      useTenantStore.getState().setTenant(updated)
+      const store = useTenantStore.getState()
+      if (store.tenant?.id === updated.id) {
+        store.setTenant(updated)
+      }
       qc.invalidateQueries({ queryKey: ['tenant'] })
+      qc.invalidateQueries({ queryKey: ['tenants'] })
+      qc.invalidateQueries({ queryKey: ['console-tenants'] })
+      qc.invalidateQueries({ queryKey: ['console-platform-tenants'] })
+      qc.invalidateQueries({ queryKey: ['public-discover'] })
+      qc.invalidateQueries({ queryKey: ['feature-flags', tenantId] })
     },
   })
 }

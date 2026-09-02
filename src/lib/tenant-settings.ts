@@ -33,8 +33,8 @@ export const DEPRECATED_TENANT_SETTINGS_KEYS = [
   'businessHours',
 ] as const
 
-/** Mock-only persistence for website-builder fixtures (real mode uses its own API). */
-const MOCK_ONLY_SETTINGS_KEYS = ['websiteBuilder'] as const
+/** Mock-only persistence for website-builder fixtures (real mode uses dedicated website APIs). */
+const MOCK_ONLY_SETTINGS_KEYS = ['websiteBuilder', 'branchOverrides'] as const
 
 export type TenantContactFallback = {
   contactEmail?: string
