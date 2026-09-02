@@ -11,6 +11,7 @@ import { type MarketplaceMeta, type PublicBranchInfo, BUSINESS_TYPE_LABELS } fro
 import { usePublicBranches } from '@/hooks'
 import { BranchPreview } from './BranchPreview'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
+import { getDiscoverCardPrimaryCta } from '@/lib/discover-card-cta'
 
 interface BusinessCardProps {
   tenant: Tenant
@@ -62,16 +63,14 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
       : featureFlags['reservations.enabled'] === true
   const hasLoyalty = Object.entries(featureFlags).some(([k, v]) => k.includes('loyalty') && v === true)
 
-  // C3: multi-branch businesses go to the tenant homepage so users can choose a location.
-  // Single-branch businesses go directly to the menu.
-  const isMultiBranch = (meta.branchCount ?? 0) > 1
-  const viewHref   = isMultiBranch ? `/${tenant.slug}` : `/${tenant.slug}/${meta.primaryBranchSlug ?? ''}/menu`
   const tenantHref = `/${tenant.slug}`
+  const { href: viewHref, labelKey: ctaLabelKey } = getDiscoverCardPrimaryCta({
+    tenantSlug: tenant.slug,
+    branchCount: meta.branchCount,
+    primaryBranchSlug: meta.primaryBranchSlug,
+  })
   const hasBranches = visibleBranches.length > 0
-  // C3: Use a contextual CTA label based on business type and branch count
-  const nonMenuTypes = ['bar', 'hotel', 'other']
-  const isNonMenuType = tenant.businessTypes.every((bt) => nonMenuTypes.includes(bt))
-  const ctaLabel = isMultiBranch ? t('explore') : isNonMenuType ? t('visit') : t('viewMenu')
+  const ctaLabel = t(ctaLabelKey)
 
   return (
     <article

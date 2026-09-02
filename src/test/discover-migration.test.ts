@@ -192,3 +192,50 @@ describe('discover migration wiring', () => {
     expect(src).toContain('enabled: branchesProp === undefined')
   })
 })
+
+describe('Discover card Explore CTA', () => {
+  it('single-branch tenant shows Explore and goes to the public tenant page, not the branch slug', async () => {
+    const { getDiscoverCardPrimaryCta } = await import('@/lib/discover-card-cta')
+    const cta = getDiscoverCardPrimaryCta({
+      tenantSlug: 'the-oak-bar',
+      branchCount: 1,
+      primaryBranchSlug: 'main',
+    })
+    expect(cta.labelKey).toBe('explore')
+    expect(cta.href).toBe('/the-oak-bar')
+    expect(cta.href.split('/').filter(Boolean)).toEqual(['the-oak-bar'])
+    expect(cta.href).not.toContain('/main')
+    expect(cta.href).not.toContain('/menu')
+  })
+
+  it('multi-branch tenant still uses Explore and the public tenant page', async () => {
+    const { getDiscoverCardPrimaryCta } = await import('@/lib/discover-card-cta')
+    const cta = getDiscoverCardPrimaryCta({
+      tenantSlug: 'samoon',
+      branchCount: 3,
+      primaryBranchSlug: 'downtown',
+    })
+    expect(cta.labelKey).toBe('explore')
+    expect(cta.href).toBe('/samoon')
+    expect(cta.href).not.toContain('/downtown')
+  })
+
+  it('BusinessCard wires the primary CTA helper and marketplace Explore label', () => {
+    const src = readFileSync(join(ROOT, 'components', 'marketplace', 'BusinessCard.tsx'), 'utf8')
+    expect(src).toContain('getDiscoverCardPrimaryCta')
+    expect(src).toContain("href={viewHref}")
+    expect(src).toContain("from '@/lib/discover-card-cta'")
+    expect(src).not.toContain('/menu')
+    const en = JSON.parse(readFileSync(join(ROOT, 'i18n', 'locales', 'en.json'), 'utf8')) as {
+      marketplace: { explore: string }
+    }
+    expect(en.marketplace.explore).toBe('Explore')
+  })
+
+  it('discover service and endpoints are unchanged by this CTA restore', () => {
+    const service = readFileSync(join(ROOT, 'services', 'discover.service.ts'), 'utf8')
+    expect(service).toContain('getDiscover')
+    const card = readFileSync(join(ROOT, 'components', 'marketplace', 'BusinessCard.tsx'), 'utf8')
+    expect(card).not.toContain('discoverService')
+  })
+})
