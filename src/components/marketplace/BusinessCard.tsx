@@ -138,8 +138,8 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
         </div>
 
         {/* Description */}
-        {meta.description && (
-          <p className="text-sm text-[var(--fg-muted)] line-clamp-2 mb-3">{meta.description}</p>
+        {tenant.description && (
+          <p className="text-sm text-[var(--fg-muted)] line-clamp-2 mb-3">{tenant.description}</p>
         )}
 
         {/* Stats row */}

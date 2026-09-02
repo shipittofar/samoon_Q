@@ -82,6 +82,7 @@ export function mapDiscoverTenantToItem(item: DiscoverTenant): DiscoverItem {
     id: item.id,
     slug: item.slug,
     name: item.name,
+    description: item.description,
     is_active: item.is_active === true,
     status: item.status,
     created_at: item.created_at,

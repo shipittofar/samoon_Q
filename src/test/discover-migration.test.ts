@@ -117,6 +117,30 @@ describe('discover adapter', () => {
     expect(item.meta.branchCount).toBe(2)
   })
 
+  it('maps Discover tenant.description onto tenant without using branch description', () => {
+    const item = mapDiscoverTenantToItem({
+      ...SAMPLE_TENANT,
+      description: 'Tenant-owned story',
+      branches: [
+        { ...SAMPLE_TENANT.branches![0], description: 'Primary branch copy' },
+        { ...SAMPLE_TENANT.branches![1], description: 'Second branch copy' },
+      ],
+    })
+    expect(item.tenant.description).toBe('Tenant-owned story')
+    expect(item.meta.description).toBe('Primary branch copy')
+    expect(item.branches[0].description).toBe('Primary branch copy')
+  })
+
+  it('does not fall back to branches[0].description when tenant description is missing', () => {
+    const item = mapDiscoverTenantToItem({
+      ...SAMPLE_TENANT,
+      description: undefined,
+      branches: [{ ...SAMPLE_TENANT.branches![0], description: 'Only branch copy' }],
+    })
+    expect(item.tenant.description).toBeUndefined()
+    expect(item.meta.description).toBe('Only branch copy')
+  })
+
   it('falls back to legacy theme when branding is absent', () => {
     const { branding: _b, ...legacyOnly } = SAMPLE_TENANT
     const item = mapDiscoverTenantToItem({
@@ -237,5 +261,19 @@ describe('Discover card Explore CTA', () => {
     expect(service).toContain('getDiscover')
     const card = readFileSync(join(ROOT, 'components', 'marketplace', 'BusinessCard.tsx'), 'utf8')
     expect(card).not.toContain('discoverService')
+  })
+})
+
+describe('Discover card description', () => {
+  it('BusinessCard renders tenant.description with line-clamp-2 and hides when empty', () => {
+    const src = readFileSync(join(ROOT, 'components', 'marketplace', 'BusinessCard.tsx'), 'utf8')
+    expect(src).toContain('{tenant.description && (')
+    expect(src).toContain('{tenant.description}</p>')
+    expect(src).toContain('line-clamp-2')
+    expect(src).not.toContain('{meta.description && (')
+    expect(src).not.toContain('{meta.description}')
+    expect(src).not.toContain('primary?.description')
+    expect(src).not.toContain('branches[0].description')
+    expect(src).not.toContain('?? branches[0]')
   })
 })

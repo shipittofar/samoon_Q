@@ -50,6 +50,8 @@ export interface DiscoverTenant {
   id: string
   slug: string
   name: string
+  /** Tenant-owned public description. Independent of Branch.description. */
+  description?: string
   /** Public visibility — prefer over `status` for catalog show/hide. */
   is_active?: boolean
   /** Operational state only — not used for discover visibility. */

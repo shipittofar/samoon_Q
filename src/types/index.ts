@@ -555,6 +555,8 @@ export interface Tenant {
   id: string
   name: string
   slug: string
+  /** Tenant-owned public description (Discover card). Independent of Branch.description. */
+  description?: string
   /** Tenant brand logo URL. Header / branding logo only — not Discover avatar, cover, or hero. */
   image?: string
   /** Discover card avatar. Independent of `image`. Not the public Tenant page avatar. */
