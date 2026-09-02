@@ -11,6 +11,7 @@ import {
   fontIdFromStored,
   type BrandingPalettePreset,
 } from '@/config/branding-defaults'
+import { Check } from 'lucide-react'
 import { ImageUploader, EMPTY_IMAGE_FIELD, type ImageFieldValue } from '@/components/ImageUploader'
 import { resolveSupportedLocales, resolveDefaultLocale, getLanguageInfo } from '@/i18n/runtime'
 
@@ -181,20 +182,28 @@ export function BrandingDefaultsStep({
 
       {/* 3. Per-language fonts (font IDs stored for backend) */}
       <fieldset>
-        <legend className="block text-sm font-medium mb-1">{t('perLanguageFontsLabel')}</legend>
-        <p className="text-xs text-gray-500 mb-3">{t('perLanguageFontsHint')}</p>
-        <div className="space-y-4">
+        <legend className="block text-sm font-semibold mb-1">{t('perLanguageFontsLabel')}</legend>
+        <p className="text-xs text-gray-500 mb-4">{t('perLanguageFontsHint')}</p>
+        <div className="space-y-5">
           {languageFonts.map((entry) => {
             const info = getLanguageInfo(entry.code)
             const title = info ? `${info.nativeName} (${info.englishName})` : entry.code
+            const isDefaultLocale = entry.code === defaultLocale
             const selectedId = fontIdFromStored(
               entry,
               branding.fontsByLocale?.[entry.code] ?? branding.fontBody ?? undefined,
             )
 
             return (
-              <div key={entry.code} className="rounded-lg border border-gray-100 p-3">
-                <p className="text-sm font-medium mb-2">{title}</p>
+              <div key={entry.code} className="rounded-xl border border-gray-200 p-4">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold text-gray-800">{title}</p>
+                  {isDefaultLocale ? (
+                    <p className="text-xs text-gray-500 mt-0.5">{t('fontDefaultLocaleHint')}</p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-0.5">{t('fontLocaleHint')}</p>
+                  )}
+                </div>
                 <div
                   className="grid grid-cols-1 sm:grid-cols-2 gap-2"
                   role="radiogroup"
@@ -208,21 +217,29 @@ export function BrandingDefaultsStep({
                         type="button"
                         role="radio"
                         aria-checked={selected}
+                        data-font-id={font.id}
+                        data-selected={selected ? 'true' : 'false'}
                         onClick={() => selectLanguageFont(entry.code, font.id)}
-                        className={`border rounded-lg px-3 py-2.5 text-start transition-colors ${
+                        className={`relative border rounded-lg px-3 py-3 text-start transition-colors ${
                           selected
-                            ? 'border-accent bg-accent/5 ring-1 ring-accent'
+                            ? 'border-accent bg-accent/5 ring-2 ring-accent'
                             : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
+                        {selected ? (
+                          <span className="absolute top-2 end-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                            <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                            {t('fontSelectedLabel')}
+                          </span>
+                        ) : null}
                         <span
-                          className="block text-sm font-medium"
+                          className="block text-base font-medium pr-16"
                           style={{ fontFamily: font.cssFamily }}
                         >
                           {font.name}
                         </span>
                         <span
-                          className="block text-xs text-gray-500 mt-0.5"
+                          className="block text-sm text-gray-600 mt-1 leading-snug"
                           style={{ fontFamily: font.cssFamily }}
                         >
                           {t('fontSamplePreview', { fontFamily: font.name })}

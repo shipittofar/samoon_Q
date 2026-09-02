@@ -190,28 +190,34 @@ describe('C — capability presets', () => {
     expect(typeof p.optional).toBe('object')
   })
 
-  it('restaurant preset requires menu.enabled', async () => {
+  it('restaurant preset requires menu.enabled only', async () => {
     const svc = await freshService()
     const p = svc.getCapabilityPreset('restaurant')
-    expect(p.required).toContain('menu.enabled')
+    expect(p.required).toEqual(['menu.enabled'])
+    expect(p.optional['ordering.enabled']).toBe(true)
+    expect(p.optional['qr_table.enabled']).toBe(true)
+    expect(p.optional['notifications.enabled']).toBe(true)
   })
 
-  it('restaurant preset requires ordering.enabled', async () => {
+  it('restaurant preset treats ordering.enabled as optional', async () => {
     const svc = await freshService()
     const p = svc.getCapabilityPreset('restaurant')
-    expect(p.required).toContain('ordering.enabled')
+    expect(p.required).not.toContain('ordering.enabled')
+    expect('ordering.enabled' in p.optional).toBe(true)
   })
 
-  it('restaurant preset requires qr_table.enabled', async () => {
+  it('restaurant preset treats qr_table.enabled as optional', async () => {
     const svc = await freshService()
     const p = svc.getCapabilityPreset('restaurant')
-    expect(p.required).toContain('qr_table.enabled')
+    expect(p.required).not.toContain('qr_table.enabled')
+    expect('qr_table.enabled' in p.optional).toBe(true)
   })
 
-  it('food_court preset requires reservations.enabled', async () => {
+  it('food_court preset treats reservations.enabled as optional', async () => {
     const svc = await freshService()
     const p = svc.getCapabilityPreset('food_court')
-    expect(p.required).toContain('reservations.enabled')
+    expect(p.required).toEqual(['menu.enabled'])
+    expect(p.optional['reservations.enabled']).toBe(true)
   })
 
   it('food_court preset has vendor_management in optional', async () => {
@@ -454,17 +460,16 @@ describe('H — validateTenantConfiguration (valid)', () => {
 // ── I: validateTenantConfiguration (invalid) ──────────────────────────────────
 
 describe('I — validateTenantConfiguration (invalid)', () => {
-  it('rejects empty name', async () => {
+  it('accepts empty name as optional', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({ name: '', slug: 'good-slug', businessType: 'restaurant' })
-    expect(r.valid).toBe(false)
-    expect(r.errors.some((e) => e.includes('name'))).toBe(true)
+    expect(r.valid).toBe(true)
   })
 
-  it('rejects single-char name', async () => {
+  it('accepts single-char name as optional', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({ name: 'A', slug: 'ok-slug', businessType: 'restaurant' })
-    expect(r.valid).toBe(false)
+    expect(r.valid).toBe(true)
   })
 
   it('rejects slug with uppercase', async () => {
@@ -523,7 +528,7 @@ describe('I — validateTenantConfiguration (invalid)', () => {
     expect(r.errors.some((e) => e.includes('required capability') || e.includes('menu.enabled'))).toBe(true)
   })
 
-  it('rejects disabling qr_table.enabled for restaurant', async () => {
+  it('allows disabling qr_table.enabled for restaurant', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({
       name: 'No QR',
@@ -531,13 +536,26 @@ describe('I — validateTenantConfiguration (invalid)', () => {
       businessType: 'restaurant',
       capabilityOverrides: { 'qr_table.enabled': false },
     })
-    expect(r.valid).toBe(false)
+    expect(r.valid).toBe(true)
   })
 
-  it('accumulates multiple errors', async () => {
+  it('still rejects disabling menu.enabled', async () => {
     const svc = await freshService()
-    const r = svc.validateTenantConfiguration({ name: '', slug: '', businessType: 'restaurant' })
-    expect(r.errors.length).toBeGreaterThan(1)
+    const r = svc.validateTenantConfiguration({
+      name: 'No Menu',
+      slug: 'no-menu',
+      businessType: 'restaurant',
+      capabilityOverrides: { 'menu.enabled': false },
+    })
+    expect(r.valid).toBe(false)
+    expect(r.errors.some((e) => e.includes('menu.enabled'))).toBe(true)
+  })
+
+  it('rejects invalid business type', async () => {
+    const svc = await freshService()
+    const r = svc.validateTenantConfiguration({ name: '', slug: '', businessType: 'not-a-type' as 'restaurant' })
+    expect(r.valid).toBe(false)
+    expect(r.errors.length).toBeGreaterThan(0)
   })
 })
 
@@ -625,10 +643,10 @@ describe('K — provisionTenant (failure)', () => {
     expect(result.success).toBe(false)
   })
 
-  it('returns success=false for empty name', async () => {
+  it('returns success=true for empty name', async () => {
     const svc = await freshService()
     const result = await svc.provisionTenant({ name: '', slug: 'ok-slug-02', businessType: 'bar' })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 
   it('returns success=false when disabling required capability', async () => {
@@ -1018,7 +1036,7 @@ describe('V — required capability enforcement', () => {
     }
   })
 
-  it('validation rejects disabling notifications.enabled for restaurant', async () => {
+  it('validation allows disabling notifications.enabled for restaurant', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({
       name: 'No Notif',
@@ -1026,10 +1044,10 @@ describe('V — required capability enforcement', () => {
       businessType: 'restaurant',
       capabilityOverrides: { 'notifications.enabled': false },
     })
-    expect(r.valid).toBe(false)
+    expect(r.valid).toBe(true)
   })
 
-  it('validation rejects disabling ordering.enabled for cafe', async () => {
+  it('validation allows disabling ordering.enabled for cafe', async () => {
     const svc = await freshService()
     const r = svc.validateTenantConfiguration({
       name: 'No Order',
@@ -1037,7 +1055,7 @@ describe('V — required capability enforcement', () => {
       businessType: 'cafe',
       capabilityOverrides: { 'ordering.enabled': false },
     })
-    expect(r.valid).toBe(false)
+    expect(r.valid).toBe(true)
   })
 })
 

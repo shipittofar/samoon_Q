@@ -193,11 +193,18 @@ const TEMPLATES: Record<ProvisionableBusinessType, TenantTemplate> = {
 
 // ── Capability presets ────────────────────────────────────────────────────────
 
+const SHARED_CORE_OPTIONAL: Record<string, boolean> = {
+  'ordering.enabled': true,
+  'qr_table.enabled': true,
+  'notifications.enabled': true,
+}
+
 const CAPABILITY_PRESETS: Record<ProvisionableBusinessType, TenantCapabilityPreset> = {
   restaurant: {
     businessType: 'restaurant',
-    required: ['menu.enabled', 'ordering.enabled', 'qr_table.enabled', 'notifications.enabled'],
+    required: ['menu.enabled'],
     optional: {
+      ...SHARED_CORE_OPTIONAL,
       'reservations.enabled': true,
       'reviews.enabled': true,
       'delivery.enabled': true,
@@ -205,8 +212,9 @@ const CAPABILITY_PRESETS: Record<ProvisionableBusinessType, TenantCapabilityPres
   },
   cafe: {
     businessType: 'cafe',
-    required: ['menu.enabled', 'ordering.enabled', 'qr_table.enabled', 'notifications.enabled'],
+    required: ['menu.enabled'],
     optional: {
+      ...SHARED_CORE_OPTIONAL,
       'reservations.enabled': true,
       'reviews.enabled': true,
       'cafe.loyalty.enabled': true,
@@ -215,8 +223,9 @@ const CAPABILITY_PRESETS: Record<ProvisionableBusinessType, TenantCapabilityPres
   },
   bar: {
     businessType: 'bar',
-    required: ['menu.enabled', 'ordering.enabled', 'qr_table.enabled', 'notifications.enabled'],
+    required: ['menu.enabled'],
     optional: {
+      ...SHARED_CORE_OPTIONAL,
       'reservations.enabled': true,
       'promotions.enabled': true,
       'bar.events.enabled': false,
@@ -225,8 +234,10 @@ const CAPABILITY_PRESETS: Record<ProvisionableBusinessType, TenantCapabilityPres
   },
   food_court: {
     businessType: 'food_court',
-    required: ['menu.enabled', 'ordering.enabled', 'qr_table.enabled', 'notifications.enabled', 'reservations.enabled'],
+    required: ['menu.enabled'],
     optional: {
+      ...SHARED_CORE_OPTIONAL,
+      'reservations.enabled': true,
       'food_court.vendor_management.enabled': true,
       'food_court.shared_seating.enabled': true,
       'food_court.cross_vendor_ordering.enabled': false,
@@ -234,8 +245,9 @@ const CAPABILITY_PRESETS: Record<ProvisionableBusinessType, TenantCapabilityPres
   },
   food_truck: {
     businessType: 'food_truck',
-    required: ['menu.enabled', 'ordering.enabled', 'qr_table.enabled', 'notifications.enabled'],
+    required: ['menu.enabled'],
     optional: {
+      ...SHARED_CORE_OPTIONAL,
       'food_truck.live_location.enabled': true,
       'food_truck.route_tracking.enabled': true,
       'food_truck.scheduled_stops.enabled': false,
@@ -244,8 +256,9 @@ const CAPABILITY_PRESETS: Record<ProvisionableBusinessType, TenantCapabilityPres
   },
   mobile_cafe: {
     businessType: 'mobile_cafe',
-    required: ['menu.enabled', 'ordering.enabled', 'qr_table.enabled', 'notifications.enabled'],
+    required: ['menu.enabled'],
     optional: {
+      ...SHARED_CORE_OPTIONAL,
       'mobile_cafe.loyalty.enabled': true,
       'mobile_cafe.live_location.enabled': true,
       'mobile_cafe.route_tracking.enabled': true,
@@ -341,20 +354,7 @@ export const tenantProvisioningService = {
   validateTenantConfiguration(req: TenantProvisionRequest): { valid: boolean; errors: string[] } {
     const errors: string[] = []
 
-    // Name
-    if (!req.name || req.name.trim().length < 2) {
-      errors.push('name must be at least 2 characters')
-    }
-
-    // Slug format
-    // if (!req.slug || !SLUG_RE.test(req.slug)) {
-    //   errors.push('slug must be 2–63 lowercase alphanumeric characters or hyphens')
-    // }
-
-    // Duplicate slug
-    // if (req.slug && MOCK_EXISTING_SLUGS.has(req.slug)) {
-    //   errors.push(`slug "${req.slug}" is already taken`)
-    // }
+    // Name is optional on Create Tenant; empty values must not block provision.
 
     // Business type
     if (!VALID_BUSINESS_TYPES.has(req.businessType)) {

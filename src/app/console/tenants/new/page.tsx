@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { Check } from 'lucide-react'
 import { useProvisionTenant } from '@/hooks'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import type { ProvisionableBusinessType, TenantBrandingConfig, TenantProvisionResult } from '@/types/provisioning'
@@ -11,6 +12,7 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { BrandingDefaultsStep } from '@/components/admin/tenant-provisioning/BrandingDefaultsStep'
 import { getProvisionedTenantDisplay, getCreateFirstBranchHref, tenantStatusLabelKey } from '@/lib/provision-result-display'
+import { scrollWizardToTop } from '@/lib/wizard-scroll'
 
 const BUSINESS_TYPES: ProvisionableBusinessType[] = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
@@ -51,6 +53,21 @@ const STEP_LABEL_KEYS: Record<WizardStep, string> = {
   'feature-flags': 'featureFlagsLabel',
   review: 'reviewLabel',
   provision: 'provisionLabel',
+}
+
+function groupFeatureFlags(flags: Record<string, boolean>): [string, { key: string; value: boolean }[]][] {
+  const groups = new Map<string, { key: string; value: boolean }[]>()
+  for (const [key, value] of Object.entries(flags)) {
+    const prefix = key.split('.')[0] ?? 'other'
+    const list = groups.get(prefix) ?? []
+    list.push({ key, value })
+    groups.set(prefix, list)
+  }
+  return Array.from(groups.entries())
+}
+
+function formatFlagGroup(prefix: string): string {
+  return prefix.replace(/_/g, ' ')
 }
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
@@ -168,8 +185,13 @@ export default function NewTenantPage() {
   const router = useRouter()
   const { mutateAsync: provisionTenant } = useProvisionTenant()
 
+  const wizardRef = useRef<HTMLElement>(null)
   const [stepIndex, setStepIndex] = useState(0)
   const currentStep = STEP_ORDER[stepIndex]
+
+  useEffect(() => {
+    scrollWizardToTop(wizardRef.current)
+  }, [stepIndex])
 
   // Form state
   const [name, setName] = useState('')
@@ -216,7 +238,7 @@ export default function NewTenantPage() {
   return (
     <ErrorBoundary feature="New Tenant">
     <PermissionGuard permission="tenant.manage" fallback={<AccessDenied />}>
-    <main aria-label={t('newTenantWizardAria')} className="p-6 max-w-2xl mx-auto">
+    <main ref={wizardRef} aria-label={t('newTenantWizardAria')} className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">{t('createNewTenantTitle')}</h1>
       <StepIndicator current={stepIndex + 1} total={TOTAL_STEPS} />
 
@@ -229,7 +251,7 @@ export default function NewTenantPage() {
         <section aria-label={t('stepNumberColonLabel', { number: 1, label: t('businessTypeLabel') })}>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1" htmlFor="tenant-name">
-              {t('tenantNameLabel')}
+              {t('tenantNameLabel')} <span className="text-xs font-normal text-gray-400">{t('optionalLabel')}</span>
             </label>
             <input
               id="tenant-name"
@@ -257,22 +279,34 @@ export default function NewTenantPage() {
           <div>
             <p className="block text-sm font-medium mb-2">{t('businessTypeLabel')}</p>
             <div className="grid grid-cols-2 gap-3" aria-label={t('businessTypeSelectionAria')}>
-              {BUSINESS_TYPES.map((bt) => (
+              {BUSINESS_TYPES.map((bt) => {
+                const selected = businessType === bt
+                return (
                 <button
                   key={bt}
                   type="button"
                   onClick={() => setBusinessType(bt)}
-                  className={`border rounded-lg p-3 text-sm text-left transition-colors ${
-                    businessType === bt ? 'border-accent bg-accent/5 font-semibold' : 'border-gray-200'
+                  data-selected={selected ? 'true' : 'false'}
+                  className={`relative border rounded-lg p-3 text-sm text-left transition-colors ${
+                    selected
+                      ? 'border-accent bg-accent/5 font-semibold ring-2 ring-accent'
+                      : 'border-gray-200'
                   }`}
-                  aria-pressed={businessType === bt}
+                  aria-pressed={selected}
                 >
-                  {t(BUSINESS_TYPE_LABEL_KEYS[bt])}
+                  {selected ? (
+                    <span className="absolute top-2 end-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                      <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                      {t('fontSelectedLabel')}
+                    </span>
+                  ) : null}
+                  <span className="block pr-16">{t(BUSINESS_TYPE_LABEL_KEYS[bt])}</span>
                   <span className="block text-xs text-gray-500 mt-1 font-normal">
                     {tenantProvisioningService.getTemplate(bt).enabledCapabilities.join(', ')}
                   </span>
                 </button>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>
@@ -282,14 +316,14 @@ export default function NewTenantPage() {
       {currentStep === 'capabilities' && (
         <section aria-label={t('stepNumberColonLabel', { number: 2, label: t('capabilitiesAria') })}>
           <p className="text-sm text-gray-600 mb-4">
-            {t('requiredCapabilitiesHint')}
+            {t('requiredMenuOnlyHint')}
           </p>
           <div className="mb-4">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('requiredLabel')}</p>
             {preset.required.map((flag) => (
               <div key={flag} className="flex items-center gap-2 py-1 opacity-60">
-                <input type="checkbox" checked readOnly aria-label={flag} />
-                <span className="text-sm">{flag}</span>
+                <input type="checkbox" checked readOnly aria-required="true" aria-label={flag} />
+                <span className="text-sm">{flag === 'menu.enabled' ? t('menuCapabilityLabel') : flag}</span>
                 <span className="text-xs text-gray-400">{t('alwaysOnParenthetical')}</span>
               </div>
             ))}
@@ -339,25 +373,36 @@ export default function NewTenantPage() {
           <p className="text-sm text-gray-600 mb-4">
             {t('fineTuneFeatureFlagsHint')}
           </p>
-          <div className="space-y-1 max-h-80 overflow-y-auto">
-            {Object.entries(generatedFlags).map(([flag, val]) => {
-              const override = featureFlagOverrides[flag]
-              const effective = override !== undefined ? override : val
-              return (
-                <div key={flag} className="flex items-center gap-2 py-1">
-                  <input
-                    type="checkbox"
-                    id={`ff-${flag}`}
-                    checked={effective}
-                    onChange={(e) =>
-                      setFeatureFlagOverrides((prev) => ({ ...prev, [flag]: e.target.checked }))
-                    }
-                    aria-label={flag}
-                  />
-                  <label htmlFor={`ff-${flag}`} className="text-sm font-mono">{flag}</label>
+          <div className="space-y-5" data-testid="feature-flags-section">
+            {groupFeatureFlags(generatedFlags).map(([prefix, items]) => (
+              <fieldset key={prefix} className="rounded-xl border border-gray-200 p-4">
+                <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500 px-1">
+                  {formatFlagGroup(prefix)}
+                </legend>
+                <div className="space-y-1 mt-1">
+                  {items.map(({ key: flag, value: val }) => {
+                    const override = featureFlagOverrides[flag]
+                    const effective = override !== undefined ? override : val
+                    return (
+                      <div key={flag} className="flex items-center gap-2 py-1.5">
+                        <input
+                          type="checkbox"
+                          id={`ff-${flag}`}
+                          checked={effective}
+                          onChange={(e) =>
+                            setFeatureFlagOverrides((prev) => ({ ...prev, [flag]: e.target.checked }))
+                          }
+                          aria-label={flag}
+                        />
+                        <label htmlFor={`ff-${flag}`} className="text-sm font-mono break-all">
+                          {flag}
+                        </label>
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
+              </fieldset>
+            ))}
           </div>
         </section>
       )}
@@ -368,7 +413,7 @@ export default function NewTenantPage() {
           <dl className="space-y-3 text-sm">
             <div>
               <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
-              <dd>{name || <span className="text-red-500">{t('notSetLabel')}</span>}</dd>
+              <dd>{name || <span className="text-gray-400">{t('notSetLabel')}</span>}</dd>
             </div>
             {/* <div>
               <dt className="font-medium text-gray-500">{t('slugLabel')}</dt>
@@ -471,6 +516,7 @@ export default function NewTenantPage() {
           <button
             type="button"
             onClick={next}
+            data-testid="wizard-next"
             className="px-4 py-2 text-sm bg-accent text-white rounded-lg"
             aria-label={t('nextStepAria')}
           >
