@@ -36,6 +36,20 @@ export function getTenantDisplayName(
   return tenantId
 }
 
+/**
+ * Tenant Selector dropdown row label — membership fields only.
+ * Never reads useTenantStore (would paint the selected Tenant's name onto other rows).
+ *
+ *   tenantName → tenantSlug → tenantId
+ */
+export function getTenantSelectorOptionLabel(
+  membership: Pick<TenantMembership, 'tenantId' | 'tenantName' | 'tenantSlug'>,
+): string {
+  if (membership.tenantName) return membership.tenantName
+  if (membership.tenantSlug) return membership.tenantSlug
+  return membership.tenantId
+}
+
 /** @deprecated Use getTenantDisplayName — kept for import stability. */
 export function membershipLabel(membership: TenantMembership): string {
   return getTenantDisplayName(membership.tenantId, { memberships: [membership] })

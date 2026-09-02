@@ -12,7 +12,7 @@ import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Layers, Check, Loader2, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
-import { getTenantDisplayName } from '@/lib/console-tenant-display'
+import { getTenantSelectorOptionLabel } from '@/lib/console-tenant-display'
 import {
   useConsoleWorkspace,
   useConsoleSessionRefresh,
@@ -149,9 +149,7 @@ export function AdminTenantSwitcher() {
               >
                 <div className="min-w-0">
                   <p className="font-medium truncate">
-                    {getTenantDisplayName(membership.tenantId, {
-                      memberships: availableTenants,
-                    })}
+                    {getTenantSelectorOptionLabel(membership)}
                   </p>
                   <p className="text-xs text-[var(--fg-muted)] truncate">
                     {membership.roles.join(', ')}

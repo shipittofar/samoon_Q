@@ -36,6 +36,19 @@ describe('normalizeWireMembership', () => {
     })
   })
 
+  it('preserves MembershipOutputSerializer camelCase tenantName (not slug)', () => {
+    const membership = normalizeWireMembership({
+      tenantId: 'tenant-a',
+      tenantName: 'Samoon Restaurant',
+      tenantSlug: 'samoon-restaurant',
+      roles: ['owner'],
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.tenantName).toBe('Samoon Restaurant')
+    expect(membership?.tenantSlug).toBe('samoon-restaurant')
+    expect(membership?.tenantName).not.toBe(membership?.tenantSlug)
+  })
+
   it('normalizes singular role field', () => {
     const membership = normalizeWireMembership({
       tenantId: 'tenant-1',
@@ -123,6 +136,44 @@ describe('normalizeGetMeResponse', () => {
     expect(response.memberships).toHaveLength(1)
     expect(response.activeMembership?.tenantId).toBe('tenant-samoon-01')
     expect(response.activeMembership?.tenantName).toBe('Samoon Restaurant')
+  })
+
+  it('keeps tenantName on every membership from GET /auth/me', () => {
+    const response = normalizeGetMeResponse({
+      user: {
+        id: 'u1',
+        email: 'a@b.com',
+        first_name: 'A',
+        last_name: 'B',
+        accountType: 'business',
+        is_verified: true,
+        created_at: '',
+      },
+      memberships: [
+        {
+          tenantId: 'tenant-a',
+          tenantName: 'Samoon Restaurant',
+          tenantSlug: 'samoon-restaurant',
+          roles: ['owner'],
+          branchAccess: { scope: 'all' },
+        },
+        {
+          tenantId: 'tenant-b',
+          tenantName: 'Brew Cafe',
+          tenantSlug: 'brew-cafe',
+          roles: ['manager'],
+          branchAccess: { scope: 'all' },
+        },
+      ],
+    })
+    expect(response.memberships?.map((m) => m.tenantName)).toEqual([
+      'Samoon Restaurant',
+      'Brew Cafe',
+    ])
+    expect(response.memberships?.map((m) => m.tenantSlug)).toEqual([
+      'samoon-restaurant',
+      'brew-cafe',
+    ])
   })
 
   it('preserves is_superuser and is_verified from nested /auth/me user', () => {
