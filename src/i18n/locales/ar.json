@@ -2088,6 +2088,7 @@
     "totalTenantsAria": "إجمالي المستأجرين",
     "totalTenantsLabel": "إجمالي المستأجرين",
     "activeTenantsAria": "المستأجرون النشطون",
+    "inactiveTenantsAria": "المستأجرون غير النشطين",
     "suspendedTenantsAria": "المستأجرون المعلقون",
     "businessTypeDistributionAria": "توزيع نوع النشاط التجاري",
     "byTypeLabel": "حسب النوع",

@@ -299,6 +299,29 @@ function setMockStatus(
   return { ...tenant }
 }
 
+function collectTenantResults(data: PaginatedResponse<Tenant> | Tenant[] | undefined): Tenant[] {
+  if (!data) return []
+  const rows = Array.isArray(data) ? data : (data.results ?? [])
+  return rows.map(normalizeTenant)
+}
+
+/** Console/user tenant lists — no is_active or status query params. */
+async function fetchUnfilteredTenantList(path: string): Promise<Tenant[]> {
+  const { data } = await api.get<PaginatedResponse<Tenant>>(path)
+  return collectTenantResults(data)
+}
+
+function mergeTenantListsById(lists: Tenant[][]): Tenant[] {
+  const byId = new Map<string, Tenant>()
+  for (const list of lists) {
+    for (const tenant of list) {
+      if (!tenant?.id || byId.has(tenant.id)) continue
+      byId.set(tenant.id, tenant)
+    }
+  }
+  return Array.from(byId.values())
+}
+
 async function fetchTenantFromApi(path: string, identifier: string): Promise<Tenant> {
   try {
     const { data } = await api.get<Tenant>(path)
@@ -411,30 +434,35 @@ export const tenantService = {
   async getConsoleTenants(): Promise<Tenant[]> {
     if (USE_MOCK) {
       await delay()
+      // Include ACTIVE, INACTIVE, and CLOSED — never filter by is_active/status.
       return Object.values(MOCK_TENANTS).map((t) => ({ ...t }))
     }
 
-    const { data } = await api.get<PaginatedResponse<Tenant>>(ENDPOINTS.TENANTS.CONSOLE_LIST)
-    return data.results.map(normalizeTenant)
+    const consoleTenants = await fetchUnfilteredTenantList(ENDPOINTS.TENANTS.CONSOLE_LIST)
+    let ownedTenants: Tenant[] = []
+    try {
+      ownedTenants = await fetchUnfilteredTenantList(ENDPOINTS.TENANTS.ME)
+    } catch {
+      // /tenants/me/ is supplemental so owned INACTIVE rows still appear when
+      // console-tenants is active-only. A failure must not empty the list.
+    }
+    return mergeTenantListsById([consoleTenants, ownedTenants])
   },
 
 
   /**
-   * Phase Z.1 — "my accessible tenants": the tenants the CURRENT user has a
-   * real membership in, for surfaces like AdminTenantSwitcher where listing
-   * a tenant the caller doesn't belong to is a real access-control bug, not
-   * a display nicety. Per docs/BACKEND_CONTRACT.md's recommended
-   * `GET /me/tenants` endpoint (not yet implemented by any backend —
-   * see API_GAP_REPORT.md item 2). Until that endpoint exists, this is a
-   * placeholder boundary that delegates to the same unscoped getTenants()
-   * — the caller is still responsible for filtering with
-   * permissionService.hasAnyTenantAccess() (see AdminTenantSwitcher.tsx),
-   * exactly as it already does. What changes here is the NAME at the call
-   * site: "I mean my tenants" is no longer indistinguishable from "I mean
-   * every platform tenant" (getPlatformTenants() below).
+   * Tenants associated with the current user (GET /tenants/me/), including
+   * INACTIVE. Falls back to the console list if /me/ is unavailable.
    */
   async getMyTenants(): Promise<Tenant[]> {
-    return tenantService.getConsoleTenants()
+    if (USE_MOCK) {
+      return tenantService.getConsoleTenants()
+    }
+    try {
+      return await fetchUnfilteredTenantList(ENDPOINTS.TENANTS.ME)
+    } catch {
+      return tenantService.getConsoleTenants()
+    }
   },
 
   /**

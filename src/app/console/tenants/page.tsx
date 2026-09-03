@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useConsoleTenants, useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
@@ -9,11 +10,18 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 import {
-  isTenantClosed,
+  countConsoleTenantsByStatus,
+  filterConsoleTenantsByStatus,
+  mergeConsoleTenantsWithMemberships,
+  type ConsoleTenantStatusFilter,
+} from '@/lib/console-tenant-list'
+import {
   isTenantOperational,
   isTenantVisible,
+  normalizeTenantStatus,
 } from '@/lib/tenant-state'
 import { tenantStatusLabelKey } from '@/lib/provision-result-display'
+import { useRbacStore } from '@/stores'
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: 'text-[var(--success-text)] bg-[var(--success-subtle)]',
@@ -23,9 +31,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 function TenantAnalyticsSummary({ tenants }: { tenants: Tenant[] }) {
   const t = useTranslations('console')
-  const total = tenants.length
-  const operational = tenants.filter((tn) => isTenantOperational(tn)).length
-  const closed = tenants.filter((tn) => isTenantClosed(tn)).length
+  const { total, active, inactive, closed } = countConsoleTenantsByStatus(tenants)
   const byType: Record<string, number> = {}
   tenants.forEach((tn) => {
     const bt = tn.businessTypes?.[0] ?? 'unknown'
@@ -33,14 +39,18 @@ function TenantAnalyticsSummary({ tenants }: { tenants: Tenant[] }) {
   })
 
   return (
-    <section aria-label={t('tenantAnalyticsAria')} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <section aria-label={t('tenantAnalyticsAria')} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       <div className="border rounded-lg p-4 text-center"aria-label={t('totalTenantsAria')}>
         <p className="text-2xl font-bold">{total}</p>
         <p className="text-xs text-[var(--fg-muted)] mt-1">{t('totalTenantsLabel')}</p>
       </div>
       <div className="border rounded-lg p-4 text-center"aria-label={t('activeTenantsAria')}>
-        <p className="text-2xl font-bold text-[var(--success-text)]">{operational}</p>
+        <p className="text-2xl font-bold text-[var(--success-text)]">{active}</p>
         <p className="text-xs text-[var(--fg-muted)] mt-1">{t('statusActive')}</p>
+      </div>
+      <div className="border rounded-lg p-4 text-center"aria-label={t('inactiveTenantsAria')}>
+        <p className="text-2xl font-bold text-[var(--fg-muted)]">{inactive}</p>
+        <p className="text-xs text-[var(--fg-muted)] mt-1">{t('statusInactive')}</p>
       </div>
       <div className="border rounded-lg p-4 text-center"aria-label={t('suspendedTenantsAria')}>
         <p className="text-2xl font-bold text-[var(--warning-text)]">{closed}</p>
@@ -64,7 +74,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
   const suspend = useSuspendTenant()
   const archive = useArchiveTenant()
 
-  const statusClass = STATUS_COLORS[tenant.status] ?? 'text-[var(--fg-muted)] bg-[var(--card-hover)]'
+  const statusClass = STATUS_COLORS[normalizeTenantStatus(tenant.status)] ?? 'text-[var(--fg-muted)] bg-[var(--card-hover)]'
   const operational = isTenantOperational(tenant)
   const visible = isTenantVisible(tenant)
 
@@ -94,7 +104,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
         </span>
       </td>
       <td className="px-4 py-3 text-sm text-[var(--fg-muted)]">
-        {new Date(tenant.created_at).toLocaleDateString()}
+        {tenant.created_at ? new Date(tenant.created_at).toLocaleDateString() : '—'}
       </td>
       <td className="px-4 py-3 text-sm space-x-2">
         {!operational && (
@@ -137,7 +147,18 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
 
 export default function AdminTenantsPage() {
   const t = useTranslations('console')
-  const { data: tenants = [], isLoading } = useConsoleTenants()
+  const { data: fetchedTenants = [], isLoading } = useConsoleTenants()
+  const memberships = useRbacStore((s) => s.sessionMemberships)
+  const [statusFilter, setStatusFilter] = useState<ConsoleTenantStatusFilter>('all')
+
+  const tenants = useMemo(
+    () => mergeConsoleTenantsWithMemberships(fetchedTenants, memberships),
+    [fetchedTenants, memberships],
+  )
+  const visibleTenants = useMemo(
+    () => filterConsoleTenantsByStatus(tenants, statusFilter),
+    [tenants, statusFilter],
+  )
 
   return (
     <ErrorBoundary feature="Tenant Management">
@@ -167,6 +188,22 @@ export default function AdminTenantsPage() {
           <TenantAnalyticsSummary tenants={tenants} />
 
           <section aria-label={t('tenantListAria')}>
+            <div className="flex items-center justify-end mb-3">
+              <label className="flex items-center gap-2 text-sm">
+                <span className="text-[var(--fg-muted)]">{t('tableHeaders.status')}</span>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as ConsoleTenantStatusFilter)}
+                  aria-label={t('filterAria')}
+                  className="border border-[var(--border)] rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] bg-[var(--card)]"
+                >
+                  <option value="all">{t('allStatusOption')}</option>
+                  <option value="ACTIVE">{t('statusActive')}</option>
+                  <option value="INACTIVE">{t('statusInactive')}</option>
+                  <option value="CLOSED">{t('statusClosed')}</option>
+                </select>
+              </label>
+            </div>
             <table className="w-full border rounded-lg overflow-hidden text-sm">
               <thead className="bg-[var(--card-hover)] text-left">
                 <tr>
@@ -178,12 +215,12 @@ export default function AdminTenantsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {tenants.map((tn) => (
+                {visibleTenants.map((tn) => (
                   <TenantRow key={tn.id} tenant={tn} />
                 ))}
               </tbody>
             </table>
-            {tenants.length === 0 && (
+            {visibleTenants.length === 0 && (
               <p className="text-center text-[var(--fg-subtle)] py-8">{t('noTenantsFound')}</p>
             )}
           </section>

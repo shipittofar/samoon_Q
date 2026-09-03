@@ -2088,6 +2088,7 @@
     "totalTenantsAria": "مجموع تنانت‌ها",
     "totalTenantsLabel": "مجموع تنانت‌ها",
     "activeTenantsAria": "تنانت‌های فعال",
+    "inactiveTenantsAria": "تنانت‌های غیرفعال",
     "suspendedTenantsAria": "تنانت‌های معلق",
     "businessTypeDistributionAria": "توزیع نوع کسب‌وکار",
     "byTypeLabel": "بر اساس نوع",

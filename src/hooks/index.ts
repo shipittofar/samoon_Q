@@ -3157,13 +3157,8 @@ export function useTenants() {
 }
 
 /**
- * Phase Z.1 — "my accessible tenants." Use this at any call site that
- * means "which tenants can the current user act in" (e.g.
- * AdminTenantSwitcher) — never "which tenants exist on the platform."
- * Same underlying query as useTenants() (tenantService.getMyTenants() is
- * a placeholder boundary over the same unscoped mock data — see that
- * function's doc comment) so this shares useTenants()'s cache entry
- * rather than triggering a second fetch.
+ * Tenants associated with the current user (GET /tenants/me/), including
+ * INACTIVE. Not the public discover list and not "every platform tenant."
  */
 export function useMyTenants() {
   const canView = usePermission('tenant.view')
@@ -3190,6 +3185,7 @@ export function usePlatformTenants() {
   })
 }
 
+/** Console tenant administration list — ACTIVE, INACTIVE, and CLOSED. */
 export function useConsoleTenants() {
   const canView = usePermission('tenant.view')
   return useQuery({

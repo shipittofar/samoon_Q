@@ -153,6 +153,8 @@ export const ENDPOINTS = {
     CURRENT: '/tenants/current/',
     LIST: '/tenants/',
     CONSOLE_LIST: '/tenants/console-tenants/',
+    /** Tenants owned by the current user — includes inactive. */
+    ME: '/tenants/me/',
     PROVISION: '/tenants/provision/',
     CLONE: '/tenants/clone/',
     ACTIVATE: (tenantId: string) => `/tenants/${tenantId}/activate/`,

@@ -572,6 +572,12 @@ describe('O — admin tenants page (/console/tenants)', () => {
     expect(src()).toContain('statusClosed')
   })
 
+  it('shows Inactive count KPI and includes Inactive in the default status filter', () => {
+    expect(src()).toContain('statusInactive')
+    expect(src()).toContain('allStatusOption')
+    expect(src()).toContain("useState<ConsoleTenantStatusFilter>('all')")
+  })
+
   it('shows business type distribution', () => {
     expect(src()).toContain('businessTypeLabel')
   })

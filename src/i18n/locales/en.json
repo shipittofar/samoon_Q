@@ -2106,6 +2106,7 @@
     "totalTenantsAria": "Total tenants",
     "totalTenantsLabel": "Total Tenants",
     "activeTenantsAria": "Active tenants",
+    "inactiveTenantsAria": "Inactive tenants",
     "suspendedTenantsAria": "Suspended tenants",
     "businessTypeDistributionAria": "Business type distribution",
     "byTypeLabel": "By Type",
