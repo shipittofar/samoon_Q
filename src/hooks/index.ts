@@ -65,6 +65,10 @@ import { resolvePostAuthDestination } from '@/utils/auth-redirect'
 import { getAccessToken } from '@/services/axios.instance'
 import { useConsoleTenantId, useConsoleBranchId } from './console-workspace'
 import {
+  invalidatePendingOrdersCountQueries,
+  invalidatePendingReservationsCountQueries,
+} from '@/lib/console-pending-counts'
+import {
   synchronizeTenantMutation,
   synchronizeBranchMutation,
   synchronizeBranchDeleted,
@@ -1038,7 +1042,10 @@ export function useCreateOrder() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CreateOrderPayload) => orderService.createOrder(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['orders'] })
+      invalidatePendingOrdersCountQueries(qc)
+    },
   })
 }
 
@@ -1199,6 +1206,8 @@ export const BRANCH_SCOPED_QUERY_KEYS = [
   'sla-alerts',
   'realtime-statistics',
   'operations-stream',
+  'pending-orders-count',
+  'pending-reservations-count',
 ] as const
 
 /** Current admin branch-resolution state (BranchResolutionState) — see types/branch.ts. */
@@ -1504,7 +1513,10 @@ export function useCreateReservation() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CreateReservationPayload) => reservationService.create(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['reservations'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reservations'] })
+      invalidatePendingReservationsCountQueries(qc)
+    },
   })
 }
 
@@ -1784,6 +1796,7 @@ export function useUpdateOrderStatus() {
       qc.setQueryData<Order>(['order', tenantId, id], (old) => old ? { ...old, status: data.status } : old)
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })
+      invalidatePendingOrdersCountQueries(qc)
       auditLogService.record(
         'ORDER_STATUS_CHANGED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
@@ -1843,6 +1856,7 @@ export function useConfirmReservation() {
     onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
+      invalidatePendingReservationsCountQueries(qc)
       auditLogService.record(
         'RESERVATION_CONFIRMED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
@@ -1880,6 +1894,7 @@ export function useCancelReservation() {
     onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
+      invalidatePendingReservationsCountQueries(qc)
       auditLogService.record(
         'RESERVATION_CANCELLED',
         { id: user?.id ?? 'system', name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() || 'System', roles: [] },
@@ -2116,6 +2131,7 @@ export function useBulkUpdateOrderStatus() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })
+      invalidatePendingOrdersCountQueries(qc)
     },
   })
 }
@@ -2131,6 +2147,7 @@ export function useBulkCancelOrders() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
       qc.invalidateQueries({ queryKey: ['orders'] })
+      invalidatePendingOrdersCountQueries(qc)
     },
   })
 }
@@ -2146,6 +2163,7 @@ export function useBulkConfirmReservations() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
+      invalidatePendingReservationsCountQueries(qc)
     },
   })
 }
@@ -2161,6 +2179,7 @@ export function useBulkCancelReservations() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-reservations'] })
       qc.invalidateQueries({ queryKey: ['reservations'] })
+      invalidatePendingReservationsCountQueries(qc)
     },
   })
 }
@@ -4221,20 +4240,20 @@ export function useUpdateFeatureFlag() {
 // ── P7.8 Phase H — WebSocket integration ─────────────────────────────────────
 import {
   adminOperationsSocket,
-  ordersBroadcastSocket,
-  reservationsBroadcastSocket,
+  consoleWebSocket,
   staffBroadcastSocket,
   notificationsBroadcastSocket,
   auditBroadcastSocket,
 } from '@/services/websocket.service'
+import { eventMatchesWorkspace } from '@/lib/console-pending-counts'
 
-/** Returns the live connection status of the admin operations WebSocket. */
+/** Returns the live connection status of the Console workspace WebSocket. */
 export function useWebSocketStatus() {
-  const [status, setStatus] = React.useState(() => adminOperationsSocket.getStatus())
+  const [status, setStatus] = React.useState(() => consoleWebSocket.getStatus())
 
   React.useEffect(() => {
-    const off = adminOperationsSocket.on('status', (s: unknown) => {
-      setStatus(s as ReturnType<typeof adminOperationsSocket.getStatus>)
+    const off = consoleWebSocket.on('status', (s: unknown) => {
+      setStatus(s as ReturnType<typeof consoleWebSocket.getStatus>)
     })
     return off
   }, [])
@@ -4242,28 +4261,47 @@ export function useWebSocketStatus() {
   return status
 }
 
-/** Wires a broadcast socket to invalidate a query key on any message. */
+/** Wires a socket event (or wildcard `*`) to invalidate a query key. */
 function useBroadcastInvalidation(
   socket: typeof adminOperationsSocket,
   queryKey: readonly unknown[],
+  eventType = '*',
 ) {
   const qc = useQueryClient()
   React.useEffect(() => {
-    const off = socket.on('message', () => {
+    const off = socket.on(eventType, () => {
       qc.invalidateQueries({ queryKey: [...queryKey] })
     })
     return off
-  }, [qc, socket, ...queryKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [qc, socket, eventType, ...queryKey]) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-/** Subscribe orders broadcast socket to invalidate live-orders queries. */
+/** Subscribe to Console `order.changed` to invalidate live-orders queries. */
 export function useOrdersBroadcastSync(scope: OperationsScope) {
-  useBroadcastInvalidation(ordersBroadcastSocket, ['live-orders', scope.tenantId, scope.branchId])
+  const qc = useQueryClient()
+  React.useEffect(() => {
+    const tenantId = scope.tenantId
+    const branchId = scope.branchId
+    const off = consoleWebSocket.on('order.changed', (data) => {
+      if (!eventMatchesWorkspace(data, tenantId, branchId)) return
+      qc.invalidateQueries({ queryKey: ['live-orders', tenantId, branchId] })
+    })
+    return off
+  }, [qc, scope.tenantId, scope.branchId])
 }
 
-/** Subscribe reservations broadcast socket to invalidate live-reservations queries. */
+/** Subscribe to Console `reservation.changed` to invalidate live-reservations queries. */
 export function useReservationsBroadcastSync(scope: OperationsScope) {
-  useBroadcastInvalidation(reservationsBroadcastSocket, ['live-reservations', scope.tenantId, scope.branchId])
+  const qc = useQueryClient()
+  React.useEffect(() => {
+    const tenantId = scope.tenantId
+    const branchId = scope.branchId
+    const off = consoleWebSocket.on('reservation.changed', (data) => {
+      if (!eventMatchesWorkspace(data, tenantId, branchId)) return
+      qc.invalidateQueries({ queryKey: ['live-reservations', tenantId, branchId] })
+    })
+    return off
+  }, [qc, scope.tenantId, scope.branchId])
 }
 
 /** Subscribe staff broadcast socket to invalidate staff-presence queries. */
@@ -4559,3 +4597,10 @@ export {
   clearConsoleWorkspaceQueryCache,
   TENANT_SCOPED_QUERY_KEYS,
 } from './console-workspace'
+
+export {
+  usePendingOrdersCount,
+  usePendingReservationsCount,
+  useConsoleWorkspaceRealtime,
+  useConsolePendingCountsEnabled,
+} from './console-realtime'

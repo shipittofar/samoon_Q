@@ -35,6 +35,8 @@ const BRANCH_SCOPED_QUERY_KEYS = [
   'sla-alerts',
   'realtime-statistics',
   'operations-stream',
+  'pending-orders-count',
+  'pending-reservations-count',
 ] as const
 
 /** Query-key prefixes invalidated when the Console active tenant changes. */

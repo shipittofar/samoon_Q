@@ -54,6 +54,10 @@ import type {
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms))
 
+export interface PendingCountResponse {
+  count: number
+}
+
 // ── Mock data ─────────────────────────────────────────────────────────────────
 
 const MOCK_ADMIN_STATS: AdminStats = {
@@ -329,6 +333,40 @@ export const adminService = {
       }
       throw error
     }
+  },
+
+  async getPendingOrdersCount(tenantId: string, branchId: string): Promise<PendingCountResponse> {
+    if (USE_MOCK) {
+      await delay(50)
+      const count = MOCK_ORDERS.filter(
+        (o) =>
+          o.status === 'pending' &&
+          o.branch_id === branchId &&
+          branchBelongsToMockTenant(o.branch_id, tenantId),
+      ).length
+      return { count }
+    }
+    const { data } = await api.get<PendingCountResponse>(
+      ENDPOINTS.ORDERS.CONSOLE_PENDING_COUNT(tenantId, branchId),
+    )
+    return data
+  },
+
+  async getPendingReservationsCount(tenantId: string, branchId: string): Promise<PendingCountResponse> {
+    if (USE_MOCK) {
+      await delay(50)
+      const count = MOCK_RESERVATIONS.filter(
+        (r) =>
+          r.status === 'pending' &&
+          r.branch_id === branchId &&
+          branchBelongsToMockTenant(r.branch_id, tenantId),
+      ).length
+      return { count }
+    }
+    const { data } = await api.get<PendingCountResponse>(
+      ENDPOINTS.RESERVATIONS.CONSOLE_PENDING_COUNT(tenantId, branchId),
+    )
+    return data
   },
 
   async getAdminReservation(id: string, tenantId: string): Promise<Reservation> {

@@ -10,6 +10,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminContextBar } from '@/components/admin/AdminContextBar'
 import { AdminHeader } from '@/components/admin/AdminHeader'
 import { ConsoleWorkspaceGate } from '@/components/admin/ConsoleWorkspaceGate'
+import { ConsoleWorkspaceRealtime } from '@/components/admin/ConsoleWorkspaceRealtime'
 import { Button } from '@/components/ui/Button'
 
 /**
@@ -76,6 +77,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <AdminContextBar />
           </div>
         </div>
+
+        <ConsoleWorkspaceRealtime />
 
         {/* Body: sidebar + page content */}
         <div className="flex pt-28 min-h-screen">

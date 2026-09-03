@@ -53,6 +53,7 @@ import { useAuthStore, useRbacStore, useTenantStore } from '@/stores'
 import { useConsoleTenantId } from '@/hooks/console-workspace'
 import { isConsoleMembershipTenantInactive } from '@/lib/console-tenant-access'
 import { Button } from '@/components/ui/Button'
+import { ConsoleNavPendingBadge } from '@/components/admin/ConsoleNavPendingBadge'
 import type { NavItem } from '@/types'
 
 // ── Icon registry ─────────────────────────────────────────────────────────────
@@ -320,7 +321,8 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
                           isActive ? 'text-orange-500' : 'text-[var(--fg-muted)]',
                         )}
                       />
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate flex-1">{item.label}</span>
+                      <ConsoleNavPendingBadge href={item.href} />
                     </Link>
                   )
                 })}

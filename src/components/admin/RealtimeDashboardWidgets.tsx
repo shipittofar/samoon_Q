@@ -1,25 +1,21 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { operationsChannelManager } from '@/services/websocket.service'
+import { useWebSocketStatus, useRealtimeStatistics, useSLAAlerts, useBranchStatus } from '@/hooks'
 import type { OperationsScope } from '@/types/realtime-operations'
-import { useRealtimeStatistics, useSLAAlerts, useBranchStatus } from '@/hooks'
 
 // ── RealtimeConnectionStatus ─────────────────────────────────────────────────
 
 export function RealtimeConnectionStatus() {
   const t = useTranslations('console')
-  const channels = ['admin.operations', 'orders.broadcast', 'reservations.broadcast']
-  const healthMap = operationsChannelManager.getAllHealth()
+  const status = useWebSocketStatus()
+  const connected = status === 'connected'
+  const connecting = status === 'connecting' || status === 'reconnecting'
 
-  const statuses = channels.map((ch) => healthMap[ch]?.status ?? 'disconnected')
-  const allConnected = statuses.every((s) => s === 'connected')
-  const anyConnecting = statuses.some((s) => s === 'connecting' || s === 'reconnecting')
-
-  const label = allConnected ? t('connectionLive') : anyConnecting ? t('connectionConnecting') : t('connectionOffline')
-  const color = allConnected
+  const label = connected ? t('connectionLive') : connecting ? t('connectionConnecting') : t('connectionOffline')
+  const color = connected
     ? 'bg-green-500'
-    : anyConnecting
+    : connecting
     ? 'bg-yellow-400 animate-pulse'
     : 'bg-red-500'
 

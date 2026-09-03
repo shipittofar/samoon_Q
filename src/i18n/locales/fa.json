@@ -1163,6 +1163,8 @@
     },
     "adminNavigationAria": "ناوبری مدیریت",
     "adminPanel": "پنل مدیریت",
+    "pendingOrdersCountAria": "سفارش‌های در انتظار",
+    "pendingReservationsCountAria": "رزروهای در انتظار",
     "closeSidebarAria": "بستن نوار کناری",
     "adminMenuAria": "منوی مدیریت",
     "customerDashboard": "داشبورد مشتری",

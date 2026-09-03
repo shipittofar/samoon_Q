@@ -58,6 +58,8 @@ export const ENDPOINTS = {
       `/orders/console-orders/tenants/${tenantId}/branches/${branchId}/`,
     CONSOLE_ORDER_TENANT_BRANCHES_LIST: (tenantId: string) =>
       `/orders/console-orders/tenants/${tenantId}/branches/`,
+    CONSOLE_PENDING_COUNT: (tenantId: string, branchId: string) =>
+      `/orders/console-orders/tenants/${tenantId}/branches/${branchId}/pending-count/`,
     CREATE: '/orders/',
     DETAIL: (id: string) => `/orders/${id}/`,
     CANCEL: (id: string) => `/orders/${id}/cancel/`,
@@ -80,6 +82,8 @@ export const ENDPOINTS = {
     DETAIL: (id: string) => `/reservations/${id}/`,
     CANCEL: (id: string) => `/reservations/${id}/cancel/`,
     CONFIRM: (id: string) => `/reservations/${id}/confirm/`,
+    CONSOLE_PENDING_COUNT: (tenantId: string, branchId: string) =>
+      `/reservations/console-reservations/tenants/${tenantId}/branches/${branchId}/pending-count/`,
     AVAILABLE_SLOTS: '/reservations/available-slots/',
   },
 

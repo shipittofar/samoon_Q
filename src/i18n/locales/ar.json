@@ -1163,6 +1163,8 @@
     },
     "adminNavigationAria": "التنقل الإداري",
     "adminPanel": "لوحة الإدارة",
+    "pendingOrdersCountAria": "الطلبات المعلقة",
+    "pendingReservationsCountAria": "الحجوزات المعلقة",
     "closeSidebarAria": "إغلاق الشريط الجانبي",
     "adminMenuAria": "قائمة الإدارة",
     "customerDashboard": "لوحة تحكم العميل",

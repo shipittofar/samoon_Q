@@ -505,6 +505,10 @@ export const orderWebSocket = new DjangoChannelsWebSocket({
 export const notificationWebSocket = new DjangoChannelsWebSocket({
   channelName: 'samoon-notifications',
 })
+/** Single Console-workspace socket — `/ws/console/{branch_id}/?token=...` */
+export const consoleWebSocket = new DjangoChannelsWebSocket({
+  channelName: 'samoon-console',
+})
 
 // ── Admin broadcast channel singletons (P7.7 Step 5) ─────────────────────────
 export const operationsChannelManager = new OperationsChannelManager()

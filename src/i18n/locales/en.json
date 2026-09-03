@@ -1178,6 +1178,8 @@
     },
     "adminNavigationAria": "Admin navigation",
     "adminPanel": "Admin Panel",
+    "pendingOrdersCountAria": "Pending orders",
+    "pendingReservationsCountAria": "Pending reservations",
     "closeSidebarAria": "Close sidebar",
     "adminMenuAria": "Admin menu",
     "customerDashboard": "Customer Dashboard",
