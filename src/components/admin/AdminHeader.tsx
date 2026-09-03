@@ -92,9 +92,9 @@ export function AdminHeader() {
                 <span className="text-sm font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors">
                   {tenantDisplayName || 'Samoon'}
                 </span>
-                <span className="text-[10px] font-medium text-[var(--fg-muted)] uppercase tracking-wider">
+                {/* <span className="text-[10px] font-medium text-[var(--fg-muted)] uppercase tracking-wider">
                   {t('admin')}
-                </span>
+                </span> */}
               </div>
             </Link>
 
