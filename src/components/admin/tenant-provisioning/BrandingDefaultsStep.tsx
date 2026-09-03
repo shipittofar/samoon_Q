@@ -22,6 +22,7 @@ export interface BrandingDefaultsStepProps {
   logoFile: File | null
   onLogoFileChange: (file: File | null) => void
   templateDefaults: TenantBrandingConfig
+  colorError?: string
 }
 
 function applyPalette(
@@ -41,6 +42,7 @@ export function BrandingDefaultsStep({
   logoFile,
   onLogoFileChange,
   templateDefaults,
+  colorError,
 }: BrandingDefaultsStepProps) {
   const t = useTranslations('console')
   const locales = useMemo(() => resolveSupportedLocales(), [])
@@ -117,12 +119,19 @@ export function BrandingDefaultsStep({
     <div className="space-y-8">
       {/* 1. Palette cards */}
       <fieldset>
-        <legend className="block text-sm font-medium mb-1">{t('colorPaletteLabel')}</legend>
+        <legend className="block text-sm font-medium mb-1">
+          {t('colorPaletteLabel')}{' '}
+          <span className="text-xs font-normal text-gray-400">{t('requiredLabel')}</span>
+        </legend>
         <p className="text-xs text-gray-500 mb-3">{t('colorPaletteHint')}</p>
         <div
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+          className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 ${
+            colorError ? 'rounded-lg ring-1 ring-red-500 p-1 -m-1' : ''
+          }`}
           role="radiogroup"
           aria-label={t('colorPaletteLabel')}
+          aria-invalid={colorError ? true : undefined}
+          aria-describedby={colorError ? 'tenant-color-error' : undefined}
         >
           {BRANDING_PALETTE_PRESETS.map((palette) => {
             const selected = selectedPalette.id === palette.id
@@ -166,6 +175,11 @@ export function BrandingDefaultsStep({
             )
           })}
         </div>
+        {colorError ? (
+          <p id="tenant-color-error" role="alert" className="text-xs text-red-600 mt-2">
+            {colorError}
+          </p>
+        ) : null}
       </fieldset>
 
       {/* 2. Logo — multipart `image` field (not settings.theme) */}

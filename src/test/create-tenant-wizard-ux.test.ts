@@ -6,6 +6,13 @@ import { tenantProvisioningService } from '@/services/tenant-provisioning.servic
 
 const ROOT = join(__dirname, '..')
 
+const VALID_PROVISION_BASE = {
+  name: 'Test Cafe',
+  description: 'A test tenant description',
+  businessType: 'cafe' as const,
+  branding: { primaryColor: '#2563eb' },
+}
+
 describe('Create Tenant wizard — required fields', () => {
   it('Menu is the only required capability across presets', () => {
     for (const bt of ['restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe'] as const) {
@@ -13,52 +20,64 @@ describe('Create Tenant wizard — required fields', () => {
     }
   })
 
-  it('empty name and empty branding do not fail validation', () => {
+  it('empty name fails validation', () => {
     const r = tenantProvisioningService.validateTenantConfiguration({
+      ...VALID_PROVISION_BASE,
       name: '',
-      businessType: 'restaurant',
-      branding: {},
-      capabilityOverrides: {},
     })
-    expect(r.valid).toBe(true)
+    expect(r.valid).toBe(false)
+    expect(r.errors.some((e) => e.includes('name'))).toBe(true)
+  })
+
+  it('empty description fails validation', () => {
+    const r = tenantProvisioningService.validateTenantConfiguration({
+      ...VALID_PROVISION_BASE,
+      description: '',
+    })
+    expect(r.valid).toBe(false)
+    expect(r.errors.some((e) => e.includes('description'))).toBe(true)
+  })
+
+  it('missing primary color fails validation', () => {
+    const r = tenantProvisioningService.validateTenantConfiguration({
+      ...VALID_PROVISION_BASE,
+      branding: {},
+    })
+    expect(r.valid).toBe(false)
+    expect(r.errors.some((e) => e.includes('primaryColor'))).toBe(true)
   })
 
   it('empty optional capabilities do not fail; disabling menu still fails', () => {
     expect(
       tenantProvisioningService.validateTenantConfiguration({
-        name: '',
-        businessType: 'cafe',
+        ...VALID_PROVISION_BASE,
         capabilityOverrides: { 'ordering.enabled': false, 'reservations.enabled': false },
       }).valid,
     ).toBe(true)
     expect(
       tenantProvisioningService.validateTenantConfiguration({
-        name: 'X',
-        businessType: 'cafe',
+        ...VALID_PROVISION_BASE,
         capabilityOverrides: { 'menu.enabled': false },
       }).valid,
     ).toBe(false)
   })
 
-  it('wizard does not mark tenant name as HTML required', () => {
+  it('wizard marks tenant name as HTML required', () => {
     const src = readFileSync(join(ROOT, 'app', 'console', 'tenants', 'new', 'page.tsx'), 'utf8')
     expect(src).toContain('id="tenant-name"')
-    expect(src).not.toMatch(/id="tenant-name"[\s\S]{0,200}required/)
+    expect(src).toMatch(/id="tenant-name"[\s\S]{0,200}required/)
     expect(src).toContain("t('menuCapabilityLabel')")
     expect(src).toContain('aria-required="true"')
   })
 
-  it('optional tenant description is included in the provision payload', () => {
+  it('tenant description is required in the provision payload', () => {
     const src = readFileSync(join(ROOT, 'app', 'console', 'tenants', 'new', 'page.tsx'), 'utf8')
     expect(src).toContain('id="tenant-description"')
     expect(src).toContain("t('tenantDescriptionLabel')")
-    expect(src).toContain("t('optionalLabel')")
-    expect(src).not.toMatch(/id="tenant-description"[\s\S]{0,250}required/)
-    expect(src).toContain('description: description.trim() || undefined')
-    const valid = tenantProvisioningService.validateTenantConfiguration({
-      name: 'Cafe',
-      businessType: 'cafe',
-    })
+    expect(src).toContain("t('requiredLabel')")
+    expect(src).toMatch(/id="tenant-description"[\s\S]{0,250}required/)
+    expect(src).toContain('description: description.trim()')
+    const valid = tenantProvisioningService.validateTenantConfiguration(VALID_PROVISION_BASE)
     expect(valid.valid).toBe(true)
   })
 })

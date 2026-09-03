@@ -55,6 +55,9 @@ const STEP_LABEL_KEYS: Record<WizardStep, string> = {
   provision: 'provisionLabel',
 }
 
+type TenantFormField = 'name' | 'description' | 'businessType' | 'color'
+type FieldErrors = Partial<Record<TenantFormField, string>>
+
 function groupFeatureFlags(flags: Record<string, boolean>): [string, { key: string; value: boolean }[]][] {
   const groups = new Map<string, { key: string; value: boolean }[]>()
   for (const [key, value] of Object.entries(flags)) {
@@ -205,13 +208,78 @@ export default function NewTenantPage() {
   const [provisionResult, setProvisionResult] = useState<TenantProvisionResult | null>(null)
   const [isProvisioning, setIsProvisioning] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
   const template = tenantProvisioningService.getTemplate(businessType)
   const preset = tenantProvisioningService.getCapabilityPreset(businessType)
   const generatedFlags = tenantProvisioningService.generateFeatureFlags(businessType, { ...capabilityOverrides, ...featureFlagOverrides })
 
+  function clearFieldError(field: TenantFormField) {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
+  function validateBusinessTypeStep(): FieldErrors {
+    const errors: FieldErrors = {}
+    if (!name.trim()) errors.name = t('tenantNameRequired')
+    if (!description.trim()) errors.description = t('tenantDescriptionRequired')
+    if (!BUSINESS_TYPES.includes(businessType)) errors.businessType = t('businessTypeRequired')
+    return errors
+  }
+
+  function validateBrandingStep(): FieldErrors {
+    const errors: FieldErrors = {}
+    if (!branding.primaryColor?.trim()) errors.color = t('colorRequired')
+    return errors
+  }
+
+  function validateAllSteps(): FieldErrors {
+    return { ...validateBusinessTypeStep(), ...validateBrandingStep() }
+  }
+
+  function applyFieldErrors(errors: FieldErrors) {
+    setFieldErrors(errors)
+    if (errors.name || errors.description || errors.businessType) {
+      setStepIndex(STEP_ORDER.indexOf('business-type'))
+      return
+    }
+    if (errors.color) {
+      setStepIndex(STEP_ORDER.indexOf('branding'))
+    }
+  }
+
   function next() {
     setValidationErrors([])
+    if (currentStep === 'business-type') {
+      const errors = validateBusinessTypeStep()
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors)
+        return
+      }
+      setFieldErrors((prev) => {
+        const nextErrors = { ...prev }
+        delete nextErrors.name
+        delete nextErrors.description
+        delete nextErrors.businessType
+        return nextErrors
+      })
+    }
+    if (currentStep === 'branding') {
+      const errors = validateBrandingStep()
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors((prev) => ({ ...prev, ...errors }))
+        return
+      }
+      setFieldErrors((prev) => {
+        const nextErrors = { ...prev }
+        delete nextErrors.color
+        return nextErrors
+      })
+    }
     if (stepIndex < TOTAL_STEPS - 1) setStepIndex((s) => s + 1)
   }
   function back() {
@@ -220,15 +288,20 @@ export default function NewTenantPage() {
   }
 
   async function handleProvision() {
-    // const req = { name, slug, businessType, capabilityOverrides, branding, featureFlagOverrides }
+    const stepErrors = validateAllSteps()
+    if (Object.keys(stepErrors).length > 0) {
+      applyFieldErrors(stepErrors)
+      return
+    }
+
     const req = {
-      name,
+      name: name.trim(),
       businessType,
       capabilityOverrides,
       branding,
       featureFlagOverrides,
       image: logoFile,
-      description: description.trim() || undefined,
+      description: description.trim(),
     }
     const validation = tenantProvisioningService.validateTenantConfiguration(req)
     if (!validation.valid) {
@@ -260,29 +333,57 @@ export default function NewTenantPage() {
         <section aria-label={t('stepNumberColonLabel', { number: 1, label: t('businessTypeLabel') })}>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1" htmlFor="tenant-name">
-              {t('tenantNameLabel')} <span className="text-xs font-normal text-gray-400">{t('optionalLabel')}</span>
+              {t('tenantNameLabel')}{' '}
+              <span className="text-xs font-normal text-gray-400">{t('requiredLabel')}</span>
             </label>
             <input
               id="tenant-name"
               type="text"
+              required
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value)
+                clearFieldError('name')
+              }}
               placeholder={t('tenantNamePlaceholder')}
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              aria-invalid={fieldErrors.name ? true : undefined}
+              aria-describedby={fieldErrors.name ? 'tenant-name-error' : undefined}
+              className={`w-full border rounded-lg px-3 py-2 text-sm ${
+                fieldErrors.name ? 'border-red-500' : ''
+              }`}
             />
+            {fieldErrors.name ? (
+              <p id="tenant-name-error" role="alert" className="text-xs text-red-600 mt-1">
+                {fieldErrors.name}
+              </p>
+            ) : null}
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1" htmlFor="tenant-description">
-              {t('tenantDescriptionLabel')} <span className="text-xs font-normal text-gray-400">{t('optionalLabel')}</span>
+              {t('tenantDescriptionLabel')}{' '}
+              <span className="text-xs font-normal text-gray-400">{t('requiredLabel')}</span>
             </label>
             <textarea
               id="tenant-description"
+              required
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value)
+                clearFieldError('description')
+              }}
               placeholder={t('tenantDescriptionPlaceholder')}
               rows={3}
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              aria-invalid={fieldErrors.description ? true : undefined}
+              aria-describedby={fieldErrors.description ? 'tenant-description-error' : undefined}
+              className={`w-full border rounded-lg px-3 py-2 text-sm ${
+                fieldErrors.description ? 'border-red-500' : ''
+              }`}
             />
+            {fieldErrors.description ? (
+              <p id="tenant-description-error" role="alert" className="text-xs text-red-600 mt-1">
+                {fieldErrors.description}
+              </p>
+            ) : null}
           </div>
           {/* <div className="mb-4">
             <label className="block text-sm font-medium mb-1" htmlFor="tenant-slug">
@@ -299,15 +400,28 @@ export default function NewTenantPage() {
             <p className="text-xs text-gray-500 mt-1">{t('slugCharsHint')}</p>
           </div> */}
           <div>
-            <p className="block text-sm font-medium mb-2">{t('businessTypeLabel')}</p>
-            <div className="grid grid-cols-2 gap-3" aria-label={t('businessTypeSelectionAria')}>
+            <p className="block text-sm font-medium mb-2">
+              {t('businessTypeLabel')}{' '}
+              <span className="text-xs font-normal text-gray-400">{t('requiredLabel')}</span>
+            </p>
+            <div
+              className={`grid grid-cols-2 gap-3 ${
+                fieldErrors.businessType ? 'rounded-lg ring-1 ring-red-500 p-1 -m-1' : ''
+              }`}
+              aria-label={t('businessTypeSelectionAria')}
+              aria-invalid={fieldErrors.businessType ? true : undefined}
+              aria-describedby={fieldErrors.businessType ? 'tenant-business-type-error' : undefined}
+            >
               {BUSINESS_TYPES.map((bt) => {
                 const selected = businessType === bt
                 return (
                 <button
                   key={bt}
                   type="button"
-                  onClick={() => setBusinessType(bt)}
+                  onClick={() => {
+                    setBusinessType(bt)
+                    clearFieldError('businessType')
+                  }}
                   data-selected={selected ? 'true' : 'false'}
                   className={`relative border rounded-lg p-3 text-sm text-left transition-colors ${
                     selected
@@ -330,6 +444,11 @@ export default function NewTenantPage() {
                 )
               })}
             </div>
+            {fieldErrors.businessType ? (
+              <p id="tenant-business-type-error" role="alert" className="text-xs text-red-600 mt-2">
+                {fieldErrors.businessType}
+              </p>
+            ) : null}
           </div>
         </section>
       )}
@@ -381,10 +500,14 @@ export default function NewTenantPage() {
           </p>
           <BrandingDefaultsStep
             branding={branding}
-            onChange={setBranding}
+            onChange={(next) => {
+              setBranding(next)
+              if (next.primaryColor?.trim()) clearFieldError('color')
+            }}
             logoFile={logoFile}
             onLogoFileChange={setLogoFile}
             templateDefaults={template.brandingDefaults}
+            colorError={fieldErrors.color}
           />
         </section>
       )}

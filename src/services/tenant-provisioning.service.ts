@@ -356,7 +356,13 @@ export const tenantProvisioningService = {
   validateTenantConfiguration(req: TenantProvisionRequest): { valid: boolean; errors: string[] } {
     const errors: string[] = []
 
-    // Name is optional on Create Tenant; empty values must not block provision.
+    if (!req.name?.trim()) {
+      errors.push('name is required')
+    }
+
+    if (!req.description?.trim()) {
+      errors.push('description is required')
+    }
 
     // Business type
     if (!VALID_BUSINESS_TYPES.has(req.businessType)) {
@@ -374,10 +380,11 @@ export const tenantProvisioningService = {
     }
 
     // Branding validation
-    if (req.branding?.primaryColor != null) {
-      if (!/^#[0-9a-fA-F]{3,8}$/.test(req.branding.primaryColor)) {
-        errors.push('branding.primaryColor must be a valid hex color (e.g. "#ff0000")')
-      }
+    const primaryColor = req.branding?.primaryColor?.trim()
+    if (!primaryColor) {
+      errors.push('branding.primaryColor is required')
+    } else if (!/^#[0-9a-fA-F]{3,8}$/.test(primaryColor)) {
+      errors.push('branding.primaryColor must be a valid hex color (e.g. "#ff0000")')
     }
     if (req.branding?.accentHoverColor != null) {
       if (!/^#[0-9a-fA-F]{3,8}$/.test(req.branding.accentHoverColor)) {

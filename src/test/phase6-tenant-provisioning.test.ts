@@ -29,6 +29,11 @@ const BUSINESS_TYPES = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
 ] as const
 
+const VALID_TENANT_BASE = {
+  description: 'Test tenant description',
+  branding: { primaryColor: '#2563eb' },
+}
+
 // ── A: Types ──────────────────────────────────────────────────────────────────
 
 describe('A — types', () => {
@@ -401,6 +406,7 @@ describe('H — validateTenantConfiguration (valid)', () => {
       name: 'Test Cafe',
       slug: 'test-cafe',
       businessType: 'cafe',
+      ...VALID_TENANT_BASE,
     })
     expect(result.valid).toBe(true)
     expect(result.errors).toHaveLength(0)
@@ -408,7 +414,12 @@ describe('H — validateTenantConfiguration (valid)', () => {
 
   it('accepts hyphens in slug', async () => {
     const svc = await freshService()
-    const r = svc.validateTenantConfiguration({ name: 'My Bar', slug: 'my-bar', businessType: 'bar' })
+    const r = svc.validateTenantConfiguration({
+      name: 'My Bar',
+      slug: 'my-bar',
+      businessType: 'bar',
+      ...VALID_TENANT_BASE,
+    })
     expect(r.valid).toBe(true)
   })
 
@@ -418,6 +429,7 @@ describe('H — validateTenantConfiguration (valid)', () => {
       name: 'My Truck',
       slug: 'my-truck',
       businessType: 'food_truck',
+      description: VALID_TENANT_BASE.description,
       branding: { primaryColor: '#ff6600' },
     })
     expect(r.valid).toBe(true)
@@ -429,6 +441,7 @@ describe('H — validateTenantConfiguration (valid)', () => {
       name: 'My Court',
       slug: 'my-court',
       businessType: 'food_court',
+      description: VALID_TENANT_BASE.description,
       branding: { primaryColor: '#abc' },
     })
     expect(r.valid).toBe(true)
@@ -441,6 +454,7 @@ describe('H — validateTenantConfiguration (valid)', () => {
       slug: 'my-mobile',
       businessType: 'mobile_cafe',
       capabilityOverrides: {},
+      ...VALID_TENANT_BASE,
     })
     expect(r.valid).toBe(true)
   })
@@ -452,6 +466,7 @@ describe('H — validateTenantConfiguration (valid)', () => {
       slug: 'no-loyalty',
       businessType: 'cafe',
       capabilityOverrides: { 'cafe.loyalty.enabled': false },
+      ...VALID_TENANT_BASE,
     })
     expect(r.valid).toBe(true)
   })
@@ -460,15 +475,26 @@ describe('H — validateTenantConfiguration (valid)', () => {
 // ── I: validateTenantConfiguration (invalid) ──────────────────────────────────
 
 describe('I — validateTenantConfiguration (invalid)', () => {
-  it('accepts empty name as optional', async () => {
+  it('rejects empty name', async () => {
     const svc = await freshService()
-    const r = svc.validateTenantConfiguration({ name: '', slug: 'good-slug', businessType: 'restaurant' })
-    expect(r.valid).toBe(true)
+    const r = svc.validateTenantConfiguration({
+      name: '',
+      slug: 'good-slug',
+      businessType: 'restaurant',
+      ...VALID_TENANT_BASE,
+    })
+    expect(r.valid).toBe(false)
+    expect(r.errors.some((e) => e.includes('name'))).toBe(true)
   })
 
-  it('accepts single-char name as optional', async () => {
+  it('accepts single-char name when other required fields are present', async () => {
     const svc = await freshService()
-    const r = svc.validateTenantConfiguration({ name: 'A', slug: 'ok-slug', businessType: 'restaurant' })
+    const r = svc.validateTenantConfiguration({
+      name: 'A',
+      slug: 'ok-slug',
+      businessType: 'restaurant',
+      ...VALID_TENANT_BASE,
+    })
     expect(r.valid).toBe(true)
   })
 
@@ -535,6 +561,7 @@ describe('I — validateTenantConfiguration (invalid)', () => {
       slug: 'no-qr',
       businessType: 'restaurant',
       capabilityOverrides: { 'qr_table.enabled': false },
+      ...VALID_TENANT_BASE,
     })
     expect(r.valid).toBe(true)
   })
@@ -564,19 +591,19 @@ describe('I — validateTenantConfiguration (invalid)', () => {
 describe('J — provisionTenant (success)', () => {
   it('returns success=true for valid request', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: 'My Cafe', slug: 'my-cafe-01', businessType: 'cafe' })
+    const result = await svc.provisionTenant({ name: 'My Cafe', slug: 'my-cafe-01', businessType: 'cafe', ...VALID_TENANT_BASE })
     expect(result.success).toBe(true)
   })
 
   it('returns tenantId on success', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: 'My Bar', slug: 'my-bar-01', businessType: 'bar' })
+    const result = await svc.provisionTenant({ name: 'My Bar', slug: 'my-bar-01', businessType: 'bar', ...VALID_TENANT_BASE })
     expect(result.tenantId).toBeTruthy()
   })
 
   it('returns tenant object on success', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: 'My Truck', slug: 'my-truck-01', businessType: 'food_truck' })
+    const result = await svc.provisionTenant({ name: 'My Truck', slug: 'my-truck-01', businessType: 'food_truck', ...VALID_TENANT_BASE })
     expect(result.tenant).toBeTruthy()
     expect(result.tenant?.name).toBe('My Truck')
     expect(result.tenant?.slug).toBe('my-truck-01')
@@ -584,13 +611,13 @@ describe('J — provisionTenant (success)', () => {
 
   it('tenant has correct businessTypes', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: 'My Court', slug: 'my-court-01', businessType: 'food_court' })
+    const result = await svc.provisionTenant({ name: 'My Court', slug: 'my-court-01', businessType: 'food_court', ...VALID_TENANT_BASE })
     expect(result.tenant?.businessTypes).toContain('food_court')
   })
 
   it('tenant settings contain featureFlags', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: 'My Mobile', slug: 'my-mobile-01', businessType: 'mobile_cafe' })
+    const result = await svc.provisionTenant({ name: 'My Mobile', slug: 'my-mobile-01', businessType: 'mobile_cafe', ...VALID_TENANT_BASE })
     const flags = result.tenant?.settings?.featureFlags as Record<string, boolean>
     expect(flags?.['menu.enabled']).toBe(true)
   })
@@ -602,6 +629,7 @@ describe('J — provisionTenant (success)', () => {
       slug: 'custom-rest-01',
       businessType: 'restaurant',
       featureFlagOverrides: { 'delivery.enabled': false },
+      ...VALID_TENANT_BASE,
     })
     const flags = result.tenant?.settings?.featureFlags as Record<string, boolean>
     expect(flags?.['delivery.enabled']).toBe(false)
@@ -609,20 +637,20 @@ describe('J — provisionTenant (success)', () => {
 
   it('slug becomes registered after provisioning', async () => {
     const svc = await freshService()
-    await svc.provisionTenant({ name: 'First', slug: 'first-tenant', businessType: 'cafe' })
-    const r2 = svc.validateTenantConfiguration({ name: 'Second', slug: 'first-tenant', businessType: 'cafe' })
+    await svc.provisionTenant({ name: 'First', slug: 'first-tenant', businessType: 'cafe', ...VALID_TENANT_BASE })
+    const r2 = svc.validateTenantConfiguration({ name: 'Second', slug: 'first-tenant', businessType: 'cafe', ...VALID_TENANT_BASE })
     expect(r2.valid).toBe(false)
   })
 
   it('tenant status is inactive until first branch (backend lifecycle)', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: 'Active Bar', slug: 'active-bar-01', businessType: 'bar' })
+    const result = await svc.provisionTenant({ name: 'Active Bar', slug: 'active-bar-01', businessType: 'bar', ...VALID_TENANT_BASE })
     expect(result.tenant?.status).toBe('inactive')
   })
 
   it('returns slug in result', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: 'Res', slug: 'res-slug-01', businessType: 'restaurant' })
+    const result = await svc.provisionTenant({ name: 'Res', slug: 'res-slug-01', businessType: 'restaurant', ...VALID_TENANT_BASE })
     expect(result.slug).toBe('res-slug-01')
   })
 })
@@ -643,10 +671,11 @@ describe('K — provisionTenant (failure)', () => {
     expect(result.success).toBe(false)
   })
 
-  it('returns success=true for empty name', async () => {
+  it('returns success=false for empty name', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: '', slug: 'ok-slug-02', businessType: 'bar' })
-    expect(result.success).toBe(true)
+    const result = await svc.provisionTenant({ name: '', slug: 'ok-slug-02', businessType: 'bar', ...VALID_TENANT_BASE })
+    expect(result.success).toBe(false)
+    expect(result.errors?.some((e) => e.includes('name'))).toBe(true)
   })
 
   it('returns success=false when disabling required capability', async () => {
@@ -998,7 +1027,7 @@ describe('T — endpoints', () => {
 describe('U — mock mode', () => {
   it('provisionTenant resolves without network in mock mode', async () => {
     const svc = await freshService()
-    const result = await svc.provisionTenant({ name: 'Mock Test', slug: 'mock-test', businessType: 'restaurant' })
+    const result = await svc.provisionTenant({ name: 'Mock Test', slug: 'mock-test', businessType: 'restaurant', ...VALID_TENANT_BASE })
     expect(result.success).toBe(true)
   })
 
@@ -1043,6 +1072,7 @@ describe('V — required capability enforcement', () => {
       slug: 'no-notif',
       businessType: 'restaurant',
       capabilityOverrides: { 'notifications.enabled': false },
+      ...VALID_TENANT_BASE,
     })
     expect(r.valid).toBe(true)
   })
@@ -1054,6 +1084,7 @@ describe('V — required capability enforcement', () => {
       slug: 'no-order',
       businessType: 'cafe',
       capabilityOverrides: { 'ordering.enabled': false },
+      ...VALID_TENANT_BASE,
     })
     expect(r.valid).toBe(true)
   })
@@ -1062,10 +1093,16 @@ describe('V — required capability enforcement', () => {
 // ── W: Branding Validation ────────────────────────────────────────────────────
 
 describe('W — branding validation', () => {
-  it('accepts undefined branding', async () => {
+  it('rejects missing primaryColor', async () => {
     const svc = await freshService()
-    const r = svc.validateTenantConfiguration({ name: 'No Brand', slug: 'no-brand', businessType: 'bar' })
-    expect(r.valid).toBe(true)
+    const r = svc.validateTenantConfiguration({
+      name: 'No Brand',
+      slug: 'no-brand',
+      businessType: 'bar',
+      description: VALID_TENANT_BASE.description,
+    })
+    expect(r.valid).toBe(false)
+    expect(r.errors.some((e) => e.includes('primaryColor'))).toBe(true)
   })
 
   it('rejects rgb() as primaryColor', async () => {
@@ -1096,7 +1133,8 @@ describe('W — branding validation', () => {
       name: 'Accent',
       slug: 'accent-test',
       businessType: 'bar',
-      branding: { accentHoverColor: 'badcolor' },
+      description: VALID_TENANT_BASE.description,
+      branding: { primaryColor: '#2563eb', accentHoverColor: 'badcolor' },
     })
     expect(r.valid).toBe(false)
     expect(r.errors.some((e) => e.includes('accentHoverColor'))).toBe(true)
@@ -1108,6 +1146,7 @@ describe('W — branding validation', () => {
       name: 'Logo Only',
       slug: 'logo-only',
       businessType: 'restaurant',
+      description: VALID_TENANT_BASE.description,
       branding: { primaryColor: '#e85d04' },
     })
     expect(r.valid).toBe(true)
@@ -1119,6 +1158,7 @@ describe('W — branding validation', () => {
     const result = await svc.provisionTenant({
       name: 'With Logo',
       businessType: 'restaurant',
+      description: VALID_TENANT_BASE.description,
       branding: {
         primaryColor: '#e85d04',
         logoUrl: 'https://evil.example/logo.png',
@@ -1179,7 +1219,7 @@ describe('X — feature flag invariants', () => {
 
   it('provisionTenant result tenant featureFlags includes analytics.enabled=true', async () => {
     const svc = await freshService()
-    const r = await svc.provisionTenant({ name: 'Analytics', slug: 'analytics-01', businessType: 'restaurant' })
+    const r = await svc.provisionTenant({ name: 'Analytics', slug: 'analytics-01', businessType: 'restaurant', ...VALID_TENANT_BASE })
     const flags = r.tenant?.settings?.featureFlags as Record<string, boolean>
     expect(flags?.['analytics.enabled']).toBe(true)
   })
