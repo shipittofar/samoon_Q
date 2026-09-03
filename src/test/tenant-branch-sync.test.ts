@@ -340,12 +340,11 @@ describe('Public Tenant same-tab freshness', () => {
     const tenant: Tenant = { ...DEFAULT_TENANT, id: 'pub-1', slug: 'pub-cafe' }
     useTenantStore.setState({ tenant, tenantState: 'resolved', isLoading: false })
     const { tenantService } = await import('@/services/tenant.service')
-    const spy = vi.spyOn(tenantService, 'getTenantById')
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug')
 
     await useTenantStore.getState().loadTenant('pub-cafe')
     expect(spy).not.toHaveBeenCalled()
 
-    vi.spyOn(tenantService, 'getTenants').mockResolvedValue([tenant])
     spy.mockResolvedValue({ ...tenant, name: 'Fresh Name' })
 
     await useTenantStore.getState().loadTenant('pub-cafe', { force: true })

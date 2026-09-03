@@ -25,6 +25,8 @@ export interface TenantProvisionRequest {
    * Never nested under settings.theme / branding.
    */
   image?: File | null
+  /** Optional public Tenant.description (Discover). */
+  description?: string
   /** Additional feature flag overrides (highest priority). */
   featureFlagOverrides?: Record<string, boolean>
 }

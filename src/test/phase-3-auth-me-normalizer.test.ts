@@ -36,6 +36,76 @@ describe('normalizeWireMembership', () => {
     })
   })
 
+  it('maps flat camelCase tenantName and tenantSlug', () => {
+    const membership = normalizeWireMembership({
+      tenantId: 'tenant-1',
+      tenantName: 'Samoon',
+      tenantSlug: 'samoon',
+      roles: ['owner'],
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.tenantName).toBe('Samoon')
+    expect(membership?.tenantSlug).toBe('samoon')
+  })
+
+  it('maps nested tenant.name and tenant.slug', () => {
+    const membership = normalizeWireMembership({
+      tenant: {
+        id: 'tenant-1',
+        name: 'Samoon',
+        slug: 'samoon',
+      },
+      roles: ['owner'],
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.tenantId).toBe('tenant-1')
+    expect(membership?.tenantName).toBe('Samoon')
+    expect(membership?.tenantSlug).toBe('samoon')
+  })
+
+  it('maps nested tenant.status INACTIVE onto tenantStatus', () => {
+    const membership = normalizeWireMembership({
+      tenant: { id: 'tenant-1', name: 'Samoon', slug: 'samoon', status: 'INACTIVE' },
+      roles: ['owner'],
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.tenantStatus).toBe('INACTIVE')
+    expect(membership?.status).toBe('active')
+  })
+
+  it('prefers flat tenantName/tenantSlug over nested tenant.name/tenant.slug', () => {
+    const membership = normalizeWireMembership({
+      tenantId: 'tenant-1',
+      tenantName: 'Flat Name',
+      tenantSlug: 'flat-slug',
+      tenant: {
+        id: 'nested-id',
+        name: 'Nested Name',
+        slug: 'nested-slug',
+      },
+      roles: ['owner'],
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.tenantId).toBe('tenant-1')
+    expect(membership?.tenantName).toBe('Flat Name')
+    expect(membership?.tenantSlug).toBe('flat-slug')
+  })
+
+  it('uses nested slug when only tenantName is flat', () => {
+    const membership = normalizeWireMembership({
+      tenantId: 'tenant-1',
+      tenantName: 'Flat Name',
+      tenant: {
+        name: 'Nested Name',
+        slug: 'nested-slug',
+      },
+      roles: ['owner'],
+      branchAccess: { scope: 'all' },
+    })
+    expect(membership?.tenantName).toBe('Flat Name')
+    expect(membership?.tenantSlug).toBe('nested-slug')
+  })
+
   it('preserves MembershipOutputSerializer camelCase tenantName (not slug)', () => {
     const membership = normalizeWireMembership({
       tenantId: 'tenant-a',
@@ -174,6 +244,42 @@ describe('normalizeGetMeResponse', () => {
       'samoon-restaurant',
       'brew-cafe',
     ])
+  })
+
+  it('keeps per-membership nested tenant names (does not copy active tenant onto all)', () => {
+    const response = normalizeGetMeResponse({
+      user: {
+        id: 'u1',
+        email: 'a@b.com',
+        first_name: 'A',
+        last_name: 'B',
+        accountType: 'business',
+        is_verified: true,
+        created_at: '',
+      },
+      memberships: [
+        {
+          tenant: { id: '1', name: 'Samoon', slug: 'samoon' },
+          roles: ['owner'],
+          branchAccess: { scope: 'all' },
+        },
+        {
+          tenant: { id: '2', name: 'Another Business', slug: 'another-business' },
+          roles: ['manager'],
+          branchAccess: { scope: 'all' },
+        },
+      ],
+      activeMembership: {
+        tenantId: '1',
+        tenant: { name: 'Samoon', slug: 'samoon' },
+      },
+    })
+    expect(response.memberships?.map((m) => ({ id: m.tenantId, name: m.tenantName, slug: m.tenantSlug }))).toEqual([
+      { id: '1', name: 'Samoon', slug: 'samoon' },
+      { id: '2', name: 'Another Business', slug: 'another-business' },
+    ])
+    expect(response.activeMembership?.tenantName).toBe('Samoon')
+    expect(response.activeMembership?.tenantSlug).toBe('samoon')
   })
 
   it('preserves is_superuser and is_verified from nested /auth/me user', () => {

@@ -94,11 +94,11 @@ describe('console membership hydration', () => {
     const membership = buildSamoonMembership(['owner'])
     useRbacStore.getState().setSessionMemberships([membership], { tenantId: membership.tenantId })
 
-    const loadSpy = vi.spyOn(useTenantStore.getState(), 'loadTenantById')
+    const loadSpy = vi.spyOn(useTenantStore.getState(), 'loadTenantById').mockResolvedValue(undefined)
 
     await useConsoleWorkspaceStore.getState().switchTenant(membership.tenantId)
 
-    expect(loadSpy).not.toHaveBeenCalled()
+    expect(loadSpy).toHaveBeenCalledWith(membership.tenantId)
     expect(useTenantStore.getState().tenant?.name).toBe('Samoon Restaurant')
     expect(useBranchStore.getState().branches.length).toBe(membership.branches!.length)
 

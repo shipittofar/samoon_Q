@@ -66,7 +66,7 @@ export default async function TenantPage({
           dangerouslySetInnerHTML={{ __html: jsonLd }}
         />
       )}
-      <TenantHomepageClient tenantSlug={tenantSlug} />
+      <TenantHomepageClient tenantSlug={tenantSlug} initialTenant={tenant} />
     </>
   )
 }

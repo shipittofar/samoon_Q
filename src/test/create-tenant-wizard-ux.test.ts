@@ -47,6 +47,20 @@ describe('Create Tenant wizard — required fields', () => {
     expect(src).toContain("t('menuCapabilityLabel')")
     expect(src).toContain('aria-required="true"')
   })
+
+  it('optional tenant description is included in the provision payload', () => {
+    const src = readFileSync(join(ROOT, 'app', 'console', 'tenants', 'new', 'page.tsx'), 'utf8')
+    expect(src).toContain('id="tenant-description"')
+    expect(src).toContain("t('tenantDescriptionLabel')")
+    expect(src).toContain("t('optionalLabel')")
+    expect(src).not.toMatch(/id="tenant-description"[\s\S]{0,250}required/)
+    expect(src).toContain('description: description.trim() || undefined')
+    const valid = tenantProvisioningService.validateTenantConfiguration({
+      name: 'Cafe',
+      businessType: 'cafe',
+    })
+    expect(valid.valid).toBe(true)
+  })
 })
 
 describe('Create Tenant wizard — fonts', () => {

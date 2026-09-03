@@ -3,6 +3,8 @@ import type { TenantMembership } from '@/types/rbac'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useTenantStore } from '@/stores'
 import { hasMembershipTenantDisplayMetadata } from '@/lib/console-tenant-display'
+import { invalidateTenantLoads } from '@/lib/console-workspace-switch'
+import { canonicalMembershipTenantStatus } from '@/lib/console-tenant-access'
 
 function membershipToTenantShell(membership: TenantMembership): Tenant {
   return {
@@ -14,9 +16,8 @@ function membershipToTenantShell(membership: TenantMembership): Tenant {
     // Console shell: visible for workspace UI; operational state from membership.
     is_active: true,
     status:
-      membership.status === 'suspended' || membership.status === 'revoked'
-        ? 'CLOSED'
-        : 'ACTIVE',
+      canonicalMembershipTenantStatus(membership) ??
+      (membership.status === 'suspended' || membership.status === 'revoked' ? 'CLOSED' : 'ACTIVE'),
     created_at: '',
     settings: {},
   }
@@ -27,6 +28,8 @@ function membershipToTenantShell(membership: TenantMembership): Tenant {
  * Avoids GET /tenants/:id for selector rendering when membership is complete.
  */
 export function hydrateConsoleTenantFromMembership(membership: TenantMembership): void {
+  // Discard in-flight GET /tenants/{id}/ so a later 404 cannot overwrite this shell.
+  invalidateTenantLoads()
   const tenant = membershipToTenantShell(membership)
   useTenantStore.setState({
     tenant,
@@ -44,12 +47,29 @@ export function hydrateConsoleTenantFromMembership(membership: TenantMembership)
  * Loads the full tenant record (theme, settings, feature-flag overrides) in the
  * background — never required for selector boot.
  */
-export function ensureFullTenantRecord(tenantId: string): Promise<void> {
+export async function ensureFullTenantRecord(tenantId: string): Promise<void> {
   const current = useTenantStore.getState()
   if (current.tenant?.id === tenantId && current.tenant.settings && Object.keys(current.tenant.settings).length > 0) {
-    return Promise.resolve()
+    return
   }
-  return useTenantStore.getState().loadTenantById(tenantId).then(() => undefined)
+  const preserved =
+    current.tenantState === 'resolved' && current.tenant?.id === tenantId ? current.tenant : null
+  await useTenantStore.getState().loadTenantById(tenantId)
+  const after = useTenantStore.getState()
+  if (
+    preserved &&
+    (after.tenantState !== 'resolved' || !after.tenant || after.tenant.id !== tenantId)
+  ) {
+    useTenantStore.setState({
+      tenant: preserved,
+      isLoading: false,
+      tenantState: 'resolved',
+      lastAttemptedTenantId: tenantId,
+      featureFlags: featureFlagsService.resolve(preserved),
+      featureFlagsInitialized: true,
+      rbacInitialized: true,
+    })
+  }
 }
 
 export function canBootTenantFromMembership(membership: TenantMembership | undefined): membership is TenantMembership {

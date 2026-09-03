@@ -4,6 +4,7 @@ import type { TenantMembership } from '@/types/rbac'
 import type { Branch } from '@/types/branch'
 import { hasMembershipBranches, resolveConsoleActiveTenantId, resolveConsoleActiveBranch, resolveConsoleDefaultBranch, resolveConsoleDefaultTenantId } from '@/lib/console-workspace'
 import { canBootTenantFromMembership, hydrateConsoleTenantFromMembership, ensureFullTenantRecord } from '@/lib/console-membership-hydration'
+import { isConsoleMembershipTenantInactive } from '@/lib/console-tenant-access'
 import { reconcileConsoleWorkspaceConsistency } from '@/lib/console-workspace-consistency'
 import { invalidateTenantLoads, nextBranchSwitchGeneration } from '@/lib/console-workspace-switch'
 import { hasAnyMembership, normalizeTenantPermissions } from '@/services/permission.service'
@@ -59,12 +60,15 @@ function clearTenantScopedClientState() {
   useRecentlyViewedStore.getState().clear()
 }
 
+/** No resolvable active tenant in session — empty store so the gate can show awaiting_selection. */
 function clearConsoleActiveTenantState() {
   clearTenantScopedClientState()
   useBranchStore.getState().resetBranchResolution()
   useTenantStore.setState({
     tenant: null,
     isLoading: false,
+    // Paired with a missing activeMembership.tenantId → tenant_awaiting_selection.
+    // Must not run when a valid active pointer exists (detail GET failures use loadTenantById).
     tenantState: 'not_found',
     rbacInitialized: false,
     featureFlagsInitialized: false,
@@ -145,7 +149,12 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
         // Sole membership + no backend active tenant → activate that tenant before
         // any branch work. Multi-tenant without a pointer still awaits manual selection.
         if (!targetTenantId && memberships.length === 1) {
-          const soleTenantId = memberships[0].tenantId
+          const sole = memberships[0]
+          if (isConsoleMembershipTenantInactive(sole)) {
+            set({ selectedTenantId: null, workspacePhase: 'ready', workspaceError: null, _bootstrapped: true, _switching: false })
+            return
+          }
+          const soleTenantId = sole.tenantId
           // Blocks branch switches (_switching + switching_tenant) until activation finishes.
           get().beginTenantSwitch(soleTenantId)
           try {

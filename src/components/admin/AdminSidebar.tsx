@@ -49,8 +49,9 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useAdminModuleNav, useLogout, usePermissions } from '@/hooks'
-import { useAuthStore, useRbacStore } from '@/stores'
+import { useAuthStore, useRbacStore, useTenantStore } from '@/stores'
 import { useConsoleTenantId } from '@/hooks/console-workspace'
+import { isConsoleMembershipTenantInactive } from '@/lib/console-tenant-access'
 import { Button } from '@/components/ui/Button'
 import type { NavItem } from '@/types'
 
@@ -184,6 +185,16 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
   const navItems = useAdminModuleNav()
   const { mutate: logout, isPending: isLoggingOut } = useLogout()
   const sidebarRef = useRef<HTMLElement>(null)
+  const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
+  const sessionMemberships = useRbacStore((s) => s.sessionMemberships)
+  const tenant = useTenantStore((s) => s.tenant)
+  const activeMembershipRecord = activeTenantId
+    ? (sessionMemberships ?? []).find((m) => m.tenantId === activeTenantId)
+    : undefined
+  const hideConsoleNav = isConsoleMembershipTenantInactive(
+    activeMembershipRecord,
+    tenant?.id === activeTenantId ? tenant : null,
+  )
 
   // Focus trap on mobile when open
   useEffect(() => {
@@ -281,7 +292,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           </div>
 
           {/* Grouped nav items */}
-          {groups.map(({ group, items }) => (
+          {hideConsoleNav ? null : groups.map(({ group, items }) => (
             <div key={group} className="px-2 mb-3">
               <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)] opacity-60 select-none">
                 {group}

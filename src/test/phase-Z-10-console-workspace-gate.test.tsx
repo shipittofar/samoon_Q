@@ -154,9 +154,10 @@ describe('Phase Z.10 — a real tenant-resolution failure (has membership, but t
       <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
     ))
 
-    expect(screen.getByText(en.console.tenantNotFoundTitle)).toBeTruthy()
+    expect(screen.getByText(en.console.tenantErrorDesc)).toBeTruthy()
     expect(screen.queryByText(en.console.onboardingTitle)).toBeNull()
     expect(screen.queryByText('Console Workspace')).toBeNull()
+    expect(screen.queryByText(en.console.tenantNotFoundTitle)).toBeNull()
   })
 })
 

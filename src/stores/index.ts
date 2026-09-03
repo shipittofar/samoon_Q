@@ -49,7 +49,7 @@ import { filterBranchesForTenant } from '@/lib/console-workspace-consistency'
 import { branchEntityToLocation } from '@/lib/branch-adapters'
 import { normalizeCartItems } from '@/lib/cart-normalizers'
 import {
-  resolvePublicTenantId,
+  fetchPublicTenantBySlug,
   type ResolvePublicTenantOptions,
 } from '@/lib/public-tenant-resolution'
 import { featureFlagsService } from '@/services/feature-flags.service'
@@ -417,12 +417,15 @@ export const useTenantStore = create<TenantState>()(
       applyResolvedTenant: (tenant) =>
         set((s) => ({
           tenant,
+          tenantState: 'resolved',
+          isLoading: false,
           featureFlags: featureFlagsService.resolve(tenant),
           featureFlagsInitialized: true,
           dataRevision: (s.dataRevision ?? 0) + 1,
         })),
       loadTenant: async (slug?: string, options?: ResolvePublicTenantOptions) => {
         recordConsoleBootMetric('loadTenant')
+        const generation = nextTenantLoadGeneration()
         // No slug to resolve against (e.g. the platform domain with no
         // tenant subdomain) — never guess a tenant. Leave tenant null and
         // let the Console's own membership-based fallback
@@ -442,20 +445,20 @@ export const useTenantStore = create<TenantState>()(
         ) {
           return
         }
-        // Parallel layout/effect callers share one in-flight slug bootstrap.
-        if (current.isLoading && current.lastAttemptedSlug === slug) return
-        const keepTenant = Boolean(options?.force && current.tenant?.slug === slug)
+        const keepExisting = Boolean(
+          options?.force && current.tenant?.slug === slug && current.tenantState === 'resolved',
+        )
+        const existingTenant = keepExisting ? current.tenant : null
         set({
           isLoading: true,
-          tenantState: keepTenant ? current.tenantState : 'loading',
-          tenant: keepTenant ? current.tenant : null,
+          tenantState: keepExisting ? current.tenantState : 'loading',
+          tenant: keepExisting ? current.tenant : null,
           lastAttemptedSlug: slug,
           lastAttemptedTenantId: undefined,
         })
         try {
-          // Public slug routes resolve slug → UUID, then fetch via GET /tenants/{id}/.
-          const tenantId = await resolvePublicTenantId(slug, options)
-          const tenant = await tenantService.getTenantById(tenantId)
+          const tenant = await fetchPublicTenantBySlug(slug, options)
+          if (!isCurrentTenantLoad(generation)) return
           // Public storefronts require visibility (`is_active`), not operational ACTIVE.
           // INACTIVE/CLOSED tenants may still render if publicly visible; ordering is gated separately.
           if (!isTenantVisible(tenant)) {
@@ -472,15 +475,21 @@ export const useTenantStore = create<TenantState>()(
             tenant,
             isLoading: false,
             tenantState: 'resolved',
-            lastAttemptedTenantId: tenantId,
+            lastAttemptedTenantId: tenant.id,
             featureFlags: featureFlagsService.resolve(tenant),
             featureFlagsInitialized: true,
           })
           setActiveTenantSlugForRequests(tenant.slug)
         } catch (err) {
-          // Never substitute a fake tenant here. Classify the failure and
-          // leave `tenant` null so nothing downstream can mistake an
-          // unresolved tenant for a real one.
+          if (!isCurrentTenantLoad(generation)) return
+          if (keepExisting && existingTenant) {
+            set({
+              tenant: existingTenant,
+              isLoading: false,
+              tenantState: 'resolved',
+            })
+            return
+          }
           if (err instanceof TenantNotFoundError) {
             set({
               tenant: null,
@@ -498,9 +507,6 @@ export const useTenantStore = create<TenantState>()(
               featureFlagsInitialized: true,
             })
           } else {
-            // Unclassified failure (network error, 5xx, malformed response,
-            // etc.) — report it so it doesn't vanish silently. No response
-            // body/headers are forwarded, only the slug and the error itself.
             captureException(err, { context: 'useTenantStore.loadTenant', slug })
             if (process.env.NODE_ENV !== 'production') {
               console.error('[useTenantStore.loadTenant] tenant resolution failed:', slug, err)
@@ -518,7 +524,18 @@ export const useTenantStore = create<TenantState>()(
       loadTenantById: async (tenantId: string) => {
         recordConsoleBootMetric('loadTenantById')
         const generation = nextTenantLoadGeneration()
-        set({ isLoading: true, tenantState: 'loading', tenant: null, lastAttemptedTenantId: tenantId, lastAttemptedSlug: undefined })
+        const current = useTenantStore.getState()
+        const keepExisting = Boolean(
+          current.tenant?.id === tenantId && current.tenantState === 'resolved',
+        )
+        const existingTenant = keepExisting ? current.tenant : null
+        set({
+          isLoading: true,
+          tenantState: keepExisting ? current.tenantState : 'loading',
+          tenant: keepExisting ? current.tenant : null,
+          lastAttemptedTenantId: tenantId,
+          lastAttemptedSlug: undefined,
+        })
         try {
           const tenant = await tenantService.getTenantById(tenantId)
           if (!isCurrentTenantLoad(generation)) return
@@ -540,15 +557,17 @@ export const useTenantStore = create<TenantState>()(
           setActiveTenantSlugForRequests(tenant.slug)
         } catch (err) {
           if (!isCurrentTenantLoad(generation)) return
-          if (err instanceof TenantNotFoundError) {
+          // Console: a failed GET /tenants/{id}/ must not erase a hydrated membership shell
+          // or a previously resolved record. Public `not_found` is owned by loadTenant(slug).
+          if (keepExisting && existingTenant) {
             set({
-              tenant: null,
+              tenant: existingTenant,
               isLoading: false,
-              tenantState: 'not_found',
-              featureFlags: {},
-              featureFlagsInitialized: true,
+              tenantState: 'resolved',
             })
-          } else if (err instanceof TenantForbiddenError) {
+            return
+          }
+          if (err instanceof TenantForbiddenError) {
             set({
               tenant: null,
               isLoading: false,
@@ -557,9 +576,11 @@ export const useTenantStore = create<TenantState>()(
               featureFlagsInitialized: true,
             })
           } else {
-            captureException(err, { context: 'useTenantStore.loadTenantById', tenantId })
-            if (process.env.NODE_ENV !== 'production') {
-              console.error('[useTenantStore.loadTenantById] tenant resolution failed:', tenantId, err)
+            if (!(err instanceof TenantNotFoundError)) {
+              captureException(err, { context: 'useTenantStore.loadTenantById', tenantId })
+              if (process.env.NODE_ENV !== 'production') {
+                console.error('[useTenantStore.loadTenantById] tenant resolution failed:', tenantId, err)
+              }
             }
             set({
               tenant: null,

@@ -19,6 +19,50 @@ import type { Tenant } from '@/types'
 /** React Query key for the Discover tenant list — shared with usePublicTenants(). */
 export const PUBLIC_TENANTS_QUERY_KEY = ['public-tenants'] as const
 
+/** First path segments that are app routes, not `/{tenantSlug}`. */
+const RESERVED_PUBLIC_PATH_SEGMENTS = new Set([
+  'api',
+  'cart',
+  'checkout',
+  'complete-profile',
+  'console',
+  'dashboard',
+  'discover',
+  'events',
+  'forgot-password',
+  'location',
+  'login',
+  'loyalty',
+  'menu',
+  'offline',
+  'order',
+  'platform-admin',
+  'promotions',
+  'register',
+  'reservation',
+  'restaurant',
+  'reviews',
+  'table',
+  'vendors',
+  'verify',
+  'verify-otp',
+])
+
+/**
+ * Tenant slug from a path-based public URL (`/acme`, `/acme/main`).
+ * Does not use hostname / `x-tenant-slug`. Reserved first segments are ignored.
+ */
+export function readPublicPathTenantSlug(pathname: string | null | undefined): string | undefined {
+  if (!pathname) return undefined
+  const segment = pathname.split('/').filter(Boolean)[0]
+  if (!segment || RESERVED_PUBLIC_PATH_SEGMENTS.has(segment)) return undefined
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return segment
+  }
+}
+
 export type ResolvePublicTenantOptions = {
   cachedTenants?: Tenant[]
   /** Bypass the same-slug skip so a public page can reload after a Console mutation. */
@@ -43,25 +87,26 @@ export async function resolvePublicTenantId(
   slug: string,
   options: ResolvePublicTenantOptions = {},
 ): Promise<string> {
-  const { cachedTenants } = options
-
-  if (cachedTenants?.length) {
-    const cachedId = findTenantIdBySlug(cachedTenants, slug)
-    if (cachedId) return cachedId
-  }
-
-  const tenants = await tenantService.getTenants()
-  const tenantId = findTenantIdBySlug(tenants, slug)
-  if (!tenantId) throw new TenantNotFoundError(slug)
-  return tenantId
+  const tenant = await fetchPublicTenantBySlug(slug, options)
+  return tenant.id
 }
 
+/**
+ * Public Tenant by URL slug. Never scans a paginated `GET /tenants/` first page.
+ * Cache hit (same slug) uses canonical id fetch; otherwise existing `GET /tenants/{slug}/`.
+ */
 export async function fetchPublicTenantBySlug(
   slug: string,
   options: ResolvePublicTenantOptions = {},
 ): Promise<Tenant> {
-  const tenantId = await resolvePublicTenantId(slug, options)
-  return tenantService.getTenantById(tenantId)
+  const { cachedTenants } = options
+
+  if (cachedTenants?.length) {
+    const cachedId = findTenantIdBySlug(cachedTenants, slug)
+    if (cachedId) return tenantService.getTenantById(cachedId)
+  }
+
+  return tenantService.getTenantBySlug(slug)
 }
 
 export const resolvePublicTenantForPage = cache(async (slug: string): Promise<Tenant> => {

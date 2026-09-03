@@ -26,12 +26,14 @@ export function buildTenantProvisionFormData(input: {
   businessType: ProvisionableBusinessType
   settings: { featureFlags: Record<string, boolean>; theme: TenantBranding }
   image: File
+  description?: string
 }): FormData {
   const form = new FormData()
   form.append('name', input.name)
   form.append('businessTypes', JSON.stringify([input.businessType]))
   form.append('settings', JSON.stringify(input.settings))
   form.append('image', input.image)
+  if (input.description) form.append('description', input.description)
   return form
 }
 
@@ -422,6 +424,7 @@ export const tenantProvisioningService = {
           req.image instanceof File
             ? mockImageUrlFromFile(req.image) || `mock-image://${req.image.name}`
             : undefined,
+        description: req.description?.trim() || undefined,
         settings: { featureFlags, theme: branding },
       }
 
@@ -448,6 +451,7 @@ export const tenantProvisioningService = {
           businessType: req.businessType,
           settings,
           image: req.image,
+          description: req.description?.trim() || undefined,
         })
         const { data } = await api.post<Tenant>(
           ENDPOINTS.TENANTS.PROVISION,
@@ -462,6 +466,7 @@ export const tenantProvisioningService = {
         // slug: req.slug,
         businessTypes: [req.businessType],
         settings,
+        ...(req.description?.trim() ? { description: req.description.trim() } : {}),
       })
       return { success: true, tenantId: data.id, slug: data.slug, tenant: data }
     } catch (err: unknown) {

@@ -224,6 +224,8 @@ export interface TenantMembership {
   /** Branches available to this membership — Console source of truth when non-empty. */
   branches?: MembershipBranch[]
   status?: 'active' | 'suspended' | 'revoked'
+  /** Operational Tenant.status from /auth/me (ACTIVE | INACTIVE | CLOSED). */
+  tenantStatus?: import('@/types').TenantStatus
 }
 
 /**

@@ -48,6 +48,10 @@ import { useTranslations } from 'next-intl'
 import { RefreshCw } from 'lucide-react'
 import { useTenantStore, useRbacStore } from '@/stores'
 import { useConsoleSessionRefresh, useHasDashboardAccess } from '@/hooks'
+import {
+  isConsoleMembershipTenantInactive,
+  membershipHasSelectableConsoleTenant,
+} from '@/lib/console-tenant-access'
 import type { TenantLifecycle } from '@/types'
 import { AccessDenied } from './AccessDenied'
 import { ConsoleOnboarding } from './ConsoleOnboarding'
@@ -66,6 +70,7 @@ export type ConsoleTenantPhase =
   | 'tenant_retrying'
   | 'tenant_network_error'
   | 'tenant_not_found'
+  | 'tenant_inactive'
   | 'tenant_access_denied'
   | 'access_denied'
   | 'resolved'
@@ -87,6 +92,8 @@ export function resolveConsoleTenantPhase(params: {
   tenantState: TenantLifecycle
   hasDashboardAccess: boolean
   retryCount: number
+  activeTenantInactive?: boolean
+  hasSelectableTenant?: boolean
 }): ConsoleTenantPhase {
   const {
     hasTenantMembership,
@@ -96,6 +103,8 @@ export function resolveConsoleTenantPhase(params: {
     tenantState,
     hasDashboardAccess,
     retryCount,
+    activeTenantInactive = false,
+    hasSelectableTenant = true,
   } = params
 
   if (hasTenantMembership === null) return 'membership_loading'
@@ -104,11 +113,22 @@ export function resolveConsoleTenantPhase(params: {
   }
   if (sessionMembershipCount === 0) return 'no_active_tenant'
 
+  if (activeTenantInactive) return 'tenant_inactive'
+  if (!activeTenantId && !hasSelectableTenant) return 'tenant_inactive'
+
   const awaitingActiveMembership = !activeTenantId && tenantState === 'not_found'
 
   if (awaitingActiveMembership) return 'tenant_awaiting_selection'
 
-  if (tenantState === 'not_found') return 'tenant_not_found'
+  if (tenantState === 'not_found') {
+    // Valid session tenant pointer: missing GET /tenants/{id}/ is not a public 404.
+    if (activeTenantId && sessionMembershipCount !== null && sessionMembershipCount > 0) {
+      return retryCount > 0 && retryCount < TENANT_MAX_AUTO_RETRIES
+        ? 'tenant_retrying'
+        : 'tenant_network_error'
+    }
+    return 'tenant_not_found'
+  }
   if (tenantState === 'forbidden') return 'tenant_access_denied'
 
   if (tenantState === 'loading') {
@@ -215,12 +235,21 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
   const activeTenantId = useRbacStore((s) => s.activeMembership?.tenantId)
   const resolvedTenantId = useTenantStore((s) => s.tenant?.id)
   const tenantState = useTenantStore((s) => s.tenantState)
+  const tenant = useTenantStore((s) => s.tenant)
   const hasDashboardAccess = useHasDashboardAccess()
   const { retryCount, retryNow } = useTenantAutoRetry(tenantState)
   const { refresh, refreshing } = useConsoleSessionRefresh()
 
   const sessionMembershipCount =
     sessionMemberships === null ? null : sessionMemberships.length
+  const activeMembershipRecord = activeTenantId
+    ? (sessionMemberships ?? []).find((m) => m.tenantId === activeTenantId)
+    : undefined
+  const activeTenantInactive = isConsoleMembershipTenantInactive(
+    activeMembershipRecord,
+    tenant?.id === activeTenantId ? tenant : null,
+  )
+  const hasSelectableTenant = membershipHasSelectableConsoleTenant(sessionMemberships)
 
   const phase = resolveConsoleTenantPhase({
     hasTenantMembership,
@@ -230,6 +259,8 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
     tenantState,
     hasDashboardAccess,
     retryCount,
+    activeTenantInactive,
+    hasSelectableTenant,
   })
 
   const sessionRefreshButton = (
@@ -266,6 +297,8 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
       )
     case 'tenant_not_found':
       return <TenantMessage title={t('tenantNotFoundTitle')} description={t('tenantNotFoundDesc')} />
+    case 'tenant_inactive':
+      return <TenantMessage title={t('tenantInactiveTitle')} description={t('tenantInactiveDesc')} />
     case 'tenant_access_denied':
       return <TenantMessage title={t('tenantForbiddenTitle')} description={t('tenantForbiddenDesc')} />
     case 'tenant_loading':

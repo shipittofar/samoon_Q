@@ -13,6 +13,7 @@ import { ChevronDown, Layers, Check, Loader2, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils'
 import { getTenantSelectorOptionLabel } from '@/lib/console-tenant-display'
+import { isConsoleMembershipTenantInactive } from '@/lib/console-tenant-access'
 import {
   useConsoleWorkspace,
   useConsoleSessionRefresh,
@@ -29,6 +30,7 @@ export function AdminTenantSwitcher() {
     availableTenants,
     tenantDisplayName,
     tenantLoading,
+    selectedTenant,
   } = useConsoleWorkspace()
   const { refresh, refreshing } = useConsoleSessionRefresh()
   const { switchTenant, switchingToTenantId, switching } = useConsoleTenantSwitch()
@@ -84,6 +86,10 @@ export function AdminTenantSwitcher() {
 
   async function handleOptionSelect(tenantId: string) {
     if (pending) return
+    const membership = availableTenants.find((m) => m.tenantId === tenantId)
+    if (!membership) return
+    const loaded = selectedTenant?.id === tenantId ? selectedTenant : null
+    if (isConsoleMembershipTenantInactive(membership, loaded)) return
     if (tenantId === activeTenantId) {
       setOpen(false)
       return
@@ -132,16 +138,23 @@ export function AdminTenantSwitcher() {
           {availableTenants.map((membership) => {
             const isActive = membership.tenantId === activeTenantId
             const isPending = membership.tenantId === switchingToTenantId
+            const loaded = selectedTenant?.id === membership.tenantId ? selectedTenant : null
+            const inactive = isConsoleMembershipTenantInactive(membership, loaded)
             return (
               <button
                 key={membership.tenantId}
                 type="button"
                 role="option"
                 aria-selected={isActive}
-                disabled={pending}
-                onClick={() => void handleOptionSelect(membership.tenantId)}
+                aria-disabled={inactive}
+                disabled={pending || inactive}
+                onClick={() => {
+                  if (inactive) return
+                  void handleOptionSelect(membership.tenantId)
+                }}
                 className={cn(
                   'w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+                  inactive && 'pointer-events-none',
                   isActive
                     ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400'
                     : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
@@ -152,7 +165,7 @@ export function AdminTenantSwitcher() {
                     {getTenantSelectorOptionLabel(membership)}
                   </p>
                   <p className="text-xs text-[var(--fg-muted)] truncate">
-                    {membership.roles.join(', ')}
+                    {inactive ? t('tenantInactiveOptionLabel') : membership.roles.join(', ')}
                   </p>
                 </div>
                 {isPending ? (

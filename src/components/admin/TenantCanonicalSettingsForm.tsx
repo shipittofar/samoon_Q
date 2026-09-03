@@ -9,7 +9,21 @@ import type { Tenant, TenantTheme } from '@/types'
 import { sanitizeBrandingForWrite } from '@/lib/tenant-branding'
 import { ImageUploader, EMPTY_IMAGE_FIELD, type ImageFieldValue } from '@/components/ImageUploader'
 import { imageFieldToMediaPatch } from '@/lib/tenant-media'
+import { mockImageUrlFromFile } from '@/lib/multipart'
+import {
+  SOCIAL_PREFIX,
+  WEBSITE_PREFIX,
+  applyPrefixInput,
+  galleryUrlsFromImageFields,
+  initPrefixedField,
+  valueForPrefixedSave,
+} from '@/lib/prefixed-input'
 import { useUpdateTenantMedia } from '@/hooks'
+
+function galleryFieldsFromUrls(urls: string[] | undefined): ImageFieldValue[] {
+  if (!urls?.length) return [{ ...EMPTY_IMAGE_FIELD }]
+  return urls.map((existingUrl) => ({ ...EMPTY_IMAGE_FIELD, existingUrl }))
+}
 
 const ADDRESS_CAPABILITY_KEYS: (keyof AddressCapabilities)[] = [
   'cash_on_delivery',
@@ -101,6 +115,7 @@ export function TenantCanonicalSettingsForm({
     existingUrl: tenant.discoverCover ?? '',
   })
 
+  const [description, setDescription] = useState(tenant.description ?? '')
   const [contactEmail, setContactEmail] = useState(tenant.settings?.contactEmail ?? '')
   const [contactPhone, setContactPhone] = useState(tenant.settings?.contactPhone ?? '')
   const [caps, setCaps] = useState<AddressCapabilities>({
@@ -115,16 +130,18 @@ export function TenantCanonicalSettingsForm({
   const [story, setStory] = useState(existingMeta?.story ?? '')
   const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
   const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
-  const [website, setWebsite] = useState(existingMeta?.website ?? '')
+  const [website, setWebsite] = useState(initPrefixedField(existingMeta?.website, WEBSITE_PREFIX))
   const [heroField, setHeroField] = useState<ImageFieldValue>({
     ...EMPTY_IMAGE_FIELD,
     existingUrl: tenant.heroImage ?? '',
   })
-  const [gallery, setGallery] = useState(existingMeta?.gallery?.join('\n') ?? '')
-  const [instagram, setInstagram] = useState(existingMeta?.socialLinks?.instagram ?? '')
-  const [twitter, setTwitter] = useState(existingMeta?.socialLinks?.twitter ?? '')
-  const [facebook, setFacebook] = useState(existingMeta?.socialLinks?.facebook ?? '')
-  const [youtube, setYoutube] = useState(existingMeta?.socialLinks?.youtube ?? '')
+  const [galleryFields, setGalleryFields] = useState<ImageFieldValue[]>(() =>
+    galleryFieldsFromUrls(existingMeta?.gallery),
+  )
+  const [instagram, setInstagram] = useState(initPrefixedField(existingMeta?.socialLinks?.instagram, SOCIAL_PREFIX))
+  const [twitter, setTwitter] = useState(initPrefixedField(existingMeta?.socialLinks?.twitter, SOCIAL_PREFIX))
+  const [facebook, setFacebook] = useState(initPrefixedField(existingMeta?.socialLinks?.facebook, SOCIAL_PREFIX))
+  const [youtube, setYoutube] = useState(initPrefixedField(existingMeta?.socialLinks?.youtube, SOCIAL_PREFIX))
   const [featured, setFeatured] = useState(existingMeta?.featured ?? false)
   const [popular, setPopular] = useState(existingMeta?.popular ?? false)
   const [isNew, setIsNew] = useState(existingMeta?.isNew ?? false)
@@ -140,6 +157,7 @@ export function TenantCanonicalSettingsForm({
   })
 
   useEffect(() => {
+    setDescription(tenant.description ?? '')
     setContactEmail(tenant.settings?.contactEmail ?? '')
     setContactPhone(tenant.settings?.contactPhone ?? '')
     const nextCaps = tenant.settings?.addressCapabilities
@@ -157,20 +175,20 @@ export function TenantCanonicalSettingsForm({
     setStory(m?.story ?? '')
     setTags(m?.tags?.join(', ') ?? '')
     setPriceLevel(String(m?.priceLevel ?? ''))
-    setWebsite(m?.website ?? '')
+    setWebsite(initPrefixedField(m?.website, WEBSITE_PREFIX))
     setHeroField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.heroImage ?? '' })
-    setGallery(m?.gallery?.join('\n') ?? '')
-    setInstagram(m?.socialLinks?.instagram ?? '')
-    setTwitter(m?.socialLinks?.twitter ?? '')
-    setFacebook(m?.socialLinks?.facebook ?? '')
-    setYoutube(m?.socialLinks?.youtube ?? '')
+    setGalleryFields(galleryFieldsFromUrls(m?.gallery))
+    setInstagram(initPrefixedField(m?.socialLinks?.instagram, SOCIAL_PREFIX))
+    setTwitter(initPrefixedField(m?.socialLinks?.twitter, SOCIAL_PREFIX))
+    setFacebook(initPrefixedField(m?.socialLinks?.facebook, SOCIAL_PREFIX))
+    setYoutube(initPrefixedField(m?.socialLinks?.youtube, SOCIAL_PREFIX))
     setFeatured(m?.featured ?? false)
     setPopular(m?.popular ?? false)
     setIsNew(m?.isNew ?? false)
     setLogoField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.image ?? '' })
     setDiscoverAvatarField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.discoverAvatar ?? '' })
     setDiscoverCoverField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.discoverCover ?? '' })
-  }, [tenant.id, tenant.settings, tenant.image, tenant.discoverAvatar, tenant.discoverCover, tenant.heroImage])
+  }, [tenant.id, tenant.settings, tenant.description, tenant.image, tenant.discoverAvatar, tenant.discoverCover, tenant.heroImage])
 
   const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
   const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
@@ -178,7 +196,6 @@ export function TenantCanonicalSettingsForm({
 
   function handleSave() {
     const toArr = (s: string) => s.split(',').map((v) => v.trim()).filter(Boolean)
-    const toLines = (s: string) => s.split('\n').map((v) => v.trim()).filter(Boolean)
     const theme: TenantTheme = sanitizeBrandingForWrite({
       ...(existingTheme ?? {}),
       primaryColor,
@@ -194,6 +211,7 @@ export function TenantCanonicalSettingsForm({
     if (Object.keys(media).length > 0) saveMedia(media)
 
     onSave({
+      description: description.trim() || undefined,
       contactEmail: contactEmail || undefined,
       contactPhone: contactPhone || undefined,
       addressCapabilities: caps,
@@ -205,16 +223,16 @@ export function TenantCanonicalSettingsForm({
         story: story || undefined,
         tags: tags ? toArr(tags) : existingMeta?.tags,
         priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
-        website: website || undefined,
-        gallery: gallery ? toLines(gallery) : existingMeta?.gallery,
+        website: valueForPrefixedSave(website, WEBSITE_PREFIX),
+        gallery: galleryUrlsFromImageFields(galleryFields, mockImageUrlFromFile),
         featured,
         popular,
         isNew,
         socialLinks: {
-          instagram: instagram || undefined,
-          twitter: twitter || undefined,
-          facebook: facebook || undefined,
-          youtube: youtube || undefined,
+          instagram: valueForPrefixedSave(instagram, SOCIAL_PREFIX),
+          twitter: valueForPrefixedSave(twitter, SOCIAL_PREFIX),
+          facebook: valueForPrefixedSave(facebook, SOCIAL_PREFIX),
+          youtube: valueForPrefixedSave(youtube, SOCIAL_PREFIX),
         },
       }),
     })
@@ -232,6 +250,19 @@ export function TenantCanonicalSettingsForm({
         <div>
           <label className={labelClass}>{t('slugLabel')}</label>
           <input type="text" value={tenant.slug} readOnly className={`${inputClass} bg-gray-50 font-mono text-gray-500 cursor-not-allowed`} />
+        </div>
+        <div>
+          <label className={labelClass} htmlFor="tenant-edit-description">
+            {t('tenantDescriptionLabel')} <span className="text-xs font-normal text-gray-400">{t('optionalLabel')}</span>
+          </label>
+          <textarea
+            id="tenant-edit-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={t('tenantDescriptionPlaceholder')}
+            rows={3}
+            className={inputClass}
+          />
         </div>
         <div>
           <label className={labelClass}>{t('contactEmailLabel')}</label>
@@ -340,28 +371,86 @@ export function TenantCanonicalSettingsForm({
           </label>
         </div>
         <div>
-          <label className={labelClass}>{t('websiteLabel')}</label>
-          <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} className={inputClass} />
+          <label className={labelClass} htmlFor="tenant-website">
+            {t('websiteLabel')}
+          </label>
+          <input
+            id="tenant-website"
+            type="text"
+            value={website}
+            onChange={(e) => setWebsite(applyPrefixInput(e.target.value, WEBSITE_PREFIX))}
+            className={inputClass}
+          />
         </div>
         <div>
-          <label className={labelClass}>{t('instagramUrlLabel')}</label>
-          <input type="url" value={instagram} onChange={(e) => setInstagram(e.target.value)} className={inputClass} />
+          <label className={labelClass} htmlFor="tenant-instagram">
+            {t('instagramUrlLabel')}
+          </label>
+          <input
+            id="tenant-instagram"
+            type="text"
+            value={instagram}
+            onChange={(e) => setInstagram(applyPrefixInput(e.target.value, SOCIAL_PREFIX))}
+            className={inputClass}
+          />
         </div>
         <div>
-          <label className={labelClass}>{t('twitterUrlLabel')}</label>
-          <input type="url" value={twitter} onChange={(e) => setTwitter(e.target.value)} className={inputClass} />
+          <label className={labelClass} htmlFor="tenant-twitter">
+            {t('twitterUrlLabel')}
+          </label>
+          <input
+            id="tenant-twitter"
+            type="text"
+            value={twitter}
+            onChange={(e) => setTwitter(applyPrefixInput(e.target.value, SOCIAL_PREFIX))}
+            className={inputClass}
+          />
         </div>
         <div>
-          <label className={labelClass}>Facebook</label>
-          <input type="url" value={facebook} onChange={(e) => setFacebook(e.target.value)} className={inputClass} />
+          <label className={labelClass} htmlFor="tenant-facebook">
+            {t('facebookLabel')}
+          </label>
+          <input
+            id="tenant-facebook"
+            type="text"
+            value={facebook}
+            onChange={(e) => setFacebook(applyPrefixInput(e.target.value, SOCIAL_PREFIX))}
+            className={inputClass}
+          />
         </div>
         <div>
-          <label className={labelClass}>YouTube</label>
-          <input type="url" value={youtube} onChange={(e) => setYoutube(e.target.value)} className={inputClass} />
+          <label className={labelClass} htmlFor="tenant-youtube">
+            {t('youtubeLabel')}
+          </label>
+          <input
+            id="tenant-youtube"
+            type="text"
+            value={youtube}
+            onChange={(e) => setYoutube(applyPrefixInput(e.target.value, SOCIAL_PREFIX))}
+            className={inputClass}
+          />
         </div>
-        <div>
-          <label className={labelClass}>{t('galleryImageUrlsLabel')}</label>
-          <textarea value={gallery} onChange={(e) => setGallery(e.target.value)} rows={3} className={inputClass} />
+        <div className="space-y-3">
+          <p className={labelClass}>{t('galleryImageUrlsLabel')}</p>
+          {galleryFields.map((field, index) => (
+            <ImageUploader
+              key={`tenant-gallery-${index}`}
+              id={`tenant-gallery-${index}`}
+              label={t('galleryImageUrlsLabel')}
+              value={field}
+              onChange={(next) =>
+                setGalleryFields((prev) => prev.map((item, i) => (i === index ? next : item)))
+              }
+              hint={t('galleryImageUrlsHint')}
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => setGalleryFields((prev) => [...prev, { ...EMPTY_IMAGE_FIELD }])}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            {t('addGalleryImageLabel')}
+          </button>
         </div>
       </section>
 

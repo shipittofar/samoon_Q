@@ -28,7 +28,7 @@ import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 import { hasMembershipBranches } from '@/lib/console-workspace'
 import { TENANT_OVERRIDABLE_VARS } from '@/lib/tokens'
 import { resolveFontCssFamily, resolveTenantBranding } from '@/lib/tenant-branding'
-import { DEFAULT_TENANT } from '@/constants'
+import { readPublicPathTenantSlug } from '@/lib/public-tenant-resolution'
 
 /**
  * Rehydrates the cart persist store after mount.
@@ -259,7 +259,8 @@ function TenantBootstrapper({ children }: { children: ReactNode }) {
       return
     }
 
-    const slug = readTenantSlug()
+    const pathSlug = readPublicPathTenantSlug(pathname)
+    const slug = pathSlug ?? readTenantSlug()
     loadTenant(slug).then(() => {
       // P1B.1 — RBAC: static permission map; initialization is synchronous
       setRbacInitialized(true)

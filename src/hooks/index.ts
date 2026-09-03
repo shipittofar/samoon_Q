@@ -21,7 +21,7 @@ import { authService, type GetMeResponse } from '@/services/auth.service'
 import { qrExperienceService } from '@/services/qr-experience.service'
 import { analyticsService } from '@/services/analytics.service'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
-import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/services/tenant.service'
+import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
 import { PUBLIC_TENANTS_QUERY_KEY, fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
 import { resolveStatusUpdate, type OrderStatusContext } from '@/lib/order-status'
 import { staffService } from '@/services/staff.service'
@@ -3210,24 +3210,22 @@ export function useDiscover() {
 }
 
 /**
- * Fetches a single public tenant by slug. Returns null for an unknown or
- * inaccessible slug (a normal, expected outcome for a mistyped public URL —
- * must not surface as a query error/toast). A genuine server/network
- * failure still throws, so React Query's error state (and the global
- * error-toast handler) only fires for real backend problems, not for
- * ordinary "this business doesn't exist" lookups.
+ * Fetches a single public tenant by slug. Returns null for an unknown slug
+ * (mistyped public URL — not a query error/toast). Forbidden is not mapped to
+ * null so inactive/inaccessible tenants stay distinct from not-found.
  */
-export function usePublicTenant(slug: string) {
+export function usePublicTenant(slug: string, options?: { initialData?: Tenant }) {
   return useQuery({
     queryKey: ['public-tenant', slug],
     queryFn: async () => {
       try {
         return await fetchPublicTenantBySlug(slug)
       } catch (err) {
-        if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) return null
+        if (err instanceof TenantNotFoundError) return null
         throw err
       }
     },
+    initialData: options?.initialData,
     staleTime: STALE_TIME,
     enabled: !!slug,
   })

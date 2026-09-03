@@ -17,6 +17,7 @@ import { hasAnyMembership } from '@/services/permission.service'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
 import { clearPermissionCache } from '@/lib/permission-cache'
 import { assertCanSubmitConsoleBranchSwitch } from '@/lib/console-branch-switch-guard'
+import { isConsoleMembershipTenantInactive } from '@/lib/console-tenant-access'
 
 /** Branch-scoped query prefixes — keep in sync with hooks/index.ts BRANCH_SCOPED_QUERY_KEYS. */
 const BRANCH_SCOPED_QUERY_KEYS = [
@@ -202,6 +203,10 @@ export async function requestConsoleTenantSwitch(tenantId: string): Promise<void
   const memberships = useRbacStore.getState().sessionMemberships ?? []
   const membership = memberships.find((m) => m.tenantId === tenantId)
   if (!membership) return
+  const loaded = useTenantStore.getState().tenant
+  if (isConsoleMembershipTenantInactive(membership, loaded?.id === tenantId ? loaded : null)) {
+    return
+  }
 
   const generation = nextTenantSwitchGeneration()
 

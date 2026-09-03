@@ -119,7 +119,18 @@ describe('Phase Z.11 — resolveConsoleTenantPhase(): pure state coverage', () =
     })).toBe('tenant_awaiting_selection')
   })
   it('tenant_not_found for a genuine not_found classification, regardless of retryCount', () => {
-    expect(resolveConsoleTenantPhase({ ...base, tenantState: 'not_found', retryCount: 2 })).toBe('tenant_not_found')
+    expect(resolveConsoleTenantPhase({
+      ...base,
+      sessionMembershipCount: 0,
+      hasTenantMembership: false,
+      activeTenantId: null,
+      tenantState: 'not_found',
+      retryCount: 2,
+    })).toBe('no_active_tenant')
+  })
+
+  it('does not treat a detail 404 as tenant_not_found when an active membership exists', () => {
+    expect(resolveConsoleTenantPhase({ ...base, tenantState: 'not_found', retryCount: 0 })).toBe('tenant_network_error')
   })
   it('tenant_access_denied for a genuine forbidden classification', () => {
     expect(resolveConsoleTenantPhase({ ...base, tenantState: 'forbidden' })).toBe('tenant_access_denied')
@@ -317,11 +328,12 @@ describe('Phase Z.11 — no memberships: correct empty (onboarding) state', () =
 })
 
 describe('Phase Z.11 — invalid tenant: correct not-found / access-denied states', () => {
-  it('tenant_not_found renders distinctly from a network error', () => {
+  it('active membership + leftover not_found is treated as a retryable workspace error, not public not-found', () => {
     useTenantStore.setState({ tenant: null, tenantState: 'not_found', lastAttemptedSlug: 'ghost-tenant' } as never)
     render(withProviders(<ConsoleWorkspaceGate><div>Menu Module</div></ConsoleWorkspaceGate>))
-    expect(screen.getByText(en.console.tenantNotFoundTitle)).toBeTruthy()
-    expect(screen.queryByText(en.console.tenantRetryCta)).toBeNull()
+    expect(screen.getByText(en.console.tenantErrorDesc)).toBeTruthy()
+    expect(screen.getByText(en.console.tenantRetryCta)).toBeTruthy()
+    expect(screen.queryByText(en.console.tenantNotFoundTitle)).toBeNull()
   })
 
   it('tenant_access_denied (forbidden) renders distinctly from not_found', () => {

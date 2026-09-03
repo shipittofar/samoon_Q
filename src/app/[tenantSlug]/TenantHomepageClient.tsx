@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
   Star, MapPin, Phone, Mail, Globe, Clock,
@@ -14,7 +14,9 @@ import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
 import { cn, formatCurrency, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
-import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout, usePublicBranches } from '@/hooks'
+import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout, usePublicBranches, usePublicTenant } from '@/hooks'
+import { featureFlagsService } from '@/services/feature-flags.service'
+import { isTenantVisible } from '@/lib/tenant-state'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import {
   getMarketplaceMeta,
@@ -732,12 +734,15 @@ function LoadingSkeleton() {
   )
 }
 
-function TenantNotFoundState() {
+function TenantNotFoundState({ reason = 'not_found' }: { reason?: 'not_found' | 'forbidden' }) {
   const t = useTranslations('tenant')
   return (
     <>
       <TenantHeader />
-      <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
+      <main
+        data-testid={reason === 'forbidden' ? 'tenant-forbidden' : 'tenant-not-found'}
+        className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center"
+      >
         <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6" aria-hidden="true" />
         <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">{t('businessNotFound')}</h1>
         <p className="text-[var(--fg-muted)] max-w-sm mb-8">
@@ -758,14 +763,41 @@ function TenantNotFoundState() {
 
 // ── Main Export ───────────────────────────────────────────────────────────────
 
-export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
-  const tenant = useTenantStore((s) => s.tenant)
+export function TenantHomepageClient({
+  tenantSlug,
+  initialTenant,
+}: {
+  tenantSlug: string
+  initialTenant?: Tenant
+}) {
+  const applyResolvedTenant = useTenantStore((s) => s.applyResolvedTenant)
+  const storeTenant = useTenantStore((s) => s.tenant)
   const tenantState = useTenantStore((s) => s.tenantState)
-  const isLoading = useTenantStore((s) => s.isLoading || s.tenantState === 'loading')
+  const storeLoading = useTenantStore((s) => s.isLoading || s.tenantState === 'loading')
+  const { data: publicTenant, isPending: queryPending, isError, error } = usePublicTenant(tenantSlug, {
+    initialData: initialTenant,
+  })
+
+  const resolved =
+    publicTenant?.slug === tenantSlug
+      ? publicTenant
+      : storeTenant?.slug === tenantSlug
+        ? storeTenant
+        : undefined
+  const tenant = resolved && isTenantVisible(resolved) ? resolved : undefined
+  const isForbidden =
+    Boolean(resolved && !isTenantVisible(resolved)) ||
+    tenantState === 'forbidden' ||
+    (isError && error instanceof Error && error.name === 'TenantForbiddenError')
+
+  useEffect(() => {
+    if (!tenant) return
+    const current = useTenantStore.getState()
+    if (current.tenant?.id === tenant.id && current.tenantState === 'resolved') return
+    applyResolvedTenant(tenant)
+  }, [tenant, applyResolvedTenant])
+
   const tenantId = tenant?.id ?? ''
-  // The tenant homepage previews the tenant's primary branch's menu — there is
-  // no single "tenant menu"; each branch (including the primary one) owns its
-  // own independent categories/items. See docs/BRANCH_MENU_ANALYSIS.md.
   const listing = tenant ? getMarketplaceMeta(tenant.settings) : undefined
   const { data: publicBranches = [] } = usePublicBranches(tenantId)
   const meta = tenant
@@ -789,12 +821,14 @@ export function TenantHomepageClient({ tenantSlug }: { tenantSlug: string }) {
   const { data: menuItemsPage } = useMenuItems(primaryBranchId)
   const menuItems = menuItemsPage?.results ?? []
   const { data: promotions = [] } = useActivePromotions()
-  // Website Builder section config — optional, fails open to DEFAULT_SECTIONS
   const { data: layout } = useHomepageLayout(tenantId)
-  const featureFlags = useTenantStore((s) => s.featureFlags)
+  const storeFlags = useTenantStore((s) => s.featureFlags)
+  const featureFlags = tenant ? featureFlagsService.resolve(tenant) : storeFlags
 
-  if (isLoading) return <LoadingSkeleton />
-  if (!tenant || tenant.slug !== tenantSlug || tenantState !== 'resolved' || !meta) return <TenantNotFoundState />
+  const waitingForTenant = !tenant && !isForbidden && (queryPending || storeLoading) && publicTenant !== null
+  if (waitingForTenant) return <LoadingSkeleton />
+  if (isForbidden) return <TenantNotFoundState reason="forbidden" />
+  if (!tenant || tenant.slug !== tenantSlug || !meta) return <TenantNotFoundState />
 
   // Section visibility: Website Builder config or DEFAULT_SECTIONS
   const sections = buildPublicSections(layout?.sections)

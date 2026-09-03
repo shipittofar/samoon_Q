@@ -486,13 +486,19 @@ export const tenantService = {
    * Branch-owned keys in the patch are stripped and never written.
    */
   async updateTenantSettings(tenantId: string, patch: Record<string, unknown>): Promise<Tenant> {
-    const cleaned = sanitizeTenantSettingsPatch(patch, { allowMockExtras: USE_MOCK })
+    const hasDescription = Object.prototype.hasOwnProperty.call(patch, 'description')
+    const description =
+      typeof patch.description === 'string' ? patch.description.trim() || undefined : undefined
+    const settingsOnly = { ...patch }
+    delete settingsOnly.description
+    const cleaned = sanitizeTenantSettingsPatch(settingsOnly, { allowMockExtras: USE_MOCK })
     if (USE_MOCK) {
       await delay(250)
       const existing = MOCK_TENANT_LIST.find((t) => t.id === tenantId) ?? findInList(tenantId)
       if (!existing) throw new Error(`Tenant not found: ${tenantId}`)
       const updated: Tenant = {
         ...existing,
+        ...(hasDescription ? { description } : {}),
         settings: sanitizeTenantSettings(
           { ...(existing.settings ?? {}), ...cleaned },
           { allowMockExtras: true },
@@ -505,7 +511,14 @@ export const tenantService = {
       return updated
     }
     const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.SETTINGS(tenantId), cleaned)
-    return normalizeTenant(data)
+    let tenant = normalizeTenant(data)
+    if (hasDescription) {
+      const { data: identity } = await api.patch<Tenant>(ENDPOINTS.TENANTS.DETAIL_BY_ID(tenantId), {
+        description: description ?? '',
+      })
+      tenant = normalizeTenant({ ...tenant, ...identity })
+    }
+    return tenant
   },
 
   /**

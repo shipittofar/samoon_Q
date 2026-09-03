@@ -1,4 +1,4 @@
-import type { User } from '@/types'
+import type { TenantStatus, User } from '@/types'
 import type {
   MembershipBranch,
   Permission,
@@ -7,6 +7,7 @@ import type {
   TenantRolePermissionGrant,
 } from '@/types/rbac'
 import type { GetMeResponse } from '@/services/auth.service'
+import { normalizeTenantStatus } from '@/lib/tenant-state'
 
 type WireRecord = Record<string, unknown>
 
@@ -21,6 +22,44 @@ function pickString(record: WireRecord, ...keys: string[]): string | undefined {
     const value = record[key]
     if (typeof value === 'string' && value.length > 0) return value
   }
+  return undefined
+}
+
+/** Nested `{ tenant: { id, name, slug } }` on a membership / activeMembership wire object. */
+function nestedTenantRecord(record: WireRecord): WireRecord | null {
+  return asRecord(record.tenant)
+}
+
+function pickMembershipTenantId(record: WireRecord): string | undefined {
+  return (
+    pickString(record, 'tenantId', 'tenant_id') ??
+    pickString(nestedTenantRecord(record) ?? {}, 'id', 'tenantId', 'tenant_id')
+  )
+}
+
+function pickMembershipTenantName(record: WireRecord): string | undefined {
+  return (
+    pickString(record, 'tenantName', 'tenant_name') ??
+    pickString(nestedTenantRecord(record) ?? {}, 'name')
+  )
+}
+
+function pickMembershipTenantSlug(record: WireRecord): string | undefined {
+  return (
+    pickString(record, 'tenantSlug', 'tenant_slug') ??
+    pickString(nestedTenantRecord(record) ?? {}, 'slug')
+  )
+}
+
+function pickMembershipTenantStatus(record: WireRecord): TenantStatus | undefined {
+  const nested = nestedTenantRecord(record) ?? {}
+  const dedicated = pickString(record, 'tenantStatus', 'tenant_status') ?? pickString(nested, 'status')
+  if (dedicated) return normalizeTenantStatus(dedicated)
+  const flat = pickString(record, 'status')
+  if (!flat) return undefined
+  const lower = flat.toLowerCase()
+  if (lower === 'suspended' || lower === 'revoked') return undefined
+  if (lower === 'inactive' || flat.toUpperCase() === 'INACTIVE') return 'INACTIVE'
   return undefined
 }
 
@@ -172,13 +211,13 @@ export function normalizeWireMembership(raw: unknown): TenantMembership | null {
   const record = asRecord(raw)
   if (!record) return null
 
-  const tenantId = pickString(record, 'tenantId', 'tenant_id')
+  const tenantId = pickMembershipTenantId(record)
   if (!tenantId) return null
 
   const membership: TenantMembership = {
     tenantId,
-    tenantSlug: pickString(record, 'tenantSlug', 'tenant_slug'),
-    tenantName: pickString(record, 'tenantName', 'tenant_name'),
+    tenantSlug: pickMembershipTenantSlug(record),
+    tenantName: pickMembershipTenantName(record),
     tenantLogo: pickNullableString(record, 'tenantLogo', 'tenant_logo'),
     roles: pickRoles(record),
     branchAccess: normalizeBranchAccess(record),
@@ -187,6 +226,7 @@ export function normalizeWireMembership(raw: unknown): TenantMembership | null {
       const status = pickString(record, 'status')
       return status === 'suspended' || status === 'revoked' ? status : 'active'
     })(),
+    tenantStatus: pickMembershipTenantStatus(record),
     branches: normalizeMembershipBranches(record.branches, tenantId),
   }
 
@@ -229,13 +269,13 @@ function normalizeActiveMembership(
   const record = asRecord(raw)
   if (!record) return undefined
 
-  const tenantId = pickString(record, 'tenantId', 'tenant_id')
+  const tenantId = pickMembershipTenantId(record)
   if (!tenantId) return undefined
 
   const membership = memberships.find((m) => m.tenantId === tenantId)
   const branchId = pickString(record, 'branchId', 'branch_id') ?? membership?.branchId
-  const tenantName =
-    pickString(record, 'tenantName', 'tenant_name') ?? membership?.tenantName
+  const tenantName = pickMembershipTenantName(record) ?? membership?.tenantName
+  const tenantSlug = pickMembershipTenantSlug(record) ?? membership?.tenantSlug
   const branchName = pickNullableString(record, 'branchName', 'branch_name')
 
   if (branchId && membership?.branches?.length) {
@@ -244,7 +284,7 @@ function normalizeActiveMembership(
       return {
         tenantId,
         tenantName,
-        tenantSlug: membership?.tenantSlug,
+        tenantSlug,
         roles: membership?.roles ?? [],
         branchAccess: membership?.branchAccess ?? { scope: 'selected', branchIds: [] },
       }
@@ -255,6 +295,7 @@ function normalizeActiveMembership(
     return {
       ...membership,
       ...(tenantName ? { tenantName } : {}),
+      ...(tenantSlug ? { tenantSlug } : {}),
       ...(branchId ? { branchId } : {}),
       ...(branchName !== undefined ? { branchName } : {}),
     }
@@ -263,7 +304,7 @@ function normalizeActiveMembership(
   return {
     tenantId,
     tenantName,
-    tenantSlug: pickString(record, 'tenantSlug', 'tenant_slug'),
+    tenantSlug,
     roles: pickRoles(record),
     branchAccess: normalizeBranchAccess(record),
     ...(branchId ? { branchId } : {}),

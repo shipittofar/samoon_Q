@@ -195,6 +195,7 @@ export default function NewTenantPage() {
 
   // Form state
   const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
   // const [slug, setSlug] = useState('')
   const [businessType, setBusinessType] = useState<ProvisionableBusinessType>('restaurant')
   const [capabilityOverrides, setCapabilityOverrides] = useState<Record<string, boolean>>({})
@@ -220,7 +221,15 @@ export default function NewTenantPage() {
 
   async function handleProvision() {
     // const req = { name, slug, businessType, capabilityOverrides, branding, featureFlagOverrides }
-    const req = { name, businessType, capabilityOverrides, branding, featureFlagOverrides, image: logoFile }
+    const req = {
+      name,
+      businessType,
+      capabilityOverrides,
+      branding,
+      featureFlagOverrides,
+      image: logoFile,
+      description: description.trim() || undefined,
+    }
     const validation = tenantProvisioningService.validateTenantConfiguration(req)
     if (!validation.valid) {
       setValidationErrors(validation.errors)
@@ -259,6 +268,19 @@ export default function NewTenantPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('tenantNamePlaceholder')}
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1" htmlFor="tenant-description">
+              {t('tenantDescriptionLabel')} <span className="text-xs font-normal text-gray-400">{t('optionalLabel')}</span>
+            </label>
+            <textarea
+              id="tenant-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t('tenantDescriptionPlaceholder')}
+              rows={3}
               className="w-full border rounded-lg px-3 py-2 text-sm"
             />
           </div>

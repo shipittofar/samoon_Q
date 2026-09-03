@@ -123,7 +123,7 @@ describe('useTenantStore', () => {
     // Make tenantService.getTenant throw a generic (non-typed) error — this
     // must classify as 'error', not silently become a usable fake tenant.
     // tenantService is imported at module level — same instance useTenantStore holds.
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('network error'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('network error'))
 
     await useTenantStore.getState().loadTenant('default')
 
@@ -425,7 +425,7 @@ describe('M-1 — loadTenant failure safety', () => {
     useTenantStore.getState().setTenant(stale)
 
     // tenantService is imported at module level — same instance useTenantStore holds.
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('network'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('network'))
 
     await useTenantStore.getState().loadTenant('stale')
 
@@ -437,7 +437,7 @@ describe('M-1 — loadTenant failure safety', () => {
 
   it('clears isLoading on failure regardless of prior tenant state', async () => {
     // tenantService is imported at module level — same instance useTenantStore holds.
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('timeout'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('timeout'))
 
     const promise = useTenantStore.getState().loadTenant('some-slug')
     expect(useTenantStore.getState().isLoading).toBe(true)
@@ -561,7 +561,7 @@ describe("tenantState — 'loading' → 'error' transition (no fake tenant subst
   })
 
   it("transitions loading → error when loadTenant throws an unclassified error", async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('network'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('network'))
 
     expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('loading')
     await useTenantStore.getState().loadTenant('default')
@@ -571,7 +571,7 @@ describe("tenantState — 'loading' → 'error' transition (no fake tenant subst
   })
 
   it("tenant is null (never DEFAULT_TENANT) when state is 'error'", async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('timeout'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('timeout'))
 
     await useTenantStore.getState().loadTenant('default')
     const { tenant, tenantState, isLoading } = useTenantStore.getState()
@@ -584,7 +584,7 @@ describe("tenantState — 'loading' → 'error' transition (no fake tenant subst
   })
 
   it('isLoading is false when in error state', async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
 
     await useTenantStore.getState().loadTenant('default')
     expect(useTenantStore.getState().isLoading).toBe(false)
@@ -594,7 +594,7 @@ describe("tenantState — 'loading' → 'error' transition (no fake tenant subst
   })
 
   it("error is distinguishable from resolved — NOT equal to 'resolved'", async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
 
     await useTenantStore.getState().loadTenant('default')
     const { tenantState } = useTenantStore.getState()
@@ -614,7 +614,7 @@ describe("tenantState — 'loading' → 'error' transition (no fake tenant subst
   })
 
   it("a 403 (TenantForbiddenError) classifies as 'forbidden', distinct from 'not_found' and 'error'", async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new TenantForbiddenError('default'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new TenantForbiddenError('default'))
 
     await useTenantStore.getState().loadTenant('default')
     const { tenant, tenantState } = useTenantStore.getState()
@@ -652,7 +652,7 @@ describe('useTenantState() hook contract', () => {
 
   it("underlying tenantState is 'error' after an unclassified failure — hook would return 'error'", async () => {
     // tenantService is imported at module level — same instance useTenantStore holds.
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
 
     await useTenantStore.getState().loadTenant('default')
     expect(useTenantStore.getState().tenantState).toBe<TenantLifecycle>('error')
@@ -778,7 +778,7 @@ describe("useSystemReady() — degraded ('error'/'not_found'/'forbidden') state 
   })
 
   it('isFallback is true after failed loadTenant + subsystem stubs', async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setRbacInitialized(true)
     useTenantStore.getState().setFeatureFlagsInitialized(true)
@@ -787,7 +787,7 @@ describe("useSystemReady() — degraded ('error'/'not_found'/'forbidden') state 
   })
 
   it('isLoading is false in fallback state', async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setRbacInitialized(true)
     useTenantStore.getState().setFeatureFlagsInitialized(true)
@@ -796,7 +796,7 @@ describe("useSystemReady() — degraded ('error'/'not_found'/'forbidden') state 
   })
 
   it('isReady is false in fallback state', async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setRbacInitialized(true)
     useTenantStore.getState().setFeatureFlagsInitialized(true)
@@ -805,7 +805,7 @@ describe("useSystemReady() — degraded ('error'/'not_found'/'forbidden') state 
   })
 
   it('canExecute is true in fallback state — fallback is safe execution mode', async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setRbacInitialized(true)
     useTenantStore.getState().setFeatureFlagsInitialized(true)
@@ -814,7 +814,7 @@ describe("useSystemReady() — degraded ('error'/'not_found'/'forbidden') state 
   })
 
   it('canExecute is false in fallback state when RBAC not initialized', async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant('default')
     // Only featureFlagsInitialized set — rbacInitialized still false
     useTenantStore.getState().setFeatureFlagsInitialized(true)
@@ -823,7 +823,7 @@ describe("useSystemReady() — degraded ('error'/'not_found'/'forbidden') state 
   })
 
   it('exactly one of isLoading/isReady/isFallback is true in fallback state', async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant('default')
     const { isLoading, isReady, isFallback } = getSystemReady()
     expect([isLoading, isReady, isFallback].filter(Boolean).length).toBe(1)
@@ -851,7 +851,7 @@ describe('useSystemReady() — derivation, architecture, and hook contract', () 
   })
 
   it('canExecute is true in fallback mode once all subsystems are initialized', async () => {
-    const spy = vi.spyOn(tenantService, 'getTenantById').mockRejectedValueOnce(new Error('fail'))
+    const spy = vi.spyOn(tenantService, 'getTenantBySlug').mockRejectedValueOnce(new Error('fail'))
     await useTenantStore.getState().loadTenant('default')
     useTenantStore.getState().setRbacInitialized(true)
     // loadTenant failure still marks featureFlagsInitialized true (empty map)

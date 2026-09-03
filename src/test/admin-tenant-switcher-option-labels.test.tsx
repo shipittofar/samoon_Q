@@ -188,6 +188,36 @@ describe('AdminTenantSwitcher option labels from /auth/me tenantName', () => {
     expect(labels.filter((l) => l === 'Brew Cafe')).toHaveLength(1)
   })
 
+  it('6 — dropdown shows each membership tenantName before any Tenant is selected', async () => {
+    expect(useTenantStore.getState().tenant).toBeNull()
+    useRbacStore.getState().setSessionMemberships(
+      [
+        {
+          tenantId: '1',
+          tenantName: 'Samoon',
+          tenantSlug: 'samoon',
+          roles: ['owner'],
+          branchAccess: { scope: 'all' },
+        },
+        {
+          tenantId: '2',
+          tenantName: 'Another Business',
+          tenantSlug: 'another-business',
+          roles: ['manager'],
+          branchAccess: { scope: 'all' },
+        },
+      ],
+      null,
+    )
+
+    render(withProviders(<AdminTenantSwitcher />))
+    await openSwitcher()
+
+    expect(optionLabels()).toEqual(expect.arrayContaining(['Samoon', 'Another Business']))
+    expect(optionLabels()).not.toContain('samoon')
+    expect(optionLabels()).not.toContain('another-business')
+  })
+
   it('slug is only used when tenantName is missing', async () => {
     useRbacStore.getState().setSessionMemberships([SLUG_ONLY_A, SLUG_ONLY_B], null)
     render(withProviders(<AdminTenantSwitcher />))
