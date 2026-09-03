@@ -17,6 +17,7 @@ import { useRbacStore } from '@/stores/index'
 import { useCartStore } from '@/stores/index'
 import { useDineInStore } from '@/stores/index'
 import { useRecentlyViewedStore } from '@/stores/index'
+import { setActiveTenantSlugForRequests } from '@/lib/tenant-request-context'
 
 export type ConsoleWorkspacePhase = 'idle' | 'initializing' | 'switching_tenant' | 'switching_branch' | 'ready' | 'error'
 
@@ -236,6 +237,8 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
         invalidateTenantLoads()
         // Discard previous tenant branch immediately — do not keep Branch A selected.
         useBranchStore.getState().resetBranchResolution()
+        // Do not send Tenant A's slug while Tenant B's id is already selected.
+        setActiveTenantSlugForRequests(undefined)
         set({
           _switching: true,
           workspacePhase: 'switching_tenant',
@@ -279,6 +282,7 @@ export const useConsoleWorkspaceStore = create<ConsoleWorkspaceState>()(
           isLoading: true,
           tenantState: 'loading',
         })
+        setActiveTenantSlugForRequests(undefined)
 
         set({ _switching: true, workspacePhase: 'switching_tenant', workspaceError: null, selectedTenantId: tenantId })
 

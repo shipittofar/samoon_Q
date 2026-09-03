@@ -145,8 +145,8 @@ describe('Favorites production contract', () => {
 
   it('query keys use consistent favorites list cache', () => {
     const hooksSrc = readFileSync(join(__dirname, '..', 'hooks', 'favorites.ts'), 'utf-8')
-    expect(hooksSrc).toContain("list: () => [...favoritesKeys.all, 'list']")
-    expect(hooksSrc).toContain('favoritesKeys.list()')
+    expect(hooksSrc).toContain("list: (tenantId?: string | null) => [...favoritesKeys.all, 'list', tenantId ?? 'none']")
+    expect(hooksSrc).toContain('favoritesKeys.list(tenantScope)')
     expect(hooksSrc).not.toMatch(/queryKey:\s*\['favorites'\](?!,)/)
   })
 })

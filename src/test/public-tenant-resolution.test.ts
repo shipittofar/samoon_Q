@@ -23,20 +23,20 @@ describe('public-tenant-resolution', () => {
     expect(getTenantsSpy).not.toHaveBeenCalled()
   })
 
-  it('resolvePublicTenantId uses getTenantBySlug when cache misses (not GET /tenants/ page 1)', async () => {
+  it('resolvePublicTenantId uses slug→id resolver when cache misses (not GET /tenants/ page 1)', async () => {
     const getTenantsSpy = vi.spyOn(tenantService, 'getTenants')
-    const bySlugSpy = vi.spyOn(tenantService, 'getTenantBySlug')
+    const resolveSpy = vi.spyOn(tenantService, 'resolvePublicTenantIdBySlug')
     const id = await resolvePublicTenantId('samoon')
     expect(id).toBe('tenant-samoon-01')
     expect(getTenantsSpy).not.toHaveBeenCalled()
-    expect(bySlugSpy).toHaveBeenCalledWith('samoon')
+    expect(resolveSpy).toHaveBeenCalledWith('samoon')
   })
 
   it('resolvePublicTenantId throws TenantNotFoundError for unknown slug', async () => {
     await expect(resolvePublicTenantId('nonexistent-slug-xyz')).rejects.toBeInstanceOf(TenantNotFoundError)
   })
 
-  it('fetchPublicTenantBySlug uses getTenantBySlug, not a paginated tenant list', async () => {
+  it('fetchPublicTenantBySlug uses getTenantBySlug, not GET /tenants/ page 1', async () => {
     const bySlugSpy = vi.spyOn(tenantService, 'getTenantBySlug')
     const listSpy = vi.spyOn(tenantService, 'getTenants')
     const tenant = await fetchPublicTenantBySlug('samoon')

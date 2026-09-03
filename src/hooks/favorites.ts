@@ -9,8 +9,9 @@ import {
 } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { favoritesService } from '@/services/favorites.service'
-import { useAuthStore } from '@/stores'
+import { useAuthStore, useTenantStore } from '@/stores'
 import { STALE_TIME } from '@/constants'
+import { resolveTenantSlugForApi } from '@/lib/tenant-request-context'
 import type {
   FavoritesListResponse,
   FavoritesSyncMeta,
@@ -19,8 +20,9 @@ import type {
 
 export const favoritesKeys = {
   all: ['favorites'] as const,
-  list: () => [...favoritesKeys.all, 'list'] as const,
-  sync: () => [...favoritesKeys.all, 'sync'] as const,
+  /** Domain identity: tenant.id when known. Header-scoped list must not reuse another tenant's cache. */
+  list: (tenantId?: string | null) => [...favoritesKeys.all, 'list', tenantId ?? 'none'] as const,
+  sync: (tenantId?: string | null) => [...favoritesKeys.all, 'sync', tenantId ?? 'none'] as const,
 }
 
 const EMPTY_FAVORITE_ITEMS: UserFavorite[] = []
@@ -36,13 +38,19 @@ export interface UseFavoritesListResult {
   refetch: () => void
 }
 
+function useFavoritesTenantScope(): string {
+  const tenantId = useTenantStore((s) => s.tenant?.id)
+  const headerSlug = resolveTenantSlugForApi()
+  return tenantId || headerSlug || 'none'
+}
+
 function useFavoritesEnabled() {
   return useAuthStore((s) => s.isAuthenticated)
 }
 
-function favoritesListQueryOptions(enabled: boolean) {
+function favoritesListQueryOptions(enabled: boolean, tenantScope: string) {
   return {
-    queryKey: favoritesKeys.list(),
+    queryKey: favoritesKeys.list(tenantScope),
     queryFn: () => favoritesService.getFavorites(),
     enabled,
     staleTime: STALE_TIME,
@@ -52,11 +60,20 @@ function favoritesListQueryOptions(enabled: boolean) {
 }
 
 function invalidateFavoritesList(qc: QueryClient) {
-  return qc.invalidateQueries({ queryKey: favoritesKeys.list() })
+  return qc.invalidateQueries({ queryKey: favoritesKeys.all })
 }
 
-function applyFavoritesListCache(qc: QueryClient, response: FavoritesListResponse) {
-  qc.setQueryData<FavoritesListResponse>(favoritesKeys.list(), response)
+function applyFavoritesListCache(
+  qc: QueryClient,
+  response: FavoritesListResponse,
+  tenantScope?: string | null,
+) {
+  const scope =
+    tenantScope ??
+    useTenantStore.getState().tenant?.id ??
+    resolveTenantSlugForApi() ??
+    'none'
+  qc.setQueryData<FavoritesListResponse>(favoritesKeys.list(scope), response)
 }
 
 function getFavoriteErrorMessage(err: unknown): string {
@@ -69,8 +86,10 @@ function getFavoriteErrorMessage(err: unknown): string {
 
 /** Prefetch favorites after session restore — stores full FavoritesListResponse in cache. */
 export function prefetchFavoritesList(qc: QueryClient) {
+  const scope =
+    useTenantStore.getState().tenant?.id ?? resolveTenantSlugForApi() ?? 'none'
   return qc.prefetchQuery({
-    queryKey: favoritesKeys.list(),
+    queryKey: favoritesKeys.list(scope),
     queryFn: () => favoritesService.getFavorites(),
     staleTime: STALE_TIME,
   })
@@ -81,7 +100,9 @@ export function prefetchFavoritesList(qc: QueryClient) {
  * UI components should use useFavoritesList() instead.
  */
 export function useFavoritesQuery() {
-  return useQuery(favoritesListQueryOptions(useFavoritesEnabled()))
+  const enabled = useFavoritesEnabled()
+  const tenantScope = useFavoritesTenantScope()
+  return useQuery(favoritesListQueryOptions(enabled, tenantScope))
 }
 
 /**
@@ -89,8 +110,9 @@ export function useFavoritesQuery() {
  */
 export function useFavoritesList(): UseFavoritesListResult {
   const enabled = useFavoritesEnabled()
+  const tenantScope = useFavoritesTenantScope()
   const { data, isLoading, isError, isFetching, error, refetch } = useQuery(
-    favoritesListQueryOptions(enabled),
+    favoritesListQueryOptions(enabled, tenantScope),
   )
 
   return {
@@ -113,13 +135,14 @@ export function useFavoritesList(): UseFavoritesListResult {
  */
 export function useFavoritesSync() {
   const enabled = useFavoritesEnabled()
+  const tenantScope = useFavoritesTenantScope()
   const qc = useQueryClient()
 
   return useQuery({
-    queryKey: favoritesKeys.sync(),
+    queryKey: favoritesKeys.sync(tenantScope),
     queryFn: async () => {
       const response = await favoritesService.refreshFavorites()
-      applyFavoritesListCache(qc, response)
+      applyFavoritesListCache(qc, response, tenantScope)
       return response
     },
     enabled,
@@ -152,8 +175,9 @@ export function useRefreshFavorites() {
 
 export function useIsFavorite(menuItemId: string): boolean {
   const enabled = useFavoritesEnabled()
+  const tenantScope = useFavoritesTenantScope()
   const { data = false } = useQuery({
-    ...favoritesListQueryOptions(enabled),
+    ...favoritesListQueryOptions(enabled, tenantScope),
     select: (response) => response.results.some((f) => f.menu_item.id === menuItemId),
   })
   return data

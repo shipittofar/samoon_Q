@@ -11,6 +11,8 @@ import type { Tenant, TenantStatus, PaginatedResponse } from '@/types'
 import { sanitizeTenantSettings, sanitizeTenantSettingsPatch } from '@/lib/tenant-settings'
 import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 import { buildTenantMediaFormData, type TenantMediaWriteRequest } from '@/lib/tenant-media'
+import { isUsableTenantSlug } from '@/lib/identifier-brands'
+
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 300) => new Promise<void>((r) => setTimeout(r, ms))
@@ -277,16 +279,20 @@ for (const tenant of Object.values(MOCK_TENANTS)) {
 
 const MOCK_TENANT_LIST: Tenant[] = Object.values(MOCK_TENANTS).map((t) => ({ ...t }))
 
-function findInList(slugOrId: string): Tenant | undefined {
-  return MOCK_TENANT_LIST.find((t) => t.id === slugOrId || t.slug === slugOrId)
+function findMockById(tenantId: string): Tenant | undefined {
+  return MOCK_TENANT_LIST.find((t) => t.id === tenantId)
+}
+
+function findMockBySlug(slug: string): Tenant | undefined {
+  return MOCK_TENANTS[slug] ?? MOCK_TENANT_LIST.find((t) => t.slug === slug)
 }
 
 function setMockStatus(
-  slugOrId: string,
+  tenantId: string,
   status: TenantStatus,
   opts?: { is_active?: boolean },
 ): Tenant | null {
-  const tenant = findInList(slugOrId)
+  const tenant = findMockById(tenantId)
   if (!tenant) return null
   tenant.status = status
   if (opts?.is_active !== undefined) tenant.is_active = opts.is_active
@@ -307,19 +313,49 @@ async function fetchTenantFromApi(path: string, identifier: string): Promise<Ten
   }
 }
 
+/**
+ * Map a public URL slug to tenant.id without GET /tenants/{slug}/.
+ * Production: existing GET /public/discover/ catalog (id + slug), then DETAIL_BY_ID.
+ */
+async function resolvePublicTenantIdBySlug(slug: string): Promise<string> {
+  if (!isUsableTenantSlug(slug)) {
+    throw new TenantNotFoundError(slug)
+  }
+  if (USE_MOCK) {
+    await delay()
+    const found = findMockBySlug(slug)
+    if (!found?.id) throw new TenantNotFoundError(slug)
+    return found.id
+  }
+  try {
+    const { data } = await api.get<PaginatedResponse<{ id: string; slug: string }>>(
+      ENDPOINTS.PUBLIC.DISCOVER,
+    )
+    const match = (data.results ?? []).find((t) => t.slug === slug)
+    if (!match?.id) throw new TenantNotFoundError(slug)
+    return match.id
+  } catch (err) {
+    if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) throw err
+    const status = (err as { response?: { status?: number } })?.response?.status
+    if (status === 404) throw new TenantNotFoundError(slug)
+    if (status === 403) throw new TenantForbiddenError(slug)
+    throw new TenantServerError(slug, err)
+  }
+}
+
 export const tenantService = {
   /**
-   * Resolves a tenant by slug — mock mode and legacy callers only.
-   * Production public routes must use resolvePublicTenantId() + getTenantById().
+   * Public URL slug → canonical tenant.id. Never GET /tenants/{slug}/.
+   */
+  resolvePublicTenantIdBySlug,
+
+  /**
+   * Full tenant for a public slug: slug → id (Discover catalog) → GET /tenants/{id}/.
+   * Mock: slug table only, then id lookup.
    */
   async getTenantBySlug(slug: string): Promise<Tenant> {
-    if (USE_MOCK) {
-      await delay()
-      const found = MOCK_TENANTS[slug] ?? findInList(slug)
-      if (!found) throw new TenantNotFoundError(slug)
-      return { ...found }
-    }
-    return fetchTenantFromApi(ENDPOINTS.TENANTS.DETAIL_BY_SLUG(slug), slug)
+    const tenantId = await resolvePublicTenantIdBySlug(slug)
+    return tenantService.getTenantById(tenantId)
   },
 
   /**
@@ -328,7 +364,7 @@ export const tenantService = {
   async getTenantById(tenantId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay()
-      const found = MOCK_TENANT_LIST.find((t) => t.id === tenantId)
+      const found = findMockById(tenantId)
       if (!found) throw new TenantNotFoundError(tenantId)
       return { ...found }
     }
@@ -472,7 +508,7 @@ export const tenantService = {
   async transferOwnership(tenantId: string, newOwnerId: string): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(150)
-      const tenant = findInList(tenantId)
+      const tenant = findMockById(tenantId)
       if (!tenant) throw new Error(`Tenant not found: ${tenantId}`)
       tenant.ownerId = newOwnerId
       return { ...tenant }
@@ -494,7 +530,7 @@ export const tenantService = {
     const cleaned = sanitizeTenantSettingsPatch(settingsOnly, { allowMockExtras: USE_MOCK })
     if (USE_MOCK) {
       await delay(250)
-      const existing = MOCK_TENANT_LIST.find((t) => t.id === tenantId) ?? findInList(tenantId)
+      const existing = findMockById(tenantId)
       if (!existing) throw new Error(`Tenant not found: ${tenantId}`)
       const updated: Tenant = {
         ...existing,
@@ -528,7 +564,7 @@ export const tenantService = {
   async updateTenantMedia(tenantId: string, payload: TenantMediaWriteRequest): Promise<Tenant> {
     if (USE_MOCK) {
       await delay(250)
-      const existing = MOCK_TENANT_LIST.find((t) => t.id === tenantId) ?? findInList(tenantId)
+      const existing = findMockById(tenantId)
       if (!existing) throw new Error(`Tenant not found: ${tenantId}`)
       const updated: Tenant = { ...existing }
       if (payload.image || payload.removeImage) {
@@ -564,8 +600,8 @@ export const tenantService = {
     return normalizeTenant(data)
   },
 
-  /** Exposes mock lookup by ID/slug for use by provisioning service. */
-  _findMockById: findInList,
+  /** Mock lookup by canonical id only. */
+  _findMockById: findMockById,
 
   /** Resets mock list to initial state. Test isolation only. */
   _resetMockList(): void {

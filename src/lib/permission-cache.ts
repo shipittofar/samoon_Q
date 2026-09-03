@@ -2,6 +2,7 @@ import { permissionStore } from '@/stores/permission-store'
 import { useRbacStore, useTenantStore } from '@/stores'
 import { normalizeTenantPermissions } from '@/services/permission.service'
 import { setActiveTenantSlugForRequests } from '@/lib/tenant-request-context'
+import { isUsableTenantSlug } from '@/lib/identifier-brands'
 import { isMockAuthMode, sessionHasRoles, withDashboardAccess } from '@/lib/effective-permissions'
 import type { TenantMembership } from '@/types/rbac'
 import type { Role } from '@/types/rbac'
@@ -54,11 +55,18 @@ export async function refreshPermissionCache(input: RefreshPermissionCacheInput 
     input.activeMembership?.tenantId ??
     input.memberships?.[0]?.tenantId
 
-  const tenantSlug =
+  const storeTenant =
+    typeof window !== 'undefined' ? useTenantStore.getState().tenant : undefined
+  const storeSlug =
+    storeTenant && tenantId && storeTenant.id === tenantId ? storeTenant.slug : undefined
+
+  const rawSlug =
     input.tenantSlug ??
     input.activeMembership?.tenantSlug ??
     input.memberships?.find((m) => m.tenantId === tenantId)?.tenantSlug ??
-    (typeof window !== 'undefined' ? useTenantStore.getState().tenant?.slug : undefined)
+    storeSlug
+
+  const tenantSlug = isUsableTenantSlug(rawSlug, tenantId) ? rawSlug.trim() : undefined
 
   if (!isMockAuthMode()) {
     // Seed from explicit /auth/me permissions so owner+restricted list is
@@ -73,7 +81,12 @@ export async function refreshPermissionCache(input: RefreshPermissionCacheInput 
       permissionStore.clear()
     }
 
-    if (tenantSlug) setActiveTenantSlugForRequests(tenantSlug)
+    if (tenantSlug) {
+      setActiveTenantSlugForRequests(tenantSlug, tenantId)
+    } else if (rawSlug != null && String(rawSlug).trim() !== '') {
+      // Explicit non-slug (id/UUID) must not remain as the previous tenant header.
+      setActiveTenantSlugForRequests(undefined)
+    }
     try {
       const apiPermissions = await permissionStore.fetchPermissions(tenantSlug, tenantId)
       syncSessionPermissionsFromApi(tenantId, apiPermissions)

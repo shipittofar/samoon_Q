@@ -81,31 +81,36 @@ function findTenantIdBySlug(tenants: Tenant[], slug: string): string | undefined
 }
 
 /**
- * Single source of truth: map a public URL slug to the canonical tenant UUID.
+ * Map a public URL slug to tenant.id (UUID in production).
+ * Does not GET /tenants/{slug}/.
  */
 export async function resolvePublicTenantId(
   slug: string,
   options: ResolvePublicTenantOptions = {},
 ): Promise<string> {
-  const tenant = await fetchPublicTenantBySlug(slug, options)
-  return tenant.id
+  const { cachedTenants } = options
+  if (cachedTenants?.length) {
+    const cachedId = findTenantIdBySlug(cachedTenants, slug)
+    if (cachedId) return cachedId
+  }
+  return tenantService.resolvePublicTenantIdBySlug(slug)
 }
 
 /**
- * Public Tenant by URL slug. Never scans a paginated `GET /tenants/` first page.
- * Cache hit (same slug) uses canonical id fetch; otherwise existing `GET /tenants/{slug}/`.
+ * Public Tenant by URL slug.
+ * Cache hit: slug → cached tenant.id → GET /tenants/{id}/.
+ * Cache miss: GET /public/discover/ → slug match → GET /tenants/{id}/.
  */
 export async function fetchPublicTenantBySlug(
   slug: string,
   options: ResolvePublicTenantOptions = {},
 ): Promise<Tenant> {
   const { cachedTenants } = options
-
   if (cachedTenants?.length) {
     const cachedId = findTenantIdBySlug(cachedTenants, slug)
     if (cachedId) return tenantService.getTenantById(cachedId)
   }
-
+  // Slug → id via Discover catalog, then GET /tenants/{id}/ — never GET /tenants/{slug}/.
   return tenantService.getTenantBySlug(slug)
 }
 

@@ -479,7 +479,7 @@ export const useTenantStore = create<TenantState>()(
             featureFlags: featureFlagsService.resolve(tenant),
             featureFlagsInitialized: true,
           })
-          setActiveTenantSlugForRequests(tenant.slug)
+          setActiveTenantSlugForRequests(tenant.slug, tenant.id)
         } catch (err) {
           if (!isCurrentTenantLoad(generation)) return
           if (keepExisting && existingTenant) {
@@ -554,7 +554,7 @@ export const useTenantStore = create<TenantState>()(
             featureFlags: featureFlagsService.resolve(tenant),
             featureFlagsInitialized: true,
           })
-          setActiveTenantSlugForRequests(tenant.slug)
+          setActiveTenantSlugForRequests(tenant.slug, tenant.id)
         } catch (err) {
           if (!isCurrentTenantLoad(generation)) return
           // Console: a failed GET /tenants/{id}/ must not erase a hydrated membership shell
@@ -1117,7 +1117,9 @@ export const useRbacStore = create<RbacStoreState>()(
         set({ sessionMemberships: memberships, activeMembership: activeMembership ?? null })
         if (memberships && activeMembership?.tenantId) {
           const membership = memberships.find((m) => m.tenantId === activeMembership.tenantId)
-          if (membership?.tenantSlug) setActiveTenantSlugForRequests(membership.tenantSlug)
+          if (membership?.tenantSlug) {
+            setActiveTenantSlugForRequests(membership.tenantSlug, membership.tenantId)
+          }
         }
       },
 

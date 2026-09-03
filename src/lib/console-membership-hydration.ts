@@ -5,12 +5,14 @@ import { useTenantStore } from '@/stores'
 import { hasMembershipTenantDisplayMetadata } from '@/lib/console-tenant-display'
 import { invalidateTenantLoads } from '@/lib/console-workspace-switch'
 import { canonicalMembershipTenantStatus } from '@/lib/console-tenant-access'
+import { slugFromMembership } from '@/lib/identifier-brands'
+import { setActiveTenantSlugForRequests } from '@/lib/tenant-request-context'
 
-function membershipToTenantShell(membership: TenantMembership): Tenant {
+export function membershipToTenantShell(membership: TenantMembership): Tenant {
   return {
     id: membership.tenantId,
     name: membership.tenantName ?? membership.tenantSlug ?? membership.tenantId,
-    slug: membership.tenantSlug ?? membership.tenantId,
+    slug: slugFromMembership(membership.tenantSlug, membership.tenantId),
     image: membership.tenantLogo ?? undefined,
     businessTypes: [],
     // Console shell: visible for workspace UI; operational state from membership.
@@ -36,11 +38,12 @@ export function hydrateConsoleTenantFromMembership(membership: TenantMembership)
     isLoading: false,
     tenantState: 'resolved',
     lastAttemptedTenantId: membership.tenantId,
-    lastAttemptedSlug: membership.tenantSlug,
+    lastAttemptedSlug: tenant.slug || undefined,
     featureFlags: featureFlagsService.resolve(tenant),
     featureFlagsInitialized: true,
     rbacInitialized: true,
   })
+  setActiveTenantSlugForRequests(tenant.slug || undefined, membership.tenantId)
 }
 
 /**

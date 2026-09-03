@@ -139,10 +139,13 @@ export const ENDPOINTS = {
 
   // Tenants (Phase 1A — P1A.1 / P6.14 — Provisioning / P6.15 — Management)
   TENANTS: {
-    /** Legacy slug path — mock mode only. Production public routes use resolvePublicTenantId + DETAIL_BY_ID. */
-    DETAIL_BY_SLUG: (slug: string) => `/tenants/${slug}/`,
-    /** All post-bootstrap tenant lookups and mutations — canonical id only. */
+    /**
+     * Canonical tenant detail — GET /tenants/{tenantId}/.
+     * Backend requires the tenant UUID (or mock canonical id). Never pass a URL slug.
+     * Public slug → id: GET /public/discover/ (existing catalog), then this endpoint.
+     */
     DETAIL_BY_ID: (tenantId: string) => `/tenants/${tenantId}/`,
+    /** Pre-existing Host-based helper; not used for public path slug resolution. */
     CURRENT: '/tenants/current/',
     LIST: '/tenants/',
     CONSOLE_LIST: '/tenants/console-tenants/',
