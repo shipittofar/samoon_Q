@@ -4,7 +4,6 @@ import { useState, Suspense, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MapPin, Package, UtensilsCrossed, CreditCard,
@@ -46,19 +45,7 @@ import {
 } from '@/lib/branch-checkout'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useTranslations } from 'next-intl'
-
-// Schema messages are `validation` namespace keys (Phase E), resolved via
-// `tValidation()` wherever `errors.<field>.message` is rendered below.
-const checkoutSchema = z.object({
-  first_name: z.string().min(2, 'required'),
-  last_name: z.string().min(2, 'required'),
-  email: z.string().email('invalid_email'),
-  phone_number: z.string().min(10, 'invalid_phone'),
-  table_number: z.string().optional(),
-  notes: z.string().optional(),
-})
-
-type CheckoutFormData = z.infer<typeof checkoutSchema>
+import { checkoutSchema, type CheckoutFormData } from '@/lib/checkout-form'
 
 function CheckoutContent() {
   const router = useRouter()
@@ -174,7 +161,7 @@ function CheckoutContent() {
     defaultValues: {
       first_name: user?.first_name || '',
       last_name: user?.last_name || '',
-      email: user?.email || '',
+      email: user?.email ?? '',
       phone_number: user?.phone_number || '',
       // P4.4 — Pre-populate table number from QR URL param
       table_number: initialTableNumber,
@@ -491,7 +478,7 @@ function CheckoutContent() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input label={tAuth('firstName')} required {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
                         <Input label={tAuth('lastName')} required {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
-                        <Input label={tAuth('email')} type="email"required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
+                        <Input label={tAuth('email')} type="email" {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
                         <Input label={tAuth('phone_number')} type="tel"required {...register('phone_number')} error={errors.phone_number?.message ? tValidation(errors.phone_number.message) : undefined} />
                       </div>
                     </div>
