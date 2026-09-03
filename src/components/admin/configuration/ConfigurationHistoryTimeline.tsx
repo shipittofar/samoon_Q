@@ -6,7 +6,7 @@
  * Full audit timeline for one field — who/when/old/new, filter/search, and
  * a rollback action — reused by the Inspector's History tab and the
  * toolbar's History drawer alike. Generic: it reads `configurationAudit.
- * listForField(fieldId)` and writes back through the one sanctioned
+ * listForField(fieldId)`and writes back through the one sanctioned
  * `configurationService.updateField()` path, exactly like every other
  * write in the Studio (no second persistence mechanism for rollback).
  */
@@ -79,7 +79,7 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
   if (allEntries.length === 0) {
     return (
       <EmptyState
-        icon={<RotateCcw className="h-6 w-6" />}
+        icon={<RotateCcw className="h-6 w-6"/>}
         title={t('noHistoryYetTitle')}
         description={t('noHistoryYetFieldDesc')}
       />
@@ -89,14 +89,14 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
   return (
     <div className="space-y-3">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--fg-muted)]" aria-hidden="true" />
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--fg-muted)]"aria-hidden="true"/>
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('filterHistoryPlaceholder')}
           aria-label={t('filterHistoryAria')}
-          className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-1.5 pl-8 pr-3 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+          className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-1.5 pl-8 pr-3 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
         />
       </div>
 
@@ -106,7 +106,7 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
         <ol className="space-y-2 border-l border-[var(--border)] pl-4">
           {entries.map((entry) => (
             <li key={entry.id} className="relative text-xs">
-              <span className="absolute -left-[19px] top-1.5 h-2 w-2 rounded-full bg-orange-500" aria-hidden="true" />
+              <span className="absolute -left-[19px] top-1.5 h-2 w-2 rounded-full bg-[var(--accent)]"aria-hidden="true"/>
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-[var(--fg)]">
@@ -127,7 +127,7 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
                     aria-label={t('rollbackToValueFromAria', { date: formatTimestamp(entry.timestamp) })}
                     className="shrink-0"
                   >
-                    <RotateCcw className="h-3.5 w-3.5" />
+                    <RotateCcw className="h-3.5 w-3.5"/>
                   </Button>
                 )}
               </div>

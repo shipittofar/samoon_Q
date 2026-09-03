@@ -20,7 +20,7 @@ export function PlatformTestimonials() {
     <section className="py-20 bg-[var(--bg-secondary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-3">{t('testimonials.eyebrow')}</p>
+          <p className="text-sm font-medium text-[var(--accent-text)] uppercase tracking-widest mb-3">{t('testimonials.eyebrow')}</p>
           <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)] mb-4">
             {t('testimonials.heading')}
           </h2>
@@ -37,7 +37,7 @@ export function PlatformTestimonials() {
             >
               <div className="flex gap-0.5">
                 {Array.from({ length: item.rating }).map((_, i) => (
-                  <Star key={i} className="h-4 w-4 text-amber-400 fill-amber-400" />
+                  <Star key={i} className="h-4 w-4 text-[var(--rating)] fill-[var(--rating)]"/>
                 ))}
               </div>
               <p className="text-sm text-[var(--fg-muted)] leading-relaxed flex-1">&ldquo;{t(`testimonials.items.${item.key}.quote`)}&rdquo;</p>
@@ -50,7 +50,7 @@ export function PlatformTestimonials() {
         </div>
 
         {/* Trust stats band */}
-        <div className="bg-orange-500 rounded-3xl px-8 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div className="bg-[var(--accent)] rounded-3xl px-8 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {TRUST_STATS.map((s) => (
             <div key={s.key}>
               <p className="font-[var(--font-display)] text-3xl font-bold text-white">{s.value}</p>

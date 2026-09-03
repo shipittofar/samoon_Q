@@ -29,8 +29,8 @@ function EditBranchContent({ id }: { id: string }) {
     if (branch) setForm(branchToFormInput(branch))
   }, [branch])
 
-  if (isLoading || !form) return <p className="p-6 text-gray-500">{t('loadingBranchEllipsis')}</p>
-  if (loadError || !branch) return <p className="p-6 text-red-500">{t('branchNotFoundPeriod')}</p>
+  if (isLoading || !form) return <p className="p-6 text-[var(--fg-muted)]">{t('loadingBranchEllipsis')}</p>
+  if (loadError || !branch) return <p className="p-6 text-[var(--danger-text)]">{t('branchNotFoundPeriod')}</p>
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -67,20 +67,20 @@ function EditBranchContent({ id }: { id: string }) {
 
       <form onSubmit={handleSubmit}>
         <BranchFormFields form={form} onChange={setForm} />
-        {error && <p className="text-sm text-red-500 mt-3">{t(error)}</p>}
+        {error && <p className="text-sm text-[var(--danger-text)] mt-3">{t(error)}</p>}
 
         <div className="flex justify-between pt-4">
           <button
             type="button"
             onClick={() => router.push(`/console/branches/${id}`)}
-            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm border rounded-lg hover:bg-[var(--card-hover)] transition-colors"
           >
             {t('cancel')}
           </button>
           <button
             type="submit"
             disabled={isPending}
-            className="px-6 py-2 text-sm bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50 transition-colors"
+            className="px-6 py-2 text-sm bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg font-medium hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
           >
             {isPending ? <>{t('savingEllipsis')}</> : t('saveChanges')}
           </button>
@@ -100,7 +100,7 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
   const hasBranchAccess = useBranchAccess(id)
   return (
     <ErrorBoundary feature="Edit Branch">
-      <PermissionGuard permission="branches.update" fallback={<AccessDenied />}>
+      <PermissionGuard permission="branches.update"fallback={<AccessDenied />}>
         {hasBranchAccess ? <EditBranchContent id={id} /> : <AccessDenied />}
       </PermissionGuard>
     </ErrorBoundary>

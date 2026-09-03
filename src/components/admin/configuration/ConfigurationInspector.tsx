@@ -4,12 +4,12 @@
  * ConfigurationInspector — P9.3 Phase E (Framework Improvement)
  *
  * The Studio's right-side panel — completely generic, driven only by a
- * `fieldId` resolved through `configurationService`/`configurationAudit`/
+ * `fieldId` resolved through `configurationService`/` configurationAudit`/
  * `configurationValidator`. It has never heard of Authentication or
  * Countries; any field from any module (including a `'collection'`
  * property, which is itself a `ConfigFieldDefinition`) renders through the
- * same 9 tabs. Reuses `ConfigurationFieldPreview`, `ConfigurationFieldBadges`,
- * `ConfigurationInheritanceTree`, `ConfigurationHistoryTimeline`, and
+ * same 9 tabs. Reuses `ConfigurationFieldPreview`, ` ConfigurationFieldBadges`,
+ * `ConfigurationInheritanceTree`, ` ConfigurationHistoryTimeline`, and
  * `ConfigurationCompareView` rather than re-implementing any of them.
  */
 import { useMemo, useState } from 'react'
@@ -74,7 +74,7 @@ export function ConfigurationInspector({ fieldId, actor, permissionContext = 'te
     return (
       <div className="flex h-full items-center justify-center p-6">
         <EmptyState
-          icon={<Info className="h-6 w-6" />}
+          icon={<Info className="h-6 w-6"/>}
           title={t('noFieldSelectedTitle')}
           description={t('noFieldSelectedDesc')}
         />
@@ -91,7 +91,7 @@ export function ConfigurationInspector({ fieldId, actor, permissionContext = 'te
   const description = resolveConfigText(tFields, field.id, 'description', field.description)
 
   return (
-    <div className="flex h-full flex-col" data-inspector-field-id={fieldId}>
+    <div className="flex h-full flex-col"data-inspector-field-id={fieldId}>
       <div className="border-b border-[var(--border)] p-4">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-sm font-semibold text-[var(--fg)]">{title}</h2>
@@ -108,7 +108,7 @@ export function ConfigurationInspector({ fieldId, actor, permissionContext = 'te
             onClick={() => setTab(t.id)}
             aria-current={tab === t.id}
             className={`rounded-lg px-2 py-1 text-[11px] font-medium transition-colors ${
-              tab === t.id ? 'bg-orange-500 text-white' : 'text-[var(--fg-muted)] hover:bg-[var(--card-hover)]'
+              tab === t.id ? 'bg-[var(--accent)] text-[var(--accent-fg)]' : 'text-[var(--fg-muted)] hover:bg-[var(--card-hover)]'
             }`}
           >
             {t.label}
@@ -162,7 +162,7 @@ export function ConfigurationInspector({ fieldId, actor, permissionContext = 'te
           <div className="space-y-2">
             <Row label={t('validLabel')} value={validation.valid ? t('yesLabel') : t('noLabel')} />
             {validation.errors.length > 0 && (
-              <ul className="list-inside list-disc text-red-500">
+              <ul className="list-inside list-disc text-[var(--danger-text)]">
                 {validation.errors.map((e, i) => <li key={i}>{e.message}</li>)}
               </ul>
             )}
@@ -208,7 +208,7 @@ export function ConfigurationInspector({ fieldId, actor, permissionContext = 'te
           <div className="space-y-2">
             {field.helpText && <p className="text-[var(--fg-muted)]">{field.helpText}</p>}
             {field.display?.documentationLink ? (
-              <a href={field.display.documentationLink} target="_blank" rel="noreferrer" className="text-orange-500 underline">
+              <a href={field.display.documentationLink} target="_blank"rel="noreferrer"className="text-[var(--accent-text)] underline">
                 {t('openDocumentation')}
               </a>
             ) : (

@@ -110,7 +110,7 @@ export function ImageUploader({
           size="sm"
           disabled={disabled}
           onClick={handlePick}
-          leftIcon={<Upload className="h-3.5 w-3.5" />}
+          leftIcon={<Upload className="h-3.5 w-3.5"/>}
         >
           {uploadLabel ?? t('uploadImage')}
         </Button>
@@ -128,7 +128,7 @@ export function ImageUploader({
             />
           </div>
           {filename && (
-            <p className="text-xs text-[var(--fg-muted)] truncate max-w-xs" title={filename}>
+            <p className="text-xs text-[var(--fg-muted)] truncate max-w-xs"title={filename}>
               {filename}
             </p>
           )}
@@ -148,8 +148,8 @@ export function ImageUploader({
               size="sm"
               disabled={disabled}
               onClick={handleRemove}
-              leftIcon={<X className="h-3.5 w-3.5" />}
-              className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+              leftIcon={<X className="h-3.5 w-3.5"/>}
+              className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"
             >
               {removeLabel ?? t('removeImage')}
             </Button>
@@ -158,7 +158,7 @@ export function ImageUploader({
       )}
 
       {error && (
-        <p className="text-xs text-red-500" role="alert">
+        <p className="text-xs text-[var(--danger-text)]"role="alert">
           {error}
         </p>
       )}

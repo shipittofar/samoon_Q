@@ -71,10 +71,10 @@ function RewardModal({ title, form, onChange, onSubmit, onCancel, isPending, sub
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4 overflow-y-auto"
     >
-      <div className="w-full max-w-md rounded-xl bg-[var(--surface)] border border-[var(--border)] p-6 space-y-4 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
-        <h2 id="modal-title" className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
+      <div className="w-full max-w-md rounded-xl bg-[var(--card)] border border-[var(--border)] p-6 space-y-4 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
+        <h2 id="modal-title"className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
 
         <div className="space-y-3">
           <div>
@@ -138,7 +138,7 @@ function RewardModal({ title, form, onChange, onSubmit, onCancel, isPending, sub
           <button
             onClick={onSubmit}
             disabled={isPending || !form.name || !form.description}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white disabled:opacity-40"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40"
           >
             {isPending ? t('savingEllipsis') : submitLabel}
           </button>
@@ -185,15 +185,15 @@ export default function AdminLoyaltyPage() {
 
   return (
     <ErrorBoundary feature="Loyalty Management">
-    <PermissionGuard permission="loyalty.manage" fallback={<AccessDenied />}>
+    <PermissionGuard permission="loyalty.manage"fallback={<AccessDenied />}>
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">{t('loyaltyManagement')}</h1>
         <div className="flex items-center gap-2">
-          <PreviewButton href="/loyalty" label={t('previewLoyalty')} size="sm" />
+          <PreviewButton href="/loyalty"label={t('previewLoyalty')} size="sm"/>
         <button
           onClick={() => { setShowCreate(true); setCreateForm(DEFAULT_FORM) }}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white"
+          className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-fg)]"
           aria-label={t('createReward')}
         >
           + {t('createReward')}
@@ -210,13 +210,13 @@ export default function AdminLoyaltyPage() {
           {rewards.map((reward) => (
             <li
               key={reward.id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 flex items-center justify-between gap-4"
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 flex items-center justify-between gap-4"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-[var(--fg)]">{reward.name}</p>
                   {!reward.active && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--danger-subtle)] text-[var(--danger-text)]">
                       {t('disabled')}
                     </span>
                   )}
@@ -237,7 +237,7 @@ export default function AdminLoyaltyPage() {
                     onClick={() => disableMutation.mutate(reward.id)}
                     disabled={disableMutation.isPending}
                     aria-label={t('disableNameAria', { name: reward.name })}
-                    className="px-3 py-1 rounded-lg text-sm border border-red-300 text-red-600 disabled:opacity-40"
+                    className="px-3 py-1 rounded-lg text-sm border border-[var(--danger-border)] text-[var(--danger-text)] disabled:opacity-40"
                   >
                     {t('disable')}
                   </button>

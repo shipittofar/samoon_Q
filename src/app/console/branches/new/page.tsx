@@ -52,29 +52,29 @@ export default function NewBranchPage() {
 
   return (
     <ErrorBoundary feature="New Branch">
-      <PermissionGuard permission="branches.create" fallback={<AccessDenied />}>
+      <PermissionGuard permission="branches.create"fallback={<AccessDenied />}>
         <main className="p-6 max-w-2xl mx-auto">
           <div className="mb-6">
             <h1 className="text-2xl font-bold">{t('addBranchLabel')}</h1>
-            <p className="text-sm text-gray-500 mt-1">{t('createNewBranchHint')}</p>
+            <p className="text-sm text-[var(--fg-muted)] mt-1">{t('createNewBranchHint')}</p>
           </div>
 
           <form onSubmit={handleSubmit}>
             <BranchFormFields form={form} onChange={setForm} />
-            {error && <p className="text-sm text-red-500 mt-3">{t(error)}</p>}
+            {error && <p className="text-sm text-[var(--danger-text)] mt-3">{t(error)}</p>}
 
             <div className="flex justify-between pt-4">
               <button
                 type="button"
                 onClick={() => router.push('/console/branches')}
-                className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-sm border rounded-lg hover:bg-[var(--card-hover)] transition-colors"
               >
                 {t('cancel')}
               </button>
               <button
                 type="submit"
                 disabled={isPending || !tenantId}
-                className="px-6 py-2 text-sm bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50 transition-colors"
+                className="px-6 py-2 text-sm bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg font-medium hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
               >
                 {isPending ? t('creatingEllipsis') : t('createBranchLabel')}
               </button>

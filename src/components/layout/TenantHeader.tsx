@@ -151,7 +151,7 @@ export function TenantHeader() {
       {/* Skip-to-content — WCAG 2.4.1 Level A */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--accent)] focus:text-[var(--accent-fg)] focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
       >
         {t('skipToMainContent')}
       </a>
@@ -184,13 +184,13 @@ export function TenantHeader() {
                   </div>
                 ) : (
                   <>
-                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 shrink-0">
+                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-active)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/20 shrink-0">
                       <span className="text-white text-sm font-bold">
                         {tenant.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="hidden sm:flex flex-col leading-none">
-                      <span className="font-[var(--font-display)] text-base font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors truncate max-w-[140px]">
+                      <span className="font-[var(--font-display)] text-base font-bold text-[var(--fg)] group-hover:text-[var(--accent-text)] transition-colors truncate max-w-[140px]">
                         {tenant.name}
                       </span>
                       {/* Phase F: business type badge */}
@@ -207,7 +207,7 @@ export function TenantHeader() {
               {/* Platform signature — subtle secondary identity */}
               <Link
                 href="/discover"
-                className="hidden sm:flex flex-col leading-none border-s border-[var(--border)] ps-3 text-[var(--fg-subtle)] hover:text-orange-500 transition-colors shrink-0"
+                className="hidden sm:flex flex-col leading-none border-s border-[var(--border)] ps-3 text-[var(--fg-subtle)] hover:text-[var(--accent-text)] transition-colors shrink-0"
                 aria-label={t('poweredBySamoonAria')}
               >
                 <span className="text-[9px] uppercase tracking-wide">{t('poweredBy')}</span>
@@ -228,7 +228,7 @@ export function TenantHeader() {
                   className={cn(
                     'px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-200',
                     isActive(link.href)
-                      ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
+                      ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                       : link.isMarketplace
                         ? 'text-[var(--fg-subtle)] hover:text-[var(--fg-muted)] hover:bg-[var(--card-hover)]'
                         : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
@@ -252,12 +252,12 @@ export function TenantHeader() {
               >
                 <AnimatePresence mode="wait">
                   {theme === 'dark' ? (
-                    <motion.div key="sun" initial={{ rotate: prefersReducedMotion ? 0 : -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: prefersReducedMotion ? 0 : 90, opacity: 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}>
-                      <Sun className="h-4 w-4" />
+                    <motion.div key="sun"initial={{ rotate: prefersReducedMotion ? 0 : -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: prefersReducedMotion ? 0 : 90, opacity: 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}>
+                      <Sun className="h-4 w-4"/>
                     </motion.div>
                   ) : (
-                    <motion.div key="moon" initial={{ rotate: prefersReducedMotion ? 0 : 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: prefersReducedMotion ? 0 : -90, opacity: 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}>
-                      <Moon className="h-4 w-4" />
+                    <motion.div key="moon"initial={{ rotate: prefersReducedMotion ? 0 : 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: prefersReducedMotion ? 0 : -90, opacity: 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}>
+                      <Moon className="h-4 w-4"/>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -272,7 +272,7 @@ export function TenantHeader() {
                   aria-label={t('changeLanguageAria')}
                   aria-expanded={langMenuOpen}
                 >
-                  <Globe className="h-4 w-4" />
+                  <Globe className="h-4 w-4"/>
                 </Button>
                 <AnimatePresence>
                   {langMenuOpen && (
@@ -290,7 +290,7 @@ export function TenantHeader() {
                           className={cn(
                             'flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-start transition-colors',
                             locale === lang.code
-                              ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
+                              ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                               : 'hover:bg-[var(--card-hover)] text-[var(--fg)]',
                           )}
                         >
@@ -311,7 +311,7 @@ export function TenantHeader() {
                 className="relative"
                 aria-label={t('cartWithItemsAria', { count: cartCount })}
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="h-4 w-4"/>
                 <AnimatePresence>
                   {cartCount > 0 && (
                     <motion.span
@@ -319,7 +319,7 @@ export function TenantHeader() {
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
-                      className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center px-1"
+                      className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] text-[10px] font-bold flex items-center justify-center px-1"
                     >
                       {cartCount}
                     </motion.span>
@@ -336,7 +336,7 @@ export function TenantHeader() {
                     aria-label={t('userMenuAria')}
                     aria-expanded={userMenuOpen}
                   >
-                    <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="sm" />
+                    <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="sm"/>
                     <ChevronDown className={cn('h-3 w-3 text-[var(--fg-muted)] transition-transform hidden md:block', userMenuOpen && 'rotate-180')} />
                   </button>
                   <AnimatePresence>
@@ -365,16 +365,16 @@ export function TenantHeader() {
                             href={item.href}
                             className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
                           >
-                            <item.icon className="h-4 w-4 text-[var(--fg-muted)]" />
+                            <item.icon className="h-4 w-4 text-[var(--fg-muted)]"/>
                             {t(item.labelKey)}
                           </Link>
                         ))}
                         <div className="border-t border-[var(--border)]">
                           <button
                             onClick={handleLogout}
-                            className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-start"
+                            className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-[var(--danger-text)] hover:bg-[var(--danger-subtle)] transition-colors text-start"
                           >
-                            <LogOut className="h-4 w-4" />
+                            <LogOut className="h-4 w-4"/>
                             {t('signOut')}
                           </button>
                         </div>
@@ -385,7 +385,7 @@ export function TenantHeader() {
               ) : (
                 <div className="hidden sm:flex items-center gap-2">
                   <Link href="/login">
-                    <Button variant="ghost" size="sm">{t('signIn')}</Button>
+                    <Button variant="ghost"size="sm">{t('signIn')}</Button>
                   </Link>
                   <Link href="/register">
                     <Button size="sm">{t('getStarted')}</Button>
@@ -402,7 +402,7 @@ export function TenantHeader() {
                 aria-label={mobileOpen ? t('closeMenuAria') : t('openMenuAria')}
                 aria-expanded={mobileOpen}
               >
-                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {mobileOpen ? <X className="h-5 w-5"/> : <Menu className="h-5 w-5"/>}
               </Button>
             </div>
           </div>
@@ -424,7 +424,7 @@ export function TenantHeader() {
                 {/* Platform signature — mobile */}
                 <Link
                   href="/discover"
-                  className="flex items-center gap-1 px-4 py-2 text-xs text-[var(--fg-subtle)] hover:text-orange-500 transition-colors mb-1"
+                  className="flex items-center gap-1 px-4 py-2 text-xs text-[var(--fg-subtle)] hover:text-[var(--accent-text)] transition-colors mb-1"
                 >
                   {t('poweredBy')} <span className="font-semibold">Samoon</span>
                 </Link>
@@ -437,7 +437,7 @@ export function TenantHeader() {
                     className={cn(
                       'px-4 py-3 rounded-xl text-sm font-medium transition-colors',
                       isActive(link.href)
-                        ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
+                        ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                         : link.isMarketplace
                           ? 'text-[var(--fg-subtle)] hover:bg-[var(--card-hover)]'
                           : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
@@ -448,8 +448,8 @@ export function TenantHeader() {
                 ))}
 
                 <div className="flex items-center gap-2 pt-2 border-t border-[var(--border)] mt-2">
-                  <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={t('toggleThemeAria')}>
-                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  <Button variant="ghost"size="icon"onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={t('toggleThemeAria')}>
+                    {theme === 'dark' ? <Sun className="h-4 w-4"/> : <Moon className="h-4 w-4"/>}
                   </Button>
                   {LANGUAGES.map((lang) => (
                     <button
@@ -465,11 +465,11 @@ export function TenantHeader() {
 
                 {!isAuthenticated && (
                   <div className="flex gap-2 pt-2">
-                    <Link href="/login" className="flex-1">
-                      <Button variant="secondary" size="sm" className="w-full">{t('signIn')}</Button>
+                    <Link href="/login"className="flex-1">
+                      <Button variant="secondary"size="sm"className="w-full">{t('signIn')}</Button>
                     </Link>
-                    <Link href="/register" className="flex-1">
-                      <Button size="sm" className="w-full">{t('getStarted')}</Button>
+                    <Link href="/register"className="flex-1">
+                      <Button size="sm"className="w-full">{t('getStarted')}</Button>
                     </Link>
                   </div>
                 )}
@@ -479,7 +479,7 @@ export function TenantHeader() {
         </AnimatePresence>
       </header>
       {/* Fixed header is out of flow — reserve its h-16 so breadcrumbs/heroes start below it */}
-      <div className="h-16 shrink-0" aria-hidden="true" />
+      <div className="h-16 shrink-0"aria-hidden="true"/>
     </>
   )
 }

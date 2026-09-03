@@ -94,7 +94,7 @@ export function StaffInviteModal({ tenantId, open, onClose }: StaffInviteModalPr
     <Modal open={open} onClose={handleClose} title={t('inviteStaffModalTitle')} size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="staff-invite-email" className="block text-sm font-medium mb-1.5">
+          <label htmlFor="staff-invite-email"className="block text-sm font-medium mb-1.5">
             {t('emailLabel')}
           </label>
           <input
@@ -105,12 +105,12 @@ export function StaffInviteModal({ tenantId, open, onClose }: StaffInviteModalPr
             className="w-full rounded-md border px-3 py-2 text-sm"
             placeholder="name@example.com"
           />
-          {errors.email && <p className="mt-1.5 text-xs text-red-600">{errors.email}</p>}
+          {errors.email && <p className="mt-1.5 text-xs text-[var(--danger-text)]">{errors.email}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="staff-invite-first-name" className="block text-sm font-medium mb-1.5">
+            <label htmlFor="staff-invite-first-name"className="block text-sm font-medium mb-1.5">
               {t('firstNameLabel')}
             </label>
             <input
@@ -122,7 +122,7 @@ export function StaffInviteModal({ tenantId, open, onClose }: StaffInviteModalPr
             />
           </div>
           <div>
-            <label htmlFor="staff-invite-last-name" className="block text-sm font-medium mb-1.5">
+            <label htmlFor="staff-invite-last-name"className="block text-sm font-medium mb-1.5">
               {t('lastNameLabel')}
             </label>
             <input
@@ -147,14 +147,14 @@ export function StaffInviteModal({ tenantId, open, onClose }: StaffInviteModalPr
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+            className="rounded-md border px-4 py-2 text-sm hover:bg-[var(--card-hover)]"
           >
             {t('cancel')}
           </button>
           <button
             type="submit"
             disabled={inviteStaff.isPending}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-md bg-[var(--info)] px-4 py-2 text-sm font-medium text-[var(--info-fg)] hover:bg-[var(--info-hover)] disabled:opacity-50"
           >
             {inviteStaff.isPending ? t('sendingInviteEllipsis') : t('sendInviteLabel')}
           </button>

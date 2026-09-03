@@ -28,8 +28,8 @@ export default function FavoritesPage() {
       <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 rounded-xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center shrink-0">
-            <Heart className="h-5 w-5 text-red-500 fill-red-500" />
+          <div className="h-10 w-10 rounded-xl bg-[var(--danger-subtle)] flex items-center justify-center shrink-0">
+            <Heart className="h-5 w-5 text-[var(--danger-text)] fill-[var(--danger)]"/>
           </div>
           <div className="min-w-0">
             <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('favorites')}</h1>
@@ -59,7 +59,7 @@ export default function FavoritesPage() {
         </div>
       ) : favoriteItems.length === 0 ? (
         <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-12 text-center">
-          <Heart className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4" />
+          <Heart className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4"/>
           <h3 className="font-semibold text-[var(--fg)] mb-2">{t('noFavoritesYet')}</h3>
           <p className="text-sm text-[var(--fg-muted)] mb-4">{t('heartDishesHint')}</p>
           <Link href="/menu"><Button>{t('orderNow')}</Button></Link>

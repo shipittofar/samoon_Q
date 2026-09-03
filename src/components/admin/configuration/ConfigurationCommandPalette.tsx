@@ -6,7 +6,7 @@
  * Ctrl/Cmd+K universal command surface for the Studio: jump to any
  * registered module, jump straight to any field across every module, or
  * run the currently-active module's Save/Discard. Built entirely from
- * `platformConfigurationRegistry` + the shared `buildSearchHaystack` — a
+ * `platformConfigurationRegistry` + the shared ` buildSearchHaystack` — a
  * future module's fields are searchable here the moment it registers, with
  * zero changes to this file. Reuses the existing `Modal` primitive for its
  * focus-trap/Escape-to-close behavior rather than re-implementing either.
@@ -54,8 +54,8 @@ export function ConfigurationCommandPalette({
     const list: PaletteCommand[] = []
 
     if (draftStatus?.isDirty && actions) {
-      list.push({ id: 'save', label: t('saveChangesCommand'), hint: t('unsavedBadge', { count: draftStatus.dirtyCount }), icon: <Save className="h-4 w-4" />, run: () => { actions.save(); onClose() } })
-      list.push({ id: 'discard', label: t('discardChangesCommand'), icon: <RotateCcw className="h-4 w-4" />, run: () => { actions.discard(); onClose() } })
+      list.push({ id: 'save', label: t('saveChangesCommand'), hint: t('unsavedBadge', { count: draftStatus.dirtyCount }), icon: <Save className="h-4 w-4"/>, run: () => { actions.save(); onClose() } })
+      list.push({ id: 'discard', label: t('discardChangesCommand'), icon: <RotateCcw className="h-4 w-4"/>, run: () => { actions.discard(); onClose() } })
     }
 
     for (const mod of platformConfigurationRegistry.getModules()) {
@@ -64,7 +64,7 @@ export function ConfigurationCommandPalette({
         id: `module:${mod.id}`,
         label: t('goToModule', { name: modName }),
         hint: mod.category,
-        icon: <ArrowRight className="h-4 w-4" />,
+        icon: <ArrowRight className="h-4 w-4"/>,
         run: () => { onNavigateToModule(mod.id); onClose() },
       })
       for (const section of mod.sections) {
@@ -74,7 +74,7 @@ export function ConfigurationCommandPalette({
             id: `field:${field.id}`,
             label: field.display?.displayName ?? resolveConfigText(tFields, field.id, 'title', field.title) ?? field.title,
             hint: `${modName} · ${sectionTitle}`,
-            icon: <Search className="h-4 w-4" />,
+            icon: <Search className="h-4 w-4"/>,
             run: () => { onNavigateToField(mod.id, field.id); onClose() },
           })
         }
@@ -88,14 +88,14 @@ export function ConfigurationCommandPalette({
   // Countries, or any future registered provider) merge into the same
   // result list rather than a second search surface. Empty registry (no
   // provider registered, e.g. when this component renders without
-  // '@/platform-admin' ever having been imported) is a silent no-op.
+  // '@/platform-admin'ever having been imported) is a silent no-op.
   const entityHits = useMemo(() => {
     if (!query.trim()) return []
     return platformSearchRegistry.searchAll(query).map((hit) => ({
       id: `entity:${hit.id}`,
       label: hit.label,
       hint: hit.hint,
-      icon: <Search className="h-4 w-4" />,
+      icon: <Search className="h-4 w-4"/>,
       run: () => { onNavigateToModule(hit.moduleId); onClose() },
     }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,10 +115,10 @@ export function ConfigurationCommandPalette({
   }
 
   return (
-    <Modal open={open} onClose={onClose} size="lg" showClose={false}>
+    <Modal open={open} onClose={onClose} size="lg"showClose={false}>
       <div className="-m-6">
         <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
-          <Search className="h-4 w-4 text-[var(--fg-muted)]" aria-hidden="true" />
+          <Search className="h-4 w-4 text-[var(--fg-muted)]"aria-hidden="true"/>
           <input
             autoFocus
             type="text"
@@ -134,9 +134,9 @@ export function ConfigurationCommandPalette({
           />
           <kbd className="rounded border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--fg-muted)]">{t('escKey')}</kbd>
         </div>
-        <div id="configuration-command-palette-list" role="listbox" className="max-h-80 overflow-y-auto p-2">
+        <div id="configuration-command-palette-list"role="listbox"className="max-h-80 overflow-y-auto p-2">
           {filtered.length === 0 ? (
-            <EmptyState title={t('noMatches')} description={t('nothingMatchesQuery', { query })} className="py-8" />
+            <EmptyState title={t('noMatches')} description={t('nothingMatchesQuery', { query })} className="py-8"/>
           ) : (
             filtered.map((cmd, i) => (
               <button
@@ -147,7 +147,7 @@ export function ConfigurationCommandPalette({
                 onClick={cmd.run}
                 onMouseEnter={() => setActiveIndex(i)}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm ${
-                  i === activeIndex ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]'
+                  i === activeIndex ? 'bg-[var(--accent)]/10 text-[var(--accent-text)]' : 'text-[var(--fg)]'
                 }`}
               >
                 <span className="text-[var(--fg-muted)]">{cmd.icon}</span>

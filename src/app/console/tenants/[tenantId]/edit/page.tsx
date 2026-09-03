@@ -23,7 +23,7 @@ function TenantEditContent({ tenantId }: { tenantId: string }) {
   if (isLoading) {
     return (
       <main aria-label={t('tenantEditAria')} className="p-6 max-w-3xl mx-auto">
-        <p className="text-gray-500">{t('loadingTenantEllipsis')}</p>
+        <p className="text-[var(--fg-muted)]">{t('loadingTenantEllipsis')}</p>
       </main>
     )
   }
@@ -31,8 +31,8 @@ function TenantEditContent({ tenantId }: { tenantId: string }) {
   if (isError || !tenant) {
     return (
       <main aria-label={t('tenantEditAria')} className="p-6 max-w-3xl mx-auto">
-        <p className="text-red-600">{t('tenantNotFoundPeriod')}</p>
-        <Link href="/console/tenants" className="text-sm text-accent underline mt-2 block">
+        <p className="text-[var(--danger-text)]">{t('tenantNotFoundPeriod')}</p>
+        <Link href="/console/tenants"className="text-sm text-accent underline mt-2 block">
           {t('backToTenantsLabel')}
         </Link>
       </main>
@@ -42,12 +42,12 @@ function TenantEditContent({ tenantId }: { tenantId: string }) {
   return (
     <main aria-label={t('tenantEditAria')} className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Link href={`/console/tenants/${tenantId}`} className="text-sm text-gray-500 hover:underline">
+        <Link href={`/console/tenants/${tenantId}`} className="text-sm text-[var(--fg-muted)] hover:underline">
           {t('backArrowTenants')}
         </Link>
         <h1 className="text-2xl font-bold">{t('editColonName', { name: tenant.name })}</h1>
       </div>
-      <p className="text-sm text-gray-500 mb-6">{t('hoursManagedPerBranch')}</p>
+      <p className="text-sm text-[var(--fg-muted)] mb-6">{t('hoursManagedPerBranch')}</p>
       <TenantCanonicalSettingsForm
         tenant={tenant}
         onSave={save}
@@ -62,7 +62,7 @@ export default function TenantEditPage({ params }: { params: Promise<{ tenantId:
   const { tenantId } = use(params)
   return (
     <ErrorBoundary feature="Tenant Edit">
-      <PermissionGuard permission="tenant.manage" fallback={<AccessDenied />}>
+      <PermissionGuard permission="tenant.manage"fallback={<AccessDenied />}>
         <TenantEditContent tenantId={tenantId} />
       </PermissionGuard>
     </ErrorBoundary>

@@ -33,74 +33,74 @@ export function UserPermissionControlTable({
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-10 rounded-lg border bg-gray-50 animate-pulse" />
+          <div key={i} className="h-10 rounded-lg border bg-[var(--card-hover)] animate-pulse"/>
         ))}
       </div>
     )
   }
 
   if (!data) {
-    return <p className="text-sm text-gray-500">{t('noEffectivePermissionsData')}</p>
+    return <p className="text-sm text-[var(--fg-muted)]">{t('noEffectivePermissionsData')}</p>
   }
 
   const rows = buildUserPermissionRows(data, roleNames)
   const overrideByPermission = new Map(overrides.map((o) => [o.permission, o]))
 
   if (rows.length === 0) {
-    return <p className="text-sm text-gray-500">{t('noPermissionOverrides')}</p>
+    return <p className="text-sm text-[var(--fg-muted)]">{t('noPermissionOverrides')}</p>
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 overflow-hidden">
+    <div className="rounded-lg border border-[var(--border)] overflow-hidden">
       <table className="w-full text-sm">
-        <thead className="bg-gray-50 border-b border-gray-200">
+        <thead className="bg-[var(--card-hover)] border-b border-[var(--border)]">
           <tr>
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('permissionColumnLabel')}</th>
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('sourceColumnLabel')}</th>
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('statusColumnLabel')}</th>
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('actionColumnLabel')}</th>
-            {canManage && <th className="px-4 py-2" />}
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('permissionColumnLabel')}</th>
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('sourceColumnLabel')}</th>
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('statusColumnLabel')}</th>
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('actionColumnLabel')}</th>
+            {canManage && <th className="px-4 py-2"/>}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-[var(--border)]">
           {rows.map((row) => {
             const existingOverride = overrideByPermission.get(row.permission)
             return (
-              <tr key={`${row.permission}-${row.source}`} className="hover:bg-gray-50">
-                <td className="px-4 py-2 font-mono text-xs text-gray-800">{row.permission}</td>
-                <td className="px-4 py-2 text-xs text-gray-700">
+              <tr key={`${row.permission}-${row.source}`} className="hover:bg-[var(--card-hover)]">
+                <td className="px-4 py-2 font-mono text-xs text-[var(--fg)]">{row.permission}</td>
+                <td className="px-4 py-2 text-xs text-[var(--fg-secondary)]">
                   {row.source === 'role' ? (
                     <span>{t('roleColonName', { name: row.sourceLabel })}</span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-800">
+                    <span className="px-2 py-0.5 rounded-full font-medium bg-[var(--warning-subtle)] text-[var(--warning-text)]">
                       {t('overrideSourceLabel')}
                     </span>
                   )}
                 </td>
                 <td className="px-4 py-2 text-xs">
                   {row.status === 'inherited' ? (
-                    <span className="text-gray-500">{t('inheritedStatusLabel')}</span>
+                    <span className="text-[var(--fg-muted)]">{t('inheritedStatusLabel')}</span>
                   ) : row.status === 'deny' ? (
-                    <span className="px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-800">
+                    <span className="px-2 py-0.5 rounded-full font-medium bg-[var(--danger-subtle)] text-[var(--danger-text)]">
                       {t('denyEffectLabel')}
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-800">
+                    <span className="px-2 py-0.5 rounded-full font-medium bg-[var(--success-subtle)] text-[var(--success-text)]">
                       {t('allowEffectLabel')}
                     </span>
                   )}
                 </td>
                 <td className="px-4 py-2 text-xs">
                   {row.action === 'deny' ? (
-                    <span className="px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-800">
+                    <span className="px-2 py-0.5 rounded-full font-medium bg-[var(--danger-subtle)] text-[var(--danger-text)]">
                       {t('denyEffectLabel')}
                     </span>
                   ) : row.action === 'allow' ? (
-                    <span className="px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-800">
+                    <span className="px-2 py-0.5 rounded-full font-medium bg-[var(--success-subtle)] text-[var(--success-text)]">
                       {t('allowEffectLabel')}
                     </span>
                   ) : (
-                    <span className="text-gray-400">—</span>
+                    <span className="text-[var(--fg-subtle)]">—</span>
                   )}
                 </td>
                 {canManage && (
@@ -113,7 +113,7 @@ export function UserPermissionControlTable({
                               type="button"
                               disabled={pending}
                               onClick={() => onAllow(row.permission)}
-                              className="text-xs text-green-700 hover:underline disabled:opacity-50"
+                              className="text-xs text-[var(--success-text)] hover:underline disabled:opacity-50"
                             >
                               {t('allowOverrideActionLabel')}
                             </button>
@@ -123,7 +123,7 @@ export function UserPermissionControlTable({
                               type="button"
                               disabled={pending}
                               onClick={() => onDeny(row.permission)}
-                              className="text-xs text-red-700 hover:underline disabled:opacity-50"
+                              className="text-xs text-[var(--danger-text)] hover:underline disabled:opacity-50"
                             >
                               {t('denyOverrideActionLabel')}
                             </button>
@@ -133,7 +133,7 @@ export function UserPermissionControlTable({
                               type="button"
                               disabled={pending}
                               onClick={() => onRemoveOverride(existingOverride)}
-                              className="text-xs text-gray-600 hover:underline disabled:opacity-50"
+                              className="text-xs text-[var(--fg-muted)] hover:underline disabled:opacity-50"
                             >
                               {t('removeOverrideActionLabel')}
                             </button>
@@ -146,7 +146,7 @@ export function UserPermissionControlTable({
                               type="button"
                               disabled={pending}
                               onClick={() => onAllow(row.permission)}
-                              className="text-xs text-green-700 hover:underline disabled:opacity-50"
+                              className="text-xs text-[var(--success-text)] hover:underline disabled:opacity-50"
                             >
                               {t('allowOverrideActionLabel')}
                             </button>
@@ -156,7 +156,7 @@ export function UserPermissionControlTable({
                               type="button"
                               disabled={pending}
                               onClick={() => onDeny(row.permission)}
-                              className="text-xs text-red-700 hover:underline disabled:opacity-50"
+                              className="text-xs text-[var(--danger-text)] hover:underline disabled:opacity-50"
                             >
                               {t('denyOverrideActionLabel')}
                             </button>

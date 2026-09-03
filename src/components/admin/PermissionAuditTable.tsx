@@ -25,38 +25,38 @@ export function PermissionAuditTable({ entries, loading = false, compact = false
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-10 rounded border bg-gray-50 animate-pulse" />
+          <div key={i} className="h-10 rounded border bg-[var(--card-hover)] animate-pulse"/>
         ))}
       </div>
     )
   }
 
   if (entries.length === 0) {
-    return <p className="text-sm text-gray-500">{t('noPermissionAuditEntries')}</p>
+    return <p className="text-sm text-[var(--fg-muted)]">{t('noPermissionAuditEntries')}</p>
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 overflow-hidden overflow-x-auto">
+    <div className="rounded-lg border border-[var(--border)] overflow-hidden overflow-x-auto">
       <table className="w-full text-sm min-w-[640px]">
-        <thead className="bg-gray-50 border-b border-gray-200">
+        <thead className="bg-[var(--card-hover)] border-b border-[var(--border)]">
           <tr>
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('timeColumnLabel')}</th>
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('actorColumnLabel')}</th>
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('actionColumnLabel')}</th>
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('timeColumnLabel')}</th>
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('actorColumnLabel')}</th>
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('actionColumnLabel')}</th>
             {!compact && (
-              <th className="text-left px-4 py-2 font-medium text-gray-600">{t('membershipColumnLabel')}</th>
+              <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('membershipColumnLabel')}</th>
             )}
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('permissionColumnLabel')}</th>
-            <th className="text-left px-4 py-2 font-medium text-gray-600">{t('roleColumnLabel')}</th>
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('permissionColumnLabel')}</th>
+            <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('roleColumnLabel')}</th>
             {!compact && (
-              <th className="text-left px-4 py-2 font-medium text-gray-600">{t('metadataColumnLabel')}</th>
+              <th className="text-left px-4 py-2 font-medium text-[var(--fg-muted)]">{t('metadataColumnLabel')}</th>
             )}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-[var(--border)]">
           {entries.map((entry) => (
-            <tr key={entry.id} className="hover:bg-gray-50">
-              <td className="px-4 py-2 text-xs text-gray-500 whitespace-nowrap">
+            <tr key={entry.id} className="hover:bg-[var(--card-hover)]">
+              <td className="px-4 py-2 text-xs text-[var(--fg-muted)] whitespace-nowrap">
                 {formatWhen(entry.timestamp)}
               </td>
               <td className="px-4 py-2 text-xs">
@@ -64,14 +64,14 @@ export function PermissionAuditTable({ entries, loading = false, compact = false
               </td>
               <td className="px-4 py-2 text-xs font-medium">{entry.action}</td>
               {!compact && (
-                <td className="px-4 py-2 text-xs text-gray-500 font-mono">
+                <td className="px-4 py-2 text-xs text-[var(--fg-muted)] font-mono">
                   {entry.membershipId ?? '—'}
                 </td>
               )}
               <td className="px-4 py-2 text-xs font-mono">{entry.permission ?? '—'}</td>
               <td className="px-4 py-2 text-xs">{entry.role ?? '—'}</td>
               {!compact && (
-                <td className="px-4 py-2 text-xs text-gray-500 max-w-[200px] truncate">
+                <td className="px-4 py-2 text-xs text-[var(--fg-muted)] max-w-[200px] truncate">
                   {entry.metadata ? JSON.stringify(entry.metadata) : '—'}
                 </td>
               )}

@@ -25,14 +25,14 @@ interface QuickLink {
 
 function buildQuickLinks(exp: QRExperience): QuickLink[] {
   const links: QuickLink[] = []
-  if (exp.showMenu)         links.push({ href: '/menu',         labelKey: 'browseMenu',     icon: <UtensilsCrossed className="h-5 w-5" /> })
-  if (exp.showReservations) links.push({ href: '/reservation',  labelKey: 'reservations',   icon: <CalendarDays className="h-5 w-5" /> })
-  if (exp.showReviews)      links.push({ href: '/reviews',      labelKey: 'reviews',        icon: <Star className="h-5 w-5" /> })
-  if (exp.showLoyalty)      links.push({ href: '/loyalty',      labelKey: 'loyaltyRewards', icon: <Heart className="h-5 w-5" /> })
-  if (exp.showEvents)       links.push({ href: '/events',       labelKey: 'events',         icon: <Music className="h-5 w-5" /> })
-  if (exp.showVendors)      links.push({ href: '/vendors',      labelKey: 'vendors',        icon: <Store className="h-5 w-5" /> })
-  if (exp.showLocation)     links.push({ href: '/location',     labelKey: 'liveLocation',   icon: <Navigation className="h-5 w-5" /> })
-  if (exp.showPromotions)   links.push({ href: '/promotions',   labelKey: 'promotions',     icon: <Tag className="h-5 w-5" /> })
+  if (exp.showMenu)         links.push({ href: '/menu',         labelKey: 'browseMenu',     icon: <UtensilsCrossed className="h-5 w-5"/> })
+  if (exp.showReservations) links.push({ href: '/reservation',  labelKey: 'reservations',   icon: <CalendarDays className="h-5 w-5"/> })
+  if (exp.showReviews)      links.push({ href: '/reviews',      labelKey: 'reviews',        icon: <Star className="h-5 w-5"/> })
+  if (exp.showLoyalty)      links.push({ href: '/loyalty',      labelKey: 'loyaltyRewards', icon: <Heart className="h-5 w-5"/> })
+  if (exp.showEvents)       links.push({ href: '/events',       labelKey: 'events',         icon: <Music className="h-5 w-5"/> })
+  if (exp.showVendors)      links.push({ href: '/vendors',      labelKey: 'vendors',        icon: <Store className="h-5 w-5"/> })
+  if (exp.showLocation)     links.push({ href: '/location',     labelKey: 'liveLocation',   icon: <Navigation className="h-5 w-5"/> })
+  if (exp.showPromotions)   links.push({ href: '/promotions',   labelKey: 'promotions',     icon: <Tag className="h-5 w-5"/> })
   return links
 }
 
@@ -46,8 +46,8 @@ function QRExperienceQuickLinks({ experience }: { experience: QRExperience }) {
       <div className="grid grid-cols-2 gap-2">
         {links.map((link) => (
           <Link key={link.href} href={link.href}
-            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 text-sm text-[var(--fg)] hover:border-[var(--primary)] transition-colors">
-            <span className="text-[var(--primary)]">{link.icon}</span>
+            className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 text-sm text-[var(--fg)] hover:border-[var(--accent-border)] transition-colors">
+            <span className="text-[var(--accent-text)]">{link.icon}</span>
             <span>{t(link.labelKey)}</span>
           </Link>
         ))}
@@ -102,12 +102,12 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-5 px-4"
+          className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-active)] text-white py-5 px-4"
         >
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-                <UtensilsCrossed className="h-5 w-5" />
+                <UtensilsCrossed className="h-5 w-5"/>
               </div>
               <div>
                 <p className="font-semibold text-lg">
@@ -118,8 +118,8 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
               </div>
             </div>
             <Link href={`/checkout?orderType=dine_in&table=${tableNumber}`}>
-              <Button className="bg-white text-orange-600 hover:bg-orange-50 border-transparent shrink-0">
-                {t('checkout')} <ArrowRight className="h-4 w-4 ms-1" />
+              <Button className="bg-[var(--card)] text-[var(--accent-text)] hover:bg-[var(--accent-subtle)] border-transparent shrink-0">
+                {t('checkout')} <ArrowRight className="h-4 w-4 ms-1"/>
               </Button>
             </Link>
           </div>
@@ -135,34 +135,34 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
             {/* Table metadata */}
             {tableLoading ? (
               <div className="flex items-center justify-center gap-2 text-sm text-[var(--fg-muted)] mb-6">
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin"/>
                 <span>{t('loadingTableInfoEllipsis')}</span>
               </div>
             ) : tableInfo && (
               <div className="flex flex-wrap justify-center gap-3 mb-6">
                 {tableInfo.capacity && (
                   <div className="flex items-center gap-1.5 text-sm text-[var(--fg-muted)] bg-[var(--bg)] rounded-xl px-3 py-1.5">
-                    <Users className="h-3.5 w-3.5 text-orange-500" />
+                    <Users className="h-3.5 w-3.5 text-[var(--accent-text)]"/>
                     <span>{t('seatsCount', { count: tableInfo.capacity })}</span>
                   </div>
                 )}
                 {tableInfo.section && (
                   <div className="flex items-center gap-1.5 text-sm text-[var(--fg-muted)] bg-[var(--bg)] rounded-xl px-3 py-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-orange-500" />
+                    <MapPin className="h-3.5 w-3.5 text-[var(--accent-text)]"/>
                     <span>{tableInfo.section}</span>
                   </div>
                 )}
                 {tableInfo.server_name && (
                   <div className="flex items-center gap-1.5 text-sm text-[var(--fg-muted)] bg-[var(--bg)] rounded-xl px-3 py-1.5">
-                    <User className="h-3.5 w-3.5 text-orange-500" />
+                    <User className="h-3.5 w-3.5 text-[var(--accent-text)]"/>
                     <span>{t('serverLabel', { name: tableInfo.server_name })}</span>
                   </div>
                 )}
               </div>
             )}
 
-            <Link href="/menu" className="block">
-              <Button className="w-full" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
+            <Link href="/menu"className="block">
+              <Button className="w-full"size="lg"rightIcon={<ArrowRight className="h-4 w-4"/>}>
                 {t('browseMenu')}
               </Button>
             </Link>

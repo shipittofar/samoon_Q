@@ -6,7 +6,7 @@
  * `ConfigurationFieldRow` uses for `field.type` (P9.2). Status colors
  * (emerald/amber/red) are reserved for delta/state meaning only — value
  * text itself always stays neutral ink, per the dataviz skill's "text
- * wears text tokens, never the series color" rule.
+ * wears text tokens, never the series color"rule.
  */
 import { useTranslations } from 'next-intl'
 import { TrendingDown, TrendingUp } from 'lucide-react'
@@ -15,15 +15,15 @@ import { resolvePlatformAdminIcon } from '@/platform-admin/icon-map'
 import { resolveConfigText } from '@/config'
 
 const STATUS_DOT: Record<'operational' | 'degraded' | 'down', string> = {
-  operational: 'bg-emerald-500',
-  degraded: 'bg-amber-500',
-  down: 'bg-red-500',
+  operational: 'bg-[var(--success)]',
+  degraded: 'bg-[var(--warning)]',
+  down: 'bg-[var(--danger)]',
 }
 
 const STATUS_TEXT: Record<'operational' | 'degraded' | 'down', string> = {
-  operational: 'text-emerald-600 dark:text-emerald-400',
-  degraded: 'text-amber-600 dark:text-amber-400',
-  down: 'text-red-600 dark:text-red-400',
+  operational: 'text-[var(--success-text)]',
+  degraded: 'text-[var(--warning-text)]',
+  down: 'text-[var(--danger-text)]',
 }
 
 function formatStatValue(value: PlatformWidgetValue & { kind: 'stat' }): string {
@@ -40,9 +40,9 @@ export function PlatformDashboardWidgetCard({ widget }: { widget: PlatformWidget
   const title = resolveConfigText(tFields, widget.id, 'title', widget.title)
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4" data-widget-id={widget.id}>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4"data-widget-id={widget.id}>
       <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)]">
-        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+        <Icon className="h-3.5 w-3.5"aria-hidden="true"/>
         <span>{title}</span>
       </div>
 
@@ -53,8 +53,8 @@ export function PlatformDashboardWidgetCard({ widget }: { widget: PlatformWidget
             const isImprovement = value.higherIsBetter ? value.deltaPercent > 0 : value.deltaPercent < 0
             const Trend = value.deltaPercent > 0 ? TrendingUp : TrendingDown
             return (
-              <span className={`flex items-center gap-0.5 text-xs font-medium ${isImprovement ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                <Trend className="h-3 w-3" aria-hidden="true" />
+              <span className={`flex items-center gap-0.5 text-xs font-medium ${isImprovement ? 'text-[var(--success-text)]' : 'text-[var(--danger-text)]'}`}>
+                <Trend className="h-3 w-3"aria-hidden="true"/>
                 {Math.abs(value.deltaPercent)}%
               </span>
             )
@@ -64,7 +64,7 @@ export function PlatformDashboardWidgetCard({ widget }: { widget: PlatformWidget
 
       {value.kind === 'status' && (
         <div className="mt-2 flex items-center gap-2">
-          <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[value.state]}`} aria-hidden="true" />
+          <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_DOT[value.state]}`} aria-hidden="true"/>
           <span className={`text-sm font-medium ${STATUS_TEXT[value.state]}`}>{value.label}</span>
         </div>
       )}

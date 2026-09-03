@@ -65,12 +65,12 @@ export function ReviewsSection({
     <section aria-labelledby="reviews-heading">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6 flex-wrap">
-        <h2 id="reviews-heading" className="text-xl font-semibold text-[var(--fg)]">
+        <h2 id="reviews-heading"className="text-xl font-semibold text-[var(--fg)]">
           Customer Reviews
         </h2>
         {displayedCount > 0 && (
           <span className="flex items-center gap-1 text-sm text-[var(--fg-muted)]">
-            <Star className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
+            <Star className="w-4 h-4 text-[var(--rating)] fill-[var(--rating)]"aria-hidden="true"/>
             <strong className="text-[var(--fg)]">{displayedAvg.toFixed(1)}</strong>
             <span>· {displayedCount.toLocaleString()} reviews</span>
           </span>
@@ -79,7 +79,7 @@ export function ReviewsSection({
 
       {/* Breakdown + filters row */}
       <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-6 mb-8">
-        {breakdown && <RatingBreakdown breakdown={breakdown} className="sm:w-56 shrink-0" />}
+        {breakdown && <RatingBreakdown breakdown={breakdown} className="sm:w-56 shrink-0"/>}
 
         <div className="space-y-3">
           {/* Sort */}
@@ -106,7 +106,7 @@ export function ReviewsSection({
           {/* Quick filters */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-widest">
-              <Filter className="w-3 h-3 inline mr-1" aria-hidden="true" />
+              <Filter className="w-3 h-3 inline mr-1"aria-hidden="true"/>
               Filter:
             </span>
             <button
@@ -116,7 +116,7 @@ export function ReviewsSection({
               className={cn(
                 'px-3 py-1 rounded-full text-xs font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]',
                 filters.verified === true
-                  ? 'bg-emerald-600 text-white border-emerald-600'
+                  ? 'bg-[var(--success)] text-[var(--success-fg)] border-[var(--success)]'
                   : 'border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
               )}
             >
@@ -144,7 +144,7 @@ export function ReviewsSection({
                 className={cn(
                   'px-3 py-1 rounded-full text-xs font-medium border transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]',
                   filters.rating === star
-                    ? 'bg-amber-400 text-white border-amber-400'
+                    ? 'bg-[var(--rating)] text-[var(--rating-fg)] border-[var(--rating)]'
                     : 'border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
                 )}
               >
@@ -160,7 +160,7 @@ export function ReviewsSection({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             // eslint-disable-next-line react/no-array-index-key
-            <div key={i} className="h-48 rounded-2xl bg-[var(--card)] border border-[var(--border)] animate-pulse" aria-hidden="true" />
+            <div key={i} className="h-48 rounded-2xl bg-[var(--card)] border border-[var(--border)] animate-pulse"aria-hidden="true"/>
           ))}
         </div>
       ) : visible.length > 0 ? (
@@ -188,7 +188,7 @@ export function ReviewsSection({
                 onClick={() => setPage((p) => p + 1)}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
               >
-                <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                <ChevronDown className="w-4 h-4"aria-hidden="true"/>
                 Show more reviews ({reviews.length - visible.length} remaining)
               </button>
             </div>

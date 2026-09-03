@@ -19,17 +19,17 @@ import { useLocalizedNumber } from '@/i18n/hooks'
 import type { RichNotification, NotificationPriority } from '@/types/notification'
 
 const PRIORITY_ICON: Record<NotificationPriority, React.ReactNode> = {
-  low: <Info className="w-3.5 h-3.5 text-muted-foreground" />,
-  normal: <Info className="w-3.5 h-3.5 text-blue-500" />,
-  high: <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />,
-  urgent: <AlertCircle className="w-3.5 h-3.5 text-red-500" />,
+  low: <Info className="w-3.5 h-3.5 text-muted-foreground"/>,
+  normal: <Info className="w-3.5 h-3.5 text-[var(--info-text)]"/>,
+  high: <AlertTriangle className="w-3.5 h-3.5 text-[var(--rating)]"/>,
+  urgent: <AlertCircle className="w-3.5 h-3.5 text-[var(--danger-text)]"/>,
 }
 
 const PRIORITY_DOT: Record<NotificationPriority, string> = {
   low: 'bg-muted-foreground',
-  normal: 'bg-blue-500',
-  high: 'bg-amber-500',
-  urgent: 'bg-red-500',
+  normal: 'bg-[var(--info)]',
+  high: 'bg-[var(--warning)]',
+  urgent: 'bg-[var(--danger)]',
 }
 
 function timeAgo(iso: string, formatRelativeTime: ReturnType<typeof useLocalizedNumber>['formatRelativeTime']): string {
@@ -56,7 +56,7 @@ function NotifItem({ notification, onRead, onArchive, onClose }: NotifItemProps)
     <div
       className={cn(
         'group flex gap-3 px-4 py-3 hover:bg-muted/50 transition-colors border-b border-border last:border-0',
-        notification.status === 'unread' && 'bg-blue-50/30 dark:bg-blue-950/20',
+        notification.status === 'unread' && 'bg-[var(--info-subtle)]/30',
       )}
     >
       <div className="mt-1 flex-shrink-0">
@@ -78,7 +78,7 @@ function NotifItem({ notification, onRead, onArchive, onClose }: NotifItemProps)
             onClick={onClose}
             className="inline-flex items-center gap-1 mt-1 text-xs text-primary hover:underline"
           >
-            {t('view')} <ExternalLink className="w-3 h-3" />
+            {t('view')} <ExternalLink className="w-3 h-3"/>
           </Link>
         )}
       </div>
@@ -89,7 +89,7 @@ function NotifItem({ notification, onRead, onArchive, onClose }: NotifItemProps)
             title={t('markRead')}
             className="p-1 rounded hover:bg-muted"
           >
-            <Check className="w-3.5 h-3.5" />
+            <Check className="w-3.5 h-3.5"/>
           </button>
         )}
         <button
@@ -97,7 +97,7 @@ function NotifItem({ notification, onRead, onArchive, onClose }: NotifItemProps)
           title={t('archive')}
           className="p-1 rounded hover:bg-muted"
         >
-          <Archive className="w-3.5 h-3.5" />
+          <Archive className="w-3.5 h-3.5"/>
         </button>
       </div>
     </div>
@@ -145,12 +145,12 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
           open && 'bg-muted',
         )}
       >
-        <Bell className="w-5 h-5" />
+        <Bell className="w-5 h-5"/>
         {unreadCount > 0 && (
           <span
             className={cn(
               'absolute -top-0.5 -right-0.5 flex items-center justify-center text-[10px] font-bold text-white rounded-full min-w-[16px] h-4 px-0.5',
-              urgentCount > 0 ? 'bg-red-500' : 'bg-blue-500',
+              urgentCount > 0 ? 'bg-[var(--danger)]' : 'bg-[var(--info)]',
             )}
           >
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -170,15 +170,15 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4" />
+                <Bell className="w-4 h-4"/>
                 <span className="font-semibold text-sm">{t('title')}</span>
                 {unreadCount > 0 && (
-                  <Badge variant="info" className="text-xs">
+                  <Badge variant="info"className="text-xs">
                     {t('unreadCount', { count: unreadCount })}
                   </Badge>
                 )}
                 {urgentCount > 0 && (
-                  <Badge variant="danger" className="text-xs">
+                  <Badge variant="danger"className="text-xs">
                     {t('urgentCount', { count: urgentCount })}
                   </Badge>
                 )}
@@ -195,7 +195,7 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
                   </Button>
                 )}
                 <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-muted">
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4"/>
                 </button>
               </div>
             </div>
@@ -204,7 +204,7 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
             <div className="overflow-y-auto flex-1 scrollbar-thin">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Bell className="w-8 h-8 mb-2 opacity-30" />
+                  <Bell className="w-8 h-8 mb-2 opacity-30"/>
                   <p className="text-sm">{t('noUnreadNotifications')}</p>
                 </div>
               ) : (
@@ -227,7 +227,7 @@ export function NotificationBell({ tenantId, branchId, className }: Notification
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-center gap-1.5 text-sm text-primary hover:underline"
               >
-                {t('viewAllNotifications')} <ExternalLink className="w-3.5 h-3.5" />
+                {t('viewAllNotifications')} <ExternalLink className="w-3.5 h-3.5"/>
               </Link>
             </div>
           </motion.div>

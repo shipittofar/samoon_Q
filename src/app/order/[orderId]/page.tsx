@@ -27,9 +27,9 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-48 rounded-2xl" />
-          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-10 w-48"/>
+          <Skeleton className="h-48 rounded-2xl"/>
+          <Skeleton className="h-64 rounded-2xl"/>
         </div>
       </div>
     )
@@ -40,7 +40,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
       <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
         <Header />
         <div className="text-center">
-          <Package className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4" />
+          <Package className="h-12 w-12 text-[var(--fg-subtle)] mx-auto mb-4"/>
           <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">{t('orderNotFound')}</h2>
           <Link href="/dashboard/orders"><Button>{t('myOrders')}</Button></Link>
         </div>
@@ -56,7 +56,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
           {/* Back */}
           <div className="flex items-center gap-4 mb-8 pt-4">
             <Link href="/dashboard/orders">
-              <Button variant="ghost" size="icon-sm"><ArrowLeft className="h-4 w-4" /></Button>
+              <Button variant="ghost"size="icon-sm"><ArrowLeft className="h-4 w-4"/></Button>
             </Link>
             <div>
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{tOrder('orderNumber', { number: order.order_number })}</h1>
@@ -74,7 +74,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
               {order.status !== 'cancelled' && (
                 <Card>
                   <h2 className="font-semibold text-[var(--fg)] mb-6 flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-orange-500" /> {t('liveTracking')}
+                    <Clock className="h-4 w-4 text-[var(--accent-text)]"/> {t('liveTracking')}
                   </h2>
                   <OrderTracker
                     orderId={order.id}
@@ -93,7 +93,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                     {order.items.map((item) => (
                       <div key={item.id} className="flex gap-3 items-start">
                         <div className="relative h-14 w-14 rounded-xl overflow-hidden shrink-0">
-                          <Image src={item.menu_item.image} alt={item.menu_item.name} fill className="object-cover" sizes="56px" />
+                          <Image src={item.menu_item.image} alt={item.menu_item.name} fill className="object-cover"sizes="56px"/>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-[var(--fg)] truncate">{item.menu_item.name}</p>
@@ -123,13 +123,13 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                 <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderSummary')}</h2>
                 <div className="space-y-2.5 text-sm">
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('subtotal')}</span><span>{formatCurrency(order.subtotal || 0)}</span></div>
-                  {order.discount_amount > 0 && <div className="flex justify-between text-emerald-600"><span>{t('discount')}</span><span>−{formatCurrency(order.discount_amount)}</span></div>}
+                  {order.discount_amount > 0 && <div className="flex justify-between text-[var(--success-text)]"><span>{t('discount')}</span><span>−{formatCurrency(order.discount_amount)}</span></div>}
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('tax')}</span><span>{formatCurrency(order.tax || 0)}</span></div>
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{t('service')}</span><span>{formatCurrency(order.service_charge || 0)}</span></div>
                   <div className="flex justify-between font-bold text-[var(--fg)] text-base pt-2 border-t border-[var(--border)]">
                     <span>{t('total')}</span><span>{formatCurrency(order.total)}</span>
                   </div>
-                  <Button className="w-full" size="sm" variant="secondary">{t('printReceipt')}</Button>
+                  <Button className="w-full"size="sm"variant="secondary">{t('printReceipt')}</Button>
                 </div>
               </Card>
 
@@ -137,12 +137,12 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                 <h2 className="font-semibold text-[var(--fg)] mb-4">{t('deliveryInfo')}</h2>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-start gap-2 text-[var(--fg-muted)]">
-                    <Package className="h-4 w-4 mt-0.5 shrink-0 text-orange-500" />
+                    <Package className="h-4 w-4 mt-0.5 shrink-0 text-[var(--accent-text)]"/>
                     <span className="capitalize">{order.order_type?.replace('_', ' ')}</span>
                   </div>
                   {order.delivery_address && (
                     <div className="flex items-start gap-2 text-[var(--fg-muted)]">
-                      <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-orange-500" />
+                      <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-[var(--accent-text)]"/>
                       <span>
                         {order.delivery_address.formatted_address
                           ?? `${order.delivery_address.street}, ${order.delivery_address.city}`}
@@ -151,7 +151,7 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
                   )}
                   {order.table_number && (
                     <div className="flex items-center gap-2 text-[var(--fg-muted)]">
-                      <CheckCircle2 className="h-4 w-4 text-orange-500" />
+                      <CheckCircle2 className="h-4 w-4 text-[var(--accent-text)]"/>
                       <span>{t('tableNumber', { number: order.table_number })}</span>
                     </div>
                   )}
@@ -159,11 +159,11 @@ export default function OrderPage({ params }: { params: Promise<{ orderId: strin
               </Card>
               <div className="font-semibold text-[var(--fg)] mb-4">
                 <Link href="/menu">
-                  <Button className="w-full" variant="outline">{t('orderAgain')}</Button>
+                  <Button className="w-full"variant="outline">{t('orderAgain')}</Button>
                 </Link>
               </div>
               <Link href="/menu">
-                <Button className="w-full" variant="outline">{t('newOrder')}</Button>
+                <Button className="w-full"variant="outline">{t('newOrder')}</Button>
               </Link>
             </div>
           </div>

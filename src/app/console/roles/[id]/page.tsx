@@ -54,7 +54,7 @@ export default function RoleDetailPage({ params }: PageProps) {
 
     <ErrorBoundary feature="Role Permissions">
 
-      <PermissionGuard permission="rbac.manage_roles" fallback={<AccessDenied />}>
+      <PermissionGuard permission="rbac.manage_roles"fallback={<AccessDenied />}>
 
         <main className="p-6 space-y-6 max-w-4xl">
 
@@ -62,11 +62,11 @@ export default function RoleDetailPage({ params }: PageProps) {
 
             href="/console/roles"
 
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+            className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)]"
 
           >
 
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4"/>
 
             {t('backToRolesLabel')}
 
@@ -76,11 +76,11 @@ export default function RoleDetailPage({ params }: PageProps) {
 
           {isLoading ? (
 
-            <p className="text-sm text-gray-500">{t('loadingEllipsis')}</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('loadingEllipsis')}</p>
 
           ) : !role ? (
 
-            <p className="text-sm text-gray-500">{t('roleNotFound')}</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('roleNotFound')}</p>
 
           ) : (
 
@@ -90,13 +90,13 @@ export default function RoleDetailPage({ params }: PageProps) {
 
                 <div className="flex flex-wrap items-center gap-2">
 
-                  <h1 className="text-2xl font-bold text-gray-900">{role.name}</h1>
+                  <h1 className="text-2xl font-bold text-[var(--fg)]">{role.name}</h1>
 
                   {isSystemRole && (
 
-                    <span className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                    <span className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--card-hover)] text-[var(--fg-secondary)]">
 
-                      <Lock className="w-3 h-3" />
+                      <Lock className="w-3 h-3"/>
 
                       {t('systemRoleBadgeLabel')}
 
@@ -108,15 +108,15 @@ export default function RoleDetailPage({ params }: PageProps) {
 
                 {role.description && (
 
-                  <p className="text-sm text-gray-500">{role.description}</p>
+                  <p className="text-sm text-[var(--fg-muted)]">{role.description}</p>
 
                 )}
 
                 {readOnly && (
 
-                  <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                  <div className="flex items-start gap-2 rounded-lg border border-[var(--warning-border)] bg-[var(--warning-subtle)] p-3 text-sm text-[var(--warning-text)]">
 
-                    <Lock className="w-4 h-4 mt-0.5 shrink-0" />
+                    <Lock className="w-4 h-4 mt-0.5 shrink-0"/>
 
                     <span>{t('protectedSystemRoleReadOnlyHint')}</span>
 

@@ -57,7 +57,7 @@ export function ConfigurationFieldRow({
   const lastEntry = auditEntries[0]
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4" data-field-id={field.id}>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4"data-field-id={field.id}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -84,7 +84,7 @@ export function ConfigurationFieldRow({
             className="rounded-lg p-1.5 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
             title={t('auditHistoryAndDetailsAria')}
           >
-            <History className="h-3.5 w-3.5" />
+            <History className="h-3.5 w-3.5"/>
           </button>
           {isDirty && (
             <button
@@ -94,7 +94,7 @@ export function ConfigurationFieldRow({
               className="rounded-lg p-1.5 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
               title={t('resetToSavedValueTitle')}
             >
-              <RotateCcw className="h-3.5 w-3.5" />
+              <RotateCcw className="h-3.5 w-3.5"/>
             </button>
           )}
         </div>
@@ -125,10 +125,10 @@ export function ConfigurationFieldRow({
           </p>
         )}
         {field.validation?.warningMessage && (
-          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{field.validation.warningMessage}</p>
+          <p className="mt-1 text-xs text-[var(--warning-text)]">{field.validation.warningMessage}</p>
         )}
         {!validation.valid && (
-          <p className="mt-1 text-xs text-red-500" role="alert">
+          <p className="mt-1 text-xs text-[var(--danger-text)]"role="alert">
             {field.validation?.errorMessage ?? validation.errors[0]?.message}
           </p>
         )}

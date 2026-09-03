@@ -121,7 +121,7 @@ export default function AdminMenuPage() {
     // resolution state machine is 'ready' with a real selectedBranch.
     // adminBranchId alone already encodes that (see its derivation
     // above), but branchState/selectedBranch are checked explicitly too
-    // so this guard doesn't silently depend on adminBranchId's specific
+    // so this guard doesn't silently depend on adminBranchId' s specific
     // implementation staying in sync.
     if (branchState !== 'ready' || !selectedBranch || !adminBranchId) return
     createMutation.mutate(menuItemFormToWriteRequest(createForm), {
@@ -193,7 +193,7 @@ export default function AdminMenuPage() {
 
   return (
 
-    <PermissionGuard permission="menu.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="menu.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminMenu">
     <div className="min-h-screen bg-[var(--bg)]">
       <div className="pt-20 pb-16">
@@ -209,26 +209,26 @@ export default function AdminMenuPage() {
               <p className="text-[var(--fg-muted)] mt-1">{t('menuPageSubtitle')}</p>
             </div>
             <div className="flex items-center gap-2">
-              <PreviewButton href="/menu" label={t('previewMenu')} size="sm" />
-              <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate} disabled={!adminBranchId}>{t('addItem')}</Button>
+              <PreviewButton href="/menu"label={t('previewMenu')} size="sm"/>
+              <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={openCreate} disabled={!adminBranchId}>{t('addItem')}</Button>
             </div>
           </div>
 
           {/* Filters */}
           <div className="flex flex-wrap gap-3 mb-6">
             <div className="relative flex-1 min-w-48">
-              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"/>
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('searchItemsPlaceholder')}
-                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
               />
             </div>
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => setCategoryFilter('all')}
-                className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${categoryFilter === 'all' ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
+                className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${categoryFilter === 'all' ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50'}`}
               >
                 {t('allCategories')}
               </button>
@@ -238,7 +238,7 @@ export default function AdminMenuPage() {
                   <button
                     key={cat.id}
                     onClick={() => setCategoryFilter(cat.id)}
-                    className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${categoryFilter === cat.id ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
+                    className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${categoryFilter === cat.id ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50'}`}
                   >
                     {cat.icon} {cat.name}
                   </button>
@@ -252,19 +252,19 @@ export default function AdminMenuPage() {
               useMenuItems() itself and only ever run once branchState === 'ready'. */}
           {branchState === 'loading' && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin"/>
               <span className="text-sm">{t('loadingBranchesEllipsis')}</span>
             </div>
           )}
           {branchState === 'error' && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <AlertCircle className="h-8 w-8 text-red-400" />
+              <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
               <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadBranches')}</p>
             </div>
           )}
           {branchState === 'empty' && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <AlertCircle className="h-8 w-8 text-[var(--fg-muted)]" />
+              <AlertCircle className="h-8 w-8 text-[var(--fg-muted)]"/>
               <p className="text-sm text-[var(--fg-muted)]">{t('selectBranchToManageMenu')}</p>
             </div>
           )}
@@ -272,7 +272,7 @@ export default function AdminMenuPage() {
           {/* Loading */}
           {branchState === 'ready' && itemsLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin"/>
               <span className="text-sm">{t('loadingMenu')}</span>
             </div>
           )}
@@ -280,9 +280,9 @@ export default function AdminMenuPage() {
           {/* Error */}
           {branchState === 'ready' && itemsError && !itemsLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <AlertCircle className="h-8 w-8 text-red-400" />
+              <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
               <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadMenuItems')}</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>{tCommon('retry')}</Button>
+              <Button variant="secondary"size="sm"onClick={() => refetch()}>{tCommon('retry')}</Button>
             </div>
           )}
 
@@ -303,35 +303,35 @@ export default function AdminMenuPage() {
                       className={`bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden ${!item.is_active ? 'opacity-60' : ''}`}
                     >
                       <div className="relative h-36">
-                        <Image src={item.image} alt={item.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        <Image src={item.image} alt={item.name} fill className="object-cover"sizes="(max-width: 768px) 100vw, 25vw"/>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"/>
                         <div className="absolute top-2 start-2 flex flex-col gap-1">
-                          {item.is_featured && <Badge variant="default" className="text-[10px]">{t('featured')}</Badge>}
-                          {item.is_popular && <Badge variant="warning" className="text-[10px]">{t('popular')}</Badge>}
-                          {item.discount && <Badge variant="danger" className="text-[10px]">{t('percentOff', { percent: item.discount })}</Badge>}
+                          {item.is_featured && <Badge variant="default"className="text-[10px]">{t('featured')}</Badge>}
+                          {item.is_popular && <Badge variant="warning"className="text-[10px]">{t('popular')}</Badge>}
+                          {item.discount && <Badge variant="danger"className="text-[10px]">{t('percentOff', { percent: item.discount })}</Badge>}
                         </div>
                         <div className="absolute top-2 end-2 flex gap-1">
                           <button
                             onClick={() => toggleAvailable(item)}
                             disabled={isUpdating}
-                            className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all shadow ${item.available ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'} disabled:opacity-50`}
+                            className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all shadow ${item.available ? 'bg-[var(--success)] text-[var(--danger-fg)]' : 'bg-[var(--danger)] text-[var(--danger-fg)]'} disabled:opacity-50`}
                             title={item.available ? t('markUnavailable') : t('markAvailable')}
                             aria-label={item.available ? t('markUnavailable') : t('markAvailable')}
                           >
                             {isTogglingAvailable
-                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              : item.available ? <CircleCheck className="h-3.5 w-3.5" /> : <CircleX className="h-3.5 w-3.5" />}
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin"/>
+                              : item.available ? <CircleCheck className="h-3.5 w-3.5"/> : <CircleX className="h-3.5 w-3.5"/>}
                           </button>
                           <button
                             onClick={() => toggleActive(item)}
                             disabled={isUpdating}
-                            className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all shadow ${item.is_active ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'} disabled:opacity-50`}
+                            className={`h-7 w-7 rounded-lg flex items-center justify-center transition-all shadow ${item.is_active ? 'bg-[var(--success)] text-[var(--danger-fg)]' : 'bg-[var(--danger)] text-[var(--danger-fg)]'} disabled:opacity-50`}
                             title={item.is_active ? t('markHidden') : t('markPublished')}
                             aria-label={item.is_active ? t('markHidden') : t('markPublished')}
                           >
                             {isTogglingActive
-                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              : item.is_active ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin"/>
+                              : item.is_active ? <Eye className="h-3.5 w-3.5"/> : <EyeOff className="h-3.5 w-3.5"/>}
                           </button>
                         </div>
                       </div>
@@ -349,29 +349,29 @@ export default function AdminMenuPage() {
                         {item.tags && item.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-2">
                             {item.tags.map((tag) => (
-                              <MenuTagBadge key={tag.id} tag={tag} className="text-[10px]" />
+                              <MenuTagBadge key={tag.id} tag={tag} className="text-[10px]"/>
                             ))}
                           </div>
                         )}
                         <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)] mb-3">
-                          <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-amber-400 fill-amber-400" />{item.rating}</span>
-                          <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" />{item.preparation_time}m</span>
-                          {item.calories && <span className="flex items-center gap-0.5"><Flame className="h-3 w-3" />{item.calories}</span>}
+                          <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-[var(--rating)] fill-[var(--rating)]"/>{item.rating}</span>
+                          <span className="flex items-center gap-0.5"><Clock className="h-3 w-3"/>{item.preparation_time}m</span>
+                          {item.calories && <span className="flex items-center gap-0.5"><Flame className="h-3 w-3"/>{item.calories}</span>}
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-[var(--fg)]">{formatCurrency(item.price)}</span>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="icon-sm" onClick={() => openEdit(item)} aria-label={t('editItemAria')}>
-                              <Edit2 className="h-3.5 w-3.5" />
+                            <Button variant="ghost"size="icon-sm"onClick={() => openEdit(item)} aria-label={t('editItemAria')}>
+                              <Edit2 className="h-3.5 w-3.5"/>
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon-sm"
                               onClick={() => openDelete(item)}
-                              className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                              className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"
                               aria-label={t('deleteItemAria')}
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <Trash2 className="h-3.5 w-3.5"/>
                             </Button>
                           </div>
                         </div>
@@ -422,17 +422,17 @@ export default function AdminMenuPage() {
           onCreateCategory={() => openCategoryCreate('create')}
         />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
           <Button
             onClick={submitCreate}
             disabled={createMutation.isPending}
             className="flex-1"
           >
-            {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('addItem')}
+            {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addItem')}
           </Button>
         </div>
         {createMutation.isError && (
-          <p className="text-sm text-red-500 mt-2">{t('failedToCreateItemRetry')}</p>
+          <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToCreateItemRetry')}</p>
         )}
       </Modal>
 
@@ -454,17 +454,17 @@ export default function AdminMenuPage() {
           onCreateCategory={() => openCategoryCreate('edit')}
         />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
           <Button
             onClick={submitEdit}
             disabled={updateMutation.isPending}
             className="flex-1"
           >
-            {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('saveChanges')}
+            {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
           </Button>
         </div>
         {updateMutation.isError && (
-          <p className="text-sm text-red-500 mt-2">{t('failedToSaveChangesRetry')}</p>
+          <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToSaveChangesRetry')}</p>
         )}
       </Modal>
 
@@ -479,17 +479,17 @@ export default function AdminMenuPage() {
           {t('confirmDeleteItem', { name: deleteTarget?.name ?? '' })}
         </p>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => setDeleteOpen(false)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setDeleteOpen(false)} className="flex-1">{t('cancel')}</Button>
           <Button
             onClick={confirmDelete}
             disabled={deleteMutation.isPending}
-            className="flex-1 bg-red-500 hover:bg-red-600 border-red-500"
+            className="flex-1 bg-[var(--danger)] hover:bg-[var(--danger-hover)] border-[var(--danger)]"
           >
-            {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('deleteAction')}
+            {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('deleteAction')}
           </Button>
         </div>
         {deleteMutation.isError && (
-          <p className="text-sm text-red-500 mt-2">{t('failedToDeleteItemRetry')}</p>
+          <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToDeleteItemRetry')}</p>
         )}
       </Modal>
 
@@ -553,13 +553,13 @@ function MenuItemFormFields({
           <Input label={t('itemNameLabel')} value={form.name} onChange={set('name')} />
         </div>
         <div className="col-span-2">
-          <label htmlFor="menu-category" className="block text-sm font-medium text-[var(--fg)] mb-1">{t('category')}</label>
+          <label htmlFor="menu-category"className="block text-sm font-medium text-[var(--fg)] mb-1">{t('category')}</label>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <select
               id="menu-category"
               value={form.category_id}
               onChange={set('category_id')}
-              className="flex-1 min-w-0 h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+              className="flex-1 min-w-0 h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
             >
               <option value="">{t('selectCategoryEllipsis')}</option>
               {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -577,10 +577,10 @@ function MenuItemFormFields({
             )}
           </div>
         </div>
-        <Input label={t('priceDollarLabel')} type="number" value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">$</span>} />
-        <Input label={t('discountPercentSignLabel')} type="number" value={form.discount} onChange={set('discount')} />
-        <Input label={t('caloriesLabel')} type="number" value={form.calories} onChange={set('calories')} />
-        <Input label={t('prepTimeMinLabel')} type="number" value={form.preparation_time} onChange={set('preparation_time')} />
+        <Input label={t('priceDollarLabel')} type="number"value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">$</span>} />
+        <Input label={t('discountPercentSignLabel')} type="number"value={form.discount} onChange={set('discount')} />
+        <Input label={t('caloriesLabel')} type="number"value={form.calories} onChange={set('calories')} />
+        <Input label={t('prepTimeMinLabel')} type="number"value={form.preparation_time} onChange={set('preparation_time')} />
       </div>
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
       <MenuTagMultiSelect
@@ -596,19 +596,19 @@ function MenuItemFormFields({
       />
       <div className="flex flex-wrap gap-6">
         <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-          <input type="checkbox" checked={form.available} onChange={set('available')} className="rounded" />
+          <input type="checkbox"checked={form.available} onChange={set('available')} className="rounded"/>
           {t('available')}
         </label>
         <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-          <input type="checkbox" checked={form.is_active} onChange={set('is_active')} className="rounded" />
+          <input type="checkbox"checked={form.is_active} onChange={set('is_active')} className="rounded"/>
           {t('publishedOnMenu')}
         </label>
         <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-          <input type="checkbox" checked={form.is_featured} onChange={set('is_featured')} className="rounded" />
+          <input type="checkbox"checked={form.is_featured} onChange={set('is_featured')} className="rounded"/>
           {t('featured')}
         </label>
         <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-          <input type="checkbox" checked={form.is_popular} onChange={set('is_popular')} className="rounded" />
+          <input type="checkbox"checked={form.is_popular} onChange={set('is_popular')} className="rounded"/>
           {t('popular')}
         </label>
       </div>
@@ -628,7 +628,7 @@ function MenuItemFormFields({
                   type="button"
                   onClick={() => toggleExtraGroup(group.id)}
                   aria-pressed={selected}
-                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${selected ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${selected ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50'}`}
                 >
                   {group.name}
                 </button>
@@ -640,7 +640,7 @@ function MenuItemFormFields({
         {assignedGroups.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             <span className="text-xs text-[var(--fg-muted)]">{t('assignedGroupsPreview')}</span>
-            {assignedGroups.map((g) => <Badge key={g.id} variant="secondary" className="text-[10px]">{g.name}</Badge>)}
+            {assignedGroups.map((g) => <Badge key={g.id} variant="secondary"className="text-[10px]">{g.name}</Badge>)}
           </div>
         )}
       </div>

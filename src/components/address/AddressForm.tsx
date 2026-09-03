@@ -143,17 +143,17 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6" noValidate>
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6"noValidate>
       {!profileReady && (
         <div
-          className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-4 py-3"
+          className="flex items-start gap-3 rounded-xl border border-[var(--warning-border)] bg-[var(--warning-subtle)] px-4 py-3"
           role="alert"
         >
-          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <AlertCircle className="h-5 w-5 text-[var(--warning-text)] shrink-0 mt-0.5"/>
           <div className="text-sm">
-            <p className="font-medium text-amber-800 dark:text-amber-200">{t('profileIncompleteTitle')}</p>
-            <p className="text-amber-700 dark:text-amber-300 mt-0.5">{t('profileIncomplete')}</p>
-            <Link href="/dashboard/settings" className="text-orange-600 hover:underline text-xs font-medium mt-1 inline-block">
+            <p className="font-medium text-[var(--warning-text)]">{t('profileIncompleteTitle')}</p>
+            <p className="text-[var(--warning-text)] mt-0.5">{t('profileIncomplete')}</p>
+            <Link href="/dashboard/settings"className="text-[var(--accent-text)] hover:underline text-xs font-medium mt-1 inline-block">
               {t('goToSettings')}
             </Link>
           </div>
@@ -163,7 +163,7 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
       <FormSection title={t('sections.required')} description={t('sections.requiredDesc')}>
         <div>
           <p className="text-sm font-medium text-[var(--fg)] mb-2">
-            {t('addressType')}<span className="text-orange-500 ml-1">*</span>
+            {t('addressType')}<span className="text-[var(--accent-text)] ml-1">*</span>
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {typeOptions.map((opt) => (
@@ -262,12 +262,12 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
             <textarea
               {...register('delivery_notes')}
               rows={2}
-              className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
               placeholder={t('deliveryNotesPlaceholder')}
             />
           </div>
           <label className="flex items-center gap-2 text-sm text-[var(--fg-muted)] cursor-pointer">
-            <input type="checkbox" {...register('is_default')} className="rounded border-[var(--border)]" />
+            <input type="checkbox" {...register('is_default')} className="rounded border-[var(--border)]"/>
             {t('setAsDefault')}
           </label>
         </div>
@@ -275,7 +275,7 @@ export function AddressForm({ initial, onSubmit, onCancel, loading, submitLabel 
 
       <div className="flex gap-3 pt-2 border-t border-[var(--border)]">
         {onCancel && (
-          <Button type="button" variant="secondary" onClick={onCancel} className="flex-1" disabled={loading}>
+          <Button type="button"variant="secondary"onClick={onCancel} className="flex-1"disabled={loading}>
             {tCommon('cancel')}
           </Button>
         )}

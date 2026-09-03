@@ -45,7 +45,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href={`/${tenantSlug}`} className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-[var(--accent-active)] flex items-center justify-center shadow">
                 <span className="text-white text-sm font-bold">
                   {tenantName.charAt(0).toUpperCase()}
                 </span>
@@ -73,9 +73,9 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={t('instagram')}
-                    className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--fg-muted)] hover:text-orange-500 hover:bg-[var(--card-hover)] transition-all"
+                    className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--fg-muted)] hover:text-[var(--accent-text)] hover:bg-[var(--card-hover)] transition-all"
                   >
-                    <Instagram className="h-4 w-4" />
+                    <Instagram className="h-4 w-4"/>
                   </a>
                 )}
                 {meta.socialLinks?.twitter && (
@@ -84,9 +84,9 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={t('twitterX')}
-                    className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--fg-muted)] hover:text-orange-500 hover:bg-[var(--card-hover)] transition-all"
+                    className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--fg-muted)] hover:text-[var(--accent-text)] hover:bg-[var(--card-hover)] transition-all"
                   >
-                    <Twitter className="h-4 w-4" />
+                    <Twitter className="h-4 w-4"/>
                   </a>
                 )}
               </div>
@@ -99,7 +99,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
             <ul className="space-y-3 text-sm text-[var(--fg-muted)]">
               {quickLinks.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="hover:text-orange-500 transition-colors">
+                  <Link href={link.href} className="hover:text-[var(--accent-text)] transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -114,7 +114,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
               <ul className="space-y-3">
                 {meta.city && (
                   <li className="flex items-start gap-2 text-sm text-[var(--fg-muted)]">
-                    <MapPin className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                    <MapPin className="h-4 w-4 text-[var(--accent-text)] shrink-0 mt-0.5"/>
                     {meta.city}
                   </li>
                 )}
@@ -122,9 +122,9 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                   <li>
                     <a
                       href={`tel:${meta.phone_number}`}
-                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors"
+                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
                     >
-                      <Phone className="h-4 w-4 text-orange-500 shrink-0" />
+                      <Phone className="h-4 w-4 text-[var(--accent-text)] shrink-0"/>
                       {meta.phone_number}
                     </a>
                   </li>
@@ -133,9 +133,9 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                   <li>
                     <a
                       href={`mailto:${meta.email}`}
-                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors"
+                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
                     >
-                      <Mail className="h-4 w-4 text-orange-500 shrink-0" />
+                      <Mail className="h-4 w-4 text-[var(--accent-text)] shrink-0"/>
                       {meta.email}
                     </a>
                   </li>
@@ -146,9 +146,9 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
                       href={meta.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors"
+                      className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
                     >
-                      <Globe className="h-4 w-4 text-orange-500 shrink-0" />
+                      <Globe className="h-4 w-4 text-[var(--accent-text)] shrink-0"/>
                       {meta.website.replace(/^https?:\/\//, '')}
                     </a>
                   </li>
@@ -165,7 +165,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
           </p>
           <p className="text-xs text-[var(--fg-subtle)]">
             {t('poweredBy')}{' '}
-            <Link href="/" className="hover:text-orange-500 transition-colors">
+            <Link href="/"className="hover:text-[var(--accent-text)] transition-colors">
               {t('samoonPlatform')}
             </Link>
           </p>

@@ -35,8 +35,8 @@ const STATUS_CONFIG: Record<
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-lg border p-5">
-      <h2 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">{title}</h2>
+    <div className="bg-[var(--card)] rounded-lg border p-5">
+      <h2 className="text-sm font-semibold text-[var(--fg-secondary)] mb-4 uppercase tracking-wide">{title}</h2>
       {children}
     </div>
   )
@@ -45,8 +45,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 py-2 border-b last:border-0 text-sm">
-      <Icon className="w-4 h-4 text-gray-400 shrink-0" />
-      <span className="text-gray-500 w-32 shrink-0">{label}</span>
+      <Icon className="w-4 h-4 text-[var(--fg-subtle)] shrink-0"/>
+      <span className="text-[var(--fg-muted)] w-32 shrink-0">{label}</span>
       <span className="font-medium">{value}</span>
     </div>
   )
@@ -58,8 +58,8 @@ function ReservationDetailContent({ id }: { id: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 gap-2 text-gray-500 text-sm">
-        <Loader2 className="w-4 h-4 animate-spin" />
+      <div className="flex items-center justify-center h-64 gap-2 text-[var(--fg-muted)] text-sm">
+        <Loader2 className="w-4 h-4 animate-spin"/>
         {t('loadingReservation')}
       </div>
     )
@@ -68,9 +68,9 @@ function ReservationDetailContent({ id }: { id: string }) {
   if (isError || !reservation) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-2">
-        <XCircle className="w-8 h-8 text-red-400" />
-        <p className="text-sm text-gray-600">{t('reservationNotFoundOrFailedToLoad')}</p>
-        <Link href="/console/reservations" className="text-sm text-blue-600 hover:underline">
+        <XCircle className="w-8 h-8 text-[var(--danger-text)]"/>
+        <p className="text-sm text-[var(--fg-muted)]">{t('reservationNotFoundOrFailedToLoad')}</p>
+        <Link href="/console/reservations"className="text-sm text-[var(--info-text)] hover:underline">
           {t('backToReservations')}
         </Link>
       </div>
@@ -81,18 +81,18 @@ function ReservationDetailContent({ id }: { id: string }) {
   const statusLabel = statusCfg ? t(statusCfg.labelKey) : reservation.status
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--card-hover)]">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-[var(--card)] border-b sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Link href="/console/reservations" className="text-gray-400 hover:text-gray-700">
-            <ArrowLeft className="w-5 h-5" />
+          <Link href="/console/reservations"className="text-[var(--fg-subtle)] hover:text-[var(--fg)]">
+            <ArrowLeft className="w-5 h-5"/>
           </Link>
           <div className="flex items-center gap-3 flex-1">
             <h1 className="text-lg font-semibold">{t('breadcrumbs.reservation')}</h1>
             <Badge variant={statusCfg?.badge ?? 'info'}>{statusLabel}</Badge>
           </div>
-          <span className="text-xs text-gray-400">{new Date(reservation.created_at).toLocaleString()}</span>
+          <span className="text-xs text-[var(--fg-subtle)]">{new Date(reservation.created_at).toLocaleString()}</span>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ function ReservationDetailContent({ id }: { id: string }) {
           <InfoRow icon={Hash} label={t('reservationTableHeaders.branch')} value={reservation.branch?.name ?? reservation.branch_id} />
           {reservation.confirmation_code && (
             <InfoRow icon={CheckCircle} label={t('confirmation')} value={
-              <span className="font-mono text-green-700">{reservation.confirmation_code}</span>
+              <span className="font-mono text-[var(--success-text)]">{reservation.confirmation_code}</span>
             } />
           )}
           {reservation.notes && (
@@ -119,8 +119,8 @@ function ReservationDetailContent({ id }: { id: string }) {
           <InfoRow icon={Phone} label={t('phone_number')} value={reservation.phone_number} />
           {reservation.email && <InfoRow icon={Mail} label={t('email')} value={reservation.email} />}
           {reservation.user && (
-            <div className="mt-3 pt-3 border-t text-xs text-gray-500">
-              <Link href={`/console/customers/${reservation.user.id}`} className="text-blue-600 hover:underline">
+            <div className="mt-3 pt-3 border-t text-xs text-[var(--fg-muted)]">
+              <Link href={`/console/customers/${reservation.user.id}`} className="text-[var(--info-text)] hover:underline">
                 {t('viewCustomerProfileArrow')}
               </Link>
             </div>
@@ -131,9 +131,9 @@ function ReservationDetailContent({ id }: { id: string }) {
         <div className="text-center">
           <Link
             href={`/console/audit-logs?resource=reservation&resourceId=${reservation.id}`}
-            className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
+            className="text-xs text-[var(--info-text)] hover:underline inline-flex items-center gap-1"
           >
-            <Hash className="w-3 h-3" />
+            <Hash className="w-3 h-3"/>
             {t('viewAuditLogsForThisReservation')}
           </Link>
         </div>
@@ -146,7 +146,7 @@ export default function ReservationDetailPage({ params }: { params: Promise<{ id
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Reservation Detail">
-      <PermissionGuard permission="reservations.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="reservations.view"fallback={<AccessDenied />}>
         <ReservationDetailContent id={id} />
       </PermissionGuard>
     </ErrorBoundary>

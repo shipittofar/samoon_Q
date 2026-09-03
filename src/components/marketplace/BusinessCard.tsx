@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
@@ -11,6 +11,7 @@ import { type MarketplaceMeta, type PublicBranchInfo, BUSINESS_TYPE_LABELS } fro
 import { usePublicBranches } from '@/hooks'
 import { BranchPreview } from './BranchPreview'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
+import { deriveBrandTokens, isValidHexColor } from '@/lib/brand-color'
 import { getDiscoverCardPrimaryCta } from '@/lib/discover-card-cta'
 
 interface BusinessCardProps {
@@ -23,9 +24,9 @@ interface BusinessCardProps {
 
 function StatusBadge({ meta }: { meta: MarketplaceMeta }) {
   const t = useTranslations('marketplace')
-  if (meta.featured) return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-500 text-white">{t('featured')}</span>
-  if (meta.isNew)    return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500 text-white">{t('new')}</span>
-  if (meta.popular)  return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500 text-white">{t('popular')}</span>
+  if (meta.featured) return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--accent)] text-[var(--accent-fg)]">{t('featured')}</span>
+  if (meta.isNew)    return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--success)] text-[var(--success-fg)]">{t('new')}</span>
+  if (meta.popular)  return <span className="absolute top-3 right-3 text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--info)] text-[var(--info-fg)]">{t('popular')}</span>
   return null
 }
 
@@ -54,7 +55,21 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
   const visibleBranches = branches.filter((b) => b.marketplaceVisible !== false)
 
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? t(`businessTypes.${bt}`) : bt)).join(' · ')
-  const accentColor = resolveTenantBranding({ settings: tenant.settings })?.primaryColor
+  // Each card shows a different business, so the global --accent (the active
+  // tenant's) does not apply. Derive this tenant' s own contrast-safe pair for
+  // both themes and let .brand-chip pick — otherwise a dark brand colour makes
+  // the tile vanish in dark mode and a pale one makes the initial unreadable.
+  const chipStyle = useMemo(() => {
+    const primary = resolveTenantBranding({ settings: tenant.settings })?.primaryColor
+    if (!isValidHexColor(primary)) return undefined
+    const { light, dark } = deriveBrandTokens(primary)
+    return {
+      '--chip-accent-light': light.accent,
+      '--chip-accent-fg-light': light.accentFg,
+      '--chip-accent-dark': dark.accent,
+      '--chip-accent-fg-dark': dark.accentFg,
+    } as CSSProperties
+  }, [tenant.settings])
   const discoverAvatar = tenant.discoverAvatar
   const featureFlags = tenant.settings?.featureFlags ?? {}
   const hasReservations =
@@ -95,7 +110,7 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-950/30 dark:to-stone-900 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-[var(--accent-subtle)] to-[var(--card-hover)] flex items-center justify-center">
             <span className="text-4xl opacity-40">🍽️</span>
           </div>
         )}
@@ -103,7 +118,7 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
           <span
             className={cn(
               'absolute top-3 left-3 text-xs font-semibold px-2 py-0.5 rounded-full',
-              meta.openNow ? 'bg-emerald-500/90 text-white' : 'bg-gray-800/80 text-gray-200',
+              meta.openNow ? 'bg-[var(--success)]/90 text-[var(--success-fg)]' : 'bg-[var(--card)]/80 text-[var(--fg-disabled)]',
             )}
           >
             {meta.openNow ? t('openNow') : t('closed')}
@@ -117,13 +132,13 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
         {/* Logo + name + price */}
         <div className="flex items-start gap-3 mb-2">
           <div
-            className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-sm overflow-hidden"
-            style={{ background: accentColor ?? 'var(--accent)' }}
+            className="brand-chip h-10 w-10 shrink-0 rounded-xl flex items-center justify-center font-bold text-base shadow-sm overflow-hidden"
+            style={chipStyle}
             aria-hidden="true"
           >
             {discoverAvatar ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={discoverAvatar} alt="" className="h-full w-full object-cover" />
+              <img src={discoverAvatar} alt=""className="h-full w-full object-cover"/>
             ) : (
               tenant.name[0]
             )}
@@ -145,21 +160,21 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
         {/* Stats row */}
         <div className="flex items-center gap-3 text-xs text-[var(--fg-subtle)] mb-3 flex-wrap">
           {meta.rating !== undefined && (
-            <span className="flex items-center gap-1" aria-label={t('ratingAria', { rating: meta.rating })}>
-              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" aria-hidden="true" />
+            <span className="flex items-center gap-1"aria-label={t('ratingAria', { rating: meta.rating })}>
+              <Star className="w-3.5 h-3.5 text-[var(--rating)] fill-[var(--rating)]"aria-hidden="true"/>
               <span className="font-medium text-[var(--fg-muted)]">{meta.rating.toFixed(1)}</span>
               <span>({(meta.reviewCount ?? 0).toLocaleString()})</span>
             </span>
           )}
           {meta.city && (
             <span className="flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
+              <MapPin className="w-3.5 h-3.5"aria-hidden="true"/>
               {meta.city}
             </span>
           )}
           {(meta.branchCount ?? 0) > 0 && (
-            <span className="flex items-center gap-1" aria-label={t('locationsCount', { count: meta.branchCount ?? 0 })}>
-              <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="flex items-center gap-1"aria-label={t('locationsCount', { count: meta.branchCount ?? 0 })}>
+              <MapPin className="w-3.5 h-3.5"aria-hidden="true"/>
               {t('locationsCount', { count: meta.branchCount ?? 0 })}
             </span>
           )}
@@ -167,22 +182,22 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
 
         {/* Service badges (amenities are branch-owned — not shown on tenant cards) */}
         {(hasReservations || hasLoyalty) && (
-          <div className="flex flex-wrap gap-1 mb-3" role="list" aria-label={t('featuresAndAmenitiesAria')}>
+          <div className="flex flex-wrap gap-1 mb-3"role="list"aria-label={t('featuresAndAmenitiesAria')}>
             {hasReservations && (
               <span
                 role="listitem"
-                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
+                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[var(--info-subtle)] text-[var(--info-text)] border border-[var(--info-border)]"
               >
-                <Calendar className="w-2.5 h-2.5" aria-hidden="true" />
+                <Calendar className="w-2.5 h-2.5"aria-hidden="true"/>
                 {t('reservations')}
               </span>
             )}
             {hasLoyalty && (
               <span
                 role="listitem"
-                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800"
+                className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[var(--chart-5)]/10 text-[var(--chart-5)] border border-[var(--chart-5)]/30"
               >
-                <Award className="w-2.5 h-2.5" aria-hidden="true" />
+                <Award className="w-2.5 h-2.5"aria-hidden="true"/>
                 {t('loyalty')}
               </span>
             )}
@@ -207,8 +222,8 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
               className="text-sm font-medium px-3 py-2 rounded-xl border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors flex items-center gap-1.5"
             >
               {branchesOpen
-                ? <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
-                : <ChevronDown className="w-3.5 h-3.5" aria-hidden="true" />}
+                ? <ChevronUp className="w-3.5 h-3.5"aria-hidden="true"/>
+                : <ChevronDown className="w-3.5 h-3.5"aria-hidden="true"/>}
               {t('branches')}
             </button>
           ) : (

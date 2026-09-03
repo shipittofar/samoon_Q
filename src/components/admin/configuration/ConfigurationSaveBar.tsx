@@ -4,8 +4,8 @@
  * ConfigurationSaveBar — P9.3 Phase G (Framework Improvement)
  *
  * Extracted from ConfigurationModulePage (P9.1.3 Phase J) unchanged in
- * markup/behavior, so existing tests asserting on "N unsaved change(s)" /
- * "Save Changes" / "Discard" keep passing — this is a pure extraction plus
+ * markup/behavior, so existing tests asserting on "N unsaved change(s)"/
+ * "Save Changes"/ "Discard" keep passing — this is a pure extraction plus
  * a keyboard-shortcut hint, not a redesign. Any future module's page (or
  * the Studio shell wrapping it) reuses this exact component; nothing here
  * references a specific module.
@@ -43,19 +43,19 @@ export function ConfigurationSaveBar({
               value={reason}
               onChange={(e) => onReasonChange(e.target.value)}
               placeholder={t('reasonPlaceholder')}
-              className="w-64 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+              className="w-64 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
             />
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={onDiscard} disabled={isSaving}>
+          <Button variant="secondary"size="sm"onClick={onDiscard} disabled={isSaving}>
             {t('discard')}
           </Button>
           <Button
             size="sm"
             onClick={onSave}
             disabled={isSaving}
-            leftIcon={isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            leftIcon={isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <Save className="h-3.5 w-3.5"/>}
           >
             {isSaving ? t('saving') : t('saveChanges')}
             <span className="ms-1.5 hidden rounded border border-white/30 px-1 text-[10px] font-normal opacity-80 sm:inline">⌘S</span>

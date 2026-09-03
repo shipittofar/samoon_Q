@@ -68,7 +68,7 @@ export function AdminHeader() {
       {/* Skip-to-content — WCAG 2.4.1 Level A */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--accent)] focus:text-[var(--accent-fg)] focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
       >
         {tHeader('skipToMainContent')}
       </a>
@@ -89,7 +89,7 @@ export function AdminHeader() {
                 <span className="text-white text-sm font-bold">S</span>
               </div>
               <div className="flex flex-col leading-tight">
-                <span className="text-sm font-bold text-[var(--fg)] group-hover:text-orange-500 transition-colors">
+                <span className="text-sm font-bold text-[var(--fg)] group-hover:text-[var(--accent-text)] transition-colors">
                   {'Samoon ' + ' | ' + tenantDisplayName || 'Samoon'}
                 </span>
                 {/* <span className="text-[10px] font-medium text-[var(--fg-muted)] uppercase tracking-wider">
@@ -100,7 +100,7 @@ export function AdminHeader() {
 
             {IS_MOCK && (
               <span
-                className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--warning-subtle)] text-[var(--warning-text)] border border-[var(--warning-border)]"
                 title={t('mockModeTitle')}
               >
                 {t('mockBadge')}
@@ -119,7 +119,7 @@ export function AdminHeader() {
                 aria-label={t('changeLanguageAria')}
                 className={cn(isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
               >
-                <Globe className="h-4 w-4" />
+                <Globe className="h-4 w-4"/>
               </Button>
               <AnimatePresence>
                 {langMenuOpen && (
@@ -137,7 +137,7 @@ export function AdminHeader() {
                         className={cn(
                           'flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-start transition-colors',
                           locale === lang.code
-                            ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
+                            ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                             : 'hover:bg-[var(--card-hover)] text-[var(--fg)]',
                         )}
                       >
@@ -158,7 +158,7 @@ export function AdminHeader() {
               className="h-9 w-9 flex items-center justify-center rounded-xl text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
               aria-label={t('switchToThemeAria', { theme: nextTheme })}
             >
-              <ThemeIcon className="h-4 w-4" />
+              <ThemeIcon className="h-4 w-4"/>
             </button>
 
             <PlatformAdminNavLink />
@@ -169,7 +169,7 @@ export function AdminHeader() {
               className="hidden sm:flex h-9 items-center gap-1.5 px-3 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
               aria-label={tenantDisplayName ? t('viewPublicSiteAria', { name: tenantDisplayName }) : t('openPublicWebsiteAria')}
             >
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="h-3.5 w-3.5"/>
               <span className="hidden md:inline">{t('publicSite')}</span>
             </Link>
 

@@ -6,10 +6,10 @@ import type { OperationsEvent, OperationsScope, OperationsEventPriority } from '
 import { useOperationsStream } from '@/hooks'
 
 const PRIORITY_BADGE: Record<OperationsEventPriority, string> = {
-  low: 'bg-blue-100 text-blue-700',
-  normal: 'bg-gray-100 text-gray-600',
-  high: 'bg-orange-100 text-orange-700',
-  critical: 'bg-red-100 text-red-800 font-semibold',
+  low: 'bg-[var(--info-subtle)] text-[var(--info-text)]',
+  normal: 'bg-[var(--card-hover)] text-[var(--fg-muted)]',
+  high: 'bg-[var(--accent-subtle)] text-[var(--accent-text)]',
+  critical: 'bg-[var(--danger-subtle)] text-[var(--danger-text)] font-semibold',
 }
 
 const PRIORITY_KEY: Record<OperationsEventPriority, string> = {
@@ -103,21 +103,21 @@ function ActivityItem({ event }: ActivityItemProps) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{label}</span>
           {deepLink ? (
-            <Link href={deepLink} className="text-xs text-blue-600 hover:underline">
+            <Link href={deepLink} className="text-xs text-[var(--info-text)] hover:underline">
               {t('viewArrow')}
             </Link>
           ) : null}
         </div>
         {event.actor && (
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-[var(--fg-muted)]">
             {tNotifications('byActor', { name: event.actor.name })}
           </div>
         )}
         {event.scope.branchId && (
-          <div className="text-xs text-gray-400">{t('branchIdLabel', { id: event.scope.branchId })}</div>
+          <div className="text-xs text-[var(--fg-subtle)]">{t('branchIdLabel', { id: event.scope.branchId })}</div>
         )}
       </div>
-      <div className="flex-shrink-0 text-xs text-gray-400">{timeStr}</div>
+      <div className="flex-shrink-0 text-xs text-[var(--fg-subtle)]">{timeStr}</div>
     </div>
   )
 }
@@ -131,19 +131,19 @@ export function ActivityFeed({ scope, limit = 50 }: ActivityFeedProps) {
   const t = useTranslations('console')
   const { data: events = [], isLoading, isError } = useOperationsStream(scope, limit)
 
-  if (isLoading) return <div className="text-sm text-gray-500 p-4">{t('loadingActivity')}</div>
-  if (isError) return <div className="text-sm text-red-500 p-4">{t('failedToLoadActivityFeed')}</div>
+  if (isLoading) return <div className="text-sm text-[var(--fg-muted)] p-4">{t('loadingActivity')}</div>
+  if (isError) return <div className="text-sm text-[var(--danger-text)] p-4">{t('failedToLoadActivityFeed')}</div>
 
   const sorted = [...events].sort(
     (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
   )
 
   if (sorted.length === 0) {
-    return <div className="text-sm text-gray-400 italic p-4 text-center">{t('noRecentActivity')}</div>
+    return <div className="text-sm text-[var(--fg-subtle)] italic p-4 text-center">{t('noRecentActivity')}</div>
   }
 
   return (
-    <div className="divide-y divide-gray-100">
+    <div className="divide-y divide-[var(--border)]">
       {sorted.map((event) => (
         <ActivityItem key={event.id} event={event} />
       ))}

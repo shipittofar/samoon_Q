@@ -71,7 +71,7 @@ export function ProductDetailModifiers({
                 </p>
               )}
             </div>
-            <div className="space-y-2" role={group.selection_type === 'single' ? 'radiogroup' : undefined}>
+            <div className="space-y-2"role={group.selection_type === 'single' ? 'radiogroup' : undefined}>
               {groupExtras.map((extra) => {
                 const selected = selectedExtras.some((e) => e.id === extra.id)
                 return (
@@ -93,7 +93,7 @@ export function ProductDetailModifiers({
 
       {ungrouped.length > 0 && (
         <section aria-labelledby="legacy-extras-heading">
-          <h2 id="legacy-extras-heading" className="text-base font-semibold text-[var(--fg)] mb-3">
+          <h2 id="legacy-extras-heading"className="text-base font-semibold text-[var(--fg)] mb-3">
             {addExtrasLabel}
           </h2>
           <div className="space-y-2">
@@ -115,7 +115,7 @@ export function ProductDetailModifiers({
       )}
 
       {validationError && (
-        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+        <p className="text-sm text-[var(--danger-text)]"role="alert">
           {validationError}
         </p>
       )}

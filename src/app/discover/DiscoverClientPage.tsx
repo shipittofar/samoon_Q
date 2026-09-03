@@ -131,7 +131,7 @@ function EmptyState({
   return (
     <div className="py-16">
       <div className="flex flex-col items-center text-center mb-10">
-        <SearchX className="w-12 h-12 text-[var(--fg-muted)] mb-4" aria-hidden="true" />
+        <SearchX className="w-12 h-12 text-[var(--fg-muted)] mb-4"aria-hidden="true"/>
         <h3 className="text-lg font-semibold text-[var(--fg)] mb-2">{t('noBusinessesFound')}</h3>
         <p className="text-[var(--fg-muted)] text-sm max-w-sm mb-6">
           {query && category
@@ -342,7 +342,7 @@ export function DiscoverClientPage() {
       <main id="main-content">
         {/* ── Hero — C1: reduced vertical padding so cards appear closer to fold ── */}
         <section
-          className="relative bg-gradient-to-br from-orange-50 via-white to-orange-50 dark:from-stone-900 dark:via-stone-950 dark:to-stone-900 border-b border-[var(--border)] py-10 px-4"
+          className="relative bg-gradient-to-br from-[var(--accent-subtle)] via-[var(--bg-secondary)] to-[var(--accent-subtle)] border-b border-[var(--border)] py-10 px-4"
           aria-labelledby="discover-heading"
         >
           <div className="max-w-4xl mx-auto text-center">
@@ -403,17 +403,17 @@ export function DiscoverClientPage() {
 
           {/* Error state */}
           {isError && (
-            <div className="py-20 text-center" role="alert">
-              <Store className="w-12 h-12 text-[var(--fg-muted)] mx-auto mb-4" aria-hidden="true" />
+            <div className="py-20 text-center"role="alert">
+              <Store className="w-12 h-12 text-[var(--fg-muted)] mx-auto mb-4"aria-hidden="true"/>
               <p className="text-[var(--fg-muted)]">{t('errorLoad')}</p>
             </div>
           )}
 
           {/* Loading state */}
           {isLoading && (
-            <div aria-live="polite" aria-busy="true">
+            <div aria-live="polite"aria-busy="true">
               <div className="flex items-center gap-2 text-[var(--fg-muted)] mb-6">
-                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                <Loader2 className="w-4 h-4 animate-spin"aria-hidden="true"/>
                 <span className="sr-only">{t('loadingBusinesses')}</span>
               </div>
               <LoadingSkeleton />
@@ -422,7 +422,7 @@ export function DiscoverClientPage() {
 
           {/* Results */}
           {!isLoading && !isError && (
-            <div aria-live="polite" aria-atomic="false">
+            <div aria-live="polite"aria-atomic="false">
               {isFiltering ? (
                 /* ── Filtered view ── */
                 <>
@@ -458,14 +458,14 @@ export function DiscoverClientPage() {
                 /* H3: SortBar removed from discovery mode — it only affects "All Businesses"
                    at the bottom and misleads users into thinking it reorders the curated sections above. */
                 <>
-                  <Section title={t('sectionFeatured')} items={featured} icon={<Sparkles className="w-5 h-5 text-orange-400" />} />
-                  <Section title={t('sectionPopular')} items={popular} icon={<Flame className="w-5 h-5 text-red-400" />} />
+                  <Section title={t('sectionFeatured')} items={featured} icon={<Sparkles className="w-5 h-5 text-[var(--accent-text)]"/>} />
+                  <Section title={t('sectionPopular')} items={popular} icon={<Flame className="w-5 h-5 text-[var(--danger-text)]"/>} />
                   <Section title={t('sectionNewlyOpened')} items={newest} icon={<span>🆕</span>} />
-                  <Section title={t('sectionTopRated')} items={topRated} icon={<Star className="w-5 h-5 text-amber-400" />} />
+                  <Section title={t('sectionTopRated')} items={topRated} icon={<Star className="w-5 h-5 text-[var(--rating)]"/>} />
                   <Section title={t('sectionFamilyFriendly')} items={familyFriendly} icon={<span>👨‍👩‍👧</span>} />
                   <Section title={t('sectionCoffeeShops')} items={coffeeShops} icon={<span>☕</span>} />
 
-                  <section aria-labelledby="all-businesses-heading" className="mb-12">
+                  <section aria-labelledby="all-businesses-heading"className="mb-12">
                     <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[var(--border)]">
                       <h2
                         id="all-businesses-heading"
@@ -475,7 +475,7 @@ export function DiscoverClientPage() {
                       </h2>
                       <span className="text-sm text-[var(--fg-muted)] ml-auto">{t('listedCount', { count: allWithMeta.length })}</span>
                     </div>
-                    {/* Sort bar only inside "All Businesses" section where it is accurate */}
+                    {/* Sort bar only inside "All Businesses"section where it is accurate */}
                     {allWithMeta.length > 0 && (
                       <div className="mb-5">
                         <SortBar

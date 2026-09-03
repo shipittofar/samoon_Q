@@ -30,8 +30,8 @@ import type { AnalyticsSummary } from '@/types/analytics'
 function Delta({ pct }: { pct: number }) {
   const up = pct >= 0
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${up ? 'text-green-600' : 'text-red-500'}`}>
-      {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${up ? 'text-[var(--success-text)]' : 'text-[var(--danger-text)]'}`}>
+      {up ? <TrendingUp className="h-3 w-3"/> : <TrendingDown className="h-3 w-3"/>}
       {Math.abs(pct).toFixed(1)}%
     </span>
   )
@@ -53,13 +53,13 @@ function KpiCard({
   onToggle?: () => void
 }) {
   const inner = (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:bg-[var(--card-hover)]">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 transition-colors hover:bg-[var(--card-hover)]">
       <div className="flex items-start justify-between gap-2">
         <p className="text-sm text-[var(--fg-muted)]">{label}</p>
         {expandable && (
           expanded
-            ? <ChevronUp className="h-4 w-4 text-[var(--fg-muted)] shrink-0" />
-            : <ChevronDown className="h-4 w-4 text-[var(--fg-muted)] shrink-0" />
+            ? <ChevronUp className="h-4 w-4 text-[var(--fg-muted)] shrink-0"/>
+            : <ChevronDown className="h-4 w-4 text-[var(--fg-muted)] shrink-0"/>
         )}
       </div>
       <p className="text-2xl font-bold text-[var(--fg)] mt-1">{value}</p>
@@ -67,7 +67,7 @@ function KpiCard({
     </div>
   )
   if (!expandable) return inner
-  return <button className="text-left w-full" onClick={onToggle}>{inner}</button>
+  return <button className="text-left w-full"onClick={onToggle}>{inner}</button>
 }
 
 function SectionHeader({ title }: { title: string }) {
@@ -81,7 +81,7 @@ function LoadingPlaceholder() {
 
 function DrillDownPanel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 mt-3">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 mt-3">
       {children}
     </div>
   )
@@ -98,7 +98,7 @@ function RevenueSection() {
   if (!data) return null
 
   return (
-    <div className="space-y-3" aria-label={t('revenueAnalyticsAria')}>
+    <div className="space-y-3"aria-label={t('revenueAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard
           label={t('totalRevenue')} value={`$${data.totalRevenue.toLocaleString()}`}
@@ -152,13 +152,13 @@ function ReservationsSection() {
   if (!data) return null
 
   const statusBreakdown = [
-    { label: t('statusUpcoming'),  count: data.upcomingReservations,  color: 'bg-blue-400' },
-    { label: t('statusCancelled'), count: data.cancelledReservations, color: 'bg-red-400'  },
-    { label: t('statusCompleted'), count: data.totalReservations - data.upcomingReservations - data.cancelledReservations, color: 'bg-green-400' },
+    { label: t('statusUpcoming'),  count: data.upcomingReservations,  color: 'bg-[var(--info)]' },
+    { label: t('statusCancelled'), count: data.cancelledReservations, color: 'bg-[var(--danger)]'  },
+    { label: t('statusCompleted'), count: data.totalReservations - data.upcomingReservations - data.cancelledReservations, color: 'bg-[var(--success)]' },
   ]
 
   return (
-    <div className="space-y-3" aria-label={t('reservationAnalyticsAria')}>
+    <div className="space-y-3"aria-label={t('reservationAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard
           label={t('totalReservationsLabel')} value={data.totalReservations.toLocaleString()}
@@ -186,7 +186,7 @@ function ReservationsSection() {
             {t('tableOccupancyRatio', { occupied: data.tablesOccupied, total: data.tablesTotal })}
           </p>
           <div className="h-2 rounded-full bg-[var(--border)] overflow-hidden mb-4">
-            <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${data.occupancyRate}%` }} />
+            <div className="h-full bg-[var(--accent)] rounded-full"style={{ width: `${data.occupancyRate}%` }} />
           </div>
           <p className="text-xs text-[var(--fg-muted)] mb-2">{t('dailyReservations30Days')}</p>
           <Sparkline data={data.dailyReservations} height={40} aria-label={t('dailyReservationsSparklineAria')} />
@@ -207,7 +207,7 @@ function LoyaltySection() {
   if (!data) return null
 
   return (
-    <div className="space-y-3" aria-label={t('loyaltyAnalyticsAria')}>
+    <div className="space-y-3"aria-label={t('loyaltyAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard label={t('totalMembers')} value={data.totalMembers.toLocaleString()} />
         <KpiCard
@@ -261,7 +261,7 @@ function PromotionsSection() {
   if (!data) return null
 
   return (
-    <div className="space-y-3" aria-label={t('promotionAnalyticsAria')}>
+    <div className="space-y-3"aria-label={t('promotionAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard label={t('totalPromotions')} value={data.totalPromotions.toString()} />
         <KpiCard label={t('activePromotions')} value={data.activePromotions.toString()} />
@@ -314,7 +314,7 @@ function VendorsSection() {
   if (!data) return null
 
   return (
-    <div className="space-y-4" aria-label={t('vendorAnalyticsAria')}>
+    <div className="space-y-4"aria-label={t('vendorAnalyticsAria')}>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <KpiCard label={t('totalVendorsLabel')} value={data.totalVendors.toString()} />
         <KpiCard label={t('activeVendorsLabel')} value={data.activeVendors.toString()} />
@@ -322,7 +322,7 @@ function VendorsSection() {
         <KpiCard label={t('totalCommission')} value={`$${data.totalCommission.toLocaleString()}`} />
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--border)] bg-[var(--bg)]">
@@ -365,13 +365,13 @@ function MenuSection() {
   }
 
   return (
-    <div className="space-y-4" aria-label={t('menuPerformanceAnalyticsAria')}>
+    <div className="space-y-4"aria-label={t('menuPerformanceAnalyticsAria')}>
       <div className="grid grid-cols-2 gap-3">
         <KpiCard label={t('totalItemsSold')} value={data.totalItemsSold.toLocaleString()} />
         <KpiCard label={t('menuRevenue')} value={`$${data.totalMenuRevenue.toLocaleString()}`} />
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
         <div className="flex border-b border-[var(--border)]">
           {(['top', 'slow', 'category'] as const).map((tabKey) => (
             <button
@@ -379,7 +379,7 @@ function MenuSection() {
               onClick={() => setTab(tabKey)}
               className={`px-4 py-2.5 text-sm font-medium transition-colors ${
                 tab === tabKey
-                  ? 'border-b-2 border-[var(--primary)] text-[var(--primary)]'
+                  ? 'border-b-2 border-[var(--accent-border)] text-[var(--accent-text)]'
                   : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'
               }`}
             >
@@ -483,7 +483,7 @@ function ComparisonSection() {
   const { current, previous, isLoading } = useAnalyticsComparison(period)
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5" aria-label={t('periodComparisonAria')}>
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5"aria-label={t('periodComparisonAria')}>
       <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
         <h3 className="text-sm font-semibold text-[var(--fg)]">{t('periodComparison')}</h3>
         <div className="flex gap-1 flex-wrap">
@@ -493,7 +493,7 @@ function ComparisonSection() {
               onClick={() => setPeriod(p)}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
                 period === p
-                  ? 'bg-[var(--primary)] text-white'
+                  ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                   : 'text-[var(--fg-muted)] hover:text-[var(--fg)]'
               }`}
             >
@@ -526,7 +526,7 @@ function ComparisonSection() {
                     {t('prevColonValue', { value: prev !== null ? format(prev) : '—' })}
                   </p>
                   {delta !== null && (
-                    <p className={`text-xs font-medium mt-1 ${isUp ? 'text-green-600' : 'text-red-500'}`}>
+                    <p className={`text-xs font-medium mt-1 ${isUp ? 'text-[var(--success-text)]' : 'text-[var(--danger-text)]'}`}>
                       {isUp ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%
                     </p>
                   )}
@@ -557,7 +557,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <ErrorBoundary feature="Analytics">
-    <PermissionGuard permission="analytics.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="analytics.view"fallback={<AccessDenied />}>
     <main className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div className="flex items-center gap-3">
@@ -566,7 +566,7 @@ export default function AdminAnalyticsPage() {
             <span className="text-xs text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</span>
           )}
           {branchState === 'error' && (
-            <span className="text-xs text-red-600 dark:text-red-400">{t('failedToLoadBranches')}</span>
+            <span className="text-xs text-[var(--danger-text)]">{t('failedToLoadBranches')}</span>
           )}
           {(branchState === 'ready' || branchState === 'empty') && (
             <BranchContextIndicator branchId={selectedBranch?.id} branchName={selectedBranch?.name} />
@@ -576,7 +576,7 @@ export default function AdminAnalyticsPage() {
           {branchState === 'ready' && selectedBranch && (
             <Link
               href={`/console/branches/${selectedBranch.id}/analytics`}
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-[var(--info-text)] hover:underline"
             >
               {t('viewBranchAnalyticsArrow')}
             </Link>

@@ -12,10 +12,10 @@ import { Button } from '@/components/ui/Button'
 import type { Notification, NotificationType } from '@/types'
 
 const TYPE_CONFIG: Record<NotificationType, { icon: React.ElementType; color: string; label: string }> = {
-  order_update: { icon: Package, color: 'text-blue-500', label: 'Order' },
-  reservation_update: { icon: Calendar, color: 'text-purple-500', label: 'Reservation' },
-  promotion: { icon: Tag, color: 'text-orange-500', label: 'Promotion' },
-  system: { icon: Info, color: 'text-gray-500', label: 'System' },
+  order_update: { icon: Package, color: 'text-[var(--info-text)]', label: 'Order' },
+  reservation_update: { icon: Calendar, color: 'text-[var(--chart-5)]', label: 'Reservation' },
+  promotion: { icon: Tag, color: 'text-[var(--accent-text)]', label: 'Promotion' },
+  system: { icon: Info, color: 'text-[var(--fg-muted)]', label: 'System' },
 }
 
 function NotificationItem({ notification, onRead }: { notification: Notification; onRead: (id: string) => void }) {
@@ -30,10 +30,10 @@ function NotificationItem({ notification, onRead }: { notification: Notification
       onClick={() => !notification.is_read && onRead(notification.id)}
       className={cn(
         'flex gap-3 p-4 cursor-pointer hover:bg-[var(--card-hover)] transition-colors border-b border-[var(--border)] last:border-0',
-        !notification.is_read && 'bg-orange-50/50 dark:bg-orange-950/10',
+        !notification.is_read && 'bg-[var(--accent-subtle)]/50',
       )}
     >
-      <div className={cn('h-9 w-9 rounded-full bg-[var(--card-hover)] flex items-center justify-center shrink-0', !notification.is_read && 'bg-orange-100 dark:bg-orange-950/30')}>
+      <div className={cn('h-9 w-9 rounded-full bg-[var(--card-hover)] flex items-center justify-center shrink-0', !notification.is_read && 'bg-[var(--accent-subtle)]')}>
         <Icon className={cn('h-4 w-4', color)} />
       </div>
       <div className="flex-1 min-w-0">
@@ -42,7 +42,7 @@ function NotificationItem({ notification, onRead }: { notification: Notification
             {notification.title}
           </p>
           {!notification.is_read && (
-            <span className="h-2 w-2 rounded-full bg-orange-500 shrink-0 mt-1" />
+            <span className="h-2 w-2 rounded-full bg-[var(--accent)] shrink-0 mt-1"/>
           )}
         </div>
         <p className="text-xs text-[var(--fg-muted)] line-clamp-2 mt-0.5">{notification.message}</p>
@@ -88,7 +88,7 @@ export function NotificationCenter() {
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <Bell className="h-4 w-4" />
+        <Bell className="h-4 w-4"/>
         <AnimatePresence>
           {unreadCount > 0 && (
             <motion.span
@@ -96,7 +96,7 @@ export function NotificationCenter() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center px-1"
+              className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] text-[10px] font-bold flex items-center justify-center px-1"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </motion.span>
@@ -120,11 +120,11 @@ export function NotificationCenter() {
               <h3 className="font-semibold text-[var(--fg)]">
                 {t('title')}
                 {unreadCount > 0 && (
-                  <Badge variant="default" className="ms-2">{unreadCount}</Badge>
+                  <Badge variant="default"className="ms-2">{unreadCount}</Badge>
                 )}
               </h3>
               {unreadCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={handleMarkAllRead} leftIcon={<CheckCheck className="h-3.5 w-3.5" />}>
+                <Button variant="ghost"size="sm"onClick={handleMarkAllRead} leftIcon={<CheckCheck className="h-3.5 w-3.5"/>}>
                   {t('markAllRead')}
                 </Button>
               )}
@@ -134,7 +134,7 @@ export function NotificationCenter() {
             <div className="max-h-96 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-3 py-12 text-center px-4">
-                  <Bell className="h-8 w-8 text-[var(--fg-subtle)]" />
+                  <Bell className="h-8 w-8 text-[var(--fg-subtle)]"/>
                   <p className="text-sm text-[var(--fg-muted)]">{t('noNotificationsYet')}</p>
                 </div>
               ) : (

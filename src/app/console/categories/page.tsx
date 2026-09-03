@@ -127,7 +127,7 @@ export default function AdminCategoriesPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <PermissionGuard permission="category.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="category.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminCategories">
     <div className="min-h-screen bg-[var(--bg)]">
       <div className="pt-20 pb-16">
@@ -145,7 +145,7 @@ export default function AdminCategoriesPage() {
               </p>
             </div>
             {canCreate && (
-              <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate} disabled={!adminBranchId}>
+              <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={openCreate} disabled={!adminBranchId}>
                 {t('addCategory')}
               </Button>
             )}
@@ -154,19 +154,19 @@ export default function AdminCategoriesPage() {
           {/* Branch resolution state — distinct copy per state, never collapsed together */}
           {branchState === 'loading' && (
             <EmptyState
-              icon={<Loader2 className="h-8 w-8 animate-spin" />}
+              icon={<Loader2 className="h-8 w-8 animate-spin"/>}
               title={t('loadingBranchesEllipsis')}
             />
           )}
           {branchState === 'error' && (
             <EmptyState
-              icon={<AlertCircle className="h-8 w-8" />}
+              icon={<AlertCircle className="h-8 w-8"/>}
               title={t('failedToLoadBranches')}
             />
           )}
           {branchState === 'empty' && (
             <EmptyState
-              icon={<Layers className="h-8 w-8" />}
+              icon={<Layers className="h-8 w-8"/>}
               title={t('selectBranchToManageCategories')}
               description={t('categoryPageNoBranchHint')}
             />
@@ -175,12 +175,12 @@ export default function AdminCategoriesPage() {
           {/* Search */}
           {branchState === 'ready' && adminBranchId && (
             <div className="relative max-w-sm mb-6">
-              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"/>
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('searchCategoriesPlaceholder')}
-                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
               />
             </div>
           )}
@@ -188,7 +188,7 @@ export default function AdminCategoriesPage() {
           {/* Loading */}
           {adminBranchId && isLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin"/>
               <span className="text-sm">{t('loadingCategories')}</span>
             </div>
           )}
@@ -196,16 +196,16 @@ export default function AdminCategoriesPage() {
           {/* Error */}
           {adminBranchId && isError && !isLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <AlertCircle className="h-8 w-8 text-red-400" />
+              <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
               <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadCategories')}</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>{tCommon('retry')}</Button>
+              <Button variant="secondary"size="sm"onClick={() => refetch()}>{tCommon('retry')}</Button>
             </div>
           )}
 
           {/* Empty (no categories at all for this branch) */}
           {adminBranchId && !isLoading && !isError && allCategories.length === 0 && (
             <EmptyState
-              icon={<Layers className="h-8 w-8" />}
+              icon={<Layers className="h-8 w-8"/>}
               title={t('noCategoriesFound')}
               description={t('noCategoriesHint')}
               action={canCreate ? <Button onClick={openCreate}>{t('addCategory')}</Button> : undefined}
@@ -214,7 +214,7 @@ export default function AdminCategoriesPage() {
 
           {/* Empty (search yields nothing) */}
           {adminBranchId && !isLoading && !isError && allCategories.length > 0 && filtered.length === 0 && (
-            <EmptyState icon={<Search className="h-8 w-8" />} title={t('noCategoriesMatchSearch')} />
+            <EmptyState icon={<Search className="h-8 w-8"/>} title={t('noCategoriesMatchSearch')} />
           )}
 
           {/* List */}
@@ -244,7 +244,7 @@ export default function AdminCategoriesPage() {
                               className="text-[var(--fg-muted)] hover:text-[var(--fg)] disabled:opacity-30"
                               aria-label={t('moveUpAria', { name: category.name })}
                             >
-                              <ArrowUp className="h-3.5 w-3.5" />
+                              <ArrowUp className="h-3.5 w-3.5"/>
                             </button>
                             <button
                               onClick={() => move(category, 1)}
@@ -252,7 +252,7 @@ export default function AdminCategoriesPage() {
                               className="text-[var(--fg-muted)] hover:text-[var(--fg)] disabled:opacity-30"
                               aria-label={t('moveDownAria', { name: category.name })}
                             >
-                              <ArrowDown className="h-3.5 w-3.5" />
+                              <ArrowDown className="h-3.5 w-3.5"/>
                             </button>
                           </div>
                         )}
@@ -277,8 +277,8 @@ export default function AdminCategoriesPage() {
                       >
                         <Badge variant={category.is_active ? 'success' : 'secondary'}>
                           {category.is_active
-                            ? <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" />{t('active')}</span>
-                            : <span className="inline-flex items-center gap-1"><EyeOff className="h-3 w-3" />{t('inactive')}</span>}
+                            ? <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3"/>{t('active')}</span>
+                            : <span className="inline-flex items-center gap-1"><EyeOff className="h-3 w-3"/>{t('inactive')}</span>}
                         </Badge>
                       </button>
                     </TableCell>
@@ -286,8 +286,8 @@ export default function AdminCategoriesPage() {
                     <TableCell>
                       <div className="flex gap-1">
                         {canUpdate && (
-                          <Button variant="ghost" size="icon-sm" onClick={() => openEdit(category)} aria-label={t('editCategoryAria')}>
-                            <Edit2 className="h-3.5 w-3.5" />
+                          <Button variant="ghost"size="icon-sm"onClick={() => openEdit(category)} aria-label={t('editCategoryAria')}>
+                            <Edit2 className="h-3.5 w-3.5"/>
                           </Button>
                         )}
                         {canDelete && (
@@ -295,10 +295,10 @@ export default function AdminCategoriesPage() {
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => openDelete(category)}
-                            className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                            className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"
                             aria-label={t('deleteCategoryAria')}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-3.5 w-3.5"/>
                           </Button>
                         )}
                       </div>
@@ -327,13 +327,13 @@ export default function AdminCategoriesPage() {
       >
         <CategoryFormFields form={editForm} onChange={setEditForm} error={editError} />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
           <Button onClick={submitEdit} disabled={updateMutation.isPending} className="flex-1">
-            {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('saveChanges')}
+            {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
           </Button>
         </div>
         {updateMutation.isError && (
-          <p className="text-sm text-red-500 mt-2">{t('failedToSaveChangesRetry')}</p>
+          <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToSaveChangesRetry')}</p>
         )}
       </Modal>
 
@@ -348,17 +348,17 @@ export default function AdminCategoriesPage() {
           {t('confirmDeleteCategory', { name: deleteTarget?.name ?? '' })}
         </p>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => setDeleteOpen(false)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setDeleteOpen(false)} className="flex-1">{t('cancel')}</Button>
           <Button
             onClick={confirmDelete}
             disabled={deleteMutation.isPending}
-            className="flex-1 bg-red-500 hover:bg-red-600 border-red-500"
+            className="flex-1 bg-[var(--danger)] hover:bg-[var(--danger-hover)] border-[var(--danger)]"
           >
-            {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('deleteAction')}
+            {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('deleteAction')}
           </Button>
         </div>
         {deleteMutation.isError && (
-          <p className="text-sm text-red-500 mt-2">{t('failedToDeleteCategoryRetry')}</p>
+          <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToDeleteCategoryRetry')}</p>
         )}
       </Modal>
     </div>

@@ -63,14 +63,14 @@ export function StaffAssignedRolesSection({ member }: StaffAssignedRolesSectionP
         <div>
           <h2 className="text-lg font-semibold">{t('assignedRolesLabel')}</h2>
           {!canManageAssignments && (
-            <p className="text-xs text-gray-500 mt-0.5">{t('assignmentViewOnlyHint')}</p>
+            <p className="text-xs text-[var(--fg-muted)] mt-0.5">{t('assignmentViewOnlyHint')}</p>
           )}
         </div>
         {canManageAssignments && member.status !== 'removed' && (
           <button
             type="button"
             onClick={openAddRole}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+            className="rounded-md bg-[var(--info)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[var(--info-hover)]"
           >
             {t('addRoleLabel')}
           </button>
@@ -78,9 +78,9 @@ export function StaffAssignedRolesSection({ member }: StaffAssignedRolesSectionP
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-gray-500">{t('loadingEllipsis')}</p>
+        <p className="text-sm text-[var(--fg-muted)]">{t('loadingEllipsis')}</p>
       ) : assignments.length === 0 ? (
-        <p className="text-sm text-gray-500">{t('noAssignmentsYet')}</p>
+        <p className="text-sm text-[var(--fg-muted)]">{t('noAssignmentsYet')}</p>
       ) : (
         <div className="space-y-3">
           {assignments.map((a) => (

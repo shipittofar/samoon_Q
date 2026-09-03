@@ -55,10 +55,10 @@ const SECTION_LABEL_KEY: Record<Section, string> = {
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="bg-white rounded-lg border p-4">
-      <div className="text-xs text-gray-500 mb-1">{label}</div>
+    <div className="bg-[var(--card)] rounded-lg border p-4">
+      <div className="text-xs text-[var(--fg-muted)] mb-1">{label}</div>
       <div className="text-2xl font-bold">{value}</div>
-      {sub && <div className="text-xs text-gray-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-xs text-[var(--fg-subtle)] mt-0.5">{sub}</div>}
     </div>
   )
 }
@@ -91,18 +91,18 @@ function OperationsContent() {
   useAuditBroadcastSync()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--card-hover)]">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-[var(--card)] border-b sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <h1 className="text-lg font-semibold">{t('operationsDashboardTitle')}</h1>
               {branchState === 'loading' && (
-                <span className="text-xs text-gray-500">{t('loadingBranchesEllipsis')}</span>
+                <span className="text-xs text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</span>
               )}
               {branchState === 'error' && (
-                <span className="text-xs text-red-600">{t('failedToLoadBranches')}</span>
+                <span className="text-xs text-[var(--danger-text)]">{t('failedToLoadBranches')}</span>
               )}
               {(branchState === 'ready' || branchState === 'empty') && (
                 <BranchContextIndicator branchId={branchFilter} />
@@ -140,8 +140,8 @@ function OperationsContent() {
               onClick={() => setActiveSection(s)}
               className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeSection === s
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-[var(--info)] text-[var(--info-text)]'
+                  : 'border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]'
               }`}
             >
               {t(SECTION_LABEL_KEY[s])}
@@ -150,7 +150,7 @@ function OperationsContent() {
         </div>
 
         {/* Section content */}
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-[var(--card)] rounded-lg border p-4">
           <ErrorBoundary feature={t(SECTION_LABEL_KEY[activeSection])}>
             {activeSection === 'orders' && <LiveOrderQueue scope={scope} />}
             {activeSection === 'reservations' && <LiveReservationQueue scope={scope} />}
@@ -176,7 +176,7 @@ function OperationsContent() {
 export default function OperationsPage() {
   return (
     <ErrorBoundary feature="Operations Dashboard">
-      <PermissionGuard permission="operations.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="operations.view"fallback={<AccessDenied />}>
         <OperationsContent />
       </PermissionGuard>
     </ErrorBoundary>

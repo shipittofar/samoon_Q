@@ -5,10 +5,10 @@ import type { SLAAlert, SLAAlertType, OperationsEventPriority, OperationsScope }
 import { useSLAAlerts, useRealtimeStatistics } from '@/hooks'
 
 const PRIORITY_COLOR: Record<OperationsEventPriority, string> = {
-  low: 'bg-blue-50 border-blue-200 text-blue-800',
-  normal: 'bg-gray-50 border-gray-200 text-gray-700',
-  high: 'bg-orange-50 border-orange-300 text-orange-800',
-  critical: 'bg-red-50 border-red-400 text-red-900',
+  low: 'bg-[var(--info-subtle)] border-[var(--info-border)] text-[var(--info-text)]',
+  normal: 'bg-[var(--card-hover)] border-[var(--border)] text-[var(--fg-secondary)]',
+  high: 'bg-[var(--accent-subtle)] border-[var(--accent-border)]/40 text-[var(--accent-text)]',
+  critical: 'bg-[var(--danger-subtle)] border-[var(--danger)] text-[var(--danger-text)]',
 }
 
 const ALERT_TYPE_KEY: Record<SLAAlertType, string> = {
@@ -39,18 +39,18 @@ function SLAAlertCard({ alert }: SLAAlertCardProps) {
     <div className={`rounded border p-3 mb-2 ${PRIORITY_COLOR[alert.priority]}`}>
       <div className="flex justify-between items-start mb-1">
         <div className="font-semibold text-sm">{t(`slaAlertTypes.${ALERT_TYPE_KEY[alert.type]}`)}</div>
-        <span className="text-xs capitalize px-1.5 py-0.5 rounded bg-white bg-opacity-60">
+        <span className="text-xs capitalize px-1.5 py-0.5 rounded bg-[var(--card)] bg-opacity-60">
           {t(PRIORITY_KEY[alert.priority])}
         </span>
       </div>
       <div className="text-sm">{alert.entityLabel}</div>
-      <div className="text-xs mt-1 text-gray-600">{alert.message}</div>
+      <div className="text-xs mt-1 text-[var(--fg-muted)]">{alert.message}</div>
       <div className="flex gap-4 mt-2 text-xs">
         <span>{t('elapsedMinutesLabel', { minutes: alert.elapsedMinutes })}</span>
         <span>{t('thresholdMinutesLabel', { minutes: alert.thresholdMinutes })}</span>
-        <span className="text-red-600 font-semibold">{t('minutesOver', { minutes: excess })}</span>
+        <span className="text-[var(--danger-text)] font-semibold">{t('minutesOver', { minutes: excess })}</span>
       </div>
-      <div className="mt-1 text-xs text-gray-400">
+      <div className="mt-1 text-xs text-[var(--fg-subtle)]">
         {raisedAgo < 1 ? t('raisedJustNow') : t('raisedMinutesAgo', { minutes: raisedAgo })}
       </div>
     </div>
@@ -70,26 +70,26 @@ export function SLAMonitor({ scope }: SLAMonitorProps) {
   const critical = active.filter((a) => a.priority === 'critical')
   const high = active.filter((a) => a.priority === 'high')
 
-  if (alertsLoading) return <div className="text-sm text-gray-500 p-4">{t('loadingSlaMonitor')}</div>
+  if (alertsLoading) return <div className="text-sm text-[var(--fg-muted)] p-4">{t('loadingSlaMonitor')}</div>
 
   return (
     <div>
       <div className="flex gap-4 mb-4 flex-wrap text-sm">
-        <span className={`rounded px-3 py-1 ${critical.length > 0 ? 'bg-red-100 text-red-700 font-semibold' : 'bg-gray-100'}`}>
+        <span className={`rounded px-3 py-1 ${critical.length > 0 ? 'bg-[var(--danger-subtle)] text-[var(--danger-text)] font-semibold' : 'bg-[var(--card-hover)]'}`}>
           {t('criticalCount', { count: critical.length })}
         </span>
-        <span className={`rounded px-3 py-1 ${high.length > 0 ? 'bg-orange-100 text-orange-700' : 'bg-gray-100'}`}>
+        <span className={`rounded px-3 py-1 ${high.length > 0 ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]' : 'bg-[var(--card-hover)]'}`}>
           {t('highCount', { count: high.length })}
         </span>
-        <span className="bg-gray-100 rounded px-3 py-1">
+        <span className="bg-[var(--card-hover)] rounded px-3 py-1">
           {t('activeCount', { count: active.length })}
         </span>
         {stats && (
           <>
-            <span className="bg-blue-50 text-blue-700 rounded px-3 py-1">
+            <span className="bg-[var(--info-subtle)] text-[var(--info-text)] rounded px-3 py-1">
               {t('avgPrepLabel', { minutes: stats.averageOrderPrepMinutes })}
             </span>
-            <span className={`rounded px-3 py-1 ${stats.slaCompliancePercent < 90 ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+            <span className={`rounded px-3 py-1 ${stats.slaCompliancePercent < 90 ? 'bg-[var(--danger-subtle)] text-[var(--danger-text)]' : 'bg-[var(--success-subtle)] text-[var(--success-text)]'}`}>
               {t('slaComplianceLabel', { percent: stats.slaCompliancePercent })}
             </span>
           </>
@@ -97,20 +97,20 @@ export function SLAMonitor({ scope }: SLAMonitorProps) {
       </div>
 
       {active.length === 0 ? (
-        <div className="bg-green-50 border border-green-200 rounded p-4 text-sm text-green-700 text-center">
+        <div className="bg-[var(--success-subtle)] border border-[var(--success-border)] rounded p-4 text-sm text-[var(--success-text)] text-center">
           {t('noActiveSlaBreaches')}
         </div>
       ) : (
         <div>
           {critical.length > 0 && (
             <div className="mb-4">
-              <div className="text-xs font-bold uppercase tracking-wide text-red-600 mb-2">{t('priorityCritical')}</div>
+              <div className="text-xs font-bold uppercase tracking-wide text-[var(--danger-text)] mb-2">{t('priorityCritical')}</div>
               {critical.map((a) => <SLAAlertCard key={a.id} alert={a} />)}
             </div>
           )}
           {high.length > 0 && (
             <div className="mb-4">
-              <div className="text-xs font-bold uppercase tracking-wide text-orange-600 mb-2">{t('priorityHigh')}</div>
+              <div className="text-xs font-bold uppercase tracking-wide text-[var(--accent-text)] mb-2">{t('priorityHigh')}</div>
               {high.map((a) => <SLAAlertCard key={a.id} alert={a} />)}
             </div>
           )}

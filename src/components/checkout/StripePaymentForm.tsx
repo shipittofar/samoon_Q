@@ -69,8 +69,8 @@ function StripeInnerForm({ clientSecret, total, onSuccess, onError, returnUrl }:
       />
 
       {fieldError && (
-        <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-950/20 rounded-xl p-3">
-          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 text-sm text-[var(--danger-text)] bg-[var(--danger-subtle)] rounded-xl p-3">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5"/>
           <span>{fieldError}</span>
         </div>
       )}
@@ -81,7 +81,7 @@ function StripeInnerForm({ clientSecret, total, onSuccess, onError, returnUrl }:
         size="lg"
         loading={confirming}
         disabled={!stripe || !elements}
-        leftIcon={<Lock className="h-4 w-4" />}
+        leftIcon={<Lock className="h-4 w-4"/>}
       >
         {confirming ? t('processing') : t('payAmount', { amount: formatAmount(total) })}
       </Button>
@@ -126,11 +126,11 @@ function MockPaymentForm({ total, onSuccess, onError, simulateFailure }: MockPay
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" data-testid="mock-payment-form">
+    <form onSubmit={handleSubmit} className="space-y-4"data-testid="mock-payment-form">
       {/* Simulated card UI */}
       <div className="rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--card-hover)] p-4 space-y-3">
         <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)] mb-2">
-          <CreditCard className="h-3.5 w-3.5" />
+          <CreditCard className="h-3.5 w-3.5"/>
           <span>{t('simulatedCardMockMode')}</span>
         </div>
         <div className="grid grid-cols-1 gap-2">
@@ -149,8 +149,8 @@ function MockPaymentForm({ total, onSuccess, onError, simulateFailure }: MockPay
       </div>
 
       {fieldError && (
-        <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-950/20 rounded-xl p-3">
-          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 text-sm text-[var(--danger-text)] bg-[var(--danger-subtle)] rounded-xl p-3">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5"/>
           <span>{fieldError}</span>
         </div>
       )}
@@ -160,7 +160,7 @@ function MockPaymentForm({ total, onSuccess, onError, simulateFailure }: MockPay
         className="w-full"
         size="lg"
         loading={confirming}
-        leftIcon={<Lock className="h-4 w-4" />}
+        leftIcon={<Lock className="h-4 w-4"/>}
       >
         {confirming ? t('processing') : t('payAmount', { amount: formatAmount(total) })}
       </Button>
@@ -234,14 +234,14 @@ export function PaymentStatusBadge({ status }: { status: 'idle' | 'loading' | 's
       className={cn(
         'flex items-center gap-2 text-sm rounded-xl p-3 mt-2',
         status === 'success'
-          ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600'
-          : 'bg-red-50 dark:bg-red-950/20 text-red-600',
+          ? 'bg-[var(--success-subtle)] text-[var(--success-text)]'
+          : 'bg-[var(--danger-subtle)] text-[var(--danger-text)]',
       )}
     >
       {status === 'success' ? (
-        <><CheckCircle2 className="h-4 w-4 shrink-0" /><span>{t('paymentConfirmed')}</span></>
+        <><CheckCircle2 className="h-4 w-4 shrink-0"/><span>{t('paymentConfirmed')}</span></>
       ) : (
-        <><AlertCircle className="h-4 w-4 shrink-0" /><span>{t('paymentCouldNotBeProcessed')}</span></>
+        <><AlertCircle className="h-4 w-4 shrink-0"/><span>{t('paymentCouldNotBeProcessed')}</span></>
       )}
     </div>
   )

@@ -58,7 +58,7 @@ export function AdminTenantSwitcher() {
           )}
           aria-label={t('noActiveTenantSwitcherLabel')}
         >
-          <Layers className="h-3.5 w-3.5 shrink-0 text-orange-500/70" />
+          <Layers className="h-3.5 w-3.5 shrink-0 text-[var(--accent-text)]/70"/>
           <span className="truncate max-w-[140px]">{t('noActiveTenantSwitcherLabel')}</span>
         </div>
         <button
@@ -72,9 +72,9 @@ export function AdminTenantSwitcher() {
           aria-label={t('refreshSessionAria')}
         >
           {pending ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin"/>
           ) : (
-            <RefreshCw className="h-3.5 w-3.5 shrink-0" />
+            <RefreshCw className="h-3.5 w-3.5 shrink-0"/>
           )}
           <span>{t('refreshSessionCta')}</span>
         </button>
@@ -114,9 +114,9 @@ export function AdminTenantSwitcher() {
         aria-expanded={open}
         aria-label={t('switchTenantAria')}
       >
-        <Layers className={cn('h-3.5 w-3.5 shrink-0', activeTenantId ? 'text-orange-500' : 'text-orange-500/70')} />
+        <Layers className={cn('h-3.5 w-3.5 shrink-0', activeTenantId ? 'text-[var(--accent-text)]' : 'text-[var(--accent-text)]/70')} />
         {pending ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin"/>
         ) : (
           <span className="truncate max-w-[220px]">{activeLabel}</span>
         )}
@@ -156,7 +156,7 @@ export function AdminTenantSwitcher() {
                   'w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
                   inactive && 'pointer-events-none',
                   isActive
-                    ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400'
+                    ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                     : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
                 )}
               >
@@ -169,9 +169,9 @@ export function AdminTenantSwitcher() {
                   </p>
                 </div>
                 {isPending ? (
-                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin"/>
                 ) : isActive ? (
-                  <Check className="h-3.5 w-3.5 shrink-0 text-orange-500" />
+                  <Check className="h-3.5 w-3.5 shrink-0 text-[var(--accent-text)]"/>
                 ) : null}
               </button>
             )

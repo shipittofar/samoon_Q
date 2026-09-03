@@ -2,7 +2,7 @@ import { forwardRef, type InputHTMLAttributes, type SelectHTMLAttributes, type T
 import { cn } from '@/utils'
 
 const inputBase =
-  'w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-2.5 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 disabled:opacity-50 disabled:cursor-not-allowed'
+  'w-full rounded-xl border border-[var(--border-input)] bg-[var(--input-bg)] px-4 py-2.5 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)] disabled:opacity-50 disabled:cursor-not-allowed'
 
 // ── Input ──────────────────────────────────────────────────────────────────────
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -21,7 +21,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label htmlFor={inputId} className="text-sm font-medium text-[var(--fg)]">
             {label}
-            {props.required && <span className="text-orange-500 ml-1">*</span>}
+            {props.required && <span className="text-[var(--danger)] ml-1"aria-hidden="true">*</span>}
           </label>
         )}
         <div className="relative">
@@ -33,7 +33,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
-            className={cn(inputBase, leftIcon && 'ps-10', rightIcon && 'pe-10', error && 'border-red-500 focus:border-red-500 focus:ring-red-500/40', className)}
+            className={cn(inputBase, leftIcon && 'ps-10', rightIcon && 'pe-10', error && 'border-[var(--danger)] focus:border-[var(--danger)] focus:ring-[var(--danger)]/40', className)}
             aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
             {...props}
@@ -45,7 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p id={`${inputId}-error`} className="text-xs text-red-500 flex items-center gap-1">
+          <p id={`${inputId}-error`} className="text-xs text-[var(--danger-text)] flex items-center gap-1">
             <span>⚠</span> {error}
           </p>
         )}
@@ -73,19 +73,19 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label htmlFor={inputId} className="text-sm font-medium text-[var(--fg)]">
             {label}
-            {props.required && <span className="text-orange-500 ml-1">*</span>}
+            {props.required && <span className="text-[var(--danger)] ml-1"aria-hidden="true">*</span>}
           </label>
         )}
         <textarea
           ref={ref}
           id={inputId}
           rows={4}
-          className={cn(inputBase, 'resize-none', error && 'border-red-500 focus:border-red-500 focus:ring-red-500/40', className)}
+          className={cn(inputBase, 'resize-none', error && 'border-[var(--danger)] focus:border-[var(--danger)] focus:ring-[var(--danger)]/40', className)}
           aria-invalid={!!error}
           aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           {...props}
         />
-        {error && <p id={`${inputId}-error`} className="text-xs text-red-500">⚠ {error}</p>}
+        {error && <p id={`${inputId}-error`} className="text-xs text-[var(--danger-text)]">⚠ {error}</p>}
         {hint && !error && <p id={`${inputId}-hint`} className="text-xs text-[var(--fg-muted)]">{hint}</p>}
       </div>
     )
@@ -109,23 +109,23 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label htmlFor={inputId} className="text-sm font-medium text-[var(--fg)]">
             {label}
-            {props.required && <span className="text-orange-500 ml-1">*</span>}
+            {props.required && <span className="text-[var(--danger)] ml-1"aria-hidden="true">*</span>}
           </label>
         )}
         <select
           ref={ref}
           id={inputId}
-          className={cn(inputBase, 'appearance-none cursor-pointer', error && 'border-red-500', className)}
+          className={cn(inputBase, 'appearance-none cursor-pointer', error && 'border-[var(--danger)]', className)}
           {...props}
         >
-          {placeholder && <option value="" disabled>{placeholder}</option>}
+          {placeholder && <option value=""disabled>{placeholder}</option>}
           {options.map((opt) => (
             <option key={opt.value} value={opt.value} disabled={opt.disabled}>
               {opt.label}
             </option>
           ))}
         </select>
-        {error && <p className="text-xs text-red-500">⚠ {error}</p>}
+        {error && <p className="text-xs text-[var(--danger-text)]">⚠ {error}</p>}
       </div>
     )
   },
@@ -146,7 +146,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           ref={ref}
           type="checkbox"
           id={inputId}
-          className={cn('h-4 w-4 rounded border-[var(--border)] accent-orange-500 cursor-pointer', className)}
+          className={cn('h-4 w-4 rounded border-[var(--border-input)] accent-[var(--accent)] cursor-pointer', className)}
           {...props}
         />
         {label && <span className="text-sm text-[var(--fg)] group-hover:text-[var(--fg-muted)] transition-colors">{label}</span>}

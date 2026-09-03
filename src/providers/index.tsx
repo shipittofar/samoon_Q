@@ -26,7 +26,8 @@ import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
 import { applyPlatformRoleFromSession } from '@/platform-admin/store'
 import { clearAuthenticatedClientState } from '@/lib/auth-session-teardown'
 import { hasMembershipBranches } from '@/lib/console-workspace'
-import { TENANT_OVERRIDABLE_VARS } from '@/lib/tokens'
+import { TENANT_INJECTED_VARS } from '@/lib/tokens'
+import { deriveBrandTokens, brandTokensToCssVars, isValidHexColor } from '@/lib/brand-color'
 import { resolveFontCssFamily, resolveTenantBranding } from '@/lib/tenant-branding'
 import { readPublicPathTenantSlug } from '@/lib/public-tenant-resolution'
 
@@ -51,10 +52,10 @@ function CartHydrationBootstrapper({ children }: { children: ReactNode }) {
  *
  * Root cause this fixes: `checkSession()` used to gate the ENTIRE
  * session-restore block on `user.tenantRoles && user.tenantRoles.length > 0`
- * — the legacy, pre-Phase-9 field. `useLogin()`/`useRegister()`/
+ * — the legacy, pre-Phase-9 field. `useLogin()`/` useRegister()`/
  * `useVerifyOTP()` (hooks/index.ts) never had this gate — they call
  * seedTenantSession() unconditionally. A backend built purely against the
- * frozen `memberships`/`activeMembership` contract (no `tenantRoles` field
+ * frozen `memberships`/` activeMembership`contract (no ` tenantRoles`field
  * at all — exactly the contract this project has been freezing since
  * Phase Y) would satisfy this gate at login (irrelevant, login doesn't use
  * it) but silently skip session restore entirely on every page reload:
@@ -210,7 +211,7 @@ function RTLProvider({ children }: { children: ReactNode }) {
  */
 function readTenantSlug(): string | undefined {
   if (typeof document === 'undefined') return undefined
-  // Check meta tag written by root layout: <meta name="x-tenant-slug" content="..." />
+  // Check meta tag written by root layout: <meta name="x-tenant-slug" content="..."/>
   const meta = document.querySelector<HTMLMetaElement>('meta[name="x-tenant-slug"]')
   if (meta?.content) return meta.content
   // Dev fallback via env var (available in browser builds)
@@ -232,7 +233,7 @@ function readTenantSlug(): string | undefined {
  *
  * Both readiness flags are still set unconditionally once loadTenant() settles
  * (successfully or not) — canExecute means "bootstrap finished," not "tenant
- * resolved." Authenticated Console flows must gate on tenantState === 'resolved'
+ * resolved."Authenticated Console flows must gate on tenantState === 'resolved'
  * specifically (see AuthGuard), not on canExecute alone.
  */
 function isConsolePath(pathname: string | null | undefined): boolean {
@@ -341,13 +342,20 @@ function BranchResolutionBootstrapper({ children }: { children: ReactNode }) {
 }
 
 /**
- * Applies per-tenant CSS variable overrides at runtime (Phase 2 — P2.2).
- * Reads Tenant.settings.theme (CRUD branding) and mutates document root CSS vars.
- * Isolated from the bootstrap sequence: reacts to tenant changes reactively.
- * Cleans up overrides on unmount or when tenant changes back to no theme.
+ * Applies per-tenant branding at runtime (Phase 2 — P2.2, revised in P21).
  *
- * Permitted override targets: --accent, --accent-hover, --font-body.
- * See TENANT_OVERRIDABLE_VARS in src/lib/tokens.ts.
+ * The tenant's single brand colour is expanded by deriveBrandTokens() into a
+ * contrast-corrected set per theme before it reaches the DOM. A colour picked
+ * against a white marketing page (deep navy, forest, espresso) is close to
+ * invisible on a dark surface, and a pale one makes white button labels
+ * unreadable; the derivation fixes both by moving lightness only, so the hue
+ * the business chose is preserved.
+ *
+ * Light and dark values are written as separate `--tenant-*-light/-dark`
+ * variables that globals.css selects between. Assigning `--accent` directly
+ * would put an inline style on <html>, which outranks the `.dark` rules and
+ * would pin one brand colour across both themes.
+ *
  * Logo is Tenant.image — never applied here.
  */
 function TenantThemeProvider({ children }: { children: ReactNode }) {
@@ -356,13 +364,14 @@ function TenantThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const branding = resolveTenantBranding({ settings: tenant?.settings })
     const root = document.documentElement
-    if (branding?.primaryColor) {
-      root.style.setProperty('--accent', branding.primaryColor)
-      root.style.setProperty(
-        '--accent-hover',
-        branding.accentHoverColor ?? branding.primaryColor,
-      )
+
+    if (isValidHexColor(branding?.primaryColor)) {
+      const derived = deriveBrandTokens(branding?.primaryColor, branding?.accentHoverColor)
+      for (const [cssVar, value] of Object.entries(brandTokensToCssVars(derived))) {
+        root.style.setProperty(cssVar, value)
+      }
     }
+
     const fontCss = resolveFontCssFamily(branding?.fontBody, {
       locale,
       fontsByLocale: branding?.fontsByLocale,
@@ -371,7 +380,7 @@ function TenantThemeProvider({ children }: { children: ReactNode }) {
       root.style.setProperty('--font-body', fontCss)
     }
     return () => {
-      for (const cssVar of TENANT_OVERRIDABLE_VARS) {
+      for (const cssVar of TENANT_INJECTED_VARS) {
         root.style.removeProperty(cssVar)
       }
     }
@@ -563,10 +572,10 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
     syncAccessTokenCookieFromStorage()
     authService.getMe().then((data) => {
       // Contract update — getMe() nests the User under a `user` key,
-      // alongside `memberships`/`activeMembership` as siblings (NOT a flat
+      // alongside `memberships`/` activeMembership`as siblings (NOT a flat
       // `User & {...}` shape the way login()/verifyOTP() are). `data.user`
       // carries identity fields; `data` itself (not `data.user`) carries
-      // the RBAC-relevant `memberships`/`activeMembership` fields
+      // the RBAC-relevant `memberships`/` activeMembership`fields
       // resolveSessionRestoreInput() reads.
       applyPlatformRoleFromSession(null)
       setUser(data.user)
@@ -605,7 +614,7 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
         pendingAuthSessionRef.current = sessionInput
         applyPendingAuthSession()
       }
-      // `data.ownership`/`data.staffAssignments`, if a backend ever sends
+      // `data.ownership`/` data.staffAssignments`, if a backend ever sends
       // them here, are NOT hydrated into any store — Phase 2 removed the
       // client-side ownership/StaffAssignment authorization engine those
       // fields used to feed entirely. The fields remain on the
@@ -616,13 +625,13 @@ function AuthBootstrapper({ children }: { children: ReactNode }) {
       void prefetchFavoritesList(qc)
     }).catch((err: unknown) => {
       // P10.10 — distinguish "session is actually invalid" from "backend
-      // is temporarily unreachable." Per docs/P10.10_AUTH_BACKEND_API_CONTRACT.md
+      // is temporarily unreachable."Per docs/P10.10_AUTH_BACKEND_API_CONTRACT.md
       // §4: a 401 (TOKEN_EXPIRED/TOKEN_INVALID) means the token itself is
       // no good — clearSession() is correct (P10.9's fix). Any other
       // failure (network error/timeout with no response, or a 5xx) is a
       // transient backend problem, not proof the session is invalid — the
       // task's own rule is explicit: "Do NOT logout users on temporary
-      // backend failures." Mock mode's getMe() never rejects, so this
+      // backend failures."Mock mode's getMe() never rejects, so this
       // branch only affects real-backend mode.
       const status = (err as { response?: { status?: number } } | undefined)?.response?.status
       if (status === 401) {
@@ -680,7 +689,7 @@ export function Providers({ children }: { children: ReactNode }) {
                   <ServiceWorkerUpdateBanner />
                   {/* P4.8.6 — Offline status indicator */}
                   <OfflineIndicator />
-                  <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: '#f97316', secondary: '#fff' } } }} />
+                  <Toaster position="top-center"toastOptions={{ duration: 4000, style: { background: 'var(--card)', color: 'var(--fg)', border: '1px solid var(--border)', borderRadius: '0.75rem', fontSize: '0.875rem' }, success: { iconTheme: { primary: 'var(--success)', secondary: 'var(--success-fg)' } }, error: { iconTheme: { primary: 'var(--danger)', secondary: 'var(--danger-fg)' } } }} />
                 </NotificationWebSocketProvider>
                 </FcmRegistrationProvider>
                 </ConsoleWorkspaceBootstrapper>

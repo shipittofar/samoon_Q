@@ -26,7 +26,7 @@ export default function TenantBranchTablePage({
   }, [code, router])
 
   return (
-    <div className="flex items-center justify-center min-h-screen text-gray-400 text-sm">
+    <div className="flex items-center justify-center min-h-screen text-[var(--fg-subtle)] text-sm">
       {t('loadingTableExperienceEllipsis')}
     </div>
   )

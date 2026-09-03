@@ -5,9 +5,9 @@ import { useTranslations } from 'next-intl'
 import type { AuditLog, AuditTimelineItem, AuditSeverity } from '@/types/audit-log'
 
 const SEVERITY_STYLES: Record<AuditSeverity, string> = {
-  info:     'bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
-  warning:  'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
-  critical: 'bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+  info:     'bg-[var(--info-subtle)] text-[var(--info-text)]',
+  warning:  'bg-[var(--warning-subtle)] text-[var(--warning-text)]',
+  critical: 'bg-[var(--danger-subtle)] text-[var(--danger-text)]',
 }
 
 const SEVERITY_KEY: Record<AuditSeverity, string> = {
@@ -17,9 +17,9 @@ const SEVERITY_KEY: Record<AuditSeverity, string> = {
 }
 
 const SEVERITY_DOT: Record<AuditSeverity, string> = {
-  info:     'bg-blue-400',
-  warning:  'bg-amber-400',
-  critical: 'bg-red-500',
+  info:     'bg-[var(--info)]',
+  warning:  'bg-[var(--warning)]',
+  critical: 'bg-[var(--danger)]',
 }
 
 interface AuditLogEntryProps {
@@ -34,7 +34,7 @@ function AuditLogEntry({ log }: AuditLogEntryProps) {
       {/* Timeline dot */}
       <div className="flex flex-col items-center">
         <span className={`mt-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0 ${SEVERITY_DOT[log.severity]}`} />
-        <span className="w-px flex-1 bg-[var(--border)] group-last:hidden mt-1" />
+        <span className="w-px flex-1 bg-[var(--border)] group-last:hidden mt-1"/>
       </div>
 
       {/* Content */}
@@ -97,10 +97,10 @@ export function AuditTimeline({ items, isLoading = false, emptyMessage }: AuditT
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
           <div key={i} className="animate-pulse space-y-2">
-            <div className="h-4 w-24 bg-[var(--card-hover)] rounded" />
+            <div className="h-4 w-24 bg-[var(--card-hover)] rounded"/>
             <div className="space-y-2 pl-5">
-              <div className="h-3 w-full bg-[var(--card-hover)] rounded" />
-              <div className="h-3 w-2/3 bg-[var(--card-hover)] rounded" />
+              <div className="h-3 w-full bg-[var(--card-hover)] rounded"/>
+              <div className="h-3 w-2/3 bg-[var(--card-hover)] rounded"/>
             </div>
           </div>
         ))}

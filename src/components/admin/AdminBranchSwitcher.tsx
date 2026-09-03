@@ -9,7 +9,7 @@
  * any kind (no `branches[0]`, no "first branch wins"). Branch resolution
  * itself (fetch + persisted-id validation) happens once per tenant in
  * `BranchResolutionBootstrapper` (providers/index.tsx); this component only
- * reads `branchState`/`selectedBranch` and renders the explicit empty state
+ * reads `branchState`/` selectedBranch`and renders the explicit empty state
  * when no branch is selected, or lets the user pick one via `selectBranch`.
  *
  * Branch switch updates `selectedBranch` in useBranchStore which propagates to:
@@ -99,7 +99,7 @@ export function AdminBranchSwitcher() {
     <div ref={ref} className="relative flex items-center gap-2 text-sm">
       {/* Tenant label */}
       <div className="hidden sm:flex items-center gap-1.5 text-[var(--fg-muted)]">
-        <Building2 className="h-3.5 w-3.5 shrink-0" />
+        <Building2 className="h-3.5 w-3.5 shrink-0"/>
         <span className="font-medium truncate max-w-[200px]">{tenantDisplayName || '—'}</span>
       </div>
 
@@ -114,26 +114,26 @@ export function AdminBranchSwitcher() {
           'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors',
           'border border-[var(--border)] bg-[var(--card)] text-[var(--fg)]',
           'hover:bg-[var(--card-hover)] disabled:opacity-50 disabled:cursor-not-allowed',
-          isEmpty && !isLoading && 'border-amber-400 text-amber-600 dark:text-amber-400',
-          isError && 'border-red-400 text-red-600 dark:text-red-400',
+          isEmpty && !isLoading && 'border-[var(--warning)] text-[var(--warning-text)]',
+          isError && 'border-[var(--danger)] text-[var(--danger-text)]',
           open && 'bg-[var(--card-hover)]',
         )}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={t('switchBranchAria')}
       >
-        <GitBranch className="h-3.5 w-3.5 shrink-0 text-orange-500" />
+        <GitBranch className="h-3.5 w-3.5 shrink-0 text-[var(--accent-text)]"/>
         {isLoading ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin"/>
         ) : isError ? (
           <>
-            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            <AlertCircle className="h-3.5 w-3.5 shrink-0"/>
             <span className="truncate max-w-[200px]">{t('failedToLoadBranches')}</span>
           </>
         ) : (
           // No fallback to any branch's name here — explicit "no branch
-          // selected" copy is the only thing shown when selectedBranch is
-          // null, whether that's because branchState is 'empty' or the
+          // selected"copy is the only thing shown when selectedBranch is
+          // null, whether that's because branchState is ' empty'or the
           // switcher hasn't resolved yet.
           <span className="truncate max-w-[200px]">{selectedBranch?.name ?? t('selectBranch')}</span>
         )}
@@ -142,18 +142,18 @@ export function AdminBranchSwitcher() {
 
       {/* Explicit empty-state hint — rendered inline, not swallowed silently */}
       {isEmpty && !isLoading && accessibleBranches.length > 0 && (
-        <span className="hidden md:inline text-xs text-amber-600 dark:text-amber-400">
+        <span className="hidden md:inline text-xs text-[var(--warning-text)]">
           {t('selectBranchToManageCategories')}
         </span>
       )}
 
-      {/* Explicit retry — the only way out of 'error' within this session;
+      {/* Explicit retry — the only way out of 'error'within this session;
           never triggered automatically. */}
       {isError && (
         <button
           type="button"
           onClick={retryLoadBranches}
-          className="text-xs font-medium text-red-600 dark:text-red-400 underline hover:no-underline"
+          className="text-xs font-medium text-[var(--danger-text)] underline hover:no-underline"
         >
           {tCommon('retry')}
         </button>
@@ -189,7 +189,7 @@ export function AdminBranchSwitcher() {
                   className={cn(
                     'w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
                     isActive
-                      ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400'
+                      ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                       : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
                   )}
                 >
@@ -203,13 +203,13 @@ export function AdminBranchSwitcher() {
                     <span
                       className={cn(
                         'inline-block h-1.5 w-1.5 rounded-full',
-                        branch.status === 'active' ? 'bg-green-500' : branch.status === 'maintenance' ? 'bg-amber-500' : 'bg-gray-400',
+                        branch.status === 'active' ? 'bg-[var(--success)]' : branch.status === 'maintenance' ? 'bg-[var(--warning)]' : 'bg-[var(--fg-subtle)]',
                       )}
                     />
                     {isPending ? (
-                      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin"/>
                     ) : isActive ? (
-                      <Check className="h-3.5 w-3.5 text-orange-500" />
+                      <Check className="h-3.5 w-3.5 text-[var(--accent-text)]"/>
                     ) : null}
                   </div>
                 </button>

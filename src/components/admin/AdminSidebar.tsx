@@ -104,7 +104,7 @@ function QuickActions({ onClose }: { onClose: () => void }) {
   return (
     <div className="shrink-0 border-t border-[var(--border)] px-2 pt-2 pb-1">
       <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)] opacity-60 select-none flex items-center gap-1">
-        <Zap className="h-3 w-3" />
+        <Zap className="h-3 w-3"/>
         {t('quickActions')}
       </p>
       <div className="grid grid-cols-2 gap-1">
@@ -115,7 +115,7 @@ function QuickActions({ onClose }: { onClose: () => void }) {
             onClick={onClose}
             className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors min-h-[36px] border border-[var(--border)] border-dashed"
           >
-            <Plus className="h-3 w-3 shrink-0 text-orange-500" />
+            <Plus className="h-3 w-3 shrink-0 text-[var(--accent-text)]"/>
             <span className="truncate leading-tight">{t(`quickActionItems.${key}`)}</span>
           </a>
         ))}
@@ -166,7 +166,7 @@ function RoleChip() {
   if (roles.length === 0) return null
   const label = roles.map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(' · ')
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 truncate max-w-[140px]">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--accent-subtle)] text-[var(--accent-text)] truncate max-w-[140px]">
       {label}
     </span>
   )
@@ -237,7 +237,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
       {/* Mobile overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-[var(--overlay)] backdrop-blur-sm lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -256,7 +256,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] shrink-0 gap-2">
           <div className="flex flex-col gap-1 min-w-0">
             <span className="flex items-center gap-2 text-sm font-semibold text-[var(--fg)]">
-              <LayoutDashboard className="h-4 w-4 text-orange-500 shrink-0" />
+              <LayoutDashboard className="h-4 w-4 text-[var(--accent-text)] shrink-0"/>
               {t('adminPanel')}
             </span>
             <RoleChip />
@@ -268,12 +268,12 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
             className="lg:hidden shrink-0"
             aria-label={t('closeSidebarAria')}
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4"/>
           </Button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-2" role="navigation" aria-label={t('adminMenuAria')}>
+        <nav className="flex-1 overflow-y-auto py-2"role="navigation"aria-label={t('adminMenuAria')}>
           {/* Customer Dashboard shortcut */}
           <div className="px-2 mb-1">
             <Link
@@ -283,11 +283,11 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
               className={cn(
                 'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 min-h-[44px]',
                 pathname === '/dashboard'
-                  ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
+                  ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                   : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
               )}
             >
-              <Home className="h-4 w-4 shrink-0" />
+              <Home className="h-4 w-4 shrink-0"/>
               <span>{t('customerDashboard')}</span>
             </Link>
           </div>
@@ -310,7 +310,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
                       className={cn(
                         'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 min-h-[44px]',
                         isActive
-                          ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
+                          ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                           : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
                       )}
                     >
@@ -318,7 +318,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
                         name={item.icon}
                         className={cn(
                           'h-4 w-4 shrink-0',
-                          isActive ? 'text-orange-500' : 'text-[var(--fg-muted)]',
+                          isActive ? 'text-[var(--accent-text)]' : 'text-[var(--fg-muted)]',
                         )}
                       />
                       <span className="truncate flex-1">{item.label}</span>
@@ -341,16 +341,16 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
             className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-all duration-150 min-h-[44px]"
             aria-label={t('returnToPublicWebsiteAria')}
           >
-            <Home className="h-4 w-4 shrink-0 text-orange-500" />
+            <Home className="h-4 w-4 shrink-0 text-[var(--accent-text)]"/>
             <span>{t('backToPublicSite')}</span>
           </Link>
           <button
             type="button"
             onClick={() => logout(undefined, { onSuccess: () => router.push('/login') })}
             disabled={isLoggingOut}
-            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-150 disabled:opacity-50 min-h-[44px]"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)] transition-all duration-150 disabled:opacity-50 min-h-[44px]"
           >
-            <LogOut className="h-4 w-4 shrink-0" />
+            <LogOut className="h-4 w-4 shrink-0"/>
             <span>{t('logOut')}</span>
           </button>
         </div>

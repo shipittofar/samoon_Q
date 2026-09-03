@@ -36,7 +36,7 @@ function PriceLevel({ level }: { level?: number }) {
   if (!level) return null
   const labels = ['', '$', '$$', '$$$', '$$$$']
   return (
-    <span className="text-sm text-white/80" aria-label={t('priceLevelAria', { level: labels[level] })}>
+    <span className="text-sm text-white/80"aria-label={t('priceLevelAria', { level: labels[level] })}>
       {labels[level]}
     </span>
   )
@@ -50,14 +50,14 @@ function Breadcrumb({ name }: { name: string }) {
     <nav aria-label={t('breadcrumbAria')} className="bg-[var(--bg)] border-b border-[var(--border)]">
       <ol className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1.5 text-sm text-[var(--fg-muted)]">
         <li className="inline-flex items-center">
-          <Link href="/discover" className="hover:text-[var(--fg)] transition-colors">
+          <Link href="/discover"className="hover:text-[var(--fg)] transition-colors">
             {t('discover')}
           </Link>
         </li>
-        <li aria-hidden="true" className="inline-flex items-center">
-          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+        <li aria-hidden="true"className="inline-flex items-center">
+          <ChevronRight className="w-3.5 h-3.5 shrink-0"/>
         </li>
-        <li className="inline-flex items-center font-medium text-[var(--fg)] truncate max-w-[200px]" aria-current="page">
+        <li className="inline-flex items-center font-medium text-[var(--fg)] truncate max-w-[200px]"aria-current="page">
           {name}
         </li>
       </ol>
@@ -82,9 +82,11 @@ function HeroSection({
 }) {
   const t = useTranslations('tenant')
   const tMarketplace = useTranslations('marketplace')
-  const accentColor =
-    resolveTenantBranding({ branding: layoutBranding, settings: tenant.settings })?.primaryColor ??
-    'var(--accent)'
+  // This page renders exactly one tenant, so the global --accent already holds
+  // that tenant's derived, theme-corrected brand colour. Reading the raw
+  // primaryColor here instead would bypass the derivation and reintroduce the
+  // dark-mode and label-contrast problems it exists to solve.
+  const accentColor = 'var(--accent)'
   const pageAvatar = tenant.discoverCover
   const heroBackground = tenant.heroImage
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
@@ -106,9 +108,9 @@ function HeroSection({
           sizes="100vw"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-900 to-stone-900" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-active)] to-[var(--surface-sunken)]"/>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10"/>
 
       {/* Badges */}
       <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
@@ -116,24 +118,24 @@ function HeroSection({
           <span
             className={cn(
               'text-xs font-semibold px-2.5 py-1 rounded-full shadow',
-              meta.openNow ? 'bg-emerald-500 text-white' : 'bg-gray-800/90 text-gray-200',
+              meta.openNow ? 'bg-[var(--success)] text-[var(--success-fg)]' : 'bg-[var(--card)]/90 text-[var(--fg-disabled)]',
             )}
           >
             {meta.openNow ? tMarketplace('openNow') : tMarketplace('closed')}
           </span>
         )}
         {meta.featured && (
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-orange-500 text-white shadow">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] shadow">
             {tMarketplace('featured')}
           </span>
         )}
         {!meta.featured && meta.popular && (
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500 text-white shadow">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--info)] text-[var(--info-fg)] shadow">
             {tMarketplace('popular')}
           </span>
         )}
         {meta.isNew && (
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-600 text-white shadow">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[var(--success)] text-[var(--success-fg)] shadow">
             {tMarketplace('new')}
           </span>
         )}
@@ -144,13 +146,13 @@ function HeroSection({
         <div className="flex items-end gap-4">
           {/* Logo circle */}
           <div
-            className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl flex items-center justify-center text-white font-bold text-2xl sm:text-3xl shadow-lg border-2 border-white/20 overflow-hidden"
+            className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl flex items-center justify-center text-[var(--accent-fg)] font-bold text-2xl sm:text-3xl shadow-lg border-2 border-white/20 overflow-hidden"
             style={{ background: accentColor }}
             aria-hidden="true"
           >
             {pageAvatar ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={pageAvatar} alt="" className="h-full w-full object-cover" />
+              <img src={pageAvatar} alt=""className="h-full w-full object-cover"/>
             ) : (
               tenant.name[0]
             )}
@@ -172,21 +174,21 @@ function HeroSection({
             <div className="flex flex-wrap items-center gap-3 mt-2">
               {meta.rating !== undefined && (
                 <span className="flex items-center gap-1 text-sm text-white/80">
-                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" aria-hidden="true" />
+                  <Star className="w-4 h-4 text-[var(--rating)] fill-[var(--rating)]"aria-hidden="true"/>
                   <strong className="text-white">{meta.rating.toFixed(1)}</strong>
                   <span>{t('reviewsCount', { count: meta.reviewCount ?? 0 })}</span>
                 </span>
               )}
               {meta.city && (
                 <span className="flex items-center gap-1 text-sm text-white/80">
-                  <MapPin className="w-4 h-4" aria-hidden="true" />
+                  <MapPin className="w-4 h-4"aria-hidden="true"/>
                   {meta.city}
                 </span>
               )}
               {/* C4: MapPin instead of GitBranch */}
               {(meta.branchCount ?? 0) > 0 && (
                 <span className="flex items-center gap-1 text-sm text-white/80">
-                  <MapPin className="w-4 h-4" aria-hidden="true" />
+                  <MapPin className="w-4 h-4"aria-hidden="true"/>
                   {t('locationsCountLower', { count: meta.branchCount ?? 0 })}
                 </span>
               )}
@@ -231,9 +233,9 @@ function ShareButton({ tenant }: { tenant: Tenant }) {
       aria-label={t('shareThisBusinessAria')}
     >
       {copied ? (
-        <Check className="w-4 h-4 text-emerald-500" aria-hidden="true" />
+        <Check className="w-4 h-4 text-[var(--success-text)]"aria-hidden="true"/>
       ) : (
-        <Share2 className="w-4 h-4" aria-hidden="true" />
+        <Share2 className="w-4 h-4"aria-hidden="true"/>
       )}
       {copied ? t('copiedExclaim') : t('share')}
     </button>
@@ -272,7 +274,7 @@ function QuickActions({
             href={locationsCTA.href}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
           >
-            <MapPin className="w-4 h-4" aria-hidden="true" />
+            <MapPin className="w-4 h-4"aria-hidden="true"/>
             {locationsCTA.label}
           </Link>
         )}
@@ -281,7 +283,7 @@ function QuickActions({
             href={`/${tenantSlug}/${primaryBranch!.slug}/menu`}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
           >
-            <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+            <UtensilsCrossed className="w-4 h-4"aria-hidden="true"/>
             {tMarketplace('viewMenu')}
           </Link>
         )}
@@ -340,7 +342,7 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
               href={`tel:${meta.phone_number}`}
               className="flex items-center gap-3 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
             >
-              <Phone className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <Phone className="w-4 h-4 shrink-0"aria-hidden="true"/>
               {meta.phone_number}
             </a>
           )}
@@ -349,7 +351,7 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
               href={`mailto:${meta.email}`}
               className="flex items-center gap-3 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
             >
-              <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <Mail className="w-4 h-4 shrink-0"aria-hidden="true"/>
               {meta.email}
             </a>
           )}
@@ -360,9 +362,9 @@ function BusinessInfo({ meta }: { meta: MarketplaceMeta }) {
               rel="noopener noreferrer"
               className="flex items-center gap-3 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
             >
-              <Globe className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <Globe className="w-4 h-4 shrink-0"aria-hidden="true"/>
               {meta.website.replace(/^https?:\/\//, '')}
-              <ExternalLink className="w-3 h-3 shrink-0" aria-hidden="true" />
+              <ExternalLink className="w-3 h-3 shrink-0"aria-hidden="true"/>
             </a>
           )}
         </div>
@@ -391,7 +393,7 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
           <span
             className={cn(
               'absolute top-2 left-2 text-xs font-semibold px-2 py-0.5 rounded-full',
-              branch.openNow ? 'bg-emerald-500/90 text-white' : 'bg-gray-800/80 text-gray-200',
+              branch.openNow ? 'bg-[var(--success)]/90 text-[var(--success-fg)]' : 'bg-[var(--card)]/80 text-[var(--fg-disabled)]',
             )}
           >
             {branch.openNow ? t('open') : t('closed')}
@@ -401,12 +403,12 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
       <div className="p-4 flex flex-col flex-1">
         <h3 className="font-semibold text-[var(--fg)] mb-1">{branch.name}</h3>
         <p className="text-sm text-[var(--fg-muted)] flex items-start gap-1.5 mb-1">
-          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+          <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0"aria-hidden="true"/>
           {branch.address}, {branch.city}
         </p>
         {branch.todayHours && (
           <p className="text-sm text-[var(--fg-muted)] flex items-center gap-1.5 mb-1">
-            <Clock className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <Clock className="w-3.5 h-3.5 shrink-0"aria-hidden="true"/>
             {branch.todayHours}
           </p>
         )}
@@ -415,7 +417,7 @@ function BranchCard({ branch, tenantSlug }: { branch: PublicBranchInfo; tenantSl
             href={`tel:${branch.phone_number}`}
             className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] flex items-center gap-1.5 mb-3"
           >
-            <Phone className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <Phone className="w-3.5 h-3.5 shrink-0"aria-hidden="true"/>
             {branch.phone_number}
           </a>
         )}
@@ -442,7 +444,7 @@ function BranchesSection({
   if (branches.length === 0) return null
 
   return (
-    <section id="branches" aria-labelledby="branches-heading">
+    <section id="branches"aria-labelledby="branches-heading">
       {/* H9: Upgraded section heading */}
       <h2
         id="branches-heading"
@@ -497,7 +499,7 @@ function CategoriesSection({
               className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[var(--card)] border border-[var(--border)] hover:bg-[var(--card-hover)] hover:border-[var(--accent)]/30 transition-colors"
               aria-label={t('browseCategoryAria', { name: cat.name })}
             >
-              <span className="text-2xl" aria-hidden="true">
+              <span className="text-2xl"aria-hidden="true">
                 {icon}
               </span>
               <span className="text-sm font-medium text-[var(--fg)] text-center">{cat.name}</span>
@@ -572,7 +574,7 @@ function FeaturedItemsSection({
                   {formatCurrency(item.price)}
                 </span>
                 <span className="flex items-center gap-0.5 text-xs text-[var(--fg-muted)]">
-                  <Star className="w-3 h-3 text-amber-400 fill-amber-400" aria-hidden="true" />
+                  <Star className="w-3 h-3 text-[var(--rating)] fill-[var(--rating)]"aria-hidden="true"/>
                   {item.rating?.toFixed(1) ?? "0.0"}
                 </span>
               </div>
@@ -696,25 +698,25 @@ function LoadingSkeleton() {
   return (
     <>
       <TenantHeader />
-      <div role="status" aria-label={t('loadingPageContentAria')} className="animate-pulse">
-        <div className="h-[55vh] min-h-[340px] bg-[var(--card)]" aria-hidden="true" />
+      <div role="status"aria-label={t('loadingPageContentAria')} className="animate-pulse">
+        <div className="h-[55vh] min-h-[340px] bg-[var(--card)]"aria-hidden="true"/>
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
           {/* Quick actions row */}
           <div className="flex gap-3">
-            <div className="h-10 w-32 bg-[var(--card-hover)] rounded-xl" />
-            <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl" />
-            <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl" />
+            <div className="h-10 w-32 bg-[var(--card-hover)] rounded-xl"/>
+            <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl"/>
+            <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl"/>
           </div>
           {/* Section heading + cards */}
           <div className="space-y-4">
-            <div className="h-7 w-44 bg-[var(--card-hover)] rounded-xl" />
+            <div className="h-7 w-44 bg-[var(--card-hover)] rounded-xl"/>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
-                  <div className="h-36 bg-[var(--card-hover)]" />
+                  <div className="h-36 bg-[var(--card-hover)]"/>
                   <div className="p-3 space-y-2">
-                    <div className="h-4 w-3/4 bg-[var(--card-hover)] rounded" />
-                    <div className="h-3 w-1/2 bg-[var(--card-hover)] rounded" />
+                    <div className="h-4 w-3/4 bg-[var(--card-hover)] rounded"/>
+                    <div className="h-3 w-1/2 bg-[var(--card-hover)] rounded"/>
                   </div>
                 </div>
               ))}
@@ -722,9 +724,9 @@ function LoadingSkeleton() {
           </div>
           {/* Secondary section */}
           <div className="space-y-4">
-            <div className="h-7 w-36 bg-[var(--card-hover)] rounded-xl" />
-            <div className="h-4 w-full max-w-lg bg-[var(--card-hover)] rounded-xl" />
-            <div className="h-4 w-full max-w-md bg-[var(--card-hover)] rounded-xl" />
+            <div className="h-7 w-36 bg-[var(--card-hover)] rounded-xl"/>
+            <div className="h-4 w-full max-w-lg bg-[var(--card-hover)] rounded-xl"/>
+            <div className="h-4 w-full max-w-md bg-[var(--card-hover)] rounded-xl"/>
           </div>
         </div>
         <span className="sr-only">{t('loadingEllipsis')}</span>
@@ -743,7 +745,7 @@ function TenantNotFoundState({ reason = 'not_found' }: { reason?: 'not_found' | 
         data-testid={reason === 'forbidden' ? 'tenant-forbidden' : 'tenant-not-found'}
         className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center"
       >
-        <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6" aria-hidden="true" />
+        <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6"aria-hidden="true"/>
         <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">{t('businessNotFound')}</h1>
         <p className="text-[var(--fg-muted)] max-w-sm mb-8">
           {t('businessNotFoundDesc')}
@@ -752,7 +754,7 @@ function TenantNotFoundState({ reason = 'not_found' }: { reason?: 'not_found' | 
           href="/discover"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] font-medium hover:bg-[var(--accent-hover)] transition-colors"
         >
-          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+          <ArrowLeft className="w-4 h-4"aria-hidden="true"/>
           {t('browseAllBusinesses')}
         </Link>
       </main>
@@ -827,7 +829,7 @@ export function TenantHomepageClient({
 
   const waitingForTenant = !tenant && !isForbidden && (queryPending || storeLoading) && publicTenant !== null
   if (waitingForTenant) return <LoadingSkeleton />
-  if (isForbidden) return <TenantNotFoundState reason="forbidden" />
+  if (isForbidden) return <TenantNotFoundState reason="forbidden"/>
   if (!tenant || tenant.slug !== tenantSlug || !meta) return <TenantNotFoundState />
 
   // Section visibility: Website Builder config or DEFAULT_SECTIONS

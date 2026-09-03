@@ -16,12 +16,12 @@ const STATUS_KEY: Record<LiveReservation['status'], string> = {
 }
 
 const STATUS_COLOR: Record<LiveReservation['status'], string> = {
-  upcoming: 'bg-blue-50 border-blue-200',
-  confirmed: 'bg-green-50 border-green-200',
-  checked_in: 'bg-emerald-50 border-emerald-300',
-  completed: 'bg-gray-50 border-gray-200',
-  cancelled: 'bg-red-50 border-red-200',
-  no_show: 'bg-orange-50 border-orange-200',
+  upcoming: 'bg-[var(--info-subtle)] border-[var(--info-border)]',
+  confirmed: 'bg-[var(--success-subtle)] border-[var(--success-border)]',
+  checked_in: 'bg-[var(--success-subtle)] border-[var(--success-border)]',
+  completed: 'bg-[var(--card-hover)] border-[var(--border)]',
+  cancelled: 'bg-[var(--danger-subtle)] border-[var(--danger-border)]',
+  no_show: 'bg-[var(--accent-subtle)] border-[var(--accent-border)]/40',
 }
 
 interface ReservationCardProps {
@@ -34,21 +34,21 @@ function ReservationCard({ reservation: r }: ReservationCardProps) {
   const timeStr = scheduled.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   return (
     <div
-      className={`rounded border p-3 mb-2 text-sm ${STATUS_COLOR[r.status]} ${r.isOverdue ? 'ring-2 ring-orange-400' : ''}`}
+      className={`rounded border p-3 mb-2 text-sm ${STATUS_COLOR[r.status]} ${r.isOverdue ? 'ring-2 ring-[var(--focus-ring)]' : ''}`}
     >
       <div className="font-semibold truncate">{r.guestName}</div>
-      <div className="flex justify-between text-gray-600 text-xs mt-1">
+      <div className="flex justify-between text-[var(--fg-muted)] text-xs mt-1">
         <span>{t('partyOfSize', { size: r.partySize })}</span>
         <span>{timeStr}</span>
       </div>
       {r.tableNumber && (
-        <div className="text-xs text-gray-500 mt-1">{t('tableNumberLabel', { number: r.tableNumber })}</div>
+        <div className="text-xs text-[var(--fg-muted)] mt-1">{t('tableNumberLabel', { number: r.tableNumber })}</div>
       )}
       {r.waitMinutes > 0 && (
-        <div className="text-xs text-gray-500 mt-1">{t('waitMinutesLabel', { minutes: r.waitMinutes })}</div>
+        <div className="text-xs text-[var(--fg-muted)] mt-1">{t('waitMinutesLabel', { minutes: r.waitMinutes })}</div>
       )}
       {r.isOverdue && (
-        <div className="mt-1 text-xs font-semibold text-orange-600">{t('overdue')}</div>
+        <div className="mt-1 text-xs font-semibold text-[var(--accent-text)]">{t('overdue')}</div>
       )}
     </div>
   )
@@ -66,8 +66,8 @@ export function LiveReservationQueue({
   const t = useTranslations('console')
   const { data: reservations = [], isLoading, isError } = useLiveReservations(scope)
 
-  if (isLoading) return <div className="text-sm text-gray-500 p-4">{t('loadingReservations')}</div>
-  if (isError) return <div className="text-sm text-red-500 p-4">{t('failedToLoadReservations')}</div>
+  if (isLoading) return <div className="text-sm text-[var(--fg-muted)] p-4">{t('loadingReservations')}</div>
+  if (isError) return <div className="text-sm text-[var(--danger-text)] p-4">{t('failedToLoadReservations')}</div>
 
   const byStatus = (status: LiveReservation['status']) =>
     reservations.filter((r) => r.status === status)
@@ -80,14 +80,14 @@ export function LiveReservationQueue({
           return (
             <div key={status} className="w-44 flex-shrink-0">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--fg-muted)]">
                   {t(STATUS_KEY[status])}
                 </span>
-                <span className="text-xs bg-gray-200 rounded-full px-2 py-0.5">{col.length}</span>
+                <span className="text-xs bg-[var(--border)] rounded-full px-2 py-0.5">{col.length}</span>
               </div>
               <div>
                 {col.length === 0 ? (
-                  <div className="text-xs text-gray-400 italic">{t('empty')}</div>
+                  <div className="text-xs text-[var(--fg-subtle)] italic">{t('empty')}</div>
                 ) : (
                   col.map((r) => <ReservationCard key={r.id} reservation={r} />)
                 )}

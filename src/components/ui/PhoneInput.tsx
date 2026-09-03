@@ -306,7 +306,7 @@ const CountryRow = memo(function CountryRow({
           : '',
       )}
     >
-      <span className="w-8 shrink-0 flex items-center justify-center" aria-hidden="true">
+      <span className="w-8 shrink-0 flex items-center justify-center"aria-hidden="true">
         <FlagIcon code={country.code} size={22} />
       </span>
       <span className="flex-1 min-w-0 truncate font-medium text-[var(--fg)]">
@@ -325,9 +325,9 @@ const CountryRow = memo(function CountryRow({
         {country.dialCode}
       </span>
       {isSelected && (
-        <span className="shrink-0 text-[var(--accent)] ms-1" aria-hidden="true">
-          <svg className="h-4 w-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z" />
+        <span className="shrink-0 text-[var(--accent)] ms-1"aria-hidden="true">
+          <svg className="h-4 w-4"viewBox="0 0 16 16"fill="currentColor"aria-hidden="true">
+            <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/>
           </svg>
         </span>
       )}
@@ -561,7 +561,7 @@ function CountryPicker({
           className="p-1.5 rounded-lg hover:bg-[var(--card-hover)] text-[var(--fg-muted)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
           aria-label={t('closeCountryPickerAria')}
         >
-          <X className="h-4 w-4" />
+          <X className="h-4 w-4"/>
         </button>
       </div>
 
@@ -597,7 +597,7 @@ function CountryPicker({
               className="absolute end-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
               aria-label={t('clearSearchAria')}
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3.5 w-3.5"/>
             </button>
           )}
         </div>
@@ -619,7 +619,7 @@ function CountryPicker({
         {isSearching ? (
           results.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <span className="text-3xl" aria-hidden="true">🔍</span>
+              <span className="text-3xl"aria-hidden="true">🔍</span>
               <div className="text-center">
                 <p className="text-sm font-medium text-[var(--fg)]">{t('noCountriesFound')}</p>
                 <p className="text-xs text-[var(--fg-muted)] mt-0.5">
@@ -679,7 +679,7 @@ function CountryPicker({
               </>
             )}
 
-            <div className="mx-3 my-2 border-t border-[var(--border)]" aria-hidden="true" />
+            <div className="mx-3 my-2 border-t border-[var(--border)]"aria-hidden="true"/>
 
             <SectionHeader label={t('allCountries')} />
             {visibleRest.map((c, i) => {
@@ -735,7 +735,7 @@ function CountryPicker({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: prefersReducedMotion ? 0 : 0.18, ease: 'easeOut' }}
-            className="fixed inset-0 z-50 bg-black/50"
+            className="fixed inset-0 z-50 bg-[var(--overlay)]"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -769,8 +769,8 @@ function CountryPicker({
                 'md:rounded-2xl md:w-[480px] md:max-w-full md:max-h-[70vh]',
               )}
             >
-              <div className="flex justify-center pt-2.5 pb-0 md:hidden shrink-0" aria-hidden="true">
-                <div className="h-1 w-10 rounded-full bg-[var(--border)]" />
+              <div className="flex justify-center pt-2.5 pb-0 md:hidden shrink-0"aria-hidden="true">
+                <div className="h-1 w-10 rounded-full bg-[var(--border)]"/>
               </div>
               {listContent}
             </motion.div>
@@ -941,7 +941,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
       {label && (
         <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[var(--fg)]">
           {label}
-          {required && <span className="ms-1 text-red-500" aria-hidden="true">*</span>}
+          {required && <span className="ms-1 text-[var(--danger-text)]"aria-hidden="true">*</span>}
         </label>
       )}
 
@@ -949,7 +949,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
         className={cn(
           'flex items-stretch rounded-xl border bg-[var(--input-bg)] transition-shadow',
           error
-            ? 'border-red-400 dark:border-red-500 ring-1 ring-red-400 dark:ring-red-500'
+            ? 'border-[var(--danger)] ring-1 ring-[var(--danger)] dark:ring-[var(--danger)]'
             : 'border-[var(--border)] focus-within:ring-2 focus-within:ring-[var(--accent)] focus-within:border-transparent',
           disabled && 'opacity-50 pointer-events-none',
         )}
@@ -970,10 +970,10 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
           )}
         >
           <FlagIcon code={country.code} size={20} />
-          <span dir="ltr" className="text-sm font-medium text-[var(--fg)] tabular-nums">
+          <span dir="ltr"className="text-sm font-medium text-[var(--fg)] tabular-nums">
             {country.dialCode}
           </span>
-          <ChevronDown className="h-3 w-3 text-[var(--fg-muted)]" aria-hidden="true" />
+          <ChevronDown className="h-3 w-3 text-[var(--fg-muted)]"aria-hidden="true"/>
         </button>
 
         <input
@@ -1000,7 +1000,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
       </div>
 
       {error && (
-        <p id={errorId} role="alert" className="mt-1.5 text-xs text-red-500">
+        <p id={errorId} role="alert"className="mt-1.5 text-xs text-[var(--danger-text)]">
           {error}
         </p>
       )}

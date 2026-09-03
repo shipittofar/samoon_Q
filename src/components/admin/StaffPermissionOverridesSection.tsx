@@ -135,7 +135,7 @@ export function StaffPermissionOverridesSection({
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-gray-50"
+            className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-[var(--card-hover)]"
           >
             {t('addPermissionOverrideLabel')}
           </button>

@@ -30,7 +30,7 @@ export function AccessDenied({ resource }: AccessDeniedProps) {
 
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--danger-subtle)] text-[var(--danger-text)]">
         <svg
           className="h-8 w-8"
           fill="none"
@@ -47,8 +47,8 @@ export function AccessDenied({ resource }: AccessDeniedProps) {
         </svg>
       </div>
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">{t('accessDenied')}</h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <h2 className="text-xl font-semibold text-[var(--fg)]">{t('accessDenied')}</h2>
+        <p className="mt-1 text-sm text-[var(--fg-muted)]">
           {resource
             ? t('noPermissionToAccessResource', { resource })
             : t('noPermissionToViewPage')}

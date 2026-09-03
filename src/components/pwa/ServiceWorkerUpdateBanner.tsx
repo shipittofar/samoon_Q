@@ -25,13 +25,13 @@ export function ServiceWorkerUpdateBanner() {
       aria-live="polite"
       className="fixed bottom-4 start-4 end-4 sm:start-auto sm:end-4 sm:w-auto z-50 flex items-center gap-3 bg-[var(--card)] border border-[var(--border)] rounded-2xl px-4 py-3 shadow-xl"
     >
-      <span className="text-lg" aria-hidden="true">🚀</span>
+      <span className="text-lg"aria-hidden="true">🚀</span>
       <p className="text-sm font-medium text-[var(--fg)] flex-1">
         New version available
       </p>
       <button
         onClick={applyUpdate}
-        className="text-xs font-semibold text-orange-500 hover:text-orange-600 transition-colors px-2 py-1 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/20"
+        className="text-xs font-semibold text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--accent-subtle)]"
         aria-label="Refresh to apply the update"
       >
         Refresh

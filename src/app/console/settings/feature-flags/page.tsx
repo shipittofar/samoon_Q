@@ -27,8 +27,8 @@ function FeatureFlagsContent() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48 gap-2 text-gray-500 text-sm">
-        <Loader2 className="w-4 h-4 animate-spin" />
+      <div className="flex items-center justify-center h-48 gap-2 text-[var(--fg-muted)] text-sm">
+        <Loader2 className="w-4 h-4 animate-spin"/>
         {t('loadingFeatureFlags')}
       </div>
     )
@@ -37,8 +37,8 @@ function FeatureFlagsContent() {
   if (isError || !flags) {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-2">
-        <XCircle className="w-6 h-6 text-red-400" />
-        <p className="text-sm text-gray-600">{t('failedToLoadFeatureFlags')}</p>
+        <XCircle className="w-6 h-6 text-[var(--danger-text)]"/>
+        <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadFeatureFlags')}</p>
       </div>
     )
   }
@@ -48,11 +48,11 @@ function FeatureFlagsContent() {
       {flags.map((flag) => (
         <div
           key={flag.key}
-          className="flex items-center justify-between py-3 px-4 bg-white rounded-lg border hover:border-gray-300 transition-colors"
+          className="flex items-center justify-between py-3 px-4 bg-[var(--card)] rounded-lg border hover:border-[var(--border-input)] transition-colors"
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-mono font-medium text-gray-800">{flag.key}</span>
+              <span className="text-sm font-mono font-medium text-[var(--fg)]">{flag.key}</span>
               <Badge variant={SOURCE_BADGE[flag.source] ?? 'secondary'}>
                 {SOURCE_KEY[flag.source] ? t(SOURCE_KEY[flag.source]) : flag.source}
               </Badge>
@@ -65,15 +65,15 @@ function FeatureFlagsContent() {
             aria-label={t('toggleFlagAria', { key: flag.key })}
           >
             {flag.value ? (
-              <ToggleRight className="w-8 h-8 text-blue-600" />
+              <ToggleRight className="w-8 h-8 text-[var(--info-text)]"/>
             ) : (
-              <ToggleLeft className="w-8 h-8 text-gray-400" />
+              <ToggleLeft className="w-8 h-8 text-[var(--fg-subtle)]"/>
             )}
           </button>
         </div>
       ))}
       {flags.length === 0 && (
-        <p className="text-sm text-gray-500 text-center py-8">{t('noFeatureFlagsConfigured')}</p>
+        <p className="text-sm text-[var(--fg-muted)] text-center py-8">{t('noFeatureFlagsConfigured')}</p>
       )}
     </div>
   )
@@ -83,18 +83,18 @@ export default function FeatureFlagsPage() {
   const t = useTranslations('console')
   return (
     <ErrorBoundary feature="Feature Flags">
-      <PermissionGuard permission="settings.manage" fallback={<AccessDenied />}>
-        <div className="min-h-screen bg-gray-50">
-          <div className="bg-white border-b sticky top-0 z-10">
+      <PermissionGuard permission="settings.manage"fallback={<AccessDenied />}>
+        <div className="min-h-screen bg-[var(--card-hover)]">
+          <div className="bg-[var(--card)] border-b sticky top-0 z-10">
             <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
-              <Link href="/console/settings" className="text-gray-400 hover:text-gray-700">
-                <ArrowLeft className="w-5 h-5" />
+              <Link href="/console/settings"className="text-[var(--fg-subtle)] hover:text-[var(--fg)]">
+                <ArrowLeft className="w-5 h-5"/>
               </Link>
               <h1 className="text-lg font-semibold">{t('settingsTabFeatureFlags')}</h1>
             </div>
           </div>
           <div className="max-w-3xl mx-auto px-4 py-6">
-            <p className="text-sm text-gray-500 mb-5">
+            <p className="text-sm text-[var(--fg-muted)] mb-5">
               {t('toggleCapabilityFlagsHint')}
             </p>
             <FeatureFlagsContent />

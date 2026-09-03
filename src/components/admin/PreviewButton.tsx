@@ -4,7 +4,7 @@
  * P8.7 / P8.7.5 — Context-aware Preview Button
  *
  * Reads the active tenant and admin branch from their respective stores and
- * generates the correct public URL using `hrefToPublicUrl`. The `href` prop is
+ * generates the correct public URL using `hrefToPublicUrl`. The ` href`prop is
  * treated as a module hint (e.g. "/menu", "/reservation") and is automatically
  * upgraded to the path-based URL /[tenantSlug]/[branchSlug]/[module].
  *
@@ -53,7 +53,7 @@ export function PreviewButton({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-medium transition-colors hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900',
+        'inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--card)] text-[var(--fg-secondary)] font-medium transition-colors hover:bg-[var(--card-hover)] hover:border-[var(--border-input)] hover:text-[var(--fg)]',
         size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3 py-2 text-sm',
         className,
       )}

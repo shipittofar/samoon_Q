@@ -120,7 +120,7 @@ function BusinessCard({ biz }: { biz: MockBusiness }) {
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"/>
         <span className="absolute top-3 start-3 bg-black/40 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
           {biz.tag}
         </span>
@@ -129,10 +129,10 @@ function BusinessCard({ biz }: { biz: MockBusiness }) {
       <div className="p-4 flex-1 flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] group-hover:text-orange-500 transition-colors line-clamp-1">
+            <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] group-hover:text-[var(--accent-text)] transition-colors line-clamp-1">
               {biz.name}
             </h3>
-            <span className="text-xs text-orange-500 font-medium">
+            <span className="text-xs text-[var(--accent-text)] font-medium">
               {BUSINESS_TYPE_KEYS[biz.type] ? tMarketplace(`businessTypes.${BUSINESS_TYPE_KEYS[biz.type]}`) : biz.type}
             </span>
           </div>
@@ -141,12 +141,12 @@ function BusinessCard({ biz }: { biz: MockBusiness }) {
 
         <div className="flex items-center gap-3 text-xs text-[var(--fg-muted)]">
           <span className="flex items-center gap-0.5">
-            <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+            <Star className="h-3 w-3 text-[var(--rating)] fill-[var(--rating)]"/>
             <span className="font-medium text-[var(--fg)]">{biz.rating}</span>
             <span>({biz.reviewCount.toLocaleString()})</span>
           </span>
           <span className="flex items-center gap-0.5">
-            <MapPin className="h-3 w-3" />
+            <MapPin className="h-3 w-3"/>
             {biz.location}
           </span>
         </div>
@@ -163,7 +163,7 @@ export function DiscoveryPreview() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('exploreLabel')}</p>
+            <p className="text-sm font-medium text-[var(--accent-text)] uppercase tracking-widest mb-2">{t('exploreLabel')}</p>
             <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">
               {t('popularOnSamoon')}
             </h2>
@@ -171,9 +171,9 @@ export function DiscoveryPreview() {
           </div>
           <Link
             href="/discover"
-            className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors"
+            className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors"
           >
-            {tCommon('viewAll')} <ChevronRight className="h-4 w-4" />
+            {tCommon('viewAll')} <ChevronRight className="h-4 w-4"/>
           </Link>
         </div>
 
@@ -186,9 +186,9 @@ export function DiscoveryPreview() {
         <div className="mt-10 text-center">
           <Link
             href="/discover"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
           >
-            {t('browseAll500Businesses')} <ArrowRight className="h-4 w-4" />
+            {t('browseAll500Businesses')} <ArrowRight className="h-4 w-4"/>
           </Link>
         </div>
       </div>

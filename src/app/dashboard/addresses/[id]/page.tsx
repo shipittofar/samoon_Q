@@ -60,8 +60,8 @@ export default function AddressDetailPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/dashboard/addresses">
-          <Button variant="ghost" size="icon-sm" aria-label={tCommon('back')}>
-            <ArrowLeft className="h-4 w-4" />
+          <Button variant="ghost"size="icon-sm"aria-label={tCommon('back')}>
+            <ArrowLeft className="h-4 w-4"/>
           </Button>
         </Link>
         <div className="flex-1 min-w-0">
@@ -87,7 +87,7 @@ export default function AddressDetailPage() {
         {(address.latitude != null && address.longitude != null) && (
           <section>
             <h2 className="text-sm font-semibold text-[var(--fg-muted)] uppercase tracking-wide mb-2 flex items-center gap-2">
-              <MapPin className="h-4 w-4" /> {t('coordinates')}
+              <MapPin className="h-4 w-4"/> {t('coordinates')}
             </h2>
             <p className="text-sm text-[var(--fg)] font-mono">
               {address.latitude.toFixed(6)}, {address.longitude.toFixed(6)}
@@ -97,7 +97,7 @@ export default function AddressDetailPage() {
 
         {address.phone && (
           <section className="flex items-center gap-2 text-sm text-[var(--fg)]">
-            <Phone className="h-4 w-4 text-orange-500" />
+            <Phone className="h-4 w-4 text-[var(--accent-text)]"/>
             {address.phone}
           </section>
         )}
@@ -105,7 +105,7 @@ export default function AddressDetailPage() {
         {address.delivery_notes && (
           <section>
             <h2 className="text-sm font-semibold text-[var(--fg-muted)] uppercase tracking-wide mb-2 flex items-center gap-2">
-              <FileText className="h-4 w-4" /> {t('deliveryNotes')}
+              <FileText className="h-4 w-4"/> {t('deliveryNotes')}
             </h2>
             <p className="text-sm text-[var(--fg)]">{address.delivery_notes}</p>
           </section>
@@ -120,14 +120,14 @@ export default function AddressDetailPage() {
 
         <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[var(--border)] text-sm text-[var(--fg-muted)]">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-4 w-4"/>
             <div>
               <p className="text-xs">{t('createdAt')}</p>
               <p className="text-[var(--fg)]">{formatDate(address.created_at)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-4 w-4"/>
             <div>
               <p className="text-xs">{t('updatedAt')}</p>
               <p className="text-[var(--fg)]">{formatDate(address.updated_at)}</p>

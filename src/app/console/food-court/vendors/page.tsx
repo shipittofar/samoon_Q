@@ -29,10 +29,10 @@ const CATEGORY_KEY: Record<VendorCategory, string> = {
 }
 
 const STATUS_COLORS: Record<VendorStatus, string> = {
-  active:    'bg-green-100 text-green-700',
-  inactive:  'bg-gray-100 text-gray-500',
-  pending:   'bg-yellow-100 text-yellow-700',
-  suspended: 'bg-red-100 text-red-600',
+  active:    'bg-[var(--success-subtle)] text-[var(--success-text)]',
+  inactive:  'bg-[var(--card-hover)] text-[var(--fg-muted)]',
+  pending:   'bg-[var(--warning-subtle)] text-[var(--warning-text)]',
+  suspended: 'bg-[var(--danger-subtle)] text-[var(--danger-text)]',
 }
 
 interface VendorFormState {
@@ -91,10 +91,10 @@ function VendorFormModal({ title, form, onChange, onSubmit, onCancel, isPending,
   const inputCls = 'w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm text-[var(--fg)]'
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="vendor-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
-      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--border)] p-6 space-y-4 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
-        <h2 id="vendor-modal-title" className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
+    <div role="dialog"aria-modal="true"aria-labelledby="vendor-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-xl bg-[var(--card)] border border-[var(--border)] p-6 space-y-4 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
+        <h2 id="vendor-modal-title"className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
         <div className="space-y-3">
           {field(t('name'), <input value={form.name} onChange={(e) => onChange({ ...form, name: e.target.value })} className={inputCls} />)}
           {field(t('descriptionLabel'), <textarea value={form.description} onChange={(e) => onChange({ ...form, description: e.target.value })} rows={2} className={inputCls} />)}
@@ -113,20 +113,20 @@ function VendorFormModal({ title, form, onChange, onSubmit, onCancel, isPending,
             ))}
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {field(t('commissionRatePercentLabel'), <input type="number" min={0} max={100} value={form.commissionRate} onChange={(e) => onChange({ ...form, commissionRate: e.target.value })} className={inputCls} />)}
+            {field(t('commissionRatePercentLabel'), <input type="number"min={0} max={100} value={form.commissionRate} onChange={(e) => onChange({ ...form, commissionRate: e.target.value })} className={inputCls} />)}
             {field(t('stallNumberLabelForm'), <input value={form.stallNumber} onChange={(e) => onChange({ ...form, stallNumber: e.target.value })} className={inputCls} />)}
           </div>
-          {field(t('contactEmailLabel'), <input type="email" value={form.contactEmail} onChange={(e) => onChange({ ...form, contactEmail: e.target.value })} className={inputCls} />)}
+          {field(t('contactEmailLabel'), <input type="email"value={form.contactEmail} onChange={(e) => onChange({ ...form, contactEmail: e.target.value })} className={inputCls} />)}
           {field(t('contactPhoneLabel'), <input value={form.contactPhone} onChange={(e) => onChange({ ...form, contactPhone: e.target.value })} className={inputCls} />)}
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.featured} onChange={(e) => onChange({ ...form, featured: e.target.checked })} className="rounded" />
+            <input type="checkbox"checked={form.featured} onChange={(e) => onChange({ ...form, featured: e.target.checked })} className="rounded"/>
             <span className="text-sm text-[var(--fg)]">{t('featuredVendorLabel')}</span>
           </label>
         </div>
         <div className="flex justify-end gap-3 pt-2">
           <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm text-[var(--fg-muted)] border border-[var(--border)]">{t('cancel')}</button>
           <button onClick={onSubmit} disabled={isPending || !form.name || !form.contactEmail}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white disabled:opacity-40">
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40">
             {isPending ? t('savingEllipsis') : submitLabel}
           </button>
         </div>
@@ -144,11 +144,11 @@ function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: ()
   const [grossRevenue, setGrossRevenue] = useState('')
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="stats-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto">
-      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--border)] p-6 space-y-5 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
+    <div role="dialog"aria-modal="true"aria-labelledby="stats-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-xl bg-[var(--card)] border border-[var(--border)] p-6 space-y-5 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
         <div className="flex items-center justify-between">
-          <h2 id="stats-modal-title" className="text-lg font-semibold text-[var(--fg)]">{t('vendorStatistics')}</h2>
+          <h2 id="stats-modal-title"className="text-lg font-semibold text-[var(--fg)]">{t('vendorStatistics')}</h2>
           <button onClick={onClose} className="text-[var(--fg-muted)] text-xl leading-none">×</button>
         </div>
 
@@ -182,9 +182,9 @@ function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: ()
                     {s.payoutReference && <span className="text-xs text-[var(--fg-muted)] ml-2">{s.payoutReference}</span>}
                   </div>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    s.status === 'paid' ? 'bg-green-100 text-green-700' :
-                    s.status === 'failed' ? 'bg-red-100 text-red-600' :
-                    'bg-yellow-100 text-yellow-700'
+                    s.status === 'paid' ? 'bg-[var(--success-subtle)] text-[var(--success-text)]' :
+                    s.status === 'failed' ? 'bg-[var(--danger-subtle)] text-[var(--danger-text)]' :
+                    'bg-[var(--warning-subtle)] text-[var(--warning-text)]'
                   }`}>{tVendorsPage(`settlementStatuses.${s.status}`)}</span>
                 </li>
               )) : <p className="text-[var(--fg-muted)] text-sm">{t('noSettlementsYet')}</p>}
@@ -209,7 +209,7 @@ function VendorStatsPanel({ vendorId, onClose }: { vendorId: string; onClose: ()
               }}
               disabled={createSettlement.isPending || !grossRevenue}
               aria-label={t('createSettlementAria')}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white disabled:opacity-40"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40"
             >
               {createSettlement.isPending ? t('creatingEllipsis') : t('settle')}
             </button>
@@ -236,13 +236,13 @@ export default function AdminVendorsPage() {
 
   return (
     <ErrorBoundary feature="Vendor Management">
-    <PermissionGuard permission="vendors.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="vendors.view"fallback={<AccessDenied />}>
     <main className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">{t('vendorManagement')}</h1>
         <button
           onClick={() => { setShowCreate(true); setCreateForm(DEFAULT_FORM) }}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white"
+          className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-fg)]"
           aria-label={t('createVendorAria')}
         >
           + {t('addVendor')}
@@ -257,16 +257,16 @@ export default function AdminVendorsPage() {
         <ul className="space-y-3">
           {vendors.map((vendor) => (
             <li key={vendor.id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 flex items-center justify-between gap-4">
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 flex items-center justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[vendor.status]}`}>
                     {tVendorsPage(`statuses.${vendor.status}`)}
                   </span>
                   {vendor.featured && (
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--primary)] text-white">{t('featured')}</span>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--accent)] text-[var(--accent-fg)]">{t('featured')}</span>
                   )}
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent-text)]">
                     {tVendorsPage(`categories.${CATEGORY_KEY[vendor.category]}`)}
                   </span>
                 </div>
@@ -296,7 +296,7 @@ export default function AdminVendorsPage() {
                     onClick={() => disableMutation.mutate(vendor.id)}
                     disabled={disableMutation.isPending}
                     aria-label={t('disableNameAria', { name: vendor.name })}
-                    className="px-3 py-1 rounded-lg text-sm border border-red-300 text-red-600 disabled:opacity-40"
+                    className="px-3 py-1 rounded-lg text-sm border border-[var(--danger-border)] text-[var(--danger-text)] disabled:opacity-40"
                   >
                     {t('disable')}
                   </button>

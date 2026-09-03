@@ -181,10 +181,10 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Hero */}
-      <div className="bg-gradient-to-b from-orange-50/80 to-transparent dark:from-orange-950/20 dark:to-transparent">
+      <div className="bg-gradient-to-b from-[var(--accent-subtle)] to-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="text-center mb-8">
-            <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('explore')}</p>
+            <p className="text-sm font-medium text-[var(--accent-text)] uppercase tracking-widest mb-2">{t('explore')}</p>
             {/* H7: tenant/branch-aware heading */}
             <h1 className="font-[var(--font-display)] text-4xl sm:text-5xl font-bold text-[var(--fg)] mb-3">
               {pageHeading}
@@ -197,13 +197,13 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
             <div className="relative">
-              <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" aria-hidden="true" />
+              <Search className="absolute start-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"aria-hidden="true"/>
               <input
                 type="search"
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder={t('searchPlaceholder')}
-                className="w-full h-14 ps-11 pe-14 rounded-2xl border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 shadow-[var(--shadow-soft)] transition-all"
+                className="w-full h-14 ps-11 pe-14 rounded-2xl border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] placeholder:text-[var(--fg-subtle)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)] shadow-[var(--shadow-soft)] transition-all"
                 aria-label={t('searchAriaLabel')}
               />
               {search && (
@@ -212,7 +212,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                   className="absolute end-4 top-1/2 -translate-y-1/2 text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
                   aria-label={t('clearSearch')}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4"/>
                 </button>
               )}
             </div>
@@ -237,17 +237,17 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
               className={cn(
                 'flex items-center gap-1.5 whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all shrink-0',
                 activeCategory === ''
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                  : 'bg-[var(--card)] text-[var(--fg-muted)] hover:text-[var(--fg)] border border-[var(--border)] hover:border-orange-200',
+                  ? 'bg-[var(--accent)] text-[var(--accent-fg)] shadow-md shadow-[var(--accent)]/30'
+                  : 'bg-[var(--card)] text-[var(--fg-muted)] hover:text-[var(--fg)] border border-[var(--border)] hover:border-[var(--accent-border)]/50',
               )}
             >
               ✨ {t('allCategories')}
-              {data && <Badge variant="secondary" className="text-[10px]">{data.count}</Badge>}
+              {data && <Badge variant="secondary"className="text-[10px]">{data.count}</Badge>}
             </button>
 
             {catsLoading
               ? Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="h-9 w-24 rounded-xl bg-[var(--card-hover)] animate-pulse shrink-0" />
+                  <div key={i} className="h-9 w-24 rounded-xl bg-[var(--card-hover)] animate-pulse shrink-0"/>
                 ))
               : categories?.map((cat) => (
                   <button
@@ -258,14 +258,14 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                     className={cn(
                       'flex items-center gap-1.5 whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all shrink-0',
                       activeCategory === cat.slug
-                        ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                        : 'bg-[var(--card)] text-[var(--fg-muted)] hover:text-[var(--fg)] border border-[var(--border)] hover:border-orange-200',
+                        ? 'bg-[var(--accent)] text-[var(--accent-fg)] shadow-md shadow-[var(--accent)]/30'
+                        : 'bg-[var(--card)] text-[var(--fg-muted)] hover:text-[var(--fg)] border border-[var(--border)] hover:border-[var(--accent-border)]/50',
                     )}
                   >
                     {cat.icon && <span aria-hidden="true">{cat.icon}</span>}
                     {cat.name}
                     {cat.items_count !== undefined && (
-                      <Badge variant="secondary" className="text-[10px]">{cat.items_count}</Badge>
+                      <Badge variant="secondary"className="text-[10px]">{cat.items_count}</Badge>
                     )}
                   </button>
                 ))}
@@ -273,10 +273,10 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
 
           {/* Tag quick-filter chips */}
           {showTagFilters && (
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2" role="group" aria-label={t('tagFiltersAriaLabel')}>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2"role="group"aria-label={t('tagFiltersAriaLabel')}>
               {tagsLoading
                 ? Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-7 w-20 rounded-full bg-[var(--card-hover)] animate-pulse shrink-0" />
+                    <div key={i} className="h-7 w-20 rounded-full bg-[var(--card-hover)] animate-pulse shrink-0"/>
                   ))
                 : availableTags?.map((tag) => {
                     const isSelected = selectedTagIds.includes(tag.id)
@@ -289,8 +289,8 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                         className={cn(
                           'flex items-center gap-1.5 whitespace-nowrap px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 border',
                           isSelected
-                            ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                            : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)] hover:border-orange-300 hover:text-[var(--fg)]',
+                            ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent-border)] shadow-sm'
+                            : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)] hover:border-[var(--accent-border)]/50 hover:text-[var(--fg)]',
                         )}
                         style={!isSelected && tag.color ? { borderColor: `${tag.color}40` } : undefined}
                       >
@@ -308,7 +308,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 variant={showFilters ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setShowFilters((v) => !v)}
-                leftIcon={<SlidersHorizontal className="h-3.5 w-3.5" />}
+                leftIcon={<SlidersHorizontal className="h-3.5 w-3.5"/>}
               >
                 {t('filters')}
                 {(priceRange[0] > 0 || priceRange[1] < 100 || minRating > 0 || onlyAvailable) && (
@@ -318,7 +318,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 )}
               </Button>
               {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters} leftIcon={<X className="h-3.5 w-3.5" />}>
+                <Button variant="ghost"size="sm"onClick={clearFilters} leftIcon={<X className="h-3.5 w-3.5"/>}>
                   {tCommon('clear')}
                 </Button>
               )}
@@ -330,14 +330,14 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value as MenuFilters['sort'])}
-                  className="h-8 ps-3 pe-8 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 appearance-none cursor-pointer"
+                  className="h-8 ps-3 pe-8 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 appearance-none cursor-pointer"
                   aria-label={t('sortAriaLabel')}
                 >
                   {SORT_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
-                <ChevronDown className="absolute end-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--fg-muted)] pointer-events-none" aria-hidden="true" />
+                <ChevronDown className="absolute end-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--fg-muted)] pointer-events-none"aria-hidden="true"/>
               </div>
 
               {/* View mode */}
@@ -348,12 +348,12 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                     onClick={() => setViewMode(mode)}
                     className={cn(
                       'h-8 w-8 flex items-center justify-center transition-colors',
-                      viewMode === mode ? 'bg-orange-500 text-white' : 'bg-[var(--card)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
+                      viewMode === mode ? 'bg-[var(--accent)] text-[var(--accent-fg)]' : 'bg-[var(--card)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
                     )}
                     aria-label={mode === 'grid' ? t('gridView') : t('listView')}
                     aria-pressed={viewMode === mode}
                   >
-                    {mode === 'grid' ? <Grid3X3 className="h-3.5 w-3.5" /> : <List className="h-3.5 w-3.5" />}
+                    {mode === 'grid' ? <Grid3X3 className="h-3.5 w-3.5"/> : <List className="h-3.5 w-3.5"/>}
                   </button>
                 ))}
               </div>
@@ -376,11 +376,11 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 {/* Price Range */}
                 <div>
                   <label className="text-sm font-medium text-[var(--fg)] mb-3 block">
-                    {t('priceRangeLabel', { min: `$${priceRange[0]}`, max: priceRange[1] >= 100 ? '$100+' : `$${priceRange[1]}` })}
+                    {t('priceRangeLabel', { min: `$${priceRange[0]}`, max: priceRange[1] >= 100 ? ' $100+' : `$${priceRange[1]}` })}
                   </label>
                   <div className="flex items-center gap-3">
-                    <input type="range" min={0} max={100} value={priceRange[0]} onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])} className="flex-1 accent-orange-500" aria-label={t('minPriceAria')} />
-                    <input type="range" min={0} max={100} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], +e.target.value])} className="flex-1 accent-orange-500" aria-label={t('maxPriceAria')} />
+                    <input type="range"min={0} max={100} value={priceRange[0]} onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])} className="flex-1 accent-[var(--accent)]"aria-label={t('minPriceAria')} />
+                    <input type="range"min={0} max={100} value={priceRange[1]} onChange={(e) => setPriceRange([priceRange[0], +e.target.value])} className="flex-1 accent-[var(--accent)]"aria-label={t('maxPriceAria')} />
                   </div>
                 </div>
 
@@ -397,8 +397,8 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                         className={cn(
                           'px-3 py-1.5 rounded-xl text-sm border transition-all',
                           minRating === r
-                            ? 'bg-orange-500 text-white border-orange-500'
-                            : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-300',
+                            ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent-border)]'
+                            : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50',
                         )}
                       >
                         {r === 0 ? t('any') : `${r}★`}
@@ -415,8 +415,8 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                     className={cn(
                       'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition-all',
                       onlyAvailable
-                        ? 'bg-orange-500 text-white border-orange-500'
-                        : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-300',
+                        ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent-border)]'
+                        : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50',
                     )}
                   >
                     <span className={cn('h-4 w-4 rounded border-2 flex items-center justify-center', onlyAvailable ? 'border-white bg-white/20' : 'border-current')}>
@@ -437,7 +437,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
         {recentlyViewed.length > 0 && !debouncedSearch && !activeCategory && (
           <div className="mb-10">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="h-4 w-4 text-orange-500" aria-hidden="true" />
+              <Sparkles className="h-4 w-4 text-[var(--accent-text)]"aria-hidden="true"/>
               <h2 className="text-sm font-semibold text-[var(--fg)]">{t('recentlyViewed')}</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -450,7 +450,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
 
         {/* Results */}
         <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-[var(--fg-muted)]" aria-live="polite" aria-atomic="true">
+          <p className="text-sm text-[var(--fg-muted)]"aria-live="polite"aria-atomic="true">
             {isLoading ? tCommon('loading') : t('itemsFound', { count: items.length })}
           </p>
         </div>
@@ -461,7 +461,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
-            <span className="text-5xl" aria-hidden="true">🍽️</span>
+            <span className="text-5xl"aria-hidden="true">🍽️</span>
             <h3 className="font-[var(--font-display)] text-xl font-semibold text-[var(--fg)]">{t('noDishesFound')}</h3>
             <p className="text-[var(--fg-muted)] max-w-sm">
               {debouncedSearch
@@ -477,7 +477,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                     <button
                       key={cat.id}
                       onClick={() => { handleSearch(''); handleCategoryChange(cat.slug) }}
-                      className="px-3 py-1.5 rounded-full border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:border-orange-300 hover:text-[var(--fg)] transition-colors"
+                      className="px-3 py-1.5 rounded-full border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50 hover:text-[var(--fg)] transition-colors"
                     >
                       {cat.icon && <span aria-hidden="true">{cat.icon} </span>}{cat.name}
                     </button>
@@ -485,7 +485,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 </div>
               </div>
             )}
-            <Button variant="outline" onClick={clearFilters}>{t('clearFiltersButton')}</Button>
+            <Button variant="outline"onClick={clearFilters}>{t('clearFiltersButton')}</Button>
           </div>
         ) : (
           <motion.div

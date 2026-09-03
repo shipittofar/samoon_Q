@@ -128,7 +128,7 @@ function OTPContent() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm"
       >
-        <Link href="/" className="flex items-center gap-2 mb-10 justify-center">
+        <Link href="/"className="flex items-center gap-2 mb-10 justify-center">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
             <span className="text-white font-bold">S</span>
           </div>
@@ -140,9 +140,9 @@ function OTPContent() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 300 }}
-            className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-orange-50 dark:bg-orange-950/30 mb-5"
+            className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-[var(--accent-subtle)] mb-5"
           >
-            <Shield className="h-8 w-8 text-orange-500" />
+            <Shield className="h-8 w-8 text-[var(--accent-text)]"/>
           </motion.div>
 
           <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
@@ -156,7 +156,7 @@ function OTPContent() {
           </p>
 
           {/* OTP Input */}
-          <div className="flex gap-2 justify-center mb-8" onPaste={handlePaste}>
+          <div className="flex gap-2 justify-center mb-8"onPaste={handlePaste}>
             {otp.map((digit, index) => (
               <input
                 key={index}
@@ -169,9 +169,9 @@ function OTPContent() {
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 className={`
                   h-12 w-10 rounded-xl border-2 text-center text-lg font-bold transition-all
-                  focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20
+                  focus:outline-none focus:border-[var(--focus-ring)] focus:ring-2 focus:ring-[var(--focus-ring)]/20
                   ${digit
-                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-[var(--fg)]'
+                    ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--fg)]'
                     : 'border-[var(--border)] bg-[var(--input-bg)] text-[var(--fg)]'
                   }
                 `}
@@ -186,7 +186,7 @@ function OTPContent() {
             {otp.map((_, i) => (
               <div
                 key={i}
-                className={`h-1 flex-1 rounded-full transition-colors duration-200 ${i < filled ? 'bg-orange-500' : 'bg-[var(--border)]'
+                className={`h-1 flex-1 rounded-full transition-colors duration-200 ${i < filled ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'
                   }`}
               />
             ))}
@@ -205,12 +205,12 @@ function OTPContent() {
           {/* Resend */}
           <div className="text-sm text-[var(--fg-muted)]">
             {countdown > 0 ? (
-              <p>{t('resendCodeIn')} <span className="font-semibold text-orange-500">{countdown}s</span></p>
+              <p>{t('resendCodeIn')} <span className="font-semibold text-[var(--accent-text)]">{countdown}s</span></p>
             ) : (
               <button
                 onClick={handleResend}
                 disabled={resending}
-                className="text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1.5 mx-auto transition-colors"
+                className="text-[var(--accent-text)] hover:text-[var(--accent-text)] font-medium flex items-center gap-1.5 mx-auto transition-colors"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${resending ? 'animate-spin' : ''}`} />
                 {resending ? t('sendingResend') : t('resendCode')}
@@ -222,7 +222,7 @@ function OTPContent() {
             href="/login"
             className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors mt-6"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <ArrowLeft className="h-3.5 w-3.5"/>
             {t('backToSignIn')}
           </Link>
         </div>

@@ -19,7 +19,7 @@ function RoleCreateRedirect() {
   }, [router])
 
   return (
-    <main className="p-6 text-sm text-gray-600">
+    <main className="p-6 text-sm text-[var(--fg-muted)]">
       {t('customRoleNotActiveWarning')}
     </main>
   )
@@ -27,7 +27,7 @@ function RoleCreateRedirect() {
 
 export default function AdminRolesNewPage() {
   return (
-    <PermissionGuard permission="rbac.manage_roles" fallback={<AccessDenied />}>
+    <PermissionGuard permission="rbac.manage_roles"fallback={<AccessDenied />}>
       <RoleCreateRedirect />
     </PermissionGuard>
   )

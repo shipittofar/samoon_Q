@@ -20,8 +20,8 @@ export function PushNotificationSettings() {
   return (
     <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-[var(--border)] bg-[var(--card)]">
       <div className="flex items-center gap-3">
-        <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${permission === 'granted' ? 'bg-green-100 text-green-600' : 'bg-[var(--card-hover)] text-[var(--fg-muted)]'}`}>
-          <StatusIcon className="h-4 w-4" />
+        <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${permission === 'granted' ? 'bg-[var(--success-subtle)] text-[var(--success-text)]' : 'bg-[var(--card-hover)] text-[var(--fg-muted)]'}`}>
+          <StatusIcon className="h-4 w-4"/>
         </div>
         <div>
           <p className="text-sm font-medium text-[var(--fg)]">{t('pushNotifications')}</p>
@@ -29,7 +29,7 @@ export function PushNotificationSettings() {
         </div>
       </div>
       {permission === 'default' && (
-        <Button size="sm" onClick={request}>
+        <Button size="sm"onClick={request}>
           {t('enable')}
         </Button>
       )}
@@ -37,7 +37,7 @@ export function PushNotificationSettings() {
         <p className="text-xs text-[var(--fg-muted)]">{t('updateInBrowserSettings')}</p>
       )}
       {permission === 'granted' && (
-        <span className="text-xs font-medium text-green-600">{t('active')}</span>
+        <span className="text-xs font-medium text-[var(--success-text)]">{t('active')}</span>
       )}
     </div>
   )

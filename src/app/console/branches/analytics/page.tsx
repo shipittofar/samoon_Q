@@ -17,12 +17,12 @@ function BranchAnalyticsRow({ id, name, city, status, t }: { id: string; name: s
   return (
     <tr className="border-b last:border-0">
       <td className="py-2 pr-4 font-medium">{name}</td>
-      <td className="py-2 pr-4 text-gray-500">{city}</td>
+      <td className="py-2 pr-4 text-[var(--fg-muted)]">{city}</td>
       <td className="py-2 pr-4">
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
-          status === 'active' ? 'bg-green-100 text-green-800' :
-          status === 'maintenance' ? 'bg-amber-100 text-amber-800' :
-          'bg-gray-100 text-gray-800'
+          status === 'active' ? 'bg-[var(--success-subtle)] text-[var(--success-text)]' :
+          status === 'maintenance' ? 'bg-[var(--warning-subtle)] text-[var(--warning-text)]' :
+          'bg-[var(--card-hover)] text-[var(--fg)]'
         }`}>
           {t(BRANCH_STATUS_KEY[status] ?? 'statusInactive')}
         </span>
@@ -30,7 +30,7 @@ function BranchAnalyticsRow({ id, name, city, status, t }: { id: string; name: s
       <td className="py-2">
         <Link
           href={`/console/branches/${id}/analytics`}
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-[var(--info-text)] hover:underline"
         >
           {t('viewAnalyticsLabel')}
         </Link>
@@ -48,16 +48,16 @@ function BranchAnalyticsOverviewContent() {
   const maintenance = branches.filter((b) => b.status === 'maintenance')
   const inactive = branches.filter((b) => b.status === 'inactive')
 
-  if (isLoading) return <p className="p-6 text-gray-500">{t('loadingBranchesEllipsis')}</p>
+  if (isLoading) return <p className="p-6 text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</p>
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('branchAnalyticsTitle')}</h1>
-          <p className="mt-1 text-sm text-gray-500">{t('selectBranchToViewAnalyticsHint')}</p>
+          <p className="mt-1 text-sm text-[var(--fg-muted)]">{t('selectBranchToViewAnalyticsHint')}</p>
         </div>
-        <Link href="/console/branches" className="text-sm text-blue-600 hover:underline">
+        <Link href="/console/branches"className="text-sm text-[var(--info-text)] hover:underline">
           {t('backArrowBranchManagement')}
         </Link>
       </div>
@@ -65,16 +65,16 @@ function BranchAnalyticsOverviewContent() {
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-gray-500">{t('statusActive')}</p>
-          <p className="mt-1 text-2xl font-semibold text-green-600">{active.length}</p>
+          <p className="text-sm text-[var(--fg-muted)]">{t('statusActive')}</p>
+          <p className="mt-1 text-2xl font-semibold text-[var(--success-text)]">{active.length}</p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-gray-500">{t('maintenanceLabel')}</p>
-          <p className="mt-1 text-2xl font-semibold text-amber-600">{maintenance.length}</p>
+          <p className="text-sm text-[var(--fg-muted)]">{t('maintenanceLabel')}</p>
+          <p className="mt-1 text-2xl font-semibold text-[var(--warning-text)]">{maintenance.length}</p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-gray-500">{t('statusInactive')}</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-400">{inactive.length}</p>
+          <p className="text-sm text-[var(--fg-muted)]">{t('statusInactive')}</p>
+          <p className="mt-1 text-2xl font-semibold text-[var(--fg-subtle)]">{inactive.length}</p>
         </div>
       </div>
 
@@ -85,7 +85,7 @@ function BranchAnalyticsOverviewContent() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left text-gray-500">
+                <tr className="border-b text-left text-[var(--fg-muted)]">
                   <th className="pb-2 pr-4">{t('nameLabel')}</th>
                   <th className="pb-2 pr-4">{t('cityLabel')}</th>
                   <th className="pb-2 pr-4">{t('tableHeaders.status')}</th>
@@ -110,7 +110,7 @@ function BranchAnalyticsOverviewContent() {
       )}
 
       {branches.length === 0 && (
-        <p className="text-gray-500">{t('noBranchesFoundPeriod')}</p>
+        <p className="text-[var(--fg-muted)]">{t('noBranchesFoundPeriod')}</p>
       )}
     </div>
   )
@@ -119,7 +119,7 @@ function BranchAnalyticsOverviewContent() {
 export default function BranchAnalyticsOverviewPage() {
   return (
     <ErrorBoundary feature="Branch Analytics">
-      <PermissionGuard permission="branches.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="branches.view"fallback={<AccessDenied />}>
         <BranchAnalyticsOverviewContent />
       </PermissionGuard>
     </ErrorBoundary>

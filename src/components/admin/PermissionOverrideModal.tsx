@@ -71,11 +71,11 @@ export function PermissionOverrideModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="override-permission" className="block text-sm font-medium mb-1">
+          <label htmlFor="override-permission"className="block text-sm font-medium mb-1">
             {t('permissionColumnLabel')}
           </label>
           {isLoading ? (
-            <p className="text-sm text-gray-500">{t('loadingEllipsis')}</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('loadingEllipsis')}</p>
           ) : (
             <select
               id="override-permission"
@@ -92,7 +92,7 @@ export function PermissionOverrideModal({
               ))}
             </select>
           )}
-          {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+          {error && <p className="text-xs text-[var(--danger-text)] mt-1">{error}</p>}
         </div>
 
         <div>
@@ -108,7 +108,7 @@ export function PermissionOverrideModal({
         </div>
 
         {(membershipId || userId) && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-[var(--fg-muted)]">
             {membershipId ? t('membershipIdLabel', { id: membershipId }) : t('userIdLabel', { id: userId })}
           </p>
         )}
@@ -117,14 +117,14 @@ export function PermissionOverrideModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+            className="rounded-md border px-4 py-2 text-sm hover:bg-[var(--card-hover)]"
           >
             {t('cancel')}
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-[var(--info)] px-4 py-2 text-sm font-medium text-[var(--info-fg)] disabled:opacity-50"
           >
             {pending ? t('savingEllipsis') : t('saveChanges')}
           </button>

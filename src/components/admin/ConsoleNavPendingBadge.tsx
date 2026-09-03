@@ -43,8 +43,8 @@ export function CountBadge({
     <span
       className={cn(
         'ms-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full',
-        'bg-red-600 px-1.5 text-[10px] font-semibold leading-none text-white',
-        'dark:bg-red-500',
+        'bg-[var(--danger)] px-1.5 text-[10px] font-semibold leading-none text-[var(--danger-fg)]',
+        '',
       )}
       aria-label={`${label}: ${count}`}
     >

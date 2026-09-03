@@ -62,17 +62,17 @@ function SaveBar({ isPending, saved, onSave }: { isPending: boolean; saved: bool
   return (
     <div className="flex items-center justify-end gap-3 pt-5 mt-5 border-t">
       {saved && !isPending && (
-        <span className="flex items-center gap-1 text-sm text-green-600">
-          <CheckCircle className="w-4 h-4" /> {t('savedLabel')}
+        <span className="flex items-center gap-1 text-sm text-[var(--success-text)]">
+          <CheckCircle className="w-4 h-4"/> {t('savedLabel')}
         </span>
       )}
       <button
         type="button"
         onClick={onSave}
         disabled={isPending}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+        className="flex items-center gap-2 px-4 py-2 bg-[var(--info)] text-[var(--info-fg)] rounded-lg text-sm font-medium disabled:opacity-50"
       >
-        {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        {isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4"/>}
         {isPending ? t('savingEllipsis') : t('saveChanges')}
       </button>
     </div>
@@ -190,9 +190,9 @@ export function TenantCanonicalSettingsForm({
     setDiscoverCoverField({ ...EMPTY_IMAGE_FIELD, existingUrl: tenant.discoverCover ?? '' })
   }, [tenant.id, tenant.settings, tenant.description, tenant.image, tenant.discoverAvatar, tenant.discoverCover, tenant.heroImage])
 
-  const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
-  const hintClass = 'text-xs text-gray-400 mt-1'
+  const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]'
+  const labelClass = 'block text-sm font-medium text-[var(--fg-secondary)] mb-1'
+  const hintClass = 'text-xs text-[var(--fg-subtle)] mt-1'
 
   function handleSave() {
     const toArr = (s: string) => s.split(',').map((v) => v.trim()).filter(Boolean)
@@ -242,18 +242,18 @@ export function TenantCanonicalSettingsForm({
     <div className="space-y-8">
       <section className="space-y-4">
         <h2 className="text-base font-semibold">{t('settingsTabGeneral')}</h2>
-        <p className="text-xs text-gray-500">{t('tenantIdentityReadOnlyHint')}</p>
+        <p className="text-xs text-[var(--fg-muted)]">{t('tenantIdentityReadOnlyHint')}</p>
         <div>
           <label className={labelClass}>{t('businessNameLabel')}</label>
-          <input type="text" value={tenant.name} readOnly className={`${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed`} />
+          <input type="text"value={tenant.name} readOnly className={`${inputClass} bg-[var(--card-hover)] text-[var(--fg-muted)] cursor-not-allowed`} />
         </div>
         <div>
           <label className={labelClass}>{t('slugLabel')}</label>
-          <input type="text" value={tenant.slug} readOnly className={`${inputClass} bg-gray-50 font-mono text-gray-500 cursor-not-allowed`} />
+          <input type="text"value={tenant.slug} readOnly className={`${inputClass} bg-[var(--card-hover)] font-mono text-[var(--fg-muted)] cursor-not-allowed`} />
         </div>
         <div>
           <label className={labelClass} htmlFor="tenant-edit-description">
-            {t('tenantDescriptionLabel')} <span className="text-xs font-normal text-gray-400">{t('optionalLabel')}</span>
+            {t('tenantDescriptionLabel')} <span className="text-xs font-normal text-[var(--fg-subtle)]">{t('optionalLabel')}</span>
           </label>
           <textarea
             id="tenant-edit-description"
@@ -266,14 +266,14 @@ export function TenantCanonicalSettingsForm({
         </div>
         <div>
           <label className={labelClass}>{t('contactEmailLabel')}</label>
-          <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className={inputClass} />
+          <input type="email"value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>{t('contactPhoneLabel')}</label>
-          <input type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className={inputClass} />
+          <input type="tel"value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} className={inputClass} />
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-2">{t('tenantAddressCapabilitiesLabel')}</p>
+          <p className="text-sm font-medium text-[var(--fg-secondary)] mb-2">{t('tenantAddressCapabilitiesLabel')}</p>
           <p className={hintClass}>{t('tenantAddressCapabilitiesHint')}</p>
           <div className="mt-2 space-y-2">
             {ADDRESS_CAPABILITY_KEYS.map((key) => (
@@ -296,13 +296,13 @@ export function TenantCanonicalSettingsForm({
         <div>
           <label className={labelClass}>{t('primaryColorLabel')}</label>
           <div className="flex items-center gap-3">
-            <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="h-9 w-16 rounded border cursor-pointer" />
-            <input type="text" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="border rounded-md px-3 py-2 text-sm w-32 font-mono" />
+            <input type="color"value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="h-9 w-16 rounded border cursor-pointer"/>
+            <input type="text"value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="border rounded-md px-3 py-2 text-sm w-32 font-mono"/>
           </div>
         </div>
         <div>
           <label className={labelClass}>{t('bodyFontLabel')}</label>
-          <input type="text" value={fontBody} onChange={(e) => setFontBody(e.target.value)} placeholder="inter" className={inputClass} />
+          <input type="text"value={fontBody} onChange={(e) => setFontBody(e.target.value)} placeholder="inter"className={inputClass} />
         </div>
         <ImageUploader
           id="tenant-logo"
@@ -333,10 +333,10 @@ export function TenantCanonicalSettingsForm({
 
       <section className="space-y-4">
         <h2 className="text-base font-semibold">{t('settingsTabPublicProfile')}</h2>
-        <p className="text-sm text-gray-500">{t('publicProfileDescription')}</p>
+        <p className="text-sm text-[var(--fg-muted)]">{t('publicProfileDescription')}</p>
         <div>
           <label className={labelClass}>{t('taglineLabel')}</label>
-          <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)} className={inputClass} maxLength={120} />
+          <input type="text"value={tagline} onChange={(e) => setTagline(e.target.value)} className={inputClass} maxLength={120} />
         </div>
         <div>
           <label className={labelClass}>{t('aboutStoryLabel')}</label>
@@ -344,7 +344,7 @@ export function TenantCanonicalSettingsForm({
         </div>
         <div>
           <label className={labelClass}>{t('discoveryTagsLabel')}</label>
-          <input type="text" value={tags} onChange={(e) => setTags(e.target.value)} className={inputClass} />
+          <input type="text"value={tags} onChange={(e) => setTags(e.target.value)} className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>{t('priceLevelLabel')}</label>
@@ -358,15 +358,15 @@ export function TenantCanonicalSettingsForm({
         </div>
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="rounded" />
+            <input type="checkbox"checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="rounded"/>
             {t('featured')}
           </label>
           <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={popular} onChange={(e) => setPopular(e.target.checked)} className="rounded" />
+            <input type="checkbox"checked={popular} onChange={(e) => setPopular(e.target.checked)} className="rounded"/>
             {t('popular')}
           </label>
           <label className="inline-flex items-center gap-2">
-            <input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} className="rounded" />
+            <input type="checkbox"checked={isNew} onChange={(e) => setIsNew(e.target.checked)} className="rounded"/>
             {t('isNewLabel')}
           </label>
         </div>
@@ -447,7 +447,7 @@ export function TenantCanonicalSettingsForm({
           <button
             type="button"
             onClick={() => setGalleryFields((prev) => [...prev, { ...EMPTY_IMAGE_FIELD }])}
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-[var(--info-text)] hover:underline"
           >
             {t('addGalleryImageLabel')}
           </button>
@@ -460,16 +460,16 @@ export function TenantCanonicalSettingsForm({
           <table className="min-w-full text-sm">
             <thead>
               <tr>
-                <th className="text-left font-medium text-gray-600 pb-3 w-48">{t('eventLabel')}</th>
+                <th className="text-left font-medium text-[var(--fg-muted)] pb-3 w-48">{t('eventLabel')}</th>
                 {NOTIF_CHANNELS.map((c) => (
-                  <th key={c} className="text-center font-medium text-gray-600 pb-3 px-4">{t(NOTIF_CHANNEL_KEYS[c])}</th>
+                  <th key={c} className="text-center font-medium text-[var(--fg-muted)] pb-3 px-4">{t(NOTIF_CHANNEL_KEYS[c])}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y">
               {NOTIF_EVENTS.map((evt) => (
                 <tr key={evt}>
-                  <td className="py-2.5 text-gray-700">{t(NOTIF_EVENT_KEYS[evt])}</td>
+                  <td className="py-2.5 text-[var(--fg-secondary)]">{t(NOTIF_EVENT_KEYS[evt])}</td>
                   {NOTIF_CHANNELS.map((ch) => (
                     <td key={ch} className="text-center py-2.5">
                       <input

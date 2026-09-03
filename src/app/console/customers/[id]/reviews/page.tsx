@@ -17,7 +17,7 @@ function StarRating({ rating }: { rating: number }) {
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
-          className={`h-3.5 w-3.5 ${i < rating ? 'text-yellow-400 fill-yellow-400' : 'text-[var(--border)]'}`}
+          className={`h-3.5 w-3.5 ${i < rating ? 'text-[var(--rating)] fill-[var(--rating)]' : 'text-[var(--border)]'}`}
         />
       ))}
     </div>
@@ -32,7 +32,7 @@ function ReviewsContent({ id }: { id: string }) {
   if (customerLoading || reviewsLoading) {
     return (
       <div className="flex items-center justify-center h-48 gap-2 text-[var(--fg-muted)]">
-        <Loader2 className="h-5 w-5 animate-spin" />
+        <Loader2 className="h-5 w-5 animate-spin"/>
         <span className="text-sm">{t('loadingReviews')}</span>
       </div>
     )
@@ -41,9 +41,9 @@ function ReviewsContent({ id }: { id: string }) {
   if (customerError || !customer) {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-3">
-        <AlertCircle className="h-8 w-8 text-red-400" />
+        <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
         <p className="text-sm text-[var(--fg-muted)]">{t('customerNotFound')}</p>
-        <Link href="/console/customers" className="text-sm text-blue-600 hover:underline">
+        <Link href="/console/customers"className="text-sm text-[var(--info-text)] hover:underline">
           {t('backToCustomers')}
         </Link>
       </div>
@@ -60,14 +60,14 @@ function ReviewsContent({ id }: { id: string }) {
         href={`/console/customers/${id}`}
         className="inline-flex items-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)]"
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
+        <ArrowLeft className="h-3.5 w-3.5"/>
         {customer.first_name} {customer.last_name}
       </Link>
 
       {/* Customer summary */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
         <div className="flex items-center gap-3">
-          <Avatar firstName={customer.first_name} lastName={customer.last_name} size="md" />
+          <Avatar firstName={customer.first_name} lastName={customer.last_name} size="md"/>
           <div>
             <h1 className="text-lg font-bold text-[var(--fg)]">
               {customer.first_name} {customer.last_name}
@@ -82,14 +82,14 @@ function ReviewsContent({ id }: { id: string }) {
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
           <p className="text-xs text-[var(--fg-muted)] mb-1">{t('totalReviews')}</p>
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-blue-500" />
+            <MessageSquare className="h-4 w-4 text-[var(--info-text)]"/>
             <span className="text-xl font-bold text-[var(--fg)]">{reviews.length}</span>
           </div>
         </div>
         <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
           <p className="text-xs text-[var(--fg-muted)] mb-1">{t('averageRating')}</p>
           <div className="flex items-center gap-2">
-            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+            <Star className="h-4 w-4 text-[var(--rating)] fill-[var(--rating)]"/>
             <span className="text-xl font-bold text-[var(--fg)]">
               {reviews.length ? avgRating.toFixed(1) : '—'}
             </span>
@@ -102,7 +102,7 @@ function ReviewsContent({ id }: { id: string }) {
         <h2 className="text-sm font-semibold text-[var(--fg)]">{t('breadcrumbs.reviews')}</h2>
         {reviews.length === 0 ? (
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-8 flex flex-col items-center gap-3 text-center">
-            <MessageSquare className="h-8 w-8 text-[var(--fg-muted)]" />
+            <MessageSquare className="h-8 w-8 text-[var(--fg-muted)]"/>
             <p className="text-sm text-[var(--fg-muted)]">{t('noReviewsYet')}</p>
           </div>
         ) : (
@@ -134,7 +134,7 @@ export default function CustomerReviewsPage({ params }: { params: Promise<{ id: 
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Customer Reviews">
-      <PermissionGuard permission="customers.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="customers.view"fallback={<AccessDenied />}>
         <div className="min-h-screen bg-[var(--bg)]">
           <div className="pt-16">
             <ReviewsContent id={id} />

@@ -40,8 +40,8 @@ export function CategoryFilter({
 
   return (
     <nav aria-label={t('filterByBusinessTypeAria')}>
-      <ul className="flex flex-wrap gap-2" role="list">
-        {/* "All" chip */}
+      <ul className="flex flex-wrap gap-2"role="list">
+        {/* "All"chip */}
         <li>
           <button
             type="button"
@@ -91,11 +91,11 @@ export function CategoryFilter({
               className={cn(
                 'flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors',
                 openNow
-                  ? 'bg-emerald-500 text-white'
+                  ? 'bg-[var(--success)] text-[var(--success-fg)]'
                   : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
               )}
             >
-              <span className={cn('h-1.5 w-1.5 rounded-full', openNow ? 'bg-white' : 'bg-emerald-500')} aria-hidden="true" />
+              <span className={cn('h-1.5 w-1.5 rounded-full', openNow ? 'bg-[var(--card)]' : 'bg-[var(--success)]')} aria-hidden="true"/>
               {t('openNow')}
             </button>
           </li>

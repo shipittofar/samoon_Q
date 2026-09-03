@@ -67,11 +67,11 @@ export default async function RestaurantPage() {
             priority
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-900 to-stone-900" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-active)] to-[var(--surface-sunken)]"/>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"/>
         <div className="absolute bottom-0 inset-x-0 p-8 sm:p-12 max-w-7xl mx-auto">
-          <Badge variant="default" className="mb-3">{t('establishedBadge', { year: 2018 })}</Badge>
+          <Badge variant="default"className="mb-3">{t('establishedBadge', { year: 2018 })}</Badge>
           <h1 className="font-[var(--font-display)] text-4xl sm:text-6xl font-bold text-white mb-3">{t('ourStory')}</h1>
           {tagline && <p className="text-white/80 text-lg max-w-xl">{tagline}</p>}
         </div>
@@ -83,7 +83,7 @@ export default async function RestaurantPage() {
           <section className="py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {story && (
               <div>
-                <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-3">{t('title')}</p>
+                <p className="text-sm font-medium text-[var(--accent-text)] uppercase tracking-widest mb-3">{t('title')}</p>
                 <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)] mb-6">{t('craftedTagline')}</h2>
                 <div className="space-y-4 text-[var(--fg-muted)] leading-relaxed">
                   {story.split('\n\n').map((paragraph, i) => (
@@ -96,7 +96,7 @@ export default async function RestaurantPage() {
               <div className="grid grid-cols-2 gap-4">
                 {gallery.slice(0, 4).map((src, i) => (
                   <div key={i} className={`relative rounded-2xl overflow-hidden ${i === 0 ? 'row-span-2' : ''} ${i === 0 ? 'h-72' : 'h-32'}`}>
-                    <Image src={src} alt={`Gallery ${i + 1}`} fill className="object-cover hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 50vw, 25vw" />
+                    <Image src={src} alt={`Gallery ${i + 1}`} fill className="object-cover hover:scale-105 transition-transform duration-500"sizes="(max-width: 768px) 50vw, 25vw"/>
                   </div>
                 ))}
               </div>
@@ -116,13 +116,13 @@ export default async function RestaurantPage() {
               if (!item) return null
               const { icon: Icon, label, value, href } = item
               return (
-                <a key={label} href={href} className="group flex items-start gap-4 bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 hover:border-orange-200 dark:hover:border-orange-900 transition-all">
-                  <div className="h-10 w-10 rounded-xl bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center shrink-0 group-hover:bg-orange-100 transition-colors">
-                    <Icon className="h-5 w-5 text-orange-500" />
+                <a key={label} href={href} className="group flex items-start gap-4 bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 hover:border-[var(--accent-border)]/50 transition-all">
+                  <div className="h-10 w-10 rounded-xl bg-[var(--accent-subtle)] flex items-center justify-center shrink-0 group-hover:bg-[var(--accent-subtle)] transition-colors">
+                    <Icon className="h-5 w-5 text-[var(--accent-text)]"/>
                   </div>
                   <div>
                     <p className="text-xs text-[var(--fg-muted)] mb-0.5">{label}</p>
-                    <p className="font-medium text-[var(--fg)] group-hover:text-orange-500 transition-colors">{value}</p>
+                    <p className="font-medium text-[var(--fg)] group-hover:text-[var(--accent-text)] transition-colors">{value}</p>
                   </div>
                 </a>
               )
@@ -132,7 +132,7 @@ export default async function RestaurantPage() {
 
         {/* Branches / Locations — hidden when the tenant has no branches in marketplace meta yet */}
         {branches.length > 0 && (
-        <section className="py-12 border-t border-[var(--border)]" id="branches">
+        <section className="py-12 border-t border-[var(--border)]"id="branches">
           <h2 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-8">{t('ourLocations')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {branches.map((branch) => (
@@ -143,27 +143,27 @@ export default async function RestaurantPage() {
                 </div>
                 <div className="space-y-3 text-sm text-[var(--fg-muted)]">
                   <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                    <MapPin className="h-4 w-4 text-[var(--accent-text)] shrink-0 mt-0.5"/>
                     <span>{branch.address}<br />{branch.city}</span>
                   </div>
                   {branch.phone_number && (
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-orange-500" />
-                      <a href={`tel:${branch.phone_number}`} className="hover:text-orange-500 transition-colors">{branch.phone_number}</a>
+                      <Phone className="h-4 w-4 text-[var(--accent-text)]"/>
+                      <a href={`tel:${branch.phone_number}`} className="hover:text-[var(--accent-text)] transition-colors">{branch.phone_number}</a>
                     </div>
                   )}
                   {branch.hours && (
                     <div className="flex items-start gap-2">
-                      <Clock className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+                      <Clock className="h-4 w-4 text-[var(--accent-text)] shrink-0 mt-0.5"/>
                       <span>{branch.hours}</span>
                     </div>
                   )}
                 </div>
                 {/* Map Placeholder */}
-                <div className="mt-4 h-24 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 flex items-center justify-center border border-orange-200 dark:border-orange-900">
+                <div className="mt-4 h-24 rounded-xl bg-gradient-to-br from-[var(--accent-subtle)] to-[var(--card-hover)] flex items-center justify-center border border-[var(--accent-border)]/40">
                   <div className="text-center">
-                    <MapPin className="h-5 w-5 text-orange-400 mx-auto mb-1" />
-                    <p className="text-xs text-orange-500">{t('viewOnMaps')}</p>
+                    <MapPin className="h-5 w-5 text-[var(--accent-text)] mx-auto mb-1"/>
+                    <p className="text-xs text-[var(--accent-text)]">{t('viewOnMaps')}</p>
                   </div>
                 </div>
               </div>
@@ -179,8 +179,8 @@ export default async function RestaurantPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {gallery.map((src, i) => (
               <div key={i} className="relative rounded-2xl overflow-hidden h-48 group">
-                <Image src={src} alt={`Gallery ${i + 1}`} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 768px) 50vw, 33vw" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                <Image src={src} alt={`Gallery ${i + 1}`} fill className="object-cover group-hover:scale-105 transition-transform duration-500"sizes="(max-width: 768px) 50vw, 33vw"/>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"/>
               </div>
             ))}
           </div>

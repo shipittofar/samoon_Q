@@ -196,8 +196,8 @@ export default function SettingsPage() {
       {/* Profile */}
       <Card>
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-8 rounded-lg bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center">
-            <User className="h-4 w-4 text-orange-500" />
+          <div className="h-8 w-8 rounded-lg bg-[var(--accent-subtle)] flex items-center justify-center">
+            <User className="h-4 w-4 text-[var(--accent-text)]"/>
           </div>
           <h2 className="font-semibold text-[var(--fg)]">{t('profileInformation')}</h2>
         </div>
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                 onClick={handleUploadAvatar}
                 loading={uploadState === 'uploading'}
                 disabled={uploadState === 'uploading'}
-                leftIcon={<Upload className="h-3.5 w-3.5" />}
+                leftIcon={<Upload className="h-3.5 w-3.5"/>}
               >
                 {uploadState === 'uploading' ? t('uploadingEllipsis') : t('upload')}
               </Button>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
           )}
 
           {uploadState === 'success' && (
-            <p className="text-xs text-emerald-600 font-medium">{t('avatarUpdatedSuccessfully')}</p>
+            <p className="text-xs text-[var(--success-text)] font-medium">{t('avatarUpdatedSuccessfully')}</p>
           )}
         </div>
 
@@ -270,7 +270,7 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
-          <Button type="submit" loading={saving} disabled={!isDirty}>{t('saveChanges')}</Button>
+          <Button type="submit"loading={saving} disabled={!isDirty}>{t('saveChanges')}</Button>
         </form>
       </Card>
 
@@ -278,35 +278,35 @@ export default function SettingsPage() {
       <Card>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
-              <Mail className="h-4 w-4 text-blue-500" />
+            <div className="h-8 w-8 rounded-lg bg-[var(--info-subtle)] flex items-center justify-center">
+              <Mail className="h-4 w-4 text-[var(--info-text)]"/>
             </div>
             <h2 className="font-semibold text-[var(--fg)]">{t('emailVerification')}</h2>
           </div>
           {hasEmail ? (
-            <Badge variant="success" dot>{t('verified')}</Badge>
+            <Badge variant="success"dot>{t('verified')}</Badge>
           ) : (
-            <Badge variant="warning" dot>{t('notVerified')}</Badge>
+            <Badge variant="warning"dot>{t('notVerified')}</Badge>
           )}
         </div>
 
         {hasEmail ? (
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900">
-            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--success-subtle)] border border-[var(--success-border)]">
+            <CheckCircle2 className="h-5 w-5 text-[var(--success-text)] shrink-0 mt-0.5"/>
             <div>
-              <p className="font-semibold text-emerald-700 dark:text-emerald-300">{t('emailVerifiedTitle')}</p>
-              <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1 font-medium">{user?.email}</p>
-              <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-0.5">{t('emailAddedDesc')}</p>
+              <p className="font-semibold text-[var(--success-text)]">{t('emailVerifiedTitle')}</p>
+              <p className="text-sm text-[var(--success-text)] mt-1 font-medium">{user?.email}</p>
+              <p className="text-sm text-[var(--success-text)] mt-0.5">{t('emailAddedDesc')}</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             {!codeSent && (
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
-                <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--warning-subtle)] border border-[var(--warning-border)]">
+                <AlertTriangle className="h-5 w-5 text-[var(--rating)] shrink-0 mt-0.5"/>
                 <div>
-                  <p className="font-semibold text-amber-700 dark:text-amber-300">{t('emailNotVerifiedTitle')}</p>
-                  <p className="text-sm text-amber-600 dark:text-amber-400 mt-0.5">{t('emailNotVerifiedDesc')}</p>
+                  <p className="font-semibold text-[var(--warning-text)]">{t('emailNotVerifiedTitle')}</p>
+                  <p className="text-sm text-[var(--warning-text)] mt-0.5">{t('emailNotVerifiedDesc')}</p>
                 </div>
               </div>
             )}
@@ -365,8 +365,8 @@ export default function SettingsPage() {
       {/* Theme */}
       <Card>
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-8 rounded-lg bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center">
-            <Sun className="h-4 w-4 text-purple-500" />
+          <div className="h-8 w-8 rounded-lg bg-[var(--chart-5)]/10 flex items-center justify-center">
+            <Sun className="h-4 w-4 text-[var(--chart-5)]"/>
           </div>
           <h2 className="font-semibold text-[var(--fg)]">{t('appearance')}</h2>
         </div>
@@ -377,11 +377,11 @@ export default function SettingsPage() {
               onClick={() => setTheme(value)}
               className={cn(
                 'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all',
-                theme === value ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' : 'border-[var(--border)] hover:border-orange-200',
+                theme === value ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)]' : 'border-[var(--border)] hover:border-[var(--accent-border)]/50',
               )}
             >
-              <Icon className={cn('h-5 w-5', theme === value ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
-              <span className={cn('text-sm font-medium', theme === value ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg-muted)]')}>{t(key)}</span>
+              <Icon className={cn('h-5 w-5', theme === value ? 'text-[var(--accent-text)]' : 'text-[var(--fg-muted)]')} />
+              <span className={cn('text-sm font-medium', theme === value ? 'text-[var(--accent-text)]' : 'text-[var(--fg-muted)]')}>{t(key)}</span>
             </button>
           ))}
         </div>
@@ -390,8 +390,8 @@ export default function SettingsPage() {
       {/* Language */}
       <Card>
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
-            <Globe className="h-4 w-4 text-blue-500" />
+          <div className="h-8 w-8 rounded-lg bg-[var(--info-subtle)] flex items-center justify-center">
+            <Globe className="h-4 w-4 text-[var(--info-text)]"/>
           </div>
           <h2 className="font-semibold text-[var(--fg)]">{t('languageAndRegion')}</h2>
         </div>
@@ -402,17 +402,17 @@ export default function SettingsPage() {
               onClick={() => setLocale(lang.code)}
               className={cn(
                 'flex items-center justify-between w-full px-4 py-3.5 rounded-xl border-2 text-start transition-all',
-                locale === lang.code ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20' : 'border-[var(--border)] hover:border-orange-200',
+                locale === lang.code ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)]' : 'border-[var(--border)] hover:border-[var(--accent-border)]/50',
               )}
             >
               <div className="flex items-center gap-3">
                 <span className="text-xl">{lang.flag}</span>
                 <div>
-                  <p className={cn('font-medium', locale === lang.code ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{lang.label}</p>
+                  <p className={cn('font-medium', locale === lang.code ? 'text-[var(--accent-text)]' : 'text-[var(--fg)]')}>{lang.label}</p>
                   <p className="text-xs text-[var(--fg-muted)]">{t(lang.dirKey)}</p>
                 </div>
               </div>
-              {locale === lang.code && <span className="text-orange-500 text-sm">✓</span>}
+              {locale === lang.code && <span className="text-[var(--accent-text)] text-sm">✓</span>}
             </button>
           ))}
         </div>
@@ -421,8 +421,8 @@ export default function SettingsPage() {
       {/* Notifications */}
       <Card>
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-8 rounded-lg bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
-            <Bell className="h-4 w-4 text-amber-500" />
+          <div className="h-8 w-8 rounded-lg bg-[var(--warning-subtle)] flex items-center justify-center">
+            <Bell className="h-4 w-4 text-[var(--rating)]"/>
           </div>
           <h2 className="font-semibold text-[var(--fg)]">{t('notificationPreferences')}</h2>
         </div>
@@ -436,14 +436,14 @@ export default function SettingsPage() {
               <button
                 onClick={() => setNotifPrefs((p) => ({ ...p, [pref.id]: !p[pref.id] }))}
                 className={cn(
-                  'relative h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500',
-                  notifPrefs[pref.id] ? 'bg-orange-500' : 'bg-[var(--border-strong)]',
+                  'relative h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]',
+                  notifPrefs[pref.id] ? 'bg-[var(--accent)]' : 'bg-[var(--border-strong)]',
                 )}
                 role="switch"
                 aria-checked={notifPrefs[pref.id]}
                 aria-label={t(`notifPrefs.${pref.key}.label`)}
               >
-                <span className={cn('absolute top-0.5 start-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200', notifPrefs[pref.id] ? 'translate-x-5' : 'translate-x-0')} />
+                <span className={cn('absolute top-0.5 start-0.5 h-5 w-5 rounded-full bg-[var(--card)] shadow-sm transition-transform duration-200', notifPrefs[pref.id] ? 'translate-x-5' : 'translate-x-0')} />
               </button>
             </div>
           ))}
@@ -453,8 +453,8 @@ export default function SettingsPage() {
       {/* Security */}
       <Card>
         <div className="flex items-center gap-3 mb-4">
-          <div className="h-8 w-8 rounded-lg bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
-            <Shield className="h-4 w-4 text-red-500" />
+          <div className="h-8 w-8 rounded-lg bg-[var(--danger-subtle)] flex items-center justify-center">
+            <Shield className="h-4 w-4 text-[var(--danger-text)]"/>
           </div>
           <h2 className="font-semibold text-[var(--fg)]">{t('security')}</h2>
         </div>
@@ -465,7 +465,7 @@ export default function SettingsPage() {
                 <p className="text-sm font-medium text-[var(--fg)]">{t(`securityItems.${key}.label`)}</p>
                 <p className="text-xs text-[var(--fg-muted)]">{t(`securityItems.${key}.desc`)}</p>
               </div>
-              <ChevronRight className="h-4 w-4 text-[var(--fg-subtle)]" />
+              <ChevronRight className="h-4 w-4 text-[var(--fg-subtle)]"/>
             </button>
           ))}
         </div>
@@ -473,8 +473,8 @@ export default function SettingsPage() {
 
       {/* Danger zone */}
       <Card>
-        <h2 className="font-semibold text-red-500 mb-4">{t('dangerZone')}</h2>
-        <Button variant="destructive" size="sm">{t('deleteAccount')}</Button>
+        <h2 className="font-semibold text-[var(--danger-text)] mb-4">{t('dangerZone')}</h2>
+        <Button variant="destructive"size="sm">{t('deleteAccount')}</Button>
       </Card>
     </div>
   )

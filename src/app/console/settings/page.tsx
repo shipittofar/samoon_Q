@@ -37,17 +37,17 @@ function SaveBar({ isPending, saved, onSave }: SaveBarProps) {
   return (
     <div className="flex items-center justify-end gap-3 pt-5 mt-5 border-t">
       {saved && !isPending && (
-        <span className="flex items-center gap-1 text-sm text-green-600">
-          <CheckCircle className="w-4 h-4" /> {t('savedLabel')}
+        <span className="flex items-center gap-1 text-sm text-[var(--success-text)]">
+          <CheckCircle className="w-4 h-4"/> {t('savedLabel')}
         </span>
       )}
       <button
         type="button"
         onClick={onSave}
         disabled={isPending}
-        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+        className="flex items-center gap-2 px-4 py-2 bg-[var(--info)] text-[var(--info-fg)] rounded-lg text-sm font-medium disabled:opacity-50"
       >
-        {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        {isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4"/>}
         {isPending ? t('savingEllipsis') : t('saveChanges')}
       </button>
     </div>
@@ -80,56 +80,56 @@ function GeneralTab() {
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('businessNameLabel')}</label>
+        <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-1">{t('businessNameLabel')}</label>
         <input
           type="text"
           value={tenant?.name ?? ''}
           readOnly
-          className="w-full border rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+          className="w-full border rounded-md px-3 py-2 text-sm bg-[var(--card-hover)] text-[var(--fg-muted)] cursor-not-allowed"
         />
-        <p className="text-xs text-gray-400 mt-1">{t('managedByAccountSettings')}</p>
+        <p className="text-xs text-[var(--fg-subtle)] mt-1">{t('managedByAccountSettings')}</p>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('businessTypeLabel')}</label>
+        <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-1">{t('businessTypeLabel')}</label>
         <input
           type="text"
           value={tenant?.businessTypes?.join(', ') ?? ''}
           readOnly
-          className="w-full border rounded-md px-3 py-2 text-sm bg-gray-50 text-gray-500 capitalize cursor-not-allowed"
+          className="w-full border rounded-md px-3 py-2 text-sm bg-[var(--card-hover)] text-[var(--fg-muted)] capitalize cursor-not-allowed"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('tenantIdLabel')}</label>
+        <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-1">{t('tenantIdLabel')}</label>
         <input
           type="text"
           value={tenant?.id ?? ''}
           readOnly
-          className="w-full border rounded-md px-3 py-2 text-sm font-mono text-gray-500 bg-gray-50 cursor-not-allowed"
+          className="w-full border rounded-md px-3 py-2 text-sm font-mono text-[var(--fg-muted)] bg-[var(--card-hover)] cursor-not-allowed"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('contactEmailLabel')}</label>
+        <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-1">{t('contactEmailLabel')}</label>
         <input
           type="email"
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
           placeholder="contact@example.com"
-          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('contactPhoneLabel')}</label>
+        <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-1">{t('contactPhoneLabel')}</label>
         <input
           type="tel"
           value={contactPhone}
           onChange={(e) => setContactPhone(e.target.value)}
           placeholder="+1 555-000-0000"
-          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
         />
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-700 mb-2">{t('tenantAddressCapabilitiesLabel')}</p>
-        <p className="text-xs text-gray-400 mb-2">{t('tenantAddressCapabilitiesHint')}</p>
+        <p className="text-sm font-medium text-[var(--fg-secondary)] mb-2">{t('tenantAddressCapabilitiesLabel')}</p>
+        <p className="text-xs text-[var(--fg-subtle)] mb-2">{t('tenantAddressCapabilitiesHint')}</p>
         <div className="space-y-2">
           {(['cash_on_delivery', 'scheduled_delivery', 'same_day', 'contactless_delivery'] as const).map((key) => (
             <label key={key} className="flex items-center gap-2 text-sm cursor-pointer">
@@ -182,7 +182,7 @@ function BrandingTab() {
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{t('primaryColorLabel')}</label>
+        <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-2">{t('primaryColorLabel')}</label>
         <div className="flex items-center gap-3">
           <input
             type="color"
@@ -194,30 +194,30 @@ function BrandingTab() {
             type="text"
             value={primaryColor}
             onChange={(e) => setPrimaryColor(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sm w-32 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border rounded-md px-3 py-2 text-sm w-32 font-mono focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
           />
         </div>
       </div>
       {existingImage ? (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t('logoUploadLabel')}</label>
+          <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-1">{t('logoUploadLabel')}</label>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={existingImage}
             alt={t('logoPreviewLabel')}
-            className="h-12 w-auto object-contain border rounded-md bg-white p-1"
+            className="h-12 w-auto object-contain border rounded-md bg-[var(--card)] p-1"
           />
-          <p className="text-xs text-gray-500 mt-1">{t('logoUploadHint')}</p>
+          <p className="text-xs text-[var(--fg-muted)] mt-1">{t('logoUploadHint')}</p>
         </div>
       ) : null}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">{t('bodyFontLabel')}</label>
+        <label className="block text-sm font-medium text-[var(--fg-secondary)] mb-1">{t('bodyFontLabel')}</label>
         <input
           type="text"
           value={fontBody}
           onChange={(e) => setFontBody(e.target.value)}
           placeholder="inter"
-          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
         />
       </div>
       <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
@@ -228,9 +228,9 @@ function BrandingTab() {
 function HoursTab() {
   const t = useTranslations('console')
   return (
-    <div className="space-y-3 text-sm text-gray-600">
+    <div className="space-y-3 text-sm text-[var(--fg-muted)]">
       <p>{t('hoursManagedPerBranch')}</p>
-      <Link href="/console/branches" className="inline-flex text-blue-600 hover:underline">
+      <Link href="/console/branches"className="inline-flex text-[var(--info-text)] hover:underline">
         {t('manageBranchesLink')}
       </Link>
     </div>
@@ -290,16 +290,16 @@ function NotificationsTab() {
         <table className="min-w-full text-sm">
           <thead>
             <tr>
-              <th className="text-left font-medium text-gray-600 pb-3 w-48">{t('eventLabel')}</th>
+              <th className="text-left font-medium text-[var(--fg-muted)] pb-3 w-48">{t('eventLabel')}</th>
               {CHANNELS.map((c) => (
-                <th key={c} className="text-center font-medium text-gray-600 pb-3 px-4">{t(NOTIF_CHANNEL_KEYS[c])}</th>
+                <th key={c} className="text-center font-medium text-[var(--fg-muted)] pb-3 px-4">{t(NOTIF_CHANNEL_KEYS[c])}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y">
             {EVENTS.map((evt) => (
               <tr key={evt}>
-                <td className="py-2.5 text-gray-700">{t(NOTIF_EVENT_KEYS[evt])}</td>
+                <td className="py-2.5 text-[var(--fg-secondary)]">{t(NOTIF_EVENT_KEYS[evt])}</td>
                 {CHANNELS.map((ch) => (
                   <td key={ch} className="text-center py-2.5">
                     <input
@@ -384,19 +384,19 @@ function PublicProfileTab() {
     })
   }
 
-  const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-  const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
-  const hintClass = 'text-xs text-gray-400 mt-1'
+  const inputClass = 'w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]'
+  const labelClass = 'block text-sm font-medium text-[var(--fg-secondary)] mb-1'
+  const hintClass = 'text-xs text-[var(--fg-subtle)] mt-1'
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-[var(--fg-muted)] mb-4">
         {t('publicProfileDescription')}
       </p>
 
       <div>
         <label className={labelClass}>{t('taglineLabel')}</label>
-        <input type="text" value={tagline} onChange={(e) => setTagline(e.target.value)}
+        <input type="text"value={tagline} onChange={(e) => setTagline(e.target.value)}
           placeholder={t('taglinePlaceholder')} className={inputClass} maxLength={120} />
         <p className={hintClass}>{t('taglineHint')}</p>
       </div>
@@ -411,7 +411,7 @@ function PublicProfileTab() {
 
       <div>
         <label className={labelClass}>{t('discoveryTagsLabel')}</label>
-        <input type="text" value={tags} onChange={(e) => setTags(e.target.value)}
+        <input type="text"value={tags} onChange={(e) => setTags(e.target.value)}
           placeholder={t('tagsExamplePlaceholder')} className={inputClass} />
         <p className={hintClass}>{t('discoveryTagsHint')}</p>
       </div>
@@ -428,55 +428,55 @@ function PublicProfileTab() {
         </select>
       </div>
 
-      <div className="flex flex-wrap gap-4 text-sm text-gray-700">
+      <div className="flex flex-wrap gap-4 text-sm text-[var(--fg-secondary)]">
         <label className="inline-flex items-center gap-2">
-          <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="rounded" />
+          <input type="checkbox"checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="rounded"/>
           {t('featured')}
         </label>
         <label className="inline-flex items-center gap-2">
-          <input type="checkbox" checked={popular} onChange={(e) => setPopular(e.target.checked)} className="rounded" />
+          <input type="checkbox"checked={popular} onChange={(e) => setPopular(e.target.checked)} className="rounded"/>
           {t('popular')}
         </label>
         <label className="inline-flex items-center gap-2">
-          <input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} className="rounded" />
+          <input type="checkbox"checked={isNew} onChange={(e) => setIsNew(e.target.checked)} className="rounded"/>
           {t('isNewLabel')}
         </label>
       </div>
 
       <div>
         <label className={labelClass}>{t('websiteLabel')}</label>
-        <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)}
-          placeholder="https://yourbusiness.com" className={inputClass} />
+        <input type="url"value={website} onChange={(e) => setWebsite(e.target.value)}
+          placeholder="https://yourbusiness.com"className={inputClass} />
       </div>
 
       <div className="border-t pt-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('socialMediaLabel')}</h3>
+        <h3 className="text-sm font-semibold text-[var(--fg-secondary)] mb-3">{t('socialMediaLabel')}</h3>
         <div className="space-y-4">
           <div>
             <label className={labelClass}>{t('instagramUrlLabel')}</label>
-            <input type="url" value={instagram} onChange={(e) => setInstagram(e.target.value)}
-              placeholder="https://instagram.com/yourbusiness" className={inputClass} />
+            <input type="url"value={instagram} onChange={(e) => setInstagram(e.target.value)}
+              placeholder="https://instagram.com/yourbusiness"className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>{t('twitterUrlLabel')}</label>
-            <input type="url" value={twitter} onChange={(e) => setTwitter(e.target.value)}
-              placeholder="https://twitter.com/yourbusiness" className={inputClass} />
+            <input type="url"value={twitter} onChange={(e) => setTwitter(e.target.value)}
+              placeholder="https://twitter.com/yourbusiness"className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Facebook</label>
-            <input type="url" value={facebook} onChange={(e) => setFacebook(e.target.value)}
-              placeholder="https://facebook.com/yourbusiness" className={inputClass} />
+            <input type="url"value={facebook} onChange={(e) => setFacebook(e.target.value)}
+              placeholder="https://facebook.com/yourbusiness"className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>YouTube</label>
-            <input type="url" value={youtube} onChange={(e) => setYoutube(e.target.value)}
-              placeholder="https://youtube.com/@yourbusiness" className={inputClass} />
+            <input type="url"value={youtube} onChange={(e) => setYoutube(e.target.value)}
+              placeholder="https://youtube.com/@yourbusiness"className={inputClass} />
           </div>
         </div>
       </div>
 
       <div className="border-t pt-5">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('mediaLabel')}</h3>
+        <h3 className="text-sm font-semibold text-[var(--fg-secondary)] mb-3">{t('mediaLabel')}</h3>
         <div className="space-y-4">
           <div>
             <label className={labelClass}>{t('galleryImageUrlsLabel')}</label>
@@ -496,7 +496,7 @@ function PublicProfileTab() {
 function PlaceholderSection({ labelKey }: { labelKey: string }) {
   const t = useTranslations('console')
   return (
-    <div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-2">
+    <div className="flex flex-col items-center justify-center h-48 text-[var(--fg-subtle)] gap-2">
       <p className="text-sm">{t('settingsSectionComingSoon', { section: t(labelKey) })}</p>
     </div>
   )
@@ -520,8 +520,8 @@ function FeatureFlagsTab() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48 gap-2 text-gray-500 text-sm">
-        <Loader2 className="w-4 h-4 animate-spin" />
+      <div className="flex items-center justify-center h-48 gap-2 text-[var(--fg-muted)] text-sm">
+        <Loader2 className="w-4 h-4 animate-spin"/>
         {t('loadingFeatureFlags')}
       </div>
     )
@@ -530,25 +530,25 @@ function FeatureFlagsTab() {
   if (isError || !flags) {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-2">
-        <XCircle className="w-6 h-6 text-red-400" />
-        <p className="text-sm text-gray-600">{t('failedToLoadFeatureFlags')}</p>
+        <XCircle className="w-6 h-6 text-[var(--danger-text)]"/>
+        <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadFeatureFlags')}</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-[var(--fg-muted)] mb-4">
         {t('featureFlagsTabDescription')}
       </p>
       {flags.map((flag) => (
         <div
           key={flag.key}
-          className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg border hover:border-gray-300 transition-colors"
+          className="flex items-center justify-between py-3 px-4 bg-[var(--card-hover)] rounded-lg border hover:border-[var(--border-input)] transition-colors"
         >
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-mono font-medium text-gray-800">{flag.key}</span>
+              <span className="text-sm font-mono font-medium text-[var(--fg)]">{flag.key}</span>
               <Badge variant={SOURCE_BADGE_VARIANT[flag.source] ?? 'secondary'}>
                 {SOURCE_KEY[flag.source] ? t(SOURCE_KEY[flag.source]) : flag.source}
               </Badge>
@@ -561,15 +561,15 @@ function FeatureFlagsTab() {
             aria-label={t('toggleFlagAria', { key: flag.key })}
           >
             {flag.value ? (
-              <ToggleRight className="w-8 h-8 text-blue-600" />
+              <ToggleRight className="w-8 h-8 text-[var(--info-text)]"/>
             ) : (
-              <ToggleLeft className="w-8 h-8 text-gray-400" />
+              <ToggleLeft className="w-8 h-8 text-[var(--fg-subtle)]"/>
             )}
           </button>
         </div>
       ))}
       {flags.length === 0 && (
-        <p className="text-sm text-gray-500 text-center py-8">{t('noFeatureFlagsConfigured')}</p>
+        <p className="text-sm text-[var(--fg-muted)] text-center py-8">{t('noFeatureFlagsConfigured')}</p>
       )}
     </div>
   )
@@ -580,11 +580,11 @@ function SettingsContent() {
   const [activeTab, setActiveTab] = useState<Tab>('general')
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b sticky top-0 z-10">
+    <div className="min-h-screen bg-[var(--card-hover)]">
+      <div className="bg-[var(--card)] border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-lg font-semibold">{t('settingsTitle')}</h1>
-          <PreviewButton href="/" label={t('previewPublicSite')} size="sm" />
+          <PreviewButton href="/"label={t('previewPublicSite')} size="sm"/>
         </div>
       </div>
 
@@ -599,25 +599,25 @@ function SettingsContent() {
                   onClick={() => setActiveTab(tab)}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors text-left ${
                     activeTab === tab
-                      ? 'bg-blue-50 text-blue-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-[var(--info-subtle)] text-[var(--info-text)] font-medium'
+                      : 'text-[var(--fg-muted)] hover:bg-[var(--card-hover)]'
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0"/>
                   {t(labelKey)}
                 </button>
               )
             })}
           </nav>
 
-          <div className="flex-1 bg-white rounded-lg border p-6">
+          <div className="flex-1 bg-[var(--card)] rounded-lg border p-6">
             <h2 className="text-base font-semibold mb-5">{t(TAB_CONFIG[activeTab].labelKey)}</h2>
             <ErrorBoundary feature={`Settings — ${TAB_CONFIG[activeTab].labelKey}`}>
               {activeTab === 'general'        && <GeneralTab />}
               {activeTab === 'branding'       && <BrandingTab />}
               {activeTab === 'hours'          && <HoursTab />}
               {activeTab === 'publicprofile'  && <PublicProfileTab />}
-              {activeTab === 'integrations'   && <PlaceholderSection labelKey="settingsTabIntegrations" />}
+              {activeTab === 'integrations'   && <PlaceholderSection labelKey="settingsTabIntegrations"/>}
               {activeTab === 'notifications'  && <NotificationsTab />}
               {activeTab === 'feature-flags'  && <FeatureFlagsTab />}
             </ErrorBoundary>
@@ -631,7 +631,7 @@ function SettingsContent() {
 export default function SettingsPage() {
   return (
     <ErrorBoundary feature="Settings">
-      <PermissionGuard permission="settings.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="settings.view"fallback={<AccessDenied />}>
         <SettingsContent />
       </PermissionGuard>
     </ErrorBoundary>

@@ -14,7 +14,7 @@ interface MenuItemCartControlsProps {
   item: MenuItem
   onOpenDetail?: (item: MenuItem) => void
   disabled?: boolean
-  /** `icon` — compact plus icon; `button` — labeled Add; `full` — full-width CTA */
+  /** `icon` — compact plus icon; ` button` — labeled Add; ` full` — full-width CTA */
   layout?: 'icon' | 'button' | 'full'
   size?: ControlSize
   addLabel?: string
@@ -77,7 +77,7 @@ function MenuCardQuantity({
         )}
       >
         {quantity <= 1 ? (
-          <Trash2 className={cn(iconSize, 'text-red-500')} />
+          <Trash2 className={cn(iconSize, 'text-[var(--danger-text)]')} />
         ) : (
           <Minus className={iconSize} />
         )}
@@ -177,7 +177,7 @@ export function MenuItemCartControls({
   }
 
   const label = addLabel ?? t('add')
-  const icon = addIcon ?? <Plus className="h-3.5 w-3.5" />
+  const icon = addIcon ?? <Plus className="h-3.5 w-3.5"/>
 
   if (layout === 'icon') {
     return (
@@ -190,7 +190,7 @@ export function MenuItemCartControls({
           aria-label={t('addToCart')}
           className={className}
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className="h-3.5 w-3.5"/>
         </Button>
       </div>
     )

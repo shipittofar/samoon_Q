@@ -27,7 +27,7 @@ export default function StaffDetailPage({ params }: PageProps) {
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Staff Detail">
-      <PermissionGuard permission="staff.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="staff.view"fallback={<AccessDenied />}>
         <StaffDetailContent id={id} />
       </PermissionGuard>
     </ErrorBoundary>
@@ -50,17 +50,17 @@ function StaffDetailContent({ id }: { id: string }) {
           <h1 className="text-2xl font-bold">
             {member.firstName} {member.lastName}
           </h1>
-          <p className="text-gray-500">{member.email}</p>
+          <p className="text-[var(--fg-muted)]">{member.email}</p>
         </div>
         <span
           className={`px-3 py-1 rounded-full text-sm font-medium ${
             member.status === 'active'
-              ? 'bg-green-100 text-green-700'
+              ? 'bg-[var(--success-subtle)] text-[var(--success-text)]'
               : member.status === 'suspended'
-                ? 'bg-yellow-100 text-yellow-700'
+                ? 'bg-[var(--warning-subtle)] text-[var(--warning-text)]'
                 : member.status === 'removed'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-gray-100 text-gray-700'
+                  ? 'bg-[var(--danger-subtle)] text-[var(--danger-text)]'
+                  : 'bg-[var(--card-hover)] text-[var(--fg-secondary)]'
           }`}
         >
           {t(STAFF_STATUS_KEY[member.status] ?? 'statusInactive')}
@@ -82,23 +82,23 @@ function StaffDetailContent({ id }: { id: string }) {
       <section>
         <h2 className="text-lg font-semibold mb-2">{t('membershipLabel')}</h2>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <dt className="text-gray-500">{t('tenantLabelShort')}</dt>
+          <dt className="text-[var(--fg-muted)]">{t('tenantLabelShort')}</dt>
           <dd>
-            <Link href="/console/settings" className="text-indigo-600 hover:underline">
+            <Link href="/console/settings"className="text-[var(--info-text)] hover:underline">
               {member.tenantId}
             </Link>
           </dd>
-          <dt className="text-gray-500">{t('invitedLabel')}</dt>
+          <dt className="text-[var(--fg-muted)]">{t('invitedLabel')}</dt>
           <dd>{new Date(member.invitedAt).toLocaleDateString()}</dd>
           {member.activatedAt && (
             <>
-              <dt className="text-gray-500">{t('activatedLabel')}</dt>
+              <dt className="text-[var(--fg-muted)]">{t('activatedLabel')}</dt>
               <dd>{new Date(member.activatedAt).toLocaleDateString()}</dd>
             </>
           )}
           {member.lastSeenAt && (
             <>
-              <dt className="text-gray-500">{t('lastSeenLabel')}</dt>
+              <dt className="text-[var(--fg-muted)]">{t('lastSeenLabel')}</dt>
               <dd>{new Date(member.lastSeenAt).toLocaleDateString()}</dd>
             </>
           )}

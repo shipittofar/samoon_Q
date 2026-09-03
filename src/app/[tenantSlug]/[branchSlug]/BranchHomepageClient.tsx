@@ -30,18 +30,18 @@ function Breadcrumb({ tenantSlug, tenantName, branchName }: { tenantSlug: string
     <nav aria-label={t('breadcrumbAria')} className="bg-[var(--bg)] border-b border-[var(--border)]">
       <ol className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-1.5 text-sm text-[var(--fg-muted)] flex-wrap">
         <li className="inline-flex items-center">
-          <Link href="/discover" className="hover:text-[var(--fg)] transition-colors">{t('discover')}</Link>
+          <Link href="/discover"className="hover:text-[var(--fg)] transition-colors">{t('discover')}</Link>
         </li>
-        <li aria-hidden="true" className="inline-flex items-center">
-          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+        <li aria-hidden="true"className="inline-flex items-center">
+          <ChevronRight className="w-3.5 h-3.5 shrink-0"/>
         </li>
         <li className="inline-flex items-center min-w-0">
           <Link href={`/${tenantSlug}`} className="hover:text-[var(--fg)] transition-colors truncate max-w-[160px]">{tenantName}</Link>
         </li>
-        <li aria-hidden="true" className="inline-flex items-center">
-          <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+        <li aria-hidden="true"className="inline-flex items-center">
+          <ChevronRight className="w-3.5 h-3.5 shrink-0"/>
         </li>
-        <li className="inline-flex items-center min-w-0 font-medium text-[var(--fg)] truncate max-w-[160px]" aria-current="page">{branchName}</li>
+        <li className="inline-flex items-center min-w-0 font-medium text-[var(--fg)] truncate max-w-[160px]"aria-current="page">{branchName}</li>
       </ol>
     </nav>
   )
@@ -81,7 +81,7 @@ function HeroSection({
     // H9: increased height, H7: aria-labelledby
     <section
       aria-labelledby="branch-hero-heading"
-      className="relative h-[45vh] min-h-[300px] max-h-[480px] overflow-hidden bg-gray-900"
+      className="relative h-[45vh] min-h-[300px] max-h-[480px] overflow-hidden bg-[var(--card)]"
     >
       {branch.heroImage ? (
         // C3: next/image with priority for LCP, H7: decorative alt
@@ -95,16 +95,24 @@ function HeroSection({
           sizes="100vw"
         />
       ) : (
-        <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${accentColor}88, ${accentColor}44)` }} />
+        <div
+          className="absolute inset-0"
+          style={{
+            // color-mix rather than appending '88'/'44'to the hex: that trick
+            // silently produced an invalid colour for 3- and 8-digit hex
+            // values, both of which the branding validator accepts.
+            background: `linear-gradient(135deg, color-mix(in srgb, ${accentColor} 53%, transparent), color-mix(in srgb, ${accentColor} 27%, transparent))`,
+          }}
+        />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"/>
 
       <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-8 pb-8">
         <div className="flex items-end gap-4">
           {branch.coverImage ? (
             <div className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg bg-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={branch.coverImage} alt="" className="h-full w-full object-cover" />
+              <img src={branch.coverImage} alt=""className="h-full w-full object-cover"/>
             </div>
           ) : null}
           <div className="flex-1 min-w-0">
@@ -120,7 +128,7 @@ function HeroSection({
 
             {/* C2: address in hero */}
             <p className="flex items-center gap-1.5 text-sm text-white/80 mt-1.5">
-              <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              <MapPin className="w-3.5 h-3.5 shrink-0"aria-hidden="true"/>
               {branch.address}, {branch.city}
             </p>
 
@@ -128,14 +136,14 @@ function HeroSection({
               <span
                 className={cn(
                   'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                  branch.openNow ? 'bg-emerald-500 text-white' : 'bg-gray-500 text-white',
+                  branch.openNow ? 'bg-[var(--success)] text-[var(--success-fg)]' : 'bg-[var(--fg-muted)] text-[var(--bg)]',
                 )}
               >
                 {branch.openNow ? t('openNow') : t('closed')}
               </span>
               {branch.todayHours && (
                 <span className="text-white/70 text-xs flex items-center gap-1">
-                  <Clock className="w-3 h-3" aria-hidden="true" />{branch.todayHours}
+                  <Clock className="w-3 h-3"aria-hidden="true"/>{branch.todayHours}
                 </span>
               )}
             </div>
@@ -147,7 +155,7 @@ function HeroSection({
                   href={cta.primary.href}
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
                 >
-                  <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+                  <UtensilsCrossed className="w-4 h-4"aria-hidden="true"/>
                   {cta.primary.label}
                 </Link>
                 {cta.secondary && (
@@ -155,7 +163,7 @@ function HeroSection({
                     href={cta.secondary.href}
                     className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
                   >
-                    <Clock className="w-4 h-4" aria-hidden="true" />
+                    <Clock className="w-4 h-4"aria-hidden="true"/>
                     {cta.secondary.label}
                   </Link>
                 )}
@@ -165,7 +173,7 @@ function HeroSection({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
                 >
-                  <MapPin className="w-4 h-4" aria-hidden="true" />
+                  <MapPin className="w-4 h-4"aria-hidden="true"/>
                   {t('directions')}
                 </a>
               </div>
@@ -181,11 +189,11 @@ function HeroSection({
 
 /** Selects the icon for a CTA based on its destination href. */
 function ctaIcon(href: string): React.ReactNode {
-  if (href.includes('/menu'))        return <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
-  if (href.includes('/reservation')) return <Clock           className="w-4 h-4" aria-hidden="true" />
-  if (href.includes('/loyalty'))     return <Tag             className="w-4 h-4" aria-hidden="true" />
-  if (href.includes('#branches'))    return <MapPin          className="w-4 h-4" aria-hidden="true" />
-  return                                    <UtensilsCrossed className="w-4 h-4" aria-hidden="true" />
+  if (href.includes('/menu'))        return <UtensilsCrossed className="w-4 h-4"aria-hidden="true"/>
+  if (href.includes('/reservation')) return <Clock           className="w-4 h-4"aria-hidden="true"/>
+  if (href.includes('/loyalty'))     return <Tag             className="w-4 h-4"aria-hidden="true"/>
+  if (href.includes('#branches'))    return <MapPin          className="w-4 h-4"aria-hidden="true"/>
+  return                                    <UtensilsCrossed className="w-4 h-4"aria-hidden="true"/>
 }
 
 function QuickActions({
@@ -218,7 +226,7 @@ function QuickActions({
   }
 
   return (
-    <section className="bg-[var(--card)] border-b border-[var(--border)]" aria-label={t('quickActionsAria')}>
+    <section className="bg-[var(--card)] border-b border-[var(--border)]"aria-label={t('quickActionsAria')}>
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap gap-2">
         {/* Journey-ordered feature CTAs */}
         {allCTAs.map((cta, i) => (
@@ -242,7 +250,7 @@ function QuickActions({
             href={`tel:${branch.phone_number.replace(/\s/g, '')}`}
             className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
-            <Phone className="w-4 h-4" aria-hidden="true" />{t('call')}
+            <Phone className="w-4 h-4"aria-hidden="true"/>{t('call')}
           </a>
         )}
         <a
@@ -251,17 +259,17 @@ function QuickActions({
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
         >
-          <MapPin className="w-4 h-4" aria-hidden="true" />{t('directions')}
+          <MapPin className="w-4 h-4"aria-hidden="true"/>{t('directions')}
         </a>
         <button
           type="button"
           onClick={handleShare}
           className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
         >
-          {copied ? <Check className="w-4 h-4 text-emerald-500" aria-hidden="true" /> : <Share2 className="w-4 h-4" aria-hidden="true" />}
+          {copied ? <Check className="w-4 h-4 text-[var(--success-text)]"aria-hidden="true"/> : <Share2 className="w-4 h-4"aria-hidden="true"/>}
           {copied ? t('copiedExclaim') : t('share')}
         </button>
-        <span role="status" aria-live="polite" className="sr-only">{copied ? t('linkCopiedToClipboard') : ''}</span>
+        <span role="status"aria-live="polite"className="sr-only">{copied ? t('linkCopiedToClipboard') : ''}</span>
       </div>
     </section>
   )
@@ -272,11 +280,11 @@ function QuickActions({
 function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
   const t = useTranslations('branch')
   return (
-    <section aria-labelledby="branch-info-heading" className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 space-y-4">
-      <h2 id="branch-info-heading" className="font-semibold text-[var(--fg)]">{t('branchInformation')}</h2>
+    <section aria-labelledby="branch-info-heading"className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 space-y-4">
+      <h2 id="branch-info-heading"className="font-semibold text-[var(--fg)]">{t('branchInformation')}</h2>
       <div className="space-y-3 text-sm">
         <div className="flex items-start gap-3 text-[var(--fg-muted)]">
-          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent)]"aria-hidden="true"/>
           <div>
             <p>{branch.address}</p>
             <p>{branch.city}</p>
@@ -284,20 +292,20 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
         </div>
         {branch.phone_number && (
           <div className="flex items-center gap-3 text-[var(--fg-muted)]">
-            <Phone className="w-4 h-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+            <Phone className="w-4 h-4 shrink-0 text-[var(--accent)]"aria-hidden="true"/>
             <a href={`tel:${branch.phone_number.replace(/\s/g, '')}`} className="hover:text-[var(--fg)] transition-colors">{branch.phone_number}</a>
           </div>
         )}
         {branch.todayHours && (
           <div className="flex items-center gap-3 text-[var(--fg-muted)]">
-            <Clock className="w-4 h-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+            <Clock className="w-4 h-4 shrink-0 text-[var(--accent)]"aria-hidden="true"/>
             <span>{t('todayHours', { hours: branch.todayHours })}</span>
           </div>
         )}
         {(branch.cuisines?.length ?? 0) > 0 && (
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--fg-subtle)] mb-2">{t('cuisines')}</p>
-            <div className="flex flex-wrap gap-1.5" role="list" aria-label={t('cuisinesAria')}>
+            <div className="flex flex-wrap gap-1.5"role="list"aria-label={t('cuisinesAria')}>
               {branch.cuisines!.map((c) => (
                 <span
                   key={c}
@@ -313,7 +321,7 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
         {(branch.amenities?.length ?? 0) > 0 && (
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--fg-subtle)] mb-2">{t('amenities')}</p>
-            <div className="flex flex-wrap gap-1.5" role="list" aria-label={t('amenitiesAria')}>
+            <div className="flex flex-wrap gap-1.5"role="list"aria-label={t('amenitiesAria')}>
               {branch.amenities!.map((a) => (
                 <span
                   key={a}
@@ -335,7 +343,7 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
         aria-label={t('openInGoogleMapsAria')}
       >
         <div className="text-center">
-          <MapPin className="w-8 h-8 mx-auto mb-1 text-[var(--accent)]" aria-hidden="true" />
+          <MapPin className="w-8 h-8 mx-auto mb-1 text-[var(--accent)]"aria-hidden="true"/>
           <p className="font-medium">{t('viewOnMap')}</p>
           <p className="text-xs text-[var(--fg-subtle)] mt-0.5">{branch.address}</p>
         </div>
@@ -362,20 +370,20 @@ function BranchSwitcher({
   const otherBranches = branches.filter((b) => b.slug !== currentSlug)
 
   return (
-    <section aria-labelledby="branch-switcher-heading" className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5">
-      <h2 id="branch-switcher-heading" className="font-semibold text-[var(--fg)] mb-3">{t('locations')}</h2>
+    <section aria-labelledby="branch-switcher-heading"className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5">
+      <h2 id="branch-switcher-heading"className="font-semibold text-[var(--fg)] mb-3">{t('locations')}</h2>
 
       {/* H2: Current branch indicator */}
       {currentBranch && (
         <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--accent)]/8 border border-[var(--accent)]/20 mb-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
+          <span className="h-2 w-2 rounded-full bg-[var(--success)] shrink-0"aria-hidden="true"/>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-[var(--fg)] truncate">{currentBranch.name}</p>
             {currentBranch.todayHours && (
               <p className="text-xs text-[var(--fg-muted)] truncate">{currentBranch.todayHours}</p>
             )}
           </div>
-          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium shrink-0">{t('youreHere')}</span>
+          <span className="text-xs text-[var(--success-text)] font-medium shrink-0">{t('youreHere')}</span>
         </div>
       )}
 
@@ -398,12 +406,12 @@ function BranchSwitcher({
               <span
                 className={cn(
                   'text-xs px-2 py-0.5 rounded-full font-medium',
-                  b.openNow ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+                  b.openNow ? 'bg-[var(--success-subtle)] text-[var(--success-text)]' : 'bg-[var(--card-hover)] text-[var(--fg-muted)]',
                 )}
               >
                 {b.openNow ? t('open') : t('closed')}
               </span>
-              <ChevronRight className="w-4 h-4 text-[var(--fg-muted)] group-hover:text-[var(--fg)]" aria-hidden="true" />
+              <ChevronRight className="w-4 h-4 text-[var(--fg-muted)] group-hover:text-[var(--fg)]"aria-hidden="true"/>
             </div>
           </Link>
         ))}
@@ -429,7 +437,7 @@ function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuIte
           {t('popularItems')}
         </h2>
         <Link href={`/${tenantSlug}/${branchSlug}/menu`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1 font-medium">
-          {t('fullMenu')} <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+          {t('fullMenu')} <ChevronRight className="w-3.5 h-3.5"aria-hidden="true"/>
         </Link>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -470,7 +478,7 @@ function CategoriesSection({ categories, tenantSlug, branchSlug }: { categories:
     <section aria-labelledby="categories-heading">
       <div className="mb-5 pb-3 border-b border-[var(--border)]">
         {/* H6: upgraded heading */}
-        <h2 id="categories-heading" className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
+        <h2 id="categories-heading"className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
           {t('categories')}
         </h2>
       </div>
@@ -481,7 +489,7 @@ function CategoriesSection({ categories, tenantSlug, branchSlug }: { categories:
             href={`/${tenantSlug}/${branchSlug}/menu?category=${cat.slug}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)] transition-colors"
           >
-            <Tag className="w-3.5 h-3.5" aria-hidden="true" />{cat.name}
+            <Tag className="w-3.5 h-3.5"aria-hidden="true"/>{cat.name}
           </Link>
         ))}
       </div>
@@ -507,11 +515,11 @@ function PromotionsSection({ promotions, tenantSlug, branchSlug }: { promotions:
     <section aria-labelledby="promotions-heading">
       <div className="flex items-center justify-between mb-5 pb-3 border-b border-[var(--border)]">
         {/* H6: upgraded heading */}
-        <h2 id="promotions-heading" className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
+        <h2 id="promotions-heading"className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">
           {tTenant('currentOffers')}
         </h2>
         <Link href={`/${tenantSlug}/${branchSlug}/promotions`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1 font-medium">
-          {t('allOffers')} <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+          {t('allOffers')} <ChevronRight className="w-3.5 h-3.5"aria-hidden="true"/>
         </Link>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
@@ -553,7 +561,7 @@ function GallerySection({ images, label }: { images: string[]; label: string }) 
   if (!images.length) return null
   return (
     <section aria-labelledby="gallery-heading">
-      {/* H6: upgraded heading; C4: label makes source clear ("Gallery" vs branch) */}
+      {/* H6: upgraded heading; C4: label makes source clear ("Gallery"vs branch) */}
       <h2
         id="gallery-heading"
         className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-5 pb-3 border-b border-[var(--border)]"
@@ -589,7 +597,7 @@ function RatingSummary({ rating, reviewCount }: { rating?: number; reviewCount?:
   if (!rating) return null
   return (
     <div className="flex items-center gap-2 p-4 bg-[var(--card)] rounded-2xl border border-[var(--border)]">
-      <Star className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0" aria-hidden="true" />
+      <Star className="w-5 h-5 text-[var(--rating)] fill-[var(--rating)] shrink-0"aria-hidden="true"/>
       <div>
         <span className="font-bold text-[var(--fg)] text-lg">{rating.toFixed(1)}</span>
         {reviewCount != null && (
@@ -607,27 +615,27 @@ function BranchSkeleton() {
   return (
     <>
       <TenantHeader />
-      <div role="status" aria-label={t('loadingBranchPageAria')} className="animate-pulse">
-        <div className="h-[45vh] min-h-[300px] bg-[var(--card)]" aria-hidden="true" />
+      <div role="status"aria-label={t('loadingBranchPageAria')} className="animate-pulse">
+        <div className="h-[45vh] min-h-[300px] bg-[var(--card)]"aria-hidden="true"/>
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex-1 space-y-6">
               {/* Quick actions */}
               <div className="flex gap-3">
-                <div className="h-10 w-32 bg-[var(--card-hover)] rounded-xl" />
-                <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl" />
-                <div className="h-10 w-24 bg-[var(--card-hover)] rounded-xl" />
+                <div className="h-10 w-32 bg-[var(--card-hover)] rounded-xl"/>
+                <div className="h-10 w-28 bg-[var(--card-hover)] rounded-xl"/>
+                <div className="h-10 w-24 bg-[var(--card-hover)] rounded-xl"/>
               </div>
               {/* Menu cards */}
               <div className="space-y-3">
-                <div className="h-7 w-40 bg-[var(--card-hover)] rounded-xl" />
+                <div className="h-7 w-40 bg-[var(--card-hover)] rounded-xl"/>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
-                      <div className="h-32 bg-[var(--card-hover)]" />
+                      <div className="h-32 bg-[var(--card-hover)]"/>
                       <div className="p-3 space-y-2">
-                        <div className="h-4 w-3/4 bg-[var(--card-hover)] rounded" />
-                        <div className="h-3 w-1/2 bg-[var(--card-hover)] rounded" />
+                        <div className="h-4 w-3/4 bg-[var(--card-hover)] rounded"/>
+                        <div className="h-3 w-1/2 bg-[var(--card-hover)] rounded"/>
                       </div>
                     </div>
                   ))}
@@ -636,8 +644,8 @@ function BranchSkeleton() {
             </div>
             {/* Sidebar */}
             <div className="w-full lg:w-72 space-y-4 shrink-0">
-              <div className="h-48 bg-[var(--card)] rounded-2xl border border-[var(--border)]" />
-              <div className="h-32 bg-[var(--card)] rounded-2xl border border-[var(--border)]" />
+              <div className="h-48 bg-[var(--card)] rounded-2xl border border-[var(--border)]"/>
+              <div className="h-32 bg-[var(--card)] rounded-2xl border border-[var(--border)]"/>
             </div>
           </div>
         </div>
@@ -657,7 +665,7 @@ function BranchNotFound({ tenantSlug }: { tenantSlug: string }) {
     <>
       <TenantHeader />
       <main className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 text-center">
-        <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6" aria-hidden="true" />
+        <Store className="w-16 h-16 text-[var(--fg-muted)] mb-6"aria-hidden="true"/>
         <h1 className="text-3xl font-bold text-[var(--fg)] mb-3">{t('branchNotFound')}</h1>
         <p className="text-[var(--fg-muted)] max-w-sm mb-8">
           {t('branchNotFoundDesc')}
@@ -667,7 +675,7 @@ function BranchNotFound({ tenantSlug }: { tenantSlug: string }) {
             href={`/${tenantSlug}`}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] font-medium hover:bg-[var(--accent-hover)] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            <ArrowLeft className="w-4 h-4"aria-hidden="true"/>
             {t('backToBusiness')}
           </Link>
           <Link
@@ -740,9 +748,10 @@ export default function BranchHomepageClient({
   })
   const journey = buildCustomerJourney({ businessTypes: tenant.businessTypes, ctas })
 
-  const accentColor =
-    resolveTenantBranding({ branding: layout?.branding, settings: tenant.settings })?.primaryColor ??
-    '#e85d04'
+  // Single-tenant page: --accent already carries this tenant's derived,
+  // theme-corrected brand colour, so no raw hex is needed (and the previous
+  // '#e85d04'fallback silently painted every unbranded tenant orange).
+  const accentColor = 'var(--accent)'
 
   const allBranches = publicBranches
   const tenantGallery = meta?.gallery ?? []

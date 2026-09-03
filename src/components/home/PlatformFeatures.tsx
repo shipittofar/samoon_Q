@@ -21,7 +21,7 @@ export function PlatformFeatures() {
     <section className="py-20 bg-[var(--bg-secondary)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-3">{t('platformFeatures.eyebrow')}</p>
+          <p className="text-sm font-medium text-[var(--accent-text)] uppercase tracking-widest mb-3">{t('platformFeatures.eyebrow')}</p>
           <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)] mb-4">
             {t('platformFeatures.heading')}
           </h2>
@@ -36,12 +36,12 @@ export function PlatformFeatures() {
             return (
               <div
                 key={f.key}
-                className="group bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 text-center hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className="group bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 text-center hover:border-[var(--accent-border)]/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="h-12 w-12 rounded-2xl bg-orange-50 dark:bg-orange-950/20 flex items-center justify-center mx-auto mb-3 group-hover:bg-orange-100 dark:group-hover:bg-orange-950/40 transition-colors">
-                  <Icon className="h-6 w-6 text-orange-500" />
+                <div className="h-12 w-12 rounded-2xl bg-[var(--accent-subtle)] flex items-center justify-center mx-auto mb-3 group-hover:bg-[var(--accent-subtle)] transition-colors">
+                  <Icon className="h-6 w-6 text-[var(--accent-text)]"/>
                 </div>
-                <h3 className="font-semibold text-sm text-[var(--fg)] mb-1 group-hover:text-orange-500 transition-colors">
+                <h3 className="font-semibold text-sm text-[var(--fg)] mb-1 group-hover:text-[var(--accent-text)] transition-colors">
                   {t(`platformFeatures.items.${f.key}.label`)}
                 </h3>
                 <p className="text-xs text-[var(--fg-subtle)] leading-relaxed hidden lg:block">
@@ -56,10 +56,10 @@ export function PlatformFeatures() {
         <div className="mt-12 text-center">
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.4)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
           >
             {t('platformFeatures.getStartedFree')}
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4"/>
           </Link>
           <p className="mt-3 text-sm text-[var(--fg-muted)]">
             {t('platformFeatures.noCreditCardNote')}

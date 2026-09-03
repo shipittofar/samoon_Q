@@ -29,10 +29,10 @@ export function SelectableOptionRow({
       role={selectionType === 'single' ? 'radio' : undefined}
       className={cn(
         'flex items-center justify-between w-full px-3 py-2.5 rounded-xl border text-sm transition-all duration-200',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]',
         selected
-          ? 'border-[var(--accent)] bg-orange-50 dark:bg-orange-950/20 text-[var(--accent)]'
-          : 'border-[var(--border)] hover:border-[var(--accent)]/40 text-[var(--fg)]',
+          ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]'
+          : 'border-[var(--border)] hover:border-[var(--accent-border)]/50 text-[var(--fg)]',
         disabled && 'opacity-40 cursor-not-allowed',
       )}
     >
@@ -41,14 +41,14 @@ export function SelectableOptionRow({
           className={cn(
             'h-4 w-4 flex items-center justify-center transition-all border',
             selectionType === 'single' ? 'rounded-full' : 'rounded-md',
-            selected ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border-strong)]',
+            selected ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-[var(--border-input)]',
           )}
         >
           {selected && selectionType === 'single' && (
-            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-fg)]"/>
           )}
           {selected && selectionType === 'multiple' && (
-            <span className="text-[10px] text-white">✓</span>
+            <span className="text-[10px] text-[var(--accent-fg)]">✓</span>
           )}
         </span>
         {name}

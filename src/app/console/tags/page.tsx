@@ -58,7 +58,7 @@ function validateForm(form: TagFormInput): string | null {
 }
 
 function extractApiError(error: unknown, fallback: string): string {
-  if (error && typeof error === 'object' && 'response' in error) {
+  if (error && typeof error === 'object' && 'response'in error) {
     const data = (error as { response?: { data?: unknown } }).response?.data
     if (typeof data === 'string') return data
     if (data && typeof data === 'object') {
@@ -184,7 +184,7 @@ export default function AdminTagsPage() {
   }
 
   return (
-    <PermissionGuard permission="tag.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="tag.view"fallback={<AccessDenied />}>
       <ErrorBoundary feature="AdminTags">
         <div className="min-h-screen bg-[var(--bg)]">
           <div className="pt-20 pb-16">
@@ -203,7 +203,7 @@ export default function AdminTagsPage() {
                   <Button
                     variant="secondary"
                     size="sm"
-                    leftIcon={<RefreshCw className="h-4 w-4" />}
+                    leftIcon={<RefreshCw className="h-4 w-4"/>}
                     onClick={() => refetch()}
                     disabled={!adminBranchId || isLoading}
                     aria-label={t('refreshTagsAria')}
@@ -211,7 +211,7 @@ export default function AdminTagsPage() {
                     {t('refresh')}
                   </Button>
                   {canCreate && (
-                    <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate} disabled={!adminBranchId}>
+                    <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={openCreate} disabled={!adminBranchId}>
                       {t('addTag')}
                     </Button>
                   )}
@@ -219,14 +219,14 @@ export default function AdminTagsPage() {
               </div>
 
               {branchState === 'loading' && (
-                <EmptyState icon={<Loader2 className="h-8 w-8 animate-spin" />} title={t('loadingBranchesEllipsis')} />
+                <EmptyState icon={<Loader2 className="h-8 w-8 animate-spin"/>} title={t('loadingBranchesEllipsis')} />
               )}
               {branchState === 'error' && (
-                <EmptyState icon={<AlertCircle className="h-8 w-8" />} title={t('failedToLoadBranches')} />
+                <EmptyState icon={<AlertCircle className="h-8 w-8"/>} title={t('failedToLoadBranches')} />
               )}
               {branchState === 'empty' && (
                 <EmptyState
-                  icon={<Tags className="h-8 w-8" />}
+                  icon={<Tags className="h-8 w-8"/>}
                   title={t('selectBranchToManageTags')}
                   description={t('tagPageNoBranchHint')}
                 />
@@ -235,20 +235,20 @@ export default function AdminTagsPage() {
               {branchState === 'ready' && adminBranchId && (
                 <div className="flex flex-wrap gap-3 mb-6">
                   <div className="relative flex-1 min-w-48 max-w-sm">
-                    <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+                    <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"/>
                     <input
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
                       placeholder={t('searchTagsPlaceholder')}
                       aria-label={t('searchTagsPlaceholder')}
-                      className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+                      className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
                     />
                   </div>
                   <select
                     value={activeFilter}
                     onChange={(e) => setActiveFilter(e.target.value as ActiveFilter)}
                     aria-label={t('activeFilterLabel')}
-                    className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                   >
                     <option value="all">{t('allStatuses')}</option>
                     <option value="active">{t('activeOnly')}</option>
@@ -258,7 +258,7 @@ export default function AdminTagsPage() {
                     value={ordering}
                     onChange={(e) => setOrdering(e.target.value)}
                     aria-label={t('sortTagsAriaLabel')}
-                    className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                   >
                     <option value="display_order">{t('sortByDisplayOrder')}</option>
                     <option value="name">{t('sortByNameAsc')}</option>
@@ -272,22 +272,22 @@ export default function AdminTagsPage() {
               {adminBranchId && isLoading && (
                 <div className="space-y-2">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="h-12 rounded-xl bg-[var(--card-hover)] animate-pulse" />
+                    <div key={i} className="h-12 rounded-xl bg-[var(--card-hover)] animate-pulse"/>
                   ))}
                 </div>
               )}
 
               {adminBranchId && isError && !isLoading && (
                 <div className="flex flex-col items-center justify-center py-24 gap-3">
-                  <AlertCircle className="h-8 w-8 text-red-400" />
+                  <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
                   <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadTags')}</p>
-                  <Button variant="secondary" size="sm" onClick={() => refetch()}>{tCommon('retry')}</Button>
+                  <Button variant="secondary"size="sm"onClick={() => refetch()}>{tCommon('retry')}</Button>
                 </div>
               )}
 
               {adminBranchId && !isLoading && !isError && totalCount === 0 && (
                 <EmptyState
-                  icon={<Tags className="h-8 w-8" />}
+                  icon={<Tags className="h-8 w-8"/>}
                   title={t('noTagsFound')}
                   description={t('noTagsHint')}
                   action={canCreate ? <Button onClick={openCreate}>{t('addTag')}</Button> : undefined}
@@ -346,8 +346,8 @@ export default function AdminTagsPage() {
                             >
                               <Badge variant={tag.is_active ? 'success' : 'secondary'}>
                                 {tag.is_active
-                                  ? <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" />{t('active')}</span>
-                                  : <span className="inline-flex items-center gap-1"><EyeOff className="h-3 w-3" />{t('inactive')}</span>}
+                                  ? <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3"/>{t('active')}</span>
+                                  : <span className="inline-flex items-center gap-1"><EyeOff className="h-3 w-3"/>{t('inactive')}</span>}
                               </Badge>
                             </button>
                           </TableCell>
@@ -357,8 +357,8 @@ export default function AdminTagsPage() {
                           <TableCell>
                             <div className="flex gap-1">
                               {canUpdate && (
-                                <Button variant="ghost" size="icon-sm" onClick={() => openEdit(tag)} aria-label={t('editTagAria')}>
-                                  <Edit2 className="h-3.5 w-3.5" />
+                                <Button variant="ghost"size="icon-sm"onClick={() => openEdit(tag)} aria-label={t('editTagAria')}>
+                                  <Edit2 className="h-3.5 w-3.5"/>
                                 </Button>
                               )}
                               {canDelete && (
@@ -366,10 +366,10 @@ export default function AdminTagsPage() {
                                   variant="ghost"
                                   size="icon-sm"
                                   onClick={() => openDelete(tag)}
-                                  className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                                  className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"
                                   aria-label={t('deleteTagAria')}
                                 >
-                                  <Trash2 className="h-3.5 w-3.5" />
+                                  <Trash2 className="h-3.5 w-3.5"/>
                                 </Button>
                               )}
                             </div>
@@ -402,13 +402,13 @@ export default function AdminTagsPage() {
           <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={t('addTag')} size="md">
             <TagFormFields form={createForm} onChange={setCreateForm} error={createError} autoSlug />
             <div className="flex gap-3 pt-2">
-              <Button variant="secondary" onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
+              <Button variant="secondary"onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
               <Button onClick={submitCreate} disabled={createMutation.isPending} className="flex-1">
-                {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('addTag')}
+                {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addTag')}
               </Button>
             </div>
             {createMutation.isError && (
-              <p className="text-sm text-red-500 mt-2">{t('failedToCreateTagRetry')}</p>
+              <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToCreateTagRetry')}</p>
             )}
           </Modal>
 
@@ -420,13 +420,13 @@ export default function AdminTagsPage() {
           >
             <TagFormFields form={editForm} onChange={setEditForm} error={editError} />
             <div className="flex gap-3 pt-2">
-              <Button variant="secondary" onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
+              <Button variant="secondary"onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
               <Button onClick={submitEdit} disabled={updateMutation.isPending} className="flex-1">
-                {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('saveChanges')}
+                {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
               </Button>
             </div>
             {updateMutation.isError && (
-              <p className="text-sm text-red-500 mt-2">{t('failedToSaveChangesRetry')}</p>
+              <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToSaveChangesRetry')}</p>
             )}
           </Modal>
 
@@ -440,18 +440,18 @@ export default function AdminTagsPage() {
               {t('confirmDeleteTag', { name: deleteTarget?.name ?? '' })}
             </p>
             <div className="flex gap-3">
-              <Button variant="secondary" onClick={() => setDeleteOpen(false)} className="flex-1">{t('cancel')}</Button>
+              <Button variant="secondary"onClick={() => setDeleteOpen(false)} className="flex-1">{t('cancel')}</Button>
               <Button
                 onClick={confirmDelete}
                 disabled={deleteMutation.isPending}
-                className="flex-1 bg-red-500 hover:bg-red-600 border-red-500"
+                className="flex-1 bg-[var(--danger)] hover:bg-[var(--danger-hover)] border-[var(--danger)]"
               >
-                {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('deleteAction')}
+                {deleteMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('deleteAction')}
               </Button>
             </div>
-            {deleteError && <p className="text-sm text-red-500 mt-2" role="alert">{deleteError}</p>}
+            {deleteError && <p className="text-sm text-[var(--danger-text)] mt-2"role="alert">{deleteError}</p>}
             {deleteMutation.isError && !deleteError && (
-              <p className="text-sm text-red-500 mt-2" role="alert">
+              <p className="text-sm text-[var(--danger-text)] mt-2"role="alert">
                 {extractApiError(deleteMutation.error, t('failedToDeleteTagRetry'))}
               </p>
             )}
@@ -466,12 +466,12 @@ function TagVisual({ tag }: { tag: ConsoleMenuTag }) {
   if (tag.image) {
     return (
       <div className="relative h-8 w-8 rounded-full overflow-hidden bg-[var(--card-hover)]">
-        <Image src={tag.image} alt="" fill className="object-cover" sizes="32px" />
+        <Image src={tag.image} alt=""fill className="object-cover"sizes="32px"/>
       </div>
     )
   }
   if (tag.icon) {
-    return <span className="text-lg" aria-hidden="true">{tag.icon}</span>
+    return <span className="text-lg"aria-hidden="true">{tag.icon}</span>
   }
   return <span className="text-xs text-[var(--fg-muted)]">—</span>
 }
@@ -515,7 +515,7 @@ function TagFormFields({
       <Input label={t('tagNameLabel')} value={form.name} onChange={set('name')} />
       <Input label={t('slugLabel')} value={form.slug} onChange={set('slug')} />
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
-      <Input label={t('iconEmojiLabel')} value={form.icon} onChange={set('icon')} placeholder="🌱" />
+      <Input label={t('iconEmojiLabel')} value={form.icon} onChange={set('icon')} placeholder="🌱"/>
       <ImageUploader
         label={t('imageLabel')}
         value={form.image}
@@ -531,15 +531,15 @@ function TagFormFields({
             className="h-10 w-14 rounded-lg border border-[var(--border)] cursor-pointer bg-transparent"
             aria-label={t('colorLabel')}
           />
-          <Input value={form.color} onChange={set('color')} placeholder="#f97316" />
+          <Input value={form.color} onChange={set('color')} placeholder="#f97316"/>
         </div>
       </div>
-      <Input label={t('displayOrderLabel')} type="number" min={0} value={form.display_order} onChange={set('display_order')} />
+      <Input label={t('displayOrderLabel')} type="number"min={0} value={form.display_order} onChange={set('display_order')} />
       <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-        <input type="checkbox" checked={form.is_active} onChange={set('is_active')} className="rounded" />
+        <input type="checkbox"checked={form.is_active} onChange={set('is_active')} className="rounded"/>
         {t('active')}
       </label>
-      {error && <p className="text-sm text-red-500">{t(`tagFormError.${error}`)}</p>}
+      {error && <p className="text-sm text-[var(--danger-text)]">{t(`tagFormError.${error}`)}</p>}
     </div>
   )
 }

@@ -32,7 +32,7 @@ import type { StaffMember } from '@/types/staff'
 export default function StaffManagementPage() {
   return (
     <ErrorBoundary feature="Staff Management">
-      <PermissionGuard permission="staff.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="staff.view"fallback={<AccessDenied />}>
         <StaffManagementContent />
       </PermissionGuard>
     </ErrorBoundary>
@@ -45,7 +45,7 @@ function StaffManagementContent() {
   // Phase 3.2 — this page previously read `activeBranch` (the unrelated,
   // unvalidated customer-storefront branch, still persisted in full) for
   // its branch filter. The admin branch-resolution state machine
-  // (`selectedBranch`/`branchState`) is the only legitimate source here.
+  // (`selectedBranch`/` branchState`) is the only legitimate source here.
   // Staff management itself is tenant-wide and does not require a branch
   // to function, so branchState !== 'ready' does not block the page —
   // it only disables the optional per-branch filter, with that fact
@@ -95,17 +95,17 @@ function StaffManagementContent() {
               <span className="text-xs text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</span>
             )}
             {branchState === 'error' && (
-              <span className="text-xs text-red-600 dark:text-red-400">{t('failedToLoadBranches')}</span>
+              <span className="text-xs text-[var(--danger-text)]">{t('failedToLoadBranches')}</span>
             )}
             {(branchState === 'ready' || branchState === 'empty') && (
               <BranchContextIndicator branchId={selectedBranch?.id} branchName={selectedBranch?.name} />
             )}
           </div>
-          <p className="text-sm text-gray-500">{t('staffAccessManagementHint')}</p>
+          <p className="text-sm text-[var(--fg-muted)]">{t('staffAccessManagementHint')}</p>
         </div>
         <PermissionGuard permission="staff.manage">
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium"
+            className="px-4 py-2 bg-[var(--info)] text-[var(--info-fg)] rounded-lg text-sm font-medium"
             onClick={() => setInviteModalOpen(true)}
           >
             {t('inviteStaffLabel')}
@@ -131,7 +131,7 @@ function StaffManagementContent() {
       <section>
         <h2 className="text-lg font-semibold mb-3">{t('activeStaffLabel')}</h2>
         <div className="space-y-2">
-          {activeStaff.length === 0 && <p className="text-sm text-gray-500">{t('noActiveStaffPeriod')}</p>}
+          {activeStaff.length === 0 && <p className="text-sm text-[var(--fg-muted)]">{t('noActiveStaffPeriod')}</p>}
           {activeStaff.map((member) => (
             <StaffRow
               key={member.id}
@@ -141,20 +141,20 @@ function StaffManagementContent() {
                 <PermissionGuard permission="staff.manage">
                   <div className="flex gap-2 flex-wrap justify-end">
                     <button
-                      className="text-xs text-yellow-600 hover:underline"
+                      className="text-xs text-[var(--warning-text)] hover:underline"
                       onClick={() => suspendStaff.mutate(member.id)}
                     >
                       {t('suspendLabel')}
                     </button>
                     <button
-                      className="text-xs text-red-600 hover:underline"
+                      className="text-xs text-[var(--danger-text)] hover:underline"
                       onClick={() => removeStaff.mutate(member.id)}
                     >
                       {t('removeLabel')}
                     </button>
                     {ownerMember && member.id !== ownerMember.id && canTransferOwnership && (
                       <button
-                        className="text-xs text-purple-600 hover:underline"
+                        className="text-xs text-[var(--chart-5)] hover:underline"
                         onClick={() =>
                           transferOwnership.mutate({
                             currentOwnerId: ownerMember.id,
@@ -178,7 +178,7 @@ function StaffManagementContent() {
         <h2 className="text-lg font-semibold mb-3">{t('pendingInvitationsLabel')}</h2>
         <div className="space-y-2">
           {pendingInvites.length === 0 && (
-            <p className="text-sm text-gray-500">{t('noPendingInvitationsPeriod')}</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('noPendingInvitationsPeriod')}</p>
           )}
           {pendingInvites.map((invite) => (
             <div
@@ -187,20 +187,20 @@ function StaffManagementContent() {
             >
               <div>
                 <p className="font-medium">{invite.email}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[var(--fg-muted)]">
                   {t('expiresDateLabel', { date: new Date(invite.expiresAt).toLocaleDateString() })}
                 </p>
               </div>
               <PermissionGuard permission="staff.manage">
                 <div className="flex gap-2">
                   <button
-                    className="text-xs text-blue-600 hover:underline"
+                    className="text-xs text-[var(--info-text)] hover:underline"
                     onClick={() => resendInvite.mutate(invite.id)}
                   >
                     {t('resendLabel')}
                   </button>
                   <button
-                    className="text-xs text-red-600 hover:underline"
+                    className="text-xs text-[var(--danger-text)] hover:underline"
                     onClick={() => cancelInvite.mutate(invite.id)}
                   >
                     {t('cancel')}
@@ -226,7 +226,7 @@ function StaffManagementContent() {
                 actions={
                   <PermissionGuard permission="staff.manage">
                     <button
-                      className="text-xs text-green-600 hover:underline"
+                      className="text-xs text-[var(--success-text)] hover:underline"
                       onClick={() => activateStaff.mutate(member.id)}
                     >
                       {t('reactivateLabel')}
@@ -248,11 +248,11 @@ function ManagePermissionsLink({ userId }: { userId: string }) {
   return (
     <Link
       href={`/console/permissions/${userId}`}
-      className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+      className="inline-flex items-center gap-1.5 rounded-md bg-[var(--info)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--info-hover)]"
     >
-      <Shield className="h-3.5 w-3.5" />
+      <Shield className="h-3.5 w-3.5"/>
       {t('managePermissionsLabel')}
-      <ChevronRight className="h-3.5 w-3.5" />
+      <ChevronRight className="h-3.5 w-3.5"/>
     </Link>
   )
 }
@@ -278,7 +278,7 @@ function StaffRow({
         <p className="font-medium">
           {member.firstName} {member.lastName}
         </p>
-        <p className="text-sm text-gray-500">{member.email}</p>
+        <p className="text-sm text-[var(--fg-muted)]">{member.email}</p>
         <div className="flex gap-1 mt-1 flex-wrap">
           <StaffRoleBadges assignments={assignments} />
         </div>
@@ -294,7 +294,7 @@ function StaffRow({
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-lg border p-4">
-      <p className="text-sm text-gray-500">{label}</p>
+      <p className="text-sm text-[var(--fg-muted)]">{label}</p>
       <p className="text-2xl font-bold mt-1">{value}</p>
     </div>
   )

@@ -96,7 +96,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
       if (isPinned(m.id) || recent.includes(m.id)) continue
       // P9.4 Phase B — `group` (a top-level IA group) takes priority over
       // the finer-grained `category` used since P9.0; modules that don't
-      // set `group` (every pre-P9.4 module) keep grouping by `category`
+      // set `group` (every pre-P9.4 module) keep grouping by ` category`
       // exactly as before.
       const key = m.group ?? m.category
       map.set(key, [...(map.get(key) ?? []), m])
@@ -140,10 +140,10 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
           onFocus={() => setFocusedIndex(index)}
           aria-current={isActive ? 'page' : undefined}
           className={`flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-            isActive ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400' : 'text-[var(--fg)] hover:bg-[var(--card-hover)]'
+            isActive ? 'bg-[var(--accent)]/10 text-[var(--accent-text)]' : 'text-[var(--fg)] hover:bg-[var(--card-hover)]'
           }`}
         >
-          <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <Icon className="h-4 w-4 shrink-0"aria-hidden="true"/>
           <span className="truncate">{moduleName(mod)}</span>
           {lifecycle !== 'published' && (
             <Badge variant={LIFECYCLE_BADGE_VARIANT[lifecycle]} className="ms-auto shrink-0 text-[10px]">{lifecycle}</Badge>
@@ -155,24 +155,24 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
           aria-label={isPinned(mod.id) ? t('unpinAria', { name: moduleName(mod) }) : t('pinAria', { name: moduleName(mod) })}
           className="shrink-0 rounded-lg p-1.5 text-[var(--fg-muted)] opacity-0 hover:bg-[var(--card-hover)] hover:text-[var(--fg)] focus-visible:opacity-100 group-hover:opacity-100"
         >
-          {isPinned(mod.id) ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+          {isPinned(mod.id) ? <PinOff className="h-3.5 w-3.5"/> : <Pin className="h-3.5 w-3.5"/>}
         </button>
       </div>
     )
   }
 
   return (
-    <nav className="flex h-full flex-col" aria-label={t('navAria')} onKeyDown={onNavKeyDown}>
+    <nav className="flex h-full flex-col"aria-label={t('navAria')} onKeyDown={onNavKeyDown}>
       <div className="border-b border-[var(--border)] p-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--fg-muted)]" aria-hidden="true" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--fg-muted)]"aria-hidden="true"/>
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('searchModulesPlaceholder')}
             aria-label={t('searchModulesAria')}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-1.5 pl-8 pr-3 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-1.5 pl-8 pr-3 text-xs text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
           />
         </div>
       </div>
@@ -185,7 +185,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
             {pinnedModules.length > 0 && (
               <div>
                 <p className="mb-1 flex items-center gap-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--fg-muted)]">
-                  <Pin className="h-3 w-3" /> {t('pinned')}
+                  <Pin className="h-3 w-3"/> {t('pinned')}
                 </p>
                 <div className="space-y-0.5">{pinnedModules.map((m) => renderModuleButton(m, flatOrder.indexOf(m)))}</div>
               </div>
@@ -193,7 +193,7 @@ export function ConfigurationStudioNav({ activeModuleId, onSelect }: Configurati
             {recentModules.length > 0 && (
               <div>
                 <p className="mb-1 flex items-center gap-1 px-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--fg-muted)]">
-                  <Clock className="h-3 w-3" /> {t('recent')}
+                  <Clock className="h-3 w-3"/> {t('recent')}
                 </p>
                 <div className="space-y-0.5">{recentModules.map((m) => renderModuleButton(m, flatOrder.indexOf(m)))}</div>
               </div>

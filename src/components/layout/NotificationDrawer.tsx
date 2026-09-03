@@ -19,10 +19,10 @@ import { useLocalizedNumber } from '@/i18n/hooks'
 import type { RichNotification, NotificationFilter, NotificationStatus, NotificationPriority, NotificationCategory } from '@/types/notification'
 
 const PRIORITY_ICON: Record<NotificationPriority, React.ReactNode> = {
-  low: <Info className="w-4 h-4 text-muted-foreground" />,
-  normal: <Info className="w-4 h-4 text-blue-500" />,
-  high: <AlertTriangle className="w-4 h-4 text-amber-500" />,
-  urgent: <AlertCircle className="w-4 h-4 text-red-500" />,
+  low: <Info className="w-4 h-4 text-muted-foreground"/>,
+  normal: <Info className="w-4 h-4 text-[var(--info-text)]"/>,
+  high: <AlertTriangle className="w-4 h-4 text-[var(--rating)]"/>,
+  urgent: <AlertCircle className="w-4 h-4 text-[var(--danger-text)]"/>,
 }
 
 const PRIORITY_BADGE: Record<NotificationPriority, 'default' | 'info' | 'warning' | 'danger'> = {
@@ -75,7 +75,7 @@ function DrawerNotifItem({ notification, onRead, onArchive, onDelete, onClose }:
     <div
       className={cn(
         'group flex gap-3 px-4 py-4 hover:bg-muted/40 transition-colors border-b border-border last:border-0',
-        notification.status === 'unread' && 'bg-blue-50/30 dark:bg-blue-950/20',
+        notification.status === 'unread' && 'bg-[var(--info-subtle)]/30',
       )}
     >
       <div className="mt-0.5 flex-shrink-0">{PRIORITY_ICON[notification.priority]}</div>
@@ -103,23 +103,23 @@ function DrawerNotifItem({ notification, onRead, onArchive, onDelete, onClose }:
             onClick={onClose}
             className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline"
           >
-            {t('viewDetails')} <ExternalLink className="w-3 h-3" />
+            {t('viewDetails')} <ExternalLink className="w-3 h-3"/>
           </Link>
         )}
       </div>
       <div className="flex-shrink-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {notification.status === 'unread' && (
           <button onClick={() => onRead(notification.id)} title={t('markRead')} className="p-1.5 rounded hover:bg-muted">
-            <Check className="w-4 h-4" />
+            <Check className="w-4 h-4"/>
           </button>
         )}
         {notification.status !== 'archived' && (
           <button onClick={() => onArchive(notification.id)} title={t('archive')} className="p-1.5 rounded hover:bg-muted">
-            <Archive className="w-4 h-4" />
+            <Archive className="w-4 h-4"/>
           </button>
         )}
         <button onClick={() => onDelete(notification.id)} title={t('delete')} className="p-1.5 rounded hover:bg-muted text-destructive">
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-4 h-4"/>
         </button>
       </div>
     </div>
@@ -177,7 +177,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 z-40"
+            className="fixed inset-0 bg-[var(--overlay)] z-40"
             onClick={onClose}
           />
           <motion.div
@@ -190,13 +190,13 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <Bell className="w-5 h-5" />
+                <Bell className="w-5 h-5"/>
                 <h2 className="font-semibold">{t('title')}</h2>
                 {unreadCount > 0 && <Badge variant="info">{t('unreadCount', { count: unreadCount })}</Badge>}
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => refetch()} title={t('refresh')}>
-                  <RefreshCw className="w-4 h-4" />
+                <Button variant="ghost"size="sm"onClick={() => refetch()} title={t('refresh')}>
+                  <RefreshCw className="w-4 h-4"/>
                 </Button>
                 {tab === 'unread' && unreadCount > 0 && (
                   <Button
@@ -208,7 +208,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
                   </Button>
                 )}
                 <button onClick={onClose} className="p-1.5 rounded hover:bg-muted">
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5"/>
                 </button>
               </div>
             </div>
@@ -234,7 +234,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             {/* Filters */}
             <div className="px-6 py-3 border-b border-border space-y-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                 <input
                   type="text"
                   placeholder={t('searchNotificationsPlaceholder')}
@@ -265,11 +265,11 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             <div className="flex-1 overflow-y-auto scrollbar-thin">
               {isLoading ? (
                 <div className="flex items-center justify-center py-16">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground"/>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                  <Bell className="w-10 h-10 mb-3 opacity-30" />
+                  <Bell className="w-10 h-10 mb-3 opacity-30"/>
                   <p className="font-medium">{t('noNotifications')}</p>
                   <p className="text-sm mt-1">
                     {tab === 'unread' ? t('allCaughtUp') : t('nothingHereYet')}
@@ -292,13 +292,13 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="border-t border-border px-6 py-3 flex items-center justify-between">
-                <Button variant="outline" size="sm" onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>
+                <Button variant="outline"size="sm"onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>
                   {t('previous')}
                 </Button>
                 <span className="text-sm text-muted-foreground">
                   {t('pageOfTotal', { page, total: totalPages })}
                 </span>
-                <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>
+                <Button variant="outline"size="sm"onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>
                   {t('next')}
                 </Button>
               </div>
@@ -311,7 +311,7 @@ export function NotificationDrawer({ open, onClose, tenantId, branchId }: Notifi
                 onClick={onClose}
                 className="flex items-center justify-center gap-1.5 text-sm text-primary hover:underline"
               >
-                {t('openNotificationCenter')} <ExternalLink className="w-3.5 h-3.5" />
+                {t('openNotificationCenter')} <ExternalLink className="w-3.5 h-3.5"/>
               </Link>
             </div>
           </motion.div>

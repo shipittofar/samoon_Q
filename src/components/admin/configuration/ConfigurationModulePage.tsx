@@ -42,7 +42,7 @@ const LIFECYCLE_BADGE_VARIANT = {
 
 export interface ConfigurationModulePageProps {
   moduleId: string
-  /** P9.3 Phase E — notifies the Studio shell's Inspector panel which field to show. Optional so this component still works standalone (as in P9.1.3/P9.2's tests). */
+  /** P9.3 Phase E — notifies the Studio shell's Inspector panel which field to show. Optional so this component still works standalone (as in P9.1.3/P9.2' s tests). */
   onFieldSelect?: (fieldId: string) => void
   /** P9.3 Phase D — reports dirty state upward so the Studio's global toolbar can show a live unsaved-changes indicator without owning a second save mechanism. */
   onDraftStateChange?: (state: { isDirty: boolean; dirtyCount: number; isSaving: boolean }) => void
@@ -68,7 +68,7 @@ export function ConfigurationModulePage({
   // overrides + audit history the first time the Authentication Console is
   // opened in mock mode, so the page has "Modified" fields and audit entries
   // to show immediately rather than an all-defaults empty state. Idempotent
-  // (see seedAuthenticationMockOverrides' internal guard); called during
+  // (see seedAuthenticationMockOverrides'internal guard); called during
   // render, before useConfigurationDraft resolves values below, so the very
   // first paint already reflects the seeded state — no extra re-render needed.
   if (moduleId === 'authentication' && USE_MOCK) {
@@ -101,7 +101,7 @@ export function ConfigurationModulePage({
   // dependents until after Save, which fails the phase brief's own example
   // ("OTP OFF → hide OTP Length…") for the common case of a live edit.
   // `effectiveValues` overlays any pending draft on top of the resolved
-  // value so `isFieldVisible`/`isFieldEnabled` always see the live state.
+  // value so `isFieldVisible`/` isFieldEnabled`always see the live state.
   const effectiveValues = useMemo(() => {
     if (Object.keys(drafts).length === 0) return values
     const merged = { ...values }
@@ -208,7 +208,7 @@ export function ConfigurationModulePage({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="flex items-center gap-2 text-lg font-semibold text-[var(--fg)]">
-                <ShieldCheck className="h-5 w-5 text-orange-500" aria-hidden="true" />
+                <ShieldCheck className="h-5 w-5 text-[var(--accent-text)]"aria-hidden="true"/>
                 {moduleName}
               </h1>
               <p className="mt-0.5 text-sm text-[var(--fg-muted)]">{moduleDescription}</p>
@@ -227,14 +227,14 @@ export function ConfigurationModulePage({
 
           {/* ── Search (Phase G) ── */}
           <div className="relative mt-4">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--fg-muted)]" aria-hidden="true" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--fg-muted)]"aria-hidden="true"/>
             <input
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('searchSettingsPlaceholder', { module: moduleName.toLowerCase() })}
               aria-label={t('searchSettingsAria', { module: moduleName })}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-2 pl-9 pr-3 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-2 pl-9 pr-3 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
             />
           </div>
         </div>
@@ -261,7 +261,7 @@ export function ConfigurationModulePage({
                   aria-expanded={!isCollapsed}
                   className="flex flex-1 items-center gap-2 text-left"
                 >
-                  <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--fg-muted)] transition-transform ${isCollapsed ? '-rotate-90' : ''}`} aria-hidden="true" />
+                  <ChevronDown className={`h-4 w-4 shrink-0 text-[var(--fg-muted)] transition-transform ${isCollapsed ? '-rotate-90' : ''}`} aria-hidden="true"/>
                   <span className="text-sm font-semibold text-[var(--fg)]">{sectionTitle}</span>
                   {sectionDescription && <span className="hidden text-xs text-[var(--fg-muted)] sm:inline">— {sectionDescription}</span>}
                 </button>
@@ -272,7 +272,7 @@ export function ConfigurationModulePage({
                   aria-label={t('resetSectionAria', { section: sectionTitle })}
                   title={t('resetSectionTitle')}
                 >
-                  <RotateCcw className="h-3.5 w-3.5" />
+                  <RotateCcw className="h-3.5 w-3.5"/>
                 </button>
               </div>
               {!isCollapsed && (

@@ -36,7 +36,7 @@ export function StaffPermissionAuditSection({
         <h2 className="text-lg font-semibold">{t('permissionAuditTitle')}</h2>
         <Link
           href={`/console/rbac/audit?membership_id=${membershipId}`}
-          className="text-xs text-indigo-600 hover:underline"
+          className="text-xs text-[var(--info-text)] hover:underline"
         >
           {t('viewFullAuditLabel')}
         </Link>

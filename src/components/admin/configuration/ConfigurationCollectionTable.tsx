@@ -8,7 +8,7 @@
  * into `ConfigurationEntityDrawer`. Countries is the first consumer, but
  * nothing below reads a country-specific id — every capability is derived
  * from `field.collection` (schema, entityLabel, defaultGroupBy) plus the
- * shared `configCollection`/`configUiHelpers` framework helpers, so a future
+ * shared `configCollection`/` configUiHelpers`framework helpers, so a future
  * Branches or Tenants collection field renders through this exact same
  * component, per P9.2 Phase K.
  */
@@ -168,7 +168,7 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
 
       {/* ── Cross-entity validation banner (P9.5.6 Phase H) ── */}
       {crossEntityErrors.length > 0 && (
-        <div role="alert" className="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-xs text-red-500">
+        <div role="alert"className="rounded-lg border border-[var(--danger)]/40 bg-[var(--danger)]/5 p-3 text-xs text-[var(--danger-text)]">
           <p className="mb-1 font-semibold">{t('validationErrorsTitle', { count: crossEntityErrors.length })}</p>
           <ul className="list-inside list-disc space-y-0.5">
             {crossEntityErrors.map((err, i) => (
@@ -181,14 +181,14 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
       {/* ── Search + filter + group + sort (Phase E/F/G) ── */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--fg-muted)]" aria-hidden="true" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--fg-muted)]"aria-hidden="true"/>
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('searchEntityPlaceholder', { entity: (field.collection?.entityLabel ?? t('defaultEntityLabel')).toLowerCase() })}
             aria-label={t('searchEntityAria', { entity: field.collection?.entityLabel ?? t('defaultEntityLabel') })}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-2 pl-9 pr-3 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+            className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] py-2 pl-9 pr-3 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
           />
         </div>
 
@@ -242,7 +242,7 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
           <ChevronDown className={`h-3.5 w-3.5 transition-transform ${sortDir === 'asc' ? '' : 'rotate-180'}`} />
         </button>
         {!disabled && (
-          <Button size="sm" variant="secondary" onClick={() => setShowImportPanel((s) => !s)}>
+          <Button size="sm"variant="secondary"onClick={() => setShowImportPanel((s) => !s)}>
             {t('bulkImport')}
           </Button>
         )}
@@ -262,8 +262,8 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
             className="w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] p-2 font-mono text-xs text-[var(--fg)]"
           />
           <div className="flex items-center gap-2">
-            <Button size="sm" onClick={applyImport}>{t('importApply')}</Button>
-            <Button size="sm" variant="secondary" onClick={() => { setShowImportPanel(false); setImportText('') }}>{t('importCancel')}</Button>
+            <Button size="sm"onClick={applyImport}>{t('importApply')}</Button>
+            <Button size="sm"variant="secondary"onClick={() => { setShowImportPanel(false); setImportText('') }}>{t('importCancel')}</Button>
           </div>
         </div>
       )}
@@ -272,7 +272,7 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
       {!disabled && selectedIds.size > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg)] p-2">
           {BULK_ACTIONS.map((action) => (
-            <Button key={action.kind} size="sm" variant="secondary" onClick={() => runBulk(action.kind)}>
+            <Button key={action.kind} size="sm"variant="secondary"onClick={() => runBulk(action.kind)}>
               {action.label}
             </Button>
           ))}
@@ -309,7 +309,7 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
                     className="cursor-pointer border-t border-[var(--border)] hover:bg-[var(--card-hover)]"
                     onClick={() => setOpenEntityId(entry.entityId)}
                   >
-                    <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                    <td className="px-3 py-2"onClick={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={selectedIds.has(entry.entityId)}
@@ -337,7 +337,7 @@ export function ConfigurationCollectionTable({ field, value, onChange, disabled 
               <tr>
                 <td colSpan={4}>
                   <EmptyState
-                    icon={<Search className="h-6 w-6" />}
+                    icon={<Search className="h-6 w-6"/>}
                     title={t('noMatchesTitle')}
                     description={search || activeFilter ? t('noMatchesFilterDesc') : t('noEntriesDesc')}
                   />

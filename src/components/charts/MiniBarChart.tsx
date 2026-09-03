@@ -9,7 +9,7 @@ interface MiniBarChartProps {
   className?: string
 }
 
-export function MiniBarChart({ data, height = 48, color = 'var(--primary)', className }: MiniBarChartProps) {
+export function MiniBarChart({ data, height = 48, color = 'var(--chart-1)', className }: MiniBarChartProps) {
   if (!data.length) return null
 
   const values = data.map((d) => d.value)

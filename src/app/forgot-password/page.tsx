@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
         className="w-full max-w-md"
       >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 mb-10 justify-center">
+        <Link href="/"className="flex items-center gap-2 mb-10 justify-center">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
             <span className="text-white font-bold">S</span>
           </div>
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
                     label={t('emailAddress')}
                     type="email"
                     required
-                    leftIcon={<Mail className="h-3.5 w-3.5" />}
+                    leftIcon={<Mail className="h-3.5 w-3.5"/>}
                     placeholder={t('emailPlaceholder')}
                     {...register('email')}
                     error={errors.email?.message ? tValidation(errors.email.message) : undefined}
@@ -100,7 +100,7 @@ export default function ForgotPasswordPage() {
                     className="w-full"
                     size="lg"
                     loading={loading}
-                    rightIcon={<ArrowRight className="h-4 w-4" />}
+                    rightIcon={<ArrowRight className="h-4 w-4"/>}
                   >
                     {t('sendResetLink')}
                   </Button>
@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
                   href="/login"
                   className="flex items-center justify-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors mt-6"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" />
+                  <ArrowLeft className="h-3.5 w-3.5"/>
                   {t('backToSignIn')}
                 </Link>
               </motion.div>
@@ -126,9 +126,9 @@ export default function ForgotPasswordPage() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 300, delay: 0.1 }}
-                  className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-950/30 mb-5"
+                  className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-[var(--success-subtle)] mb-5"
                 >
-                  <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                  <CheckCircle2 className="h-8 w-8 text-[var(--success-text)]"/>
                 </motion.div>
                 <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
                   {t('checkInbox')}
@@ -141,14 +141,14 @@ export default function ForgotPasswordPage() {
                   {t('didntReceiveIt')}{' '}
                   <button
                     onClick={() => setSubmitted(false)}
-                    className="text-orange-500 hover:text-orange-600 underline underline-offset-2"
+                    className="text-[var(--accent-text)] hover:text-[var(--accent-text)] underline underline-offset-2"
                   >
                     {t('tryAgain')}
                   </button>
                   .
                 </p>
                 <Link href="/login">
-                  <Button variant="secondary" className="w-full" leftIcon={<ArrowLeft className="h-4 w-4" />}>
+                  <Button variant="secondary"className="w-full"leftIcon={<ArrowLeft className="h-4 w-4"/>}>
                     {t('backToSignInButton')}
                   </Button>
                 </Link>

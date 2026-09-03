@@ -22,8 +22,8 @@ function UserDetailRedirect() {
 
   return (
     <main className="p-6 space-y-4">
-      <p className="text-sm text-gray-600">{t('loadingEllipsis')}</p>
-      <Link href="/console/users" className="text-indigo-600 hover:underline text-sm">
+      <p className="text-sm text-[var(--fg-muted)]">{t('loadingEllipsis')}</p>
+      <Link href="/console/users"className="text-[var(--info-text)] hover:underline text-sm">
         {t('backToUsers')}
       </Link>
     </main>
@@ -32,7 +32,7 @@ function UserDetailRedirect() {
 
 export default function UserDetailRedirectPage() {
   return (
-    <PermissionGuard permission="staff.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="staff.view"fallback={<AccessDenied />}>
       <UserDetailRedirect />
     </PermissionGuard>
   )

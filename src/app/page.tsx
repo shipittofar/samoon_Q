@@ -80,7 +80,7 @@ export default async function HomePage() {
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section id="main-content" className="relative min-h-screen flex items-center overflow-hidden">
+      <section id="main-content"className="relative min-h-screen flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920&q=80"
@@ -90,15 +90,15 @@ export default async function HomePage() {
             priority
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent"/>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"/>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 w-full">
           <div className="max-w-2xl">
             {/* Pill */}
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">
-              <Building2 className="h-3.5 w-3.5 text-orange-400" />
+              <Building2 className="h-3.5 w-3.5 text-orange-400"/>
               <span className="text-sm text-white/90 font-medium">{t('heroPill')}</span>
             </div>
 
@@ -114,21 +114,21 @@ export default async function HomePage() {
             </p>
 
             {/* Search form — GET /discover?q= */}
-            <form action="/discover" method="GET" className="flex gap-2 mb-6 max-w-lg">
+            <form action="/discover"method="GET"className="flex gap-2 mb-6 max-w-lg">
               <div className="flex-1 relative">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none" aria-hidden="true" />
-                <label htmlFor="hero-search" className="sr-only">{t('heroSearchAriaLabel')}</label>
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50 pointer-events-none"aria-hidden="true"/>
+                <label htmlFor="hero-search"className="sr-only">{t('heroSearchAriaLabel')}</label>
                 <input
                   id="hero-search"
                   type="text"
                   name="q"
                   placeholder={t('heroSearchPlaceholder')}
-                  className="w-full bg-white/10 backdrop-blur-sm border border-white/25 text-white placeholder:text-white/50 rounded-2xl ps-9 pe-4 py-3.5 text-sm focus:outline-none focus:border-orange-400 focus:bg-white/15 transition-all"
+                  className="w-full bg-white/10 backdrop-blur-sm border border-white/25 text-white placeholder:text-white/50 rounded-2xl ps-9 pe-4 py-3.5 text-sm focus:outline-none focus:border-[var(--focus-ring)] focus:bg-white/15 transition-all"
                 />
               </div>
               <button
                 type="submit"
-                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-5 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
+                className="bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] font-semibold px-5 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:-translate-y-0.5"
               >
                 {tCommon('search')}
               </button>
@@ -151,10 +151,10 @@ export default async function HomePage() {
             <div className="flex flex-wrap items-center gap-4">
               <Link
                 href="/discover"
-                className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] font-semibold px-6 py-3.5 rounded-2xl transition-all shadow-[0_8px_30px_-4px_rgba(249,115,22,0.5)] hover:shadow-[0_12px_40px_-4px_rgba(249,115,22,0.6)] hover:-translate-y-0.5 active:translate-y-0"
               >
                 {t('exploreBusinesses')}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4"/>
               </Link>
               {/* Business-owner path — text link so it doesn't compete with the customer CTA */}
               <Link
@@ -178,7 +178,7 @@ export default async function HomePage() {
         </div>
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
-          <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/40" />
+          <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/40"/>
           <span className="text-white/60 text-xs">{t('scroll')}</span>
         </div>
       </section>
@@ -193,14 +193,14 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <p className="text-sm font-medium text-orange-500 uppercase tracking-widest mb-2">{t('browseByType')}</p>
+              <p className="text-sm font-medium text-[var(--accent-text)] uppercase tracking-widest mb-2">{t('browseByType')}</p>
               <h2 className="font-[var(--font-display)] text-4xl font-bold text-[var(--fg)]">{t('businessCategories')}</h2>
             </div>
             <Link
               href="/discover"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-500 hover:text-orange-600 border border-orange-200 dark:border-orange-900 px-3 py-1.5 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-all"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--accent-text)] hover:text-[var(--accent-text)] border border-[var(--accent-border)]/40 px-3 py-1.5 rounded-xl hover:bg-[var(--accent-subtle)] transition-all"
             >
-              {tCommon('viewAll')} <ChevronRight className="h-4 w-4" />
+              {tCommon('viewAll')} <ChevronRight className="h-4 w-4"/>
             </Link>
           </div>
           {/* H4: last item spans 2 cols on mobile so the 5-item grid has no orphan. */}
@@ -209,12 +209,12 @@ export default async function HomePage() {
               <Link
                 key={cat.key}
                 href={cat.href}
-                className={`group relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-center hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-lg transition-all duration-300 hover:-translate-y-1${i === CATEGORIES.length - 1 ? ' col-span-2 sm:col-span-1' : ''}`}
+                className={`group relative bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-center hover:border-[var(--accent-border)]/50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1${i === CATEGORIES.length - 1 ? 'col-span-2 sm:col-span-1' : ''}`}
               >
                 <div className={`mx-auto mb-4 h-14 w-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   <span className="text-2xl">{cat.icon}</span>
                 </div>
-                <h3 className="font-semibold text-[var(--fg)] group-hover:text-orange-500 transition-colors">{t(`categories.${cat.key}`)}</h3>
+                <h3 className="font-semibold text-[var(--fg)] group-hover:text-[var(--accent-text)] transition-colors">{t(`categories.${cat.key}`)}</h3>
               </Link>
             ))}
           </div>

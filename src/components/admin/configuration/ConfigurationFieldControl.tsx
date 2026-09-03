@@ -3,7 +3,7 @@
 /**
  * ConfigurationFieldControl — P9.1.3 Phase C/D (Automatic Rendering)
  *
- * Maps a field's `uiControl` (or the `type`-based fallback from
+ * Maps a field's `uiControl` (or the ` type`-based fallback from
  * `resolveUiControl()`) to an actual input element. This is the one place
  * in the whole Console that has a switch statement over control kind — every
  * page that renders a module (Authentication today, any future module) goes
@@ -24,7 +24,7 @@ export interface ConfigurationFieldControlProps {
   disabled?: boolean
   /**
    * Scope id path for resolving this field's OWN `options[].label`/
-   * `.description` (P9.5.7D.1) — defaults to `field.id`, correct for
+   * `.description` (P9.5.7D.1) — defaults to ` field.id`, correct for
    * every ordinary module field (globally unique per Rule 3). Collection
    * schema properties pass their parent collection field's scoped path
    * (`[collectionFieldId, 'schema', propertyId]`) instead, so option
@@ -34,7 +34,7 @@ export interface ConfigurationFieldControlProps {
   optionScopeId?: string | string[]
 }
 
-const inputClass = 'w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 disabled:opacity-50 disabled:cursor-not-allowed'
+const inputClass = 'w-full rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 disabled:opacity-50 disabled:cursor-not-allowed'
 
 export function ConfigurationFieldControl({ field, value, onChange, disabled, optionScopeId }: ConfigurationFieldControlProps) {
   const t = useTranslations('console')
@@ -55,9 +55,9 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled, op
           aria-checked={checked}
           disabled={disabled}
           onClick={() => onChange(!checked)}
-          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${checked ? 'bg-orange-500' : 'bg-[var(--border)]'}`}
+          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${checked ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`}
         >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-[var(--card)] shadow transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
         </button>
       )
     }
@@ -74,8 +74,8 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled, op
               onClick={() => onChange(opt.value)}
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 value === opt.value
-                  ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300'
-                  : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-300'
+                  ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]'
+                  : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50'
               }`}
             >
               {optionLabel(opt)}
@@ -159,7 +159,7 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled, op
             value={numValue}
             disabled={disabled}
             onChange={(e) => onChange(Number(e.target.value))}
-            className="w-full accent-orange-500 disabled:opacity-50"
+            className="w-full accent-[var(--accent)] disabled:opacity-50"
           />
           <span className="w-14 shrink-0 text-right font-mono text-sm text-[var(--fg)]">{numValue}</span>
         </div>
@@ -203,7 +203,7 @@ export function ConfigurationFieldControl({ field, value, onChange, disabled, op
             aria-label={secretVisible ? t('hideValueAria') : t('revealValueAria')}
             className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--fg-muted)] hover:text-[var(--fg)]"
           >
-            {secretVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {secretVisible ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
           </button>
         </div>
       )

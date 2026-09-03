@@ -30,7 +30,7 @@ export function BulkActionBar({ selectedCount, actions, onClearSelection }: Bulk
       <span className="text-sm font-semibold whitespace-nowrap">
         {t('selectedCount', { count: selectedCount })}
       </span>
-      <div className="w-px h-5 bg-current opacity-30" />
+      <div className="w-px h-5 bg-current opacity-30"/>
       {actions.map((action) => (
         <button
           key={action.label}
@@ -38,22 +38,22 @@ export function BulkActionBar({ selectedCount, actions, onClearSelection }: Bulk
           disabled={action.disabled}
           className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
             action.variant === 'danger'
-              ? 'bg-red-500 text-white hover:bg-red-600'
+              ? 'bg-[var(--danger)] text-[var(--danger-fg)] hover:bg-[var(--danger-hover)]'
               : action.variant === 'primary'
-              ? 'bg-[var(--primary)] text-white hover:opacity-90'
+              ? 'bg-[var(--accent)] text-[var(--accent-fg)] hover:opacity-90'
               : 'bg-white/10 hover:bg-white/20'
           }`}
         >
           {action.label}
         </button>
       ))}
-      <div className="w-px h-5 bg-current opacity-30" />
+      <div className="w-px h-5 bg-current opacity-30"/>
       <button
         onClick={onClearSelection}
         aria-label={t('clearSelectionAria')}
         className="p-1 rounded-lg hover:bg-white/10 transition-colors"
       >
-        <X className="h-4 w-4" />
+        <X className="h-4 w-4"/>
       </button>
     </div>
   )

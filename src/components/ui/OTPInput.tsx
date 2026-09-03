@@ -157,10 +157,10 @@ export const OTPInput = forwardRef<HTMLDivElement, OTPInputProps>(function OTPIn
             'focus:outline-none focus:ring-2 focus:border-transparent',
             digit
               ? error
-                ? 'border-red-400 dark:border-red-500 bg-red-50 dark:bg-red-950/20 focus:ring-red-400'
-                : 'border-[var(--accent)] bg-orange-50 dark:bg-orange-950/10 focus:ring-[var(--accent)]'
+                ? 'border-[var(--danger)] bg-[var(--danger-subtle)] focus:ring-[var(--danger)]'
+                : 'border-[var(--accent)] bg-[var(--accent-subtle)] focus:ring-[var(--accent)]'
               : error
-                ? 'border-red-300 dark:border-red-800 focus:ring-red-400'
+                ? 'border-[var(--danger-border)] focus:ring-[var(--danger)]'
                 : 'border-[var(--border)] focus:ring-[var(--accent)]',
             disabled && 'opacity-50 cursor-not-allowed',
           )}

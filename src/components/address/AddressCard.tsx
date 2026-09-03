@@ -36,7 +36,7 @@ export function AddressCard({
   const tCommon = useTranslations('common')
 
   const content = (
-    <Card className={cn('!p-0 overflow-hidden', href && 'hover:border-orange-200 dark:hover:border-orange-900', className)}>
+    <Card className={cn('!p-0 overflow-hidden', href && 'hover:border-[var(--accent-border)]/50', className)}>
       <div className="flex items-start gap-4 p-5">
         <AddressTypeIcon type={address.address_type} />
         <div className="flex-1 min-w-0">
@@ -45,7 +45,7 @@ export function AddressCard({
             {address.is_default && <DefaultAddressBadge />}
             <VerificationBadge status={address.verification_status} />
             {ENABLE_DELETED_ADDRESSES && address.is_deleted && (
-              <Badge variant="secondary" className="text-xs">{t('deletedLabel')}</Badge>
+              <Badge variant="secondary"className="text-xs">{t('deletedLabel')}</Badge>
             )}
           </div>
           <p className="text-sm text-[var(--fg)] leading-relaxed">{address.formatted_address}</p>
@@ -65,7 +65,7 @@ export function AddressCard({
                 onClick={(e) => { e.preventDefault(); onRestore(address.id) }}
                 aria-label={t('restoreAria')}
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="h-3.5 w-3.5"/>
               </Button>
             )
           ) : (
@@ -77,7 +77,7 @@ export function AddressCard({
                   onClick={(e) => { e.preventDefault(); onSetDefault(address.id) }}
                   aria-label={t('setDefaultAria')}
                 >
-                  <Star className="h-3.5 w-3.5" />
+                  <Star className="h-3.5 w-3.5"/>
                 </Button>
               )}
               {onEdit && (
@@ -87,7 +87,7 @@ export function AddressCard({
                   onClick={(e) => { e.preventDefault(); onEdit(address) }}
                   aria-label={tCommon('edit')}
                 >
-                  <Edit2 className="h-3.5 w-3.5" />
+                  <Edit2 className="h-3.5 w-3.5"/>
                 </Button>
               )}
               {onDelete && (
@@ -95,10 +95,10 @@ export function AddressCard({
                   variant="ghost"
                   size="icon-sm"
                   onClick={(e) => { e.preventDefault(); onDelete(address.id) }}
-                  className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                  className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"
                   aria-label={tCommon('delete')}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-3.5 w-3.5"/>
                 </Button>
               )}
             </>

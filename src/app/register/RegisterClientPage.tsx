@@ -57,9 +57,9 @@ export function RegisterClientPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] flex">
-      <div className="hidden lg:flex flex-col flex-1 relative overflow-hidden bg-gradient-to-br from-orange-600 via-orange-500 to-amber-400 p-12">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 60% 40%, white 2px, transparent 2px)', backgroundSize: '50px 50px' }} />
-        <Link href="/" className="relative flex items-center gap-2 mb-auto">
+      <div className="hidden lg:flex flex-col flex-1 relative overflow-hidden bg-gradient-to-br from-[var(--accent)] via-[var(--accent)] to-amber-400 p-12">
+        <div className="absolute inset-0 opacity-10"style={{ backgroundImage: 'radial-gradient(circle at 60% 40%, white 2px, transparent 2px)', backgroundSize: '50px 50px' }} />
+        <Link href="/"className="relative flex items-center gap-2 mb-auto">
           <div className="h-9 w-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <span className="text-white font-bold">S</span>
           </div>
@@ -72,7 +72,7 @@ export function RegisterClientPage() {
             {PERK_KEYS.map((key) => (
               <div key={key} className="flex items-center gap-3">
                 <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                  <Check className="h-3.5 w-3.5 text-white" />
+                  <Check className="h-3.5 w-3.5 text-white"/>
                 </div>
                 <span className="text-white/90">{t(`perks.${key}`)}</span>
               </div>
@@ -84,7 +84,7 @@ export function RegisterClientPage() {
       <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <div className="mb-8">
-            <Link href="/" className="flex items-center gap-2 mb-6 lg:hidden">
+            <Link href="/"className="flex items-center gap-2 mb-6 lg:hidden">
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
                 <span className="text-white font-bold">S</span>
               </div>
@@ -96,36 +96,36 @@ export function RegisterClientPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <Input label={t('firstName')} required leftIcon={<User className="h-3.5 w-3.5" />} placeholder="John" {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
+              <Input label={t('firstName')} required leftIcon={<User className="h-3.5 w-3.5"/>} placeholder="John" {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
               <Input label={t('lastName')} required placeholder="Doe" {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
             </div>
-            <Input label={t('email')} type="email" required leftIcon={<Mail className="h-3.5 w-3.5" />} placeholder={t('emailPlaceholder')} {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
-            <Input label={t('phone_number')} type="tel" leftIcon={<Phone className="h-3.5 w-3.5" />} placeholder="+1 234 567 8900" {...register('phone_number')} error={errors.phone_number?.message ? tValidation(errors.phone_number.message) : undefined} />
+            <Input label={t('email')} type="email"required leftIcon={<Mail className="h-3.5 w-3.5"/>} placeholder={t('emailPlaceholder')} {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
+            <Input label={t('phone_number')} type="tel"leftIcon={<Phone className="h-3.5 w-3.5"/>} placeholder="+1 234 567 8900" {...register('phone_number')} error={errors.phone_number?.message ? tValidation(errors.phone_number.message) : undefined} />
             <Input
               label={t('password')} type={showPw ? 'text' : 'password'} required
-              leftIcon={<Lock className="h-3.5 w-3.5" />}
-              rightIcon={<button type="button" onClick={() => setShowPw((v) => !v)} aria-label={t('togglePassword')}>{showPw ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button>}
+              leftIcon={<Lock className="h-3.5 w-3.5"/>}
+              rightIcon={<button type="button"onClick={() => setShowPw((v) => !v)} aria-label={t('togglePassword')}>{showPw ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}</button>}
               placeholder={t('minEightChars')} {...register('password')} error={errors.password?.message ? tValidation(errors.password.message) : undefined}
             />
             <Input
               label={t('confirmPassword')} type={showConfirm ? 'text' : 'password'} required
-              leftIcon={<Lock className="h-3.5 w-3.5" />}
-              rightIcon={<button type="button" onClick={() => setShowConfirm((v) => !v)} aria-label={t('toggleConfirmPassword')}>{showConfirm ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}</button>}
+              leftIcon={<Lock className="h-3.5 w-3.5"/>}
+              rightIcon={<button type="button"onClick={() => setShowConfirm((v) => !v)} aria-label={t('toggleConfirmPassword')}>{showConfirm ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}</button>}
               placeholder={t('repeatPassword')} {...register('confirm_password')} error={errors.confirm_password?.message ? tValidation(errors.confirm_password.message) : undefined}
             />
             <p className="text-xs text-[var(--fg-muted)]">
               {t('agreeToTermsCreate')}{' '}
-              <Link href="/terms" className="text-orange-500 hover:underline">{tCommon('termsOfService')}</Link>{' '}{tCommon('and')}{' '}
-              <Link href="/privacy" className="text-orange-500 hover:underline">{tCommon('privacyPolicy')}</Link>.
+              <Link href="/terms"className="text-[var(--accent-text)] hover:underline">{tCommon('termsOfService')}</Link>{' '}{tCommon('and')}{' '}
+              <Link href="/privacy"className="text-[var(--accent-text)] hover:underline">{tCommon('privacyPolicy')}</Link>.
             </p>
-            <Button type="submit" className="w-full" size="lg" loading={isPending} rightIcon={<ArrowRight className="h-4 w-4" />}>
+            <Button type="submit"className="w-full"size="lg"loading={isPending} rightIcon={<ArrowRight className="h-4 w-4"/>}>
               {t('createAccountButton')}
             </Button>
           </form>
 
           <p className="text-center text-sm text-[var(--fg-muted)] mt-6">
             {t('alreadyHaveAccount')}{' '}
-            <Link href="/login" className="text-orange-500 font-medium hover:text-orange-600 transition-colors">{t('signInArrow')}</Link>
+            <Link href="/login"className="text-[var(--accent-text)] font-medium hover:text-[var(--accent-text)] transition-colors">{t('signInArrow')}</Link>
           </p>
         </motion.div>
       </div>

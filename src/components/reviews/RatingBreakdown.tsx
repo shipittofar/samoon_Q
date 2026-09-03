@@ -15,16 +15,16 @@ export function RatingBreakdown({ breakdown, className }: RatingBreakdownProps) 
     <div className={className}>
       {/* Big average */}
       <div className="flex items-end gap-3 mb-4">
-        <span className="text-5xl font-bold text-[var(--fg)]" aria-label={t('averageRatingOutOf5Aria', { rating: breakdown.average })}>
+        <span className="text-5xl font-bold text-[var(--fg)]"aria-label={t('averageRatingOutOf5Aria', { rating: breakdown.average })}>
           {breakdown.average.toFixed(1)}
         </span>
         <div className="pb-1">
-          <div className="flex gap-0.5 mb-1" aria-hidden="true">
+          <div className="flex gap-0.5 mb-1"aria-hidden="true">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 // eslint-disable-next-line react/no-array-index-key
                 key={i}
-                className={`w-4 h-4 ${i < Math.round(breakdown.average) ? 'text-amber-400 fill-amber-400' : 'text-gray-300 fill-gray-300'}`}
+                className={`w-4 h-4 ${i < Math.round(breakdown.average) ? 'text-[var(--rating)] fill-[var(--rating)]' : 'text-[var(--fg-subtle)] fill-[var(--border-strong)]'}`}
                 aria-hidden="true"
               />
             ))}
@@ -34,9 +34,9 @@ export function RatingBreakdown({ breakdown, className }: RatingBreakdownProps) 
       </div>
 
       {/* Per-star bars */}
-      <div className="space-y-1.5" role="list" aria-label={t('ratingDistributionAria')}>
+      <div className="space-y-1.5"role="list"aria-label={t('ratingDistributionAria')}>
         {breakdown.distribution.map(({ star, count, percentage }) => (
-          <div key={star} className="flex items-center gap-2" role="listitem">
+          <div key={star} className="flex items-center gap-2"role="listitem">
             <span className="text-xs text-[var(--fg-muted)] w-8 shrink-0 text-right">{star}★</span>
             <div
               className="flex-1 bg-[var(--bg-secondary)] rounded-full h-2 overflow-hidden"
@@ -47,7 +47,7 @@ export function RatingBreakdown({ breakdown, className }: RatingBreakdownProps) 
               aria-label={t('starPercentAria', { star, percentage })}
             >
               <div
-                className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                className="h-full bg-[var(--rating)] rounded-full transition-all duration-500"
                 style={{ width: `${percentage}%` }}
               />
             </div>

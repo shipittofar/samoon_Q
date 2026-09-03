@@ -65,7 +65,7 @@ export default function AddressesPage() {
               <span className="flex items-center gap-2">
                 {t('undoDelete')}
                 <button
-                  className="font-semibold text-orange-500 underline"
+                  className="font-semibold text-[var(--accent-text)] underline"
                   onClick={() => {
                     restoreMutation.mutate(id, {
                       onSuccess: () => {
@@ -109,12 +109,12 @@ export default function AddressesPage() {
             size="sm"
             onClick={handleRefresh}
             loading={isFetching}
-            leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+            leftIcon={<RefreshCw className="h-3.5 w-3.5"/>}
             aria-label={t('refresh')}
           >
             {t('refresh')}
           </Button>
-          <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAddOpen(true)}>
+          <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={() => setAddOpen(true)}>
             {t('addAddress')}
           </Button>
         </div>

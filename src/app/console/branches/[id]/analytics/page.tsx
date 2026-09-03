@@ -11,7 +11,7 @@ import Link from 'next/link'
 function MetricCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-lg border p-4">
-      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-xs text-[var(--fg-muted)]">{label}</p>
       <p className="mt-1 text-2xl font-semibold">{value}</p>
     </div>
   )
@@ -22,19 +22,19 @@ function BranchAnalyticsContent({ id }: { id: string }) {
   const { data: branch, isLoading: branchLoading } = useAdminBranch(id)
   const { data: analytics, isLoading: analyticsLoading } = useBranchAnalytics(id)
 
-  if (branchLoading || analyticsLoading) return <p className="p-6 text-gray-500">{t('loadingAnalyticsEllipsis')}</p>
-  if (!branch) return <p className="p-6 text-red-500">{t('branchNotFoundPeriod')}</p>
+  if (branchLoading || analyticsLoading) return <p className="p-6 text-[var(--fg-muted)]">{t('loadingAnalyticsEllipsis')}</p>
+  if (!branch) return <p className="p-6 text-[var(--danger-text)]">{t('branchNotFoundPeriod')}</p>
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('nameEmdashAnalytics', { name: branch.name })}</h1>
-          <p className="mt-1 text-sm text-gray-500">{branch.location.city}</p>
+          <p className="mt-1 text-sm text-[var(--fg-muted)]">{branch.location.city}</p>
         </div>
         <Link
           href={`/console/branches/${id}`}
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm text-[var(--info-text)] hover:underline"
         >
           {t('backArrowToBranch')}
         </Link>
@@ -80,7 +80,7 @@ function BranchAnalyticsContent({ id }: { id: string }) {
       )}
 
       {!analytics && (
-        <p className="text-gray-500">{t('noAnalyticsAvailableForBranch')}</p>
+        <p className="text-[var(--fg-muted)]">{t('noAnalyticsAvailableForBranch')}</p>
       )}
     </div>
   )
@@ -97,7 +97,7 @@ export default function BranchAnalyticsPage({ params }: { params: Promise<{ id: 
   const hasBranchAccess = useBranchAccess(id)
   return (
     <ErrorBoundary feature="Branch Analytics">
-      <PermissionGuard permission="branches.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="branches.view"fallback={<AccessDenied />}>
         {hasBranchAccess ? <BranchAnalyticsContent id={id} /> : <AccessDenied />}
       </PermissionGuard>
     </ErrorBoundary>

@@ -78,15 +78,15 @@ export function CategoryCreateModal({
     >
       <CategoryFormFields form={form} onChange={setForm} error={validationError} />
       <div className="flex gap-3 pt-2">
-        <Button variant="secondary" onClick={handleClose} disabled={createMutation.isPending} className="flex-1">
+        <Button variant="secondary"onClick={handleClose} disabled={createMutation.isPending} className="flex-1">
           {t('cancel')}
         </Button>
         <Button onClick={submit} disabled={createMutation.isPending || !branchId} className="flex-1">
-          {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('addCategory')}
+          {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addCategory')}
         </Button>
       </div>
       {createMutation.isError && (
-        <p className="text-sm text-red-500 mt-2">{t('failedToCreateCategoryRetry')}</p>
+        <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToCreateCategoryRetry')}</p>
       )}
     </Modal>
   )

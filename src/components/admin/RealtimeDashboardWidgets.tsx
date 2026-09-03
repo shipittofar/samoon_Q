@@ -14,15 +14,15 @@ export function RealtimeConnectionStatus() {
 
   const label = connected ? t('connectionLive') : connecting ? t('connectionConnecting') : t('connectionOffline')
   const color = connected
-    ? 'bg-green-500'
+    ? 'bg-[var(--success)]'
     : connecting
-    ? 'bg-yellow-400 animate-pulse'
-    : 'bg-red-500'
+    ? 'bg-[var(--warning)] animate-pulse'
+    : 'bg-[var(--danger)]'
 
   return (
     <div className="flex items-center gap-1.5 text-xs">
       <span className={`w-2 h-2 rounded-full ${color}`} />
-      <span className="text-gray-600">{label}</span>
+      <span className="text-[var(--fg-muted)]">{label}</span>
     </div>
   )
 }
@@ -37,7 +37,7 @@ export function ActiveUsersCounter({ scope }: ActiveUsersCounterProps) {
   const t = useTranslations('console')
   const { data: stats } = useRealtimeStatistics(scope)
   return (
-    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+    <div className="flex items-center gap-1.5 text-xs text-[var(--fg-muted)]">
       <span>{t('activeStaffLabel')}</span>
       <strong>{stats?.activeStaff ?? '—'}</strong>
     </div>
@@ -54,7 +54,7 @@ export function EventsPerMinute({ scope }: EventsPerMinuteProps) {
   const t = useTranslations('console')
   const { data: stats } = useRealtimeStatistics(scope)
   return (
-    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+    <div className="flex items-center gap-1.5 text-xs text-[var(--fg-muted)]">
       <span>{t('eventsPerMinuteLabel')}</span>
       <strong>{stats?.eventsPerMinute ?? '—'}</strong>
     </div>
@@ -80,10 +80,10 @@ export function SystemHealthBadge({ scope }: SystemHealthBadgeProps) {
 
   const label = isHealthy ? t('healthHealthy') : isDegraded ? t('healthDegraded') : t('priorityCritical')
   const color = isHealthy
-    ? 'bg-green-100 text-green-700 border-green-300'
+    ? 'bg-[var(--success-subtle)] text-[var(--success-text)] border-[var(--success-border)]'
     : isDegraded
-    ? 'bg-yellow-100 text-yellow-700 border-yellow-300'
-    : 'bg-red-100 text-red-800 border-red-400'
+    ? 'bg-[var(--warning-subtle)] text-[var(--warning-text)] border-[var(--warning-border)]'
+    : 'bg-[var(--danger-subtle)] text-[var(--danger-text)] border-[var(--danger)]'
 
   return (
     <span className={`text-xs rounded border px-2 py-0.5 font-medium ${color}`}>
@@ -103,13 +103,13 @@ export function BranchContextIndicator({ branchId, branchName }: BranchContextIn
   const t = useTranslations('console')
   if (!branchId) {
     return (
-      <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200 rounded px-2 py-0.5">
+      <span className="text-xs bg-[var(--chart-5)]/10 text-[var(--chart-5)] border border-[var(--chart-5)]/30 rounded px-2 py-0.5">
         {t('allBranches')}
       </span>
     )
   }
   return (
-    <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-0.5">
+    <span className="text-xs bg-[var(--info-subtle)] text-[var(--info-text)] border border-[var(--info-border)] rounded px-2 py-0.5">
       {branchName ?? branchId}
     </span>
   )

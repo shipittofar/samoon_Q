@@ -316,7 +316,7 @@ export default function AdminExtrasPage() {
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <PermissionGuard permission="extras.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="extras.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminExtras">
     <div className="min-h-screen bg-[var(--bg)]">
       <div className="pt-20 pb-16">
@@ -334,7 +334,7 @@ export default function AdminExtrasPage() {
               </p>
             </div>
             {canCreate && (
-              <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openGroupCreate} disabled={!adminBranchId}>
+              <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={openGroupCreate} disabled={!adminBranchId}>
                 {t('addExtraGroup')}
               </Button>
             )}
@@ -343,19 +343,19 @@ export default function AdminExtrasPage() {
           {/* Branch resolution state — distinct copy per state, never collapsed together */}
           {branchState === 'loading' && (
             <EmptyState
-              icon={<Loader2 className="h-8 w-8 animate-spin" />}
+              icon={<Loader2 className="h-8 w-8 animate-spin"/>}
               title={t('loadingBranchesEllipsis')}
             />
           )}
           {branchState === 'error' && (
             <EmptyState
-              icon={<AlertCircle className="h-8 w-8" />}
+              icon={<AlertCircle className="h-8 w-8"/>}
               title={t('failedToLoadBranches')}
             />
           )}
           {branchState === 'empty' && (
             <EmptyState
-              icon={<Tag className="h-8 w-8" />}
+              icon={<Tag className="h-8 w-8"/>}
               title={t('selectBranchToManageExtras')}
               description={t('extrasPageNoBranchHint')}
             />
@@ -365,12 +365,12 @@ export default function AdminExtrasPage() {
           {branchState === 'ready' && adminBranchId && (
             <div className="flex flex-wrap gap-3 mb-6">
               <div className="relative flex-1 min-w-48">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"/>
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t('searchExtrasPlaceholder')}
-                  className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+                  className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
                 />
               </div>
               <div className="flex gap-2">
@@ -378,7 +378,7 @@ export default function AdminExtrasPage() {
                   <button
                     key={f}
                     onClick={() => setStatusFilter(f)}
-                    className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${statusFilter === f ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
+                    className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all ${statusFilter === f ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50'}`}
                   >
                     {t(`extrasStatusFilter.${f}`)}
                   </button>
@@ -390,7 +390,7 @@ export default function AdminExtrasPage() {
           {/* Loading */}
           {adminBranchId && isLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin"/>
               <span className="text-sm">{t('loadingExtras')}</span>
             </div>
           )}
@@ -398,16 +398,16 @@ export default function AdminExtrasPage() {
           {/* Error */}
           {adminBranchId && isError && !isLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <AlertCircle className="h-8 w-8 text-red-400" />
+              <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
               <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadExtras')}</p>
-              <Button variant="secondary" size="sm" onClick={() => { refetchGroups(); refetchExtras() }}>{tCommon('retry')}</Button>
+              <Button variant="secondary"size="sm"onClick={() => { refetchGroups(); refetchExtras() }}>{tCommon('retry')}</Button>
             </div>
           )}
 
           {/* Empty (no groups at all for this branch) */}
           {adminBranchId && !isLoading && !isError && allGroups.length === 0 && (
             <EmptyState
-              icon={<Tag className="h-8 w-8" />}
+              icon={<Tag className="h-8 w-8"/>}
               title={t('noExtraGroupsFound')}
               description={t('noExtraGroupsHint')}
               action={canCreate ? <Button onClick={openGroupCreate}>{t('addExtraGroup')}</Button> : undefined}
@@ -416,7 +416,7 @@ export default function AdminExtrasPage() {
 
           {/* Empty (search/filter yields nothing) */}
           {adminBranchId && !isLoading && !isError && allGroups.length > 0 && filteredGroups.length === 0 && (
-            <EmptyState icon={<Search className="h-8 w-8" />} title={t('noExtrasMatchSearch')} />
+            <EmptyState icon={<Search className="h-8 w-8"/>} title={t('noExtrasMatchSearch')} />
           )}
 
           {/* Groups list */}
@@ -434,7 +434,7 @@ export default function AdminExtrasPage() {
                     aria-expanded={isExpanded}
                     aria-label={t('toggleGroupAria', { name: group.name })}
                   >
-                    {isExpanded ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
+                    {isExpanded ? <ChevronDown className="h-4 w-4 shrink-0"/> : <ChevronRight className="h-4 w-4 shrink-0"/>}
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-[var(--fg)]">{group.name}</span>
@@ -454,7 +454,7 @@ export default function AdminExtrasPage() {
                           className="text-[var(--fg-muted)] hover:text-[var(--fg)] disabled:opacity-30"
                           aria-label={t('moveUpAria', { name: group.name })}
                         >
-                          <ArrowUp className="h-3.5 w-3.5" />
+                          <ArrowUp className="h-3.5 w-3.5"/>
                         </button>
                         <button
                           onClick={() => moveGroup(group, 1)}
@@ -462,7 +462,7 @@ export default function AdminExtrasPage() {
                           className="text-[var(--fg-muted)] hover:text-[var(--fg)] disabled:opacity-30"
                           aria-label={t('moveDownAria', { name: group.name })}
                         >
-                          <ArrowDown className="h-3.5 w-3.5" />
+                          <ArrowDown className="h-3.5 w-3.5"/>
                         </button>
                       </div>
                     )}
@@ -473,13 +473,13 @@ export default function AdminExtrasPage() {
                     >
                       <Badge variant={group.is_active ? 'success' : 'secondary'}>
                         {group.is_active
-                          ? <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" />{t('active')}</span>
-                          : <span className="inline-flex items-center gap-1"><EyeOff className="h-3 w-3" />{t('inactive')}</span>}
+                          ? <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3"/>{t('active')}</span>
+                          : <span className="inline-flex items-center gap-1"><EyeOff className="h-3 w-3"/>{t('inactive')}</span>}
                       </Badge>
                     </button>
                     {canUpdate && (
-                      <Button variant="ghost" size="icon-sm" onClick={() => openGroupEdit(group)} aria-label={t('editExtraGroupAria')}>
-                        <Edit2 className="h-3.5 w-3.5" />
+                      <Button variant="ghost"size="icon-sm"onClick={() => openGroupEdit(group)} aria-label={t('editExtraGroupAria')}>
+                        <Edit2 className="h-3.5 w-3.5"/>
                       </Button>
                     )}
                     {canDelete && (
@@ -487,10 +487,10 @@ export default function AdminExtrasPage() {
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => setDeleteGroupTarget(group)}
-                        className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                        className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"
                         aria-label={t('deleteExtraGroupAria')}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5"/>
                       </Button>
                     )}
                   </div>
@@ -502,7 +502,7 @@ export default function AdminExtrasPage() {
                       <div className="py-6 text-center">
                         <p className="text-sm text-[var(--fg-muted)] mb-3">{t('noExtrasInGroup')}</p>
                         {canCreate && (
-                          <Button variant="secondary" size="sm" onClick={() => openExtraCreate(group.id)}>{t('addExtra')}</Button>
+                          <Button variant="secondary"size="sm"onClick={() => openExtraCreate(group.id)}>{t('addExtra')}</Button>
                         )}
                       </div>
                     ) : (
@@ -540,8 +540,8 @@ export default function AdminExtrasPage() {
                                 <TableCell>
                                   <div className="flex gap-1">
                                     {canUpdate && (
-                                      <Button variant="ghost" size="icon-sm" onClick={() => openExtraEdit(extra)} aria-label={t('editExtraAria')}>
-                                        <Edit2 className="h-3.5 w-3.5" />
+                                      <Button variant="ghost"size="icon-sm"onClick={() => openExtraEdit(extra)} aria-label={t('editExtraAria')}>
+                                        <Edit2 className="h-3.5 w-3.5"/>
                                       </Button>
                                     )}
                                     {canDelete && (
@@ -549,10 +549,10 @@ export default function AdminExtrasPage() {
                                         variant="ghost"
                                         size="icon-sm"
                                         onClick={() => setDeleteExtraTarget(extra)}
-                                        className="text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                                        className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"
                                         aria-label={t('deleteExtraAria')}
                                       >
-                                        <Trash2 className="h-3.5 w-3.5" />
+                                        <Trash2 className="h-3.5 w-3.5"/>
                                       </Button>
                                     )}
                                   </div>
@@ -562,7 +562,7 @@ export default function AdminExtrasPage() {
                           </TableBody>
                         </Table>
                         {canCreate && (
-                          <Button variant="ghost" size="sm" className="mt-3" leftIcon={<Plus className="h-3.5 w-3.5" />} onClick={() => openExtraCreate(group.id)}>
+                          <Button variant="ghost"size="sm"className="mt-3"leftIcon={<Plus className="h-3.5 w-3.5"/>} onClick={() => openExtraCreate(group.id)}>
                             {t('addExtra')}
                           </Button>
                         )}
@@ -580,72 +580,72 @@ export default function AdminExtrasPage() {
       <Modal open={groupCreateOpen} onClose={() => setGroupCreateOpen(false)} title={t('addExtraGroup')} size="md">
         <GroupFormFields form={groupCreateForm} onChange={setGroupCreateForm} error={groupCreateError} />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" onClick={() => setGroupCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setGroupCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
           <Button onClick={submitGroupCreate} disabled={createGroupMutation.isPending} className="flex-1">
-            {createGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('addExtraGroup')}
+            {createGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addExtraGroup')}
           </Button>
         </div>
-        {createGroupMutation.isError && <p className="text-sm text-red-500 mt-2">{t('failedToCreateExtraGroupRetry')}</p>}
+        {createGroupMutation.isError && <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToCreateExtraGroupRetry')}</p>}
       </Modal>
 
       {/* Edit Group Modal */}
       <Modal open={!!editGroup} onClose={() => setEditGroup(null)} title={editGroup ? t('editColonName', { name: editGroup.name }) : t('editExtraGroup')} size="md">
         <GroupFormFields form={groupEditForm} onChange={setGroupEditForm} error={groupEditError} />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" onClick={() => setEditGroup(null)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setEditGroup(null)} className="flex-1">{t('cancel')}</Button>
           <Button onClick={submitGroupEdit} disabled={updateGroupMutation.isPending} className="flex-1">
-            {updateGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('saveChanges')}
+            {updateGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
           </Button>
         </div>
-        {updateGroupMutation.isError && <p className="text-sm text-red-500 mt-2">{t('failedToSaveChangesRetry')}</p>}
+        {updateGroupMutation.isError && <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToSaveChangesRetry')}</p>}
       </Modal>
 
       {/* Delete Group Confirmation */}
       <Modal open={!!deleteGroupTarget} onClose={() => setDeleteGroupTarget(null)} title={t('deleteExtraGroup')} size="sm">
         <p className="text-[var(--fg-muted)] mb-6">{t('confirmDeleteExtraGroup', { name: deleteGroupTarget?.name ?? '' })}</p>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => setDeleteGroupTarget(null)} className="flex-1">{t('cancel')}</Button>
-          <Button onClick={confirmDeleteGroup} disabled={deleteGroupMutation.isPending} className="flex-1 bg-red-500 hover:bg-red-600 border-red-500">
-            {deleteGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('deleteAction')}
+          <Button variant="secondary"onClick={() => setDeleteGroupTarget(null)} className="flex-1">{t('cancel')}</Button>
+          <Button onClick={confirmDeleteGroup} disabled={deleteGroupMutation.isPending} className="flex-1 bg-[var(--danger)] hover:bg-[var(--danger-hover)] border-[var(--danger)]">
+            {deleteGroupMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('deleteAction')}
           </Button>
         </div>
-        {deleteGroupMutation.isError && <p className="text-sm text-red-500 mt-2">{t('failedToDeleteExtraGroupRetry')}</p>}
+        {deleteGroupMutation.isError && <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToDeleteExtraGroupRetry')}</p>}
       </Modal>
 
       {/* Create Extra Modal */}
       <Modal open={!!extraCreateGroupId} onClose={() => setExtraCreateGroupId(null)} title={t('addExtra')} size="md">
         <ExtraFormFields form={extraCreateForm} onChange={setExtraCreateForm} error={extraCreateError} />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" onClick={() => setExtraCreateGroupId(null)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setExtraCreateGroupId(null)} className="flex-1">{t('cancel')}</Button>
           <Button onClick={submitExtraCreate} disabled={createExtraMutation.isPending} className="flex-1">
-            {createExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('addExtra')}
+            {createExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addExtra')}
           </Button>
         </div>
-        {createExtraMutation.isError && <p className="text-sm text-red-500 mt-2">{t('failedToCreateExtraRetry')}</p>}
+        {createExtraMutation.isError && <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToCreateExtraRetry')}</p>}
       </Modal>
 
       {/* Edit Extra Modal */}
       <Modal open={!!editExtra} onClose={() => setEditExtra(null)} title={editExtra ? t('editColonName', { name: editExtra.name }) : t('editExtra')} size="md">
         <ExtraFormFields form={extraEditForm} onChange={setExtraEditForm} error={extraEditError} />
         <div className="flex gap-3 pt-2">
-          <Button variant="secondary" onClick={() => setEditExtra(null)} className="flex-1">{t('cancel')}</Button>
+          <Button variant="secondary"onClick={() => setEditExtra(null)} className="flex-1">{t('cancel')}</Button>
           <Button onClick={submitExtraEdit} disabled={updateExtraMutation.isPending} className="flex-1">
-            {updateExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('saveChanges')}
+            {updateExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
           </Button>
         </div>
-        {updateExtraMutation.isError && <p className="text-sm text-red-500 mt-2">{t('failedToSaveChangesRetry')}</p>}
+        {updateExtraMutation.isError && <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToSaveChangesRetry')}</p>}
       </Modal>
 
       {/* Delete Extra Confirmation */}
       <Modal open={!!deleteExtraTarget} onClose={() => setDeleteExtraTarget(null)} title={t('deleteExtra')} size="sm">
         <p className="text-[var(--fg-muted)] mb-6">{t('confirmDeleteExtra', { name: deleteExtraTarget?.name ?? '' })}</p>
         <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => setDeleteExtraTarget(null)} className="flex-1">{t('cancel')}</Button>
-          <Button onClick={confirmDeleteExtra} disabled={deleteExtraMutation.isPending} className="flex-1 bg-red-500 hover:bg-red-600 border-red-500">
-            {deleteExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('deleteAction')}
+          <Button variant="secondary"onClick={() => setDeleteExtraTarget(null)} className="flex-1">{t('cancel')}</Button>
+          <Button onClick={confirmDeleteExtra} disabled={deleteExtraMutation.isPending} className="flex-1 bg-[var(--danger)] hover:bg-[var(--danger-hover)] border-[var(--danger)]">
+            {deleteExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('deleteAction')}
           </Button>
         </div>
-        {deleteExtraMutation.isError && <p className="text-sm text-red-500 mt-2">{t('failedToDeleteExtraRetry')}</p>}
+        {deleteExtraMutation.isError && <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToDeleteExtraRetry')}</p>}
       </Modal>
     </div>
     </ErrorBoundary>
@@ -671,30 +671,30 @@ function GroupFormFields({
       <Input label={t('extraGroupNameLabel')} value={form.name} onChange={set('name')} />
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={2} />
       <div>
-        <label htmlFor="selection-type" className="block text-sm font-medium text-[var(--fg)] mb-1">{t('selectionTypeLabel')}</label>
+        <label htmlFor="selection-type"className="block text-sm font-medium text-[var(--fg)] mb-1">{t('selectionTypeLabel')}</label>
         <select
           id="selection-type"
           value={form.selection_type}
           onChange={set('selection_type')}
-          className="w-full h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+          className="w-full h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
         >
           <option value="single">{t('selectionType.single')}</option>
           <option value="multiple">{t('selectionType.multiple')}</option>
         </select>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <Input label={t('minSelectionLabel')} type="number" min={0} value={form.min_selection} onChange={set('min_selection')} />
-        <Input label={t('maxSelectionLabel')} type="number" min={1} value={form.max_selection} onChange={set('max_selection')} />
+        <Input label={t('minSelectionLabel')} type="number"min={0} value={form.min_selection} onChange={set('min_selection')} />
+        <Input label={t('maxSelectionLabel')} type="number"min={1} value={form.max_selection} onChange={set('max_selection')} />
       </div>
       <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-        <input type="checkbox" checked={form.required} onChange={set('required')} className="rounded" />
+        <input type="checkbox"checked={form.required} onChange={set('required')} className="rounded"/>
         {t('requiredLabel')}
       </label>
       <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-        <input type="checkbox" checked={form.is_active} onChange={set('is_active')} className="rounded" />
+        <input type="checkbox"checked={form.is_active} onChange={set('is_active')} className="rounded"/>
         {t('active')}
       </label>
-      {error && <p className="text-sm text-red-500">{t(`extraGroupFormError.${error}`)}</p>}
+      {error && <p className="text-sm text-[var(--danger-text)]">{t(`extraGroupFormError.${error}`)}</p>}
     </div>
   )
 }
@@ -721,14 +721,14 @@ function ExtraFormFields({
         onChange={(image) => onChange({ ...form, image })}
       />
       <div className="grid grid-cols-2 gap-4">
-        <Input label={t('priceDollarLabel')} type="number" min={0} step="0.01" value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">$</span>} />
-        <Input label={t('sortOrderLabel')} type="number" min={1} value={form.order} onChange={set('order')} />
+        <Input label={t('priceDollarLabel')} type="number"min={0} step="0.01"value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">$</span>} />
+        <Input label={t('sortOrderLabel')} type="number"min={1} value={form.order} onChange={set('order')} />
       </div>
       <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-        <input type="checkbox" checked={form.available} onChange={set('available')} className="rounded" />
+        <input type="checkbox"checked={form.available} onChange={set('available')} className="rounded"/>
         {t('active')}
       </label>
-      {error && <p className="text-sm text-red-500">{t(`extraFormError.${error}`)}</p>}
+      {error && <p className="text-sm text-[var(--danger-text)]">{t(`extraFormError.${error}`)}</p>}
     </div>
   )
 }

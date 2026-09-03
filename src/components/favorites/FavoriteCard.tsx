@@ -38,7 +38,7 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
       onClick={handleCardClick}
       className={cn(
         'group relative flex flex-col bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden cursor-pointer',
-        'hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-xl transition-all duration-300',
+        'hover:border-[var(--accent-border)]/50 hover:shadow-xl transition-all duration-300',
         !item.available && 'opacity-75',
         className,
       )}
@@ -53,11 +53,11 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-950/30 dark:to-stone-900 flex items-center justify-center">
-            <span className="text-5xl opacity-30" aria-hidden="true">🍽️</span>
+          <div className="w-full h-full bg-gradient-to-br from-[var(--accent-subtle)] to-[var(--card-hover)] flex items-center justify-center">
+            <span className="text-5xl opacity-30"aria-hidden="true">🍽️</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent"/>
 
         <button
           type="button"
@@ -66,8 +66,8 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
           className={cn(
             'absolute top-3 end-3 h-9 w-9 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg',
             favorited
-              ? 'bg-red-500 text-white'
-              : 'bg-white/90 backdrop-blur-sm text-gray-500 hover:bg-white hover:text-red-500',
+              ? 'bg-[var(--danger)] text-[var(--danger-fg)]'
+              : 'bg-white/90 backdrop-blur-sm text-[var(--fg-muted)] hover:bg-[var(--card)] hover:text-[var(--danger-text)]',
             isPending && 'opacity-70 cursor-wait',
           )}
           aria-label={favorited ? tMenu('removeFromFavorites') : tMenu('addToFavorites')}
@@ -78,34 +78,34 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
 
         {!item.available && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <Badge variant="secondary" className="text-xs">{tMenu('unavailable')}</Badge>
+            <Badge variant="secondary"className="text-xs">{tMenu('unavailable')}</Badge>
           </div>
         )}
       </div>
 
       <div className="flex flex-col flex-1 p-4 gap-3">
         <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium">
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300 max-w-full truncate">
-            <Store className="h-3 w-3 shrink-0" aria-hidden="true" />
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--accent-subtle)] text-[var(--accent-text)] max-w-full truncate">
+            <Store className="h-3 w-3 shrink-0"aria-hidden="true"/>
             <span className="truncate">{tenant.name}</span>
           </span>
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--bg-secondary)] text-[var(--fg-muted)] max-w-full truncate">
-            <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+            <MapPin className="h-3 w-3 shrink-0"aria-hidden="true"/>
             <span className="truncate">{branch.name}</span>
           </span>
         </div>
 
         <div className="space-y-1">
-          <h3 className="font-[var(--font-display)] text-lg font-semibold text-[var(--fg)] leading-snug line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+          <h3 className="font-[var(--font-display)] text-lg font-semibold text-[var(--fg)] leading-snug line-clamp-2 group-hover:text-[var(--accent-text)] transition-colors">
             {item.name}
           </h3>
           <div className="flex items-center gap-3 text-xs text-[var(--fg-muted)]">
             <span className="inline-flex items-center gap-1">
-              <Star className="h-3 w-3 text-amber-400 fill-amber-400" aria-hidden="true" />
+              <Star className="h-3 w-3 text-[var(--rating)] fill-[var(--rating)]"aria-hidden="true"/>
               {item.rating?.toFixed(1) ?? '0.0'}
             </span>
             <span className="inline-flex items-center gap-1">
-              <Clock className="h-3 w-3" aria-hidden="true" />
+              <Clock className="h-3 w-3"aria-hidden="true"/>
               {tMenu('prepTimeApprox', { min: item.preparation_time })}
             </span>
           </div>
@@ -113,7 +113,7 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
 
         <div className="mt-auto space-y-3">
           <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
-            <span className="text-2xl font-bold text-orange-600 dark:text-orange-400 leading-none">
+            <span className="text-2xl font-bold text-[var(--accent-text)] leading-none">
               {formatCurrency(discountedPrice)}
             </span>
             {hasDiscount && (
@@ -121,7 +121,7 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
                 <span className="text-sm text-[var(--fg-subtle)] line-through pb-0.5">
                   {formatCurrency(item.price)}
                 </span>
-                <Badge variant="danger" className="text-[10px] mb-0.5">
+                <Badge variant="danger"className="text-[10px] mb-0.5">
                   {tMenu('discount', { percent: item.discount! })}
                 </Badge>
               </>
@@ -134,7 +134,7 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
             disabled={!item.available}
             layout="full"
             addLabel={tDashboard('favoriteQuickOrder', { price: formatCurrency(discountedPrice) })}
-            addIcon={<Zap className="h-4 w-4" aria-hidden="true" />}
+            addIcon={<Zap className="h-4 w-4"aria-hidden="true"/>}
           />
         </div>
       </div>

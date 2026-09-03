@@ -8,7 +8,7 @@
  * P9.5.1B for missing keys/namespaces/invalid locales) so a developer can
  * see every unresolved translation without grepping console output.
  * Renders nothing in production — the underlying fallback chain
- * (`request.ts`/`ClientIntlProvider`'s `getMessageFallback`) already never
+ * (`request.ts`/` ClientIntlProvider`'s ` getMessageFallback`) already never
  * throws, so this component only adds visibility, never behavior.
  */
 import { useEffect, useState } from 'react'
@@ -37,13 +37,13 @@ export function MissingTranslationInspector() {
   return (
     <div className="fixed bottom-4 end-4 z-[9999] font-mono text-xs">
       {open ? (
-        <div className="w-80 max-h-96 overflow-y-auto rounded-lg border border-amber-500/50 bg-[var(--card)] p-3 shadow-lg">
+        <div className="w-80 max-h-96 overflow-y-auto rounded-lg border border-[var(--warning)]/50 bg-[var(--card)] p-3 shadow-lg">
           <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="flex items-center gap-1.5 font-semibold text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-3.5 w-3.5" /> Missing Translations ({events.length})
+            <span className="flex items-center gap-1.5 font-semibold text-[var(--warning-text)]">
+              <AlertTriangle className="h-3.5 w-3.5"/> Missing Translations ({events.length})
             </span>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close missing translation inspector" className="text-[var(--fg-muted)] hover:text-[var(--fg)]">
-              <X className="h-3.5 w-3.5" />
+            <button type="button"onClick={() => setOpen(false)} aria-label="Close missing translation inspector"className="text-[var(--fg-muted)] hover:text-[var(--fg)]">
+              <X className="h-3.5 w-3.5"/>
             </button>
           </div>
           <ul className="space-y-1.5">
@@ -61,9 +61,9 @@ export function MissingTranslationInspector() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label={`${events.length} missing translations — open inspector`}
-          className="flex items-center gap-1.5 rounded-full border border-amber-500/50 bg-[var(--card)] px-3 py-1.5 text-amber-600 shadow-lg hover:bg-[var(--card-hover)] dark:text-amber-400"
+          className="flex items-center gap-1.5 rounded-full border border-[var(--warning)]/50 bg-[var(--card)] px-3 py-1.5 text-[var(--warning-text)] shadow-lg hover:bg-[var(--card-hover)]"
         >
-          <AlertTriangle className="h-3.5 w-3.5" /> {events.length}
+          <AlertTriangle className="h-3.5 w-3.5"/> {events.length}
         </button>
       )}
     </div>

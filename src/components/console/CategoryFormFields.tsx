@@ -28,12 +28,12 @@ export function CategoryFormFields({
         value={form.image}
         onChange={(image) => onChange({ ...form, image })}
       />
-      <Input label={t('sortOrderLabel')} type="number" min={1} value={form.sort_order} onChange={set('sort_order')} />
+      <Input label={t('sortOrderLabel')} type="number"min={1} value={form.sort_order} onChange={set('sort_order')} />
       <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
-        <input type="checkbox" checked={form.is_active} onChange={set('is_active')} className="rounded" />
+        <input type="checkbox"checked={form.is_active} onChange={set('is_active')} className="rounded"/>
         {t('active')}
       </label>
-      {error && <p className="text-sm text-red-500">{t(`categoryFormError.${error}`)}</p>}
+      {error && <p className="text-sm text-[var(--danger-text)]">{t(`categoryFormError.${error}`)}</p>}
     </div>
   )
 }

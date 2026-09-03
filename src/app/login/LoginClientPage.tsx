@@ -37,16 +37,16 @@ type AuthView = 'phone' | 'email' | 'forgot-password'
 // ── Demo accounts ──────────────────────────────────────────────────────────────
 
 const DEMO_ACCOUNTS = [
-  { key: 'customer',      email: 'demo@samoon.com',      phone_number: '+1 415 555 0101', icon: User,           color: 'text-blue-600 dark:text-blue-400',     bg: 'hover:bg-blue-50 dark:hover:bg-blue-950/20',     border: 'border-blue-200 dark:border-blue-800' },
-  { key: 'staff',         email: 'staff@samoon.com',     phone_number: '+1 415 555 0102', icon: ShieldCheck,    color: 'text-green-600 dark:text-green-400',   bg: 'hover:bg-green-50 dark:hover:bg-green-950/20',   border: 'border-green-200 dark:border-green-800' },
-  { key: 'cashier',       email: 'cashier@samoon.com',   phone_number: '+1 415 555 0103', icon: CreditCard,     color: 'text-cyan-600 dark:text-cyan-400',     bg: 'hover:bg-cyan-50 dark:hover:bg-cyan-950/20',     border: 'border-cyan-200 dark:border-cyan-800' },
-  { key: 'kitchen',       email: 'kitchen@samoon.com',   phone_number: '+1 415 555 0104', icon: ChefHat,        color: 'text-amber-600 dark:text-amber-400',   bg: 'hover:bg-amber-50 dark:hover:bg-amber-950/20',   border: 'border-amber-200 dark:border-amber-800' },
-  { key: 'marketing',     email: 'marketing@samoon.com', phone_number: '+1 415 555 0105', icon: Megaphone,      color: 'text-pink-600 dark:text-pink-400',     bg: 'hover:bg-pink-50 dark:hover:bg-pink-950/20',     border: 'border-pink-200 dark:border-pink-800' },
-  { key: 'support',       email: 'support@samoon.com',   phone_number: '+1 415 555 0106', icon: HeadphonesIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'hover:bg-indigo-50 dark:hover:bg-indigo-950/20', border: 'border-indigo-200 dark:border-indigo-800' },
-  { key: 'admin',         email: 'admin@samoon.com',     phone_number: '+1 415 555 0107', icon: ShieldCheck,    color: 'text-orange-600 dark:text-orange-400', bg: 'hover:bg-orange-50 dark:hover:bg-orange-950/20', border: 'border-orange-200 dark:border-orange-800' },
-  { key: 'owner',         email: 'owner@samoon.com',     phone_number: '+1 415 555 0108', icon: Crown,          color: 'text-purple-600 dark:text-purple-400', bg: 'hover:bg-purple-50 dark:hover:bg-purple-950/20', border: 'border-purple-200 dark:border-purple-800' },
-  { key: 'platformAdmin', email: 'platform@samoon.com',  phone_number: '+1 415 555 0109', icon: Building2,      color: 'text-rose-600 dark:text-rose-400',     bg: 'hover:bg-rose-50 dark:hover:bg-rose-950/20',     border: 'border-rose-200 dark:border-rose-800' },
-  { key: 'multiRole',     email: 'multirole@samoon.com', phone_number: '+1 415 555 0110', icon: Layers,         color: 'text-teal-600 dark:text-teal-400',     bg: 'hover:bg-teal-50 dark:hover:bg-teal-950/20',     border: 'border-teal-200 dark:border-teal-800' },
+  { key: 'customer',      email: 'demo@samoon.com',      phone_number: '+1 415 555 0101', icon: User,           color: 'text-[var(--info-text)]',     bg: 'hover:bg-[var(--info-subtle)]',     border: 'border-[var(--info-border)]' },
+  { key: 'staff',         email: 'staff@samoon.com',     phone_number: '+1 415 555 0102', icon: ShieldCheck,    color: 'text-[var(--success-text)]', bg: 'hover:bg-[var(--success-subtle)]', border: 'border-[var(--success-border)]' },
+  { key: 'cashier',       email: 'cashier@samoon.com',   phone_number: '+1 415 555 0103', icon: CreditCard,     color: 'text-[var(--chart-6)]', bg: 'hover:bg-[var(--chart-6)]/10', border: 'border-[var(--chart-6)]/30' },
+  { key: 'kitchen',       email: 'kitchen@samoon.com',   phone_number: '+1 415 555 0104', icon: ChefHat,        color: 'text-[var(--warning-text)]', bg: 'hover:bg-[var(--warning-subtle)]', border: 'border-[var(--warning-border)]' },
+  { key: 'marketing',     email: 'marketing@samoon.com', phone_number: '+1 415 555 0105', icon: Megaphone,      color: 'text-[var(--chart-4)]', bg: 'hover:bg-[var(--chart-4)]/10', border: 'border-[var(--chart-4)]/30' },
+  { key: 'support',       email: 'support@samoon.com',   phone_number: '+1 415 555 0106', icon: HeadphonesIcon, color: 'text-[var(--info-text)]', bg: 'hover:bg-[var(--info-subtle)]', border: 'border-[var(--info-border)]' },
+  { key: 'admin',         email: 'admin@samoon.com',     phone_number: '+1 415 555 0107', icon: ShieldCheck,    color: 'text-[var(--accent-text)]', bg: 'hover:bg-[var(--accent-subtle)]', border: 'border-[var(--accent-border)]/40' },
+  { key: 'owner',         email: 'owner@samoon.com',     phone_number: '+1 415 555 0108', icon: Crown,          color: 'text-[var(--chart-5)]', bg: 'hover:bg-[var(--chart-5)]/10', border: 'border-[var(--chart-5)]/30' },
+  { key: 'platformAdmin', email: 'platform@samoon.com',  phone_number: '+1 415 555 0109', icon: Building2,      color: 'text-[var(--danger-text)]', bg: 'hover:bg-[var(--danger-subtle)]', border: 'border-[var(--danger-border)]' },
+  { key: 'multiRole',     email: 'multirole@samoon.com', phone_number: '+1 415 555 0110', icon: Layers,         color: 'text-[var(--chart-2)]', bg: 'hover:bg-[var(--chart-2)]/10', border: 'border-[var(--chart-2)]/30' },
 ]
 
 // ── Email fallback schema ──────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ export function LoginClientPage() {
       <div className="flex-1 flex items-start justify-center p-6 sm:p-8 overflow-y-auto">
         <motion.div {...motionProps} className="w-full max-w-md py-8">
 
-          <Link href="/" className="flex items-center gap-2 mb-8">
+          <Link href="/"className="flex items-center gap-2 mb-8">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg">
               <span className="text-white font-bold">S</span>
             </div>
@@ -293,7 +293,7 @@ export function LoginClientPage() {
                         loading={isSendingOTP}
                         disabled={!phoneValid || isSendingOTP}
                         onClick={handlePhoneContinue}
-                        rightIcon={<ArrowRight className="h-4 w-4" />}
+                        rightIcon={<ArrowRight className="h-4 w-4"/>}
                       >
                         {tCommon('continue')}
                       </Button>
@@ -314,14 +314,14 @@ export function LoginClientPage() {
                         type={showPassword ? 'text' : 'password'}
                         value={phonePassword}
                         onChange={(e) => setPhonePassword(e.target.value)}
-                        leftIcon={<Lock className="h-3.5 w-3.5" />}
+                        leftIcon={<Lock className="h-3.5 w-3.5"/>}
                         rightIcon={
                           <button
                             type="button"
                             onClick={() => setShowPassword((v) => !v)}
                             aria-label={showPassword ? tCommon('hidePassword') : tCommon('showPassword')}
                           >
-                            {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                            {showPassword ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}
                           </button>
                         }
                         placeholder="••••••••"
@@ -338,7 +338,7 @@ export function LoginClientPage() {
                           || isLoginTransitionActive
                         }
                         onClick={handlePhonePasswordLogin}
-                        rightIcon={<ArrowRight className="h-4 w-4" />}
+                        rightIcon={<ArrowRight className="h-4 w-4"/>}
                       >
                         {loginButtonLabel ?? t('signInWithPassword')}
                       </Button>
@@ -361,10 +361,10 @@ export function LoginClientPage() {
 
                 {phoneAuthMode === 'otp' && USE_MOCK && (
                   <>
-                    <Divider label={t('orTryDemo')} className="mb-4" />
+                    <Divider label={t('orTryDemo')} className="mb-4"/>
                     <div className="mb-6 space-y-2">
                       <p className="text-xs text-[var(--fg-muted)] flex items-center gap-1.5">
-                        <Sparkles className="h-3 w-3 text-orange-500" aria-hidden="true" />
+                        <Sparkles className="h-3 w-3 text-[var(--accent-text)]"aria-hidden="true"/>
                         {t('oneClickDemoHint')}
                       </p>
                       <div className="grid grid-cols-2 gap-1.5">
@@ -377,7 +377,7 @@ export function LoginClientPage() {
                             className={`flex flex-col items-start gap-0.5 px-3 py-2 rounded-xl border text-left transition-colors ${border} ${bg} disabled:opacity-50`}
                           >
                             <span className={`flex items-center gap-1.5 text-sm font-semibold ${color}`}>
-                              <Icon className="h-3.5 w-3.5" aria-hidden="true" />{t(`demoAccounts.${key}.label`)}
+                              <Icon className="h-3.5 w-3.5"aria-hidden="true"/>{t(`demoAccounts.${key}.label`)}
                             </span>
                             <span className="text-[11px] text-[var(--fg-muted)] leading-tight">{t(`demoAccounts.${key}.description`)}</span>
                             <span className="text-[10px] text-[var(--fg-muted)] opacity-60 font-mono">{phone_number}</span>
@@ -409,9 +409,9 @@ export function LoginClientPage() {
                     <button
                       type="button"
                       onClick={fillDemo}
-                      className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 text-sm hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors"
+                      className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border border-dashed border-[var(--accent-border)]/40 text-[var(--accent-text)] text-sm hover:bg-[var(--accent-subtle)] transition-colors"
                     >
-                      <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> {t('fillDemoCredentials')}
+                      <Sparkles className="h-3.5 w-3.5"aria-hidden="true"/> {t('fillDemoCredentials')}
                     </button>
                   )}
                   <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
@@ -419,7 +419,7 @@ export function LoginClientPage() {
                       label={t('email')}
                       type="email"
                       required
-                      leftIcon={<Mail className="h-3.5 w-3.5" />}
+                      leftIcon={<Mail className="h-3.5 w-3.5"/>}
                       placeholder={t('emailPlaceholder')}
                       {...register('email')}
                       error={errors.email?.message ? tValidation(errors.email.message) : undefined}
@@ -429,14 +429,14 @@ export function LoginClientPage() {
                       label={t('password')}
                       type={showPassword ? 'text' : 'password'}
                       required
-                      leftIcon={<Lock className="h-3.5 w-3.5" />}
+                      leftIcon={<Lock className="h-3.5 w-3.5"/>}
                       rightIcon={
                         <button
                           type="button"
                           onClick={() => setShowPassword((v) => !v)}
                           aria-label={showPassword ? tCommon('hidePassword') : tCommon('showPassword')}
                         >
-                          {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                          {showPassword ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}
                         </button>
                       }
                       placeholder="••••••••"
@@ -448,7 +448,7 @@ export function LoginClientPage() {
                       <button
                         type="button"
                         onClick={() => setAuthView('forgot-password')}
-                        className="text-orange-500 hover:text-orange-600 transition-colors"
+                        className="text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors"
                       >
                         {t('forgotPasswordLink')}
                       </button>
@@ -459,7 +459,7 @@ export function LoginClientPage() {
                       size="lg"
                       loading={isLoginTransitionActive}
                       disabled={isLoginTransitionActive}
-                      rightIcon={<ArrowRight className="h-4 w-4" />}
+                      rightIcon={<ArrowRight className="h-4 w-4"/>}
                     >
                       {loginButtonLabel ?? t('signInWithEmail')}
                     </Button>
@@ -488,15 +488,15 @@ export function LoginClientPage() {
 
           <p className="text-center text-xs text-[var(--fg-muted)] mt-8">
             {t('agreeToTerms')}{' '}
-            <Link href="/terms" className="text-orange-500 hover:underline">{tCommon('termsOfService')}</Link>
+            <Link href="/terms"className="text-[var(--accent-text)] hover:underline">{tCommon('termsOfService')}</Link>
             {' '}{tCommon('and')}{' '}
-            <Link href="/privacy" className="text-orange-500 hover:underline">{tCommon('privacyPolicy')}</Link>
+            <Link href="/privacy"className="text-[var(--accent-text)] hover:underline">{tCommon('privacyPolicy')}</Link>
           </p>
         </motion.div>
       </div>
 
-      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-gradient-to-br from-orange-400 via-orange-500 to-orange-700" aria-hidden="true">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, white 2px, transparent 2px), radial-gradient(circle at 70% 30%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-gradient-to-br from-orange-400 via-[var(--accent)] to-[var(--accent-active)]"aria-hidden="true">
+        <div className="absolute inset-0 opacity-10"style={{ backgroundImage: 'radial-gradient(circle at 30% 70%, white 2px, transparent 2px), radial-gradient(circle at 70% 30%, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div className="relative flex flex-col items-center justify-center p-12 text-center text-white">
           <div className="text-7xl mb-6">🍽️ 🍷 🍕 🥐 ☕ 🧊</div>
           <h2 className="font-[var(--font-display)] text-4xl font-bold mb-4">{t('fineDining')},<br />{t('delivered')}.</h2>
@@ -506,7 +506,7 @@ export function LoginClientPage() {
           <div className="mt-8 flex items-center gap-4">
             <div className="flex -space-x-2">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-8 w-8 rounded-full border-2 border-white bg-white/20" />
+                <div key={i} className="h-8 w-8 rounded-full border-2 border-white bg-white/20"/>
               ))}
             </div>
             <p className="text-sm text-white/70">{t('joinedByFoodies')}</p>

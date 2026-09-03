@@ -49,10 +49,10 @@ function timeAgo(iso: string, t: ReturnType<typeof useTranslations>): string {
 }
 
 const PRIORITY_ICON: Record<NotificationPriority, React.ReactNode> = {
-  low: <Info className="w-4 h-4 text-muted-foreground" />,
-  normal: <Info className="w-4 h-4 text-blue-500" />,
-  high: <AlertTriangle className="w-4 h-4 text-amber-500" />,
-  urgent: <AlertCircle className="w-4 h-4 text-red-500" />,
+  low: <Info className="w-4 h-4 text-muted-foreground"/>,
+  normal: <Info className="w-4 h-4 text-[var(--info-text)]"/>,
+  high: <AlertTriangle className="w-4 h-4 text-[var(--rating)]"/>,
+  urgent: <AlertCircle className="w-4 h-4 text-[var(--danger-text)]"/>,
 }
 
 const PRIORITY_BADGE: Record<NotificationPriority, 'default' | 'info' | 'warning' | 'danger'> = {
@@ -126,7 +126,7 @@ function InboxTab({ tenantId }: InboxProps) {
       {/* Controls */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-muted)]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-muted)]"/>
           <input
             type="text"
             placeholder={t('searchNotificationsEllipsisPlaceholder')}
@@ -162,11 +162,11 @@ function InboxTab({ tenantId }: InboxProps) {
           <option value="normal">{t('priorityNormal')}</option>
           <option value="low">{t('priorityLow')}</option>
         </select>
-        <Button variant="ghost" size="sm" onClick={() => refetch()}>
-          <RefreshCw className="w-4 h-4" />
+        <Button variant="ghost"size="sm"onClick={() => refetch()}>
+          <RefreshCw className="w-4 h-4"/>
         </Button>
         {unreadCount > 0 && (
-          <Button variant="outline" size="sm" onClick={() => markAll.mutate({ tenantId })}>
+          <Button variant="outline"size="sm"onClick={() => markAll.mutate({ tenantId })}>
             {t('markAllReadCount', { count: unreadCount })}
           </Button>
         )}
@@ -176,17 +176,17 @@ function InboxTab({ tenantId }: InboxProps) {
       <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 animate-spin text-[var(--fg-muted)]" />
+            <Loader2 className="w-6 h-6 animate-spin text-[var(--fg-muted)]"/>
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <AlertCircle className="w-8 h-8 text-red-400" />
+            <AlertCircle className="w-8 h-8 text-[var(--danger-text)]"/>
             <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadNotifications')}</p>
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>{t('retry')}</Button>
+            <Button variant="secondary"size="sm"onClick={() => refetch()}>{t('retry')}</Button>
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3 text-[var(--fg-muted)]">
-            <Bell className="w-10 h-10 opacity-30" />
+            <Bell className="w-10 h-10 opacity-30"/>
             <p className="font-medium">{t('noNotificationsFound')}</p>
           </div>
         ) : (
@@ -208,7 +208,7 @@ function InboxTab({ tenantId }: InboxProps) {
                       key={n.id}
                       className={cn(
                         'hover:bg-[var(--card-hover)] transition-colors',
-                        n.status === 'unread' && 'bg-blue-50/20 dark:bg-blue-950/10',
+                        n.status === 'unread' && 'bg-[var(--info-subtle)]/20',
                       )}
                     >
                       <td className="px-4 py-3">{PRIORITY_ICON[n.priority]}</td>
@@ -219,12 +219,12 @@ function InboxTab({ tenantId }: InboxProps) {
                         <p className="text-xs text-[var(--fg-muted)] mt-0.5 max-w-xs truncate">{n.message}</p>
                         {n.deepLink && (
                           <Link href={n.deepLink.href} className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-0.5">
-                            {t('viewLabel')} <ExternalLink className="w-3 h-3" />
+                            {t('viewLabel')} <ExternalLink className="w-3 h-3"/>
                           </Link>
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant="default" className="capitalize text-xs">{n.category}</Badge>
+                        <Badge variant="default"className="capitalize text-xs">{n.category}</Badge>
                       </td>
                       <td className="px-4 py-3 text-xs text-[var(--fg-muted)]">
                         {n.actor?.name ?? '—'}
@@ -235,15 +235,15 @@ function InboxTab({ tenantId }: InboxProps) {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
                           {n.status === 'unread' && (
-                            <Button variant="ghost" size="sm" onClick={() => markRead.mutate(n.id)} title={t('markReadTitle')}>
-                              <Check className="w-3.5 h-3.5" />
+                            <Button variant="ghost"size="sm"onClick={() => markRead.mutate(n.id)} title={t('markReadTitle')}>
+                              <Check className="w-3.5 h-3.5"/>
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" onClick={() => archive.mutate(n.id)} title={t('archiveTitle')}>
-                            <Archive className="w-3.5 h-3.5" />
+                          <Button variant="ghost"size="sm"onClick={() => archive.mutate(n.id)} title={t('archiveTitle')}>
+                            <Archive className="w-3.5 h-3.5"/>
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => del.mutate(n.id)} title={t('deleteAction')} className="text-destructive">
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <Button variant="ghost"size="sm"onClick={() => del.mutate(n.id)} title={t('deleteAction')} className="text-destructive">
+                            <Trash2 className="w-3.5 h-3.5"/>
                           </Button>
                         </div>
                       </td>
@@ -258,8 +258,8 @@ function InboxTab({ tenantId }: InboxProps) {
                   {t('pageOfTotalCount', { page, totalPages, count: notifPage?.count ?? 0 })}
                 </span>
                 <div className="flex gap-2">
-                  <Button variant="secondary" size="sm" onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>{t('previousLabel')}</Button>
-                  <Button variant="secondary" size="sm" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>{t('nextLabel')}</Button>
+                  <Button variant="secondary"size="sm"onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>{t('previousLabel')}</Button>
+                  <Button variant="secondary"size="sm"onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>{t('nextLabel')}</Button>
                 </div>
               </div>
             )}
@@ -284,7 +284,7 @@ function StatisticsTab({ tenantId }: StatisticsTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-[var(--fg-muted)]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[var(--fg-muted)]"/>
       </div>
     )
   }
@@ -323,7 +323,7 @@ function StatisticsTab({ tenantId }: StatisticsTabProps) {
                 <div key={cat} className="flex items-center gap-3">
                   <span className="text-sm text-[var(--fg-muted)] w-28 capitalize">{cat}</span>
                   <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                    <div className="h-full bg-primary rounded-full"style={{ width: `${pct}%` }} />
                   </div>
                   <span className="text-sm font-medium w-10 text-right">{count}</span>
                 </div>
@@ -379,7 +379,7 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-[var(--fg-muted)]" />
+        <Loader2 className="w-6 h-6 animate-spin text-[var(--fg-muted)]"/>
       </div>
     )
   }
@@ -396,7 +396,7 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
           onClick={() => resetPrefs.mutate({ userId, tenantId })}
           disabled={resetPrefs.isPending}
         >
-          {resetPrefs.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t('resetToDefaultsLabel')}
+          {resetPrefs.isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : t('resetToDefaultsLabel')}
         </Button>
       </div>
 
@@ -495,10 +495,10 @@ function PreferencesTab({ userId, tenantId }: PreferencesTabProps) {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 const TAB_ICON: Record<Tab, React.ReactNode> = {
-  inbox: <Inbox className="w-4 h-4" />,
-  archived: <Archive className="w-4 h-4" />,
-  statistics: <BarChart2 className="w-4 h-4" />,
-  preferences: <Settings className="w-4 h-4" />,
+  inbox: <Inbox className="w-4 h-4"/>,
+  archived: <Archive className="w-4 h-4"/>,
+  statistics: <BarChart2 className="w-4 h-4"/>,
+  preferences: <Settings className="w-4 h-4"/>,
 }
 const TAB_ORDER: Tab[] = ['inbox', 'archived', 'statistics', 'preferences']
 
@@ -519,7 +519,7 @@ function NotificationsContent() {
         {/* Page header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[var(--fg)] flex items-center gap-2">
-            <Bell className="w-6 h-6" />
+            <Bell className="w-6 h-6"/>
             {t('notificationCenterTitle')}
           </h1>
           <p className="text-[var(--fg-muted)] text-sm mt-1">

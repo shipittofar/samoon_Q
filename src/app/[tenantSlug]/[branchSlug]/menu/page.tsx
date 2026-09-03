@@ -14,7 +14,7 @@ import { useBranchStore } from '@/stores'
 
 function MenuLoadingFallback() {
   const t = useTranslations('branch')
-  return <div className="flex items-center justify-center h-64 text-gray-400">{t('loadingMenuEllipsis')}</div>
+  return <div className="flex items-center justify-center h-64 text-[var(--fg-subtle)]">{t('loadingMenuEllipsis')}</div>
 }
 
 export default function TenantBranchMenuPage() {

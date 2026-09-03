@@ -9,7 +9,7 @@ interface SparklineProps {
   className?: string
 }
 
-export function Sparkline({ data, height = 32, color = 'var(--primary)', className }: SparklineProps) {
+export function Sparkline({ data, height = 32, color = 'var(--chart-1)', className }: SparklineProps) {
   if (data.length < 2) return null
 
   const values = data.map((d) => d.value)
@@ -45,7 +45,7 @@ export function Sparkline({ data, height = 32, color = 'var(--primary)', classNa
       style={{ display: 'block', width: '100%', height }}
     >
       <polygon points={areaPoints} fill={color} opacity={0.12} />
-      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" />
+      <polyline points={points} fill="none"stroke={color} strokeWidth="1.5"strokeLinejoin="round"/>
     </svg>
   )
 }

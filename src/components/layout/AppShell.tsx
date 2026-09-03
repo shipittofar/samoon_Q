@@ -54,7 +54,7 @@ function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
       {/* Mobile overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-30 bg-[var(--overlay)] backdrop-blur-sm lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -95,12 +95,12 @@ function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
             className="lg:hidden shrink-0"
             aria-label="Close sidebar"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4"/>
           </Button>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5 scrollbar-thin" role="navigation">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5 scrollbar-thin"role="navigation">
           {navItems.map((item) => {
             const Icon = item.icon ? ICON_MAP[item.icon] : null
             const isActive = item.exact
@@ -115,13 +115,13 @@ function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
                 className={cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group',
                   isActive
-                    ? 'bg-[var(--accent)] text-white shadow-sm'
+                    ? 'bg-[var(--accent)] text-[var(--accent-fg)] shadow-sm'
                     : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
                 )}
               >
-                {Icon && <Icon className="h-4 w-4 shrink-0" />}
+                {Icon && <Icon className="h-4 w-4 shrink-0"/>}
                 <span className="flex-1 truncate">{item.label}</span>
-                {isActive && <ChevronRight className="h-3 w-3 shrink-0 opacity-70" />}
+                {isActive && <ChevronRight className="h-3 w-3 shrink-0 opacity-70"/>}
               </Link>
             )
           })}
@@ -167,7 +167,7 @@ export function AppShell({ children, title }: AppShellProps) {
             className="lg:hidden"
             aria-label="Open sidebar"
           >
-            <Menu className="h-4 w-4" />
+            <Menu className="h-4 w-4"/>
           </Button>
           {title && (
             <h1 className="text-sm font-semibold text-[var(--fg)] truncate">{title}</h1>

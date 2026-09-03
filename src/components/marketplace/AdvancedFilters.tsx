@@ -83,15 +83,15 @@ export function AdvancedFilters({
         className={cn(
           'flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-colors',
           activeCount > 0
-            ? 'bg-orange-50 dark:bg-orange-950/30 border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400'
+            ? 'bg-[var(--accent-subtle)] border-[var(--accent-border)]/40 text-[var(--accent-text)]'
             : 'bg-[var(--card)] border-[var(--border)] text-[var(--fg-muted)] hover:bg-[var(--card-hover)]',
         )}
       >
-        <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
+        <SlidersHorizontal className="w-4 h-4"aria-hidden="true"/>
         {t('filters')}
         {activeCount > 0 && (
           <span
-            className="h-5 w-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center"
+            className="h-5 w-5 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] text-xs flex items-center justify-center"
             aria-label={t('activeFiltersAria', { count: activeCount })}
           >
             {activeCount}
@@ -116,7 +116,7 @@ export function AdvancedFilters({
                 className="flex items-center gap-1 text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
                 aria-label={t('clearAllFilters')}
               >
-                <X className="w-3 h-3" aria-hidden="true" />
+                <X className="w-3 h-3"aria-hidden="true"/>
                 {t('clearAllCount', { count: activeCount })}
               </button>
             )}
@@ -132,12 +132,12 @@ export function AdvancedFilters({
               className={cn(
                 'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
                 'focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-1',
-                filters.openNow ? 'bg-emerald-500' : 'bg-[var(--border)]',
+                filters.openNow ? 'bg-[var(--success)]' : 'bg-[var(--border)]',
               )}
             >
               <span
                 className={cn(
-                  'inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform',
+                  'inline-block h-3.5 w-3.5 transform rounded-full bg-[var(--card)] shadow transition-transform',
                   filters.openNow ? 'translate-x-4' : 'translate-x-0.5',
                 )}
               />

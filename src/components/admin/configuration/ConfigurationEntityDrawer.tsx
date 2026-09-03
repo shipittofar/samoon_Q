@@ -7,7 +7,7 @@
  * Configuration / Overrides / Dependencies / Audit / Statistics /
  * Inheritance / Preview tabs, all derived from `field.collection.schema`
  * and the shared field-render components already built in P9.1.3
- * (`ConfigurationFieldControl`/`Badges`/`Preview`). Nothing here is
+ * (`ConfigurationFieldControl`/` Badges`/` Preview`). Nothing here is
  * Countries-specific; a future Branches/Tenants collection reuses this
  * exact component, per P9.2 Phase K/H.
  */
@@ -49,7 +49,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
   // are short and human-authored, never checked for uniqueness *across*
   // different collections (they're never individually registered — see
   // ConfigCollectionMeta's doc comment in types.ts). Scoping every lookup
-  // under this collection field's own globally-unique id + 'schema'
+  // under this collection field's own globally-unique id + ' schema'
   // namespaces each property so Countries' 'enabled' and Languages'
   // 'enabled' resolve to independent translations instead of colliding.
   const propScope = (prop: ConfigFieldDefinition) => [field.id, 'schema', prop.id]
@@ -103,7 +103,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
               type="button"
               onClick={() => setTab(t.id)}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                tab === t.id ? 'bg-orange-500 text-white' : 'text-[var(--fg-muted)] hover:bg-[var(--card-hover)]'
+                tab === t.id ? 'bg-[var(--accent)] text-[var(--accent-fg)]' : 'text-[var(--fg-muted)] hover:bg-[var(--card-hover)]'
               }`}
             >
               {t.label}
@@ -232,7 +232,7 @@ export function ConfigurationEntityDrawer({ field, entry, canEdit, onClose, onCh
         {tab === 'preview' && (
           <div className="space-y-3">
             {/* P9.5.6 Phase C/D — Device Preview. Generic: gated only on the
-                entity's OWN schema having 'fontFamily'/'direction' property
+                entity's OWN schema having 'fontFamily'/'direction'property
                 ids (any typography-bearing collection qualifies, not just
                 Languages), never on which collection module this is. This
                 is a simulated content preview (real font-family/direction
@@ -304,7 +304,7 @@ function DevicePreview({ values, sampleText }: { values: Record<string, unknown>
               <p style={{ fontFamily, fontSize: `${0.9 * fontScale}rem` }} className="text-[var(--fg-muted)]">
                 {body}
               </p>
-              <span style={{ fontFamily, fontSize: `${0.85 * fontScale}rem` }} className="inline-block rounded-md bg-orange-500 px-3 py-1.5 text-white">
+              <span style={{ fontFamily, fontSize: `${0.85 * fontScale}rem` }} className="inline-block rounded-md bg-[var(--accent)] px-3 py-1.5 text-[var(--accent-fg)]">
                 {t('devicePreviewButton')}
               </span>
             </div>

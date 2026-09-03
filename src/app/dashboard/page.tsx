@@ -41,10 +41,10 @@ export default function DashboardPage() {
   const activeOrder = orders.find((o) => !isTerminalOrderStatus(o) && o.status !== 'cancelled')
 
   const stats = [
-    { label: t('totalOrders'), value: ordersData?.count || 0, icon: Package, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/30' },
-    { label: t('reservations'), value: reservationsData?.count || 0, icon: Calendar, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/30' },
-    { label: t('totalSpent'), value: formatCurrency(orders.reduce((s, o) => s + (o.total || 0), 0)), icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/30' },
-    { label: t('avgRating'), value: '4.8★', icon: Star, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/30' },
+    { label: t('totalOrders'), value: ordersData?.count || 0, icon: Package, color: 'text-[var(--info-text)]', bg: 'bg-[var(--info-subtle)]' },
+    { label: t('reservations'), value: reservationsData?.count || 0, icon: Calendar, color: 'text-[var(--chart-5)]', bg: 'bg-[var(--chart-5)]/10' },
+    { label: t('totalSpent'), value: formatCurrency(orders.reduce((s, o) => s + (o.total || 0), 0)), icon: TrendingUp, color: 'text-[var(--success-text)]', bg: 'bg-[var(--success-subtle)]' },
+    { label: t('avgRating'), value: '4.8★', icon: Star, color: 'text-[var(--rating)]', bg: 'bg-[var(--warning-subtle)]' },
   ]
 
   return (
@@ -62,12 +62,12 @@ export default function DashboardPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-5 text-white"
+          className="bg-gradient-to-r from-[var(--accent)] to-[var(--accent-active)] rounded-2xl p-5 text-white"
         >
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-                <Clock className="h-5 w-5" />
+                <Clock className="h-5 w-5"/>
               </div>
               <div>
                 <p className="font-semibold">{t('activeOrderLabel', { number: activeOrder.order_number })}</p>
@@ -77,8 +77,8 @@ export default function DashboardPage() {
               </div>
             </div>
             <Link href={`/order/${activeOrder.id}`}>
-              <Button variant="secondary" size="sm" className="bg-white text-orange-600 hover:bg-orange-50 border-transparent">
-                {t('trackNow')} <ArrowRight className="h-3.5 w-3.5 ms-1" />
+              <Button variant="secondary"size="sm"className="bg-[var(--card)] text-[var(--accent-text)] hover:bg-[var(--accent-subtle)] border-transparent">
+                {t('trackNow')} <ArrowRight className="h-3.5 w-3.5 ms-1"/>
               </Button>
             </Link>
           </div>
@@ -111,11 +111,11 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {QUICK_ACTIONS.map((action) => (
             <Link key={action.label} href={action.href}>
-              <div className="group bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 text-center hover:border-orange-200 dark:hover:border-orange-900 hover:shadow-lg transition-all duration-200 cursor-pointer">
+              <div className="group bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 text-center hover:border-[var(--accent-border)]/50 hover:shadow-lg transition-all duration-200 cursor-pointer">
                 <div className={`mx-auto h-12 w-12 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition-transform shadow-lg`}>
                   {action.icon}
                 </div>
-                <p className="text-sm font-semibold text-[var(--fg)] group-hover:text-orange-500 transition-colors">{action.label}</p>
+                <p className="text-sm font-semibold text-[var(--fg)] group-hover:text-[var(--accent-text)] transition-colors">{action.label}</p>
                 <p className="text-xs text-[var(--fg-muted)] mt-0.5">{action.desc}</p>
               </div>
             </Link>
@@ -127,27 +127,27 @@ export default function DashboardPage() {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-[var(--fg)]">{t('recentOrders')}</h2>
-          <Link href="/dashboard/orders" className="text-sm text-orange-500 hover:text-orange-600 flex items-center gap-1">
-            {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
+          <Link href="/dashboard/orders"className="text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)] flex items-center gap-1">
+            {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5"/>
           </Link>
         </div>
         <Card padding="none">
           {ordersLoading ? (
             <div className="p-4 space-y-4">
-              {[1, 2, 3].map((i) => <div key={i} className="flex gap-3"><Skeleton className="h-12 w-12 rounded-xl" /><div className="flex-1 space-y-2"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-3 w-1/3" /></div></div>)}
+              {[1, 2, 3].map((i) => <div key={i} className="flex gap-3"><Skeleton className="h-12 w-12 rounded-xl"/><div className="flex-1 space-y-2"><Skeleton className="h-4 w-1/2"/><Skeleton className="h-3 w-1/3"/></div></div>)}
             </div>
           ) : orders.length === 0 ? (
             <div className="p-8 text-center">
-              <Package className="h-8 w-8 text-[var(--fg-subtle)] mx-auto mb-2" />
+              <Package className="h-8 w-8 text-[var(--fg-subtle)] mx-auto mb-2"/>
               <p className="text-sm text-[var(--fg-muted)]">{t('noOrdersYet')}</p>
-              <Link href="/menu"><Button variant="outline" size="sm" className="mt-3">{t('orderNow')}</Button></Link>
+              <Link href="/menu"><Button variant="outline"size="sm"className="mt-3">{t('orderNow')}</Button></Link>
             </div>
           ) : (
             <div className="divide-y divide-[var(--border)]">
               {orders.slice(0, 4).map((order) => (
                 <Link key={order.id} href={`/order/${order.id}`} className="flex items-center gap-4 px-5 py-4 hover:bg-[var(--card-hover)] transition-colors">
-                  <div className="h-10 w-10 rounded-xl bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center shrink-0">
-                    <Package className="h-5 w-5 text-orange-500" />
+                  <div className="h-10 w-10 rounded-xl bg-[var(--accent-subtle)] flex items-center justify-center shrink-0">
+                    <Package className="h-5 w-5 text-[var(--accent-text)]"/>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-[var(--fg)]">{order.order_number}</p>
@@ -171,15 +171,15 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-[var(--fg)]">{t('upcomingReservations')}</h2>
-            <Link href="/dashboard/reservations" className="text-sm text-orange-500 hover:text-orange-600 flex items-center gap-1">
-              {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5" />
+            <Link href="/dashboard/reservations"className="text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)] flex items-center gap-1">
+              {tCommon('viewAll')} <ArrowRight className="h-3.5 w-3.5"/>
             </Link>
           </div>
           <div className="grid gap-4">
             {reservations.slice(0, 2).map((res) => (
               <Card key={res.id} className="flex items-center gap-4 !p-4">
-                <div className="h-12 w-12 rounded-xl bg-purple-50 dark:bg-purple-950/30 flex items-center justify-center shrink-0">
-                  <Calendar className="h-6 w-6 text-purple-500" />
+                <div className="h-12 w-12 rounded-xl bg-[var(--chart-5)]/10 flex items-center justify-center shrink-0">
+                  <Calendar className="h-6 w-6 text-[var(--chart-5)]"/>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-[var(--fg)]">{t('guestsTimeTemplate', { guests: res.guests, time: res.time })}</p>

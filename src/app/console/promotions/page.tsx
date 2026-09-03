@@ -123,10 +123,10 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
       role="dialog"
       aria-modal="true"
       aria-labelledby="promo-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] p-4 overflow-y-auto"
     >
-      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--border)] p-6 space-y-4 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
-        <h2 id="promo-modal-title" className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
+      <div className="w-full max-w-lg rounded-xl bg-[var(--card)] border border-[var(--border)] p-6 space-y-4 my-8 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
+        <h2 id="promo-modal-title"className="text-lg font-semibold text-[var(--fg)]">{title}</h2>
 
         <div className="space-y-3">
           <div>
@@ -220,7 +220,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
                   onClick={() => toggleWeekday(d.value)}
                   className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
                     form.weekdays.includes(d.value)
-                      ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                      ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent-border)]'
                       : 'border-[var(--border)] text-[var(--fg-muted)]'
                   }`}
                 >
@@ -262,7 +262,7 @@ function PromotionModal({ title, form, onChange, onSubmit, onCancel, isPending, 
           <button
             onClick={onSubmit}
             disabled={isPending || !form.name || !form.description}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white disabled:opacity-40"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40"
           >
             {isPending ? t('savingEllipsis') : submitLabel}
           </button>
@@ -313,13 +313,13 @@ export default function AdminPromotionsPage() {
 
   return (
     <ErrorBoundary feature="Promotion Management">
-    <PermissionGuard permission="promotions.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="promotions.view"fallback={<AccessDenied />}>
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[var(--fg)]">{t('promotionManagement')}</h1>
         <button
           onClick={() => { setShowCreate(true); setCreateForm(DEFAULT_FORM) }}
-          className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--primary)] text-white"
+          className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-fg)]"
           aria-label={t('createPromotion')}
         >
           + {t('createPromotion')}
@@ -335,15 +335,15 @@ export default function AdminPromotionsPage() {
           {promotions.map((promo) => (
             <li
               key={promo.id}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 flex items-center justify-between gap-4"
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 flex items-center justify-between gap-4"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent-text)]">
                     {t(TYPE_BADGE_KEY[promo.type])}
                   </span>
                   {!promo.active && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--danger-subtle)] text-[var(--danger-text)]">
                       {t('disabled')}
                     </span>
                   )}
@@ -364,7 +364,7 @@ export default function AdminPromotionsPage() {
                     onClick={() => disableMutation.mutate(promo.id)}
                     disabled={disableMutation.isPending}
                     aria-label={t('disableNameAria', { name: promo.name })}
-                    className="px-3 py-1 rounded-lg text-sm border border-red-300 text-red-600 disabled:opacity-40"
+                    className="px-3 py-1 rounded-lg text-sm border border-[var(--danger-border)] text-[var(--danger-text)] disabled:opacity-40"
                   >
                     {t('disable')}
                   </button>
@@ -373,7 +373,7 @@ export default function AdminPromotionsPage() {
                     onClick={() => activateMutation.mutate(promo.id)}
                     disabled={activateMutation.isPending}
                     aria-label={t('activateNameAria', { name: promo.name })}
-                    className="px-3 py-1 rounded-lg text-sm border border-green-300 text-green-700 disabled:opacity-40"
+                    className="px-3 py-1 rounded-lg text-sm border border-[var(--success-border)] text-[var(--success-text)] disabled:opacity-40"
                   >
                     {t('activate')}
                   </button>

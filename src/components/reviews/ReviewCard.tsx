@@ -18,12 +18,12 @@ function StarRow({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'xs' }
   const t = useTranslations('reviewCard')
   const cls = size === 'xs' ? 'w-3 h-3' : 'w-3.5 h-3.5'
   return (
-    <div className="flex gap-0.5" aria-label={t('starsOutOf5', { rating })} role="img">
+    <div className="flex gap-0.5"aria-label={t('starsOutOf5', { rating })} role="img">
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           // eslint-disable-next-line react/no-array-index-key
           key={i}
-          className={cn(cls, i < rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300 fill-gray-300')}
+          className={cn(cls, i < rating ? 'text-[var(--rating)] fill-[var(--rating)]' : 'text-[var(--fg-subtle)] fill-[var(--border-strong)]')}
           aria-hidden="true"
         />
       ))}
@@ -50,7 +50,7 @@ function Avatar({ name, avatar }: { name: string; avatar?: string }) {
   }
   return (
     <div
-      className="w-9 h-9 rounded-full bg-[var(--accent)] flex items-center justify-center text-white text-sm font-bold shrink-0"
+      className="w-9 h-9 rounded-full bg-[var(--accent)] flex items-center justify-center text-[var(--accent-fg)] text-sm font-bold shrink-0"
       aria-hidden="true"
     >
       {initials}
@@ -95,10 +95,10 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             <span className="text-sm font-semibold text-[var(--fg)]">{review.customerName}</span>
             {review.verifiedVisit && (
               <span
-                className="inline-flex items-center gap-0.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium"
+                className="inline-flex items-center gap-0.5 text-xs text-[var(--success-text)] font-medium"
                 title={t('verifiedVisit')}
               >
-                <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                <BadgeCheck className="w-3.5 h-3.5"aria-hidden="true"/>
                 {t('verified')}
               </span>
             )}
@@ -129,9 +129,9 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             aria-expanded={expanded}
           >
             {expanded ? (
-              <><ChevronUp className="w-3 h-3" aria-hidden="true" />{t('showLess')}</>
+              <><ChevronUp className="w-3 h-3"aria-hidden="true"/>{t('showLess')}</>
             ) : (
-              <><ChevronDown className="w-3 h-3" aria-hidden="true" />{t('readMore')}</>
+              <><ChevronDown className="w-3 h-3"aria-hidden="true"/>{t('readMore')}</>
             )}
           </button>
         )}
@@ -139,7 +139,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
 
       {/* Photo thumbnails */}
       {(review.images?.length ?? 0) > 0 && (
-        <div className="flex gap-2 flex-wrap" role="list" aria-label={t('reviewPhotosAria')}>
+        <div className="flex gap-2 flex-wrap"role="list"aria-label={t('reviewPhotosAria')}>
           {review.images!.map((src, i) => (
             <div key={src} role="listitem">
               <img
@@ -156,7 +156,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
       {review.ownerReply && (
         <div className="bg-[var(--bg-secondary)] rounded-xl p-3 border-l-2 border-[var(--accent)]">
           <div className="flex items-center gap-1.5 mb-1">
-            <MessageSquare className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
+            <MessageSquare className="w-3.5 h-3.5 text-[var(--accent)]"aria-hidden="true"/>
             <span className="text-xs font-semibold text-[var(--fg)]">{review.ownerReply.authorName}</span>
             <span className="text-xs text-[var(--fg-muted)]">·</span>
             <span className="text-xs text-[var(--fg-muted)]">
@@ -178,21 +178,21 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             className="inline-flex items-center gap-1 text-xs text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)] rounded"
             aria-label={t('markHelpfulAria', { count: review.helpfulCount })}
           >
-            <ThumbsUp className="w-3.5 h-3.5" aria-hidden="true" />
+            <ThumbsUp className="w-3.5 h-3.5"aria-hidden="true"/>
             <span>{t('helpfulCount', { count: review.helpfulCount })}</span>
           </button>
         )}
 
         {!onMarkHelpful && review.helpfulCount > 0 && (
           <span className="inline-flex items-center gap-1 text-xs text-[var(--fg-muted)]">
-            <ThumbsUp className="w-3.5 h-3.5" aria-hidden="true" />
+            <ThumbsUp className="w-3.5 h-3.5"aria-hidden="true"/>
             {t('helpfulSuffix', { count: review.helpfulCount })}
           </span>
         )}
 
         {review.images && review.images.length > 0 && !onMarkHelpful && (
           <span className="inline-flex items-center gap-1 text-xs text-[var(--fg-muted)]">
-            <Camera className="w-3.5 h-3.5" aria-hidden="true" />
+            <Camera className="w-3.5 h-3.5"aria-hidden="true"/>
             {t('photosCount', { count: review.images.length })}
           </span>
         )}
@@ -203,7 +203,7 @@ export function ReviewCard({ review, onMarkHelpful, onReply, showModActions = fa
             onClick={() => onReply(review.id)}
             className="ml-auto inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--accent)] rounded"
           >
-            <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
+            <MessageSquare className="w-3.5 h-3.5"aria-hidden="true"/>
             {t('reply')}
           </button>
         )}

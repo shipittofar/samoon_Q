@@ -183,15 +183,15 @@ function ThemeTab({
             >
               {/* Color swatch strip */}
               <div className="flex gap-1 mb-3 rounded-md overflow-hidden h-6">
-                <div className="flex-1" style={{ backgroundColor: theme.tokens.bg }} />
-                <div className="flex-1" style={{ backgroundColor: theme.tokens.primary }} />
-                <div className="flex-1" style={{ backgroundColor: theme.tokens.accent }} />
-                <div className="flex-1" style={{ backgroundColor: theme.tokens.card }} />
-                <div className="flex-1" style={{ backgroundColor: theme.tokens.fg }} />
+                <div className="flex-1"style={{ backgroundColor: theme.tokens.bg }} />
+                <div className="flex-1"style={{ backgroundColor: theme.tokens.primary }} />
+                <div className="flex-1"style={{ backgroundColor: theme.tokens.accent }} />
+                <div className="flex-1"style={{ backgroundColor: theme.tokens.card }} />
+                <div className="flex-1"style={{ backgroundColor: theme.tokens.fg }} />
               </div>
               <p className="font-semibold text-sm text-[var(--fg)]">{theme.label}</p>
               <p className="text-xs text-[var(--fg-muted)] mt-0.5 leading-snug">{theme.description}</p>
-              <p className="text-xs text-[var(--fg-muted)] mt-1 opacity-60" style={{ fontFamily: theme.tokens.fontFamily }}>
+              <p className="text-xs text-[var(--fg-muted)] mt-1 opacity-60"style={{ fontFamily: theme.tokens.fontFamily }}>
                 {theme.tokens.fontFamily.split(',')[0].replace(/"/g, '')}
               </p>
             </button>
@@ -243,7 +243,7 @@ function SectionsTab({
               : 'border-[var(--border)] bg-[var(--bg-secondary)] opacity-60',
           )}
         >
-          <GripVertical className="w-4 h-4 text-[var(--fg-muted)] flex-shrink-0" aria-hidden />
+          <GripVertical className="w-4 h-4 text-[var(--fg-muted)] flex-shrink-0"aria-hidden />
           <span className="flex-1 text-sm font-medium text-[var(--fg)]">
             {t(SECTION_LABELS[section.key])}
           </span>
@@ -255,7 +255,7 @@ function SectionsTab({
               className="p-1 rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-30 transition-colors"
               aria-label={t('moveSectionUpAria', { section: t(SECTION_LABELS[section.key]) })}
             >
-              <ChevronUp className="w-4 h-4" />
+              <ChevronUp className="w-4 h-4"/>
             </button>
             <button
               type="button"
@@ -264,7 +264,7 @@ function SectionsTab({
               className="p-1 rounded-lg hover:bg-[var(--card-hover)] disabled:opacity-30 transition-colors"
               aria-label={t('moveSectionDownAria', { section: t(SECTION_LABELS[section.key]) })}
             >
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-4 h-4"/>
             </button>
           </div>
           <button
@@ -279,7 +279,7 @@ function SectionsTab({
           >
             <span
               className={cn(
-                'absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform',
+                'absolute top-1 left-1 w-4 h-4 rounded-full bg-[var(--card)] transition-transform',
                 section.enabled ? 'translate-x-4' : 'translate-x-0',
               )}
             />
@@ -380,7 +380,7 @@ function HeroTab({
   ).map(([value, labelKey]) => ({ value, label: t(labelKey) }))
 
   const secondaryCtaOptions = [
-    { value: '' as HeroSecondaryCtaType, label: t('noneOptionDash') },
+    { value: ''as HeroSecondaryCtaType, label: t('noneOptionDash') },
     ...(Object.entries(HERO_SECONDARY_CTA_LABELS) as [HeroSecondaryCtaType, string][]).map(([value, labelKey]) => ({ value, label: t(labelKey) })),
   ]
 
@@ -476,7 +476,7 @@ function HeroTab({
         </Field>
         <Field label={t('secondaryCtaOptionalLabel')}>
           <SelectInput<HeroSecondaryCtaType>
-            value={heroConfig.secondaryCta ?? ('' as HeroSecondaryCtaType)}
+            value={heroConfig.secondaryCta ?? (''as HeroSecondaryCtaType)}
             onChange={(v) => setConfig('secondaryCta', v || undefined)}
             options={secondaryCtaOptions}
           />
@@ -493,7 +493,7 @@ function HeroTab({
           <TextInput value={hero.subheadline} onChange={(v) => setHero('subheadline', v)} placeholder={t('freshFoodGreatVibesPlaceholder')} multiline />
         </Field>
         <Field label={t('backgroundImageUrlLegacyLabel')}>
-          <TextInput value={hero.backgroundImage} onChange={(v) => setHero('backgroundImage', v)} placeholder="https://…" />
+          <TextInput value={hero.backgroundImage} onChange={(v) => setHero('backgroundImage', v)} placeholder="https://…"/>
         </Field>
       </div>
     </div>
@@ -533,7 +533,7 @@ function ContentTab({
             <TextInput value={about.founderName} onChange={(v) => setAbout('founderName', v)} placeholder={t('janeDoeExamplePlaceholder')} />
           </Field>
           <Field label={t('founderImageUrlLabel')}>
-            <TextInput value={about.founderImage} onChange={(v) => setAbout('founderImage', v)} placeholder="https://…" />
+            <TextInput value={about.founderImage} onChange={(v) => setAbout('founderImage', v)} placeholder="https://…"/>
           </Field>
         </div>
         <Field label={t('founderBioLabel')}>
@@ -545,22 +545,22 @@ function ContentTab({
       <div className="space-y-4">
         <p className="text-sm font-semibold text-[var(--fg)] border-b border-[var(--border)] pb-2">{t('contactLabel')}</p>
         <div className="grid grid-cols-2 gap-4">
-          <Field label={t('phoneLabel')}><TextInput value={contact.phone_number} onChange={(v) => setContact('phone_number', v)} placeholder="+1 555 000 0000" /></Field>
-          <Field label={t('emailLabel')}><TextInput value={contact.email} onChange={(v) => setContact('email', v)} placeholder="hello@restaurant.com" /></Field>
-          <Field label={t('websiteLabel')}><TextInput value={contact.website} onChange={(v) => setContact('website', v)} placeholder="https://…" /></Field>
-          <Field label={t('whatsappLabel')}><TextInput value={contact.whatsapp} onChange={(v) => setContact('whatsapp', v)} placeholder="+1 555 000 0000" /></Field>
-          <Field label={t('instagramLabel')}><TextInput value={contact.instagram} onChange={(v) => setContact('instagram', v)} placeholder="@handle" /></Field>
-          <Field label={t('facebookLabel')}><TextInput value={contact.facebook} onChange={(v) => setContact('facebook', v)} placeholder="facebook.com/page" /></Field>
-          <Field label={t('tiktokLabel')}><TextInput value={contact.tiktok} onChange={(v) => setContact('tiktok', v)} placeholder="@handle" /></Field>
-          <Field label={t('youtubeLabel')}><TextInput value={contact.youtube} onChange={(v) => setContact('youtube', v)} placeholder="youtube.com/channel" /></Field>
-          <Field label={t('telegramLabel')}><TextInput value={contact.telegram} onChange={(v) => setContact('telegram', v)} placeholder="t.me/channel" /></Field>
+          <Field label={t('phoneLabel')}><TextInput value={contact.phone_number} onChange={(v) => setContact('phone_number', v)} placeholder="+1 555 000 0000"/></Field>
+          <Field label={t('emailLabel')}><TextInput value={contact.email} onChange={(v) => setContact('email', v)} placeholder="hello@restaurant.com"/></Field>
+          <Field label={t('websiteLabel')}><TextInput value={contact.website} onChange={(v) => setContact('website', v)} placeholder="https://…"/></Field>
+          <Field label={t('whatsappLabel')}><TextInput value={contact.whatsapp} onChange={(v) => setContact('whatsapp', v)} placeholder="+1 555 000 0000"/></Field>
+          <Field label={t('instagramLabel')}><TextInput value={contact.instagram} onChange={(v) => setContact('instagram', v)} placeholder="@handle"/></Field>
+          <Field label={t('facebookLabel')}><TextInput value={contact.facebook} onChange={(v) => setContact('facebook', v)} placeholder="facebook.com/page"/></Field>
+          <Field label={t('tiktokLabel')}><TextInput value={contact.tiktok} onChange={(v) => setContact('tiktok', v)} placeholder="@handle"/></Field>
+          <Field label={t('youtubeLabel')}><TextInput value={contact.youtube} onChange={(v) => setContact('youtube', v)} placeholder="youtube.com/channel"/></Field>
+          <Field label={t('telegramLabel')}><TextInput value={contact.telegram} onChange={(v) => setContact('telegram', v)} placeholder="t.me/channel"/></Field>
         </div>
         <Field label={t('mapEmbedUrlLabel')}>
-          <TextInput value={contact.mapEmbedUrl} onChange={(v) => setContact('mapEmbedUrl', v)} placeholder="https://maps.google.com/embed?…" />
+          <TextInput value={contact.mapEmbedUrl} onChange={(v) => setContact('mapEmbedUrl', v)} placeholder="https://maps.google.com/embed?…"/>
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label={t('latitudeLabel')}><NumberInput value={contact.latitude} onChange={(v) => setContact('latitude', v)} min={-90} max={90} step={0.000001} placeholder="40.7128" /></Field>
-          <Field label={t('longitudeLabel')}><NumberInput value={contact.longitude} onChange={(v) => setContact('longitude', v)} min={-180} max={180} step={0.000001} placeholder="-74.0060" /></Field>
+          <Field label={t('latitudeLabel')}><NumberInput value={contact.latitude} onChange={(v) => setContact('latitude', v)} min={-90} max={90} step={0.000001} placeholder="40.7128"/></Field>
+          <Field label={t('longitudeLabel')}><NumberInput value={contact.longitude} onChange={(v) => setContact('longitude', v)} min={-180} max={180} step={0.000001} placeholder="-74.0060"/></Field>
         </div>
       </div>
     </div>
@@ -595,7 +595,7 @@ function ModulesTab() {
             key={feature.key}
             className="flex items-start gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]"
           >
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0 mt-1.5" aria-hidden />
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--success)] flex-shrink-0 mt-1.5"aria-hidden />
             <div>
               <p className="text-sm font-medium text-[var(--fg)]">{t(feature.labelKey)}</p>
               <p className="text-xs text-[var(--fg-muted)]">{t(feature.descKey)}</p>
@@ -623,9 +623,9 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700">
-        <Eye className="w-4 h-4 text-amber-600 flex-shrink-0" aria-hidden />
-        <p className="text-sm text-amber-700 dark:text-amber-400">
+      <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--warning-subtle)] border border-[var(--warning-border)]">
+        <Eye className="w-4 h-4 text-[var(--warning-text)] flex-shrink-0"aria-hidden />
+        <p className="text-sm text-[var(--warning-text)]">
           {t('livePreviewNotice')}
         </p>
       </div>
@@ -633,9 +633,9 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
       <div className="rounded-xl border border-[var(--border)] overflow-hidden">
         <div className="bg-[var(--bg-secondary)] px-4 py-2 flex items-center gap-2 border-b border-[var(--border)]">
           <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-400" />
-            <div className="w-3 h-3 rounded-full bg-yellow-400" />
-            <div className="w-3 h-3 rounded-full bg-green-400" />
+            <div className="w-3 h-3 rounded-full bg-red-400"/>
+            <div className="w-3 h-3 rounded-full bg-yellow-400"/>
+            <div className="w-3 h-3 rounded-full bg-green-400"/>
           </div>
           <span className="text-xs text-[var(--fg-muted)] ml-2 font-mono">/{tenantSlug}</span>
         </div>
@@ -643,9 +643,9 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
           {activeBrandTheme && (
             <div className="flex items-center gap-2 mb-4 p-2 rounded-lg border border-[var(--border)] bg-[var(--bg-secondary)]">
               <div className="flex gap-1 rounded overflow-hidden h-4 w-16">
-                <div className="flex-1" style={{ backgroundColor: activeBrandTheme.tokens.bg }} />
-                <div className="flex-1" style={{ backgroundColor: activeBrandTheme.tokens.primary }} />
-                <div className="flex-1" style={{ backgroundColor: activeBrandTheme.tokens.accent }} />
+                <div className="flex-1"style={{ backgroundColor: activeBrandTheme.tokens.bg }} />
+                <div className="flex-1"style={{ backgroundColor: activeBrandTheme.tokens.primary }} />
+                <div className="flex-1"style={{ backgroundColor: activeBrandTheme.tokens.accent }} />
               </div>
               <span className="text-xs text-[var(--fg-muted)]">{t('themeColonLabel')} <strong className="text-[var(--fg)]">{activeBrandTheme.label}</strong></span>
             </div>
@@ -681,7 +681,7 @@ function PreviewTab({ tenantSlug, layout }: { tenantSlug: string; layout: Homepa
         rel="noopener noreferrer"
         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border)] text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
       >
-        <Globe className="w-4 h-4" aria-hidden />
+        <Globe className="w-4 h-4"aria-hidden />
         {t('openPublicPage')}
       </a>
     </div>
@@ -705,7 +705,7 @@ function VersionsTab({
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]">
           <p className="text-xs text-[var(--fg-muted)] mb-1">{t('tableHeaders.status')}</p>
-          <p className={cn('font-medium', layout.status === 'published' ? 'text-emerald-500' : 'text-amber-500')}>
+          <p className={cn('font-medium', layout.status === 'published' ? 'text-[var(--success-text)]' : 'text-[var(--rating)]')}>
             {layout.status === 'published' ? t('publishedLabel') : t('draftLabel')}
           </p>
         </div>
@@ -768,7 +768,7 @@ function BranchOverridesForm({
 
   if (isLoading) return (
     <div className="flex items-center gap-2 text-[var(--fg-muted)] py-4">
-      <Loader2 className="w-4 h-4 animate-spin" aria-hidden />
+      <Loader2 className="w-4 h-4 animate-spin"aria-hidden />
       <span>{t('loadingBranchOverrides')}</span>
     </div>
   )
@@ -778,9 +778,9 @@ function BranchOverridesForm({
       <div className="space-y-4">
         <Field label={t('heroHeadlineLabel')}><TextInput value={current.heroHeadline} onChange={(v) => set('heroHeadline', v)} placeholder={t('branchSpecificHeadlinePlaceholder')} /></Field>
         <Field label={t('heroSubheadlineLabel')}><TextInput value={current.heroSubheadline} onChange={(v) => set('heroSubheadline', v)} placeholder={t('branchSpecificSubheadlinePlaceholder')} /></Field>
-        <Field label={t('heroImageUrlLabel')}><TextInput value={current.heroImage} onChange={(v) => set('heroImage', v)} placeholder="https://…" /></Field>
+        <Field label={t('heroImageUrlLabel')}><TextInput value={current.heroImage} onChange={(v) => set('heroImage', v)} placeholder="https://…"/></Field>
         <Field label={t('branchDescriptionLabel')}><TextInput value={current.description} onChange={(v) => set('description', v)} multiline placeholder={t('locatedInPlaceholder')} /></Field>
-        <Field label={t('branchPhoneLabel')}><TextInput value={current.phone_number} onChange={(v) => set('phone_number', v)} placeholder="+1 555 000 0000" /></Field>
+        <Field label={t('branchPhoneLabel')}><TextInput value={current.phone_number} onChange={(v) => set('phone_number', v)} placeholder="+1 555 000 0000"/></Field>
         <Field label={t('aboutBranchSpecificLabel')}><TextInput value={current.about} onChange={(v) => set('about', v)} multiline placeholder={t('ourDowntownLocationPlaceholder')} /></Field>
       </div>
       <button
@@ -789,7 +789,7 @@ function BranchOverridesForm({
         disabled={save.isPending}
         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-medium hover:bg-[var(--accent-hover)] disabled:opacity-60 transition-colors"
       >
-        {save.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+        {save.isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4"/>}
         {save.isPending ? t('savingEllipsis') : t('saveBranchOverrides')}
       </button>
     </div>
@@ -876,13 +876,13 @@ function WebsiteBuilderContent() {
 
   if (isLoading) return (
     <div className="flex items-center gap-2 justify-center h-64 text-[var(--fg-muted)]">
-      <Loader2 className="w-5 h-5 animate-spin" />
+      <Loader2 className="w-5 h-5 animate-spin"/>
       {t('loadingWebsiteBuilder')}
     </div>
   )
 
   if (error || !current) return (
-    <div className="flex items-center justify-center h-64 text-red-500 text-sm">
+    <div className="flex items-center justify-center h-64 text-[var(--danger-text)] text-sm">
       {t('failedToLoadWebsiteBuilder')}
     </div>
   )
@@ -906,15 +906,15 @@ function WebsiteBuilderContent() {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {saved && (
-            <span className="flex items-center gap-1.5 text-sm text-emerald-500">
-              <CheckCircle2 className="w-4 h-4" /> {t('savedLabel')}
+            <span className="flex items-center gap-1.5 text-sm text-[var(--success-text)]">
+              <CheckCircle2 className="w-4 h-4"/> {t('savedLabel')}
             </span>
           )}
           <span className={cn(
             'text-xs px-2 py-1 rounded-full font-medium',
             current.status === 'published'
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+              ? 'bg-[var(--success-subtle)] text-[var(--success-text)]'
+              : 'bg-[var(--warning-subtle)] text-[var(--warning-text)]',
           )}>
             {current.status === 'published' ? t('publishedLabel') : t('draftLabel')}
           </span>
@@ -924,7 +924,7 @@ function WebsiteBuilderContent() {
             disabled={!isDirty || isBusy}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[var(--border)] text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] disabled:opacity-40 transition-colors"
           >
-            {saveLayout.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saveLayout.isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4"/>}
             {t('save')}
           </button>
           <button
@@ -933,15 +933,15 @@ function WebsiteBuilderContent() {
             disabled={isBusy}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-medium hover:bg-[var(--accent-hover)] disabled:opacity-60 transition-colors"
           >
-            {publishLayout.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {publishLayout.isPending ? <Loader2 className="w-4 h-4 animate-spin"/> : <Upload className="w-4 h-4"/>}
             {t('publish')}
           </button>
         </div>
       </div>
 
       {isDirty && (
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-sm text-amber-700 dark:text-amber-400">
-          <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
+        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--warning-subtle)] border border-[var(--warning-border)] text-sm text-[var(--warning-text)]">
+          <span className="w-2 h-2 rounded-full bg-[var(--warning)] flex-shrink-0"/>
           {t('unsavedChangesNotice')}
         </div>
       )}
@@ -960,7 +960,7 @@ function WebsiteBuilderContent() {
                 : 'border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]',
             )}
           >
-            <Icon className="w-4 h-4" aria-hidden />
+            <Icon className="w-4 h-4"aria-hidden />
             {t(labelKey)}
           </button>
         ))}
@@ -1023,7 +1023,7 @@ function WebsiteBuilderContent() {
 
 export default function WebsiteBuilderPage() {
   return (
-    <PermissionGuard permission="settings.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="settings.view"fallback={<AccessDenied />}>
       <div className="min-h-screen bg-[var(--bg)]">
         <main>
           <WebsiteBuilderContent />

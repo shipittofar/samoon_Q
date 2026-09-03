@@ -19,8 +19,8 @@ const REFRESH_OPTIONS = [
 function ConnectionStatus({ connected }: { connected: boolean }) {
   const t = useTranslations('console')
   return (
-    <div className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full ${connected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-      {connected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+    <div className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full ${connected ? 'bg-[var(--success-subtle)] text-[var(--success-text)]' : 'bg-[var(--danger-subtle)] text-[var(--danger-text)]'}`}>
+      {connected ? <Wifi className="h-3 w-3"/> : <WifiOff className="h-3 w-3"/>}
       {connected ? t('connectionLive') : t('connectionOffline')}
     </div>
   )
@@ -88,7 +88,7 @@ function KitchenPageContent() {
             {/* Branch selection lives once in AdminContextBar's AdminBranchSwitcher
                 (console layout) — this page only reads the resolved selection. */}
             <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)]">
-              <RefreshCw className="h-3 w-3" />
+              <RefreshCw className="h-3 w-3"/>
               <span>{t('autoRefreshLabel')}</span>
               {REFRESH_OPTIONS.map(({ key, ms }) => (
                 <button
@@ -96,7 +96,7 @@ function KitchenPageContent() {
                   onClick={() => setRefreshMs(ms)}
                   className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                     refreshMs === ms
-                      ? 'bg-[var(--primary)] text-white'
+                      ? 'bg-[var(--accent)] text-[var(--accent-fg)]'
                       : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)]'
                   }`}
                 >
@@ -109,14 +109,14 @@ function KitchenPageContent() {
               className="p-1.5 rounded-lg border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
               title={t('refreshNow')}
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4"/>
             </button>
             <button
               onClick={toggleFullscreen}
               className="p-1.5 rounded-lg border border-[var(--border)] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors"
               title={isFullscreen ? t('exitFullscreen') : t('fullscreen')}
             >
-              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              {isFullscreen ? <Minimize2 className="h-4 w-4"/> : <Maximize2 className="h-4 w-4"/>}
             </button>
           </div>
         </div>
@@ -131,8 +131,8 @@ function KitchenPageContent() {
             <p className="text-sm text-[var(--fg-muted)]">{t('loadingBranchesEllipsis')}</p>
           </div>
         ) : branchState === 'error' ? (
-          <div className="rounded-xl border border-red-300 bg-[var(--card)] p-8 text-center">
-            <p className="text-sm text-red-600 dark:text-red-400">{t('failedToLoadBranches')}</p>
+          <div className="rounded-xl border border-[var(--danger-border)] bg-[var(--card)] p-8 text-center">
+            <p className="text-sm text-[var(--danger-text)]">{t('failedToLoadBranches')}</p>
           </div>
         ) : !branchId ? (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-8 text-center">
@@ -150,7 +150,7 @@ function KitchenPageContent() {
 export default function KitchenPage() {
   return (
     <ErrorBoundary feature="Kitchen Display">
-      <PermissionGuard permission="kitchen.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="kitchen.view"fallback={<AccessDenied />}>
         <KitchenPageContent />
       </PermissionGuard>
     </ErrorBoundary>

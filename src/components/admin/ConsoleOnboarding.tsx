@@ -25,8 +25,8 @@ export function ConsoleOnboarding() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400">
-        <Store className="h-8 w-8" aria-hidden="true" />
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent-subtle)] text-[var(--accent-text)]">
+        <Store className="h-8 w-8"aria-hidden="true"/>
       </div>
       <div className="max-w-sm space-y-2">
         <h1 className="text-xl font-semibold text-[var(--fg)]">{t('onboardingTitle')}</h1>
@@ -36,7 +36,7 @@ export function ConsoleOnboarding() {
         href="mailto:hello@samoon.com"
         className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
       >
-        <Mail className="h-4 w-4" aria-hidden="true" />
+        <Mail className="h-4 w-4"aria-hidden="true"/>
         {t('onboardingContactCta')}
       </a>
     </div>

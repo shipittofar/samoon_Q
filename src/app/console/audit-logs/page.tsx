@@ -91,7 +91,7 @@ function AuditLogsContent() {
               <Button
                 variant="secondary"
                 size="sm"
-                leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+                leftIcon={<RefreshCw className="h-3.5 w-3.5"/>}
                 onClick={() => refetch()}
               >
                 {t('refreshLabel')}
@@ -99,7 +99,7 @@ function AuditLogsContent() {
               <Button
                 variant="secondary"
                 size="sm"
-                leftIcon={<Download className="h-3.5 w-3.5" />}
+                leftIcon={<Download className="h-3.5 w-3.5"/>}
                 onClick={handleExport}
                 disabled={exportMutation.isPending}
               >
@@ -113,9 +113,9 @@ function AuditLogsContent() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               {[
                 { label: t('totalEventsLabel'), value: stats.totalEvents, color: 'text-[var(--fg)]', bg: 'bg-[var(--card-hover)]' },
-                { label: t('criticalLabel'), value: stats.criticalEvents, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-950/20' },
-                { label: t('warningsLabel'), value: stats.warningEvents, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/20' },
-                { label: t('infoLabel'), value: stats.infoEvents, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950/20' },
+                { label: t('criticalLabel'), value: stats.criticalEvents, color: 'text-[var(--danger-text)]', bg: 'bg-[var(--danger-subtle)]' },
+                { label: t('warningsLabel'), value: stats.warningEvents, color: 'text-[var(--warning-text)]', bg: 'bg-[var(--warning-subtle)]' },
+                { label: t('infoLabel'), value: stats.infoEvents, color: 'text-[var(--info-text)]', bg: 'bg-[var(--info-subtle)]' },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} className={`${bg} rounded-xl p-4 border border-[var(--border)]`}>
                   <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -128,23 +128,23 @@ function AuditLogsContent() {
           {/* Filters */}
           <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 mb-6 space-y-3">
             <div className="flex items-center gap-2 text-sm font-medium text-[var(--fg-muted)]">
-              <Filter className="h-4 w-4" />
+              <Filter className="h-4 w-4"/>
               {t('filtersLabel')}
             </div>
             <div className="flex gap-3 flex-wrap">
               <div className="relative flex-1 min-w-48">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"/>
                 <input
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                   placeholder={t('searchActorTargetActionEllipsisPlaceholder')}
-                  className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                  className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                 />
               </div>
               <select
                 value={severity}
                 onChange={(e) => { setSeverity(e.target.value as AuditSeverity | 'all'); setPage(1) }}
-                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                 aria-label={t('filterBySeverityAria')}
               >
                 <option value="all">{t('allSeveritiesOption')}</option>
@@ -155,7 +155,7 @@ function AuditLogsContent() {
               <select
                 value={domain}
                 onChange={(e) => { setDomain(e.target.value); setPage(1) }}
-                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                 aria-label={t('filterByDomainAria')}
               >
                 <option value="all">{t('allDomainsOption')}</option>
@@ -168,14 +168,14 @@ function AuditLogsContent() {
                   type="date"
                   value={dateFrom}
                   onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
-                  className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                  className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                   aria-label={t('fromDateAria')}
                 />
                 <input
                   type="date"
                   value={dateTo}
                   onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
-                  className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                  className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                   aria-label={t('toDateAria')}
                 />
               </div>
@@ -190,8 +190,8 @@ function AuditLogsContent() {
                 onClick={() => setView(v)}
                 className={`px-4 py-1.5 rounded-xl text-sm font-medium border-2 transition-all capitalize ${
                   view === v
-                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600'
-                    : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'
+                    ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]'
+                    : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50'
                 }`}
               >
                 {t(VIEW_MODE_KEY[v])}
@@ -202,7 +202,7 @@ function AuditLogsContent() {
           {/* Loading */}
           {(logsLoading || timelineLoading) && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin"/>
               <span className="text-sm">{t('loadingAuditLogsEllipsis')}</span>
             </div>
           )}
@@ -210,9 +210,9 @@ function AuditLogsContent() {
           {/* Error */}
           {logsError && !logsLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <AlertCircle className="h-8 w-8 text-red-400" />
+              <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
               <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadAuditLogs')}</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>{t('retryLabel')}</Button>
+              <Button variant="secondary"size="sm"onClick={() => refetch()}>{t('retryLabel')}</Button>
             </div>
           )}
 
@@ -301,7 +301,7 @@ function AuditLogsContent() {
 export default function AuditLogsPage() {
   return (
     <ErrorBoundary feature="AuditLogs">
-      <PermissionGuard permission="audit.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="audit.view"fallback={<AccessDenied />}>
         <AuditLogsContent />
       </PermissionGuard>
     </ErrorBoundary>

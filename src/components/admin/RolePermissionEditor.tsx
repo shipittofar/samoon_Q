@@ -124,20 +124,20 @@ export function RolePermissionEditor({
   const loading = catalogLoading || rolePermsLoading
 
   if (loading) {
-    return <p className="text-sm text-gray-500">{t('loadingEllipsis')}</p>
+    return <p className="text-sm text-[var(--fg-muted)]">{t('loadingEllipsis')}</p>
   }
 
   return (
     <div className="space-y-4">
       {roleName && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[var(--fg-muted)]">
           {t('editingRolePermissionsLabel', { name: roleName })}
         </p>
       )}
 
       <div className="flex flex-wrap gap-2 items-center justify-between">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fg-subtle)]"/>
           <input
             type="text"
             value={search}
@@ -152,14 +152,14 @@ export function RolePermissionEditor({
               <button
                 type="button"
                 onClick={() => setSelectedIds(new Set(catalog.map((p) => p.id ?? p.key)))}
-                className="text-xs border rounded-md px-3 py-1.5 hover:bg-gray-50"
+                className="text-xs border rounded-md px-3 py-1.5 hover:bg-[var(--card-hover)]"
               >
                 {t('selectAllLabel')}
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedIds(new Set())}
-                className="text-xs border rounded-md px-3 py-1.5 hover:bg-gray-50"
+                className="text-xs border rounded-md px-3 py-1.5 hover:bg-[var(--card-hover)]"
               >
                 {t('clearAllLabel')}
               </button>
@@ -167,7 +167,7 @@ export function RolePermissionEditor({
                 type="button"
                 onClick={handleSave}
                 disabled={replacePerms.isPending}
-                className="text-xs bg-indigo-600 text-white rounded-md px-3 py-1.5 disabled:opacity-50"
+                className="text-xs bg-[var(--info)] text-white rounded-md px-3 py-1.5 disabled:opacity-50"
               >
                 {replacePerms.isPending ? t('savingEllipsis') : t('saveRolePermissionsLabel')}
               </button>
@@ -176,7 +176,7 @@ export function RolePermissionEditor({
         </div>
       </div>
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-[var(--fg-muted)]">
         {t('permissionsSelectedCount', { selected: selectedIds.size, total: catalog.length })}
       </p>
 
@@ -187,43 +187,43 @@ export function RolePermissionEditor({
           const isExpanded = expanded.has(key)
           const allSelected = ids.length > 0 && selectedCount === ids.length
           return (
-            <div key={key} className="border border-gray-100 rounded-lg overflow-hidden">
-              <div className="flex items-center justify-between px-3 py-2 bg-gray-50">
+            <div key={key} className="border border-[var(--border)] rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-[var(--card-hover)]">
                 <button
                   type="button"
                   onClick={() => toggleExpanded(key)}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700"
+                  className="flex items-center gap-2 text-sm font-medium text-[var(--fg-secondary)]"
                 >
-                  {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  {isExpanded ? <ChevronDown className="w-4 h-4"/> : <ChevronRight className="w-4 h-4"/>}
                   {cat.label}
-                  <span className="text-xs text-gray-400">({selectedCount}/{ids.length})</span>
+                  <span className="text-xs text-[var(--fg-subtle)]">({selectedCount}/{ids.length})</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => toggleCategory(cat.items)}
                   disabled={readOnly}
-                  className="text-xs text-indigo-600 hover:underline disabled:opacity-50"
+                  className="text-xs text-[var(--info-text)] hover:underline disabled:opacity-50"
                 >
                   {allSelected ? t('deselectAllLabel') : t('selectAllLabel')}
                 </button>
               </div>
               {isExpanded && (
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-[var(--border-subtle)]">
                   {cat.items.map((perm) => {
                     const id = perm.id ?? perm.key
                     return (
                       <label
                         key={id}
-                        className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        className="flex items-center gap-3 px-4 py-2 hover:bg-[var(--card-hover)] cursor-pointer"
                       >
                         <input
                           type="checkbox"
                           checked={selectedIds.has(id)}
                           onChange={() => togglePerm(id)}
                           disabled={readOnly}
-                          className="accent-indigo-600"
+                          className="accent-[var(--accent)]"
                         />
-                        <span className="text-sm font-mono text-gray-700">{perm.key}</span>
+                        <span className="text-sm font-mono text-[var(--fg-secondary)]">{perm.key}</span>
                       </label>
                     )
                   })}

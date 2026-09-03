@@ -12,7 +12,7 @@ import { usePermissionAudit, useConsoleTenantId } from '@/hooks'
 export default function RbacAuditPage() {
   return (
     <ErrorBoundary feature="RBAC Audit">
-      <PermissionGuard permission="audit.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="audit.view"fallback={<AccessDenied />}>
         <RbacAuditContent />
       </PermissionGuard>
     </ErrorBoundary>
@@ -57,8 +57,8 @@ function RbacAuditContent() {
   return (
     <main className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('rbacAuditPageTitle')}</h1>
-        <p className="text-sm text-gray-500 mt-1">{t('rbacAuditPageHint')}</p>
+        <h1 className="text-2xl font-bold text-[var(--fg)]">{t('rbacAuditPageTitle')}</h1>
+        <p className="text-sm text-[var(--fg-muted)] mt-1">{t('rbacAuditPageHint')}</p>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -70,7 +70,7 @@ function RbacAuditContent() {
             setPage(1)
           }}
           placeholder={t('filterByActorPlaceholder')}
-          className="border border-gray-200 rounded-lg text-sm px-3 py-2"
+          className="border border-[var(--border)] rounded-lg text-sm px-3 py-2"
         />
         <input
           type="text"
@@ -80,7 +80,7 @@ function RbacAuditContent() {
             setPage(1)
           }}
           placeholder={t('filterByMembershipPlaceholder')}
-          className="border border-gray-200 rounded-lg text-sm px-3 py-2"
+          className="border border-[var(--border)] rounded-lg text-sm px-3 py-2"
         />
         <select
           value={actionFilter}
@@ -88,7 +88,7 @@ function RbacAuditContent() {
             setActionFilter(e.target.value)
             setPage(1)
           }}
-          className="border border-gray-200 rounded-lg text-sm px-3 py-2"
+          className="border border-[var(--border)] rounded-lg text-sm px-3 py-2"
         >
           <option value="all">{t('allActionsOption')}</option>
           <option value="permission_granted">{t('actionPermissionGranted')}</option>
@@ -102,7 +102,7 @@ function RbacAuditContent() {
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">
+          <span className="text-[var(--fg-muted)]">
             {t('paginationSummary', { page, totalPages, count: totalCount })}
           </span>
           <div className="flex gap-2">

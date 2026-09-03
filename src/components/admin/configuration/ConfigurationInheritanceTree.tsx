@@ -28,7 +28,7 @@ export function ConfigurationInheritanceTree({ field, scope }: { field: ConfigFi
   const ownerIndex = CONFIG_INHERITANCE_CHAIN.indexOf(field.inheritance.level)
 
   return (
-    <div className="space-y-2" role="list" aria-label={t('inheritanceChainAria')}>
+    <div className="space-y-2"role="list"aria-label={t('inheritanceChainAria')}>
       {CONFIG_INHERITANCE_CHAIN.map((level, i) => {
         const levelIndex = CONFIG_INHERITANCE_CHAIN.indexOf(level)
         const hasValue = layers[level] !== undefined
@@ -38,7 +38,7 @@ export function ConfigurationInheritanceTree({ field, scope }: { field: ConfigFi
         const isBlockedOverride = isBelowOwner && hasValue && (!field.inheritance.canOverride || field.inheritance.mode === 'locked') && !isEffective
 
         return (
-          <div key={level} role="listitem" className="flex items-center gap-3">
+          <div key={level} role="listitem"className="flex items-center gap-3">
             <div className="flex w-20 shrink-0 flex-col items-start">
               <span className="text-xs font-medium text-[var(--fg)]">{LEVEL_LABEL[level]}</span>
               {isOwner && <span className="text-[10px] text-[var(--fg-muted)]">{t('ownerLabel')}</span>}
@@ -46,7 +46,7 @@ export function ConfigurationInheritanceTree({ field, scope }: { field: ConfigFi
             <div
               className={`flex flex-1 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${
                 isEffective
-                  ? 'border-orange-400 bg-orange-50 dark:bg-orange-950/20'
+                  ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)]'
                   : hasValue
                     ? 'border-[var(--border)] bg-[var(--card)]'
                     : 'border-dashed border-[var(--border)] bg-transparent opacity-60'

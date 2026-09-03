@@ -1,0 +1,286 @@
+src/app/[tenantSlug]/[branchSlug]/BranchHomepageClient.tsx(72,5): error TS2322: Type 'TenantMarketplaceSettings | undefined' is not assignable to type '{ branchCount?: number | undefined; primaryBranchSlug?: string | undefined; } | null | undefined'.
+  Type 'TenantMarketplaceSettings' has no properties in common with type '{ branchCount?: number | undefined; primaryBranchSlug?: string | undefined; }'.
+src/app/[tenantSlug]/page.tsx(20,5): error TS2322: Type 'TenantMarketplaceSettings | undefined' is not assignable to type 'Pick<MarketplaceMeta, "description"> | null | undefined'.
+  Type 'TenantMarketplaceSettings' has no properties in common with type 'Pick<MarketplaceMeta, "description">'.
+src/components/layout/TenantHeader.tsx(118,5): error TS2322: Type 'TenantMarketplaceSettings | undefined' is not assignable to type '{ branchCount?: number | undefined; primaryBranchSlug?: string | undefined; } | null | undefined'.
+  Type 'TenantMarketplaceSettings' has no properties in common with type '{ branchCount?: number | undefined; primaryBranchSlug?: string | undefined; }'.
+src/providers/index.tsx(116,47): error TS2304: Cannot find name 'DEFAULT_TENANT'.
+src/test/auth-boundary-logout-login.test.ts(115,7): error TS2353: Object literal may only specify known properties, and 'tenantName' does not exist in type 'Pick<TenantMembership, "tenantId" | "branchId">'.
+src/test/auth-boundary-logout-login.test.ts(235,9): error TS2353: Object literal may only specify known properties, and 'tenantName' does not exist in type 'Pick<TenantMembership, "tenantId" | "branchId">'.
+src/test/cart-auth-persistence.test.ts(17,5): error TS2561: Object literal may only specify known properties, but 'is_available' does not exist in type 'MenuItem'. Did you mean to write 'available'?
+src/test/console-pending-badges.test.tsx(108,11): error TS2322: Type '{ tenantId: string; branchId: string | undefined; roles: string[]; branchAccess: { scope: "all"; }; } | null' is not assignable to type 'Pick<TenantMembership, "tenantId" | "branchId"> | null | undefined'.
+  Object literal may only specify known properties, and 'roles' does not exist in type 'Pick<TenantMembership, "tenantId" | "branchId">'.
+src/test/console-workspace.test.ts(393,51): error TS2345: Argument of type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/console-workspace.test.ts(417,51): error TS2345: Argument of type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/console-workspace.test.ts(436,51): error TS2345: Argument of type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/console-workspace.test.ts(462,51): error TS2345: Argument of type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/console-workspace.test.ts(482,51): error TS2345: Argument of type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; roles: string[]; branchAccess: { scope: string; }; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/image-architecture.test.ts(41,17): error TS2304: Cannot find name 'DiscoverTenant'.
+src/test/image-architecture.test.ts(117,7): error TS2322: Type 'TenantMarketplaceSettings | undefined' is not assignable to type 'Pick<MarketplaceMeta, "description"> | null | undefined'.
+  Type 'TenantMarketplaceSettings' has no properties in common with type 'Pick<MarketplaceMeta, "description">'.
+src/test/marketplace.test.ts(110,33): error TS2353: Object literal may only specify known properties, and 'theme' does not exist in type '{ marketplace?: TenantMarketplaceSettings | MarketplaceMeta | undefined; }'.
+src/test/menu-item-image.test.ts(54,48): error TS2345: Argument of type '{ name: string; description: string; price: string; discount: string; calories: string; preparation_time: string; image: { file: File; existingUrl: string; cleared: false; }; category_id: string; ... 4 more ...; extra_group_ids: never[]; }' is not assignable to parameter of type 'MenuItemFormInput'.
+  Property 'tag_ids' is missing in type '{ name: string; description: string; price: string; discount: string; calories: string; preparation_time: string; image: { file: File; existingUrl: string; cleared: false; }; category_id: string; ... 4 more ...; extra_group_ids: never[]; }' but required in type 'MenuItemFormInput'.
+src/test/menu-item-image.test.ts(74,48): error TS2345: Argument of type '{ name: string; description: string; price: string; discount: string; calories: string; preparation_time: string; image: { file: null; existingUrl: string; cleared: true; }; category_id: string; available: true; is_active: true; is_featured: false; is_popular: false; extra_group_ids: never[]; }' is not assignable to parameter of type 'MenuItemFormInput'.
+  Property 'tag_ids' is missing in type '{ name: string; description: string; price: string; discount: string; calories: string; preparation_time: string; image: { file: null; existingUrl: string; cleared: true; }; category_id: string; available: true; is_active: true; is_featured: false; is_popular: false; extra_group_ids: never[]; }' but required in type 'MenuItemFormInput'.
+src/test/menu-item-image.test.ts(94,48): error TS2345: Argument of type '{ name: string; description: string; price: string; discount: string; calories: string; preparation_time: string; image: { file: null; existingUrl: string; cleared: false; }; category_id: string; available: true; is_active: true; is_featured: false; is_popular: false; extra_group_ids: never[]; }' is not assignable to parameter of type 'MenuItemFormInput'.
+  Property 'tag_ids' is missing in type '{ name: string; description: string; price: string; discount: string; calories: string; preparation_time: string; image: { file: null; existingUrl: string; cleared: false; }; category_id: string; available: true; is_active: true; is_featured: false; is_popular: false; extra_group_ids: never[]; }' but required in type 'MenuItemFormInput'.
+src/test/p10.2.1-ownership-data-model.test.ts(181,96): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/p10.2.1-ownership-data-model.test.ts(304,90): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/p10.2.1-ownership-data-model.test.ts(332,96): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/p10.2.1-ownership-data-model.test.ts(357,96): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/p10.2.1-ownership-data-model.test.ts(366,96): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/p10.2.1-ownership-data-model.test.ts(387,96): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/p10.2.1-ownership-data-model.test.ts(406,89): error TS2345: Argument of type '{ ownerId: string; userId: string; status: "active"; plan: string; maxTenants: null; billing: { customerId: null; billingEmail: string; }; createdAt: string; }[]' is not assignable to parameter of type 'Owner[]'.
+  Property 'created_at' is missing in type '{ ownerId: string; userId: string; status: "active"; plan: string; maxTenants: null; billing: { customerId: null; billingEmail: string; }; createdAt: string; }' but required in type 'Owner'.
+src/test/p10.2.1-ownership-data-model.test.ts(414,96): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/p10.9-register-country-code-split.test.tsx(66,7): error TS2353: Object literal may only specify known properties, and 'email' does not exist in type 'RegisterData'.
+src/test/p10.9-register-country-code-split.test.tsx(85,7): error TS2353: Object literal may only specify known properties, and 'email' does not exist in type 'RegisterData'.
+src/test/p10.9-register-country-code-split.test.tsx(101,7): error TS2353: Object literal may only specify known properties, and 'email' does not exist in type 'RegisterData'.
+src/test/p9-1-2-runtime-integration.test.ts(31,43): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SendOTPRequest'.
+src/test/p9-1-2-runtime-integration.test.ts(34,48): error TS2345: Argument of type '{ phone_number: string; otp: string; }' is not assignable to parameter of type 'VerifyOTPRequest'.
+  Property 'dialCode' is missing in type '{ phone_number: string; otp: string; }' but required in type 'VerifyOTPRequest'.
+src/test/p9-1-2-runtime-integration.test.ts(44,41): error TS2353: Object literal may only specify known properties, and 'email' does not exist in type 'RegisterData'.
+src/test/p9-1-2-runtime-integration.test.ts(45,38): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SendOTPRequest'.
+src/test/p9-1-2-runtime-integration.test.ts(46,40): error TS2345: Argument of type '{ phone_number: string; otp: string; }' is not assignable to parameter of type 'VerifyOTPRequest'.
+  Property 'dialCode' is missing in type '{ phone_number: string; otp: string; }' but required in type 'VerifyOTPRequest'.
+src/test/p9-1-2-runtime-integration.test.ts(54,38): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SendOTPRequest'.
+src/test/p9-1-2-runtime-integration.test.ts(55,40): error TS2345: Argument of type '{ phone_number: string; otp: string; }' is not assignable to parameter of type 'VerifyOTPRequest'.
+  Property 'dialCode' is missing in type '{ phone_number: string; otp: string; }' but required in type 'VerifyOTPRequest'.
+src/test/p9-1-2-runtime-integration.test.ts(63,38): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SendOTPRequest'.
+src/test/p9-1-2-runtime-integration.test.ts(72,30): error TS2353: Object literal may only specify known properties, and 'email' does not exist in type 'RegisterData'.
+src/test/p9-1-2-runtime-integration.test.ts(89,48): error TS2345: Argument of type '{ phone_number: string; otp: string; }' is not assignable to parameter of type 'VerifyOTPRequest'.
+  Property 'dialCode' is missing in type '{ phone_number: string; otp: string; }' but required in type 'VerifyOTPRequest'.
+src/test/p9-5-5-3-registry-startup-seal.test.ts(52,46): error TS2345: Argument of type '{ id: string; name: string; category: string; version: string; permissions: { view: string; edit: string; }; sections: { id: string; title: string; fields: never[]; }[]; }' is not assignable to parameter of type 'ConfigModuleDefinition'.
+  Property 'description' is missing in type '{ id: string; name: string; category: string; version: string; permissions: { view: string; edit: string; }; sections: { id: string; title: string; fields: never[]; }[]; }' but required in type 'ConfigModuleDefinition'.
+src/test/phase-1-console-selectors-ready.test.ts(18,36): error TS2345: Argument of type '{ workspacePhase: "initializing"; sessionMemberships: { tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]; tenantState: "resolved"; branchState: "empty"; activeTenantId: string; }' is not assignable to parameter of type '{ sessionMemberships: readonly TenantMembership[] | null; workspacePhase: ConsoleWorkspacePhase; tenantState: TenantLifecycle; branchState: BranchResolutionState; activeTenantId?: string | ... 1 more ... | undefined; }'.
+  Types of property 'sessionMemberships' are incompatible.
+    Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]' is not assignable to type 'readonly TenantMembership[]'.
+      Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }' is not assignable to type 'TenantMembership'.
+        Types of property 'roles' are incompatible.
+          Type 'string[]' is not assignable to type 'Role[]'.
+            Type 'string' is not assignable to type 'Role'.
+src/test/phase-1-console-selectors-ready.test.ts(22,36): error TS2345: Argument of type '{ tenantState: "loading"; sessionMemberships: { tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]; workspacePhase: "ready"; branchState: "empty"; activeTenantId: string; }' is not assignable to parameter of type '{ sessionMemberships: readonly TenantMembership[] | null; workspacePhase: ConsoleWorkspacePhase; tenantState: TenantLifecycle; branchState: BranchResolutionState; activeTenantId?: string | ... 1 more ... | undefined; }'.
+  Types of property 'sessionMemberships' are incompatible.
+    Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]' is not assignable to type 'readonly TenantMembership[]'.
+      Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }' is not assignable to type 'TenantMembership'.
+        Types of property 'roles' are incompatible.
+          Type 'string[]' is not assignable to type 'Role[]'.
+            Type 'string' is not assignable to type 'Role'.
+src/test/phase-1-console-selectors-ready.test.ts(26,36): error TS2345: Argument of type '{ branchState: "loading"; sessionMemberships: { tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]; workspacePhase: "ready"; tenantState: "resolved"; activeTenantId: string; }' is not assignable to parameter of type '{ sessionMemberships: readonly TenantMembership[] | null; workspacePhase: ConsoleWorkspacePhase; tenantState: TenantLifecycle; branchState: BranchResolutionState; activeTenantId?: string | ... 1 more ... | undefined; }'.
+  Types of property 'sessionMemberships' are incompatible.
+    Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]' is not assignable to type 'readonly TenantMembership[]'.
+      Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }' is not assignable to type 'TenantMembership'.
+        Types of property 'roles' are incompatible.
+          Type 'string[]' is not assignable to type 'Role[]'.
+            Type 'string' is not assignable to type 'Role'.
+src/test/phase-1-console-selectors-ready.test.ts(30,36): error TS2345: Argument of type '{ sessionMemberships: { tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]; workspacePhase: "ready"; tenantState: "resolved"; branchState: "empty"; activeTenantId: string; }' is not assignable to parameter of type '{ sessionMemberships: readonly TenantMembership[] | null; workspacePhase: ConsoleWorkspacePhase; tenantState: TenantLifecycle; branchState: BranchResolutionState; activeTenantId?: string | ... 1 more ... | undefined; }'.
+  Types of property 'sessionMemberships' are incompatible.
+    Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]' is not assignable to type 'readonly TenantMembership[]'.
+      Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }' is not assignable to type 'TenantMembership'.
+        Types of property 'roles' are incompatible.
+          Type 'string[]' is not assignable to type 'Role[]'.
+            Type 'string' is not assignable to type 'Role'.
+src/test/phase-1-console-selectors-ready.test.ts(31,36): error TS2345: Argument of type '{ branchState: "ready"; sessionMemberships: { tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]; workspacePhase: "ready"; tenantState: "resolved"; activeTenantId: string; }' is not assignable to parameter of type '{ sessionMemberships: readonly TenantMembership[] | null; workspacePhase: ConsoleWorkspacePhase; tenantState: TenantLifecycle; branchState: BranchResolutionState; activeTenantId?: string | ... 1 more ... | undefined; }'.
+  Types of property 'sessionMemberships' are incompatible.
+    Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]' is not assignable to type 'readonly TenantMembership[]'.
+      Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }' is not assignable to type 'TenantMembership'.
+        Types of property 'roles' are incompatible.
+          Type 'string[]' is not assignable to type 'Role[]'.
+            Type 'string' is not assignable to type 'Role'.
+src/test/phase-1-console-selectors-ready.test.ts(32,36): error TS2345: Argument of type '{ branchState: "error"; sessionMemberships: { tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]; workspacePhase: "ready"; tenantState: "resolved"; activeTenantId: string; }' is not assignable to parameter of type '{ sessionMemberships: readonly TenantMembership[] | null; workspacePhase: ConsoleWorkspacePhase; tenantState: TenantLifecycle; branchState: BranchResolutionState; activeTenantId?: string | ... 1 more ... | undefined; }'.
+  Types of property 'sessionMemberships' are incompatible.
+    Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]' is not assignable to type 'readonly TenantMembership[]'.
+      Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }' is not assignable to type 'TenantMembership'.
+        Types of property 'roles' are incompatible.
+          Type 'string[]' is not assignable to type 'Role[]'.
+            Type 'string' is not assignable to type 'Role'.
+src/test/phase-1-console-selectors-ready.test.ts(37,31): error TS2345: Argument of type '{ activeTenantId: null; tenantState: "not_found"; branchState: "idle"; sessionMemberships: { tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]; workspacePhase: "ready"; }' is not assignable to parameter of type '{ sessionMemberships: readonly TenantMembership[] | null; workspacePhase: ConsoleWorkspacePhase; tenantState: TenantLifecycle; branchState: BranchResolutionState; activeTenantId?: string | ... 1 more ... | undefined; }'.
+  Types of property 'sessionMemberships' are incompatible.
+    Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }[]' is not assignable to type 'readonly TenantMembership[]'.
+      Type '{ tenantId: string; roles: string[]; branchAccess: { scope: "all"; }; }' is not assignable to type 'TenantMembership'.
+        Types of property 'roles' are incompatible.
+          Type 'string[]' is not assignable to type 'Role[]'.
+            Type 'string' is not assignable to type 'Role'.
+src/test/phase-6-frontend-ownership.test.ts(104,17): error TS2339: Property 'coverImage' does not exist on type 'MarketplaceMeta'.
+src/test/phase-Z-10-console-workspace-gate.test.tsx(191,51): error TS2345: Argument of type '{ tenantId: string; tenantName: string; tenantSlug: string; roles: string[]; branchAccess: { scope: string; }; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; tenantName: string; tenantSlug: string; roles: string[]; branchAccess: { scope: string; }; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/phase-Z-6-2-tenant-settings-contract.test.ts(102,33): error TS2353: Object literal may only specify known properties, and 'featureFlags' does not exist in type '{ marketplace?: MarketplaceMeta | TenantMarketplaceSettings | undefined; }'.
+src/test/phase1a.test.ts(35,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/phase1a.test.ts(70,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/phase1a.test.ts(83,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/phase1a.test.ts(118,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/phase1a.test.ts(423,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'Tenant'. Did you mean to write 'created_at'?
+src/test/phase4-e2e.test.ts(101,7): error TS2353: Object literal may only specify known properties, and 'email' does not exist in type 'RegisterData'.
+src/test/phase4-firebase.test.ts(437,7): error TS2353: Object literal may only specify known properties, and 'email' does not exist in type 'RegisterData'.
+src/test/phase5-reservations-management.test.ts(264,36): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase6-loyalty.test.ts(397,19): error TS2551: Property 'createdAt' does not exist on type 'LoyaltyReward'. Did you mean 'created_at'?
+src/test/phase6-promotions.test.ts(98,5): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'PromotionRule'. Did you mean to write 'created_at'?
+src/test/phase6-promotions.test.ts(144,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'PromotionRule'. Did you mean to write 'created_at'?
+src/test/phase6-promotions.test.ts(160,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'PromotionRule'. Did you mean to write 'created_at'?
+src/test/phase6-promotions.test.ts(175,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'PromotionRule'. Did you mean to write 'created_at'?
+src/test/phase6-promotions.test.ts(190,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'PromotionRule'. Did you mean to write 'created_at'?
+src/test/phase6-promotions.test.ts(206,5): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'PromotionRule'. Did you mean to write 'created_at'?
+src/test/phase6-promotions.test.ts(439,18): error TS2551: Property 'createdAt' does not exist on type 'PromotionRule'. Did you mean 'created_at'?
+src/test/phase6-promotions.test.ts(440,18): error TS2551: Property 'updatedAt' does not exist on type 'PromotionRule'. Did you mean 'updated_at'?
+src/test/phase6-promotions.test.ts(521,27): error TS2551: Property 'updatedAt' does not exist on type 'PromotionRule'. Did you mean 'updated_at'?
+src/test/phase6-promotions.test.ts(522,23): error TS2551: Property 'updatedAt' does not exist on type 'PromotionRule'. Did you mean 'updated_at'?
+src/test/phase6-tenant-management.test.ts(744,16): error TS2551: Property 'createdAt' does not exist on type 'Tenant'. Did you mean 'created_at'?
+src/test/phase6-tenant-provisioning.test.ts(407,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(419,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(430,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(442,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(454,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(466,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(482,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(494,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(503,63): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(510,63): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(516,63): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(522,63): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(529,63): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(537,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(549,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(561,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(573,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(583,59): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(594,65): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(600,64): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(606,66): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(614,66): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(620,67): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(629,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(640,48): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(641,66): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(647,68): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(653,61): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(663,61): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(670,61): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(676,58): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(685,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(695,59): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(762,65): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(771,65): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1030,67): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1072,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1084,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1100,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1112,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1123,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1134,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1147,7): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-tenant-provisioning.test.ts(1222,62): error TS2353: Object literal may only specify known properties, and 'slug' does not exist in type 'TenantProvisionRequest'.
+src/test/phase6-vendors.test.ts(211,19): error TS2551: Property 'createdAt' does not exist on type 'Vendor'. Did you mean 'created_at'?
+src/test/phase6-vendors.test.ts(212,19): error TS2551: Property 'updatedAt' does not exist on type 'Vendor'. Did you mean 'updated_at'?
+src/test/phase6-vendors.test.ts(263,27): error TS2551: Property 'updatedAt' does not exist on type 'Vendor'. Did you mean 'updated_at'?
+src/test/phase6-vendors.test.ts(264,23): error TS2551: Property 'updatedAt' does not exist on type 'Vendor'. Did you mean 'updated_at'?
+src/test/phase7-13-enterprise-analytics.test.ts(119,73): error TS2554: Expected 1 arguments, but got 0.
+src/test/phase7-13-enterprise-analytics.test.ts(120,70): error TS2554: Expected 1 arguments, but got 0.
+src/test/phase7-branch-management.test.ts(277,51): error TS2554: Expected 3 arguments, but got 2.
+src/test/phase7-branch-management.test.ts(286,51): error TS2554: Expected 3 arguments, but got 2.
+src/test/phase7-branch-management.test.ts(298,51): error TS2554: Expected 3 arguments, but got 2.
+src/test/phase7-branch-management.test.ts(304,42): error TS2554: Expected 3 arguments, but got 2.
+src/test/phase7-branch-management.test.ts(318,51): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(324,42): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(338,51): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(344,42): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(358,51): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(364,42): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(394,42): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(401,43): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(407,50): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-branch-management.test.ts(413,86): error TS2554: Expected 2 arguments, but got 1.
+src/test/phase7-realtime-operations.test.ts(997,33): error TS2551: Property 'updatedAt' does not exist on type 'RealtimeStatistics'. Did you mean 'updated_at'?
+src/test/phase8-6-enterprise-rbac.test.ts(46,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'CustomRoleTemplate'. Did you mean to write 'created_at'?
+src/test/phase8-6-enterprise-rbac.test.ts(64,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'CustomRoleTemplate'. Did you mean to write 'created_at'?
+src/test/phase8-6-enterprise-rbac.test.ts(83,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'CustomRoleTemplate'. Did you mean to write 'created_at'?
+src/test/phase8-6-enterprise-rbac.test.ts(100,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'CustomRoleTemplate'. Did you mean to write 'created_at'?
+src/test/phase8-6-enterprise-rbac.test.ts(112,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'CustomRoleTemplate'. Did you mean to write 'created_at'?
+src/test/phase8-6-enterprise-rbac.test.ts(130,7): error TS2561: Object literal may only specify known properties, but 'createdAt' does not exist in type 'CustomRoleTemplate'. Did you mean to write 'created_at'?
+src/test/phase8-9-1-auth-redirect.test.ts(169,3): error TS2304: Cannot find name 'beforeEach'.
+src/test/phase8-9-7-customer-360.test.ts(32,19): error TS2551: Property 'createdAt' does not exist on type 'CustomerNote'. Did you mean 'created_at'?
+src/test/phase8-9-7-customer-360.test.ts(33,19): error TS2551: Property 'updatedAt' does not exist on type 'CustomerNote'. Did you mean 'updated_at'?
+src/test/phase8-9-7-customer-360.test.ts(137,28): error TS2551: Property 'createdAt' does not exist on type 'CustomerTimelineEvent'. Did you mean 'created_at'?
+src/test/phase8-9-7-customer-360.test.ts(137,51): error TS2551: Property 'createdAt' does not exist on type 'CustomerTimelineEvent'. Did you mean 'created_at'?
+src/test/phase8-9-7-customer-360.test.ts(174,27): error TS2551: Property 'createdAt' does not exist on type 'CustomerNote'. Did you mean 'created_at'?
+src/test/phase8-9-7-customer-360.test.ts(174,49): error TS2551: Property 'createdAt' does not exist on type 'CustomerNote'. Did you mean 'created_at'?
+src/test/phase8-9-7-customer-360.test.ts(205,20): error TS2551: Property 'updatedAt' does not exist on type 'CustomerNote'. Did you mean 'updated_at'?
+src/test/phase8-9-7-customer-360.test.ts(205,41): error TS2551: Property 'createdAt' does not exist on type 'CustomerNote'. Did you mean 'created_at'?
+src/test/phase8-9-7-customer-360.test.ts(362,29): error TS2551: Property 'createdAt' does not exist on type 'CustomerCoupon'. Did you mean 'created_at'?
+src/test/phase8-9-7-customer-360.test.ts(362,53): error TS2551: Property 'createdAt' does not exist on type 'CustomerCoupon'. Did you mean 'created_at'?
+src/test/post-login-redirect.test.tsx(80,29): error TS2352: Conversion of type '{ accountType: undefined; id: string; email: string | null; phone_number?: string; first_name: string; last_name: string; avatar?: string; is_verified: boolean; is_superuser?: boolean; is_staff?: boolean; created_at: string; }' to type 'User' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'accountType' are incompatible.
+    Type 'undefined' is not comparable to type 'AccountType'.
+src/test/rbac-bootstrap-fixes.test.ts(74,7): error TS2345: Argument of type '{ memberships: { tenantId: string; tenantSlug: string; roles: "owner"[]; branchAccess: { scope: "all"; }; }[]; activeMembership: { tenantId: string; }; }' is not assignable to parameter of type 'Role[] | { roles?: Role[] | null | undefined; p7Roles?: Role[] | null | undefined; tenantRoles?: Role[] | null | undefined; permissions?: P7Permission[] | null | undefined; memberships?: TenantMembership[] | ... 1 more ... | undefined; activeMembership?: TenantMembership | ... 1 more ... | undefined; } | null | unde...'.
+  Types of property 'activeMembership' are incompatible.
+    Type '{ tenantId: string; }' is missing the following properties from type 'TenantMembership': roles, branchAccess
+src/test/rbac-bootstrap-fixes.test.ts(89,7): error TS2739: Type '{ tenantId: string; }' is missing the following properties from type 'TenantMembership': roles, branchAccess
+src/test/rbac-bootstrap-fixes.test.ts(110,7): error TS2739: Type '{ tenantId: string; }' is missing the following properties from type 'TenantMembership': roles, branchAccess
+src/test/rbac-bootstrap-fixes.test.ts(124,7): error TS2739: Type '{ tenantId: string; }' is missing the following properties from type 'TenantMembership': roles, branchAccess
+src/test/rbac-bootstrap-fixes.test.ts(140,7): error TS2739: Type '{ tenantId: string; }' is missing the following properties from type 'TenantMembership': roles, branchAccess
+src/test/rbac-bootstrap-fixes.test.ts(149,7): error TS2739: Type '{ tenantId: string; }' is missing the following properties from type 'TenantMembership': roles, branchAccess
+src/test/switch-branch-invariant.test.ts(76,49): error TS2345: Argument of type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/switch-branch-invariant.test.ts(109,51): error TS2345: Argument of type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/switch-branch-invariant.test.ts(152,51): error TS2345: Argument of type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/switch-branch-invariant.test.ts(175,51): error TS2345: Argument of type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/tenant-branch-switch-race.test.ts(57,49): error TS2345: Argument of type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/tenant-branch-switch-race.test.ts(147,51): error TS2345: Argument of type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }[]' is not assignable to parameter of type 'TenantMembership[]'.
+  Type '{ tenantId: string; tenantSlug: string; tenantName: string; roles: string[]; branchAccess: { scope: "all"; }; branches: { id: string; name: string; slug: string; status: "active"; isDefault: boolean; }[]; }' is not assignable to type 'TenantMembership'.
+    Types of property 'roles' are incompatible.
+      Type 'string[]' is not assignable to type 'Role[]'.
+        Type 'string' is not assignable to type 'Role'.
+src/test/tenant-homepage.test.ts(111,18): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(112,18): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(118,11): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(131,18): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(137,18): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(143,18): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(149,18): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(180,18): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(180,50): error TS2339: Property 'primaryBranchSlug' does not exist on type 'TenantMarketplaceSettings'.
+src/test/tenant-homepage.test.ts(187,13): error TS2339: Property 'branches' does not exist on type 'TenantMarketplaceSettings'.
+src/utils/navigation.ts(119,29): error TS2339: Property 'branchCount' does not exist on type 'TenantMarketplaceSettings'.
+tmp/backup/providers-index.tsx(116,47): error TS2304: Cannot find name 'DEFAULT_TENANT'.

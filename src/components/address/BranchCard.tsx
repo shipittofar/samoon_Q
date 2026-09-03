@@ -22,8 +22,8 @@ export function BranchCard({ branch, className }: BranchCardProps) {
   return (
     <Card className={cn('!p-4', className)}>
       <div className="flex items-start gap-3">
-        <div className="h-10 w-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center shrink-0">
-          <Building2 className="h-5 w-5 text-blue-500" />
+        <div className="h-10 w-10 rounded-xl bg-[var(--info-subtle)] flex items-center justify-center shrink-0">
+          <Building2 className="h-5 w-5 text-[var(--info-text)]"/>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -35,13 +35,13 @@ export function BranchCard({ branch, className }: BranchCardProps) {
           <div className="flex flex-wrap gap-3 text-xs text-[var(--fg-muted)]">
             {branch.distance_km != null && (
               <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
+                <MapPin className="h-3.5 w-3.5"/>
                 {t('distance', { km: branch.distance_km.toFixed(1) })}
               </span>
             )}
             {branch.delivery_radius_km != null && (
               <span className="flex items-center gap-1">
-                <Ruler className="h-3.5 w-3.5" />
+                <Ruler className="h-3.5 w-3.5"/>
                 {t('radius', { km: branch.delivery_radius_km })}
               </span>
             )}

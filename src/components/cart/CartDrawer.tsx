@@ -32,7 +32,7 @@ function CartItemRow({ item }: { item: CartItem }) {
       className="flex gap-3 py-4 border-b border-[var(--border)] last:border-0"
     >
       <div className="relative h-16 w-16 rounded-xl overflow-hidden shrink-0 bg-[var(--card-hover)]">
-        <Image src={item.menu_item.image} alt={item.menu_item.name} fill className="object-cover" sizes="64px" />
+        <Image src={item.menu_item.image} alt={item.menu_item.name} fill className="object-cover"sizes="64px"/>
       </div>
       <div className="flex-1 min-w-0">
         <h4 className="text-sm font-medium text-[var(--fg)] truncate">{item.menu_item.name}</h4>
@@ -58,10 +58,10 @@ function CartItemRow({ item }: { item: CartItem }) {
             </span>
             <button
               onClick={() => removeItem(item.id)}
-              className="p-1 text-[var(--fg-subtle)] hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20"
+              className="p-1 text-[var(--fg-subtle)] hover:text-[var(--danger-text)] transition-colors rounded-lg hover:bg-[var(--danger-subtle)]"
               aria-label={t('removeItemAria')}
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className="h-3.5 w-3.5"/>
             </button>
           </div>
         </div>
@@ -119,12 +119,12 @@ export function CartDrawer() {
   }
 
   return (
-    <Drawer open={isOpen} onClose={() => setOpen(false)} title={t('title')} side="right" size="md">
+    <Drawer open={isOpen} onClose={() => setOpen(false)} title={t('title')} side="right"size="md">
       <div className="flex flex-col h-full">
         {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-4">
             <div className="h-20 w-20 rounded-full bg-[var(--card-hover)] flex items-center justify-center">
-              <ShoppingBag className="h-8 w-8 text-[var(--fg-subtle)]" />
+              <ShoppingBag className="h-8 w-8 text-[var(--fg-subtle)]"/>
             </div>
             <div>
               <h3 className="font-semibold text-[var(--fg)] mb-1">{t('empty')}</h3>
@@ -153,11 +153,11 @@ export function CartDrawer() {
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
                   placeholder={t('discountCodePlaceholder')}
-                  leftIcon={<Tag className="h-3.5 w-3.5" />}
+                  leftIcon={<Tag className="h-3.5 w-3.5"/>}
                   className="flex-1 h-9 text-xs"
                   onKeyDown={(e) => e.key === 'Enter' && handleApplyCode()}
                 />
-                <Button variant="secondary" size="sm" onClick={handleApplyCode} loading={validating}>
+                <Button variant="secondary"size="sm"onClick={handleApplyCode} loading={validating}>
                   {t('applyCode')}
                 </Button>
               </div>
@@ -169,7 +169,7 @@ export function CartDrawer() {
                   <span>{formatCurrency(subtotal)}</span>
                 </div>
                 {discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                  <div className="flex justify-between text-[var(--success-text)]">
                     <span>{t('discountLabel', { code: discountCode })}</span>
                     <span>−{formatCurrency(discountAmount)}</span>
                   </div>
@@ -191,15 +191,15 @@ export function CartDrawer() {
 
               {/* Checkout CTA */}
               {orderingEnabled && (
-              <Link href="/checkout" onClick={() => setOpen(false)} className="block">
-                <Button className="w-full" size="lg" rightIcon={<ArrowRight className="h-4 w-4" />}>
+              <Link href="/checkout"onClick={() => setOpen(false)} className="block">
+                <Button className="w-full"size="lg"rightIcon={<ArrowRight className="h-4 w-4"/>}>
                   {t('checkout')}
                 </Button>
               </Link>
               )}
               <button
                 onClick={clearCart}
-                className="w-full text-xs text-[var(--fg-subtle)] hover:text-red-500 transition-colors py-1"
+                className="w-full text-xs text-[var(--fg-subtle)] hover:text-[var(--danger-text)] transition-colors py-1"
               >
                 {t('clearCart')}
               </button>
@@ -226,13 +226,13 @@ export function FloatingCart() {
           exit={{ opacity: 0, y: 80, scale: 0.8 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 inset-x-4 md:inset-x-auto md:end-6 md:w-auto z-30 bg-[var(--accent)] text-white rounded-2xl shadow-[var(--shadow-brand)] flex items-center justify-between md:justify-center gap-4 px-5 py-3.5 md:py-3 hover:bg-[var(--accent-hover)] transition-colors active:scale-[0.98]"
+          className="fixed bottom-6 inset-x-4 md:inset-x-auto md:end-6 md:w-auto z-30 bg-[var(--accent)] text-[var(--accent-fg)] rounded-2xl shadow-[var(--shadow-brand)] flex items-center justify-between md:justify-center gap-4 px-5 py-3.5 md:py-3 hover:bg-[var(--accent-hover)] transition-colors active:scale-[0.98]"
           aria-label={t('viewCartAria', { count })}
         >
           <div className="flex items-center gap-2.5">
             <div className="relative">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="absolute -top-1 -end-1 h-4 min-w-4 rounded-full bg-white text-orange-600 text-[10px] font-bold flex items-center justify-center px-0.5">
+              <ShoppingBag className="h-5 w-5"/>
+              <span className="absolute -top-1 -end-1 h-4 min-w-4 rounded-full bg-[var(--card)] text-[var(--accent-text)] text-[10px] font-bold flex items-center justify-center px-0.5">
                 {count}
               </span>
             </div>

@@ -16,9 +16,9 @@ import {
 import { tenantStatusLabelKey } from '@/lib/provision-result-display'
 
 const STATUS_COLORS: Record<string, string> = {
-  ACTIVE: 'text-green-700 bg-green-50',
-  INACTIVE: 'text-gray-600 bg-gray-100',
-  CLOSED: 'text-amber-700 bg-amber-50',
+  ACTIVE: 'text-[var(--success-text)] bg-[var(--success-subtle)]',
+  INACTIVE: 'text-[var(--fg-muted)] bg-[var(--card-hover)]',
+  CLOSED: 'text-[var(--warning-text)] bg-[var(--warning-subtle)]',
 }
 
 function TenantAnalyticsSummary({ tenants }: { tenants: Tenant[] }) {
@@ -34,22 +34,22 @@ function TenantAnalyticsSummary({ tenants }: { tenants: Tenant[] }) {
 
   return (
     <section aria-label={t('tenantAnalyticsAria')} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-      <div className="border rounded-lg p-4 text-center" aria-label={t('totalTenantsAria')}>
+      <div className="border rounded-lg p-4 text-center"aria-label={t('totalTenantsAria')}>
         <p className="text-2xl font-bold">{total}</p>
-        <p className="text-xs text-gray-500 mt-1">{t('totalTenantsLabel')}</p>
+        <p className="text-xs text-[var(--fg-muted)] mt-1">{t('totalTenantsLabel')}</p>
       </div>
-      <div className="border rounded-lg p-4 text-center" aria-label={t('activeTenantsAria')}>
-        <p className="text-2xl font-bold text-green-700">{operational}</p>
-        <p className="text-xs text-gray-500 mt-1">{t('statusActive')}</p>
+      <div className="border rounded-lg p-4 text-center"aria-label={t('activeTenantsAria')}>
+        <p className="text-2xl font-bold text-[var(--success-text)]">{operational}</p>
+        <p className="text-xs text-[var(--fg-muted)] mt-1">{t('statusActive')}</p>
       </div>
-      <div className="border rounded-lg p-4 text-center" aria-label={t('suspendedTenantsAria')}>
-        <p className="text-2xl font-bold text-amber-700">{closed}</p>
-        <p className="text-xs text-gray-500 mt-1">{t('statusClosed')}</p>
+      <div className="border rounded-lg p-4 text-center"aria-label={t('suspendedTenantsAria')}>
+        <p className="text-2xl font-bold text-[var(--warning-text)]">{closed}</p>
+        <p className="text-xs text-[var(--fg-muted)] mt-1">{t('statusClosed')}</p>
       </div>
-      <div className="border rounded-lg p-4 text-center" aria-label={t('businessTypeDistributionAria')}>
-        <p className="text-xs font-semibold text-gray-700 mb-1">{t('byTypeLabel')}</p>
+      <div className="border rounded-lg p-4 text-center"aria-label={t('businessTypeDistributionAria')}>
+        <p className="text-xs font-semibold text-[var(--fg-secondary)] mb-1">{t('byTypeLabel')}</p>
         {Object.entries(byType).map(([bt, count]) => (
-          <p key={bt} className="text-xs text-gray-600">
+          <p key={bt} className="text-xs text-[var(--fg-muted)]">
             {bt.replace(/_/g, ' ')}: {count}
           </p>
         ))}
@@ -64,7 +64,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
   const suspend = useSuspendTenant()
   const archive = useArchiveTenant()
 
-  const statusClass = STATUS_COLORS[tenant.status] ?? 'text-gray-500 bg-gray-100'
+  const statusClass = STATUS_COLORS[tenant.status] ?? 'text-[var(--fg-muted)] bg-[var(--card-hover)]'
   const operational = isTenantOperational(tenant)
   const visible = isTenantVisible(tenant)
 
@@ -77,7 +77,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
         >
           {tenant.name}
         </Link>
-        <p className="text-xs text-gray-500 font-mono">{tenant.slug}</p>
+        <p className="text-xs text-[var(--fg-muted)] font-mono">{tenant.slug}</p>
         <Link
           href={`/console/tenants/${tenant.id}/edit`}
           className="text-xs text-accent hover:underline"
@@ -93,7 +93,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
           {t(tenantStatusLabelKey(tenant.status))}
         </span>
       </td>
-      <td className="px-4 py-3 text-sm text-gray-500">
+      <td className="px-4 py-3 text-sm text-[var(--fg-muted)]">
         {new Date(tenant.created_at).toLocaleDateString()}
       </td>
       <td className="px-4 py-3 text-sm space-x-2">
@@ -102,7 +102,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
             type="button"
             onClick={() => activate.mutate(tenant.id)}
             disabled={activate.isPending}
-            className="text-green-700 hover:underline disabled:opacity-40"
+            className="text-[var(--success-text)] hover:underline disabled:opacity-40"
             aria-label={t('activateNameAria', { name: tenant.name })}
           >
             {t('activateLabel')}
@@ -113,7 +113,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
             type="button"
             onClick={() => suspend.mutate(tenant.id)}
             disabled={suspend.isPending}
-            className="text-amber-700 hover:underline disabled:opacity-40"
+            className="text-[var(--warning-text)] hover:underline disabled:opacity-40"
             aria-label={t('suspendNameAria', { name: tenant.name })}
           >
             {t('suspendLabel')}
@@ -124,7 +124,7 @@ function TenantRow({ tenant }: { tenant: Tenant }) {
             type="button"
             onClick={() => archive.mutate(tenant.id)}
             disabled={archive.isPending}
-            className="text-red-600 hover:underline disabled:opacity-40"
+            className="text-[var(--danger-text)] hover:underline disabled:opacity-40"
             aria-label={t('archiveNameAria', { name: tenant.name })}
           >
             {t('archiveTitle')}
@@ -141,15 +141,15 @@ export default function AdminTenantsPage() {
 
   return (
     <ErrorBoundary feature="Tenant Management">
-    <PermissionGuard permission="tenant.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="tenant.view"fallback={<AccessDenied />}>
     <main aria-label={t('tenantManagementAria')} className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">{t('tenantsTitle')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('manageAndProvisionTenantsSubtitle')}</p>
+          <p className="text-sm text-[var(--fg-muted)] mt-1">{t('manageAndProvisionTenantsSubtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <PreviewButton href="/" label={t('previewPublicSiteLabel')} size="sm" />
+          <PreviewButton href="/"label={t('previewPublicSiteLabel')} size="sm"/>
           <Link
           href="/console/tenants/new"
           className="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent-hover"
@@ -161,14 +161,14 @@ export default function AdminTenantsPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-gray-500">{t('loadingTenantsEllipsis')}</p>
+        <p className="text-[var(--fg-muted)]">{t('loadingTenantsEllipsis')}</p>
       ) : (
         <>
           <TenantAnalyticsSummary tenants={tenants} />
 
           <section aria-label={t('tenantListAria')}>
             <table className="w-full border rounded-lg overflow-hidden text-sm">
-              <thead className="bg-gray-50 text-left">
+              <thead className="bg-[var(--card-hover)] text-left">
                 <tr>
                   <th className="px-4 py-3 font-medium">{t('nameSlashSlugLabel')}</th>
                   <th className="px-4 py-3 font-medium">{t('businessTypeLabel')}</th>
@@ -184,7 +184,7 @@ export default function AdminTenantsPage() {
               </tbody>
             </table>
             {tenants.length === 0 && (
-              <p className="text-center text-gray-400 py-8">{t('noTenantsFound')}</p>
+              <p className="text-center text-[var(--fg-subtle)] py-8">{t('noTenantsFound')}</p>
             )}
           </section>
         </>

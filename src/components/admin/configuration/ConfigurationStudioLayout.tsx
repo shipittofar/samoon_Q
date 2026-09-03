@@ -8,7 +8,7 @@
  * module's workspace (`ConfigurationModulePage`, unmodified from P9.1.3/
  * P9.2 aside from the additive props wired below), and a resizable
  * Inspector panel. Below the `lg` breakpoint, the nav and Inspector move
- * into slide-over `Drawer`s (Phase P) so the workspace stays usable on a
+ * into slide-over `Drawer` s (Phase P) so the workspace stays usable on a
  * tablet/phone_number. Command palette (Ctrl/Cmd+K) and the Ctrl/Cmd+S shortcut
  * are wired once, here, for every module — not re-implemented per page.
  */
@@ -85,7 +85,7 @@ export function ConfigurationStudioLayout({
 
   // Only clears the Inspector selection on module change — `draftStatus`/
   // `actions` are deliberately NOT reset here. `ConfigurationModulePage` is
-  // remounted (via its `key`) whenever `activeModuleId` changes, so its own
+  // remounted (via its `key`) whenever ` activeModuleId`changes, so its own
   // mount effects already report fresh draft state/actions for the new
   // module. Resetting them here too used to race those effects: React
   // flushes a newly-mounted child's effects before this parent effect in
@@ -153,7 +153,7 @@ export function ConfigurationStudioLayout({
                 <ConfigurationStudioNav activeModuleId={activeModuleId} onSelect={onNavigate} />
                 <div
                   onPointerDown={nav.onDragStart}
-                  className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-orange-300/50"
+                  className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-[var(--accent-subtle)]"
                   role="separator"
                   aria-orientation="vertical"
                   aria-label={t('resizeModulesPanelAria')}
@@ -166,7 +166,7 @@ export function ConfigurationStudioLayout({
               aria-label={nav.collapsed ? t('showModulesPanelAria') : t('hideModulesPanelAria')}
               className="shrink-0 border-r border-[var(--border)] px-1 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
             >
-              {nav.collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+              {nav.collapsed ? <PanelLeftOpen className="h-4 w-4"/> : <PanelLeftClose className="h-4 w-4"/>}
             </button>
           </>
         ) : (
@@ -183,11 +183,11 @@ export function ConfigurationStudioLayout({
         <div className="min-w-0 flex-1 overflow-y-auto">
           {!isDesktop && (
             <div className="flex items-center gap-2 border-b border-[var(--border)] p-2">
-              <button type="button" onClick={() => setMobileNavOpen(true)} className="rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
-                <PanelLeftOpen className="h-4 w-4" />
+              <button type="button"onClick={() => setMobileNavOpen(true)} className="rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
+                <PanelLeftOpen className="h-4 w-4"/>
               </button>
-              <button type="button" onClick={() => setMobileInspectorOpen(true)} className="ms-auto rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
-                <PanelRightOpen className="h-4 w-4" />
+              <button type="button"onClick={() => setMobileInspectorOpen(true)} className="ms-auto rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
+                <PanelRightOpen className="h-4 w-4"/>
               </button>
             </div>
           )}
@@ -202,13 +202,13 @@ export function ConfigurationStudioLayout({
               aria-label={inspector.collapsed ? t('showInspectorPanelAria') : t('hideInspectorPanelAria')}
               className="shrink-0 border-l border-[var(--border)] px-1 text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]"
             >
-              {inspector.collapsed ? <PanelRightOpen className="h-4 w-4" /> : <PanelRightClose className="h-4 w-4" />}
+              {inspector.collapsed ? <PanelRightOpen className="h-4 w-4"/> : <PanelRightClose className="h-4 w-4"/>}
             </button>
             {!inspector.collapsed && (
               <div style={{ width: inspector.width }} className="relative shrink-0 border-l border-[var(--border)] motion-safe:animate-[fade-in_150ms_ease-out]">
                 <div
                   onPointerDown={inspector.onDragStart}
-                  className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-orange-300/50"
+                  className="absolute left-0 top-0 h-full w-1 cursor-col-resize hover:bg-[var(--accent-subtle)]"
                   role="separator"
                   aria-orientation="vertical"
                   aria-label={t('resizeInspectorPanelAria')}

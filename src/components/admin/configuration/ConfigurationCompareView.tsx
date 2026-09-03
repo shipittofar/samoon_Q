@@ -80,7 +80,7 @@ export function ConfigurationCompareView({ field, scope, draftValue }: { field: 
         >
           {snapshots.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
         </select>
-        <ArrowLeftRight className="mx-auto hidden h-4 w-4 text-[var(--fg-muted)] sm:block" aria-hidden="true" />
+        <ArrowLeftRight className="mx-auto hidden h-4 w-4 text-[var(--fg-muted)] sm:block"aria-hidden="true"/>
         <select
           value={rightId}
           onChange={(e) => setRightId(e.target.value)}
@@ -95,7 +95,7 @@ export function ConfigurationCompareView({ field, scope, draftValue }: { field: 
         {[left, right].map((snapshot, i) => (
           <div
             key={i}
-            className={`rounded-lg border p-3 ${differ ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/20' : 'border-[var(--border)] bg-[var(--card)]'}`}
+            className={`rounded-lg border p-3 ${differ ? 'border-[var(--warning)] bg-[var(--warning-subtle)]' : 'border-[var(--border)] bg-[var(--card)]'}`}
           >
             <p className="mb-1 text-xs font-medium text-[var(--fg-muted)]">{snapshot?.label}</p>
             <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all font-mono text-xs text-[var(--fg)]">
@@ -105,7 +105,7 @@ export function ConfigurationCompareView({ field, scope, draftValue }: { field: 
         ))}
       </div>
       {differ ? (
-        <p className="text-xs text-amber-600 dark:text-amber-400">{t('snapshotsDiffer')}</p>
+        <p className="text-xs text-[var(--warning-text)]">{t('snapshotsDiffer')}</p>
       ) : (
         <p className="text-xs text-[var(--fg-muted)]">{t('snapshotsIdentical')}</p>
       )}

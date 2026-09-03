@@ -53,13 +53,13 @@ const PAYMENT_STATUS_KEY: Record<string, string> = {
 }
 
 const TAG_COLOR_CLASSES: Record<CustomerTagColor, string> = {
-  gray:   'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  blue:   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  green:  'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-  yellow: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-  red:    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  orange: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  gray:   'bg-[var(--card-hover)] text-[var(--fg-secondary)]',
+  blue:   'bg-[var(--info-subtle)] text-[var(--info-text)]',
+  green:  'bg-[var(--success-subtle)] text-[var(--success-text)]',
+  yellow: 'bg-[var(--warning-subtle)] text-[var(--warning-text)]',
+  red:    'bg-[var(--danger-subtle)] text-[var(--danger-text)]',
+  purple: 'bg-[var(--chart-5)]/15 text-[var(--chart-5)]',
+  orange: 'bg-[var(--accent-subtle)] text-[var(--accent-text)]',
 }
 
 const TIMELINE_ICONS: Record<CustomerTimelineEvent['type'], React.ElementType> = {
@@ -95,34 +95,34 @@ const TIMELINE_ICONS: Record<CustomerTimelineEvent['type'], React.ElementType> =
 }
 
 const TIMELINE_COLORS: Partial<Record<CustomerTimelineEvent['type'], string>> = {
-  order_placed: 'text-blue-500',
-  order_completed: 'text-emerald-500',
-  order_cancelled: 'text-red-400',
-  order_refunded: 'text-orange-400',
-  reservation_made: 'text-violet-500',
-  reservation_completed: 'text-emerald-500',
-  reservation_cancelled: 'text-red-400',
-  reservation_no_show: 'text-amber-500',
-  points_earned: 'text-yellow-500',
-  points_redeemed: 'text-orange-400',
-  reward_redeemed: 'text-purple-500',
-  tier_upgraded: 'text-amber-500',
-  tier_downgraded: 'text-gray-400',
-  coupon_received: 'text-emerald-400',
-  coupon_redeemed: 'text-teal-500',
-  review_posted: 'text-blue-400',
-  payment_completed: 'text-emerald-500',
-  refund_issued: 'text-orange-400',
-  admin_note: 'text-gray-500',
-  tag_added: 'text-indigo-500',
-  tag_removed: 'text-gray-400',
-  marketing_email: 'text-violet-400',
-  marketing_sms: 'text-violet-400',
-  account_created: 'text-emerald-500',
-  first_visit: 'text-blue-500',
-  birthday: 'text-pink-500',
-  phone_verified: 'text-emerald-500',
-  profile_updated: 'text-gray-500',
+  order_placed: 'text-[var(--info-text)]',
+  order_completed: 'text-[var(--success-text)]',
+  order_cancelled: 'text-[var(--danger-text)]',
+  order_refunded: 'text-[var(--warning-text)]',
+  reservation_made: 'text-[var(--chart-5)]',
+  reservation_completed: 'text-[var(--success-text)]',
+  reservation_cancelled: 'text-[var(--danger-text)]',
+  reservation_no_show: 'text-[var(--rating)]',
+  points_earned: 'text-[var(--rating)]',
+  points_redeemed: 'text-[var(--warning-text)]',
+  reward_redeemed: 'text-[var(--chart-5)]',
+  tier_upgraded: 'text-[var(--rating)]',
+  tier_downgraded: 'text-[var(--fg-subtle)]',
+  coupon_received: 'text-[var(--success-text)]',
+  coupon_redeemed: 'text-[var(--chart-2)]',
+  review_posted: 'text-[var(--info-text)]',
+  payment_completed: 'text-[var(--success-text)]',
+  refund_issued: 'text-[var(--warning-text)]',
+  admin_note: 'text-[var(--fg-muted)]',
+  tag_added: 'text-[var(--info-text)]',
+  tag_removed: 'text-[var(--fg-subtle)]',
+  marketing_email: 'text-[var(--chart-5)]',
+  marketing_sms: 'text-[var(--chart-5)]',
+  account_created: 'text-[var(--success-text)]',
+  first_visit: 'text-[var(--info-text)]',
+  birthday: 'text-[var(--chart-4)]',
+  phone_verified: 'text-[var(--success-text)]',
+  profile_updated: 'text-[var(--fg-muted)]',
 }
 
 type TabId = 'overview' | 'timeline' | 'orders' | 'reservations' | 'loyalty' | 'reviews' | 'notes' | 'tags' | 'marketing' | 'analytics'
@@ -272,9 +272,9 @@ function OverviewPanel({ id }: { id: string }) {
               <div key={brc.id} className="py-3 first:pt-0 last:pb-0 flex items-center gap-3 text-sm">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <GitBranch className="h-3.5 w-3.5 text-[var(--fg-muted)] shrink-0" />
+                    <GitBranch className="h-3.5 w-3.5 text-[var(--fg-muted)] shrink-0"/>
                     <span className="font-medium text-[var(--fg)] truncate capitalize">{brc.branchId.replace(/-/g, ' ')}</span>
-                    {brc.favoriteBranch && <Star className="h-3 w-3 text-orange-400 shrink-0" />}
+                    {brc.favoriteBranch && <Star className="h-3 w-3 text-[var(--rating)] shrink-0"/>}
                   </div>
                   {brc.lastVisit && (
                     <p className="text-xs text-[var(--fg-muted)] mt-0.5 pl-5">{t('lastVisitLabel', { date: formatDate(brc.lastVisit) })}</p>
@@ -297,21 +297,21 @@ function OverviewPanel({ id }: { id: string }) {
             href={`/console/orders?customer=${encodeURIComponent(id)}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
-            <ShoppingBag className="h-3.5 w-3.5" />
+            <ShoppingBag className="h-3.5 w-3.5"/>
             {t('viewOrders')}
           </Link>
           <Link
             href={`/console/reservations?customer=${encodeURIComponent(id)}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
-            <Clock className="h-3.5 w-3.5" />
+            <Clock className="h-3.5 w-3.5"/>
             {t('viewReservations')}
           </Link>
           <Link
             href={`/console/customers/${id}/reviews`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
           >
-            <MessageSquare className="h-3.5 w-3.5" />
+            <MessageSquare className="h-3.5 w-3.5"/>
             {t('viewReviews')}
           </Link>
         </div>
@@ -327,7 +327,7 @@ function TimelinePanel({ id }: { id: string }) {
   const { data: events, isLoading } = useCustomerTimeline(id)
   const [filterType, setFilterType] = useState<string>('all')
 
-  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
   if (!events?.length) return <EmptyState message={t('noTimelineEventsYet')} />
 
   const types = Array.from(new Set(events.map((e) => e.type)))
@@ -347,7 +347,7 @@ function TimelinePanel({ id }: { id: string }) {
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setFilterType('all')}
-          className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === 'all' ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card-hover)] text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
+          className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === 'all' ? 'bg-[var(--accent)] text-[var(--accent-fg)]' : 'bg-[var(--card-hover)] text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
         >
           {t('allCountParen', { count: events.length })}
         </button>
@@ -355,7 +355,7 @@ function TimelinePanel({ id }: { id: string }) {
           <button
             key={tt}
             onClick={() => setFilterType(tt)}
-            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors capitalize ${filterType === tt ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card-hover)] text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
+            className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors capitalize ${filterType === tt ? 'bg-[var(--accent)] text-[var(--accent-fg)]' : 'bg-[var(--card-hover)] text-[var(--fg-muted)] hover:text-[var(--fg)]'}`}
           >
             {t(`timelineFilterTypes.${tt}`)}
           </button>
@@ -370,14 +370,14 @@ function TimelinePanel({ id }: { id: string }) {
               {formatDate(day)}
             </p>
             <div className="space-y-0 relative">
-              <div className="absolute left-4 top-2 bottom-2 w-px bg-[var(--border)]" />
+              <div className="absolute left-4 top-2 bottom-2 w-px bg-[var(--border)]"/>
               {dayEvents.map((event) => {
                 const Icon = TIMELINE_ICONS[event.type] ?? Clock
                 const color = TIMELINE_COLORS[event.type] ?? 'text-[var(--fg-muted)]'
                 return (
                   <div key={event.id} className="flex gap-4 py-3 relative">
                     <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--card)] border border-[var(--border)] ${color} z-10`}>
-                      <Icon className="h-3.5 w-3.5" />
+                      <Icon className="h-3.5 w-3.5"/>
                     </div>
                     <div className="flex-1 min-w-0 pt-1">
                       <div className="flex items-start justify-between gap-2">
@@ -395,16 +395,16 @@ function TimelinePanel({ id }: { id: string }) {
                             {new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                           {event.amount !== undefined && event.amount > 0 && (
-                            <p className="text-xs font-medium text-emerald-500">{formatCurrency(event.amount)}</p>
+                            <p className="text-xs font-medium text-[var(--success-text)]">{formatCurrency(event.amount)}</p>
                           )}
                           {event.amount !== undefined && event.amount < 0 && (
-                            <p className="text-xs font-medium text-red-400">{formatCurrency(event.amount)}</p>
+                            <p className="text-xs font-medium text-[var(--danger-text)]">{formatCurrency(event.amount)}</p>
                           )}
                           {event.points !== undefined && event.points > 0 && (
-                            <p className="text-xs font-medium text-yellow-500">+{tLoyalty('pointsSuffix', { count: event.points })}</p>
+                            <p className="text-xs font-medium text-[var(--rating)]">+{tLoyalty('pointsSuffix', { count: event.points })}</p>
                           )}
                           {event.points !== undefined && event.points < 0 && (
-                            <p className="text-xs font-medium text-orange-400">{tLoyalty('pointsSuffix', { count: event.points })}</p>
+                            <p className="text-xs font-medium text-[var(--rating)]">{tLoyalty('pointsSuffix', { count: event.points })}</p>
                           )}
                         </div>
                       </div>
@@ -426,18 +426,18 @@ function OrdersPanel({ id }: { id: string }) {
   const tCheckout = useTranslations('checkout')
   const { data, isLoading } = useCustomerOrders360(id)
 
-  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
   if (!data?.results.length) return <EmptyState message={t('noOrdersFoundForCustomer')} />
 
   const statusColor: Record<string, string> = {
-    delivered: 'text-emerald-500',
-    picked_up: 'text-emerald-500',
-    served: 'text-emerald-500',
-    accepted: 'text-blue-500',
-    preparing: 'text-amber-500',
-    cancelled: 'text-red-400',
-    pending: 'text-blue-500',
-    ready: 'text-purple-500',
+    delivered: 'text-[var(--success-text)]',
+    picked_up: 'text-[var(--success-text)]',
+    served: 'text-[var(--success-text)]',
+    accepted: 'text-[var(--info-text)]',
+    preparing: 'text-[var(--rating)]',
+    cancelled: 'text-[var(--danger-text)]',
+    pending: 'text-[var(--info-text)]',
+    ready: 'text-[var(--chart-5)]',
   }
 
   return (
@@ -473,7 +473,7 @@ function OrdersPanel({ id }: { id: string }) {
               href={`/console/orders?search=${order.order_number}`}
               className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg border border-[var(--border)] text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
             >
-              <ShoppingBag className="h-3 w-3" />
+              <ShoppingBag className="h-3 w-3"/>
               {t('viewOrder')}
             </Link>
           </div>
@@ -491,12 +491,12 @@ function ReservationsPanel({ id }: { id: string }) {
   const t = useTranslations('console')
   const { data, isLoading } = useCustomerReservations360(id)
 
-  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
   if (!data?.results.length) return <EmptyState message={t('noReservationsFoundForCustomer')} />
 
   const statusColor: Record<string, string> = {
-    confirmed: 'text-emerald-500', pending: 'text-amber-500',
-    cancelled: 'text-red-400', completed: 'text-blue-500', no_show: 'text-red-400',
+    confirmed: 'text-[var(--success-text)]', pending: 'text-[var(--rating)]',
+    cancelled: 'text-[var(--danger-text)]', completed: 'text-[var(--info-text)]', no_show: 'text-[var(--danger-text)]',
   }
 
   return (
@@ -528,7 +528,7 @@ function LoyaltyPanel({ id }: { id: string }) {
   const { data: loyalty, isLoading } = useCustomerLoyalty(id)
   const { data: bc } = useBusinessCustomer(id)
 
-  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
   if (!loyalty) return <EmptyState message={t('noLoyaltyAccountFound')} />
 
   const tierProgress: Record<string, { next?: string; threshold?: number }> = {
@@ -550,8 +550,8 @@ function LoyaltyPanel({ id }: { id: string }) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs text-[var(--fg-muted)] mb-1">{t('currentTier')}</p>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 text-sm font-semibold capitalize">
-              <Award className="h-3.5 w-3.5" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--warning-subtle)] text-[var(--warning-text)] text-sm font-semibold capitalize">
+              <Award className="h-3.5 w-3.5"/>
               {tLoyalty(`tiers.${loyalty.tier}`)}
             </span>
           </div>
@@ -570,7 +570,7 @@ function LoyaltyPanel({ id }: { id: string }) {
           </div>
           <div className="h-2 bg-[var(--card-hover)] rounded-full overflow-hidden">
             <div
-              className="h-full bg-amber-400 rounded-full transition-all"
+              className="h-full bg-[var(--rating)] rounded-full transition-all"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -588,7 +588,7 @@ function LoyaltyPanel({ id }: { id: string }) {
       )}
 
       {loyalty.tierExpiresAt && (
-        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-sm text-amber-700 dark:text-amber-300">
+        <div className="bg-[var(--warning-subtle)] border border-[var(--warning-border)] rounded-xl p-4 text-sm text-[var(--warning-text)]">
           {t('tierExpiresLabel', { date: formatDate(loyalty.tierExpiresAt) })}
         </div>
       )}
@@ -600,7 +600,7 @@ function ReviewsPanel({ id }: { id: string }) {
   const t = useTranslations('console')
   const { data: reviews, isLoading } = useAdminCustomerReviews(id)
 
-  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
   if (!reviews?.length) return <EmptyState message={t('noReviewsPostedYet')} />
 
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
@@ -612,7 +612,7 @@ function ReviewsPanel({ id }: { id: string }) {
         <div>
           <div className="flex gap-0.5">
             {[1, 2, 3, 4, 5].map((s) => (
-              <Star key={s} className={`h-4 w-4 ${s <= Math.round(avg) ? 'text-amber-400 fill-amber-400' : 'text-[var(--border)]'}`} />
+              <Star key={s} className={`h-4 w-4 ${s <= Math.round(avg) ? 'text-[var(--rating)] fill-[var(--rating)]' : 'text-[var(--border)]'}`} />
             ))}
           </div>
           <p className="text-xs text-[var(--fg-muted)] mt-1">{t('reviewsCount', { count: reviews.length })}</p>
@@ -624,7 +624,7 @@ function ReviewsPanel({ id }: { id: string }) {
             <div className="flex items-center justify-between mb-2">
               <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className={`h-3.5 w-3.5 ${s <= rev.rating ? 'text-amber-400 fill-amber-400' : 'text-[var(--border)]'}`} />
+                  <Star key={s} className={`h-3.5 w-3.5 ${s <= rev.rating ? 'text-[var(--rating)] fill-[var(--rating)]' : 'text-[var(--border)]'}`} />
                 ))}
               </div>
               <span className="text-xs text-[var(--fg-muted)]">{formatDate(rev.created_at)}</span>
@@ -672,7 +672,7 @@ function NotesPanel({ id }: { id: string }) {
     setEditContent(note.content)
   }
 
-  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
 
   return (
     <div className="space-y-4">
@@ -691,9 +691,9 @@ function NotesPanel({ id }: { id: string }) {
           <button
             onClick={handleCreate}
             disabled={!newContent.trim() || createNote.isPending}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
           >
-            {createNote.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+            {createNote.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : <Plus className="h-3.5 w-3.5"/>}
             {t('addNote')}
           </button>
         </div>
@@ -716,14 +716,14 @@ function NotesPanel({ id }: { id: string }) {
                   onClick={() => { setEditingId(null); setEditContent('') }}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--border)] text-xs text-[var(--fg-muted)] hover:text-[var(--fg)]"
                 >
-                  <X className="h-3 w-3" /> {t('cancel')}
+                  <X className="h-3 w-3"/> {t('cancel')}
                 </button>
                 <button
                   onClick={() => handleUpdate(note.id)}
                   disabled={updateNote.isPending}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--accent)] text-white text-xs font-medium disabled:opacity-50"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--accent)] text-[var(--accent-fg)] text-xs font-medium disabled:opacity-50"
                 >
-                  <Check className="h-3 w-3" /> {t('save')}
+                  <Check className="h-3 w-3"/> {t('save')}
                 </button>
               </div>
             </div>
@@ -740,14 +740,14 @@ function NotesPanel({ id }: { id: string }) {
                     onClick={() => startEdit(note)}
                     className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-[var(--card-hover)] text-[var(--fg-muted)]"
                   >
-                    <Pencil className="h-3 w-3" />
+                    <Pencil className="h-3 w-3"/>
                   </button>
                   <button
                     onClick={() => deleteNote.mutate(note.id)}
                     disabled={deleteNote.isPending}
-                    className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-[var(--card-hover)] text-red-400"
+                    className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-[var(--card-hover)] text-[var(--danger-text)]"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3 w-3"/>
                   </button>
                 </div>
               </div>
@@ -765,7 +765,7 @@ function TagsPanel({ id }: { id: string }) {
   const { data: allTags, isLoading: defsLoading } = useTenantTagDefinitions()
   const updateTags = useUpdateCustomerTags(id)
 
-  if (tagsLoading || defsLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (tagsLoading || defsLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
 
   const assignedIds = new Set(assignment?.tags.map((tag) => tag.id) ?? [])
 
@@ -792,7 +792,7 @@ function TagsPanel({ id }: { id: string }) {
                     className="hover:opacity-70"
                     aria-label={t('removeTagAria', { label: tag.label })}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-3 w-3"/>
                   </button>
                 </span>
               ))}
@@ -820,7 +820,7 @@ function TagsPanel({ id }: { id: string }) {
                         : 'bg-[var(--card-hover)] text-[var(--fg-muted)] border-transparent hover:border-[var(--border)]'
                     }`}
                   >
-                    {active && <Check className="h-3 w-3" />}
+                    {active && <Check className="h-3 w-3"/>}
                     {tag.label}
                   </button>
                 )
@@ -838,12 +838,12 @@ function MarketingPanel({ id }: { id: string }) {
   const { data: marketing, isLoading } = useCustomerMarketing(id)
   const { data: coupons } = useCustomerCoupons(id)
 
-  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
   if (!marketing) return <EmptyState message={t('noMarketingDataAvailable')} />
 
   const channelKey: Record<string, string> = { email: 'channelEmail', sms: 'channelSms', push: 'channelPush', whatsapp: 'channelWhatsapp' }
   const couponStatusColor: Record<string, string> = {
-    available: 'text-emerald-500', redeemed: 'text-[var(--fg-muted)]', expired: 'text-red-400',
+    available: 'text-[var(--success-text)]', redeemed: 'text-[var(--fg-muted)]', expired: 'text-[var(--danger-text)]',
   }
   const couponStatusKey: Record<string, string> = {
     available: 'couponStatusAvailable', redeemed: 'couponStatusRedeemed', expired: 'couponStatusExpired',
@@ -855,9 +855,9 @@ function MarketingPanel({ id }: { id: string }) {
       <SectionCard title={t('channelPreferences')}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {marketing.preferences.map((pref) => (
-            <div key={pref.channel} className={`rounded-xl border p-3 text-center ${pref.subscribed ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-900/10' : 'border-[var(--border)] opacity-60'}`}>
+            <div key={pref.channel} className={`rounded-xl border p-3 text-center ${pref.subscribed ? 'border-[var(--success-border)] bg-[var(--success-subtle)]' : 'border-[var(--border)] opacity-60'}`}>
               <p className="text-xs font-medium text-[var(--fg)]">{t(channelKey[pref.channel])}</p>
-              <p className={`text-xs mt-1 ${pref.subscribed ? 'text-emerald-600' : 'text-[var(--fg-muted)]'}`}>
+              <p className={`text-xs mt-1 ${pref.subscribed ? 'text-[var(--success-text)]' : 'text-[var(--fg-muted)]'}`}>
                 {pref.subscribed ? t('subscribed') : t('unsubscribed')}
               </p>
             </div>
@@ -884,8 +884,8 @@ function MarketingPanel({ id }: { id: string }) {
                   <p className="text-xs text-[var(--fg-muted)] mt-0.5 capitalize">{camp.channel} · {formatDate(camp.sentAt)}</p>
                 </div>
                 <div className="flex gap-2 shrink-0 text-xs">
-                  <span className={camp.opened ? 'text-emerald-500' : 'text-[var(--fg-muted)]'}>{t('opened')}</span>
-                  <span className={camp.clicked ? 'text-blue-500' : 'text-[var(--fg-muted)]'}>{t('clicked')}</span>
+                  <span className={camp.opened ? 'text-[var(--success-text)]' : 'text-[var(--fg-muted)]'}>{t('opened')}</span>
+                  <span className={camp.clicked ? 'text-[var(--info-text)]' : 'text-[var(--fg-muted)]'}>{t('clicked')}</span>
                 </div>
               </div>
             ))}
@@ -926,7 +926,7 @@ function AnalyticsPanel({ id }: { id: string }) {
   const { data: analytics, isLoading } = useCustomerAnalytics(id)
   const { data: payments } = useCustomerPayments(id)
 
-  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" /></div>
+  if (isLoading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]"/></div>
   if (!analytics) return <EmptyState message={t('analyticsNotYetAvailable')} />
 
   return (
@@ -1030,7 +1030,7 @@ function AnalyticsPanel({ id }: { id: string }) {
                   <p className="font-medium text-[var(--fg)]">{formatCurrency(pay.amount)}</p>
                   <p className="text-xs text-[var(--fg-muted)] capitalize">{pay.method} · {formatDate(pay.processedAt)}</p>
                 </div>
-                <span className={`text-xs capitalize ${pay.status === 'completed' ? 'text-emerald-500' : 'text-orange-400'}`}>{t(PAYMENT_STATUS_KEY[pay.status] ?? pay.status)}</span>
+                <span className={`text-xs capitalize ${pay.status === 'completed' ? 'text-[var(--success-text)]' : 'text-[var(--warning-text)]'}`}>{t(PAYMENT_STATUS_KEY[pay.status] ?? pay.status)}</span>
               </div>
             ))}
           </div>
@@ -1055,7 +1055,7 @@ function CustomerDetailContent({ id }: { id: string }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-48 gap-2 text-[var(--fg-muted)]">
-        <Loader2 className="h-5 w-5 animate-spin" />
+        <Loader2 className="h-5 w-5 animate-spin"/>
         <span className="text-sm">{t('loadingCustomer')}</span>
       </div>
     )
@@ -1064,9 +1064,9 @@ function CustomerDetailContent({ id }: { id: string }) {
   if (isError || !customer) {
     return (
       <div className="flex flex-col items-center justify-center h-48 gap-3">
-        <AlertCircle className="h-8 w-8 text-red-400" />
+        <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
         <p className="text-sm text-[var(--fg-muted)]">{t('customerNotFound')}</p>
-        <Link href="/console/customers" className="text-sm text-blue-600 hover:underline">
+        <Link href="/console/customers"className="text-sm text-[var(--info-text)] hover:underline">
           {t('backToCustomers')}
         </Link>
       </div>
@@ -1080,14 +1080,14 @@ function CustomerDetailContent({ id }: { id: string }) {
         href="/console/customers"
         className="inline-flex items-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)]"
       >
-        <ArrowLeft className="h-3.5 w-3.5" />
+        <ArrowLeft className="h-3.5 w-3.5"/>
         {t('breadcrumbs.customers')}
       </Link>
 
       {/* Profile header card */}
       <div className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6">
         <div className="flex items-start gap-4 flex-wrap">
-          <Avatar firstName={customer.first_name} lastName={customer.last_name} size="lg" />
+          <Avatar firstName={customer.first_name} lastName={customer.last_name} size="lg"/>
 
           <div className="flex-1 min-w-0">
             {/* Name + badges */}
@@ -1101,8 +1101,8 @@ function CustomerDetailContent({ id }: { id: string }) {
                 <Badge variant="secondary">{t('inactive')}</Badge>
               )}
               {businessCustomer?.favorite && (
-                <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                  <Star className="h-3 w-3 fill-current" /> {t('tierVip')}
+                <span className="inline-flex items-center gap-1 text-xs text-[var(--warning-text)]">
+                  <Star className="h-3 w-3 fill-current"/> {t('tierVip')}
                 </span>
               )}
             </div>
@@ -1122,18 +1122,18 @@ function CustomerDetailContent({ id }: { id: string }) {
             <div className="mt-2 space-y-1">
               {customer.email && (
                 <div className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">
-                  <Mail className="h-3.5 w-3.5 shrink-0" />
+                  <Mail className="h-3.5 w-3.5 shrink-0"/>
                   <span>{customer.email}</span>
                 </div>
               )}
               {customer.phone_number && (
                 <div className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">
-                  <Phone className="h-3.5 w-3.5 shrink-0" />
+                  <Phone className="h-3.5 w-3.5 shrink-0"/>
                   <span>{customer.phone_number}</span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">
-                <Calendar className="h-3.5 w-3.5 shrink-0" />
+                <Calendar className="h-3.5 w-3.5 shrink-0"/>
                 <span>{t('customerSinceLabel', { date: formatDate(customer.created_at) })}</span>
               </div>
             </div>
@@ -1150,7 +1150,7 @@ function CustomerDetailContent({ id }: { id: string }) {
             </div>
             {loyaltyAccount && (
               <div className="flex items-center gap-1 justify-end">
-                <Gift className="h-3 w-3 text-amber-500" />
+                <Gift className="h-3 w-3 text-[var(--rating)]"/>
                 <span className="text-sm font-medium text-[var(--fg)]">{tLoyalty('pointsSuffix', { count: loyaltyAccount.points.toLocaleString() })}</span>
               </div>
             )}
@@ -1162,7 +1162,7 @@ function CustomerDetailContent({ id }: { id: string }) {
           onClick={() => setShowFullId((v) => !v)}
           className="mt-4 flex items-center gap-1.5 text-xs text-[var(--fg-muted)] hover:text-[var(--fg)]"
         >
-          {showFullId ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          {showFullId ? <ChevronUp className="h-3 w-3"/> : <ChevronDown className="h-3 w-3"/>}
           {showFullId ? t('hideIds') : t('showIds')}
         </button>
         {showFullId && (
@@ -1188,7 +1188,7 @@ function CustomerDetailContent({ id }: { id: string }) {
                     : 'border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]'
                 }`}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-3.5 w-3.5"/>
                 {t(tab.labelKey)}
               </button>
             )
@@ -1217,7 +1217,7 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Customer Detail">
-      <PermissionGuard permission="customers.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="customers.view"fallback={<AccessDenied />}>
         <div className="min-h-screen bg-[var(--bg)]">
           <div className="pt-2">
             <CustomerDetailContent id={id} />

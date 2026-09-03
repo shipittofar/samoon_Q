@@ -81,7 +81,7 @@ export default function AdminReservationsPage() {
 
   return (
 
-    <PermissionGuard permission="reservations.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="reservations.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminReservations">
     <div className="min-h-screen bg-[var(--bg)]">
       <div className="pt-20 pb-16">
@@ -93,7 +93,7 @@ export default function AdminReservationsPage() {
               <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('breadcrumbs.reservations')}</h1>
               <p className="text-[var(--fg-muted)] mt-1">{t('reservationsPageSubtitle')}</p>
             </div>
-            <PreviewButton href="/reservation" label={t('previewReservationPage')} size="sm" />
+            <PreviewButton href="/reservation"label={t('previewReservationPage')} size="sm"/>
             {/* Date navigator */}
             <div className="flex items-center gap-2 bg-[var(--card)] border border-[var(--border)] rounded-xl p-1">
               <Button
@@ -101,7 +101,7 @@ export default function AdminReservationsPage() {
                 size="icon-sm"
                 onClick={() => setCurrentDate((d) => { const n = new Date(d); n.setDate(n.getDate() - 1); return n })}
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4"/>
               </Button>
               <span className="text-sm font-medium text-[var(--fg)] px-3">{formatDate(currentDate.toISOString())}</span>
               <Button
@@ -109,7 +109,7 @@ export default function AdminReservationsPage() {
                 size="icon-sm"
                 onClick={() => setCurrentDate((d) => { const n = new Date(d); n.setDate(n.getDate() + 1); return n })}
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-4 w-4"/>
               </Button>
             </div>
           </div>
@@ -118,9 +118,9 @@ export default function AdminReservationsPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {[
               { label: t('totalLabel'),       value: counts.all,       color: 'text-[var(--fg)]',      bg: 'bg-[var(--card-hover)]' },
-              { label: t('statusPending'),   value: counts.pending,   color: 'text-amber-600',         bg: 'bg-amber-50 dark:bg-amber-950/20' },
-              { label: t('statusConfirmed'), value: counts.confirmed, color: 'text-emerald-600',        bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
-              { label: t('statusCancelled'), value: counts.cancelled, color: 'text-red-500',            bg: 'bg-red-50 dark:bg-red-950/20' },
+              { label: t('statusPending'),   value: counts.pending,   color: 'text-[var(--warning-text)]',         bg: 'bg-[var(--warning-subtle)]' },
+              { label: t('statusConfirmed'), value: counts.confirmed, color: 'text-[var(--success-text)]',        bg: 'bg-[var(--success-subtle)]' },
+              { label: t('statusCancelled'), value: counts.cancelled, color: 'text-[var(--danger-text)]',            bg: 'bg-[var(--danger-subtle)]' },
             ].map(({ label, value, color, bg }) => (
               <div key={label} className={`${bg} rounded-xl p-4 border border-[var(--border)]`}>
                 <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -132,19 +132,19 @@ export default function AdminReservationsPage() {
           {/* Search & Filter */}
           <div className="flex gap-3 mb-6 flex-wrap">
             <div className="relative flex-1 min-w-48">
-              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"/>
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('searchReservationsPlaceholder')}
-                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
               />
             </div>
             {adminBranches.length > 0 && (
               <select
                 value={branchFilter}
                 onChange={(e) => setBranchFilter(e.target.value)}
-                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                 aria-label={t('filterByBranchAria')}
               >
                 <option value="all">{t('allBranches')}</option>
@@ -158,7 +158,7 @@ export default function AdminReservationsPage() {
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
-                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all capitalize ${statusFilter === s ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200'}`}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium border-2 transition-all capitalize ${statusFilter === s ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]' : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50'}`}
                 >
                   {s === 'all' ? t('allStatuses') : t(STATUS_KEY[s])}
                 </button>
@@ -169,7 +169,7 @@ export default function AdminReservationsPage() {
           {/* Loading */}
           {isLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin"/>
               <span className="text-sm">{t('loadingReservations')}</span>
             </div>
           )}
@@ -177,9 +177,9 @@ export default function AdminReservationsPage() {
           {/* Error */}
           {isError && !isLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <AlertCircle className="h-8 w-8 text-red-400" />
+              <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
               <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadReservations')}</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>{tCommon('retry')}</Button>
+              <Button variant="secondary"size="sm"onClick={() => refetch()}>{tCommon('retry')}</Button>
             </div>
           )}
 
@@ -214,7 +214,7 @@ export default function AdminReservationsPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: i * 0.04 }}
-                          className={`hover:bg-[var(--card-hover)] transition-colors ${selectedIds.has(res.id) ? 'bg-orange-50/40 dark:bg-orange-950/10' : ''}`}
+                          className={`hover:bg-[var(--card-hover)] transition-colors ${selectedIds.has(res.id) ? 'bg-[var(--accent-subtle)]/40' : ''}`}
                         >
                           <td className="px-4 py-3.5">
                             <input
@@ -227,19 +227,19 @@ export default function AdminReservationsPage() {
                           </td>
                           <td className="px-4 py-3.5">
                             <p className="font-medium text-[var(--fg)]">{res.name}</p>
-                            {res.confirmation_code && <p className="text-xs text-orange-500 font-mono">{res.confirmation_code}</p>}
+                            {res.confirmation_code && <p className="text-xs text-[var(--accent-text)] font-mono">{res.confirmation_code}</p>}
                           </td>
                           <td className="px-4 py-3.5 whitespace-nowrap">
                             <div className="flex items-center gap-1.5 text-[var(--fg)]">
-                              <Calendar className="h-3.5 w-3.5 text-orange-500" />{res.date}
+                              <Calendar className="h-3.5 w-3.5 text-[var(--accent-text)]"/>{res.date}
                             </div>
                             <div className="flex items-center gap-1.5 text-[var(--fg-muted)] mt-0.5">
-                              <Clock className="h-3.5 w-3.5" />{res.time}
+                              <Clock className="h-3.5 w-3.5"/>{res.time}
                             </div>
                           </td>
                           <td className="px-4 py-3.5">
                             <div className="flex items-center gap-1.5 text-[var(--fg)]">
-                              <Users className="h-3.5 w-3.5 text-orange-500" />{res.guests}
+                              <Users className="h-3.5 w-3.5 text-[var(--accent-text)]"/>{res.guests}
                             </div>
                           </td>
                           <td className="px-4 py-3.5 text-[var(--fg-muted)] whitespace-nowrap">
@@ -247,11 +247,11 @@ export default function AdminReservationsPage() {
                           </td>
                           <td className="px-4 py-3.5">
                             <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)]">
-                              <Phone className="h-3 w-3" />{res.phone_number}
+                              <Phone className="h-3 w-3"/>{res.phone_number}
                             </div>
                             {res.email && (
                               <div className="flex items-center gap-1 text-xs text-[var(--fg-muted)] mt-0.5">
-                                <Mail className="h-3 w-3" />{res.email}
+                                <Mail className="h-3 w-3"/>{res.email}
                               </div>
                             )}
                           </td>
@@ -270,12 +270,12 @@ export default function AdminReservationsPage() {
                                   size="icon-sm"
                                   onClick={() => confirmMutation.mutate(res.id)}
                                   disabled={isConfirming || isCancelling}
-                                  className="bg-emerald-500 hover:bg-emerald-600"
+                                  className="bg-[var(--success)] hover:bg-[var(--success-hover)]"
                                   aria-label={t('confirm')}
                                 >
                                   {isConfirming
-                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    : <Check className="h-3.5 w-3.5" />}
+                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin"/>
+                                    : <Check className="h-3.5 w-3.5"/>}
                                 </Button>
                                 <Button
                                   size="icon-sm"
@@ -285,8 +285,8 @@ export default function AdminReservationsPage() {
                                   aria-label={t('cancel')}
                                 >
                                   {isCancelling
-                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    : <X className="h-3.5 w-3.5" />}
+                                    ? <Loader2 className="h-3.5 w-3.5 animate-spin"/>
+                                    : <X className="h-3.5 w-3.5"/>}
                                 </Button>
                               </div>
                             )}
@@ -300,7 +300,7 @@ export default function AdminReservationsPage() {
                 {/* Empty */}
                 {reservations.length === 0 && (
                   <div className="py-16 text-center">
-                    <Calendar className="h-10 w-10 text-[var(--fg-subtle)] mx-auto mb-3" />
+                    <Calendar className="h-10 w-10 text-[var(--fg-subtle)] mx-auto mb-3"/>
                     <p className="text-[var(--fg-muted)]">{t('noReservationsFound')}</p>
                   </div>
                 )}

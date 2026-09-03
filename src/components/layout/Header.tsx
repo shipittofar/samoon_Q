@@ -96,7 +96,7 @@ export function Header({ overlay = false }: HeaderProps) {
       {/* Skip-to-content — WCAG 2.4.1 Level A. Visually hidden until focused. */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-orange-500 focus:text-white focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-[var(--accent)] focus:text-[var(--accent-fg)] focus:rounded-xl focus:font-medium focus:text-sm focus:shadow-lg"
       >
         {t('skipToMainContent')}
       </a>
@@ -111,7 +111,7 @@ export function Header({ overlay = false }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/"className="flex items-center gap-2 group">
             {tenantImage ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -130,7 +130,7 @@ export function Header({ overlay = false }: HeaderProps) {
                   'font-[var(--font-display)] text-xl font-bold transition-colors',
                   isTransparentHero
                     ? 'text-white group-hover:text-orange-300'
-                    : 'text-[var(--fg)] group-hover:text-orange-500',
+                    : 'text-[var(--fg)] group-hover:text-[var(--accent-text)]',
                 )}>
                   Samoon
                 </span>
@@ -139,7 +139,7 @@ export function Header({ overlay = false }: HeaderProps) {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1" aria-label={t('mainNavigationAria')}>
+          <nav className="hidden md:flex items-center gap-1"aria-label={t('mainNavigationAria')}>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -149,13 +149,13 @@ export function Header({ overlay = false }: HeaderProps) {
                   pathname.startsWith(link.href)
                     ? isTransparentHero
                       ? 'bg-white/15 text-white'
-                      : 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
+                      : 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                     : isTransparentHero
                       ? 'text-white/80 hover:text-white hover:bg-white/10'
                       : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
                 )}
               >
-                {'labelKey' in link ? t((link as { labelKey: string }).labelKey) : link.label}
+                {'labelKey'in link ? t((link as { labelKey: string }).labelKey) : link.label}
               </Link>
             ))}
           </nav>
@@ -172,12 +172,12 @@ export function Header({ overlay = false }: HeaderProps) {
             >
               <AnimatePresence mode="wait">
                 {theme === 'dark' ? (
-                  <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                    <Sun className="h-4 w-4" />
+                  <motion.div key="sun"initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                    <Sun className="h-4 w-4"/>
                   </motion.div>
                 ) : (
-                  <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
-                    <Moon className="h-4 w-4" />
+                  <motion.div key="moon"initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                    <Moon className="h-4 w-4"/>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -192,7 +192,7 @@ export function Header({ overlay = false }: HeaderProps) {
                 aria-label={t('changeLanguageAria')}
                 className={cn(isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
               >
-                <Globe className="h-4 w-4" />
+                <Globe className="h-4 w-4"/>
               </Button>
               <AnimatePresence>
                 {langMenuOpen && (
@@ -210,7 +210,7 @@ export function Header({ overlay = false }: HeaderProps) {
                         className={cn(
                           'flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-start transition-colors',
                           locale === lang.code
-                            ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
+                            ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                             : 'hover:bg-[var(--card-hover)] text-[var(--fg)]',
                         )}
                       >
@@ -231,7 +231,7 @@ export function Header({ overlay = false }: HeaderProps) {
             )}
             {isAuthenticated && pathname.startsWith('/console') && (
               <ErrorBoundary feature="BranchSelector">
-                <BranchSelector className="hidden sm:flex" />
+                <BranchSelector className="hidden sm:flex"/>
               </ErrorBoundary>
             )}
             {isAuthenticated && pathname.startsWith('/console') && (
@@ -248,7 +248,7 @@ export function Header({ overlay = false }: HeaderProps) {
               className={cn('relative', isTransparentHero && 'text-white/80 hover:text-white hover:bg-white/10')}
               aria-label={t('cartWithItemsAria', { count: cartCount })}
             >
-              <ShoppingCart className="h-4 w-4" />
+              <ShoppingCart className="h-4 w-4"/>
               <AnimatePresence>
                 {cartCount > 0 && (
                   <motion.span
@@ -256,7 +256,7 @@ export function Header({ overlay = false }: HeaderProps) {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
-                    className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center px-1"
+                    className="absolute -top-0.5 -end-0.5 h-4 min-w-4 rounded-full bg-[var(--accent)] text-[var(--accent-fg)] text-[10px] font-bold flex items-center justify-center px-1"
                   >
                     {cartCount}
                   </motion.span>
@@ -272,7 +272,7 @@ export function Header({ overlay = false }: HeaderProps) {
                   className="flex items-center gap-2 rounded-xl p-1 hover:bg-[var(--card-hover)] transition-colors"
                   aria-label={t('userMenuAria')}
                 >
-                  <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="sm" />
+                  <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="sm"/>
                   <ChevronDown className={cn('h-3 w-3 text-[var(--fg-muted)] transition-transform hidden md:block', userMenuOpen && 'rotate-180')} />
                 </button>
                 <AnimatePresence>
@@ -297,13 +297,13 @@ export function Header({ overlay = false }: HeaderProps) {
                         { href: '/dashboard/settings', icon: Settings, labelKey: 'settings' },
                       ].map((item) => (
                         <Link key={item.href} href={item.href} className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors">
-                          <item.icon className="h-4 w-4 text-[var(--fg-muted)]" />
+                          <item.icon className="h-4 w-4 text-[var(--fg-muted)]"/>
                           {t(item.labelKey)}
                         </Link>
                       ))}
                       <div className="border-t border-[var(--border)]">
-                        <button onClick={handleLogout} className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors text-start">
-                          <LogOut className="h-4 w-4" />
+                        <button onClick={handleLogout} className="flex items-center gap-2.5 w-full px-3 py-2.5 text-sm text-[var(--danger-text)] hover:bg-[var(--danger-subtle)] transition-colors text-start">
+                          <LogOut className="h-4 w-4"/>
                           {t('signOut')}
                         </button>
                       </div>
@@ -334,8 +334,8 @@ export function Header({ overlay = false }: HeaderProps) {
             )}
 
             {/* Mobile toggle */}
-            <Button variant="ghost" size="icon" onClick={() => setMobileOpen((v) => !v)} className="md:hidden" aria-label={t('toggleMenuAria')}>
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <Button variant="ghost"size="icon"onClick={() => setMobileOpen((v) => !v)} className="md:hidden"aria-label={t('toggleMenuAria')}>
+              {mobileOpen ? <X className="h-5 w-5"/> : <Menu className="h-5 w-5"/>}
             </Button>
           </div>
         </div>
@@ -350,7 +350,7 @@ export function Header({ overlay = false }: HeaderProps) {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-[var(--card)] border-b border-[var(--border)] overflow-hidden"
           >
-            <nav className="px-4 py-3 flex flex-col gap-1" aria-label={t('mobileNavigationAria')}>
+            <nav className="px-4 py-3 flex flex-col gap-1"aria-label={t('mobileNavigationAria')}>
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -358,21 +358,21 @@ export function Header({ overlay = false }: HeaderProps) {
                   className={cn(
                     'px-4 py-3 rounded-xl text-sm font-medium transition-colors',
                     pathname.startsWith(link.href)
-                      ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
+                      ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                       : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
                   )}
                 >
-                  {'labelKey' in link ? t((link as { labelKey: string }).labelKey) : link.label}
+                  {'labelKey'in link ? t((link as { labelKey: string }).labelKey) : link.label}
                 </Link>
               ))}
               {isAuthenticated && pathname.startsWith('/console') && (
                 <ErrorBoundary feature="BranchSelector">
-                  <BranchSelector className="mt-1" />
+                  <BranchSelector className="mt-1"/>
                 </ErrorBoundary>
               )}
               <div className="flex items-center gap-2 pt-2 border-t border-[var(--border)] mt-2">
-                <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
-                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                <Button variant="ghost"size="icon"onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                  {theme === 'dark' ? <Sun className="h-4 w-4"/> : <Moon className="h-4 w-4"/>}
                 </Button>
                 {LANGUAGES.map((lang) => (
                   <button key={lang.code} onClick={() => setLocale(lang.code)} className={cn('text-lg', locale === lang.code && 'opacity-100 scale-125', 'transition-all')}>
@@ -382,8 +382,8 @@ export function Header({ overlay = false }: HeaderProps) {
               </div>
               {!isAuthenticated && (
                 <div className="flex gap-2 pt-2">
-                  <Link href="/login" className="flex-1"><Button variant="secondary" size="sm" className="w-full">{t('signIn')}</Button></Link>
-                  <Link href="/register" className="flex-1"><Button size="sm" className="w-full">{t('getStarted')}</Button></Link>
+                  <Link href="/login"className="flex-1"><Button variant="secondary"size="sm"className="w-full">{t('signIn')}</Button></Link>
+                  <Link href="/register"className="flex-1"><Button size="sm"className="w-full">{t('getStarted')}</Button></Link>
                 </div>
               )}
             </nav>
@@ -391,7 +391,7 @@ export function Header({ overlay = false }: HeaderProps) {
         )}
       </AnimatePresence>
     </header>
-    {!overlay && <div className="h-16 shrink-0" aria-hidden="true" />}
+    {!overlay && <div className="h-16 shrink-0"aria-hidden="true"/>}
     </>
   )
 }

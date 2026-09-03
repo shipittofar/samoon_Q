@@ -27,10 +27,10 @@ const STATUS_KEYS: Record<VendorStatus, string> = {
 }
 
 const STATUS_COLORS: Record<VendorStatus, string> = {
-  active:    'bg-green-100 text-green-700',
-  inactive:  'bg-gray-100 text-gray-500',
-  pending:   'bg-yellow-100 text-yellow-700',
-  suspended: 'bg-red-100 text-red-600',
+  active:    'bg-[var(--success-subtle)] text-[var(--success-text)]',
+  inactive:  'bg-[var(--card-hover)] text-[var(--fg-muted)]',
+  pending:   'bg-[var(--warning-subtle)] text-[var(--warning-text)]',
+  suspended: 'bg-[var(--danger-subtle)] text-[var(--danger-text)]',
 }
 
 function StarRating({ rating, count }: { rating: number; count: number }) {
@@ -38,7 +38,7 @@ function StarRating({ rating, count }: { rating: number; count: number }) {
   const filled = Math.round(rating)
   return (
     <span className="flex items-center gap-1 text-sm">
-      <span className="text-yellow-400">{'★'.repeat(filled)}{'☆'.repeat(5 - filled)}</span>
+      <span className="text-[var(--rating)]">{'★'.repeat(filled)}{'☆'.repeat(5 - filled)}</span>
       <span className="text-[var(--fg-muted)]">{rating > 0 ? rating.toFixed(1) : t('noRatings')}</span>
       {count > 0 && <span className="text-[var(--fg-muted)]">({count})</span>}
     </span>
@@ -49,14 +49,14 @@ function VendorCard({ vendor, onSelect }: { vendor: Vendor; onSelect: (v: Vendor
   const t = useTranslations('vendorsPage')
   return (
     <li
-      className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 cursor-pointer hover:border-[var(--primary)] transition-colors"
+      className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5 cursor-pointer hover:border-[var(--accent-border)] transition-colors"
       onClick={() => onSelect(vendor)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
             {vendor.featured && (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--primary)] text-white">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--accent)] text-[var(--accent-fg)]">
                 {t('featured')}
               </span>
             )}
@@ -67,7 +67,7 @@ function VendorCard({ vendor, onSelect }: { vendor: Vendor; onSelect: (v: Vendor
           <h3 className="font-semibold text-[var(--fg)]">{vendor.name}</h3>
           <p className="text-sm text-[var(--fg-muted)] mt-0.5 line-clamp-2">{vendor.description}</p>
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent-text)]">
               {t(`categories.${CATEGORY_KEYS[vendor.category]}`)}
             </span>
             {vendor.stallNumber && (
@@ -107,12 +107,12 @@ function VendorProfile({ vendor, onBack }: { vendor: Vendor; onBack: () => void 
         ← {t('backToVendors')}
       </button>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 space-y-4">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
               {vendor.featured && (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--primary)] text-white">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[var(--accent)] text-[var(--accent-fg)]">
                   {t('featured')}
                 </span>
               )}
@@ -127,7 +127,7 @@ function VendorProfile({ vendor, onBack }: { vendor: Vendor; onBack: () => void 
         </div>
 
         <div className="flex flex-wrap gap-3 text-sm text-[var(--fg-muted)]">
-          <span className="px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs">
+          <span className="px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent-text)] text-xs">
             {t(`categories.${CATEGORY_KEYS[vendor.category]}`)}
           </span>
           {vendor.stallNumber && <span>{t('stallLabel', { number: vendor.stallNumber })}</span>}
@@ -155,9 +155,9 @@ function VendorProfile({ vendor, onBack }: { vendor: Vendor; onBack: () => void 
                     {new Date(s.settlementDate).toLocaleDateString()}
                   </span>
                   <span className={`font-medium ${
-                    s.status === 'paid' ? 'text-green-600' :
-                    s.status === 'failed' ? 'text-red-500' :
-                    'text-yellow-600'
+                    s.status === 'paid' ? 'text-[var(--success-text)]' :
+                    s.status === 'failed' ? 'text-[var(--danger-text)]' :
+                    'text-[var(--warning-text)]'
                   }`}>
                     {t('settlementAmount', { amount: s.amount.toLocaleString(), status: t(`settlementStatuses.${s.status}`) })}
                   </span>
@@ -196,7 +196,7 @@ function VendorsContent() {
       {/* Featured vendors */}
       {featured.length > 0 && (
         <section aria-labelledby="featured-heading">
-          <h2 id="featured-heading" className="text-lg font-semibold text-[var(--fg)] mb-3">
+          <h2 id="featured-heading"className="text-lg font-semibold text-[var(--fg)] mb-3">
             {t('featuredVendors')}
           </h2>
           <ul className="space-y-3">
@@ -210,7 +210,7 @@ function VendorsContent() {
       {/* All vendors with category filter */}
       <section aria-labelledby="all-heading">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h2 id="all-heading" className="text-lg font-semibold text-[var(--fg)]">
+          <h2 id="all-heading"className="text-lg font-semibold text-[var(--fg)]">
             {t('allVendors')}
           </h2>
           <div className="flex gap-2 flex-wrap">
@@ -218,7 +218,7 @@ function VendorsContent() {
               onClick={() => setCategoryFilter('all')}
               className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
                 categoryFilter === 'all'
-                  ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                  ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent-border)]'
                   : 'border-[var(--border)] text-[var(--fg-muted)]'
               }`}
             >
@@ -230,7 +230,7 @@ function VendorsContent() {
                 onClick={() => setCategoryFilter(cat)}
                 className={`px-3 py-1 rounded-lg text-xs font-medium border transition-colors ${
                   categoryFilter === cat
-                    ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                    ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent-border)]'
                     : 'border-[var(--border)] text-[var(--fg-muted)]'
                 }`}
               >
@@ -258,7 +258,7 @@ export function VendorsClientPage() {
   return (
     <CapabilityGuard
       capability="ordering"
-      fallback={<CapabilityNotAvailable capability="ordering" />}
+      fallback={<CapabilityNotAvailable capability="ordering"/>}
     >
       <main className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-[var(--fg)] mb-6">{t('vendors')}</h1>

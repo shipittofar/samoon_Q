@@ -47,8 +47,8 @@ export function AddressPicker({ value, onChange, className }: AddressPickerProps
             className={cn(
               'flex-1 py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all',
               value.mode === mode
-                ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20 text-orange-600'
-                : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-orange-200',
+                ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)]'
+                : 'border-[var(--border)] text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50',
             )}
           >
             {t(mode === 'saved' ? 'savedAddresses' : 'temporaryAddress')}
@@ -58,14 +58,14 @@ export function AddressPicker({ value, onChange, className }: AddressPickerProps
 
       <AnimatePresence mode="wait">
         {value.mode === 'saved' ? (
-          <motion.div key="saved" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+          <motion.div key="saved"initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
             {isLoading ? (
               <p className="text-sm text-[var(--fg-muted)]">{t('loadingAddresses')}</p>
             ) : addresses.length === 0 ? (
               <div className="text-center py-6 border border-dashed border-[var(--border)] rounded-2xl">
-                <MapPin className="h-8 w-8 text-[var(--fg-subtle)] mx-auto mb-2" />
+                <MapPin className="h-8 w-8 text-[var(--fg-subtle)] mx-auto mb-2"/>
                 <p className="text-sm text-[var(--fg-muted)] mb-3">{t('noSavedAddresses')}</p>
-                <Button size="sm" onClick={() => setAddOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+                <Button size="sm"onClick={() => setAddOpen(true)} leftIcon={<Plus className="h-4 w-4"/>}>
                   {t('addAddress')}
                 </Button>
               </div>
@@ -78,13 +78,13 @@ export function AddressPicker({ value, onChange, className }: AddressPickerProps
                     onClick={() => onChange({ ...value, addressId: addr.id })}
                     className={cn(
                       'w-full text-start rounded-2xl transition-all',
-                      value.addressId === addr.id && 'ring-2 ring-orange-500 ring-offset-2 ring-offset-[var(--bg)]',
+                      value.addressId === addr.id && 'ring-2 ring-[var(--focus-ring)] ring-offset-2 ring-offset-[var(--bg)]',
                     )}
                   >
                     <AddressCard address={addr} index={i} />
                   </button>
                 ))}
-                <Button variant="secondary" size="sm" onClick={() => setAddOpen(true)} leftIcon={<Plus className="h-4 w-4" />}>
+                <Button variant="secondary"size="sm"onClick={() => setAddOpen(true)} leftIcon={<Plus className="h-4 w-4"/>}>
                   {t('addAddress')}
                 </Button>
               </>
@@ -122,14 +122,14 @@ export function AddressPicker({ value, onChange, className }: AddressPickerProps
                       onChange({ ...value, override: { ...value.override, delivery_notes: e.target.value || null } })
                     }
                     rows={2}
-                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                    className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                   />
                 </div>
               </div>
             )}
           </motion.div>
         ) : (
-          <motion.div key="temp" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div key="temp"initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <AddressForm
               initial={value.temporaryAddress as Partial<UserAddress>}
               onSubmit={(data) => onChange({ ...value, temporaryAddress: data })}

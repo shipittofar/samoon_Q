@@ -124,8 +124,8 @@ export function OrderTracker({
   if (isCancelled) {
     return (
       <div className="flex flex-col items-center gap-4 py-8 text-center">
-        <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-950/30 flex items-center justify-center">
-          <X className="h-8 w-8 text-red-500" />
+        <div className="h-16 w-16 rounded-full bg-[var(--danger-subtle)] flex items-center justify-center">
+          <X className="h-8 w-8 text-[var(--danger-text)]"/>
         </div>
         <div>
           <h3 className="font-semibold text-[var(--fg)]">{t('orderCancelled')}</h3>
@@ -143,23 +143,23 @@ export function OrderTracker({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-3 bg-orange-50 dark:bg-orange-950/20 rounded-2xl p-4 border border-orange-200 dark:border-orange-900"
+            className="flex items-center gap-3 bg-[var(--accent-subtle)] rounded-2xl p-4 border border-[var(--accent-border)]/40"
           >
-            <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center shrink-0">
-              <Clock className="h-5 w-5 text-orange-500" />
+            <div className="h-10 w-10 rounded-full bg-[var(--accent-subtle)] flex items-center justify-center shrink-0">
+              <Clock className="h-5 w-5 text-[var(--accent-text)]"/>
             </div>
             <div>
               <p className="text-sm font-medium text-[var(--fg)]">{t('estimatedTime')}</p>
-              <p className="text-lg font-bold text-orange-500">{t('minutesCount', { count: estimatedTime })}</p>
+              <p className="text-lg font-bold text-[var(--accent-text)]">{t('minutesCount', { count: estimatedTime })}</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <div className="relative">
-        <div className="absolute top-5 start-5 end-5 h-0.5 bg-[var(--border)]" />
+        <div className="absolute top-5 start-5 end-5 h-0.5 bg-[var(--border)]"/>
         <motion.div
-          className="absolute top-5 start-5 h-0.5 bg-orange-500"
+          className="absolute top-5 start-5 h-0.5 bg-[var(--accent)]"
           initial={{ width: '0%' }}
           animate={{ width: currentIdx === -1 ? '0%' : `${(currentIdx / (steps.length - 1)) * 100}%` }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
@@ -177,29 +177,29 @@ export function OrderTracker({
                   className={cn(
                     'relative h-10 w-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10',
                     done
-                      ? 'bg-orange-500 border-orange-500 text-white'
+                      ? 'bg-[var(--accent)] border-[var(--accent-border)] text-[var(--accent-fg)]'
                       : active
-                        ? 'bg-white dark:bg-[var(--card)] border-orange-500 text-orange-500 shadow-[var(--shadow-brand)]'
+                        ? 'bg-[var(--card)] dark:bg-[var(--card)] border-[var(--accent-border)] text-[var(--accent-text)] shadow-[var(--shadow-brand)]'
                         : 'bg-[var(--card)] border-[var(--border)] text-[var(--fg-subtle)]',
                   )}
                   animate={active ? { scale: [1, 1.1, 1] } : {}}
                   transition={active ? { repeat: Infinity, duration: 2 } : {}}
                 >
                   {done ? (
-                    <Check className="h-4 w-4" />
+                    <Check className="h-4 w-4"/>
                   ) : (
                     <step.icon className={cn('h-4 w-4', active && 'animate-pulse')} />
                   )}
                   {active && (
                     <motion.div
-                      className="absolute inset-0 rounded-full border-2 border-orange-500"
+                      className="absolute inset-0 rounded-full border-2 border-[var(--accent-border)]"
                       animate={{ scale: [1, 1.5], opacity: [0.6, 0] }}
                       transition={{ repeat: Infinity, duration: 1.5 }}
                     />
                   )}
                 </motion.div>
                 <div className="text-center hidden sm:block">
-                  <p className={cn('text-xs font-medium', active ? 'text-orange-500' : done ? 'text-[var(--fg)]' : 'text-[var(--fg-subtle)]')}>
+                  <p className={cn('text-xs font-medium', active ? 'text-[var(--accent-text)]' : done ? 'text-[var(--fg)]' : 'text-[var(--fg-subtle)]')}>
                     {t(step.labelKey)}
                   </p>
                 </div>
@@ -223,7 +223,7 @@ export function OrderTracker({
                 const step = steps.find((s) => s.status === currentStatus)!
                 return (
                   <>
-                    <step.icon className="h-4 w-4 text-orange-500" />
+                    <step.icon className="h-4 w-4 text-[var(--accent-text)]"/>
                     <span className="text-sm font-medium text-[var(--fg)]">{t(step.descriptionKey)}</span>
                   </>
                 )

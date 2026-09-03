@@ -12,17 +12,17 @@ const HEALTH_KEY: Record<BranchHealthLevel, string> = {
 }
 
 const HEALTH_COLOR: Record<BranchHealthLevel, string> = {
-  healthy: 'bg-green-100 border-green-300 text-green-800',
-  degraded: 'bg-yellow-100 border-yellow-300 text-yellow-800',
-  critical: 'bg-red-100 border-red-300 text-red-800',
-  offline: 'bg-gray-100 border-gray-300 text-gray-600',
+  healthy: 'bg-[var(--success-subtle)] border-[var(--success-border)] text-[var(--success-text)]',
+  degraded: 'bg-[var(--warning-subtle)] border-[var(--warning-border)] text-[var(--warning-text)]',
+  critical: 'bg-[var(--danger-subtle)] border-[var(--danger-border)] text-[var(--danger-text)]',
+  offline: 'bg-[var(--card-hover)] border-[var(--border-strong)] text-[var(--fg-muted)]',
 }
 
 const HEALTH_DOT: Record<BranchHealthLevel, string> = {
-  healthy: 'bg-green-500',
-  degraded: 'bg-yellow-400',
-  critical: 'bg-red-500',
-  offline: 'bg-gray-400',
+  healthy: 'bg-[var(--success)]',
+  degraded: 'bg-[var(--warning)]',
+  critical: 'bg-[var(--danger)]',
+  offline: 'bg-[var(--fg-subtle)]',
 }
 
 interface BranchCardProps {
@@ -42,42 +42,42 @@ function BranchCard({ branch }: BranchCardProps) {
           <div className="flex items-center gap-1.5 mt-1">
             <span className={`w-2.5 h-2.5 rounded-full ${HEALTH_DOT[branch.health]}`} />
             <span className="text-xs capitalize">{t(HEALTH_KEY[branch.health])}</span>
-            {!branch.isOpen && <span className="text-xs bg-gray-800 text-white rounded px-1.5 ml-1">{t('closed')}</span>}
+            {!branch.isOpen && <span className="text-xs bg-[var(--card)] text-white rounded px-1.5 ml-1">{t('closed')}</span>}
           </div>
         </div>
         {branch.notificationCount > 0 && (
-          <span className="text-xs bg-white rounded-full px-2 py-0.5 border font-semibold">
+          <span className="text-xs bg-[var(--card)] rounded-full px-2 py-0.5 border font-semibold">
             {t('alertsCount', { count: branch.notificationCount })}
           </span>
         )}
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-xs text-center">
-        <div className="bg-white bg-opacity-50 rounded p-2">
+        <div className="bg-[var(--card)] bg-opacity-50 rounded p-2">
           <div className="font-bold text-base">{branch.activeOrders}</div>
-          <div className="text-gray-600">{t('breadcrumbs.orders')}</div>
+          <div className="text-[var(--fg-muted)]">{t('breadcrumbs.orders')}</div>
         </div>
-        <div className="bg-white bg-opacity-50 rounded p-2">
+        <div className="bg-[var(--card)] bg-opacity-50 rounded p-2">
           <div className="font-bold text-base">{branch.pendingReservations}</div>
-          <div className="text-gray-600">{t('breadcrumbs.reservations')}</div>
+          <div className="text-[var(--fg-muted)]">{t('breadcrumbs.reservations')}</div>
         </div>
-        <div className="bg-white bg-opacity-50 rounded p-2">
+        <div className="bg-[var(--card)] bg-opacity-50 rounded p-2">
           <div className="font-bold text-base">{branch.staffOnline}</div>
-          <div className="text-gray-600">{t('breadcrumbs.staff')}</div>
+          <div className="text-[var(--fg-muted)]">{t('breadcrumbs.staff')}</div>
         </div>
       </div>
 
       {branch.systemAlerts.length > 0 && (
         <div className="mt-3 space-y-1">
           {branch.systemAlerts.map((alert, i) => (
-            <div key={i} className="text-xs bg-white bg-opacity-60 rounded px-2 py-1 text-red-700">
+            <div key={i} className="text-xs bg-[var(--card)] bg-opacity-60 rounded px-2 py-1 text-[var(--danger-text)]">
               {alert}
             </div>
           ))}
         </div>
       )}
 
-      <div className="mt-2 text-xs text-gray-500 text-right">
+      <div className="mt-2 text-xs text-[var(--fg-muted)] text-right">
         {minutesAgo < 1 ? t('updatedJustNow') : t('updatedMinutesAgo', { minutes: minutesAgo })}
       </div>
     </div>
@@ -92,8 +92,8 @@ export function BranchStatusGrid({ scope }: BranchStatusGridProps) {
   const t = useTranslations('console')
   const { data: branches = [], isLoading, isError } = useBranchStatus(scope)
 
-  if (isLoading) return <div className="text-sm text-gray-500 p-4">{t('loadingBranchStatus')}</div>
-  if (isError) return <div className="text-sm text-red-500 p-4">{t('failedToLoadBranchStatus')}</div>
+  if (isLoading) return <div className="text-sm text-[var(--fg-muted)] p-4">{t('loadingBranchStatus')}</div>
+  if (isError) return <div className="text-sm text-[var(--danger-text)] p-4">{t('failedToLoadBranchStatus')}</div>
 
   const healthCounts = {
     healthy: branches.filter((b) => b.health === 'healthy').length,
@@ -105,16 +105,16 @@ export function BranchStatusGrid({ scope }: BranchStatusGridProps) {
   return (
     <div>
       <div className="flex gap-3 mb-4 flex-wrap text-sm">
-        <span className="bg-green-100 text-green-700 rounded px-3 py-1">
+        <span className="bg-[var(--success-subtle)] text-[var(--success-text)] rounded px-3 py-1">
           {t('healthyCount', { count: healthCounts.healthy })}
         </span>
-        <span className="bg-yellow-100 text-yellow-700 rounded px-3 py-1">
+        <span className="bg-[var(--warning-subtle)] text-[var(--warning-text)] rounded px-3 py-1">
           {t('degradedCount', { count: healthCounts.degraded })}
         </span>
-        <span className="bg-red-100 text-red-700 rounded px-3 py-1">
+        <span className="bg-[var(--danger-subtle)] text-[var(--danger-text)] rounded px-3 py-1">
           {t('criticalCount', { count: healthCounts.critical })}
         </span>
-        <span className="bg-gray-100 text-gray-600 rounded px-3 py-1">
+        <span className="bg-[var(--card-hover)] text-[var(--fg-muted)] rounded px-3 py-1">
           {t('offlineCount', { count: healthCounts.offline })}
         </span>
       </div>

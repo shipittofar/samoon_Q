@@ -17,10 +17,10 @@ const TIER_KEYS: Record<string, string> = {
 }
 
 const TIER_COLORS: Record<string, string> = {
-  bronze:   'text-amber-700',
-  silver:   'text-slate-500',
-  gold:     'text-yellow-500',
-  platinum: 'text-purple-500',
+  bronze:   'text-[var(--warning-text)]',
+  silver:   'text-[var(--fg-muted)]',
+  gold:     'text-[var(--rating)]',
+  platinum: 'text-[var(--chart-5)]',
 }
 
 function LoyaltyContent() {
@@ -44,11 +44,11 @@ function LoyaltyContent() {
     <div className="space-y-8">
       {/* Current Points */}
       <section aria-labelledby="points-heading">
-        <h2 id="points-heading" className="text-lg font-semibold text-[var(--fg)] mb-3">
+        <h2 id="points-heading"className="text-lg font-semibold text-[var(--fg)] mb-3">
           {t('currentPoints')}
         </h2>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 flex items-center gap-6">
-          <div className="text-5xl font-bold text-[var(--primary)]">{account.points}</div>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 flex items-center gap-6">
+          <div className="text-5xl font-bold text-[var(--accent-text)]">{account.points}</div>
           <div>
             <p className="text-[var(--fg-muted)] text-sm">{t('availablePoints')}</p>
             <p className="text-[var(--fg-muted)] text-sm mt-1">
@@ -60,10 +60,10 @@ function LoyaltyContent() {
 
       {/* Tier Status */}
       <section aria-labelledby="tier-heading">
-        <h2 id="tier-heading" className="text-lg font-semibold text-[var(--fg)] mb-3">
+        <h2 id="tier-heading"className="text-lg font-semibold text-[var(--fg)] mb-3">
           {t('tierStatus')}
         </h2>
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
           <p className="text-sm text-[var(--fg-muted)] mb-1">{t('currentTier')}</p>
           <p className={`text-3xl font-bold ${tierColor}`}>{TIER_KEYS[account.tier] ? t(`tiers.${TIER_KEYS[account.tier]}`) : account.tier}</p>
           {account.tierExpiresAt && (
@@ -76,7 +76,7 @@ function LoyaltyContent() {
 
       {/* Available Rewards */}
       <section aria-labelledby="rewards-heading">
-        <h2 id="rewards-heading" className="text-lg font-semibold text-[var(--fg)] mb-3">
+        <h2 id="rewards-heading"className="text-lg font-semibold text-[var(--fg)] mb-3">
           {t('availableRewards')}
         </h2>
         {rewardsLoading ? (
@@ -91,7 +91,7 @@ function LoyaltyContent() {
               return (
                 <li
                   key={reward.id}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 flex items-center justify-between gap-4"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 flex items-center justify-between gap-4"
                 >
                   <div>
                     <p className="font-medium text-[var(--fg)]">{reward.name}</p>
@@ -103,14 +103,14 @@ function LoyaltyContent() {
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    <span className="text-sm font-semibold text-[var(--primary)]">
+                    <span className="text-sm font-semibold text-[var(--accent-text)]">
                       {t('pointsSuffix', { count: reward.pointsCost })}
                     </span>
                     <button
                       onClick={() => redeemMutation.mutate(reward.id)}
                       disabled={!canAfford || isRedeeming}
                       aria-label={t('redeemAria', { name: reward.name })}
-                      className="px-3 py-1 rounded-lg text-sm font-medium bg-[var(--primary)] text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-3 py-1 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-fg)] disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {isRedeeming ? t('redeeming') : t('redeem')}
                     </button>
@@ -124,7 +124,7 @@ function LoyaltyContent() {
 
       {/* Transaction History */}
       <section aria-labelledby="history-heading">
-        <h2 id="history-heading" className="text-lg font-semibold text-[var(--fg)] mb-3">
+        <h2 id="history-heading"className="text-lg font-semibold text-[var(--fg)] mb-3">
           {t('transactionHistory')}
         </h2>
         {txLoading ? (
@@ -132,7 +132,7 @@ function LoyaltyContent() {
         ) : !transactions?.length ? (
           <p className="text-[var(--fg-muted)]">{t('noTransactionsYet')}</p>
         ) : (
-          <ul className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+          <ul className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
             {transactions.map((txn) => (
               <li key={txn.id} className="flex items-center justify-between px-4 py-3">
                 <div>
@@ -142,7 +142,7 @@ function LoyaltyContent() {
                   </p>
                 </div>
                 <span
-                  className={`text-sm font-semibold ${txn.points >= 0 ? 'text-green-600' : 'text-red-500'}`}
+                  className={`text-sm font-semibold ${txn.points >= 0 ? 'text-[var(--success-text)]' : 'text-[var(--danger-text)]'}`}
                 >
                   {t('pointsSuffix', { count: txn.points >= 0 ? `+${txn.points}` : txn.points })}
                 </span>
@@ -160,7 +160,7 @@ export default function LoyaltyPage() {
   return (
     <CapabilityGuard
       capability="loyalty"
-      fallback={<CapabilityNotAvailable capability="loyalty" />}
+      fallback={<CapabilityNotAvailable capability="loyalty"/>}
     >
       <main className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-[var(--fg)] mb-6">{t('loyaltyProgram')}</h1>

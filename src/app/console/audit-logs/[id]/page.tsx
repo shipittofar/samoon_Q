@@ -40,9 +40,9 @@ const TARGET_HREF: Record<string, (id: string) => string> = {
 
 function TargetLink({ type, id }: { type: string; id: string }) {
   const hrefFn = TARGET_HREF[type]
-  if (!hrefFn) return <p className="text-xs text-gray-400 font-mono">{id}</p>
+  if (!hrefFn) return <p className="text-xs text-[var(--fg-subtle)] font-mono">{id}</p>
   return (
-    <Link href={hrefFn(id)} className="text-xs text-blue-600 font-mono hover:underline">
+    <Link href={hrefFn(id)} className="text-xs text-[var(--info-text)] font-mono hover:underline">
       {id}
     </Link>
   )
@@ -60,8 +60,8 @@ function AuditLogDetailContent({ id }: { id: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-48 text-gray-500">
-        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+      <div className="flex items-center justify-center h-48 text-[var(--fg-muted)]">
+        <Loader2 className="w-5 h-5 animate-spin mr-2"/>
         {t('loadingAuditLogEllipsis')}
       </div>
     )
@@ -69,8 +69,8 @@ function AuditLogDetailContent({ id }: { id: string }) {
 
   if (isError || !log) {
     return (
-      <div className="flex items-center gap-2 text-red-600 p-4">
-        <AlertCircle className="w-5 h-5" />
+      <div className="flex items-center gap-2 text-[var(--danger-text)] p-4">
+        <AlertCircle className="w-5 h-5"/>
         <p>{t('auditLogNotFoundOrFailed')}</p>
       </div>
     )
@@ -84,21 +84,21 @@ function AuditLogDetailContent({ id }: { id: string }) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {/* Back */}
-      <Link href="/console/audit-logs" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-        <ArrowLeft className="w-3.5 h-3.5" />
+      <Link href="/console/audit-logs"className="inline-flex items-center gap-1 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)]">
+        <ArrowLeft className="w-3.5 h-3.5"/>
         {t('breadcrumbs.auditLogs')}
       </Link>
 
       {/* Header card */}
-      <div className="bg-white border rounded-xl p-6 space-y-4">
+      <div className="bg-[var(--card)] border rounded-xl p-6 space-y-4">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${log.severity === 'critical' ? 'bg-red-50' : log.severity === 'warning' ? 'bg-amber-50' : 'bg-blue-50'}`}>
-              <SeverityIcon className={`w-5 h-5 ${log.severity === 'critical' ? 'text-red-500' : log.severity === 'warning' ? 'text-amber-500' : 'text-blue-500'}`} />
+            <div className={`p-2 rounded-lg ${log.severity === 'critical' ? 'bg-[var(--danger-subtle)]' : log.severity === 'warning' ? 'bg-[var(--warning-subtle)]' : 'bg-[var(--info-subtle)]'}`}>
+              <SeverityIcon className={`w-5 h-5 ${log.severity === 'critical' ? 'text-[var(--danger-text)]' : log.severity === 'warning' ? 'text-[var(--rating)]' : 'text-[var(--info-text)]'}`} />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">{log.action}</h1>
-              <p className="text-sm text-gray-500 mt-0.5">{log.description}</p>
+              <h1 className="text-lg font-semibold text-[var(--fg)]">{log.action}</h1>
+              <p className="text-sm text-[var(--fg-muted)] mt-0.5">{log.description}</p>
             </div>
           </div>
           <Badge variant={SEVERITY_BADGE[log.severity]} className="capitalize">{log.severity}</Badge>
@@ -106,35 +106,35 @@ function AuditLogDetailContent({ id }: { id: string }) {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t text-sm">
           <div className="flex items-start gap-2">
-            <Clock className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+            <Clock className="w-4 h-4 text-[var(--fg-subtle)] mt-0.5 shrink-0"/>
             <div>
-              <p className="text-gray-400 text-xs">{t('timestampLabel')}</p>
-              <p className="font-medium text-gray-800">{new Date(log.timestamp).toLocaleString()}</p>
+              <p className="text-[var(--fg-subtle)] text-xs">{t('timestampLabel')}</p>
+              <p className="font-medium text-[var(--fg)]">{new Date(log.timestamp).toLocaleString()}</p>
             </div>
           </div>
           <div className="flex items-start gap-2">
-            <User className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+            <User className="w-4 h-4 text-[var(--fg-subtle)] mt-0.5 shrink-0"/>
             <div>
-              <p className="text-gray-400 text-xs">{t('actorColumnLabel')}</p>
-              <p className="font-medium text-gray-800">{log.actor?.name ?? '—'}</p>
-              <p className="text-xs text-gray-400">{log.actor?.roles?.join(', ') ?? ''}</p>
+              <p className="text-[var(--fg-subtle)] text-xs">{t('actorColumnLabel')}</p>
+              <p className="font-medium text-[var(--fg)]">{log.actor?.name ?? '—'}</p>
+              <p className="text-xs text-[var(--fg-subtle)]">{log.actor?.roles?.join(', ') ?? ''}</p>
             </div>
           </div>
           <div className="flex items-start gap-2">
-            <Tag className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+            <Tag className="w-4 h-4 text-[var(--fg-subtle)] mt-0.5 shrink-0"/>
             <div>
-              <p className="text-gray-400 text-xs">{t('targetLabel')}</p>
-              <p className="font-medium text-gray-800 capitalize">{log.target?.type ?? '—'}</p>
+              <p className="text-[var(--fg-subtle)] text-xs">{t('targetLabel')}</p>
+              <p className="font-medium text-[var(--fg)] capitalize">{log.target?.type ?? '—'}</p>
               {log.target?.id && (
                 <TargetLink type={log.target.type} id={log.target.id} />
               )}
             </div>
           </div>
           <div className="flex items-start gap-2">
-            <FileText className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+            <FileText className="w-4 h-4 text-[var(--fg-subtle)] mt-0.5 shrink-0"/>
             <div>
-              <p className="text-gray-400 text-xs">{t('logIdLabel')}</p>
-              <p className="font-mono text-xs text-gray-600 break-all">{log.id}</p>
+              <p className="text-[var(--fg-subtle)] text-xs">{t('logIdLabel')}</p>
+              <p className="font-mono text-xs text-[var(--fg-muted)] break-all">{log.id}</p>
             </div>
           </div>
         </div>
@@ -142,28 +142,28 @@ function AuditLogDetailContent({ id }: { id: string }) {
 
       {/* Changeset */}
       {changedKeys.length > 0 && (
-        <div className="bg-white border rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('changesLabel')}</h2>
+        <div className="bg-[var(--card)] border rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-[var(--fg-secondary)] mb-4">{t('changesLabel')}</h2>
           <div className="divide-y text-sm">
             {changedKeys.map((key) => (
               <div key={key} className="py-2 grid grid-cols-3 gap-4">
-                <span className="font-mono text-gray-600">{key}</span>
-                <span className="text-red-500 line-through">{JSON.stringify((log.changeset.before ?? {})[key] ?? null)}</span>
-                <span className="text-green-600">{JSON.stringify((log.changeset.after ?? {})[key] ?? null)}</span>
+                <span className="font-mono text-[var(--fg-muted)]">{key}</span>
+                <span className="text-[var(--danger-text)] line-through">{JSON.stringify((log.changeset.before ?? {})[key] ?? null)}</span>
+                <span className="text-[var(--success-text)]">{JSON.stringify((log.changeset.after ?? {})[key] ?? null)}</span>
               </div>
             ))}
           </div>
           {changedKeys.length === 0 && (
-            <p className="text-gray-400 text-sm">{t('noFieldLevelChangesRecorded')}</p>
+            <p className="text-[var(--fg-subtle)] text-sm">{t('noFieldLevelChangesRecorded')}</p>
           )}
         </div>
       )}
 
       {/* Metadata */}
       {log.metadata && Object.keys(log.metadata).length > 0 && (
-        <div className="bg-white border rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('metadataLabel')}</h2>
-          <pre className="text-xs bg-gray-50 p-3 rounded-lg overflow-x-auto text-gray-700">
+        <div className="bg-[var(--card)] border rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-[var(--fg-secondary)] mb-4">{t('metadataLabel')}</h2>
+          <pre className="text-xs bg-[var(--card-hover)] p-3 rounded-lg overflow-x-auto text-[var(--fg-secondary)]">
             {JSON.stringify(log.metadata, null, 2)}
           </pre>
         </div>
@@ -171,16 +171,16 @@ function AuditLogDetailContent({ id }: { id: string }) {
 
       {/* Recent actor activity */}
       {(timelineItems ?? []).flatMap((tl) => tl.events).length > 0 && (
-        <div className="bg-white border rounded-xl p-6">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('recentActivityByName', { name: log.actor?.name ?? '' })}</h2>
+        <div className="bg-[var(--card)] border rounded-xl p-6">
+          <h2 className="text-sm font-semibold text-[var(--fg-secondary)] mb-4">{t('recentActivityByName', { name: log.actor?.name ?? '' })}</h2>
           <div className="space-y-2">
             {(timelineItems ?? []).flatMap((tl) => tl.events).slice(0, 5).map((event) => (
               <div key={event.id} className="flex items-center justify-between text-sm py-1.5 border-b last:border-0">
                 <div className="flex items-center gap-2">
                   <Badge variant={SEVERITY_BADGE[event.severity]} className="text-xs capitalize">{event.severity}</Badge>
-                  <span className="text-gray-700">{event.action}</span>
+                  <span className="text-[var(--fg-secondary)]">{event.action}</span>
                 </div>
-                <span className="text-gray-400 text-xs">{new Date(event.timestamp).toLocaleTimeString()}</span>
+                <span className="text-[var(--fg-subtle)] text-xs">{new Date(event.timestamp).toLocaleTimeString()}</span>
               </div>
             ))}
           </div>
@@ -194,8 +194,8 @@ export default function AuditLogDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Audit Log Detail">
-      <PermissionGuard permission="audit.view" fallback={<AccessDenied />}>
-        <div className="min-h-screen bg-gray-50">
+      <PermissionGuard permission="audit.view"fallback={<AccessDenied />}>
+        <div className="min-h-screen bg-[var(--card-hover)]">
           <div className="pt-16">
             <AuditLogDetailContent id={id} />
           </div>

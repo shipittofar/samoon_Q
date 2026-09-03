@@ -64,11 +64,11 @@ export function ProductDetailMedia({
             priority={priority}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-orange-100 to-orange-50 dark:from-orange-950/30 dark:to-stone-900">
-            <span className="text-6xl opacity-30" aria-hidden="true">🍽️</span>
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--accent-subtle)] to-[var(--card-hover)]">
+            <span className="text-6xl opacity-30"aria-hidden="true">🍽️</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-black/20 to-transparent pointer-events-none"/>
 
         <div className="absolute top-3 start-3 flex flex-col gap-1.5">
           {item.is_new && <Badge variant="info">{newLabel}</Badge>}
@@ -86,7 +86,7 @@ export function ProductDetailMedia({
             className={cn(
               'h-9 w-9 rounded-full flex items-center justify-center transition-all shadow-[var(--shadow-soft)]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2',
-              favorited ? 'bg-red-500 text-white' : 'bg-white/80 backdrop-blur-sm text-[var(--fg-muted)] hover:bg-white',
+              favorited ? 'bg-[var(--danger)] text-[var(--danger-fg)]' : 'bg-white/80 backdrop-blur-sm text-[var(--fg-muted)] hover:bg-[var(--card)]',
               favoritePending && 'opacity-70 cursor-wait',
             )}
             aria-label={favorited ? unfavoriteLabel : favoriteLabel}
@@ -98,20 +98,20 @@ export function ProductDetailMedia({
             <button
               type="button"
               onClick={onShare}
-              className="h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[var(--fg-muted)] hover:bg-white transition-all shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+              className="h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[var(--fg-muted)] hover:bg-[var(--card)] transition-all shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
               aria-label={shareLabel}
             >
-              <Share2 className="h-4 w-4" />
+              <Share2 className="h-4 w-4"/>
             </button>
           )}
           {showClose && onClose && (
             <button
               type="button"
               onClick={onClose}
-              className="h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[var(--fg-muted)] hover:bg-white transition-all shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+              className="h-9 w-9 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-[var(--fg-muted)] hover:bg-[var(--card)] transition-all shadow-[var(--shadow-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
               aria-label={closeLabel}
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4"/>
             </button>
           )}
         </div>
@@ -131,7 +131,7 @@ export function ProductDetailMedia({
                 i === activeImage ? 'border-[var(--accent)]' : 'border-transparent opacity-70 hover:opacity-100',
               )}
             >
-              <Image src={src} alt="" fill className="object-cover" sizes="56px" />
+              <Image src={src} alt=""fill className="object-cover"sizes="56px"/>
             </button>
           ))}
         </div>

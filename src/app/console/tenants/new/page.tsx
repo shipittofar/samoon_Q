@@ -76,14 +76,14 @@ function formatFlagGroup(prefix: string): string {
 function StepIndicator({ current, total }: { current: number; total: number }) {
   const t = useTranslations('console')
   return (
-    <div className="flex items-center gap-2 mb-6" aria-label={t('stepOfTotalAria', { current, total })}>
+    <div className="flex items-center gap-2 mb-6"aria-label={t('stepOfTotalAria', { current, total })}>
       {Array.from({ length: total }, (_, i) => (
         <div
           key={i}
-          className={`h-2 flex-1 rounded-full ${i < current ? 'bg-accent' : 'bg-gray-200'}`}
+          className={`h-2 flex-1 rounded-full ${i < current ? 'bg-accent' : 'bg-[var(--border)]'}`}
         />
       ))}
-      <span className="text-sm text-gray-500 whitespace-nowrap">
+      <span className="text-sm text-[var(--fg-muted)] whitespace-nowrap">
         {current}/{total}
       </span>
     </div>
@@ -112,12 +112,12 @@ function ProvisionSuccessPanel({
   if (slugMissing) {
     return (
       <div aria-label={t('provisionErrorAria')}>
-        <p className="text-amber-700 font-semibold mb-2">{t('tenantProvisionedSuccessfully')}</p>
-        <p className="text-sm text-red-600 mb-4">{t('provisionSlugMissingHint')}</p>
+        <p className="text-[var(--warning-text)] font-semibold mb-2">{t('tenantProvisionedSuccessfully')}</p>
+        <p className="text-sm text-[var(--danger-text)] mb-4">{t('provisionSlugMissingHint')}</p>
         {responseName ? (
           <dl className="space-y-3 text-sm mb-4">
             <div>
-              <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
+              <dt className="font-medium text-[var(--fg-muted)]">{t('nameLabel')}</dt>
               <dd>{responseName}</dd>
             </div>
           </dl>
@@ -135,26 +135,26 @@ function ProvisionSuccessPanel({
 
   return (
     <div aria-label={t('provisionSuccessAria')}>
-      <p className="text-green-700 font-semibold mb-2">{t('tenantProvisionedSuccessfully')}</p>
+      <p className="text-[var(--success-text)] font-semibold mb-2">{t('tenantProvisionedSuccessfully')}</p>
       {isInactive ? (
-        <p className="text-sm text-gray-600 mb-4" data-testid="provision-inactive-explanation">
+        <p className="text-sm text-[var(--fg-muted)] mb-4"data-testid="provision-inactive-explanation">
           {t('provisionInactiveNoBranchExplanation')}
         </p>
       ) : null}
       <dl className="space-y-3 text-sm">
         <div>
-          <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
+          <dt className="font-medium text-[var(--fg-muted)]">{t('nameLabel')}</dt>
           <dd data-testid="provisioned-tenant-name">{responseName ?? '—'}</dd>
         </div>
         <div>
-          <dt className="font-medium text-gray-500">{t('slugLabel')}</dt>
-          <dd data-testid="provisioned-tenant-slug" className="font-mono">
+          <dt className="font-medium text-[var(--fg-muted)]">{t('slugLabel')}</dt>
+          <dd data-testid="provisioned-tenant-slug"className="font-mono">
             {responseSlug}
           </dd>
         </div>
         {status ? (
           <div>
-            <dt className="font-medium text-gray-500">{t('statusColumnLabel')}</dt>
+            <dt className="font-medium text-[var(--fg-muted)]">{t('statusColumnLabel')}</dt>
             <dd data-testid="provisioned-tenant-status">{t(tenantStatusLabelKey(status))}</dd>
           </div>
         ) : null}
@@ -319,12 +319,12 @@ export default function NewTenantPage() {
 
   return (
     <ErrorBoundary feature="New Tenant">
-    <PermissionGuard permission="tenant.manage" fallback={<AccessDenied />}>
+    <PermissionGuard permission="tenant.manage"fallback={<AccessDenied />}>
     <main ref={wizardRef} aria-label={t('newTenantWizardAria')} className="p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">{t('createNewTenantTitle')}</h1>
       <StepIndicator current={stepIndex + 1} total={TOTAL_STEPS} />
 
-      <h2 className="text-lg font-semibold mb-4" aria-label={t('stepColonLabel', { label: t(STEP_LABEL_KEYS[currentStep]) })}>
+      <h2 className="text-lg font-semibold mb-4"aria-label={t('stepColonLabel', { label: t(STEP_LABEL_KEYS[currentStep]) })}>
         {t('stepNumberColonLabel', { number: stepIndex + 1, label: t(STEP_LABEL_KEYS[currentStep]) })}
       </h2>
 
@@ -332,9 +332,9 @@ export default function NewTenantPage() {
       {currentStep === 'business-type' && (
         <section aria-label={t('stepNumberColonLabel', { number: 1, label: t('businessTypeLabel') })}>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1" htmlFor="tenant-name">
+            <label className="block text-sm font-medium mb-1"htmlFor="tenant-name">
               {t('tenantNameLabel')}{' '}
-              <span className="text-xs font-normal text-gray-400">{t('requiredLabel')}</span>
+              <span className="text-xs font-normal text-[var(--fg-subtle)]">{t('requiredLabel')}</span>
             </label>
             <input
               id="tenant-name"
@@ -349,19 +349,19 @@ export default function NewTenantPage() {
               aria-invalid={fieldErrors.name ? true : undefined}
               aria-describedby={fieldErrors.name ? 'tenant-name-error' : undefined}
               className={`w-full border rounded-lg px-3 py-2 text-sm ${
-                fieldErrors.name ? 'border-red-500' : ''
+                fieldErrors.name ? 'border-[var(--danger)]' : ''
               }`}
             />
             {fieldErrors.name ? (
-              <p id="tenant-name-error" role="alert" className="text-xs text-red-600 mt-1">
+              <p id="tenant-name-error"role="alert"className="text-xs text-[var(--danger-text)] mt-1">
                 {fieldErrors.name}
               </p>
             ) : null}
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-1" htmlFor="tenant-description">
+            <label className="block text-sm font-medium mb-1"htmlFor="tenant-description">
               {t('tenantDescriptionLabel')}{' '}
-              <span className="text-xs font-normal text-gray-400">{t('requiredLabel')}</span>
+              <span className="text-xs font-normal text-[var(--fg-subtle)]">{t('requiredLabel')}</span>
             </label>
             <textarea
               id="tenant-description"
@@ -376,17 +376,17 @@ export default function NewTenantPage() {
               aria-invalid={fieldErrors.description ? true : undefined}
               aria-describedby={fieldErrors.description ? 'tenant-description-error' : undefined}
               className={`w-full border rounded-lg px-3 py-2 text-sm ${
-                fieldErrors.description ? 'border-red-500' : ''
+                fieldErrors.description ? 'border-[var(--danger)]' : ''
               }`}
             />
             {fieldErrors.description ? (
-              <p id="tenant-description-error" role="alert" className="text-xs text-red-600 mt-1">
+              <p id="tenant-description-error"role="alert"className="text-xs text-[var(--danger-text)] mt-1">
                 {fieldErrors.description}
               </p>
             ) : null}
           </div>
           {/* <div className="mb-4">
-            <label className="block text-sm font-medium mb-1" htmlFor="tenant-slug">
+            <label className="block text-sm font-medium mb-1"htmlFor="tenant-slug">
               {t('slugLabel')}
             </label>
             <input
@@ -397,16 +397,16 @@ export default function NewTenantPage() {
               placeholder={t('tenantSlugPlaceholder')}
               className="w-full border rounded-lg px-3 py-2 text-sm"
             />
-            <p className="text-xs text-gray-500 mt-1">{t('slugCharsHint')}</p>
+            <p className="text-xs text-[var(--fg-muted)] mt-1">{t('slugCharsHint')}</p>
           </div> */}
           <div>
             <p className="block text-sm font-medium mb-2">
               {t('businessTypeLabel')}{' '}
-              <span className="text-xs font-normal text-gray-400">{t('requiredLabel')}</span>
+              <span className="text-xs font-normal text-[var(--fg-subtle)]">{t('requiredLabel')}</span>
             </p>
             <div
               className={`grid grid-cols-2 gap-3 ${
-                fieldErrors.businessType ? 'rounded-lg ring-1 ring-red-500 p-1 -m-1' : ''
+                fieldErrors.businessType ? 'rounded-lg ring-1 ring-[var(--danger)] p-1 -m-1' : ''
               }`}
               aria-label={t('businessTypeSelectionAria')}
               aria-invalid={fieldErrors.businessType ? true : undefined}
@@ -426,18 +426,18 @@ export default function NewTenantPage() {
                   className={`relative border rounded-lg p-3 text-sm text-left transition-colors ${
                     selected
                       ? 'border-accent bg-accent/5 font-semibold ring-2 ring-accent'
-                      : 'border-gray-200'
+                      : 'border-[var(--border)]'
                   }`}
                   aria-pressed={selected}
                 >
                   {selected ? (
                     <span className="absolute top-2 end-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-accent">
-                      <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                      <Check className="w-3.5 h-3.5"aria-hidden="true"/>
                       {t('fontSelectedLabel')}
                     </span>
                   ) : null}
                   <span className="block pr-16">{t(BUSINESS_TYPE_LABEL_KEYS[bt])}</span>
-                  <span className="block text-xs text-gray-500 mt-1 font-normal">
+                  <span className="block text-xs text-[var(--fg-muted)] mt-1 font-normal">
                     {tenantProvisioningService.getTemplate(bt).enabledCapabilities.join(', ')}
                   </span>
                 </button>
@@ -445,7 +445,7 @@ export default function NewTenantPage() {
               })}
             </div>
             {fieldErrors.businessType ? (
-              <p id="tenant-business-type-error" role="alert" className="text-xs text-red-600 mt-2">
+              <p id="tenant-business-type-error"role="alert"className="text-xs text-[var(--danger-text)] mt-2">
                 {fieldErrors.businessType}
               </p>
             ) : null}
@@ -456,21 +456,21 @@ export default function NewTenantPage() {
       {/* Step 2 — Capabilities */}
       {currentStep === 'capabilities' && (
         <section aria-label={t('stepNumberColonLabel', { number: 2, label: t('capabilitiesAria') })}>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-[var(--fg-muted)] mb-4">
             {t('requiredMenuOnlyHint')}
           </p>
           <div className="mb-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('requiredLabel')}</p>
+            <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide mb-2">{t('requiredLabel')}</p>
             {preset.required.map((flag) => (
               <div key={flag} className="flex items-center gap-2 py-1 opacity-60">
-                <input type="checkbox" checked readOnly aria-required="true" aria-label={flag} />
+                <input type="checkbox"checked readOnly aria-required="true"aria-label={flag} />
                 <span className="text-sm">{flag === 'menu.enabled' ? t('menuCapabilityLabel') : flag}</span>
-                <span className="text-xs text-gray-400">{t('alwaysOnParenthetical')}</span>
+                <span className="text-xs text-[var(--fg-subtle)]">{t('alwaysOnParenthetical')}</span>
               </div>
             ))}
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('optionalLabel')}</p>
+            <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-wide mb-2">{t('optionalLabel')}</p>
             {Object.entries(preset.optional).map(([flag, defaultVal]) => {
               const value = capabilityOverrides[flag] ?? defaultVal
               return (
@@ -495,7 +495,7 @@ export default function NewTenantPage() {
       {/* Step 3 — Branding */}
       {currentStep === 'branding' && (
         <section aria-label={t('stepNumberColonLabel', { number: 3, label: t('brandingDefaultsLabel') })}>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-[var(--fg-muted)] mb-4">
             {t('defaultsDerivedFromTemplateHint', { type: t(BUSINESS_TYPE_LABEL_KEYS[businessType]) })}
           </p>
           <BrandingDefaultsStep
@@ -515,13 +515,13 @@ export default function NewTenantPage() {
       {/* Step 4 — Feature Flags */}
       {currentStep === 'feature-flags' && (
         <section aria-label={t('stepNumberColonLabel', { number: 4, label: t('featureFlagsLabel') })}>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-[var(--fg-muted)] mb-4">
             {t('fineTuneFeatureFlagsHint')}
           </p>
-          <div className="space-y-5" data-testid="feature-flags-section">
+          <div className="space-y-5"data-testid="feature-flags-section">
             {groupFeatureFlags(generatedFlags).map(([prefix, items]) => (
-              <fieldset key={prefix} className="rounded-xl border border-gray-200 p-4">
-                <legend className="text-xs font-semibold uppercase tracking-wide text-gray-500 px-1">
+              <fieldset key={prefix} className="rounded-xl border border-[var(--border)] p-4">
+                <legend className="text-xs font-semibold uppercase tracking-wide text-[var(--fg-muted)] px-1">
                   {formatFlagGroup(prefix)}
                 </legend>
                 <div className="space-y-1 mt-1">
@@ -557,31 +557,31 @@ export default function NewTenantPage() {
         <section aria-label={t('stepNumberColonLabel', { number: 5, label: t('reviewLabel') })}>
           <dl className="space-y-3 text-sm">
             <div>
-              <dt className="font-medium text-gray-500">{t('nameLabel')}</dt>
-              <dd>{name || <span className="text-gray-400">{t('notSetLabel')}</span>}</dd>
+              <dt className="font-medium text-[var(--fg-muted)]">{t('nameLabel')}</dt>
+              <dd>{name || <span className="text-[var(--fg-subtle)]">{t('notSetLabel')}</span>}</dd>
             </div>
             {/* <div>
-              <dt className="font-medium text-gray-500">{t('slugLabel')}</dt>
-              <dd className="font-mono">{slug || <span className="text-red-500">{t('notSetLabel')}</span>}</dd>
+              <dt className="font-medium text-[var(--fg-muted)]">{t('slugLabel')}</dt>
+              <dd className="font-mono">{slug || <span className="text-[var(--danger-text)]">{t('notSetLabel')}</span>}</dd>
             </div> */}
             <div>
-              <dt className="font-medium text-gray-500">{t('businessTypeLabel')}</dt>
+              <dt className="font-medium text-[var(--fg-muted)]">{t('businessTypeLabel')}</dt>
               <dd>{t(BUSINESS_TYPE_LABEL_KEYS[businessType])}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">{t('enabledCapabilitiesLabel')}</dt>
+              <dt className="font-medium text-[var(--fg-muted)]">{t('enabledCapabilitiesLabel')}</dt>
               <dd>{template.enabledCapabilities.join(', ')}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">{t('primaryColorLabel')}</dt>
+              <dt className="font-medium text-[var(--fg-muted)]">{t('primaryColorLabel')}</dt>
               <dd>{branding.primaryColor ?? template.brandingDefaults.primaryColor ?? '—'}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">{t('logoUploadLabel')}</dt>
+              <dt className="font-medium text-[var(--fg-muted)]">{t('logoUploadLabel')}</dt>
               <dd>{logoFile ? logoFile.name : '—'}</dd>
             </div>
             <div>
-              <dt className="font-medium text-gray-500">{t('featureFlagsLabel')}</dt>
+              <dt className="font-medium text-[var(--fg-muted)]">{t('featureFlagsLabel')}</dt>
               <dd>
                 {Object.entries(generatedFlags)
                   .filter(([, v]) => v)
@@ -591,9 +591,9 @@ export default function NewTenantPage() {
             </div>
           </dl>
           {validationErrors.length > 0 && (
-            <ul className="mt-4 space-y-1" aria-label={t('validationErrorsAria')}>
+            <ul className="mt-4 space-y-1"aria-label={t('validationErrorsAria')}>
               {validationErrors.map((e) => (
-                <li key={e} className="text-red-600 text-sm">• {e}</li>
+                <li key={e} className="text-[var(--danger-text)] text-sm">• {e}</li>
               ))}
             </ul>
           )}
@@ -605,13 +605,13 @@ export default function NewTenantPage() {
         <section aria-label={t('stepNumberColonLabel', { number: 6, label: t('provisionLabel') })}>
           {!provisionResult ? (
             <>
-              <p className="text-sm text-gray-600 mb-6">
+              <p className="text-sm text-[var(--fg-muted)] mb-6">
                 {t('readyToProvisionAsType', { name, type: t(BUSINESS_TYPE_LABEL_KEYS[businessType]) })}
               </p>
               {validationErrors.length > 0 && (
-                <ul className="mb-4 space-y-1" aria-label={t('validationErrorsAria')}>
+                <ul className="mb-4 space-y-1"aria-label={t('validationErrorsAria')}>
                   {validationErrors.map((e) => (
-                    <li key={e} className="text-red-600 text-sm">• {e}</li>
+                    <li key={e} className="text-[var(--danger-text)] text-sm">• {e}</li>
                   ))}
                 </ul>
               )}
@@ -635,10 +635,10 @@ export default function NewTenantPage() {
             />
           ) : (
             <div aria-label={t('provisionErrorAria')}>
-              <p className="text-red-700 font-semibold mb-2">{t('provisioningFailedLabel')}</p>
+              <p className="text-[var(--danger-text)] font-semibold mb-2">{t('provisioningFailedLabel')}</p>
               <ul className="space-y-1">
                 {provisionResult.errors?.map((e) => (
-                  <li key={e} className="text-red-600 text-sm">• {e}</li>
+                  <li key={e} className="text-[var(--danger-text)] text-sm">• {e}</li>
                 ))}
               </ul>
             </div>

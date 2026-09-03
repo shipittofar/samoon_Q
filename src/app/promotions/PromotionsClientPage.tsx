@@ -43,15 +43,15 @@ function PromotionCard({ promo }: { promo: PromotionRule }) {
   const t = useTranslations('promotionsPage')
   const isActive = promotionService.isPromotionActive(promo)
   return (
-    <li className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
+    <li className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)]">
+            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent-text)]">
               {t(`types.${TYPE_KEYS[promo.type]}`)}
             </span>
             {isActive && (
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--success-subtle)] text-[var(--success-text)]">
                 {t('activeNow')}
               </span>
             )}
@@ -61,7 +61,7 @@ function PromotionCard({ promo }: { promo: PromotionRule }) {
           <p className="text-xs text-[var(--fg-muted)] mt-2">{formatScheduleSummary(promo, t)}</p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-lg font-bold text-[var(--primary)]">{formatDiscount(promo, t)}</p>
+          <p className="text-lg font-bold text-[var(--accent-text)]">{formatDiscount(promo, t)}</p>
         </div>
       </div>
     </li>
@@ -86,7 +86,7 @@ function PromotionsContent() {
     <div className="space-y-10">
       {/* Active Promotions */}
       <section aria-labelledby="active-heading">
-        <h2 id="active-heading" className="text-lg font-semibold text-[var(--fg)] mb-3">
+        <h2 id="active-heading"className="text-lg font-semibold text-[var(--fg)] mb-3">
           {t('activePromotions')}
         </h2>
         {!active?.length ? (
@@ -100,7 +100,7 @@ function PromotionsContent() {
 
       {/* Happy Hour Offers */}
       <section aria-labelledby="happy-hour-heading">
-        <h2 id="happy-hour-heading" className="text-lg font-semibold text-[var(--fg)] mb-3">
+        <h2 id="happy-hour-heading"className="text-lg font-semibold text-[var(--fg)] mb-3">
           {t('happyHourOffers')}
         </h2>
         {!happyHour.length ? (
@@ -114,7 +114,7 @@ function PromotionsContent() {
 
       {/* Upcoming Promotions */}
       <section aria-labelledby="upcoming-heading">
-        <h2 id="upcoming-heading" className="text-lg font-semibold text-[var(--fg)] mb-3">
+        <h2 id="upcoming-heading"className="text-lg font-semibold text-[var(--fg)] mb-3">
           {t('upcomingPromotions')}
         </h2>
         {!upcoming.length ? (
@@ -134,7 +134,7 @@ export function PromotionsClientPage() {
   return (
     <CapabilityGuard
       capability="menu"
-      fallback={<CapabilityNotAvailable capability="menu" />}
+      fallback={<CapabilityNotAvailable capability="menu"/>}
     >
       <main className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-[var(--fg)] mb-6">{t('promotionsAndOffers')}</h1>

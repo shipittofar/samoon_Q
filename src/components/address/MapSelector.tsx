@@ -88,14 +88,14 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
           onClick={handleCurrentLocation}
           loading={locating}
           disabled={disabled}
-          leftIcon={<Navigation className="h-4 w-4" />}
+          leftIcon={<Navigation className="h-4 w-4"/>}
         >
           {t('useCurrentLocation')}
         </Button>
       </div>
 
       {geoError && (
-        <p className="text-xs text-red-500" role="alert">{geoError}</p>
+        <p className="text-xs text-[var(--danger-text)]"role="alert">{geoError}</p>
       )}
 
       <div
@@ -116,7 +116,7 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
             {/* Pin overlay — visible even if tile marker fails */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
               <div className="relative -mt-8">
-                <MapPin className="h-10 w-10 text-orange-500 drop-shadow-lg" fill="currentColor" strokeWidth={1.5} />
+                <MapPin className="h-10 w-10 text-[var(--accent-text)] drop-shadow-lg"fill="currentColor"strokeWidth={1.5} />
               </div>
             </div>
             <div className="absolute bottom-2 start-2 end-2 rounded-lg bg-[var(--card)]/90 backdrop-blur-sm border border-[var(--border)] px-3 py-1.5 text-xs font-mono text-[var(--fg-muted)]">
@@ -126,7 +126,7 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
         ) : (
           <div className="flex flex-col items-center justify-center h-full min-h-[180px] text-center px-6 gap-3">
             <div className="h-14 w-14 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-center">
-              <MapPin className="h-7 w-7 text-[var(--fg-subtle)]" />
+              <MapPin className="h-7 w-7 text-[var(--fg-subtle)]"/>
             </div>
             <div>
               <p className="text-sm font-medium text-[var(--fg)]">{t('noCoordinatesTitle')}</p>

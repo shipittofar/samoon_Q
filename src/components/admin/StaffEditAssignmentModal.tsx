@@ -177,11 +177,11 @@ export function StaffEditAssignmentModal({
       <div className="space-y-6">
         {showAssignmentList && (
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-900">{t('locationAssignmentsLabel')}</h3>
+          <h3 className="text-sm font-semibold text-[var(--fg)]">{t('locationAssignmentsLabel')}</h3>
           {isLoading ? (
-            <p className="text-sm text-gray-500">{t('loadingEllipsis')}</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('loadingEllipsis')}</p>
           ) : assignments.length === 0 ? (
-            <p className="text-sm text-gray-500">{t('noAssignmentsYet')}</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('noAssignmentsYet')}</p>
           ) : (
             <div className="space-y-3">
               {assignments.map((a) => (
@@ -202,7 +202,7 @@ export function StaffEditAssignmentModal({
           onSubmit={formMode === 'create' ? handleCreate : handleUpdate}
           className={`space-y-4 ${showAssignmentList ? 'border-t pt-4' : ''}`}
         >
-          <h3 className="text-sm font-semibold text-gray-900">
+          <h3 className="text-sm font-semibold text-[var(--fg)]">
             {formMode === 'create' ? t('addAssignmentLabel') : t('editAssignmentLabel')}
           </h3>
 
@@ -232,14 +232,14 @@ export function StaffEditAssignmentModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+              className="rounded-md border px-4 py-2 text-sm hover:bg-[var(--card-hover)]"
             >
               {t('cancel')}
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-[var(--info)] px-4 py-2 text-sm font-medium text-[var(--info-fg)] disabled:opacity-50"
             >
               {pending
                 ? t('savingEllipsis')

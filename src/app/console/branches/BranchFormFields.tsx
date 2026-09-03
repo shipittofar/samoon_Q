@@ -69,17 +69,17 @@ export function BranchFormFields({
       checkout: { ...form.checkout, delivery: { ...form.checkout.delivery, ...patch } },
     })
 
-  const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400'
+  const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]'
 
   return (
     <div className="space-y-5">
       {/* Basic Info */}
-      <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
-        <legend className="text-sm font-semibold text-gray-700 px-1">{t('basicInformationLabel')}</legend>
+      <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
+        <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('basicInformationLabel')}</legend>
 
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="branch-name">
-            {t('nameLabel')} <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-name">
+            {t('nameLabel')} <span className="text-[var(--danger-text)]">*</span>
           </label>
           <input
             id="branch-name"
@@ -97,8 +97,8 @@ export function BranchFormFields({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="branch-slug">
-            {t('slugLabel')} <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-slug">
+            {t('slugLabel')} <span className="text-[var(--danger-text)]">*</span>
           </label>
           <input
             id="branch-slug"
@@ -109,11 +109,11 @@ export function BranchFormFields({
             required
             className={`${inputClass} font-mono`}
           />
-          <p className="text-xs text-gray-500 mt-1">{t('lowercaseSlugHint')}</p>
+          <p className="text-xs text-[var(--fg-muted)] mt-1">{t('lowercaseSlugHint')}</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="branch-description">{t('descriptionLabel')}</label>
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-description">{t('descriptionLabel')}</label>
           <textarea
             id="branch-description"
             value={form.description}
@@ -124,7 +124,7 @@ export function BranchFormFields({
         </div>
 
         <div>
-          <p className="block text-sm font-medium mb-2">{t('tableHeaders.type')} <span className="text-red-500">*</span></p>
+          <p className="block text-sm font-medium mb-2">{t('tableHeaders.type')} <span className="text-[var(--danger-text)]">*</span></p>
           <div className="flex gap-3">
             {(['physical', 'mobile'] as const).map((bt) => (
               <button
@@ -132,7 +132,7 @@ export function BranchFormFields({
                 type="button"
                 onClick={() => set('type', bt)}
                 className={`flex-1 border rounded-lg py-2 text-sm capitalize transition-colors ${
-                  form.type === bt ? 'border-orange-500 bg-orange-50 text-orange-700 font-semibold' : 'border-gray-200 hover:border-gray-300'
+                  form.type === bt ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)] text-[var(--accent-text)] font-semibold' : 'border-[var(--border)] hover:border-[var(--border-input)]'
                 }`}
                 aria-pressed={form.type === bt}
               >
@@ -143,61 +143,61 @@ export function BranchFormFields({
         </div>
 
         <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input type="checkbox" checked={form.isDefault} onChange={(e) => set('isDefault', e.target.checked)} className="rounded" />
+          <input type="checkbox"checked={form.isDefault} onChange={(e) => set('isDefault', e.target.checked)} className="rounded"/>
           {t('defaultBranchLabel')}
         </label>
       </fieldset>
 
       {/* Location */}
-      <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
-        <legend className="text-sm font-semibold text-gray-700 px-1">{t('locationLabel')}</legend>
+      <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
+        <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('locationLabel')}</legend>
 
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="branch-address">
-            {t('addressLabel')} <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-address">
+            {t('addressLabel')} <span className="text-[var(--danger-text)]">*</span>
           </label>
-          <input id="branch-address" type="text" value={form.address} onChange={(e) => set('address', e.target.value)} required className={inputClass} />
+          <input id="branch-address"type="text"value={form.address} onChange={(e) => set('address', e.target.value)} required className={inputClass} />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-city">
-              {t('cityLabel')} <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-city">
+              {t('cityLabel')} <span className="text-[var(--danger-text)]">*</span>
             </label>
-            <input id="branch-city" type="text" value={form.city} onChange={(e) => set('city', e.target.value)} required className={inputClass} />
+            <input id="branch-city"type="text"value={form.city} onChange={(e) => set('city', e.target.value)} required className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-country">
-              {t('countryLabel')} <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-country">
+              {t('countryLabel')} <span className="text-[var(--danger-text)]">*</span>
             </label>
-            <input id="branch-country" type="text" value={form.country} onChange={(e) => set('country', e.target.value)} required className={inputClass} />
+            <input id="branch-country"type="text"value={form.country} onChange={(e) => set('country', e.target.value)} required className={inputClass} />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="branch-postal">{t('postalCodeLabel')}</label>
-          <input id="branch-postal" type="text" value={form.postalCode} onChange={(e) => set('postalCode', e.target.value)} className={inputClass} />
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-postal">{t('postalCodeLabel')}</label>
+          <input id="branch-postal"type="text"value={form.postalCode} onChange={(e) => set('postalCode', e.target.value)} className={inputClass} />
         </div>
       </fieldset>
 
       {/* Contact */}
-      <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
-        <legend className="text-sm font-semibold text-gray-700 px-1">{t('contactOptionalLabel')}</legend>
+      <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
+        <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('contactOptionalLabel')}</legend>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-phone_number">{t('phoneLabel')}</label>
-            <input id="branch-phone_number" type="tel" value={form.phone_number} onChange={(e) => set('phone_number', e.target.value)} placeholder="+1 212 555 0100" className={inputClass} />
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-phone_number">{t('phoneLabel')}</label>
+            <input id="branch-phone_number"type="tel"value={form.phone_number} onChange={(e) => set('phone_number', e.target.value)} placeholder="+1 212 555 0100"className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-email">{t('emailLabel')}</label>
-            <input id="branch-email" type="email" value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="branch@example.com" className={inputClass} />
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-email">{t('emailLabel')}</label>
+            <input id="branch-email"type="email"value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="branch@example.com"className={inputClass} />
           </div>
         </div>
       </fieldset>
 
       {/* Branding */}
-      <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
-        <legend className="text-sm font-semibold text-gray-700 px-1">{t('brandingLabel')}</legend>
+      <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
+        <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('brandingLabel')}</legend>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ImageUploader
             id="branch-image"
@@ -223,27 +223,27 @@ export function BranchFormFields({
       </fieldset>
 
       {/* Locale */}
-      <fieldset className="space-y-4 rounded-lg border border-gray-200 p-4">
-        <legend className="text-sm font-semibold text-gray-700 px-1">{t('localeLabel')}</legend>
+      <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
+        <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('localeLabel')}</legend>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-timezone">{t('timeZoneLabel')}</label>
-            <input id="branch-timezone" type="text" value={form.timeZone} onChange={(e) => set('timeZone', e.target.value)} placeholder="America/New_York" className={inputClass} />
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-timezone">{t('timeZoneLabel')}</label>
+            <input id="branch-timezone"type="text"value={form.timeZone} onChange={(e) => set('timeZone', e.target.value)} placeholder="America/New_York"className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-currency">{t('currencyLabel')}</label>
-            <input id="branch-currency" type="text" value={form.currency} onChange={(e) => set('currency', e.target.value.toUpperCase())} placeholder="USD" className={`${inputClass} font-mono`} maxLength={3} />
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-currency">{t('currencyLabel')}</label>
+            <input id="branch-currency"type="text"value={form.currency} onChange={(e) => set('currency', e.target.value.toUpperCase())} placeholder="USD"className={`${inputClass} font-mono`} maxLength={3} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-language">{t('languageLabel')}</label>
-            <input id="branch-language" type="text" value={form.language} onChange={(e) => set('language', e.target.value.toLowerCase())} placeholder="en" className={`${inputClass} font-mono`} maxLength={5} />
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-language">{t('languageLabel')}</label>
+            <input id="branch-language"type="text"value={form.language} onChange={(e) => set('language', e.target.value.toLowerCase())} placeholder="en"className={`${inputClass} font-mono`} maxLength={5} />
           </div>
         </div>
       </fieldset>
 
       {/* Checkout / ordering */}
-      <fieldset className="space-y-3 rounded-lg border border-gray-200 p-4">
-        <legend className="text-sm font-semibold text-gray-700 px-1">{t('settingsTitle')}</legend>
+      <fieldset className="space-y-3 rounded-lg border border-[var(--border)] p-4">
+        <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('settingsTitle')}</legend>
 
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
@@ -256,7 +256,7 @@ export function BranchFormFields({
         </label>
 
         <div className="pt-2 space-y-2">
-          <p className="text-sm font-medium text-gray-700">{tCheckout('orderType')}</p>
+          <p className="text-sm font-medium text-[var(--fg-secondary)]">{tCheckout('orderType')}</p>
           {Object.entries(form.checkout.orderTypes)
             .filter(([key]) => key !== 'default')
             .map(([key]) => (
@@ -273,7 +273,7 @@ export function BranchFormFields({
         </div>
 
         <div className="pt-2 space-y-2">
-          <p className="text-sm font-medium text-gray-700">{tCheckout('paymentMethod')}</p>
+          <p className="text-sm font-medium text-[var(--fg-secondary)]">{tCheckout('paymentMethod')}</p>
           {Object.entries(form.checkout.payments)
             .filter(([key]) => key !== 'default')
             .map(([key]) => (
@@ -290,9 +290,9 @@ export function BranchFormFields({
         </div>
 
         <div className="pt-2 space-y-2">
-          <p className="text-sm font-medium text-gray-700">{tCheckout('delivery')}</p>
+          <p className="text-sm font-medium text-[var(--fg-secondary)]">{tCheckout('delivery')}</p>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-delivery-radius">{tCheckout('deliveryRadiusKm')}</label>
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-delivery-radius">{tCheckout('deliveryRadiusKm')}</label>
             <input
               id="branch-delivery-radius"
               type="number"
@@ -303,7 +303,7 @@ export function BranchFormFields({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1" htmlFor="branch-minimum-order">{tCheckout('minimumOrderAmount')}</label>
+            <label className="block text-sm font-medium mb-1"htmlFor="branch-minimum-order">{tCheckout('minimumOrderAmount')}</label>
             <input
               id="branch-minimum-order"
               type="text"
@@ -328,7 +328,7 @@ export function BranchFormFields({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="branch-default-order-type">
+              <label className="block text-sm font-medium mb-1"htmlFor="branch-default-order-type">
                 {tCheckout('orderType')} ({t('defaultLabel')})
               </label>
               <select
@@ -348,7 +348,7 @@ export function BranchFormFields({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="branch-default-payment">
+              <label className="block text-sm font-medium mb-1"htmlFor="branch-default-payment">
                 {tCheckout('paymentMethod')} ({t('defaultLabel')})
               </label>
               <select
@@ -391,7 +391,7 @@ export function BranchFormFields({
         </label>
 
         <div className="pt-2">
-          <label className="block text-sm font-medium mb-1" htmlFor="branch-max-capacity">{t('maxCapacityLabel')}</label>
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-max-capacity">{t('maxCapacityLabel')}</label>
           <input
             id="branch-max-capacity"
             type="number"
@@ -403,7 +403,7 @@ export function BranchFormFields({
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="branch-cuisines">
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-cuisines">
             {t('cuisinesSpecialtiesLabel')}
           </label>
           <input
@@ -414,11 +414,11 @@ export function BranchFormFields({
             placeholder={t('cuisinesExamplePlaceholder')}
             className={inputClass}
           />
-          <p className="text-xs text-gray-400 mt-1">{t('commaSeparatedSearchHint')}</p>
+          <p className="text-xs text-[var(--fg-subtle)] mt-1">{t('commaSeparatedSearchHint')}</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="branch-amenities">
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-amenities">
             {t('amenitiesLabel')}
           </label>
           <input
@@ -429,18 +429,18 @@ export function BranchFormFields({
             placeholder={t('amenitiesExamplePlaceholder')}
             className={inputClass}
           />
-          <p className="text-xs text-gray-400 mt-1">{t('amenitiesHint')}</p>
+          <p className="text-xs text-[var(--fg-subtle)] mt-1">{t('amenitiesHint')}</p>
         </div>
       </fieldset>
 
       {/* Working Hours */}
-      <fieldset className="space-y-3 rounded-lg border border-gray-200 p-4">
-        <legend className="text-sm font-semibold text-gray-700 px-1">{t('workingHoursLabel')}</legend>
+      <fieldset className="space-y-3 rounded-lg border border-[var(--border)] p-4">
+        <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('workingHoursLabel')}</legend>
         <div className="space-y-2">
           {form.businessHours.map((h) => (
             <div key={h.day} className="flex items-center gap-3 flex-wrap">
               <span className="w-24 text-sm font-medium shrink-0">{h.day}</span>
-              <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer shrink-0">
+              <label className="flex items-center gap-1.5 text-xs text-[var(--fg-muted)] cursor-pointer shrink-0">
                 <input
                   type="checkbox"
                   checked={h.isClosed}
@@ -458,7 +458,7 @@ export function BranchFormFields({
                     aria-label={t('openTimeAria', { day: h.day })}
                     className="border rounded-lg px-2 py-1 text-sm"
                   />
-                  <span className="text-gray-400 text-sm">–</span>
+                  <span className="text-[var(--fg-subtle)] text-sm">–</span>
                   <input
                     type="time"
                     value={h.close}

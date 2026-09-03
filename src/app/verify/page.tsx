@@ -4,7 +4,7 @@
  * P8.9.2 — OTP verification page (/verify).
  *
  * Full phone_number-auth verification screen. Mock behavior:
- *  - Code '000000' always fails (error-state UX demo)
+ *  - Code '000000'always fails (error-state UX demo)
  *  - Any other 6-digit code succeeds
  *  - Known demo phones → login as demo user → role-aware redirect
  *  - Unknown phones → /complete-profile (new user registration)
@@ -166,7 +166,7 @@ function VerifyPageInner() {
           href="/login"
           className="inline-flex items-center gap-1.5 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors mb-8 group"
         >
-          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" aria-hidden="true" />
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform"aria-hidden="true"/>
           {tCommon('back')}
         </Link>
 
@@ -191,21 +191,21 @@ function VerifyPageInner() {
                 initial={{ scale: prefersReducedMotion ? 1 : 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', damping: 12, stiffness: 200, delay: 0.1 }}
-                className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-green-100 dark:bg-green-900/30 mb-6 mx-auto"
+                className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-[var(--success-subtle)] mb-6 mx-auto"
               >
-                <CheckCircle2 className="h-10 w-10 text-green-500" aria-hidden="true" />
+                <CheckCircle2 className="h-10 w-10 text-[var(--success-text)]"aria-hidden="true"/>
               </motion.div>
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
                 {t('verified')}
               </h1>
               <p className="text-[var(--fg-muted)]">{t('takingYouToAccount')}</p>
-              <span role="status" className="sr-only">{t('phoneVerifiedRedirecting')}</span>
+              <span role="status"className="sr-only">{t('phoneVerifiedRedirecting')}</span>
             </motion.div>
           ) : state === 'tooManyAttempts' ? (
             /* ── Too many attempts ── */
-            <motion.div key="locked" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-4">
-              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-4 mx-auto">
-                <Phone className="h-8 w-8 text-red-500" aria-hidden="true" />
+            <motion.div key="locked"initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-4">
+              <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-[var(--danger-subtle)] mb-4 mx-auto">
+                <Phone className="h-8 w-8 text-[var(--danger-text)]"aria-hidden="true"/>
               </div>
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
                 {t('tooManyAttemptsHeading')}
@@ -217,7 +217,7 @@ function VerifyPageInner() {
                 type="button"
                 onClick={handleResend}
                 loading={isResending}
-                leftIcon={<RefreshCw className="h-4 w-4" />}
+                leftIcon={<RefreshCw className="h-4 w-4"/>}
                 className="w-full"
                 size="lg"
               >
@@ -226,7 +226,7 @@ function VerifyPageInner() {
             </motion.div>
           ) : (
             /* ── Normal / verifying / invalid states ── */
-            <motion.div key="entry" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <motion.div key="entry"initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <h1 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-2">
                 {t('enterTheCode')}
               </h1>
@@ -256,7 +256,7 @@ function VerifyPageInner() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     role="alert"
-                    className="text-center text-sm text-red-500 mb-4"
+                    className="text-center text-sm text-[var(--danger-text)] mb-4"
                   >
                     {t('wrongCodeAttemptsRemaining', { count: MAX_ATTEMPTS - attempts })}
                   </motion.p>
@@ -282,9 +282,9 @@ function VerifyPageInner() {
                     type="button"
                     onClick={handleResend}
                     disabled={isResending}
-                    className="inline-flex items-center gap-1.5 text-sm text-orange-500 hover:text-orange-600 transition-colors disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors disabled:opacity-50"
                   >
-                    <RefreshCw className={`h-3.5 w-3.5 ${isResending ? 'animate-spin' : ''}`} aria-hidden="true" />
+                    <RefreshCw className={`h-3.5 w-3.5 ${isResending ? 'animate-spin' : ''}`} aria-hidden="true"/>
                     {isResending ? t('sendingResend') : t('resendCode')}
                   </button>
                 ) : (
@@ -322,7 +322,7 @@ function VerifyPageFallback() {
   const tCommon = useTranslations('common')
   return (
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
-      <div className="h-8 w-8 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" aria-label={tCommon('loading')} />
+      <div className="h-8 w-8 rounded-full border-2 border-[var(--accent-border)] border-t-transparent animate-spin"aria-label={tCommon('loading')} />
     </div>
   )
 }

@@ -240,7 +240,7 @@ function CheckoutContent() {
           <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('emptyCartTitle')}</h2>
           <p className="text-[var(--fg-muted)]">{t('emptyCartDesc')}</p>
           <Link href="/menu">
-            <Button leftIcon={<ArrowLeft className="h-4 w-4" />}>{tCart('browseMenu')}</Button>
+            <Button leftIcon={<ArrowLeft className="h-4 w-4"/>}>{tCart('browseMenu')}</Button>
           </Link>
         </div>
       </div>
@@ -259,11 +259,11 @@ function CheckoutContent() {
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
-          <MapPin className="h-12 w-12 text-[var(--fg-subtle)]" />
+          <MapPin className="h-12 w-12 text-[var(--fg-subtle)]"/>
           <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('noBranchSelectedTitle')}</h2>
           <p className="text-[var(--fg-muted)]">{t('noBranchSelectedDesc')}</p>
           <Link href="/menu">
-            <Button leftIcon={<ArrowLeft className="h-4 w-4" />}>{tCart('browseMenu')}</Button>
+            <Button leftIcon={<ArrowLeft className="h-4 w-4"/>}>{tCart('browseMenu')}</Button>
           </Link>
         </div>
       </div>
@@ -275,11 +275,11 @@ function CheckoutContent() {
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
-          <Package className="h-12 w-12 text-[var(--fg-subtle)]" />
+          <Package className="h-12 w-12 text-[var(--fg-subtle)]"/>
           <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('orderingDisabledTitle')}</h2>
           <p className="text-[var(--fg-muted)]">{t('orderingDisabledDesc')}</p>
           <Link href="/menu">
-            <Button leftIcon={<ArrowLeft className="h-4 w-4" />}>{tCart('browseMenu')}</Button>
+            <Button leftIcon={<ArrowLeft className="h-4 w-4"/>}>{tCart('browseMenu')}</Button>
           </Link>
         </div>
       </div>
@@ -423,8 +423,8 @@ function CheckoutContent() {
           {/* Header */}
           <div className="mb-8 flex items-center gap-4">
             <Link href="/menu">
-              <Button variant="ghost" size="icon-sm" aria-label={t('backToMenuAria')}>
-                <ArrowLeft className="h-4 w-4" />
+              <Button variant="ghost"size="icon-sm"aria-label={t('backToMenuAria')}>
+                <ArrowLeft className="h-4 w-4"/>
               </Button>
             </Link>
             <div>
@@ -437,19 +437,19 @@ function CheckoutContent() {
           <div className="flex items-center gap-3 mb-8">
             {(['details', 'payment'] as const).map((s, i) => (
               <div key={s} className="flex items-center gap-3">
-                <div className={cn('flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all', step === s ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : i < ['details','payment'].indexOf(step) ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600' : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)]')}>
-                  {i < ['details','payment'].indexOf(step) ? <CheckCircle2 className="h-3.5 w-3.5" /> : <span className="h-4 w-4 rounded-full border-2 border-current flex items-center justify-center text-[10px]">{i + 1}</span>}
+                <div className={cn('flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all', step === s ? 'bg-[var(--accent)] text-[var(--accent-fg)] shadow-lg shadow-[var(--accent)]/30' : i < ['details','payment'].indexOf(step) ? 'bg-[var(--success-subtle)] text-[var(--success-text)]' : 'bg-[var(--card)] border border-[var(--border)] text-[var(--fg-muted)]')}>
+                  {i < ['details','payment'].indexOf(step) ? <CheckCircle2 className="h-3.5 w-3.5"/> : <span className="h-4 w-4 rounded-full border-2 border-current flex items-center justify-center text-[10px]">{i + 1}</span>}
                   <span>{s === 'details' ? t('stepDetails') : t('stepPayment')}</span>
                 </div>
-                {i < 1 && <ChevronRight className="h-4 w-4 text-[var(--fg-subtle)]" />}
+                {i < 1 && <ChevronRight className="h-4 w-4 text-[var(--fg-subtle)]"/>}
               </div>
             ))}
           </div>
 
           {/* P4.4 — Dine-in context banner when arriving from QR scan */}
           {findCheckoutOrderTypeOption(checkoutConfig, orderType || paramOrderType || '')?.requiresTableNumber && initialTableNumber && (
-            <div className="mb-6 flex items-center gap-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-2xl px-5 py-3 text-sm text-orange-700 dark:text-orange-300">
-              <UtensilsCrossed className="h-4 w-4 shrink-0" />
+            <div className="mb-6 flex items-center gap-3 bg-[var(--accent-subtle)] border border-[var(--accent-border)]/40 rounded-2xl px-5 py-3 text-sm text-[var(--accent-text)]">
+              <UtensilsCrossed className="h-4 w-4 shrink-0"/>
               <span>{t('dineInBanner', { table: initialTableNumber })}</span>
             </div>
           )}
@@ -460,7 +460,7 @@ function CheckoutContent() {
               <AnimatePresence mode="wait">
                 {/* ── Step 1: Details ── */}
                 {step === 'details' && (
-                  <motion.div key="details" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
+                  <motion.div key="details"initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="space-y-6">
                     {/* Order Type */}
                     <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
                       <h2 className="font-semibold text-[var(--fg)] mb-4">{t('orderType')}</h2>
@@ -473,12 +473,12 @@ function CheckoutContent() {
                             className={cn(
                               'flex flex-col items-center gap-2 p-4 rounded-xl border-2 text-center transition-all',
                               orderType === type.wireType
-                                ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
-                                : 'border-[var(--border)] hover:border-orange-200',
+                                ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)]'
+                                : 'border-[var(--border)] hover:border-[var(--accent-border)]/50',
                             )}
                           >
-                            <type.icon className={cn('h-5 w-5', orderType === type.wireType ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
-                            <span className={cn('text-sm font-medium', orderType === type.wireType ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{type.label}</span>
+                            <type.icon className={cn('h-5 w-5', orderType === type.wireType ? 'text-[var(--accent-text)]' : 'text-[var(--fg-muted)]')} />
+                            <span className={cn('text-sm font-medium', orderType === type.wireType ? 'text-[var(--accent-text)]' : 'text-[var(--fg)]')}>{type.label}</span>
                             {type.desc ? <span className="text-xs text-[var(--fg-muted)]">{type.desc}</span> : null}
                           </button>
                         ))}
@@ -491,8 +491,8 @@ function CheckoutContent() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input label={tAuth('firstName')} required {...register('first_name')} error={errors.first_name?.message ? tValidation(errors.first_name.message) : undefined} />
                         <Input label={tAuth('lastName')} required {...register('last_name')} error={errors.last_name?.message ? tValidation(errors.last_name.message) : undefined} />
-                        <Input label={tAuth('email')} type="email" required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
-                        <Input label={tAuth('phone_number')} type="tel" required {...register('phone_number')} error={errors.phone_number?.message ? tValidation(errors.phone_number.message) : undefined} />
+                        <Input label={tAuth('email')} type="email"required {...register('email')} error={errors.email?.message ? tValidation(errors.email.message) : undefined} />
+                        <Input label={tAuth('phone_number')} type="tel"required {...register('phone_number')} error={errors.phone_number?.message ? tValidation(errors.phone_number.message) : undefined} />
                       </div>
                     </div>
 
@@ -501,7 +501,7 @@ function CheckoutContent() {
                       {selectedOrderOption?.requiresDeliveryAddress && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 space-y-4">
                           <h2 className="font-semibold text-[var(--fg)] flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-orange-500" /> {t('deliveryAddress')}
+                            <MapPin className="h-4 w-4 text-[var(--accent-text)]"/> {t('deliveryAddress')}
                           </h2>
                           <AddressPicker value={addressPicker} onChange={setAddressPicker} />
                           {serviceabilityLoading && (
@@ -509,7 +509,7 @@ function CheckoutContent() {
                           )}
                           {serviceability && <DeliveryInfoCard result={serviceability} checkout={checkoutConfig} />}
                           {serviceability && !serviceability.deliverable && (
-                            <p className="text-sm text-amber-600" role="alert">{t('cannotDeliverHere')}</p>
+                            <p className="text-sm text-[var(--warning-text)]"role="alert">{t('cannotDeliverHere')}</p>
                           )}
                         </motion.div>
                       )}
@@ -528,7 +528,7 @@ function CheckoutContent() {
                         {...register('notes')}
                         rows={3}
                         placeholder={t('notesPlaceholder')}
-                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 transition-all"
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--input-bg)] px-4 py-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] resize-none focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)] transition-all"
                       />
                     </div>
 
@@ -536,7 +536,7 @@ function CheckoutContent() {
                       type="button"
                       className="w-full"
                       size="lg"
-                      rightIcon={<ChevronRight className="h-4 w-4" />}
+                      rightIcon={<ChevronRight className="h-4 w-4"/>}
                       disabled={!canContinueToPayment}
                       onClick={() => {
                         if (!canContinueToPayment) return
@@ -550,7 +550,7 @@ function CheckoutContent() {
 
                 {/* ── Step 2: Payment ── */}
                 {step === 'payment' && (
-                  <motion.div key="payment" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                  <motion.div key="payment"initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
 
                     {!showStripeForm && (
                       <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6">
@@ -568,19 +568,19 @@ function CheckoutContent() {
                               className={cn(
                                 'flex items-center gap-4 w-full p-4 rounded-xl border-2 text-start transition-all',
                                 paymentMethod === method.wireMethod
-                                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
-                                  : 'border-[var(--border)] hover:border-orange-200',
+                                  ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)]'
+                                  : 'border-[var(--border)] hover:border-[var(--accent-border)]/50',
                               )}
                             >
-                              <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', paymentMethod === method.wireMethod ? 'bg-orange-500/20' : 'bg-[var(--card-hover)]')}>
-                                <method.icon className={cn('h-5 w-5', paymentMethod === method.wireMethod ? 'text-orange-500' : 'text-[var(--fg-muted)]')} />
+                              <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center', paymentMethod === method.wireMethod ? 'bg-[var(--accent)]/20' : 'bg-[var(--card-hover)]')}>
+                                <method.icon className={cn('h-5 w-5', paymentMethod === method.wireMethod ? 'text-[var(--accent-text)]' : 'text-[var(--fg-muted)]')} />
                               </div>
                               <div className="flex-1">
-                                <p className={cn('text-sm font-medium', paymentMethod === method.wireMethod ? 'text-orange-600 dark:text-orange-400' : 'text-[var(--fg)]')}>{method.label}</p>
+                                <p className={cn('text-sm font-medium', paymentMethod === method.wireMethod ? 'text-[var(--accent-text)]' : 'text-[var(--fg)]')}>{method.label}</p>
                                 {method.desc ? <p className="text-xs text-[var(--fg-muted)]">{method.desc}</p> : null}
                               </div>
-                              <div className={cn('h-4 w-4 rounded-full border-2 transition-all', paymentMethod === method.wireMethod ? 'border-orange-500 bg-orange-500' : 'border-[var(--border-strong)]')}>
-                                {paymentMethod === method.wireMethod && <div className="h-full w-full rounded-full bg-white scale-50" />}
+                              <div className={cn('h-4 w-4 rounded-full border-2 transition-all', paymentMethod === method.wireMethod ? 'border-[var(--accent-border)] bg-[var(--accent)]' : 'border-[var(--border-strong)]')}>
+                                {paymentMethod === method.wireMethod && <div className="h-full w-full rounded-full bg-[var(--card)] scale-50"/>}
                               </div>
                             </button>
                           ))}
@@ -597,7 +597,7 @@ function CheckoutContent() {
                       >
                         <div className="flex items-center justify-between mb-4">
                           <h2 className="font-semibold text-[var(--fg)] flex items-center gap-2">
-                            <CreditCard className="h-4 w-4 text-orange-500" /> {t('cardPayment')}
+                            <CreditCard className="h-4 w-4 text-[var(--accent-text)]"/> {t('cardPayment')}
                           </h2>
                           <button
                             type="button"
@@ -617,7 +617,7 @@ function CheckoutContent() {
                     )}
 
                     {paymentError && !showStripeForm && (
-                      <div className="text-sm text-red-600 bg-red-50 dark:bg-red-950/20 rounded-xl p-3">
+                      <div className="text-sm text-[var(--danger-text)] bg-[var(--danger-subtle)] rounded-xl p-3">
                         {paymentError}
                       </div>
                     )}
@@ -625,7 +625,7 @@ function CheckoutContent() {
                     {!showStripeForm && (
                       <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="flex gap-3">
-                          <Button type="button" variant="secondary" onClick={() => setStep('details')} leftIcon={<ArrowLeft className="h-4 w-4" />}>
+                          <Button type="button"variant="secondary"onClick={() => setStep('details')} leftIcon={<ArrowLeft className="h-4 w-4"/>}>
                             {tCommon('back')}
                           </Button>
                           <Button
@@ -634,7 +634,7 @@ function CheckoutContent() {
                             size="lg"
                             loading={isPending || isCreatingIntent}
                             disabled={!canPlaceOrder}
-                            leftIcon={<Lock className="h-4 w-4" />}
+                            leftIcon={<Lock className="h-4 w-4"/>}
                           >
                             {paymentMethod === 'card'
                               ? isCreatingIntent ? t('preparingPayment') : t('payWithCard', { total: formatCurrency(total, branchCurrency) })
@@ -657,7 +657,7 @@ function CheckoutContent() {
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-3 items-start">
                       <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 bg-[var(--card-hover)]">
-                        <Image src={item.menu_item.image} alt={item.menu_item.name} fill className="object-cover" sizes="48px" />
+                        <Image src={item.menu_item.image} alt={item.menu_item.name} fill className="object-cover"sizes="48px"/>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-[var(--fg)] truncate">{item.menu_item.name}</p>
@@ -669,16 +669,16 @@ function CheckoutContent() {
                   ))}
                 </div>
 
-                <Divider className="my-4" />
+                <Divider className="my-4"/>
 
                 <div className="space-y-2.5 text-sm">
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('subtotal')}</span><span>{formatCurrency(subtotal, branchCurrency)}</span></div>
                   {belowMinimum && minimumOrderAmount != null && (
-                    <p className="text-amber-600 text-xs" role="alert">
+                    <p className="text-[var(--warning-text)] text-xs"role="alert">
                       {tAddressServiceability('minimumOrder', { amount: formatCurrency(minimumOrderAmount, branchCurrency) })}
                     </p>
                   )}
-                  {discountAmount > 0 && <div className="flex justify-between text-emerald-600"><span>{tCart('discount')}</span><span>−{formatCurrency(discountAmount, branchCurrency)}</span></div>}
+                  {discountAmount > 0 && <div className="flex justify-between text-[var(--success-text)]"><span>{tCart('discount')}</span><span>−{formatCurrency(discountAmount, branchCurrency)}</span></div>}
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('tax')}</span><span>{formatCurrency(tax, branchCurrency)}</span></div>
                   <div className="flex justify-between text-[var(--fg-muted)]"><span>{tCart('serviceCharge')}</span><span>{formatCurrency(serviceCharge, branchCurrency)}</span></div>
                   <Divider />
@@ -688,7 +688,7 @@ function CheckoutContent() {
                 </div>
 
                 <div className="mt-4 flex items-center gap-2 text-xs text-[var(--fg-muted)] bg-[var(--card-hover)] rounded-xl p-3">
-                  <Lock className="h-3.5 w-3.5 shrink-0" />
+                  <Lock className="h-3.5 w-3.5 shrink-0"/>
                   <span>{t('secureNote')}</span>
                 </div>
               </div>

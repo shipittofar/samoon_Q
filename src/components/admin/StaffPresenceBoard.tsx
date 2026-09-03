@@ -12,10 +12,10 @@ const STATUS_KEY: Record<StaffPresenceStatus, string> = {
 }
 
 const STATUS_DOT: Record<StaffPresenceStatus, string> = {
-  online: 'bg-green-500',
-  busy: 'bg-orange-500',
-  break: 'bg-yellow-400',
-  offline: 'bg-gray-400',
+  online: 'bg-[var(--success)]',
+  busy: 'bg-[var(--accent)]',
+  break: 'bg-[var(--warning)]',
+  offline: 'bg-[var(--fg-subtle)]',
 }
 
 const STATUS_SECTIONS: StaffPresenceStatus[] = ['online', 'busy', 'break', 'offline']
@@ -35,9 +35,9 @@ function StaffCard({ member }: StaffCardProps) {
       : t('hoursAgoShort', { hours: Math.floor(minutesAgo / 60) })
 
   return (
-    <div className="flex items-center gap-3 bg-white rounded border p-3 mb-2">
+    <div className="flex items-center gap-3 bg-[var(--card)] rounded border p-3 mb-2">
       <div className="relative flex-shrink-0">
-        <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
+        <div className="w-9 h-9 rounded-full bg-[var(--border)] flex items-center justify-center text-sm font-semibold text-[var(--fg-secondary)]">
           {member.name.charAt(0).toUpperCase()}
         </div>
         <span
@@ -47,15 +47,15 @@ function StaffCard({ member }: StaffCardProps) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-medium text-sm truncate">{member.name}</div>
-        <div className="flex gap-2 text-xs text-gray-500">
+        <div className="flex gap-2 text-xs text-[var(--fg-muted)]">
           <span className="capitalize">{member.role}</span>
           <span>·</span>
           <span className="truncate">{member.branchName}</span>
         </div>
-        <div className="text-xs text-gray-400 mt-0.5">{activityStr}</div>
+        <div className="text-xs text-[var(--fg-subtle)] mt-0.5">{activityStr}</div>
       </div>
       {member.activeOrderCount > 0 && (
-        <div className="flex-shrink-0 text-xs bg-blue-100 text-blue-700 rounded-full px-2 py-0.5">
+        <div className="flex-shrink-0 text-xs bg-[var(--info-subtle)] text-[var(--info-text)] rounded-full px-2 py-0.5">
           {t('ordersCount', { count: member.activeOrderCount })}
         </div>
       )}
@@ -74,8 +74,8 @@ export function StaffPresenceBoard({ scope, filterBranchId }: StaffPresenceBoard
 
   const filtered = filterBranchId ? staff.filter((s) => s.branchId === filterBranchId) : staff
 
-  if (isLoading) return <div className="text-sm text-gray-500 p-4">{t('loadingStaff')}</div>
-  if (isError) return <div className="text-sm text-red-500 p-4">{t('failedToLoadStaffPresence')}</div>
+  if (isLoading) return <div className="text-sm text-[var(--fg-muted)] p-4">{t('loadingStaff')}</div>
+  if (isError) return <div className="text-sm text-[var(--danger-text)] p-4">{t('failedToLoadStaffPresence')}</div>
 
   const byStatus = (status: StaffPresenceStatus) => filtered.filter((s) => s.status === status)
 
@@ -85,10 +85,10 @@ export function StaffPresenceBoard({ scope, filterBranchId }: StaffPresenceBoard
   return (
     <div>
       <div className="flex gap-4 mb-4 text-sm">
-        <span className="bg-green-50 text-green-700 rounded px-3 py-1">
+        <span className="bg-[var(--success-subtle)] text-[var(--success-text)] rounded px-3 py-1">
           {t('onlineCount', { count: onlineCount })}
         </span>
-        <span className="bg-gray-100 rounded px-3 py-1">
+        <span className="bg-[var(--card-hover)] rounded px-3 py-1">
           {t('totalCount', { count: totalCount })}
         </span>
       </div>
@@ -99,13 +99,13 @@ export function StaffPresenceBoard({ scope, filterBranchId }: StaffPresenceBoard
             <div key={status}>
               <div className="flex items-center gap-2 mb-2">
                 <span className={`w-2.5 h-2.5 rounded-full ${STATUS_DOT[status]}`} />
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--fg-muted)]">
                   {t(STATUS_KEY[status])}
                 </span>
-                <span className="text-xs text-gray-400">({members.length})</span>
+                <span className="text-xs text-[var(--fg-subtle)]">({members.length})</span>
               </div>
               {members.length === 0 ? (
-                <div className="text-xs text-gray-400 italic">{t('none')}</div>
+                <div className="text-xs text-[var(--fg-subtle)] italic">{t('none')}</div>
               ) : (
                 members.map((m) => <StaffCard key={m.userId} member={m} />)
               )}

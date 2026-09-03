@@ -110,7 +110,7 @@ export default function AdminOrdersPage() {
   const selectedArr = Array.from(selectedIds)
 
   return (
-    <PermissionGuard permission="orders.view" fallback={<AccessDenied />}>
+    <PermissionGuard permission="orders.view"fallback={<AccessDenied />}>
     <ErrorBoundary feature="AdminOrders">
     <div className="min-h-screen bg-[var(--bg)]">
       <div className="pt-20 pb-16">
@@ -156,11 +156,11 @@ export default function AdminOrdersPage() {
                   {t('ordersScopeAll')}
                 </button>
               </div>
-              <PreviewButton href="/menu" label={t('previewMenu')} size="sm" />
+              <PreviewButton href="/menu"label={t('previewMenu')} size="sm"/>
               <Button
                 variant="secondary"
                 size="sm"
-                leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+                leftIcon={<RefreshCw className="h-3.5 w-3.5"/>}
                 onClick={() => refetch()}
                 disabled={showLoading}
               >
@@ -179,8 +179,8 @@ export default function AdminOrdersPage() {
                 className={cn(
                   'flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all',
                   statusFilter === status
-                    ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/20'
-                    : 'border-[var(--border)] bg-[var(--card)] hover:border-orange-200',
+                    ? 'border-[var(--accent-border)] bg-[var(--accent-subtle)]'
+                    : 'border-[var(--border)] bg-[var(--card)] hover:border-[var(--accent-border)]/50',
                 )}
               >
                 <cfg.icon className={cn('h-4 w-4', cfg.color)} />
@@ -193,19 +193,19 @@ export default function AdminOrdersPage() {
           {/* Search & Branch Filter */}
           <div className="flex gap-3 mb-6 flex-wrap">
             <div className="relative flex-1 min-w-48">
-              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" />
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"/>
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('searchOrdersPlaceholder')}
-                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+                className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
               />
             </div>
             {allOrdersMode && branches.length > 0 && (
               <select
                 value={branchFilter}
                 onChange={(e) => setBranchFilter(e.target.value)}
-                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                className="h-10 px-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
                 aria-label={t('filterByBranchAria')}
               >
                 <option value="all">{t('allBranches')}</option>
@@ -219,7 +219,7 @@ export default function AdminOrdersPage() {
           {/* Loading */}
           {showLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin"/>
               <span className="text-sm">{t('loadingOrders')}</span>
             </div>
           )}
@@ -227,9 +227,9 @@ export default function AdminOrdersPage() {
           {/* Error */}
           {isError && !showLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
-              <AlertCircle className="h-8 w-8 text-red-400" />
+              <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
               <p className="text-sm">{t('failedToLoadOrders')}</p>
-              <Button variant="secondary" size="sm" onClick={() => refetch()}>{tCommon('retry')}</Button>
+              <Button variant="secondary"size="sm"onClick={() => refetch()}>{tCommon('retry')}</Button>
             </div>
           )}
 
@@ -265,7 +265,7 @@ export default function AdminOrdersPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ delay: i * 0.04 }}
-                          className={`hover:bg-[var(--card-hover)] transition-colors ${selectedIds.has(order.id) ? 'bg-orange-50/40 dark:bg-orange-950/10' : ''}`}
+                          className={`hover:bg-[var(--card-hover)] transition-colors ${selectedIds.has(order.id) ? 'bg-[var(--accent-subtle)]/40' : ''}`}
                         >
                           <td className="px-4 py-3.5">
                             <input
@@ -284,7 +284,7 @@ export default function AdminOrdersPage() {
                             <span className="truncate block">{orderItemNames(order).join(', ')}</span>
                           </td>
                           <td className="px-4 py-3.5">
-                            <Badge variant="secondary" className="capitalize text-xs">
+                            <Badge variant="secondary"className="capitalize text-xs">
                               {order.order_type === 'dine_in' && order.table_number
                                 ? t('tableNumberLabel', { number: order.table_number })
                                 : tCheckout(ORDER_TYPE_KEY[order.order_type])}
@@ -293,7 +293,7 @@ export default function AdminOrdersPage() {
                           <td className="px-4 py-3.5 font-semibold text-[var(--fg)] whitespace-nowrap">{formatCurrency(order.total)}</td>
                           <td className="px-4 py-3.5">
                             <Badge variant={cfg.badge} className="capitalize whitespace-nowrap">
-                              <cfg.icon className="h-3 w-3 me-1" />
+                              <cfg.icon className="h-3 w-3 me-1"/>
                               {translateOrderStatusLabel(tOrder, cfg.labelKey)}
                             </Badge>
                           </td>
@@ -310,7 +310,7 @@ export default function AdminOrdersPage() {
                                 className="whitespace-nowrap text-xs h-7"
                               >
                                 {isPending
-                                  ? <Loader2 className="h-3 w-3 animate-spin" />
+                                  ? <Loader2 className="h-3 w-3 animate-spin"/>
                                   : t('advanceToStatus', { status: translateOrderStatusLabel(tOrder, getOrderStatusMeta(nextStatus).labelKey) })}
                               </Button>
                             )}
@@ -324,7 +324,7 @@ export default function AdminOrdersPage() {
                 {/* Empty */}
                 {orders.length === 0 && (
                   <div className="py-16 text-center">
-                    <Package className="h-10 w-10 text-[var(--fg-subtle)] mx-auto mb-3" />
+                    <Package className="h-10 w-10 text-[var(--fg-subtle)] mx-auto mb-3"/>
                     <p className="text-[var(--fg-muted)]">{t('noOrdersMatchFilter')}</p>
                   </div>
                 )}

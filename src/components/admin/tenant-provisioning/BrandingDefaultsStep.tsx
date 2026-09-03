@@ -121,12 +121,12 @@ export function BrandingDefaultsStep({
       <fieldset>
         <legend className="block text-sm font-medium mb-1">
           {t('colorPaletteLabel')}{' '}
-          <span className="text-xs font-normal text-gray-400">{t('requiredLabel')}</span>
+          <span className="text-xs font-normal text-[var(--fg-subtle)]">{t('requiredLabel')}</span>
         </legend>
-        <p className="text-xs text-gray-500 mb-3">{t('colorPaletteHint')}</p>
+        <p className="text-xs text-[var(--fg-muted)] mb-3">{t('colorPaletteHint')}</p>
         <div
           className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 ${
-            colorError ? 'rounded-lg ring-1 ring-red-500 p-1 -m-1' : ''
+            colorError ? 'rounded-lg ring-1 ring-[var(--danger)] p-1 -m-1' : ''
           }`}
           role="radiogroup"
           aria-label={t('colorPaletteLabel')}
@@ -145,7 +145,7 @@ export function BrandingDefaultsStep({
                 className={`rounded-xl border overflow-hidden text-start transition-shadow ${
                   selected
                     ? 'border-accent ring-2 ring-accent shadow-sm'
-                    : 'border-gray-200 hover:border-gray-300'
+                    : 'border-[var(--border)] hover:border-[var(--border-input)]'
                 }`}
               >
                 <div
@@ -165,24 +165,24 @@ export function BrandingDefaultsStep({
                     <span className="text-[10px] truncate opacity-80">{t('paletteTextSample')}</span>
                   </span>
                 </div>
-                <div className="flex h-2" aria-hidden="true">
-                  <span className="flex-1" style={{ backgroundColor: palette.primaryColor }} />
-                  <span className="flex-1" style={{ backgroundColor: palette.accentHoverColor }} />
-                  <span className="flex-1" style={{ backgroundColor: palette.textColor }} />
-                  <span className="flex-1" style={{ backgroundColor: palette.backgroundColor }} />
+                <div className="flex h-2"aria-hidden="true">
+                  <span className="flex-1"style={{ backgroundColor: palette.primaryColor }} />
+                  <span className="flex-1"style={{ backgroundColor: palette.accentHoverColor }} />
+                  <span className="flex-1"style={{ backgroundColor: palette.textColor }} />
+                  <span className="flex-1"style={{ backgroundColor: palette.backgroundColor }} />
                 </div>
               </button>
             )
           })}
         </div>
         {colorError ? (
-          <p id="tenant-color-error" role="alert" className="text-xs text-red-600 mt-2">
+          <p id="tenant-color-error"role="alert"className="text-xs text-[var(--danger-text)] mt-2">
             {colorError}
           </p>
         ) : null}
       </fieldset>
 
-      {/* 2. Logo — multipart `image` field (not settings.theme) */}
+      {/* 2. Logo — multipart `image`field (not settings.theme) */}
       <ImageUploader
         value={logoField}
         onChange={handleLogoChange}
@@ -197,7 +197,7 @@ export function BrandingDefaultsStep({
       {/* 3. Per-language fonts (font IDs stored for backend) */}
       <fieldset>
         <legend className="block text-sm font-semibold mb-1">{t('perLanguageFontsLabel')}</legend>
-        <p className="text-xs text-gray-500 mb-4">{t('perLanguageFontsHint')}</p>
+        <p className="text-xs text-[var(--fg-muted)] mb-4">{t('perLanguageFontsHint')}</p>
         <div className="space-y-5">
           {languageFonts.map((entry) => {
             const info = getLanguageInfo(entry.code)
@@ -209,13 +209,13 @@ export function BrandingDefaultsStep({
             )
 
             return (
-              <div key={entry.code} className="rounded-xl border border-gray-200 p-4">
+              <div key={entry.code} className="rounded-xl border border-[var(--border)] p-4">
                 <div className="mb-3">
-                  <p className="text-sm font-semibold text-gray-800">{title}</p>
+                  <p className="text-sm font-semibold text-[var(--fg)]">{title}</p>
                   {isDefaultLocale ? (
-                    <p className="text-xs text-gray-500 mt-0.5">{t('fontDefaultLocaleHint')}</p>
+                    <p className="text-xs text-[var(--fg-muted)] mt-0.5">{t('fontDefaultLocaleHint')}</p>
                   ) : (
-                    <p className="text-xs text-gray-500 mt-0.5">{t('fontLocaleHint')}</p>
+                    <p className="text-xs text-[var(--fg-muted)] mt-0.5">{t('fontLocaleHint')}</p>
                   )}
                 </div>
                 <div
@@ -237,12 +237,12 @@ export function BrandingDefaultsStep({
                         className={`relative border rounded-lg px-3 py-3 text-start transition-colors ${
                           selected
                             ? 'border-accent bg-accent/5 ring-2 ring-accent'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : 'border-[var(--border)] hover:border-[var(--border-input)]'
                         }`}
                       >
                         {selected ? (
                           <span className="absolute top-2 end-2 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-accent">
-                            <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                            <Check className="w-3.5 h-3.5"aria-hidden="true"/>
                             {t('fontSelectedLabel')}
                           </span>
                         ) : null}
@@ -253,7 +253,7 @@ export function BrandingDefaultsStep({
                           {font.name}
                         </span>
                         <span
-                          className="block text-sm text-gray-600 mt-1 leading-snug"
+                          className="block text-sm text-[var(--fg-muted)] mt-1 leading-snug"
                           style={{ fontFamily: font.cssFamily }}
                         >
                           {t('fontSamplePreview', { fontFamily: font.name })}

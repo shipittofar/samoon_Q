@@ -19,9 +19,9 @@ export function UserMenuBusinessConsoleLink() {
   return (
     <Link
       href="/console"
-      className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/25 hover:bg-orange-100 dark:hover:bg-orange-950/40 transition-colors border-b border-[var(--border)]"
+      className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-[var(--accent-text)] bg-[var(--accent-subtle)] hover:bg-[var(--accent-subtle)] transition-colors border-b border-[var(--border)]"
     >
-      <Monitor className="h-4 w-4 text-orange-500" aria-hidden="true" />
+      <Monitor className="h-4 w-4 text-[var(--accent-text)]"aria-hidden="true"/>
       {t('businessConsole')}
     </Link>
   )

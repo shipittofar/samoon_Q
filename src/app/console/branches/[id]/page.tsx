@@ -20,9 +20,9 @@ import type { BranchStatus } from '@/types/branch'
 import toast from 'react-hot-toast'
 
 const STATUS_COLORS: Record<BranchStatus, string> = {
-  active: 'bg-green-100 text-green-800',
-  inactive: 'bg-gray-100 text-gray-800',
-  maintenance: 'bg-amber-100 text-amber-800',
+  active: 'bg-[var(--success-subtle)] text-[var(--success-text)]',
+  inactive: 'bg-[var(--card-hover)] text-[var(--fg)]',
+  maintenance: 'bg-[var(--warning-subtle)] text-[var(--warning-text)]',
 }
 
 const BRANCH_STATUS_KEY: Record<BranchStatus, string> = {
@@ -50,8 +50,8 @@ function BranchDetailContent({ id }: { id: string }) {
 
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  if (isLoading) return <p className="p-6 text-gray-500">{t('loadingBranchEllipsis')}</p>
-  if (error || !branch) return <p className="p-6 text-red-500">{t('branchNotFoundPeriod')}</p>
+  if (isLoading) return <p className="p-6 text-[var(--fg-muted)]">{t('loadingBranchEllipsis')}</p>
+  if (error || !branch) return <p className="p-6 text-[var(--danger-text)]">{t('branchNotFoundPeriod')}</p>
 
   const isOnlyBranch = siblingBranches.length <= 1
   const isActiveBranch = adminActiveBranch?.id === branch.id
@@ -77,13 +77,13 @@ function BranchDetailContent({ id }: { id: string }) {
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl font-bold">{branch.name}</h1>
             {branch.isDefault && (
-              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">{t('defaultBadge')}</span>
+              <span className="rounded-full bg-[var(--info-subtle)] px-2.5 py-0.5 text-xs font-medium text-[var(--info-text)]">{t('defaultBadge')}</span>
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-500">{branch.slug}</p>
+          <p className="mt-1 text-sm text-[var(--fg-muted)]">{branch.slug}</p>
         </div>
         <div className="flex items-center gap-2">
-          <PreviewButton href="/restaurant" label={t('previewBranchLabel')} size="sm" />
+          <PreviewButton href="/restaurant"label={t('previewBranchLabel')} size="sm"/>
           <span className={`rounded-full px-3 py-1 text-sm font-medium capitalize ${STATUS_COLORS[branch.status]}`}>
             {t(BRANCH_STATUS_KEY[branch.status])}
           </span>
@@ -95,7 +95,7 @@ function BranchDetailContent({ id }: { id: string }) {
         <PermissionGuard permission="branches.update">
           <Link
             href={`/console/branches/${id}/edit`}
-            className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-[var(--card-hover)] transition-colors"
           >
             {t('editBranchLabel')}
           </Link>
@@ -105,7 +105,7 @@ function BranchDetailContent({ id }: { id: string }) {
             <button
               onClick={() => setDefault.mutate(id, { onSuccess: () => toast.success(t('defaultBranchUpdated')) })}
               disabled={setDefault.isPending}
-              className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-[var(--card-hover)] transition-colors disabled:opacity-50"
             >
               {t('setAsDefaultLabel')}
             </button>
@@ -116,7 +116,7 @@ function BranchDetailContent({ id }: { id: string }) {
             onClick={() => setDeleteOpen(true)}
             disabled={isOnlyBranch}
             title={isOnlyBranch ? t('cannotDeleteLastBranch') : undefined}
-            className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md border border-[var(--danger-border)] px-3 py-1.5 text-sm font-medium text-[var(--danger-text)] hover:bg-[var(--danger-subtle)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {t('deleteBranchLabel')}
           </button>
@@ -126,7 +126,7 @@ function BranchDetailContent({ id }: { id: string }) {
       {/* Location */}
       <section className="rounded-lg border p-4">
         <h2 className="mb-2 font-semibold">{t('locationLabel')}</h2>
-        {branch.description && <p className="text-sm text-gray-600 mb-2">{branch.description}</p>}
+        {branch.description && <p className="text-sm text-[var(--fg-muted)] mb-2">{branch.description}</p>}
         <p>{branch.location.address}</p>
         <p>{branch.location.city}, {branch.location.country}</p>
         {branch.location.postalCode && <p>{t('postalColonValue', { code: branch.location.postalCode })}</p>}
@@ -188,18 +188,18 @@ function BranchDetailContent({ id }: { id: string }) {
         <section className="rounded-lg border p-4">
           <h2 className="mb-3 font-semibold">{t('metricsPeriodLabel', { period: metrics.period })}</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div><p className="text-xs text-gray-500">{t('customerTableHeaders.orders')}</p><p className="font-semibold">{metrics.totalOrders}</p></div>
-            <div><p className="text-xs text-gray-500">{t('revenueLabel')}</p><p className="font-semibold">${metrics.totalRevenue.toFixed(2)}</p></div>
-            <div><p className="text-xs text-gray-500">{t('breadcrumbs.customers')}</p><p className="font-semibold">{metrics.totalCustomers}</p></div>
-            <div><p className="text-xs text-gray-500">{t('breadcrumbs.reservations')}</p><p className="font-semibold">{metrics.totalReservations}</p></div>
-            <div><p className="text-xs text-gray-500">{t('breadcrumbs.staff')}</p><p className="font-semibold">{metrics.staffCount}</p></div>
-            <div><p className="text-xs text-gray-500">{t('customerTableHeaders.avgOrder')}</p><p className="font-semibold">${metrics.averageOrderValue.toFixed(2)}</p></div>
+            <div><p className="text-xs text-[var(--fg-muted)]">{t('customerTableHeaders.orders')}</p><p className="font-semibold">{metrics.totalOrders}</p></div>
+            <div><p className="text-xs text-[var(--fg-muted)]">{t('revenueLabel')}</p><p className="font-semibold">${metrics.totalRevenue.toFixed(2)}</p></div>
+            <div><p className="text-xs text-[var(--fg-muted)]">{t('breadcrumbs.customers')}</p><p className="font-semibold">{metrics.totalCustomers}</p></div>
+            <div><p className="text-xs text-[var(--fg-muted)]">{t('breadcrumbs.reservations')}</p><p className="font-semibold">{metrics.totalReservations}</p></div>
+            <div><p className="text-xs text-[var(--fg-muted)]">{t('breadcrumbs.staff')}</p><p className="font-semibold">{metrics.staffCount}</p></div>
+            <div><p className="text-xs text-[var(--fg-muted)]">{t('customerTableHeaders.avgOrder')}</p><p className="font-semibold">${metrics.averageOrderValue.toFixed(2)}</p></div>
           </div>
         </section>
       )}
 
       {/* Status Actions */}
-      <PermissionGuard permission="branches.manage" fallback={<AccessDenied />}>
+      <PermissionGuard permission="branches.manage"fallback={<AccessDenied />}>
         <section className="rounded-lg border p-4">
           <h2 className="mb-3 font-semibold">{t('statusActionsLabel')}</h2>
           <div className="flex flex-wrap gap-2">
@@ -207,7 +207,7 @@ function BranchDetailContent({ id }: { id: string }) {
               <button
                 onClick={() => activate.mutate(id)}
                 disabled={activate.isPending}
-                className="rounded-md bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700 disabled:opacity-50"
+                className="rounded-md bg-[var(--success)] px-3 py-1.5 text-sm text-[var(--success-fg)] hover:bg-[var(--success-hover)] disabled:opacity-50"
               >
                 {t('activateLabel')}
               </button>
@@ -216,7 +216,7 @@ function BranchDetailContent({ id }: { id: string }) {
               <button
                 onClick={() => maintenance.mutate(id)}
                 disabled={maintenance.isPending}
-                className="rounded-md bg-amber-500 px-3 py-1.5 text-sm text-white hover:bg-amber-600 disabled:opacity-50"
+                className="rounded-md bg-[var(--warning)] px-3 py-1.5 text-sm text-[var(--warning-fg)] hover:bg-[var(--warning-hover)] disabled:opacity-50"
               >
                 {t('setMaintenanceLabel')}
               </button>
@@ -225,7 +225,7 @@ function BranchDetailContent({ id }: { id: string }) {
               <button
                 onClick={() => deactivate.mutate(id)}
                 disabled={deactivate.isPending}
-                className="rounded-md bg-gray-500 px-3 py-1.5 text-sm text-white hover:bg-gray-600 disabled:opacity-50"
+                className="rounded-md bg-[var(--card)] border border-[var(--border-strong)] px-3 py-1.5 text-sm text-[var(--fg)] hover:bg-[var(--card-hover)] disabled:opacity-50"
               >
                 {t('deactivateLabel')}
               </button>
@@ -238,13 +238,13 @@ function BranchDetailContent({ id }: { id: string }) {
       <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title={t('deleteBranchLabel')} size="sm">
         <p className="text-[var(--fg-muted)] mb-3">{t('confirmDeleteBranch', { name: branch.name })}</p>
         {isActiveBranch && (
-          <p className="text-sm text-amber-600 mb-3">{t('deleteActiveBranchWarning')}</p>
+          <p className="text-sm text-[var(--warning-text)] mb-3">{t('deleteActiveBranchWarning')}</p>
         )}
         <div className="flex gap-3">
           <button
             type="button"
             onClick={() => setDeleteOpen(false)}
-            className="flex-1 rounded-md border px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
+            className="flex-1 rounded-md border px-3 py-2 text-sm hover:bg-[var(--card-hover)] transition-colors"
           >
             {t('cancel')}
           </button>
@@ -252,7 +252,7 @@ function BranchDetailContent({ id }: { id: string }) {
             type="button"
             onClick={confirmDelete}
             disabled={deleteBranch.isPending}
-            className="flex-1 rounded-md bg-red-500 px-3 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+            className="flex-1 rounded-md bg-[var(--danger)] px-3 py-2 text-sm font-medium text-[var(--danger-fg)] hover:bg-[var(--danger-hover)] disabled:opacity-50 transition-colors"
           >
             {deleteBranch.isPending ? t('deletingEllipsis') : t('deleteAction')}
           </button>
@@ -272,7 +272,7 @@ export default function BranchDetailPage({ params }: { params: Promise<{ id: str
   const hasBranchAccess = useBranchAccess(id)
   return (
     <ErrorBoundary feature="Branch Detail">
-      <PermissionGuard permission="branches.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="branches.view"fallback={<AccessDenied />}>
         {hasBranchAccess ? <BranchDetailContent id={id} /> : <AccessDenied />}
       </PermissionGuard>
     </ErrorBoundary>

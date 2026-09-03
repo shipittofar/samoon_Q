@@ -7,7 +7,7 @@
  * status, a live unsaved-changes indicator, and Save/Discard/Publish/
  * History/Compare/Export/Import/Refresh actions. Entirely generic: it
  * never owns save/discard logic itself (that stays in
- * `useConfigurationDraft`/`ConfigurationModulePage`, reached here only via
+ * `useConfigurationDraft`/` ConfigurationModulePage`, reached here only via
  * the `actions` prop the module page hands up through `onActionsReady`),
  * and every button works identically regardless of which module is active.
  *
@@ -95,7 +95,7 @@ export function ConfigurationStudioToolbar({
         <span className="text-[var(--fg-muted)]">{t('configurationLabel')}</span>
         {activeModule && (
           <>
-            <ChevronRight className="h-3.5 w-3.5 text-[var(--fg-muted)]" aria-hidden="true" />
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--fg-muted)]"aria-hidden="true"/>
             <span className="truncate font-medium text-[var(--fg)]">{activeModule.name}</span>
           </>
         )}
@@ -107,37 +107,37 @@ export function ConfigurationStudioToolbar({
         <button
           type="button"
           onClick={onOpenCommandPalette}
-          className="hidden items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-xs text-[var(--fg-muted)] hover:border-orange-300 sm:flex"
+          className="hidden items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] px-3 py-1.5 text-xs text-[var(--fg-muted)] hover:border-[var(--accent-border)]/50 sm:flex"
         >
-          <Search className="h-3.5 w-3.5" aria-hidden="true" />
+          <Search className="h-3.5 w-3.5"aria-hidden="true"/>
           {t('searchOrJumpTo')}
           <kbd className="ms-2 rounded border border-[var(--border)] px-1 text-[10px]">⌘K</kbd>
         </button>
 
-        <Button variant="ghost" size="sm" onClick={() => { onRefresh(); toast.success(tNotifications('configurationRefreshed')) }} aria-label={t('refreshAria')}>
-          <RefreshCw className="h-3.5 w-3.5" />
+        <Button variant="ghost"size="sm"onClick={() => { onRefresh(); toast.success(tNotifications('configurationRefreshed')) }} aria-label={t('refreshAria')}>
+          <RefreshCw className="h-3.5 w-3.5"/>
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} aria-label={t('viewHistoryAria')} disabled={!activeModule}>
-          <History className="h-3.5 w-3.5" />
+        <Button variant="ghost"size="sm"onClick={() => setHistoryOpen(true)} aria-label={t('viewHistoryAria')} disabled={!activeModule}>
+          <History className="h-3.5 w-3.5"/>
         </Button>
-        <Button variant="ghost" size="sm" onClick={handleExport} aria-label={t('exportModuleAria')} disabled={!activeModule}>
-          <Download className="h-3.5 w-3.5" />
+        <Button variant="ghost"size="sm"onClick={handleExport} aria-label={t('exportModuleAria')} disabled={!activeModule}>
+          <Download className="h-3.5 w-3.5"/>
         </Button>
-        <Button variant="ghost" size="sm" aria-label={t('importComingSoonAria')} disabled title={t('importPlaceholderTitle')}>
-          <Upload className="h-3.5 w-3.5" />
+        <Button variant="ghost"size="sm"aria-label={t('importComingSoonAria')} disabled title={t('importPlaceholderTitle')}>
+          <Upload className="h-3.5 w-3.5"/>
         </Button>
 
         {draftStatus?.isDirty && (
           <>
             <Badge variant="warning">{t('unsavedBadge', { count: draftStatus.dirtyCount })}</Badge>
-            <Button variant="secondary" size="sm" onClick={() => actions?.discard()} disabled={draftStatus.isSaving}>
+            <Button variant="secondary"size="sm"onClick={() => actions?.discard()} disabled={draftStatus.isSaving}>
               {t('discard')}
             </Button>
             <Button
               size="sm"
               onClick={() => actions?.save()}
               disabled={draftStatus.isSaving}
-              leftIcon={draftStatus.isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : (isDraftLifecycle ? <Redo2 className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />)}
+              leftIcon={draftStatus.isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin"/> : (isDraftLifecycle ? <Redo2 className="h-3.5 w-3.5"/> : <Save className="h-3.5 w-3.5"/>)}
             >
               {isDraftLifecycle ? t('publish') : t('save')}
             </Button>
@@ -145,15 +145,15 @@ export function ConfigurationStudioToolbar({
         )}
       </div>
 
-      <Drawer open={historyOpen} onClose={() => setHistoryOpen(false)} title={activeModule ? t('historyDrawerTitle', { module: activeModule.name }) : t('historyDrawerTitleDefault')} side="right" size="lg">
+      <Drawer open={historyOpen} onClose={() => setHistoryOpen(false)} title={activeModule ? t('historyDrawerTitle', { module: activeModule.name }) : t('historyDrawerTitleDefault')} side="right"size="lg">
         <div className="p-4 min-h-0 flex-1 overflow-y-auto overscroll-contain">
           {moduleAuditEntries.length === 0 ? (
-            <EmptyState icon={<History className="h-6 w-6" />} title={t('noHistoryYetTitle')} description={t('noHistoryYetDesc')} />
+            <EmptyState icon={<History className="h-6 w-6"/>} title={t('noHistoryYetTitle')} description={t('noHistoryYetDesc')} />
           ) : (
             <ol className="space-y-2 border-l border-[var(--border)] pl-4">
               {moduleAuditEntries.map(({ entry, fieldTitle }) => (
                 <li key={entry.id} className="relative text-xs">
-                  <span className="absolute -left-[19px] top-1.5 h-2 w-2 rounded-full bg-orange-500" aria-hidden="true" />
+                  <span className="absolute -left-[19px] top-1.5 h-2 w-2 rounded-full bg-[var(--accent)]"aria-hidden="true"/>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-[var(--fg)]"><span className="font-medium">{fieldTitle}</span> — {entry.actorName}</p>
@@ -161,8 +161,8 @@ export function ConfigurationStudioToolbar({
                       {entry.reason && <p className="mt-0.5 italic text-[var(--fg-muted)]">“{entry.reason}”</p>}
                       <p className="mt-0.5 text-[10px] text-[var(--fg-muted)] opacity-70">{formatTimestamp(entry.timestamp)}</p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => rollbackAuditEntry(entry, actor)} aria-label={t('rollbackAria', { field: fieldTitle })}>
-                      <RotateCcw className="h-3.5 w-3.5" />
+                    <Button variant="ghost"size="sm"onClick={() => rollbackAuditEntry(entry, actor)} aria-label={t('rollbackAria', { field: fieldTitle })}>
+                      <RotateCcw className="h-3.5 w-3.5"/>
                     </Button>
                   </div>
                 </li>

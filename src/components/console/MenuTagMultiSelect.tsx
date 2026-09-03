@@ -87,7 +87,7 @@ export function MenuTagMultiSelect({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-[var(--fg)]" htmlFor={`${listboxId}-input`}>
+      <label className="block text-sm font-medium text-[var(--fg)]"htmlFor={`${listboxId}-input`}>
         {t('menuTagsLabel')}
       </label>
 
@@ -99,11 +99,11 @@ export function MenuTagMultiSelect({
               type="button"
               onClick={() => removeTag(tag.id)}
               disabled={disabled}
-              className="inline-flex items-center gap-1 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+              className="inline-flex items-center gap-1 rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40"
               aria-label={t('removeTagAria', { name: tag.name })}
             >
-              <MenuTagBadge tag={tag} className="pe-1" />
-              <X className="h-3 w-3 text-[var(--fg-muted)]" aria-hidden="true" />
+              <MenuTagBadge tag={tag} className="pe-1"/>
+              <X className="h-3 w-3 text-[var(--fg-muted)]"aria-hidden="true"/>
             </button>
           ))}
           <button
@@ -118,7 +118,7 @@ export function MenuTagMultiSelect({
       )}
 
       <div className="relative">
-        <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]" aria-hidden="true" />
+        <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--fg-muted)]"aria-hidden="true"/>
         <input
           ref={inputRef}
           id={`${listboxId}-input`}
@@ -137,7 +137,7 @@ export function MenuTagMultiSelect({
           aria-expanded={open}
           aria-controls={listboxId}
           aria-autocomplete="list"
-          className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500"
+          className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
         />
 
         {open && !disabled && !isLoading && (
@@ -151,7 +151,7 @@ export function MenuTagMultiSelect({
               <li className="px-3 py-2 text-sm text-[var(--fg-muted)]">{t('noTagsMatchSearch')}</li>
             ) : (
               filtered.map((tag, index) => (
-                <li key={tag.id} role="option" aria-selected={false}>
+                <li key={tag.id} role="option"aria-selected={false}>
                   <button
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
@@ -159,7 +159,7 @@ export function MenuTagMultiSelect({
                     className={cn(
                       'w-full px-3 py-2 text-start text-sm flex items-center gap-2 transition-colors',
                       index === highlightIndex
-                        ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300'
+                        ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                         : 'hover:bg-[var(--card-hover)] text-[var(--fg)]',
                     )}
                   >

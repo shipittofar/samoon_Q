@@ -1,0 +1,446 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SAMOON COLOUR SYSTEM
+
+   Four layers, bottom to top:
+
+     1. PALETTE   Raw colour scales. Never referenced by components.
+     2. SEMANTIC  Role-mapped variables (:root / .dark). The only layer
+                  components are allowed to read.
+     3. TENANT    A business's brand colour, pre-derived into contrast-safe
+                  per-theme variants by src/lib/brand-color.ts and injected as
+                  --tenant-*-light / --tenant-*-dark. The semantic layer picks
+                  the right one per theme, so a brand colour can never leak
+                  into a role it is not readable in.
+     4. UTILITY   Tailwind utilities generated from the semantic layer via
+                  `@theme inline` (bg-accent, text-fg-muted, bg-danger-subtle…).
+
+   Rule: a tenant supplies ONE colour; it is never used raw for text, borders
+   and fills alike. Each role gets its own derived value that meets its own
+   contrast target (WCAG 2.2 — 4.5:1 text, 3:1 non-text).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  --font-display: "Playfair Display", serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* ── Layer 1: palette ────────────────────────────────────────────────────
+     Platform brand ramp. Used as the fallback when no tenant brand is set. */
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-200: #fed7aa;
+  --color-brand-300: #fdba74;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-700: #c2410c;
+  --color-brand-800: #9a3412;
+  --color-brand-900: #7c2d12;
+  --color-brand-950: #431407;
+
+  --color-surface-50: #fafaf9;
+  --color-surface-100: #f5f5f4;
+  --color-surface-200: #e7e5e4;
+  --color-surface-300: #d6d3d1;
+  --color-surface-400: #a8a29e;
+  --color-surface-500: #78716c;
+  --color-surface-600: #57534e;
+  --color-surface-700: #44403c;
+  --color-surface-800: #292524;
+  --color-surface-900: #1c1917;
+  --color-surface-950: #0c0a09;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-full: 9999px;
+}
+
+/* ── Layer 4: utilities generated from the semantic layer ──────────────────
+   `inline` keeps the var() reference in the generated utility instead of
+   copying its value, so every utility below re-resolves when `.dark` flips
+   or when a tenant's brand is applied. This is what makes `bg-accent` and
+   `text-fg-muted` theme-aware and tenant-aware for free. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-raised: var(--surface-raised);
+
+  --color-fg: var(--fg);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-fg-disabled: var(--fg-disabled);
+  --color-fg-inverse: var(--fg-inverse);
+
+  --color-line: var(--border);
+  --color-line-subtle: var(--border-subtle);
+  --color-line-strong: var(--border-strong);
+  --color-line-input: var(--border-input);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-text: var(--accent-text);
+  --color-accent-border: var(--accent-border);
+  --color-accent-subtle: var(--accent-subtle);
+
+  --color-success: var(--success);
+  --color-success-fg: var(--success-fg);
+  --color-success-text: var(--success-text);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-border: var(--success-border);
+
+  --color-warning: var(--warning);
+  --color-warning-fg: var(--warning-fg);
+  --color-warning-text: var(--warning-text);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-border: var(--warning-border);
+
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-text: var(--danger-text);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-border: var(--danger-border);
+
+  --color-info: var(--info);
+  --color-info-fg: var(--info-fg);
+  --color-info-text: var(--info-text);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-border: var(--info-border);
+
+  --color-focus: var(--focus-ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+}
+
+@layer base {
+  /* ═════════════════════════════════════════════════════════════════════════
+     Layer 2 — SEMANTIC TOKENS · LIGHT
+     ═══════════════════════════════════════════════════════════════════════ */
+  :root {
+    /* Surfaces — a deliberate elevation ladder, not a single flat colour.
+       sunken < bg < card/raised, so nested panels stay distinguishable. */
+    --surface-sunken: #f1f0ee;
+    --bg: #fafaf9;
+    --bg-secondary: #ffffff;
+    --card: #ffffff;
+    --card-hover: #f7f6f5;
+    --surface-raised: #ffffff;
+    --input-bg: #ffffff;
+
+    /* Foreground ramp — four steps, every one of them >= 4.5:1 on --bg.
+       --fg-disabled sits below that on purpose (see note further down). */
+    --fg: #1c1917;           /* 16.7:1 */
+    --fg-secondary: #44403c; /*  9.8:1 */
+    --fg-muted: #57534e;     /*  7.3:1 */
+    --fg-subtle: #78716c;    /*  4.6:1 — lowest rung that still passes */
+    --fg-disabled: #a8a29e;
+    --fg-inverse: #fafaf9;
+
+    /* Borders — separated by job. --border is decorative (card edges,
+       dividers) and stays quiet; --border-input bounds real controls and
+       therefore has to clear 3:1 under WCAG 1.4.11. */
+    --border-subtle: #f0efed;
+    --border: #e7e5e4;
+    --border-strong: #d6d3d1;
+    --border-input: #8a817b;
+
+    /* Brand. Falls back to the platform ramp until a tenant is resolved. */
+    --accent: var(--tenant-accent-light, #f26706);
+    --accent-hover: var(--tenant-accent-hover-light, #d55a05);
+    --accent-active: var(--tenant-accent-active-light, #b74d04);
+    --accent-fg: var(--tenant-accent-fg-light, #1c1917);
+    --accent-text: var(--tenant-accent-text-light, #c15205);
+    --accent-border: var(--tenant-accent-border-light, #f26706);
+    --accent-subtle: color-mix(in srgb, var(--accent) 10%, #ffffff);
+    --accent-subtle-hover: color-mix(in srgb, var(--accent) 18%, #ffffff);
+
+    /* Feedback. Each family carries a solid fill, the foreground proven
+       readable on that fill, a page-safe text tone, and a tinted surface. */
+    --success: #047857;
+    --success-hover: #036249;
+    --success-fg: #ffffff;
+    --success-text: #047857;
+    --success-subtle: #ecfdf5;
+    --success-border: #6ee7b7;
+
+    --warning: #b45309;
+    --warning-hover: #92400e;
+    --warning-fg: #ffffff;
+    --warning-text: #92400e;
+    --warning-subtle: #fffbeb;
+    --warning-border: #fcd34d;
+
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --danger-fg: #ffffff;
+    --danger-text: #b91c1c;
+    --danger-subtle: #fef2f2;
+    --danger-border: #fca5a5;
+
+    --info: #2563eb;
+    --info-hover: #1d4ed8;
+    --info-fg: #ffffff;
+    --info-text: #1d4ed8;
+    --info-subtle: #eff6ff;
+    --info-border: #93c5fd;
+
+    /* Focus. Brand-flavoured but always >= 3:1 against the page, and the
+       offset matches the real background so the ring never sits on a
+       white halo in dark mode. */
+    --focus-ring: var(--accent-border);
+    --focus-ring-offset: var(--bg);
+
+    --overlay: rgb(28 25 23 / 0.5);
+
+    /* Elevation. Light mode can rely on soft black; see .dark for why that
+       stops working there. */
+    --shadow-soft: 0 1px 2px rgb(28 25 23 / 0.05), 0 4px 12px -2px rgb(28 25 23 / 0.08);
+    --shadow-md: 0 2px 4px rgb(28 25 23 / 0.06), 0 8px 20px -4px rgb(28 25 23 / 0.10);
+    --shadow-lg: 0 4px 8px rgb(28 25 23 / 0.07), 0 16px 40px -8px rgb(28 25 23 / 0.14);
+    --shadow-brand: 0 8px 30px -4px color-mix(in srgb, var(--accent) 35%, transparent);
+    --shadow-glow: 0 0 40px color-mix(in srgb, var(--accent) 20%, transparent);
+
+    /* Categorical data-viz ramp. Independent of the brand so a tenant's
+       colour choice can never collapse two series into the same hue. */
+    --chart-1: #2563eb;
+    --chart-2: #047857;
+    --chart-3: #b45309;
+    --chart-4: #9d174d;
+    --chart-5: #6d28d9;
+    --chart-6: #0e7490;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     Layer 2 — SEMANTIC TOKENS · DARK
+
+     Not an inversion of light mode. Dark surfaces get their own ladder built
+     by *raising* lightness with elevation (sunken -> bg -> card -> raised),
+     which is how depth reads on dark backgrounds, and the foreground ramp is
+     re-derived against the card colour rather than mirrored.
+     ═══════════════════════════════════════════════════════════════════════ */
+  .dark {
+    --surface-sunken: #050403;
+    --bg: #0c0a09;
+    --bg-secondary: #16130f;
+    --card: #1c1917;
+    --card-hover: #262220;
+    --surface-raised: #292524;
+    --input-bg: #16130f;
+
+    /* Every step verified against --card (#1c1917), the *lighter* of the two
+       dark surfaces and therefore the harder test for light-on-dark text. */
+    --fg: #fafaf9;           /* 16.7:1 */
+    --fg-secondary: #d6d3d1; /* 11.7:1 */
+    --fg-muted: #a8a29e;     /*  6.9:1 */
+    --fg-subtle: #948c86;    /*  5.3:1 */
+    --fg-disabled: #6b635d;
+    --fg-inverse: #1c1917;
+
+    --border-subtle: #211d1b;
+    --border: #302b28;
+    --border-strong: #44403c;
+    --border-input: #7d766f;
+
+    --accent: var(--tenant-accent-dark, #f97316);
+    --accent-hover: var(--tenant-accent-hover-dark, #fa8e43);
+    --accent-active: var(--tenant-accent-active-dark, #fb9d5c);
+    --accent-fg: var(--tenant-accent-fg-dark, #1c1917);
+    --accent-text: var(--tenant-accent-text-dark, #f97316);
+    --accent-border: var(--tenant-accent-border-dark, #f97316);
+    --accent-subtle: color-mix(in srgb, var(--accent) 22%, #0c0a09);
+    --accent-subtle-hover: color-mix(in srgb, var(--accent) 32%, #0c0a09);
+
+    /* Fills are lifted and foregrounds re-picked: white text fails on the
+       lighter dark-mode greens and ambers, so those flip to ink. */
+    --success: #10b981;
+    --success-hover: #34d399;
+    --success-fg: #1c1917;
+    --success-text: #34d399;
+    --success-subtle: #0b2e22;
+    --success-border: #065f46;
+
+    --warning: #f59e0b;
+    --warning-hover: #fbbf24;
+    --warning-fg: #1c1917;
+    --warning-text: #fbbf24;
+    --warning-subtle: #33240a;
+    --warning-border: #92400e;
+
+    --danger: #dc2626;
+    --danger-hover: #ef4444;
+    --danger-fg: #ffffff;
+    --danger-text: #f87171;
+    --danger-subtle: #3a1414;
+    --danger-border: #7f1d1d;
+
+    --info: #2563eb;
+    --info-hover: #3b82f6;
+    --info-fg: #ffffff;
+    --info-text: #60a5fa;
+    --info-subtle: #111f3d;
+    --info-border: #1e40af;
+
+    --focus-ring: var(--accent-border);
+    --focus-ring-offset: var(--bg);
+
+    --overlay: rgb(0 0 0 / 0.7);
+
+    /* Black shadows are nearly invisible on a near-black page, so dark mode
+       leans on much deeper opacity plus a hairline top highlight to keep
+       cards separated from the background. */
+    --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.55), 0 4px 14px -2px rgb(0 0 0 / 0.55);
+    --shadow-md: 0 2px 6px rgb(0 0 0 / 0.6), 0 10px 26px -4px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 6px 12px rgb(0 0 0 / 0.65), 0 22px 50px -10px rgb(0 0 0 / 0.7);
+    --shadow-brand: 0 8px 30px -6px color-mix(in srgb, var(--accent) 45%, transparent);
+    --shadow-glow: 0 0 44px color-mix(in srgb, var(--accent) 28%, transparent);
+
+    /* Re-picked, not reused: the light ramp's dark blues and purples drop
+       below 4.5:1 on a dark surface. */
+    --chart-1: #60a5fa;
+    --chart-2: #34d399;
+    --chart-3: #fbbf24;
+    --chart-4: #f472b6;
+    --chart-5: #a78bfa;
+    --chart-6: #22d3ee;
+  }
+
+  [dir="rtl"] {
+    font-family: var(--font-body-rtl, "Vazirmatn"), var(--font-body);
+  }
+
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+    font-family: var(--font-body);
+    color-scheme: light;
+  }
+
+  html.dark {
+    /* Makes native controls, form widgets and the default scrollbar follow
+       the theme instead of rendering as light-mode chrome on a dark page. */
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--fg);
+  }
+
+  /* One visible focus treatment for everything that is keyboard-reachable.
+     Anchored to the brand but routed through --accent-border, which is
+     contrast-corrected per theme, so it stays visible for every palette. */
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .bg-surface { background-color: var(--bg); }
+  .bg-surface-secondary { background-color: var(--bg-secondary); }
+  .bg-card { background-color: var(--card); }
+  .text-fg { color: var(--fg); }
+  .text-fg-muted { color: var(--fg-muted); }
+  .text-fg-subtle { color: var(--fg-subtle); }
+  .border-default { border-color: var(--border); }
+  .bg-accent { background-color: var(--accent); }
+  .text-accent { color: var(--accent-text); }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+  /* Unified thin scrollbar — one visible scroll parent per surface */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--fg-muted) 40%, transparent) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--fg-muted) 40%, transparent);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--fg-muted) 65%, transparent);
+  }
+
+  .text-balance { text-wrap: balance; }
+
+  /* Glass reads as "frosted version of the current surface" in both themes
+     rather than a fixed white sheet that turns into a grey slab in dark. */
+  .glass {
+    backdrop-filter: blur(16px) saturate(180%);
+    background-color: color-mix(in srgb, var(--bg-secondary) 78%, transparent);
+    border-color: var(--border);
+  }
+  .dark .glass {
+    background-color: color-mix(in srgb, var(--card) 80%, transparent);
+  }
+
+  .noise {
+    position: relative;
+  }
+  .noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    border-radius: inherit;
+  }
+}
+
+/* P9.3 Configuration Studio — Phase O motion system. Kept short (150-220ms),
+   used only via motion-safe: variants so prefers-reduced-motion disables
+   every one of these automatically (Tailwind's built-in behavior). */
+@keyframes slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(12px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

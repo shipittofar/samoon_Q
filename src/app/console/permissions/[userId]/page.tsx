@@ -32,12 +32,12 @@ export default function UserPermissionsPage() {
       <main className="p-6">
         <Link
           href="/console/permissions"
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="flex items-center gap-2 text-sm text-[var(--fg-muted)] hover:text-[var(--fg)] mb-4"
         >
-          <ArrowLeft className="h-4 w-4" /> {t('backToPermissionsLabel')}
+          <ArrowLeft className="h-4 w-4"/> {t('backToPermissionsLabel')}
         </Link>
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-          <User className="h-10 w-10 mb-3 opacity-40" />
+        <div className="flex flex-col items-center justify-center py-16 text-[var(--fg-subtle)]">
+          <User className="h-10 w-10 mb-3 opacity-40"/>
           <p className="font-medium">{t('userNotFoundNoPeriod')}</p>
         </div>
       </main>
@@ -46,32 +46,32 @@ export default function UserPermissionsPage() {
 
   return (
     <ErrorBoundary feature="User Permissions">
-      <PermissionGuard permission="staff.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="staff.view"fallback={<AccessDenied />}>
         <main className="p-6 space-y-6 max-w-3xl">
           <div className="flex flex-wrap gap-4 text-sm">
             <Link
               href="/console/staff"
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-2 text-[var(--fg-muted)] hover:text-[var(--fg)]"
             >
-              <ArrowLeft className="h-4 w-4" /> {t('staffManagementTitle')}
+              <ArrowLeft className="h-4 w-4"/> {t('staffManagementTitle')}
             </Link>
             <Link
               href="/console/permissions"
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-2 text-[var(--fg-muted)] hover:text-[var(--fg)]"
             >
               {t('backToPermissionsLabel')}
             </Link>
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-[var(--fg)]">
               {member.firstName} {member.lastName}
             </h1>
-            <p className="text-sm text-gray-500">{member.email}</p>
-            <p className="text-sm text-gray-500 mt-1">{t('staffAccessManagementHint')}</p>
+            <p className="text-sm text-[var(--fg-muted)]">{member.email}</p>
+            <p className="text-sm text-[var(--fg-muted)] mt-1">{t('staffAccessManagementHint')}</p>
             <Link
               href={`/console/staff/${member.id}`}
-              className="text-xs text-indigo-600 hover:underline mt-1 inline-block"
+              className="text-xs text-[var(--info-text)] hover:underline mt-1 inline-block"
             >
               {t('viewStaffProfileLabel')}
             </Link>

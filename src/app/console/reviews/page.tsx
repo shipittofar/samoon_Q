@@ -38,7 +38,7 @@ function ReplyModal({
   const [text, setText] = useState(review.ownerReply?.text ?? '')
   return (
     <div
-      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 bg-[var(--overlay)] z-50 flex items-center justify-center p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label={t('replyToReviewAria')}
@@ -83,7 +83,7 @@ function AnalyticsPanel({ tenantId }: { tenantId: string }) {
 
   if (isLoading) return (
     <div className="flex items-center gap-2 py-10 text-[var(--fg-muted)]">
-      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+      <Loader2 className="w-4 h-4 animate-spin"aria-hidden="true"/>
       <span>{t('loadingReviewAnalytics')}</span>
     </div>
   )
@@ -98,13 +98,13 @@ function AnalyticsPanel({ tenantId }: { tenantId: string }) {
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: t('averageRating'), value: `${data.averageRating.toFixed(1)} ★`, icon: Star, color: 'text-amber-400' },
-          { label: t('totalReviews'), value: data.totalReviews.toLocaleString(), icon: MessageSquare, color: 'text-blue-500' },
-          { label: t('replyRate'), value: `${Math.round(data.replyRate * 100)}%`, icon: ThumbsUp, color: 'text-emerald-500' },
-          { label: t('avgReplyTime'), value: t('hoursShort', { hours: data.avgReplyTimeHours }), icon: TrendingUp, color: 'text-purple-500' },
+          { label: t('averageRating'), value: `${data.averageRating.toFixed(1)} ★`, icon: Star, color: 'text-[var(--rating)]' },
+          { label: t('totalReviews'), value: data.totalReviews.toLocaleString(), icon: MessageSquare, color: 'text-[var(--info-text)]' },
+          { label: t('replyRate'), value: `${Math.round(data.replyRate * 100)}%`, icon: ThumbsUp, color: 'text-[var(--success-text)]' },
+          { label: t('avgReplyTime'), value: t('hoursShort', { hours: data.avgReplyTimeHours }), icon: TrendingUp, color: 'text-[var(--chart-5)]' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4">
-            <Icon className={cn('w-5 h-5 mb-2', color)} aria-hidden="true" />
+            <Icon className={cn('w-5 h-5 mb-2', color)} aria-hidden="true"/>
             <p className="text-2xl font-bold text-[var(--fg)]">{value}</p>
             <p className="text-xs text-[var(--fg-muted)] mt-1">{label}</p>
           </div>
@@ -113,7 +113,7 @@ function AnalyticsPanel({ tenantId }: { tenantId: string }) {
 
       {/* Trend indicator */}
       <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-4 flex items-center gap-3">
-        <TrendingUp className={cn('w-5 h-5', data.trend === 'up' ? 'text-emerald-500' : data.trend === 'down' ? 'text-red-500' : 'text-[var(--fg-muted)]')} aria-hidden="true" />
+        <TrendingUp className={cn('w-5 h-5', data.trend === 'up' ? 'text-[var(--success-text)]' : data.trend === 'down' ? 'text-[var(--danger-text)]' : 'text-[var(--fg-muted)]')} aria-hidden="true"/>
         <div>
           <p className="text-sm font-semibold text-[var(--fg)]">
             {t('trendLabel', { trend: t(trendKey) })}
@@ -127,7 +127,7 @@ function AnalyticsPanel({ tenantId }: { tenantId: string }) {
       {/* Top keywords */}
       <div>
         <h3 className="text-sm font-semibold text-[var(--fg)] mb-3 flex items-center gap-2">
-          <BarChart2 className="w-4 h-4 text-[var(--fg-muted)]" aria-hidden="true" />
+          <BarChart2 className="w-4 h-4 text-[var(--fg-muted)]"aria-hidden="true"/>
           {t('topKeywordsInReviews')}
         </h3>
         <div className="flex flex-wrap gap-2">
@@ -164,10 +164,10 @@ export default function AdminReviewsPage() {
   }
 
   return (
-    <PermissionGuard permission="reviews.view" fallback={<AccessDenied />}>
-      <main id="main-content" className="max-w-7xl mx-auto px-4 py-10">
+    <PermissionGuard permission="reviews.view"fallback={<AccessDenied />}>
+      <main id="main-content"className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex items-center gap-3 mb-8">
-          <Star className="w-6 h-6 text-amber-400" aria-hidden="true" />
+          <Star className="w-6 h-6 text-[var(--rating)]"aria-hidden="true"/>
           <h1 className="text-2xl font-bold text-[var(--fg)]">{t('reviewManagement')}</h1>
         </div>
 
@@ -179,7 +179,7 @@ export default function AdminReviewsPage() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-[var(--border)]" role="tablist">
+        <div className="flex gap-1 mb-6 border-b border-[var(--border)]"role="tablist">
           {STATUS_TABS.map(({ value, labelKey }) => {
             const count = value === 'analytics' ? undefined : allReviews.filter((r) => r.status === value).length
             return (
@@ -212,7 +212,7 @@ export default function AdminReviewsPage() {
           <AnalyticsPanel tenantId={tenantId} />
         ) : isLoading ? (
           <div className="flex items-center gap-2 py-10 text-[var(--fg-muted)]">
-            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+            <Loader2 className="w-4 h-4 animate-spin"aria-hidden="true"/>
             <span>{t('loadingReviews')}</span>
           </div>
         ) : filtered.length === 0 ? (
@@ -234,9 +234,9 @@ export default function AdminReviewsPage() {
                     <button
                       type="button"
                       onClick={() => moderate(review.id, 'published')}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-100 transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--success-subtle)] text-[var(--success-text)] text-xs font-medium hover:bg-[var(--success-subtle)] transition-colors"
                     >
-                      <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+                      <Eye className="w-3.5 h-3.5"aria-hidden="true"/>
                       {t('approve')}
                     </button>
                   )}
@@ -244,9 +244,9 @@ export default function AdminReviewsPage() {
                     <button
                       type="button"
                       onClick={() => moderate(review.id, 'hidden')}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-[var(--fg-muted)] text-xs font-medium hover:bg-gray-200 transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--card-hover)] text-[var(--fg-muted)] text-xs font-medium hover:bg-[var(--card-hover)] transition-colors"
                     >
-                      <EyeOff className="w-3.5 h-3.5" aria-hidden="true" />
+                      <EyeOff className="w-3.5 h-3.5"aria-hidden="true"/>
                       {t('hideAction')}
                     </button>
                   )}
@@ -254,26 +254,26 @@ export default function AdminReviewsPage() {
                     <button
                       type="button"
                       onClick={() => moderate(review.id, 'spam')}
-                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 text-xs font-medium hover:bg-orange-100 transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--accent-subtle)] text-[var(--accent-text)] text-xs font-medium hover:bg-[var(--accent-subtle)] transition-colors"
                     >
-                      <Flag className="w-3.5 h-3.5" aria-hidden="true" />
+                      <Flag className="w-3.5 h-3.5"aria-hidden="true"/>
                       {t('markSpam')}
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={() => moderate(review.id, 'deleted')}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-medium hover:bg-red-100 transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--danger-subtle)] text-[var(--danger-text)] text-xs font-medium hover:bg-[var(--danger-subtle)] transition-colors"
                   >
-                    <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                    <Trash2 className="w-3.5 h-3.5"aria-hidden="true"/>
                     {t('deleteAction')}
                   </button>
                   <button
                     type="button"
                     onClick={() => setReplyTarget(review)}
-                    className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs font-medium hover:bg-blue-100 transition-colors ml-auto"
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--info-subtle)] text-[var(--info-text)] text-xs font-medium hover:bg-[var(--info-subtle)] transition-colors ml-auto"
                   >
-                    <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
+                    <MessageSquare className="w-3.5 h-3.5"aria-hidden="true"/>
                     {review.ownerReply ? t('editReply') : t('reply')}
                   </button>
                 </div>

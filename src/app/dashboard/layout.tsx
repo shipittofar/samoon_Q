@@ -72,14 +72,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               {/* Profile Card */}
               <div className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-6 mb-4">
                 <div className="flex items-center gap-4 mb-4">
-                  <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="lg" />
+                  <Avatar src={user?.avatar} firstName={user?.first_name} lastName={user?.last_name} size="lg"/>
                   <div className="min-w-0">
                     <p className="font-semibold text-[var(--fg)] truncate">{user?.first_name} {user?.last_name}</p>
                     <p className="text-sm text-[var(--fg-muted)] truncate">{user?.email}</p>
                   </div>
                 </div>
                 <Link href="/dashboard/settings">
-                  <Button variant="secondary" size="sm" className="w-full" leftIcon={<User className="h-3.5 w-3.5" />}>
+                  <Button variant="secondary"size="sm"className="w-full"leftIcon={<User className="h-3.5 w-3.5"/>}>
                     {t('editProfile')}
                   </Button>
                 </Link>
@@ -98,15 +98,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       className={cn(
                         'flex items-center justify-between px-4 py-3.5 text-sm font-medium transition-colors border-b border-[var(--border)] last:border-0',
                         active
-                          ? 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400'
+                          ? 'bg-[var(--accent-subtle)] text-[var(--accent-text)]'
                           : 'text-[var(--fg-muted)] hover:bg-[var(--card-hover)] hover:text-[var(--fg)]',
                       )}
                     >
                       <span className="flex items-center gap-3">
-                        {IconComponent && <IconComponent className={cn('h-4 w-4', active ? 'text-orange-500' : 'text-[var(--fg-subtle)]')} />}
+                        {IconComponent && <IconComponent className={cn('h-4 w-4', active ? 'text-[var(--accent-text)]' : 'text-[var(--fg-subtle)]')} />}
                         {labelKey ? t(labelKey) : item.label}
                       </span>
-                      {active && <ChevronRight className="h-3.5 w-3.5 text-orange-500" />}
+                      {active && <ChevronRight className="h-3.5 w-3.5 text-[var(--accent-text)]"/>}
                     </Link>
                   )
                 })}
@@ -115,15 +115,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     href="/console"
                     className="flex items-center gap-3 px-4 py-3.5 text-sm font-medium text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors border-t border-[var(--border)]"
                   >
-                    <Monitor className="h-4 w-4" />
+                    <Monitor className="h-4 w-4"/>
                     {t('businessConsole')}
                   </Link>
                 )}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                  className="flex items-center gap-3 w-full px-4 py-3.5 text-sm font-medium text-[var(--danger-text)] hover:bg-[var(--danger-subtle)] transition-colors"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-4 w-4"/>
                   {t('signOut')}
                 </button>
               </nav>

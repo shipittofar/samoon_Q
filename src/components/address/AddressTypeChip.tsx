@@ -33,7 +33,7 @@ export function AddressTypeChip({ type, label, className, showIcon = true }: Add
         className,
       )}
     >
-      {showIcon && <Icon className="h-3.5 w-3.5 shrink-0 text-orange-500" aria-hidden />}
+      {showIcon && <Icon className="h-3.5 w-3.5 shrink-0 text-[var(--accent-text)]"aria-hidden />}
       {display}
     </span>
   )
@@ -53,16 +53,16 @@ export function AddressTypeIcon({ type, className }: AddressTypeIconProps) {
   return (
     <div
       className={cn(
-        'h-10 w-10 rounded-xl bg-orange-50 dark:bg-orange-950/30 flex items-center justify-center shrink-0',
+        'h-10 w-10 rounded-xl bg-[var(--accent-subtle)] flex items-center justify-center shrink-0',
         className,
       )}
     >
-      <Icon className="h-5 w-5 text-orange-500" aria-hidden />
+      <Icon className="h-5 w-5 text-[var(--accent-text)]"aria-hidden />
     </div>
   )
 }
 
 export function DefaultAddressBadge() {
   const t = useTranslations('address')
-  return <Badge variant="default" dot className="text-xs">{t('defaultLabel')}</Badge>
+  return <Badge variant="default"dot className="text-xs">{t('defaultLabel')}</Badge>
 }

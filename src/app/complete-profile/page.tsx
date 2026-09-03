@@ -76,7 +76,7 @@ function CompleteProfileInner() {
         // confirm_password: data.confirm_password,
       },
       {
-        // Phase Z.9 — was hardcoded to '/dashboard' regardless of the
+        // Phase Z.9 — was hardcoded to '/dashboard'regardless of the
         // newly-registered account's accountType, silently sending a
         // business signup completed through this phone-OTP flow to the
         // customer dashboard instead of Console. Routed through the same
@@ -117,13 +117,13 @@ function CompleteProfileInner() {
         {/* Phone number — read-only, for context */}
         {phone_number && (
           <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)] mb-6">
-            <Phone className="h-4 w-4 text-orange-500 shrink-0" aria-hidden="true" />
+            <Phone className="h-4 w-4 text-[var(--accent-text)] shrink-0"aria-hidden="true"/>
             <span className="text-sm text-[var(--fg)] font-mono">{phone_number}</span>
-            <span className="ms-auto text-xs text-green-500 font-medium">{t('verified')}</span>
+            <span className="ms-auto text-xs text-[var(--success-text)] font-medium">{t('verified')}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4"noValidate>
           <div className="grid grid-cols-2 gap-3">
             <Input
               label={t('firstName')}
@@ -148,21 +148,21 @@ function CompleteProfileInner() {
             <input
               type="checkbox"
               {...reg('terms')}
-              className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-orange-500 cursor-pointer"
+              className="mt-0.5 h-4 w-4 rounded border-[var(--border)] accent-[var(--accent)] cursor-pointer"
             />
             <span className="text-sm text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors">
               {t('agreeToTerms')}{' '}
-              <Link href="/terms" className="text-orange-500 hover:underline" target="_blank">
+              <Link href="/terms"className="text-[var(--accent-text)] hover:underline"target="_blank">
                 {tCommon('termsOfService')}
               </Link>{' '}
               {tCommon('and')}{' '}
-              <Link href="/privacy" className="text-orange-500 hover:underline" target="_blank">
+              <Link href="/privacy"className="text-[var(--accent-text)] hover:underline"target="_blank">
                 {tCommon('privacyPolicy')}
               </Link>
             </span>
           </label>
           {errors.terms && (
-            <p role="alert" className="text-xs text-red-500">{errors.terms.message ? tValidation(errors.terms.message) : undefined}</p>
+            <p role="alert"className="text-xs text-[var(--danger-text)]">{errors.terms.message ? tValidation(errors.terms.message) : undefined}</p>
           )}
 
           <Button
@@ -170,7 +170,7 @@ function CompleteProfileInner() {
             className="w-full"
             size="lg"
             loading={isPending}
-            rightIcon={<ArrowRight className="h-4 w-4" />}
+            rightIcon={<ArrowRight className="h-4 w-4"/>}
           >
             {t('createAccountButton')}
           </Button>
@@ -186,7 +186,7 @@ function CompleteProfileFallback() {
   const tCommon = useTranslations('common')
   return (
     <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
-      <div className="h-8 w-8 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" aria-label={tCommon('loading')} />
+      <div className="h-8 w-8 rounded-full border-2 border-[var(--accent-border)] border-t-transparent animate-spin"aria-label={tCommon('loading')} />
     </div>
   )
 }

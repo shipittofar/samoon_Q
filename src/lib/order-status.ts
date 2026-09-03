@@ -43,57 +43,57 @@ export const ORDER_STATUS_CONFIG: Record<OrderStatus, OrderStatusMeta> = {
   pending: {
     labelKey: 'pending',
     icon: Clock,
-    color: 'text-amber-500',
-    bg: 'bg-amber-50 dark:bg-amber-950/30',
+    color: 'text-[var(--rating)]',
+    bg: 'bg-[var(--warning-subtle)]',
     badge: 'warning',
   },
   accepted: {
     labelKey: 'accepted',
     icon: CheckCircle,
-    color: 'text-blue-500',
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
+    color: 'text-[var(--info-text)]',
+    bg: 'bg-[var(--info-subtle)]',
     badge: 'info',
   },
   preparing: {
     labelKey: 'preparing',
     icon: ChefHat,
-    color: 'text-purple-500',
-    bg: 'bg-purple-50 dark:bg-purple-950/30',
+    color: 'text-[var(--chart-5)]',
+    bg: 'bg-[var(--chart-5)]/10',
     badge: 'purple',
   },
   ready: {
     labelKey: 'ready',
     icon: Package,
-    color: 'text-green-500',
-    bg: 'bg-green-50 dark:bg-green-950/30',
+    color: 'text-[var(--success-text)]',
+    bg: 'bg-[var(--success-subtle)]',
     badge: 'success',
   },
   delivered: {
     labelKey: 'delivered',
     icon: Truck,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+    color: 'text-[var(--success-text)]',
+    bg: 'bg-[var(--success-subtle)]',
     badge: 'success',
   },
   picked_up: {
     labelKey: 'picked_up',
     icon: Truck,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+    color: 'text-[var(--success-text)]',
+    bg: 'bg-[var(--success-subtle)]',
     badge: 'success',
   },
   served: {
     labelKey: 'served',
     icon: UtensilsCrossed,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+    color: 'text-[var(--success-text)]',
+    bg: 'bg-[var(--success-subtle)]',
     badge: 'success',
   },
   cancelled: {
     labelKey: 'cancelled',
     icon: XCircle,
-    color: 'text-red-500',
-    bg: 'bg-red-50 dark:bg-red-950/30',
+    color: 'text-[var(--danger-text)]',
+    bg: 'bg-[var(--danger-subtle)]',
     badge: 'danger',
   },
 }
@@ -103,29 +103,29 @@ const BACKEND_ORDER_STATUS_META: Record<string, OrderStatusMeta> = {
   confirmed: {
     labelKey: 'confirmed',
     icon: CheckCircle,
-    color: 'text-blue-500',
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
+    color: 'text-[var(--info-text)]',
+    bg: 'bg-[var(--info-subtle)]',
     badge: 'info',
   },
   processing: {
     labelKey: 'processing',
     icon: ChefHat,
-    color: 'text-purple-500',
-    bg: 'bg-purple-50 dark:bg-purple-950/30',
+    color: 'text-[var(--chart-5)]',
+    bg: 'bg-[var(--chart-5)]/10',
     badge: 'purple',
   },
   completed: {
     labelKey: 'completed',
     icon: Truck,
-    color: 'text-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+    color: 'text-[var(--success-text)]',
+    bg: 'bg-[var(--success-subtle)]',
     badge: 'success',
   },
   rejected: {
     labelKey: 'rejected',
     icon: XCircle,
-    color: 'text-red-500',
-    bg: 'bg-red-50 dark:bg-red-950/30',
+    color: 'text-[var(--danger-text)]',
+    bg: 'bg-[var(--danger-subtle)]',
     badge: 'danger',
   },
 }
@@ -265,7 +265,7 @@ export function getOrderStatusLabelKey(status: string): string {
   return getOrderStatusMeta(status).labelKey
 }
 
-/** Scoped `useTranslations('order')` — resolves `status.<labelKey>` with a safe fallback. */
+/** Scoped `useTranslations('order')` — resolves ` status.<labelKey>`with a safe fallback. */
 export type OrderStatusTranslator = {
   has: (key: string) => boolean
   (key: string): string

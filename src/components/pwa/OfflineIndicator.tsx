@@ -39,7 +39,7 @@ export function OfflineIndicator() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed top-0 inset-x-0 z-50 flex items-center justify-center gap-2 bg-amber-500 text-white text-sm font-medium py-2 px-4"
+      className="fixed top-0 inset-x-0 z-50 flex items-center justify-center gap-2 bg-[var(--warning)] text-[var(--warning-fg)] text-sm font-medium py-2 px-4"
     >
       <span aria-hidden="true">📡</span>
       You are offline — some features may be unavailable

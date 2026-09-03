@@ -61,11 +61,11 @@ export function AssignmentFormFields({
     <div className="space-y-4">
       {showRoleSelect && (
         <div>
-          <label htmlFor="assignment-role-select" className="block text-sm font-medium mb-1">
+          <label htmlFor="assignment-role-select"className="block text-sm font-medium mb-1">
             {t('rolesLabel')}
           </label>
           {rolesLoading ? (
-            <p className="text-sm text-gray-500">{t('loadingStaffEllipsis')}</p>
+            <p className="text-sm text-[var(--fg-muted)]">{t('loadingStaffEllipsis')}</p>
           ) : (
             <select
               id="assignment-role-select"
@@ -81,7 +81,7 @@ export function AssignmentFormFields({
               ))}
             </select>
           )}
-          {roleError && <p className="text-xs text-red-600 mt-1">{roleError}</p>}
+          {roleError && <p className="text-xs text-[var(--danger-text)] mt-1">{roleError}</p>}
         </div>
       )}
 
@@ -97,17 +97,17 @@ export function AssignmentFormFields({
         </label>
         {!form.allLocations && (
           <>
-            <p className="text-xs text-gray-500 mb-2">{t('selectBranchesHint')}</p>
+            <p className="text-xs text-[var(--fg-muted)] mb-2">{t('selectBranchesHint')}</p>
             {branchesLoading ? (
-              <p className="text-sm text-gray-500">{t('loadingBranchEllipsis')}</p>
+              <p className="text-sm text-[var(--fg-muted)]">{t('loadingBranchEllipsis')}</p>
             ) : branches.length === 0 ? (
-              <p className="text-sm text-gray-500">{t('noBranchesConfigured')}</p>
+              <p className="text-sm text-[var(--fg-muted)]">{t('noBranchesConfigured')}</p>
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 {branches.map((b) => (
                   <label
                     key={b.id}
-                    className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer hover:bg-gray-50"
+                    className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer hover:bg-[var(--card-hover)]"
                   >
                     <input
                       type="checkbox"
@@ -121,7 +121,7 @@ export function AssignmentFormFields({
             )}
           </>
         )}
-        {locationsError && <p className="text-xs text-red-600 mt-1">{locationsError}</p>}
+        {locationsError && <p className="text-xs text-[var(--danger-text)] mt-1">{locationsError}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-3">

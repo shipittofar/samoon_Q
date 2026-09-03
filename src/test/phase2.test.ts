@@ -17,6 +17,7 @@ import {
   SHADOW_TOKENS,
   FONT_TOKENS,
   TENANT_OVERRIDABLE_VARS,
+  TENANT_INJECTED_VARS,
 } from '@/lib/tokens'
 import { getDashboardNav, getHeaderNav } from '@/modules/registry'
 import { useTenantStore, useAuthStore } from '@/stores'
@@ -104,6 +105,15 @@ describe('TENANT_OVERRIDABLE_VARS', () => {
     expect(TENANT_OVERRIDABLE_VARS).toContain('--accent-hover')
     expect(TENANT_OVERRIDABLE_VARS).toContain('--font-body')
     expect(TENANT_OVERRIDABLE_VARS).toHaveLength(3)
+  })
+
+  it('injects per-theme tenant brand vars rather than assigning --accent directly', () => {
+    expect(TENANT_INJECTED_VARS).toContain('--tenant-accent-light')
+    expect(TENANT_INJECTED_VARS).toContain('--tenant-accent-dark')
+    expect(TENANT_INJECTED_VARS).toContain('--tenant-accent-fg-light')
+    expect(TENANT_INJECTED_VARS).toContain('--tenant-accent-text-dark')
+    expect(TENANT_INJECTED_VARS).toContain('--font-body')
+    expect(TENANT_INJECTED_VARS).not.toContain('--accent')
   })
 
   it('does NOT allow overriding brand or surface palettes', () => {

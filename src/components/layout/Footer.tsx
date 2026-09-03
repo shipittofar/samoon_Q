@@ -54,7 +54,7 @@ export function Footer() {
         <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4">
+            <Link href="/"className="flex items-center gap-2 mb-4">
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
                 <span className="text-white font-bold">S</span>
               </div>
@@ -65,8 +65,8 @@ export function Footer() {
             </p>
             <div className="space-y-3 text-sm text-[var(--fg-muted)]">
               <div className="flex items-center gap-2.5">
-                <Mail className="h-4 w-4 text-orange-500" />
-                <a href="mailto:hello@samoon.com" className="hover:text-orange-500 transition-colors">hello@samoon.com</a>
+                <Mail className="h-4 w-4 text-[var(--accent-text)]"/>
+                <a href="mailto:hello@samoon.com"className="hover:text-[var(--accent-text)] transition-colors">hello@samoon.com</a>
               </div>
             </div>
           </div>
@@ -80,7 +80,7 @@ export function Footer() {
                   <li key={link.id}>
                     <Link
                       href={link.href}
-                      className="text-sm text-[var(--fg-muted)] hover:text-orange-500 transition-colors"
+                      className="text-sm text-[var(--fg-muted)] hover:text-[var(--accent-text)] transition-colors"
                     >
                       {t(`links.${link.labelKey}`)}
                     </Link>
@@ -102,9 +102,9 @@ export function Footer() {
                 key={social.label}
                 href={social.href}
                 aria-label={social.label}
-                className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--fg-muted)] hover:text-orange-500 hover:bg-[var(--card-hover)] transition-all"
+                className="h-8 w-8 rounded-lg flex items-center justify-center text-[var(--fg-muted)] hover:text-[var(--accent-text)] hover:bg-[var(--card-hover)] transition-all"
               >
-                <social.icon className="h-4 w-4" />
+                <social.icon className="h-4 w-4"/>
               </a>
             ))}
           </div>

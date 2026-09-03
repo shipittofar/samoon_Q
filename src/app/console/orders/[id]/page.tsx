@@ -38,15 +38,15 @@ function TimelineItem({ entry, isLast }: { entry: OrderStatusHistory; isLast: bo
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
-        <div className="w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-300 flex items-center justify-center shrink-0">
-          <Icon className="w-4 h-4 text-gray-600" />
+        <div className="w-8 h-8 rounded-full bg-[var(--card-hover)] border-2 border-[var(--border-strong)] flex items-center justify-center shrink-0">
+          <Icon className="w-4 h-4 text-[var(--fg-muted)]"/>
         </div>
-        {!isLast && <div className="w-px flex-1 bg-gray-200 my-1" />}
+        {!isLast && <div className="w-px flex-1 bg-[var(--border)] my-1"/>}
       </div>
       <div className="pb-4">
         <div className="font-medium text-sm">{label}</div>
-        <div className="text-xs text-gray-500">{new Date(entry.timestamp).toLocaleString()}</div>
-        {entry.note && <div className="text-xs text-gray-600 mt-1">{entry.note}</div>}
+        <div className="text-xs text-[var(--fg-muted)]">{new Date(entry.timestamp).toLocaleString()}</div>
+        {entry.note && <div className="text-xs text-[var(--fg-muted)] mt-1">{entry.note}</div>}
       </div>
     </div>
   )
@@ -54,8 +54,8 @@ function TimelineItem({ entry, isLast }: { entry: OrderStatusHistory; isLast: bo
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-lg border p-5">
-      <h2 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">{title}</h2>
+    <div className="bg-[var(--card)] rounded-lg border p-5">
+      <h2 className="text-sm font-semibold text-[var(--fg-secondary)] mb-4 uppercase tracking-wide">{title}</h2>
       {children}
     </div>
   )
@@ -64,7 +64,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between py-1.5 text-sm border-b last:border-0">
-      <span className="text-gray-500">{label}</span>
+      <span className="text-[var(--fg-muted)]">{label}</span>
       <span className="font-medium text-right">{value}</span>
     </div>
   )
@@ -78,7 +78,7 @@ function OrderDetailContent({ id }: { id: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
+      <div className="flex items-center justify-center h-64 text-[var(--fg-muted)] text-sm">
         {t('loadingOrder')}
       </div>
     )
@@ -87,9 +87,9 @@ function OrderDetailContent({ id }: { id: string }) {
   if (isError || !order) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-2">
-        <XCircle className="w-8 h-8 text-red-400" />
-        <p className="text-sm text-gray-600">{t('orderNotFoundOrFailedToLoad')}</p>
-        <Link href="/console/orders" className="text-sm text-blue-600 hover:underline">
+        <XCircle className="w-8 h-8 text-[var(--danger-text)]"/>
+        <p className="text-sm text-[var(--fg-muted)]">{t('orderNotFoundOrFailedToLoad')}</p>
+        <Link href="/console/orders"className="text-sm text-[var(--info-text)] hover:underline">
           {t('backToOrders')}
         </Link>
       </div>
@@ -100,18 +100,18 @@ function OrderDetailContent({ id }: { id: string }) {
   const statusLabel = tOrder(`status.${statusMeta.labelKey}`)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[var(--card-hover)]">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-[var(--card)] border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Link href="/console/orders" className="text-gray-400 hover:text-gray-700">
-            <ArrowLeft className="w-5 h-5" />
+          <Link href="/console/orders"className="text-[var(--fg-subtle)] hover:text-[var(--fg)]">
+            <ArrowLeft className="w-5 h-5"/>
           </Link>
           <div className="flex items-center gap-3 flex-1">
             <h1 className="text-lg font-semibold">{t('orderNumberHeading', { number: order.order_number })}</h1>
             <Badge variant={statusMeta.badge}>{statusLabel}</Badge>
           </div>
-          <span className="text-xs text-gray-400">{new Date(order.created_at).toLocaleString()}</span>
+          <span className="text-xs text-[var(--fg-subtle)]">{new Date(order.created_at).toLocaleString()}</span>
         </div>
       </div>
 
@@ -135,9 +135,9 @@ function OrderDetailContent({ id }: { id: string }) {
               <div key={i} className="flex justify-between text-sm py-1.5 border-b last:border-0">
                 <div>
                   <span className="font-medium">{item.menu_item?.name ?? t('item')}</span>
-                  <span className="text-gray-400 ml-2">× {item.quantity}</span>
+                  <span className="text-[var(--fg-subtle)] ml-2">× {item.quantity}</span>
                   {item.notes && (
-                    <div className="text-xs text-gray-500 mt-0.5">{item.notes}</div>
+                    <div className="text-xs text-[var(--fg-muted)] mt-0.5">{item.notes}</div>
                   )}
                 </div>
                 <span>{formatCurrency(item.total_price)}</span>
@@ -145,20 +145,20 @@ function OrderDetailContent({ id }: { id: string }) {
             ))}
           </div>
           <div className="mt-3 space-y-1 text-sm">
-            <div className="flex justify-between text-gray-500">
+            <div className="flex justify-between text-[var(--fg-muted)]">
               <span>{t('subtotal')}</span><span>{formatCurrency(order.subtotal)}</span>
             </div>
             {order.discount_amount > 0 && (
-              <div className="flex justify-between text-green-600">
+              <div className="flex justify-between text-[var(--success-text)]">
                 <span>{t('discount')} {order.discount_code ? `(${order.discount_code})` : ''}</span>
                 <span>−{formatCurrency(order.discount_amount)}</span>
               </div>
             )}
-            <div className="flex justify-between text-gray-500">
+            <div className="flex justify-between text-[var(--fg-muted)]">
               <span>{t('tax')}</span><span>{formatCurrency(order.tax)}</span>
             </div>
             {order.service_charge > 0 && (
-              <div className="flex justify-between text-gray-500">
+              <div className="flex justify-between text-[var(--fg-muted)]">
                 <span>{t('serviceCharge')}</span><span>{formatCurrency(order.service_charge)}</span>
               </div>
             )}
@@ -172,11 +172,11 @@ function OrderDetailContent({ id }: { id: string }) {
         {order.user && (
           <Section title={t('tableHeaders.customer')}>
             <div className="flex items-start gap-3">
-              <User className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
+              <User className="w-5 h-5 text-[var(--fg-subtle)] mt-0.5 shrink-0"/>
               <div className="text-sm space-y-0.5">
                 <div className="font-medium">{order.user.first_name} {order.user.last_name}</div>
-                {order.user.email && <div className="text-gray-500">{order.user.email}</div>}
-                {order.user.phone_number && <div className="text-gray-500">{order.user.phone_number}</div>}
+                {order.user.email && <div className="text-[var(--fg-muted)]">{order.user.email}</div>}
+                {order.user.phone_number && <div className="text-[var(--fg-muted)]">{order.user.phone_number}</div>}
               </div>
             </div>
           </Section>
@@ -186,14 +186,14 @@ function OrderDetailContent({ id }: { id: string }) {
         {order.delivery_address && (
           <Section title={tCheckout('deliveryAddress')}>
             <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-gray-400 mt-0.5 shrink-0" />
+              <MapPin className="w-5 h-5 text-[var(--fg-subtle)] mt-0.5 shrink-0"/>
               <div className="text-sm">
                 {order.delivery_address.formatted_address ? (
                   <div>{order.delivery_address.formatted_address}</div>
                 ) : (
                   <>
                     <div>{order.delivery_address.street}</div>
-                    <div className="text-gray-500">
+                    <div className="text-[var(--fg-muted)]">
                       {order.delivery_address.city}
                       {order.delivery_address.state ? `, ${order.delivery_address.state}` : ''}
                       {order.delivery_address.zip ?? order.delivery_address.postal_code ?? ''}
@@ -208,7 +208,7 @@ function OrderDetailContent({ id }: { id: string }) {
         {/* Payment */}
         <Section title={t('payment')}>
           <div className="flex items-center gap-3">
-            <CreditCard className="w-5 h-5 text-gray-400 shrink-0" />
+            <CreditCard className="w-5 h-5 text-[var(--fg-subtle)] shrink-0"/>
             <div className="text-sm space-y-0.5">
               <Row label={t('method')} value={tCheckout(PAYMENT_METHOD_KEY[order.payment_method])} />
               <Row label={t('tableHeaders.status')} value={t(PAYMENT_STATUS_KEY[order.payment_status])} />
@@ -235,9 +235,9 @@ function OrderDetailContent({ id }: { id: string }) {
         <div className="text-center">
           <Link
             href={`/console/audit-logs?resource=order&resourceId=${order.id}`}
-            className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
+            className="text-xs text-[var(--info-text)] hover:underline inline-flex items-center gap-1"
           >
-            <Hash className="w-3 h-3" />
+            <Hash className="w-3 h-3"/>
             {t('viewAuditLogsForThisOrder')}
           </Link>
         </div>
@@ -250,7 +250,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params)
   return (
     <ErrorBoundary feature="Order Detail">
-      <PermissionGuard permission="orders.view" fallback={<AccessDenied />}>
+      <PermissionGuard permission="orders.view"fallback={<AccessDenied />}>
         <OrderDetailContent id={id} />
       </PermissionGuard>
     </ErrorBoundary>

@@ -182,7 +182,7 @@ export function ProductDetailView({
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
-      <div ref={liveRef} className="sr-only" aria-live="polite" aria-atomic="true" />
+      <div ref={liveRef} className="sr-only"aria-live="polite"aria-atomic="true"/>
 
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-thin">
         <div className="flex flex-col lg:flex-row lg:items-stretch">
@@ -217,17 +217,17 @@ export function ProductDetailView({
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[var(--fg-muted)]">
                 <span className="flex items-center gap-1">
-                  <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" aria-hidden="true" />
+                  <Star className="h-3.5 w-3.5 text-[var(--rating)] fill-[var(--rating)]"aria-hidden="true"/>
                   <strong className="text-[var(--fg)]">{item.rating}</strong>
                   <span>{t('reviewCount', { count: item.rating_count })}</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                  <Clock className="h-3.5 w-3.5"aria-hidden="true"/>
                   {t('prepTime', { min: item.preparation_time })}
                 </span>
                 {item.calories != null && (
                   <span className="flex items-center gap-1">
-                    <Flame className="h-3.5 w-3.5" aria-hidden="true" />
+                    <Flame className="h-3.5 w-3.5"aria-hidden="true"/>
                     {t('calories', { count: item.calories })}
                   </span>
                 )}
@@ -245,9 +245,9 @@ export function ProductDetailView({
               {!item.available && (
                 <div
                   role="status"
-                  className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900 px-4 py-3 text-sm text-amber-800 dark:text-amber-200"
+                  className="flex items-center gap-2 rounded-xl border border-[var(--warning-border)] bg-[var(--warning-subtle)] px-4 py-3 text-sm text-[var(--warning-text)]"
                 >
-                  <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <AlertTriangle className="h-4 w-4 shrink-0"aria-hidden="true"/>
                   {t('unavailable')}
                 </div>
               )}
@@ -257,7 +257,7 @@ export function ProductDetailView({
               {item.tags && item.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {item.tags.map((tag) => (
-                    <MenuTagBadge key={tag.id} tag={tag} className="capitalize" />
+                    <MenuTagBadge key={tag.id} tag={tag} className="capitalize"/>
                   ))}
                 </div>
               )}
@@ -265,11 +265,11 @@ export function ProductDetailView({
               {item.allergens && item.allergens.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs font-medium text-[var(--fg-muted)] flex items-center gap-1">
-                    <AlertTriangle className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
+                    <AlertTriangle className="h-3.5 w-3.5 text-[var(--rating)]"aria-hidden="true"/>
                     {t('containsAllergens')}
                   </span>
                   {item.allergens.map((allergen) => (
-                    <Badge key={allergen} variant="warning" className="text-[10px] capitalize">
+                    <Badge key={allergen} variant="warning"className="text-[10px] capitalize">
                       {allergen}
                     </Badge>
                   ))}
@@ -288,7 +288,7 @@ export function ProductDetailView({
             </div>
 
             {showDetailsTab && (
-              <div className="space-y-6" role="tabpanel">
+              <div className="space-y-6"role="tabpanel">
                 {item.nutritional_info && (
                   <CollapsibleSection
                     title={t('nutritionalInfo')}
@@ -311,7 +311,7 @@ export function ProductDetailView({
             )}
 
             {showCustomizeTab && (
-              <div className="space-y-6" role="tabpanel">
+              <div className="space-y-6"role="tabpanel">
                 <ProductDetailModifiers
                   item={item}
                   groups={extraGroups}
@@ -340,10 +340,10 @@ export function ProductDetailView({
             )}
 
             {showReviewsTab && (
-              <section aria-labelledby="reviews-heading" className="space-y-4" role="tabpanel">
+              <section aria-labelledby="reviews-heading"className="space-y-4"role="tabpanel">
                 <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-amber-400 fill-amber-400" aria-hidden="true" />
-                  <h2 id="reviews-heading" className="text-base font-semibold text-[var(--fg)]">
+                  <Star className="h-4 w-4 text-[var(--rating)] fill-[var(--rating)]"aria-hidden="true"/>
+                  <h2 id="reviews-heading"className="text-base font-semibold text-[var(--fg)]">
                     {t('reviews')}
                   </h2>
                   {reviewsData && (
@@ -354,13 +354,13 @@ export function ProductDetailView({
                 </div>
 
                 {ratingBreakdown && ratingBreakdown.total > 0 && (
-                  <RatingBreakdown breakdown={ratingBreakdown} className="max-w-sm" />
+                  <RatingBreakdown breakdown={ratingBreakdown} className="max-w-sm"/>
                 )}
 
                 {reviewsLoading ? (
                   <div className="space-y-3">
                     {Array.from({ length: 2 }).map((_, i) => (
-                      <div key={i} className="h-16 rounded-xl bg-[var(--card-hover)] animate-pulse" />
+                      <div key={i} className="h-16 rounded-xl bg-[var(--card-hover)] animate-pulse"/>
                     ))}
                   </div>
                 ) : previewReviews.length > 0 ? (
@@ -371,7 +371,7 @@ export function ProductDetailView({
                           <span className="text-xs font-semibold text-[var(--fg)]">
                             {review.user.first_name} {review.user.last_name}
                           </span>
-                          <RatingStars rating={review.rating} size="sm" />
+                          <RatingStars rating={review.rating} size="sm"/>
                           <span className="text-[10px] text-[var(--fg-muted)] ms-auto">
                             {new Date(review.created_at).toLocaleDateString(locale)}
                           </span>
@@ -405,7 +405,7 @@ export function ProductDetailView({
                           <span className="text-xs font-semibold text-[var(--fg)]">
                             {review.user.first_name} {review.user.last_name}
                           </span>
-                          <RatingStars rating={review.rating} size="sm" />
+                          <RatingStars rating={review.rating} size="sm"/>
                           <span className="text-[10px] text-[var(--fg-muted)] ms-auto">
                             {new Date(review.created_at).toLocaleDateString(locale)}
                           </span>

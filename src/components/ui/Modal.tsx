@@ -89,12 +89,12 @@ export function Modal({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 flex items-center justify-center p-4 overflow-hidden" style={{ zIndex }}>
+        <div className="fixed inset-0 flex items-center justify-center p-4 overflow-hidden"style={{ zIndex }}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-sm"
             onClick={closeOnOverlay ? onClose : undefined}
             aria-hidden="true"
           />
@@ -116,13 +116,13 @@ export function Modal({
             )}
           >
             {ariaTitle && !title && (
-              <h2 id="modal-aria-title" className="sr-only">{ariaTitle}</h2>
+              <h2 id="modal-aria-title"className="sr-only">{ariaTitle}</h2>
             )}
             {(title || showClose) && (
               <div className="flex items-start justify-between p-6 pb-0 shrink-0">
                 <div>
                   {title && (
-                    <h2 id="modal-title" className="text-xl font-semibold text-[var(--fg)] font-[var(--font-display)]">
+                    <h2 id="modal-title"className="text-xl font-semibold text-[var(--fg)] font-[var(--font-display)]">
                       {title}
                     </h2>
                   )}
@@ -131,8 +131,8 @@ export function Modal({
                   )}
                 </div>
                 {showClose && (
-                  <Button variant="ghost" size="icon-sm" onClick={onClose} className="shrink-0 -mt-1 -me-1" aria-label="Close">
-                    <X className="h-4 w-4" />
+                  <Button variant="ghost"size="icon-sm"onClick={onClose} className="shrink-0 -mt-1 -me-1"aria-label="Close">
+                    <X className="h-4 w-4"/>
                   </Button>
                 )}
               </div>
@@ -195,7 +195,7 @@ export function Drawer({ open, onClose, title, children, side = 'right', size = 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--overlay)] backdrop-blur-sm"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -218,13 +218,13 @@ export function Drawer({ open, onClose, title, children, side = 'right', size = 
             {(title || true) && (
               <div className="flex items-center justify-between p-4 border-b border-[var(--border)] shrink-0">
                 {isBottom && (
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-[var(--border-strong)] rounded-full" />
+                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-[var(--border-strong)] rounded-full"/>
                 )}
                 {title && (
-                  <h2 id="drawer-title" className="font-semibold text-[var(--fg)] font-[var(--font-display)]">{title}</h2>
+                  <h2 id="drawer-title"className="font-semibold text-[var(--fg)] font-[var(--font-display)]">{title}</h2>
                 )}
-                <Button variant="ghost" size="icon-sm" onClick={onClose} className="ms-auto" aria-label="Close">
-                  <X className="h-4 w-4" />
+                <Button variant="ghost"size="icon-sm"onClick={onClose} className="ms-auto"aria-label="Close">
+                  <X className="h-4 w-4"/>
                 </Button>
               </div>
             )}

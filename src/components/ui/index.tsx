@@ -8,14 +8,14 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
+        default: 'bg-[var(--accent-subtle)] text-[var(--accent-text)]',
         secondary: 'bg-[var(--card-hover)] text-[var(--fg-muted)]',
-        success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
-        warning: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
-        danger: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300',
-        info: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300',
-        purple: 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300',
-        outline: 'border border-[var(--border)] text-[var(--fg-muted)]',
+        success: 'bg-[var(--success-subtle)] text-[var(--success-text)]',
+        warning: 'bg-[var(--warning-subtle)] text-[var(--warning-text)]',
+        danger: 'bg-[var(--danger-subtle)] text-[var(--danger-text)]',
+        info: 'bg-[var(--info-subtle)] text-[var(--info-text)]',
+        purple: 'bg-[var(--chart-5)]/15 text-[var(--chart-5)]',
+        outline: 'border border-[var(--border-strong)] text-[var(--fg-muted)]',
       },
     },
     defaultVariants: { variant: 'default' },
@@ -29,7 +29,7 @@ export interface BadgeProps extends HTMLAttributes<HTMLSpanElement>, VariantProp
 export function Badge({ className, variant, dot, children, ...props }: BadgeProps) {
   return (
     <span className={cn(badgeVariants({ variant }), className)} {...props}>
-      {dot && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
+      {dot && <span className="h-1.5 w-1.5 rounded-full bg-current"/>}
       {children}
     </span>
   )
@@ -88,9 +88,9 @@ const avatarSizes = { xs: 'h-6 w-6 text-xs', sm: 'h-8 w-8 text-xs', md: 'h-10 w-
 export function Avatar({ src, firstName = '', lastName = '', size = 'md', className }: AvatarProps) {
   const initials = getInitials(firstName || '?', lastName || '')
   return (
-    <div className={cn('relative rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center font-semibold text-white shrink-0', avatarSizes[size], className)}>
+    <div className={cn('relative rounded-full overflow-hidden bg-gradient-to-br from-[var(--accent)] to-[var(--accent-active)] flex items-center justify-center font-semibold text-[var(--accent-fg)] shrink-0', avatarSizes[size], className)}>
       {src ? (
-        <img src={src} alt={`${firstName} ${lastName}`} className="h-full w-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+        <img src={src} alt={`${firstName} ${lastName}`} className="h-full w-full object-cover"onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
       ) : (
         <span>{initials}</span>
       )}
@@ -111,14 +111,14 @@ export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>
 export function FoodCardSkeleton() {
   return (
     <div className="rounded-2xl overflow-hidden bg-[var(--card)] border border-[var(--border)]">
-      <Skeleton className="h-48 w-full rounded-none" />
+      <Skeleton className="h-48 w-full rounded-none"/>
       <div className="p-4 space-y-2">
-        <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-5 w-3/4"/>
+        <Skeleton className="h-4 w-full"/>
+        <Skeleton className="h-4 w-2/3"/>
         <div className="flex items-center justify-between pt-2">
-          <Skeleton className="h-6 w-20" />
-          <Skeleton className="h-9 w-24 rounded-xl" />
+          <Skeleton className="h-6 w-20"/>
+          <Skeleton className="h-9 w-24 rounded-xl"/>
         </div>
       </div>
     </div>
@@ -130,9 +130,9 @@ export function Divider({ className, label }: { className?: string; label?: stri
   if (label) {
     return (
       <div className={cn('flex items-center gap-3', className)}>
-        <div className="flex-1 h-px bg-[var(--border)]" />
+        <div className="flex-1 h-px bg-[var(--border)]"/>
         <span className="text-xs text-[var(--fg-subtle)] shrink-0">{label}</span>
-        <div className="flex-1 h-px bg-[var(--border)]" />
+        <div className="flex-1 h-px bg-[var(--border)]"/>
       </div>
     )
   }
@@ -151,7 +151,7 @@ export function RatingStars({ rating, count, size = 'sm' }: { rating: number; co
     <span className="flex items-center gap-1">
       <span className={cn('flex', starSize)}>
         {stars.map((s, i) => (
-          <span key={i} className={s.filled ? 'text-amber-400' : s.half ? 'text-amber-300' : 'text-[var(--border-strong)]'}>
+          <span key={i} className={s.filled ? 'text-[var(--warning-border)]' : s.half ? 'text-[var(--warning-border)]/60' : 'text-[var(--border-strong)]'}>
             ★
           </span>
         ))}

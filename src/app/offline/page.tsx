@@ -11,7 +11,7 @@ export default function OfflinePage() {
           <div className="h-24 w-24 rounded-full bg-[var(--card)] border-4 border-[var(--border)] flex items-center justify-center mx-auto">
             <span className="text-4xl">📡</span>
           </div>
-          <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-red-500 flex items-center justify-center mx-auto shadow-lg">
+          <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-[var(--danger)] flex items-center justify-center mx-auto shadow-lg">
             <span className="text-white text-sm font-bold">!</span>
           </div>
         </div>
@@ -24,7 +24,7 @@ export default function OfflinePage() {
         <div className="space-y-3">
           <link
             href="/menu"
-            className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-3.5 rounded-2xl transition-colors shadow-lg"
+            className="flex items-center justify-center gap-2 w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] font-semibold px-6 py-3.5 rounded-2xl transition-colors shadow-lg"
           >
             {t('browseCachedMenu')}
           </link>
