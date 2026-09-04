@@ -289,21 +289,20 @@ describe('adminService — mock mode runtime', () => {
     expect(result.status).toBe('confirmed')
   })
 
-  it('getCustomers returns paginated AdminCustomers', async () => {
+  it('getCustomers returns paginated ConsoleCustomers', async () => {
     const { adminService } = await import('@/services/admin.service')
     const result = await adminService.getCustomers()
     expect(result.count).toBeGreaterThan(0)
-    expect(result.results[0]).toHaveProperty('order_count')
-    expect(result.results[0]).toHaveProperty('total_spent')
-    expect(result.results[0]).toHaveProperty('tier')
+    expect(result.results[0]).toHaveProperty('orders_count')
+    expect(result.results[0]).toHaveProperty('reservations_count')
+    expect(result.results[0]).not.toHaveProperty('tier')
   })
 
-  it('getCustomers filters by tier=vip', async () => {
+  it('getCustomers does not apply tier as a list filter', async () => {
     const { adminService } = await import('@/services/admin.service')
+    const all = await adminService.getCustomers()
     const result = await adminService.getCustomers({ tier: 'vip' })
-    for (const c of result.results) {
-      expect(c.tier).toBe('vip')
-    }
+    expect(result.count).toBe(all.count)
   })
 
   it('getCustomers filters by search', async () => {
@@ -505,7 +504,7 @@ describe('admin hooks — query keys', () => {
   it('useAdminCustomers uses admin-customers query key', async () => {
     const src = readSrc('hooks/index.ts')
     const block = src.slice(src.indexOf('function useAdminCustomers'))
-    expect(block.slice(0, 200)).toContain("'admin-customers'")
+    expect(block.slice(0, 600)).toContain("'admin-customers'")
   })
 
   it('useAdminCustomerStats uses admin-customer-stats key', async () => {

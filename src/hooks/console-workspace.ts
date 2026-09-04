@@ -21,6 +21,7 @@ import { isConsoleMembershipTenantInactive } from '@/lib/console-tenant-access'
 
 /** Branch-scoped query prefixes — keep in sync with hooks/index.ts BRANCH_SCOPED_QUERY_KEYS. */
 const BRANCH_SCOPED_QUERY_KEYS = [
+  'admin-customers',
   'branch-orders',
   'branch-reservations',
   'branch-analytics',

@@ -15,7 +15,7 @@
  *   ⚠️  GET   /console/stats/               — no backend route yet
  *   ⚠️  GET   /console/orders/              — falls back to /orders/ in real mode
  *   ⚠️  GET   /console/reservations/        — falls back to /reservations/ in real mode
- *   ⚠️  GET   /console/customers/           — no backend route yet
+ *   ✅  GET   /orders/console-orders/tenants/{id}/customers/ — list (branch via ?branch_id)
  *   ⚠️  GET   /console/customers/{id}/stats/ — no backend route yet
  */
 import api from './axios.instance'
@@ -26,6 +26,7 @@ import { branchBelongsToMockTenant, mockBranchTenantId } from '@/lib/mock-tenant
 import type {
   AdminCustomer,
   AdminCustomerFilters,
+  ConsoleCustomer,
   AdminCustomerStats,
   AdminOrderFilters,
   AdminOrdersRequest,
@@ -210,24 +211,97 @@ function applyReservationFilters(
   return result
 }
 
-function applyCustomerFilters(customers: AdminCustomer[], filters: AdminCustomerFilters): AdminCustomer[] {
-  let result = [...customers]
-  if (filters.tier) result = result.filter((c) => c.tier === filters.tier)
-  if (filters.search) {
-    const q = filters.search.toLowerCase()
-    result = result.filter(
-      (c) =>
-        `${c.first_name} ${c.last_name}`.toLowerCase().includes(q) ||
-        (c.email ?? '').toLowerCase().includes(q),
-    )
+function numericIdFromPlatformUserId(userId: string): number {
+  const n = Number.parseInt(userId.replace(/\D/g, ''), 10)
+  if (Number.isFinite(n) && n > 0) return n
+  let hash = 0
+  for (let i = 0; i < userId.length; i++) hash = (hash * 31 + userId.charCodeAt(i)) | 0
+  return Math.abs(hash) || 1
+}
+
+/** Workspace branch ids (branch-rest-01) vs mock BranchCustomer.branchId slugs (main). */
+const MOCK_BRANCH_CUSTOMER_ALIASES: Record<string, string[]> = {
+  'branch-rest-01': ['main'],
+  'branch-rest-02': ['downtown'],
+  'branch-rest-03': ['airport'],
+  'branch-cafe-01': ['main'],
+  'branch-cafe-02': ['brooklyn-cafe'],
+  'branch-bar-01': ['main'],
+  'branch-fc-01': ['main'],
+  'branch-ft-01': ['main'],
+  'branch-mc-01': ['main'],
+}
+
+function mockBranchCustomerKeys(branchId: string): Set<string> {
+  return new Set([branchId, ...(MOCK_BRANCH_CUSTOMER_ALIASES[branchId] ?? [])])
+}
+
+function applyConsoleCustomerSearch(customers: ConsoleCustomer[], search?: string): ConsoleCustomer[] {
+  if (!search) return customers
+  const q = search.toLowerCase()
+  return customers.filter(
+    (c) =>
+      `${c.first_name} ${c.last_name}`.toLowerCase().includes(q) ||
+      (c.email ?? '').toLowerCase().includes(q) ||
+      (c.phone_number ?? '').toLowerCase().includes(q),
+  )
+}
+
+function buildConsoleCustomers(tenantId: string, branchId?: string): ConsoleCustomer[] {
+  const tenantBcs = MOCK_BUSINESS_CUSTOMERS.filter(
+    (bc) => bc.tenantId === tenantId && (bc.ordersCount > 0 || bc.reservationsCount > 0),
+  )
+
+  const keys = branchId ? mockBranchCustomerKeys(branchId) : null
+  const branchRows = keys
+    ? MOCK_BRANCH_CUSTOMERS.filter((brc) => keys.has(brc.branchId))
+    : []
+  const branchByBcId = new Map(branchRows.map((brc) => [brc.businessCustomerId, brc]))
+
+  const scoped = keys
+    ? tenantBcs.filter((bc) => branchByBcId.has(bc.id) || (bc.lastBranchId != null && keys.has(bc.lastBranchId)))
+    : tenantBcs
+
+  return scoped.map((bc) => {
+    const pu = MOCK_PLATFORM_USERS.find((u) => u.id === bc.userId)
+    const brc = branchByBcId.get(bc.id)
+    const lastActivity = brc?.lastVisit ?? brc?.lastOrder ?? bc.lastInteractionAt ?? null
+    return {
+      id: numericIdFromPlatformUserId(bc.userId),
+      email: pu?.email ?? null,
+      phone_number: pu?.phone_number ?? null,
+      first_name: pu?.name.split(' ')[0] ?? '',
+      last_name: pu?.name.split(' ').slice(1).join(' ') ?? '',
+      orders_count: brc?.ordersCount ?? bc.ordersCount,
+      reservations_count: brc?.reservationsCount ?? bc.reservationsCount,
+      last_activity_at: lastActivity,
+    } satisfies ConsoleCustomer
+  })
+}
+
+function resolveConsoleCustomerBranchId(branchId?: string): string | undefined {
+  const value = branchId?.trim()
+  if (!value || value === 'all' || value === '0' || value === 'null' || value === 'undefined') {
+    return undefined
   }
-  return result
+  return value
+}
+
+function buildConsoleCustomerListParams(filters: AdminCustomerFilters): Record<string, string | number> {
+  const params: Record<string, string | number> = {}
+  const branchId = resolveConsoleCustomerBranchId(filters.branchId)
+  if (branchId) params.branch_id = branchId
+  if (filters.search) params.search = filters.search
+  if (filters.page != null) params.page = filters.page
+  if (filters.page_size != null) params.page_size = filters.page_size
+  return params
 }
 
 // Default tenant used when no tenantId is passed — covers legacy call sites.
 const FALLBACK_TENANT = 'tenant-samoon-01'
 
 export const ADMIN_ORDERS_PAGE_SIZE = 20
+export const ADMIN_CUSTOMERS_PAGE_SIZE = 20
 
 function applyMockOrdersScope(
   orders: Partial<Order>[],
@@ -417,18 +491,20 @@ export const adminService = {
     return data
   },
 
-  // ⚠️ Backend blocker: GET /admin/customers/ not yet deployed
-  async getCustomers(filters: AdminCustomerFilters = {}): Promise<PaginatedResponse<AdminCustomer>> {
+  async getCustomers(filters: AdminCustomerFilters = {}): Promise<PaginatedResponse<ConsoleCustomer>> {
     if (USE_MOCK) {
       await delay(500)
       const tenantId = filters.tenantId ?? FALLBACK_TENANT
-      const tenantCustomers = buildAdminCustomers(tenantId)
-      const filtered = applyCustomerFilters(tenantCustomers, filters)
-      return paginate(filtered, filters.page, filters.page_size)
+      const list = buildConsoleCustomers(tenantId, resolveConsoleCustomerBranchId(filters.branchId))
+      const filtered = applyConsoleCustomerSearch(list, filters.search)
+      return paginate(filtered, filters.page, filters.page_size ?? ADMIN_CUSTOMERS_PAGE_SIZE)
     }
-    const { data } = await api.get<PaginatedResponse<AdminCustomer>>(ENDPOINTS.ADMIN.CUSTOMERS, {
-      params: filters,
-    })
+    const tenantId = filters.tenantId
+    if (!tenantId) throw new Error('tenantId is required to load console customers')
+    const { data } = await api.get<PaginatedResponse<ConsoleCustomer>>(
+      ENDPOINTS.ORDERS.CONSOLE_CUSTOMERS(tenantId),
+      { params: buildConsoleCustomerListParams(filters) },
+    )
     return data
   },
 
@@ -437,7 +513,10 @@ export const adminService = {
       await delay(300)
       const tid = tenantId ?? FALLBACK_TENANT
       const tenantCustomers = buildAdminCustomers(tid)
-      const customer = tenantCustomers.find((c) => c.id === id)
+      const numericKey = numericIdFromPlatformUserId(id)
+      const customer = tenantCustomers.find(
+        (c) => c.id === id || numericIdFromPlatformUserId(c.id) === numericKey,
+      )
       if (!customer) throw new Error(`Customer not found: ${id}`)
       return { ...customer }
     }

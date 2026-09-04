@@ -121,15 +121,16 @@ describe('P8.9.6 — Cross-tenant user isolation', () => {
 
     const samoonIds = new Set(samoonCustomers.results.map((c) => c.id))
     const brewIds = new Set(brewCustomers.results.map((c) => c.id))
+    expect(brewIds.size).toBeGreaterThan(0)
 
-    // Get user IDs that are ONLY in brew (no samoon business customer)
     const brewOnlyUserIds = MOCK_BUSINESS_CUSTOMERS
       .filter((bc) => bc.tenantId === BREW)
       .map((bc) => bc.userId)
       .filter((uid) => !MOCK_BUSINESS_CUSTOMERS.some((bc) => bc.tenantId === SAMOON && bc.userId === uid))
 
     brewOnlyUserIds.forEach((uid) => {
-      expect(samoonIds.has(uid), `User ${uid} (brew-only) incorrectly appears in samoon customer list`).toBe(false)
+      const numericId = Number.parseInt(uid.replace(/\D/g, ''), 10)
+      expect(samoonIds.has(numericId), `User ${uid} (brew-only) incorrectly appears in samoon customer list`).toBe(false)
     })
   })
 
@@ -309,51 +310,44 @@ describe('P8.9.6 — Loyalty isolation', () => {
   })
 })
 
-describe('P8.9.6 — AdminCustomer view derivation correctness', () => {
-  it('AdminCustomer.id equals PlatformUser.id (not a separate entity)', async () => {
+describe('P8.9.6 — Console customer list derivation', () => {
+  it('list id is numeric and maps back to a PlatformUser', async () => {
     const customers = await adminService.getCustomers({ tenantId: SAMOON })
-    const platformIds = new Set(MOCK_PLATFORM_USERS.map((u) => u.id))
     customers.results.forEach((c) => {
-      expect(platformIds.has(c.id), `AdminCustomer ${c.id} not found in PlatformUsers`).toBe(true)
+      const pu = MOCK_PLATFORM_USERS.find((u) => Number.parseInt(u.id.replace(/\D/g, ''), 10) === c.id)
+      expect(pu, `ConsoleCustomer ${c.id} not found in PlatformUsers`).toBeDefined()
     })
   })
 
-  it('AdminCustomer metrics match the BusinessCustomer source for that tenant', async () => {
+  it('list metrics match the BusinessCustomer source for that tenant', async () => {
     const customers = await adminService.getCustomers({ tenantId: SAMOON })
     customers.results.forEach((c) => {
+      const pu = MOCK_PLATFORM_USERS.find((u) => Number.parseInt(u.id.replace(/\D/g, ''), 10) === c.id)
       const bc = MOCK_BUSINESS_CUSTOMERS.find(
-        (b) => b.userId === c.id && b.tenantId === SAMOON
+        (b) => b.userId === pu?.id && b.tenantId === SAMOON,
       )
-      expect(bc, `No BusinessCustomer found for AdminCustomer ${c.id} at ${SAMOON}`).toBeDefined()
+      expect(bc, `No BusinessCustomer found for ConsoleCustomer ${c.id} at ${SAMOON}`).toBeDefined()
       if (bc) {
-        expect(c.order_count).toBe(bc.ordersCount)
-        expect(c.total_spent).toBe(bc.totalSpent)
+        expect(c.orders_count).toBe(bc.ordersCount)
+        expect(c.reservations_count).toBe(bc.reservationsCount)
       }
     })
   })
 
-  it('AdminCustomer has phone_number derived from PlatformUser', async () => {
+  it('list has phone_number derived from PlatformUser', async () => {
     const customers = await adminService.getCustomers({ tenantId: SAMOON })
     customers.results.forEach((c) => {
-      const pu = MOCK_PLATFORM_USERS.find((u) => u.id === c.id)
+      const pu = MOCK_PLATFORM_USERS.find((u) => Number.parseInt(u.id.replace(/\D/g, ''), 10) === c.id)
       if (pu) {
         expect(c.phone_number).toBe(pu.phone_number)
       }
     })
   })
 
-  it('tier mapping: bronze→new, silver→regular, gold→vip, platinum→vip', async () => {
+  it('list DTO does not invent loyalty tier', async () => {
     const customers = await adminService.getCustomers({ tenantId: SAMOON })
-    const tierMap: Record<string, 'new' | 'regular' | 'vip'> = {
-      bronze: 'new', silver: 'regular', gold: 'vip', platinum: 'vip',
-    }
     customers.results.forEach((c) => {
-      const bc = MOCK_BUSINESS_CUSTOMERS.find(
-        (b) => b.userId === c.id && b.tenantId === SAMOON
-      )
-      if (bc) {
-        expect(c.tier).toBe(tierMap[bc.loyaltyTier])
-      }
+      expect(c).not.toHaveProperty('tier')
     })
   })
 })

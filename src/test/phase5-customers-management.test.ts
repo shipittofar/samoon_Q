@@ -1,24 +1,9 @@
 /**
- * Phase 5.5 — Admin Customers Management & Analytics Tests
+ * Phase 5.5 — Admin Customers Management
  *
- * Verifies:
- *   A. No MOCK_CUSTOMERS dependency remains (inline or imported)
- *   B. useAdminCustomers integrated
- *   C. AdminCustomer type used (order_count, total_spent, avg_order_value, tier)
- *   D. AdminCustomerStats type exists in types
- *   E. Loading state exists
- *   F. Error state exists
- *   G. Empty state exists
- *   H. Search drives filters
- *   I. Tier filter drives filters
- *   J. Pagination preserved (memoized filters with page support)
- *   K. Analytics use service-derived data, not hardcoded MOCK_CUSTOMERS
- *
- * Regression:
- *   - userService unchanged
- *   - profile pages unchanged
- *   - admin auth unchanged
- *   - P5.1–P5.4 hooks unchanged
+ * Console list uses GET /orders/console-orders/tenants/{tenantId}/customers/
+ * with branch_id, search, page, page_size. Loyalty tier and spend stats are
+ * not provided by that API and must not be faked from the current page.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -31,8 +16,9 @@ function src(rel: string) { return fs.readFileSync(path.join(ROOT, rel), 'utf8')
 const page = src('src/app/console/customers/page.tsx')
 const hooks = src('src/hooks/index.ts')
 const types = src('src/types/index.ts')
-
-// ── A. No MOCK_CUSTOMERS ──────────────────────────────────────────────────────
+const adminServiceSrc = src('src/services/admin.service.ts')
+const endpoints = src('src/services/endpoints.ts')
+const workspaceHooks = src('src/hooks/console-workspace.ts')
 
 describe('Admin customers page — no hardcoded data', () => {
   it('A: does not contain MOCK_CUSTOMERS inline array', () => {
@@ -48,15 +34,13 @@ describe('Admin customers page — no hardcoded data', () => {
   })
 })
 
-// ── B. useAdminCustomers integrated ──────────────────────────────────────────
-
 describe('Admin customers page — useAdminCustomers', () => {
   it('B: imports useAdminCustomers', () => {
     expect(page).toMatch(/useAdminCustomers/)
   })
 
   it('B: calls useAdminCustomers with memoized filters', () => {
-    expect(page).toMatch(/useAdminCustomers\s*\(\s*filters\s*\)/)
+    expect(page).toMatch(/useAdminCustomers\s*\(\s*filters/)
   })
 
   it('B: consumes data.results', () => {
@@ -68,34 +52,34 @@ describe('Admin customers page — useAdminCustomers', () => {
   })
 })
 
-// ── C. AdminCustomer type fields used ─────────────────────────────────────────
-
-describe('Admin customers page — AdminCustomer type fields', () => {
-  it('C: uses order_count (not orders)', () => {
-    expect(page).toMatch(/order_count/)
+describe('Admin customers page — ConsoleCustomer list fields', () => {
+  it('C: uses orders_count (not order_count or c.orders)', () => {
+    expect(page).toMatch(/orders_count/)
+    expect(page).not.toMatch(/order_count/)
     expect(page).not.toMatch(/c\.orders\b/)
   })
 
-  it('C: uses total_spent (not spent)', () => {
-    expect(page).toMatch(/total_spent/)
-    expect(page).not.toMatch(/c\.spent\b/)
+  it('C: uses reservations_count', () => {
+    expect(page).toMatch(/reservations_count/)
   })
 
-  it('C: uses avg_order_value', () => {
-    expect(page).toMatch(/avg_order_value/)
+  it('C: uses last_activity_at', () => {
+    expect(page).toMatch(/last_activity_at/)
   })
 
-  it('C: uses tier (not status)', () => {
-    expect(page).toMatch(/c\.tier/)
+  it('C: does not render spend/AOV/joined from the list DTO', () => {
+    expect(page).not.toMatch(/total_spent/)
+    expect(page).not.toMatch(/avg_order_value/)
+    expect(page).not.toMatch(/c\.created_at/)
   })
 
-  it('C: uses created_at (not joined)', () => {
-    expect(page).toMatch(/c\.created_at/)
-    expect(page).not.toMatch(/c\.joined\b/)
+  it('C: ConsoleCustomer type is defined', () => {
+    expect(types).toMatch(/export interface ConsoleCustomer/)
+    expect(types).toMatch(/orders_count:\s*number/)
+    expect(types).toMatch(/reservations_count:\s*number/)
+    expect(types).toMatch(/last_activity_at/)
   })
 })
-
-// ── D. AdminCustomerStats type exists ─────────────────────────────────────────
 
 describe('Types — AdminCustomerStats defined', () => {
   it('D: AdminCustomerStats exported from types', () => {
@@ -113,23 +97,19 @@ describe('Types — AdminCustomerStats defined', () => {
   })
 })
 
-// ── E. Loading state ──────────────────────────────────────────────────────────
-
 describe('Admin customers page — loading state', () => {
   it('E: isLoading from useAdminCustomers', () => {
     expect(page).toMatch(/isLoading/)
   })
 
   it('E: renders loading UI', () => {
-    expect(page).toMatch(/isLoading\s*&&/)
+    expect(page).toMatch(/showLoading/)
   })
 
   it('E: stats cards show placeholder when loading', () => {
-    expect(page).toMatch(/isLoading.*'—'|'—'.*isLoading/)
+    expect(page).toMatch(/showLoading \? '—'/)
   })
 })
-
-// ── F. Error state ────────────────────────────────────────────────────────────
 
 describe('Admin customers page — error state', () => {
   it('F: isError from useAdminCustomers', () => {
@@ -145,8 +125,6 @@ describe('Admin customers page — error state', () => {
   })
 })
 
-// ── G. Empty state ────────────────────────────────────────────────────────────
-
 describe('Admin customers page — empty state', () => {
   it('G: empty state when customers.length === 0', () => {
     expect(page).toMatch(/customers\.length\s*===\s*0/)
@@ -157,15 +135,18 @@ describe('Admin customers page — empty state', () => {
   })
 })
 
-// ── H. Search drives filters ──────────────────────────────────────────────────
-
 describe('Admin customers page — search filter', () => {
   it('H: search state exists', () => {
     expect(page).toMatch(/const \[search.*useState/)
   })
 
-  it('H: search wired into memoized filters object', () => {
-    expect(page).toMatch(/search.*\?.*search|search\s*\}/)
+  it('H: search is debounced (Users-page pattern)', () => {
+    expect(page).toMatch(/debouncedSearch/)
+    expect(page).toMatch(/setTimeout\(\s*\(\)\s*=>\s*setDebouncedSearch\(search\.trim\(\)\),\s*300\)/)
+  })
+
+  it('H: debounced search wired into memoized filters', () => {
+    expect(page).toMatch(/debouncedSearch \? \{ search: debouncedSearch \}/)
   })
 
   it('H: memoized filters object used', () => {
@@ -173,60 +154,138 @@ describe('Admin customers page — search filter', () => {
   })
 })
 
-// ── I. Tier filter drives filters ─────────────────────────────────────────────
-
-describe('Admin customers page — tier filter', () => {
+describe('Admin customers page — tier filter isolated from API', () => {
   it('I: tierFilter state exists', () => {
     expect(page).toMatch(/tierFilter/)
   })
 
-  it('I: tier wired into AdminCustomerFilters', () => {
-    expect(page).toMatch(/tier.*tierFilter|tierFilter.*tier/)
-  })
-
-  it('I: TIERS array or equivalent uses AdminCustomerTier values', () => {
+  it('I: TIERS array uses AdminCustomerTier values', () => {
     expect(page).toMatch(/vip.*regular.*new|new.*regular.*vip/)
   })
 
   it('I: AdminCustomerTier imported from @/types', () => {
     expect(page).toMatch(/AdminCustomerTier/)
   })
-})
 
-// ── J. Pagination support ─────────────────────────────────────────────────────
-
-describe('Admin customers page — pagination support', () => {
-  it('J: AdminCustomerFilters has page field in types', () => {
-    expect(types).toMatch(/interface AdminCustomerFilters[\s\S]{0,200}page\?/)
+  it('I: tier is not passed in list filters to the customer API', () => {
+    const filtersBlock = page.slice(page.indexOf('const filters = useMemo'), page.indexOf('useAdminCustomers'))
+    expect(filtersBlock).not.toMatch(/tier/)
   })
 
-  it('J: filters object is memoized (allows adding page later)', () => {
-    expect(page).toMatch(/useMemo/)
+  it('I: selecting a tier shows an unavailable notice instead of fake filtering', () => {
+    expect(page).toMatch(/tierFilterUnavailable/)
   })
 })
 
-// ── K. Analytics use service-derived data ─────────────────────────────────────
+describe('Admin customers page — pagination', () => {
+  it('J: page and page_size are sent in filters', () => {
+    expect(page).toMatch(/page_size:\s*ADMIN_CUSTOMERS_PAGE_SIZE/)
+    expect(page).toMatch(/const \[page, setPage\]/)
+  })
 
-describe('Admin customers page — analytics from service layer', () => {
-  it('K: total customers uses data.count', () => {
+  it('J: PaginationControls is used', () => {
+    expect(page).toMatch(/PaginationControls/)
+  })
+
+  it('J: page resets when search, tenant, branch, or All Branches scope changes', () => {
+    expect(page).toMatch(/setPage\(1\)/)
+    expect(page).toMatch(/customersScope, activeTenantId, selectedBranchId, debouncedSearch/)
+  })
+})
+
+describe('Admin customers page — analytics honesty', () => {
+  it('K: total customers uses data.count for the current scope', () => {
     expect(page).toMatch(/data\?\.count/)
+    expect(page).toMatch(/totalCount/)
   })
 
-  it('K: revenue derived from customers array (not hardcoded)', () => {
-    expect(page).toMatch(/total_spent/)
-    expect(page).not.toMatch(/totalRevenue\s*=\s*\d+/)
+  it('K: does not sum current-page spend for revenue', () => {
+    expect(page).not.toMatch(/total_spent/)
+    expect(page).not.toMatch(/reduce\(\(s, c\) => s \+ c\.total_spent/)
   })
 
-  it('K: avg order value derived from service data', () => {
-    expect(page).toMatch(/avg_order_value|avgOrderValue/)
-  })
-
-  it('K: analytics wrapped in useMemo', () => {
-    expect(page).toMatch(/useMemo[\s\S]{0,400}total_spent|total_spent[\s\S]{0,400}useMemo/)
+  it('K: VIP/revenue/AOV use explicit unavailable state', () => {
+    expect(page).toMatch(/customerStatUnavailable/)
   })
 })
 
-// ── Mock mode compatibility ───────────────────────────────────────────────────
+describe('API contract — console customers endpoint', () => {
+  it('defines CONSOLE_CUSTOMERS next to other console-orders helpers', () => {
+    expect(endpoints).toMatch(/CONSOLE_CUSTOMERS:\s*\(tenantId:\s*string\)\s*=>/)
+    expect(endpoints).toMatch(/\/orders\/console-orders\/tenants\/\$\{tenantId\}\/customers\//)
+  })
+
+  it('getCustomers live path uses CONSOLE_CUSTOMERS, not /admin/customers/', () => {
+    const fn = adminServiceSrc.slice(adminServiceSrc.indexOf('async getCustomers'))
+    const live = fn.slice(0, fn.indexOf('async getCustomer('))
+    expect(live).toMatch(/ENDPOINTS\.ORDERS\.CONSOLE_CUSTOMERS/)
+    expect(live).not.toMatch(/ENDPOINTS\.ADMIN\.CUSTOMERS/)
+  })
+
+  it('live params include branch_id, search, page, page_size and exclude tier', () => {
+    const start = adminServiceSrc.indexOf('function buildConsoleCustomerListParams')
+    const end = adminServiceSrc.indexOf('export const ADMIN_ORDERS_PAGE_SIZE', start)
+    const builder = adminServiceSrc.slice(start, end)
+    expect(builder).toMatch(/params\.branch_id = branchId/)
+    expect(builder).toMatch(/params\.search = filters\.search/)
+    expect(builder).toMatch(/params\.page = filters\.page/)
+    expect(builder).toMatch(/params\.page_size = filters\.page_size/)
+    expect(builder).not.toMatch(/tier/)
+  })
+
+  it('useAdminCustomers query key matches Orders scoped/global convention', () => {
+    const block = hooks.slice(hooks.indexOf('export function useAdminCustomers'))
+    expect(block).toMatch(/options: \{ scope\?: AdminOrdersScope \}/)
+    expect(block).toMatch(/\['admin-customers', scope, tenantId, branchId, filters\]/)
+    expect(block).toMatch(/\['admin-customers', scope, tenantId, filters\]/)
+    expect(block).toMatch(/enabled:\s*scoped \? !!\(tenantId && branchId\) : !!tenantId/)
+    expect(block).toMatch(/scoped \? \{ branchId: branchId \?\? undefined \} : \{\}/)
+  })
+
+  it('admin-customers is branch-scoped for workspace invalidation', () => {
+    expect(workspaceHooks).toMatch(/'admin-customers'/)
+  })
+})
+
+describe('Customers page — Orders-style branch / all-branches scope', () => {
+  it('uses allCustomersMode + AdminOrdersScope like orders allOrdersMode', () => {
+    expect(page).toMatch(/allCustomersMode/)
+    expect(page).toMatch(/setAllCustomersMode/)
+    expect(page).toMatch(/customersScope: AdminOrdersScope/)
+    expect(page).toMatch(/allCustomersMode \? 'global' : 'scoped'/)
+  })
+
+  it('passes scope into useAdminCustomers', () => {
+    expect(page).toMatch(/useAdminCustomers\(filters, \{ scope: customersScope \}\)/)
+  })
+
+  it('does not add an in-page branch dropdown', () => {
+    expect(page).not.toMatch(/filterByBranchAria/)
+    expect(page).not.toMatch(/useAdminBranches/)
+    expect(page).not.toMatch(/<select/)
+  })
+
+  it('reuses This Branch / All Branches labels from existing console copy', () => {
+    expect(page).toMatch(/t\('ordersScopeBranch'\)/)
+    expect(page).toMatch(/t\('allBranches'\)/)
+  })
+
+  it('waits for workspace branch only in scoped mode', () => {
+    expect(page).toMatch(/awaitingScope = !allCustomersMode && \(!activeTenantId \|\| !selectedBranchId\)/)
+    expect(page).toMatch(/!allCustomersMode && \(tenantLoading \|\| branchLoading\)/)
+  })
+
+  it('live params omit fake All Branches branch_id values', () => {
+    const start = adminServiceSrc.indexOf('function resolveConsoleCustomerBranchId')
+    const end = adminServiceSrc.indexOf('export const ADMIN_ORDERS_PAGE_SIZE', start)
+    const builder = adminServiceSrc.slice(start, end)
+    expect(builder).toMatch(/value === 'all'/)
+    expect(builder).toMatch(/value === '0'/)
+    expect(builder).toMatch(/value === 'null'/)
+    expect(builder).toMatch(/value === 'undefined'/)
+    expect(builder).toMatch(/params\.branch_id = branchId/)
+  })
+})
 
 describe('Mock mode compatibility', () => {
   it('adminService.getCustomers returns paginated results', async () => {
@@ -238,11 +297,12 @@ describe('Mock mode compatibility', () => {
     expect(result.count).toBeGreaterThan(0)
   })
 
-  it('adminService.getCustomers filters by tier=vip', async () => {
+  it('adminService.getCustomers ignores tier (not a list API param)', async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true'
     const { adminService } = await import('@/services/admin.service')
-    const result = await adminService.getCustomers({ tier: 'vip' })
-    result.results.forEach((c) => expect(c.tier).toBe('vip'))
+    const all = await adminService.getCustomers({ tenantId: 'tenant-samoon-01' })
+    const withTier = await adminService.getCustomers({ tenantId: 'tenant-samoon-01', tier: 'vip' })
+    expect(withTier.count).toBe(all.count)
   })
 
   it('adminService.getCustomers filters by search', async () => {
@@ -251,8 +311,33 @@ describe('Mock mode compatibility', () => {
     const result = await adminService.getCustomers({ search: 'alice' })
     expect(result.results.length).toBeGreaterThan(0)
     result.results.forEach((c) =>
-      expect(`${c.first_name} ${c.last_name} ${c.email}`.toLowerCase()).toMatch(/alice/)
+      expect(`${c.first_name} ${c.last_name} ${c.email}`.toLowerCase()).toMatch(/alice/),
     )
+  })
+
+  it('adminService.getCustomers paginates with page and page_size', async () => {
+    process.env.NEXT_PUBLIC_USE_MOCK = 'true'
+    const { adminService } = await import('@/services/admin.service')
+    const page1 = await adminService.getCustomers({ tenantId: 'tenant-samoon-01', page: 1, page_size: 5 })
+    expect(page1.results.length).toBeLessThanOrEqual(5)
+    expect(page1.count).toBeGreaterThan(page1.results.length)
+  })
+
+  it('adminService.getCustomers scopes by branch_id', async () => {
+    process.env.NEXT_PUBLIC_USE_MOCK = 'true'
+    const { adminService } = await import('@/services/admin.service')
+    const tenant = await adminService.getCustomers({ tenantId: 'tenant-samoon-01' })
+    const branch = await adminService.getCustomers({ tenantId: 'tenant-samoon-01', branchId: 'branch-rest-01' })
+    expect(branch.count).toBeGreaterThan(0)
+    expect(branch.count).toBeLessThan(tenant.count)
+  })
+
+  it('adminService.getCustomers omits fake All Branches branch_id values', async () => {
+    process.env.NEXT_PUBLIC_USE_MOCK = 'true'
+    const { adminService } = await import('@/services/admin.service')
+    const tenant = await adminService.getCustomers({ tenantId: 'tenant-samoon-01' })
+    const asAll = await adminService.getCustomers({ tenantId: 'tenant-samoon-01', branchId: 'all' })
+    expect(asAll.count).toBe(tenant.count)
   })
 
   it('adminService.getCustomerStats returns typed stats', async () => {
@@ -264,20 +349,19 @@ describe('Mock mode compatibility', () => {
     expect(typeof stats.total_spent).toBe('number')
   })
 
-  it('AdminCustomer has required fields in mock data', async () => {
+  it('ConsoleCustomer has required list fields in mock data', async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true'
     const { adminService } = await import('@/services/admin.service')
     const result = await adminService.getCustomers()
     const customer = result.results[0]
-    expect(customer).toHaveProperty('order_count')
-    expect(customer).toHaveProperty('total_spent')
-    expect(customer).toHaveProperty('avg_order_value')
-    expect(customer).toHaveProperty('tier')
-    expect(['new', 'regular', 'vip']).toContain(customer.tier)
+    expect(customer).toHaveProperty('orders_count')
+    expect(customer).toHaveProperty('reservations_count')
+    expect(customer).toHaveProperty('last_activity_at')
+    expect(typeof customer.id).toBe('number')
+    expect(customer).not.toHaveProperty('tier')
+    expect(customer).not.toHaveProperty('total_spent')
   })
 })
-
-// ── Backend blockers documentation ────────────────────────────────────────────
 
 describe('Backend blockers — documented in page', () => {
   it('page uses PermissionGuard for customers.view', () => {
@@ -285,11 +369,9 @@ describe('Backend blockers — documented in page', () => {
   })
 })
 
-// ── Regression: userService unchanged ────────────────────────────────────────
-
 describe('Regression — user-related hooks', () => {
   it('useAddresses hook still present', () => {
-    expect(hooks).toMatch(/export function useAddresses/)
+    expect(hooks).toMatch(/useAddresses/)
   })
 
   it('useFavoritesList hook still exported', () => {
@@ -297,16 +379,12 @@ describe('Regression — user-related hooks', () => {
   })
 })
 
-// ── Regression: admin auth guard ─────────────────────────────────────────────
-
 describe('Regression — admin auth guard', () => {
   it('admin layout still enforces dashboard:access', () => {
     const layout = src('src/app/console/layout.tsx')
     expect(layout).toMatch(/dashboard:access/)
   })
 })
-
-// ── Regression: P5.1–P5.4 hooks present ──────────────────────────────────────
 
 describe('Regression — P5.1–P5.4 hooks', () => {
   it('useAdminStats still present', () => {

@@ -116,6 +116,7 @@ import type {
   AdminOrderFilters,
   AdminOrdersScope,
   AdminReservationFilters,
+  ConsoleCustomer,
   Capability,
   Category,
   CategoryWriteRequest,
@@ -1192,6 +1193,7 @@ export function useBranch(id: string) {
  * queryKey FIRST, then re-add its key here — never the reverse.
  */
 export const BRANCH_SCOPED_QUERY_KEYS = [
+  'admin-customers',
   'branch-orders',
   'branch-reservations',
   'branch-analytics',
@@ -1906,13 +1908,26 @@ export function useCancelReservation() {
   })
 }
 
-export function useAdminCustomers(filters: AdminCustomerFilters = {}) {
+export function useAdminCustomers(
+  filters: AdminCustomerFilters = {},
+  options: { scope?: AdminOrdersScope } = {},
+) {
+  const scope = options.scope ?? 'scoped'
   const tenantId = useConsoleTenantId()
+  const branchId = useConsoleBranchId()
+  const scoped = scope === 'scoped'
   return useQuery({
-    queryKey: ['admin-customers', tenantId, filters],
-    queryFn: () => adminService.getCustomers({ ...filters, tenantId: tenantId ?? undefined }),
+    queryKey: scoped
+      ? ['admin-customers', scope, tenantId, branchId, filters]
+      : ['admin-customers', scope, tenantId, filters],
+    queryFn: () =>
+      adminService.getCustomers({
+        ...filters,
+        tenantId: tenantId ?? undefined,
+        ...(scoped ? { branchId: branchId ?? undefined } : {}),
+      }),
     staleTime: STALE_TIME,
-    enabled: !!tenantId,
+    enabled: scoped ? !!(tenantId && branchId) : !!tenantId,
   })
 }
 
@@ -2184,14 +2199,34 @@ export function useBulkCancelReservations() {
   })
 }
 
+export type CustomerExportRow = Pick<
+  ConsoleCustomer,
+  'id' | 'first_name' | 'last_name' | 'email' | 'phone_number' | 'orders_count' | 'reservations_count'
+>
+
+function csvCell(value: string | number | null | undefined): string {
+  const raw = value == null ? '' : String(value)
+  if (/[",\n]/.test(raw)) return `"${raw.replace(/"/g, '""')}"`
+  return raw
+}
+
 export function useBulkExportCustomers() {
   return useMutation({
-    mutationFn: (ids: string[]) => {
-      const rows = [
-        'id,name,email',
-        ...ids.map((id) => `${id},,`),
-      ].join('\n')
-      const blob = new Blob([rows], { type: 'text/csv' })
+    mutationFn: (rows: CustomerExportRow[]) => {
+      const header = 'id,first_name,last_name,email,phone_number,orders_count,reservations_count'
+      const body = rows.map((row) =>
+        [
+          csvCell(row.id),
+          csvCell(row.first_name),
+          csvCell(row.last_name),
+          csvCell(row.email),
+          csvCell(row.phone_number),
+          csvCell(row.orders_count),
+          csvCell(row.reservations_count),
+        ].join(','),
+      )
+      const csv = [header, ...body].join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

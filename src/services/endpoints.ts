@@ -60,6 +60,8 @@ export const ENDPOINTS = {
       `/orders/console-orders/tenants/${tenantId}/branches/`,
     CONSOLE_PENDING_COUNT: (tenantId: string, branchId: string) =>
       `/orders/console-orders/tenants/${tenantId}/branches/${branchId}/pending-count/`,
+    CONSOLE_CUSTOMERS: (tenantId: string) =>
+      `/orders/console-orders/tenants/${tenantId}/customers/`,
     CREATE: '/orders/',
     DETAIL: (id: string) => `/orders/${id}/`,
     CANCEL: (id: string) => `/orders/${id}/cancel/`,

@@ -1183,10 +1183,26 @@ export interface AdminReservationFilters {
   page_size?: number
 }
 
-/** Filter params accepted by getCustomers() */
+/**
+ * Console customer list row — GET /orders/console-orders/tenants/{id}/customers/.
+ * Distinct from AdminCustomer (legacy CRM detail / mock getCustomer).
+ */
+export interface ConsoleCustomer {
+  id: number
+  first_name: string
+  last_name: string
+  email: string | null
+  phone_number?: string | null
+  orders_count: number
+  reservations_count: number
+  last_activity_at: string | null
+}
+
+/** Filter params accepted by getCustomers() — list API only. `tier` is UI-only and must not be sent to the backend. */
 export interface AdminCustomerFilters {
   tenantId?: string
   branchId?: string
+  /** Isolated from the console customers endpoint; never serialized as a query param. */
   tier?: AdminCustomerTier
   search?: string
   page?: number
