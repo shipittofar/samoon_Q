@@ -209,6 +209,9 @@
 
     --overlay: rgb(28 25 23 / 0.5);
     --search-overlay: rgb(28 25 23 / 0.4);
+    --search-sheet-overlay: rgb(28 25 23 / 0.22);
+    --search-sheet-width: 22.5rem;
+    --search-sheet-max-block-size: 70vh;
     --search-field-height-chrome: 44px;
     --search-field-height-overlay: 48px;
     --search-field-radius: 12px;
@@ -309,6 +312,9 @@
 
     --overlay: rgb(0 0 0 / 0.7);
     --search-overlay: rgb(0 0 0 / 0.4);
+    --search-sheet-overlay: rgb(0 0 0 / 0.28);
+    --search-sheet-width: 22.5rem;
+    --search-sheet-max-block-size: 70vh;
     --search-field-height-chrome: 44px;
     --search-field-height-overlay: 48px;
     --search-field-radius: 12px;

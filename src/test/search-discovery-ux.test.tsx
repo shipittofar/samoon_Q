@@ -86,6 +86,21 @@ describe('search system wiring', () => {
     expect(src).toContain('--search-field-height-overlay')
   })
 
+  it('search tokens include a compact filter sheet width and overlay', () => {
+    const src = readFileSync(join(ROOT, 'app', 'globals.css'), 'utf8')
+    expect(src).toContain('--search-sheet-width')
+    expect(src).toContain('--search-sheet-max-block-size')
+    expect(src).toContain('--search-sheet-overlay')
+  })
+
+  it('Drawer end/start placement uses logical CSS, not physical left/right inset', () => {
+    const src = readFileSync(join(ROOT, 'components', 'ui', 'Modal.tsx'), 'utf8')
+    expect(src).toContain("side === 'end' && 'ms-auto border-s'")
+    expect(src).toContain("side === 'start' && 'border-e'")
+    expect(src).toContain("overlay === 'subtle'")
+    expect(src).not.toContain('left-1/2')
+  })
+
   it('Discover uses SearchField, overlay, and no marketing hero', () => {
     const src = readFileSync(join(ROOT, 'app', 'discover', 'DiscoverClientPage.tsx'), 'utf8')
     expect(src).toContain('SearchField')
@@ -112,5 +127,18 @@ describe('search system wiring', () => {
     expect(src).not.toContain('minRating')
     expect(src).not.toContain('type="range"')
     expect(src).toContain('priceBand')
+  })
+
+  it('FilterSheet is a compact logical sheet, not a full-screen takeover', () => {
+    const src = readFileSync(join(ROOT, 'components', 'search', 'FilterSheet.tsx'), 'utf8')
+    expect(src).toContain("side={isDesktop ? 'end' : 'bottom'}")
+    expect(src).toContain("overlay=\"subtle\"")
+    expect(src).toContain('fitContent')
+    expect(src).toContain("size=\"compact\"")
+    expect(src).toContain('min-width: 600px')
+    expect(src).not.toMatch(/\bleft-/)
+    expect(src).not.toMatch(/\bright-/)
+    expect(src).not.toMatch(/\bpl-/)
+    expect(src).not.toMatch(/\bpr-/)
   })
 })
