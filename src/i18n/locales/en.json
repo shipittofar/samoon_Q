@@ -198,7 +198,7 @@
   "menu": {
     "title": "Our Menu",
     "allCategories": "All",
-    "searchPlaceholder": "Search dishes...",
+    "searchPlaceholder": "Search the menu",
     "filters": "Filters",
     "sortBy": "Sort by",
     "sortOptions": {
@@ -244,6 +244,9 @@
     "availableOnly": "Available only",
     "recentlyViewed": "Recently Viewed",
     "itemsFound": "{count, plural, =0 {No items found} one {# item found} other {# items found}}",
+    "resultsForQuery": "{count, plural, =0 {No results} one {# result} other {# results}} for \"{query}\"",
+    "availableToggleAria": "Show available items only",
+    "priceBand": "Price",
     "noDishesFound": "No dishes found",
     "noResultsFor": "No results for \"{query}\". Try different keywords.",
     "noItemsMatchFilters": "No items match your current filters.",
@@ -5035,13 +5038,26 @@
       }
     }
   },
+  "searchUi": {
+    "clear": "Clear search",
+    "recentSearches": "Recent searches",
+    "removeRecent": "Remove {query} from recent searches",
+    "removeFilter": "Remove {label} filter",
+    "groupBusinesses": "Places",
+    "groupCuisines": "Cuisines",
+    "groupCities": "Cities",
+    "groupCategories": "Categories",
+    "filters": "Filters",
+    "reset": "Reset",
+    "activeFilters": "Active filters"
+  },
   "discover": {
     "eyebrow": "Discover",
     "headingPrefix": "Find Your Next",
     "headingAccent": "Favourite Spot",
     "subtitle1": "Search · Book a table · Order online · Earn rewards — all in one place.",
     "subtitle": "Search · Book a table — all in one place.",
-    "searchPlaceholder": "Search by name, city, cuisine, amenity, or type…",
+    "searchPlaceholder": "Search restaurants and cafés",
     "errorLoad": "Failed to load businesses. Please try again.",
     "loadingBusinesses": "Loading businesses…",
     "resultsCount": "{count, plural, =0 {No results} one {# result} other {# results}}",

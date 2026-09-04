@@ -198,7 +198,7 @@
   "menu": {
     "title": "منوی ما",
     "allCategories": "همه",
-    "searchPlaceholder": "جستجوی غذا...",
+    "searchPlaceholder": "جستجوی منو",
     "filters": "فیلترها",
     "sortBy": "مرتب‌سازی بر اساس",
     "sortOptions": {
@@ -244,6 +244,9 @@
     "availableOnly": "فقط موجود",
     "recentlyViewed": "بازدیدهای اخیر",
     "itemsFound": "{count, plural, =0 {موردی یافت نشد} one {# مورد یافت شد} other {# مورد یافت شد}}",
+    "resultsForQuery": "{count, plural, =0 {بدون نتیجه} one {# نتیجه} other {# نتیجه}} برای «{query}»",
+    "availableToggleAria": "فقط موارد موجود را نشان بده",
+    "priceBand": "قیمت",
     "noDishesFound": "غذایی یافت نشد",
     "noResultsFor": "نتیجه‌ای برای «{query}» یافت نشد. کلمات دیگری را امتحان کنید.",
     "noItemsMatchFilters": "موردی با فیلترهای فعلی مطابقت ندارد.",
@@ -4975,13 +4978,26 @@
       }
     }
   },
+  "searchUi": {
+    "clear": "پاک کردن جستجو",
+    "recentSearches": "جستجوهای اخیر",
+    "removeRecent": "حذف «{query}» از جستجوهای اخیر",
+    "removeFilter": "حذف فیلتر {label}",
+    "groupBusinesses": "مکان‌ها",
+    "groupCuisines": "نوع غذا",
+    "groupCities": "شهرها",
+    "groupCategories": "دسته‌ها",
+    "filters": "فیلترها",
+    "reset": "بازنشانی",
+    "activeFilters": "فیلترهای فعال"
+  },
   "discover": {
     "eyebrow": "کشف کنید",
     "headingPrefix": "مکان مورد علاقه بعدی خود را",
     "headingAccent": "پیدا کنید",
     "subtitle1": "جستجو · رزرو میز · سفارش آنلاین · کسب امتیاز — همه در یک مکان.",
     "subtitle": "جستجو · رزرو میز — همه در یک مکان.",
-    "searchPlaceholder": "جستجو بر اساس نام، شهر، نوع غذا، امکانات یا دسته…",
+    "searchPlaceholder": "جستجوی رستوران و کافه",
     "errorLoad": "بارگذاری کسب‌وکارها ناموفق بود. لطفاً دوباره تلاش کنید.",
     "loadingBusinesses": "در حال بارگذاری کسب‌وکارها…",
     "resultsCount": "{count, plural, =0 {بدون نتیجه} one {# نتیجه} other {# نتیجه}}",

@@ -11,6 +11,7 @@ import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import { canOrderFromTenant } from '@/lib/tenant-state'
 import { Badge } from '@/components/ui'
 import { MenuItemCartControls } from '@/components/menu/MenuItemCartControls'
+import { HighlightText } from '@/components/search/HighlightText'
 import type { MenuItem } from '@/types'
 
 interface FoodCardProps {
@@ -18,9 +19,10 @@ interface FoodCardProps {
   onOpenDetail?: (item: MenuItem) => void
   compact?: boolean
   className?: string
+  highlightQuery?: string
 }
 
-export function FoodCard({ item, onOpenDetail, compact = false, className }: FoodCardProps) {
+export function FoodCard({ item, onOpenDetail, compact = false, className, highlightQuery }: FoodCardProps) {
   const t = useTranslations('menu')
   const activeBranchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
   const orderingEnabled =
@@ -53,9 +55,9 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
           className,
         )}
       >
-        <div className="relative h-20 w-20 rounded-lg overflow-hidden shrink-0 bg-[var(--bg-secondary)]">
+        <div className="relative h-16 w-16 rounded-lg overflow-hidden shrink-0 bg-[var(--bg-secondary)]">
           {item.image ? (
-            <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300"sizes="80px"/>
+            <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="64px"/>
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <span className="text-2xl opacity-30"aria-hidden="true">🍽️</span>
@@ -68,7 +70,9 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-medium text-[var(--fg)] truncate">{item.name}</h3>
+          <h3 className="text-sm font-medium text-[var(--fg)] truncate">
+            <HighlightText text={item.name} query={highlightQuery} />
+          </h3>
           <p className="text-xs text-[var(--fg-muted)] line-clamp-2 mt-0.5">{item.description}</p>
           <div className="flex items-center justify-between mt-2">
             <div>
@@ -159,7 +163,7 @@ export function FoodCard({ item, onOpenDetail, compact = false, className }: Foo
       {/* Content */}
       <div className="p-4">
         <h3 className="font-[var(--font-display)] font-semibold text-[var(--fg)] leading-snug mb-1 group-hover:text-[var(--accent-text)] transition-colors line-clamp-1">
-          {item.name}
+          <HighlightText text={item.name} query={highlightQuery} />
         </h3>
         <p className="text-xs text-[var(--fg-muted)] line-clamp-2 mb-3 leading-relaxed">
           {item.description}

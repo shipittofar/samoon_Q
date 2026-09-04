@@ -208,6 +208,11 @@
     --focus-ring-offset: var(--bg);
 
     --overlay: rgb(28 25 23 / 0.5);
+    --search-overlay: rgb(28 25 23 / 0.4);
+    --search-field-height-chrome: 44px;
+    --search-field-height-overlay: 48px;
+    --search-field-radius: 12px;
+    --search-motion: 180ms;
 
     /* Elevation. Light mode can rely on soft black; see .dark for why that
        stops working there. */
@@ -303,6 +308,11 @@
     --focus-ring-offset: var(--bg);
 
     --overlay: rgb(0 0 0 / 0.7);
+    --search-overlay: rgb(0 0 0 / 0.4);
+    --search-field-height-chrome: 44px;
+    --search-field-height-overlay: 48px;
+    --search-field-radius: 12px;
+    --search-motion: 180ms;
 
     /* Black shadows are nearly invisible on a near-black page, so dark mode
        leans on much deeper opacity plus a hairline top highlight to keep

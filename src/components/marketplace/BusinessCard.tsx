@@ -13,6 +13,7 @@ import { BranchPreview } from './BranchPreview'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
 import { deriveBrandTokens, isValidHexColor } from '@/lib/brand-color'
 import { getDiscoverCardPrimaryCta } from '@/lib/discover-card-cta'
+import { HighlightText } from '@/components/search/HighlightText'
 
 interface BusinessCardProps {
   tenant: Tenant
@@ -20,6 +21,7 @@ interface BusinessCardProps {
   /** When provided (e.g. Discover page), skips per-card branch API fetch. */
   branches?: PublicBranchInfo[]
   className?: string
+  highlightQuery?: string
 }
 
 function StatusBadge({ meta }: { meta: MarketplaceMeta }) {
@@ -45,7 +47,7 @@ function PriceDots({ level }: { level?: number }) {
   )
 }
 
-export function BusinessCard({ tenant, meta, branches: branchesProp, className }: BusinessCardProps) {
+export function BusinessCard({ tenant, meta, branches: branchesProp, className, highlightQuery }: BusinessCardProps) {
   const t = useTranslations('marketplace')
   const [branchesOpen, setBranchesOpen] = useState(false)
   const { data: resolvedBranches } = usePublicBranches(tenant.id, {
@@ -145,7 +147,9 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className }
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-baseline justify-between gap-1">
-              <h3 className="font-semibold text-[var(--fg)] leading-tight truncate">{tenant.name}</h3>
+              <h3 className="font-semibold text-[var(--fg)] leading-tight truncate">
+                <HighlightText text={tenant.name} query={highlightQuery} />
+              </h3>
               <PriceDots level={meta.priceLevel} />
             </div>
             <p className="text-xs text-[var(--fg-muted)] mt-0.5">{label}</p>

@@ -198,7 +198,7 @@
   "menu": {
     "title": "قائمتنا",
     "allCategories": "الكل",
-    "searchPlaceholder": "ابحث...",
+    "searchPlaceholder": "ابحث في القائمة",
     "filters": "التصفية",
     "sortBy": "ترتيب حسب",
     "sortOptions": {
@@ -244,6 +244,9 @@
     "availableOnly": "المتوفر فقط",
     "recentlyViewed": "شوهد مؤخراً",
     "itemsFound": "{count, plural, =0 {لا توجد عناصر} one {# عنصر} other {# عناصر}}",
+    "resultsForQuery": "{count, plural, =0 {لا توجد نتائج} one {نتيجة واحدة} other {# نتيجة}} لـ \"{query}\"",
+    "availableToggleAria": "عرض العناصر المتوفرة فقط",
+    "priceBand": "السعر",
     "noDishesFound": "لم يتم العثور على أطباق",
     "noResultsFor": "لا توجد نتائج لـ \"{query}\". جرب كلمات مختلفة.",
     "noItemsMatchFilters": "لا توجد عناصر تطابق الفلاتر الحالية.",
@@ -4975,13 +4978,26 @@
       }
     }
   },
+  "searchUi": {
+    "clear": "مسح البحث",
+    "recentSearches": "عمليات البحث الأخيرة",
+    "removeRecent": "إزالة {query} من عمليات البحث الأخيرة",
+    "removeFilter": "إزالة فلتر {label}",
+    "groupBusinesses": "أماكن",
+    "groupCuisines": "مطابخ",
+    "groupCities": "مدن",
+    "groupCategories": "فئات",
+    "filters": "الفلاتر",
+    "reset": "إعادة تعيين",
+    "activeFilters": "الفلاتر النشطة"
+  },
   "discover": {
     "eyebrow": "اكتشف",
     "headingPrefix": "ابحث عن مكانك المفضل",
     "headingAccent": "التالي",
     "subtitle1": "بحث · حجز طاولة · طلب عبر الإنترنت · كسب المكافآت — كل ذلك في مكان واحد.",
     "subtitle": "بحث · حجز طاولة — كل ذلك في مكان واحد.",
-    "searchPlaceholder": "البحث بالاسم أو المدينة أو المطبخ أو المرفق أو النوع…",
+    "searchPlaceholder": "ابحث عن مطاعم ومقاهٍ",
     "errorLoad": "فشل تحميل الأعمال. يرجى المحاولة مرة أخرى.",
     "loadingBusinesses": "جارٍ تحميل الأعمال…",
     "resultsCount": "{count, plural, =0 {لا توجد نتائج} one {نتيجة واحدة} other {# نتيجة}}",

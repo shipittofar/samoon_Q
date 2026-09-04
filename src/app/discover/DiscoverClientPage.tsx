@@ -1,17 +1,13 @@
 'use client'
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { Loader2, Store, SearchX, Sparkles, Star, Flame } from 'lucide-react'
+import { Loader2, Store } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { BusinessCard } from '@/components/marketplace/BusinessCard'
-import { BusinessSearch } from '@/components/marketplace/BusinessSearch'
-import { CategoryFilter } from '@/components/marketplace/CategoryFilter'
-import { AdvancedFilters } from '@/components/marketplace/AdvancedFilters'
-import { SortBar } from '@/components/marketplace/SortBar'
+import { Button } from '@/components/ui/Button'
 import { useDiscover } from '@/hooks'
 import {
   matchesSearch,
@@ -24,77 +20,88 @@ import {
   getMarketplaceMeta,
   collectBranchCuisines,
   collectBranchAmenities,
+  BUSINESS_TYPE_LABELS,
 } from '@/types/marketplace'
 import type { FilterState, SortOption } from '@/types/marketplace'
 import { debounce } from '@/utils'
 import type { Tenant } from '@/types'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import type { DiscoverItem } from '@/lib/discover-adapter'
-
-// ── Types ─────────────────────────────────────────────────────────────────────
+import {
+  SearchField,
+  SearchOverlay,
+  ScopeScroller,
+  FilterSheet,
+  FilterSection,
+  FilterChip,
+  ActiveFilterRow,
+  ResultToolbar,
+  EmptySearch,
+  CollectionRail,
+  CollectionRailCard,
+  useRecentSearches,
+  buildDiscoverSuggestions,
+  PRICE_LEVEL_SYMBOLS,
+} from '@/components/search'
+import type { SuggestionItem } from '@/components/search'
+import type { ActiveFilter } from '@/components/search'
 
 export type TenantWithMeta = { tenant: Tenant; meta: MarketplaceMeta }
-
 export type DiscoverRow = DiscoverItem
+
+const SERVICE_OPTIONS = [
+  { key: 'reservations.enabled', labelKey: 'reservations' },
+  { key: 'loyalty.enabled', labelKey: 'loyaltyProgram' },
+] as const
+
+const SORT_OPTION_KEYS: { value: SortOption; labelKey: string }[] = [
+  { value: 'recommended', labelKey: 'recommended' },
+  { value: 'highest_rated', labelKey: 'highestRated' },
+  { value: 'most_reviewed', labelKey: 'mostReviewed' },
+  { value: 'newest', labelKey: 'newest' },
+  { value: 'alphabetical', labelKey: 'alphabetical' },
+  { value: 'price_asc', labelKey: 'priceLowToHigh' },
+  { value: 'open_now', labelKey: 'openNowFirst' },
+]
+
+function toggle<T>(arr: T[], val: T): T[] {
+  return arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]
+}
 
 /**
  * Phase Z.6.2 — previously dropped any tenant whose `settings.marketplace`
- * was absent entirely (`meta ? [...] : []`), which against a backend that
- * hasn't populated marketplace data for every tenant yet would empty the
- * whole discover page even though the backend correctly returned N
- * tenants. Every tenant is now kept — an empty `{}` stands in for missing
- * marketplace metadata, and BusinessCard/matchesSearch/matchesFilters all
- * already degrade gracefully field-by-field (hidden sections, empty-array
- * defaults) rather than assuming any of it is present.
+ * was absent entirely. Every tenant is now kept.
  */
 export function withMeta(tenants: Tenant[]): TenantWithMeta[] {
   return tenants.map((t) => ({ tenant: t, meta: getMarketplaceMeta(t.settings) ?? {} }))
 }
 
-// ── Section ───────────────────────────────────────────────────────────────────
-
-function Section({
-  title,
+function BusinessGrid({
   items,
-  icon,
+  highlightQuery,
 }: {
-  title: string
   items: DiscoverItem[]
-  icon?: React.ReactNode
+  highlightQuery?: string
 }) {
-  if (items.length === 0) return null
-  const id = `section-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`
   return (
-    <section aria-labelledby={id} className="mb-14">
-      {/* H5: upgraded section heading typography for stronger hierarchy */}
-      <h2
-        id={id}
-        className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)] mb-6 flex items-center gap-2 pb-3 border-b border-[var(--border)]"
-      >
-        {icon && <span aria-hidden="true">{icon}</span>}
-        {title}
-      </h2>
-      <BusinessGrid items={items} />
-    </section>
-  )
-}
-
-function BusinessGrid({ items }: { items: DiscoverItem[] }) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       {items.map(({ tenant, meta, branches }) => (
-        <BusinessCard key={tenant.id} tenant={tenant} meta={meta} branches={branches} />
+        <BusinessCard
+          key={tenant.id}
+          tenant={tenant}
+          meta={meta}
+          branches={branches}
+          highlightQuery={highlightQuery}
+        />
       ))}
     </div>
   )
 }
 
-// ── Loading / Error ───────────────────────────────────────────────────────────
-
 function LoadingSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-      {Array.from({ length: 8 }).map((_, i) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
           className="h-72 rounded-2xl bg-[var(--card)] border border-[var(--border)] animate-pulse"
@@ -105,101 +112,16 @@ function LoadingSkeleton() {
   )
 }
 
-// ── Empty State ───────────────────────────────────────────────────────────────
-
-function EmptyState({
-  query,
-  category,
-  hasFilters,
-  onClearAll,
-  topItems,
-}: {
-  query: string
-  category: string
-  hasFilters: boolean
-  onClearAll: () => void
-  topItems: DiscoverItem[]
-}) {
-  const t = useTranslations('discover')
-  const tHome = useTranslations('home')
-  const suggestions = [
-    { label: tHome('categories.restaurants'), href: '/discover?category=restaurant' },
-    { label: tHome('categories.cafes'), href: '/discover?category=cafe' },
-    { label: tHome('categories.bars'), href: '/discover?category=bar' },
-  ]
-
-  return (
-    <div className="py-16">
-      <div className="flex flex-col items-center text-center mb-10">
-        <SearchX className="w-12 h-12 text-[var(--fg-muted)] mb-4"aria-hidden="true"/>
-        <h3 className="text-lg font-semibold text-[var(--fg)] mb-2">{t('noBusinessesFound')}</h3>
-        <p className="text-[var(--fg-muted)] text-sm max-w-sm mb-6">
-          {query && category
-            ? t('noMatchCategoryQuery', { category, query })
-            : query
-              ? t('noMatchQuery', { query })
-              : hasFilters
-                ? t('noMatchFilters')
-                : t('noBusinessesCategory')}
-        </p>
-        {(query || category || hasFilters) && (
-          <button
-            type="button"
-            onClick={onClearAll}
-            className="px-4 py-2 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors"
-          >
-            {t('clearAllFilters')}
-          </button>
-        )}
-      </div>
-
-      {/* Suggested categories */}
-      {suggestions.length > 0 && (
-        <div className="max-w-sm mx-auto">
-          <p className="text-xs font-semibold text-[var(--fg-muted)] uppercase tracking-widest mb-3 text-center">
-            {t('tryBrowsing')}
-          </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {suggestions.map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                className="px-4 py-2 rounded-full border border-[var(--border)] text-sm text-[var(--fg-muted)] hover:bg-[var(--card-hover)] transition-colors"
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Featured fallback */}
-      {topItems.length > 0 && (
-        <div className="mt-12">
-          <p className="text-sm font-semibold text-[var(--fg-muted)] mb-5 text-center">
-            {t('popularBusinessesYouMightLike')}
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {topItems.slice(0, 3).map(({ tenant, meta, branches }) => (
-              <BusinessCard key={tenant.id} tenant={tenant} meta={meta} branches={branches} />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
-
 export function DiscoverClientPage() {
   const t = useTranslations('discover')
+  const tMarket = useTranslations('marketplace')
+  const tSearch = useTranslations('searchUi')
   const { data: discoverItems = [], isLoading, isError } = useDiscover()
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // C4: Initialise state from URL on mount
-  const [rawQuery, setRawQuery] = useState(() => searchParams.get('q') ?? '')
+  const [overlayOpen, setOverlayOpen] = useState(false)
+  const [draftQuery, setDraftQuery] = useState(() => searchParams.get('q') ?? '')
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
   const [selectedCategory, setSelectedCategory] = useState(() => searchParams.get('category') ?? '')
   const [showFilters, setShowFilters] = useState(false)
@@ -210,8 +132,9 @@ export function DiscoverClientPage() {
   const [sortBy, setSortBy] = useState<SortOption>(
     () => (searchParams.get('sort') as SortOption | null) ?? 'recommended',
   )
+  const recents = useRecentSearches('discover')
+  const ignoreFocusRef = useRef(false)
 
-  // C4: Sync URL whenever key state changes (replace to avoid polluting history)
   useEffect(() => {
     const params = new URLSearchParams()
     if (searchQuery) params.set('q', searchQuery)
@@ -223,48 +146,36 @@ export function DiscoverClientPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedCategory, filters.openNow, sortBy])
 
-  // Debounce: update the actual filter 300ms after last keystroke
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const applySearch = useCallback(
-    debounce((q: string) => setSearchQuery(q), 300),
-    [],
+  const commitSearch = useCallback(
+    (q: string) => {
+      const next = q.trim()
+      ignoreFocusRef.current = true
+      setDraftQuery(next)
+      setSearchQuery(next)
+      setOverlayOpen(false)
+      if (next) recents.add(next)
+    },
+    [recents.add],
   )
 
-  function handleSearchChange(q: string) {
-    setRawQuery(q)
-    applySearch(q)
-  }
+  const handleSuggestion = useCallback(
+    (item: SuggestionItem) => {
+      if (item.href) {
+        recents.add(item.label)
+        router.push(item.href)
+        return
+      }
+      commitSearch(item.query ?? item.label)
+    },
+    [commitSearch, recents.add, router],
+  )
 
-  function handleFiltersChange(next: FilterState) {
-    setFilters(next)
-  }
-
-  function clearAll() {
-    setRawQuery('')
-    setSearchQuery('')
-    setSelectedCategory('')
-    setFilters(DEFAULT_FILTERS)
-  }
-
-  // Build list with marketplace metadata
   const allWithMeta = useMemo(() => discoverItems, [discoverItems])
 
-  // Derive available filter options from data
   const availableCategories = useMemo(() => {
     const seen = new Set<string>()
     allWithMeta.forEach(({ tenant }) => tenant.businessTypes.forEach((bt) => seen.add(bt)))
     return Array.from(seen)
-  }, [allWithMeta])
-
-  // H6: per-category counts for chip labels
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
-    allWithMeta.forEach(({ tenant }) => {
-      tenant.businessTypes.forEach((bt) => {
-        counts[bt] = (counts[bt] ?? 0) + 1
-      })
-    })
-    return counts
   }, [allWithMeta])
 
   const availableCuisines = useMemo(() => {
@@ -289,221 +200,394 @@ export function DiscoverClientPage() {
     return Array.from(seen).sort()
   }, [allWithMeta])
 
-  // Apply search + category + advanced filters + sort
   const filtered = useMemo(() => {
     let result = allWithMeta
-
     if (selectedCategory) {
       result = result.filter(({ tenant }) => matchesCategory(tenant.businessTypes, selectedCategory))
     }
-
     if (searchQuery) {
       result = result.filter(({ tenant, meta }) =>
         matchesSearch(tenant.name, meta, tenant.businessTypes, searchQuery),
       )
     }
-
     if (hasActiveFilters(filters)) {
       result = result.filter(({ tenant, meta }) => {
         const flags = tenant.settings?.featureFlags ?? {}
         return matchesFilters(meta, flags, filters)
       })
     }
-
     return sortItems(result, sortBy)
   }, [allWithMeta, searchQuery, selectedCategory, filters, sortBy])
 
-  const isFiltering = !!searchQuery || !!selectedCategory || hasActiveFilters(filters)
+  const isResultMode = !!searchQuery || !!selectedCategory || hasActiveFilters(filters)
   const filterCount = countActiveFilters(filters)
 
-  // Collections for discovery view
-  const featured  = useMemo(() => allWithMeta.filter(({ meta }) => meta.featured), [allWithMeta])
-  const popular   = useMemo(() => allWithMeta.filter(({ meta }) => meta.popular && !meta.featured), [allWithMeta])
-  const newest    = useMemo(() => allWithMeta.filter(({ meta }) => meta.isNew), [allWithMeta])
-  const topRated  = useMemo(
+  const featured = useMemo(() => allWithMeta.filter(({ meta }) => meta.featured), [allWithMeta])
+  const popular = useMemo(() => allWithMeta.filter(({ meta }) => meta.popular && !meta.featured), [allWithMeta])
+  const newest = useMemo(() => allWithMeta.filter(({ meta }) => meta.isNew), [allWithMeta])
+  const topRated = useMemo(
     () => sortItems([...allWithMeta], 'highest_rated').filter(({ meta }) => (meta.rating ?? 0) >= 4.5),
     [allWithMeta],
   )
-  const familyFriendly = useMemo(
-    () => allWithMeta.filter(({ meta }) => (meta.tags ?? []).includes('Family Friendly')),
-    [allWithMeta],
+
+  const rails = useMemo(() => {
+    const candidates = [
+      { key: 'featured', title: t('sectionFeatured'), items: featured },
+      { key: 'popular', title: t('sectionPopular'), items: popular },
+      { key: 'new', title: t('sectionNewlyOpened'), items: newest },
+    ].filter((rail) => rail.items.length > 0)
+    if (candidates.length < 2 && topRated.length > 0) {
+      candidates.push({ key: 'rated', title: t('sectionTopRated'), items: topRated })
+    }
+    return candidates.slice(0, 3)
+  }, [featured, popular, newest, topRated, t])
+
+  const suggestionGroups = useMemo(
+    () => buildDiscoverSuggestions(draftQuery, allWithMeta),
+    [draftQuery, allWithMeta],
   )
-  const coffeeShops = useMemo(
-    () => allWithMeta.filter(({ tenant }) =>
-      tenant.businessTypes.some((t) => ['cafe', 'mobile_cafe'].includes(t)),
-    ),
-    [allWithMeta],
+
+  const scopeItems = useMemo(
+    () => [
+      { id: '', label: tMarket('all') },
+      ...availableCategories.map((cat) => ({
+        id: cat,
+        label: BUSINESS_TYPE_LABELS[cat] ? tMarket(`businessTypes.${cat}`) : cat,
+      })),
+    ],
+    [availableCategories, tMarket],
   )
+
+  const shortcutItems = scopeItems.filter((s) => s.id).slice(0, 3)
+
+  const activeFilterChips: ActiveFilter[] = useMemo(() => {
+    const chips: ActiveFilter[] = []
+    if (filters.openNow) chips.push({ id: 'openNow', label: tMarket('openNow') })
+    filters.priceLevels.forEach((p) =>
+      chips.push({ id: `price-${p}`, label: PRICE_LEVEL_SYMBOLS[p] ?? String(p) }),
+    )
+    filters.cuisines.forEach((c) => chips.push({ id: `cuisine-${c}`, label: c }))
+    filters.cities.forEach((c) => chips.push({ id: `city-${c}`, label: c }))
+    filters.services.forEach((s) => {
+      const opt = SERVICE_OPTIONS.find((o) => o.key === s)
+      chips.push({ id: `service-${s}`, label: opt ? tMarket(opt.labelKey) : s })
+    })
+    filters.amenities.forEach((a) => chips.push({ id: `amenity-${a}`, label: a }))
+    return chips
+  }, [filters, tMarket])
+
+  function removeActiveFilter(id: string) {
+    if (id === 'openNow') {
+      setFilters((f) => ({ ...f, openNow: false }))
+      return
+    }
+    if (id.startsWith('price-')) {
+      const n = Number(id.slice(6))
+      setFilters((f) => ({ ...f, priceLevels: f.priceLevels.filter((p) => p !== n) }))
+      return
+    }
+    if (id.startsWith('cuisine-')) {
+      const v = id.slice(8)
+      setFilters((f) => ({ ...f, cuisines: f.cuisines.filter((c) => c !== v) }))
+      return
+    }
+    if (id.startsWith('city-')) {
+      const v = id.slice(5)
+      setFilters((f) => ({ ...f, cities: f.cities.filter((c) => c !== v) }))
+      return
+    }
+    if (id.startsWith('service-')) {
+      const v = id.slice(8)
+      setFilters((f) => ({ ...f, services: f.services.filter((s) => s !== v) }))
+      return
+    }
+    if (id.startsWith('amenity-')) {
+      const v = id.slice(8)
+      setFilters((f) => ({ ...f, amenities: f.amenities.filter((a) => a !== v) }))
+    }
+  }
+
+  function clearAll() {
+    setDraftQuery('')
+    setSearchQuery('')
+    setSelectedCategory('')
+    setFilters(DEFAULT_FILTERS)
+  }
+
+  const resultLabel = searchQuery
+    ? t('resultsCountForQuery', { count: filtered.length, query: searchQuery })
+    : t('resultsCount', { count: filtered.length })
+
+  const sortOptions = SORT_OPTION_KEYS.map(({ value, labelKey }) => ({
+    value,
+    label: tMarket(`sortOptions.${labelKey}`),
+  }))
 
   return (
     <>
       <Header />
 
       <main id="main-content">
-        {/* ── Hero — C1: reduced vertical padding so cards appear closer to fold ── */}
-        <section
-          className="relative bg-gradient-to-br from-[var(--accent-subtle)] via-[var(--bg-secondary)] to-[var(--accent-subtle)] border-b border-[var(--border)] py-10 px-4"
-          aria-labelledby="discover-heading"
-        >
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-[var(--accent)] mb-2">
-              {t('eyebrow')}
-            </p>
-            <h1
-              id="discover-heading"
-              className="text-3xl sm:text-4xl font-bold text-[var(--fg)] mb-3"
-              style={{ fontFamily: 'var(--font-display)' }}
+        <h1 className="sr-only">{t('headingPrefix')} {t('headingAccent')}</h1>
+
+        <div className="sticky top-16 z-30 bg-[var(--bg)]/95 backdrop-blur-xl border-b border-[var(--border)]">
+          <div className="max-w-7xl mx-auto px-4 py-2 space-y-2">
+            <form
+              role="search"
+              onSubmit={(e) => {
+                e.preventDefault()
+                commitSearch(draftQuery)
+              }}
             >
-              {t('headingPrefix')}{' '}
-              <span className="text-[var(--accent)]">{t('headingAccent')}</span>
-            </h1>
-            {/* H7: platform capability subtext */}
-            <p className="text-[var(--fg-muted)] text-base mb-6 max-w-xl mx-auto">
-              {t('subtitle')}
-            </p>
+              <SearchField
+                variant="chrome"
+                value={overlayOpen ? draftQuery : searchQuery}
+                onChange={(q) => {
+                  setDraftQuery(q)
+                  if (!overlayOpen) setOverlayOpen(true)
+                }}
+                onFocus={() => {
+                  if (ignoreFocusRef.current) {
+                    ignoreFocusRef.current = false
+                    return
+                  }
+                  setDraftQuery(searchQuery)
+                  setOverlayOpen(true)
+                }}
+                onSubmitQuery={commitSearch}
+                onClear={() => {
+                  setDraftQuery('')
+                  setSearchQuery('')
+                }}
+                label={tMarket('searchBusinesses')}
+                clearLabel={tSearch('clear')}
+                placeholder={t('searchPlaceholder')}
+              />
+            </form>
 
-            <BusinessSearch
-              value={rawQuery}
-              onChange={handleSearchChange}
-              placeholder={t('searchPlaceholder')}
-            />
-          </div>
-        </section>
-
-        {/* ── Body ── */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Category chips + Open Now + filters row */}
-          {!isLoading && (
-            <div className="mb-6 space-y-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <CategoryFilter
-                  categories={availableCategories}
-                  selected={selectedCategory}
-                  onChange={setSelectedCategory}
-                  counts={categoryCounts}
-                  openNow={filters.openNow}
-                  onOpenNowChange={(val) => handleFiltersChange({ ...filters, openNow: val })}
-                />
-                <div className="shrink-0">
-                  <AdvancedFilters
-                    availableCuisines={availableCuisines}
-                    availableCities={availableCities}
-                    availableAmenities={availableAmenities}
-                    filters={filters}
-                    onChange={handleFiltersChange}
-                    onReset={() => setFilters(DEFAULT_FILTERS)}
-                    activeCount={filterCount}
-                    isOpen={showFilters}
-                    onToggle={() => setShowFilters((o) => !o)}
+            {!isLoading && (
+              <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <ScopeScroller
+                    items={scopeItems}
+                    selected={selectedCategory}
+                    onChange={setSelectedCategory}
+                    ariaLabel={tMarket('filterByBusinessTypeAria')}
+                    variant="filter"
                   />
                 </div>
+                <FilterChip
+                  selected={filterCount > 0}
+                  onClick={() => setShowFilters(true)}
+                  count={filterCount > 0 ? filterCount : undefined}
+                >
+                  {tSearch('filters')}
+                </FilterChip>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
 
-          {/* Error state */}
+        <div className="max-w-7xl mx-auto px-4 py-6">
           {isError && (
-            <div className="py-20 text-center"role="alert">
-              <Store className="w-12 h-12 text-[var(--fg-muted)] mx-auto mb-4"aria-hidden="true"/>
+            <div className="py-20 text-center" role="alert">
+              <Store className="w-12 h-12 text-[var(--fg-muted)] mx-auto mb-4" aria-hidden="true" />
               <p className="text-[var(--fg-muted)]">{t('errorLoad')}</p>
             </div>
           )}
 
-          {/* Loading state */}
           {isLoading && (
-            <div aria-live="polite"aria-busy="true">
+            <div aria-live="polite" aria-busy="true">
+              <span className="sr-only">{t('loadingBusinesses')}</span>
               <div className="flex items-center gap-2 text-[var(--fg-muted)] mb-6">
-                <Loader2 className="w-4 h-4 animate-spin"aria-hidden="true"/>
-                <span className="sr-only">{t('loadingBusinesses')}</span>
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
               </div>
               <LoadingSkeleton />
             </div>
           )}
 
-          {/* Results */}
           {!isLoading && !isError && (
-            <div aria-live="polite"aria-atomic="false">
-              {isFiltering ? (
-                /* ── Filtered view ── */
+            <div>
+              {isResultMode ? (
                 <>
-                  <div className="mb-6">
-                    <SortBar
-                      value={sortBy}
-                      onChange={setSortBy}
-                      resultCount={filtered.length}
-                      resultLabel={
-                        searchQuery
-                          ? t('resultsCountForQuery', { count: filtered.length, query: searchQuery })
-                          : t('resultsCount', { count: filtered.length })
-                      }
+                  <div className="mb-4 space-y-3">
+                    <ResultToolbar
+                      resultLabel={resultLabel}
+                      sortValue={sortBy}
+                      sortOptions={sortOptions}
+                      onSortChange={(v) => setSortBy(v as SortOption)}
+                      sortAriaLabel={tMarket('sortResults')}
+                    />
+                    <ActiveFilterRow
+                      filters={activeFilterChips}
+                      onRemove={removeActiveFilter}
+                      ariaLabel={tSearch('activeFilters')}
+                      removeLabel={(label) => tSearch('removeFilter', { label })}
                     />
                   </div>
 
                   {filtered.length > 0 ? (
                     <section aria-label={t('searchResultsAria')}>
-                      <BusinessGrid items={filtered} />
+                      <BusinessGrid items={filtered} highlightQuery={searchQuery} />
                     </section>
                   ) : (
-                    <EmptyState
-                      query={searchQuery}
-                      category={selectedCategory}
-                      hasFilters={hasActiveFilters(filters)}
-                      onClearAll={clearAll}
-                      topItems={featured.length > 0 ? featured : popular}
-                    />
+                    <EmptySearch
+                      title={t('noBusinessesFound')}
+                      description={
+                        searchQuery && selectedCategory
+                          ? t('noMatchCategoryQuery', { category: selectedCategory, query: searchQuery })
+                          : searchQuery
+                            ? t('noMatchQuery', { query: searchQuery })
+                            : hasActiveFilters(filters)
+                              ? t('noMatchFilters')
+                              : t('noBusinessesCategory')
+                      }
+                      action={
+                        (searchQuery || selectedCategory || hasActiveFilters(filters)) ? (
+                          <Button onClick={clearAll}>{t('clearAllFilters')}</Button>
+                        ) : undefined
+                      }
+                    >
+                      <div className="flex flex-wrap justify-center gap-2 -mt-4 mb-8">
+                        {shortcutItems.map((s) => (
+                          <FilterChip
+                            key={s.id}
+                            onClick={() => {
+                              setSearchQuery('')
+                              setDraftQuery('')
+                              setFilters(DEFAULT_FILTERS)
+                              setSelectedCategory(s.id)
+                            }}
+                          >
+                            {s.label}
+                          </FilterChip>
+                        ))}
+                      </div>
+                    </EmptySearch>
                   )}
                 </>
               ) : (
-                /* ── Discovery view — curated collections ── */
-                /* H3: SortBar removed from discovery mode — it only affects "All Businesses"
-                   at the bottom and misleads users into thinking it reorders the curated sections above. */
                 <>
-                  <Section title={t('sectionFeatured')} items={featured} icon={<Sparkles className="w-5 h-5 text-[var(--accent-text)]"/>} />
-                  <Section title={t('sectionPopular')} items={popular} icon={<Flame className="w-5 h-5 text-[var(--danger-text)]"/>} />
-                  <Section title={t('sectionNewlyOpened')} items={newest} icon={<span>🆕</span>} />
-                  <Section title={t('sectionTopRated')} items={topRated} icon={<Star className="w-5 h-5 text-[var(--rating)]"/>} />
-                  <Section title={t('sectionFamilyFriendly')} items={familyFriendly} icon={<span>👨‍👩‍👧</span>} />
-                  <Section title={t('sectionCoffeeShops')} items={coffeeShops} icon={<span>☕</span>} />
-
-                  <section aria-labelledby="all-businesses-heading"className="mb-12">
-                    <div className="flex items-center gap-2 mb-5 pb-3 border-b border-[var(--border)]">
-                      <h2
-                        id="all-businesses-heading"
-                        className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]"
-                      >
-                        {t('allBusinesses')}
-                      </h2>
-                      <span className="text-sm text-[var(--fg-muted)] ml-auto">{t('listedCount', { count: allWithMeta.length })}</span>
-                    </div>
-                    {/* Sort bar only inside "All Businesses"section where it is accurate */}
-                    {allWithMeta.length > 0 && (
-                      <div className="mb-5">
-                        <SortBar
-                          value={sortBy}
-                          onChange={setSortBy}
-                          resultCount={allWithMeta.length}
-                          resultLabel={t('sortBusinesses', { count: allWithMeta.length })}
-                        />
-                      </div>
-                    )}
-                    {allWithMeta.length > 0 ? (
-                      <BusinessGrid items={sortItems([...allWithMeta], sortBy)} />
-                    ) : (
-                      <EmptyState
-                        query=""
-                        category=""
-                        hasFilters={false}
-                        onClearAll={clearAll}
-                        topItems={[]}
-                      />
-                    )}
-                  </section>
+                  {rails.map((rail) => (
+                    <CollectionRail key={rail.key} title={rail.title}>
+                      {rail.items.slice(0, 8).map(({ tenant, meta, branches }) => (
+                        <CollectionRailCard key={tenant.id}>
+                          <BusinessCard tenant={tenant} meta={meta} branches={branches} />
+                        </CollectionRailCard>
+                      ))}
+                    </CollectionRail>
+                  ))}
+                  {rails.length === 0 && allWithMeta.length === 0 && (
+                    <EmptySearch title={t('noBusinessesFound')} />
+                  )}
                 </>
               )}
             </div>
           )}
         </div>
       </main>
+
+      <SearchOverlay
+        open={overlayOpen}
+        value={draftQuery}
+        onChange={setDraftQuery}
+        onClose={() => {
+          ignoreFocusRef.current = true
+          setOverlayOpen(false)
+          setDraftQuery(searchQuery)
+        }}
+        onSubmit={commitSearch}
+        onSelectSuggestion={handleSuggestion}
+        recents={recents.items}
+        onRemoveRecent={recents.remove}
+        suggestionGroups={suggestionGroups}
+        placeholder={t('searchPlaceholder')}
+        label={tMarket('searchBusinesses')}
+        shortcuts={shortcutItems}
+        onShortcut={(id) => {
+          ignoreFocusRef.current = true
+          setOverlayOpen(false)
+          setSelectedCategory(id)
+        }}
+      />
+
+      <FilterSheet
+        open={showFilters}
+        onClose={() => setShowFilters(false)}
+        title={tSearch('filters')}
+        dirty={filterCount > 0}
+        onReset={() => setFilters(DEFAULT_FILTERS)}
+      >
+        <FilterSection title={tMarket('openNow')}>
+          <FilterChip
+            selected={filters.openNow}
+            onClick={() => setFilters((f) => ({ ...f, openNow: !f.openNow }))}
+          >
+            {tMarket('openNow')}
+          </FilterChip>
+        </FilterSection>
+        <FilterSection title={tMarket('priceLevel')}>
+          {([1, 2, 3, 4] as const).map((p) => (
+            <FilterChip
+              key={p}
+              selected={filters.priceLevels.includes(p)}
+              onClick={() => setFilters((f) => ({ ...f, priceLevels: toggle(f.priceLevels, p) }))}
+            >
+              {PRICE_LEVEL_SYMBOLS[p]} · {tMarket(`priceLevels.${p}`)}
+            </FilterChip>
+          ))}
+        </FilterSection>
+        {availableCuisines.length > 0 && (
+          <FilterSection title={tMarket('cuisine')}>
+            {availableCuisines.map((c) => (
+              <FilterChip
+                key={c}
+                selected={filters.cuisines.includes(c)}
+                onClick={() => setFilters((f) => ({ ...f, cuisines: toggle(f.cuisines, c) }))}
+              >
+                {c}
+              </FilterChip>
+            ))}
+          </FilterSection>
+        )}
+        {availableCities.length > 1 && (
+          <FilterSection title={tMarket('city')}>
+            {availableCities.map((c) => (
+              <FilterChip
+                key={c}
+                selected={filters.cities.includes(c)}
+                onClick={() => setFilters((f) => ({ ...f, cities: toggle(f.cities, c) }))}
+              >
+                {c}
+              </FilterChip>
+            ))}
+          </FilterSection>
+        )}
+        <FilterSection title={tMarket('services')}>
+          {SERVICE_OPTIONS.map(({ key, labelKey }) => (
+            <FilterChip
+              key={key}
+              selected={filters.services.includes(key)}
+              onClick={() => setFilters((f) => ({ ...f, services: toggle(f.services, key) }))}
+            >
+              {tMarket(labelKey)}
+            </FilterChip>
+          ))}
+        </FilterSection>
+        {availableAmenities.length > 0 && (
+          <FilterSection title={tMarket('amenities')}>
+            {availableAmenities.map((a) => (
+              <FilterChip
+                key={a}
+                selected={filters.amenities.includes(a)}
+                onClick={() => setFilters((f) => ({ ...f, amenities: toggle(f.amenities, a) }))}
+              >
+                {a}
+              </FilterChip>
+            ))}
+          </FilterSection>
+        )}
+      </FilterSheet>
 
       <Footer />
     </>
