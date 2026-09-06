@@ -2,13 +2,12 @@
 
 import { use, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useTenantStore, useCartStore } from '@/stores'
+import { useTenantStore } from '@/stores'
 import { PUBLIC_TENANTS_QUERY_KEY } from '@/lib/public-tenant-resolution'
 import type { Tenant } from '@/types'
 
 /**
  * P8.7.7.2 — Tenant Context Layout
- * P8.7.7.11 — Clear cart on tenant switch (D-05 fix)
  *
  * Wraps all routes under /[tenantSlug]/ that do NOT have a branchSlug.
  * Loads the correct tenant into the store from the URL slug so child pages
@@ -17,6 +16,9 @@ import type { Tenant } from '@/types'
  * On unmount (navigating to /, /discover, /console, etc.) resets the tenant
  * store so TenantThemeProvider drops per-tenant CSS vars and the app returns
  * to the default global theme.
+ *
+ * Does not clear the customer active cart — cart ownership is independent of
+ * the current tenant route.
  *
  * The nested [branchSlug] layout extends this by also initializing the
  * branch context — both layouts are composed by Next.js automatically.
@@ -34,7 +36,6 @@ export default function TenantLayout({
   const tenant = useTenantStore((s) => s.tenant)
   const tenantState = useTenantStore((s) => s.tenantState)
   const dataRevision = useTenantStore((s) => s.dataRevision)
-  const clearCart = useCartStore((s) => s.clearCart)
 
   useEffect(() => {
     const publicTenantQuery = queryClient.getQueryState(['public-tenant', tenantSlug])
@@ -47,18 +48,13 @@ export default function TenantLayout({
       return
     }
     if (tenant?.slug !== tenantSlug || needsForcedReload) {
-      // Only clear when switching between two different resolved tenants —
-      // never during bootstrap when tenant is null/loading after layout unmount.
-      if (!needsForcedReload && tenantState === 'resolved' && tenant?.slug) {
-        clearCart()
-      }
       const cachedTenants = queryClient.getQueryData<Tenant[]>(PUBLIC_TENANTS_QUERY_KEY)
       void loadTenant(tenantSlug, {
         cachedTenants: needsForcedReload ? undefined : cachedTenants,
         force: needsForcedReload,
       })
     }
-  }, [tenantSlug, tenant?.slug, tenantState, dataRevision, loadTenant, clearCart, queryClient])
+  }, [tenantSlug, tenant?.slug, tenantState, dataRevision, loadTenant, queryClient])
 
   useEffect(() => {
     return () => {

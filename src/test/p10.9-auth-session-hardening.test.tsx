@@ -90,7 +90,7 @@ describe('P10.9 Scenario 1 — User A login, logout, User B login: no User A dat
     const loginA = loginAs('owner@samoon.com')
     await vi.runAllTimersAsync()
     await loginA
-    useCartStore.getState().addItem({ id: 'item-a', name: 'A', price: 10, category: 'x', description: '', image: '' } as never, 1)
+    useCartStore.getState().addItem({ id: 'item-a', branch_id: 'branch-a', name: 'A', price: 10, category: 'x', description: '', image: '' } as never, 1)
     expect(useCartStore.getState().items.length).toBeGreaterThan(0)
     const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
@@ -159,7 +159,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
     const loginA = loginAs('owner@samoon.com')
     await vi.runAllTimersAsync()
     await loginA
-    useCartStore.getState().addItem({ id: 'item-x', name: 'X', price: 5, category: 'x', description: '', image: '' } as never, 1)
+    useCartStore.getState().addItem({ id: 'item-x', branch_id: 'branch-x', name: 'X', price: 5, category: 'x', description: '', image: '' } as never, 1)
     const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
 
@@ -177,7 +177,7 @@ describe('P10.9 Scenario 5 — Expired/invalid token: clean logout (the confirme
     const loginA = loginAs('owner@samoon.com')
     await vi.runAllTimersAsync()
     await loginA
-    useCartStore.getState().addItem({ id: 'item-y', name: 'Y', price: 5, category: 'x', description: '', image: '' } as never, 1)
+    useCartStore.getState().addItem({ id: 'item-y', branch_id: 'branch-y', name: 'Y', price: 5, category: 'x', description: '', image: '' } as never, 1)
     const tenantId = useTenantStore.getState().tenant!.id
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
 

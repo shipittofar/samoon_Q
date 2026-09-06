@@ -317,7 +317,13 @@
     "discountCodePlaceholder": "Discount code",
     "clearCart": "Clear cart",
     "viewCart": "View Cart",
-    "viewCartAria": "View cart — {count} items"
+    "viewCartAria": "View cart — {count} items",
+    "activeOrderTitle": "You already have an active order",
+    "activeOrderBody": "Please complete or resolve your current order before starting a new one.",
+    "ownedBy": "{tenant} · {branch}",
+    "viewCurrentCart": "View Current Cart",
+    "goToCurrentMenu": "Go To Current Menu",
+    "originLabel": "Ordering from {tenant} — {branch}"
   },
   "address": {
     "title": "Saved Addresses",

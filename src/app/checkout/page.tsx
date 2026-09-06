@@ -43,6 +43,12 @@ import {
   isDeliveryBlockedByServiceability,
   isCheckoutOrderingEnabled,
 } from '@/lib/branch-checkout'
+import {
+  getActiveCartContext,
+  isActiveCartCheckoutEnabled,
+  resolveCartMenuUrl,
+  resolveCheckoutBranchId,
+} from '@/lib/active-cart'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { useTranslations } from 'next-intl'
 import { checkoutSchema, type CheckoutFormData } from '@/lib/checkout-form'
@@ -61,11 +67,17 @@ function CheckoutContent() {
   const paramOrderType = searchParams.get('orderType')
   const paramTable = searchParams.get('table') ?? ''
 
-  const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart } = useCartStore()
+  const { items, getSubtotal, getTax, getServiceCharge, getTotal, discountAmount, discountCode, clearCart, ownership } = useCartStore()
   const cartHasHydrated = useCartHasHydrated()
   const { activeBranch } = useBranchStore()
-  const checkoutConfig = activeBranch?.checkout
-  const orderingAvailable = isCheckoutOrderingEnabled(checkoutConfig)
+  const cartContext = getActiveCartContext(items, ownership)
+  const cartBranchId = resolveCheckoutBranchId(items, ownership)
+  const checkoutConfig =
+    cartContext?.checkout ??
+    (activeBranch?.id === cartBranchId ? activeBranch.checkout : undefined)
+  const orderingAvailable = isActiveCartCheckoutEnabled(cartContext) && (
+    checkoutConfig ? isCheckoutOrderingEnabled(checkoutConfig) : true
+  )
 
   const orderTypeOptions = useMemo(
     () =>
@@ -89,7 +101,7 @@ function CheckoutContent() {
 
   useEffect(() => {
     setOrderType(resolveCheckoutOrderWireType(checkoutConfig, paramOrderType))
-  }, [checkoutConfig, paramOrderType, activeBranch?.id])
+  }, [checkoutConfig, paramOrderType, cartBranchId])
 
   // P4.4 — Fallback: persisted table number from dine-in store when URL param absent
   const persistedTableNumber = useDineInStore((s) => s.tableNumber)
@@ -120,12 +132,12 @@ function CheckoutContent() {
   const [addressPicker, setAddressPicker] = useState<AddressPickerValue>({ mode: 'saved' })
 
   const serviceabilityPayload: CheckServiceabilityPayload | null =
-    selectedOrderOption?.requiresDeliveryAddress && activeBranch
+    selectedOrderOption?.requiresDeliveryAddress && cartBranchId
       ? addressPicker.mode === 'saved' && addressPicker.addressId
-        ? { branch_id: activeBranch.id, address_id: addressPicker.addressId }
+        ? { branch_id: cartBranchId, address_id: addressPicker.addressId }
         : addressPicker.mode === 'temporary' && addressPicker.temporaryAddress
           ? {
-              branch_id: activeBranch.id,
+              branch_id: cartBranchId,
               delivery_address: {
                 street: addressPicker.temporaryAddress.street,
                 city: addressPicker.temporaryAddress.city,
@@ -154,7 +166,7 @@ function CheckoutContent() {
       if (current && wires.includes(current)) return current
       return resolveCheckoutPaymentWireMethod(checkoutConfig, orderType)
     })
-  }, [paymentMethodOptions, checkoutConfig, orderType, activeBranch?.id])
+  }, [paymentMethodOptions, checkoutConfig, orderType, cartBranchId])
 
   const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -173,8 +185,12 @@ function CheckoutContent() {
   const serviceCharge = getServiceCharge()
   const total = getTotal()
 
-  const branchCurrency = resolveBranchCurrencyCode(activeBranch?.currency)
-  const paymentCurrency = resolvePaymentCurrencyCode(activeBranch?.currency)
+  const branchCurrency = resolveBranchCurrencyCode(
+    cartContext?.currency ?? (activeBranch?.id === cartBranchId ? activeBranch.currency : undefined),
+  )
+  const paymentCurrency = resolvePaymentCurrencyCode(
+    cartContext?.currency ?? (activeBranch?.id === cartBranchId ? activeBranch.currency : undefined),
+  )
   const minimumOrderAmount = resolveEffectiveMinimumOrder(serviceability, checkoutConfig)
 
   const hasDeliveryAddress =
@@ -226,7 +242,7 @@ function CheckoutContent() {
           <span className="text-5xl">🛒</span>
           <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('emptyCartTitle')}</h2>
           <p className="text-[var(--fg-muted)]">{t('emptyCartDesc')}</p>
-          <Link href="/menu">
+          <Link href={resolveCartMenuUrl(cartContext)}>
             <Button leftIcon={<ArrowLeft className="h-4 w-4"/>}>{tCart('browseMenu')}</Button>
           </Link>
         </div>
@@ -234,14 +250,9 @@ function CheckoutContent() {
     )
   }
 
-  // Phase 3.4 — a branch must never be inferred. Checkout previously fell
-  // back to a hardcoded branch id ('1') for order/payment creation when
-  // `activeBranch` was unset — that could silently attribute a real order
-  // or payment to the wrong branch. If no branch has been explicitly
-  // resolved (e.g. checkout reached without going through a branch-scoped
-  // route), block entirely: no form, no submit handler, no request can
-  // ever be constructed from this render path.
-  if (!activeBranch) {
+  // Cart ownership is the source of truth for which branch receives the order.
+  // Current route/activeBranch must never silently redirect a cart to another branch.
+  if (!cartBranchId) {
     return (
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
@@ -249,7 +260,7 @@ function CheckoutContent() {
           <MapPin className="h-12 w-12 text-[var(--fg-subtle)]"/>
           <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('noBranchSelectedTitle')}</h2>
           <p className="text-[var(--fg-muted)]">{t('noBranchSelectedDesc')}</p>
-          <Link href="/menu">
+          <Link href={resolveCartMenuUrl(cartContext)}>
             <Button leftIcon={<ArrowLeft className="h-4 w-4"/>}>{tCart('browseMenu')}</Button>
           </Link>
         </div>
@@ -265,7 +276,7 @@ function CheckoutContent() {
           <Package className="h-12 w-12 text-[var(--fg-subtle)]"/>
           <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('orderingDisabledTitle')}</h2>
           <p className="text-[var(--fg-muted)]">{t('orderingDisabledDesc')}</p>
-          <Link href="/menu">
+          <Link href={resolveCartMenuUrl(cartContext)}>
             <Button leftIcon={<ArrowLeft className="h-4 w-4"/>}>{tCart('browseMenu')}</Button>
           </Link>
         </div>
@@ -279,11 +290,7 @@ function CheckoutContent() {
    * Stripe success callback (card).
    */
   const finaliseOrder = (data: CheckoutFormData, paymentIntentId?: string) => {
-    // Defense in depth: the component already blocks rendering the form
-    // entirely when `activeBranch` is null (see the guard above), so this
-    // should be unreachable — but order creation itself must never execute
-    // without a real, resolved branch id, regardless of call path.
-    if (!activeBranch) {
+    if (!cartBranchId) {
       toast.error(t('noBranchSelectedDesc'))
       return
     }
@@ -302,7 +309,7 @@ function CheckoutContent() {
       }
     }
     const payload = {
-      branch_id: activeBranch.id,
+      branch_id: cartBranchId,
       items: orderService.fromCartItems(items),
       order_type: orderType,
       payment_method: paymentMethod as PaymentMethod,
@@ -357,10 +364,7 @@ function CheckoutContent() {
    * — non-card: calls createOrder directly (unchanged behaviour)
    */
   const onSubmit = async (data: CheckoutFormData) => {
-    // Defense in depth — see the identical guard in finaliseOrder() above:
-    // the form itself is unreachable without a resolved activeBranch, but
-    // payment-intent creation must never execute without one either.
-    if (!activeBranch) {
+    if (!cartBranchId) {
       toast.error(t('noBranchSelectedDesc'))
       return
     }
@@ -378,7 +382,7 @@ function CheckoutContent() {
           amount: total,
           currency: paymentCurrency,
           order_description: `Order for ${data.first_name} ${data.last_name}`,
-          branch_id: activeBranch.id,
+          branch_id: cartBranchId,
         })
         setClientSecret(intent.client_secret)
       } catch {
@@ -409,7 +413,7 @@ function CheckoutContent() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-8 flex items-center gap-4">
-            <Link href="/menu">
+            <Link href={resolveCartMenuUrl(cartContext)}>
               <Button variant="ghost"size="icon-sm"aria-label={t('backToMenuAria')}>
                 <ArrowLeft className="h-4 w-4"/>
               </Button>

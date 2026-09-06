@@ -14,6 +14,7 @@ import { useNotificationWebSocket, useFcmRegistration } from '@/hooks/client'
 import { STALE_TIME, CACHE_TIME } from '@/constants'
 import { ServiceWorkerUpdateBanner } from '@/components/pwa/ServiceWorkerUpdateBanner'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
+import { GlobalCartHost } from '@/components/cart/GlobalCartHost'
 import { MissingTranslationInspector } from '@/components/dev/MissingTranslationInspector'
 import { ConsoleWorkspaceBootstrapper } from '@/providers/ConsoleWorkspaceBootstrapper'
 import { PostLoginRedirectHandler } from '@/providers/PostLoginRedirectHandler'
@@ -685,6 +686,7 @@ export function Providers({ children }: { children: ReactNode }) {
                 <FcmRegistrationProvider>
                 <NotificationWebSocketProvider>
                   {children}
+                  <GlobalCartHost />
                   {/* P4.8.5 — SW update banner (non-blocking) */}
                   <ServiceWorkerUpdateBanner />
                   {/* P4.8.6 — Offline status indicator */}

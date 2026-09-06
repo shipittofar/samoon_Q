@@ -14,7 +14,6 @@ import { authService } from '@/services/auth.service'
 import { useTenantStore } from '@/stores/index'
 import { useBranchStore } from '@/stores/index'
 import { useRbacStore } from '@/stores/index'
-import { useCartStore } from '@/stores/index'
 import { useDineInStore } from '@/stores/index'
 import { useRecentlyViewedStore } from '@/stores/index'
 import { setActiveTenantSlugForRequests } from '@/lib/tenant-request-context'
@@ -56,7 +55,6 @@ const CONSOLE_WORKSPACE_KEY = 'samoon-console-workspace'
 
 function clearTenantScopedClientState() {
   useRbacStore.getState().clearCurrentTenantSession()
-  useCartStore.getState().clearCart()
   useDineInStore.getState().clearTable()
   useRecentlyViewedStore.getState().clear()
 }

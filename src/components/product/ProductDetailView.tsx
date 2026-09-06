@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Star, Clock, Flame, AlertTriangle } from 'lucide-react'
-import { useCartStore, useBranchStore, useTenantStore } from '@/stores'
+import { useBranchStore, useTenantStore } from '@/stores'
+import { useAddToCart } from '@/hooks/useAddToCart'
 import {
   useFavoriteAction,
   useRelatedItems,
@@ -28,6 +29,7 @@ import { formatCurrency, getDiscountedPrice } from '@/utils'
 import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import { canOrderFromTenant } from '@/lib/tenant-state'
 import type { MenuItem } from '@/types'
+import type { CartOwnershipInput } from '@/lib/active-cart'
 import toast from 'react-hot-toast'
 import { useTranslations, useLocale } from 'next-intl'
 
@@ -37,6 +39,7 @@ export interface ProductDetailViewProps {
   branchId?: string
   onClose?: () => void
   onOpenRelated?: (item: MenuItem) => void
+  orderingContext?: CartOwnershipInput
 }
 
 export function ProductDetailView({
@@ -45,6 +48,7 @@ export function ProductDetailView({
   branchId,
   onClose,
   onOpenRelated,
+  orderingContext,
 }: ProductDetailViewProps) {
   const t = useTranslations('menu')
   const tCommon = useTranslations('common')
@@ -58,11 +62,12 @@ export function ProductDetailView({
   const [desktopTab, setDesktopTab] = useState<ProductDetailTab>('details')
   const [isLg, setIsLg] = useState(false)
 
-  const { addItem } = useCartStore()
+  const { addToCart } = useAddToCart()
   const tenant = useTenantStore((s) => s.tenant)
   const branchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
-  const orderingEnabled =
-    canOrderFromTenant(tenant) && isBranchOrderingEnabled(branchCheckout)
+  const orderingEnabled = orderingContext
+    ? true
+    : canOrderFromTenant(tenant) && isBranchOrderingEnabled(branchCheckout)
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const activeBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? activeBranchId
@@ -128,18 +133,27 @@ export function ProductDetailView({
       return
     }
     setAddingToCart(true)
-    addItem({ ...item, discounted_price: discountedPrice }, quantity, selectedExtras, notes || undefined)
-    toast.success(tNotifications('itemAddedToCart', { item: item.name }), { icon: '🛒' })
-    setAddedToCart(true)
+    const result = addToCart(
+      { ...item, discounted_price: discountedPrice },
+      quantity,
+      selectedExtras,
+      notes || undefined,
+      orderingContext,
+    )
+    if (result.ok) {
+      toast.success(tNotifications('itemAddedToCart', { item: item.name }), { icon: '🛒' })
+      setAddedToCart(true)
+      setTimeout(() => setAddedToCart(false), 2000)
+    }
     setAddingToCart(false)
-    setTimeout(() => setAddedToCart(false), 2000)
   }, [
     assignedGroups,
     selectedExtras,
     setExtrasError,
     t,
     isLg,
-    addItem,
+    addToCart,
+    orderingContext,
     item,
     discountedPrice,
     quantity,

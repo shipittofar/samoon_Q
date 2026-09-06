@@ -5,8 +5,6 @@ import { DEFAULT_PLATFORM_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
 import { ArrowRight, ChevronRight, Search, Building2 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
-import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
-import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FeaturedSection } from '@/components/home/FeaturedSection'
 import { DiscoveryPreview } from '@/components/home/DiscoveryPreview'
 import { HowItWorks } from '@/components/home/HowItWorks'
@@ -76,8 +74,6 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(DEFAULT_PLATFORM_JSON_LD) }}
       />
       <Header overlay />
-      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
-      <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       <section id="main-content" className="relative min-h-screen flex items-center overflow-hidden">

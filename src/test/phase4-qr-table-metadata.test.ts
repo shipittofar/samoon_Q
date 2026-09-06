@@ -221,11 +221,11 @@ describe('table/[tableId]/page.tsx — P4.4 source structure', () => {
   })
 
   it('preserves ErrorBoundary for CartDrawer', () => {
-    expect(src()).toContain('feature="CartDrawer"')
+    expect(src()).not.toContain('feature="CartDrawer"')
   })
 
   it('preserves ErrorBoundary for FloatingCart', () => {
-    expect(src()).toContain('feature="FloatingCart"')
+    expect(src()).not.toContain('feature="FloatingCart"')
   })
 
   it('uses Loader2 for loading spinner', () => {

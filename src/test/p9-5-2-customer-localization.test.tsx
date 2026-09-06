@@ -38,6 +38,7 @@ describe('Customer surfaces use the localization runtime, not literals', () => {
     'components/menu/MenuContent.tsx',
     'components/product/ProductDetailView.tsx',
     'components/cart/CartDrawer.tsx',
+    'components/cart/CartConflictDialog.tsx',
     'app/checkout/page.tsx',
     'app/reservation/page.tsx',
     'app/dashboard/page.tsx',

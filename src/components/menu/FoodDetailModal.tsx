@@ -2,6 +2,7 @@
 
 import { ProductDetailShell } from '@/components/product/ProductDetailShell'
 import type { MenuItem } from '@/types'
+import type { CartOwnershipInput } from '@/lib/active-cart'
 
 interface FoodDetailModalProps {
   item: MenuItem | null
@@ -9,9 +10,17 @@ interface FoodDetailModalProps {
   onClose: () => void
   branchId?: string
   onOpenRelated?: (item: MenuItem) => void
+  orderingContext?: CartOwnershipInput
 }
 
-export function FoodDetailModal({ item, open, onClose, branchId, onOpenRelated }: FoodDetailModalProps) {
+export function FoodDetailModal({
+  item,
+  open,
+  onClose,
+  branchId,
+  onOpenRelated,
+  orderingContext,
+}: FoodDetailModalProps) {
   if (!item) return null
 
   return (
@@ -22,6 +31,7 @@ export function FoodDetailModal({ item, open, onClose, branchId, onOpenRelated }
       branchId={branchId}
       onClose={onClose}
       onOpenRelated={onOpenRelated}
+      orderingContext={orderingContext}
     />
   )
 }

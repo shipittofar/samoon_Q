@@ -317,7 +317,13 @@
     "discountCodePlaceholder": "کد تخفیف",
     "clearCart": "خالی کردن سبد",
     "viewCart": "مشاهده سبد خرید",
-    "viewCartAria": "مشاهده سبد خرید — {count} مورد"
+    "viewCartAria": "مشاهده سبد خرید — {count} مورد",
+    "activeOrderTitle": "شما یک سفارش فعال دارید",
+    "activeOrderBody": "لطفاً قبل از شروع سفارش جدید، سفارش فعلی را تکمیل یا حل کنید.",
+    "ownedBy": "{tenant} · {branch}",
+    "viewCurrentCart": "مشاهده سبد فعلی",
+    "goToCurrentMenu": "رفتن به منوی فعلی",
+    "originLabel": "سفارش از {tenant} — {branch}"
   },
   "address": {
     "title": "آدرس‌های ذخیره‌شده",

@@ -6,26 +6,34 @@ import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { FavoriteCard } from '@/components/favorites/FavoriteCard'
 import { FoodDetailModal } from '@/components/menu/FoodDetailModal'
-import { CartDrawer } from '@/components/cart/CartDrawer'
-import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FoodCardSkeleton } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useFavoritesList, useRefreshFavorites } from '@/hooks'
 import { cn } from '@/utils'
-import type { MenuItem } from '@/types'
+import type { UserFavorite } from '@/types/favorites'
 
 export default function FavoritesPage() {
-  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
+  const [selectedFavorite, setSelectedFavorite] = useState<UserFavorite | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const { favoriteItems, count, isLoading, isError } = useFavoritesList()
   const { refresh, isRefreshing } = useRefreshFavorites()
   const t = useTranslations('dashboard')
 
   const showInitialSkeleton = isLoading && favoriteItems.length === 0
+  const selectedItem = selectedFavorite?.menu_item ?? null
+  const orderingContext = selectedFavorite
+    ? {
+        tenantId: selectedFavorite.tenant.id,
+        tenantSlug: selectedFavorite.tenant.slug,
+        tenantName: selectedFavorite.tenant.name,
+        branchId: selectedFavorite.branch.id,
+        branchSlug: selectedFavorite.branch.slug ?? '',
+        branchName: selectedFavorite.branch.name,
+      }
+    : undefined
 
   return (
     <div className="space-y-6">
-      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-xl bg-[var(--danger-subtle)] flex items-center justify-center shrink-0">
@@ -75,7 +83,7 @@ export default function FavoritesPage() {
             <FavoriteCard
               key={favorite.id}
               favorite={favorite}
-              onOpenDetail={(item) => { setSelectedItem(item); setModalOpen(true) }}
+              onOpenDetail={() => { setSelectedFavorite(favorite); setModalOpen(true) }}
             />
           ))}
         </div>
@@ -85,8 +93,14 @@ export default function FavoritesPage() {
         item={selectedItem}
         open={modalOpen}
         branchId={selectedItem?.branch_id}
-        onClose={() => { setModalOpen(false); setTimeout(() => setSelectedItem(null), 300) }}
-        onOpenRelated={(item) => { setSelectedItem(item); setModalOpen(true) }}
+        orderingContext={orderingContext}
+        onClose={() => { setModalOpen(false); setTimeout(() => setSelectedFavorite(null), 300) }}
+        onOpenRelated={(item) => {
+          setSelectedFavorite((current) =>
+            current ? { ...current, menu_item: item } : current,
+          )
+          setModalOpen(true)
+        }}
       />
     </div>
   )

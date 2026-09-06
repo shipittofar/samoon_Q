@@ -2,6 +2,7 @@
 
 import { Plus, Minus, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useAddToCart } from '@/hooks/useAddToCart'
 import { useCartStore } from '@/stores'
 import { cn, getDiscountedPrice } from '@/utils'
 import { Button } from '@/components/ui/Button'
@@ -21,6 +22,8 @@ interface MenuItemCartControlsProps {
   addIcon?: React.ReactNode
   className?: string
   buttonClassName?: string
+  /** Explicit tenant/branch for this item when it is not the current storefront context. */
+  orderingContext?: import('@/lib/active-cart').CartOwnershipInput
 }
 
 interface MenuCardQuantityProps {
@@ -116,16 +119,18 @@ export function MenuItemCartControls({
   addIcon,
   className,
   buttonClassName,
+  orderingContext,
 }: MenuItemCartControlsProps) {
   const t = useTranslations('menu')
   const tCart = useTranslations('cart')
   const quantity = useCartStore((s) => getPlainCartQuantity(s.items, item.id))
+  const { addToCart: attemptAdd } = useAddToCart()
 
   const discountedPrice = item.discount ? getDiscountedPrice(item.price, item.discount) : item.price
   const requiresConfig = menuItemRequiresConfiguration(item)
 
   const addToCart = () => {
-    useCartStore.getState().addItem({ ...item, discounted_price: discountedPrice })
+    attemptAdd({ ...item, discounted_price: discountedPrice }, 1, [], undefined, orderingContext)
   }
 
   const handleAdd = (e: React.MouseEvent) => {
@@ -152,12 +157,7 @@ export function MenuItemCartControls({
   const handleIncrease = (e: React.MouseEvent) => {
     stopCardClick(e)
     if (disabled || !item.available) return
-    const cartLine = findPlainCartLine(useCartStore.getState().items, item.id)
-    if (cartLine) {
-      useCartStore.getState().updateQuantity(cartLine.id, cartLine.quantity + 1)
-    } else {
-      addToCart()
-    }
+    addToCart()
   }
 
   if (!requiresConfig && quantity > 0) {

@@ -65,21 +65,9 @@ describe('Cart auth persistence', () => {
     expect(items[0].menu_item.id).toBe('5')
   })
 
-  it('tenant layout bootstrap does not clear cart when tenant is null (re-entry after checkout)', () => {
+  it('tenant layout never clears cart after tenant store reset', () => {
     useCartStore.getState().addItem(mockMenuItem('pizza'), 1)
     useTenantStore.getState().reset()
-
-    const tenant = useTenantStore.getState().tenant
-    const tenantState = useTenantStore.getState().tenantState
-    const tenantSlug = 'samoon'
-
-    // Mirrors [tenantSlug]/layout.tsx guard — only clear on resolved tenant switch.
-    const shouldClear =
-      tenantState === 'resolved' &&
-      tenant?.slug &&
-      tenant.slug !== tenantSlug
-
-    expect(shouldClear).toBe(false)
     expect(useCartStore.getState().items.length).toBe(1)
   })
 })

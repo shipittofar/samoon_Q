@@ -6,7 +6,7 @@ import { Trash2, Tag, ShoppingBag, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useCartStore, useCartItemCount, useTenantStore, useBranchStore } from '@/stores'
+import { useCartStore, useCartItemCount } from '@/stores'
 import { useValidateDiscount } from '@/hooks'
 import { Drawer } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
@@ -14,8 +14,7 @@ import { Input } from '@/components/ui/Input'
 import { QuantityStepper } from '@/components/ui/QuantityStepper'
 import { Divider } from '@/components/ui'
 import { formatCurrency } from '@/utils'
-import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
-import { canOrderFromTenant } from '@/lib/tenant-state'
+import { getActiveCartContext, isActiveCartCheckoutEnabled, resolveCartMenuUrl } from '@/lib/active-cart'
 import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import type { CartItem } from '@/types'
@@ -73,26 +72,16 @@ function CartItemRow({ item }: { item: CartItem }) {
 export function CartDrawer() {
   const t = useTranslations('cart')
   const tNotifications = useTranslations('notifications')
-  const { items, isOpen, setOpen, discountCode, discountAmount, setDiscount, clearCart, getSubtotal, getTax, getServiceCharge, getTotal } = useCartStore()
+  const { items, isOpen, setOpen, discountCode, discountAmount, setDiscount, clearCart, getSubtotal, getTax, getServiceCharge, getTotal, ownership } = useCartStore()
   const { mutate: validateDiscount, isPending: validating } = useValidateDiscount()
   const [codeInput, setCodeInput] = useState(discountCode || '')
   const router = useRouter()
-  const tenantSlug = useTenantStore((s) => s.tenant?.slug)
-  const tenant = useTenantStore((s) => s.tenant)
-  const branchSlug = useBranchStore((s) => s.activeBranch?.slug)
-  const branchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
-  const orderingEnabled =
-    canOrderFromTenant(tenant) && isBranchOrderingEnabled(branchCheckout)
+  const cartOwnership = getActiveCartContext(items, ownership)
+  const orderingEnabled = isActiveCartCheckoutEnabled(cartOwnership)
 
   const handleBrowseMenu = () => {
     setOpen(false)
-    if (tenantSlug && branchSlug) {
-      router.push(`/${tenantSlug}/${branchSlug}/menu`)
-    } else if (tenantSlug) {
-      router.push(`/${tenantSlug}`)
-    } else {
-      router.push('/discover')
-    }
+    router.push(resolveCartMenuUrl(cartOwnership))
   }
 
   const subtotal = getSubtotal()
@@ -138,6 +127,14 @@ export function CartDrawer() {
           <>
             {/* Items */}
             <div className="flex-1 overflow-y-auto px-4 scrollbar-thin">
+              {cartOwnership && (cartOwnership.tenantName || cartOwnership.branchName) && (
+                <p className="pt-4 pb-1 text-xs font-medium text-[var(--fg-muted)]">
+                  {t('originLabel', {
+                    tenant: cartOwnership.tenantName || cartOwnership.tenantSlug || '—',
+                    branch: cartOwnership.branchName || cartOwnership.branchSlug || '—',
+                  })}
+                </p>
+              )}
               <AnimatePresence mode="popLayout">
                 {items.map((item) => (
                   <CartItemRow key={item.id} item={item} />

@@ -251,14 +251,13 @@ describe('R-08 — Platform-wide context integrity (P8.7.7.11)', () => {
     expect(teardownSrc).toContain('useTenantStore.getState().reset()')
   })
 
-  it('TenantLayout clears cart only on genuine tenant switch (not bootstrap)', async () => {
+  it('TenantLayout does not clear the cart on tenant switch', async () => {
     const src = readFileSync(
       join(__dirname, '..', 'app', '[tenantSlug]', 'layout.tsx'),
       'utf-8',
     )
-    expect(src).toContain('clearCart()')
-    expect(src).toContain('tenantState === \'resolved\'')
-    expect(src).toContain('useCartStore')
+    expect(src).not.toContain('clearCart()')
+    expect(src).not.toContain('useCartStore')
   })
 
   it('useFeaturedItems query key includes tenantId (D-06 fix)', async () => {

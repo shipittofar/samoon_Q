@@ -317,7 +317,13 @@
     "discountCodePlaceholder": "كود الخصم",
     "clearCart": "إفراغ السلة",
     "viewCart": "عرض السلة",
-    "viewCartAria": "عرض السلة — {count} عناصر"
+    "viewCartAria": "عرض السلة — {count} عناصر",
+    "activeOrderTitle": "لديك طلب نشط بالفعل",
+    "activeOrderBody": "يرجى إكمال أو تسوية طلبك الحالي قبل بدء طلب جديد.",
+    "ownedBy": "{tenant} · {branch}",
+    "viewCurrentCart": "عرض السلة الحالية",
+    "goToCurrentMenu": "الذهاب إلى القائمة الحالية",
+    "originLabel": "الطلب من {tenant} — {branch}"
   },
   "address": {
     "title": "العناوين المحفوظة",

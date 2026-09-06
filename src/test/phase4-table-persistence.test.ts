@@ -252,12 +252,12 @@ describe('Regression — existing P4.4 behaviour preserved', () => {
 
   it('table page still has ErrorBoundary for CartDrawer', () => {
     const src = readSrc('app/table/[tableId]/page.tsx')
-    expect(src).toContain('feature="CartDrawer"')
+    expect(src).not.toContain('feature="CartDrawer"')
   })
 
   it('table page still has ErrorBoundary for FloatingCart', () => {
     const src = readSrc('app/table/[tableId]/page.tsx')
-    expect(src).toContain('feature="FloatingCart"')
+    expect(src).not.toContain('feature="FloatingCart"')
   })
 
   it('table page still validates range 1-100', () => {

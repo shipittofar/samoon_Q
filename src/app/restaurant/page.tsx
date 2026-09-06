@@ -4,8 +4,6 @@ import { MapPin, Phone, Mail, Clock, Globe } from 'lucide-react'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
-import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
-import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Badge } from '@/components/ui'
 import { fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
 import { resolvePublicBranchList } from '@/lib/public-branches'
@@ -52,8 +50,6 @@ export default async function RestaurantPage() {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header overlay />
-      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
-      <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Hero */}
       <div className="relative h-[60vh] overflow-hidden">

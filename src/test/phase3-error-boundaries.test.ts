@@ -86,65 +86,37 @@ describe('P3.12.1 — ErrorBoundary component contract', () => {
 
 // ── P3.12.2 — CartDrawer boundary coverage ────────────────────────────────────
 
-describe('P3.12.2 — CartDrawer wrapped at every render site', () => {
-  it('MenuContent.tsx wraps CartDrawer in ErrorBoundary', () => {
-    const content = src('components/menu/MenuContent.tsx')
-    // ErrorBoundary must appear before CartDrawer
+describe('P3.12.2 — CartDrawer wrapped at the global host', () => {
+  it('GlobalCartHost.tsx wraps CartDrawer in ErrorBoundary', () => {
+    const content = src('components/cart/GlobalCartHost.tsx')
     const ebIdx = content.indexOf('<ErrorBoundary')
     const cartIdx = content.indexOf('<CartDrawer')
     expect(ebIdx).toBeGreaterThan(-1)
     expect(cartIdx).toBeGreaterThan(ebIdx)
   })
 
-  it('MenuContent.tsx uses feature="CartDrawer" label', () => {
-    const content = src('components/menu/MenuContent.tsx')
+  it('GlobalCartHost.tsx uses feature="CartDrawer" label', () => {
+    const content = src('components/cart/GlobalCartHost.tsx')
     expect(content).toContain('feature="CartDrawer"')
   })
 
-  it('MainLayout.tsx wraps CartDrawer in ErrorBoundary', () => {
-    const content = src('components/layout/MainLayout.tsx')
-    expect(content).toContain('ErrorBoundary')
-    expect(content).toContain('<CartDrawer')
-    const ebIdx = content.indexOf('<ErrorBoundary')
-    const cartIdx = content.indexOf('<CartDrawer')
-    expect(cartIdx).toBeGreaterThan(ebIdx)
+  it('Providers mounts GlobalCartHost', () => {
+    const content = src('providers/index.tsx')
+    expect(content).toContain('GlobalCartHost')
   })
 
-  it('MainLayout.tsx uses feature="CartDrawer" label', () => {
-    const content = src('components/layout/MainLayout.tsx')
-    expect(content).toContain('feature="CartDrawer"')
-  })
-
-  it('home page (app/page.tsx) wraps CartDrawer in ErrorBoundary', () => {
-    const content = src('app/page.tsx')
-    expect(content).toContain('ErrorBoundary')
-    const ebIdx = content.indexOf('<ErrorBoundary')
-    const cartIdx = content.indexOf('<CartDrawer')
-    expect(cartIdx).toBeGreaterThan(ebIdx)
-  })
-
-  it('restaurant page wraps CartDrawer in ErrorBoundary', () => {
-    const content = src('app/restaurant/page.tsx')
-    expect(content).toContain('ErrorBoundary')
-    const ebIdx = content.indexOf('<ErrorBoundary')
-    const cartIdx = content.indexOf('<CartDrawer')
-    expect(cartIdx).toBeGreaterThan(ebIdx)
-  })
-
-  it('table page wraps CartDrawer in ErrorBoundary', () => {
-    const content = src('app/table/[tableId]/page.tsx')
-    expect(content).toContain('ErrorBoundary')
-    const ebIdx = content.indexOf('<ErrorBoundary')
-    const cartIdx = content.indexOf('<CartDrawer')
-    expect(cartIdx).toBeGreaterThan(ebIdx)
-  })
-
-  it('favorites page wraps CartDrawer in ErrorBoundary', () => {
-    const content = src('app/dashboard/favorites/page.tsx')
-    expect(content).toContain('ErrorBoundary')
-    const ebIdx = content.indexOf('<ErrorBoundary')
-    const cartIdx = content.indexOf('<CartDrawer')
-    expect(cartIdx).toBeGreaterThan(ebIdx)
+  it('storefront pages do not mount a second CartDrawer', () => {
+    const files = [
+      'components/menu/MenuContent.tsx',
+      'components/layout/MainLayout.tsx',
+      'app/page.tsx',
+      'app/restaurant/page.tsx',
+      'app/table/[tableId]/page.tsx',
+      'app/dashboard/favorites/page.tsx',
+    ]
+    for (const file of files) {
+      expect(src(file), `${file} must not mount CartDrawer`).not.toContain('<CartDrawer')
+    }
   })
 })
 
@@ -228,14 +200,14 @@ describe('P3.12.4 — MenuContent wrapped in menu page', () => {
 
 // ── P3.12.5 — MainLayout central boundary ─────────────────────────────────────
 
-describe('P3.12.5 — MainLayout ErrorBoundary imports', () => {
-  it('MainLayout.tsx imports ErrorBoundary', () => {
-    const content = src('components/layout/MainLayout.tsx')
+describe('P3.12.5 — Global cart host ErrorBoundary', () => {
+  it('GlobalCartHost.tsx imports ErrorBoundary', () => {
+    const content = src('components/cart/GlobalCartHost.tsx')
     expect(content).toContain("from '@/components/common/ErrorBoundary'")
   })
 
-  it('MainLayout.tsx wraps FloatingCart in ErrorBoundary', () => {
-    const content = src('components/layout/MainLayout.tsx')
+  it('GlobalCartHost.tsx wraps FloatingCart in ErrorBoundary', () => {
+    const content = src('components/cart/GlobalCartHost.tsx')
     expect(content).toContain('feature="FloatingCart"')
     const ebIdx = content.lastIndexOf('<ErrorBoundary')
     const fcIdx = content.indexOf('<FloatingCart')
@@ -247,12 +219,12 @@ describe('P3.12.5 — MainLayout ErrorBoundary imports', () => {
 
 describe('P3.12.6 — Isolation: unique feature names', () => {
   it('CartDrawer boundary uses "CartDrawer" feature label', () => {
-    const content = src('components/layout/MainLayout.tsx')
+    const content = src('components/cart/GlobalCartHost.tsx')
     expect(content).toContain('feature="CartDrawer"')
   })
 
   it('FloatingCart boundary uses "FloatingCart" feature label', () => {
-    const content = src('components/layout/MainLayout.tsx')
+    const content = src('components/cart/GlobalCartHost.tsx')
     expect(content).toContain('feature="FloatingCart"')
   })
 

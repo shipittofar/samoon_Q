@@ -49,6 +49,14 @@ import { filterBranchesForTenant } from '@/lib/console-workspace-consistency'
 import { branchEntityToLocation } from '@/lib/branch-adapters'
 import { normalizeCartItems } from '@/lib/cart-normalizers'
 import {
+  type AddToCartResult,
+  type CartOwnership,
+  type CartOwnershipInput,
+  coalesceCartOwnership,
+  getActiveCartContext,
+  hasOrderingConflict,
+} from '@/lib/active-cart'
+import {
   fetchPublicTenantBySlug,
   type ResolvePublicTenantOptions,
 } from '@/lib/public-tenant-resolution'
@@ -98,17 +106,29 @@ interface CartState {
   discountCode: string
   discountAmount: number
   isOpen: boolean
+  /** Explicit tenant/branch ownership of this cart — independent of current route. */
+  ownership: CartOwnership | null
+  /** UI flag: add was blocked because the target context differs. Not persisted. */
+  conflictOpen: boolean
   /**
    * False until client persist rehydration finishes.
    * SSR and the first client render must both see false so cart UI stays
    * hydration-safe (localStorage must not affect the initial HTML).
    */
   hasHydrated: boolean
-  addItem: (item: MenuItem, quantity?: number, extras?: Extra[], notes?: string) => void
+  addItem: (
+    item: MenuItem,
+    quantity?: number,
+    extras?: Extra[],
+    notes?: string,
+    target?: CartOwnershipInput | null,
+  ) => AddToCartResult
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   updateNotes: (id: string, notes: string) => void
   clearCart: () => void
+  dismissConflict: () => void
+  getActiveOwnership: () => CartOwnership | null
   setDiscount: (code: string, amount: number) => void
   setOpen: (v: boolean) => void
   getSubtotal: () => number
@@ -127,64 +147,111 @@ export const useCartStore = create<CartState>()(
       discountCode: '',
       discountAmount: 0,
       isOpen: false,
+      ownership: null,
+      conflictOpen: false,
       hasHydrated: false,
 
-      addItem: (menuItem, quantity = 1, extras = [], notes) => {
-        set((state) => {
-          // Branch isolation: a cart can only ever hold one branch's items.
-          // Adding an item from a different branch than what's currently in
-          // the cart starts a fresh cart instead of mixing branches together.
-          const items = state.items.length > 0 && state.items[0].branch_id !== menuItem.branch_id
-            ? []
-            : state.items
+      addItem: (menuItem, quantity = 1, extras = [], notes, target) => {
+        const state = get()
+        const inferredTarget: CartOwnershipInput = {
+          branchId: target?.branchId || menuItem.branch_id,
+          tenantId: target?.tenantId,
+          tenantSlug: target?.tenantSlug,
+          tenantName: target?.tenantName,
+          branchSlug: target?.branchSlug,
+          branchName: target?.branchName,
+          checkout: target?.checkout,
+          currency: target?.currency,
+          tenantOperational: target?.tenantOperational,
+        }
+        if (!inferredTarget.branchId) {
+          return { ok: false, reason: 'missing_context' }
+        }
 
-          const existingId = items.find(
+        if (hasOrderingConflict(state.items, state.ownership, inferredTarget)) {
+          const ownership = getActiveCartContext(state.items, state.ownership)
+          if (!ownership) {
+            return { ok: false, reason: 'missing_context' }
+          }
+          set({ conflictOpen: true })
+          return { ok: false, reason: 'conflict', ownership }
+        }
+
+        const extraTotal = extras.reduce((sum, e) => sum + e.price, 0)
+        const unitPrice = (menuItem.discounted_price ?? menuItem.price) + extraTotal
+
+        set((current) => {
+          const existingId = current.items.find(
             (i) =>
               i.menu_item.id === menuItem.id &&
               JSON.stringify(i.extras.map((e) => e.id).sort()) ===
                 JSON.stringify(extras.map((e) => e.id).sort()),
           )?.id
 
-          if (existingId) {
-            return {
-              items: items.map((i) =>
+          const nextItems = existingId
+            ? current.items.map((i) =>
                 i.id === existingId ? { ...i, quantity: i.quantity + quantity } : i,
-              ),
-            }
-          }
+              )
+            : [
+                ...current.items,
+                {
+                  id: `${menuItem.id}-${Date.now()}`,
+                  branch_id: menuItem.branch_id || inferredTarget.branchId!,
+                  menu_item: menuItem,
+                  quantity,
+                  extras,
+                  notes,
+                  unit_price: unitPrice,
+                  total_price: unitPrice * quantity,
+                } satisfies CartItem,
+              ]
 
-          const extraTotal = extras.reduce((sum, e) => sum + e.price, 0)
-          const unitPrice = (menuItem.discounted_price ?? menuItem.price) + extraTotal
-          const newItem: CartItem = {
-            id: `${menuItem.id}-${Date.now()}`,
-            branch_id: menuItem.branch_id,
-            menu_item: menuItem,
-            quantity,
-            extras,
-            notes,
-            unit_price: unitPrice,
-            total_price: unitPrice * quantity,
-          }
-          return { items: [...items, newItem] }
+          const ownership = current.ownership?.branchId
+            ? current.ownership
+            : {
+                tenantId: inferredTarget.tenantId ?? '',
+                tenantSlug: inferredTarget.tenantSlug ?? '',
+                tenantName: inferredTarget.tenantName ?? '',
+                branchId: inferredTarget.branchId!,
+                branchSlug: inferredTarget.branchSlug ?? '',
+                branchName: inferredTarget.branchName ?? '',
+                checkout: inferredTarget.checkout,
+                currency: inferredTarget.currency,
+                tenantOperational: inferredTarget.tenantOperational,
+              }
+
+          return { items: nextItems, ownership, conflictOpen: false }
         })
+
+        return { ok: true }
       },
 
-      removeItem: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
+      removeItem: (id) =>
+        set((s) => {
+          const items = s.items.filter((i) => i.id !== id)
+          return { items, ownership: items.length ? s.ownership : null, conflictOpen: false }
+        }),
 
       updateQuantity: (id, quantity) =>
-        set((s) => ({
-          items:
+        set((s) => {
+          const items =
             quantity <= 0
               ? s.items.filter((i) => i.id !== id)
               : s.items.map((i) =>
                   i.id === id ? { ...i, quantity, total_price: i.unit_price * quantity } : i,
-                ),
-        })),
+                )
+          return { items, ownership: items.length ? s.ownership : null }
+        }),
 
       updateNotes: (id, notes) =>
         set((s) => ({ items: s.items.map((i) => (i.id === id ? { ...i, notes } : i)) })),
 
-      clearCart: () => set({ items: [], discountCode: '', discountAmount: 0 }),
+      clearCart: () =>
+        set({ items: [], discountCode: '', discountAmount: 0, ownership: null, conflictOpen: false }),
+
+      dismissConflict: () => set({ conflictOpen: false }),
+
+      getActiveOwnership: () => getActiveCartContext(get().items, get().ownership),
 
       setDiscount: (discountCode, discountAmount) => set({ discountCode, discountAmount }),
 
@@ -200,25 +267,48 @@ export const useCartStore = create<CartState>()(
       getItemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
 
       reconcileItems: () =>
-        set((state) => ({
-          items: normalizeCartItems(
+        set((state) => {
+          const items = normalizeCartItems(
             state.items,
-            state.items[0]?.branch_id ?? state.items[0]?.menu_item?.branch_id,
-          ),
-        })),
+            state.ownership?.branchId ?? state.items[0]?.branch_id ?? state.items[0]?.menu_item?.branch_id,
+          )
+          return {
+            items,
+            ownership: coalesceCartOwnership(state.ownership, items),
+          }
+        }),
     }),
     // Synchronous writes — debounced writes could lose items on fast
     // navigation (checkout → middleware redirect → login) before flush.
     // skipHydration: localStorage must not mutate state before React hydrates.
     {
       name: CART_KEY,
+      version: 1,
       skipHydration: true,
       partialize: (state) => ({
         items: state.items,
         discountCode: state.discountCode,
         discountAmount: state.discountAmount,
         isOpen: state.isOpen,
+        ownership: state.ownership,
       }),
+      migrate: (persisted) => {
+        const raw = persisted as {
+          items?: unknown
+          discountCode?: string
+          discountAmount?: number
+          isOpen?: boolean
+          ownership?: unknown
+        }
+        const items = normalizeCartItems(raw.items)
+        return {
+          items,
+          discountCode: raw.discountCode ?? '',
+          discountAmount: raw.discountAmount ?? 0,
+          isOpen: raw.isOpen ?? false,
+          ownership: coalesceCartOwnership(raw.ownership, items),
+        }
+      },
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           useCartStore.setState({ hasHydrated: true })
@@ -226,15 +316,20 @@ export const useCartStore = create<CartState>()(
         }
         const items = state?.items
         if (items?.length) {
+          const normalized = normalizeCartItems(
+            items,
+            items[0]?.branch_id ?? items[0]?.menu_item?.branch_id,
+          )
           useCartStore.setState({
-            items: normalizeCartItems(
-              items,
-              items[0]?.branch_id ?? items[0]?.menu_item?.branch_id,
-            ),
+            items: normalized,
+            ownership: coalesceCartOwnership(state?.ownership, normalized),
             hasHydrated: true,
           })
         } else {
-          useCartStore.setState({ hasHydrated: true })
+          useCartStore.setState({
+            ownership: state?.ownership ?? null,
+            hasHydrated: true,
+          })
         }
       },
     },
@@ -729,13 +824,8 @@ export const useBranchStore = create<BranchState>()(
     (set, get) => ({
       activeBranch: null,
       setActiveBranch: (activeBranch) => {
-        const previous = get().activeBranch
-        // Switching to a different branch must never carry over another
-        // branch's cached cart — the menu (and therefore valid item ids,
-        // prices, extras) is entirely different per branch.
-        if (previous && previous.slug !== activeBranch.slug) {
-          useCartStore.getState().clearCart()
-        }
+        // Storefront navigation context only. Must not mutate or clear the
+        // customer active cart — ownership lives on useCartStore.
         set({ activeBranch })
       },
 

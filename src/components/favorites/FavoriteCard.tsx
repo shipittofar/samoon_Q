@@ -135,6 +135,14 @@ export function FavoriteCard({ favorite, onOpenDetail, className }: FavoriteCard
             layout="full"
             addLabel={tDashboard('favoriteQuickOrder', { price: formatCurrency(discountedPrice) })}
             addIcon={<Zap className="h-4 w-4"aria-hidden="true"/>}
+            orderingContext={{
+              tenantId: tenant.id,
+              tenantSlug: tenant.slug,
+              tenantName: tenant.name,
+              branchId: branch.id,
+              branchSlug: branch.slug ?? '',
+              branchName: branch.name,
+            }}
           />
         </div>
       </div>

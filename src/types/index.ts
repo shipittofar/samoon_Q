@@ -283,7 +283,7 @@ export interface TableInfo {
 // ============================================================
 export interface CartItem {
   id: string
-  /** Branch the item was added from. Cart isolation is enforced against this field — see useCartStore. */
+  /** Branch the line was added from. Isolation is enforced against cart ownership, not the current route. */
   branch_id: string
   menu_item: MenuItem
   quantity: number

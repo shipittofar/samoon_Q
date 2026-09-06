@@ -9,8 +9,6 @@ import {
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Header } from '@/components/layout/Header'
-import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
-import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { Footer } from '@/components/layout/Footer'
 import { Button } from '@/components/ui/Button'
 import { useTableInfo, useQRExperience } from '@/hooks'
@@ -94,8 +92,6 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <Header />
-      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
-      <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* Welcome banner */}
       <div>

@@ -45,10 +45,9 @@ function simulateLogoutCleanup(qc: QueryClient) {
   clearAuthenticatedClientState({ queryClient: qc })
 }
 
-/** Mirrors exactly the reset sequence inside AdminTenantSwitcher.switchTenant() (tenant-scoped state only). */
+/** Mirrors console tenant switch: query cache and console branch, not the storefront cart. */
 function simulateTenantSwitchCleanup(qc: QueryClient) {
   useBranchStore.getState().setAdminActiveBranch(null)
-  useCartStore.getState().clearCart()
   useDineInStore.getState().clearTable()
   useRecentlyViewedStore.getState().clear()
   qc.clear()
@@ -108,7 +107,7 @@ describe('P10.3.2 Phase J — Cache Isolation Proof: Scenario 2 (Branch A → sw
     expect(qc.getQueryData(['branch-orders', 'branch-A-01'])).toBeUndefined()
     expect(qc.getQueryCache().getAll()).toHaveLength(0)
     expect(useBranchStore.getState().adminActiveBranch).toBeNull()
-    expect(useCartStore.getState().items).toEqual([])
+    expect(useCartStore.getState().items.length).toBeGreaterThan(0)
   })
 
   it('tenantRoles remain correctly keyed per tenant — no cross-tenant permission bleed even without a full reset', () => {

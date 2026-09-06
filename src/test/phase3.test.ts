@@ -457,13 +457,10 @@ describe('P3.12 — ErrorBoundary component', () => {
     expect(state.error).toBeInstanceOf(Error)
   })
 
-  it('ErrorBoundary wraps CartDrawer in menu UI component', () => {
-    // P4.4.2: MenuContent was extracted to a dedicated client component;
-    // the ErrorBoundary/CartDrawer JSX lives there, not in the server page wrapper.
-    const src = readFileSync(join(process.cwd(), 'src/components/menu/MenuContent.tsx'), 'utf8')
+  it('ErrorBoundary wraps CartDrawer in the global cart host', () => {
+    const src = readFileSync(join(process.cwd(), 'src/components/cart/GlobalCartHost.tsx'), 'utf8')
     expect(src).toContain('ErrorBoundary')
     expect(src).toContain('CartDrawer')
-    // The ErrorBoundary must wrap the CartDrawer
     const ebIdx = src.indexOf('<ErrorBoundary')
     const cartIdx = src.indexOf('<CartDrawer')
     expect(ebIdx).toBeGreaterThan(-1)
@@ -493,6 +490,7 @@ describe('P3.10 — Cart store tests', async () => {
 
   const mockItem = {
     id: 'item-1',
+    branch_id: 'branch-1',
     name: 'Test Burger',
     price: 10,
     discounted_price: null,

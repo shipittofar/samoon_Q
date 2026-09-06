@@ -5,8 +5,6 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
-import { CartDrawer, FloatingCart } from '@/components/cart/CartDrawer'
-import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { FoodCard } from '@/components/menu/FoodCard'
 import { LazyFoodDetailModal } from '@/components/menu/LazyFoodDetailModal'
 import { MenuTagLabel } from '@/components/menu/MenuTagBadge'
@@ -264,8 +262,6 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <TenantHeader />
-      <ErrorBoundary feature="CartDrawer"><CartDrawer /></ErrorBoundary>
-      <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       <div className="sticky top-16 z-30 bg-[var(--bg)]/95 backdrop-blur-xl border-b border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 space-y-1.5">
