@@ -219,7 +219,7 @@ export function DiscoverClientPage() {
     return sortItems(result, sortBy)
   }, [allWithMeta, searchQuery, selectedCategory, filters, sortBy])
 
-  const isResultMode = !!searchQuery || !!selectedCategory || hasActiveFilters(filters)
+  const isSearchMode = !!searchQuery
   const filterCount = countActiveFilters(filters)
 
   const featured = useMemo(() => allWithMeta.filter(({ meta }) => meta.featured), [allWithMeta])
@@ -408,7 +408,7 @@ export function DiscoverClientPage() {
 
           {!isLoading && !isError && (
             <div>
-              {isResultMode ? (
+              {isSearchMode ? (
                 <>
                   <div className="mb-4 space-y-3">
                     <ResultToolbar
@@ -434,18 +434,12 @@ export function DiscoverClientPage() {
                     <EmptySearch
                       title={t('noBusinessesFound')}
                       description={
-                        searchQuery && selectedCategory
+                        selectedCategory
                           ? t('noMatchCategoryQuery', { category: selectedCategory, query: searchQuery })
-                          : searchQuery
-                            ? t('noMatchQuery', { query: searchQuery })
-                            : hasActiveFilters(filters)
-                              ? t('noMatchFilters')
-                              : t('noBusinessesCategory')
+                          : t('noMatchQuery', { query: searchQuery })
                       }
                       action={
-                        (searchQuery || selectedCategory || hasActiveFilters(filters)) ? (
-                          <Button onClick={clearAll}>{t('clearAllFilters')}</Button>
-                        ) : undefined
+                        <Button onClick={clearAll}>{t('clearAllFilters')}</Button>
                       }
                     >
                       <div className="flex flex-wrap justify-center gap-2 -mt-4 mb-8">
@@ -477,9 +471,45 @@ export function DiscoverClientPage() {
                       ))}
                     </CollectionRail>
                   ))}
-                  {rails.length === 0 && allWithMeta.length === 0 && (
-                    <EmptySearch title={t('noBusinessesFound')} />
-                  )}
+
+                  <section aria-labelledby="all-businesses-heading" className={rails.length > 0 ? 'mt-2' : undefined}>
+                    <h2
+                      id="all-businesses-heading"
+                      className="font-[var(--font-display)] text-lg sm:text-xl font-semibold text-[var(--fg)] mb-2"
+                    >
+                      {t('allBusinesses')}
+                    </h2>
+                    {allWithMeta.length > 0 && (
+                      <div className="mb-4">
+                        <ResultToolbar
+                          resultLabel={t('listedCount', { count: filtered.length })}
+                          sortValue={sortBy}
+                          sortOptions={sortOptions}
+                          onSortChange={(v) => setSortBy(v as SortOption)}
+                          sortAriaLabel={tMarket('sortResults')}
+                        />
+                      </div>
+                    )}
+                    {filtered.length > 0 ? (
+                      <BusinessGrid items={filtered} />
+                    ) : (
+                      <EmptySearch
+                        title={t('noBusinessesFound')}
+                        description={
+                          selectedCategory
+                            ? t('noBusinessesCategory')
+                            : hasActiveFilters(filters)
+                              ? t('noMatchFilters')
+                              : undefined
+                        }
+                        action={
+                          (selectedCategory || hasActiveFilters(filters)) ? (
+                            <Button onClick={clearAll}>{t('clearAllFilters')}</Button>
+                          ) : undefined
+                        }
+                      />
+                    )}
+                  </section>
                 </>
               )}
             </div>
