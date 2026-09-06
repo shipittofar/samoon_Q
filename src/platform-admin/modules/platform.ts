@@ -7,6 +7,7 @@
  * automation.ts but tagged into this group since an announcement banner is
  * a platform-identity concern, not an automation pipeline. This file adds
  * Platform Overview, Maintenance Mode, and System Status.
+ * Platform Homepage registers in `src/config/modules/platform-homepage.ts`.
  */
 import { defineField } from '@/config/field'
 import { registerAdminModule } from '../register-module'

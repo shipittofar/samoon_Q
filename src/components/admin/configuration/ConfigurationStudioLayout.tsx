@@ -12,7 +12,7 @@
  * tablet/phone_number. Command palette (Ctrl/Cmd+K) and the Ctrl/Cmd+S shortcut
  * are wired once, here, for every module — not re-implemented per page.
  */
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
 import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react'
 import { Drawer } from '@/components/ui/Modal'
@@ -51,12 +51,17 @@ export interface ConfigurationStudioLayoutProps {
    * routes are unaffected. The Platform Administration Center route passes
    * `<PlatformDashboard />` here instead of introducing a second shell.
    */
-  emptyWorkspace?: React.ReactNode
+  emptyWorkspace?: ReactNode
   /**
    * `'tenant'` (default) keeps Console Settings on tenant RBAC.
    * Platform Admin routes must pass `'platform'` explicitly.
    */
   permissionContext?: ConfigurationPermissionContext
+  /**
+   * Optional workspace replacement for modules that are not field-row CMS
+   * (e.g. Platform Homepage gallery). Tenant Configuration Studio omits this.
+   */
+  customWorkspace?: ReactNode
 }
 
 export function ConfigurationStudioLayout({
@@ -64,6 +69,7 @@ export function ConfigurationStudioLayout({
   onNavigate,
   emptyWorkspace,
   permissionContext = 'tenant',
+  customWorkspace,
 }: ConfigurationStudioLayoutProps) {
   const t = useTranslations('console')
   const modules = usePlatformConfiguration()
@@ -115,6 +121,8 @@ export function ConfigurationStudioLayout({
 
   const workspace = modules.length === 0 ? (
     <ConfigurationWorkspaceSkeleton />
+  ) : customWorkspace && activeModuleId ? (
+    customWorkspace
   ) : activeModuleId ? (
     <ConfigurationModulePage
       key={`${activeModuleId}-${refreshKey}`}
@@ -186,7 +194,7 @@ export function ConfigurationStudioLayout({
               <button type="button"onClick={() => setMobileNavOpen(true)} className="rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
                 <PanelLeftOpen className="h-4 w-4"/>
               </button>
-              <button type="button"onClick={() => setMobileInspectorOpen(true)} className="ms-auto rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
+              <button type="button" onClick={() => setMobileInspectorOpen(true)} className="ms-auto rounded-lg px-2 py-1 text-xs text-[var(--fg-muted)] hover:bg-[var(--card-hover)]">
                 <PanelRightOpen className="h-4 w-4"/>
               </button>
             </div>

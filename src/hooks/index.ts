@@ -4613,6 +4613,40 @@ export function useSaveBranchOverrides(tenantId: string, branchId: string) {
   })
 }
 
+export function useUploadWebsiteMedia(tenantId: string) {
+  return useMutation({
+    mutationFn: (file: File) => websiteBuilderService.uploadMedia(tenantId, file),
+  })
+}
+
+import { platformHomepageService } from '@/services/platform-homepage.service'
+import type { PlatformHomepageHero } from '@/types/website-builder'
+
+export function usePlatformHomepageHero() {
+  return useQuery({
+    queryKey: ['platform-homepage', 'hero'],
+    queryFn: () => platformHomepageService.getHero(),
+    staleTime: STALE_TIME,
+    gcTime: CACHE_TIME,
+  })
+}
+
+export function useSavePlatformHomepageHero() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (hero: PlatformHomepageHero) => platformHomepageService.saveHero(hero),
+    onSuccess: (saved) => {
+      qc.setQueryData(['platform-homepage', 'hero'], saved)
+    },
+  })
+}
+
+export function useUploadPlatformHomepageMedia() {
+  return useMutation({
+    mutationFn: (file: File) => platformHomepageService.uploadMedia(file),
+  })
+}
+
 export {
   useConsoleWorkspace,
   useConsoleTenantId,

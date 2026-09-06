@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { DEFAULT_PLATFORM_JSON_LD, serializeJsonLd } from '@/lib/json-ld'
-import Image from 'next/image'
 import { ArrowRight, ChevronRight, Search, Building2 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -14,6 +13,7 @@ import { HowItWorks } from '@/components/home/HowItWorks'
 import { ForBusinessOwners } from '@/components/home/ForBusinessOwners'
 import { PlatformFeatures } from '@/components/home/PlatformFeatures'
 import { PlatformTestimonials } from '@/components/home/PlatformTestimonials'
+import { PlatformHeroBackground } from '@/components/home/PlatformHeroBackground'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.samoon.com'
@@ -80,21 +80,10 @@ export default async function HomePage() {
       <ErrorBoundary feature="FloatingCart"><FloatingCart /></ErrorBoundary>
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section id="main-content"className="relative min-h-screen flex items-center overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1920&q=80"
-            alt={t('heroImageAlt')}
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent"/>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"/>
-        </div>
+      <section id="main-content" className="relative min-h-screen flex items-center overflow-hidden">
+        <PlatformHeroBackground />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 w-full">
           <div className="max-w-2xl">
             {/* Pill */}
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6">

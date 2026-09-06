@@ -32,6 +32,19 @@ const MAX_ACCESS_TOKEN_COOKIE_CHARS = 3500
  */
 export const ACCESS_TOKEN_COOKIE_SENTINEL = '1'
 
+export const MOCK_SESSION_EMAIL_COOKIE = 'mock_session_email'
+
+export function writeMockSessionEmailCookie(email: string): void {
+  if (typeof document === 'undefined') return
+  const maxAge = 60 * 60 * 24 * DEFAULT_REFRESH_TTL_DAYS
+  document.cookie = `${MOCK_SESSION_EMAIL_COOKIE}=${encodeURIComponent(email)}; ${ACCESS_TOKEN_COOKIE_ATTRS}; max-age=${maxAge}`
+}
+
+export function clearMockSessionEmailCookie(): void {
+  if (typeof document === 'undefined') return
+  document.cookie = `${MOCK_SESSION_EMAIL_COOKIE}=; ${ACCESS_TOKEN_COOKIE_ATTRS}; max-age=0`
+}
+
 function resolveAccessCookieMaxAgeSeconds(): number {
   try {
     const days = configurationService.resolveField('authentication.jwt_refresh_ttl_days', {}).value
@@ -85,6 +98,7 @@ export function clearTokens() {
   localStorage.removeItem(JWT_REFRESH_KEY)
   // Expire the auth cookie so middleware immediately treats the session as unauthenticated.
   clearAccessTokenCookie()
+  clearMockSessionEmailCookie()
 }
 
 // ── Axios instance ───────────────────────────────────────────────────────────

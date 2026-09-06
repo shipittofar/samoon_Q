@@ -254,4 +254,8 @@ describe('P8.8.6.1 — HomepageLayout backward compat', () => {
   it('new sectionTemplates field is optional (undefined in DEFAULT_LAYOUT)', () => {
     expect(DEFAULT_LAYOUT.sectionTemplates).toBeUndefined()
   })
+
+  it('DEFAULT_HERO includes an empty backgroundImages gallery', () => {
+    expect(DEFAULT_LAYOUT.hero.backgroundImages).toEqual([])
+  })
 })

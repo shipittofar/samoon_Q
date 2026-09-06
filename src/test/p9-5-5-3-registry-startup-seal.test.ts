@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 
 const PLATFORM_MODULE_IDS = [
   'platform.overview',
+  'platform.homepage',
   'platform.maintenance_mode',
   'platform.system_status',
 ] as const
@@ -18,6 +19,14 @@ describe('Platform configuration registry — startup vs seal', () => {
     vi.resetModules()
     const { platformConfigurationRegistry } = await import('@/config/registry')
     platformConfigurationRegistry.__resetForTests()
+  })
+
+  it('importing @/config registers platform.homepage before any seal', async () => {
+    const { platformConfigurationRegistry } = await import('@/config')
+    expect(platformConfigurationRegistry.getModule('platform.homepage')).toBeDefined()
+    expect(platformConfigurationRegistry.getModule('platform.homepage')?.platformPermission).toBe(
+      'platform.homepage.manage',
+    )
   })
 
   it('importing @/config registers platform.overview before any seal', async () => {
@@ -74,7 +83,11 @@ describe('Platform configuration registry — startup vs seal', () => {
     const paPage = readFileSync(join(dir, '..', 'app', 'platform-admin', 'page.tsx'), 'utf-8')
     const paModule = readFileSync(join(dir, '..', 'app', 'platform-admin', '[moduleId]', 'page.tsx'), 'utf-8')
     const consoleIndex = readFileSync(join(dir, '..', 'app', 'console', 'settings', 'configuration', 'page.tsx'), 'utf-8')
+    expect(barrel).toContain("import './modules/platform-homepage'")
     expect(barrel).toContain("import '@/platform-admin/modules'")
+    expect(barrel.indexOf("import './modules/platform-homepage'")).toBeLessThan(
+      barrel.indexOf("import '@/platform-admin/modules'"),
+    )
     expect(barrel.indexOf("import './modules/api'")).toBeLessThan(barrel.indexOf("import '@/platform-admin/modules'"))
     expect(paPage).toContain("import '@/platform-admin'")
     expect(paModule).toContain("import '@/platform-admin'")

@@ -11,10 +11,10 @@ import { cn } from '@/utils'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { useTenantStore, useBranchStore } from '@/stores'
-import {
-  useHomepageLayout, useSaveLayout, usePublishLayout,
+import { HeroBackgroundGallery } from '@/components/admin/HeroBackgroundGallery'
+import { useHomepageLayout, useSaveLayout, usePublishLayout,
   useRestoreVersion, useBranchOverrides, useSaveBranchOverrides,
-  useConsoleTenantId,
+  useConsoleTenantId, useUploadWebsiteMedia,
 } from '@/hooks'
 import type {
   HomepageLayout, SectionConfig, SectionKey, HeroContent,
@@ -27,6 +27,7 @@ import {
   SECTION_LABELS, BRAND_THEMES, DEFAULT_BRAND_THEME,
   HERO_LAYOUT_LABELS, HERO_PRIMARY_CTA_LABELS, HERO_SECONDARY_CTA_LABELS,
   DEFAULT_HERO_CONFIG, DEFAULT_SECTION_TEMPLATES,
+  DEFAULT_HERO_SLIDESHOW_INTERVAL_MS, DEFAULT_HERO_SLIDESHOW_TRANSITION_MS,
   GALLERY_TEMPLATE_LABELS, REVIEWS_TEMPLATE_LABELS,
   CONTACT_TEMPLATE_LABELS, ABOUT_TEMPLATE_LABELS,
 } from '@/types/website-builder'
@@ -347,14 +348,17 @@ function TemplatesTab({
 // ── Hero Tab ──────────────────────────────────────────────────────────────────
 
 function HeroTab({
+  tenantId,
   hero, heroConfig, onHeroChange, onHeroConfigChange,
 }: {
+  tenantId: string
   hero: HeroContent
   heroConfig: HeroConfig
   onHeroChange: (h: HeroContent) => void
   onHeroConfigChange: (h: HeroConfig) => void
 }) {
   const t = useTranslations('console')
+  const uploadMedia = useUploadWebsiteMedia(tenantId)
   const setHero = <K extends keyof HeroContent>(k: K, v: HeroContent[K]) => onHeroChange({ ...hero, [k]: v })
   const setConfig = <K extends keyof HeroConfig>(k: K, v: HeroConfig[K]) => onHeroConfigChange({ ...heroConfig, [k]: v })
 
@@ -420,13 +424,26 @@ function HeroTab({
 
       {/* Conditional background inputs */}
       {heroConfig.backgroundType === 'image' && (
-        <Field label={t('backgroundImageUrlLabel')}>
-          <TextInput
-            value={heroConfig.backgroundImage}
-            onChange={(v) => setConfig('backgroundImage', v)}
-            placeholder="https://…"
-          />
-        </Field>
+        <HeroBackgroundGallery
+          images={hero.backgroundImages ?? []}
+          onChange={(backgroundImages) => {
+            const first = backgroundImages.find((img) => img.enabled !== false)?.src
+            onHeroChange({
+              ...hero,
+              backgroundImages,
+              backgroundImage: first,
+            })
+            onHeroConfigChange({ ...heroConfig, backgroundImage: first })
+          }}
+          onUpload={async (file) => {
+            const { url } = await uploadMedia.mutateAsync(file)
+            return url
+          }}
+          intervalMs={hero.slideshowIntervalMs ?? DEFAULT_HERO_SLIDESHOW_INTERVAL_MS}
+          transitionMs={hero.slideshowTransitionMs ?? DEFAULT_HERO_SLIDESHOW_TRANSITION_MS}
+          onIntervalChange={(slideshowIntervalMs) => setHero('slideshowIntervalMs', slideshowIntervalMs)}
+          onTransitionChange={(slideshowTransitionMs) => setHero('slideshowTransitionMs', slideshowTransitionMs)}
+        />
       )}
       {heroConfig.backgroundType === 'video' && (
         <Field label={t('backgroundVideoUrlLabel')}>
@@ -491,9 +508,6 @@ function HeroTab({
         </Field>
         <Field label={t('subheadlineLabel')}>
           <TextInput value={hero.subheadline} onChange={(v) => setHero('subheadline', v)} placeholder={t('freshFoodGreatVibesPlaceholder')} multiline />
-        </Field>
-        <Field label={t('backgroundImageUrlLegacyLabel')}>
-          <TextInput value={hero.backgroundImage} onChange={(v) => setHero('backgroundImage', v)} placeholder="https://…"/>
         </Field>
       </div>
     </div>
@@ -988,6 +1002,7 @@ function WebsiteBuilderContent() {
         )}
         {tab === 'hero' && (
           <HeroTab
+            tenantId={tenantId}
             hero={current.hero}
             heroConfig={heroConfig}
             onHeroChange={(hero) => update({ hero })}

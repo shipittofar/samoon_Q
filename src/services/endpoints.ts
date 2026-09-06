@@ -187,6 +187,11 @@ export const ENDPOINTS = {
     MEDIA_UPLOAD: (tenantId: string) => `/tenants/${tenantId}/website/media/`,
   },
 
+  PLATFORM_HOMEPAGE: {
+    HERO: '/platform/homepage/hero/',
+    MEDIA_UPLOAD: '/platform/homepage/hero/media/',
+  },
+
   // Business Reviews (tenant/branch level — P8.8.5)
   BUSINESS_REVIEWS: {
     LIST: (tenantId: string) => `/tenants/${tenantId}/reviews/`,

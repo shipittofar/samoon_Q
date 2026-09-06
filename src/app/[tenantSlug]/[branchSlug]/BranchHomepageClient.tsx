@@ -18,6 +18,8 @@ import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { usePublicBranch, usePublicBranches, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import { HeroBackground } from '@/components/home/HeroBackground'
+import { resolveHeroBackgroundImages } from '@/lib/hero-background'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
@@ -84,17 +86,12 @@ function HeroSection({
       className="relative h-[45vh] min-h-[300px] max-h-[480px] overflow-hidden bg-[var(--card)]"
     >
       {branch.heroImage ? (
-        // C3: next/image with priority for LCP, H7: decorative alt
-        <Image
-          src={branch.heroImage}
-          alt=""
-          aria-hidden="true"
-          fill
-          priority
-          className="object-cover opacity-70"
-          sizes="100vw"
+        <HeroBackground
+          images={resolveHeroBackgroundImages(undefined, branch.heroImage)}
+          overlay={<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />}
         />
       ) : (
+        <>
         <div
           className="absolute inset-0"
           style={{
@@ -104,10 +101,11 @@ function HeroSection({
             background: `linear-gradient(135deg, color-mix(in srgb, ${accentColor} 53%, transparent), color-mix(in srgb, ${accentColor} 27%, transparent))`,
           }}
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"/>
+        </>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"/>
 
-      <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-8 pb-8">
+      <div className="absolute bottom-0 left-0 right-0 z-10 max-w-7xl mx-auto px-4 sm:px-8 pb-8">
         <div className="flex items-end gap-4">
           {branch.coverImage ? (
             <div className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg bg-white/10">

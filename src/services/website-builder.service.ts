@@ -1,6 +1,8 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { tenantService } from './tenant.service'
+import { fileToDataUrl } from '@/lib/hero-background'
+import { multipartRequestConfig } from '@/lib/multipart'
 import type {
   HomepageLayout,
   HomepageVersion,
@@ -155,5 +157,26 @@ export const websiteBuilderService = {
       overrides,
     )
     return data
+  },
+
+  async uploadMedia(tenantId: string, file: File): Promise<{ url: string }> {
+    if (!USE_MOCK) {
+      try {
+        const form = new FormData()
+        form.append('image', file)
+        const { data } = await api.post<{ url: string }>(
+          ENDPOINTS.WEBSITE_BUILDER.MEDIA_UPLOAD(tenantId),
+          form,
+          multipartRequestConfig(),
+        )
+        if (data?.url) return data
+      } catch {
+        // Local data-URL so the gallery still works before the media API exists.
+      }
+    } else {
+      await delay(150)
+    }
+    const url = await fileToDataUrl(file)
+    return { url }
   },
 }

@@ -6,6 +6,7 @@
  * P9.0–P9.2 modules (Rule 2 — Registry First). Order doesn't matter here
  * (none of these modules declare cross-module `dependencies`).
  */
+import '@/config/modules/platform-homepage'
 import './platform'
 import './users'
 import './businesses'

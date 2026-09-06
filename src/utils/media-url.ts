@@ -30,6 +30,12 @@ function isPassThroughMediaUrl(value: string): boolean {
  * Canonical MenuItem image resolver.
  * Storage keys (e.g. `menu_items/abc.webp`) are joined to the configured media base URL.
  */
+/** True when next/image cannot optimize the URL (blob, data, or empty). */
+export function isUnoptimizedMediaUrl(path: string | null | undefined): boolean {
+  if (!path) return true
+  return path.startsWith('blob:') || path.startsWith('data:')
+}
+
 export function resolveMediaUrl(path: string | null | undefined): string {
   if (!path) return ''
   const trimmed = path.trim()

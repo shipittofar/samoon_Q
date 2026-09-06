@@ -52,11 +52,37 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
 
 export type HeroAlignment = 'left' | 'center' | 'right'
 export type HeroTheme = 'light' | 'dark' | 'auto'
+export type HeroObjectPosition = 'center' | 'top' | 'bottom' | 'left' | 'right'
+
+/** One CMS-managed hero background frame. Order + enabled drive public rendering. */
+export interface HeroBackgroundImage {
+  id: string
+  src: string
+  order: number
+  altText?: string
+  enabled?: boolean
+  objectPosition?: HeroObjectPosition
+  objectPositionMobile?: HeroObjectPosition
+}
+
+export const DEFAULT_HERO_SLIDESHOW_INTERVAL_MS = 7000
+export const DEFAULT_HERO_SLIDESHOW_TRANSITION_MS = 900
+
+/** Platform `/` hero backgrounds — same shape as tenant Website Builder hero media. */
+export interface PlatformHomepageHero {
+  backgroundImages: HeroBackgroundImage[]
+  slideshowIntervalMs: number
+  slideshowTransitionMs: number
+}
 
 export interface HeroContent {
   headline?: string
   subheadline?: string
+  /** @deprecated Prefer `backgroundImages`. Kept as a single-URL fallback. */
   backgroundImage?: string
+  backgroundImages?: HeroBackgroundImage[]
+  slideshowIntervalMs?: number
+  slideshowTransitionMs?: number
   ctaText?: string
   ctaTarget?: string
   overlayOpacity?: number
@@ -168,6 +194,9 @@ export const DEFAULT_HERO: HeroContent = {
   theme: 'dark',
   overlayOpacity: 0.45,
   mobileVariant: 'compact',
+  backgroundImages: [],
+  slideshowIntervalMs: DEFAULT_HERO_SLIDESHOW_INTERVAL_MS,
+  slideshowTransitionMs: DEFAULT_HERO_SLIDESHOW_TRANSITION_MS,
 }
 
 export const DEFAULT_THEME: ThemeSettings = {

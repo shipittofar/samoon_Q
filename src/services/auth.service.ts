@@ -1,4 +1,4 @@
-import api, { clearTokens, setTokens } from './axios.instance'
+import api, { clearTokens, setTokens, writeMockSessionEmailCookie } from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { DEMO_PHONE_TO_EMAIL } from '@/utils/auth-redirect'
 import {
@@ -115,6 +115,15 @@ export const MOCK_ACTIVE_TENANT_KEY = 'mock_active_tenant_id'
 export const MOCK_ACTIVE_BRANCH_KEY = 'mock_active_branch_id'
 export const MOCK_SESSION_MEMBERSHIPS_KEY = 'mock_session_memberships'
 
+function persistMockSessionEmail(email: string): void {
+  if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_SESSION_KEY, email)
+  try {
+    writeMockSessionEmailCookie(email)
+  } catch {
+    // Cookie mirroring must never block mock session establishment.
+  }
+}
+
 // Structurally valid JWTs (header.payload.signature) with exp=9999999999 (year 2286).
 // Required so middleware's isValidJWT() check passes in mock/demo mode.
 // The signature segment is intentionally fake — mock mode never contacts the backend.
@@ -229,7 +238,7 @@ export const authService = {
       }
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
-      if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_SESSION_KEY, credentials.email ?? email!)
+      persistMockSessionEmail(credentials.email ?? email!)
       return { user: entry.user, tokens, p7Roles: entry.p7Roles, ...deriveMockAuthSession(entry.p7Roles) }
     }
 
@@ -541,9 +550,7 @@ export const authService = {
         // existing user (is_new_user: false). A new user's registration
         // is not complete — see the branch below.
         setTokens(tokens.access, tokens.refresh)
-        if (typeof localStorage !== 'undefined') {
-          localStorage.setItem(MOCK_SESSION_KEY, email)
-        }
+        persistMockSessionEmail(email)
         return { user: entry.user, tokens, p7Roles: entry.p7Roles, is_new_user: false, ...deriveMockAuthSession(entry.p7Roles) }
       }
 

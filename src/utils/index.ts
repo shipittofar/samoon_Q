@@ -107,7 +107,7 @@ export function getInitials(firstName: string, lastName: string): string {
   return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase()
 }
 
-export { resolveMediaUrl, getMediaBaseUrl } from './media-url'
+export { resolveMediaUrl, getMediaBaseUrl, isUnoptimizedMediaUrl } from './media-url'
 export { buildPublicUrl, hrefToPublicUrl } from './public-url'
 export { buildTenantNavigation, getSmartCTA, getBusinessTypeBadge } from './navigation'
 export type { TenantNavLink, SmartCTA } from './navigation'

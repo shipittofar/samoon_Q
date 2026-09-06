@@ -14,12 +14,16 @@ import { useParams, useRouter } from 'next/navigation'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { ConfigurationStudioLayout } from '@/components/admin/configuration/ConfigurationStudioLayout'
 import { PlatformDashboard } from '@/components/admin/platform-admin/PlatformDashboard'
+import { PlatformHomepageHeroEditor } from '@/components/admin/platform-admin/PlatformHomepageHeroEditor'
+import { PLATFORM_HOMEPAGE_MODULE_ID } from '@/lib/platform-homepage'
 import '@/platform-admin'
 
 export default function PlatformAdminModuleRoute() {
   const params = useParams<{ moduleId: string }>()
   const router = useRouter()
   const moduleId = params.moduleId
+  const customWorkspace =
+    moduleId === PLATFORM_HOMEPAGE_MODULE_ID ? <PlatformHomepageHeroEditor /> : undefined
 
   return (
     <ErrorBoundary feature={`Platform Administration — ${moduleId}`}>
@@ -28,6 +32,7 @@ export default function PlatformAdminModuleRoute() {
         onNavigate={(nextModuleId) => router.push(`/platform-admin/${nextModuleId}`)}
         emptyWorkspace={<PlatformDashboard />}
         permissionContext="platform"
+        customWorkspace={customWorkspace}
       />
     </ErrorBoundary>
   )

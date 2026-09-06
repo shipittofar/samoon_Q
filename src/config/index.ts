@@ -28,6 +28,9 @@ import './modules/website-builder'
 import './modules/rbac'
 import './modules/system'
 import './modules/api'
+// Platform Homepage must register in this barrel (not lazily from
+// /platform-admin or /) so root-layout i18n getField() cannot seal first.
+import './modules/platform-homepage'
 // Platform Administration modules must register in this same barrel so the
 // first `@/config` import (root layout → i18n/runtime → getField) cannot
 // seal the registry before `platform.overview` exists. `/platform-admin`

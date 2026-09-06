@@ -18,6 +18,7 @@ import { useCategories, useMenuItems, useActivePromotions, useHomepageLayout, us
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { isTenantVisible } from '@/lib/tenant-state'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import { HeroBackground } from '@/components/home/HeroBackground'
 import {
   getMarketplaceMeta,
   composeMarketplacePresentation,
@@ -28,6 +29,12 @@ import {
 import { pickTenantContact } from '@/lib/tenant-settings'
 import type { Tenant, Category, MenuItem, PromotionRule } from '@/types'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
+import type { HeroContent } from '@/types/website-builder'
+import {
+  heroSlideshowIntervalMs,
+  heroSlideshowTransitionMs,
+  resolveHeroBackgroundImages,
+} from '@/lib/hero-background'
 
 // ── Price level helper ────────────────────────────────────────────────────────
 
@@ -74,11 +81,13 @@ function HeroSection({
   tenant,
   meta,
   layoutBranding,
+  hero,
 }: {
   tenant: Tenant
   meta: MarketplaceMeta
   /** Public Website `branding` — prefer over CRUD settings.theme when present. */
   layoutBranding?: import('@/types').TenantBranding
+  hero?: HeroContent
 }) {
   const t = useTranslations('tenant')
   const tMarketplace = useTranslations('marketplace')
@@ -89,6 +98,7 @@ function HeroSection({
   const accentColor = 'var(--accent)'
   const pageAvatar = tenant.discoverCover
   const heroBackground = tenant.heroImage
+  const images = resolveHeroBackgroundImages(hero, heroBackground)
   const label = tenant.businessTypes.map((bt) => (BUSINESS_TYPE_LABELS[bt] ? tMarketplace(`businessTypes.${bt}`) : bt)).join(' · ')
 
   return (
@@ -96,24 +106,16 @@ function HeroSection({
       aria-labelledby="tenant-hero-heading"
       className="relative h-[55vh] min-h-[340px] max-h-[600px] overflow-hidden"
     >
-      {/* C1/H1: Next.js Image with priority for above-fold hero */}
-      {heroBackground ? (
-        <Image
-          src={heroBackground}
-          alt=""
-          aria-hidden="true"
-          fill
-          priority
-          className="object-cover"
-          sizes="100vw"
-        />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-active)] to-[var(--surface-sunken)]"/>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10"/>
+      <HeroBackground
+        images={images}
+        intervalMs={heroSlideshowIntervalMs(hero)}
+        transitionMs={heroSlideshowTransitionMs(hero)}
+        overlay={<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />}
+        fallback={<div className="absolute inset-0 bg-gradient-to-br from-[var(--accent-active)] to-[var(--surface-sunken)]" />}
+      />
 
       {/* Badges */}
-      <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
+      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
         {meta.openNow !== undefined && (
           <span
             className={cn(
@@ -142,7 +144,7 @@ function HeroSection({
       </div>
 
       {/* Content overlay */}
-      <div className="absolute bottom-0 inset-x-0 px-4 pb-8 sm:px-8 max-w-7xl mx-auto">
+      <div className="absolute bottom-0 inset-x-0 z-10 px-4 pb-8 sm:px-8 max-w-7xl mx-auto">
         <div className="flex items-end gap-4">
           {/* Logo circle */}
           <div
@@ -904,6 +906,7 @@ export function TenantHomepageClient({
           tenant={tenant}
           meta={meta}
           layoutBranding={layout?.branding}
+          hero={layout?.hero}
         />
 
         <div className="max-w-7xl mx-auto px-4 py-10 space-y-16">

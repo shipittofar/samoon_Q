@@ -413,4 +413,15 @@ describe('Platform Admin route security', () => {
     expect(src).not.toContain('platform.dashboard.view')
     expect(src).toContain('user.is_superuser === true')
   })
+
+  it('Platform Homepage CMS is a platform-admin module, not tenant console content', () => {
+    const __dirname = dirname(fileURLToPath(import.meta.url))
+    const studio = readFileSync(join(__dirname, '..', 'app', 'platform-admin', '[moduleId]', 'page.tsx'), 'utf-8')
+    const consoleHome = readFileSync(join(__dirname, '..', 'app', 'console', 'homepage', 'page.tsx'), 'utf-8')
+    const configHomepage = readFileSync(join(__dirname, '..', 'config', 'modules', 'platform-homepage.ts'), 'utf-8')
+    expect(configHomepage).toContain("id: 'platform.homepage'")
+    expect(studio).toContain('PlatformHomepageHeroEditor')
+    expect(consoleHome).toContain('AccessDenied')
+    expect(consoleHome).toContain('PLATFORM_HOMEPAGE_ADMIN_HREF')
+  })
 })
