@@ -170,7 +170,7 @@ export default function AdminOrdersPage() {
           </div>
 
           {/* Status Summary — counts are page-local; backend does not expose aggregates */}
-          <p className="text-xl text-[var(--fg-muted)] mb-2">{t('ordersStatusOnPage')}</p>
+          <p className="text-xs text-[var(--fg-muted)] mb-2">{t('ordersStatusOnPage')}</p>
           <div className="grid grid-cols-3 sm:grid-cols-8 gap-3 mb-6">
             {(Object.entries(ORDER_STATUS_CONFIG) as [OrderStatus, typeof ORDER_STATUS_CONFIG[OrderStatus]][]).map(([status, cfg]) => (
               <button
@@ -184,7 +184,7 @@ export default function AdminOrdersPage() {
                 )}
               >
                 <cfg.icon className={cn('h-4 w-4', cfg.color)} />
-                <span className="text-xs font-semibold text-[var(--fg)]">{statusCounts[status] ?? 0}</span>
+                <span className="text-xl font-semibold text-[var(--fg)]">{statusCounts[status] ?? 0}</span>
                 <span className="text-[10px] text-[var(--fg-muted)]">{translateOrderStatusLabel(tOrder, cfg.labelKey)}</span>
               </button>
             ))}
