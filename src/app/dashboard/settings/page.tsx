@@ -127,8 +127,8 @@ export default function SettingsPage() {
   // Business rule: an account either has an email or it doesn't — there is
   // no separate "verified" flag to track. hasEmail is computed straight
   // from `user` on every render (never cached in state), so the UI reacts
-  // immediately to whatever the store holds, including after
-  // useConfirmEmailVerification() refetches /auth/me and updates the store.
+  // immediately to whatever the store holds after confirm merges email
+  // (and after an optional /auth/me refresh).
   const hasEmail = Boolean(user?.email?.trim())
   // Purely a UI step ("did we just send a code") — not a verification
   // status, and never consulted to decide hasEmail.
@@ -162,8 +162,8 @@ export default function SettingsPage() {
 
   const handleVerifyEmail = async () => {
     try {
-      // useConfirmEmailVerification() re-fetches /auth/me and hydrates the
-      // store — hasEmail above flips on the next render off that alone.
+      // Confirm success merges user.email into the auth store (hasEmail
+      // flips on the next render). /auth/me is a follow-up, not required.
       await confirmEmailVerification.mutateAsync({ email: verifyEmail, code: verifyCode })
       setCodeSent(false)
       setVerifyCode('')

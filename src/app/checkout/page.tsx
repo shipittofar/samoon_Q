@@ -50,6 +50,7 @@ import {
   resolveCheckoutBranchId,
 } from '@/lib/active-cart'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { AuthModal } from '@/components/auth/AuthModal'
 import { useTranslations } from 'next-intl'
 import { checkoutSchema, type CheckoutFormData } from '@/lib/checkout-form'
 
@@ -90,7 +91,8 @@ function CheckoutContent() {
     [checkoutConfig, t],
   )
 
-  const { user } = useAuthStore()
+  const { user, isAuthenticated } = useAuthStore()
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   const { mutate: createOrder, isPending } = useCreateOrder()
   const { mutateAsync: createPaymentIntent, isPending: isCreatingIntent } = useCreatePaymentIntent()
 
@@ -168,7 +170,7 @@ function CheckoutContent() {
     })
   }, [paymentMethodOptions, checkoutConfig, orderType, cartBranchId])
 
-  const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormData>({
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       first_name: user?.first_name || '',
@@ -179,6 +181,14 @@ function CheckoutContent() {
       table_number: initialTableNumber,
     },
   })
+
+  useEffect(() => {
+    if (!user) return
+    if (user.first_name) setValue('first_name', user.first_name)
+    if (user.last_name) setValue('last_name', user.last_name)
+    if (user.email) setValue('email', user.email)
+    if (user.phone_number) setValue('phone_number', user.phone_number)
+  }, [user, setValue])
 
   const subtotal = getSubtotal()
   const tax = getTax()
@@ -216,6 +226,17 @@ function CheckoutContent() {
     !belowMinimum
 
   const canPlaceOrder = canContinueToPayment
+
+  useEffect(() => {
+    if (!cartHasHydrated || isAuthenticated) return
+    setAuthModalOpen(true)
+  }, [cartHasHydrated, isAuthenticated])
+
+  const ensureAuthenticated = () => {
+    if (isAuthenticated) return true
+    toast.error(tAuth('enterPhoneToContinue'))
+    return false
+  }
 
   // SSR + first client paint: identical shell until localStorage cart rehydrates.
   // Do not treat an empty in-memory cart as "empty cart" before hydration.
@@ -290,6 +311,7 @@ function CheckoutContent() {
    * Stripe success callback (card).
    */
   const finaliseOrder = (data: CheckoutFormData, paymentIntentId?: string) => {
+    if (!ensureAuthenticated()) return
     if (!cartBranchId) {
       toast.error(t('noBranchSelectedDesc'))
       return
@@ -364,6 +386,7 @@ function CheckoutContent() {
    * — non-card: calls createOrder directly (unchanged behaviour)
    */
   const onSubmit = async (data: CheckoutFormData) => {
+    if (!ensureAuthenticated()) return
     if (!cartBranchId) {
       toast.error(t('noBranchSelectedDesc'))
       return
@@ -407,7 +430,7 @@ function CheckoutContent() {
   const showStripeForm = paymentMethod === 'card' && clientSecret !== null
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen bg-[var(--bg)]" data-testid="checkout-page">
       <Header />
       <div className="pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -523,6 +546,7 @@ function CheckoutContent() {
                       />
                     </div>
 
+                    {isAuthenticated ? (
                     <Button
                       type="button"
                       className="w-full"
@@ -536,6 +560,16 @@ function CheckoutContent() {
                     >
                       {t('continueToPayment')}
                     </Button>
+                    ) : (
+                    <Button
+                      type="button"
+                      className="w-full"
+                      size="lg"
+                      onClick={() => setAuthModalOpen(true)}
+                    >
+                      {tAuth('signInArrow')}
+                    </Button>
+                    )}
                   </motion.div>
                 )}
 
@@ -687,6 +721,11 @@ function CheckoutContent() {
           </div>
         </div>
       </div>
+      <AuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccess={() => setAuthModalOpen(false)}
+      />
     </div>
   )
 }

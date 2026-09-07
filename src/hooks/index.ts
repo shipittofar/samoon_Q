@@ -144,7 +144,7 @@ import type {
 } from '@/types'
 import { buildDrfPaginationParams } from '@/utils/pagination'
 import { publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
-import type { Tenant } from '@/types'
+import type { Tenant, User } from '@/types'
 import { resolvePublicBranchList } from '@/lib/public-branches'
 import { mergeBranchCheckout } from '@/lib/branch-checkout'
 import { adaptDiscoverResponse } from '@/lib/discover-adapter'
@@ -634,7 +634,7 @@ function tenantRolesForPostLoginRedirect(data: GetMeResponse): Role[] | undefine
  */
 async function establishAuthenticatedSession(
   setUser: (user: User) => void,
-  options?: { navigate?: boolean },
+  options?: { navigate?: boolean; preserveOrderingContext?: boolean },
 ): Promise<{ user: User; p7Roles?: Role[] }> {
   const data = await authService.getMe()
   if (!data.user.accountType) {
@@ -651,7 +651,7 @@ async function establishAuthenticatedSession(
   // Seed RBAC against the new session's active membership only — never against
   // a leftover useTenantStore.tenant from a previous account (auth boundary).
   const seedTenantId = data.activeMembership?.tenantId
-  if (seedTenantId) {
+  if (seedTenantId && !options?.preserveOrderingContext) {
     seedTenantSession(seedTenantId, {
       memberships: data.memberships,
       activeMembership: data.activeMembership,
@@ -699,12 +699,24 @@ export async function performAuthenticatedLoginFlow(
   onPhase('authenticated')
 }
 
-export function useLogin() {
+/**
+ * `navigate: false` hydrates the session in place (checkout AuthModal).
+ * `preserveOrderingContext: true` skips swapping the current tenant/branch
+ * from GET /auth/me active membership so checkout cart context stays put.
+ */
+export type AuthSessionHookOptions = {
+  navigate?: boolean
+  preserveOrderingContext?: boolean
+}
+
+export function useLogin(options?: AuthSessionHookOptions) {
   const setUser = useAuthStore((s) => s.setUser)
+  const navigate = options?.navigate !== false
+  const preserveOrderingContext = options?.preserveOrderingContext === true
   return useMutation({
     mutationFn: async (creds: LoginCredentials) => {
       await authService.login(creds)
-      await establishAuthenticatedSession(setUser)
+      await establishAuthenticatedSession(setUser, { navigate, preserveOrderingContext })
     },
   })
 }
@@ -712,12 +724,14 @@ export function useLogin() {
 
 // P10.9 — mirrors useLogin()/useVerifyOTP(): hydrates the authenticated
 // user and, if present, tenantRoles after a successful registration.
-export function useRegister() {
+export function useRegister(options?: AuthSessionHookOptions) {
   const setUser = useAuthStore((s) => s.setUser)
+  const navigate = options?.navigate !== false
+  const preserveOrderingContext = options?.preserveOrderingContext === true
   return useMutation({
     mutationFn: (data: RegisterData) => authService.register(data),
     onSuccess: async () => {
-      await establishAuthenticatedSession(setUser)
+      await establishAuthenticatedSession(setUser, { navigate, preserveOrderingContext })
     },
   })
 }
@@ -743,13 +757,15 @@ export function useSendOTP() {
  *     useLogin()/useVerifyOTP() always have: hydrate the authenticated
  *     user and, if present, tenantRoles.
  */
-export function useVerifyOTP() {
+export function useVerifyOTP(options?: AuthSessionHookOptions) {
   const setUser = useAuthStore((s) => s.setUser)
+  const navigate = options?.navigate !== false
+  const preserveOrderingContext = options?.preserveOrderingContext === true
   return useMutation({
     mutationFn: (payload: VerifyOTPRequest) => authService.verifyOTP(payload),
     onSuccess: async (result) => {
       if (result.is_new_user) return
-      await establishAuthenticatedSession(setUser)
+      await establishAuthenticatedSession(setUser, { navigate, preserveOrderingContext })
     },
   })
 }
@@ -1573,21 +1589,49 @@ export function useRequestEmailVerification() {
   })
 }
 
+function trimmedEmail(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const next = value.trim()
+  return next.length > 0 ? next : null
+}
+
+/** Merge confirmed email onto the in-memory auth user without replacing the User shape. */
+function applyConfirmedEmailToAuthUser(email: string, queryClient: QueryClient) {
+  const current = useAuthStore.getState().user
+  if (!current) return
+  const next: User = { ...current, email }
+  useAuthStore.getState().setUser(next)
+  const cached = queryClient.getQueryData<GetMeResponse>(['me'])
+  if (cached?.user) {
+    queryClient.setQueryData<GetMeResponse>(['me'], { ...cached, user: { ...cached.user, email } })
+  }
+}
+
 export function useConfirmEmailVerification() {
   const qc = useQueryClient()
-  const setUser = useAuthStore((s) => s.setUser)
   return useMutation({
     mutationFn: ({ email, code }: { email: string; code: string }) =>
       authService.confirmEmailVerification({ email, code }),
-    // The UI derives "has an email" straight from user.email (no verification
-    // flag) — so after confirming, re-fetch GET /auth/me for the authoritative
-    // value, push it into the React Query cache, and hydrate the auth store.
-    // That's the only thing that needs to happen; the settings page re-renders
-    // off the store update with no local state of its own to reconcile.
-    onSuccess: async () => {
-      const fresh = await authService.getMe()
-      qc.setQueryData(['me'], fresh)
-      setUser(fresh.user)
+    // Settings derives "confirmed" from user.email (not is_verified). Apply the
+    // confirm payload's email immediately, then optionally refresh GET /auth/me.
+    // A /me failure must not fail the mutation: OTP confirm already succeeded.
+    onSuccess: async (confirmed) => {
+      const confirmedEmail = trimmedEmail(confirmed?.email)
+      if (confirmedEmail) {
+        applyConfirmedEmailToAuthUser(confirmedEmail, qc)
+      }
+
+      try {
+        const fresh = await authService.getMe()
+        const current = useAuthStore.getState().user
+        const meEmail = trimmedEmail(fresh.user.email)
+        const email = meEmail ?? confirmedEmail ?? current?.email ?? fresh.user.email
+        const syncedUser: User = { ...fresh.user, email }
+        useAuthStore.getState().setUser(syncedUser)
+        qc.setQueryData<GetMeResponse>(['me'], { ...fresh, user: syncedUser })
+      } catch {
+        // Confirm already succeeded; keep the local email merge.
+      }
     },
   })
 }

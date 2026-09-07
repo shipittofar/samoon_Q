@@ -132,7 +132,13 @@ describe('Phase Z.12 — /platform-admin is a protected prefix (auth cookie), sa
     expect(dashRes.headers.get('location')).toContain('/login?redirect=%2Fdashboard')
   })
 
-  it('/console, /dashboard, and /checkout still accept a valid JWT', () => {
+  it('/checkout stays reachable without a JWT so guests can authenticate in-place', () => {
+    const res = middleware(req('/checkout'))
+    expect(res.status).not.toBe(307)
+    expect(res.headers.get('location')).toBeNull()
+  })
+
+  it('valid JWT still allows console, dashboard, and checkout', () => {
     expect(middleware(req('/console', futureJwt())).status).toBe(200)
     expect(middleware(req('/dashboard', futureJwt())).status).toBe(200)
     expect(middleware(req('/checkout', futureJwt())).status).toBe(200)

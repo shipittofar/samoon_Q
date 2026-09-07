@@ -120,6 +120,7 @@
     "agreeToTermsCreate": "By creating an account you agree to our",
     "createAccountButton": "Create Account",
     "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
     "signInArrow": "Sign in →",
     "togglePassword": "Toggle password",
     "toggleConfirmPassword": "Toggle confirm password",

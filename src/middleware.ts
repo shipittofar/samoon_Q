@@ -7,7 +7,7 @@ import { JWT_ACCESS_KEY } from '@/constants'
  * original destination preserved in `?redirect=` so the login page can
  * restore the user's intent after they authenticate.
  */
-const PROTECTED_PREFIXES = ['/dashboard', '/checkout', '/console', '/platform-admin'] as const
+const PROTECTED_PREFIXES = ['/dashboard', '/console', '/platform-admin'] as const
 
 /** Returns true when the pathname starts with any protected prefix. */
 function isProtectedRoute(pathname: string): boolean {
@@ -99,7 +99,9 @@ function isValidJWT(token: string): boolean {
  * can read it without re-parsing the host.
  *
  * Auth: reads the `access_token` cookie and redirects unauthenticated users
- * to /login for protected routes.
+ * to /login for protected console/dashboard/platform-admin routes.
+ * `/checkout` is intentionally public so guests can stay on the order page
+ * and authenticate in-place via AuthModal.
  */
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl

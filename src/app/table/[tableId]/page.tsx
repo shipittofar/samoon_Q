@@ -11,7 +11,9 @@ import { useTranslations } from 'next-intl'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { Button } from '@/components/ui/Button'
+import { AuthModal } from '@/components/auth/AuthModal'
 import { useTableInfo, useQRExperience } from '@/hooks'
+import { useCheckoutAuthGate } from '@/hooks/use-checkout-auth-gate'
 import { useDineInStore, useTenantStore } from '@/stores'
 import type { QRExperience } from '@/types/qr-experience'
 
@@ -66,6 +68,13 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
   const tenant = useTenantStore((s) => s.tenant)
   const primaryBusinessType = tenant?.businessTypes?.[0]
   const { data: experience } = useQRExperience(primaryBusinessType)
+  const {
+    authModalOpen,
+    requestCheckout,
+    handleAuthSuccess,
+    handleAuthClose,
+  } = useCheckoutAuthGate()
+  const checkoutHref = `/checkout?orderType=dine_in&table=${tableNumber}`
 
   // Persist table number so checkout can read it even after navigating away
   useEffect(() => {
@@ -113,11 +122,13 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
                 <p className="text-white/80 text-sm">{t('dineInNoLoginRequired')}</p>
               </div>
             </div>
-            <Link href={`/checkout?orderType=dine_in&table=${tableNumber}`}>
-              <Button className="bg-[var(--card)] text-[var(--accent-text)] hover:bg-[var(--accent-subtle)] border-transparent shrink-0">
-                {t('checkout')} <ArrowRight className="h-4 w-4 ms-1"/>
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              className="bg-[var(--card)] text-[var(--accent-text)] hover:bg-[var(--accent-subtle)] border-transparent shrink-0"
+              onClick={() => requestCheckout(checkoutHref)}
+            >
+              {t('checkout')} <ArrowRight className="h-4 w-4 ms-1"/>
+            </Button>
           </div>
         </motion.div>
 
@@ -169,6 +180,11 @@ export default function TablePage({ params }: { params: Promise<{ tableId: strin
         </div>
       </div>
       <Footer />
+      <AuthModal
+        open={authModalOpen}
+        onClose={handleAuthClose}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   )
 }

@@ -40,7 +40,7 @@ function cookieValueFromDocument(): string | undefined {
   return decodeURIComponent(part.slice(prefix.length))
 }
 
-const PROTECTED = ['/platform-admin', '/console', '/dashboard', '/checkout'] as const
+const PROTECTED = ['/platform-admin', '/console', '/dashboard'] as const
 
 describe('Login creates a browser session middleware can see (second tab)', () => {
   beforeEach(async () => {
@@ -85,6 +85,12 @@ describe('Login creates a browser session middleware can see (second tab)', () =
   it.each(PROTECTED)('malformed empty cookie still cannot access %s', (path) => {
     const res = middleware(req(path, ''))
     expect(res.status).toBe(307)
+  })
+
+  it('guest /checkout is not redirected to /login', () => {
+    const res = middleware(req('/checkout'))
+    expect(res.status).not.toBe(307)
+    expect(res.headers.get('location')).toBeNull()
   })
 })
 

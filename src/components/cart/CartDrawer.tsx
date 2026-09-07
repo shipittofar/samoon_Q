@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trash2, Tag, ShoppingBag, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCartStore, useCartItemCount } from '@/stores'
 import { useValidateDiscount } from '@/hooks'
+import { useCheckoutAuthGate } from '@/hooks/use-checkout-auth-gate'
+import { AuthModal } from '@/components/auth/AuthModal'
 import { Drawer } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -76,6 +77,12 @@ export function CartDrawer() {
   const { mutate: validateDiscount, isPending: validating } = useValidateDiscount()
   const [codeInput, setCodeInput] = useState(discountCode || '')
   const router = useRouter()
+  const {
+    authModalOpen,
+    requestCheckout,
+    handleAuthSuccess,
+    handleAuthClose,
+  } = useCheckoutAuthGate()
   const cartOwnership = getActiveCartContext(items, ownership)
   const orderingEnabled = isActiveCartCheckoutEnabled(cartOwnership)
 
@@ -107,7 +114,12 @@ export function CartDrawer() {
     )
   }
 
+  const handleProceedToCheckout = () => {
+    requestCheckout('/checkout')
+  }
+
   return (
+    <>
     <Drawer open={isOpen} onClose={() => setOpen(false)} title={t('title')} side="right"size="md">
       <div className="flex flex-col h-full">
         {items.length === 0 ? (
@@ -188,11 +200,16 @@ export function CartDrawer() {
 
               {/* Checkout CTA */}
               {orderingEnabled && (
-              <Link href="/checkout"onClick={() => setOpen(false)} className="block">
-                <Button className="w-full"size="lg"rightIcon={<ArrowRight className="h-4 w-4"/>}>
-                  {t('checkout')}
-                </Button>
-              </Link>
+              <Button
+                type="button"
+                className="w-full"
+                size="lg"
+                rightIcon={<ArrowRight className="h-4 w-4"/>}
+                data-testid="cart-checkout-cta"
+                onClick={handleProceedToCheckout}
+              >
+                {t('checkout')}
+              </Button>
               )}
               <button
                 onClick={clearCart}
@@ -205,6 +222,15 @@ export function CartDrawer() {
         )}
       </div>
     </Drawer>
+    <AuthModal
+      open={authModalOpen}
+      onClose={handleAuthClose}
+      onSuccess={() => {
+        setOpen(false)
+        handleAuthSuccess()
+      }}
+    />
+    </>
   )
 }
 

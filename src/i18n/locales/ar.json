@@ -120,6 +120,7 @@
     "agreeToTermsCreate": "بإنشاء حساب، فإنك توافق على",
     "createAccountButton": "إنشاء حساب",
     "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "dontHaveAccount": "ليس لديك حساب؟",
     "signInArrow": "تسجيل الدخول ←",
     "togglePassword": "إظهار/إخفاء كلمة المرور",
     "toggleConfirmPassword": "إظهار/إخفاء تأكيد كلمة المرور",

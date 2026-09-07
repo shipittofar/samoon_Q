@@ -22,7 +22,7 @@ import { join } from 'path'
 // ── P3.1 Middleware Route Protection ─────────────────────────────────────────
 
 describe('P3.1 — Middleware protected route logic', () => {
-  const PROTECTED_PREFIXES = ['/dashboard', '/checkout', '/console']
+  const PROTECTED_PREFIXES = ['/dashboard', '/console']
 
   function isProtected(pathname: string): boolean {
     return PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
@@ -34,10 +34,10 @@ describe('P3.1 — Middleware protected route logic', () => {
     expect(isProtected('/dashboard/settings')).toBe(true)
   })
 
-  it('protects /checkout and all sub-paths', () => {
-    expect(isProtected('/checkout')).toBe(true)
-    expect(isProtected('/checkout/success')).toBe(true)
-    expect(isProtected('/checkout/failure')).toBe(true)
+  it('does not middleware-protect /checkout (guest checkout uses AuthModal)', () => {
+    expect(isProtected('/checkout')).toBe(false)
+    expect(isProtected('/checkout/success')).toBe(false)
+    expect(isProtected('/checkout/failure')).toBe(false)
   })
 
   it('protects /console and all sub-paths', () => {
@@ -64,7 +64,7 @@ describe('P3.1 — Middleware protected route logic', () => {
     expect(mod.config.matcher.length).toBeGreaterThan(0)
   })
 
-  it('middleware config matcher covers all three protected prefixes', async () => {
+  it('middleware config matcher still includes checkout for tenant header injection', async () => {
     const { config } = await import('@/middleware')
     const matcher = config.matcher as string[]
     expect(matcher.some((m) => m.includes('dashboard'))).toBe(true)
