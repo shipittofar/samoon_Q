@@ -194,11 +194,15 @@ export const DEFAULT_FILTERS: FilterState = {
 }
 
 export function countActiveFilters(f: FilterState): number {
+  return countAdvancedFilters(f) + (f.openNow ? 1 : 0)
+}
+
+/** Advanced-drawer filters only — excludes standalone Open now. */
+export function countAdvancedFilters(f: FilterState): number {
   return (
     f.cuisines.length +
     f.cities.length +
     f.priceLevels.length +
-    (f.openNow ? 1 : 0) +
     f.services.length +
     f.amenities.length
   )

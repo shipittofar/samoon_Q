@@ -4,6 +4,9 @@ import {
   matchesCategory,
   getMarketplaceMeta,
   BUSINESS_TYPE_LABELS,
+  countActiveFilters,
+  countAdvancedFilters,
+  DEFAULT_FILTERS,
 } from '@/types/marketplace'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import { tenantService } from '@/services/tenant.service'
@@ -239,5 +242,19 @@ describe('Tenant marketplace metadata', () => {
       return matchesSearch(t.name, meta, t.businessTypes, '')
     })
     expect(results.length).toBe(withMeta.length)
+  })
+})
+
+describe('countAdvancedFilters', () => {
+  it('excludes Open now from the advanced Filters badge count', () => {
+    const openOnly = { ...DEFAULT_FILTERS, openNow: true }
+    expect(countAdvancedFilters(openOnly)).toBe(0)
+    expect(countActiveFilters(openOnly)).toBe(1)
+  })
+
+  it('still counts drawer filters', () => {
+    const withCuisine = { ...DEFAULT_FILTERS, cuisines: ['Persian'] }
+    expect(countAdvancedFilters(withCuisine)).toBe(1)
+    expect(countActiveFilters({ ...withCuisine, openNow: true })).toBe(2)
   })
 })

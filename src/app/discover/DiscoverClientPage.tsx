@@ -15,7 +15,7 @@ import {
   matchesFilters,
   sortItems,
   hasActiveFilters,
-  countActiveFilters,
+  countAdvancedFilters,
   DEFAULT_FILTERS,
   getMarketplaceMeta,
   collectBranchCuisines,
@@ -23,7 +23,6 @@ import {
   BUSINESS_TYPE_LABELS,
 } from '@/types/marketplace'
 import type { FilterState, SortOption } from '@/types/marketplace'
-import { debounce } from '@/utils'
 import type { Tenant } from '@/types'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import type { DiscoverItem } from '@/lib/discover-adapter'
@@ -63,6 +62,34 @@ const SORT_OPTION_KEYS: { value: SortOption; labelKey: string }[] = [
   { value: 'price_asc', labelKey: 'priceLowToHigh' },
   { value: 'open_now', labelKey: 'openNowFirst' },
 ]
+
+const SORT_VALUES = new Set<string>(SORT_OPTION_KEYS.map((o) => o.value))
+
+export type DiscoverQueryState = {
+  q: string
+  category: string
+  openNow: boolean
+  sort: SortOption
+}
+
+export function parseDiscoverQuery(searchParams: { get: (key: string) => string | null }): DiscoverQueryState {
+  const sort = searchParams.get('sort')
+  return {
+    q: searchParams.get('q') ?? '',
+    category: searchParams.get('category') ?? '',
+    openNow: searchParams.get('openNow') === '1',
+    sort: sort && SORT_VALUES.has(sort) ? (sort as SortOption) : 'recommended',
+  }
+}
+
+export function serializeDiscoverQuery(state: DiscoverQueryState): string {
+  const params = new URLSearchParams()
+  if (state.q) params.set('q', state.q)
+  if (state.category) params.set('category', state.category)
+  if (state.openNow) params.set('openNow', '1')
+  if (state.sort !== 'recommended') params.set('sort', state.sort)
+  return params.toString()
+}
 
 function toggle<T>(arr: T[], val: T): T[] {
   return arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val]
@@ -119,43 +146,55 @@ export function DiscoverClientPage() {
   const { data: discoverItems = [], isLoading, isError } = useDiscover()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const url = useMemo(() => parseDiscoverQuery(searchParams), [searchParams])
+  const searchQuery = url.q
+  const selectedCategory = url.category
+  const sortBy = url.sort
 
   const [overlayOpen, setOverlayOpen] = useState(false)
-  const [draftQuery, setDraftQuery] = useState(() => searchParams.get('q') ?? '')
-  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
-  const [selectedCategory, setSelectedCategory] = useState(() => searchParams.get('category') ?? '')
+  const [draftQuery, setDraftQuery] = useState(() => url.q)
   const [showFilters, setShowFilters] = useState(false)
-  const [filters, setFilters] = useState<FilterState>(() => ({
-    ...DEFAULT_FILTERS,
-    openNow: searchParams.get('openNow') === '1',
-  }))
-  const [sortBy, setSortBy] = useState<SortOption>(
-    () => (searchParams.get('sort') as SortOption | null) ?? 'recommended',
+  const [advancedFilters, setFilters] = useState<FilterState>(DEFAULT_FILTERS)
+  const filters: FilterState = useMemo(
+    () => ({ ...advancedFilters, openNow: url.openNow }),
+    [advancedFilters, url.openNow],
   )
   const recents = useRecentSearches('discover')
   const ignoreFocusRef = useRef(false)
 
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (searchQuery) params.set('q', searchQuery)
-    if (selectedCategory) params.set('category', selectedCategory)
-    if (filters.openNow) params.set('openNow', '1')
-    if (sortBy !== 'recommended') params.set('sort', sortBy)
-    const qs = params.toString()
-    router.replace(qs ? `/discover?${qs}` : '/discover', { scroll: false })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, selectedCategory, filters.openNow, sortBy])
+    if (!overlayOpen) setDraftQuery(searchQuery)
+  }, [searchQuery, overlayOpen])
+
+  const replaceDiscoverQuery = useCallback(
+    (patch: Partial<DiscoverQueryState>) => {
+      const qs = serializeDiscoverQuery({ ...url, ...patch })
+      if (qs === serializeDiscoverQuery(url)) return
+      router.replace(qs ? `/discover?${qs}` : '/discover', { scroll: false })
+    },
+    [router, url],
+  )
+
+  const setSelectedCategory = useCallback(
+    (category: string) => replaceDiscoverQuery({ category }),
+    [replaceDiscoverQuery],
+  )
+
+  const setSortBy = useCallback(
+    (sort: SortOption) => replaceDiscoverQuery({ sort }),
+    [replaceDiscoverQuery],
+  )
 
   const commitSearch = useCallback(
     (q: string) => {
       const next = q.trim()
       ignoreFocusRef.current = true
       setDraftQuery(next)
-      setSearchQuery(next)
       setOverlayOpen(false)
+      replaceDiscoverQuery({ q: next })
       if (next) recents.add(next)
     },
-    [recents.add],
+    [recents.add, replaceDiscoverQuery],
   )
 
   const handleSuggestion = useCallback(
@@ -220,7 +259,8 @@ export function DiscoverClientPage() {
   }, [allWithMeta, searchQuery, selectedCategory, filters, sortBy])
 
   const isSearchMode = !!searchQuery
-  const filterCount = countActiveFilters(filters)
+  const filterCount = countAdvancedFilters(filters)
+  const showRails = !selectedCategory
 
   const featured = useMemo(() => allWithMeta.filter(({ meta }) => meta.featured), [allWithMeta])
   const popular = useMemo(() => allWithMeta.filter(({ meta }) => meta.popular && !meta.featured), [allWithMeta])
@@ -262,7 +302,6 @@ export function DiscoverClientPage() {
 
   const activeFilterChips: ActiveFilter[] = useMemo(() => {
     const chips: ActiveFilter[] = []
-    if (filters.openNow) chips.push({ id: 'openNow', label: tMarket('openNow') })
     filters.priceLevels.forEach((p) =>
       chips.push({ id: `price-${p}`, label: PRICE_LEVEL_SYMBOLS[p] ?? String(p) }),
     )
@@ -277,10 +316,6 @@ export function DiscoverClientPage() {
   }, [filters, tMarket])
 
   function removeActiveFilter(id: string) {
-    if (id === 'openNow') {
-      setFilters((f) => ({ ...f, openNow: false }))
-      return
-    }
     if (id.startsWith('price-')) {
       const n = Number(id.slice(6))
       setFilters((f) => ({ ...f, priceLevels: f.priceLevels.filter((p) => p !== n) }))
@@ -309,9 +344,12 @@ export function DiscoverClientPage() {
 
   function clearAll() {
     setDraftQuery('')
-    setSearchQuery('')
-    setSelectedCategory('')
     setFilters(DEFAULT_FILTERS)
+    replaceDiscoverQuery({ q: '', category: '', openNow: false, sort: 'recommended' })
+  }
+
+  function resetAdvancedFilters() {
+    setFilters((f) => ({ ...DEFAULT_FILTERS, openNow: f.openNow }))
   }
 
   const resultLabel = searchQuery
@@ -332,38 +370,48 @@ export function DiscoverClientPage() {
 
         <div className="sticky top-16 z-30 bg-[var(--bg)]/95 backdrop-blur-xl border-b border-[var(--border)]">
           <div className="max-w-7xl mx-auto px-4 py-2 space-y-2">
-            <form
-              role="search"
-              onSubmit={(e) => {
-                e.preventDefault()
-                commitSearch(draftQuery)
-              }}
-            >
-              <SearchField
-                variant="chrome"
-                value={overlayOpen ? draftQuery : searchQuery}
-                onChange={(q) => {
-                  setDraftQuery(q)
-                  if (!overlayOpen) setOverlayOpen(true)
+            <div className="flex items-center gap-2">
+              <form
+                className="min-w-0 flex-1"
+                role="search"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  commitSearch(draftQuery)
                 }}
-                onFocus={() => {
-                  if (ignoreFocusRef.current) {
-                    ignoreFocusRef.current = false
-                    return
-                  }
-                  setDraftQuery(searchQuery)
-                  setOverlayOpen(true)
-                }}
-                onSubmitQuery={commitSearch}
-                onClear={() => {
-                  setDraftQuery('')
-                  setSearchQuery('')
-                }}
-                label={tMarket('searchBusinesses')}
-                clearLabel={tSearch('clear')}
-                placeholder={t('searchPlaceholder')}
-              />
-            </form>
+              >
+                <SearchField
+                  variant="chrome"
+                  value={overlayOpen ? draftQuery : searchQuery}
+                  onChange={(q) => {
+                    setDraftQuery(q)
+                    if (!overlayOpen) setOverlayOpen(true)
+                  }}
+                  onFocus={() => {
+                    if (ignoreFocusRef.current) {
+                      ignoreFocusRef.current = false
+                      return
+                    }
+                    setDraftQuery(searchQuery)
+                    setOverlayOpen(true)
+                  }}
+                  onSubmitQuery={commitSearch}
+                  onClear={() => {
+                    setDraftQuery('')
+                    replaceDiscoverQuery({ q: '' })
+                  }}
+                  label={tMarket('searchBusinesses')}
+                  clearLabel={tSearch('clear')}
+                  placeholder={t('searchPlaceholder')}
+                />
+              </form>
+              <FilterChip
+                className="shrink-0"
+                selected={filters.openNow}
+                onClick={() => replaceDiscoverQuery({ openNow: !filters.openNow })}
+              >
+                {tMarket('openNow')}
+              </FilterChip>
+            </div>
 
             {!isLoading && (
               <div className="flex items-center gap-2">
@@ -447,10 +495,9 @@ export function DiscoverClientPage() {
                           <FilterChip
                             key={s.id}
                             onClick={() => {
-                              setSearchQuery('')
-                              setDraftQuery('')
                               setFilters(DEFAULT_FILTERS)
-                              setSelectedCategory(s.id)
+                              setDraftQuery('')
+                              replaceDiscoverQuery({ q: '', category: s.id, openNow: false })
                             }}
                           >
                             {s.label}
@@ -462,7 +509,7 @@ export function DiscoverClientPage() {
                 </>
               ) : (
                 <>
-                  {rails.map((rail) => (
+                  {showRails && rails.map((rail) => (
                     <CollectionRail key={rail.key} title={rail.title}>
                       {rail.items.slice(0, 8).map(({ tenant, meta, branches }) => (
                         <CollectionRailCard key={tenant.id}>
@@ -472,7 +519,7 @@ export function DiscoverClientPage() {
                     </CollectionRail>
                   ))}
 
-                  <section aria-labelledby="all-businesses-heading" className={rails.length > 0 ? 'mt-2' : undefined}>
+                  <section aria-labelledby="all-businesses-heading" className={showRails && rails.length > 0 ? 'mt-2' : undefined}>
                     <h2
                       id="all-businesses-heading"
                       className="font-[var(--font-display)] text-lg sm:text-xl font-semibold text-[var(--fg)] mb-2"
@@ -546,16 +593,8 @@ export function DiscoverClientPage() {
         onClose={() => setShowFilters(false)}
         title={tSearch('filters')}
         dirty={filterCount > 0}
-        onReset={() => setFilters(DEFAULT_FILTERS)}
+        onReset={resetAdvancedFilters}
       >
-        <FilterSection title={tMarket('openNow')}>
-          <FilterChip
-            selected={filters.openNow}
-            onClick={() => setFilters((f) => ({ ...f, openNow: !f.openNow }))}
-          >
-            {tMarket('openNow')}
-          </FilterChip>
-        </FilterSection>
         <FilterSection title={tMarket('priceLevel')}>
           {([1, 2, 3, 4] as const).map((p) => (
             <FilterChip
