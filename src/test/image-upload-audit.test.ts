@@ -117,6 +117,39 @@ describe('branch image upload', () => {
     expect(form.get('location')).toBe(JSON.stringify({ address: '1 Main', city: 'NYC', country: 'US' }))
   })
 
+  it('buildBranchCreateFormData flattens checkout and omits slug', async () => {
+    const { buildBranchCreateFormData, branchFormToCreateRequest, EMPTY_BRANCH_FORM } = await import('@/types/branch-form')
+    const logo = makeFile('logo.jpg', 'image/jpeg')
+    const payload = branchFormToCreateRequest({
+      ...EMPTY_BRANCH_FORM,
+      name: 'Downtown',
+      address: '1 Main',
+      city: 'NYC',
+      country: 'US',
+      latitude: 40.7,
+      longitude: -74.0,
+      website: 'https://example.com',
+      image: { file: logo, existingUrl: '', cleared: false },
+    })
+    const form = buildBranchCreateFormData(payload)
+    expect(form.get('name')).toBe('Downtown')
+    expect(form.get('slug')).toBeNull()
+    expect(form.get('checkout')).toBeNull()
+    expect(form.get('timeZone')).toBeNull()
+    expect(form.get('currency')).toBeNull()
+    expect(form.get('language')).toBeNull()
+    expect(form.get('orderingEnabled')).toBe('true')
+    expect(form.get('pickupEnabled')).toBe('true')
+    expect(form.get('deliveryEnabled')).toBe('false')
+    expect(form.get('tableOrderingEnabled')).toBe('false')
+    expect(form.get('image')).toBe(logo)
+    const location = JSON.parse(String(form.get('location')))
+    expect(location.latitude).toBe(40.7)
+    expect(location.longitude).toBe(-74.0)
+    const contact = JSON.parse(String(form.get('contact')))
+    expect(contact.website).toBe('https://example.com')
+  })
+
   it('branch forms use ImageUploader not image URL input', () => {
     const src = read('src/app/console/branches/BranchFormFields.tsx')
     expect(src).toContain('ImageUploader')

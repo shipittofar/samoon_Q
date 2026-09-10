@@ -95,8 +95,8 @@ describe('Phase 7 — Add/Edit Branch payload', () => {
       timeZone: 'America/New_York',
       currency: 'USD',
       language: 'en',
-      cuisines: 'Italian, Mediterranean',
-      amenities: 'WiFi, Parking',
+      cuisines: ['Italian', 'Mediterranean'],
+      amenities: ['WiFi', 'Parking'],
       reservationsEnabled: true,
     })
     expect(payload.location?.city).toBe('New York')

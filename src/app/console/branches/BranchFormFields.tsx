@@ -10,8 +10,16 @@
 
 import { useTranslations } from 'next-intl'
 import { ImageUploader } from '@/components/ImageUploader'
+import { MapSelector } from '@/components/address/MapSelector'
+import { SelectableOptionRow } from '@/components/ui/SelectableOptionRow'
+import { useReverseGeocode } from '@/hooks/address'
+import {
+  BRANCH_AMENITY_OPTIONS,
+  BRANCH_CUISINE_OPTIONS,
+  mergeCatalogOptions,
+} from '@/lib/branch-catalog'
 import type { BranchBusinessHours } from '@/types/branch'
-import type { BranchFormState } from '@/types/branch-form'
+import type { BranchCreateStep, BranchFormState } from '@/types/branch-form'
 import {
   checkoutConfigKeyToWire,
   getCheckoutDeliveryOptionLabel,
@@ -19,21 +27,34 @@ import {
   getCheckoutPaymentConfigKeyLabel,
 } from '@/lib/checkout-options'
 
-export type { BranchFormState } from '@/types/branch-form'
+export type { BranchFormState, BranchCreateStep } from '@/types/branch-form'
 export {
   validateBranchForm,
+  validateBranchCreateForm,
+  validateBranchCreateStep,
   defaultBranchFormBusinessHours,
   EMPTY_BRANCH_FORM,
   branchFormToWriteRequest,
+  branchFormToCreateRequest,
   branchToFormInput,
 } from '@/types/branch-form'
 
 export function BranchFormFields({
   form,
   onChange,
+  sections,
+  showSlug = true,
+  showLocale = true,
+  showMap = false,
+  showCuisines = true,
 }: {
   form: BranchFormState
   onChange: (next: BranchFormState) => void
+  sections?: BranchCreateStep[]
+  showSlug?: boolean
+  showLocale?: boolean
+  showMap?: boolean
+  showCuisines?: boolean
 }) {
   const t = useTranslations('console')
   const tCheckout = useTranslations('checkout')
@@ -70,10 +91,11 @@ export function BranchFormFields({
     })
 
   const inputClass = 'w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]'
+  const show = (step: BranchCreateStep) => !sections || sections.includes(step)
 
   return (
     <div className="space-y-5">
-      {/* Basic Info */}
+      {show('basic') && (
       <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
         <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('basicInformationLabel')}</legend>
 
@@ -87,8 +109,11 @@ export function BranchFormFields({
             value={form.name}
             onChange={(e) => {
               const name = e.target.value
-              set('name', name)
-              if (!form.slug) set('slug', name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))
+              const slug =
+                showSlug && !form.slug
+                  ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+                  : form.slug
+              onChange({ ...form, name, slug })
             }}
             placeholder={t('downtownBranchPlaceholder')}
             required
@@ -96,6 +121,7 @@ export function BranchFormFields({
           />
         </div>
 
+        {showSlug && (
         <div>
           <label className="block text-sm font-medium mb-1"htmlFor="branch-slug">
             {t('slugLabel')} <span className="text-[var(--danger-text)]">*</span>
@@ -111,6 +137,7 @@ export function BranchFormFields({
           />
           <p className="text-xs text-[var(--fg-muted)] mt-1">{t('lowercaseSlugHint')}</p>
         </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium mb-1"htmlFor="branch-description">{t('descriptionLabel')}</label>
@@ -147,8 +174,9 @@ export function BranchFormFields({
           {t('defaultBranchLabel')}
         </label>
       </fieldset>
+      )}
 
-      {/* Location */}
+      {show('location') && (
       <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
         <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('locationLabel')}</legend>
 
@@ -178,9 +206,28 @@ export function BranchFormFields({
           <label className="block text-sm font-medium mb-1"htmlFor="branch-postal">{t('postalCodeLabel')}</label>
           <input id="branch-postal"type="text"value={form.postalCode} onChange={(e) => set('postalCode', e.target.value)} className={inputClass} />
         </div>
-      </fieldset>
 
-      {/* Contact */}
+        {showMap && (
+          <BranchMapPicker
+            latitude={form.latitude}
+            longitude={form.longitude}
+            onCoords={({ latitude, longitude, address, city, country, postalCode }) => {
+              onChange({
+                ...form,
+                latitude,
+                longitude,
+                address: form.address.trim() ? form.address : address,
+                city: form.city.trim() ? form.city : city,
+                country: form.country.trim() ? form.country : country,
+                postalCode: form.postalCode.trim() ? form.postalCode : postalCode,
+              })
+            }}
+          />
+        )}
+      </fieldset>
+      )}
+
+      {show('contact') && (
       <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
         <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('contactOptionalLabel')}</legend>
         <div className="grid grid-cols-2 gap-3">
@@ -193,36 +240,50 @@ export function BranchFormFields({
             <input id="branch-email"type="email"value={form.email} onChange={(e) => set('email', e.target.value)} placeholder="branch@example.com"className={inputClass} />
           </div>
         </div>
+        <div>
+          <label className="block text-sm font-medium mb-1"htmlFor="branch-website">{t('websiteLabel')}</label>
+          <input
+            id="branch-website"
+            type="url"
+            value={form.website}
+            onChange={(e) => set('website', e.target.value)}
+            placeholder="https://example.com"
+            className={inputClass}
+          />
+        </div>
       </fieldset>
+      )}
 
-      {/* Branding */}
+      {show('media') && (
       <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
         <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('brandingLabel')}</legend>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ImageUploader
             id="branch-image"
-            label={t('logoUploadLabel')}
+            label={t('branchImageLabel')}
             value={form.image}
             onChange={(image) => onChange({ ...form, image })}
-            hint={t('logoUploadHint')}
+            hint={t('branchImageHint')}
           />
           <ImageUploader
             id="branch-cover-image"
-            label={t('coverImageUrlLabel')}
+            label={t('branchCoverImageLabel')}
             value={form.coverImage}
             onChange={(coverImage) => onChange({ ...form, coverImage })}
-            hint={t('coverImageHint')}
+            hint={t('branchCoverImageHint')}
           />
           <ImageUploader
             id="branch-hero-image"
             label={t('branchHeroLabel')}
             value={form.heroImage}
             onChange={(heroImage) => onChange({ ...form, heroImage })}
+            hint={t('branchHeroImageHint')}
           />
         </div>
       </fieldset>
+      )}
 
-      {/* Locale */}
+      {showLocale && show('basic') && (
       <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
         <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('localeLabel')}</legend>
         <div className="grid grid-cols-3 gap-3">
@@ -240,8 +301,9 @@ export function BranchFormFields({
           </div>
         </div>
       </fieldset>
+      )}
 
-      {/* Checkout / ordering */}
+      {show('operations') && (
       <fieldset className="space-y-3 rounded-lg border border-[var(--border)] p-4">
         <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('settingsTitle')}</legend>
 
@@ -401,39 +463,60 @@ export function BranchFormFields({
             className={`${inputClass} max-w-[10rem]`}
           />
         </div>
+      </fieldset>
+      )}
 
+      {show('catalog') && (
+      <fieldset className="space-y-4 rounded-lg border border-[var(--border)] p-4">
+        <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('stepCategoriesFeatures')}</legend>
+        {showCuisines && (
+          <div>
+            <p className="block text-sm font-medium mb-2">{t('cuisinesSpecialtiesLabel')}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {mergeCatalogOptions(BRANCH_CUISINE_OPTIONS, form.cuisines).map((option) => (
+                <SelectableOptionRow
+                  key={option}
+                  name={option}
+                  selected={form.cuisines.includes(option)}
+                  selectionType="multiple"
+                  onClick={() =>
+                    set(
+                      'cuisines',
+                      form.cuisines.includes(option)
+                        ? form.cuisines.filter((c) => c !== option)
+                        : [...form.cuisines, option],
+                    )
+                  }
+                />
+              ))}
+            </div>
+          </div>
+        )}
         <div>
-          <label className="block text-sm font-medium mb-1"htmlFor="branch-cuisines">
-            {t('cuisinesSpecialtiesLabel')}
-          </label>
-          <input
-            id="branch-cuisines"
-            type="text"
-            value={form.cuisines}
-            onChange={(e) => set('cuisines', e.target.value)}
-            placeholder={t('cuisinesExamplePlaceholder')}
-            className={inputClass}
-          />
-          <p className="text-xs text-[var(--fg-subtle)] mt-1">{t('commaSeparatedSearchHint')}</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1"htmlFor="branch-amenities">
-            {t('amenitiesLabel')}
-          </label>
-          <input
-            id="branch-amenities"
-            type="text"
-            value={form.amenities}
-            onChange={(e) => set('amenities', e.target.value)}
-            placeholder={t('amenitiesExamplePlaceholder')}
-            className={inputClass}
-          />
-          <p className="text-xs text-[var(--fg-subtle)] mt-1">{t('amenitiesHint')}</p>
+          <p className="block text-sm font-medium mb-2">{t('amenitiesLabel')}</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {mergeCatalogOptions(BRANCH_AMENITY_OPTIONS, form.amenities).map((option) => (
+              <SelectableOptionRow
+                key={option}
+                name={option}
+                selected={form.amenities.includes(option)}
+                selectionType="multiple"
+                onClick={() =>
+                  set(
+                    'amenities',
+                    form.amenities.includes(option)
+                      ? form.amenities.filter((a) => a !== option)
+                      : [...form.amenities, option],
+                  )
+                }
+              />
+            ))}
+          </div>
         </div>
       </fieldset>
+      )}
 
-      {/* Working Hours */}
+      {show('operations') && (
       <fieldset className="space-y-3 rounded-lg border border-[var(--border)] p-4">
         <legend className="text-sm font-semibold text-[var(--fg-secondary)] px-1">{t('workingHoursLabel')}</legend>
         <div className="space-y-2">
@@ -472,6 +555,61 @@ export function BranchFormFields({
           ))}
         </div>
       </fieldset>
+      )}
     </div>
+  )
+}
+
+function BranchMapPicker({
+  latitude,
+  longitude,
+  onCoords,
+}: {
+  latitude: number | null
+  longitude: number | null
+  onCoords: (next: {
+    latitude: number
+    longitude: number
+    address: string
+    city: string
+    country: string
+    postalCode: string
+  }) => void
+}) {
+  const reverseGeocode = useReverseGeocode()
+
+  return (
+    <MapSelector
+      latitude={latitude}
+      longitude={longitude}
+      onChange={({ latitude: lat, longitude: lng }) => {
+        reverseGeocode.mutate(
+          { latitude: lat, longitude: lng },
+          {
+            onSuccess: (result) => {
+              const street = [result.building_number, result.street].filter(Boolean).join(' ')
+              onCoords({
+                latitude: lat,
+                longitude: lng,
+                address: result.formatted_address || street,
+                city: result.city ?? '',
+                country: result.country ?? '',
+                postalCode: result.postal_code ?? '',
+              })
+            },
+            onError: () => {
+              onCoords({
+                latitude: lat,
+                longitude: lng,
+                address: '',
+                city: '',
+                country: '',
+                postalCode: '',
+              })
+            },
+          },
+        )
+      }}
+    />
   )
 }

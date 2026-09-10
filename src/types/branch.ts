@@ -136,26 +136,37 @@ export interface BranchAnalyticsSummary {
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
 
+/** Canonical console create fields (multipart files are File at runtime). */
 export interface CreateBranchPayload {
   name: string
-  slug: string
   description?: string
   type: BranchType
   location: BranchLocation
   contact?: BranchContact
-  managerId?: string
   businessHours?: BranchBusinessHours[]
-  checkout?: Partial<BranchCheckout>
+  isDefault?: boolean
+  orderingEnabled?: boolean
+  deliveryEnabled?: boolean
+  pickupEnabled?: boolean
+  tableOrderingEnabled?: boolean
+  deliveryRadius?: number
+  minimumOrder?: string
+  defaultOrderType?: string
+  cashPaymentEnabled?: boolean
+  cardPaymentEnabled?: boolean
+  onlinePaymentEnabled?: boolean
+  walletPaymentEnabled?: boolean
+  cashOnDeliveryEnabled?: boolean
+  defaultPaymentMethod?: string
+  sameDayDeliveryEnabled?: boolean
+  scheduledDeliveryEnabled?: boolean
+  contactlessDeliveryEnabled?: boolean
   marketplaceVisible?: boolean
   reservationsEnabled?: boolean
   maxCapacity?: number
-  image?: string
-  coverImage?: string
-  heroImage?: string
-  isDefault?: boolean
-  timeZone?: string
-  currency?: string
-  language?: string
+  image?: File
+  coverImage?: File
+  heroImage?: File
   cuisines?: string[]
   amenities?: string[]
 }

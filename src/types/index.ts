@@ -1578,12 +1578,18 @@ export {
   buildTagFormData,
 } from '@/types/tag'
 
-export type { BranchFormState, BranchWriteRequest } from '@/types/branch-form'
+export type { BranchFormState, BranchWriteRequest, BranchCreateRequest, BranchCreateStep } from '@/types/branch-form'
 export {
   branchFormToWriteRequest,
+  branchFormToCreateRequest,
   branchToFormInput,
   buildBranchFormData,
+  buildBranchCreateFormData,
+  flattenCheckoutForCreate,
   validateBranchForm,
+  validateBranchCreateForm,
+  validateBranchCreateStep,
+  mapBranchCreateError,
   defaultBranchFormBusinessHours,
   EMPTY_BRANCH_FORM,
 } from '@/types/branch-form'

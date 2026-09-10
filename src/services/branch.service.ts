@@ -19,7 +19,7 @@ import type {
   AssignManagerPayload,
   BranchBusinessHours,
 } from '@/types/branch'
-import { buildBranchFormData, type BranchWriteRequest } from '@/types/branch-form'
+import { buildBranchFormData, buildBranchCreateFormData, type BranchWriteRequest, type BranchCreateRequest } from '@/types/branch-form'
 import { buildBranchCheckout, mergeBranchCheckout, DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 
 import type { PaginatedResponse } from '@/types'
@@ -29,7 +29,7 @@ const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
 function mockBranchImagesFromRequest(
-  payload: BranchWriteRequest,
+  payload: Pick<BranchWriteRequest, 'image' | 'coverImage' | 'heroImage' | 'removeImage' | 'removeCoverImage' | 'removeHeroImage'>,
   existing: { image?: string; coverImage?: string; heroImage?: string } = {},
 ): { image?: string; coverImage?: string; heroImage?: string } {
   return {
@@ -446,6 +446,51 @@ function assertSlugAvailable(tenantId: string, slug: string, excludeId?: string)
   if (conflict) throw new Error('duplicate_slug')
 }
 
+function assertNameAvailable(tenantId: string, name: string, excludeId?: string): void {
+  const conflict = MOCK_BRANCH_LIST.find(
+    (b) => b.tenantId === tenantId && b.name.toLowerCase() === name.trim().toLowerCase() && b.id !== excludeId,
+  )
+  if (conflict) throw new Error('duplicate_branch')
+}
+
+function uniqueSlugFromName(tenantId: string, name: string): string {
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'branch'
+  let slug = base
+  let n = 2
+  while (MOCK_BRANCH_LIST.some((b) => b.tenantId === tenantId && b.slug === slug)) {
+    slug = `${base}-${n}`
+    n += 1
+  }
+  return slug
+}
+
+function checkoutFromCreatePayload(payload: BranchCreateRequest): ReturnType<typeof mergeBranchCheckout> {
+  return mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, {
+    orderingEnabled: payload.orderingEnabled,
+    orderTypes: {
+      delivery: payload.deliveryEnabled,
+      pickup: payload.pickupEnabled,
+      dineIn: payload.tableOrderingEnabled,
+      default: payload.defaultOrderType ?? null,
+    },
+    payments: {
+      cash: payload.cashPaymentEnabled,
+      card: payload.cardPaymentEnabled,
+      online: payload.onlinePaymentEnabled,
+      wallet: payload.walletPaymentEnabled,
+      cashOnDelivery: payload.cashOnDeliveryEnabled,
+      default: payload.defaultPaymentMethod ?? null,
+    },
+    delivery: {
+      radius: payload.deliveryRadius ?? null,
+      minimumOrder: payload.minimumOrder ?? null,
+      sameDay: payload.sameDayDeliveryEnabled,
+      scheduled: payload.scheduledDeliveryEnabled,
+      contactless: payload.contactlessDeliveryEnabled,
+    },
+  })
+}
+
 // ── Service ───────────────────────────────────────────────────────────────────
 
 export const branchManagementService = {
@@ -591,37 +636,32 @@ export const branchManagementService = {
     return res.data
   },
 
-  async consoleCreateBranch(tenantId: string, payload: BranchWriteRequest): Promise<Branch> {
+  async consoleCreateBranch(tenantId: string, payload: BranchCreateRequest): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
-      assertSlugAvailable(tenantId, payload.slug!)
+      assertNameAvailable(tenantId, payload.name)
       _branchCounter += 1
       const isFirstBranch = MOCK_BRANCH_LIST.every((b) => b.tenantId !== tenantId)
       const images = mockBranchImagesFromRequest(payload)
       const branch: Branch = {
         id: `branch-new-${_branchCounter}`,
         tenantId,
-        name: payload.name!,
-        slug: payload.slug!,
+        name: payload.name,
+        slug: uniqueSlugFromName(tenantId, payload.name),
         description: payload.description,
         status: 'inactive',
-        type: payload.type!,
-        location: payload.location!,
+        type: payload.type,
+        location: payload.location,
         contact: payload.contact ?? {},
-        managerId: payload.managerId,
         businessHours: payload.businessHours ?? defaultHours(),
-        checkout: mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, payload.checkout),
+        checkout: checkoutFromCreatePayload(payload),
         marketplaceVisible: payload.marketplaceVisible ?? true,
         reservationsEnabled: payload.reservationsEnabled ?? false,
         maxCapacity: payload.maxCapacity,
         image: images.image,
         coverImage: images.coverImage,
         heroImage: images.heroImage,
-        // The tenant's first branch is always the default, regardless of the payload.
         isDefault: isFirstBranch || payload.isDefault,
-        timeZone: payload.timeZone,
-        currency: payload.currency,
-        language: payload.language,
         cuisines: payload.cuisines ?? [],
         amenities: payload.amenities ?? [],
         created_at: new Date().toISOString(),
@@ -633,7 +673,7 @@ export const branchManagementService = {
       MOCK_BRANCH_LIST.push(branch)
       return { ...branch }
     }
-    const formData = buildBranchFormData(payload)
+    const formData = buildBranchCreateFormData(payload)
     const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CONSOLE_CREATE(tenantId), formData, multipartRequestConfig())
     return res.data
   },

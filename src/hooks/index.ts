@@ -36,7 +36,7 @@ import type {
   AssignManagerPayload,
   BranchResolutionState,
 } from '@/types/branch'
-import type { BranchWriteRequest } from '@/types/branch-form'
+import type { BranchWriteRequest, BranchCreateRequest } from '@/types/branch-form'
 import { branchAnalyticsService } from '@/services/branch-analytics.service'
 import type {
   BranchRevenueAnalytics,
@@ -1342,7 +1342,7 @@ export function useCreateBranch(tenantId: string) {
 export function useConsoleCreateBranch(tenantId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (payload: BranchWriteRequest) =>
+    mutationFn: (payload: BranchCreateRequest) =>
       branchManagementService.consoleCreateBranch(tenantId, payload),
     onSuccess: (branch) => {
       synchronizeBranchMutation(qc, tenantId, branch)
