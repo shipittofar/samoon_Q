@@ -16,7 +16,6 @@ import type {
 
 export interface BranchFormState {
   name: string
-  slug: string
   description: string
   type: BranchType
   address: string
@@ -54,7 +53,6 @@ export function defaultBranchFormBusinessHours(): BranchBusinessHours[] {
 
 export const EMPTY_BRANCH_FORM: BranchFormState = {
   name: '',
-  slug: '',
   description: '',
   type: 'physical',
   address: '',
@@ -128,12 +126,11 @@ function contactFormatError(form: BranchFormState): string | null {
   return null
 }
 
-/** Edit-form validation (still requires slug). */
+/** Edit-form validation. Slug is backend-owned and is not collected or sent. */
 export function validateBranchForm(form: BranchFormState): string | null {
-  if (!form.name.trim() || !form.slug.trim() || !form.address.trim() || !form.city.trim() || !form.country.trim()) {
+  if (!form.name.trim() || !form.address.trim() || !form.city.trim() || !form.country.trim()) {
     return 'fillAllRequiredFieldsError'
   }
-  if (!/^[a-z0-9-]+$/.test(form.slug.trim())) return 'invalidSlugError'
   const contact = contactFormatError(form)
   if (contact) return contact
   return hoursError(form)
@@ -179,7 +176,6 @@ export interface BranchWriteContact {
 /** Multipart write request for update (nested checkout still used). */
 export interface BranchWriteRequest {
   name?: string
-  slug?: string
   description?: string
   type?: BranchType
   location?: BranchWriteLocation
@@ -321,7 +317,6 @@ export function flattenCheckoutForCreate(checkout: BranchCheckout): Pick<
 export function branchFormToWriteRequest(form: BranchFormState): BranchWriteRequest {
   const request: BranchWriteRequest = {
     name: form.name.trim(),
-    slug: form.slug.trim(),
     description: form.description.trim() || undefined,
     type: form.type,
     location: buildLocation(form, { emitNullCoordinates: true }),
@@ -379,7 +374,6 @@ export function buildBranchFormData(
   }
 
   if (payload.name != null) form.append('name', payload.name)
-  if (payload.slug != null) form.append('slug', payload.slug)
   if (payload.description != null) form.append('description', payload.description)
   if (payload.type != null) form.append('type', payload.type)
   if (payload.location != null) form.append('location', JSON.stringify(payload.location))
@@ -511,7 +505,6 @@ export function branchToFormInput(branch: Branch): BranchFormState {
   const coords = parseMapCoordinates(branch.location.latitude, branch.location.longitude)
   return {
     name: branch.name,
-    slug: branch.slug,
     description: branch.description ?? '',
     type: branch.type,
     address: branch.location.address,

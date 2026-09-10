@@ -85,11 +85,9 @@ function EditBranchContent({ id }: { id: string }) {
         <BranchFormFields
           form={form}
           onChange={setForm}
-          showSlug
           showLocale
           showMap
           showCuisines={showCuisines}
-          autoSlugFromName={false}
         />
         {error && <p className="text-sm text-[var(--danger-text)] mt-3">{t(error)}</p>}
 

@@ -186,7 +186,6 @@ describe('branch form coordinate serialization', () => {
     const payload = branchFormToWriteRequest({
       ...EMPTY_BRANCH_FORM,
       name: 'Downtown',
-      slug: 'downtown',
       address: '1 Main',
       city: 'Sofia',
       country: 'BG',
@@ -195,7 +194,7 @@ describe('branch form coordinate serialization', () => {
     })
     expect(payload.location?.latitude).toBe(43.1234)
     expect(payload.location?.longitude).toBe(23.4567)
-    expect(payload.slug).toBe('downtown')
+    expect(payload.slug).toBeUndefined()
     expect(payload.checkout).toBeTruthy()
     expect(payload).not.toHaveProperty('tableOrderingEnabled')
   })
@@ -204,7 +203,6 @@ describe('branch form coordinate serialization', () => {
     const payload = branchFormToWriteRequest({
       ...EMPTY_BRANCH_FORM,
       name: 'Downtown',
-      slug: 'downtown',
       address: '1 Main',
       city: 'Sofia',
       country: 'BG',
@@ -240,6 +238,7 @@ describe('branch form coordinate serialization', () => {
     })
     expect(form.latitude).toBe(43.1234)
     expect(form.longitude).toBe(23.4567)
+    expect(form).not.toHaveProperty('slug')
     const write = branchFormToWriteRequest(form)
     expect(write.location?.latitude).toBe(43.1234)
     expect(write.location?.longitude).toBe(23.4567)

@@ -99,7 +99,6 @@ describe('branch image upload', () => {
     const form = buildBranchFormData(
       {
         name: 'Downtown',
-        slug: 'downtown',
         type: 'physical',
         location: { address: '1 Main', city: 'NYC', country: 'US' },
         image: logo,
@@ -109,6 +108,7 @@ describe('branch image upload', () => {
       { tenantId: 't1' },
     )
     expect(form.get('name')).toBe('Downtown')
+    expect(form.get('slug')).toBeNull()
     expect(form.get('tenantId')).toBe('t1')
     expect(form.get('image')).toBe(logo)
     expect(form.get('avatar')).toBeNull()
@@ -150,12 +150,11 @@ describe('branch image upload', () => {
     expect(contact.website).toBe('https://example.com')
   })
 
-  it('branchFormToWriteRequest keeps nested checkout and slug for edit', async () => {
+  it('branchFormToWriteRequest keeps nested checkout and omits slug for edit', async () => {
     const { branchFormToWriteRequest, branchFormToCreateRequest, EMPTY_BRANCH_FORM } = await import('@/types/branch-form')
     const form = {
       ...EMPTY_BRANCH_FORM,
       name: 'Downtown',
-      slug: 'downtown',
       address: '1 Main',
       city: 'NYC',
       country: 'US',
@@ -167,7 +166,7 @@ describe('branch image upload', () => {
     }
     const write = branchFormToWriteRequest(form)
     const create = branchFormToCreateRequest(form)
-    expect(write.slug).toBe('downtown')
+    expect(write).not.toHaveProperty('slug')
     expect(write.checkout).toBeTruthy()
     expect(write.checkout?.orderTypes.pickup).toBe(true)
     expect(write).not.toHaveProperty('pickupEnabled')
@@ -189,6 +188,24 @@ describe('branch image upload', () => {
     expect(src).toContain('form.heroImage')
     expect(src).not.toContain('form.avatar')
     expect(src).not.toContain('branch.avatar')
+    expect(src).not.toContain('showSlug')
+    expect(src).not.toContain('branch-slug')
+    expect(src).not.toContain('form.slug')
+  })
+
+  it('edit FormData and form state omit slug; Branch display still reads slug', async () => {
+    const { buildBranchFormData, EMPTY_BRANCH_FORM } = await import('@/types/branch-form')
+    expect(EMPTY_BRANCH_FORM).not.toHaveProperty('slug')
+    const form = buildBranchFormData({
+      name: 'Downtown',
+      type: 'physical',
+      location: { address: '1 Main', city: 'NYC', country: 'US' },
+    })
+    expect(form.get('slug')).toBeNull()
+    expect(read('src/types/branch-form.ts')).not.toMatch(/export interface BranchWriteRequest \{[\s\S]{0,80}slug\?:/)
+    expect(read('src/app/console/branches/[id]/edit/page.tsx')).not.toContain('showSlug')
+    expect(read('src/app/console/branches/[id]/page.tsx')).toContain('branch.slug')
+    expect(read('src/types/branch.ts')).toContain('slug: string')
   })
 
   it('branch service createBranch uses FormData', () => {

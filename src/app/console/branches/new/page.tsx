@@ -147,7 +147,6 @@ export default function NewBranchPage() {
               form={form}
               onChange={setForm}
               sections={[currentStep]}
-              showSlug={false}
               showLocale={false}
               showMap={currentStep === 'location'}
               showCuisines={showCuisines}

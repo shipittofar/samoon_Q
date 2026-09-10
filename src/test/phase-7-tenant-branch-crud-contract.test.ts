@@ -85,7 +85,6 @@ describe('Phase 7 — Add/Edit Branch payload', () => {
     const payload = branchFormToWriteRequest({
       ...EMPTY_BRANCH_FORM,
       name: 'Downtown',
-      slug: 'downtown',
       address: '1 Main',
       city: 'New York',
       country: 'US',
@@ -110,6 +109,7 @@ describe('Phase 7 — Add/Edit Branch payload', () => {
     expect(payload.amenities).toEqual(['WiFi', 'Parking'])
     expect(payload.reservationsEnabled).toBe(true)
     expect(payload.checkout).toBeTruthy()
+    expect(payload).not.toHaveProperty('slug')
     expect(payload).not.toHaveProperty('settings')
     expect(payload).not.toHaveProperty('marketplace')
   })

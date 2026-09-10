@@ -1379,7 +1379,6 @@ export function useUpdateBranch() {
           ...(payload.language !== undefined && { language: payload.language }),
           ...(payload.cuisines !== undefined && { cuisines: payload.cuisines }),
           ...(payload.amenities !== undefined && { amenities: payload.amenities }),
-          ...(payload.slug !== undefined && { slug: payload.slug }),
           ...(payload.type !== undefined && { type: payload.type }),
           ...(payload.isDefault !== undefined && { isDefault: payload.isDefault }),
         })

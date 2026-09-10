@@ -438,14 +438,7 @@ function setBranchStatus(id: string, tenantId: string, status: BranchStatus): Br
   return { ...branch }
 }
 
-/** Throws if another branch in the same tenant already uses this slug. */
-function assertSlugAvailable(tenantId: string, slug: string, excludeId?: string): void {
-  const conflict = MOCK_BRANCH_LIST.find(
-    (b) => b.tenantId === tenantId && b.slug === slug && b.id !== excludeId,
-  )
-  if (conflict) throw new Error('duplicate_slug')
-}
-
+/** Throws if another branch in the same tenant already uses this name. */
 function assertNameAvailable(tenantId: string, name: string, excludeId?: string): void {
   const conflict = MOCK_BRANCH_LIST.find(
     (b) => b.tenantId === tenantId && b.name.toLowerCase() === name.trim().toLowerCase() && b.id !== excludeId,
@@ -592,7 +585,7 @@ export const branchManagementService = {
   async createBranch(tenantId: string, payload: BranchWriteRequest): Promise<Branch> {
     if (USE_MOCK) {
       await delay()
-      assertSlugAvailable(tenantId, payload.slug!)
+      assertNameAvailable(tenantId, payload.name!)
       _branchCounter += 1
       const isFirstBranch = MOCK_BRANCH_LIST.every((b) => b.tenantId !== tenantId)
       const images = mockBranchImagesFromRequest(payload)
@@ -600,7 +593,7 @@ export const branchManagementService = {
         id: `branch-new-${_branchCounter}`,
         tenantId,
         name: payload.name!,
-        slug: payload.slug!,
+        slug: uniqueSlugFromName(tenantId, payload.name!),
         description: payload.description,
         status: 'inactive',
         type: payload.type!,
@@ -683,10 +676,6 @@ export const branchManagementService = {
       await delay()
       const branch = findBranch(id)
       if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
-      if (payload.slug && payload.slug !== branch.slug) {
-        assertSlugAvailable(branch.tenantId, payload.slug, branch.id)
-        branch.slug = payload.slug
-      }
       if (payload.name) branch.name = payload.name
       if (payload.description !== undefined) branch.description = payload.description
       if (payload.location) branch.location = { ...branch.location, ...payload.location }

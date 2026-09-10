@@ -44,20 +44,16 @@ export function BranchFormFields({
   form,
   onChange,
   sections,
-  showSlug = true,
   showLocale = true,
   showMap = false,
   showCuisines = true,
-  autoSlugFromName = false,
 }: {
   form: BranchFormState
   onChange: (next: BranchFormState) => void
   sections?: BranchCreateStep[]
-  showSlug?: boolean
   showLocale?: boolean
   showMap?: boolean
   showCuisines?: boolean
-  autoSlugFromName?: boolean
 }) {
   const t = useTranslations('console')
   const tCheckout = useTranslations('checkout')
@@ -110,37 +106,12 @@ export function BranchFormFields({
             id="branch-name"
             type="text"
             value={form.name}
-            onChange={(e) => {
-              const name = e.target.value
-              const slug =
-                autoSlugFromName && showSlug && !form.slug
-                  ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-                  : form.slug
-              onChange({ ...form, name, slug })
-            }}
+            onChange={(e) => set('name', e.target.value)}
             placeholder={t('downtownBranchPlaceholder')}
             required
             className={inputClass}
           />
         </div>
-
-        {showSlug && (
-        <div>
-          <label className="block text-sm font-medium mb-1"htmlFor="branch-slug">
-            {t('slugLabel')} <span className="text-[var(--danger-text)]">*</span>
-          </label>
-          <input
-            id="branch-slug"
-            type="text"
-            value={form.slug}
-            onChange={(e) => set('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-            placeholder={t('downtownBranchSlugPlaceholder')}
-            required
-            className={`${inputClass} font-mono`}
-          />
-          <p className="text-xs text-[var(--fg-muted)] mt-1">{t('lowercaseSlugHint')}</p>
-        </div>
-        )}
 
         <div>
           <label className="block text-sm font-medium mb-1"htmlFor="branch-description">{t('descriptionLabel')}</label>

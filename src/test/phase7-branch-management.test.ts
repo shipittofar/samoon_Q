@@ -210,7 +210,6 @@ describe('G — createBranch', () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
-      slug: 'new-branch',
       type: 'physical',
       location: { address: '123 Test St', city: 'Testville', country: 'US' },
     })
@@ -222,7 +221,6 @@ describe('G — createBranch', () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
-      slug: 'new-branch',
       type: 'physical',
       location: { address: '123 Test St', city: 'Testville', country: 'US' },
     })
@@ -233,7 +231,6 @@ describe('G — createBranch', () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
-      slug: 'new-branch',
       type: 'physical',
       location: { address: '123 Test St', city: 'Testville', country: 'US' },
     })
@@ -245,7 +242,6 @@ describe('G — createBranch', () => {
     const before = (await branchManagementService.getBranches('tenant-samoon-01')).length
     await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
-      slug: 'new-branch',
       type: 'physical',
       location: { address: '123 Test St', city: 'Testville', country: 'US' },
     })
@@ -257,7 +253,6 @@ describe('G — createBranch', () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branch = await branchManagementService.createBranch('tenant-samoon-01', {
       name: 'New Branch',
-      slug: 'new-branch',
       type: 'physical',
       location: { address: '123 Test St', city: 'Testville', country: 'US' },
     })
@@ -479,7 +474,6 @@ describe('O — _resetMockStore', () => {
     const { branchManagementService } = await import('@/services/branch.service')
     branchManagementService.createBranch('tenant-samoon-01', {
       name: 'Temp',
-      slug: 'temp',
       type: 'physical',
       location: { address: '1 St', city: 'City', country: 'US' },
     })
