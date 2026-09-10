@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { BranchTenantContextCard } from '@/components/admin/BranchTenantContextCard'
 import { useConsoleCreateBranch, useConsoleTenantId } from '@/hooks'
 import {
   BranchFormFields,
@@ -18,11 +19,9 @@ import {
 } from '../BranchFormFields'
 import { mapBranchCreateError } from '@/types/branch-form'
 import { tenantService } from '@/services/tenant.service'
-import { resolveTenantImage } from '@/lib/tenant-branding'
 import { tenantShowsCuisines } from '@/lib/branch-catalog'
 import { scrollWizardToTop } from '@/lib/wizard-scroll'
 import toast from 'react-hot-toast'
-import type { Tenant } from '@/types'
 
 const STEP_ORDER: BranchCreateStep[] = [
   'basic',
@@ -42,15 +41,6 @@ const STEP_LABEL_KEYS: Record<BranchCreateStep, string> = {
   catalog: 'stepCategoriesFeatures',
 }
 
-const BUSINESS_TYPE_LABEL_KEYS: Record<string, string> = {
-  restaurant: 'businessTypeRestaurant',
-  cafe: 'businessTypeCafe',
-  bar: 'businessTypeBar',
-  food_court: 'businessTypeFoodCourt',
-  food_truck: 'businessTypeFoodTruck',
-  mobile_cafe: 'businessTypeMobileCafe',
-}
-
 function StepIndicator({ current, total }: { current: number; total: number }) {
   const t = useTranslations('console')
   return (
@@ -65,31 +55,6 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
         {current}/{total}
       </span>
     </div>
-  )
-}
-
-function TenantContextCard({ tenant }: { tenant: Tenant }) {
-  const t = useTranslations('console')
-  const logo = resolveTenantImage(tenant)
-  return (
-    <section
-      aria-label={t('tenantContextAria')}
-      className="mb-6 rounded-lg border border-[var(--border)] p-4 flex gap-4 items-center"
-    >
-      {logo ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={logo} alt="" className="h-14 w-14 rounded-lg object-cover border border-[var(--border)]" />
-      ) : (
-        <div className="h-14 w-14 rounded-lg bg-[var(--card-hover)] border border-[var(--border)]" />
-      )}
-      <div className="min-w-0">
-        <p className="text-xs text-[var(--fg-muted)]">{t('createBranchForTenant', { name: tenant.name })}</p>
-        <p className="text-base font-semibold truncate">{tenant.name}</p>
-        <p className="text-xs text-[var(--fg-muted)] mt-0.5">
-          {(tenant.businessTypes ?? []).map((bt) => t(BUSINESS_TYPE_LABEL_KEYS[bt] ?? 'businessTypeLabel')).join(', ') || t('businessTypeLabel')}
-        </p>
-      </div>
-    </section>
   )
 }
 
@@ -172,7 +137,7 @@ export default function NewBranchPage() {
             <p className="text-sm text-[var(--fg-muted)] mt-1">{t('createNewBranchHint')}</p>
           </div>
 
-          {tenant && <TenantContextCard tenant={tenant} />}
+          {tenant && <BranchTenantContextCard tenant={tenant} mode="create" />}
 
           <StepIndicator current={stepIndex + 1} total={STEP_ORDER.length} />
           <p className="text-sm font-medium mb-4">{t(STEP_LABEL_KEYS[currentStep])}</p>

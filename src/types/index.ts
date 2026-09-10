@@ -1590,6 +1590,8 @@ export {
   validateBranchCreateForm,
   validateBranchCreateStep,
   mapBranchCreateError,
+  mapBranchUpdateError,
+  hydrateBranchCheckout,
   defaultBranchFormBusinessHours,
   EMPTY_BRANCH_FORM,
 } from '@/types/branch-form'

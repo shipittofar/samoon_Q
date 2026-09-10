@@ -6,6 +6,7 @@ import {
   mergeBranchCheckout,
 } from '@/lib/branch-checkout'
 import { checkoutConfigKeyToWire } from '@/lib/checkout-options'
+import { parseMapCoordinates } from '@/lib/coordinates'
 import type {
   Branch,
   BranchBusinessHours,
@@ -165,8 +166,8 @@ export interface BranchWriteLocation {
   city: string
   country: string
   postalCode?: string
-  latitude?: number
-  longitude?: number
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export interface BranchWriteContact {
@@ -238,16 +239,23 @@ export interface BranchCreateRequest {
   heroImage?: File
 }
 
-function buildLocation(form: BranchFormState): BranchWriteLocation {
+function buildLocation(
+  form: BranchFormState,
+  options?: { emitNullCoordinates?: boolean },
+): BranchWriteLocation {
   const location: BranchWriteLocation = {
     address: form.address.trim(),
     city: form.city.trim(),
     country: form.country.trim(),
     postalCode: form.postalCode.trim() || undefined,
   }
-  if (form.latitude != null && form.longitude != null) {
-    location.latitude = form.latitude
-    location.longitude = form.longitude
+  const coords = parseMapCoordinates(form.latitude, form.longitude)
+  if (coords) {
+    location.latitude = coords.lat
+    location.longitude = coords.lng
+  } else if (options?.emitNullCoordinates) {
+    location.latitude = null
+    location.longitude = null
   }
   return location
 }
@@ -316,7 +324,7 @@ export function branchFormToWriteRequest(form: BranchFormState): BranchWriteRequ
     slug: form.slug.trim(),
     description: form.description.trim() || undefined,
     type: form.type,
-    location: buildLocation(form),
+    location: buildLocation(form, { emitNullCoordinates: true }),
     contact: buildContact(form),
     businessHours: uniqueBusinessDays(form.businessHours),
     checkout: form.checkout,
@@ -432,6 +440,22 @@ export function buildBranchCreateFormData(payload: BranchCreateRequest): FormDat
   return form
 }
 
+export function mapBranchUpdateError(err: unknown): string {
+  const ax = err as { response?: { status?: number; data?: unknown }; message?: string }
+  const status = ax.response?.status
+  const message = (err instanceof Error ? err.message : ax.message) ?? ''
+  const dataStr = typeof ax.response?.data === 'string'
+    ? ax.response.data
+    : JSON.stringify(ax.response?.data ?? '')
+  const blob = `${message} ${dataStr}`
+  if (status === 401 || status === 403) return 'branchUpdateForbidden'
+  if (status === 404) return 'branchUpdateNotFound'
+  if (message === 'duplicate_slug' || /duplicate[_ ]?slug/i.test(blob)) return 'duplicateSlugError'
+  if (/duplicate[_ ]?(branch|name)|already exists/i.test(blob)) return 'duplicateBranchNameError'
+  if (status === 400) return 'branchUpdateValidationError'
+  return 'failedToUpdateBranchRetry'
+}
+
 export function mapBranchCreateError(err: unknown): string {
   const ax = err as { response?: { status?: number; data?: unknown }; message?: string }
   const status = ax.response?.status
@@ -453,7 +477,38 @@ export function mapBranchCreateError(err: unknown): string {
   return 'failedToCreateBranchRetry'
 }
 
+/** Neutral base for Edit hydration — does not apply Create form defaults. */
+const HYDRATE_CHECKOUT_BASE: BranchCheckout = {
+  orderingEnabled: false,
+  orderTypes: {
+    delivery: false,
+    pickup: false,
+    dineIn: false,
+    default: null,
+  },
+  payments: {
+    cash: false,
+    cashOnDelivery: false,
+    card: false,
+    online: false,
+    wallet: false,
+    default: null,
+  },
+  delivery: {
+    radius: null,
+    minimumOrder: null,
+    sameDay: false,
+    scheduled: false,
+    contactless: false,
+  },
+}
+
+export function hydrateBranchCheckout(checkout?: BranchCheckout): BranchCheckout {
+  return mergeBranchCheckout(HYDRATE_CHECKOUT_BASE, checkout)
+}
+
 export function branchToFormInput(branch: Branch): BranchFormState {
+  const coords = parseMapCoordinates(branch.location.latitude, branch.location.longitude)
   return {
     name: branch.name,
     slug: branch.slug,
@@ -463,8 +518,8 @@ export function branchToFormInput(branch: Branch): BranchFormState {
     city: branch.location.city,
     country: branch.location.country,
     postalCode: branch.location.postalCode ?? '',
-    latitude: branch.location.latitude ?? null,
-    longitude: branch.location.longitude ?? null,
+    latitude: coords?.lat ?? null,
+    longitude: coords?.lng ?? null,
     phone_number: branch.contact.phone_number ?? '',
     email: branch.contact.email ?? '',
     website: branch.contact.website ?? '',
@@ -490,7 +545,7 @@ export function branchToFormInput(branch: Branch): BranchFormState {
     businessHours: uniqueBusinessDays(
       branch.businessHours.length > 0 ? branch.businessHours : defaultBranchFormBusinessHours(),
     ),
-    checkout: mergeBranchCheckout(DEFAULT_BRANCH_CHECKOUT, branch.checkout),
+    checkout: hydrateBranchCheckout(branch.checkout),
     marketplaceVisible: branch.marketplaceVisible,
     reservationsEnabled: branch.reservationsEnabled,
     maxCapacity: branch.maxCapacity,

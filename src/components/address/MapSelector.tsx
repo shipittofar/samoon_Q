@@ -6,28 +6,21 @@ import { MapPin, Navigation } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils'
+import { parseMapCoordinates, type CoordinateInput } from '@/lib/coordinates'
 
 export interface MapSelectorProps {
-  latitude?: number | null
-  longitude?: number | null
+  latitude?: CoordinateInput
+  longitude?: CoordinateInput
   onChange: (coords: { latitude: number; longitude: number }) => void
   className?: string
   disabled?: boolean
 }
 
-function isValidCoord(
-  lat: number | null | undefined,
-  lng: number | null | undefined,
-): lat is number {
-  return lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng)
-}
-
 function coordsOrNull(
-  lat: number | null | undefined,
-  lng: number | null | undefined,
+  lat: CoordinateInput,
+  lng: CoordinateInput,
 ): { lat: number; lng: number } | null {
-  if (lat == null || lng == null || Number.isNaN(lat) || Number.isNaN(lng)) return null
-  return { lat, lng }
+  return parseMapCoordinates(lat, lng)
 }
 
 /** Static OSM tile preview — avoids iframe/X-Frame blocking and works in modals. */
@@ -43,11 +36,21 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
   const [geoError, setGeoError] = useState<string | null>(null)
   const [mapError, setMapError] = useState(false)
 
-  const mapUrl = useMemo(() => {
-    const coords = coordsOrNull(latitude, longitude)
-    if (!coords) return null
-    return buildStaticMapUrl(coords.lat, coords.lng)
+  const coords = useMemo(() => {
+    const parsed = coordsOrNull(latitude, longitude)
+    if (
+      !parsed ||
+      typeof parsed.lat !== 'number' ||
+      typeof parsed.lng !== 'number' ||
+      !Number.isFinite(parsed.lat) ||
+      !Number.isFinite(parsed.lng)
+    ) {
+      return null
+    }
+    return parsed
   }, [latitude, longitude])
+
+  const mapUrl = coords ? buildStaticMapUrl(coords.lat, coords.lng) : null
 
   const applyCoords = useCallback(
     (la: number, ln: number) => {
@@ -102,25 +105,29 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
         className="relative rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--card-hover)] aspect-[2/1] min-h-[180px]"
         aria-label={t('mapPreview')}
       >
-        {mapUrl && !mapError ? (
+        {coords ? (
           <>
-            <Image
-              src={mapUrl}
-              alt={t('mapPreview')}
-              fill
-              unoptimized
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 640px"
-              onError={() => setMapError(true)}
-            />
-            {/* Pin overlay — visible even if tile marker fails */}
+            {mapUrl && !mapError ? (
+              <Image
+                src={mapUrl}
+                alt={t('mapPreview')}
+                fill
+                unoptimized
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 640px"
+                onError={() => setMapError(true)}
+              />
+            ) : (
+              <div className="absolute inset-0 bg-[var(--card-hover)]" aria-hidden />
+            )}
+            {/* Pin overlay — visible even if the static map image fails */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
               <div className="relative -mt-8">
                 <MapPin className="h-10 w-10 text-[var(--accent-text)] drop-shadow-lg"fill="currentColor"strokeWidth={1.5} />
               </div>
             </div>
             <div className="absolute bottom-2 start-2 end-2 rounded-lg bg-[var(--card)]/90 backdrop-blur-sm border border-[var(--border)] px-3 py-1.5 text-xs font-mono text-[var(--fg-muted)]">
-              {coordsOrNull(latitude, longitude)?.lat.toFixed(5)}, {coordsOrNull(latitude, longitude)?.lng.toFixed(5)}
+              {`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`}
             </div>
           </>
         ) : (

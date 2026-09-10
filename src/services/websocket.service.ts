@@ -201,9 +201,19 @@ export class DjangoChannelsWebSocket {
     this.scheduleReconnect()
   }
 
-  private handleError(event: Event): void {
-    console.error('[WS] Error:', event)
-    this.emit('error', event)
+  private handleError(_event: Event): void {
+    console.error('[WS] Error:', this.safeConnectionLog())
+    this.emit('error', { type: 'error' })
+  }
+
+  /** Log host+path only — never query strings (tokens live on `?token=`). */
+  private safeConnectionLog(): string {
+    try {
+      const parsed = new URL(this.url)
+      return `${parsed.origin}${parsed.pathname}`
+    } catch {
+      return '[ws]'
+    }
   }
 
   // ── Internal: reconnect scheduling (P4.5.2) ─────────────────────────────────
@@ -350,7 +360,13 @@ export class DjangoChannelsWebSocket {
   }
 
   private emit(type: string, data: unknown): void {
-    this.handlers.get(type)?.forEach((h) => h(data))
+    this.handlers.get(type)?.forEach((h) => {
+      try {
+        h(data)
+      } catch {
+        // Subscriber failures must not tear down the socket or the page.
+      }
+    })
   }
 }
 

@@ -91,6 +91,10 @@ self.addEventListener('fetch', (e) => {
     return
   }
 
+  // Cross-origin GETs (static map tiles, CDNs, the API host) must not be
+  // intercepted — caching them causes opaque failures and CORS issues.
+  if (url.origin !== self.location.origin) return
+
   // Static assets — cache-first, network fallback.
   e.respondWith(
     caches.match(e.request).then((cached) => {

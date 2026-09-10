@@ -150,6 +150,35 @@ describe('branch image upload', () => {
     expect(contact.website).toBe('https://example.com')
   })
 
+  it('branchFormToWriteRequest keeps nested checkout and slug for edit', async () => {
+    const { branchFormToWriteRequest, branchFormToCreateRequest, EMPTY_BRANCH_FORM } = await import('@/types/branch-form')
+    const form = {
+      ...EMPTY_BRANCH_FORM,
+      name: 'Downtown',
+      slug: 'downtown',
+      address: '1 Main',
+      city: 'NYC',
+      country: 'US',
+      latitude: 40.7,
+      longitude: -74.0,
+      website: 'https://example.com',
+      cuisines: ['Italian'],
+      amenities: ['WiFi'],
+    }
+    const write = branchFormToWriteRequest(form)
+    const create = branchFormToCreateRequest(form)
+    expect(write.slug).toBe('downtown')
+    expect(write.checkout).toBeTruthy()
+    expect(write.checkout?.orderTypes.pickup).toBe(true)
+    expect(write).not.toHaveProperty('pickupEnabled')
+    expect(create.slug).toBeUndefined()
+    expect(create).not.toHaveProperty('checkout')
+    expect(create.pickupEnabled).toBe(true)
+    expect(create.tableOrderingEnabled).toBe(false)
+    expect(write.location?.latitude).toBe(40.7)
+    expect(write.contact?.website).toBe('https://example.com')
+  })
+
   it('branch forms use ImageUploader not image URL input', () => {
     const src = read('src/app/console/branches/BranchFormFields.tsx')
     expect(src).toContain('ImageUploader')

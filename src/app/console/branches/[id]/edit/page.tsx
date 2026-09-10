@@ -3,9 +3,11 @@
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useQuery } from '@tanstack/react-query'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
+import { BranchTenantContextCard } from '@/components/admin/BranchTenantContextCard'
 import { useAdminBranch, useUpdateBranch, useBranchAccess } from '@/hooks'
 import {
   BranchFormFields,
@@ -14,6 +16,9 @@ import {
   branchToFormInput,
   type BranchFormState,
 } from '../../BranchFormFields'
+import { mapBranchUpdateError } from '@/types/branch-form'
+import { tenantService } from '@/services/tenant.service'
+import { tenantShowsCuisines } from '@/lib/branch-catalog'
 import toast from 'react-hot-toast'
 
 function EditBranchContent({ id }: { id: string }) {
@@ -21,6 +26,13 @@ function EditBranchContent({ id }: { id: string }) {
   const router = useRouter()
   const { data: branch, isLoading, error: loadError } = useAdminBranch(id)
   const { mutate: updateBranch, isPending } = useUpdateBranch()
+  const tenantId = branch?.tenantId ?? ''
+
+  const { data: tenant } = useQuery({
+    queryKey: ['tenant', tenantId],
+    queryFn: () => tenantService.getTenantById(tenantId),
+    enabled: !!tenantId,
+  })
 
   const [form, setForm] = useState<BranchFormState | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +40,8 @@ function EditBranchContent({ id }: { id: string }) {
   useEffect(() => {
     if (branch) setForm(branchToFormInput(branch))
   }, [branch])
+
+  const showCuisines = tenantShowsCuisines(tenant?.businessTypes) || Boolean(form?.cuisines.length)
 
   if (isLoading || !form) return <p className="p-6 text-[var(--fg-muted)]">{t('loadingBranchEllipsis')}</p>
   if (loadError || !branch) return <p className="p-6 text-[var(--danger-text)]">{t('branchNotFoundPeriod')}</p>
@@ -53,7 +67,7 @@ function EditBranchContent({ id }: { id: string }) {
           router.push(`/console/branches/${id}`)
         },
         onError: (err) => {
-          toast.error(err instanceof Error && err.message === 'duplicate_slug' ? t('duplicateSlugError') : t('failedToUpdateBranchRetry'))
+          toast.error(t(mapBranchUpdateError(err)))
         },
       },
     )
@@ -65,8 +79,18 @@ function EditBranchContent({ id }: { id: string }) {
         <h1 className="text-2xl font-bold">{t('editColonName', { name: branch.name })}</h1>
       </div>
 
+      {tenant && <BranchTenantContextCard tenant={tenant} mode="edit" />}
+
       <form onSubmit={handleSubmit}>
-        <BranchFormFields form={form} onChange={setForm} />
+        <BranchFormFields
+          form={form}
+          onChange={setForm}
+          showSlug
+          showLocale
+          showMap
+          showCuisines={showCuisines}
+          autoSlugFromName={false}
+        />
         {error && <p className="text-sm text-[var(--danger-text)] mt-3">{t(error)}</p>}
 
         <div className="flex justify-between pt-4">
@@ -92,15 +116,10 @@ function EditBranchContent({ id }: { id: string }) {
 
 export default function EditBranchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  // Phase 9.4 — defense-in-depth only (see useBranchAccess()'s doc
-  // comment): a direct navigation to a branch outside the session's
-  // branchAccess must not reach EditBranchContent (and therefore must not
-  // fire useAdminBranch()/useUpdateBranch()) at all. The backend remains
-  // the actual enforcement point for these endpoints.
   const hasBranchAccess = useBranchAccess(id)
   return (
     <ErrorBoundary feature="Edit Branch">
-      <PermissionGuard permission="branches.update"fallback={<AccessDenied />}>
+      <PermissionGuard permission="branches.update" fallback={<AccessDenied />}>
         {hasBranchAccess ? <EditBranchContent id={id} /> : <AccessDenied />}
       </PermissionGuard>
     </ErrorBoundary>

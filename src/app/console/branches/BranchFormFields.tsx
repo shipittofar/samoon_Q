@@ -11,6 +11,7 @@
 import { useTranslations } from 'next-intl'
 import { ImageUploader } from '@/components/ImageUploader'
 import { MapSelector } from '@/components/address/MapSelector'
+import { parseMapCoordinates } from '@/lib/coordinates'
 import { SelectableOptionRow } from '@/components/ui/SelectableOptionRow'
 import { useReverseGeocode } from '@/hooks/address'
 import {
@@ -47,6 +48,7 @@ export function BranchFormFields({
   showLocale = true,
   showMap = false,
   showCuisines = true,
+  autoSlugFromName = false,
 }: {
   form: BranchFormState
   onChange: (next: BranchFormState) => void
@@ -55,6 +57,7 @@ export function BranchFormFields({
   showLocale?: boolean
   showMap?: boolean
   showCuisines?: boolean
+  autoSlugFromName?: boolean
 }) {
   const t = useTranslations('console')
   const tCheckout = useTranslations('checkout')
@@ -110,7 +113,7 @@ export function BranchFormFields({
             onChange={(e) => {
               const name = e.target.value
               const slug =
-                showSlug && !form.slug
+                autoSlugFromName && showSlug && !form.slug
                   ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
                   : form.slug
               onChange({ ...form, name, slug })
@@ -211,6 +214,8 @@ export function BranchFormFields({
           <BranchMapPicker
             latitude={form.latitude}
             longitude={form.longitude}
+            allowClear
+            onClear={() => onChange({ ...form, latitude: null, longitude: null })}
             onCoords={({ latitude, longitude, address, city, country, postalCode }) => {
               onChange({
                 ...form,
@@ -564,6 +569,8 @@ function BranchMapPicker({
   latitude,
   longitude,
   onCoords,
+  allowClear = false,
+  onClear,
 }: {
   latitude: number | null
   longitude: number | null
@@ -575,10 +582,14 @@ function BranchMapPicker({
     country: string
     postalCode: string
   }) => void
+  allowClear?: boolean
+  onClear?: () => void
 }) {
+  const t = useTranslations('console')
   const reverseGeocode = useReverseGeocode()
 
   return (
+    <div className="space-y-2">
     <MapSelector
       latitude={latitude}
       longitude={longitude}
@@ -611,5 +622,15 @@ function BranchMapPicker({
         )
       }}
     />
+    {allowClear && parseMapCoordinates(latitude, longitude) && (
+      <button
+        type="button"
+        onClick={onClear}
+        className="text-sm text-[var(--fg-muted)] underline"
+      >
+        {t('clearMapCoordinatesLabel')}
+      </button>
+    )}
+    </div>
   )
 }
