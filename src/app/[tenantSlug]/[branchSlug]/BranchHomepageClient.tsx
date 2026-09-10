@@ -13,11 +13,12 @@ import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
 import { Fragment } from 'react'
-import { cn, formatCurrency, getSmartCTA, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
+import { cn, formatCurrency, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
 import type { CustomerJourney } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { usePublicBranch, usePublicBranches, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
+import { BranchHeroFeatures } from '@/components/marketplace/BranchHeroFeatures'
 import { HeroBackground } from '@/components/home/HeroBackground'
 import { resolveHeroBackgroundImages } from '@/lib/hero-background'
 import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
@@ -55,35 +56,18 @@ function HeroSection({
   branch,
   tenant,
   accentColor,
-  tenantSlug,
-  branchSlug,
 }: {
   branch: PublicBranchInfo
   tenant: Tenant
   accentColor: string
-  tenantSlug: string
-  branchSlug: string
 }) {
   const t = useTranslations('branch')
-  const featureFlags = useTenantStore((s) => s.featureFlags)
-  const meta = getMarketplaceMeta(tenant.settings)
-  const cta = getSmartCTA({
-    tenantSlug,
-    branchSlug,
-    featureFlags,
-    meta,
-    tenant,
-    branch: {
-      orderingEnabled: branch.checkout?.orderingEnabled,
-      reservationsEnabled: branch.reservationsEnabled,
-    },
-  })
+  const identityImage = branch.logo || branch.coverImage
 
   return (
-    // H9: increased height, H7: aria-labelledby
     <section
       aria-labelledby="branch-hero-heading"
-      className="relative h-[45vh] min-h-[300px] max-h-[480px] overflow-hidden bg-[var(--card)]"
+      className="relative flex min-h-[280px] flex-col justify-end overflow-hidden bg-[var(--card)] md:min-h-[340px]"
     >
       {branch.heroImage ? (
         <HeroBackground
@@ -105,17 +89,16 @@ function HeroSection({
         </>
       )}
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 max-w-7xl mx-auto px-4 sm:px-8 pb-8">
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-8 pb-8 pt-16">
         <div className="flex items-end gap-4">
-          {branch.coverImage ? (
+          {identityImage ? (
             <div className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg bg-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={branch.coverImage} alt=""className="h-full w-full object-cover"/>
+              <img src={identityImage} alt="" className="h-full w-full object-cover"/>
             </div>
           ) : null}
           <div className="flex-1 min-w-0">
             <p className="text-white/70 text-sm font-medium mb-0.5">{tenant.name}</p>
-            {/* H7: id for aria-labelledby */}
             <h1
               id="branch-hero-heading"
               className="text-3xl md:text-4xl font-bold text-white leading-tight"
@@ -124,7 +107,12 @@ function HeroSection({
               {branch.name}
             </h1>
 
-            {/* C2: address in hero */}
+            {branch.description ? (
+              <p className="mt-1.5 line-clamp-2 text-sm text-white/80 max-w-xl">
+                {branch.description}
+              </p>
+            ) : null}
+
             <p className="flex items-center gap-1.5 text-sm text-white/80 mt-1.5">
               <MapPin className="w-3.5 h-3.5 shrink-0"aria-hidden="true"/>
               {branch.address}, {branch.city}
@@ -146,36 +134,9 @@ function HeroSection({
               )}
             </div>
 
-            {/* C1: Hero CTAs — driven by getSmartCTA (resolved feature flags) */}
-            {cta && (
-              <div className="flex flex-wrap gap-3 mt-4">
-                <Link
-                  href={cta.primary.href}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors shadow-lg"
-                >
-                  <UtensilsCrossed className="w-4 h-4"aria-hidden="true"/>
-                  {cta.primary.label}
-                </Link>
-                {cta.secondary && (
-                  <Link
-                    href={cta.secondary.href}
-                    className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
-                  >
-                    <Clock className="w-4 h-4"aria-hidden="true"/>
-                    {cta.secondary.label}
-                  </Link>
-                )}
-                <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white text-sm font-medium transition-colors"
-                >
-                  <MapPin className="w-4 h-4"aria-hidden="true"/>
-                  {t('directions')}
-                </a>
-              </div>
-            )}
+            <div className="mt-3">
+              <BranchHeroFeatures branch={branch} />
+            </div>
           </div>
         </div>
       </div>
@@ -770,8 +731,6 @@ export default function BranchHomepageClient({
         branch={branch}
         tenant={tenant}
         accentColor={accentColor}
-        tenantSlug={tenantSlug}
-        branchSlug={branchSlug}
       />
       <QuickActions branch={branch} tenantSlug={tenantSlug} branchSlug={branchSlug} journey={journey} />
 

@@ -5239,7 +5239,12 @@
     "backToBusiness": "بازگشت به کسب‌وکار",
     "loadingMenuEllipsis": "در حال بارگذاری منو…",
     "loadingTableExperienceEllipsis": "در حال بارگذاری تجربه میز…",
-    "branchNotFoundLongDesc": "این مکان یافت نشد. ممکن است بسته یا جابه‌جا شده باشد. صفحه کسب‌وکار را مرور کنید تا همه شعب فعال را ببینید."
+    "branchNotFoundLongDesc": "این مکان یافت نشد. ممکن است بسته یا جابه‌جا شده باشد. صفحه کسب‌وکار را مرور کنید تا همه شعب فعال را ببینید.",
+    "features": {
+      "ariaLabel": "انواع غذا و امکانات",
+      "moreFeatures": "امکانات بیشتر",
+      "showLess": "نمایش کمتر"
+    }
   },
   "orderDetail": {
     "orderNotFound": "سفارش یافت نشد",

@@ -5299,7 +5299,12 @@
     "backToBusiness": "Back to Business",
     "loadingMenuEllipsis": "Loading menu…",
     "loadingTableExperienceEllipsis": "Loading table experience…",
-    "branchNotFoundLongDesc": "We could not find this location. It may have closed or moved. Browse the business page to find all active locations."
+    "branchNotFoundLongDesc": "We could not find this location. It may have closed or moved. Browse the business page to find all active locations.",
+    "features": {
+      "ariaLabel": "Cuisines and amenities",
+      "moreFeatures": "More features",
+      "showLess": "Show less"
+    }
   },
   "orderDetail": {
     "orderNotFound": "Order not found",
