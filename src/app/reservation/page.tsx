@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, Clock, Users, User, Phone, Mail, CheckCircle2, ArrowLeft, MapPin } from 'lucide-react'
+import { Calendar, Clock, Users, User, Phone, Mail, CheckCircle2, ArrowLeft, MapPin, AlertCircle } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { Button } from '@/components/ui/Button'
@@ -19,6 +19,7 @@ import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import type { Reservation } from '@/types'
 import { MapPinOff } from 'lucide-react'
+import { resolveReservationPageView } from '@/lib/reservation-page-state'
 
 // Schema messages are `validation` namespace keys (Phase E), resolved via
 // `tValidation()` wherever `errors.<field>.message` is rendered below.
@@ -45,15 +46,27 @@ export default function ReservationPage() {
   const router = useRouter()
   const t = useTranslations('reservation')
   const tValidation = useTranslations('validation')
+  const tCommon = useTranslations('common')
   const activeBranchId = useBranchStore((s) => s.activeBranch?.id)
   const activeBranchReservationsEnabled = useBranchStore((s) => s.activeBranch?.reservationsEnabled)
   const [confirmed, setConfirmed] = useState<Reservation | null>(null)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedBranch, setSelectedBranch] = useState(() => activeBranchId ?? '')
-  const { mutate: createReservation, isPending } = useCreateReservation()
-  const { data: branches } = useTenantsBranches()
+  const { mutate: createReservation, isPending: isSubmitting } = useCreateReservation()
+  const {
+    data: branches,
+    isPending: branchesPending,
+    isError: branchesError,
+    refetch: refetchBranches,
+  } = useTenantsBranches()
   const reservationBranches = (branches ?? []).filter((b) => b.reservationsEnabled === true)
   const { data: slots, isLoading: slotsLoading } = useAvailableSlots(selectedDate, selectedBranch)
+  const pageView = resolveReservationPageView({
+    branchesPending,
+    branchesError,
+    activeBranchReservationsEnabled,
+    reservationBranchCount: reservationBranches.length,
+  })
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
@@ -144,7 +157,49 @@ export default function ReservationPage() {
     )
   }
 
-  if (activeBranchReservationsEnabled === false) {
+  if (pageView === 'loading') {
+    return (
+      <div className="min-h-screen bg-[var(--bg)]">
+        <Header />
+        <div
+          className="pb-16"
+          role="status"
+          aria-busy="true"
+          aria-label={t('loadingAria')}
+        >
+          <div className="bg-gradient-to-b from-[var(--accent-subtle)] to-transparent py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
+              <Skeleton className="h-4 w-32 mx-auto" />
+              <Skeleton className="h-10 w-72 mx-auto" />
+              <Skeleton className="h-4 w-96 max-w-full mx-auto" />
+            </div>
+          </div>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+            <Skeleton className="h-40 w-full rounded-2xl" />
+            <Skeleton className="h-56 w-full rounded-2xl" />
+            <Skeleton className="h-48 w-full rounded-2xl" />
+            <Skeleton className="h-14 w-full rounded-2xl" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (pageView === 'error') {
+    return (
+      <div className="min-h-screen bg-[var(--bg)]">
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
+          <AlertCircle className="h-12 w-12 text-[var(--danger-text)]"/>
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('failedToLoadTitle')}</h2>
+          <p className="text-[var(--fg-muted)]">{t('failedToLoadDesc')}</p>
+          <Button variant="secondary" onClick={() => { void refetchBranches() }}>{tCommon('retry')}</Button>
+        </div>
+      </div>
+    )
+  }
+
+  if (pageView === 'unavailable-branch') {
     return (
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
@@ -157,7 +212,7 @@ export default function ReservationPage() {
     )
   }
 
-  if (reservationBranches.length === 0) {
+  if (pageView === 'unavailable-empty') {
     return (
       <div className="min-h-screen bg-[var(--bg)]">
         <Header />
@@ -322,8 +377,8 @@ export default function ReservationPage() {
               </div>
             </div>
 
-            <Button type="submit"className="w-full"size="xl"loading={isPending} leftIcon={<CheckCircle2 className="h-5 w-5"/>}>
-              {isPending ? t('confirmingReservation') : t('confirmReservationButton')}
+            <Button type="submit"className="w-full"size="xl"loading={isSubmitting} leftIcon={<CheckCircle2 className="h-5 w-5"/>}>
+              {isSubmitting ? t('confirmingReservation') : t('confirmReservationButton')}
             </Button>
           </form>
         </div>
