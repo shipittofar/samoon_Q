@@ -13,8 +13,8 @@ import { TenantHeader } from '@/components/layout/TenantHeader'
 import { Footer } from '@/components/layout/Footer'
 import { TenantFooter } from '@/components/layout/TenantFooter'
 import { Fragment } from 'react'
-import { cn, formatCurrency, buildPublicCTAs, buildPublicSections, buildCustomerJourney } from '@/utils'
-import type { CustomerJourney } from '@/utils'
+import { cn, formatCurrency, buildPublicCTAs, buildPublicSections, buildCustomerJourney, buildBranchQuickActions } from '@/utils'
+import type { PublicCTASet } from '@/utils'
 import { useTenantStore } from '@/stores'
 import { usePublicBranch, usePublicBranches, useCategories, useMenuItems, useActivePromotions, useHomepageLayout } from '@/hooks'
 import { ReviewsSection } from '@/components/reviews/ReviewsSection'
@@ -159,20 +159,18 @@ function QuickActions({
   branch,
   tenantSlug,
   branchSlug,
-  journey,
+  ctas,
 }: {
   branch: PublicBranchInfo
   tenantSlug: string
   branchSlug: string
-  journey: CustomerJourney
+  ctas: PublicCTASet
 }) {
   const t = useTranslations('branch')
   const [copied, setCopied] = useState(false)
   const pageUrl = typeof window !== 'undefined' ? window.location.href : `/${tenantSlug}/${branchSlug}`
 
-  const allCTAs = [journey.primaryCTA, ...journey.secondaryCTAs].filter(
-    (c): c is NonNullable<typeof c> => c !== null,
-  )
+  const featureCTAs = buildBranchQuickActions(ctas)
 
   async function handleShare() {
     if (navigator.share) {
@@ -187,14 +185,14 @@ function QuickActions({
   return (
     <section className="bg-[var(--card)] border-b border-[var(--border)]"aria-label={t('quickActionsAria')}>
       <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap gap-2">
-        {/* Journey-ordered feature CTAs */}
-        {allCTAs.map((cta, i) => (
+        {/* Feature CTAs — Branch Quick Actions order (not journey primary) */}
+        {featureCTAs.map((cta) => (
           <Link
             key={cta.href}
             href={cta.href}
             className={cn(
               'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm transition-colors',
-              i === 0
+              cta.variant === 'primary'
                 ? 'bg-[var(--accent)] text-[var(--accent-fg)] font-semibold hover:bg-[var(--accent-hover)]'
                 : 'border border-[var(--border)] font-medium text-[var(--fg)] hover:bg-[var(--card-hover)]',
             )}
@@ -732,7 +730,7 @@ export default function BranchHomepageClient({
         tenant={tenant}
         accentColor={accentColor}
       />
-      <QuickActions branch={branch} tenantSlug={tenantSlug} branchSlug={branchSlug} journey={journey} />
+      <QuickActions branch={branch} tenantSlug={tenantSlug} branchSlug={branchSlug} ctas={ctas} />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

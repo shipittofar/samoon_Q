@@ -124,6 +124,12 @@ export {
 export type { PublicCTALink, PublicCTASet, FooterQuickLink } from './public-context'
 export { buildCustomerJourney } from './journey'
 export type { PrimaryBusinessType, CustomerJourney, BuildCustomerJourneyOptions } from './journey'
+export { buildBranchQuickActions } from './branch-quick-actions'
+export type {
+  BranchQuickAction,
+  BranchQuickActionRole,
+  BranchQuickActionVariant,
+} from './branch-quick-actions'
 export {
   DEFAULT_PAGE,
   DEFAULT_PAGE_SIZE,
