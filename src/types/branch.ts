@@ -2,6 +2,8 @@
 // P7.3 — Branch Management Domain Types
 // ============================================================
 
+import type { QrCode } from '@/types/qr'
+
 export type BranchStatus = 'active' | 'inactive' | 'maintenance'
 
 export type BranchType = 'physical' | 'mobile'
@@ -123,6 +125,8 @@ export interface Branch {
   /** Extension-only JSON — never used for operational checkout configuration. */
   settings?: Record<string, unknown>
   metadata?: Record<string, unknown>
+  /** Stable QR payload from the backend. Encode `qr.url` only — never slugs. */
+  qr?: QrCode | null
 }
 
 export interface BranchAnalyticsSummary {

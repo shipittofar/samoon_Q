@@ -17,6 +17,8 @@ import {
   isTenantVisible,
 } from '@/lib/tenant-state'
 import { tenantStatusLabelKey } from '@/lib/provision-result-display'
+import { CopyUrlWidget } from '@/components/marketplace/CopyUrlWidget'
+import { APP_URL } from '@/constants'
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: 'text-[var(--success-text)] bg-[var(--success-subtle)]',
@@ -44,6 +46,23 @@ function ProfileSection({ tenant }: { tenant: Tenant }) {
         </div>
         <div><dt className="text-[var(--fg-muted)]">{t('createdLabel')}</dt><dd>{new Date(tenant.created_at).toLocaleDateString()}</dd></div>
       </dl>
+    </section>
+  )
+}
+
+function TenantQrSection({ tenant }: { tenant: Tenant }) {
+  const t = useTranslations('console')
+  const publicUrl = `${APP_URL}/${tenant.slug}`
+  return (
+    <section aria-label={t('businessQrSectionAria')} className="border rounded-lg p-6 mb-4">
+      <h2 className="text-lg font-semibold mb-1">{t('businessQrTitle')}</h2>
+      <p className="text-sm text-[var(--fg-muted)] mb-4">{t('businessQrDescription')}</p>
+      <CopyUrlWidget
+        url={publicUrl}
+        label={t('currentPublicPageLabel')}
+        qrUrl={tenant.qr?.url}
+        qrTitle=""
+      />
     </section>
   )
 }
@@ -261,6 +280,7 @@ function TenantDetailContent({ tenantId }: { tenantId: string }) {
       </div>
 
       <ProfileSection tenant={tenant} />
+      <TenantQrSection tenant={tenant} />
       <BusinessTypeSection tenant={tenant} />
       <BrandingSection tenant={tenant} />
       <CapabilitiesSection tenant={tenant} />

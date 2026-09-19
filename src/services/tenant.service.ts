@@ -99,6 +99,7 @@ const MOCK_TENANTS: Record<string, Tenant> = {
     discoverAvatar: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=200&q=80',
     discoverCover: 'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&q=80',
     heroImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+    qr: { code: 'bi32b4if', url: 'https://api.example.com/qr/bi32b4if' },
     settings: {
       featureFlags: { 'menu.enabled': true, 'reservations.enabled': true, 'reviews.enabled': true, 'analytics.enabled': true },
       theme: {

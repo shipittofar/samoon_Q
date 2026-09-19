@@ -880,6 +880,11 @@ describe('X — tenant detail page sections', () => {
     expect(src()).toContain('businessTypes')
   })
 
+  it('TenantQrSection encodes tenant.qr.url', () => {
+    expect(src()).toContain('TenantQrSection')
+    expect(src()).toContain('tenant.qr?.url')
+  })
+
   it('StatusActionsSection checks for archived/hidden state via visibility helpers', () => {
     expect(src()).toContain('isTenantVisible')
     expect(src()).toContain('isArchived')

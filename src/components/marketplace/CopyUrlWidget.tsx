@@ -3,14 +3,19 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Copy, Check, ExternalLink } from 'lucide-react'
+import { QrCodeDisplay } from '@/components/qr/QrCodeDisplay'
 
 interface CopyUrlWidgetProps {
   url: string
   label?: string
+  /** Backend `qr.url` to encode. Never the public slug URL above. */
+  qrUrl?: string | null
+  qrTitle?: string
+  qrDescription?: string
 }
 
 /** Public URL display with copy and open actions. Used in admin settings and tenant homepage. */
-export function CopyUrlWidget({ url, label }: CopyUrlWidgetProps) {
+export function CopyUrlWidget({ url, label, qrUrl, qrTitle, qrDescription }: CopyUrlWidgetProps) {
   const t = useTranslations('marketplace')
   const [copied, setCopied] = useState(false)
 
@@ -51,7 +56,7 @@ export function CopyUrlWidget({ url, label }: CopyUrlWidgetProps) {
           {t('open')}
         </a>
       </div>
-      <p className="text-xs text-[var(--fg-subtle)] mt-2">{t('qrCodeMobileNote')}</p>
+      <QrCodeDisplay url={qrUrl} title={qrTitle} description={qrDescription} />
     </div>
   )
 }

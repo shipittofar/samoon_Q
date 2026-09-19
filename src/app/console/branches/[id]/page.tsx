@@ -11,6 +11,10 @@ import {
   useConsoleTenantId,
 } from '@/hooks'
 import { useConsoleWorkspace } from '@/hooks/console-workspace'
+import { useRbacStore } from '@/stores'
+import { CopyUrlWidget } from '@/components/marketplace/CopyUrlWidget'
+import { QrCodeDisplay } from '@/components/qr/QrCodeDisplay'
+import { APP_URL } from '@/constants'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -35,6 +39,11 @@ function BranchDetailContent({ id }: { id: string }) {
   const t = useTranslations('console')
   const router = useRouter()
   const tenantId = useConsoleTenantId() ?? ''
+  const tenantSlug = useRbacStore((s) => {
+    const memberships = s.sessionMemberships
+    if (!tenantId || !memberships) return undefined
+    return memberships.find((m) => m.tenantId === tenantId)?.tenantSlug
+  })
   const { selectedBranch } = useConsoleWorkspace()
   const { data: branch, isLoading, error } = useAdminBranch(id)
   const { data: siblingBranches = [] } = useAdminBranches(tenantId)
@@ -122,6 +131,21 @@ function BranchDetailContent({ id }: { id: string }) {
           </button>
         </PermissionGuard>
       </div>
+
+      <section aria-label={t('branchQrSectionAria')} className="rounded-lg border p-4">
+        <h2 className="mb-1 font-semibold">{t('branchQrTitle')}</h2>
+        <p className="text-sm text-[var(--fg-muted)] mb-4">{t('branchQrDescription')}</p>
+        {tenantSlug ? (
+          <CopyUrlWidget
+            url={`${APP_URL}/${tenantSlug}/${branch.slug}`}
+            label={t('currentPublicPageLabel')}
+            qrUrl={branch.qr?.url}
+            qrTitle=""
+          />
+        ) : (
+          <QrCodeDisplay url={branch.qr?.url} title="" />
+        )}
+      </section>
 
       {/* Location */}
       <section className="rounded-lg border p-4">

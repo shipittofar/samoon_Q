@@ -1,6 +1,7 @@
 import type { Role, Permission } from './rbac'
 import type { TenantMarketplaceSettings } from './marketplace'
 import type { AddressCapabilities } from './address'
+import type { QrCode } from './qr'
 
 // ============================================================
 // AUTH TYPES
@@ -619,6 +620,8 @@ export interface Tenant {
    * required only once a later phase enforces the non-nullable invariant.
    */
   ownerId?: string
+  /** Stable QR payload from the backend. Encode `qr.url` only — never slugs. */
+  qr?: QrCode | null
 }
 
 /**
@@ -1577,6 +1580,8 @@ export {
   tagToFormInput,
   buildTagFormData,
 } from '@/types/tag'
+
+export type { QrCode } from '@/types/qr'
 
 export type { BranchFormState, BranchWriteRequest, BranchCreateRequest, BranchCreateStep } from '@/types/branch-form'
 export {

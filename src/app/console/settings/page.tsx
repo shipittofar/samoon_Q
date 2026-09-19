@@ -147,6 +147,9 @@ function GeneralTab() {
       <CopyUrlWidget
         url={`${APP_URL}/${tenant?.slug ?? ''}`}
         label={t('publicUrlLabel')}
+        qrUrl={tenant?.qr?.url}
+        qrTitle={t('businessQrTitle')}
+        qrDescription={t('businessQrDescription')}
       />
       <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
     </div>

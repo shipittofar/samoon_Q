@@ -106,6 +106,7 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     ...mockCheckoutFields({ delivery: true, radius: 10, pickup: true, dineIn: true, reservationsEnabled: true, maxCapacity: 120 }),
     cuisines: ['Mediterranean', 'Italian', 'Contemporary'],
     amenities: ['WiFi', 'Parking', 'Outdoor Seating', 'Accessible'],
+    qr: { code: 'bi32b4if', url: 'https://api.example.com/qr/bi32b4if' },
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
   },
