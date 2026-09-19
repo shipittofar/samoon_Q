@@ -150,8 +150,8 @@ export default function ReservationPage() {
         <Header />
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
           <MapPinOff className="h-12 w-12 text-[var(--fg-subtle)]"/>
-          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('reservationsUnavailableTitle', { defaultValue: 'Reservations unavailable' })}</h2>
-          <p className="text-[var(--fg-muted)]">{t('reservationsUnavailableDesc', { defaultValue: 'This branch is not accepting reservations right now.' })}</p>
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('reservationsUnavailableTitle')}</h2>
+          <p className="text-[var(--fg-muted)]">{t('reservationsUnavailableDesc')}</p>
         </div>
       </div>
     )
@@ -163,8 +163,8 @@ export default function ReservationPage() {
         <Header />
         <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-center px-4">
           <MapPinOff className="h-12 w-12 text-[var(--fg-subtle)]"/>
-          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('reservationsUnavailableTitle', { defaultValue: 'Reservations unavailable' })}</h2>
-          <p className="text-[var(--fg-muted)]">{t('noReservationBranchesDesc', { defaultValue: 'No branches are currently accepting reservations.' })}</p>
+          <h2 className="font-[var(--font-display)] text-2xl font-bold text-[var(--fg)]">{t('reservationsUnavailableTitle')}</h2>
+          <p className="text-[var(--fg-muted)]">{t('noReservationBranchesDesc')}</p>
         </div>
       </div>
     )
