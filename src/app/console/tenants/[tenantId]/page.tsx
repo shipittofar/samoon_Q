@@ -4,7 +4,7 @@ import { use } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { useQuery } from '@tanstack/react-query'
-import { useActivateTenant, useSuspendTenant, useArchiveTenant } from '@/hooks'
+import { useActivateTenant, useSuspendTenant, useArchiveTenant, usePermission } from '@/hooks'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
@@ -17,7 +17,7 @@ import {
   isTenantVisible,
 } from '@/lib/tenant-state'
 import { tenantStatusLabelKey } from '@/lib/provision-result-display'
-import { CopyUrlWidget } from '@/components/marketplace/CopyUrlWidget'
+import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
 import { APP_URL } from '@/constants'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -52,18 +52,20 @@ function ProfileSection({ tenant }: { tenant: Tenant }) {
 
 function TenantQrSection({ tenant }: { tenant: Tenant }) {
   const t = useTranslations('console')
-  const publicUrl = `${APP_URL}/${tenant.slug}`
+  const canManage = usePermission('tenant.manage')
   return (
-    <section aria-label={t('businessQrSectionAria')} className="border rounded-lg p-6 mb-4">
-      <h2 className="text-lg font-semibold mb-1">{t('businessQrTitle')}</h2>
-      <p className="text-sm text-[var(--fg-muted)] mb-4">{t('businessQrDescription')}</p>
-      <CopyUrlWidget
-        url={publicUrl}
-        label={t('currentPublicPageLabel')}
-        qrUrl={tenant.qr?.url}
-        qrTitle=""
+    <div className="mb-4">
+      <QrManagementPanel
+        scope="tenant"
+        entityId={tenant.id}
+        canManage={canManage}
+        publicUrl={`${APP_URL}/${tenant.slug}`}
+        publicUrlLabel={t('currentPublicPageLabel')}
+        title={t('businessQrTitle')}
+        description={t('businessQrDescription')}
+        sectionAria={t('businessQrSectionAria')}
       />
-    </section>
+    </div>
   )
 }
 

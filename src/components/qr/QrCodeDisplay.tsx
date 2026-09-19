@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Download } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { encodeQrSvg } from '@/lib/qr-svg'
-import { isHttpQrUrl } from '@/lib/qr-url'
+import { isEncodableQrUrl } from '@/lib/qr-url'
 import { cn } from '@/utils'
 
 export interface QrCodeDisplayProps {
@@ -13,13 +13,15 @@ export interface QrCodeDisplayProps {
   title?: string
   description?: string
   className?: string
+  /** Visual inactive treatment; still encodes `url` when valid. */
+  inactive?: boolean
 }
 
-export function QrCodeDisplay({ url, title, description, className }: QrCodeDisplayProps) {
+export function QrCodeDisplay({ url, title, description, className, inactive = false }: QrCodeDisplayProps) {
   const t = useTranslations('marketplace')
   const [svg, setSvg] = useState<string | null>(null)
   const [failed, setFailed] = useState(false)
-  const valid = isHttpQrUrl(url)
+  const valid = isEncodableQrUrl(url)
 
   useEffect(() => {
     if (!valid) {
@@ -77,7 +79,10 @@ export function QrCodeDisplay({ url, title, description, className }: QrCodeDisp
 
       <div className="flex flex-col items-center sm:items-start">
         <div
-          className="w-full max-w-[240px] aspect-square bg-[var(--card)] border border-[var(--border)] rounded-xl p-3"
+          className={cn(
+            'w-full max-w-[240px] aspect-square bg-[var(--card)] border border-[var(--border)] rounded-xl p-3 relative',
+            inactive && 'opacity-60',
+          )}
           role="img"
           aria-label={ariaLabel}
         >

@@ -795,32 +795,32 @@ describe('V — adminNavItems counts after P6.15 (all modules +1 Tenants item)',
 
   it('restaurant has 4 adminNavItems', async () => {
     const { RESTAURANT_MODULE } = await freshRegistry()
-    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(24)
+    expect(RESTAURANT_MODULE.adminNavItems).toHaveLength(27)
   })
 
   it('cafe has 7 adminNavItems', async () => {
     const { CAFE_MODULE } = await freshRegistry()
-    expect(CAFE_MODULE.adminNavItems).toHaveLength(24)
+    expect(CAFE_MODULE.adminNavItems).toHaveLength(27)
   })
 
   it('bar has 7 adminNavItems', async () => {
     const { BAR_MODULE } = await freshRegistry()
-    expect(BAR_MODULE.adminNavItems).toHaveLength(25)
+    expect(BAR_MODULE.adminNavItems).toHaveLength(28)
   })
 
   it('food_court has 6 adminNavItems', async () => {
     const { FOOD_COURT_MODULE } = await freshRegistry()
-    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(24)
+    expect(FOOD_COURT_MODULE.adminNavItems).toHaveLength(27)
   })
 
   it('food_truck has 6 adminNavItems', async () => {
     const { FOOD_TRUCK_MODULE } = await freshRegistry()
-    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(23)
+    expect(FOOD_TRUCK_MODULE.adminNavItems).toHaveLength(26)
   })
 
   it('mobile_cafe has 6 adminNavItems', async () => {
     const { MOBILE_CAFE_MODULE } = await freshRegistry()
-    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(23)
+    expect(MOBILE_CAFE_MODULE.adminNavItems).toHaveLength(26)
   })
 
   it('all modules have Tenants nav item', async () => {
@@ -882,7 +882,8 @@ describe('X — tenant detail page sections', () => {
 
   it('TenantQrSection encodes tenant.qr.url', () => {
     expect(src()).toContain('TenantQrSection')
-    expect(src()).toContain('tenant.qr?.url')
+    expect(src()).toContain('QrManagementPanel')
+    expect(src()).toContain('entityId={tenant.id}')
   })
 
   it('StatusActionsSection checks for archived/hidden state via visibility helpers', () => {

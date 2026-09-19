@@ -27,6 +27,7 @@ const SEGMENT_KEYS: Record<string, string> = {
   'audit-logs': 'auditLogs',
   operations:   'liveOperations',
   settings:     'settings',
+  qr:           'qr',
   kitchen:      'kitchenDisplay',
   reviews:      'reviews',
   menu:         'menu',

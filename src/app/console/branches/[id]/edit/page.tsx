@@ -19,6 +19,8 @@ import {
 import { mapBranchUpdateError } from '@/types/branch-form'
 import { tenantService } from '@/services/tenant.service'
 import { tenantShowsCuisines } from '@/lib/branch-catalog'
+import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
+import { APP_URL } from '@/constants'
 import toast from 'react-hot-toast'
 
 function EditBranchContent({ id }: { id: string }) {
@@ -108,6 +110,20 @@ function EditBranchContent({ id }: { id: string }) {
           </button>
         </div>
       </form>
+
+      <div className="mt-8">
+        <QrManagementPanel
+          scope="branch"
+          entityId={branch.id}
+          tenantId={tenantId || undefined}
+          canManage
+          publicUrl={tenant?.slug ? `${APP_URL}/${tenant.slug}/${branch.slug}` : undefined}
+          publicUrlLabel={t('currentPublicPageLabel')}
+          title={t('branchQrTitle')}
+          description={t('branchQrDescription')}
+          sectionAria={t('branchQrSectionAria')}
+        />
+      </div>
     </main>
   )
 }

@@ -56,7 +56,9 @@ export function CopyUrlWidget({ url, label, qrUrl, qrTitle, qrDescription }: Cop
           {t('open')}
         </a>
       </div>
-      <QrCodeDisplay url={qrUrl} title={qrTitle} description={qrDescription} />
+      {qrUrl !== undefined ? (
+        <QrCodeDisplay url={qrUrl} title={qrTitle} description={qrDescription} />
+      ) : null}
     </div>
   )
 }

@@ -44,6 +44,7 @@ import {
   Bell,
   Settings,
   SlidersHorizontal,
+  QrCode,
   Zap,
   Plus,
 } from 'lucide-react'
@@ -84,6 +85,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Settings,
   SlidersHorizontal,
   LayoutDashboard,
+  QrCode,
   Zap,
 }
 
@@ -322,7 +324,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
                           isActive ? 'text-[var(--accent-text)]' : 'text-[var(--fg-muted)]',
                         )}
                       />
-                      <span className="truncate flex-1">{item.label}</span>
+                      <span className="truncate flex-1">{item.labelKey ? t(item.labelKey) : item.label}</span>
                       <ConsoleNavPendingBadge href={item.href} />
                     </Link>
                   )

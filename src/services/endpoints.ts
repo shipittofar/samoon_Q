@@ -108,6 +108,11 @@ export const ENDPOINTS = {
     DELETE: (id: string) => `/branches/${id}/`,
     CONSOLE_DELETE: (branchId: string) => `/branches/console-branches/branches/${branchId}/delete/`,
     SET_DEFAULT: (id: string) => `/branches/${id}/default/`,
+    QR: (id: string) => `/branches/${id}/qr/`,
+    QR_ENABLE: (id: string) => `/branches/${id}/qr/enable/`,
+    QR_DISABLE: (id: string) => `/branches/${id}/qr/disable/`,
+    QR_REGENERATE: (id: string) => `/branches/${id}/qr/regenerate/`,
+    QR_DESTINATION: (id: string) => `/branches/${id}/qr/destination/`,
   },
 
   // Notifications
@@ -168,6 +173,11 @@ export const ENDPOINTS = {
     SETTINGS: (tenantId: string) => `/tenants/${tenantId}/settings/`,
     MEDIA: (tenantId: string) => `/tenants/${tenantId}/`,
     TRANSFER_OWNERSHIP: (tenantId: string) => `/tenants/${tenantId}/transfer-ownership/`,
+    QR: (tenantId: string) => `/tenants/${tenantId}/qr/`,
+    QR_ENABLE: (tenantId: string) => `/tenants/${tenantId}/qr/enable/`,
+    QR_DISABLE: (tenantId: string) => `/tenants/${tenantId}/qr/disable/`,
+    QR_REGENERATE: (tenantId: string) => `/tenants/${tenantId}/qr/regenerate/`,
+    QR_DESTINATION: (tenantId: string) => `/tenants/${tenantId}/qr/destination/`,
   },
 
   // Reviews (menu-item level)

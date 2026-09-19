@@ -740,6 +740,8 @@ export interface ModuleCapabilitySet {
 export interface NavItem {
   href: string
   label: string
+  /** Optional console i18n key; sidebar prefers this over `label` when set. */
+  labelKey?: string
   /** Icon name — maps to lucide-react component via ICON_MAP in consumers. */
   icon?: string
   exact?: boolean
@@ -1581,7 +1583,8 @@ export {
   buildTagFormData,
 } from '@/types/tag'
 
-export type { QrCode } from '@/types/qr'
+export type { QrCode, QrDestination, ManagedQr, QrDestinationPayload } from '@/types/qr'
+export { QR_DESTINATIONS, TENANT_QR_DESTINATIONS, BRANCH_QR_DESTINATIONS } from '@/types/qr'
 
 export type { BranchFormState, BranchWriteRequest, BranchCreateRequest, BranchCreateStep } from '@/types/branch-form'
 export {

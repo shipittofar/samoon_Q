@@ -10,9 +10,10 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { PreviewButton } from '@/components/admin/PreviewButton'
 import { CopyUrlWidget } from '@/components/marketplace/CopyUrlWidget'
+import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
 import { Badge } from '@/components/ui'
 import { useTenantStore } from '@/stores'
-import { useUpdateTenantSettings, useFeatureFlags, useUpdateFeatureFlag } from '@/hooks'
+import { useUpdateTenantSettings, useFeatureFlags, useUpdateFeatureFlag, usePermission } from '@/hooks'
 import type { TenantTheme } from '@/types'
 import { resolveTenantImage, sanitizeBrandingForWrite } from '@/lib/tenant-branding'
 
@@ -58,6 +59,9 @@ function GeneralTab() {
   const t = useTranslations('console')
   const tCaps = useTranslations('address.capabilities')
   const tenant = useTenantStore((s) => s.tenant)
+  const canManageSettings = usePermission('settings.manage')
+  const canManageTenant = usePermission('tenant.manage')
+  const canManageQr = canManageSettings || canManageTenant
   const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings()
   const [contactEmail, setContactEmail] = useState(tenant?.settings?.contactEmail ?? '')
   const [contactPhone, setContactPhone] = useState(tenant?.settings?.contactPhone ?? '')
@@ -147,10 +151,17 @@ function GeneralTab() {
       <CopyUrlWidget
         url={`${APP_URL}/${tenant?.slug ?? ''}`}
         label={t('publicUrlLabel')}
-        qrUrl={tenant?.qr?.url}
-        qrTitle={t('businessQrTitle')}
-        qrDescription={t('businessQrDescription')}
       />
+      {tenant?.id ? (
+        <QrManagementPanel
+          scope="tenant"
+          entityId={tenant.id}
+          canManage={canManageQr}
+          title={t('businessQrTitle')}
+          description={t('businessQrDescription')}
+          sectionAria={t('businessQrSectionAria')}
+        />
+      ) : null}
       <SaveBar isPending={isPending} saved={isSuccess} onSave={handleSave} />
     </div>
   )

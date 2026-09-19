@@ -9,11 +9,11 @@ import {
   useActivateBranch, useDeactivateBranch, useMaintenanceBranch,
   useDeleteBranch, useSetDefaultBranch, useBranchAccess, useConsoleDeleteBranch,
   useConsoleTenantId,
+  usePermission,
 } from '@/hooks'
 import { useConsoleWorkspace } from '@/hooks/console-workspace'
 import { useRbacStore } from '@/stores'
-import { CopyUrlWidget } from '@/components/marketplace/CopyUrlWidget'
-import { QrCodeDisplay } from '@/components/qr/QrCodeDisplay'
+import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
 import { APP_URL } from '@/constants'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -56,6 +56,7 @@ function BranchDetailContent({ id }: { id: string }) {
   const deleteBranch = useConsoleDeleteBranch()
   const setDefault = useSetDefaultBranch()
   const adminActiveBranch = selectedBranch
+  const canManageQr = usePermission('branches.update')
 
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -132,20 +133,17 @@ function BranchDetailContent({ id }: { id: string }) {
         </PermissionGuard>
       </div>
 
-      <section aria-label={t('branchQrSectionAria')} className="rounded-lg border p-4">
-        <h2 className="mb-1 font-semibold">{t('branchQrTitle')}</h2>
-        <p className="text-sm text-[var(--fg-muted)] mb-4">{t('branchQrDescription')}</p>
-        {tenantSlug ? (
-          <CopyUrlWidget
-            url={`${APP_URL}/${tenantSlug}/${branch.slug}`}
-            label={t('currentPublicPageLabel')}
-            qrUrl={branch.qr?.url}
-            qrTitle=""
-          />
-        ) : (
-          <QrCodeDisplay url={branch.qr?.url} title="" />
-        )}
-      </section>
+      <QrManagementPanel
+        scope="branch"
+        entityId={branch.id}
+        tenantId={tenantId || undefined}
+        canManage={canManageQr}
+        publicUrl={tenantSlug ? `${APP_URL}/${tenantSlug}/${branch.slug}` : undefined}
+        publicUrlLabel={t('currentPublicPageLabel')}
+        title={t('branchQrTitle')}
+        description={t('branchQrDescription')}
+        sectionAria={t('branchQrSectionAria')}
+      />
 
       {/* Location */}
       <section className="rounded-lg border p-4">

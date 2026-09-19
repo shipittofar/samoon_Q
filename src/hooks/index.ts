@@ -1753,6 +1753,19 @@ export function useMenuAnalytics() {
 }
 
 // P6.12 — QR Experience hook
+export {
+  useTenantQr,
+  useBranchQr,
+  useEnableTenantQr,
+  useDisableTenantQr,
+  useRegenerateTenantQr,
+  useSetTenantQrDestination,
+  useEnableBranchQr,
+  useDisableBranchQr,
+  useRegenerateBranchQr,
+  useSetBranchQrDestination,
+} from './qr-management'
+
 export function useQRExperience(businessType?: string) {
   return useQuery({
     queryKey: ['qr-experience', businessType ?? 'default'],

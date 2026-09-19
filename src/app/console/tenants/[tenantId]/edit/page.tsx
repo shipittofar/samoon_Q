@@ -8,8 +8,10 @@ import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { TenantCanonicalSettingsForm } from '@/components/admin/TenantCanonicalSettingsForm'
+import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
 import { useUpdateTenantSettings } from '@/hooks'
 import { tenantService } from '@/services/tenant.service'
+import { APP_URL } from '@/constants'
 import type { Tenant } from '@/types'
 
 function TenantEditContent({ tenantId }: { tenantId: string }) {
@@ -54,6 +56,18 @@ function TenantEditContent({ tenantId }: { tenantId: string }) {
         isPending={isPending}
         saved={isSuccess}
       />
+      <div className="mt-8">
+        <QrManagementPanel
+          scope="tenant"
+          entityId={tenant.id}
+          canManage
+          publicUrl={`${APP_URL}/${tenant.slug}`}
+          publicUrlLabel={t('currentPublicPageLabel')}
+          title={t('businessQrTitle')}
+          description={t('businessQrDescription')}
+          sectionAria={t('businessQrSectionAria')}
+        />
+      </div>
     </main>
   )
 }

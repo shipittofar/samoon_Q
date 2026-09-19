@@ -162,6 +162,15 @@ const SETTINGS_NAV_ITEM = {
   permissionKey: 'settings.view',
 } as const
 
+const QR_NAV_ITEM = {
+  href: '/console/qr',
+  label: 'QR Management',
+  labelKey: 'qrManagementNav',
+  icon: 'QrCode',
+  group: 'System',
+  permissionKey: 'tenant.view',
+} as const
+
 // P9.1.3 — Platform Configuration Console entry point. Lists every registered
 // PlatformConfigurationRegistry module (Authentication first); future modules
 // appear beside it automatically since the index page reads the registry,
@@ -343,6 +352,9 @@ export const ADMIN_SETTINGS_ROUTES: readonly string[] = [
   '/console/settings/configuration/[moduleId]',
 ]
 
+/** Dedicated Console QR management page — spread into each module's routes array. */
+export const ADMIN_QR_ROUTES: readonly string[] = ['/console/qr']
+
 /** User management routes (P8.6) — spread into each module's routes array. */
 export const ADMIN_USERS_ROUTES: readonly string[] = ['/console/users', '/console/users/[id]']
 
@@ -364,7 +376,7 @@ export const RESTAURANT_MODULE: Module = {
     optional: ['reservations', 'reviews'],
     defaultEnabled: ['reservations', 'reviews'],
   },
-  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/console/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_USERS_ROUTES, ...ADMIN_RBAC_ROUTES, ...ADMIN_REVIEWS_ROUTES, ...ADMIN_WEBSITE_ROUTES],
+  routes: ['/menu', '/checkout', '/checkout/success', '/checkout/failure', '/order', '/reservation', '/restaurant', '/console/analytics', ...ADMIN_TENANT_ROUTES, ...ADMIN_STAFF_ROUTES, ...ADMIN_BRANCHES_ROUTES, ...ADMIN_BRANCH_ANALYTICS_ROUTES, ...ADMIN_AUDIT_ROUTES, ...ADMIN_NOTIFICATION_ROUTES, ...ADMIN_OPERATIONS_ROUTES, ...ADMIN_SETTINGS_ROUTES, ...ADMIN_QR_ROUTES, ...ADMIN_USERS_ROUTES, ...ADMIN_RBAC_ROUTES, ...ADMIN_REVIEWS_ROUTES, ...ADMIN_WEBSITE_ROUTES],
   navItems: [
     { href: '/menu', label: 'Menu' },
     { href: '/reservation', label: 'Reservation' },
@@ -411,6 +423,7 @@ export const RESTAURANT_MODULE: Module = {
     // System
     NOTIFICATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    QR_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
   ],
   enabled: true,
@@ -450,7 +463,7 @@ export const CAFE_MODULE: Module = {
     ...ADMIN_AUDIT_ROUTES,
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
-    ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_SETTINGS_ROUTES, ...ADMIN_QR_ROUTES,
     ...ADMIN_USERS_ROUTES,
     ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
@@ -498,6 +511,7 @@ export const CAFE_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    QR_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
@@ -535,7 +549,7 @@ export const BAR_MODULE: Module = {
     ...ADMIN_AUDIT_ROUTES,
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
-    ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_SETTINGS_ROUTES, ...ADMIN_QR_ROUTES,
     ...ADMIN_USERS_ROUTES,
     ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
@@ -582,6 +596,7 @@ export const BAR_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    QR_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
@@ -618,7 +633,7 @@ export const FOOD_COURT_MODULE: Module = {
     ...ADMIN_AUDIT_ROUTES,
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
-    ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_SETTINGS_ROUTES, ...ADMIN_QR_ROUTES,
     ...ADMIN_USERS_ROUTES,
     ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
@@ -664,6 +679,7 @@ export const FOOD_COURT_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    QR_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
@@ -700,7 +716,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     ...ADMIN_AUDIT_ROUTES,
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
-    ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_SETTINGS_ROUTES, ...ADMIN_QR_ROUTES,
     ...ADMIN_USERS_ROUTES,
     ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
@@ -746,6 +762,7 @@ export const FOOD_TRUCK_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    QR_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,
@@ -783,7 +800,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     ...ADMIN_AUDIT_ROUTES,
     ...ADMIN_NOTIFICATION_ROUTES,
     ...ADMIN_OPERATIONS_ROUTES,
-    ...ADMIN_SETTINGS_ROUTES,
+    ...ADMIN_SETTINGS_ROUTES, ...ADMIN_QR_ROUTES,
     ...ADMIN_USERS_ROUTES,
     ...ADMIN_RBAC_ROUTES,
     ...ADMIN_WEBSITE_ROUTES,
@@ -832,6 +849,7 @@ export const MOBILE_CAFE_MODULE: Module = {
     NOTIFICATIONS_NAV_ITEM,
     OPERATIONS_NAV_ITEM,
     SETTINGS_NAV_ITEM,
+    QR_NAV_ITEM,
     PLATFORM_CONFIGURATION_NAV_ITEM,
     PERMISSIONS_NAV_ITEM,
     ROLES_NAV_ITEM,

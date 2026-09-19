@@ -333,31 +333,31 @@ describe('P7.8-F/G: Loyalty and Promotions pages (regression)', () => {
 describe('P7.8-C: Module nav counts with settings', () => {
   it('restaurant module has 9 adminNavItems', async () => {
     const { RESTAURANT_MODULE } = await import('@/modules/registry')
-    expect((RESTAURANT_MODULE.adminNavItems ?? []).length).toBe(24)
+    expect((RESTAURANT_MODULE.adminNavItems ?? []).length).toBe(27)
   })
 
   it('cafe module has 12 adminNavItems', async () => {
     const { CAFE_MODULE } = await import('@/modules/registry')
-    expect((CAFE_MODULE.adminNavItems ?? []).length).toBe(24)
+    expect((CAFE_MODULE.adminNavItems ?? []).length).toBe(27)
   })
 
   it('bar module has 12 adminNavItems', async () => {
     const { BAR_MODULE } = await import('@/modules/registry')
-    expect((BAR_MODULE.adminNavItems ?? []).length).toBe(25)
+    expect((BAR_MODULE.adminNavItems ?? []).length).toBe(28)
   })
 
   it('food_court module has 11 adminNavItems', async () => {
     const { FOOD_COURT_MODULE } = await import('@/modules/registry')
-    expect((FOOD_COURT_MODULE.adminNavItems ?? []).length).toBe(24)
+    expect((FOOD_COURT_MODULE.adminNavItems ?? []).length).toBe(27)
   })
 
   it('food_truck module has 11 adminNavItems', async () => {
     const { FOOD_TRUCK_MODULE } = await import('@/modules/registry')
-    expect((FOOD_TRUCK_MODULE.adminNavItems ?? []).length).toBe(23)
+    expect((FOOD_TRUCK_MODULE.adminNavItems ?? []).length).toBe(26)
   })
 
   it('mobile_cafe module has 11 adminNavItems', async () => {
     const { MOBILE_CAFE_MODULE } = await import('@/modules/registry')
-    expect((MOBILE_CAFE_MODULE.adminNavItems ?? []).length).toBe(23)
+    expect((MOBILE_CAFE_MODULE.adminNavItems ?? []).length).toBe(26)
   })
 })
