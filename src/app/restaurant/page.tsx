@@ -7,7 +7,7 @@ import { Footer } from '@/components/layout/Footer'
 import { Badge } from '@/components/ui'
 import { fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
 import { resolvePublicBranchList } from '@/lib/public-branches'
-import { composeMarketplacePresentation, getMarketplaceMeta } from '@/types/marketplace'
+import { composeMarketplacePresentation, getMarketplaceMeta, gallerySrcList } from '@/types/marketplace'
 import { pickTenantContact, resolvePublicContact } from '@/lib/tenant-settings'
 import { getLocalizedPageMetadata } from '@/lib/seo'
 
@@ -33,7 +33,7 @@ export default async function RestaurantPage() {
 
   const story = meta?.story
   const tagline = meta?.tagline
-  const gallery = meta?.gallery ?? []
+  const gallery = gallerySrcList(meta?.gallery)
   const contact = resolvePublicContact(publicBranches[0], pickTenantContact(tenant?.settings))
   const contactPhone = contact.phone_number
   const contactEmail = contact.email

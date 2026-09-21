@@ -10,7 +10,6 @@ import {
   tenantStatusLabelKey,
 } from '@/lib/provision-result-display'
 import type { TenantProvisionResult } from '@/types/provisioning'
-import { buildTenantProvisionFormData } from '@/services/tenant-provisioning.service'
 
 const ROOT = join(__dirname, '..')
 const pageSrc = () =>
@@ -156,19 +155,10 @@ describe('Step 6 wiring', () => {
   })
 })
 
-describe('provision FormData / JSON body omits slug', () => {
-  it('buildTenantProvisionFormData has no slug field', () => {
-    const file = new File(['x'], 'logo.png', { type: 'image/png' })
-    const form = buildTenantProvisionFormData({
-      name: 'My Restaurant',
-      businessType: 'restaurant',
-      settings: {
-        featureFlags: { 'menu.enabled': true },
-        theme: { primaryColor: '#e85d04' },
-      },
-      image: file,
-    })
-    expect(form.has('slug')).toBe(false)
-    expect(form.get('name')).toBe('My Restaurant')
+describe('provision JSON body omits slug', () => {
+  it('provisionTenant posts JSON without slug', () => {
+    const src = readFileSync(join(ROOT, 'services', 'tenant-provisioning.service.ts'), 'utf8')
+    expect(src).not.toMatch(/form\.append\('slug'/)
+    expect(src).toContain('image_asset_id')
   })
 })

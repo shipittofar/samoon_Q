@@ -17,6 +17,7 @@ import {
   type BranchFormState,
 } from '../../BranchFormFields'
 import { mapBranchUpdateError } from '@/types/branch-form'
+import { uploadImageFields } from '@/lib/image-asset-write'
 import { tenantService } from '@/services/tenant.service'
 import { tenantShowsCuisines } from '@/lib/branch-catalog'
 import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
@@ -48,7 +49,7 @@ function EditBranchContent({ id }: { id: string }) {
   if (isLoading || !form) return <p className="p-6 text-[var(--fg-muted)]">{t('loadingBranchEllipsis')}</p>
   if (loadError || !branch) return <p className="p-6 text-[var(--danger-text)]">{t('branchNotFoundPeriod')}</p>
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (isPending || !form) return
     const validationError = validateBranchForm(form)
@@ -58,10 +59,22 @@ function EditBranchContent({ id }: { id: string }) {
       return
     }
     setError(null)
+    const payload = branchFormToWriteRequest(form)
+    try {
+      const assets = await uploadImageFields([
+        { key: 'image_asset_id', field: form.image, purpose: 'branch_image' },
+        { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
+        { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
+      ])
+      Object.assign(payload, assets)
+    } catch {
+      toast.error(t('uploadErrorUnknown'))
+      return
+    }
     updateBranch(
       {
         id,
-        payload: branchFormToWriteRequest(form),
+        payload,
       },
       {
         onSuccess: () => {

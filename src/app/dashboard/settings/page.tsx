@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import type { UploadSession } from '@/types/upload'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -86,6 +87,8 @@ export default function SettingsPage() {
   })
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [avatarSession, setAvatarSession] = useState<UploadSession | null>(null)
+  const avatarAbortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     setAvatarImage((prev) => ({
@@ -98,19 +101,31 @@ export default function SettingsPage() {
 
   const handleUploadAvatar = async () => {
     if (!avatarImage.file) return
+    avatarAbortRef.current?.abort()
+    const controller = new AbortController()
+    avatarAbortRef.current = controller
     setUploadState('uploading')
     setUploadError(null)
     try {
-      const { avatar_url } = await userService.uploadAvatar(avatarImage.file)
+      const { avatar_url } = await userService.uploadAvatar(avatarImage.file, {
+        signal: controller.signal,
+        onSession: setAvatarSession,
+      })
       setUser({ ...user!, avatar: avatar_url })
       toast.success(t('avatarUpdated'))
       setUploadState('success')
       setAvatarImage({ file: null, existingUrl: avatar_url, cleared: false })
+      setAvatarSession(null)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : t('uploadFailedRetry')
       setUploadError(msg)
       setUploadState('error')
     }
+  }
+
+  const handleCancelAvatarUpload = () => {
+    avatarAbortRef.current?.abort()
+    setUploadState('idle')
   }
 
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormData>({
@@ -218,11 +233,16 @@ export default function SettingsPage() {
 
           <ImageUploader
             label={t('changeProfilePhotoAria')}
+            purpose="avatar"
             value={avatarImage}
+            session={avatarSession}
+            onRetry={handleUploadAvatar}
+            onCancelUpload={handleCancelAvatarUpload}
             onChange={(image) => {
               setAvatarImage(image)
               setUploadError(null)
               setUploadState('idle')
+              setAvatarSession(null)
             }}
             error={uploadError}
           />

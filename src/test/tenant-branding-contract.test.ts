@@ -168,34 +168,11 @@ describe('legacy logo paths are not canonical', () => {
   })
 })
 
-describe('buildTenantProvisionFormData', () => {
-  it('puts File on image and branding under settings; omits logoUrl', async () => {
-    const { buildTenantProvisionFormData } = await import('@/services/tenant-provisioning.service')
-    const file = new File(['x'], 'logo.png', { type: 'image/png' })
-    const form = buildTenantProvisionFormData({
-      name: 'Cafe',
-      businessType: 'cafe',
-      settings: {
-        featureFlags: { 'menu.enabled': true },
-        theme: {
-          primaryColor: '#1a1a2e',
-          accentHoverColor: '#e85d04',
-          fontBody: 'inter',
-          fontsByLocale: { en: 'inter' },
-        },
-      },
-      image: file,
-    })
-    expect(form.get('name')).toBe('Cafe')
-    expect(form.get('image')).toBeInstanceOf(File)
-    expect(form.get('image')).toBe(file)
-    expect(form.has('logoUrl')).toBe(false)
-    const settingsRaw = form.get('settings')
-    expect(typeof settingsRaw).toBe('string')
-    const settings = JSON.parse(settingsRaw as string)
-    expect(settings.theme.primaryColor).toBe('#1a1a2e')
-    expect(settings.theme.fontBody).toBe('inter')
-    expect(settings.theme.logoUrl).toBeUndefined()
-    expect(settings.theme.logo).toBeUndefined()
+describe('tenant provision JSON logo', () => {
+  it('provisions with image_asset_id instead of multipart File', () => {
+    const src = readFileSync(join(__dirname, '../services/tenant-provisioning.service.ts'), 'utf8')
+    expect(src).toContain('image_asset_id')
+    expect(src).not.toContain('buildTenantProvisionFormData')
+    expect(src).not.toContain("form.append('image'")
   })
 })

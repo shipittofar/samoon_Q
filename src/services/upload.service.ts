@@ -1,0 +1,354 @@
+import api from '@/services/axios.instance'
+import { ENDPOINTS } from '@/services/endpoints'
+import { uploadToPresignedStorage } from '@/lib/storage-upload'
+import { DirectUploadError, toUploadError, throwUploadError, uploadError } from '@/lib/upload-errors'
+import { assertValidUploadFile } from '@/lib/upload-validation'
+import { DEFAULT_UPLOAD_CONCURRENCY, runWithConcurrency } from '@/lib/upload-concurrency'
+import {
+  createLocalUploadSession,
+  createUploadIdempotencyKey,
+  mapBackendStatus,
+  type AssetId,
+  type InitiateUploadResponse,
+  type UploadIntent,
+  type UploadProgress,
+  type UploadPurpose,
+  type UploadSession,
+  type UploadStatusResponse,
+} from '@/types/upload'
+
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
+const POLL_INTERVAL_MS = 700
+const POLL_TIMEOUT_MS = 60_000
+
+export interface UploadFileRequest {
+  file: File
+  purpose: UploadPurpose
+  entityType?: string
+  entityId?: string
+  signal?: AbortSignal
+  onProgress?: (progress: UploadProgress) => void
+  onSession?: (session: UploadSession) => void
+  idempotencyKey?: string
+}
+
+export interface ReadyAsset {
+  assetId: AssetId
+  url: string
+}
+
+function emit(session: UploadSession, onSession?: (s: UploadSession) => void): UploadSession {
+  onSession?.(session)
+  return session
+}
+
+async function sha256Hex(file: File): Promise<string | undefined> {
+  if (typeof crypto === 'undefined' || !crypto.subtle) return undefined
+  try {
+    const buf = await file.arrayBuffer()
+    const digest = await crypto.subtle.digest('SHA-256', buf)
+    return Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+  } catch {
+    return undefined
+  }
+}
+
+function isExpired(expiresAt?: string | null): boolean {
+  if (!expiresAt) return false
+  const t = Date.parse(expiresAt)
+  return Number.isFinite(t) && t <= Date.now()
+}
+
+export const uploadService = {
+  async initiateUpload(
+    intent: UploadIntent,
+    signal?: AbortSignal,
+  ): Promise<InitiateUploadResponse> {
+    if (USE_MOCK) {
+      const assetId = intent.idempotencyKey
+      return {
+        asset_id: assetId,
+        status: 'INITIATED',
+        expires_at: new Date(Date.now() + 15 * 60_000).toISOString(),
+        upload: {
+          method: 'PUT',
+          url: `https://storage.mock.local/presigned/${assetId}`,
+          headers: { 'Content-Type': intent.mimeType },
+        },
+      }
+    }
+
+    try {
+      const { data } = await api.post<InitiateUploadResponse>(
+        ENDPOINTS.UPLOADS.INITIATE,
+        {
+          purpose: intent.purpose,
+          filename: intent.filename,
+          mime_type: intent.mimeType,
+          byte_size: intent.byteSize,
+          checksum: intent.checksum,
+          entity_type: intent.entityType,
+          entity_id: intent.entityId,
+        },
+        {
+          signal,
+          headers: { 'Idempotency-Key': intent.idempotencyKey },
+        },
+      )
+      return data
+    } catch (err) {
+      throw new DirectUploadError(toUploadError(err), err)
+    }
+  },
+
+  async uploadToStorage(
+    file: File,
+    upload: InitiateUploadResponse['upload'],
+    signal?: AbortSignal,
+    onProgress?: (progress: UploadProgress) => void,
+  ): Promise<void> {
+    if (USE_MOCK) {
+      if (signal?.aborted) throw new DirectUploadError(uploadError('cancelled', 'uploadErrorCancelled'))
+      onProgress?.({ bytesSent: file.size, bytesTotal: file.size, percent: 100, phase: 'uploading' })
+      return
+    }
+    await uploadToPresignedStorage({ file, upload, signal, onProgress })
+  },
+
+  async completeUpload(assetId: AssetId, signal?: AbortSignal): Promise<UploadStatusResponse> {
+    if (USE_MOCK) {
+      return {
+        asset_id: assetId,
+        status: 'PROCESSING',
+        url: mockAssetUrl(assetId),
+      }
+    }
+    try {
+      const { data } = await api.post<UploadStatusResponse>(
+        ENDPOINTS.UPLOADS.COMPLETE(assetId),
+        {},
+        { signal },
+      )
+      return data
+    } catch (err) {
+      throw new DirectUploadError(toUploadError(err), err)
+    }
+  },
+
+  async getUploadStatus(assetId: AssetId, signal?: AbortSignal): Promise<UploadStatusResponse> {
+    if (USE_MOCK) {
+      return {
+        asset_id: assetId,
+        status: 'READY',
+        url: mockAssetUrl(assetId),
+      }
+    }
+    try {
+      const { data } = await api.get<UploadStatusResponse>(ENDPOINTS.UPLOADS.STATUS(assetId), { signal })
+      return data
+    } catch (err) {
+      throw new DirectUploadError(toUploadError(err), err)
+    }
+  },
+
+  async cancelUpload(assetId: AssetId | null | undefined, signal?: AbortSignal): Promise<void> {
+    if (!assetId || USE_MOCK) return
+    try {
+      await api.post(ENDPOINTS.UPLOADS.CANCEL(assetId), {}, { signal })
+    } catch {
+      // Best-effort; backend TTL owns orphan cleanup.
+    }
+  },
+
+  async waitUntilReady(
+    assetId: AssetId,
+    signal?: AbortSignal,
+    onProgress?: (progress: UploadProgress) => void,
+  ): Promise<UploadStatusResponse> {
+    const started = Date.now()
+    while (Date.now() - started < POLL_TIMEOUT_MS) {
+      if (signal?.aborted) {
+        throwUploadError(uploadError('cancelled', 'uploadErrorCancelled'))
+      }
+      const status = await this.getUploadStatus(assetId, signal)
+      const mapped = mapBackendStatus(status.status)
+      if (mapped === 'READY') return status
+      if (mapped === 'FAILED') {
+        throwUploadError(uploadError('processing_failure', 'uploadErrorProcessing', { retryable: false, detail: status.error }))
+      }
+      if (mapped === 'EXPIRED') {
+        throwUploadError(uploadError('expired', 'uploadErrorExpired', { retryable: false }))
+      }
+      if (mapped === 'CANCELLED') {
+        throwUploadError(uploadError('cancelled', 'uploadErrorCancelled'))
+      }
+      onProgress?.({
+        bytesSent: 0,
+        bytesTotal: 0,
+        percent: 100,
+        phase: 'processing',
+      })
+      await sleep(POLL_INTERVAL_MS, signal)
+    }
+    throwUploadError(uploadError('timeout', 'uploadErrorTimeout', { retryable: true }))
+  },
+
+  async uploadFile(request: UploadFileRequest): Promise<ReadyAsset> {
+    assertValidUploadFile(request.file, request.purpose)
+    const idempotencyKey = request.idempotencyKey ?? createUploadIdempotencyKey()
+    let session = emit(
+      createLocalUploadSession(request.file, request.purpose, idempotencyKey),
+      request.onSession,
+    )
+
+    const checksum = await sha256Hex(request.file)
+    session = emit({ ...session, status: 'INITIATING' }, request.onSession)
+
+    let initiated: InitiateUploadResponse
+    try {
+      initiated = await this.initiateUpload(
+        {
+          purpose: request.purpose,
+          filename: request.file.name,
+          mimeType: request.file.type || 'application/octet-stream',
+          byteSize: request.file.size,
+          checksum,
+          entityType: request.entityType,
+          entityId: request.entityId,
+          idempotencyKey,
+        },
+        request.signal,
+      )
+    } catch (err) {
+      const error = toUploadError(err)
+      emit({ ...session, status: 'FAILED', error }, request.onSession)
+      throw err instanceof DirectUploadError ? err : new DirectUploadError(error, err)
+    }
+
+    session = emit(
+      {
+        ...session,
+        status: 'UPLOADING',
+        assetId: initiated.asset_id,
+        uploadId: initiated.asset_id,
+        expiresAt: initiated.expires_at ?? null,
+      },
+      request.onSession,
+    )
+
+    try {
+      if (isExpired(initiated.expires_at)) {
+        throwUploadError(uploadError('expired', 'uploadErrorExpired'))
+      }
+      await this.uploadToStorage(request.file, initiated.upload, request.signal, (progress) => {
+        request.onProgress?.(progress)
+        emit({ ...session, status: 'UPLOADING', progress }, request.onSession)
+      })
+    } catch (err) {
+      const error = toUploadError(err)
+      if (error.code === 'expired' || error.httpStatus === 403) {
+        emit({ ...session, status: 'EXPIRED', error }, request.onSession)
+        return this.retryUpload({ ...request, idempotencyKey: createUploadIdempotencyKey() })
+      }
+      emit(
+        { ...session, status: error.code === 'cancelled' ? 'CANCELLED' : 'FAILED', error },
+        request.onSession,
+      )
+      if (error.code === 'cancelled' && initiated.asset_id) {
+        void this.cancelUpload(initiated.asset_id)
+      }
+      throw err instanceof DirectUploadError ? err : new DirectUploadError(error, err)
+    }
+
+    session = emit({ ...session, status: 'UPLOADED' }, request.onSession)
+
+    try {
+      await this.completeUpload(initiated.asset_id, request.signal)
+      session = emit({ ...session, status: 'PROCESSING' }, request.onSession)
+      request.onProgress?.({ bytesSent: request.file.size, bytesTotal: request.file.size, percent: 100, phase: 'processing' })
+      const ready = await this.waitUntilReady(initiated.asset_id, request.signal, request.onProgress)
+      const url = ready.url || mockAssetUrl(initiated.asset_id)
+      emit(
+        { ...session, status: 'READY', url, assetId: initiated.asset_id, localFile: request.file },
+        request.onSession,
+      )
+      return { assetId: initiated.asset_id, url }
+    } catch (err) {
+      const error = toUploadError(err)
+      emit(
+        { ...session, status: error.code === 'cancelled' ? 'CANCELLED' : 'FAILED', error },
+        request.onSession,
+      )
+      throw err instanceof DirectUploadError ? err : new DirectUploadError(error, err)
+    }
+  },
+
+  async retryUpload(request: UploadFileRequest): Promise<ReadyAsset> {
+    return this.uploadFile({
+      ...request,
+      idempotencyKey: request.idempotencyKey ?? createUploadIdempotencyKey(),
+    })
+  },
+
+  async uploadMany(
+    items: Array<UploadFileRequest & { id: string }>,
+    options?: { concurrency?: number; signal?: AbortSignal },
+  ): Promise<Array<{ id: string; asset?: ReadyAsset; error?: unknown }>> {
+    const results = await runWithConcurrency(
+      items.map((item) => ({
+        id: item.id,
+        run: (signal) =>
+          this.uploadFile({
+            ...item,
+            signal: composeAbort(options?.signal, signal, item.signal),
+          }),
+      })),
+      { limit: options?.concurrency ?? DEFAULT_UPLOAD_CONCURRENCY, signal: options?.signal },
+    )
+    return results.map((result, index) => ({
+      id: items[index]!.id,
+      asset: result.value,
+      error: result.error,
+    }))
+  },
+}
+
+function mockAssetUrl(assetId: string): string {
+  return `https://cdn.mock.local/assets/${assetId}`
+}
+
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DirectUploadError(uploadError('cancelled', 'uploadErrorCancelled')))
+      return
+    }
+    const timer = setTimeout(resolve, ms)
+    signal?.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer)
+        reject(new DirectUploadError(uploadError('cancelled', 'uploadErrorCancelled')))
+      },
+      { once: true },
+    )
+  })
+}
+
+function composeAbort(...signals: Array<AbortSignal | undefined>): AbortSignal | undefined {
+  const active = signals.filter((s): s is AbortSignal => Boolean(s))
+  if (active.length === 0) return undefined
+  if (active.length === 1) return active[0]
+  const controller = new AbortController()
+  const onAbort = () => controller.abort()
+  for (const signal of active) {
+    if (signal.aborted) {
+      controller.abort()
+      return controller.signal
+    }
+    signal.addEventListener('abort', onAbort, { once: true })
+  }
+  return controller.signal
+}

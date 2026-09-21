@@ -12,17 +12,10 @@ import {
 } from '@/lib/menu-normalizers'
 import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
 import type { Category, ConsoleMenuTag, DrfPaginationParams, Extra, ExtraGroup, MenuItem, MenuTag, PaginatedResponse } from '@/types'
-import { buildMenuItemFormData, type MenuItemWriteRequest } from '@/types/menu-item'
-import {
-  buildCategoryFormData,
-  type CategoryWriteRequest,
-} from '@/types/category'
-import {
-  buildExtraFormData,
-  type ExtraWriteRequest,
-} from '@/types/extra'
-import { buildTagFormData, type TagWriteRequest } from '@/types/tag'
-import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
+import type { MenuItemWriteRequest } from '@/types/menu-item'
+import type { CategoryWriteRequest } from '@/types/category'
+import type { ExtraWriteRequest } from '@/types/extra'
+import type { TagWriteRequest } from '@/types/tag'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 600) => new Promise((r) => setTimeout(r, ms))
 
@@ -76,9 +69,10 @@ function buildMenuItemQueryParams(filters?: MenuFilters): Record<string, string 
   return params
 }
 
-function mockImageFromRequest(payload: { image?: File; removeImage?: boolean }, fallback = ''): string {
-  if (payload.removeImage) return ''
-  return mockImageUrlFromFile(payload.image, fallback)
+function mockImageFromRequest(payload: { image_asset_id?: string | null }, fallback = ''): string {
+  if (payload.image_asset_id === null) return ''
+  if (payload.image_asset_id) return `https://cdn.mock.local/assets/${payload.image_asset_id}`
+  return fallback
 }
 
 function menuItemFromWriteRequest(
@@ -86,7 +80,7 @@ function menuItemFromWriteRequest(
   payload: MenuItemWriteRequest,
   overrides: Partial<MenuItem> = {},
 ): MenuItem {
-  const { image: _image, removeImage: _removeImage, ...fields } = payload
+  const { image_asset_id: _image, ...fields } = payload
   return {
     id: overrides.id ?? `item-${Date.now()}`,
     branch_id: branchId,
@@ -327,8 +321,7 @@ export const menuService = {
       await delay(800)
       return menuItemFromWriteRequest(branchId, payload)
     }
-    const formData = buildMenuItemFormData(payload, { branchId })
-    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.ITEMS, formData, multipartRequestConfig())
+    const { data } = await api.post<MenuItemWire>(ENDPOINTS.MENU.ITEMS, { ...payload, branch_id: branchId })
     return normalizeMenuItem(data)
   },
 
@@ -337,11 +330,9 @@ export const menuService = {
       await delay(800)
       return menuItemFromWriteRequest(branchId, payload)
     }
-    const formData = buildMenuItemFormData(payload, { branchId })
     const { data } = await api.post<MenuItemWire>(
       ENDPOINTS.MENU.CONSOLE_CREATE_ITEMS,
-      formData,
-      multipartRequestConfig(),
+      { ...payload, branch_id: branchId },
     )
     return normalizeMenuItem(data)
   },
@@ -350,7 +341,7 @@ export const menuService = {
     if (USE_MOCK) {
       await delay(600)
       const existing = mockItems(branchId).find((i) => i.id === id)
-      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const { image_asset_id: _image, ...fields } = payload
       const image = mockImageFromRequest(payload, existing?.image ?? '')
       return {
         ...(existing as MenuItem),
@@ -360,10 +351,8 @@ export const menuService = {
         branch_id: branchId,
       }
     }
-    const formData = buildMenuItemFormData(payload)
-    const { data } = await api.patch<MenuItemWire>(ENDPOINTS.MENU.ITEM(id), formData, {
+    const { data } = await api.patch<MenuItemWire>(ENDPOINTS.MENU.ITEM(id), payload, {
       params: { branch_id: branchId },
-      ...multipartRequestConfig(),
     })
     return normalizeMenuItem(data)
   },
@@ -387,7 +376,7 @@ export const menuService = {
     if (USE_MOCK) {
       await delay(600)
       const existing = mockCategories(branchId)
-      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const { image_asset_id: _image, ...fields } = payload
       const newCategory: Category = {
         id: `cat-${Date.now()}`,
         branch_id: branchId,
@@ -402,8 +391,7 @@ export const menuService = {
       }
       return newCategory
     }
-    const formData = buildCategoryFormData(payload, { branchId })
-    const { data } = await api.post<Category>(ENDPOINTS.MENU.CATEGORIES, formData, multipartRequestConfig())
+    const { data } = await api.post<Category>(ENDPOINTS.MENU.CATEGORIES, { ...payload, branch_id: branchId })
     return data
   },
 
@@ -411,7 +399,7 @@ export const menuService = {
     if (USE_MOCK) {
       await delay(500)
       const existing = mockCategories(branchId).find((c) => c.id === id)
-      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const { image_asset_id: _image, ...fields } = payload
       return {
         ...(existing as Category),
         ...fields,
@@ -420,10 +408,8 @@ export const menuService = {
         branch_id: branchId,
       }
     }
-    const formData = buildCategoryFormData(payload)
-    const { data } = await api.patch<Category>(ENDPOINTS.MENU.CONSOLE_CATEGORY(branchId), formData, {
+    const { data } = await api.patch<Category>(ENDPOINTS.MENU.CONSOLE_CATEGORY(branchId), payload, {
       params: { branch_id: branchId },
-      ...multipartRequestConfig(),
     })
     return data
   },
@@ -560,7 +546,7 @@ export const menuService = {
     if (USE_MOCK) {
       await delay(600)
       const existing = mockExtras(branchId).filter((e) => e.group_id === payload.group_id)
-      const { image: _image, removeImage: _removeImage, group_id, ...fields } = payload
+      const { image_asset_id: _image, group_id, ...fields } = payload
       const newExtra: Extra = {
         id: `ext-${Date.now()}`,
         branch_id: branchId,
@@ -575,8 +561,7 @@ export const menuService = {
       }
       return newExtra
     }
-    const formData = buildExtraFormData(payload, { branchId })
-    const { data } = await api.post<Extra>(ENDPOINTS.MENU.EXTRAS, formData, multipartRequestConfig())
+    const { data } = await api.post<Extra>(ENDPOINTS.MENU.EXTRAS, { ...payload, branch_id: branchId })
     return data
   },
 
@@ -584,7 +569,7 @@ export const menuService = {
     if (USE_MOCK) {
       await delay(500)
       const existing = mockExtras(branchId).find((e) => e.id === id)
-      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const { image_asset_id: _image, ...fields } = payload
       return {
         ...(existing as Extra),
         ...fields,
@@ -593,10 +578,8 @@ export const menuService = {
         branch_id: branchId,
       }
     }
-    const formData = buildExtraFormData(payload)
-    const { data } = await api.patch<Extra>(ENDPOINTS.MENU.EXTRA(id), formData, {
+    const { data } = await api.patch<Extra>(ENDPOINTS.MENU.EXTRA(id), payload, {
       params: { branch_id: branchId },
-      ...multipartRequestConfig(),
     })
     return data
   },
@@ -688,7 +671,7 @@ export const menuService = {
     if (USE_MOCK) {
       await delay(600)
       const existing = getMockConsoleTags(branchId)
-      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const { image_asset_id: _image, ...fields } = payload
       const newTag: ConsoleMenuTag = {
         id: Date.now(),
         branch_id: branchId,
@@ -706,11 +689,9 @@ export const menuService = {
       setMockConsoleTags(branchId, [...existing, newTag])
       return newTag
     }
-    const formData = buildTagFormData(payload)
     const { data } = await api.post<ConsoleMenuTag>(
       ENDPOINTS.MENU.CONSOLE_TAGS(branchId),
-      formData,
-      multipartRequestConfig(),
+      payload,
     )
     return data
   },
@@ -720,7 +701,7 @@ export const menuService = {
       await delay(500)
       const existing = getMockConsoleTags(branchId)
       const current = existing.find((t) => t.id === id)
-      const { image: _image, removeImage: _removeImage, ...fields } = payload
+      const { image_asset_id: _image, ...fields } = payload
       const updated: ConsoleMenuTag = {
         ...(current as ConsoleMenuTag),
         ...fields,
@@ -734,11 +715,9 @@ export const menuService = {
       )
       return updated
     }
-    const formData = buildTagFormData(payload)
     const { data } = await api.patch<ConsoleMenuTag>(
       ENDPOINTS.MENU.CONSOLE_TAG(branchId, id),
-      formData,
-      multipartRequestConfig(),
+      payload,
     )
     return data
   },

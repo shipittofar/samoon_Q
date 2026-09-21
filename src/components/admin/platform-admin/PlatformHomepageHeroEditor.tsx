@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button'
 import {
   usePlatformHomepageHero,
   useSavePlatformHomepageHero,
-  useUploadPlatformHomepageMedia,
 } from '@/hooks'
 import type { PlatformHomepageHero } from '@/types/website-builder'
 import {
@@ -20,7 +19,6 @@ export function PlatformHomepageHeroEditor() {
   const t = useTranslations('console')
   const { data, isLoading, error } = usePlatformHomepageHero()
   const saveHero = useSavePlatformHomepageHero()
-  const uploadMedia = useUploadPlatformHomepageMedia()
   const [draft, setDraft] = useState<PlatformHomepageHero | null>(null)
   const [saved, setSaved] = useState(false)
 
@@ -92,10 +90,9 @@ export function PlatformHomepageHeroEditor() {
         <HeroBackgroundGallery
           images={current.backgroundImages}
           onChange={(backgroundImages) => update({ backgroundImages })}
-          onUpload={async (file) => {
-            const { url } = await uploadMedia.mutateAsync(file)
-            return url
-          }}
+          purpose="platform_hero"
+          entityType="platform"
+          entityId="homepage"
           intervalMs={current.slideshowIntervalMs}
           transitionMs={current.slideshowTransitionMs}
           onIntervalChange={(slideshowIntervalMs) => update({ slideshowIntervalMs })}

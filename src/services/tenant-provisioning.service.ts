@@ -11,31 +11,10 @@ import type {
 import type { Tenant, TenantBranding } from '@/types'
 import { sanitizeBrandingForWrite } from '@/lib/tenant-branding'
 import { sanitizeTenantSettings } from '@/lib/tenant-settings'
-import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
+import { uploadService } from '@/services/upload.service'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 200) => new Promise<void>((r) => setTimeout(r, ms))
-
-/**
- * Builds multipart FormData for tenant provision when a logo File is present.
- * Branding lives under `settings` JSON; logo is the top-level `image` file field.
- * Never includes logoUrl / theme.logo.
- */
-export function buildTenantProvisionFormData(input: {
-  name: string
-  businessType: ProvisionableBusinessType
-  settings: { featureFlags: Record<string, boolean>; theme: TenantBranding }
-  image: File
-  description?: string
-}): FormData {
-  const form = new FormData()
-  form.append('name', input.name)
-  form.append('businessTypes', JSON.stringify([input.businessType]))
-  form.append('settings', JSON.stringify(input.settings))
-  form.append('image', input.image)
-  if (input.description) form.append('description', input.description)
-  return form
-}
 
 // ── Seed data for clone source lookup in mock mode ────────────────────────────
 // Mirrors the slugs/IDs registered in tenant.service.ts MOCK_TENANTS.
@@ -429,7 +408,7 @@ export const tenantProvisioningService = {
         created_at: new Date().toISOString(),
         image:
           req.image instanceof File
-            ? mockImageUrlFromFile(req.image) || `mock-image://${req.image.name}`
+            ? `https://cdn.mock.local/assets/provision-${tenantId}`
             : undefined,
         description: req.description?.trim() || undefined,
         settings: { featureFlags, theme: branding },
@@ -450,30 +429,18 @@ export const tenantProvisioningService = {
         ...req.branding,
       } as TenantBranding & Record<string, unknown>)
       const settings = { featureFlags, theme: branding }
-
-      // Logo via multipart `image`; branding stays under settings.theme (JSON).
+      let image_asset_id: string | undefined
       if (req.image instanceof File) {
-        const form = buildTenantProvisionFormData({
-          name: req.name,
-          businessType: req.businessType,
-          settings,
-          image: req.image,
-          description: req.description?.trim() || undefined,
-        })
-        const { data } = await api.post<Tenant>(
-          ENDPOINTS.TENANTS.PROVISION,
-          form,
-          multipartRequestConfig(),
-        )
-        return { success: true, tenantId: data.id, slug: data.slug, tenant: data }
+        const asset = await uploadService.uploadFile({ file: req.image, purpose: 'tenant_logo' })
+        image_asset_id = asset.assetId
       }
 
       const { data } = await api.post<Tenant>(ENDPOINTS.TENANTS.PROVISION, {
         name: req.name,
-        // slug: req.slug,
         businessTypes: [req.businessType],
         settings,
         ...(req.description?.trim() ? { description: req.description.trim() } : {}),
+        ...(image_asset_id ? { image_asset_id } : {}),
       })
       return { success: true, tenantId: data.id, slug: data.slug, tenant: data }
     } catch (err: unknown) {

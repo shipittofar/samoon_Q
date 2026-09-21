@@ -11,7 +11,7 @@ import { getAccessToken, syncAccessTokenCookieFromStorage } from '@/services/axi
 import { prefetchFavoritesList, useFavoritesSync } from '@/hooks/favorites'
 import { featureFlagsService } from '@/services/feature-flags.service'
 import { useNotificationWebSocket, useFcmRegistration } from '@/hooks/client'
-import { STALE_TIME, CACHE_TIME } from '@/constants'
+import { STALE_TIME, CACHE_TIME, DEFAULT_TENANT } from '@/constants'
 import { ServiceWorkerUpdateBanner } from '@/components/pwa/ServiceWorkerUpdateBanner'
 import { OfflineIndicator } from '@/components/pwa/OfflineIndicator'
 import { GlobalCartHost } from '@/components/cart/GlobalCartHost'

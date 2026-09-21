@@ -1559,28 +1559,24 @@ export type { MenuItemFormInput, MenuItemWriteRequest } from '@/types/menu-item'
 export {
   menuItemFormToWriteRequest,
   menuItemToFormInput,
-  buildMenuItemFormData,
 } from '@/types/menu-item'
 
 export type { CategoryFormInput, CategoryWriteRequest } from '@/types/category'
 export {
   categoryFormToWriteRequest,
   categoryToFormInput,
-  buildCategoryFormData,
 } from '@/types/category'
 
 export type { ExtraFormInput, ExtraWriteRequest } from '@/types/extra'
 export {
   extraFormToWriteRequest,
   extraToFormInput,
-  buildExtraFormData,
 } from '@/types/extra'
 
 export type { TagFormInput, TagWriteRequest } from '@/types/tag'
 export {
   tagFormToWriteRequest,
   tagToFormInput,
-  buildTagFormData,
 } from '@/types/tag'
 
 export type { QrCode, QrDestination, ManagedQr, QrDestinationPayload } from '@/types/qr'
@@ -1591,8 +1587,6 @@ export {
   branchFormToWriteRequest,
   branchFormToCreateRequest,
   branchToFormInput,
-  buildBranchFormData,
-  buildBranchCreateFormData,
   flattenCheckoutForCreate,
   validateBranchForm,
   validateBranchCreateForm,
@@ -1603,3 +1597,14 @@ export {
   defaultBranchFormBusinessHours,
   EMPTY_BRANCH_FORM,
 } from '@/types/branch-form'
+
+export type {
+  AssetId,
+  AssetReference,
+  UploadPurpose,
+  UploadStatus,
+  UploadIntent,
+  UploadSession,
+  UploadProgress,
+  UploadError,
+} from '@/types/upload'

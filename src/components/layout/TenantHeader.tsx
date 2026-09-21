@@ -37,6 +37,7 @@ import { UserMenuBusinessConsoleLink } from '@/components/layout/UserMenuBusines
 import { cn, buildPublicCTAs, buildCustomerJourney } from '@/utils'
 import { buildTenantNavigation, getBusinessTypeBadge } from '@/utils/navigation'
 import { resolveTenantImage } from '@/lib/tenant-branding'
+import { getMarketplaceMeta } from '@/types/marketplace'
 import { Avatar } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { useHomepageLayout } from '@/hooks'
@@ -110,7 +111,7 @@ export function TenantHeader() {
   if (!tenant) return null
 
   const tenantImage = resolveTenantImage(tenant) ?? resolveTenantImage(layout)
-  const meta = tenant.settings?.marketplace
+  const meta = getMarketplaceMeta(tenant.settings)
   const journeyCTAs = buildPublicCTAs({
     tenantSlug: tenant.slug,
     branchSlug,

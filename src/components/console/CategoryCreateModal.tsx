@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { CategoryFormFields } from '@/components/console/CategoryFormFields'
 import { EMPTY_CATEGORY_FORM, validateCategoryForm } from '@/lib/category-form'
 import { categoryFormToWriteRequest } from '@/types'
+import { withUploadedImage } from '@/lib/image-asset-write'
 import type { Category } from '@/types'
 import { useCreateCategory } from '@/hooks'
 
@@ -48,7 +49,7 @@ export function CategoryCreateModal({
     onClose()
   }
 
-  const submit = () => {
+  const submit = async () => {
     if (createMutation.isPending || !branchId) return
     const err = validateCategoryForm(form)
     if (err) {
@@ -56,7 +57,7 @@ export function CategoryCreateModal({
       return
     }
     setValidationError(null)
-    createMutation.mutate(categoryFormToWriteRequest(form), {
+    createMutation.mutate(await withUploadedImage(categoryFormToWriteRequest(form), form.image, 'menu_category'), {
       onSuccess: (category) => {
         if (showSuccessToast) {
           toast.success(t('categoryCreatedSuccessfully', { name: category.name }))

@@ -1,6 +1,8 @@
-/** Value held in menu-item (and other) forms before upload. */
+import type { UploadPurpose, UploadSession } from '@/types/upload'
+
+/** Value held in forms before / during upload. File stays local — never persisted globally. */
 export interface ImageFieldValue {
-  /** Newly selected file pending upload on submit. */
+  /** Newly selected file pending upload on submit (or explicit Upload). */
   file: File | null
   /** Existing CDN URL from the server (edit mode). */
   existingUrl: string
@@ -21,11 +23,14 @@ export interface ImageUploaderProps {
   error?: string | null
   disabled?: boolean
   id?: string
-  /** i18n-backed hint shown below the control when idle. */
   hint?: string
   uploadLabel?: string
   changeLabel?: string
   removeLabel?: string
   previewLabel?: string
   className?: string
+  purpose?: UploadPurpose
+  session?: UploadSession | null
+  onRetry?: () => void
+  onCancelUpload?: () => void
 }

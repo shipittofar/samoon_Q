@@ -6,10 +6,9 @@ import { Upload, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils'
-import { validateMenuImageFile } from './validation'
+import { acceptAttributeForPurpose } from '@/lib/upload-validation'
+import { validateImageFileForPurpose } from './validation'
 import type { ImageUploaderProps } from './types'
-
-const ACCEPT = 'image/jpeg,image/png,.jpg,.jpeg,.png'
 
 export function ImageUploader({
   value,
@@ -24,6 +23,10 @@ export function ImageUploader({
   removeLabel,
   previewLabel,
   className,
+  purpose = 'menu_item',
+  session,
+  onRetry,
+  onCancelUpload,
 }: ImageUploaderProps) {
   const t = useTranslations('console')
   const generatedId = useId()
@@ -48,13 +51,14 @@ export function ImageUploader({
     return () => URL.revokeObjectURL(url)
   }, [value.file])
 
-  const error = externalError ?? localError
+  const sessionError = session?.error ? t(session.error.messageKey) : null
+  const error = externalError ?? localError ?? sessionError
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const result = validateMenuImageFile(file)
+    const result = validateImageFileForPurpose(file, purpose)
     if (!result.valid) {
       const message =
         result.errorKey === 'unsupportedFileType'
@@ -74,6 +78,7 @@ export function ImageUploader({
 
   const handleRemove = () => {
     setLocalError(null)
+    onCancelUpload?.()
     onChange({ file: null, existingUrl: value.existingUrl, cleared: true })
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -83,6 +88,15 @@ export function ImageUploader({
   }
 
   const filename = value.file?.name ?? (displayUrl && !value.cleared ? displayUrl.split('/').pop() : null)
+  const uploading = session?.status === 'UPLOADING' || session?.status === 'INITIATING'
+  const processing = session?.status === 'PROCESSING' || session?.status === 'UPLOADED'
+  const failed = session?.status === 'FAILED' || session?.status === 'EXPIRED'
+  const percent = session?.progress.percent ?? 0
+  const phaseLabel = processing
+    ? t('uploadPhaseProcessing')
+    : uploading
+      ? t('uploadPhaseUploading', { percent })
+      : null
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -96,7 +110,7 @@ export function ImageUploader({
         ref={fileInputRef}
         id={inputId}
         type="file"
-        accept={ACCEPT}
+        accept={acceptAttributeForPurpose(purpose)}
         className="sr-only"
         disabled={disabled}
         onChange={handleFileChange}
@@ -126,9 +140,20 @@ export function ImageUploader({
               sizes="(max-width: 768px) 100vw, 320px"
               unoptimized={displayUrl.startsWith('blob:')}
             />
+            {(uploading || processing) && (
+              <div className="absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-[10px] text-white">
+                {phaseLabel}
+                <div className="mt-1 h-1 rounded bg-white/30">
+                  <div
+                    className="h-1 rounded bg-white"
+                    style={{ width: `${processing ? 100 : percent}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
           {filename && (
-            <p className="text-xs text-[var(--fg-muted)] truncate max-w-xs"title={filename}>
+            <p className="text-xs text-[var(--fg-muted)] truncate max-w-xs" title={filename}>
               {filename}
             </p>
           )}
@@ -137,7 +162,7 @@ export function ImageUploader({
               type="button"
               variant="secondary"
               size="sm"
-              disabled={disabled}
+              disabled={disabled || uploading || processing}
               onClick={handlePick}
             >
               {changeLabel ?? t('changeImage')}
@@ -153,12 +178,22 @@ export function ImageUploader({
             >
               {removeLabel ?? t('removeImage')}
             </Button>
+            {failed && onRetry && (
+              <Button type="button" variant="secondary" size="sm" onClick={onRetry}>
+                {t('uploadRetry')}
+              </Button>
+            )}
+            {(uploading || processing) && onCancelUpload && (
+              <Button type="button" variant="ghost" size="sm" onClick={onCancelUpload}>
+                {t('uploadCancel')}
+              </Button>
+            )}
           </div>
         </div>
       )}
 
       {error && (
-        <p className="text-xs text-[var(--danger-text)]"role="alert">
+        <p className="text-xs text-[var(--danger-text)]" role="alert">
           {error}
         </p>
       )}

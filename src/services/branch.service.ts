@@ -19,23 +19,27 @@ import type {
   AssignManagerPayload,
   BranchBusinessHours,
 } from '@/types/branch'
-import { buildBranchFormData, buildBranchCreateFormData, type BranchWriteRequest, type BranchCreateRequest } from '@/types/branch-form'
+import { type BranchWriteRequest, type BranchCreateRequest } from '@/types/branch-form'
 import { buildBranchCheckout, mergeBranchCheckout, DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
 
 import type { PaginatedResponse } from '@/types'
-import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 400) => new Promise<void>((r) => setTimeout(r, ms))
 
 function mockBranchImagesFromRequest(
-  payload: Pick<BranchWriteRequest, 'image' | 'coverImage' | 'heroImage' | 'removeImage' | 'removeCoverImage' | 'removeHeroImage'>,
+  payload: Pick<BranchWriteRequest, 'image_asset_id' | 'cover_image_asset_id' | 'hero_image_asset_id'>,
   existing: { image?: string; coverImage?: string; heroImage?: string } = {},
 ): { image?: string; coverImage?: string; heroImage?: string } {
+  const url = (id: string | null | undefined, fallback?: string) => {
+    if (id === null) return undefined
+    if (id) return `https://cdn.mock.local/assets/${id}`
+    return fallback
+  }
   return {
-    image: payload.removeImage ? undefined : mockImageUrlFromFile(payload.image, existing.image),
-    coverImage: payload.removeCoverImage ? undefined : mockImageUrlFromFile(payload.coverImage, existing.coverImage),
-    heroImage: payload.removeHeroImage ? undefined : mockImageUrlFromFile(payload.heroImage, existing.heroImage),
+    image: url(payload.image_asset_id, existing.image),
+    coverImage: url(payload.cover_image_asset_id, existing.coverImage),
+    heroImage: url(payload.hero_image_asset_id, existing.heroImage),
   }
 }
 
@@ -598,7 +602,11 @@ export const branchManagementService = {
         description: payload.description,
         status: 'inactive',
         type: payload.type!,
-        location: payload.location!,
+        location: {
+          ...payload.location!,
+          latitude: payload.location?.latitude ?? undefined,
+          longitude: payload.location?.longitude ?? undefined,
+        },
         contact: payload.contact ?? {},
         managerId: payload.managerId,
         businessHours: payload.businessHours ?? defaultHours(),
@@ -625,8 +633,7 @@ export const branchManagementService = {
       MOCK_BRANCH_LIST.push(branch)
       return { ...branch }
     }
-    const formData = buildBranchFormData(payload, { tenantId })
-    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CREATE, formData, multipartRequestConfig())
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CREATE, { ...payload, tenantId })
     return res.data
   },
 
@@ -645,7 +652,11 @@ export const branchManagementService = {
         description: payload.description,
         status: 'inactive',
         type: payload.type,
-        location: payload.location,
+        location: {
+          ...payload.location,
+          latitude: payload.location.latitude ?? undefined,
+          longitude: payload.location.longitude ?? undefined,
+        },
         contact: payload.contact ?? {},
         businessHours: payload.businessHours ?? defaultHours(),
         checkout: checkoutFromCreatePayload(payload),
@@ -667,8 +678,7 @@ export const branchManagementService = {
       MOCK_BRANCH_LIST.push(branch)
       return { ...branch }
     }
-    const formData = buildBranchCreateFormData(payload)
-    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CONSOLE_CREATE(tenantId), formData, multipartRequestConfig())
+    const res = await api.post<Branch>(ENDPOINTS.BRANCHES.CONSOLE_CREATE(tenantId), payload)
     return res.data
   },
 
@@ -679,7 +689,14 @@ export const branchManagementService = {
       if (!branch || branch.tenantId !== tenantId) throw new Error(`Branch not found: ${id}`)
       if (payload.name) branch.name = payload.name
       if (payload.description !== undefined) branch.description = payload.description
-      if (payload.location) branch.location = { ...branch.location, ...payload.location }
+      if (payload.location) {
+        branch.location = {
+          ...branch.location,
+          ...payload.location,
+          latitude: payload.location.latitude ?? branch.location.latitude,
+          longitude: payload.location.longitude ?? branch.location.longitude,
+        }
+      }
       if (payload.contact) branch.contact = { ...branch.contact, ...payload.contact }
       if (payload.managerId !== undefined) branch.managerId = payload.managerId
       if (payload.businessHours) branch.businessHours = payload.businessHours
@@ -692,9 +709,9 @@ export const branchManagementService = {
         coverImage: branch.coverImage,
         heroImage: branch.heroImage,
       })
-      if (payload.image || payload.removeImage) branch.image = images.image
-      if (payload.coverImage || payload.removeCoverImage) branch.coverImage = images.coverImage
-      if (payload.heroImage || payload.removeHeroImage) branch.heroImage = images.heroImage
+      if (payload.image_asset_id !== undefined) branch.image = images.image
+      if (payload.cover_image_asset_id !== undefined) branch.coverImage = images.coverImage
+      if (payload.hero_image_asset_id !== undefined) branch.heroImage = images.heroImage
       if (payload.timeZone !== undefined) branch.timeZone = payload.timeZone
       if (payload.currency !== undefined) branch.currency = payload.currency
       if (payload.language !== undefined) branch.language = payload.language
@@ -706,9 +723,7 @@ export const branchManagementService = {
       branch.updated_at = new Date().toISOString()
       return { ...branch }
     }
-    const formData = buildBranchFormData(payload)
-    const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), formData, {
-      ...multipartRequestConfig(),
+    const res = await api.patch<Branch>(ENDPOINTS.BRANCHES.UPDATE(id), payload, {
       params: { tenantId },
     })
     return res.data

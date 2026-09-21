@@ -1,6 +1,5 @@
 import type { ImageFieldValue } from '@/components/ImageUploader'
 import { EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
-import { appendImageField } from '@/lib/multipart'
 import {
   DEFAULT_BRANCH_CHECKOUT,
   mergeBranchCheckout,
@@ -186,12 +185,9 @@ export interface BranchWriteRequest {
   marketplaceVisible?: boolean
   reservationsEnabled?: boolean
   maxCapacity?: number
-  image?: File
-  coverImage?: File
-  heroImage?: File
-  removeImage?: boolean
-  removeCoverImage?: boolean
-  removeHeroImage?: boolean
+  image_asset_id?: import('@/types/upload').AssetId | null
+  cover_image_asset_id?: import('@/types/upload').AssetId | null
+  hero_image_asset_id?: import('@/types/upload').AssetId | null
   isDefault?: boolean
   timeZone?: string
   currency?: string
@@ -230,9 +226,9 @@ export interface BranchCreateRequest {
   maxCapacity?: number
   cuisines?: string[]
   amenities?: string[]
-  image?: File
-  coverImage?: File
-  heroImage?: File
+  image_asset_id?: import('@/types/upload').AssetId | null
+  cover_image_asset_id?: import('@/types/upload').AssetId | null
+  hero_image_asset_id?: import('@/types/upload').AssetId | null
 }
 
 function buildLocation(
@@ -264,13 +260,17 @@ function buildContact(form: BranchFormState): BranchWriteContact {
   }
 }
 
-function appendImagesFromForm(request: { image?: File; coverImage?: File; heroImage?: File; removeImage?: boolean; removeCoverImage?: boolean; removeHeroImage?: boolean }, form: BranchFormState) {
-  if (form.image.file) request.image = form.image.file
-  else if (form.image.cleared) request.removeImage = true
-  if (form.coverImage.file) request.coverImage = form.coverImage.file
-  else if (form.coverImage.cleared) request.removeCoverImage = true
-  if (form.heroImage.file) request.heroImage = form.heroImage.file
-  else if (form.heroImage.cleared) request.removeHeroImage = true
+function appendImagesFromForm(
+  request: {
+    image_asset_id?: string | null
+    cover_image_asset_id?: string | null
+    hero_image_asset_id?: string | null
+  },
+  form: BranchFormState,
+) {
+  if (!form.image.file && form.image.cleared) request.image_asset_id = null
+  if (!form.coverImage.file && form.coverImage.cleared) request.cover_image_asset_id = null
+  if (!form.heroImage.file && form.heroImage.cleared) request.hero_image_asset_id = null
 }
 
 export function flattenCheckoutForCreate(checkout: BranchCheckout): Pick<
@@ -357,89 +357,6 @@ export function branchFormToCreateRequest(form: BranchFormState): BranchCreateRe
   }
   appendImagesFromForm(request, form)
   return request
-}
-
-function appendBool(form: FormData, key: string, value: boolean | undefined) {
-  if (value != null) form.append(key, String(value))
-}
-
-/** Multipart list-of-strings: repeated keys so DRF ListField sees a list, not a JSON string. */
-function appendStringList(form: FormData, key: string, values?: string[]) {
-  if (values == null) return
-  for (const value of values) {
-    form.append(key, value)
-  }
-}
-
-export function buildBranchFormData(
-  payload: BranchWriteRequest,
-  options?: { tenantId?: string },
-): FormData {
-  const form = new FormData()
-
-  if (options?.tenantId) {
-    form.append('tenantId', options.tenantId)
-  }
-
-  if (payload.name != null) form.append('name', payload.name)
-  if (payload.description != null) form.append('description', payload.description)
-  if (payload.type != null) form.append('type', payload.type)
-  if (payload.location != null) form.append('location', JSON.stringify(payload.location))
-  if (payload.contact != null) form.append('contact', JSON.stringify(payload.contact))
-  if (payload.managerId != null) form.append('managerId', payload.managerId)
-  if (payload.businessHours != null) form.append('businessHours', JSON.stringify(payload.businessHours))
-  if (payload.checkout != null) form.append('checkout', JSON.stringify(payload.checkout))
-  if (payload.marketplaceVisible != null) form.append('marketplaceVisible', String(payload.marketplaceVisible))
-  if (payload.reservationsEnabled != null) form.append('reservationsEnabled', String(payload.reservationsEnabled))
-  if (payload.maxCapacity != null) form.append('maxCapacity', String(payload.maxCapacity))
-  if (payload.isDefault != null) form.append('isDefault', String(payload.isDefault))
-  if (payload.timeZone != null) form.append('timeZone', payload.timeZone)
-  if (payload.currency != null) form.append('currency', payload.currency)
-  if (payload.language != null) form.append('language', payload.language)
-  appendStringList(form, 'cuisines', payload.cuisines)
-  appendStringList(form, 'amenities', payload.amenities)
-
-  appendImageField(form, 'image', payload.image, payload.removeImage)
-  appendImageField(form, 'coverImage', payload.coverImage, payload.removeCoverImage)
-  appendImageField(form, 'heroImage', payload.heroImage, payload.removeHeroImage)
-
-  return form
-}
-
-export function buildBranchCreateFormData(payload: BranchCreateRequest): FormData {
-  const form = new FormData()
-  form.append('name', payload.name)
-  if (payload.description != null) form.append('description', payload.description)
-  form.append('type', payload.type)
-  form.append('location', JSON.stringify(payload.location))
-  if (payload.contact != null) form.append('contact', JSON.stringify(payload.contact))
-  form.append('businessHours', JSON.stringify(payload.businessHours))
-  appendBool(form, 'isDefault', payload.isDefault)
-  appendBool(form, 'orderingEnabled', payload.orderingEnabled)
-  appendBool(form, 'deliveryEnabled', payload.deliveryEnabled)
-  appendBool(form, 'pickupEnabled', payload.pickupEnabled)
-  appendBool(form, 'tableOrderingEnabled', payload.tableOrderingEnabled)
-  if (payload.deliveryRadius != null) form.append('deliveryRadius', String(payload.deliveryRadius))
-  if (payload.minimumOrder != null) form.append('minimumOrder', payload.minimumOrder)
-  if (payload.defaultOrderType != null) form.append('defaultOrderType', payload.defaultOrderType)
-  appendBool(form, 'cashPaymentEnabled', payload.cashPaymentEnabled)
-  appendBool(form, 'cardPaymentEnabled', payload.cardPaymentEnabled)
-  appendBool(form, 'onlinePaymentEnabled', payload.onlinePaymentEnabled)
-  appendBool(form, 'walletPaymentEnabled', payload.walletPaymentEnabled)
-  appendBool(form, 'cashOnDeliveryEnabled', payload.cashOnDeliveryEnabled)
-  if (payload.defaultPaymentMethod != null) form.append('defaultPaymentMethod', payload.defaultPaymentMethod)
-  appendBool(form, 'sameDayDeliveryEnabled', payload.sameDayDeliveryEnabled)
-  appendBool(form, 'scheduledDeliveryEnabled', payload.scheduledDeliveryEnabled)
-  appendBool(form, 'contactlessDeliveryEnabled', payload.contactlessDeliveryEnabled)
-  appendBool(form, 'marketplaceVisible', payload.marketplaceVisible)
-  appendBool(form, 'reservationsEnabled', payload.reservationsEnabled)
-  if (payload.maxCapacity != null) form.append('maxCapacity', String(payload.maxCapacity))
-  appendStringList(form, 'cuisines', payload.cuisines)
-  appendStringList(form, 'amenities', payload.amenities)
-  appendImageField(form, 'image', payload.image)
-  appendImageField(form, 'coverImage', payload.coverImage)
-  appendImageField(form, 'heroImage', payload.heroImage)
-  return form
 }
 
 export function mapBranchUpdateError(err: unknown): string {

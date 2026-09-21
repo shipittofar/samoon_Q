@@ -2,7 +2,6 @@ import { getAccessToken } from './axios.instance'
 import type { PlatformHomepageHero } from '@/types/website-builder'
 
 const HERO_PATH = '/api/platform/homepage/hero/'
-const MEDIA_PATH = '/api/platform/homepage/hero/media/'
 
 function authHeaders(json = false): HeadersInit {
   const headers: Record<string, string> = {}
@@ -16,6 +15,7 @@ function authHeaders(json = false): HeadersInit {
  * Platform Homepage CMS client.
  * Reads/writes the Next BFF (`/api/platform/homepage/*`), which enforces
  * Platform Super Admin on mutations. Never writes tenant websiteBuilder.
+ * Media uses the shared direct-upload service, not this BFF.
  */
 export const platformHomepageService = {
   async getHero(): Promise<PlatformHomepageHero> {
@@ -33,18 +33,5 @@ export const platformHomepageService = {
     })
     if (!res.ok) throw new Error(`platform_homepage_${res.status}`)
     return res.json() as Promise<PlatformHomepageHero>
-  },
-
-  async uploadMedia(file: File): Promise<{ url: string }> {
-    const form = new FormData()
-    form.append('image', file)
-    const res = await fetch(MEDIA_PATH, {
-      method: 'POST',
-      credentials: 'include',
-      headers: authHeaders(false),
-      body: form,
-    })
-    if (!res.ok) throw new Error(`platform_homepage_media_${res.status}`)
-    return res.json() as Promise<{ url: string }>
   },
 }

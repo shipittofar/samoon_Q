@@ -9,6 +9,7 @@ import {
   getMarketplaceMeta,
 } from '@/types/marketplace'
 import { mapDiscoverTenantToItem } from '@/lib/discover-adapter'
+import type { DiscoverTenant } from '@/types/discover'
 import { resolvePublicBranchList } from '@/lib/public-branches'
 import { resolveTenantImage } from '@/lib/tenant-branding'
 import { buildTenantMetadata, buildBranchMetadata } from '@/utils/public-context'

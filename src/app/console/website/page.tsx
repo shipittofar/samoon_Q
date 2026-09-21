@@ -14,7 +14,7 @@ import { useTenantStore, useBranchStore } from '@/stores'
 import { HeroBackgroundGallery } from '@/components/admin/HeroBackgroundGallery'
 import { useHomepageLayout, useSaveLayout, usePublishLayout,
   useRestoreVersion, useBranchOverrides, useSaveBranchOverrides,
-  useConsoleTenantId, useUploadWebsiteMedia,
+  useConsoleTenantId,
 } from '@/hooks'
 import type {
   HomepageLayout, SectionConfig, SectionKey, HeroContent,
@@ -358,7 +358,6 @@ function HeroTab({
   onHeroConfigChange: (h: HeroConfig) => void
 }) {
   const t = useTranslations('console')
-  const uploadMedia = useUploadWebsiteMedia(tenantId)
   const setHero = <K extends keyof HeroContent>(k: K, v: HeroContent[K]) => onHeroChange({ ...hero, [k]: v })
   const setConfig = <K extends keyof HeroConfig>(k: K, v: HeroConfig[K]) => onHeroConfigChange({ ...heroConfig, [k]: v })
 
@@ -435,10 +434,9 @@ function HeroTab({
             })
             onHeroConfigChange({ ...heroConfig, backgroundImage: first })
           }}
-          onUpload={async (file) => {
-            const { url } = await uploadMedia.mutateAsync(file)
-            return url
-          }}
+          purpose="website_hero"
+          entityType="tenant"
+          entityId={tenantId}
           intervalMs={hero.slideshowIntervalMs ?? DEFAULT_HERO_SLIDESHOW_INTERVAL_MS}
           transitionMs={hero.slideshowTransitionMs ?? DEFAULT_HERO_SLIDESHOW_TRANSITION_MS}
           onIntervalChange={(slideshowIntervalMs) => setHero('slideshowIntervalMs', slideshowIntervalMs)}

@@ -21,7 +21,7 @@ export interface TenantProvisionRequest {
   capabilityOverrides?: Record<string, boolean>
   branding?: TenantBrandingConfig
   /**
-   * Tenant logo file — uploaded as multipart `image` (Tenant.image).
+   * Tenant logo file — uploaded first; provision JSON receives `image_asset_id`.
    * Never nested under settings.theme / branding.
    */
   image?: File | null

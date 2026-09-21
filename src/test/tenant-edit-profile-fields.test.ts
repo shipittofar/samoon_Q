@@ -58,7 +58,7 @@ describe('Edit Tenant — gallery ImageUploader', () => {
   it('reuses ImageUploader for marketplace.gallery URLs', () => {
     expect(FORM).toContain('id={`tenant-gallery-${index}`}')
     expect(FORM).toContain('<ImageUploader')
-    expect(FORM).toContain('galleryUrlsFromImageFields(galleryFields, mockImageUrlFromFile)')
+    expect(FORM).toContain('persistableMediaUrl')
     expect(FORM).toContain('setGalleryFields((prev) => [...prev, { ...EMPTY_IMAGE_FIELD }])')
     expect(FORM).not.toMatch(/textarea value=\{gallery\}/)
   })
@@ -67,7 +67,7 @@ describe('Edit Tenant — gallery ImageUploader', () => {
     const existing: ImageFieldValue = { ...EMPTY_IMAGE_FIELD, existingUrl: 'https://cdn.example/a.jpg' }
     const emptyNew: ImageFieldValue = { ...EMPTY_IMAGE_FIELD }
     const added = [existing, emptyNew]
-    expect(galleryUrlsFromImageFields(added, () => 'blob:new')).toEqual(['https://cdn.example/a.jpg'])
+    expect(galleryUrlsFromImageFields(added, () => 'https://cdn.example/new.jpg')).toEqual(['https://cdn.example/a.jpg'])
 
     const withFile: ImageFieldValue = { file: new File(['x'], 'b.png', { type: 'image/png' }), existingUrl: '', cleared: false }
     expect(

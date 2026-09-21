@@ -22,6 +22,7 @@ import {
   categoryToFormInput,
   type CategoryFormInput,
 } from '@/types'
+import { withUploadedImage } from '@/lib/image-asset-write'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -88,12 +89,12 @@ export default function AdminCategoriesPage() {
     setEditOpen(true)
   }
 
-  const submitEdit = () => {
+  const submitEdit = async () => {
     if (!editCategory || updateMutation.isPending) return
     const validationError = validateCategoryForm(editForm)
     if (validationError) { setEditError(validationError); return }
     setEditError(null)
-    updateMutation.mutate({ id: editCategory.id, payload: categoryFormToWriteRequest(editForm) }, {
+    updateMutation.mutate({ id: editCategory.id, payload: await withUploadedImage(categoryFormToWriteRequest(editForm), editForm.image, 'menu_category') }, {
       onSuccess: () => { setEditOpen(false); setEditCategory(null) },
     })
   }

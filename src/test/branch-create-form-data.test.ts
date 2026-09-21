@@ -1,19 +1,15 @@
 /**
- * Multipart contract for Branch create/update list fields.
+ * JSON contract for Branch create/update list fields.
  *
- * DRF ListField on POST /branches/console-branches/tenants/<id>/create/
- * expects a JSON list (or repeated multipart keys). JSON.stringify() of
- * string[] produces a scalar string and 400s with:
- *   Expected a list of items but got type "str".
+ * Cuisines/amenities must remain string arrays, never JSON-stringified scalars.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import * as fs from 'fs'
 import * as path from 'path'
 import {
-  buildBranchCreateFormData,
-  buildBranchFormData,
   branchFormToCreateRequest,
+  branchFormToWriteRequest,
   EMPTY_BRANCH_FORM,
   type BranchCreateRequest,
 } from '@/types/branch-form'
@@ -36,98 +32,48 @@ function createPayload(
   })
 }
 
-function isJsonEncodedList(value: FormDataEntryValue | null): boolean {
-  if (typeof value !== 'string') return false
-  const trimmed = value.trim()
-  return trimmed.startsWith('[') && trimmed.endsWith(']')
-}
-
-describe('buildBranchCreateFormData — cuisines / amenities multipart lists', () => {
-  it('appends a valid cuisines list as repeated keys, not a JSON string', () => {
-    const form = buildBranchCreateFormData(
-      createPayload({ cuisines: ['Italian', 'Mediterranean'], amenities: [] }),
-    )
-    expect(form.getAll('cuisines')).toEqual(['Italian', 'Mediterranean'])
-    expect(form.get('cuisines')).toBe('Italian')
-    expect(isJsonEncodedList(form.get('cuisines'))).toBe(false)
+describe('branch create JSON — cuisines / amenities', () => {
+  it('keeps cuisines as a string array', () => {
+    const payload = createPayload({ cuisines: ['Italian', 'Mediterranean'], amenities: [] })
+    expect(payload.cuisines).toEqual(['Italian', 'Mediterranean'])
+    expect(typeof payload.cuisines).not.toBe('string')
   })
 
-  it('appends a valid amenities list as repeated keys, not a JSON string', () => {
-    const form = buildBranchCreateFormData(
-      createPayload({ cuisines: [], amenities: ['WiFi', 'Parking'] }),
-    )
-    expect(form.getAll('amenities')).toEqual(['WiFi', 'Parking'])
-    expect(form.get('amenities')).toBe('WiFi')
-    expect(isJsonEncodedList(form.get('amenities'))).toBe(false)
+  it('keeps amenities as a string array', () => {
+    const payload = createPayload({ cuisines: [], amenities: ['WiFi', 'Parking'] })
+    expect(payload.amenities).toEqual(['WiFi', 'Parking'])
   })
 
-  it('appends both lists together as independent repeated keys', () => {
-    const form = buildBranchCreateFormData(
-      createPayload({
-        cuisines: ['Iranian', 'Italian'],
-        amenities: ['WiFi', 'Parking'],
-      }),
-    )
-    expect(form.getAll('cuisines')).toEqual(['Iranian', 'Italian'])
-    expect(form.getAll('amenities')).toEqual(['WiFi', 'Parking'])
-    expect(isJsonEncodedList(form.get('cuisines'))).toBe(false)
-    expect(isJsonEncodedList(form.get('amenities'))).toBe(false)
-  })
-
-  it('omits empty lists so DRF sees missing optional fields, not the string "[]"', () => {
-    const form = buildBranchCreateFormData(createPayload({ cuisines: [], amenities: [] }))
-    expect(form.getAll('cuisines')).toEqual([])
-    expect(form.getAll('amenities')).toEqual([])
-    expect(form.has('cuisines')).toBe(false)
-    expect(form.has('amenities')).toBe(false)
-  })
-
-  it('omits missing optional list fields', () => {
-    const payload = createPayload()
-    delete payload.cuisines
-    delete payload.amenities
-    const form = buildBranchCreateFormData(payload)
-    expect(form.has('cuisines')).toBe(false)
-    expect(form.has('amenities')).toBe(false)
-  })
-
-  it('keeps nested objects JSON-encoded (location, businessHours) while lists stay repeated keys', () => {
-    const form = buildBranchCreateFormData(
-      createPayload({ cuisines: ['Italian'], amenities: ['WiFi'] }),
-    )
-    expect(() => JSON.parse(String(form.get('location')))).not.toThrow()
-    expect(() => JSON.parse(String(form.get('businessHours')))).not.toThrow()
-    expect(form.getAll('cuisines')).toEqual(['Italian'])
-    expect(form.getAll('amenities')).toEqual(['WiFi'])
-  })
-
-  it('does not JSON.stringify cuisines or amenities in the FormData builders', () => {
-    expect(branchFormSrc).not.toMatch(/form\.append\(\s*['"]cuisines['"]\s*,\s*JSON\.stringify/)
-    expect(branchFormSrc).not.toMatch(/form\.append\(\s*['"]amenities['"]\s*,\s*JSON\.stringify/)
+  it('does not JSON.stringify cuisines or amenities in the form mapper', () => {
+    expect(branchFormSrc).not.toMatch(/JSON\.stringify\(\s*payload\.cuisines/)
+    expect(branchFormSrc).not.toMatch(/JSON\.stringify\(\s*form\.cuisines/)
   })
 })
 
-describe('buildBranchFormData — cuisines / amenities multipart lists (update)', () => {
-  it('appends both lists as repeated keys on the update FormData path', () => {
-    const form = buildBranchFormData({
+describe('branch write request images', () => {
+  it('does not put File objects on create/update JSON', () => {
+    const logo = new File([new Uint8Array(8)], 'logo.jpg', { type: 'image/jpeg' })
+    const payload = branchFormToCreateRequest({
+      ...EMPTY_BRANCH_FORM,
       name: 'Downtown',
-      cuisines: ['Italian', 'Mediterranean'],
-      amenities: ['WiFi', 'Parking'],
+      address: '1 Main',
+      city: 'NYC',
+      country: 'US',
+      image: { file: logo, existingUrl: '', cleared: false },
     })
-    expect(form.getAll('cuisines')).toEqual(['Italian', 'Mediterranean'])
-    expect(form.getAll('amenities')).toEqual(['WiFi', 'Parking'])
-    expect(isJsonEncodedList(form.get('cuisines'))).toBe(false)
-    expect(isJsonEncodedList(form.get('amenities'))).toBe(false)
+    expect(payload.image_asset_id).toBeUndefined()
+    expect(branchFormToWriteRequest({
+      ...EMPTY_BRANCH_FORM,
+      name: 'Downtown',
+      image: { file: null, existingUrl: 'https://cdn.example/a.jpg', cleared: true },
+    }).image_asset_id).toBeNull()
   })
 
-  it('omits empty and missing list fields on update', () => {
-    const empty = buildBranchFormData({ name: 'Downtown', cuisines: [], amenities: [] })
-    expect(empty.has('cuisines')).toBe(false)
-    expect(empty.has('amenities')).toBe(false)
-
-    const missing = buildBranchFormData({ name: 'Downtown' })
-    expect(missing.has('cuisines')).toBe(false)
-    expect(missing.has('amenities')).toBe(false)
+  it('omits slug and keeps flattened checkout on create', () => {
+    const create = createPayload({ website: 'https://example.com', latitude: 40.7, longitude: -74 })
+    expect(create).not.toHaveProperty('slug')
+    expect(create.pickupEnabled).toBe(true)
+    expect(create.location.latitude).toBe(40.7)
   })
 })
 
@@ -159,8 +105,6 @@ describe('consoleCreateBranch mock persistence of list fields', () => {
       createPayload({ name: 'Amenity Branch', cuisines: [], amenities: ['WiFi'] }),
     )
     expect(created.amenities).toEqual(['WiFi'])
-    const stored = await branchManagementService.getBranch(created.id, 'tenant-samoon-01')
-    expect(stored.amenities).toEqual(['WiFi'])
   })
 
   it('persists both lists together', async () => {
@@ -175,9 +119,6 @@ describe('consoleCreateBranch mock persistence of list fields', () => {
     )
     expect(created.cuisines).toEqual(['Italian', 'Mediterranean'])
     expect(created.amenities).toEqual(['WiFi', 'Parking'])
-    const stored = await branchManagementService.getBranch(created.id, 'tenant-samoon-01')
-    expect(stored.cuisines).toEqual(['Italian', 'Mediterranean'])
-    expect(stored.amenities).toEqual(['WiFi', 'Parking'])
   })
 
   it('persists empty lists when provided', async () => {

@@ -144,7 +144,7 @@ import type {
 } from '@/types'
 import { buildDrfPaginationParams } from '@/utils/pagination'
 import { publicBranchFromDetail, type PublicBranchInfo } from '@/types/marketplace'
-import type { Tenant, User } from '@/types'
+import type { Tenant } from '@/types'
 import { resolvePublicBranchList } from '@/lib/public-branches'
 import { mergeBranchCheckout } from '@/lib/branch-checkout'
 import { adaptDiscoverResponse } from '@/lib/discover-adapter'
@@ -1344,6 +1344,7 @@ export function useConsoleCreateBranch(tenantId: string) {
   return useMutation({
     mutationFn: (payload: BranchCreateRequest) =>
       branchManagementService.consoleCreateBranch(tenantId, payload),
+    retry: 0,
     onSuccess: (branch) => {
       synchronizeBranchMutation(qc, tenantId, branch)
     },
@@ -1363,7 +1364,14 @@ export function useUpdateBranch() {
         qc.setQueryData<BranchEntity>(['admin-branch', tenantId, id], {
           ...snapshot,
           ...(payload.name !== undefined && { name: payload.name }),
-          ...(payload.location && { location: { ...snapshot.location, ...payload.location } }),
+          ...(payload.location && {
+            location: {
+              ...snapshot.location,
+              ...payload.location,
+              latitude: payload.location.latitude ?? snapshot.location.latitude,
+              longitude: payload.location.longitude ?? snapshot.location.longitude,
+            },
+          }),
           ...(payload.contact && { contact: { ...snapshot.contact, ...payload.contact } }),
           ...(payload.managerId !== undefined && { managerId: payload.managerId }),
           ...(payload.businessHours && { businessHours: payload.businessHours }),
@@ -2406,7 +2414,7 @@ export function useUpdateCategory(branchId: string) {
     mutationFn: ({ id, payload }: { id: string; payload: CategoryWriteRequest }) =>
       menuService.updateCategory(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
-      const { image: _image, removeImage: _removeImage, ...optimistic } = payload
+      const { image_asset_id: _image, ...optimistic } = payload
       const predicate = categoriesQueryPredicate(branchId)
       await qc.cancelQueries({ predicate })
       const snapshots = qc.getQueriesData<Category[]>({ predicate })
@@ -2561,7 +2569,7 @@ export function useUpdateMenuTag(branchId: string) {
     mutationFn: ({ id, payload }: { id: number; payload: TagWriteRequest }) =>
       menuService.updateTag(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
-      const { image: _image, removeImage: _removeImage, ...optimistic } = payload
+      const { image_asset_id: _image, ...optimistic } = payload
       const predicate = consoleMenuTagsQueryPredicate(branchId)
       await qc.cancelQueries({ predicate })
       const snapshots = qc.getQueriesData<PaginatedResponse<ConsoleMenuTag>>({ predicate })
@@ -2762,7 +2770,7 @@ export function useUpdateExtra(branchId: string) {
     mutationFn: ({ id, payload }: { id: string; payload: ExtraWriteRequest }) =>
       menuService.updateExtra(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
-      const { image: _image, removeImage: _removeImage, ...optimistic } = payload
+      const { image_asset_id: _image, ...optimistic } = payload
       const predicate = extrasQueryPredicate(branchId)
       await qc.cancelQueries({ predicate })
       const snapshots = qc.getQueriesData<Extra[]>({ predicate })
@@ -2851,7 +2859,7 @@ export function useUpdateMenuItem(branchId: string) {
     mutationFn: ({ id, payload }: { id: string; payload: MenuItemWriteRequest }) =>
       menuService.updateItem(branchId, id, payload),
     onMutate: async ({ id, payload }) => {
-      const { image: _image, removeImage: _removeImage, ...optimistic } = payload
+      const { image_asset_id: _image, ...optimistic } = payload
       return updateBranchMenuItemsQueries(qc, branchId, (old) => ({
         ...old,
         results: old.results.map((i) => (i.id === id ? { ...i, ...optimistic } : i)),
@@ -4618,6 +4626,7 @@ export function useReviewAnalytics(tenantId: string) {
 // ── Website Builder Hooks — P8.8.6 ───────────────────────────────────────────
 
 import { websiteBuilderService } from '@/services/website-builder.service'
+import { uploadService } from '@/services/upload.service'
 import type { HomepageLayout, BranchContentOverrides } from '@/types/website-builder'
 
 export function useHomepageLayout(tenantId: string) {
@@ -4682,9 +4691,11 @@ export function useSaveBranchOverrides(tenantId: string, branchId: string) {
   })
 }
 
-export function useUploadWebsiteMedia(tenantId: string) {
+export function useUploadWebsiteMedia(_tenantId: string) {
   return useMutation({
-    mutationFn: (file: File) => websiteBuilderService.uploadMedia(tenantId, file),
+    mutationFn: async (file: File) =>
+      uploadService.uploadFile({ file, purpose: 'website_media', entityType: 'tenant', entityId: _tenantId }),
+    retry: 0,
   })
 }
 
@@ -4712,7 +4723,9 @@ export function useSavePlatformHomepageHero() {
 
 export function useUploadPlatformHomepageMedia() {
   return useMutation({
-    mutationFn: (file: File) => platformHomepageService.uploadMedia(file),
+    mutationFn: async (file: File) =>
+      uploadService.uploadFile({ file, purpose: 'platform_hero', entityType: 'platform', entityId: 'homepage' }),
+    retry: 0,
   })
 }
 

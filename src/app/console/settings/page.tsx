@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Settings, Palette, Clock, Plug, Bell, Save, CheckCircle, Loader2, Globe, ToggleLeft, ToggleRight, XCircle, Flag } from 'lucide-react'
-import { getMarketplaceMeta, pickTenantMarketplace } from '@/types/marketplace'
+import { getMarketplaceMeta, pickTenantMarketplace, gallerySrcList } from '@/types/marketplace'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -345,7 +345,7 @@ function PublicProfileTab() {
   const [tags, setTags] = useState(existingMeta?.tags?.join(', ') ?? '')
   const [priceLevel, setPriceLevel] = useState<string>(String(existingMeta?.priceLevel ?? ''))
   const [website, setWebsite] = useState(existingMeta?.website ?? '')
-  const [gallery, setGallery] = useState(existingMeta?.gallery?.join('\n') ?? '')
+  const [gallery, setGallery] = useState(gallerySrcList(existingMeta?.gallery).join('\n'))
   const [instagram, setInstagram] = useState(existingMeta?.socialLinks?.instagram ?? '')
   const [twitter, setTwitter] = useState(existingMeta?.socialLinks?.twitter ?? '')
   const [facebook, setFacebook] = useState(existingMeta?.socialLinks?.facebook ?? '')
@@ -362,7 +362,7 @@ function PublicProfileTab() {
       setTags(m.tags?.join(', ') ?? '')
       setPriceLevel(String(m.priceLevel ?? ''))
       setWebsite(m.website ?? '')
-      setGallery(m.gallery?.join('\n') ?? '')
+      setGallery(gallerySrcList(m.gallery).join('\n'))
       setInstagram(m.socialLinks?.instagram ?? '')
       setTwitter(m.socialLinks?.twitter ?? '')
       setFacebook(m.socialLinks?.facebook ?? '')

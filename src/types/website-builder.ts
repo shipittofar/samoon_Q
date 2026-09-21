@@ -58,6 +58,8 @@ export type HeroObjectPosition = 'center' | 'top' | 'bottom' | 'left' | 'right'
 export interface HeroBackgroundImage {
   id: string
   src: string
+  /** Present for newly uploaded frames. Legacy records may only have `src`. */
+  assetId?: string
   order: number
   altText?: string
   enabled?: boolean

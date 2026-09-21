@@ -21,7 +21,7 @@ import { ReviewsSection } from '@/components/reviews/ReviewsSection'
 import { BranchHeroFeatures } from '@/components/marketplace/BranchHeroFeatures'
 import { HeroBackground } from '@/components/home/HeroBackground'
 import { resolveHeroBackgroundImages } from '@/lib/hero-background'
-import { getMarketplaceMeta, type PublicBranchInfo } from '@/types/marketplace'
+import { getMarketplaceMeta, gallerySrcList, type PublicBranchInfo } from '@/types/marketplace'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
 
@@ -711,7 +711,7 @@ export default function BranchHomepageClient({
   const accentColor = 'var(--accent)'
 
   const allBranches = publicBranches
-  const tenantGallery = meta?.gallery ?? []
+  const tenantGallery = gallerySrcList(meta?.gallery)
   const galleryImages = [
     ...(branch.coverImage ? [branch.coverImage] : []),
     ...tenantGallery.filter((url) => url !== branch.coverImage),

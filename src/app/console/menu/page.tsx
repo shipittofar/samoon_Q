@@ -18,6 +18,7 @@ import { applyConsoleMenuClientFilters } from '@/lib/console-menu-client-filters
 import { useConsoleMenuItems, useConsoleCategories, useConsoleCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useConsoleExtraGroups, useAssignExtraGroupsToItem, useConsoleMenuTags, useSelectedBranch, useBranchState, useIsBranchReady, usePermission } from '@/hooks'
 import type { Category, MenuItem, MenuItemFormInput } from '@/types'
 import { menuItemFormToWriteRequest, menuItemToFormInput } from '@/types'
+import { withUploadedImage } from '@/lib/image-asset-write'
 import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
@@ -119,7 +120,7 @@ export default function AdminMenuPage() {
     setCreateOpen(true)
   }
 
-  const submitCreate = () => {
+  const submitCreate = async () => {
     // Phase 3.6 — no menu-item creation may execute unless the branch
     // resolution state machine is 'ready' with a real selectedBranch.
     // adminBranchId alone already encodes that (see its derivation
@@ -127,7 +128,7 @@ export default function AdminMenuPage() {
     // so this guard doesn't silently depend on adminBranchId' s specific
     // implementation staying in sync.
     if (branchState !== 'ready' || !selectedBranch || !adminBranchId) return
-    createMutation.mutate(menuItemFormToWriteRequest(createForm), {
+    createMutation.mutate(await withUploadedImage(menuItemFormToWriteRequest(createForm), createForm.image, 'menu_item'), {
       onSuccess: (created) => {
         setCreateOpen(false)
         setCreateForm(EMPTY_FORM)
@@ -146,9 +147,9 @@ export default function AdminMenuPage() {
     setEditOpen(true)
   }
 
-  const submitEdit = () => {
+  const submitEdit = async () => {
     if (!editItem) return
-    updateMutation.mutate({ id: editItem.id, payload: menuItemFormToWriteRequest(editForm) }, {
+    updateMutation.mutate({ id: editItem.id, payload: await withUploadedImage(menuItemFormToWriteRequest(editForm), editForm.image, 'menu_item') }, {
       onSuccess: () => {
         setEditOpen(false)
         // Attach/detach Extra Groups and re-materialize `extras` for cart/checkout.

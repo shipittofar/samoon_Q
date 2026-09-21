@@ -194,7 +194,7 @@ describe('branch form coordinate serialization', () => {
     })
     expect(payload.location?.latitude).toBe(43.1234)
     expect(payload.location?.longitude).toBe(23.4567)
-    expect(payload.slug).toBeUndefined()
+    expect('slug' in payload).toBe(false)
     expect(payload.checkout).toBeTruthy()
     expect(payload).not.toHaveProperty('tableOrderingEnabled')
   })

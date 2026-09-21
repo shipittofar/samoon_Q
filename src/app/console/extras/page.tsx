@@ -23,6 +23,7 @@ import {
   extraFormToWriteRequest,
   extraToFormInput,
 } from '@/types'
+import { withUploadedImage } from '@/lib/image-asset-write'
 import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -273,14 +274,14 @@ export default function AdminExtrasPage() {
     setExtraCreateError(null)
   }
 
-  const submitExtraCreate = () => {
+  const submitExtraCreate = async () => {
     if (!extraCreateGroupId || createExtraMutation.isPending) return
     const groupExtras = extrasByGroup.get(extraCreateGroupId) ?? []
     const validationError = validateExtraForm(extraCreateForm, groupExtras)
     if (validationError) { setExtraCreateError(validationError); return }
     setExtraCreateError(null)
     createExtraMutation.mutate(
-      { ...extraFormToWriteRequest(extraCreateForm), group_id: extraCreateGroupId },
+      { ...(await withUploadedImage(extraFormToWriteRequest(extraCreateForm), extraCreateForm.image, 'menu_extra')), group_id: extraCreateGroupId },
       { onSuccess: () => { setExtraCreateGroupId(null); setExtraCreateForm(EMPTY_EXTRA_FORM) } },
     )
   }
@@ -291,13 +292,13 @@ export default function AdminExtrasPage() {
     setExtraEditError(null)
   }
 
-  const submitExtraEdit = () => {
+  const submitExtraEdit = async () => {
     if (!editExtra || updateExtraMutation.isPending) return
     const groupExtras = extrasByGroup.get(editExtra.group_id ?? '') ?? []
     const validationError = validateExtraForm(extraEditForm, groupExtras, editExtra.id)
     if (validationError) { setExtraEditError(validationError); return }
     setExtraEditError(null)
-    updateExtraMutation.mutate({ id: editExtra.id, payload: extraFormToWriteRequest(extraEditForm) }, {
+    updateExtraMutation.mutate({ id: editExtra.id, payload: await withUploadedImage(extraFormToWriteRequest(extraEditForm), extraEditForm.image, 'menu_extra') }, {
       onSuccess: () => setEditExtra(null),
     })
   }

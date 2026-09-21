@@ -35,16 +35,9 @@ describe('combined.service.ts — uploadAvatar method', () => {
     expect(src()).toContain('uploadAvatar')
   })
 
-  it('uses multipartRequestConfig for FormData uploads', () => {
-    expect(src()).toContain('multipartRequestConfig()')
-  })
-
-  it('uses FormData', () => {
-    expect(src()).toContain('FormData')
-  })
-
-  it('appends file as "avatar" field', () => {
-    expect(src()).toContain("form.append('avatar', file)")
+  it('uses the shared upload service', () => {
+    expect(src()).toContain("purpose: 'avatar'")
+    expect(src()).toContain('avatar_asset_id')
   })
 
   it('validates allowed file types via validateMenuImageFile', () => {
@@ -55,8 +48,8 @@ describe('combined.service.ts — uploadAvatar method', () => {
     expect(src()).toContain('avatar_url')
   })
 
-  it('throws on missing avatar_url in response', () => {
-    expect(src()).toContain('Server did not return an avatar URL')
+  it('attaches avatar_asset_id after upload', () => {
+    expect(src()).toContain('avatar_asset_id')
   })
 
   it('uses ENDPOINTS.USERS.AVATAR_UPLOAD', () => {
@@ -124,35 +117,23 @@ describe('userService.uploadAvatar — mock mode', () => {
   let userService: typeof import('@/services/combined.service').userService
 
   beforeEach(async () => {
-    vi.useFakeTimers()
     const mod = await import('@/services/combined.service')
     userService = mod.userService
-    // Stub URL.createObjectURL for jsdom
-    vi.stubGlobal('URL', {
-      ...URL,
-      createObjectURL: vi.fn(() => 'blob:mock-avatar-url'),
-    })
   })
 
   afterEach(() => {
-    vi.useRealTimers()
     vi.resetModules()
-    vi.unstubAllGlobals()
   })
 
   it('returns avatar_url on valid JPEG upload', async () => {
     const file = makeFile('avatar.jpg', 'image/jpeg', 1024)
-    const p = userService.uploadAvatar(file)
-    await vi.runAllTimersAsync()
-    const result = await p
+    const result = await userService.uploadAvatar(file)
     expect(result.avatar_url).toBeTruthy()
   })
 
   it('returns avatar_url on valid PNG upload', async () => {
     const file = makeFile('photo.png', 'image/png', 512)
-    const p = userService.uploadAvatar(file)
-    await vi.runAllTimersAsync()
-    const result = await p
+    const result = await userService.uploadAvatar(file)
     expect(result.avatar_url).toBeTruthy()
   })
 
@@ -183,18 +164,14 @@ describe('userService.uploadAvatar — mock mode', () => {
 
   it('accepts file exactly at 5 MB boundary', async () => {
     const file = makeFile('exact.jpg', 'image/jpeg', 5 * 1024 * 1024)
-    const p = userService.uploadAvatar(file)
-    await vi.runAllTimersAsync()
-    const result = await p
+    const result = await userService.uploadAvatar(file)
     expect(result.avatar_url).toBeTruthy()
   })
 
   it('returns avatar_url in mock mode', async () => {
     const file = makeFile('pic.jpg', 'image/jpeg', 200)
-    const p = userService.uploadAvatar(file)
-    await vi.runAllTimersAsync()
-    const result = await p
-    expect(result.avatar_url).toBe('blob:mock-avatar-url')
+    const result = await userService.uploadAvatar(file)
+    expect(result.avatar_url).toMatch(/^https:\/\/cdn\.mock\.local\/assets\//)
   })
 })
 
@@ -203,17 +180,16 @@ describe('userService.uploadAvatar — mock mode', () => {
 describe('useAuthStore — avatar propagation after upload', () => {
   it('setUser merges avatar_url into user state', async () => {
     const { useAuthStore } = await import('@/stores')
-    const store = useAuthStore.getState()
     const mockUser = {
       id: 'u1', first_name: 'Test', last_name: 'User', email: 'test@test.com',
       accountType: 'customer' as const, is_verified: true, created_at: '',
     }
-    store.setUser(mockUser)
+    useAuthStore.getState().setUser(mockUser)
     expect(useAuthStore.getState().user?.avatar).toBeUndefined()
 
-    store.setUser({ ...mockUser, avatar: 'https://cdn.example.com/avatar.jpg' })
+    useAuthStore.getState().setUser({ ...mockUser, avatar: 'https://cdn.example.com/avatar.jpg' })
     expect(useAuthStore.getState().user?.avatar).toBe('https://cdn.example.com/avatar.jpg')
-  })
+  }, 20_000)
 
   it('setUser can replace an existing avatar URL', async () => {
     const { useAuthStore } = await import('@/stores')

@@ -3,7 +3,7 @@ import { tenantService } from '@/services/tenant.service'
 import { branchManagementService } from '@/services/branch.service'
 import { staffService } from '@/services/staff.service'
 import { hrefToPublicUrl, buildPublicUrl } from '@/utils/public-url'
-import { getMarketplaceMeta } from '@/types/marketplace'
+import { getMarketplaceMeta, gallerySrcList } from '@/types/marketplace'
 
 // ── P8.7.7.5 Ownership Audit Regression Tests ─────────────────────────────────
 
@@ -107,7 +107,7 @@ describe('Gallery and marketplace ownership per tenant', () => {
       .forEach((t) => {
         const meta = getMarketplaceMeta(t.settings)
         if (meta?.gallery && meta.gallery.length > 0) {
-          gallerySets.push(meta.gallery)
+          gallerySets.push(gallerySrcList(meta.gallery))
         }
       })
 

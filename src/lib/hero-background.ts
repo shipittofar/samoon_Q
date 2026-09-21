@@ -17,6 +17,7 @@ function normalizeFrame(img: HeroBackgroundImage, order: number): HeroBackground
   return {
     ...img,
     src: resolveMediaUrl(img.src),
+    assetId: img.assetId,
     order,
     enabled: img.enabled !== false,
   }
@@ -31,7 +32,7 @@ export function resolveHeroBackgroundImages(
   fallbackSrc?: string | null,
 ): HeroBackgroundImage[] {
   const fromCms = [...(hero?.backgroundImages ?? [])]
-    .filter((img) => img && img.enabled !== false && Boolean(img.src?.trim()))
+    .filter((img) => img && img.enabled !== false && Boolean(img.src?.trim()) && !img.src.startsWith('blob:') && !img.src.startsWith('data:'))
     .sort((a, b) => a.order - b.order)
     .map((img, index) => normalizeFrame(img, index))
 
@@ -62,11 +63,3 @@ export function heroSlideshowTransitionMs(hero?: Pick<HeroContent, 'slideshowTra
   return DEFAULT_HERO_SLIDESHOW_TRANSITION_MS
 }
 
-export function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result))
-    reader.onerror = () => reject(reader.error ?? new Error('Failed to read image'))
-    reader.readAsDataURL(file)
-  })
-}

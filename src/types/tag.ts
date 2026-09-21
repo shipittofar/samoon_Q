@@ -1,6 +1,6 @@
 import type { ImageFieldValue } from '@/components/ImageUploader'
-import { appendImageField } from '@/lib/multipart'
 import type { ConsoleMenuTag } from './index'
+import type { AssetId } from '@/types/upload'
 
 export interface TagFormInput {
   name: string
@@ -13,7 +13,6 @@ export interface TagFormInput {
   display_order: string
 }
 
-/** Multipart write request — `image` is a File; response `ConsoleMenuTag.image` is a URL. */
 export interface TagWriteRequest {
   name?: string
   slug?: string
@@ -22,8 +21,7 @@ export interface TagWriteRequest {
   color?: string
   is_active?: boolean
   display_order?: number
-  image?: File
-  removeImage?: boolean
+  image_asset_id?: AssetId | null
 }
 
 export function tagFormToWriteRequest(form: TagFormInput): TagWriteRequest {
@@ -37,29 +35,11 @@ export function tagFormToWriteRequest(form: TagFormInput): TagWriteRequest {
     display_order: form.display_order ? parseInt(form.display_order, 10) : undefined,
   }
 
-  if (form.image.file) {
-    request.image = form.image.file
-  } else if (form.image.cleared) {
-    request.removeImage = true
+  if (!form.image.file && form.image.cleared) {
+    request.image_asset_id = null
   }
 
   return request
-}
-
-export function buildTagFormData(payload: TagWriteRequest): FormData {
-  const form = new FormData()
-
-  if (payload.name != null) form.append('name', payload.name)
-  if (payload.slug != null) form.append('slug', payload.slug)
-  if (payload.description != null) form.append('description', payload.description)
-  if (payload.icon != null) form.append('icon', payload.icon)
-  if (payload.color != null) form.append('color', payload.color)
-  if (payload.is_active != null) form.append('is_active', String(payload.is_active))
-  if (payload.display_order != null) form.append('display_order', String(payload.display_order))
-
-  appendImageField(form, 'image', payload.image, payload.removeImage)
-
-  return form
 }
 
 export function tagToFormInput(tag: ConsoleMenuTag): TagFormInput {

@@ -1,6 +1,6 @@
 import type { ImageFieldValue } from '@/components/ImageUploader'
-import { appendImageField } from '@/lib/multipart'
 import type { Extra } from './index'
+import type { AssetId } from '@/types/upload'
 
 export interface ExtraFormInput {
   name: string
@@ -11,7 +11,6 @@ export interface ExtraFormInput {
   available: boolean
 }
 
-/** Multipart write request — `image` is a File; response `Extra.image` is a URL. */
 export interface ExtraWriteRequest {
   name?: string
   description?: string
@@ -19,8 +18,7 @@ export interface ExtraWriteRequest {
   order?: number
   available?: boolean
   group_id?: string
-  image?: File
-  removeImage?: boolean
+  image_asset_id?: AssetId | null
 }
 
 export function extraFormToWriteRequest(form: ExtraFormInput): ExtraWriteRequest {
@@ -32,35 +30,11 @@ export function extraFormToWriteRequest(form: ExtraFormInput): ExtraWriteRequest
     available: form.available,
   }
 
-  if (form.image.file) {
-    request.image = form.image.file
-  } else if (form.image.cleared) {
-    request.removeImage = true
+  if (!form.image.file && form.image.cleared) {
+    request.image_asset_id = null
   }
 
   return request
-}
-
-export function buildExtraFormData(
-  payload: ExtraWriteRequest,
-  options?: { branchId?: string },
-): FormData {
-  const form = new FormData()
-
-  if (options?.branchId) {
-    form.append('branch_id', options.branchId)
-  }
-
-  if (payload.name != null) form.append('name', payload.name)
-  if (payload.description != null) form.append('description', payload.description)
-  if (payload.price != null) form.append('price', String(payload.price))
-  if (payload.order != null) form.append('order', String(payload.order))
-  if (payload.available != null) form.append('available', String(payload.available))
-  if (payload.group_id != null) form.append('group_id', payload.group_id)
-
-  appendImageField(form, 'image', payload.image, payload.removeImage)
-
-  return form
 }
 
 export function extraToFormInput(extra: Extra): ExtraFormInput {

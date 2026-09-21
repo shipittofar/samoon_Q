@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { ChevronDown, ChevronUp, ImagePlus, Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -8,20 +8,34 @@ import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils'
 import { isUnoptimizedMediaUrl } from '@/utils/media-url'
 import { createHeroBackgroundId } from '@/lib/hero-background'
+import { isTransientMediaUrl, type UploadPurpose, type UploadSession } from '@/types/upload'
+import { validateUploadFile, acceptAttributeForPurpose } from '@/lib/upload-validation'
+import { DirectUploadError, toUploadError } from '@/lib/upload-errors'
+import { uploadService } from '@/services/upload.service'
+import { DEFAULT_UPLOAD_CONCURRENCY } from '@/lib/upload-concurrency'
 import type { HeroBackgroundImage, HeroObjectPosition } from '@/types/website-builder'
 
-const ACCEPT = 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp'
-const MAX_BYTES = 5 * 1024 * 1024
 const POSITIONS: HeroObjectPosition[] = ['center', 'top', 'bottom', 'left', 'right']
 
 export interface HeroBackgroundGalleryProps {
   images: HeroBackgroundImage[]
   onChange: (images: HeroBackgroundImage[]) => void
-  onUpload: (file: File) => Promise<string>
+  purpose: UploadPurpose
+  entityType?: string
+  entityId?: string
   intervalMs: number
   transitionMs: number
   onIntervalChange: (ms: number) => void
   onTransitionChange: (ms: number) => void
+}
+
+interface PendingSlot {
+  id: string
+  file: File
+  previewUrl: string
+  session: UploadSession | null
+  errorKey: string | null
+  controller: AbortController
 }
 
 function reindex(images: HeroBackgroundImage[]): HeroBackgroundImage[] {
@@ -31,7 +45,9 @@ function reindex(images: HeroBackgroundImage[]): HeroBackgroundImage[] {
 export function HeroBackgroundGallery({
   images,
   onChange,
-  onUpload,
+  purpose,
+  entityType,
+  entityId,
   intervalMs,
   transitionMs,
   onIntervalChange,
@@ -39,69 +55,193 @@ export function HeroBackgroundGallery({
 }: HeroBackgroundGalleryProps) {
   const t = useTranslations('console')
   const inputRef = useRef<HTMLInputElement>(null)
-  const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [urlValue, setUrlValue] = useState('')
+  const [pending, setPending] = useState<PendingSlot[]>([])
+  const pendingRef = useRef(pending)
+  pendingRef.current = pending
+  const imagesRef = useRef(images)
+  imagesRef.current = images
+
+  useEffect(() => {
+    return () => {
+      for (const slot of pendingRef.current) {
+        slot.controller.abort()
+        URL.revokeObjectURL(slot.previewUrl)
+        if (slot.session?.assetId) void uploadService.cancelUpload(slot.session.assetId)
+      }
+    }
+  }, [])
 
   const sorted = [...images].sort((a, b) => a.order - b.order)
   const showSlideshowSettings = sorted.filter((img) => img.enabled !== false).length >= 2
+  const busy = pending.some((p) => !p.errorKey)
+
+  const updatePending = (id: string, patch: Partial<PendingSlot>) => {
+    setPending((prev) => prev.map((slot) => (slot.id === id ? { ...slot, ...patch } : slot)))
+  }
 
   const handleFiles = async (fileList: FileList | null) => {
     if (!fileList?.length) return
     setError(null)
-    setBusy(true)
-    const next = [...sorted]
-    try {
-      for (const file of Array.from(fileList)) {
-        const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
-        const okType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
-        const okExt = ['.jpg', '.jpeg', '.png', '.webp'].includes(ext)
-        if (!okType || !okExt) {
-          setError(t('heroBackgroundUnsupportedType'))
-          continue
-        }
-        if (file.size > MAX_BYTES) {
-          setError(t('heroBackgroundTooLarge'))
-          continue
-        }
-        const url = await onUpload(file)
-        next.push({
-          id: createHeroBackgroundId(),
-          src: url,
-          order: next.length,
-          enabled: true,
-          objectPosition: 'center',
-          altText: '',
-        })
+    const files = Array.from(fileList)
+    const slots: PendingSlot[] = []
+    for (const file of files) {
+      const validation = validateUploadFile(file, purpose)
+      if (!validation.valid) {
+        setError(
+          validation.errorKey === 'fileTooLarge'
+            ? t('heroBackgroundTooLarge')
+            : t('heroBackgroundUnsupportedType'),
+        )
+        continue
       }
-      onChange(reindex(next))
-    } catch {
-      setError(t('heroBackgroundUploadFailed'))
-    } finally {
-      setBusy(false)
-      if (inputRef.current) inputRef.current.value = ''
+      slots.push({
+        id: createHeroBackgroundId(),
+        file,
+        previewUrl: URL.createObjectURL(file),
+        session: null,
+        errorKey: null,
+        controller: new AbortController(),
+      })
     }
+    if (slots.length === 0) {
+      if (inputRef.current) inputRef.current.value = ''
+      return
+    }
+    setPending((prev) => [...prev, ...slots])
+
+    const queue = [...slots]
+    let active = 0
+    const runNext = async () => {
+      while (queue.length > 0) {
+        if (active >= DEFAULT_UPLOAD_CONCURRENCY) return
+        const slot = queue.shift()
+        if (!slot) return
+        active += 1
+        void uploadService
+          .uploadFile({
+            file: slot.file,
+            purpose,
+            entityType,
+            entityId,
+            signal: slot.controller.signal,
+            onSession: (session) => updatePending(slot.id, { session }),
+          })
+          .then((asset) => {
+            URL.revokeObjectURL(slot.previewUrl)
+            setPending((prev) => prev.filter((s) => s.id !== slot.id))
+            const current = [...imagesRef.current].sort((a, b) => a.order - b.order)
+            onChange(
+              reindex([
+                ...current,
+                {
+                  id: slot.id,
+                  src: asset.url,
+                  assetId: asset.assetId,
+                  order: current.length,
+                  enabled: true,
+                  objectPosition: 'center',
+                  altText: '',
+                },
+              ]),
+            )
+          })
+          .catch((err) => {
+            const mapped = err instanceof DirectUploadError ? err.uploadError : toUploadError(err)
+            if (mapped.code === 'cancelled') {
+              URL.revokeObjectURL(slot.previewUrl)
+              setPending((prev) => prev.filter((s) => s.id !== slot.id))
+              return
+            }
+            updatePending(slot.id, { errorKey: mapped.messageKey, session: slot.session })
+            setError(t(mapped.messageKey))
+          })
+          .finally(() => {
+            active -= 1
+            void runNext()
+          })
+      }
+    }
+    await Promise.all(Array.from({ length: DEFAULT_UPLOAD_CONCURRENCY }, () => runNext()))
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  const retrySlot = (slot: PendingSlot) => {
+    slot.controller.abort()
+    const next: PendingSlot = {
+      ...slot,
+      errorKey: null,
+      controller: new AbortController(),
+    }
+    setPending((prev) => prev.map((s) => (s.id === slot.id ? next : s)))
+    void uploadService
+      .retryUpload({
+        file: next.file,
+        purpose,
+        entityType,
+        entityId,
+        signal: next.controller.signal,
+        onSession: (session) => updatePending(next.id, { session }),
+      })
+      .then((asset) => {
+        URL.revokeObjectURL(next.previewUrl)
+        setPending((prev) => prev.filter((s) => s.id !== next.id))
+        const current = [...imagesRef.current].sort((a, b) => a.order - b.order)
+        onChange(
+          reindex([
+            ...current,
+            {
+              id: next.id,
+              src: asset.url,
+              assetId: asset.assetId,
+              order: current.length,
+              enabled: true,
+              objectPosition: 'center',
+              altText: '',
+            },
+          ]),
+        )
+      })
+      .catch((err) => {
+        const mapped = toUploadError(err)
+        updatePending(next.id, { errorKey: mapped.messageKey })
+        setError(t(mapped.messageKey))
+      })
+  }
+
+  const cancelSlot = (slot: PendingSlot) => {
+    slot.controller.abort()
+    if (slot.session?.assetId) void uploadService.cancelUpload(slot.session.assetId)
+    URL.revokeObjectURL(slot.previewUrl)
+    setPending((prev) => prev.filter((s) => s.id !== slot.id))
   }
 
   const addFromUrl = () => {
     const src = urlValue.trim()
     if (!src) return
-    if (!/^https?:\/\//i.test(src) && !src.startsWith('/') && !src.startsWith('data:')) {
+    if (isTransientMediaUrl(src)) {
+      setError(t('heroBackgroundInvalidUrl'))
+      return
+    }
+    if (!/^https?:\/\//i.test(src) && !src.startsWith('/')) {
       setError(t('heroBackgroundInvalidUrl'))
       return
     }
     setError(null)
-    onChange(reindex([
-      ...sorted,
-      {
-        id: createHeroBackgroundId(),
-        src,
-        order: sorted.length,
-        enabled: true,
-        objectPosition: 'center',
-        altText: '',
-      },
-    ]))
+    onChange(
+      reindex([
+        ...sorted,
+        {
+          id: createHeroBackgroundId(),
+          src,
+          order: sorted.length,
+          enabled: true,
+          objectPosition: 'center',
+          altText: '',
+        },
+      ]),
+    )
     setUrlValue('')
   }
 
@@ -138,7 +278,7 @@ export function HeroBackgroundGallery({
         <input
           ref={inputRef}
           type="file"
-          accept={ACCEPT}
+          accept={acceptAttributeForPurpose(purpose)}
           multiple
           className="sr-only"
           disabled={busy}
@@ -165,7 +305,43 @@ export function HeroBackgroundGallery({
         </p>
       )}
 
-      {sorted.length === 0 ? (
+      {pending.map((slot) => (
+        <div
+          key={slot.id}
+          className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-3 flex items-center gap-3"
+        >
+          <div className="relative h-16 w-20 overflow-hidden rounded-lg border border-[var(--border)]">
+            <Image src={slot.previewUrl} alt="" fill className="object-cover" unoptimized sizes="80px" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs truncate">{slot.file.name}</p>
+            <p className="text-[10px] text-[var(--fg-muted)]">
+              {slot.errorKey
+                ? t(slot.errorKey)
+                : slot.session?.status === 'PROCESSING'
+                  ? t('uploadPhaseProcessing')
+                  : t('uploadPhaseUploading', { percent: slot.session?.progress.percent ?? 0 })}
+            </p>
+            <div className="mt-1 h-1 rounded bg-[var(--border)]">
+              <div
+                className="h-1 rounded bg-[var(--accent)]"
+                style={{ width: `${slot.session?.progress.percent ?? 0}%` }}
+              />
+            </div>
+          </div>
+          {slot.errorKey ? (
+            <Button type="button" size="sm" variant="secondary" onClick={() => retrySlot(slot)}>
+              {t('uploadRetry')}
+            </Button>
+          ) : (
+            <Button type="button" size="sm" variant="ghost" onClick={() => cancelSlot(slot)}>
+              {t('uploadCancel')}
+            </Button>
+          )}
+        </div>
+      ))}
+
+      {sorted.length === 0 && pending.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--border)] px-4 py-8 text-center text-sm text-[var(--fg-muted)]">
           {t('heroBackgroundEmpty')}
         </div>

@@ -1,5 +1,5 @@
 /**
- * Repository-wide image upload architecture audit tests.
+ * Repository-wide image upload architecture tests after direct-storage migration.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -11,55 +11,7 @@ function read(rel: string) {
   return fs.readFileSync(path.join(ROOT, rel), 'utf8')
 }
 
-function makeFile(name: string, type: string): File {
-  return new File([new Uint8Array(128)], name, { type })
-}
-
-describe('shared multipart utilities', () => {
-  it('exports multipartRequestConfig that strips Content-Type for FormData', async () => {
-    const { multipartRequestConfig } = await import('@/lib/multipart')
-    const config = multipartRequestConfig()
-    const headers: Record<string, unknown> = { 'Content-Type': 'application/json' }
-    const form = new FormData()
-    form.append('image', makeFile('a.jpg', 'image/jpeg'))
-    const out = config.transformRequest![0](form, headers)
-    expect(out).toBe(form)
-    expect(headers['Content-Type']).toBeUndefined()
-    expect(config.timeout).toBe(180_000)
-  })
-
-  it('strips Content-Type via AxiosHeaders.delete so FormData is not JSON-serialized', async () => {
-    const { multipartRequestConfig } = await import('@/lib/multipart')
-    const config = multipartRequestConfig()
-    const deleted: string[] = []
-    const headers = {
-      'Content-Type': 'application/json',
-      delete(name: string) {
-        deleted.push(name)
-        delete (this as { 'Content-Type'?: string })['Content-Type']
-      },
-    }
-    const form = new FormData()
-    form.append('cuisines', 'Italian')
-    form.append('cuisines', 'Mediterranean')
-    const out = config.transformRequest![0](form, headers)
-    expect(out).toBe(form)
-    expect(out instanceof FormData).toBe(true)
-    expect(deleted).toContain('Content-Type')
-    expect((out as FormData).getAll('cuisines')).toEqual(['Italian', 'Mediterranean'])
-  })
-})
-
 describe('category image upload', () => {
-  it('buildCategoryFormData appends image File', async () => {
-    const { buildCategoryFormData } = await import('@/types/category')
-    const file = makeFile('cat.jpg', 'image/jpeg')
-    const form = buildCategoryFormData({ name: 'Sides', image: file }, { branchId: 'b1' })
-    expect(form.get('name')).toBe('Sides')
-    expect(form.get('branch_id')).toBe('b1')
-    expect(form.get('image')).toBe(file)
-  })
-
   it('category form uses ImageUploader not image URL input', () => {
     const formFields = read('src/components/console/CategoryFormFields.tsx')
     expect(formFields).toContain('ImageUploader')
@@ -67,32 +19,23 @@ describe('category image upload', () => {
     const page = read('src/app/console/categories/page.tsx')
     expect(page).toContain('categoryFormToWriteRequest')
     expect(page).toContain('CategoryCreateModal')
+    expect(page).toContain('withUploadedImage')
   })
 
-  it('menu service createCategory uses FormData', () => {
+  it('menu service createCategory uses JSON', () => {
     const src = read('src/services/menu.service.ts')
-    expect(src).toContain('buildCategoryFormData')
+    expect(src).not.toContain('buildCategoryFormData')
     expect(src).toContain('createCategory(branchId: string, payload: CategoryWriteRequest)')
   })
 })
 
 describe('extra image upload', () => {
-  it('buildExtraFormData appends image File and group_id', async () => {
-    const { buildExtraFormData } = await import('@/types/extra')
-    const file = makeFile('extra.png', 'image/png')
-    const form = buildExtraFormData(
-      { name: 'Cheese', price: 1.5, group_id: 'g1', image: file },
-      { branchId: 'b1' },
-    )
-    expect(form.get('image')).toBe(file)
-    expect(form.get('group_id')).toBe('g1')
-  })
-
   it('extras page uses ImageUploader not image URL input', () => {
     const page = read('src/app/console/extras/page.tsx')
     expect(page).toContain('ImageUploader')
     expect(page).not.toMatch(/imageUrlLabel.*form\.image/)
     expect(page).toContain('extraFormToWriteRequest')
+    expect(page).toContain('withUploadedImage')
   })
 })
 
@@ -100,107 +43,18 @@ describe('avatar image upload', () => {
   it('settings page uses ImageUploader', () => {
     const page = read('src/app/dashboard/settings/page.tsx')
     expect(page).toContain('ImageUploader')
-    expect(page).not.toContain('type="file"')
     expect(page).not.toContain('image/webp')
   })
 
-  it('uploadAvatar uses FormData without manual multipart Content-Type', () => {
+  it('uploadAvatar uses the shared upload service', () => {
     const src = read('src/services/combined.service.ts')
-    expect(src).toContain("form.append('avatar', file)")
-    expect(src).toContain('multipartRequestConfig()')
-    expect(src).not.toContain("'Content-Type': 'multipart/form-data'")
-    expect(src).toContain('validateMenuImageFile')
+    expect(src).toContain("purpose: 'avatar'")
+    expect(src).toContain('avatar_asset_id')
+    expect(src).not.toContain("form.append('avatar', file)")
   })
 })
 
 describe('branch image upload', () => {
-  it('buildBranchFormData appends image, coverImage, and heroImage Files', async () => {
-    const { buildBranchFormData } = await import('@/types/branch-form')
-    const logo = makeFile('logo.jpg', 'image/jpeg')
-    const cover = makeFile('cover.png', 'image/png')
-    const hero = makeFile('hero.jpg', 'image/jpeg')
-    const form = buildBranchFormData(
-      {
-        name: 'Downtown',
-        type: 'physical',
-        location: { address: '1 Main', city: 'NYC', country: 'US' },
-        image: logo,
-        coverImage: cover,
-        heroImage: hero,
-      },
-      { tenantId: 't1' },
-    )
-    expect(form.get('name')).toBe('Downtown')
-    expect(form.get('slug')).toBeNull()
-    expect(form.get('tenantId')).toBe('t1')
-    expect(form.get('image')).toBe(logo)
-    expect(form.get('avatar')).toBeNull()
-    expect(form.get('coverImage')).toBe(cover)
-    expect(form.get('heroImage')).toBe(hero)
-    expect(form.get('location')).toBe(JSON.stringify({ address: '1 Main', city: 'NYC', country: 'US' }))
-  })
-
-  it('buildBranchCreateFormData flattens checkout and omits slug', async () => {
-    const { buildBranchCreateFormData, branchFormToCreateRequest, EMPTY_BRANCH_FORM } = await import('@/types/branch-form')
-    const logo = makeFile('logo.jpg', 'image/jpeg')
-    const payload = branchFormToCreateRequest({
-      ...EMPTY_BRANCH_FORM,
-      name: 'Downtown',
-      address: '1 Main',
-      city: 'NYC',
-      country: 'US',
-      latitude: 40.7,
-      longitude: -74.0,
-      website: 'https://example.com',
-      image: { file: logo, existingUrl: '', cleared: false },
-    })
-    const form = buildBranchCreateFormData(payload)
-    expect(form.get('name')).toBe('Downtown')
-    expect(form.get('slug')).toBeNull()
-    expect(form.get('checkout')).toBeNull()
-    expect(form.get('timeZone')).toBeNull()
-    expect(form.get('currency')).toBeNull()
-    expect(form.get('language')).toBeNull()
-    expect(form.get('orderingEnabled')).toBe('true')
-    expect(form.get('pickupEnabled')).toBe('true')
-    expect(form.get('deliveryEnabled')).toBe('false')
-    expect(form.get('tableOrderingEnabled')).toBe('false')
-    expect(form.get('image')).toBe(logo)
-    const location = JSON.parse(String(form.get('location')))
-    expect(location.latitude).toBe(40.7)
-    expect(location.longitude).toBe(-74.0)
-    const contact = JSON.parse(String(form.get('contact')))
-    expect(contact.website).toBe('https://example.com')
-  })
-
-  it('branchFormToWriteRequest keeps nested checkout and omits slug for edit', async () => {
-    const { branchFormToWriteRequest, branchFormToCreateRequest, EMPTY_BRANCH_FORM } = await import('@/types/branch-form')
-    const form = {
-      ...EMPTY_BRANCH_FORM,
-      name: 'Downtown',
-      address: '1 Main',
-      city: 'NYC',
-      country: 'US',
-      latitude: 40.7,
-      longitude: -74.0,
-      website: 'https://example.com',
-      cuisines: ['Italian'],
-      amenities: ['WiFi'],
-    }
-    const write = branchFormToWriteRequest(form)
-    const create = branchFormToCreateRequest(form)
-    expect(write).not.toHaveProperty('slug')
-    expect(write.checkout).toBeTruthy()
-    expect(write.checkout?.orderTypes.pickup).toBe(true)
-    expect(write).not.toHaveProperty('pickupEnabled')
-    expect(create.slug).toBeUndefined()
-    expect(create).not.toHaveProperty('checkout')
-    expect(create.pickupEnabled).toBe(true)
-    expect(create.tableOrderingEnabled).toBe(false)
-    expect(write.location?.latitude).toBe(40.7)
-    expect(write.contact?.website).toBe('https://example.com')
-  })
-
   it('branch forms use ImageUploader not image URL input', () => {
     const src = read('src/app/console/branches/BranchFormFields.tsx')
     expect(src).toContain('ImageUploader')
@@ -216,25 +70,20 @@ describe('branch image upload', () => {
     expect(src).not.toContain('form.slug')
   })
 
-  it('edit FormData and form state omit slug; Branch display still reads slug', async () => {
-    const { buildBranchFormData, EMPTY_BRANCH_FORM } = await import('@/types/branch-form')
-    expect(EMPTY_BRANCH_FORM).not.toHaveProperty('slug')
-    const form = buildBranchFormData({
-      name: 'Downtown',
-      type: 'physical',
-      location: { address: '1 Main', city: 'NYC', country: 'US' },
-    })
-    expect(form.get('slug')).toBeNull()
+  it('edit form state omits slug; Branch display still reads slug', () => {
     expect(read('src/types/branch-form.ts')).not.toMatch(/export interface BranchWriteRequest \{[\s\S]{0,80}slug\?:/)
     expect(read('src/app/console/branches/[id]/edit/page.tsx')).not.toContain('showSlug')
     expect(read('src/app/console/branches/[id]/page.tsx')).toContain('branch.slug')
     expect(read('src/types/branch.ts')).toContain('slug: string')
+    expect(read('src/types/branch-form.ts')).toContain('EMPTY_BRANCH_FORM')
+    expect(read('src/types/branch-form.ts')).not.toMatch(/EMPTY_BRANCH_FORM[\s\S]{0,80}slug/)
   })
 
-  it('branch service createBranch uses FormData', () => {
+  it('branch service create uses JSON asset IDs', () => {
     const src = read('src/services/branch.service.ts')
-    expect(src).toContain('buildBranchFormData')
-    expect(src).toContain('multipartRequestConfig()')
+    expect(src).not.toContain('buildBranchFormData')
+    expect(src).not.toContain('multipartRequestConfig()')
+    expect(src).toContain('image_asset_id')
   })
 })
 
@@ -244,24 +93,6 @@ describe('remaining URL-based image inputs', () => {
     expect(src).not.toContain('coverImageUrlLabel')
     expect(src).not.toContain('ImageUploader')
     expect(src).not.toContain('heroImage: heroImage')
-  })
-
-  it('buildTenantMediaFormData appends independent tenant image fields', async () => {
-    const { buildTenantMediaFormData } = await import('@/lib/tenant-media')
-    const logo = makeFile('logo.jpg', 'image/jpeg')
-    const avatar = makeFile('avatar.jpg', 'image/jpeg')
-    const cover = makeFile('cover.jpg', 'image/jpeg')
-    const hero = makeFile('hero.jpg', 'image/jpeg')
-    const form = buildTenantMediaFormData({
-      image: logo,
-      discoverAvatar: avatar,
-      discoverCover: cover,
-      heroImage: hero,
-    })
-    expect(form.get('image')).toBe(logo)
-    expect(form.get('discoverAvatar')).toBe(avatar)
-    expect(form.get('discoverCover')).toBe(cover)
-    expect(form.get('heroImage')).toBe(hero)
   })
 })
 

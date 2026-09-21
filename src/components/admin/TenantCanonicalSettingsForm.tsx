@@ -3,26 +3,29 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { CheckCircle, Loader2, Save } from 'lucide-react'
-import { getMarketplaceMeta, pickTenantMarketplace } from '@/types/marketplace'
+import { gallerySrcList, getMarketplaceMeta, pickTenantMarketplace } from '@/types/marketplace'
+import type { TenantMarketplaceSettings } from '@/types/marketplace'
 import type { AddressCapabilities } from '@/types/address'
 import type { Tenant, TenantTheme } from '@/types'
 import { sanitizeBrandingForWrite } from '@/lib/tenant-branding'
 import { ImageUploader, EMPTY_IMAGE_FIELD, type ImageFieldValue } from '@/components/ImageUploader'
-import { imageFieldToMediaPatch } from '@/lib/tenant-media'
-import { mockImageUrlFromFile } from '@/lib/multipart'
+import { persistableMediaUrl, uploadImageFields } from '@/lib/image-asset-write'
+import { DEFAULT_UPLOAD_CONCURRENCY, runWithConcurrency } from '@/lib/upload-concurrency'
+import type { TenantMediaWriteRequest } from '@/lib/tenant-media'
+import { uploadService } from '@/services/upload.service'
 import {
   SOCIAL_PREFIX,
   WEBSITE_PREFIX,
   applyPrefixInput,
-  galleryUrlsFromImageFields,
   initPrefixedField,
   valueForPrefixedSave,
 } from '@/lib/prefixed-input'
 import { useUpdateTenantMedia } from '@/hooks'
 
-function galleryFieldsFromUrls(urls: string[] | undefined): ImageFieldValue[] {
-  if (!urls?.length) return [{ ...EMPTY_IMAGE_FIELD }]
-  return urls.map((existingUrl) => ({ ...EMPTY_IMAGE_FIELD, existingUrl }))
+function galleryFieldsFromUrls(urls: TenantMarketplaceSettings['gallery'] | undefined): ImageFieldValue[] {
+  const srcs = gallerySrcList(urls)
+  if (!srcs.length) return [{ ...EMPTY_IMAGE_FIELD }]
+  return srcs.map((existingUrl) => ({ ...EMPTY_IMAGE_FIELD, existingUrl }))
 }
 
 const ADDRESS_CAPABILITY_KEYS: (keyof AddressCapabilities)[] = [
@@ -194,7 +197,7 @@ export function TenantCanonicalSettingsForm({
   const labelClass = 'block text-sm font-medium text-[var(--fg-secondary)] mb-1'
   const hintClass = 'text-xs text-[var(--fg-subtle)] mt-1'
 
-  function handleSave() {
+  async function handleSave() {
     const toArr = (s: string) => s.split(',').map((v) => v.trim()).filter(Boolean)
     const theme: TenantTheme = sanitizeBrandingForWrite({
       ...(existingTheme ?? {}),
@@ -202,13 +205,40 @@ export function TenantCanonicalSettingsForm({
       fontBody: fontBody || undefined,
     } as TenantTheme & Record<string, unknown>)
 
-    const media = {
-      ...imageFieldToMediaPatch(logoField, 'image', 'removeImage'),
-      ...imageFieldToMediaPatch(discoverAvatarField, 'discoverAvatar', 'removeDiscoverAvatar'),
-      ...imageFieldToMediaPatch(discoverCoverField, 'discoverCover', 'removeDiscoverCover'),
-      ...imageFieldToMediaPatch(heroField, 'heroImage', 'removeHeroImage'),
-    }
+    const mediaUploads = await uploadImageFields([
+      { key: 'image_asset_id', field: logoField, purpose: 'tenant_logo' },
+      { key: 'discover_avatar_asset_id', field: discoverAvatarField, purpose: 'tenant_discover_avatar' },
+      { key: 'discover_cover_asset_id', field: discoverCoverField, purpose: 'tenant_discover_cover' },
+      { key: 'hero_image_asset_id', field: heroField, purpose: 'tenant_hero' },
+    ])
+    const media: TenantMediaWriteRequest = { ...mediaUploads }
     if (Object.keys(media).length > 0) saveMedia(media)
+
+    const galleryResults = await runWithConcurrency(
+      galleryFields.map((field, index) => ({
+        id: String(index),
+        run: async (signal) => {
+          if (field.file) {
+            const ready = await uploadService.uploadFile({
+              file: field.file,
+              purpose: 'tenant_gallery',
+              signal,
+            })
+            const src = persistableMediaUrl(ready.url)
+            return src ? { asset_id: ready.assetId, src } : { asset_id: ready.assetId }
+          }
+          if (field.cleared) return null
+          const src = persistableMediaUrl(field.existingUrl)
+          return src ? src : null
+        },
+      })),
+      { limit: DEFAULT_UPLOAD_CONCURRENCY },
+    )
+    const failedGallery = galleryResults.find((result) => result.status === 'rejected')
+    if (failedGallery) throw failedGallery.error ?? new Error('upload_failed')
+    const gallery = galleryResults
+      .map((result) => result.value)
+      .filter((item): item is string | { asset_id: string; src?: string } => item != null)
 
     onSave({
       description: description.trim() || undefined,
@@ -224,7 +254,7 @@ export function TenantCanonicalSettingsForm({
         tags: tags ? toArr(tags) : existingMeta?.tags,
         priceLevel: priceLevel ? (Number(priceLevel) as 1 | 2 | 3 | 4) : existingMeta?.priceLevel,
         website: valueForPrefixedSave(website, WEBSITE_PREFIX),
-        gallery: galleryUrlsFromImageFields(galleryFields, mockImageUrlFromFile),
+        gallery,
         featured,
         popular,
         isNew,

@@ -157,7 +157,7 @@ describe('Branch create wizard submission', () => {
     fireEvent.click(view.getByRole('button', { name: /Italian/i }))
     fireEvent.click(view.getByRole('button', { name: /WiFi/i }))
     fireEvent.click(view.getByTestId('branch-wizard-create'))
-    expect(createMutate).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(1))
     const payload = createMutate.mock.calls[0]![0]
     expect(payload.cuisines).toContain('Italian')
     expect(payload.amenities).toContain('WiFi')
@@ -169,7 +169,7 @@ describe('Branch create wizard submission', () => {
     const btn = view.getByTestId('branch-wizard-create')
     fireEvent.click(btn)
     fireEvent.click(btn)
-    expect(createMutate).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(1))
   })
 
   it('unlocks after a failed create so retry is possible', async () => {
@@ -179,9 +179,9 @@ describe('Branch create wizard submission', () => {
     const view = renderWizard()
     await goToFinalStep(view)
     fireEvent.click(view.getByTestId('branch-wizard-create'))
-    expect(createMutate).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(1))
     fireEvent.click(view.getByTestId('branch-wizard-create'))
-    expect(createMutate).toHaveBeenCalledTimes(2)
+    await waitFor(() => expect(createMutate).toHaveBeenCalledTimes(2))
   })
 
   it('create button is type=button, never native submit', async () => {

@@ -30,6 +30,7 @@ import {
   tagToFormInput,
   type TagFormInput,
 } from '@/types'
+import { withUploadedImage } from '@/lib/image-asset-write'
 import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -135,12 +136,12 @@ export default function AdminTagsPage() {
     setCreateOpen(true)
   }
 
-  const submitCreate = () => {
+  const submitCreate = async () => {
     if (createMutation.isPending) return
     const validationError = validateForm(createForm)
     if (validationError) { setCreateError(validationError); return }
     setCreateError(null)
-    createMutation.mutate(tagFormToWriteRequest(createForm), {
+    createMutation.mutate(await withUploadedImage(tagFormToWriteRequest(createForm), createForm.image, 'menu_tag'), {
       onSuccess: () => { setCreateOpen(false); setCreateForm(EMPTY_FORM) },
     })
   }
@@ -152,12 +153,12 @@ export default function AdminTagsPage() {
     setEditOpen(true)
   }
 
-  const submitEdit = () => {
+  const submitEdit = async () => {
     if (!editTag || updateMutation.isPending) return
     const validationError = validateForm(editForm)
     if (validationError) { setEditError(validationError); return }
     setEditError(null)
-    updateMutation.mutate({ id: editTag.id, payload: tagFormToWriteRequest(editForm) }, {
+    updateMutation.mutate({ id: editTag.id, payload: await withUploadedImage(tagFormToWriteRequest(editForm), editForm.image, 'menu_tag') }, {
       onSuccess: () => { setEditOpen(false); setEditTag(null) },
     })
   }

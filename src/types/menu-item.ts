@@ -1,10 +1,10 @@
 import type { ImageFieldValue } from '@/components/ImageUploader'
-import { appendImageField } from '@/lib/multipart'
 import type { MenuItem } from './index'
+import type { AssetId } from '@/types/upload'
 
 /**
  * Menu item form input — separate from API response models.
- * `image.file` is the pending upload; `existingUrl` is for preview only.
+ * `image.file` is local until submit; `existingUrl` is for preview only.
  */
 export interface MenuItemFormInput {
   name: string
@@ -24,7 +24,7 @@ export interface MenuItemFormInput {
 }
 
 /**
- * API write request — `image` is a File for multipart upload.
+ * JSON write request. Images are attached via `image_asset_id`.
  * Response model `MenuItem.image` remains a CDN URL string.
  */
 export interface MenuItemWriteRequest {
@@ -40,12 +40,10 @@ export interface MenuItemWriteRequest {
   is_featured?: boolean
   is_popular?: boolean
   tag_ids?: number[]
-  image?: File
-  /** When true, clears the image on update (no new file selected). */
-  removeImage?: boolean
+  image_asset_id?: AssetId | null
 }
 
-/** Maps form state to a multipart write request. */
+/** Maps form text fields. Image files are uploaded separately before send. */
 export function menuItemFormToWriteRequest(form: MenuItemFormInput): MenuItemWriteRequest {
   const request: MenuItemWriteRequest = {
     name: form.name,
@@ -62,49 +60,11 @@ export function menuItemFormToWriteRequest(form: MenuItemFormInput): MenuItemWri
     tag_ids: form.tag_ids,
   }
 
-  if (form.image.file) {
-    request.image = form.image.file
-  } else if (form.image.cleared) {
-    request.removeImage = true
+  if (!form.image.file && form.image.cleared) {
+    request.image_asset_id = null
   }
 
   return request
-}
-
-/** Builds multipart/form-data for menu item create/update endpoints. */
-export function buildMenuItemFormData(
-  payload: MenuItemWriteRequest,
-  options?: { branchId?: string },
-): FormData {
-  const form = new FormData()
-
-  if (options?.branchId) {
-    form.append('branch_id', options.branchId)
-  }
-
-  if (payload.name != null) form.append('name', payload.name)
-  if (payload.description != null) form.append('description', payload.description)
-  if (payload.price != null) form.append('price', String(payload.price))
-  if (payload.discount != null) form.append('discount', String(payload.discount))
-  if (payload.calories != null) form.append('calories', String(payload.calories))
-  if (payload.preparation_time != null) form.append('preparation_time', String(payload.preparation_time))
-  if (payload.category_id != null) form.append('category_id', payload.category_id)
-  if (payload.available != null) form.append('available', String(payload.available))
-  if (payload.is_active != null) form.append('is_active', String(payload.is_active))
-  if (payload.is_featured != null) form.append('is_featured', String(payload.is_featured))
-  if (payload.is_popular != null) form.append('is_popular', String(payload.is_popular))
-
-  if (payload.tag_ids != null) {
-    payload.tag_ids.forEach((id) => form.append('tag_ids', String(id)))
-  }
-
-  if (payload.image instanceof File) {
-    appendImageField(form, 'image', payload.image)
-  } else if (payload.removeImage) {
-    appendImageField(form, 'image', undefined, true)
-  }
-
-  return form
 }
 
 /** Maps a server MenuItem into form input for edit modals. */

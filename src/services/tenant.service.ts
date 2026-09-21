@@ -9,8 +9,7 @@ import {
 } from '@/lib/tenant-state'
 import type { Tenant, TenantStatus, PaginatedResponse } from '@/types'
 import { sanitizeTenantSettings, sanitizeTenantSettingsPatch } from '@/lib/tenant-settings'
-import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
-import { buildTenantMediaFormData, type TenantMediaWriteRequest } from '@/lib/tenant-media'
+import type { TenantMediaWriteRequest } from '@/lib/tenant-media'
 import { isUsableTenantSlug } from '@/lib/identifier-brands'
 
 
@@ -596,23 +595,20 @@ export const tenantService = {
       const existing = findMockById(tenantId)
       if (!existing) throw new Error(`Tenant not found: ${tenantId}`)
       const updated: Tenant = { ...existing }
-      if (payload.image || payload.removeImage) {
-        updated.image = payload.removeImage ? undefined : mockImageUrlFromFile(payload.image, existing.image)
+      const apply = (id: string | null | undefined, current?: string) => {
+        if (id === null) return undefined
+        if (id) return `https://cdn.mock.local/assets/${id}`
+        return current
       }
-      if (payload.discoverAvatar || payload.removeDiscoverAvatar) {
-        updated.discoverAvatar = payload.removeDiscoverAvatar
-          ? undefined
-          : mockImageUrlFromFile(payload.discoverAvatar, existing.discoverAvatar)
+      if (payload.image_asset_id !== undefined) updated.image = apply(payload.image_asset_id, existing.image)
+      if (payload.discover_avatar_asset_id !== undefined) {
+        updated.discoverAvatar = apply(payload.discover_avatar_asset_id, existing.discoverAvatar)
       }
-      if (payload.discoverCover || payload.removeDiscoverCover) {
-        updated.discoverCover = payload.removeDiscoverCover
-          ? undefined
-          : mockImageUrlFromFile(payload.discoverCover, existing.discoverCover)
+      if (payload.discover_cover_asset_id !== undefined) {
+        updated.discoverCover = apply(payload.discover_cover_asset_id, existing.discoverCover)
       }
-      if (payload.heroImage || payload.removeHeroImage) {
-        updated.heroImage = payload.removeHeroImage
-          ? undefined
-          : mockImageUrlFromFile(payload.heroImage, existing.heroImage)
+      if (payload.hero_image_asset_id !== undefined) {
+        updated.heroImage = apply(payload.hero_image_asset_id, existing.heroImage)
       }
       const idx = MOCK_TENANT_LIST.findIndex((t) => t.id === tenantId)
       if (idx !== -1) MOCK_TENANT_LIST[idx] = updated
@@ -620,12 +616,7 @@ export const tenantService = {
       if (mockKey) MOCK_TENANTS[mockKey] = updated
       return updated
     }
-    const form = buildTenantMediaFormData(payload)
-    const { data } = await api.patch<Tenant>(
-      ENDPOINTS.TENANTS.MEDIA(tenantId),
-      form,
-      multipartRequestConfig(),
-    )
+    const { data } = await api.patch<Tenant>(ENDPOINTS.TENANTS.MEDIA(tenantId), payload)
     return normalizeTenant(data)
   },
 

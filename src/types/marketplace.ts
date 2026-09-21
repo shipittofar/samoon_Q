@@ -61,7 +61,7 @@ export interface TenantMarketplaceSettings {
   isNew?: boolean
   priceLevel?: 1 | 2 | 3 | 4
   tags?: string[]
-  gallery?: string[]
+  gallery?: Array<string | { asset_id?: string; src?: string }>
   rating?: number
   reviewCount?: number
   story?: string
@@ -109,6 +109,23 @@ export const TENANT_MARKETPLACE_KEYS = [
   'heroImage',
 ] as const
 
+function galleryItemSrc(item: unknown): string {
+  if (typeof item === 'string') {
+    if (item.startsWith('blob:') || item.startsWith('data:')) return ''
+    return item
+  }
+  if (item && typeof item === 'object' && 'src' in item && typeof (item as { src?: unknown }).src === 'string') {
+    const src = (item as { src: string }).src
+    if (src.startsWith('blob:') || src.startsWith('data:')) return ''
+    return src
+  }
+  return ''
+}
+
+export function gallerySrcList(items?: TenantMarketplaceSettings['gallery']): string[] {
+  return (items ?? []).map(galleryItemSrc).filter(Boolean)
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -126,7 +143,20 @@ export function pickTenantMarketplace(raw?: unknown): TenantMarketplaceSettings 
     listing.priceLevel = raw.priceLevel
   }
   if (Array.isArray(raw.tags)) listing.tags = raw.tags.filter((t): t is string => typeof t === 'string')
-  if (Array.isArray(raw.gallery)) listing.gallery = raw.gallery.filter((t): t is string => typeof t === 'string')
+  if (Array.isArray(raw.gallery)) {
+    listing.gallery = raw.gallery
+      .map((item) => {
+        if (typeof item === 'string') return galleryItemSrc(item) ? item : null
+        if (item && typeof item === 'object') {
+          const rec = item as { asset_id?: unknown; src?: unknown; assetId?: unknown }
+          const src = typeof rec.src === 'string' ? galleryItemSrc(rec.src) : ''
+          const assetId = typeof rec.asset_id === 'string' ? rec.asset_id : typeof rec.assetId === 'string' ? rec.assetId : undefined
+          if (assetId || src) return { asset_id: assetId, src: src || undefined }
+        }
+        return null
+      })
+      .filter((item): item is NonNullable<typeof item> => item != null)
+  }
   if (typeof raw.rating === 'number') listing.rating = raw.rating
   if (typeof raw.reviewCount === 'number') listing.reviewCount = raw.reviewCount
   if (typeof raw.story === 'string') listing.story = raw.story
@@ -220,8 +250,8 @@ export function hasActiveFilters(f: FilterState): boolean {
  */
 export function getMarketplaceMeta(
   settings?: { marketplace?: TenantMarketplaceSettings | MarketplaceMeta },
-): TenantMarketplaceSettings | undefined {
-  return pickTenantMarketplace(settings?.marketplace)
+): MarketplaceMeta | undefined {
+  return settings?.marketplace
 }
 
 /** Maps a canonical branch detail response into the public display shape. */

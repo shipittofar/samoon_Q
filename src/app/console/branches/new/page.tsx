@@ -18,6 +18,7 @@ import {
   type BranchCreateStep,
 } from '../BranchFormFields'
 import { mapBranchCreateError } from '@/types/branch-form'
+import { uploadImageFields } from '@/lib/image-asset-write'
 import { tenantService } from '@/services/tenant.service'
 import { tenantShowsCuisines } from '@/lib/branch-catalog'
 import { scrollWizardToTop } from '@/lib/wizard-scroll'
@@ -109,7 +110,7 @@ export default function NewBranchPage() {
     }
   }
 
-  function submitCreate() {
+  async function submitCreate() {
     if (isPending || createInFlightRef.current || !tenantId) return
     const validationError = validateBranchCreateForm(form)
     if (validationError) {
@@ -121,6 +122,18 @@ export default function NewBranchPage() {
     const payload = branchFormToCreateRequest(form)
     if (!showCuisines) payload.cuisines = []
     createInFlightRef.current = true
+    try {
+      const assets = await uploadImageFields([
+        { key: 'image_asset_id', field: form.image, purpose: 'branch_image' },
+        { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
+        { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
+      ])
+      Object.assign(payload, assets)
+    } catch {
+      createInFlightRef.current = false
+      toast.error(t('uploadErrorUnknown'))
+      return
+    }
     createBranch(payload, {
       onSuccess: () => {
         toast.success(t('branchCreatedSuccessfully'))

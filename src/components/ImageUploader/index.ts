@@ -1,6 +1,7 @@
 export { ImageUploader } from './ImageUploader'
 export {
   validateMenuImageFile,
+  validateImageFileForPurpose,
   menuItemImageFileSchema,
   menuItemImageFieldSchema,
   MENU_IMAGE_ALLOWED_MIME_TYPES,

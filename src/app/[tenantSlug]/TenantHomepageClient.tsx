@@ -22,6 +22,7 @@ import { HeroBackground } from '@/components/home/HeroBackground'
 import {
   getMarketplaceMeta,
   composeMarketplacePresentation,
+  gallerySrcList,
   BUSINESS_TYPE_LABELS,
   type MarketplaceMeta,
   type PublicBranchInfo,
@@ -659,7 +660,7 @@ function PromotionsSection({
 
 function GallerySection({ meta }: { meta: MarketplaceMeta }) {
   const t = useTranslations('tenant')
-  const images = [...(meta.gallery ?? [])].filter(Boolean).slice(0, 6)
+  const images = gallerySrcList(meta.gallery).slice(0, 6)
   // H5: Show gallery even with a single image (was <= 1)
   if (images.length === 0) return null
 

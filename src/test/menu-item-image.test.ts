@@ -1,5 +1,5 @@
 /**
- * Menu item image picker and multipart request tests.
+ * Menu item image picker and JSON asset-id request tests.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -8,7 +8,9 @@ import {
   MENU_IMAGE_ALLOWED_MIME_TYPES,
   MENU_IMAGE_ALLOWED_EXTENSIONS,
 } from '@/components/ImageUploader'
-import { buildMenuItemFormData, menuItemFormToWriteRequest } from '@/types/menu-item'
+import { menuItemFormToWriteRequest } from '@/types/menu-item'
+import * as fs from 'fs'
+import * as path from 'path'
 
 function makeFile(name: string, type: string, size = 1024): File {
   return new File([new Uint8Array(size)], name, { type })
@@ -40,16 +42,16 @@ describe('validateMenuImageFile', () => {
 
 describe('menu item image constants', () => {
   it('allows only jpeg and png MIME types', () => {
-    expect(MENU_IMAGE_ALLOWED_MIME_TYPES).toEqual(['image/jpeg', 'image/png'])
+    expect([...MENU_IMAGE_ALLOWED_MIME_TYPES]).toEqual(['image/jpeg', 'image/png'])
   })
 
   it('allows jpg, jpeg, png extensions', () => {
-    expect(MENU_IMAGE_ALLOWED_EXTENSIONS).toEqual(['.jpg', '.jpeg', '.png'])
+    expect([...MENU_IMAGE_ALLOWED_EXTENSIONS]).toEqual(['.jpg', '.jpeg', '.png'])
   })
 })
 
 describe('menu-item form mappers', () => {
-  it('maps form with file to write request with File image', () => {
+  it('does not put File on the JSON write request', () => {
     const file = makeFile('burger.png', 'image/png')
     const request = menuItemFormToWriteRequest({
       name: 'Burger',
@@ -65,12 +67,13 @@ describe('menu-item form mappers', () => {
       is_featured: false,
       is_popular: false,
       extra_group_ids: [],
+      tag_ids: [],
     })
-    expect(request.image).toBe(file)
+    expect(request.image_asset_id).toBeUndefined()
     expect(request.name).toBe('Burger')
   })
 
-  it('maps cleared image to removeImage flag', () => {
+  it('maps cleared image to image_asset_id null', () => {
     const request = menuItemFormToWriteRequest({
       name: 'Burger',
       description: '',
@@ -85,12 +88,12 @@ describe('menu-item form mappers', () => {
       is_featured: false,
       is_popular: false,
       extra_group_ids: [],
+      tag_ids: [],
     })
-    expect(request.removeImage).toBe(true)
-    expect(request.image).toBeUndefined()
+    expect(request.image_asset_id).toBeNull()
   })
 
-  it('omits image when unchanged on edit', () => {
+  it('omits image_asset_id when unchanged on edit', () => {
     const request = menuItemFormToWriteRequest({
       name: 'Burger',
       description: '',
@@ -105,66 +108,24 @@ describe('menu-item form mappers', () => {
       is_featured: false,
       is_popular: false,
       extra_group_ids: [],
+      tag_ids: [],
     })
-    expect(request.image).toBeUndefined()
-    expect(request.removeImage).toBeUndefined()
+    expect(request.image_asset_id).toBeUndefined()
   })
 })
 
-describe('buildMenuItemFormData', () => {
-  it('appends scalar fields and image File for create', () => {
-    const file = makeFile('item.jpg', 'image/jpeg')
-    const form = buildMenuItemFormData(
-      {
-        name: 'Burger',
-        price: 12,
-        category_id: 'cat-1',
-        image: file,
-      },
-      { branchId: 'branch-1' },
-    )
-
-    expect(form.get('branch_id')).toBe('branch-1')
-    expect(form.get('name')).toBe('Burger')
-    expect(form.get('price')).toBe('12')
-    expect(form.get('category_id')).toBe('cat-1')
-    expect(form.get('image')).toBe(file)
+describe('menu item console wiring', () => {
+  it('page uses ImageUploader and JSON mapper', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../app/console/menu/page.tsx'), 'utf8')
+    expect(src).toContain('ImageUploader')
+    expect(src).toContain('menuItemFormToWriteRequest')
+    expect(src).toContain('withUploadedImage')
   })
 
-  it('appends empty image when removeImage is set', () => {
-    const form = buildMenuItemFormData({ removeImage: true })
-    expect(form.get('image')).toBe('')
-  })
-})
-
-describe('console menu page — ImageUploader integration', () => {
-  it('uses ImageUploader and multipart write request mapper', async () => {
-    const fs = await import('fs')
-    const path = await import('path')
-    const page = fs.readFileSync(
-      path.join(process.cwd(), 'src/app/console/menu/page.tsx'),
-      'utf8',
-    )
-    expect(page).toContain('ImageUploader')
-    expect(page).not.toMatch(/imageUrlLabel.*form\.image/)
-    expect(page).toContain('menuItemFormToWriteRequest')
-    expect(page).toContain('menuItemToFormInput')
-  })
-})
-
-describe('menu.service — multipart create/update', () => {
-  it('builds FormData and does not set multipart Content-Type header', async () => {
-    const fs = await import('fs')
-    const path = await import('path')
-    const src = fs.readFileSync(
-      path.join(process.cwd(), 'src/services/menu.service.ts'),
-      'utf8',
-    )
-    expect(src).toContain('buildMenuItemFormData')
-    expect(src).toContain("formData = buildMenuItemFormData")
-    expect(src).toContain('multipartRequestConfig')
-    expect(src).not.toContain('multipart/form-data')
-    expect(src).not.toContain('fileToImageDataUrl')
-    expect(src).not.toContain('menu-image.service')
+  it('menu service create uses JSON not FormData', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../services/menu.service.ts'), 'utf8')
+    expect(src).toContain('createItem(branchId: string, payload: MenuItemWriteRequest)')
+    expect(src).not.toContain('buildMenuItemFormData')
+    expect(src).not.toContain('multipartRequestConfig')
   })
 })

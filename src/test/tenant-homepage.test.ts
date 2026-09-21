@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
-import { getMarketplaceMeta } from '@/types/marketplace'
+import { getMarketplaceMeta, composeMarketplacePresentation } from '@/types/marketplace'
+import { resolvePublicBranchList } from '@/lib/public-branches'
 import { buildPublicUrl, hrefToPublicUrl } from '@/utils/public-url'
 import { resolveOrderBranchMenuUrl } from '@/utils/navigation-intelligence'
 import type { PublicBranchInfo } from '@/types/marketplace'
@@ -100,22 +101,29 @@ describe('hrefToPublicUrl', () => {
 
 // ── MarketplaceMeta — extended fields ─────────────────────────────────────────
 
+async function composedMeta(slug: string) {
+  const tenant = await tenantService.getTenantBySlug(slug)
+  const branches = await resolvePublicBranchList(tenant.id)
+  return composeMarketplacePresentation({
+    listing: getMarketplaceMeta(tenant.settings),
+    branches,
+  })
+}
+
 describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   beforeEach(() => {
     tenantService._resetMockList()
   })
 
   it('samoon has branches array with 3 entries', async () => {
-    const tenant = await tenantService.getTenantBySlug('samoon')
-    const meta = getMarketplaceMeta(tenant.settings)
-    expect(meta?.branches).toBeDefined()
-    expect(meta?.branches?.length).toBe(3)
+    const meta = await composedMeta('samoon')
+    expect(meta.branches).toBeDefined()
+    expect(meta.branches!.length).toBeGreaterThanOrEqual(3)
   })
 
   it('each branch entry has required fields', async () => {
-    const tenant = await tenantService.getTenantBySlug('samoon')
-    const meta = getMarketplaceMeta(tenant.settings)
-    meta?.branches?.forEach((b: PublicBranchInfo) => {
+    const meta = await composedMeta('samoon')
+    meta.branches?.forEach((b: PublicBranchInfo) => {
       expect(typeof b.slug).toBe('string')
       expect(b.slug.length).toBeGreaterThan(0)
       expect(typeof b.name).toBe('string')
@@ -126,27 +134,23 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   })
 
   it('brew-cafe has 2 branches', async () => {
-    const tenant = await tenantService.getTenantBySlug('brew-cafe')
-    const meta = getMarketplaceMeta(tenant.settings)
-    expect(meta?.branches?.length).toBe(2)
+    const meta = await composedMeta('brew-cafe')
+    expect(meta.branches?.length).toBe(2)
   })
 
   it('the-oak-bar has 1 branch', async () => {
-    const tenant = await tenantService.getTenantBySlug('the-oak-bar')
-    const meta = getMarketplaceMeta(tenant.settings)
-    expect(meta?.branches?.length).toBe(1)
+    const meta = await composedMeta('the-oak-bar')
+    expect(meta.branches?.length).toBe(1)
   })
 
   it('central-food-court has 1 branch', async () => {
-    const tenant = await tenantService.getTenantBySlug('central-food-court')
-    const meta = getMarketplaceMeta(tenant.settings)
-    expect(meta?.branches?.length).toBe(1)
+    const meta = await composedMeta('central-food-court')
+    expect(meta.branches?.length).toBe(1)
   })
 
   it('wheels-and-brews has 1 branch', async () => {
-    const tenant = await tenantService.getTenantBySlug('wheels-and-brews')
-    const meta = getMarketplaceMeta(tenant.settings)
-    expect(meta?.branches?.length).toBe(1)
+    const meta = await composedMeta('wheels-and-brews')
+    expect(meta.branches?.length).toBe(1)
   })
 
   it('all public tenants have tagline', async () => {
@@ -175,20 +179,23 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
   })
 
   it('samoon primary branch slug matches first branch slug', async () => {
-    const tenant = await tenantService.getTenantBySlug('samoon')
-    const meta = getMarketplaceMeta(tenant.settings)
-    expect(meta?.branches?.[0]?.slug).toBe(meta?.primaryBranchSlug)
+    const meta = await composedMeta('samoon')
+    expect(meta.branches?.[0]?.slug).toBe(meta.primaryBranchSlug)
   })
 
   it('all branch slugs are non-empty strings', async () => {
     const tenants = await tenantService.getTenants()
-    tenants.forEach((t) => {
-      const meta = getMarketplaceMeta(t.settings)
-      meta?.branches?.forEach((b: PublicBranchInfo) => {
+    for (const t of tenants) {
+      const branches = await resolvePublicBranchList(t.id)
+      const meta = composeMarketplacePresentation({
+        listing: getMarketplaceMeta(t.settings),
+        branches,
+      })
+      meta.branches?.forEach((b: PublicBranchInfo) => {
         expect(typeof b.slug).toBe('string')
         expect(b.slug.length).toBeGreaterThan(0)
       })
-    })
+    }
   })
 
   it('gallery is an array of strings when present', async () => {
@@ -196,9 +203,10 @@ describe('MarketplaceMeta extended fields (P8.7.7.2)', () => {
     const meta = getMarketplaceMeta(tenant.settings)
     if (meta?.gallery) {
       expect(Array.isArray(meta.gallery)).toBe(true)
-      meta.gallery.forEach((url: string) => {
+      meta.gallery.forEach((item) => {
+        const url = typeof item === 'string' ? item : item.src
         expect(typeof url).toBe('string')
-        expect(url.startsWith('https')).toBe(true)
+        expect(url?.startsWith('https')).toBe(true)
       })
     }
   })

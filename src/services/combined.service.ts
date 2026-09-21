@@ -2,7 +2,7 @@
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
 import { validateMenuImageFile } from '@/components/ImageUploader'
-import { mockImageUrlFromFile, multipartRequestConfig } from '@/lib/multipart'
+import { uploadService, type UploadFileRequest } from '@/services/upload.service'
 import { MOCK_BRANCHES, MOCK_TENANT_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
 import { branchBelongsToMockTenant } from '@/lib/mock-tenant-scope'
 import type { Branch, Notification, PaginatedResponse, Reservation, TableInfo, UpdateProfileRequest, User } from '@/types'
@@ -182,7 +182,10 @@ export const userService = {
     return addressService.delete(id)
   },
 
-  async uploadAvatar(file: File): Promise<{ avatar_url: string }> {
+  async uploadAvatar(
+    file: File,
+    options?: { signal?: AbortSignal; onSession?: UploadFileRequest['onSession'] },
+  ): Promise<{ avatar_url: string }> {
     const validation = validateMenuImageFile(file)
     if (!validation.valid) {
       if (validation.errorKey === 'fileTooLarge') {
@@ -191,20 +194,21 @@ export const userService = {
       throw new Error('Unsupported file type. Please upload a JPEG or PNG image.')
     }
 
+    const asset = await uploadService.uploadFile({
+      file,
+      purpose: 'avatar',
+      signal: options?.signal,
+      onSession: options?.onSession,
+    })
     if (USE_MOCK) {
-      await delay(900)
-      return { avatar_url: mockImageUrlFromFile(file) }
+      return { avatar_url: asset.url }
     }
 
-    const form = new FormData()
-    form.append('avatar', file)
-    const { data } = await api.patch<{ avatar_url: string }>(
+    const { data } = await api.patch<{ avatar_url?: string; avatar_asset_id?: string }>(
       ENDPOINTS.USERS.AVATAR_UPLOAD,
-      form,
-      multipartRequestConfig(),
+      { avatar_asset_id: asset.assetId },
     )
-    if (!data?.avatar_url) throw new Error('Server did not return an avatar URL.')
-    return data
+    return { avatar_url: data?.avatar_url || asset.url }
   },
 }
 

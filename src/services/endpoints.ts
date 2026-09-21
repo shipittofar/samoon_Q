@@ -197,6 +197,13 @@ export const ENDPOINTS = {
     ITEM_REVIEWS: (itemId: string) => `/menu/items/${itemId}/reviews/`,
   },
 
+  UPLOADS: {
+    INITIATE: '/uploads/initiate/',
+    COMPLETE: (assetId: string) => `/uploads/${assetId}/complete/`,
+    STATUS: (assetId: string) => `/uploads/${assetId}/`,
+    CANCEL: (assetId: string) => `/uploads/${assetId}/cancel/`,
+  },
+
   // Website Builder (P8.8.6)
   WEBSITE_BUILDER: {
     LAYOUT: (tenantId: string) => `/tenants/${tenantId}/website/layout/`,
