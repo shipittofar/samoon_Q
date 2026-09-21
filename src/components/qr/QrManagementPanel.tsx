@@ -7,7 +7,7 @@ import { Check, Copy, Loader2 } from 'lucide-react'
 import { QrCodeDisplay } from '@/components/qr/QrCodeDisplay'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
-import { getApiErrorMessage, getApiStatus } from '@/api/errors'
+import { getApiErrorCode, getApiErrorMessage, getApiStatus } from '@/api/errors'
 import {
   useBranchQr,
   useDisableBranchQr,
@@ -19,11 +19,21 @@ import {
   useRegenerateTenantQr,
   useSetTenantQrDestination,
   useTenantQr,
+  useMenuQr,
+  useDisableMenuQr,
+  useEnableMenuQr,
+  useRegenerateMenuQr,
+  useSetMenuQrDestination,
+  useReservationQr,
+  useDisableReservationQr,
+  useEnableReservationQr,
+  useRegenerateReservationQr,
+  useSetReservationQrDestination,
 } from '@/hooks/qr-management'
-import { BRANCH_QR_DESTINATIONS, TENANT_QR_DESTINATIONS } from '@/types/qr'
-import type { QrDestination } from '@/types/qr'
+import { qrDestinationsForEntity } from '@/types/qr'
+import type { QrDestination, QrEntityType } from '@/types/qr'
 
-type Scope = 'tenant' | 'branch'
+type Scope = QrEntityType
 
 function destinationLabelKey(destination: QrDestination): string {
   if (destination === 'tenant') return 'qrDestinationTenant'
@@ -46,8 +56,8 @@ function toastQrError(err: unknown, t: (key: string) => string, fallbackKey: str
     toast.error(t('qrNotFound'))
     return
   }
-  if (status === 400) {
-    toast.error(getApiErrorMessage(err, t('qrInvalidDestination')))
+  if (getApiErrorCode(err) === 'qr_invalid_destination') {
+    toast.error(t('qrInvalidDestination'))
     return
   }
   toast.error(getApiErrorMessage(err, t(fallbackKey)))
@@ -78,11 +88,21 @@ export function QrManagementPanel({
   const tMarket = useTranslations('marketplace')
   const [disableOpen, setDisableOpen] = useState(false)
   const [regenerateOpen, setRegenerateOpen] = useState(false)
+  const [pendingDestination, setPendingDestination] = useState<QrDestination | null>(null)
   const [copied, setCopied] = useState(false)
 
   const tenantQuery = useTenantQr(scope === 'tenant' ? entityId : undefined)
   const branchQuery = useBranchQr(scope === 'branch' ? entityId : undefined)
-  const query = scope === 'tenant' ? tenantQuery : branchQuery
+  const menuQuery = useMenuQr(scope === 'menu' ? entityId : undefined)
+  const reservationQuery = useReservationQr(scope === 'reservation' ? entityId : undefined)
+  const query =
+    scope === 'tenant'
+      ? tenantQuery
+      : scope === 'branch'
+        ? branchQuery
+        : scope === 'menu'
+          ? menuQuery
+          : reservationQuery
   const qr = query.data ?? null
 
   const enableTenant = useEnableTenantQr()
@@ -93,27 +113,42 @@ export function QrManagementPanel({
   const disableBranch = useDisableBranchQr(tenantId)
   const regenerateBranch = useRegenerateBranchQr(tenantId)
   const destinationBranch = useSetBranchQrDestination(tenantId)
+  const enableMenu = useEnableMenuQr()
+  const disableMenu = useDisableMenuQr()
+  const regenerateMenu = useRegenerateMenuQr()
+  const destinationMenu = useSetMenuQrDestination()
+  const enableReservation = useEnableReservationQr()
+  const disableReservation = useDisableReservationQr()
+  const regenerateReservation = useRegenerateReservationQr()
+  const destinationReservation = useSetReservationQrDestination()
 
-  const allowed = scope === 'tenant' ? TENANT_QR_DESTINATIONS : BRANCH_QR_DESTINATIONS
+  const allowed = qrDestinationsForEntity(scope)
   const showDestinationSelect = canManage && allowed.length > 1
 
-  const busy =
-    enableTenant.isPending ||
-    disableTenant.isPending ||
+  const enablePending =
+    enableTenant.isPending || enableBranch.isPending || enableMenu.isPending || enableReservation.isPending
+  const disablePending =
+    disableTenant.isPending || disableBranch.isPending || disableMenu.isPending || disableReservation.isPending
+  const regeneratePending =
     regenerateTenant.isPending ||
-    destinationTenant.isPending ||
-    enableBranch.isPending ||
-    disableBranch.isPending ||
     regenerateBranch.isPending ||
-    destinationBranch.isPending
+    regenerateMenu.isPending ||
+    regenerateReservation.isPending
+  const destinationPending =
+    destinationTenant.isPending ||
+    destinationBranch.isPending ||
+    destinationMenu.isPending ||
+    destinationReservation.isPending
+
+  const busy = enablePending || disablePending || regeneratePending || destinationPending
 
   function runEnable() {
     const onError = (err: unknown) => toastQrError(err, t, 'qrEnableFailed')
-    if (scope === 'tenant') {
-      enableTenant.mutate(entityId, { onSuccess: () => toast.success(t('qrEnableSuccess')), onError })
-    } else {
-      enableBranch.mutate(entityId, { onSuccess: () => toast.success(t('qrEnableSuccess')), onError })
-    }
+    const onSuccess = () => toast.success(t('qrEnableSuccess'))
+    if (scope === 'tenant') enableTenant.mutate(entityId, { onSuccess, onError })
+    else if (scope === 'branch') enableBranch.mutate(entityId, { onSuccess, onError })
+    else if (scope === 'menu') enableMenu.mutate(entityId, { onSuccess, onError })
+    else enableReservation.mutate(entityId, { onSuccess, onError })
   }
 
   function runDisable() {
@@ -122,11 +157,10 @@ export function QrManagementPanel({
       setDisableOpen(false)
       toast.success(t('qrDisableSuccess'))
     }
-    if (scope === 'tenant') {
-      disableTenant.mutate(entityId, { onSuccess, onError })
-    } else {
-      disableBranch.mutate(entityId, { onSuccess, onError })
-    }
+    if (scope === 'tenant') disableTenant.mutate(entityId, { onSuccess, onError })
+    else if (scope === 'branch') disableBranch.mutate(entityId, { onSuccess, onError })
+    else if (scope === 'menu') disableMenu.mutate(entityId, { onSuccess, onError })
+    else disableReservation.mutate(entityId, { onSuccess, onError })
   }
 
   function runRegenerate() {
@@ -135,21 +169,38 @@ export function QrManagementPanel({
       setRegenerateOpen(false)
       toast.success(t('qrRegenerateSuccess'))
     }
-    if (scope === 'tenant') {
-      regenerateTenant.mutate(entityId, { onSuccess, onError })
-    } else {
-      regenerateBranch.mutate(entityId, { onSuccess, onError })
-    }
+    if (scope === 'tenant') regenerateTenant.mutate(entityId, { onSuccess, onError })
+    else if (scope === 'branch') regenerateBranch.mutate(entityId, { onSuccess, onError })
+    else if (scope === 'menu') regenerateMenu.mutate(entityId, { onSuccess, onError })
+    else regenerateReservation.mutate(entityId, { onSuccess, onError })
   }
 
-  function runDestination(destination: QrDestination) {
+  function requestDestinationChange(destination: QrDestination) {
     if (!qr || destination === qr.destination) return
+    setPendingDestination(destination)
+  }
+
+  function cancelDestinationChange() {
+    setPendingDestination(null)
+  }
+
+  function confirmDestinationChange() {
+    if (!pendingDestination) return
+    const destination = pendingDestination
     const onError = (err: unknown) => toastQrError(err, t, 'qrDestinationFailed')
-    const onSuccess = () => toast.success(t('qrDestinationUpdated'))
+    const onSuccess = () => {
+      setPendingDestination(null)
+      toast.success(t('qrDestinationUpdated'))
+    }
+    const payload = { destination_type: destination } as const
     if (scope === 'tenant') {
-      destinationTenant.mutate({ tenantId: entityId, payload: { destination } }, { onSuccess, onError })
+      destinationTenant.mutate({ tenantId: entityId, payload }, { onSuccess, onError })
+    } else if (scope === 'branch') {
+      destinationBranch.mutate({ branchId: entityId, payload }, { onSuccess, onError })
+    } else if (scope === 'menu') {
+      destinationMenu.mutate({ entityId, payload }, { onSuccess, onError })
     } else {
-      destinationBranch.mutate({ branchId: entityId, payload: { destination } }, { onSuccess, onError })
+      destinationReservation.mutate({ entityId, payload }, { onSuccess, onError })
     }
   }
 
@@ -171,7 +222,7 @@ export function QrManagementPanel({
         <div>
           <p className="text-sm text-[var(--fg-subtle)] mb-3">{tMarket('qrNotAvailable')}</p>
           {canManage ? (
-            <Button type="button" size="sm" loading={enableTenant.isPending || enableBranch.isPending} onClick={runEnable}>
+            <Button type="button" size="sm" loading={enablePending} onClick={runEnable}>
               {t('qrEnableAction')}
             </Button>
           ) : null}
@@ -207,11 +258,11 @@ export function QrManagementPanel({
                   <span className="sr-only">{t('qrChangeDestination')}</span>
                   <select
                     className="mt-1 w-full max-w-xs border rounded-md px-3 py-2 text-sm bg-[var(--card)]"
-                    value={qr.destination}
+                    value={pendingDestination ?? qr.destination}
                     disabled={busy}
                     aria-label={t('qrDestinationLabel')}
                     data-testid="qr-destination-select"
-                    onChange={(e) => runDestination(e.target.value as QrDestination)}
+                    onChange={(e) => requestDestinationChange(e.target.value as QrDestination)}
                   >
                     {allowed.map((value) => (
                       <option key={value} value={value}>
@@ -282,7 +333,7 @@ export function QrManagementPanel({
                   <Button
                     type="button"
                     size="sm"
-                    loading={enableTenant.isPending || enableBranch.isPending}
+                    loading={enablePending}
                     disabled={busy}
                     onClick={runEnable}
                   >
@@ -319,7 +370,7 @@ export function QrManagementPanel({
             type="button"
             variant="destructive"
             className="flex-1"
-            loading={disableTenant.isPending || disableBranch.isPending}
+            loading={disablePending}
             onClick={runDisable}
           >
             {t('qrConfirmDisable')}
@@ -342,10 +393,32 @@ export function QrManagementPanel({
             type="button"
             variant="destructive"
             className="flex-1"
-            loading={regenerateTenant.isPending || regenerateBranch.isPending}
+            loading={regeneratePending}
             onClick={runRegenerate}
           >
             {t('qrConfirmRegenerate')}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={pendingDestination !== null}
+        onClose={cancelDestinationChange}
+        title={t('qrDestinationConfirmTitle')}
+        size="sm"
+      >
+        <p className="text-sm text-[var(--fg-muted)] mb-4">{t('qrDestinationConfirmBody')}</p>
+        <div className="flex gap-3">
+          <Button type="button" variant="secondary" className="flex-1" onClick={cancelDestinationChange}>
+            {t('cancel')}
+          </Button>
+          <Button
+            type="button"
+            className="flex-1"
+            loading={destinationPending}
+            onClick={confirmDestinationChange}
+          >
+            {t('qrConfirmChangeDestination')}
           </Button>
         </div>
       </Modal>

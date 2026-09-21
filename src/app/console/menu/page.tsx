@@ -26,6 +26,8 @@ import { AccessDenied } from '@/components/admin/AccessDenied'
 import { MenuTagBadge } from '@/components/menu/MenuTagBadge'
 import { MenuTagMultiSelect } from '@/components/console/MenuTagMultiSelect'
 import { CategoryCreateModal } from '@/components/console/CategoryCreateModal'
+import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
+import { APP_URL } from '@/constants'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
 
@@ -81,6 +83,7 @@ export default function AdminMenuPage() {
   )
   const { data: categories, isLoading: catsLoading } = useConsoleCategories(adminBranchId)
   const canCreateCategory = usePermission('category.create')
+  const canManageMenuQr = usePermission('menu.manage')
   const { data: extraGroups } = useConsoleExtraGroups(adminBranchId)
   const { data: branchTagsData, isLoading: tagsLoading } = useConsoleMenuTags(adminBranchId, { page_size: 200 })
   const branchTags = branchTagsData?.results ?? []
@@ -213,6 +216,21 @@ export default function AdminMenuPage() {
               <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={openCreate} disabled={!adminBranchId}>{t('addItem')}</Button>
             </div>
           </div>
+
+          {adminBranchId ? (
+            <div className="mb-6">
+              <QrManagementPanel
+                scope="menu"
+                entityId={adminBranchId}
+                canManage={canManageMenuQr}
+                publicUrl={`${APP_URL}/menu`}
+                publicUrlLabel={t('currentPublicPageLabel')}
+                title={t('menuQrTitle')}
+                description={t('menuQrDescription')}
+                sectionAria={t('menuQrSectionAria')}
+              />
+            </div>
+          ) : null}
 
           {/* Filters */}
           <div className="flex flex-wrap gap-3 mb-6">

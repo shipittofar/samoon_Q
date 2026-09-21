@@ -1,6 +1,9 @@
 /** Destination the public QR resolver redirects to after scan. */
 export type QrDestination = 'tenant' | 'branch' | 'menu' | 'reservation'
 
+/** Backend QR owner entity_type. */
+export type QrEntityType = QrDestination
+
 export const QR_DESTINATIONS: readonly QrDestination[] = [
   'tenant',
   'branch',
@@ -16,6 +19,17 @@ export const BRANCH_QR_DESTINATIONS: readonly QrDestination[] = [
   'menu',
   'reservation',
 ]
+
+export const MENU_QR_DESTINATIONS: readonly QrDestination[] = ['menu']
+
+export const RESERVATION_QR_DESTINATIONS: readonly QrDestination[] = ['reservation']
+
+export function qrDestinationsForEntity(kind: QrEntityType): readonly QrDestination[] {
+  if (kind === 'tenant') return TENANT_QR_DESTINATIONS
+  if (kind === 'branch') return BRANCH_QR_DESTINATIONS
+  if (kind === 'menu') return MENU_QR_DESTINATIONS
+  return RESERVATION_QR_DESTINATIONS
+}
 
 /** Backend QR payload attached to Tenant/Branch responses and GET …/qr/. */
 export interface QrCode {
@@ -35,6 +49,7 @@ export type ManagedQr = QrCode & {
   destination: QrDestination
 }
 
+/** PATCH …/qr/destination/ body — snake_case field required by the backend. */
 export interface QrDestinationPayload {
-  destination: QrDestination
+  destination_type: QrDestination
 }

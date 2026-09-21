@@ -3,8 +3,10 @@ import { QR_DESTINATIONS } from '@/types/qr'
 
 export const tenantQrQueryKey = (tenantId: string) => ['tenant-qr', tenantId] as const
 export const branchQrQueryKey = (branchId: string) => ['branch-qr', branchId] as const
+export const menuQrQueryKey = (entityId: string) => ['menu-qr', entityId] as const
+export const reservationQrQueryKey = (entityId: string) => ['reservation-qr', entityId] as const
 
-export type QrWorkspaceKind = 'tenant' | 'branch'
+export type QrWorkspaceKind = 'tenant' | 'branch' | 'menu' | 'reservation'
 export type QrListTypeFilter = 'all' | QrWorkspaceKind
 export type QrListStatusFilter = 'all' | 'active' | 'disabled'
 

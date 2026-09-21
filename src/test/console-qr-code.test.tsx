@@ -9,8 +9,9 @@ import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
 import { isEncodableQrUrl, isHttpQrUrl } from '@/lib/qr-url'
 import { encodeQrSvg } from '@/lib/qr-svg'
 import { DEFAULT_BRANCH_CHECKOUT } from '@/lib/branch-checkout'
+import { getApiErrorCode, getApiErrorMessage } from '@/api/errors'
 import { qrManagementService } from '@/services/qr-management.service'
-import { tenantQrQueryKey, branchQrQueryKey, matchesQrListFilters } from '@/lib/qr-management'
+import { tenantQrQueryKey, branchQrQueryKey, menuQrQueryKey, reservationQrQueryKey, matchesQrListFilters } from '@/lib/qr-management'
 import type { Tenant } from '@/types'
 import type { Branch } from '@/types/branch'
 import { readFileSync } from 'fs'
@@ -214,18 +215,64 @@ describe('QR management service', () => {
     const before = await qrManagementService.getBranchQr('branch-rest-01')
     expect(before?.code).toBeTruthy()
     const after = await qrManagementService.setBranchQrDestination('branch-rest-01', {
-      destination: 'menu',
+      destination_type: 'menu',
     })
     expect(after.code).toBe(before!.code)
     expect(after.url).toBe(before!.url)
     expect(after.destination).toBe('menu')
   })
 
-  it('does not allow tenant QR to target a branch destination', async () => {
-    await qrManagementService.getTenantQr('tenant-samoon-01')
+  it('sends destination_type for every branch destination enum', async () => {
+    const before = await qrManagementService.getBranchQr('branch-rest-01')
+    for (const destination_type of ['tenant', 'branch', 'menu', 'reservation'] as const) {
+      const after = await qrManagementService.setBranchQrDestination('branch-rest-01', {
+        destination_type,
+      })
+      expect(after.destination).toBe(destination_type)
+      expect(after.code).toBe(before!.code)
+      expect(after.url).toBe(before!.url)
+    }
+  })
+
+  it('rejects a missing destination_type field', async () => {
+    await qrManagementService.getBranchQr('branch-rest-01')
     await expect(
-      qrManagementService.setTenantQrDestination('tenant-samoon-01', { destination: 'menu' }),
-    ).rejects.toMatchObject({ response: { status: 400 } })
+      qrManagementService.setBranchQrDestination('branch-rest-01', {} as { destination_type: 'menu' }),
+    ).rejects.toMatchObject({
+      response: {
+        status: 400,
+        data: { destination_type: ['This field is required.'] },
+      },
+    })
+  })
+
+  it('tenant destination_type is coerced to tenant without changing the QR', async () => {
+    const before = await qrManagementService.getTenantQr('tenant-samoon-01')
+    const after = await qrManagementService.setTenantQrDestination('tenant-samoon-01', {
+      destination_type: 'menu',
+    })
+    expect(after.destination).toBe('tenant')
+    expect(after.code).toBe(before!.code)
+    expect(after.url).toBe(before!.url)
+  })
+
+  it('manages independent menu and reservation QR entities', async () => {
+    const menu = await qrManagementService.getMenuQr('branch-rest-01')
+    const reservation = await qrManagementService.getReservationQr('tenant-samoon-01')
+    expect(menu?.destination).toBe('menu')
+    expect(reservation?.destination).toBe('reservation')
+    expect(menu?.url).not.toBe(reservation?.url)
+    const disabled = await qrManagementService.disableMenuQr('branch-rest-01')
+    expect(disabled.is_active).toBe(false)
+    const enabled = await qrManagementService.enableMenuQr('branch-rest-01')
+    expect(enabled.is_active).toBe(true)
+    const regenerated = await qrManagementService.regenerateReservationQr('tenant-samoon-01')
+    expect(regenerated.code).not.toBe(reservation!.code)
+    await expect(
+      qrManagementService.setMenuQrDestination('branch-rest-01', { destination_type: 'branch' }),
+    ).rejects.toMatchObject({
+      response: { data: { code: 'qr_invalid_destination' } },
+    })
   })
 })
 
@@ -316,7 +363,7 @@ describe('QrManagementPanel', () => {
     )
     await waitFor(() => expect(getByTestId('qr-code-value').textContent).toBe(before!.code))
     await user.click(getByRole('button', { name: 'Regenerate QR' }))
-    expect(getByText(/printed copies will need to be replaced/i)).toBeTruthy()
+    expect(getByText(/stop working, including printed copies/i)).toBeTruthy()
     await user.click(getByRole('button', { name: /^Regenerate$/ }))
     await waitFor(() => expect(getByTestId('qr-code-value').textContent).not.toBe(before!.code))
     const afterUrl = getByTestId('qr-resolver-url').textContent
@@ -332,7 +379,7 @@ describe('QrManagementPanel', () => {
     const user = userEvent.setup()
     const before = await qrManagementService.getBranchQr('branch-rest-01')
     const setDest = vi.spyOn(qrManagementService, 'setBranchQrDestination')
-    const { getByTestId } = renderQrPanel(
+    const { getByTestId, getByRole, getByText } = renderQrPanel(
       <QrManagementPanel
         scope="branch"
         entityId="branch-rest-01"
@@ -346,14 +393,68 @@ describe('QrManagementPanel', () => {
     await waitFor(() => expect(getByTestId('qr-destination-select')).toBeTruthy())
     expect(getByTestId('qr-code-value').textContent).toBe(before!.code)
     await user.selectOptions(getByTestId('qr-destination-select'), 'menu')
-    await waitFor(() => expect(setDest).toHaveBeenCalledWith('branch-rest-01', { destination: 'menu' }))
+    expect(getByText('Change QR destination?')).toBeTruthy()
+    expect(getByText(/affect all printed copies/i)).toBeTruthy()
+    expect(setDest).not.toHaveBeenCalled()
+    await user.click(getByRole('button', { name: 'Change destination' }))
+    await waitFor(() =>
+      expect(setDest).toHaveBeenCalledWith('branch-rest-01', { destination_type: 'menu' }),
+    )
     await waitFor(() => expect(getByTestId('qr-destination-select')).toHaveValue('menu'))
     expect(getByTestId('qr-code-value').textContent).toBe(before!.code)
     expect(getByTestId('qr-resolver-url').textContent).toBe(before!.url)
+    expect(getByTestId('qr-code-display').getAttribute('data-qr-url')).toBe(before!.url)
+  })
+
+  it('destination cancel does not PATCH or change cache', async () => {
+    const user = userEvent.setup()
+    const before = await qrManagementService.getBranchQr('branch-rest-01')
+    const setDest = vi.spyOn(qrManagementService, 'setBranchQrDestination')
+    const { getByTestId, getByRole, qc } = renderQrPanel(
+      <QrManagementPanel
+        scope="branch"
+        entityId="branch-rest-01"
+        tenantId="tenant-samoon-01"
+        canManage
+        title="This location's QR Code"
+        description="Scan to open this branch's public page."
+        sectionAria="Branch public page and QR code"
+      />,
+    )
+    await waitFor(() => expect(getByTestId('qr-destination-select')).toBeTruthy())
+    await user.selectOptions(getByTestId('qr-destination-select'), 'reservation')
+    expect(setDest).not.toHaveBeenCalled()
+    await user.click(getByRole('button', { name: 'Cancel' }))
+    expect(setDest).not.toHaveBeenCalled()
+    expect(getByTestId('qr-destination-select')).toHaveValue(before!.destination)
+    expect(qc.getQueryData(branchQrQueryKey('branch-rest-01'))).toMatchObject({
+      destination: before!.destination,
+      url: before!.url,
+    })
+  })
+
+  it('regenerate cancel does not call the API', async () => {
+    const user = userEvent.setup()
+    const regenerate = vi.spyOn(qrManagementService, 'regenerateTenantQr')
+    const { getByRole } = renderQrPanel(
+      <QrManagementPanel
+        scope="tenant"
+        entityId="tenant-samoon-01"
+        canManage
+        title="Business QR Code"
+        description="Scan to open the public business page."
+        sectionAria="Business QR code"
+      />,
+    )
+    await waitFor(() => expect(getByRole('button', { name: 'Regenerate QR' })).toBeTruthy())
+    await user.click(getByRole('button', { name: 'Regenerate QR' }))
+    expect(regenerate).not.toHaveBeenCalled()
+    await user.click(getByRole('button', { name: 'Cancel' }))
+    expect(regenerate).not.toHaveBeenCalled()
   })
 
   it('tenant destination stays read-only', async () => {
-    const { queryByTestId, getByTestId } = renderQrPanel(
+    const { queryByTestId, getByTestId, queryByRole } = renderQrPanel(
       <QrManagementPanel
         scope="tenant"
         entityId="tenant-samoon-01"
@@ -366,11 +467,167 @@ describe('QrManagementPanel', () => {
     await waitFor(() => expect(getByTestId('qr-destination')).toBeTruthy())
     expect(queryByTestId('qr-destination-select')).toBeNull()
     expect(getByTestId('qr-destination').textContent).toBe('Business page')
+    expect(queryByRole('option', { name: 'Menu' })).toBeNull()
+    expect(queryByRole('option', { name: 'Reservations' })).toBeNull()
+    expect(queryByRole('option', { name: 'This location' })).toBeNull()
+  })
+
+  it('menu QR renders qr.url, status, and download control', async () => {
+    const qr = await qrManagementService.getMenuQr('branch-rest-01')
+    const { getByTestId, getByRole, queryByTestId } = renderQrPanel(
+      <QrManagementPanel
+        scope="menu"
+        entityId="branch-rest-01"
+        canManage
+        title="Menu QR Code"
+        description="Scan to open the public menu."
+        sectionAria="Menu QR code"
+      />,
+    )
+    await waitFor(() => expect(getByTestId('qr-code-display')).toBeTruthy())
+    expect(getByTestId('qr-status').getAttribute('data-qr-active')).toBe('true')
+    expect(getByTestId('qr-resolver-url').textContent).toBe(qr!.url)
+    expect(getByTestId('qr-code-display').getAttribute('data-qr-url')).toBe(qr!.url)
+    expect(encodeQrSvg).toHaveBeenCalledWith(qr!.url)
+    expect(queryByTestId('qr-destination-select')).toBeNull()
+    expect(getByTestId('qr-destination').textContent).toBe('Menu')
+    await waitFor(() => expect(getByRole('button', { name: 'Download QR code as SVG' })).toBeTruthy())
+  })
+
+  it('reservation QR renders independently of booking records', async () => {
+    const qr = await qrManagementService.getReservationQr('tenant-samoon-01')
+    const { getByTestId, queryByTestId } = renderQrPanel(
+      <QrManagementPanel
+        scope="reservation"
+        entityId="tenant-samoon-01"
+        canManage
+        title="Reservation QR Code"
+        description="Scan to open the public reservation page."
+        sectionAria="Reservation QR code"
+      />,
+    )
+    await waitFor(() => expect(getByTestId('qr-code-display')).toBeTruthy())
+    expect(getByTestId('qr-resolver-url').textContent).toBe(qr!.url)
+    expect(getByTestId('qr-code-display').getAttribute('data-qr-url')).toBe(qr!.url)
+    expect(queryByTestId('qr-destination-select')).toBeNull()
+    expect(getByTestId('qr-destination').textContent).toBe('Reservations')
+  })
+
+  it('menu disable requires confirmation then updates status', async () => {
+    const user = userEvent.setup()
+    const { getByRole, getByTestId } = renderQrPanel(
+      <QrManagementPanel
+        scope="menu"
+        entityId="branch-rest-01"
+        canManage
+        title="Menu QR Code"
+        description="Scan to open the public menu."
+        sectionAria="Menu QR code"
+      />,
+    )
+    await waitFor(() => expect(getByRole('button', { name: 'Disable QR' })).toBeTruthy())
+    await user.click(getByRole('button', { name: 'Disable QR' }))
+    await user.click(getByRole('button', { name: /^Disable$/ }))
+    await waitFor(() => expect(getByTestId('qr-status').getAttribute('data-qr-active')).toBe('false'))
+  })
+
+  it('menu enable mutation is called from the disabled state', async () => {
+    const user = userEvent.setup()
+    await qrManagementService.getMenuQr('branch-rest-01')
+    await qrManagementService.disableMenuQr('branch-rest-01')
+    const enable = vi.spyOn(qrManagementService, 'enableMenuQr')
+    const { getByRole, getByTestId } = renderQrPanel(
+      <QrManagementPanel
+        scope="menu"
+        entityId="branch-rest-01"
+        canManage
+        title="Menu QR Code"
+        description="Scan to open the public menu."
+        sectionAria="Menu QR code"
+      />,
+    )
+    await waitFor(() => expect(getByRole('button', { name: 'Enable QR' })).toBeTruthy())
+    await user.click(getByRole('button', { name: 'Enable QR' }))
+    await waitFor(() => expect(enable).toHaveBeenCalledWith('branch-rest-01'))
+    await waitFor(() => expect(getByTestId('qr-status').getAttribute('data-qr-active')).toBe('true'))
+  })
+
+  it('failed destination mutation does not corrupt cached QR state', async () => {
+    const user = userEvent.setup()
+    const before = await qrManagementService.getBranchQr('branch-rest-01')
+    const setDest = vi.spyOn(qrManagementService, 'setBranchQrDestination').mockRejectedValueOnce({
+      response: { status: 500, data: { message: 'server error' } },
+    })
+    const { getByTestId, getByRole, qc } = renderQrPanel(
+      <QrManagementPanel
+        scope="branch"
+        entityId="branch-rest-01"
+        tenantId="tenant-samoon-01"
+        canManage
+        title="This location's QR Code"
+        description="Scan to open this branch's public page."
+        sectionAria="Branch public page and QR code"
+      />,
+    )
+    await waitFor(() => expect(getByTestId('qr-destination-select')).toBeTruthy())
+    await user.selectOptions(getByTestId('qr-destination-select'), 'menu')
+    await user.click(getByRole('button', { name: 'Change destination' }))
+    await waitFor(() => expect(setDest).toHaveBeenCalled())
+    await waitFor(() => {
+      const cached = qc.getQueryData(branchQrQueryKey('branch-rest-01')) as { destination: string; url: string }
+      expect(cached.destination).toBe(before!.destination)
+      expect(cached.url).toBe(before!.url)
+    })
   })
 
   it('invalidate keys exist for tenant and branch QR', () => {
     expect(tenantQrQueryKey('t1')).toEqual(['tenant-qr', 't1'])
     expect(branchQrQueryKey('b1')).toEqual(['branch-qr', 'b1'])
+    expect(menuQrQueryKey('b1')).toEqual(['menu-qr', 'b1'])
+    expect(reservationQrQueryKey('t1')).toEqual(['reservation-qr', 't1'])
+  })
+})
+
+describe('QR destination error messages', () => {
+  it('reads nested qr_invalid_destination without using the generic 400 fallback', () => {
+    const err = {
+      response: {
+        status: 400,
+        data: {
+          error: { code: 'qr_invalid_destination', message: 'Invalid QR destination type.' },
+        },
+      },
+    }
+    expect(getApiErrorCode(err)).toBe('qr_invalid_destination')
+    expect(getApiErrorMessage(err, 'That destination is not allowed for this QR.')).toBe(
+      'Invalid QR destination type.',
+    )
+  })
+
+  it('reads DRF destination_type field errors', () => {
+    const err = {
+      response: {
+        status: 400,
+        data: { destination_type: ['This field is required.'] },
+      },
+    }
+    expect(getApiErrorCode(err)).toBeUndefined()
+    expect(getApiErrorMessage(err, 'Could not update the QR destination.')).toBe(
+      'destination_type: This field is required.',
+    )
+  })
+
+  it('does not treat a generic 400 as qr_invalid_destination', () => {
+    const err = {
+      response: {
+        status: 400,
+        data: { message: 'Something else went wrong.' },
+      },
+    }
+    expect(getApiErrorCode(err)).not.toBe('qr_invalid_destination')
+    expect(getApiErrorMessage(err, 'Could not update the QR destination.')).toBe(
+      'Something else went wrong.',
+    )
   })
 })
 
@@ -396,7 +653,11 @@ describe('QR management console page and edit surfaces', () => {
     expect(src).toContain('QrManagementPanel')
     expect(src).toContain('scope="tenant"')
     expect(src).toContain('scope="branch"')
+    expect(src).toContain('scope="menu"')
+    expect(src).toContain('scope="reservation"')
     expect(src).toContain('qrManagementService.getBranchQr')
+    expect(src).toContain('qrManagementService.getMenuQr')
+    expect(src).toContain('qrManagementService.getReservationQr')
     expect(src).toContain('useTenantQr')
     expect(src).toContain('branchQrQueryKey')
     expect(src).not.toMatch(/encodeQrSvg\(.*slug/)
@@ -419,6 +680,23 @@ describe('QR management console page and edit surfaces', () => {
     expect(src).toContain('entityId={branch.id}')
     expect(src).toContain('branchQrTitle')
     expect(src).not.toContain('qrUrl={`${APP_URL}')
+  })
+
+  it('Console Menu hosts menu QrManagementPanel for the selected branch', () => {
+    const src = readFileSync(join(ROOT, 'app/console/menu/page.tsx'), 'utf8')
+    expect(src).toContain('QrManagementPanel')
+    expect(src).toContain('scope="menu"')
+    expect(src).toContain('entityId={adminBranchId}')
+    expect(src).toContain('menuQrTitle')
+  })
+
+  it('Console Reservations list hosts reservation page QR, not booking detail', () => {
+    const list = readFileSync(join(ROOT, 'app/console/reservations/page.tsx'), 'utf8')
+    const detail = readFileSync(join(ROOT, 'app/console/reservations/[id]/page.tsx'), 'utf8')
+    expect(list).toContain('QrManagementPanel')
+    expect(list).toContain('scope="reservation"')
+    expect(list).toContain('reservationQrTitle')
+    expect(detail).not.toContain('QrManagementPanel')
   })
 
   it('filters tenant vs branch records client-side', () => {

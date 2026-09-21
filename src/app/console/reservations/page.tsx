@@ -10,13 +10,15 @@ import {
 import { Badge } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import { formatDate } from '@/utils'
-import { useAdminReservations, useConfirmReservation, useCancelReservation, useAdminBranches, useBulkConfirmReservations, useBulkCancelReservations, useConsoleTenantId } from '@/hooks'
+import { useAdminReservations, useConfirmReservation, useCancelReservation, useAdminBranches, useBulkConfirmReservations, useBulkCancelReservations, useConsoleTenantId, usePermission } from '@/hooks'
 import type { AdminReservationFilters, ReservationStatus } from '@/types'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
 import { BulkActionBar } from '@/components/admin/BulkActionBar'
 import { PreviewButton } from '@/components/admin/PreviewButton'
+import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
+import { APP_URL } from '@/constants'
 
 
 const STATUS_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'secondary'> = {
@@ -35,6 +37,7 @@ export default function AdminReservationsPage() {
   const [branchFilter, setBranchFilter] = useState<string>('all')
   const [currentDate, setCurrentDate] = useState(new Date())
   const tenantId = useConsoleTenantId() ?? ''
+  const canManageReservationQr = usePermission('reservations.manage')
   const { data: adminBranches = [] } = useAdminBranches(tenantId)
 
   const todayStr = currentDate.toISOString().split('T')[0]
@@ -113,6 +116,21 @@ export default function AdminReservationsPage() {
               </Button>
             </div>
           </div>
+
+          {tenantId ? (
+            <div className="mb-6">
+              <QrManagementPanel
+                scope="reservation"
+                entityId={tenantId}
+                canManage={canManageReservationQr}
+                publicUrl={`${APP_URL}/reservation`}
+                publicUrlLabel={t('currentPublicPageLabel')}
+                title={t('reservationQrTitle')}
+                description={t('reservationQrDescription')}
+                sectionAria={t('reservationQrSectionAria')}
+              />
+            </div>
+          ) : null}
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">

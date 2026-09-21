@@ -3,6 +3,8 @@ import { qrManagementService } from '@/services/qr-management.service'
 import { STALE_TIME } from '@/constants'
 import {
   branchQrQueryKey,
+  menuQrQueryKey,
+  reservationQrQueryKey,
   tenantQrQueryKey,
   toQrSummary,
 } from '@/lib/qr-management'
@@ -65,6 +67,20 @@ async function afterBranchQr(
   if (tenantId) {
     await qc.invalidateQueries({ queryKey: ['admin-branch', tenantId, branchId] })
   }
+}
+
+async function afterMenuQr(qc: ReturnType<typeof useQueryClient>, entityId: string, qr: ManagedQr) {
+  qc.setQueryData(menuQrQueryKey(entityId), qr)
+  await qc.invalidateQueries({ queryKey: menuQrQueryKey(entityId) })
+}
+
+async function afterReservationQr(
+  qc: ReturnType<typeof useQueryClient>,
+  entityId: string,
+  qr: ManagedQr,
+) {
+  qc.setQueryData(reservationQrQueryKey(entityId), qr)
+  await qc.invalidateQueries({ queryKey: reservationQrQueryKey(entityId) })
 }
 
 export function useTenantQr(tenantId: string | undefined) {
@@ -148,5 +164,89 @@ export function useSetBranchQrDestination(tenantId?: string) {
     mutationFn: ({ branchId, payload }: { branchId: string; payload: QrDestinationPayload }) =>
       qrManagementService.setBranchQrDestination(branchId, payload),
     onSuccess: (qr, { branchId }) => afterBranchQr(qc, branchId, tenantId, qr),
+  })
+}
+
+export function useMenuQr(entityId: string | undefined) {
+  return useQuery({
+    queryKey: menuQrQueryKey(entityId ?? ''),
+    queryFn: () => qrManagementService.getMenuQr(entityId!),
+    enabled: Boolean(entityId),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useReservationQr(entityId: string | undefined) {
+  return useQuery({
+    queryKey: reservationQrQueryKey(entityId ?? ''),
+    queryFn: () => qrManagementService.getReservationQr(entityId!),
+    enabled: Boolean(entityId),
+    staleTime: STALE_TIME,
+  })
+}
+
+export function useEnableMenuQr() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entityId: string) => qrManagementService.enableMenuQr(entityId),
+    onSuccess: (qr, entityId) => afterMenuQr(qc, entityId, qr),
+  })
+}
+
+export function useDisableMenuQr() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entityId: string) => qrManagementService.disableMenuQr(entityId),
+    onSuccess: (qr, entityId) => afterMenuQr(qc, entityId, qr),
+  })
+}
+
+export function useRegenerateMenuQr() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entityId: string) => qrManagementService.regenerateMenuQr(entityId),
+    onSuccess: (qr, entityId) => afterMenuQr(qc, entityId, qr),
+  })
+}
+
+export function useSetMenuQrDestination() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ entityId, payload }: { entityId: string; payload: QrDestinationPayload }) =>
+      qrManagementService.setMenuQrDestination(entityId, payload),
+    onSuccess: (qr, { entityId }) => afterMenuQr(qc, entityId, qr),
+  })
+}
+
+export function useEnableReservationQr() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entityId: string) => qrManagementService.enableReservationQr(entityId),
+    onSuccess: (qr, entityId) => afterReservationQr(qc, entityId, qr),
+  })
+}
+
+export function useDisableReservationQr() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entityId: string) => qrManagementService.disableReservationQr(entityId),
+    onSuccess: (qr, entityId) => afterReservationQr(qc, entityId, qr),
+  })
+}
+
+export function useRegenerateReservationQr() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entityId: string) => qrManagementService.regenerateReservationQr(entityId),
+    onSuccess: (qr, entityId) => afterReservationQr(qc, entityId, qr),
+  })
+}
+
+export function useSetReservationQrDestination() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ entityId, payload }: { entityId: string; payload: QrDestinationPayload }) =>
+      qrManagementService.setReservationQrDestination(entityId, payload),
+    onSuccess: (qr, { entityId }) => afterReservationQr(qc, entityId, qr),
   })
 }

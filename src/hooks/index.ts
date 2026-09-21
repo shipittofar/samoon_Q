@@ -1764,6 +1764,16 @@ export {
   useDisableBranchQr,
   useRegenerateBranchQr,
   useSetBranchQrDestination,
+  useMenuQr,
+  useReservationQr,
+  useEnableMenuQr,
+  useDisableMenuQr,
+  useRegenerateMenuQr,
+  useSetMenuQrDestination,
+  useEnableReservationQr,
+  useDisableReservationQr,
+  useRegenerateReservationQr,
+  useSetReservationQrDestination,
 } from './qr-management'
 
 export function useQRExperience(businessType?: string) {

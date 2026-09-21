@@ -15,6 +15,8 @@ import { tenantService } from '@/services/tenant.service'
 import { qrManagementService } from '@/services/qr-management.service'
 import {
   branchQrQueryKey,
+  menuQrQueryKey,
+  reservationQrQueryKey,
   matchesQrListFilters,
   type QrListEntry,
   type QrListStatusFilter,
@@ -36,7 +38,14 @@ function WorkspaceQrCard({
   viewHref: string
 }) {
   const t = useTranslations('console')
-  const typeLabel = entry.kind === 'tenant' ? t('qrTypeTenant') : t('qrTypeBranch')
+  const typeLabel =
+    entry.kind === 'tenant'
+      ? t('qrTypeTenant')
+      : entry.kind === 'branch'
+        ? t('qrTypeBranch')
+        : entry.kind === 'menu'
+          ? t('qrTypeMenu')
+          : t('qrTypeReservation')
 
   return (
     <article
@@ -68,7 +77,7 @@ function WorkspaceQrCard({
           description={t('businessQrDescription')}
           sectionAria={t('businessQrSectionAria')}
         />
-      ) : (
+      ) : entry.kind === 'branch' ? (
         <QrManagementPanel
           scope="branch"
           entityId={entry.id}
@@ -79,6 +88,28 @@ function WorkspaceQrCard({
           title={t('branchQrTitle')}
           description={t('branchQrDescription')}
           sectionAria={t('branchQrSectionAria')}
+        />
+      ) : entry.kind === 'menu' ? (
+        <QrManagementPanel
+          scope="menu"
+          entityId={entry.id}
+          canManage={canManage}
+          publicUrl={`${APP_URL}/menu`}
+          publicUrlLabel={t('currentPublicPageLabel')}
+          title={t('menuQrTitle')}
+          description={t('menuQrDescription')}
+          sectionAria={t('menuQrSectionAria')}
+        />
+      ) : (
+        <QrManagementPanel
+          scope="reservation"
+          entityId={entry.id}
+          canManage={canManage}
+          publicUrl={`${APP_URL}/reservation`}
+          publicUrlLabel={t('currentPublicPageLabel')}
+          title={t('reservationQrTitle')}
+          description={t('reservationQrDescription')}
+          sectionAria={t('reservationQrSectionAria')}
         />
       )}
     </article>
@@ -92,6 +123,8 @@ function QrManagementContent() {
   const alignedTenant = storeTenant?.id === tenantId ? storeTenant : null
   const canManageTenant = usePermission('tenant.manage')
   const canManageBranch = usePermission('branches.update')
+  const canManageMenu = usePermission('menu.manage')
+  const canManageReservation = usePermission('reservations.manage')
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<QrListTypeFilter>('all')
   const [statusFilter, setStatusFilter] = useState<QrListStatusFilter>('all')
@@ -112,9 +145,25 @@ function QrManagementContent() {
       enabled: Boolean(branch.id),
     })),
   })
+  const menuQrQueries = useQueries({
+    queries: branches.map((branch) => ({
+      queryKey: menuQrQueryKey(branch.id),
+      queryFn: () => qrManagementService.getMenuQr(branch.id),
+      staleTime: STALE_TIME,
+      enabled: Boolean(branch.id),
+    })),
+  })
+  const reservationQr = useQuery({
+    queryKey: reservationQrQueryKey(tenantId ?? ''),
+    queryFn: () => qrManagementService.getReservationQr(tenantId!),
+    staleTime: STALE_TIME,
+    enabled: Boolean(tenantId),
+  })
 
   const tenantActive = tenantQr.data?.is_active ?? null
+  const reservationActive = reservationQr.data?.is_active ?? null
   const branchActiveKey = branchQrQueries.map((query) => String(query.data?.is_active ?? '')).join('|')
+  const menuActiveKey = menuQrQueries.map((query) => String(query.data?.is_active ?? '')).join('|')
 
   const records = useMemo(() => {
     const list: QrListEntry[] = []
@@ -128,6 +177,7 @@ function QrManagementContent() {
       })
     }
     const actives = branchActiveKey.split('|')
+    const menuActives = menuActiveKey.split('|')
     branches.forEach((branch: Branch, index) => {
       const raw = actives[index]
       list.push({
@@ -137,9 +187,26 @@ function QrManagementContent() {
         slug: branch.slug,
         isActive: raw === 'true' ? true : raw === 'false' ? false : null,
       })
+      const menuRaw = menuActives[index]
+      list.push({
+        kind: 'menu',
+        id: branch.id,
+        name: branch.name,
+        slug: branch.slug,
+        isActive: menuRaw === 'true' ? true : menuRaw === 'false' ? false : null,
+      })
     })
+    if (tenant && tenantId) {
+      list.push({
+        kind: 'reservation',
+        id: tenant.id,
+        name: tenant.name,
+        slug: tenant.slug,
+        isActive: reservationActive,
+      })
+    }
     return list
-  }, [tenant, tenantId, tenantActive, branches, branchActiveKey])
+  }, [tenant, tenantId, tenantActive, branches, branchActiveKey, menuActiveKey, reservationActive])
 
   const visible = useMemo(
     () => records.filter((entry) => matchesQrListFilters(entry, search, typeFilter, statusFilter)),
@@ -202,6 +269,8 @@ function QrManagementContent() {
             <option value="all">{t('qrFilterTypeAll')}</option>
             <option value="tenant">{t('qrFilterTypeTenant')}</option>
             <option value="branch">{t('qrFilterTypeBranch')}</option>
+            <option value="menu">{t('qrFilterTypeMenu')}</option>
+            <option value="reservation">{t('qrFilterTypeReservation')}</option>
           </select>
         </label>
         <label className="text-sm">
@@ -230,11 +299,23 @@ function QrManagementContent() {
               key={`${entry.kind}-${entry.id}`}
               entry={entry}
               tenant={tenant}
-              canManage={entry.kind === 'tenant' ? canManageTenant : canManageBranch}
+              canManage={
+                entry.kind === 'tenant'
+                  ? canManageTenant
+                  : entry.kind === 'branch'
+                    ? canManageBranch
+                    : entry.kind === 'menu'
+                      ? canManageMenu
+                      : canManageReservation
+              }
               viewHref={
                 entry.kind === 'tenant'
                   ? `/console/tenants/${entry.id}`
-                  : `/console/branches/${entry.id}`
+                  : entry.kind === 'branch'
+                    ? `/console/branches/${entry.id}`
+                    : entry.kind === 'menu'
+                      ? '/console/menu'
+                      : '/console/reservations'
               }
             />
           ))}
@@ -247,7 +328,7 @@ function QrManagementContent() {
 export default function QrManagementPage() {
   return (
     <ErrorBoundary feature="QR Management">
-      <PermissionGuard permissions={['tenant.view', 'branches.view']} mode="any" fallback={<AccessDenied />}>
+      <PermissionGuard permissions={['tenant.view', 'branches.view', 'menu.view', 'reservations.view']} mode="any" fallback={<AccessDenied />}>
         <QrManagementContent />
       </PermissionGuard>
     </ErrorBoundary>

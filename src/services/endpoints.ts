@@ -37,6 +37,11 @@ export const ENDPOINTS = {
     ITEM: (id: string) => `/menu/items/${id}/`,
     CONSOLE_ITEM: (branchId: string) => `/menu/console-menu/items/${branchId}/`,
     ITEM_BY_SLUG: (slug: string) => `/menu/items/${slug}/`,
+    QR: (id: string) => `/qr/menu/${id}/`,
+    QR_ENABLE: (id: string) => `/qr/menu/${id}/enable/`,
+    QR_DISABLE: (id: string) => `/qr/menu/${id}/disable/`,
+    QR_REGENERATE: (id: string) => `/qr/menu/${id}/regenerate/`,
+    QR_DESTINATION: (id: string) => `/qr/menu/${id}/destination/`,
     AVAILABLE_TAGS: (branchId: string) => `/menu/branches/${branchId}/available-tags/`,
     CONSOLE_TAGS: (branchId: string) => `/menu/branches/${branchId}/tags/`,
     CONSOLE_TAG: (branchId: string, id: number | string) => `/menu/branches/${branchId}/tags/${id}/`,
@@ -87,6 +92,11 @@ export const ENDPOINTS = {
     CONSOLE_PENDING_COUNT: (tenantId: string, branchId: string) =>
       `/reservations/console-reservations/tenants/${tenantId}/branches/${branchId}/pending-count/`,
     AVAILABLE_SLOTS: '/reservations/available-slots/',
+    QR: (id: string) => `/qr/reservation/${id}/`,
+    QR_ENABLE: (id: string) => `/qr/reservation/${id}/enable/`,
+    QR_DISABLE: (id: string) => `/qr/reservation/${id}/disable/`,
+    QR_REGENERATE: (id: string) => `/qr/reservation/${id}/regenerate/`,
+    QR_DESTINATION: (id: string) => `/qr/reservation/${id}/destination/`,
   },
 
   // Branches

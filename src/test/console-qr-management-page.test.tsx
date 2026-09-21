@@ -72,6 +72,18 @@ describe('QR Management page', () => {
       is_active: true,
       destination: 'branch',
     })
+    vi.spyOn(qrManagementService, 'getMenuQr').mockResolvedValue({
+      code: 'abc33333',
+      url: 'https://api.example.com/qr/abc33333',
+      is_active: true,
+      destination: 'menu',
+    })
+    vi.spyOn(qrManagementService, 'getReservationQr').mockResolvedValue({
+      code: 'abc44444',
+      url: 'https://api.example.com/qr/abc44444',
+      is_active: true,
+      destination: 'reservation',
+    })
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     const { getByTestId, getAllByTestId, getAllByRole } = renderWithIntl(
       <QueryClientProvider client={qc}>
@@ -81,7 +93,8 @@ describe('QR Management page', () => {
 
     await waitFor(() => expect(getByTestId('qr-management-page')).toBeTruthy())
     await waitFor(() => expect(getByTestId('qr-record-tenant-tenant-samoon-01')).toBeTruthy())
-    await waitFor(() => expect(getByTestId('qr-record-branch-branch-rest-01')).toBeTruthy())
+    await waitFor(() => expect(getByTestId('qr-record-menu-branch-rest-01')).toBeTruthy())
+    await waitFor(() => expect(getByTestId('qr-record-reservation-tenant-samoon-01')).toBeTruthy())
 
     await waitFor(() => expect(getAllByTestId('qr-code-display').length).toBeGreaterThanOrEqual(2), {
       timeout: 5000,
