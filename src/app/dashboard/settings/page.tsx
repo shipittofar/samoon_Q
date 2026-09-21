@@ -18,6 +18,7 @@ import { useSetLocale, useRequestEmailVerification, useConfirmEmailVerification 
 import { userService } from '@/services/combined.service'
 import { COUNTRIES } from '@/data/countries'
 import { cn } from '@/utils'
+import { DirectUploadError } from '@/lib/upload-errors'
 import toast from 'react-hot-toast'
 
 // Schema messages are `validation` namespace keys, resolved via
@@ -74,6 +75,7 @@ export default function SettingsPage() {
   const setLocale = useSetLocale()
   const [saving, setSaving] = useState(false)
   const t = useTranslations('dashboard')
+  const tUpload = useTranslations('console')
   const tValidation = useTranslations('validation')
   const tCommon = useTranslations('common')
   const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({
@@ -94,10 +96,14 @@ export default function SettingsPage() {
     setAvatarImage((prev) => ({
       ...prev,
       existingUrl: user?.avatar ?? '',
-      file: null,
-      cleared: false,
     }))
   }, [user?.avatar])
+
+  useEffect(() => {
+    return () => {
+      avatarAbortRef.current?.abort()
+    }
+  }, [])
 
   const handleUploadAvatar = async () => {
     if (!avatarImage.file) return
@@ -117,8 +123,12 @@ export default function SettingsPage() {
       setAvatarImage({ file: null, existingUrl: avatar_url, cleared: false })
       setAvatarSession(null)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t('uploadFailedRetry')
-      setUploadError(msg)
+      if (err instanceof DirectUploadError) {
+        setUploadError(tUpload(err.uploadError.messageKey))
+      } else {
+        const msg = err instanceof Error ? err.message : t('uploadFailedRetry')
+        setUploadError(msg)
+      }
       setUploadState('error')
     }
   }

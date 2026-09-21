@@ -18,7 +18,8 @@ import {
   type BranchCreateStep,
 } from '../BranchFormFields'
 import { mapBranchCreateError } from '@/types/branch-form'
-import { uploadImageFields } from '@/lib/image-asset-write'
+import { uploadImageFields, type AssetWriteValue } from '@/lib/image-asset-write'
+import { toUploadError } from '@/lib/upload-errors'
 import { tenantService } from '@/services/tenant.service'
 import { tenantShowsCuisines } from '@/lib/branch-catalog'
 import { scrollWizardToTop } from '@/lib/wizard-scroll'
@@ -69,6 +70,9 @@ export default function NewBranchPage() {
   const { mutate: createBranch, isPending } = useConsoleCreateBranch(tenantId)
   const wizardRef = useRef<HTMLDivElement>(null)
   const createInFlightRef = useRef(false)
+  const readyAssetsRef = useRef<Record<string, AssetWriteValue> | null>(null)
+  const readyAssetsSigRef = useRef('')
+  const [creating, setCreating] = useState(false)
 
   const { data: tenant } = useQuery({
     queryKey: ['tenant', tenantId],
@@ -111,7 +115,7 @@ export default function NewBranchPage() {
   }
 
   async function submitCreate() {
-    if (isPending || createInFlightRef.current || !tenantId) return
+    if (isPending || creating || createInFlightRef.current || !tenantId) return
     const validationError = validateBranchCreateForm(form)
     if (validationError) {
       setError(validationError)
@@ -122,16 +126,32 @@ export default function NewBranchPage() {
     const payload = branchFormToCreateRequest(form)
     if (!showCuisines) payload.cuisines = []
     createInFlightRef.current = true
+    setCreating(true)
     try {
-      const assets = await uploadImageFields([
-        { key: 'image_asset_id', field: form.image, purpose: 'branch_image' },
-        { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
-        { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
-      ])
-      Object.assign(payload, assets)
-    } catch {
+      const sig = [
+        form.image.file?.name,
+        form.image.file?.size,
+        form.image.cleared,
+        form.coverImage.file?.name,
+        form.coverImage.file?.size,
+        form.coverImage.cleared,
+        form.heroImage.file?.name,
+        form.heroImage.file?.size,
+        form.heroImage.cleared,
+      ].join('|')
+      if (!readyAssetsRef.current || readyAssetsSigRef.current !== sig) {
+        readyAssetsRef.current = await uploadImageFields([
+          { key: 'image_asset_id', field: form.image, purpose: 'branch_image' },
+          { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
+          { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
+        ])
+        readyAssetsSigRef.current = sig
+      }
+      Object.assign(payload, readyAssetsRef.current)
+    } catch (err) {
       createInFlightRef.current = false
-      toast.error(t('uploadErrorUnknown'))
+      setCreating(false)
+      toast.error(t(toUploadError(err).messageKey))
       return
     }
     createBranch(payload, {
@@ -141,6 +161,7 @@ export default function NewBranchPage() {
       },
       onError: (err) => {
         createInFlightRef.current = false
+        setCreating(false)
         toast.error(t(mapBranchCreateError(err)))
       },
     })
@@ -205,10 +226,10 @@ export default function NewBranchPage() {
                   type="button"
                   data-testid="branch-wizard-create"
                   onClick={submitCreate}
-                  disabled={isPending || !tenantId}
+                  disabled={isPending || creating || !tenantId}
                   className="px-6 py-2 text-sm bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg font-medium hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
                 >
-                  {isPending ? t('creatingEllipsis') : t('createBranchLabel')}
+                  {isPending || creating ? t('creatingEllipsis') : t('createBranchLabel')}
                 </button>
               )}
             </div>

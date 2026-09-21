@@ -2,6 +2,7 @@ import type { ImageFieldValue } from '@/components/ImageUploader'
 import { isTransientMediaUrl, type AssetId, type UploadPurpose } from '@/types/upload'
 import { uploadService } from '@/services/upload.service'
 import { DEFAULT_UPLOAD_CONCURRENCY, runWithConcurrency } from '@/lib/upload-concurrency'
+import { DirectUploadError, toUploadError } from '@/lib/upload-errors'
 
 export type AssetWriteValue = AssetId | null | undefined
 
@@ -11,6 +12,7 @@ export function imageFieldToAssetWrite(
   uploadedAssetId?: AssetId,
 ): AssetWriteValue {
   if (uploadedAssetId) return uploadedAssetId
+  if (field.file) return undefined
   if (field.cleared) return null
   return undefined
 }
@@ -78,7 +80,9 @@ export async function uploadImageFields(
 
   for (const result of concurrent) {
     if (result.status !== 'fulfilled' || !result.value) {
-      throw result.error ?? new Error('upload_failed')
+      throw result.error instanceof DirectUploadError
+        ? result.error
+        : new DirectUploadError(toUploadError(result.error), result.error)
     }
     results[result.id] = result.value.assetId
   }

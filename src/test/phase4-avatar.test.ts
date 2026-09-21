@@ -4,7 +4,7 @@
  * Covers: service validation, mock upload, store propagation, UI source
  * structure, and regression checks for existing flows.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { DirectUploadError } from '@/lib/upload-errors'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
@@ -40,8 +40,9 @@ describe('combined.service.ts — uploadAvatar method', () => {
     expect(src()).toContain('avatar_asset_id')
   })
 
-  it('validates allowed file types via validateMenuImageFile', () => {
-    expect(src()).toContain('validateMenuImageFile')
+  it('validates through the shared upload service', () => {
+    expect(src()).toContain('uploadService.uploadFile')
+    expect(src()).toContain("purpose: 'avatar'")
   })
 
   it('validates server response has avatar_url', () => {
@@ -139,27 +140,37 @@ describe('userService.uploadAvatar — mock mode', () => {
 
   it('rejects WebP upload', async () => {
     const file = makeFile('photo.webp', 'image/webp', 2048)
-    await expect(userService.uploadAvatar(file)).rejects.toThrow('Unsupported file type')
+    await expect(userService.uploadAvatar(file)).rejects.toMatchObject({
+      name: 'DirectUploadError',
+    })
   })
 
   it('rejects GIF upload', async () => {
     const file = makeFile('anim.gif', 'image/gif', 100)
-    await expect(userService.uploadAvatar(file)).rejects.toThrow('Unsupported file type')
+    await expect(userService.uploadAvatar(file)).rejects.toMatchObject({
+      name: 'DirectUploadError',
+    })
   })
 
   it('throws on unsupported file type (PDF)', async () => {
     const file = makeFile('doc.pdf', 'application/pdf', 1024)
-    await expect(userService.uploadAvatar(file)).rejects.toThrow('Unsupported file type')
+    await expect(userService.uploadAvatar(file)).rejects.toMatchObject({
+      name: 'DirectUploadError',
+    })
   })
 
   it('throws on unsupported file type (text)', async () => {
     const file = makeFile('note.txt', 'text/plain', 100)
-    await expect(userService.uploadAvatar(file)).rejects.toThrow('Unsupported file type')
+    await expect(userService.uploadAvatar(file)).rejects.toMatchObject({
+      name: 'DirectUploadError',
+    })
   })
 
   it('throws when file exceeds 5 MB', async () => {
     const file = makeFile('huge.jpg', 'image/jpeg', 6 * 1024 * 1024)
-    await expect(userService.uploadAvatar(file)).rejects.toThrow('too large')
+    const err = await userService.uploadAvatar(file).catch((e: unknown) => e) as { name?: string; uploadError?: { code?: string } }
+    expect(err.name).toBe('DirectUploadError')
+    expect(err.uploadError?.code).toBe('file_too_large')
   })
 
   it('accepts file exactly at 5 MB boundary', async () => {

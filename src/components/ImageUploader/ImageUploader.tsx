@@ -141,7 +141,12 @@ export function ImageUploader({
               unoptimized={displayUrl.startsWith('blob:')}
             />
             {(uploading || processing) && (
-              <div className="absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-[10px] text-white">
+              <div
+                className="absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 text-[10px] text-white"
+                role="status"
+                aria-live="polite"
+                aria-busy="true"
+              >
                 {phaseLabel}
                 <div className="mt-1 h-1 rounded bg-white/30">
                   <div
@@ -171,7 +176,7 @@ export function ImageUploader({
               type="button"
               variant="ghost"
               size="sm"
-              disabled={disabled}
+              disabled={disabled || uploading || processing}
               onClick={handleRemove}
               leftIcon={<X className="h-3.5 w-3.5"/>}
               className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"

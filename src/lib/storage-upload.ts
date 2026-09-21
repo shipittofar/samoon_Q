@@ -94,7 +94,7 @@ function putOnce(options: StorageUploadOptions, timeoutMs: number): Promise<void
         resolve()
         return
       }
-      reject(mapStorageStatus(xhr.status, xhr.responseText))
+      reject(mapStorageStatus(xhr.status))
     }
 
     xhr.onerror = () => {
@@ -116,10 +116,10 @@ function putOnce(options: StorageUploadOptions, timeoutMs: number): Promise<void
   })
 }
 
-function mapStorageStatus(status: number, body: string): DirectUploadError {
+function mapStorageStatus(status: number): DirectUploadError {
   if (status === 403) {
     return new DirectUploadError(
-      uploadError('expired', 'uploadErrorExpired', { httpStatus: 403, retryable: false, detail: body }),
+      uploadError('expired', 'uploadErrorExpired', { httpStatus: 403, retryable: false }),
     )
   }
   if (status === 413) {
@@ -143,7 +143,7 @@ function mapStorageStatus(status: number, body: string): DirectUploadError {
     )
   }
   return new DirectUploadError(
-    uploadError('object_verification', 'uploadErrorObjectVerification', { httpStatus: status, retryable: false, detail: body }),
+    uploadError('object_verification', 'uploadErrorObjectVerification', { httpStatus: status, retryable: false }),
   )
 }
 

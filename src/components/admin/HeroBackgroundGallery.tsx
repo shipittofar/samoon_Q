@@ -11,6 +11,7 @@ import { createHeroBackgroundId } from '@/lib/hero-background'
 import { isTransientMediaUrl, type UploadPurpose, type UploadSession } from '@/types/upload'
 import { validateUploadFile, acceptAttributeForPurpose } from '@/lib/upload-validation'
 import { DirectUploadError, toUploadError } from '@/lib/upload-errors'
+import { persistableMediaUrl } from '@/lib/image-asset-write'
 import { uploadService } from '@/services/upload.service'
 import { DEFAULT_UPLOAD_CONCURRENCY } from '@/lib/upload-concurrency'
 import type { HeroBackgroundImage, HeroObjectPosition } from '@/types/website-builder'
@@ -62,9 +63,12 @@ export function HeroBackgroundGallery({
   pendingRef.current = pending
   const imagesRef = useRef(images)
   imagesRef.current = images
+  const mountedRef = useRef(true)
 
   useEffect(() => {
+    mountedRef.current = true
     return () => {
+      mountedRef.current = false
       for (const slot of pendingRef.current) {
         slot.controller.abort()
         URL.revokeObjectURL(slot.previewUrl)
@@ -129,7 +133,14 @@ export function HeroBackgroundGallery({
             onSession: (session) => updatePending(slot.id, { session }),
           })
           .then((asset) => {
+            if (!mountedRef.current || slot.controller.signal.aborted) return
+            const src = persistableMediaUrl(asset.url)
             URL.revokeObjectURL(slot.previewUrl)
+            if (!src || !asset.assetId) {
+              updatePending(slot.id, { errorKey: 'uploadErrorProcessing' })
+              setError(t('uploadErrorProcessing'))
+              return
+            }
             setPending((prev) => prev.filter((s) => s.id !== slot.id))
             const current = [...imagesRef.current].sort((a, b) => a.order - b.order)
             onChange(
@@ -137,7 +148,7 @@ export function HeroBackgroundGallery({
                 ...current,
                 {
                   id: slot.id,
-                  src: asset.url,
+                  src,
                   assetId: asset.assetId,
                   order: current.length,
                   enabled: true,
@@ -148,13 +159,14 @@ export function HeroBackgroundGallery({
             )
           })
           .catch((err) => {
+            if (!mountedRef.current) return
             const mapped = err instanceof DirectUploadError ? err.uploadError : toUploadError(err)
             if (mapped.code === 'cancelled') {
               URL.revokeObjectURL(slot.previewUrl)
               setPending((prev) => prev.filter((s) => s.id !== slot.id))
               return
             }
-            updatePending(slot.id, { errorKey: mapped.messageKey, session: slot.session })
+            updatePending(slot.id, { errorKey: mapped.messageKey })
             setError(t(mapped.messageKey))
           })
           .finally(() => {
@@ -185,7 +197,14 @@ export function HeroBackgroundGallery({
         onSession: (session) => updatePending(next.id, { session }),
       })
       .then((asset) => {
+        if (!mountedRef.current || next.controller.signal.aborted) return
+        const src = persistableMediaUrl(asset.url)
         URL.revokeObjectURL(next.previewUrl)
+        if (!src || !asset.assetId) {
+          updatePending(next.id, { errorKey: 'uploadErrorProcessing' })
+          setError(t('uploadErrorProcessing'))
+          return
+        }
         setPending((prev) => prev.filter((s) => s.id !== next.id))
         const current = [...imagesRef.current].sort((a, b) => a.order - b.order)
         onChange(
@@ -193,7 +212,7 @@ export function HeroBackgroundGallery({
             ...current,
             {
               id: next.id,
-              src: asset.url,
+              src,
               assetId: asset.assetId,
               order: current.length,
               enabled: true,
@@ -204,7 +223,9 @@ export function HeroBackgroundGallery({
         )
       })
       .catch((err) => {
+        if (!mountedRef.current) return
         const mapped = toUploadError(err)
+        if (mapped.code === 'cancelled') return
         updatePending(next.id, { errorKey: mapped.messageKey })
         setError(t(mapped.messageKey))
       })

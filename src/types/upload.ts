@@ -94,7 +94,8 @@ export interface InitiateUploadResponse {
   status: BackendUploadStatus
   expires_at?: string
   url?: string
-  upload: PresignedUpload
+  /** Present when the client still needs to PUT bytes. */
+  upload?: PresignedUpload
 }
 
 export interface UploadStatusResponse {

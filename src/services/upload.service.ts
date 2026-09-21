@@ -20,6 +20,7 @@ import {
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const POLL_INTERVAL_MS = 700
 const POLL_TIMEOUT_MS = 60_000
+const MAX_EXPIRED_REINITIATES = 1
 
 export interface UploadFileRequest {
   file: File
@@ -30,6 +31,8 @@ export interface UploadFileRequest {
   onProgress?: (progress: UploadProgress) => void
   onSession?: (session: UploadSession) => void
   idempotencyKey?: string
+  /** Internal: at most one re-initiate after an expired presigned URL. */
+  expiredRetries?: number
 }
 
 export interface ReadyAsset {
@@ -40,6 +43,12 @@ export interface ReadyAsset {
 function emit(session: UploadSession, onSession?: (s: UploadSession) => void): UploadSession {
   onSession?.(session)
   return session
+}
+
+function assertNotAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throwUploadError(uploadError('cancelled', 'uploadErrorCancelled'))
+  }
 }
 
 async function sha256Hex(file: File): Promise<string | undefined> {
@@ -59,6 +68,19 @@ function isExpired(expiresAt?: string | null): boolean {
   if (!expiresAt) return false
   const t = Date.parse(expiresAt)
   return Number.isFinite(t) && t <= Date.now()
+}
+
+function failSession(
+  session: UploadSession,
+  err: unknown,
+  onSession?: (s: UploadSession) => void,
+): DirectUploadError {
+  const error = toUploadError(err)
+  emit(
+    { ...session, status: error.code === 'cancelled' ? 'CANCELLED' : error.code === 'expired' ? 'EXPIRED' : 'FAILED', error, localFile: null },
+    onSession,
+  )
+  return err instanceof DirectUploadError ? err : new DirectUploadError(error, err)
 }
 
 export const uploadService = {
@@ -105,12 +127,12 @@ export const uploadService = {
 
   async uploadToStorage(
     file: File,
-    upload: InitiateUploadResponse['upload'],
+    upload: NonNullable<InitiateUploadResponse['upload']>,
     signal?: AbortSignal,
     onProgress?: (progress: UploadProgress) => void,
   ): Promise<void> {
     if (USE_MOCK) {
-      if (signal?.aborted) throw new DirectUploadError(uploadError('cancelled', 'uploadErrorCancelled'))
+      assertNotAborted(signal)
       onProgress?.({ bytesSent: file.size, bytesTotal: file.size, percent: 100, phase: 'uploading' })
       return
     }
@@ -133,7 +155,23 @@ export const uploadService = {
       )
       return data
     } catch (err) {
-      throw new DirectUploadError(toUploadError(err), err)
+      const mapped = toUploadError(err)
+      if (
+        mapped.retryable &&
+        (mapped.code === 'timeout' || mapped.code === 'network_failure' || mapped.code === 'server_failure')
+      ) {
+        try {
+          const { data } = await api.post<UploadStatusResponse>(
+            ENDPOINTS.UPLOADS.COMPLETE(assetId),
+            {},
+            { signal },
+          )
+          return data
+        } catch (retryErr) {
+          throw new DirectUploadError(toUploadError(retryErr), retryErr)
+        }
+      }
+      throw new DirectUploadError(mapped, err)
     }
   },
 
@@ -168,13 +206,17 @@ export const uploadService = {
     onProgress?: (progress: UploadProgress) => void,
   ): Promise<UploadStatusResponse> {
     const started = Date.now()
+    let attempt = 0
     while (Date.now() - started < POLL_TIMEOUT_MS) {
-      if (signal?.aborted) {
-        throwUploadError(uploadError('cancelled', 'uploadErrorCancelled'))
-      }
+      assertNotAborted(signal)
       const status = await this.getUploadStatus(assetId, signal)
       const mapped = mapBackendStatus(status.status)
-      if (mapped === 'READY') return status
+      if (mapped === 'READY') {
+        if (!status.asset_id) {
+          throwUploadError(uploadError('processing_failure', 'uploadErrorProcessing', { retryable: false }))
+        }
+        return status
+      }
       if (mapped === 'FAILED') {
         throwUploadError(uploadError('processing_failure', 'uploadErrorProcessing', { retryable: false, detail: status.error }))
       }
@@ -190,13 +232,16 @@ export const uploadService = {
         percent: 100,
         phase: 'processing',
       })
-      await sleep(POLL_INTERVAL_MS, signal)
+      const delay = Math.min(4_000, POLL_INTERVAL_MS * 2 ** Math.min(attempt, 3))
+      attempt += 1
+      await sleep(delay, signal)
     }
     throwUploadError(uploadError('timeout', 'uploadErrorTimeout', { retryable: true }))
   },
 
   async uploadFile(request: UploadFileRequest): Promise<ReadyAsset> {
     assertValidUploadFile(request.file, request.purpose)
+    assertNotAborted(request.signal)
     const idempotencyKey = request.idempotencyKey ?? createUploadIdempotencyKey()
     let session = emit(
       createLocalUploadSession(request.file, request.purpose, idempotencyKey),
@@ -204,6 +249,7 @@ export const uploadService = {
     )
 
     const checksum = await sha256Hex(request.file)
+    assertNotAborted(request.signal)
     session = emit({ ...session, status: 'INITIATING' }, request.onSession)
 
     let initiated: InitiateUploadResponse
@@ -222,15 +268,30 @@ export const uploadService = {
         request.signal,
       )
     } catch (err) {
-      const error = toUploadError(err)
-      emit({ ...session, status: 'FAILED', error }, request.onSession)
-      throw err instanceof DirectUploadError ? err : new DirectUploadError(error, err)
+      throw failSession(session, err, request.onSession)
+    }
+
+    if (!initiated.asset_id) {
+      throw failSession(
+        session,
+        new DirectUploadError(uploadError('server_failure', 'uploadErrorServer', { retryable: true })),
+        request.onSession,
+      )
+    }
+
+    const initiatedStatus = mapBackendStatus(initiated.status)
+    if (initiatedStatus === 'FAILED' || initiatedStatus === 'CANCELLED') {
+      throw failSession(
+        session,
+        new DirectUploadError(uploadError('processing_failure', 'uploadErrorProcessing')),
+        request.onSession,
+      )
     }
 
     session = emit(
       {
         ...session,
-        status: 'UPLOADING',
+        status: initiatedStatus === 'READY' ? 'PROCESSING' : initiatedStatus === 'PROCESSING' ? 'PROCESSING' : 'UPLOADING',
         assetId: initiated.asset_id,
         uploadId: initiated.asset_id,
         expiresAt: initiated.expires_at ?? null,
@@ -238,50 +299,92 @@ export const uploadService = {
       request.onSession,
     )
 
+    const alreadyReady = initiatedStatus === 'READY'
+    const skipPut = alreadyReady || initiatedStatus === 'PROCESSING' || initiatedStatus === 'UPLOADED'
+
+    if (!skipPut) {
+      try {
+        const presigned = initiated.upload
+        if (!presigned?.url) {
+          throwUploadError(uploadError('server_failure', 'uploadErrorServer', { retryable: true }))
+        }
+        if (isExpired(initiated.expires_at)) {
+          throwUploadError(uploadError('expired', 'uploadErrorExpired'))
+        }
+        await this.uploadToStorage(request.file, presigned, request.signal, (progress) => {
+          request.onProgress?.(progress)
+          emit({ ...session, status: 'UPLOADING', progress, localFile: request.file }, request.onSession)
+        })
+      } catch (err) {
+        const error = toUploadError(err)
+        if (
+          (error.code === 'expired' || error.httpStatus === 403) &&
+          (request.expiredRetries ?? 0) < MAX_EXPIRED_REINITIATES &&
+          error.code !== 'cancelled'
+        ) {
+          emit({ ...session, status: 'EXPIRED', error, localFile: request.file }, request.onSession)
+          return this.uploadFile({
+            ...request,
+            idempotencyKey: createUploadIdempotencyKey(),
+            expiredRetries: (request.expiredRetries ?? 0) + 1,
+          })
+        }
+        if (error.code === 'cancelled' && initiated.asset_id) {
+          void this.cancelUpload(initiated.asset_id)
+        }
+        throw failSession(session, err, request.onSession)
+      }
+
+      session = emit({ ...session, status: 'UPLOADED' }, request.onSession)
+    }
+
     try {
-      if (isExpired(initiated.expires_at)) {
-        throwUploadError(uploadError('expired', 'uploadErrorExpired'))
+      assertNotAborted(request.signal)
+      let ready: UploadStatusResponse
+      if (alreadyReady) {
+        ready = {
+          asset_id: initiated.asset_id,
+          status: 'READY',
+          url: initiated.url,
+        }
+      } else {
+        if (initiatedStatus !== 'PROCESSING') {
+          const completed = await this.completeUpload(initiated.asset_id, request.signal)
+          if (mapBackendStatus(completed.status) === 'READY') {
+            ready = completed
+          } else {
+            session = emit({ ...session, status: 'PROCESSING', localFile: null }, request.onSession)
+            request.onProgress?.({
+              bytesSent: request.file.size,
+              bytesTotal: request.file.size,
+              percent: 100,
+              phase: 'processing',
+            })
+            ready = await this.waitUntilReady(initiated.asset_id, request.signal, request.onProgress)
+          }
+        } else {
+          session = emit({ ...session, status: 'PROCESSING', localFile: null }, request.onSession)
+          ready = await this.waitUntilReady(initiated.asset_id, request.signal, request.onProgress)
+        }
       }
-      await this.uploadToStorage(request.file, initiated.upload, request.signal, (progress) => {
-        request.onProgress?.(progress)
-        emit({ ...session, status: 'UPLOADING', progress }, request.onSession)
-      })
-    } catch (err) {
-      const error = toUploadError(err)
-      if (error.code === 'expired' || error.httpStatus === 403) {
-        emit({ ...session, status: 'EXPIRED', error }, request.onSession)
-        return this.retryUpload({ ...request, idempotencyKey: createUploadIdempotencyKey() })
+
+      assertNotAborted(request.signal)
+      const assetId = ready.asset_id || initiated.asset_id
+      if (!assetId) {
+        throwUploadError(uploadError('processing_failure', 'uploadErrorProcessing', { retryable: false }))
       }
+      const url = ready.url || (USE_MOCK ? mockAssetUrl(assetId) : '')
       emit(
-        { ...session, status: error.code === 'cancelled' ? 'CANCELLED' : 'FAILED', error },
+        { ...session, status: 'READY', url, assetId, localFile: null },
         request.onSession,
       )
+      return { assetId, url }
+    } catch (err) {
+      const error = toUploadError(err)
       if (error.code === 'cancelled' && initiated.asset_id) {
         void this.cancelUpload(initiated.asset_id)
       }
-      throw err instanceof DirectUploadError ? err : new DirectUploadError(error, err)
-    }
-
-    session = emit({ ...session, status: 'UPLOADED' }, request.onSession)
-
-    try {
-      await this.completeUpload(initiated.asset_id, request.signal)
-      session = emit({ ...session, status: 'PROCESSING' }, request.onSession)
-      request.onProgress?.({ bytesSent: request.file.size, bytesTotal: request.file.size, percent: 100, phase: 'processing' })
-      const ready = await this.waitUntilReady(initiated.asset_id, request.signal, request.onProgress)
-      const url = ready.url || mockAssetUrl(initiated.asset_id)
-      emit(
-        { ...session, status: 'READY', url, assetId: initiated.asset_id, localFile: request.file },
-        request.onSession,
-      )
-      return { assetId: initiated.asset_id, url }
-    } catch (err) {
-      const error = toUploadError(err)
-      emit(
-        { ...session, status: error.code === 'cancelled' ? 'CANCELLED' : 'FAILED', error },
-        request.onSession,
-      )
-      throw err instanceof DirectUploadError ? err : new DirectUploadError(error, err)
+      throw failSession(session, err, request.onSession)
     }
   },
 
@@ -289,6 +392,7 @@ export const uploadService = {
     return this.uploadFile({
       ...request,
       idempotencyKey: request.idempotencyKey ?? createUploadIdempotencyKey(),
+      expiredRetries: 0,
     })
   },
 

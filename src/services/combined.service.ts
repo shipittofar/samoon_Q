@@ -1,8 +1,8 @@
 // ─── reservation.service.ts ──────────────────────────────────────────────────
 import api from './axios.instance'
 import { ENDPOINTS } from './endpoints'
-import { validateMenuImageFile } from '@/components/ImageUploader'
 import { uploadService, type UploadFileRequest } from '@/services/upload.service'
+import { DirectUploadError, uploadError } from '@/lib/upload-errors'
 import { MOCK_BRANCHES, MOCK_TENANT_BRANCHES, MOCK_NOTIFICATIONS, MOCK_RESERVATIONS } from '@/lib/mock-data'
 import { branchBelongsToMockTenant } from '@/lib/mock-tenant-scope'
 import type { Branch, Notification, PaginatedResponse, Reservation, TableInfo, UpdateProfileRequest, User } from '@/types'
@@ -186,20 +186,15 @@ export const userService = {
     file: File,
     options?: { signal?: AbortSignal; onSession?: UploadFileRequest['onSession'] },
   ): Promise<{ avatar_url: string }> {
-    const validation = validateMenuImageFile(file)
-    if (!validation.valid) {
-      if (validation.errorKey === 'fileTooLarge') {
-        throw new Error('File is too large. Maximum allowed size is 5 MB.')
-      }
-      throw new Error('Unsupported file type. Please upload a JPEG or PNG image.')
-    }
-
     const asset = await uploadService.uploadFile({
       file,
       purpose: 'avatar',
       signal: options?.signal,
       onSession: options?.onSession,
     })
+    if (options?.signal?.aborted) {
+      throw new DirectUploadError(uploadError('cancelled', 'uploadErrorCancelled'))
+    }
     if (USE_MOCK) {
       return { avatar_url: asset.url }
     }

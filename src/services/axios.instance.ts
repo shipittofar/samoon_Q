@@ -188,6 +188,10 @@ api.interceptors.response.use(
     const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
     if (error.response?.status === 401 && !original._retry) {
+      const requestUrl = `${original.baseURL ?? ''}${original.url ?? ''}`
+      if (/\/uploads\/[^/]+\/cancel\/?$/.test(requestUrl) || /\/uploads\/[^/]+\/cancel\/?$/.test(original.url ?? '')) {
+        return Promise.reject(error)
+      }
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })

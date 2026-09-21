@@ -9,7 +9,7 @@ import { DirectUploadError } from '@/lib/upload-errors'
 import { runWithConcurrency } from '@/lib/upload-concurrency'
 import { validateUploadFile } from '@/lib/upload-validation'
 import { mapBackendStatus, createLocalUploadSession } from '@/types/upload'
-import { persistableMediaUrl } from '@/lib/image-asset-write'
+import { persistableMediaUrl, imageFieldToAssetWrite } from '@/lib/image-asset-write'
 import { toUploadError } from '@/lib/upload-errors'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -69,6 +69,35 @@ describe('upload service mock pipeline', () => {
       }),
     ).rejects.toBeInstanceOf(DirectUploadError)
   })
+
+  it('emits READY without keeping the File on the session', async () => {
+    const statuses: string[] = []
+    let readyLocal: File | null | undefined
+    await uploadService.uploadFile({
+      file: makeFile('a.jpg', 'image/jpeg'),
+      purpose: 'menu_item',
+      onSession: (session) => {
+        statuses.push(session.status)
+        if (session.status === 'READY') readyLocal = session.localFile
+      },
+    })
+    expect(statuses).toContain('INITIATING')
+    expect(statuses).toContain('UPLOADING')
+    expect(statuses).toContain('UPLOADED')
+    expect(statuses).toContain('PROCESSING')
+    expect(statuses[statuses.length - 1]).toBe('READY')
+    expect(readyLocal).toBeNull()
+  })
+
+  it('re-uses the same idempotency key on retryUpload', async () => {
+    const key = 'idem-fixed-key'
+    const a = await uploadService.retryUpload({
+      file: makeFile('a.jpg', 'image/jpeg'),
+      purpose: 'tenant_logo',
+      idempotencyKey: key,
+    })
+    expect(a.assetId).toBe(key)
+  })
 })
 
 describe('storage transport', () => {
@@ -123,6 +152,36 @@ describe('storage transport', () => {
     expect(captured!.headers['Authorization']).toBeUndefined()
     expect(captured!.headers['Content-Type']).toBe('image/jpeg')
   })
+
+  it('does not retry 413', async () => {
+    let sends = 0
+    vi.stubGlobal('XMLHttpRequest', class {
+      status = 413
+      timeout = 0
+      withCredentials = false
+      upload = { onprogress: null as ((ev: ProgressEvent) => void) | null }
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      ontimeout: (() => void) | null = null
+      onabort: (() => void) | null = null
+      responseText = ''
+      headers: Record<string, string> = {}
+      open() {}
+      setRequestHeader() {}
+      abort() {}
+      send() {
+        sends += 1
+        this.onload?.()
+      }
+    })
+    await expect(
+      uploadToPresignedStorage({
+        file: makeFile('a.jpg', 'image/jpeg'),
+        upload: { method: 'PUT', url: 'https://storage.example/obj', headers: { 'Content-Type': 'image/jpeg' } },
+      }),
+    ).rejects.toBeInstanceOf(DirectUploadError)
+    expect(sends).toBe(1)
+  })
 })
 
 describe('concurrency', () => {
@@ -166,6 +225,17 @@ describe('concurrency', () => {
     )
     expect(results[0]?.status).toBe('fulfilled')
   })
+
+  it('uploadMany continues other files when one is invalid', async () => {
+    const results = await uploadService.uploadMany([
+      { id: 'ok', file: makeFile('a.jpg', 'image/jpeg'), purpose: 'menu_item' },
+      { id: 'bad', file: makeFile('x.svg', 'image/svg+xml'), purpose: 'menu_item' },
+      { id: 'ok2', file: makeFile('b.png', 'image/png'), purpose: 'menu_item' },
+    ])
+    expect(results.find((r) => r.id === 'ok')?.asset?.assetId).toBeTruthy()
+    expect(results.find((r) => r.id === 'bad')?.error).toBeInstanceOf(DirectUploadError)
+    expect(results.find((r) => r.id === 'ok2')?.asset?.assetId).toBeTruthy()
+  })
 })
 
 describe('shared validation policy', () => {
@@ -193,6 +263,7 @@ describe('repository architecture invariants', () => {
     expect(src).toContain('uploadImageFields')
     expect(src).toContain('submitCreate')
     expect(src).toContain('createInFlightRef')
+    expect(src).toContain('readyAssetsRef')
   })
 
   it('does not persist blob or data URLs in hero gallery add-from-url', () => {
@@ -218,5 +289,12 @@ describe('transient media and error mapping', () => {
     expect(toUploadError({ status: 413 }).code).toBe('file_too_large')
     expect(toUploadError({ status: 415 }).code).toBe('unsupported_type')
     expect(toUploadError({ status: 429 }).retryable).toBe(true)
+  })
+
+  it('omits asset writes unless the user cleared or replaced the image', () => {
+    expect(imageFieldToAssetWrite({ file: null, existingUrl: 'https://cdn.example/a.jpg', cleared: false })).toBeUndefined()
+    expect(imageFieldToAssetWrite({ file: null, existingUrl: 'https://cdn.example/a.jpg', cleared: true })).toBeNull()
+    expect(imageFieldToAssetWrite({ file: makeFile('a.jpg', 'image/jpeg'), existingUrl: 'https://cdn.example/a.jpg', cleared: false })).toBeUndefined()
+    expect(imageFieldToAssetWrite({ file: null, existingUrl: '', cleared: false }, 'asset-1')).toBe('asset-1')
   })
 })
