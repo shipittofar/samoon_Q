@@ -243,7 +243,7 @@ export default function SettingsPage() {
 
           <ImageUploader
             label={t('changeProfilePhotoAria')}
-            purpose="avatar"
+            purpose="user_avatar"
             value={avatarImage}
             session={avatarSession}
             onRetry={handleUploadAvatar}

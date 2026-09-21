@@ -94,7 +94,23 @@ export default function AdminCategoriesPage() {
     const validationError = validateCategoryForm(editForm)
     if (validationError) { setEditError(validationError); return }
     setEditError(null)
-    updateMutation.mutate({ id: editCategory.id, payload: await withUploadedImage(categoryFormToWriteRequest(editForm), editForm.image, 'menu_category') }, {
+    const uploadCtx = {
+      tenantId: adminBranch?.tenantId,
+      branchId: adminBranchId,
+      entityType: 'branch',
+      entityId: adminBranchId,
+    }
+    updateMutation.mutate(
+      {
+        id: editCategory.id,
+        payload: await withUploadedImage(
+          categoryFormToWriteRequest(editForm),
+          editForm.image,
+          'menu_category',
+          uploadCtx,
+        ),
+      },
+      {
       onSuccess: () => { setEditOpen(false); setEditCategory(null) },
     })
   }
@@ -317,6 +333,7 @@ export default function AdminCategoriesPage() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         branchId={adminBranchId}
+        tenantId={adminBranch?.tenantId}
       />
 
       {/* Edit Modal */}

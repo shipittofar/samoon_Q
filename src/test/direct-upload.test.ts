@@ -64,7 +64,7 @@ describe('upload service mock pipeline', () => {
     await expect(
       uploadService.uploadFile({
         file: makeFile('a.jpg', 'image/jpeg'),
-        purpose: 'avatar',
+        purpose: 'user_avatar',
         signal: controller.signal,
       }),
     ).rejects.toBeInstanceOf(DirectUploadError)
@@ -241,7 +241,7 @@ describe('concurrency', () => {
 describe('shared validation policy', () => {
   it('accepts jpeg/png for menu and webp for hero', () => {
     expect(validateUploadFile(makeFile('a.jpg', 'image/jpeg'), 'menu_item').valid).toBe(true)
-    expect(validateUploadFile(makeFile('a.webp', 'image/webp'), 'website_hero').valid).toBe(true)
+    expect(validateUploadFile(makeFile('a.webp', 'image/webp'), 'website_media').valid).toBe(true)
     expect(validateUploadFile(makeFile('a.webp', 'image/webp'), 'menu_item').valid).toBe(false)
   })
 })

@@ -192,6 +192,7 @@ export function BrandingDefaultsStep({
         changeLabel={t('changeLogoLabel')}
         removeLabel={t('removeLogoLabel')}
         previewLabel={t('logoPreviewLabel')}
+        purpose="tenant_logo"
       />
 
       {/* 3. Per-language fonts (font IDs stored for backend) */}

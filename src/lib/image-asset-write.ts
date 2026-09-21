@@ -6,6 +6,14 @@ import { DirectUploadError, toUploadError } from '@/lib/upload-errors'
 
 export type AssetWriteValue = AssetId | null | undefined
 
+export interface UploadContextOptions {
+  signal?: AbortSignal
+  tenantId?: string
+  branchId?: string
+  entityType?: string
+  entityId?: string
+}
+
 /** omitted = unchanged, null = remove, uuid = replace */
 export function imageFieldToAssetWrite(
   field: ImageFieldValue,
@@ -31,7 +39,7 @@ export async function withUploadedImage<T extends { image_asset_id?: AssetWriteV
   payload: T,
   field: ImageFieldValue,
   purpose: UploadPurpose,
-  options?: { signal?: AbortSignal; entityType?: string; entityId?: string },
+  options?: UploadContextOptions,
 ): Promise<T> {
   const value = await uploadImageField(field, purpose, options)
   if (value !== undefined) payload.image_asset_id = value
@@ -41,13 +49,15 @@ export async function withUploadedImage<T extends { image_asset_id?: AssetWriteV
 export async function uploadImageField(
   field: ImageFieldValue,
   purpose: UploadPurpose,
-  options?: { signal?: AbortSignal; entityType?: string; entityId?: string },
+  options?: UploadContextOptions,
 ): Promise<AssetWriteValue> {
   if (field.file) {
     const result = await uploadService.uploadFile({
       file: field.file,
       purpose,
       signal: options?.signal,
+      tenantId: options?.tenantId,
+      branchId: options?.branchId,
       entityType: options?.entityType,
       entityId: options?.entityId,
     })
@@ -59,7 +69,7 @@ export async function uploadImageField(
 
 export async function uploadImageFields(
   slots: Array<{ key: string; field: ImageFieldValue; purpose: UploadPurpose }>,
-  options?: { signal?: AbortSignal; entityType?: string; entityId?: string },
+  options?: UploadContextOptions,
 ): Promise<Record<string, AssetWriteValue>> {
   const results: Record<string, AssetWriteValue> = {}
   const pending = slots.filter((slot) => slot.field.file)
@@ -71,6 +81,8 @@ export async function uploadImageFields(
           file: slot.field.file!,
           purpose: slot.purpose,
           signal: compose(options?.signal, signal),
+          tenantId: options?.tenantId,
+          branchId: options?.branchId,
           entityType: options?.entityType,
           entityId: options?.entityId,
         }),

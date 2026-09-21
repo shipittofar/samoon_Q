@@ -22,6 +22,8 @@ export interface HeroBackgroundGalleryProps {
   images: HeroBackgroundImage[]
   onChange: (images: HeroBackgroundImage[]) => void
   purpose: UploadPurpose
+  tenantId?: string
+  branchId?: string
   entityType?: string
   entityId?: string
   intervalMs: number
@@ -47,6 +49,8 @@ export function HeroBackgroundGallery({
   images,
   onChange,
   purpose,
+  tenantId,
+  branchId,
   entityType,
   entityId,
   intervalMs,
@@ -127,6 +131,8 @@ export function HeroBackgroundGallery({
           .uploadFile({
             file: slot.file,
             purpose,
+            tenantId,
+            branchId,
             entityType,
             entityId,
             signal: slot.controller.signal,
@@ -191,6 +197,8 @@ export function HeroBackgroundGallery({
       .retryUpload({
         file: next.file,
         purpose,
+        tenantId,
+        branchId,
         entityType,
         entityId,
         signal: next.controller.signal,

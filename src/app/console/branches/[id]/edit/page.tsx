@@ -61,11 +61,14 @@ function EditBranchContent({ id }: { id: string }) {
     setError(null)
     const payload = branchFormToWriteRequest(form)
     try {
-      const assets = await uploadImageFields([
-        { key: 'image_asset_id', field: form.image, purpose: 'branch_image' },
-        { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
-        { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
-      ])
+      const assets = await uploadImageFields(
+        [
+          { key: 'image_asset_id', field: form.image, purpose: 'branch_logo' },
+          { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
+          { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
+        ],
+        { tenantId, branchId: id, entityType: 'branch', entityId: id },
+      )
       Object.assign(payload, assets)
     } catch {
       toast.error(t('uploadErrorUnknown'))

@@ -280,8 +280,22 @@ export default function AdminExtrasPage() {
     const validationError = validateExtraForm(extraCreateForm, groupExtras)
     if (validationError) { setExtraCreateError(validationError); return }
     setExtraCreateError(null)
+    const uploadCtx = {
+      tenantId: adminBranch?.tenantId,
+      branchId: adminBranchId,
+      entityType: 'branch',
+      entityId: adminBranchId,
+    }
     createExtraMutation.mutate(
-      { ...(await withUploadedImage(extraFormToWriteRequest(extraCreateForm), extraCreateForm.image, 'menu_extra')), group_id: extraCreateGroupId },
+      {
+        ...(await withUploadedImage(
+          extraFormToWriteRequest(extraCreateForm),
+          extraCreateForm.image,
+          'menu_item',
+          uploadCtx,
+        )),
+        group_id: extraCreateGroupId,
+      },
       { onSuccess: () => { setExtraCreateGroupId(null); setExtraCreateForm(EMPTY_EXTRA_FORM) } },
     )
   }
@@ -298,7 +312,23 @@ export default function AdminExtrasPage() {
     const validationError = validateExtraForm(extraEditForm, groupExtras, editExtra.id)
     if (validationError) { setExtraEditError(validationError); return }
     setExtraEditError(null)
-    updateExtraMutation.mutate({ id: editExtra.id, payload: await withUploadedImage(extraFormToWriteRequest(extraEditForm), extraEditForm.image, 'menu_extra') }, {
+    const uploadCtx = {
+      tenantId: adminBranch?.tenantId,
+      branchId: adminBranchId,
+      entityType: 'branch',
+      entityId: adminBranchId,
+    }
+    updateExtraMutation.mutate(
+      {
+        id: editExtra.id,
+        payload: await withUploadedImage(
+          extraFormToWriteRequest(extraEditForm),
+          extraEditForm.image,
+          'menu_item',
+          uploadCtx,
+        ),
+      },
+      {
       onSuccess: () => setEditExtra(null),
     })
   }

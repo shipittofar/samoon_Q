@@ -188,7 +188,7 @@ export const userService = {
   ): Promise<{ avatar_url: string }> {
     const asset = await uploadService.uploadFile({
       file,
-      purpose: 'avatar',
+      purpose: 'user_avatar',
       signal: options?.signal,
       onSession: options?.onSession,
     })

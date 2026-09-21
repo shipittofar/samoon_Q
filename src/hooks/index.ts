@@ -4694,7 +4694,13 @@ export function useSaveBranchOverrides(tenantId: string, branchId: string) {
 export function useUploadWebsiteMedia(_tenantId: string) {
   return useMutation({
     mutationFn: async (file: File) =>
-      uploadService.uploadFile({ file, purpose: 'website_media', entityType: 'tenant', entityId: _tenantId }),
+      uploadService.uploadFile({
+        file,
+        purpose: 'website_media',
+        tenantId: _tenantId,
+        entityType: 'tenant',
+        entityId: _tenantId,
+      }),
     retry: 0,
   })
 }
@@ -4724,7 +4730,12 @@ export function useSavePlatformHomepageHero() {
 export function useUploadPlatformHomepageMedia() {
   return useMutation({
     mutationFn: async (file: File) =>
-      uploadService.uploadFile({ file, purpose: 'platform_hero', entityType: 'platform', entityId: 'homepage' }),
+      uploadService.uploadFile({
+        file,
+        purpose: 'website_media',
+        entityType: 'platform',
+        entityId: 'homepage',
+      }),
     retry: 0,
   })
 }

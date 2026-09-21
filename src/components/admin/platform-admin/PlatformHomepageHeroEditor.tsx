@@ -90,7 +90,7 @@ export function PlatformHomepageHeroEditor() {
         <HeroBackgroundGallery
           images={current.backgroundImages}
           onChange={(backgroundImages) => update({ backgroundImages })}
-          purpose="platform_hero"
+          purpose="website_media"
           entityType="platform"
           entityId="homepage"
           intervalMs={current.slideshowIntervalMs}

@@ -434,9 +434,10 @@ function HeroTab({
             })
             onHeroConfigChange({ ...heroConfig, backgroundImage: first })
           }}
-          purpose="website_hero"
+          purpose="website_media"
           entityType="tenant"
           entityId={tenantId}
+          tenantId={tenantId}
           intervalMs={hero.slideshowIntervalMs ?? DEFAULT_HERO_SLIDESHOW_INTERVAL_MS}
           transitionMs={hero.slideshowTransitionMs ?? DEFAULT_HERO_SLIDESHOW_TRANSITION_MS}
           onIntervalChange={(slideshowIntervalMs) => setHero('slideshowIntervalMs', slideshowIntervalMs)}

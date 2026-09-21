@@ -25,20 +25,16 @@ const IMAGE_JPEG_PNG_WEBP = {
 export const UPLOAD_POLICIES: Record<UploadPurpose, UploadPolicy> = {
   menu_item: IMAGE_JPEG_PNG,
   menu_category: IMAGE_JPEG_PNG,
-  menu_extra: IMAGE_JPEG_PNG,
   menu_tag: IMAGE_JPEG_PNG,
-  branch_image: IMAGE_JPEG_PNG,
+  branch_logo: IMAGE_JPEG_PNG,
   branch_cover: IMAGE_JPEG_PNG,
   branch_hero: IMAGE_JPEG_PNG,
   tenant_logo: IMAGE_JPEG_PNG,
   tenant_discover_avatar: IMAGE_JPEG_PNG,
   tenant_discover_cover: IMAGE_JPEG_PNG,
   tenant_hero: IMAGE_JPEG_PNG,
-  tenant_gallery: IMAGE_JPEG_PNG,
-  avatar: IMAGE_JPEG_PNG,
-  website_hero: IMAGE_JPEG_PNG_WEBP,
+  user_avatar: IMAGE_JPEG_PNG,
   website_media: IMAGE_JPEG_PNG_WEBP,
-  platform_hero: IMAGE_JPEG_PNG_WEBP,
 }
 
 export type UploadValidationErrorKey = 'unsupportedFileType' | 'invalidExtension' | 'fileTooLarge'

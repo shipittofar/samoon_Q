@@ -36,13 +36,13 @@ describe('combined.service.ts — uploadAvatar method', () => {
   })
 
   it('uses the shared upload service', () => {
-    expect(src()).toContain("purpose: 'avatar'")
+    expect(src()).toContain("purpose: 'user_avatar'")
     expect(src()).toContain('avatar_asset_id')
   })
 
   it('validates through the shared upload service', () => {
     expect(src()).toContain('uploadService.uploadFile')
-    expect(src()).toContain("purpose: 'avatar'")
+    expect(src()).toContain("purpose: 'user_avatar'")
   })
 
   it('validates server response has avatar_url', () => {

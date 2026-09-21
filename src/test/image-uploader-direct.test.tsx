@@ -60,7 +60,7 @@ describe('ImageUploader direct-upload UI', () => {
     const onCancelUpload = vi.fn()
     const file = new File([new Uint8Array(32)], 'a.jpg', { type: 'image/jpeg' })
     const failed = {
-      ...createLocalUploadSession(file, 'avatar'),
+      ...createLocalUploadSession(file, 'user_avatar'),
       status: 'FAILED' as const,
       error: {
         code: 'network_failure' as const,
@@ -80,7 +80,7 @@ describe('ImageUploader direct-upload UI', () => {
     expect(onRetry).toHaveBeenCalledTimes(1)
 
     const uploading = {
-      ...createLocalUploadSession(file, 'avatar'),
+      ...createLocalUploadSession(file, 'user_avatar'),
       status: 'UPLOADING' as const,
       progress: { bytesSent: 10, bytesTotal: 100, percent: 10, phase: 'uploading' as const },
     }

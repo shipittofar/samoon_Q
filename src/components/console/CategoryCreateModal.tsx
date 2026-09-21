@@ -17,6 +17,7 @@ export interface CategoryCreateModalProps {
   open: boolean
   onClose: () => void
   branchId: string
+  tenantId?: string
   onSuccess?: (category: Category) => void
   /** Show success toast when opened inline from another form (e.g. Add Menu Item). */
   showSuccessToast?: boolean
@@ -28,6 +29,7 @@ export function CategoryCreateModal({
   open,
   onClose,
   branchId,
+  tenantId,
   onSuccess,
   showSuccessToast = false,
   zIndex = 50,
@@ -57,7 +59,14 @@ export function CategoryCreateModal({
       return
     }
     setValidationError(null)
-    createMutation.mutate(await withUploadedImage(categoryFormToWriteRequest(form), form.image, 'menu_category'), {
+    createMutation.mutate(
+      await withUploadedImage(categoryFormToWriteRequest(form), form.image, 'menu_category', {
+        tenantId,
+        branchId,
+        entityType: 'branch',
+        entityId: branchId,
+      }),
+      {
       onSuccess: (category) => {
         if (showSuccessToast) {
           toast.success(t('categoryCreatedSuccessfully', { name: category.name }))

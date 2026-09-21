@@ -128,7 +128,15 @@ export default function AdminMenuPage() {
     // so this guard doesn't silently depend on adminBranchId' s specific
     // implementation staying in sync.
     if (branchState !== 'ready' || !selectedBranch || !adminBranchId) return
-    createMutation.mutate(await withUploadedImage(menuItemFormToWriteRequest(createForm), createForm.image, 'menu_item'), {
+    const uploadCtx = {
+      tenantId: selectedBranch.tenantId,
+      branchId: adminBranchId,
+      entityType: 'branch',
+      entityId: adminBranchId,
+    }
+    createMutation.mutate(
+      await withUploadedImage(menuItemFormToWriteRequest(createForm), createForm.image, 'menu_item', uploadCtx),
+      {
       onSuccess: (created) => {
         setCreateOpen(false)
         setCreateForm(EMPTY_FORM)
@@ -148,8 +156,19 @@ export default function AdminMenuPage() {
   }
 
   const submitEdit = async () => {
-    if (!editItem) return
-    updateMutation.mutate({ id: editItem.id, payload: await withUploadedImage(menuItemFormToWriteRequest(editForm), editForm.image, 'menu_item') }, {
+    if (!editItem || !selectedBranch || !adminBranchId) return
+    const uploadCtx = {
+      tenantId: selectedBranch.tenantId,
+      branchId: adminBranchId,
+      entityType: 'branch',
+      entityId: adminBranchId,
+    }
+    updateMutation.mutate(
+      {
+        id: editItem.id,
+        payload: await withUploadedImage(menuItemFormToWriteRequest(editForm), editForm.image, 'menu_item', uploadCtx),
+      },
+      {
       onSuccess: () => {
         setEditOpen(false)
         // Attach/detach Extra Groups and re-materialize `extras` for cart/checkout.
@@ -516,6 +535,7 @@ export default function AdminMenuPage() {
         open={categoryCreateOpen}
         onClose={() => setCategoryCreateOpen(false)}
         branchId={adminBranchId}
+        tenantId={selectedBranch?.tenantId}
         onSuccess={handleCategoryCreated}
         showSuccessToast
         zIndex={60}

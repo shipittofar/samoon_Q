@@ -2,23 +2,65 @@
 
 export type AssetId = string
 
+/**
+ * Canonical upload purposes — must match Django `PurposeEnum` / UploadAsset choices.
+ * Source of truth: live OpenAPI `components.schemas.PurposeEnum`.
+ */
 export type UploadPurpose =
-  | 'menu_item'
-  | 'menu_category'
-  | 'menu_extra'
-  | 'menu_tag'
-  | 'branch_image'
   | 'branch_cover'
   | 'branch_hero'
-  | 'tenant_logo'
+  | 'branch_logo'
+  | 'menu_category'
+  | 'menu_item'
+  | 'menu_tag'
   | 'tenant_discover_avatar'
   | 'tenant_discover_cover'
   | 'tenant_hero'
-  | 'tenant_gallery'
-  | 'website_hero'
+  | 'tenant_logo'
+  | 'user_avatar'
   | 'website_media'
-  | 'platform_hero'
-  | 'avatar'
+
+/** All purposes accepted by POST /api/uploads/initiate/. */
+export const UPLOAD_PURPOSES = [
+  'branch_cover',
+  'branch_hero',
+  'branch_logo',
+  'menu_category',
+  'menu_item',
+  'menu_tag',
+  'tenant_discover_avatar',
+  'tenant_discover_cover',
+  'tenant_hero',
+  'tenant_logo',
+  'user_avatar',
+  'website_media',
+] as const satisfies readonly UploadPurpose[]
+
+/**
+ * Context required by initiate for each purpose (from OpenAPI docs):
+ * - user_avatar: self only — no tenant_id
+ * - tenant_* / website_media / branch_*: tenant_id required
+ * - menu_*: tenant_id + branch_id required (branch_id is the Branch UUID, not a menu row id)
+ */
+export type UploadPurposeContextRule =
+  | { tenantId: 'required'; branchId: 'forbidden' | 'optional' }
+  | { tenantId: 'forbidden'; branchId: 'forbidden' }
+  | { tenantId: 'required'; branchId: 'required' }
+
+export const UPLOAD_PURPOSE_CONTEXT: Record<UploadPurpose, UploadPurposeContextRule> = {
+  user_avatar: { tenantId: 'forbidden', branchId: 'forbidden' },
+  tenant_logo: { tenantId: 'required', branchId: 'optional' },
+  tenant_discover_avatar: { tenantId: 'required', branchId: 'optional' },
+  tenant_discover_cover: { tenantId: 'required', branchId: 'optional' },
+  tenant_hero: { tenantId: 'required', branchId: 'optional' },
+  website_media: { tenantId: 'required', branchId: 'optional' },
+  branch_logo: { tenantId: 'required', branchId: 'optional' },
+  branch_cover: { tenantId: 'required', branchId: 'optional' },
+  branch_hero: { tenantId: 'required', branchId: 'optional' },
+  menu_item: { tenantId: 'required', branchId: 'required' },
+  menu_category: { tenantId: 'required', branchId: 'required' },
+  menu_tag: { tenantId: 'required', branchId: 'required' },
+}
 
 export type UploadStatus =
   | 'LOCAL'
@@ -63,6 +105,10 @@ export interface UploadIntent {
   mimeType: string
   byteSize: number
   checksum?: string
+  /** Required for tenant-scoped / menu / branch purposes. */
+  tenantId?: string
+  /** Required for menu_* purposes (Branch UUID). */
+  branchId?: string
   entityType?: string
   entityId?: string
   idempotencyKey: string
@@ -78,24 +124,29 @@ export interface UploadProgress {
 export interface UploadError {
   code: UploadErrorCode
   messageKey: string
+  retryable?: boolean
   httpStatus?: number
-  retryable: boolean
   detail?: string
 }
 
 export interface PresignedUpload {
-  method: 'PUT'
+  method?: string
   url: string
-  headers: Record<string, string>
+  headers?: Record<string, string>
 }
 
 export interface InitiateUploadResponse {
   asset_id: AssetId
-  status: BackendUploadStatus
+  purpose?: UploadPurpose | string
+  status: BackendUploadStatus | string
   expires_at?: string
-  url?: string
-  /** Present when the client still needs to PUT bytes. */
+  failure_code?: string
+  failure_message?: string
   upload?: PresignedUpload
+  url?: string
+  original_filename?: string
+  mime_type?: string
+  byte_size?: number
 }
 
 export interface UploadStatusResponse {

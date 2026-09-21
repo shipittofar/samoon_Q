@@ -140,11 +140,14 @@ export default function NewBranchPage() {
         form.heroImage.cleared,
       ].join('|')
       if (!readyAssetsRef.current || readyAssetsSigRef.current !== sig) {
-        readyAssetsRef.current = await uploadImageFields([
-          { key: 'image_asset_id', field: form.image, purpose: 'branch_image' },
-          { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
-          { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
-        ])
+        readyAssetsRef.current = await uploadImageFields(
+          [
+            { key: 'image_asset_id', field: form.image, purpose: 'branch_logo' },
+            { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
+            { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
+          ],
+          { tenantId, entityType: 'branch' },
+        )
         readyAssetsSigRef.current = sig
       }
       Object.assign(payload, readyAssetsRef.current)

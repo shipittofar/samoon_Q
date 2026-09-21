@@ -240,6 +240,7 @@ export function BranchFormFields({
             value={form.image}
             onChange={(image) => onChange({ ...form, image })}
             hint={t('branchImageHint')}
+            purpose="branch_logo"
           />
           <ImageUploader
             id="branch-cover-image"
@@ -247,6 +248,7 @@ export function BranchFormFields({
             value={form.coverImage}
             onChange={(coverImage) => onChange({ ...form, coverImage })}
             hint={t('branchCoverImageHint')}
+            purpose="branch_cover"
           />
           <ImageUploader
             id="branch-hero-image"
@@ -254,6 +256,7 @@ export function BranchFormFields({
             value={form.heroImage}
             onChange={(heroImage) => onChange({ ...form, heroImage })}
             hint={t('branchHeroImageHint')}
+            purpose="branch_hero"
           />
         </div>
       </fieldset>

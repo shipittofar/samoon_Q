@@ -25,6 +25,10 @@ const MAX_EXPIRED_REINITIATES = 1
 export interface UploadFileRequest {
   file: File
   purpose: UploadPurpose
+  /** Required for tenant-scoped / menu / branch purposes. */
+  tenantId?: string
+  /** Required for menu_* purposes (Branch UUID, not a menu row id). */
+  branchId?: string
   entityType?: string
   entityId?: string
   signal?: AbortSignal
@@ -103,17 +107,21 @@ export const uploadService = {
     }
 
     try {
+      const body: Record<string, unknown> = {
+        purpose: intent.purpose,
+        filename: intent.filename,
+        mime_type: intent.mimeType,
+        byte_size: intent.byteSize,
+      }
+      if (intent.checksum) body.checksum = intent.checksum
+      if (intent.tenantId) body.tenant_id = intent.tenantId
+      if (intent.branchId) body.branch_id = intent.branchId
+      if (intent.entityType) body.entity_type = intent.entityType
+      if (intent.entityId) body.entity_id = intent.entityId
+
       const { data } = await api.post<InitiateUploadResponse>(
         ENDPOINTS.UPLOADS.INITIATE,
-        {
-          purpose: intent.purpose,
-          filename: intent.filename,
-          mime_type: intent.mimeType,
-          byte_size: intent.byteSize,
-          checksum: intent.checksum,
-          entity_type: intent.entityType,
-          entity_id: intent.entityId,
-        },
+        body,
         {
           signal,
           headers: { 'Idempotency-Key': intent.idempotencyKey },
@@ -261,6 +269,8 @@ export const uploadService = {
           mimeType: request.file.type || 'application/octet-stream',
           byteSize: request.file.size,
           checksum,
+          tenantId: request.tenantId,
+          branchId: request.branchId,
           entityType: request.entityType,
           entityId: request.entityId,
           idempotencyKey,

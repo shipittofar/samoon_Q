@@ -48,7 +48,7 @@ describe('avatar image upload', () => {
 
   it('uploadAvatar uses the shared upload service', () => {
     const src = read('src/services/combined.service.ts')
-    expect(src).toContain("purpose: 'avatar'")
+    expect(src).toContain("purpose: 'user_avatar'")
     expect(src).toContain('avatar_asset_id')
     expect(src).not.toContain("form.append('avatar', file)")
   })

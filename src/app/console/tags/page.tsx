@@ -141,7 +141,15 @@ export default function AdminTagsPage() {
     const validationError = validateForm(createForm)
     if (validationError) { setCreateError(validationError); return }
     setCreateError(null)
-    createMutation.mutate(await withUploadedImage(tagFormToWriteRequest(createForm), createForm.image, 'menu_tag'), {
+    const uploadCtx = {
+      tenantId: adminBranch?.tenantId,
+      branchId: adminBranchId,
+      entityType: 'branch',
+      entityId: adminBranchId,
+    }
+    createMutation.mutate(
+      await withUploadedImage(tagFormToWriteRequest(createForm), createForm.image, 'menu_tag', uploadCtx),
+      {
       onSuccess: () => { setCreateOpen(false); setCreateForm(EMPTY_FORM) },
     })
   }
@@ -158,7 +166,18 @@ export default function AdminTagsPage() {
     const validationError = validateForm(editForm)
     if (validationError) { setEditError(validationError); return }
     setEditError(null)
-    updateMutation.mutate({ id: editTag.id, payload: await withUploadedImage(tagFormToWriteRequest(editForm), editForm.image, 'menu_tag') }, {
+    const uploadCtx = {
+      tenantId: adminBranch?.tenantId,
+      branchId: adminBranchId,
+      entityType: 'branch',
+      entityId: adminBranchId,
+    }
+    updateMutation.mutate(
+      {
+        id: editTag.id,
+        payload: await withUploadedImage(tagFormToWriteRequest(editForm), editForm.image, 'menu_tag', uploadCtx),
+      },
+      {
       onSuccess: () => { setEditOpen(false); setEditTag(null) },
     })
   }

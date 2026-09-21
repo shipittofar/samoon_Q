@@ -205,12 +205,15 @@ export function TenantCanonicalSettingsForm({
       fontBody: fontBody || undefined,
     } as TenantTheme & Record<string, unknown>)
 
-    const mediaUploads = await uploadImageFields([
-      { key: 'image_asset_id', field: logoField, purpose: 'tenant_logo' },
-      { key: 'discover_avatar_asset_id', field: discoverAvatarField, purpose: 'tenant_discover_avatar' },
-      { key: 'discover_cover_asset_id', field: discoverCoverField, purpose: 'tenant_discover_cover' },
-      { key: 'hero_image_asset_id', field: heroField, purpose: 'tenant_hero' },
-    ])
+    const mediaUploads = await uploadImageFields(
+      [
+        { key: 'image_asset_id', field: logoField, purpose: 'tenant_logo' },
+        { key: 'discover_avatar_asset_id', field: discoverAvatarField, purpose: 'tenant_discover_avatar' },
+        { key: 'discover_cover_asset_id', field: discoverCoverField, purpose: 'tenant_discover_cover' },
+        { key: 'hero_image_asset_id', field: heroField, purpose: 'tenant_hero' },
+      ],
+      { tenantId: tenant.id, entityType: 'tenant', entityId: tenant.id },
+    )
     const media: TenantMediaWriteRequest = { ...mediaUploads }
     if (Object.keys(media).length > 0) saveMedia(media)
 
@@ -221,7 +224,10 @@ export function TenantCanonicalSettingsForm({
           if (field.file) {
             const ready = await uploadService.uploadFile({
               file: field.file,
-              purpose: 'tenant_gallery',
+              purpose: 'website_media',
+              tenantId: tenant.id,
+              entityType: 'tenant',
+              entityId: tenant.id,
               signal,
             })
             const src = persistableMediaUrl(ready.url)
@@ -340,24 +346,28 @@ export function TenantCanonicalSettingsForm({
           value={logoField}
           onChange={setLogoField}
           hint={t('logoUploadHint')}
+          purpose="tenant_logo"
         />
         <ImageUploader
           id="tenant-discover-avatar"
           label={t('discoverAvatarLabel')}
           value={discoverAvatarField}
           onChange={setDiscoverAvatarField}
+          purpose="tenant_discover_avatar"
         />
         <ImageUploader
           id="tenant-discover-cover"
           label={t('discoverCoverLabel')}
           value={discoverCoverField}
           onChange={setDiscoverCoverField}
+          purpose="tenant_discover_cover"
         />
         <ImageUploader
           id="tenant-hero"
           label={t('heroImageUrlLabel')}
           value={heroField}
           onChange={setHeroField}
+          purpose="tenant_hero"
         />
       </section>
 
@@ -472,6 +482,7 @@ export function TenantCanonicalSettingsForm({
                 setGalleryFields((prev) => prev.map((item, i) => (i === index ? next : item)))
               }
               hint={t('galleryImageUrlsHint')}
+              purpose="website_media"
             />
           ))}
           <button
