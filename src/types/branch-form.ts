@@ -363,6 +363,14 @@ function appendBool(form: FormData, key: string, value: boolean | undefined) {
   if (value != null) form.append(key, String(value))
 }
 
+/** Multipart list-of-strings: repeated keys so DRF ListField sees a list, not a JSON string. */
+function appendStringList(form: FormData, key: string, values?: string[]) {
+  if (values == null) return
+  for (const value of values) {
+    form.append(key, value)
+  }
+}
+
 export function buildBranchFormData(
   payload: BranchWriteRequest,
   options?: { tenantId?: string },
@@ -388,8 +396,8 @@ export function buildBranchFormData(
   if (payload.timeZone != null) form.append('timeZone', payload.timeZone)
   if (payload.currency != null) form.append('currency', payload.currency)
   if (payload.language != null) form.append('language', payload.language)
-  if (payload.cuisines != null) form.append('cuisines', JSON.stringify(payload.cuisines))
-  if (payload.amenities != null) form.append('amenities', JSON.stringify(payload.amenities))
+  appendStringList(form, 'cuisines', payload.cuisines)
+  appendStringList(form, 'amenities', payload.amenities)
 
   appendImageField(form, 'image', payload.image, payload.removeImage)
   appendImageField(form, 'coverImage', payload.coverImage, payload.removeCoverImage)
@@ -426,8 +434,8 @@ export function buildBranchCreateFormData(payload: BranchCreateRequest): FormDat
   appendBool(form, 'marketplaceVisible', payload.marketplaceVisible)
   appendBool(form, 'reservationsEnabled', payload.reservationsEnabled)
   if (payload.maxCapacity != null) form.append('maxCapacity', String(payload.maxCapacity))
-  if (payload.cuisines != null) form.append('cuisines', JSON.stringify(payload.cuisines))
-  if (payload.amenities != null) form.append('amenities', JSON.stringify(payload.amenities))
+  appendStringList(form, 'cuisines', payload.cuisines)
+  appendStringList(form, 'amenities', payload.amenities)
   appendImageField(form, 'image', payload.image)
   appendImageField(form, 'coverImage', payload.coverImage)
   appendImageField(form, 'heroImage', payload.heroImage)

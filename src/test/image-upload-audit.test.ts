@@ -22,8 +22,31 @@ describe('shared multipart utilities', () => {
     const headers: Record<string, unknown> = { 'Content-Type': 'application/json' }
     const form = new FormData()
     form.append('image', makeFile('a.jpg', 'image/jpeg'))
-    config.transformRequest![0](form, headers)
+    const out = config.transformRequest![0](form, headers)
+    expect(out).toBe(form)
     expect(headers['Content-Type']).toBeUndefined()
+    expect(config.timeout).toBe(180_000)
+  })
+
+  it('strips Content-Type via AxiosHeaders.delete so FormData is not JSON-serialized', async () => {
+    const { multipartRequestConfig } = await import('@/lib/multipart')
+    const config = multipartRequestConfig()
+    const deleted: string[] = []
+    const headers = {
+      'Content-Type': 'application/json',
+      delete(name: string) {
+        deleted.push(name)
+        delete (this as { 'Content-Type'?: string })['Content-Type']
+      },
+    }
+    const form = new FormData()
+    form.append('cuisines', 'Italian')
+    form.append('cuisines', 'Mediterranean')
+    const out = config.transformRequest![0](form, headers)
+    expect(out).toBe(form)
+    expect(out instanceof FormData).toBe(true)
+    expect(deleted).toContain('Content-Type')
+    expect((out as FormData).getAll('cuisines')).toEqual(['Italian', 'Mediterranean'])
   })
 })
 

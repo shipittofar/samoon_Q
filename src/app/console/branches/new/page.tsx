@@ -67,6 +67,7 @@ export default function NewBranchPage() {
   const tenantId = queryTenantId || workspaceTenantId || ''
   const { mutate: createBranch, isPending } = useConsoleCreateBranch(tenantId)
   const wizardRef = useRef<HTMLDivElement>(null)
+  const createInFlightRef = useRef(false)
 
   const { data: tenant } = useQuery({
     queryKey: ['tenant', tenantId],
@@ -101,13 +102,15 @@ export default function NewBranchPage() {
     if (stepIndex > 0) go(stepIndex - 1)
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (isPending) return
     if (stepIndex < STEP_ORDER.length - 1) {
       next()
-      return
     }
+  }
+
+  function submitCreate() {
+    if (isPending || createInFlightRef.current || !tenantId) return
     const validationError = validateBranchCreateForm(form)
     if (validationError) {
       setError(validationError)
@@ -117,12 +120,14 @@ export default function NewBranchPage() {
     setError(null)
     const payload = branchFormToCreateRequest(form)
     if (!showCuisines) payload.cuisines = []
+    createInFlightRef.current = true
     createBranch(payload, {
       onSuccess: () => {
         toast.success(t('branchCreatedSuccessfully'))
         router.push('/console/branches')
       },
       onError: (err) => {
+        createInFlightRef.current = false
         toast.error(t(mapBranchCreateError(err)))
       },
     })
@@ -142,7 +147,7 @@ export default function NewBranchPage() {
           <StepIndicator current={stepIndex + 1} total={STEP_ORDER.length} />
           <p className="text-sm font-medium mb-4">{t(STEP_LABEL_KEYS[currentStep])}</p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleFormSubmit}>
             <BranchFormFields
               form={form}
               onChange={setForm}
@@ -173,7 +178,9 @@ export default function NewBranchPage() {
               )}
               {stepIndex < STEP_ORDER.length - 1 ? (
                 <button
+                  key="wizard-next"
                   type="button"
+                  data-testid="branch-wizard-next"
                   onClick={next}
                   className="px-6 py-2 text-sm bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg font-medium hover:bg-[var(--accent-hover)] transition-colors"
                 >
@@ -181,7 +188,10 @@ export default function NewBranchPage() {
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  key="wizard-create"
+                  type="button"
+                  data-testid="branch-wizard-create"
+                  onClick={submitCreate}
                   disabled={isPending || !tenantId}
                   className="px-6 py-2 text-sm bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg font-medium hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
                 >
