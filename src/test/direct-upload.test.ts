@@ -33,6 +33,21 @@ describe('upload state machine', () => {
     expect(mapBackendStatus('CANCELLED')).toBe('CANCELLED')
     expect(mapBackendStatus('EXPIRED')).toBe('EXPIRED')
   })
+
+  it('maps Django lowercase statuses without treating initiated as FAILED', () => {
+    expect(mapBackendStatus('initiated')).toBe('INITIATING')
+    expect(mapBackendStatus('initiated')).not.toBe('FAILED')
+    expect(mapBackendStatus('uploading')).toBe('UPLOADING')
+    expect(mapBackendStatus('uploaded')).toBe('UPLOADED')
+    expect(mapBackendStatus('processing')).toBe('PROCESSING')
+    expect(mapBackendStatus('processing')).not.toBe('FAILED')
+    expect(mapBackendStatus('ready')).toBe('READY')
+    expect(mapBackendStatus('attached')).toBe('READY')
+    expect(mapBackendStatus('failed')).toBe('FAILED')
+    expect(mapBackendStatus('expired')).toBe('EXPIRED')
+    expect(mapBackendStatus('detached')).toBe('CANCELLED')
+    expect(mapBackendStatus('cancelled')).toBe('CANCELLED')
+  })
 })
 
 describe('upload service mock pipeline', () => {

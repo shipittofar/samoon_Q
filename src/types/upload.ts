@@ -73,7 +73,22 @@ export type UploadStatus =
   | 'CANCELLED'
   | 'EXPIRED'
 
+/**
+ * Canonical Django UploadAsset.status values (lowercase).
+ * Uppercase aliases are accepted by {@link mapBackendStatus} for mocks / legacy.
+ */
 export type BackendUploadStatus =
+  | 'initiated'
+  | 'uploading'
+  | 'uploaded'
+  | 'processing'
+  | 'ready'
+  | 'attached'
+  | 'failed'
+  | 'expired'
+  | 'detached'
+  | 'cancelled'
+  /** @deprecated Prefer lowercase backend values; kept for mocks / older fixtures. */
   | 'INITIATED'
   | 'UPLOADING'
   | 'UPLOADED'
@@ -82,6 +97,8 @@ export type BackendUploadStatus =
   | 'FAILED'
   | 'CANCELLED'
   | 'EXPIRED'
+  | 'ATTACHED'
+  | 'DETACHED'
 
 export type UploadErrorCode =
   | 'validation'
@@ -215,8 +232,16 @@ export function isTransientMediaUrl(value: string | null | undefined): boolean {
   return value.startsWith('blob:') || value.startsWith('data:')
 }
 
+/**
+ * Normalize Django UploadAsset.status → frontend session status.
+ * Backend emits lowercase (`initiated`, `ready`, …). Unknown values stay FAILED.
+ */
 export function mapBackendStatus(status: BackendUploadStatus | string): UploadStatus {
-  switch (status) {
+  const normalized = String(status ?? '')
+    .trim()
+    .toUpperCase()
+
+  switch (normalized) {
     case 'INITIATED':
       return 'INITIATING'
     case 'UPLOADING':
@@ -226,10 +251,13 @@ export function mapBackendStatus(status: BackendUploadStatus | string): UploadSt
     case 'PROCESSING':
       return 'PROCESSING'
     case 'READY':
+    case 'ATTACHED':
+      // `attached` is a successful terminal backend state after business binding.
       return 'READY'
     case 'FAILED':
       return 'FAILED'
     case 'CANCELLED':
+    case 'DETACHED':
       return 'CANCELLED'
     case 'EXPIRED':
       return 'EXPIRED'
