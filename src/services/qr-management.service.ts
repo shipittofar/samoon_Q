@@ -221,7 +221,9 @@ async function postQr(owner: Owner, action: 'enable' | 'disable' | 'regenerate')
   }
 
   const paths = qrPaths(owner)
-  const { data } = await api.post(paths[action])
+  // Default axios Content-Type is application/json. An omitted body is an empty
+  // stream, which DRF's JSON parser rejects before the enable/disable action runs.
+  const { data } = await api.post(paths[action], {})
   return parseResponse(data, defaultDestination(owner.kind))
 }
 

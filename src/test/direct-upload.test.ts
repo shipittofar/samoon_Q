@@ -155,7 +155,7 @@ describe('storage transport', () => {
       onabort: (() => void) | null = null
       responseText = ''
       headers: Record<string, string> = {}
-      open() { captured = this }
+      open() { captured = { headers: this.headers } }
       setRequestHeader(k: string, v: string) { this.headers[k] = v }
       abort() {}
       send() { this.onload?.() }

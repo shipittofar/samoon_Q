@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderWithIntl } from '@/test/test-utils'
 import { QrCodeDisplay } from '@/components/qr/QrCodeDisplay'
 import { CopyUrlWidget } from '@/components/marketplace/CopyUrlWidget'
+import toast from 'react-hot-toast'
 import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
 import { isEncodableQrUrl, isHttpQrUrl } from '@/lib/qr-url'
 import { encodeQrSvg } from '@/lib/qr-svg'
@@ -550,6 +551,35 @@ describe('QrManagementPanel', () => {
     await user.click(getByRole('button', { name: 'Enable QR' }))
     await waitFor(() => expect(enable).toHaveBeenCalledWith('branch-rest-01'))
     await waitFor(() => expect(getByTestId('qr-status').getAttribute('data-qr-active')).toBe('true'))
+  })
+
+  it('failed menu enable shows the backend error and keeps the disabled QR', async () => {
+    const user = userEvent.setup()
+    await qrManagementService.getMenuQr('branch-rest-01')
+    const before = await qrManagementService.disableMenuQr('branch-rest-01')
+    const errorSpy = vi.spyOn(toast, 'error').mockImplementation(() => 'toast-id')
+    vi.spyOn(qrManagementService, 'enableMenuQr').mockRejectedValueOnce({
+      response: {
+        status: 400,
+        data: { detail: 'Menu QR cannot be enabled for this branch.' },
+      },
+    })
+    const { getByRole, getByTestId } = renderQrPanel(
+      <QrManagementPanel
+        scope="menu"
+        entityId="branch-rest-01"
+        canManage
+        title="Menu QR Code"
+        description="Scan to open the public menu."
+        sectionAria="Menu QR code"
+      />,
+    )
+    await waitFor(() => expect(getByRole('button', { name: 'Enable QR' })).toBeTruthy())
+    await user.click(getByRole('button', { name: 'Enable QR' }))
+    await waitFor(() => expect(errorSpy).toHaveBeenCalledWith('Menu QR cannot be enabled for this branch.'))
+    expect(getByTestId('qr-status').getAttribute('data-qr-active')).toBe('false')
+    expect(getByTestId('qr-resolver-url').textContent).toBe(before.url)
+    errorSpy.mockRestore()
   })
 
   it('failed destination mutation does not corrupt cached QR state', async () => {

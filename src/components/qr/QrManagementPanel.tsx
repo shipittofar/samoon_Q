@@ -43,6 +43,11 @@ function destinationLabelKey(destination: QrDestination): string {
 }
 
 function toastQrError(err: unknown, t: (key: string) => string, fallbackKey: string) {
+  const backendMessage = getApiErrorMessage(err, '')
+  if (backendMessage) {
+    toast.error(backendMessage)
+    return
+  }
   const status = getApiStatus(err)
   if (status === 401) {
     toast.error(t('qrUnauthorized'))
@@ -60,7 +65,7 @@ function toastQrError(err: unknown, t: (key: string) => string, fallbackKey: str
     toast.error(t('qrInvalidDestination'))
     return
   }
-  toast.error(getApiErrorMessage(err, t(fallbackKey)))
+  toast.error(t(fallbackKey))
 }
 
 export function QrManagementPanel({
