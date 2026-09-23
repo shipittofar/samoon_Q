@@ -135,7 +135,7 @@ describe('runtime initiate payloads for fixed flows', () => {
     const { uploadImageFields: uploadFields } = await import('@/lib/image-asset-write')
     await uploadFields(
       [{ key: 'image_asset_id', field: imageField, purpose: 'branch_logo' }],
-      { tenantId: TENANT_ID, entityType: 'branch' },
+      { tenantId: TENANT_ID },
     )
 
     const initiateCall = post.mock.calls.find((c) => c[0] === ENDPOINTS.UPLOADS.INITIATE)
@@ -145,7 +145,8 @@ describe('runtime initiate payloads for fixed flows', () => {
     expect(body.purpose).toBe('branch_logo')
     expect(body.purpose).not.toBe('branch_image')
     expect(body.tenant_id).toBe(TENANT_ID)
-    expect(body.entity_type).toBe('branch')
+    expect(body).not.toHaveProperty('entity_type')
+    expect(body).not.toHaveProperty('entity_id')
     expect(body).not.toHaveProperty('branch_id')
     expect(body.filename).toBe('branch.jpg')
     expect(body.mime_type).toBe('image/jpeg')
@@ -204,8 +205,10 @@ describe('component wiring still uses canonical purposes', () => {
     expect(fields).toContain('purpose="branch_logo"')
     expect(fields).not.toContain('branch_image')
     expect(createPage).toContain("purpose: 'branch_logo'")
-    expect(createPage).toContain('{ tenantId, entityType: \'branch\' }')
+    expect(createPage).toContain('{ tenantId }')
+    expect(createPage).not.toContain("entityType: 'branch'")
     expect(editPage).toContain("purpose: 'branch_logo'")
     expect(editPage).toContain('tenantId, branchId: id')
+    expect(editPage).toContain("entityType: 'branch'")
   })
 })

@@ -146,7 +146,9 @@ export default function NewBranchPage() {
             { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
             { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
           ],
-          { tenantId, entityType: 'branch' },
+          // Branch does not exist yet. Bind later via image_asset_id on create.
+          // Sending entity_type=branch without entity_id makes initiate reject the upload.
+          { tenantId },
         )
         readyAssetsSigRef.current = sig
       }

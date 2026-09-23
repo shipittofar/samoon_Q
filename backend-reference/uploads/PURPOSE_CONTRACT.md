@@ -22,7 +22,7 @@ website_media
 - `user_avatar` — self; no `tenant_id`
 - `tenant_*` and `website_media` — `settings.edit`; **`tenant_id` required**
 - `menu_*` — `menu.manage` + **`branch_id` required** (Branch UUID); `tenant_id` required
-- `branch_*` — tenant-scoped; **`tenant_id` required** (branch_id optional on create)
+- `branch_*` — tenant-scoped; **`tenant_id` required**. `branch_id` / `entity_id` optional until the branch exists. Do not send `entity_type=branch` without `entity_id` — initiate then returns `entity_id (branch) is required`. Attach with `image_asset_id` / `cover_image_asset_id` / `hero_image_asset_id` on branch create.
 
 ## Frontend → backend mapping (stale names removed)
 
