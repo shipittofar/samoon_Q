@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Trash2, Tag, ShoppingBag, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCartStore, useCartItemCount } from '@/stores'
 import { useValidateDiscount } from '@/hooks'
 import { useCheckoutAuthGate } from '@/hooks/use-checkout-auth-gate'
@@ -77,6 +77,7 @@ export function CartDrawer() {
   const { mutate: validateDiscount, isPending: validating } = useValidateDiscount()
   const [codeInput, setCodeInput] = useState(discountCode || '')
   const router = useRouter()
+  const pathname = usePathname()
   const {
     authModalOpen,
     requestCheckout,
@@ -115,6 +116,10 @@ export function CartDrawer() {
   }
 
   const handleProceedToCheckout = () => {
+    if (pathname === '/checkout') {
+      setOpen(false)
+      return
+    }
     requestCheckout('/checkout')
   }
 

@@ -96,12 +96,13 @@ vi.mock('@/components/ui/PhoneInput', () => ({
 
 const mockPush = vi.fn()
 const mockReplace = vi.fn()
+const navState = vi.hoisted(() => ({ pathname: '/menu' }))
 vi.mock('next/navigation', async (importOriginal) => {
   const mod = await importOriginal<typeof import('next/navigation')>()
   return {
     ...mod,
     useRouter: () => ({ push: mockPush, replace: mockReplace, back: vi.fn(), prefetch: vi.fn() }),
-    usePathname: () => '/menu',
+    usePathname: () => navState.pathname,
     useSearchParams: () => new URLSearchParams(),
   }
 })
@@ -298,6 +299,10 @@ describe('AuthModal', () => {
 })
 
 describe('Cart → Checkout authentication gate', () => {
+  beforeEach(() => {
+    navState.pathname = '/menu'
+  })
+
   function seedCart() {
     useCartStore.getState().addItem(mockMenuItem(), 2, [], undefined, {
       tenantId: 'tenant-1',
@@ -342,6 +347,19 @@ describe('Cart → Checkout authentication gate', () => {
     expect(screen.queryByRole('dialog', { name: /welcome/i })).not.toBeInTheDocument()
     expect(mockPush).toHaveBeenCalledWith('/checkout')
     expect(mockReplace).not.toHaveBeenCalledWith(expect.stringContaining('/login'))
+  })
+
+  it('closes the cart on /checkout without navigating again', async () => {
+    navState.pathname = '/checkout'
+    seedCart()
+    useAuthStore.getState().setUser(authedUser())
+    render(<CartDrawer />, { wrapper: qcWrapper })
+
+    await userEvent.click(screen.getByTestId('cart-checkout-cta'))
+
+    expect(useCartStore.getState().isOpen).toBe(false)
+    expect(mockPush).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog', { name: /welcome/i })).not.toBeInTheDocument()
   })
 
   it('closing the modal stays on cart and preserves items', async () => {
