@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { Plus, MapPin } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { AddressCard } from './AddressCard'
 import { AddressForm } from './AddressForm'
 import { Modal } from '@/components/ui/Modal'
-import { useAddressList } from '@/hooks/address'
+import { useAddressList, useCreateAddress } from '@/hooks/address'
+import { handleAddressMutationError } from '@/lib/address-errors'
 import type { DeliveryAddressOverride, UserAddress, UserAddressInput } from '@/types/address'
 import { cn } from '@/utils'
 
@@ -30,7 +32,9 @@ export interface AddressPickerProps {
 
 export function AddressPicker({ value, onChange, className }: AddressPickerProps) {
   const t = useTranslations('address.checkout')
+  const tAddress = useTranslations('address')
   const { data, isLoading } = useAddressList({ page_size: 20 })
+  const createMutation = useCreateAddress()
   const addresses = data?.results ?? []
   const [addOpen, setAddOpen] = useState(false)
 
@@ -142,9 +146,16 @@ export function AddressPicker({ value, onChange, className }: AddressPickerProps
       <Modal open={addOpen} onClose={() => setAddOpen(false)} title={t('addAddress')} size="lg">
         <AddressForm
           onCancel={() => setAddOpen(false)}
-          onSubmit={(data) => {
-            onChange({ mode: 'temporary', temporaryAddress: data })
-            setAddOpen(false)
+          loading={createMutation.isPending}
+          onSubmit={async (data) => {
+            try {
+              const created = await createMutation.mutateAsync(data)
+              onChange({ mode: 'saved', addressId: created.id })
+              setAddOpen(false)
+              toast.success(tAddress('addressAdded'))
+            } catch (err) {
+              if (!handleAddressMutationError(err, tAddress)) toast.error(tAddress('failedToAdd'))
+            }
           }}
         />
       </Modal>
