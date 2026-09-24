@@ -36,6 +36,20 @@ describe('resolveMediaUrl', () => {
     )
   })
 
+  it('passes an absolute public storage URL through without duplicating the bucket', () => {
+    const url =
+      'https://samoon.s3.ir-thr-at1.arvanstorage.ir/menu_items/24c9616ad92e4efdaf83d59ca1f3f30d.webp'
+    expect(resolveMediaUrl(url)).toBe(url)
+    expect(resolveMediaUrl(url)).not.toMatch(/\/samoon\/samoon\//)
+  })
+
+  it('joins a relative storage key once and does not insert a bucket segment', () => {
+    vi.stubEnv('NEXT_PUBLIC_MEDIA_BASE_URL', 'https://samoon.s3.ir-thr-at1.arvanstorage.ir')
+    const resolved = resolveMediaUrl(STORAGE_KEY)
+    expect(resolved).toBe(`https://samoon.s3.ir-thr-at1.arvanstorage.ir/${STORAGE_KEY}`)
+    expect(resolved).not.toMatch(/\/samoon\/samoon\//)
+  })
+
   it('preserves root-relative URLs', () => {
     expect(resolveMediaUrl('/media/menu_items/foo.webp')).toBe('/media/menu_items/foo.webp')
     expect(resolveMediaUrl('/placeholder-food.png')).toBe('/placeholder-food.png')

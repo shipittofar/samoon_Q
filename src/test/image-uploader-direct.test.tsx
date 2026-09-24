@@ -14,9 +14,13 @@ beforeAll(() => {
 })
 
 vi.mock('next/image', () => ({
-  default: (props: { alt?: string; src?: string }) => (
+  default: (props: { alt?: string; src?: string; unoptimized?: boolean }) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img alt={props.alt ?? ''} src={typeof props.src === 'string' ? props.src : ''} />
+    <img
+      alt={props.alt ?? ''}
+      src={typeof props.src === 'string' ? props.src : ''}
+      data-unoptimized={props.unoptimized ? 'true' : 'false'}
+    />
   ),
 }))
 
@@ -104,5 +108,51 @@ describe('ImageUploader direct-upload UI', () => {
       />,
     )
     expect(view.getByAltText(/hero.jpg/)).toHaveAttribute('src', 'https://cdn.example/hero.jpg')
+  })
+
+  it('renders a READY asset through next/image without unoptimized', () => {
+    const publicUrl =
+      'https://samoon.s3.ir-thr-at1.arvanstorage.ir/menu_items/ready.webp'
+    const session = {
+      ...createLocalUploadSession(new File([new Uint8Array(8)], 'ready.webp', { type: 'image/webp' }), 'menu_item'),
+      status: 'READY' as const,
+      url: publicUrl,
+      assetId: 'asset-ready',
+    }
+    const view = renderWithIntl(
+      <ImageUploader
+        value={{ ...EMPTY_IMAGE_FIELD, existingUrl: publicUrl }}
+        session={session}
+        onChange={() => {}}
+      />,
+    )
+    const img = view.getByAltText(/ready.webp/)
+    expect(img).toHaveAttribute('src', publicUrl)
+    expect(img.getAttribute('src')).not.toMatch(/\/samoon\/samoon\//)
+    expect(img).toHaveAttribute('data-unoptimized', 'false')
+    expect(session.status).toBe('READY')
+  })
+
+  it('does not change upload session state when the preview image fails', () => {
+    const publicUrl = 'https://cdn.samoon.app/menu_items/ready.webp'
+    const session = {
+      ...createLocalUploadSession(new File([new Uint8Array(8)], 'ready.webp', { type: 'image/webp' }), 'menu_item'),
+      status: 'READY' as const,
+      url: publicUrl,
+      assetId: 'asset-ready',
+      error: null,
+    }
+    const onChange = vi.fn()
+    const view = renderWithIntl(
+      <ImageUploader
+        value={{ ...EMPTY_IMAGE_FIELD, existingUrl: publicUrl }}
+        session={session}
+        onChange={onChange}
+      />,
+    )
+    fireEvent.error(view.getByAltText(/ready.webp/))
+    expect(session.status).toBe('READY')
+    expect(session.error).toBeNull()
+    expect(onChange).not.toHaveBeenCalled()
   })
 })
