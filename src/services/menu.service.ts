@@ -127,14 +127,70 @@ function mockExtras(branchId: string): Extra[] {
   return MOCK_BRANCH_EXTRAS[branchId] ?? MOCK_BRANCH_EXTRAS[DEFAULT_MOCK_BRANCH_ID]
 }
 
+/** Public and console category lists are either a bare array or a DRF `{ results }` page. */
+function categoryRows(data: unknown): unknown[] | null {
+  if (Array.isArray(data)) return data
+  if (data && typeof data === 'object' && Array.isArray((data as { results?: unknown }).results)) {
+    return (data as { results: unknown[] }).results
+  }
+  return null
+}
+
+function normalizeCategory(raw: unknown): Category {
+  const row = (raw && typeof raw === 'object' ? raw : {}) as Partial<Category>
+  return {
+    id: String(row.id ?? ''),
+    branch_id: String(row.branch_id ?? ''),
+    name: row.name ?? '',
+    slug: row.slug ?? '',
+    description: row.description,
+    image: row.image,
+    icon: row.icon,
+    sort_order: row.sort_order ?? 0,
+    items_count: row.items_count,
+    is_active: row.is_active ?? true,
+    created_at: row.created_at ?? '',
+  }
+}
+
+function isRetriableListError(err: unknown): boolean {
+  const axiosErr = err as { isAxiosError?: boolean; code?: string; message?: string }
+  const message = axiosErr?.message ?? (err instanceof Error ? err.message : '')
+  if (message === 'Categories response did not include a list') return true
+  return (
+    axiosErr?.code === 'ECONNABORTED' ||
+    axiosErr?.code === 'ECONNRESET' ||
+    axiosErr?.code === 'ERR_BAD_RESPONSE' ||
+    /aborted|empty response/i.test(message)
+  )
+}
+
+/**
+ * GET a branch category list. A 200 with an empty body makes `data.results`
+ * undefined, which React Query rejects. Retry that once, then throw.
+ */
+async function fetchCategoryList(url: string): Promise<Category[]> {
+  const read = async () => {
+    const { data } = await api.get<unknown>(url)
+    const rows = categoryRows(data)
+    if (!rows) throw new Error('Categories response did not include a list')
+    return rows.map(normalizeCategory)
+  }
+  try {
+    return await read()
+  } catch (err) {
+    if (!isRetriableListError(err)) throw err
+    return await read()
+  }
+}
+
 export const menuService = {
   async getCategories(branchId: string): Promise<Category[]> {
     if (USE_MOCK) {
       await delay(400)
       return mockCategories(branchId)
     }
-    const { data } = await api.get<PaginatedResponse<Category>>(ENDPOINTS.MENU.CATEGORY(branchId))
-    return data.results
+    return fetchCategoryList(ENDPOINTS.MENU.CATEGORY(branchId))
   },
 
   async getAvailableTags(branchId: string): Promise<MenuTag[]> {
@@ -151,8 +207,7 @@ export const menuService = {
       await delay(400)
       return mockCategories(branchId)
     }
-    const { data } = await api.get<PaginatedResponse<Category>>(ENDPOINTS.MENU.CONSOLE_CATEGORY(branchId))
-    return data.results
+    return fetchCategoryList(ENDPOINTS.MENU.CONSOLE_CATEGORY(branchId))
   },
 
   async getItems(branchId: string, filters?: MenuFilters): Promise<PaginatedResponse<MenuItem>> {

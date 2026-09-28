@@ -133,6 +133,12 @@ api.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`
     }
 
+    // Node's default agent reuses sockets. This API often answers 200 and then
+    // drops the body on a reused socket, which breaks the RSC render.
+    if (typeof window === 'undefined') {
+      config.headers['Connection'] = 'close'
+    }
+
     // Tenant context for Django — browser calls do not receive Next.js middleware headers.
     if (typeof window !== 'undefined' && !config.headers['X-Tenant-Slug']) {
       const tenantSlug = resolveTenantSlugForApi()
@@ -177,6 +183,19 @@ function processQueue(error: unknown, token: string | null) {
 // ── Response interceptor: auto-refresh on 401 ────────────────────────────────
 api.interceptors.response.use(
   (response) => {
+    // A kept-alive socket can finish with HTTP 200 and no body. Callers that
+    // read `.results` would then return undefined, which React Query rejects.
+    const method = (response.config.method ?? 'get').toLowerCase()
+    const emptyBody = response.data === undefined || response.data === ''
+    if (emptyBody && response.status !== 204 && (method === 'get' || method === 'head')) {
+      return Promise.reject(new AxiosError(
+        'Empty response body',
+        AxiosError.ERR_BAD_RESPONSE,
+        response.config,
+        response.request,
+        response,
+      ))
+    }
     if (AXIOS_DEBUG && typeof window !== 'undefined') {
       const cfg = response.config
       const path = cfg.url ?? ''
