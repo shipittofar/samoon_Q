@@ -14,7 +14,7 @@ import { useCategories, useMenuItems, useAvailableMenuTags, useActiveBranchId } 
 import { useRecentlyViewedStore, useCartItemCount } from '@/stores'
 import { cn, debounce } from '@/utils'
 import { useTranslations } from 'next-intl'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, CircleCheck, LayoutGrid } from 'lucide-react'
 import { CategoryQuickNav } from '@/components/menu/CategoryQuickNav'
 import type { MenuItem } from '@/types'
 import type { MenuFilters } from '@/services/menu.service'
@@ -408,7 +408,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 space-y-1.5">
           <form
             role="search"
-            className="flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-center"
+            className="flex flex-nowrap items-center gap-2"
             onSubmit={(e) => {
               e.preventDefault()
               setDebouncedSearch(search)
@@ -416,7 +416,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
             }}
           >
             <SearchField
-              className="w-full min-w-0 min-[480px]:flex-1"
+              className="min-w-0 flex-1"
               variant="chrome"
               value={search}
               onChange={handleSearch}
@@ -435,14 +435,16 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 aria-label={t('availableToggleAria')}
                 onClick={() => setOnlyAvailable((v) => !v)}
                 className={cn(
-                  'shrink-0 min-h-11 px-3 rounded-xl text-sm font-medium border',
+                  'inline-flex items-center justify-center gap-1 shrink-0 min-h-11 rounded-xl text-sm font-medium border',
+                  'w-11 px-0 min-[480px]:w-auto min-[480px]:px-3',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]',
                   onlyAvailable
                     ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-transparent'
                     : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)]',
                 )}
               >
-                {t('available')}
+                <CircleCheck className="h-5 w-5 shrink-0 min-[480px]:hidden" aria-hidden="true" />
+                <span className="hidden min-[480px]:inline">{t('available')}</span>
               </button>
               <button
                 ref={categoriesButtonRef}
@@ -453,7 +455,8 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 disabled={!canQuickNav}
                 onClick={() => setQuickNavOpen((open) => !open)}
                 className={cn(
-                  'inline-flex items-center gap-1 shrink-0 min-h-11 px-3 rounded-xl text-sm font-medium border',
+                  'inline-flex items-center justify-center gap-1 shrink-0 min-h-11 rounded-xl text-sm font-medium border',
+                  'w-11 px-0 min-[480px]:w-auto min-[480px]:px-3',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]',
                   'disabled:opacity-50 disabled:cursor-not-allowed',
                   quickNavOpen
@@ -461,10 +464,11 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                     : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)]',
                 )}
               >
-                {t('categoriesNav')}
+                <LayoutGrid className="h-5 w-5 shrink-0 min-[480px]:hidden" aria-hidden="true" />
+                <span className="hidden min-[480px]:inline">{t('categoriesNav')}</span>
                 <ChevronDown
                   className={cn(
-                    'h-3.5 w-3.5 motion-reduce:transition-none transition-transform duration-[var(--search-motion)]',
+                    'hidden min-[480px]:block h-3.5 w-3.5 motion-reduce:transition-none transition-transform duration-[var(--search-motion)]',
                     quickNavOpen && 'rotate-180',
                   )}
                   aria-hidden="true"
