@@ -112,6 +112,15 @@ const api: AxiosInstance = axios.create({
   withCredentials: true, // send cookies for session auth
 })
 
+// Node 19+ keeps HTTP sockets alive. A reused socket to this API often returns
+// status 200 and then aborts before the body arrives ("stream has been aborted").
+if (typeof window === 'undefined') {
+  const http = require('node:http') as typeof import('node:http')
+  const https = require('node:https') as typeof import('node:https')
+  api.defaults.httpAgent = new http.Agent({ keepAlive: false })
+  api.defaults.httpsAgent = new https.Agent({ keepAlive: false })
+}
+
 // ── Request interceptor: attach JWT or CSRF ──────────────────────────────────
 const AXIOS_DEBUG =
   process.env.NEXT_PUBLIC_AXIOS_DEBUG === 'true' ||

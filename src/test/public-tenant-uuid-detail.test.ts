@@ -1,6 +1,7 @@
 /**
- * Public slug routing must not call GET /tenants/{slug}/ or GET /tenants/current/.
- * Slug → GET /public/discover/ (match slug → id) → GET /tenants/{uuid}/.
+ * Public slug routing must not call GET /tenants/{slug}/, GET /tenants/current/,
+ * or GET /tenants/{uuid}/. The detail endpoint can take minutes and breaks the
+ * RSC stream. Slug → GET /public/discover/ (match slug).
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ENDPOINTS } from '@/services/endpoints'
@@ -65,41 +66,50 @@ describe('public tenant slug → UUID detail', () => {
     expect(isUsableTenantSlug(UUID)).toBe(false)
   })
 
-  it('getTenantBySlug uses Discover then DETAIL_BY_ID — never slug path or /current/', async () => {
+  it('retries Discover once when the response stream is aborted', async () => {
     const { tenantService, api } = await realTenantService()
     api.get.mockClear()
+    const aborted = Object.assign(new Error('stream has been aborted'), {
+      isAxiosError: true,
+      code: 'ERR_BAD_RESPONSE',
+      response: { status: 200, data: undefined },
+    })
     api.get
+      .mockRejectedValueOnce(aborted)
       .mockResolvedValueOnce({ data: { count: 1, results: [TENANT_WIRE] } })
-      .mockResolvedValueOnce({ data: TENANT_WIRE })
+
+    const tenant = await tenantService.getTenantBySlug(SLUG)
+
+    expect(tenant.slug).toBe(SLUG)
+    expect(api.get).toHaveBeenCalledTimes(2)
+    expect(api.get.mock.calls[0][0]).toBe(ENDPOINTS.PUBLIC.DISCOVER)
+    expect(api.get.mock.calls[1][0]).toBe(ENDPOINTS.PUBLIC.DISCOVER)
+  })
+
+  it('getTenantBySlug uses Discover only — never slug path, detail, or /current/', async () => {
+    const { tenantService, api } = await realTenantService()
+    api.get.mockClear()
+    api.get.mockResolvedValueOnce({ data: { count: 1, results: [TENANT_WIRE] } })
 
     const tenant = await tenantService.getTenantBySlug(SLUG)
 
     expect(tenant.id).toBe(UUID)
     expect(tenant.slug).toBe(SLUG)
-    expect(api.get).toHaveBeenCalledTimes(2)
-
-    const [discoverUrl] = api.get.mock.calls[0]
-    expect(discoverUrl).toBe(ENDPOINTS.PUBLIC.DISCOVER)
-    expect(discoverUrl).not.toBe(ENDPOINTS.TENANTS.CURRENT)
-
-    const [detailUrl] = api.get.mock.calls[1]
-    expect(detailUrl).toBe(ENDPOINTS.TENANTS.DETAIL_BY_ID(UUID))
-    expect(detailUrl).not.toBe(`/tenants/${SLUG}/`)
-    expect(detailUrl).not.toContain(SLUG)
+    expect(api.get).toHaveBeenCalledTimes(1)
+    expect(api.get.mock.calls[0][0]).toBe(ENDPOINTS.PUBLIC.DISCOVER)
 
     const urls = urlsFromGet(api)
+    expect(urls).not.toContain(ENDPOINTS.TENANTS.DETAIL_BY_ID(UUID))
     expect(urls).not.toContain(ENDPOINTS.TENANTS.CURRENT)
     expect(urls).not.toContain('/tenants/current/')
     expect(urls).not.toContain(`/api/tenants/current/`)
     expect(urls).not.toContain(`/tenants/${SLUG}/`)
   })
 
-  it('fetchPublicTenantBySlug cache miss uses Discover + UUID detail, not /current/', async () => {
+  it('fetchPublicTenantBySlug cache miss uses Discover only, not detail or /current/', async () => {
     const { fetchPublicTenantBySlug: fetchBySlug, api } = await realTenantService()
     api.get.mockClear()
-    api.get
-      .mockResolvedValueOnce({ data: { count: 1, results: [TENANT_WIRE] } })
-      .mockResolvedValueOnce({ data: TENANT_WIRE })
+    api.get.mockResolvedValueOnce({ data: { count: 1, results: [TENANT_WIRE] } })
 
     const tenant = await fetchBySlug(SLUG)
     expect(tenant.id).toBe(UUID)
@@ -107,15 +117,14 @@ describe('public tenant slug → UUID detail', () => {
 
     const urls = urlsFromGet(api)
     expect(urls).toContain(ENDPOINTS.PUBLIC.DISCOVER)
-    expect(urls).toContain(ENDPOINTS.TENANTS.DETAIL_BY_ID(UUID))
+    expect(urls).not.toContain(ENDPOINTS.TENANTS.DETAIL_BY_ID(UUID))
     expect(urls).not.toContain(ENDPOINTS.TENANTS.CURRENT)
     expect(urls).not.toContain(`/tenants/${SLUG}/`)
   })
 
-  it('fetchPublicTenantBySlug cache hit only GETs /tenants/{uuid}/', async () => {
+  it('fetchPublicTenantBySlug cache hit does not fetch tenant detail', async () => {
     const { fetchPublicTenantBySlug: fetchBySlug, api } = await realTenantService()
     api.get.mockClear()
-    api.get.mockResolvedValueOnce({ data: TENANT_WIRE })
 
     const tenant = await fetchBySlug(SLUG, {
       cachedTenants: [
@@ -130,10 +139,7 @@ describe('public tenant slug → UUID detail', () => {
       ],
     })
     expect(tenant.id).toBe(UUID)
-    expect(api.get).toHaveBeenCalledTimes(1)
-    expect(api.get.mock.calls[0][0]).toBe(ENDPOINTS.TENANTS.DETAIL_BY_ID(UUID))
-    expect(urlsFromGet(api)).not.toContain(ENDPOINTS.TENANTS.CURRENT)
-    expect(urlsFromGet(api)).not.toContain(ENDPOINTS.PUBLIC.DISCOVER)
+    expect(api.get).not.toHaveBeenCalled()
   })
 
   it('X-Tenant-Slug stays the real slug, never the UUID', () => {
@@ -157,7 +163,7 @@ describe('public tenant slug → UUID detail', () => {
     const { join } = await import('path')
     const src = readFileSync(join(process.cwd(), 'src/services/tenant.service.ts'), 'utf8')
     const resolver = src.slice(
-      src.indexOf('async function resolvePublicTenantIdBySlug'),
+      src.indexOf('async function getDiscoverCatalog'),
       src.indexOf('export const tenantService'),
     )
     expect(resolver).toContain('ENDPOINTS.PUBLIC.DISCOVER')

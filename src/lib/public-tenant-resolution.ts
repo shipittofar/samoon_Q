@@ -4,6 +4,7 @@ import { tenantService, TenantNotFoundError, TenantForbiddenError } from '@/serv
 import { branchManagementService } from '@/services/branch.service'
 import {
   findPublicBranchBySlug,
+  publicBranchesFromCatalog,
   resolvePublicBranchList,
 } from '@/lib/public-branches'
 import {
@@ -98,8 +99,8 @@ export async function resolvePublicTenantId(
 
 /**
  * Public Tenant by URL slug.
- * Cache hit: slug → cached tenant.id → GET /tenants/{id}/.
- * Cache miss: GET /public/discover/ → slug match → GET /tenants/{id}/.
+ * Cache hit: the cached catalog row.
+ * Cache miss: GET /public/discover/ and the matching row. Never GET /tenants/{slug}/.
  */
 export async function fetchPublicTenantBySlug(
   slug: string,
@@ -107,10 +108,10 @@ export async function fetchPublicTenantBySlug(
 ): Promise<Tenant> {
   const { cachedTenants } = options
   if (cachedTenants?.length) {
-    const cachedId = findTenantIdBySlug(cachedTenants, slug)
-    if (cachedId) return tenantService.getTenantById(cachedId)
+    const cached = cachedTenants.find((tenant) => tenant.slug === slug && tenant.id)
+    if (cached) return cached
   }
-  // Slug → id via Discover catalog, then GET /tenants/{id}/ — never GET /tenants/{slug}/.
+  // Discover catalog only. Never GET /tenants/{slug}/ or the slow /tenants/{id}/ detail.
   return tenantService.getTenantBySlug(slug)
 }
 
@@ -125,24 +126,46 @@ export const resolvePublicTenantForPage = cache(async (slug: string): Promise<Te
   }
 })
 
+function plainRequestError(err: unknown): Error {
+  const axios = err as { isAxiosError?: boolean; name?: string; message?: string }
+  if (axios?.isAxiosError || axios?.name === 'AxiosError') {
+    const error = new Error(axios.message || 'Request failed')
+    error.name = 'RequestError'
+    return error
+  }
+  return err instanceof Error ? err : new Error('Request failed')
+}
+
 export const resolvePublicBranchPageForPage = cache(async (
   tenantSlug: string,
   branchSlug: string,
 ): Promise<PublicBranchPageData> => {
   const tenant = await resolvePublicTenantForPage(tenantSlug)
-  const branchList = await resolvePublicBranchList(tenant.id)
+  const catalogBranches = publicBranchesFromCatalog(tenant)
+  let branchList: PublicBranchInfo[]
+  if (catalogBranches) {
+    branchList = catalogBranches
+  } else {
+    try {
+      branchList = await resolvePublicBranchList(tenant.id)
+    } catch (err) {
+      throw plainRequestError(err)
+    }
+  }
   const listMatch = findPublicBranchBySlug(branchList, branchSlug)
 
   if (!listMatch?.id) {
     notFound()
   }
 
-  let branch: PublicBranchInfo
-  try {
-    const detail = await branchManagementService.getPublicBranch(tenant.id, listMatch.id)
-    branch = publicBranchFromDetail(detail)
-  } catch {
-    notFound()
+  let branch: PublicBranchInfo = listMatch
+  if (!catalogBranches) {
+    try {
+      const detail = await branchManagementService.getPublicBranch(tenant.id, listMatch.id)
+      branch = publicBranchFromDetail(detail)
+    } catch {
+      notFound()
+    }
   }
 
   const meta = composeMarketplacePresentation({

@@ -8,6 +8,7 @@ import {
   normalizeTenantStatus,
 } from '@/lib/tenant-state'
 import type { Tenant, TenantStatus, PaginatedResponse } from '@/types'
+import type { DiscoverResponse } from '@/types/discover'
 import { sanitizeTenantSettings, sanitizeTenantSettingsPatch } from '@/lib/tenant-settings'
 import type { TenantMediaWriteRequest } from '@/lib/tenant-media'
 import { isUsableTenantSlug } from '@/lib/identifier-brands'
@@ -336,11 +337,61 @@ async function fetchTenantFromApi(path: string, identifier: string): Promise<Ten
   }
 }
 
+const DISCOVER_CACHE_MS = 30_000
+let discoverCache: { at: number; data: DiscoverResponse } | null = null
+let discoverInflight: Promise<DiscoverResponse> | null = null
+
+function isAbortedAxios(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const axiosErr = err as { isAxiosError?: boolean; code?: string; message?: string }
+  if (!axiosErr.isAxiosError && axiosErr.code !== 'ECONNABORTED' && axiosErr.code !== 'ERR_BAD_RESPONSE' && axiosErr.code !== 'ECONNRESET') {
+    return false
+  }
+  return (
+    axiosErr.code === 'ECONNABORTED' ||
+    axiosErr.code === 'ECONNRESET' ||
+    axiosErr.code === 'ERR_BAD_RESPONSE' ||
+    /aborted|timeout/i.test(axiosErr.message ?? '')
+  )
+}
+
 /**
- * Map a public URL slug to tenant.id without GET /tenants/{slug}/.
- * Production: existing GET /public/discover/ catalog (id + slug), then DETAIL_BY_ID.
+ * Public catalog. A reused keep-alive socket can return 200 and then abort
+ * before the body is read. One retry uses a new connection. A short cache
+ * keeps a click from waiting on that socket again.
  */
-async function resolvePublicTenantIdBySlug(slug: string): Promise<string> {
+async function getDiscoverCatalog(): Promise<DiscoverResponse> {
+  if (discoverCache && Date.now() - discoverCache.at < DISCOVER_CACHE_MS) {
+    return discoverCache.data
+  }
+  if (!discoverInflight) {
+    discoverInflight = (async () => {
+      const load = () => api.get<DiscoverResponse>(ENDPOINTS.PUBLIC.DISCOVER).then((res) => res.data)
+      let data: DiscoverResponse
+      try {
+        data = await load()
+      } catch (err) {
+        if (!isAbortedAxios(err)) throw err
+        data = await load()
+      }
+      if (!Array.isArray(data?.results)) {
+        throw new Error('Discover response missing results')
+      }
+      discoverCache = { at: Date.now(), data }
+      return data
+    })().finally(() => {
+      discoverInflight = null
+    })
+  }
+  return discoverInflight
+}
+
+/**
+ * Public catalog row for a slug. GET /public/discover/ answers in well under a
+ * second. GET /tenants/{id}/ for the same tenant can take minutes, which aborts
+ * the Next.js flight stream ("Error in input stream") if a page waits on it.
+ */
+async function fetchDiscoverTenantBySlug(slug: string): Promise<Tenant> {
   if (!isUsableTenantSlug(slug)) {
     throw new TenantNotFoundError(slug)
   }
@@ -348,22 +399,27 @@ async function resolvePublicTenantIdBySlug(slug: string): Promise<string> {
     await delay()
     const found = findMockBySlug(slug)
     if (!found?.id) throw new TenantNotFoundError(slug)
-    return found.id
+    return { ...found }
   }
   try {
-    const { data } = await api.get<PaginatedResponse<{ id: string; slug: string }>>(
-      ENDPOINTS.PUBLIC.DISCOVER,
-    )
+    const data = await getDiscoverCatalog()
     const match = (data.results ?? []).find((t) => t.slug === slug)
     if (!match?.id) throw new TenantNotFoundError(slug)
-    return match.id
+    const tenant = normalizeTenant(match as Tenant)
+    return match.branches ? { ...tenant, branches: match.branches } : tenant
   } catch (err) {
     if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) throw err
     const status = (err as { response?: { status?: number } })?.response?.status
     if (status === 404) throw new TenantNotFoundError(slug)
     if (status === 403) throw new TenantForbiddenError(slug)
-    throw new TenantServerError(slug, err)
+    throw new TenantServerError(slug)
   }
+}
+
+/** Map a public URL slug to tenant.id without GET /tenants/{slug}/. */
+async function resolvePublicTenantIdBySlug(slug: string): Promise<string> {
+  const tenant = await fetchDiscoverTenantBySlug(slug)
+  return tenant.id
 }
 
 export const tenantService = {
@@ -373,12 +429,11 @@ export const tenantService = {
   resolvePublicTenantIdBySlug,
 
   /**
-   * Full tenant for a public slug: slug → id (Discover catalog) → GET /tenants/{id}/.
-   * Mock: slug table only, then id lookup.
+   * Public tenant for a URL slug, from GET /public/discover/ only.
+   * Does not call GET /tenants/{id}/ — that detail request is too slow to block a page.
    */
   async getTenantBySlug(slug: string): Promise<Tenant> {
-    const tenantId = await resolvePublicTenantIdBySlug(slug)
-    return tenantService.getTenantById(tenantId)
+    return fetchDiscoverTenantBySlug(slug)
   },
 
   /**

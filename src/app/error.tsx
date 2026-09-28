@@ -4,11 +4,16 @@ import { useTranslations } from 'next-intl'
 import { RefreshCw, Home } from 'lucide-react'
 import Link from 'next/link'
 
-export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+/**
+ * Segment error UI (`app/error.tsx`). Next renders this inside the root layout,
+ * which already owns the document element and body. A second document here is invalid.
+ * Only `app/global-error.tsx` may render those elements.
+ */
+export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const t = useTranslations('errors')
   useEffect(() => { console.error('[App Error]', error) }, [error])
   return (
-    <html><body className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-4">
       <div className="text-center max-w-md">
         <span className="text-6xl block mb-6"aria-hidden="true">💥</span>
         <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)] mb-3">{t('somethingWentWrong')}</h1>
@@ -23,6 +28,6 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         </div>
         {error.digest && <p className="text-xs text-[var(--fg-subtle)] mt-6">{t('errorId', { id: error.digest })}</p>}
       </div>
-    </body></html>
+    </div>
   )
 }

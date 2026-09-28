@@ -116,10 +116,7 @@ describe('Phase Z.6 — normalizeTenant() via getTenants() (real mode)', () => {
 
   it('getTenant(slug) (single-tenant fetch) applies the same normalization', async () => {
     const { tenantService, api } = await freshTenantServiceRealMode()
-    // Slug → Discover catalog, then full record from GET /tenants/{id}/.
-    api.get
-      .mockResolvedValueOnce({ data: { count: 1, results: [RAW_BACKEND_TENANT] } })
-      .mockResolvedValueOnce({ data: RAW_BACKEND_TENANT })
+    api.get.mockResolvedValueOnce({ data: { count: 1, results: [RAW_BACKEND_TENANT] } })
 
     const tenant = await tenantService.getTenantBySlug('real-backend-tenant')
     expect(tenant.businessTypes).toEqual(['restaurant', 'cafe'])

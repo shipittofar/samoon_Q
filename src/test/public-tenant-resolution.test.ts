@@ -7,6 +7,7 @@ import {
   readPublicPathTenantSlug,
 } from '@/lib/public-tenant-resolution'
 import { tenantService, TenantNotFoundError } from '@/services/tenant.service'
+import { branchManagementService } from '@/services/branch.service'
 
 describe('public-tenant-resolution', () => {
   beforeEach(() => {
@@ -60,6 +61,36 @@ describe('public-tenant-resolution', () => {
     const tenant = await resolvePublicTenantForPage('samoon')
     expect(tenant.slug).toBe('samoon')
     expect(tenant.id).toBe('tenant-samoon-01')
+  })
+
+  it('resolvePublicBranchPageForPage uses Discover branches and skips the branch API', async () => {
+    vi.spyOn(tenantService, 'getTenantBySlug').mockResolvedValue({
+      id: '8061b0ec-1dd5-49e4-ae14-b4d59230d348',
+      slug: 'wma4he3d',
+      name: 'abi',
+      businessTypes: [],
+      status: 'ACTIVE',
+      is_active: true,
+      created_at: '2026-08-24T08:12:12.533565Z',
+      branches: [
+        {
+          id: 'branch-1',
+          slug: 'j1o7cc8b',
+          name: 'Main',
+          openNow: true,
+          location: { address: '1 Main', city: 'Tehran' },
+        },
+      ],
+    } as never)
+    const listSpy = vi.spyOn(branchManagementService, 'getTenantsBranches')
+    const detailSpy = vi.spyOn(branchManagementService, 'getPublicBranch')
+
+    const data = await resolvePublicBranchPageForPage('wma4he3d', 'j1o7cc8b')
+
+    expect(data.branch.slug).toBe('j1o7cc8b')
+    expect(data.branch.city).toBe('Tehran')
+    expect(listSpy).not.toHaveBeenCalled()
+    expect(detailSpy).not.toHaveBeenCalled()
   })
 
   it('resolvePublicBranchPageForPage resolves branch page data for SSR', async () => {
