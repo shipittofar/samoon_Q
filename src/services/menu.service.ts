@@ -12,7 +12,7 @@ import {
   type MenuItemWire,
   type MenuItemsEnvelope,
 } from '@/lib/menu-normalizers'
-import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
+import { buildDrfPaginationParams, DEFAULT_PAGE_SIZE, paginateList } from '@/utils/pagination'
 import type { Category, ConsoleMenuTag, DrfPaginationParams, Extra, ExtraGroup, MenuItem, MenuTag, PaginatedResponse } from '@/types'
 import type { MenuItemWriteRequest } from '@/types/menu-item'
 import type { CategoryWriteRequest } from '@/types/category'
@@ -169,9 +169,12 @@ function isRetriableListError(err: unknown): boolean {
  * GET a branch category list. A 200 with an empty body makes `data.results`
  * undefined, which React Query rejects. Retry that once, then throw.
  */
-async function fetchCategoryList(url: string): Promise<Category[]> {
+async function fetchCategoryList(
+  url: string,
+  params?: Record<string, string | number>,
+): Promise<Category[]> {
   const read = async () => {
-    const { data } = await api.get<unknown>(url)
+    const { data } = await api.get<unknown>(url, params ? { params } : undefined)
     const rows = categoryRows(data)
     if (!rows) throw new Error('Categories response did not include a list')
     return rows.map(normalizeCategory)
@@ -190,7 +193,13 @@ export const menuService = {
       await delay(400)
       return mockCategories(branchId)
     }
-    return fetchCategoryList(ENDPOINTS.MENU.CATEGORY(branchId))
+    // Public category list is paginated. Request the shared page size so All-view
+    // section headings can name every category represented on the loaded item page.
+    // A missing list still throws — never return undefined to React Query.
+    return fetchCategoryList(ENDPOINTS.MENU.CATEGORY(branchId), {
+      page: 1,
+      page_size: DEFAULT_PAGE_SIZE,
+    })
   },
 
   async getAvailableTags(branchId: string): Promise<MenuTag[]> {

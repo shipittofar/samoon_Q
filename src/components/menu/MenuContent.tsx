@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { TenantHeader } from '@/components/layout/TenantHeader'
@@ -14,8 +14,17 @@ import { useCategories, useMenuItems, useAvailableMenuTags, useActiveBranchId } 
 import { useRecentlyViewedStore, useCartItemCount } from '@/stores'
 import { cn, debounce } from '@/utils'
 import { useTranslations } from 'next-intl'
+import { ChevronDown } from 'lucide-react'
+import { CategoryQuickNav } from '@/components/menu/CategoryQuickNav'
 import type { MenuItem } from '@/types'
 import type { MenuFilters } from '@/services/menu.service'
+import { DEFAULT_PAGE_SIZE } from '@/utils/pagination'
+import {
+  MENU_ALL_ANCHOR_ID,
+  groupMenuItemsByCategory,
+  menuCategorySectionId,
+  resolveActiveMenuCategory,
+} from '@/lib/menu-category-sections'
 import {
   SearchField,
   ScopeScroller,
@@ -32,6 +41,50 @@ import {
   bandsToPriceRange,
 } from '@/components/search'
 import type { ActiveFilter } from '@/components/search'
+
+function MenuItemGrid({
+  items,
+  compact = false,
+  highlightQuery = '',
+  reduceMotion,
+  onOpenDetail,
+}: {
+  items: MenuItem[]
+  compact?: boolean
+  highlightQuery?: string
+  reduceMotion: boolean
+  onOpenDetail: (item: MenuItem) => void
+}) {
+  return (
+    <motion.div
+      layout={!reduceMotion}
+      className={cn(
+        'grid gap-6',
+        compact ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+      )}
+    >
+      <AnimatePresence mode="popLayout">
+        {items.map((item, i) => (
+          <motion.div
+            key={item.id}
+            layout={!reduceMotion}
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0 }}
+            transition={{ delay: reduceMotion ? 0 : Math.min(i * 0.04, 0.2) }}
+          >
+            <FoodCard
+              item={item}
+              compact={compact}
+              highlightQuery={highlightQuery}
+              onOpenDetail={onOpenDetail}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
 
 interface MenuContentProps {
   /** Branch slug to scope the menu to. Falls back to the customer's active branch (useBranchStore) when omitted. */
@@ -92,6 +145,11 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const categoryBarRef = useRef<HTMLDivElement>(null)
+  const toolbarRef = useRef<HTMLDivElement>(null)
+  const categoriesButtonRef = useRef<HTMLButtonElement>(null)
+  const [quickNavOpen, setQuickNavOpen] = useState(false)
+  const [quickNavCategoryId, setQuickNavCategoryId] = useState('')
+  const [scrollOffset, setScrollOffset] = useState(0)
   const recents = useRecentSearches('menu')
   const { items: recentlyViewed } = useRecentlyViewedStore()
   const cartCount = useCartItemCount()
@@ -110,7 +168,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     debouncedSetSearch(v)
   }
 
-  const { data: categories, isLoading: catsLoading } = useCategories(branchId)
+  const { data: categories, isLoading: catsLoading, isError: categoriesError } = useCategories(branchId)
   const {
     data: availableTags,
     isLoading: tagsLoading,
@@ -127,6 +185,8 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
 
   const priceRange = bandsToPriceRange(priceBands)
 
+  const browsingAll = !activeCategory && !debouncedSearch
+
   const filters: MenuFilters = {
     category: categoryFilterId,
     search: debouncedSearch || undefined,
@@ -135,10 +195,20 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     max_price: priceRange.max,
     available: onlyAvailable ? true : undefined,
     tags: selectedTagIds.length > 0 ? selectedTagIds : undefined,
+    // All view only. Category tabs and search keep the previous unpaged request.
+    // page_size is the documented list param; sections are built from this page.
+    ...(browsingAll ? { page: 1, page_size: DEFAULT_PAGE_SIZE } : {}),
   }
 
   const { data, isLoading } = useMenuItems(branchId, filters)
   const items = data?.results || []
+
+  const { sections, unmatched } = useMemo(
+    () => groupMenuItemsByCategory(categoriesError ? undefined : categories, items),
+    [categories, categoriesError, items],
+  )
+  const showCategorySections = browsingAll && !categoriesError && sections.length > 0 && !isLoading
+  const canQuickNav = showCategorySections
 
   const replaceParams = (mutate: (params: URLSearchParams) => void) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -192,6 +262,77 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     const active = categoryBarRef.current.querySelector('[aria-selected="true"]') as HTMLElement | null
     active?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest', inline: 'center' })
   }, [activeCategory, reduceMotion])
+
+  useEffect(() => {
+    if (canQuickNav) return
+    setQuickNavOpen(false)
+    setQuickNavCategoryId('')
+  }, [canQuickNav])
+
+  useLayoutEffect(() => {
+    const toolbar = toolbarRef.current
+    if (!toolbar) return
+    const update = () => {
+      const headerHeight = document.querySelector('header')?.getBoundingClientRect().height ?? 0
+      const toolbarHeight = toolbar.getBoundingClientRect().height
+      setScrollOffset(Math.ceil(headerHeight + toolbarHeight + 12))
+    }
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(toolbar)
+    window.addEventListener('resize', update)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [catsLoading, isLoading])
+
+  useEffect(() => {
+    if (!showCategorySections) return
+    const nodes = sections
+      .map((section) => document.getElementById(menuCategorySectionId(section.id)))
+      .filter((node): node is HTMLElement => node instanceof HTMLElement)
+    if (nodes.length === 0) return
+
+    const sectionIds = sections.map((section) => section.id)
+    const observer = new IntersectionObserver(
+      () => {
+        const tops = new Map<string, number>()
+        for (const node of nodes) tops.set(node.id, node.getBoundingClientRect().top)
+        const next = resolveActiveMenuCategory(sectionIds, tops, scrollOffset)
+        setQuickNavCategoryId((prev) => (prev === next ? prev : next))
+      },
+      {
+        root: null,
+        rootMargin: `-${scrollOffset}px 0px -40% 0px`,
+        threshold: [0, 0.25, 0.5, 1],
+      },
+    )
+    nodes.forEach((node) => observer.observe(node))
+    return () => observer.disconnect()
+  }, [showCategorySections, sections, scrollOffset])
+
+  const closeQuickNav = () => {
+    setQuickNavOpen(false)
+    categoriesButtonRef.current?.focus({ preventScroll: true })
+  }
+
+  const scrollToCategorySection = (categoryId: string) => {
+    const targetId = categoryId ? menuCategorySectionId(categoryId) : MENU_ALL_ANCHOR_ID
+    const target = document.getElementById(targetId)
+    if (!target) return
+    setQuickNavCategoryId(categoryId)
+    target.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    })
+  }
+
+  const chooseQuickNavCategory = (categoryId: string) => {
+    setQuickNavOpen(false)
+    scrollToCategorySection(categoryId)
+    categoriesButtonRef.current?.focus({ preventScroll: true })
+  }
 
   const handleOpenDetail = (item: MenuItem) => {
     setSelectedItem(item)
@@ -263,11 +404,11 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     <div className="min-h-screen bg-[var(--bg)]">
       <TenantHeader />
 
-      <div className="sticky top-16 z-30 bg-[var(--bg)]/95 backdrop-blur-xl border-b border-[var(--border)]">
+      <div ref={toolbarRef} className="sticky top-16 z-30 bg-[var(--bg)]/95 backdrop-blur-xl border-b border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 space-y-1.5">
           <form
             role="search"
-            className="flex items-center gap-2"
+            className="flex flex-col gap-2 min-[480px]:flex-row min-[480px]:items-center"
             onSubmit={(e) => {
               e.preventDefault()
               setDebouncedSearch(search)
@@ -275,7 +416,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
             }}
           >
             <SearchField
-              className="flex-1 min-w-0"
+              className="w-full min-w-0 min-[480px]:flex-1"
               variant="chrome"
               value={search}
               onChange={handleSearch}
@@ -287,22 +428,63 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
               clearLabel={t('clearSearch')}
               placeholder={t('searchPlaceholder')}
             />
-            <button
-              type="button"
-              aria-pressed={onlyAvailable}
-              aria-label={t('availableToggleAria')}
-              onClick={() => setOnlyAvailable((v) => !v)}
-              className={cn(
-                'shrink-0 min-h-11 px-3 rounded-xl text-sm font-medium border',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]',
-                onlyAvailable
-                  ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-transparent'
-                  : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)]',
-              )}
-            >
-              {t('available')}
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                aria-pressed={onlyAvailable}
+                aria-label={t('availableToggleAria')}
+                onClick={() => setOnlyAvailable((v) => !v)}
+                className={cn(
+                  'shrink-0 min-h-11 px-3 rounded-xl text-sm font-medium border',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]',
+                  onlyAvailable
+                    ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-transparent'
+                    : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)]',
+                )}
+              >
+                {t('available')}
+              </button>
+              <button
+                ref={categoriesButtonRef}
+                type="button"
+                aria-expanded={quickNavOpen}
+                aria-controls="menu-category-quick-nav"
+                aria-label={t('categoriesNavAria')}
+                disabled={!canQuickNav}
+                onClick={() => setQuickNavOpen((open) => !open)}
+                className={cn(
+                  'inline-flex items-center gap-1 shrink-0 min-h-11 px-3 rounded-xl text-sm font-medium border',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
+                  quickNavOpen
+                    ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-transparent'
+                    : 'bg-[var(--card)] text-[var(--fg-muted)] border-[var(--border)]',
+                )}
+              >
+                {t('categoriesNav')}
+                <ChevronDown
+                  className={cn(
+                    'h-3.5 w-3.5 motion-reduce:transition-none transition-transform duration-[var(--search-motion)]',
+                    quickNavOpen && 'rotate-180',
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
           </form>
+
+          <CategoryQuickNav
+            open={quickNavOpen}
+            anchorRef={categoriesButtonRef}
+            sections={sections}
+            activeId={quickNavCategoryId}
+            title={t('categoriesNav')}
+            allLabel={t('allCategories')}
+            closeLabel={tCommon('close')}
+            listLabel={t('categoryQuickNavAria')}
+            onClose={closeQuickNav}
+            onSelect={chooseQuickNavCategory}
+          />
 
           <div ref={categoryBarRef} className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
@@ -336,7 +518,11 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
       <main className={cn('max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6', cartCount > 0 && 'pb-28')}>
         <div className="mb-4 space-y-3">
           <ResultToolbar
-            resultLabel={isLoading ? tCommon('loading') : resultLabel}
+            resultLabel={
+              isLoading || (browsingAll && catsLoading && !categories)
+                ? tCommon('loading')
+                : resultLabel
+            }
             sortValue={sort ?? 'popular'}
             sortOptions={SORT_OPTIONS.map((o) => ({ value: o.value ?? 'popular', label: o.label }))}
             onSortChange={(v) => setSort(v as MenuFilters['sort'])}
@@ -350,7 +536,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
           />
         </div>
 
-        {isLoading ? (
+        {isLoading || (browsingAll && catsLoading && !categories) ? (
           <div className={cn('grid gap-6', isSearching ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3')}>
             {Array.from({ length: 9 }).map((_, i) => <FoodCardSkeleton key={i} />)}
           </div>
@@ -380,34 +566,55 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
               </div>
             )}
           </EmptySearch>
-        ) : (
-          <motion.div
-            layout={!reduceMotion}
-            className={cn(
-              'grid gap-6',
-              isSearching ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-            )}
-          >
-            <AnimatePresence mode="popLayout">
-              {items.map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  layout={!reduceMotion}
-                  initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0 }}
-                  transition={{ delay: reduceMotion ? 0 : Math.min(i * 0.04, 0.2) }}
+        ) : showCategorySections ? (
+          <div id={MENU_ALL_ANCHOR_ID} className="space-y-10" style={{ scrollMarginTop: scrollOffset }}>
+            {sections.map((section) => (
+              <section
+                key={section.id}
+                id={menuCategorySectionId(section.id)}
+                aria-labelledby={`menu-category-heading-${section.id}`}
+                style={{ scrollMarginTop: scrollOffset }}
+              >
+                <h2
+                  id={`menu-category-heading-${section.id}`}
+                  className="mb-4 font-[var(--font-display)] text-xl font-semibold text-[var(--fg)]"
                 >
-                  <FoodCard
-                    item={item}
-                    compact={isSearching}
-                    highlightQuery={debouncedSearch}
-                    onOpenDetail={handleOpenDetail}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+                  {section.name}
+                </h2>
+                <MenuItemGrid
+                  items={section.items}
+                  reduceMotion={!!reduceMotion}
+                  onOpenDetail={handleOpenDetail}
+                />
+              </section>
+            ))}
+            {unmatched.length > 0 && (
+              <section
+                aria-labelledby="menu-category-heading-unassigned"
+                style={{ scrollMarginTop: scrollOffset }}
+              >
+                <h2
+                  id="menu-category-heading-unassigned"
+                  className="mb-4 font-[var(--font-display)] text-xl font-semibold text-[var(--fg)]"
+                >
+                  {t('otherCategory')}
+                </h2>
+                <MenuItemGrid
+                  items={unmatched}
+                  reduceMotion={!!reduceMotion}
+                  onOpenDetail={handleOpenDetail}
+                />
+              </section>
+            )}
+          </div>
+        ) : (
+          <MenuItemGrid
+            items={items}
+            compact={isSearching}
+            highlightQuery={debouncedSearch}
+            reduceMotion={!!reduceMotion}
+            onOpenDetail={handleOpenDetail}
+          />
         )}
 
         {showRecent && items.length > 0 && (
