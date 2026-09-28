@@ -7,8 +7,10 @@ import {
   normalizeMenuItem,
   normalizeMenuItems,
   normalizePaginatedMenuItems,
+  type BranchMenuItemsResponse,
   type ExtraWire,
   type MenuItemWire,
+  type MenuItemsEnvelope,
 } from '@/lib/menu-normalizers'
 import { buildDrfPaginationParams, paginateList } from '@/utils/pagination'
 import type { Category, ConsoleMenuTag, DrfPaginationParams, Extra, ExtraGroup, MenuItem, MenuTag, PaginatedResponse } from '@/types'
@@ -204,7 +206,7 @@ export const menuService = {
       return { count: items.length, next: null, previous: null, results: normalizeMenuItems(items) }
     }
 
-    const { data } = await api.get<PaginatedResponse<MenuItemWire>>(
+    const { data } = await api.get<BranchMenuItemsResponse>(
       ENDPOINTS.MENU.PUBLIC_ITEMS(branchId),
       { params: buildMenuItemQueryParams(filters) },
     )
@@ -260,10 +262,10 @@ export const menuService = {
       await delay(400)
       return mockItems(branchId).filter((i) => i.is_featured)
     }
-    const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.FEATURED, {
+    const { data } = await api.get<MenuItemsEnvelope>(ENDPOINTS.MENU.FEATURED, {
       params: { branch_id: branchId },
     })
-    return normalizeMenuItems(data)
+    return normalizeMenuItems(data.results)
   },
 
   async getPopular(branchId: string): Promise<MenuItem[]> {
@@ -271,10 +273,10 @@ export const menuService = {
       await delay(400)
       return mockItems(branchId).filter((i) => i.is_popular)
     }
-    const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.POPULAR, {
+    const { data } = await api.get<MenuItemsEnvelope>(ENDPOINTS.MENU.POPULAR, {
       params: { branch_id: branchId },
     })
-    return normalizeMenuItems(data)
+    return normalizeMenuItems(data.results)
   },
 
   async getRelated(branchId: string, id: string): Promise<MenuItem[]> {
@@ -287,10 +289,10 @@ export const menuService = {
         (i) => i.category_id === item.category_id && i.id !== id,
       ).slice(0, 4)
     }
-    const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.RELATED(id), {
+    const { data } = await api.get<MenuItemsEnvelope>(ENDPOINTS.MENU.RELATED(id), {
       params: { branch_id: branchId },
     })
-    return normalizeMenuItems(data)
+    return normalizeMenuItems(data.results)
   },
 
   async search(branchId: string, query: string): Promise<MenuItem[]> {
@@ -308,10 +310,10 @@ export const menuService = {
           ),
       )
     }
-    const { data } = await api.get<MenuItemWire[]>(ENDPOINTS.MENU.SEARCH, {
+    const { data } = await api.get<MenuItemsEnvelope>(ENDPOINTS.MENU.SEARCH, {
       params: { branch_id: branchId, q: query },
     })
-    return normalizeMenuItems(data)
+    return normalizeMenuItems(data.results)
   },
 
   // ── Admin CRUD (P5.1) ──────────────────────────────────────────────────────
