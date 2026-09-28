@@ -12,6 +12,7 @@ import { categoryFormToWriteRequest } from '@/types'
 import { withUploadedImage } from '@/lib/image-asset-write'
 import type { Category } from '@/types'
 import { useCreateCategory } from '@/hooks'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 
 export interface CategoryCreateModalProps {
   open: boolean
@@ -38,6 +39,8 @@ export function CategoryCreateModal({
   const [form, setForm] = useState(EMPTY_CATEGORY_FORM)
   const [validationError, setValidationError] = useState<string | null>(null)
   const createMutation = useCreateCategory(branchId)
+  const guard = useSubmissionGuard(branchId ? `category-create:${branchId}` : undefined)
+  const uploadKeys = useIdempotencyKeys()
 
   useEffect(() => {
     if (open) {
@@ -47,34 +50,36 @@ export function CategoryCreateModal({
   }, [open])
 
   const handleClose = () => {
-    if (createMutation.isPending) return
+    if (guard.locked || createMutation.isPending) return
     onClose()
   }
 
-  const submit = async () => {
-    if (createMutation.isPending || !branchId) return
-    const err = validateCategoryForm(form)
-    if (err) {
-      setValidationError(err)
-      return
-    }
-    setValidationError(null)
-    createMutation.mutate(
-      await withUploadedImage(categoryFormToWriteRequest(form), form.image, 'menu_category', {
+  const submit = () => {
+    void guard.run(async ({ signal, isCurrent }) => {
+      if (!branchId) return
+      const err = validateCategoryForm(form)
+      if (err) {
+        setValidationError(err)
+        return
+      }
+      setValidationError(null)
+      const payload = await withUploadedImage(categoryFormToWriteRequest(form), form.image, 'menu_category', {
         tenantId,
         branchId,
         entityType: 'branch',
         entityId: branchId,
-      }),
-      {
-      onSuccess: (category) => {
-        if (showSuccessToast) {
-          toast.success(t('categoryCreatedSuccessfully', { name: category.name }))
-        }
-        onSuccess?.(category)
-        onClose()
-        setForm(EMPTY_CATEGORY_FORM)
-      },
+        signal,
+        idempotencyKey: uploadKeys.keyFor('category-create', form.image.file),
+      })
+      if (!isCurrent()) return
+      const category = await createMutation.mutateAsync(payload)
+      uploadKeys.reset('category-create')
+      if (showSuccessToast) {
+        toast.success(t('categoryCreatedSuccessfully', { name: category.name }))
+      }
+      onSuccess?.(category)
+      onClose()
+      setForm(EMPTY_CATEGORY_FORM)
     })
   }
 
@@ -88,11 +93,11 @@ export function CategoryCreateModal({
     >
       <CategoryFormFields form={form} onChange={setForm} error={validationError} />
       <div className="flex gap-3 pt-2">
-        <Button variant="secondary"onClick={handleClose} disabled={createMutation.isPending} className="flex-1">
+        <Button type="button" variant="secondary"onClick={handleClose} disabled={guard.locked || createMutation.isPending} className="flex-1">
           {t('cancel')}
         </Button>
-        <Button onClick={submit} disabled={createMutation.isPending || !branchId} className="flex-1">
-          {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addCategory')}
+        <Button type="button" onClick={submit} disabled={guard.locked || createMutation.isPending || !branchId} className="flex-1">
+          {guard.locked || createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addCategory')}
         </Button>
       </div>
       {createMutation.isError && (

@@ -184,13 +184,18 @@ export const userService = {
 
   async uploadAvatar(
     file: File,
-    options?: { signal?: AbortSignal; onSession?: UploadFileRequest['onSession'] },
+    options?: {
+      signal?: AbortSignal
+      onSession?: UploadFileRequest['onSession']
+      idempotencyKey?: string
+    },
   ): Promise<{ avatar_url: string }> {
     const asset = await uploadService.uploadFile({
       file,
       purpose: 'user_avatar',
       signal: options?.signal,
       onSession: options?.onSession,
+      idempotencyKey: options?.idempotencyKey,
     })
     if (options?.signal?.aborted) {
       throw new DirectUploadError(uploadError('cancelled', 'uploadErrorCancelled'))

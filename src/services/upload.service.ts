@@ -22,6 +22,15 @@ const POLL_INTERVAL_MS = 700
 const POLL_TIMEOUT_MS = 60_000
 const MAX_EXPIRED_REINITIATES = 1
 
+/**
+ * Caller-supplied idempotency keys only.
+ * A key joins in-flight calls and replays a successful result so a retry of
+ * the same logical action does not initiate a second asset.
+ * Calls that omit a key stay independent (logo and cover may upload together).
+ */
+const inFlightByKey = new Map<string, Promise<ReadyAsset>>()
+const completedByKey = new Map<string, ReadyAsset>()
+
 export interface UploadFileRequest {
   file: File
   purpose: UploadPurpose
@@ -247,7 +256,38 @@ export const uploadService = {
     throwUploadError(uploadError('timeout', 'uploadErrorTimeout', { retryable: true }))
   },
 
+  /**
+   * Drop a cached successful upload so a later, different user action can
+   * initiate again. In-flight work is left alone.
+   */
+  releaseIdempotency(key: string | null | undefined): void {
+    if (!key) return
+    completedByKey.delete(key)
+  },
+
   async uploadFile(request: UploadFileRequest): Promise<ReadyAsset> {
+    const idempotencyKey = request.idempotencyKey ?? createUploadIdempotencyKey()
+    const track = Boolean(request.idempotencyKey)
+    if (track) {
+      const cached = completedByKey.get(idempotencyKey)
+      if (cached) return cached
+      const pending = inFlightByKey.get(idempotencyKey)
+      if (pending) return pending
+    }
+
+    const run = this.performUpload({ ...request, idempotencyKey }).then((asset) => {
+      if (track) completedByKey.set(idempotencyKey, asset)
+      return asset
+    })
+    if (track) inFlightByKey.set(idempotencyKey, run)
+    try {
+      return await run
+    } finally {
+      if (track) inFlightByKey.delete(idempotencyKey)
+    }
+  },
+
+  async performUpload(request: UploadFileRequest): Promise<ReadyAsset> {
     assertValidUploadFile(request.file, request.purpose)
     assertNotAborted(request.signal)
     const idempotencyKey = request.idempotencyKey ?? createUploadIdempotencyKey()
@@ -333,7 +373,14 @@ export const uploadService = {
           error.code !== 'cancelled'
         ) {
           emit({ ...session, status: 'EXPIRED', error, localFile: request.file }, request.onSession)
-          return this.uploadFile({
+          // A new key is required here only. Replaying the caller's key would
+          // return the same initiate response, including the expired presign,
+          // if the API treats Idempotency-Key as a replay. The caller's key
+          // still identifies the logical action: uploadFile() caches the
+          // eventual asset under that key. This path calls performUpload
+          // directly so it does not join the in-flight map for the new key
+          // or deadlock on the caller's key.
+          return this.performUpload({
             ...request,
             idempotencyKey: createUploadIdempotencyKey(),
             expiredRetries: (request.expiredRetries ?? 0) + 1,
@@ -399,9 +446,10 @@ export const uploadService = {
   },
 
   async retryUpload(request: UploadFileRequest): Promise<ReadyAsset> {
+    // Same logical action: reuse the caller's key. A missing key is a new action.
     return this.uploadFile({
       ...request,
-      idempotencyKey: request.idempotencyKey ?? createUploadIdempotencyKey(),
+      idempotencyKey: request.idempotencyKey,
       expiredRetries: 0,
     })
   },

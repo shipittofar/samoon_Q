@@ -72,6 +72,8 @@ export function ImageUploader({
     }
 
     setLocalError(null)
+    // Valid replacement invalidates any in-flight upload before the parent stores the new File.
+    onCancelUpload?.()
     onChange({ ...value, file, cleared: false })
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -88,7 +90,7 @@ export function ImageUploader({
   }
 
   const filename = value.file?.name ?? (displayUrl && !value.cleared ? displayUrl.split('/').pop() : null)
-  const uploading = session?.status === 'UPLOADING' || session?.status === 'INITIATING'
+  const uploading = session?.status === 'LOCAL' || session?.status === 'UPLOADING' || session?.status === 'INITIATING'
   const processing = session?.status === 'PROCESSING' || session?.status === 'UPLOADED'
   const failed = session?.status === 'FAILED' || session?.status === 'EXPIRED'
   const percent = session?.progress.percent ?? 0
@@ -167,7 +169,7 @@ export function ImageUploader({
               type="button"
               variant="secondary"
               size="sm"
-              disabled={disabled || uploading || processing}
+              disabled={disabled}
               onClick={handlePick}
             >
               {changeLabel ?? t('changeImage')}
@@ -176,7 +178,7 @@ export function ImageUploader({
               type="button"
               variant="ghost"
               size="sm"
-              disabled={disabled || uploading || processing}
+              disabled={disabled}
               onClick={handleRemove}
               leftIcon={<X className="h-3.5 w-3.5"/>}
               className="text-[var(--danger-text)] hover:text-[var(--danger-text)] hover:bg-[var(--danger-subtle)]"
@@ -184,7 +186,7 @@ export function ImageUploader({
               {removeLabel ?? t('removeImage')}
             </Button>
             {failed && onRetry && (
-              <Button type="button" variant="secondary" size="sm" onClick={onRetry}>
+              <Button type="button" variant="secondary" size="sm" disabled={disabled} onClick={onRetry}>
                 {t('uploadRetry')}
               </Button>
             )}

@@ -23,6 +23,7 @@ import {
   type CategoryFormInput,
 } from '@/types'
 import { withUploadedImage } from '@/lib/image-asset-write'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
 import { AccessDenied } from '@/components/admin/AccessDenied'
@@ -65,6 +66,8 @@ export default function AdminCategoriesPage() {
   const updateMutation = useUpdateCategory(adminBranchId ?? '')
   const deleteMutation = useDeleteCategory(adminBranchId ?? '')
   const reorderMutation = useReorderCategories(adminBranchId ?? '')
+  const editGuard = useSubmissionGuard(adminBranchId ? `category-edit:${adminBranchId}` : undefined)
+  const uploadKeys = useIdempotencyKeys()
 
   const allCategories: Category[] = useMemo(
     () => [...(categories ?? [])].sort((a, b) => a.sort_order - b.sort_order),
@@ -89,29 +92,32 @@ export default function AdminCategoriesPage() {
     setEditOpen(true)
   }
 
-  const submitEdit = async () => {
-    if (!editCategory || updateMutation.isPending) return
-    const validationError = validateCategoryForm(editForm)
-    if (validationError) { setEditError(validationError); return }
-    setEditError(null)
-    const uploadCtx = {
-      tenantId: adminBranch?.tenantId,
-      branchId: adminBranchId,
-      entityType: 'branch',
-      entityId: adminBranchId,
-    }
-    updateMutation.mutate(
-      {
-        id: editCategory.id,
-        payload: await withUploadedImage(
-          categoryFormToWriteRequest(editForm),
-          editForm.image,
-          'menu_category',
-          uploadCtx,
-        ),
-      },
-      {
-      onSuccess: () => { setEditOpen(false); setEditCategory(null) },
+  const submitEdit = () => {
+    void editGuard.run(async ({ signal, isCurrent }) => {
+      if (!editCategory) return
+      const validationError = validateCategoryForm(editForm)
+      if (validationError) { setEditError(validationError); return }
+      setEditError(null)
+      const categoryId = editCategory.id
+      const uploadCtx = {
+        tenantId: adminBranch?.tenantId,
+        branchId: adminBranchId,
+        entityType: 'branch',
+        entityId: adminBranchId,
+        signal,
+        idempotencyKey: uploadKeys.keyFor(`category-edit:${categoryId}`, editForm.image.file),
+      }
+      const payload = await withUploadedImage(
+        categoryFormToWriteRequest(editForm),
+        editForm.image,
+        'menu_category',
+        uploadCtx,
+      )
+      if (!isCurrent()) return
+      await updateMutation.mutateAsync({ id: categoryId, payload })
+      uploadKeys.reset(`category-edit:${categoryId}`)
+      setEditOpen(false)
+      setEditCategory(null)
     })
   }
 
@@ -346,8 +352,8 @@ export default function AdminCategoriesPage() {
         <CategoryFormFields form={editForm} onChange={setEditForm} error={editError} />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary"onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
-          <Button onClick={submitEdit} disabled={updateMutation.isPending} className="flex-1">
-            {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
+          <Button type="button" onClick={submitEdit} disabled={editGuard.locked || updateMutation.isPending} className="flex-1">
+            {editGuard.locked || updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
           </Button>
         </div>
         {updateMutation.isError && (

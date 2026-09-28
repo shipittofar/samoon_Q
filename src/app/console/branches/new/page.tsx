@@ -19,6 +19,7 @@ import {
 } from '../BranchFormFields'
 import { mapBranchCreateError } from '@/types/branch-form'
 import { uploadImageFields, type AssetWriteValue } from '@/lib/image-asset-write'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import { toUploadError } from '@/lib/upload-errors'
 import { tenantService } from '@/services/tenant.service'
 import { tenantShowsCuisines } from '@/lib/branch-catalog'
@@ -67,12 +68,12 @@ export default function NewBranchPage() {
   const queryTenantId = searchParams.get('tenantId')?.trim() || undefined
   const workspaceTenantId = useConsoleTenantId()
   const tenantId = queryTenantId || workspaceTenantId || ''
-  const { mutate: createBranch, isPending } = useConsoleCreateBranch(tenantId)
+  const { mutateAsync: createBranch, isPending } = useConsoleCreateBranch(tenantId)
   const wizardRef = useRef<HTMLDivElement>(null)
-  const createInFlightRef = useRef(false)
   const readyAssetsRef = useRef<Record<string, AssetWriteValue> | null>(null)
   const readyAssetsSigRef = useRef('')
-  const [creating, setCreating] = useState(false)
+  const createGuard = useSubmissionGuard(tenantId ? `branch-create:${tenantId}` : undefined)
+  const uploadKeys = useIdempotencyKeys()
 
   const { data: tenant } = useQuery({
     queryKey: ['tenant', tenantId],
@@ -114,61 +115,59 @@ export default function NewBranchPage() {
     }
   }
 
-  async function submitCreate() {
-    if (isPending || creating || createInFlightRef.current || !tenantId) return
-    const validationError = validateBranchCreateForm(form)
-    if (validationError) {
-      setError(validationError)
-      toast.error(t(validationError))
-      return
-    }
-    setError(null)
-    const payload = branchFormToCreateRequest(form)
-    if (!showCuisines) payload.cuisines = []
-    createInFlightRef.current = true
-    setCreating(true)
-    try {
-      const sig = [
-        form.image.file?.name,
-        form.image.file?.size,
-        form.image.cleared,
-        form.coverImage.file?.name,
-        form.coverImage.file?.size,
-        form.coverImage.cleared,
-        form.heroImage.file?.name,
-        form.heroImage.file?.size,
-        form.heroImage.cleared,
-      ].join('|')
-      if (!readyAssetsRef.current || readyAssetsSigRef.current !== sig) {
-        readyAssetsRef.current = await uploadImageFields(
-          [
-            { key: 'image_asset_id', field: form.image, purpose: 'branch_logo' },
-            { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
-            { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
-          ],
-          // Branch does not exist yet. Bind later via image_asset_id on create.
-          // Sending entity_type=branch without entity_id makes initiate reject the upload.
-          { tenantId },
-        )
-        readyAssetsSigRef.current = sig
+  function submitCreate() {
+    void createGuard.run(async ({ signal, isCurrent }) => {
+      if (!tenantId) return
+      const validationError = validateBranchCreateForm(form)
+      if (validationError) {
+        setError(validationError)
+        toast.error(t(validationError))
+        return
       }
-      Object.assign(payload, readyAssetsRef.current)
-    } catch (err) {
-      createInFlightRef.current = false
-      setCreating(false)
-      toast.error(t(toUploadError(err).messageKey))
-      return
-    }
-    createBranch(payload, {
-      onSuccess: () => {
+      setError(null)
+      const payload = branchFormToCreateRequest(form)
+      if (!showCuisines) payload.cuisines = []
+      try {
+        const sig = [
+          form.image.file?.name,
+          form.image.file?.size,
+          form.image.cleared,
+          form.coverImage.file?.name,
+          form.coverImage.file?.size,
+          form.coverImage.cleared,
+          form.heroImage.file?.name,
+          form.heroImage.file?.size,
+          form.heroImage.cleared,
+        ].join('|')
+        if (!readyAssetsRef.current || readyAssetsSigRef.current !== sig) {
+          readyAssetsRef.current = await uploadImageFields(
+            [
+              { key: 'image_asset_id', field: form.image, purpose: 'branch_logo', idempotencyKey: uploadKeys.keyFor('branch-logo', form.image.file) },
+              { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover', idempotencyKey: uploadKeys.keyFor('branch-cover', form.coverImage.file) },
+              { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero', idempotencyKey: uploadKeys.keyFor('branch-hero', form.heroImage.file) },
+            ],
+            // Branch does not exist yet. Bind later via image_asset_id on create.
+            // Sending entity_type=branch without entity_id makes initiate reject the upload.
+            { tenantId, signal },
+          )
+          readyAssetsSigRef.current = sig
+        }
+        Object.assign(payload, readyAssetsRef.current)
+      } catch (err) {
+        if (!isCurrent()) return
+        toast.error(t(toUploadError(err).messageKey))
+        return
+      }
+      if (!isCurrent()) return
+      try {
+        await createBranch(payload)
+        uploadKeys.reset()
         toast.success(t('branchCreatedSuccessfully'))
         router.push('/console/branches')
-      },
-      onError: (err) => {
-        createInFlightRef.current = false
-        setCreating(false)
+      } catch (err) {
+        if (!isCurrent()) return
         toast.error(t(mapBranchCreateError(err)))
-      },
+      }
     })
   }
 
@@ -231,10 +230,10 @@ export default function NewBranchPage() {
                   type="button"
                   data-testid="branch-wizard-create"
                   onClick={submitCreate}
-                  disabled={isPending || creating || !tenantId}
+                  disabled={createGuard.locked || isPending || !tenantId}
                   className="px-6 py-2 text-sm bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg font-medium hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
                 >
-                  {isPending || creating ? t('creatingEllipsis') : t('createBranchLabel')}
+                  {createGuard.locked || isPending ? t('creatingEllipsis') : t('createBranchLabel')}
                 </button>
               )}
             </div>

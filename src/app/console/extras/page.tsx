@@ -24,6 +24,7 @@ import {
   extraToFormInput,
 } from '@/types'
 import { withUploadedImage } from '@/lib/image-asset-write'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -154,6 +155,9 @@ export default function AdminExtrasPage() {
   const createExtraMutation = useCreateExtra(adminBranchId ?? '')
   const updateExtraMutation = useUpdateExtra(adminBranchId ?? '')
   const deleteExtraMutation = useDeleteExtra(adminBranchId ?? '')
+  const createExtraGuard = useSubmissionGuard(adminBranchId ? `extra-create:${adminBranchId}` : undefined)
+  const editExtraGuard = useSubmissionGuard('extra-edit')
+  const uploadKeys = useIdempotencyKeys()
 
   // const isLoading = groupsLoading || extrasLoading
 
@@ -274,30 +278,34 @@ export default function AdminExtrasPage() {
     setExtraCreateError(null)
   }
 
-  const submitExtraCreate = async () => {
-    if (!extraCreateGroupId || createExtraMutation.isPending) return
-    const groupExtras = extrasByGroup.get(extraCreateGroupId) ?? []
-    const validationError = validateExtraForm(extraCreateForm, groupExtras)
-    if (validationError) { setExtraCreateError(validationError); return }
-    setExtraCreateError(null)
-    const uploadCtx = {
-      tenantId: adminBranch?.tenantId,
-      branchId: adminBranchId,
-      entityType: 'branch',
-      entityId: adminBranchId,
-    }
-    createExtraMutation.mutate(
-      {
-        ...(await withUploadedImage(
-          extraFormToWriteRequest(extraCreateForm),
-          extraCreateForm.image,
-          'menu_item',
-          uploadCtx,
-        )),
-        group_id: extraCreateGroupId,
-      },
-      { onSuccess: () => { setExtraCreateGroupId(null); setExtraCreateForm(EMPTY_EXTRA_FORM) } },
-    )
+  const submitExtraCreate = () => {
+    void createExtraGuard.run(async ({ signal, isCurrent }) => {
+      if (!extraCreateGroupId) return
+      const groupExtras = extrasByGroup.get(extraCreateGroupId) ?? []
+      const validationError = validateExtraForm(extraCreateForm, groupExtras)
+      if (validationError) { setExtraCreateError(validationError); return }
+      setExtraCreateError(null)
+      const groupId = extraCreateGroupId
+      const uploadCtx = {
+        tenantId: adminBranch?.tenantId,
+        branchId: adminBranchId,
+        entityType: 'branch',
+        entityId: adminBranchId,
+        signal,
+        idempotencyKey: uploadKeys.keyFor('extra-create', extraCreateForm.image.file),
+      }
+      const uploaded = await withUploadedImage(
+        extraFormToWriteRequest(extraCreateForm),
+        extraCreateForm.image,
+        'menu_item',
+        uploadCtx,
+      )
+      if (!isCurrent()) return
+      await createExtraMutation.mutateAsync({ ...uploaded, group_id: groupId })
+      uploadKeys.reset('extra-create')
+      setExtraCreateGroupId(null)
+      setExtraCreateForm(EMPTY_EXTRA_FORM)
+    })
   }
 
   const openExtraEdit = (extra: Extra) => {
@@ -306,30 +314,32 @@ export default function AdminExtrasPage() {
     setExtraEditError(null)
   }
 
-  const submitExtraEdit = async () => {
-    if (!editExtra || updateExtraMutation.isPending) return
-    const groupExtras = extrasByGroup.get(editExtra.group_id ?? '') ?? []
-    const validationError = validateExtraForm(extraEditForm, groupExtras, editExtra.id)
-    if (validationError) { setExtraEditError(validationError); return }
-    setExtraEditError(null)
-    const uploadCtx = {
-      tenantId: adminBranch?.tenantId,
-      branchId: adminBranchId,
-      entityType: 'branch',
-      entityId: adminBranchId,
-    }
-    updateExtraMutation.mutate(
-      {
-        id: editExtra.id,
-        payload: await withUploadedImage(
-          extraFormToWriteRequest(extraEditForm),
-          extraEditForm.image,
-          'menu_item',
-          uploadCtx,
-        ),
-      },
-      {
-      onSuccess: () => setEditExtra(null),
+  const submitExtraEdit = () => {
+    void editExtraGuard.run(async ({ signal, isCurrent }) => {
+      if (!editExtra) return
+      const groupExtras = extrasByGroup.get(editExtra.group_id ?? '') ?? []
+      const validationError = validateExtraForm(extraEditForm, groupExtras, editExtra.id)
+      if (validationError) { setExtraEditError(validationError); return }
+      setExtraEditError(null)
+      const extraId = editExtra.id
+      const uploadCtx = {
+        tenantId: adminBranch?.tenantId,
+        branchId: adminBranchId,
+        entityType: 'branch',
+        entityId: adminBranchId,
+        signal,
+        idempotencyKey: uploadKeys.keyFor(`extra-edit:${extraId}`, extraEditForm.image.file),
+      }
+      const payload = await withUploadedImage(
+        extraFormToWriteRequest(extraEditForm),
+        extraEditForm.image,
+        'menu_item',
+        uploadCtx,
+      )
+      if (!isCurrent()) return
+      await updateExtraMutation.mutateAsync({ id: extraId, payload })
+      uploadKeys.reset(`extra-edit:${extraId}`)
+      setEditExtra(null)
     })
   }
 
@@ -648,8 +658,8 @@ export default function AdminExtrasPage() {
         <ExtraFormFields form={extraCreateForm} onChange={setExtraCreateForm} error={extraCreateError} />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary"onClick={() => setExtraCreateGroupId(null)} className="flex-1">{t('cancel')}</Button>
-          <Button onClick={submitExtraCreate} disabled={createExtraMutation.isPending} className="flex-1">
-            {createExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addExtra')}
+          <Button type="button" onClick={submitExtraCreate} disabled={createExtraGuard.locked || createExtraMutation.isPending} className="flex-1">
+            {createExtraGuard.locked || createExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addExtra')}
           </Button>
         </div>
         {createExtraMutation.isError && <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToCreateExtraRetry')}</p>}
@@ -660,8 +670,8 @@ export default function AdminExtrasPage() {
         <ExtraFormFields form={extraEditForm} onChange={setExtraEditForm} error={extraEditError} />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary"onClick={() => setEditExtra(null)} className="flex-1">{t('cancel')}</Button>
-          <Button onClick={submitExtraEdit} disabled={updateExtraMutation.isPending} className="flex-1">
-            {updateExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
+          <Button type="button" onClick={submitExtraEdit} disabled={editExtraGuard.locked || updateExtraMutation.isPending} className="flex-1">
+            {editExtraGuard.locked || updateExtraMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
           </Button>
         </div>
         {updateExtraMutation.isError && <p className="text-sm text-[var(--danger-text)] mt-2">{t('failedToSaveChangesRetry')}</p>}

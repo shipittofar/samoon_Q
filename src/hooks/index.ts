@@ -4692,15 +4692,22 @@ export function useSaveBranchOverrides(tenantId: string, branchId: string) {
 }
 
 export function useUploadWebsiteMedia(_tenantId: string) {
+  const flight = React.useRef<Promise<unknown> | null>(null)
   return useMutation({
-    mutationFn: async (file: File) =>
-      uploadService.uploadFile({
+    mutationFn: async (file: File) => {
+      if (flight.current) return flight.current
+      const run = uploadService.uploadFile({
         file,
         purpose: 'website_media',
         tenantId: _tenantId,
         entityType: 'tenant',
         entityId: _tenantId,
-      }),
+      }).finally(() => {
+        flight.current = null
+      })
+      flight.current = run
+      return run
+    },
     retry: 0,
   })
 }
@@ -4728,14 +4735,21 @@ export function useSavePlatformHomepageHero() {
 }
 
 export function useUploadPlatformHomepageMedia() {
+  const flight = React.useRef<Promise<unknown> | null>(null)
   return useMutation({
-    mutationFn: async (file: File) =>
-      uploadService.uploadFile({
+    mutationFn: async (file: File) => {
+      if (flight.current) return flight.current
+      const run = uploadService.uploadFile({
         file,
         purpose: 'website_media',
         entityType: 'platform',
         entityId: 'homepage',
-      }),
+      }).finally(() => {
+        flight.current = null
+      })
+      flight.current = run
+      return run
+    },
     retry: 0,
   })
 }

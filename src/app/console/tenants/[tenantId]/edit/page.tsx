@@ -20,7 +20,7 @@ function TenantEditContent({ tenantId }: { tenantId: string }) {
     queryKey: ['tenant', tenantId],
     queryFn: () => tenantService.getTenantById(tenantId),
   })
-  const { mutate: save, isPending, isSuccess } = useUpdateTenantSettings(tenantId)
+  const { mutateAsync: save, isPending, isSuccess } = useUpdateTenantSettings(tenantId)
 
   if (isLoading) {
     return (

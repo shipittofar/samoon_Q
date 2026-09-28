@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { cn } from '@/utils'
 import { isUnoptimizedMediaUrl } from '@/utils/media-url'
 import { createHeroBackgroundId } from '@/lib/hero-background'
-import { isTransientMediaUrl, type UploadPurpose, type UploadSession } from '@/types/upload'
+import { createUploadIdempotencyKey, isTransientMediaUrl, type UploadPurpose, type UploadSession } from '@/types/upload'
 import { validateUploadFile, acceptAttributeForPurpose } from '@/lib/upload-validation'
 import { DirectUploadError, toUploadError } from '@/lib/upload-errors'
 import { persistableMediaUrl } from '@/lib/image-asset-write'
@@ -39,6 +39,7 @@ interface PendingSlot {
   session: UploadSession | null
   errorKey: string | null
   controller: AbortController
+  idempotencyKey: string
 }
 
 function reindex(images: HeroBackgroundImage[]): HeroBackgroundImage[] {
@@ -63,8 +64,12 @@ export function HeroBackgroundGallery({
   const [error, setError] = useState<string | null>(null)
   const [urlValue, setUrlValue] = useState('')
   const [pending, setPending] = useState<PendingSlot[]>([])
+  const [batchLocked, setBatchLocked] = useState(false)
   const pendingRef = useRef(pending)
   pendingRef.current = pending
+  const batchLockRef = useRef(false)
+  const slotLocks = useRef(new Set<string>())
+  const slotEpoch = useRef(new Map<string, number>())
   const imagesRef = useRef(images)
   imagesRef.current = images
   const mountedRef = useRef(true)
@@ -83,7 +88,13 @@ export function HeroBackgroundGallery({
 
   const sorted = [...images].sort((a, b) => a.order - b.order)
   const showSlideshowSettings = sorted.filter((img) => img.enabled !== false).length >= 2
-  const busy = pending.some((p) => !p.errorKey)
+  const busy = batchLocked || pending.some((p) => !p.errorKey)
+
+  const bumpEpoch = (id: string) => {
+    const next = (slotEpoch.current.get(id) ?? 0) + 1
+    slotEpoch.current.set(id, next)
+    return next
+  }
 
   const updatePending = (id: string, patch: Partial<PendingSlot>) => {
     setPending((prev) => prev.map((slot) => (slot.id === id ? { ...slot, ...patch } : slot)))
@@ -91,9 +102,13 @@ export function HeroBackgroundGallery({
 
   const handleFiles = async (fileList: FileList | null) => {
     if (!fileList?.length) return
+    if (batchLockRef.current) return
+    batchLockRef.current = true
+    setBatchLocked(true)
     setError(null)
     const files = Array.from(fileList)
     const slots: PendingSlot[] = []
+    try {
     for (const file of files) {
       const validation = validateUploadFile(file, purpose)
       if (!validation.valid) {
@@ -111,82 +126,101 @@ export function HeroBackgroundGallery({
         session: null,
         errorKey: null,
         controller: new AbortController(),
+        idempotencyKey: createUploadIdempotencyKey(),
       })
     }
-    if (slots.length === 0) {
-      if (inputRef.current) inputRef.current.value = ''
-      return
-    }
+    if (slots.length === 0) return
     setPending((prev) => [...prev, ...slots])
 
     const queue = [...slots]
     let active = 0
-    const runNext = async () => {
-      while (queue.length > 0) {
-        if (active >= DEFAULT_UPLOAD_CONCURRENCY) return
-        const slot = queue.shift()
-        if (!slot) return
-        active += 1
-        void uploadService
-          .uploadFile({
-            file: slot.file,
-            purpose,
-            tenantId,
-            branchId,
-            entityType,
-            entityId,
-            signal: slot.controller.signal,
-            onSession: (session) => updatePending(slot.id, { session }),
-          })
-          .then((asset) => {
-            if (!mountedRef.current || slot.controller.signal.aborted) return
-            const src = persistableMediaUrl(asset.url)
-            URL.revokeObjectURL(slot.previewUrl)
-            if (!src || !asset.assetId) {
-              updatePending(slot.id, { errorKey: 'uploadErrorProcessing' })
-              setError(t('uploadErrorProcessing'))
-              return
-            }
-            setPending((prev) => prev.filter((s) => s.id !== slot.id))
-            const current = [...imagesRef.current].sort((a, b) => a.order - b.order)
-            onChange(
-              reindex([
-                ...current,
-                {
-                  id: slot.id,
-                  src,
-                  assetId: asset.assetId,
-                  order: current.length,
-                  enabled: true,
-                  objectPosition: 'center',
-                  altText: '',
+      await new Promise<void>((resolve) => {
+        let remaining = queue.length
+        const pump = () => {
+          while (queue.length > 0 && active < DEFAULT_UPLOAD_CONCURRENCY) {
+            const slot = queue.shift()
+            if (!slot) break
+            slotLocks.current.add(slot.id)
+            const epoch = bumpEpoch(slot.id)
+            active += 1
+            void uploadService
+              .uploadFile({
+                file: slot.file,
+                purpose,
+                tenantId,
+                branchId,
+                entityType,
+                entityId,
+                idempotencyKey: slot.idempotencyKey,
+                signal: slot.controller.signal,
+                onSession: (session) => {
+                  if (slotEpoch.current.get(slot.id) !== epoch) return
+                  updatePending(slot.id, { session })
                 },
-              ]),
-            )
-          })
-          .catch((err) => {
-            if (!mountedRef.current) return
-            const mapped = err instanceof DirectUploadError ? err.uploadError : toUploadError(err)
-            if (mapped.code === 'cancelled') {
-              URL.revokeObjectURL(slot.previewUrl)
-              setPending((prev) => prev.filter((s) => s.id !== slot.id))
-              return
-            }
-            updatePending(slot.id, { errorKey: mapped.messageKey })
-            setError(t(mapped.messageKey))
-          })
-          .finally(() => {
-            active -= 1
-            void runNext()
-          })
-      }
+              })
+              .then((asset) => {
+                if (!mountedRef.current || slot.controller.signal.aborted) return
+                if (slotEpoch.current.get(slot.id) !== epoch) return
+                const src = persistableMediaUrl(asset.url)
+                URL.revokeObjectURL(slot.previewUrl)
+                if (!src || !asset.assetId) {
+                  updatePending(slot.id, { errorKey: 'uploadErrorProcessing' })
+                  setError(t('uploadErrorProcessing'))
+                  return
+                }
+                setPending((prev) => prev.filter((s) => s.id !== slot.id))
+                const current = [...imagesRef.current].sort((a, b) => a.order - b.order)
+                onChange(
+                  reindex([
+                    ...current,
+                    {
+                      id: slot.id,
+                      src,
+                      assetId: asset.assetId,
+                      order: current.length,
+                      enabled: true,
+                      objectPosition: 'center',
+                      altText: '',
+                    },
+                  ]),
+                )
+              })
+              .catch((err) => {
+                if (!mountedRef.current) return
+                if (slotEpoch.current.get(slot.id) !== epoch) return
+                const mapped = err instanceof DirectUploadError ? err.uploadError : toUploadError(err)
+                if (mapped.code === 'cancelled') {
+                  URL.revokeObjectURL(slot.previewUrl)
+                  setPending((prev) => prev.filter((s) => s.id !== slot.id))
+                  return
+                }
+                updatePending(slot.id, { errorKey: mapped.messageKey })
+                setError(t(mapped.messageKey))
+              })
+              .finally(() => {
+                slotLocks.current.delete(slot.id)
+                active -= 1
+                remaining -= 1
+                if (remaining === 0) resolve()
+                else pump()
+              })
+          }
+          if (remaining === 0) resolve()
+        }
+        pump()
+      })
+    } finally {
+      batchLockRef.current = false
+      setBatchLocked(false)
+      if (inputRef.current) inputRef.current.value = ''
     }
-    await Promise.all(Array.from({ length: DEFAULT_UPLOAD_CONCURRENCY }, () => runNext()))
-    if (inputRef.current) inputRef.current.value = ''
   }
 
   const retrySlot = (slot: PendingSlot) => {
+    if (slotLocks.current.has(slot.id)) return
+    slotLocks.current.add(slot.id)
     slot.controller.abort()
+    const epoch = bumpEpoch(slot.id)
     const next: PendingSlot = {
       ...slot,
       errorKey: null,
@@ -201,11 +235,16 @@ export function HeroBackgroundGallery({
         branchId,
         entityType,
         entityId,
+        idempotencyKey: next.idempotencyKey,
         signal: next.controller.signal,
-        onSession: (session) => updatePending(next.id, { session }),
+        onSession: (session) => {
+          if (slotEpoch.current.get(next.id) !== epoch) return
+          updatePending(next.id, { session })
+        },
       })
       .then((asset) => {
         if (!mountedRef.current || next.controller.signal.aborted) return
+        if (slotEpoch.current.get(next.id) !== epoch) return
         const src = persistableMediaUrl(asset.url)
         URL.revokeObjectURL(next.previewUrl)
         if (!src || !asset.assetId) {
@@ -232,14 +271,20 @@ export function HeroBackgroundGallery({
       })
       .catch((err) => {
         if (!mountedRef.current) return
+        if (slotEpoch.current.get(next.id) !== epoch) return
         const mapped = toUploadError(err)
         if (mapped.code === 'cancelled') return
         updatePending(next.id, { errorKey: mapped.messageKey })
         setError(t(mapped.messageKey))
       })
+      .finally(() => {
+        slotLocks.current.delete(slot.id)
+      })
   }
 
   const cancelSlot = (slot: PendingSlot) => {
+    bumpEpoch(slot.id)
+    slotLocks.current.delete(slot.id)
     slot.controller.abort()
     if (slot.session?.assetId) void uploadService.cancelUpload(slot.session.assetId)
     URL.revokeObjectURL(slot.previewUrl)
@@ -298,7 +343,7 @@ export function HeroBackgroundGallery({
           type="button"
           variant="secondary"
           size="sm"
-          disabled={busy}
+          disabled={busy || batchLocked}
           onClick={() => inputRef.current?.click()}
           leftIcon={busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />}
         >
@@ -310,7 +355,7 @@ export function HeroBackgroundGallery({
           accept={acceptAttributeForPurpose(purpose)}
           multiple
           className="sr-only"
-          disabled={busy}
+          disabled={busy || batchLocked}
           onChange={(e) => void handleFiles(e.target.files)}
         />
       </div>

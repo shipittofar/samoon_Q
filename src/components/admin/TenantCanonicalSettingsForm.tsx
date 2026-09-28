@@ -13,6 +13,7 @@ import { persistableMediaUrl, uploadImageFields } from '@/lib/image-asset-write'
 import { DEFAULT_UPLOAD_CONCURRENCY, runWithConcurrency } from '@/lib/upload-concurrency'
 import type { TenantMediaWriteRequest } from '@/lib/tenant-media'
 import { uploadService } from '@/services/upload.service'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import {
   SOCIAL_PREFIX,
   WEBSITE_PREFIX,
@@ -93,7 +94,7 @@ export function TenantCanonicalSettingsForm({
   saved,
 }: {
   tenant: Tenant
-  onSave: (patch: Record<string, unknown>) => void
+  onSave: (patch: Record<string, unknown>) => void | Promise<unknown>
   isPending: boolean
   saved: boolean
 }) {
@@ -103,7 +104,9 @@ export function TenantCanonicalSettingsForm({
   const existingMeta = getMarketplaceMeta(tenant.settings)
   const existingCaps = tenant.settings?.addressCapabilities
   const existingMatrix = tenant.settings?.notificationMatrix as NotifMatrix | undefined
-  const { mutate: saveMedia, isPending: mediaPending } = useUpdateTenantMedia(tenant.id)
+  const { mutateAsync: saveMedia, isPending: mediaPending } = useUpdateTenantMedia(tenant.id)
+  const saveGuard = useSubmissionGuard(`tenant-settings:${tenant.id}`)
+  const uploadKeys = useIdempotencyKeys()
 
   const [logoField, setLogoField] = useState<ImageFieldValue>({
     ...EMPTY_IMAGE_FIELD,
@@ -197,7 +200,8 @@ export function TenantCanonicalSettingsForm({
   const labelClass = 'block text-sm font-medium text-[var(--fg-secondary)] mb-1'
   const hintClass = 'text-xs text-[var(--fg-subtle)] mt-1'
 
-  async function handleSave() {
+  function handleSave() {
+    void saveGuard.run(async ({ signal, isCurrent }) => {
     const toArr = (s: string) => s.split(',').map((v) => v.trim()).filter(Boolean)
     const theme: TenantTheme = sanitizeBrandingForWrite({
       ...(existingTheme ?? {}),
@@ -207,15 +211,16 @@ export function TenantCanonicalSettingsForm({
 
     const mediaUploads = await uploadImageFields(
       [
-        { key: 'image_asset_id', field: logoField, purpose: 'tenant_logo' },
-        { key: 'discover_avatar_asset_id', field: discoverAvatarField, purpose: 'tenant_discover_avatar' },
-        { key: 'discover_cover_asset_id', field: discoverCoverField, purpose: 'tenant_discover_cover' },
-        { key: 'hero_image_asset_id', field: heroField, purpose: 'tenant_hero' },
+        { key: 'image_asset_id', field: logoField, purpose: 'tenant_logo', idempotencyKey: uploadKeys.keyFor('tenant-logo', logoField.file) },
+        { key: 'discover_avatar_asset_id', field: discoverAvatarField, purpose: 'tenant_discover_avatar', idempotencyKey: uploadKeys.keyFor('tenant-discover-avatar', discoverAvatarField.file) },
+        { key: 'discover_cover_asset_id', field: discoverCoverField, purpose: 'tenant_discover_cover', idempotencyKey: uploadKeys.keyFor('tenant-discover-cover', discoverCoverField.file) },
+        { key: 'hero_image_asset_id', field: heroField, purpose: 'tenant_hero', idempotencyKey: uploadKeys.keyFor('tenant-hero', heroField.file) },
       ],
-      { tenantId: tenant.id, entityType: 'tenant', entityId: tenant.id },
+      { tenantId: tenant.id, entityType: 'tenant', entityId: tenant.id, signal },
     )
+    if (!isCurrent()) return
     const media: TenantMediaWriteRequest = { ...mediaUploads }
-    if (Object.keys(media).length > 0) saveMedia(media)
+    if (Object.keys(media).length > 0) await saveMedia(media)
 
     const galleryResults = await runWithConcurrency(
       galleryFields.map((field, index) => ({
@@ -229,6 +234,7 @@ export function TenantCanonicalSettingsForm({
               entityType: 'tenant',
               entityId: tenant.id,
               signal,
+              idempotencyKey: uploadKeys.keyFor(`tenant-gallery-${index}`, field.file),
             })
             const src = persistableMediaUrl(ready.url)
             return src ? { asset_id: ready.assetId, src } : { asset_id: ready.assetId }
@@ -238,7 +244,7 @@ export function TenantCanonicalSettingsForm({
           return src ? src : null
         },
       })),
-      { limit: DEFAULT_UPLOAD_CONCURRENCY },
+      { limit: DEFAULT_UPLOAD_CONCURRENCY, signal },
     )
     const failedGallery = galleryResults.find((result) => result.status === 'rejected')
     if (failedGallery) throw failedGallery.error ?? new Error('upload_failed')
@@ -246,7 +252,8 @@ export function TenantCanonicalSettingsForm({
       .map((result) => result.value)
       .filter((item): item is string | { asset_id: string; src?: string } => item != null)
 
-    onSave({
+    if (!isCurrent()) return
+    await onSave({
       description: description.trim() || undefined,
       contactEmail: contactEmail || undefined,
       contactPhone: contactPhone || undefined,
@@ -271,6 +278,8 @@ export function TenantCanonicalSettingsForm({
           youtube: valueForPrefixedSave(youtube, SOCIAL_PREFIX),
         },
       }),
+    })
+    uploadKeys.reset()
     })
   }
 
@@ -533,7 +542,7 @@ export function TenantCanonicalSettingsForm({
         </div>
       </section>
 
-      <SaveBar isPending={isPending || mediaPending} saved={saved} onSave={handleSave} />
+      <SaveBar isPending={saveGuard.locked || isPending || mediaPending} saved={saved} onSave={handleSave} />
     </div>
   )
 }

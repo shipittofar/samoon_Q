@@ -205,7 +205,7 @@ describe('component wiring still uses canonical purposes', () => {
     expect(fields).toContain('purpose="branch_logo"')
     expect(fields).not.toContain('branch_image')
     expect(createPage).toContain("purpose: 'branch_logo'")
-    expect(createPage).toContain('{ tenantId }')
+    expect(createPage).toContain('tenantId, signal')
     expect(createPage).not.toContain("entityType: 'branch'")
     expect(editPage).toContain("purpose: 'branch_logo'")
     expect(editPage).toContain('tenantId, branchId: id')

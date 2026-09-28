@@ -19,6 +19,7 @@ import { useConsoleMenuItems, useConsoleCategories, useConsoleCreateMenuItem, us
 import type { Category, MenuItem, MenuItemFormInput } from '@/types'
 import { menuItemFormToWriteRequest, menuItemToFormInput } from '@/types'
 import { withUploadedImage } from '@/lib/image-asset-write'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PreviewButton } from '@/components/admin/PreviewButton'
@@ -94,6 +95,9 @@ export default function AdminMenuPage() {
   const updateMutation = useUpdateMenuItem(adminBranchId ?? '')
   const deleteMutation = useDeleteMenuItem(adminBranchId ?? '')
   const assignGroupsMutation = useAssignExtraGroupsToItem(adminBranchId ?? '')
+  const createGuard = useSubmissionGuard(adminBranchId ? `menu-item-create:${adminBranchId}` : undefined)
+  const editGuard = useSubmissionGuard('menu-item-edit')
+  const uploadKeys = useIdempotencyKeys()
 
   const totalCount = itemsData?.count ?? 0
 
@@ -120,32 +124,32 @@ export default function AdminMenuPage() {
     setCreateOpen(true)
   }
 
-  const submitCreate = async () => {
+  const submitCreate = () => {
     // Phase 3.6 — no menu-item creation may execute unless the branch
     // resolution state machine is 'ready' with a real selectedBranch.
-    // adminBranchId alone already encodes that (see its derivation
-    // above), but branchState/selectedBranch are checked explicitly too
-    // so this guard doesn't silently depend on adminBranchId' s specific
-    // implementation staying in sync.
-    if (branchState !== 'ready' || !selectedBranch || !adminBranchId) return
-    const uploadCtx = {
-      tenantId: selectedBranch.tenantId,
-      branchId: adminBranchId,
-      entityType: 'branch',
-      entityId: adminBranchId,
-    }
-    createMutation.mutate(
-      await withUploadedImage(menuItemFormToWriteRequest(createForm), createForm.image, 'menu_item', uploadCtx),
-      {
-      onSuccess: (created) => {
-        setCreateOpen(false)
-        setCreateForm(EMPTY_FORM)
-        // Attach the selected Extra Groups now that the item has an id — this
-        // also materializes the item's flat `extras` for cart/checkout.
-        if (createForm.extra_group_ids.length > 0) {
-          assignGroupsMutation.mutate({ itemId: created.id, groupIds: createForm.extra_group_ids })
+    void createGuard.run(async ({ signal, isCurrent }) => {
+      if (branchState !== 'ready' || !selectedBranch || !adminBranchId) return
+      const uploadCtx = {
+        tenantId: selectedBranch.tenantId,
+        branchId: adminBranchId,
+        entityType: 'branch',
+        entityId: adminBranchId,
+        signal,
+        idempotencyKey: uploadKeys.keyFor('menu-create', createForm.image.file),
+      }
+      const payload = await withUploadedImage(menuItemFormToWriteRequest(createForm), createForm.image, 'menu_item', uploadCtx)
+      if (!isCurrent()) return
+      const created = await createMutation.mutateAsync(payload)
+      uploadKeys.reset('menu-create')
+      setCreateOpen(false)
+      setCreateForm(EMPTY_FORM)
+      if (createForm.extra_group_ids.length > 0) {
+        try {
+          await assignGroupsMutation.mutateAsync({ itemId: created.id, groupIds: createForm.extra_group_ids })
+        } catch {
+          // Item create already succeeded. Group assignment stays best-effort.
         }
-      },
+      }
     })
   }
 
@@ -155,26 +159,30 @@ export default function AdminMenuPage() {
     setEditOpen(true)
   }
 
-  const submitEdit = async () => {
-    if (!editItem || !selectedBranch || !adminBranchId) return
-    const uploadCtx = {
-      tenantId: selectedBranch.tenantId,
-      branchId: adminBranchId,
-      entityType: 'branch',
-      entityId: adminBranchId,
-    }
-    updateMutation.mutate(
-      {
-        id: editItem.id,
-        payload: await withUploadedImage(menuItemFormToWriteRequest(editForm), editForm.image, 'menu_item', uploadCtx),
-      },
-      {
-      onSuccess: () => {
-        setEditOpen(false)
-        // Attach/detach Extra Groups and re-materialize `extras` for cart/checkout.
-        assignGroupsMutation.mutate({ itemId: editItem.id, groupIds: editForm.extra_group_ids })
-        setEditItem(null)
-      },
+  const submitEdit = () => {
+    void editGuard.run(async ({ signal, isCurrent }) => {
+      if (!editItem || !selectedBranch || !adminBranchId) return
+      const uploadCtx = {
+        tenantId: selectedBranch.tenantId,
+        branchId: adminBranchId,
+        entityType: 'branch',
+        entityId: adminBranchId,
+        signal,
+        idempotencyKey: uploadKeys.keyFor(`menu-edit:${editItem.id}`, editForm.image.file),
+      }
+      const payload = await withUploadedImage(menuItemFormToWriteRequest(editForm), editForm.image, 'menu_item', uploadCtx)
+      if (!isCurrent()) return
+      const itemId = editItem.id
+      const groupIds = editForm.extra_group_ids
+      await updateMutation.mutateAsync({ id: itemId, payload })
+      uploadKeys.reset(`menu-edit:${itemId}`)
+      setEditOpen(false)
+      setEditItem(null)
+      try {
+        await assignGroupsMutation.mutateAsync({ itemId, groupIds })
+      } catch {
+        // Item update already succeeded.
+      }
     })
   }
 
@@ -462,11 +470,12 @@ export default function AdminMenuPage() {
         <div className="flex gap-3 pt-2">
           <Button variant="secondary"onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
           <Button
+            type="button"
             onClick={submitCreate}
-            disabled={createMutation.isPending}
+            disabled={createGuard.locked || createMutation.isPending}
             className="flex-1"
           >
-            {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addItem')}
+            {createGuard.locked || createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addItem')}
           </Button>
         </div>
         {createMutation.isError && (
@@ -494,11 +503,12 @@ export default function AdminMenuPage() {
         <div className="flex gap-3 pt-2">
           <Button variant="secondary"onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
           <Button
+            type="button"
             onClick={submitEdit}
-            disabled={updateMutation.isPending}
+            disabled={editGuard.locked || updateMutation.isPending}
             className="flex-1"
           >
-            {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
+            {editGuard.locked || updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
           </Button>
         </div>
         {updateMutation.isError && (

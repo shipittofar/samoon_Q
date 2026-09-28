@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Check } from 'lucide-react'
 import { useProvisionTenant } from '@/hooks'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import { tenantProvisioningService } from '@/services/tenant-provisioning.service'
 import type { ProvisionableBusinessType, TenantBrandingConfig, TenantProvisionResult } from '@/types/provisioning'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -187,6 +188,8 @@ export default function NewTenantPage() {
   const t = useTranslations('console')
   const router = useRouter()
   const { mutateAsync: provisionTenant } = useProvisionTenant()
+  const provisionGuard = useSubmissionGuard('tenant-provision')
+  const uploadKeys = useIdempotencyKeys()
 
   const wizardRef = useRef<HTMLElement>(null)
   const [stepIndex, setStepIndex] = useState(0)
@@ -206,7 +209,6 @@ export default function NewTenantPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [featureFlagOverrides, setFeatureFlagOverrides] = useState<Record<string, boolean>>({})
   const [provisionResult, setProvisionResult] = useState<TenantProvisionResult | null>(null)
-  const [isProvisioning, setIsProvisioning] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
@@ -287,34 +289,35 @@ export default function NewTenantPage() {
     if (stepIndex > 0) setStepIndex((s) => s - 1)
   }
 
-  async function handleProvision() {
-    const stepErrors = validateAllSteps()
-    if (Object.keys(stepErrors).length > 0) {
-      applyFieldErrors(stepErrors)
-      return
-    }
+  function handleProvision() {
+    void provisionGuard.run(async ({ signal, isCurrent }) => {
+      const stepErrors = validateAllSteps()
+      if (Object.keys(stepErrors).length > 0) {
+        applyFieldErrors(stepErrors)
+        return
+      }
 
-    const req = {
-      name: name.trim(),
-      businessType,
-      capabilityOverrides,
-      branding,
-      featureFlagOverrides,
-      image: logoFile,
-      description: description.trim(),
-    }
-    const validation = tenantProvisioningService.validateTenantConfiguration(req)
-    if (!validation.valid) {
-      setValidationErrors(validation.errors)
-      return
-    }
-    setIsProvisioning(true)
-    try {
+      const req = {
+        name: name.trim(),
+        businessType,
+        capabilityOverrides,
+        branding,
+        featureFlagOverrides,
+        image: logoFile,
+        description: description.trim(),
+        imageIdempotencyKey: uploadKeys.keyFor('tenant-logo', logoFile),
+        signal,
+      }
+      const validation = tenantProvisioningService.validateTenantConfiguration(req)
+      if (!validation.valid) {
+        setValidationErrors(validation.errors)
+        return
+      }
       const result = await provisionTenant(req)
+      if (!isCurrent()) return
+      if (result.success) uploadKeys.reset('tenant-logo')
       setProvisionResult(result)
-    } finally {
-      setIsProvisioning(false)
-    }
+    })
   }
 
   return (
@@ -618,11 +621,11 @@ export default function NewTenantPage() {
               <button
                 type="button"
                 onClick={handleProvision}
-                disabled={isProvisioning}
+                disabled={provisionGuard.locked}
                 className="w-full bg-accent text-white py-2 rounded-lg font-medium disabled:opacity-50"
                 aria-label={t('confirmProvisionAria')}
               >
-                {isProvisioning ? t('provisioningEllipsis') : t('provisionTenantLabel')}
+                {provisionGuard.locked ? t('provisioningEllipsis') : t('provisionTenantLabel')}
               </button>
             </>
           ) : provisionResult.success ? (

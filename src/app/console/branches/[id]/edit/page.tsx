@@ -18,6 +18,7 @@ import {
 } from '../../BranchFormFields'
 import { mapBranchUpdateError } from '@/types/branch-form'
 import { uploadImageFields } from '@/lib/image-asset-write'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import { tenantService } from '@/services/tenant.service'
 import { tenantShowsCuisines } from '@/lib/branch-catalog'
 import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
@@ -28,7 +29,9 @@ function EditBranchContent({ id }: { id: string }) {
   const t = useTranslations('console')
   const router = useRouter()
   const { data: branch, isLoading, error: loadError } = useAdminBranch(id)
-  const { mutate: updateBranch, isPending } = useUpdateBranch()
+  const { mutateAsync: updateBranch, isPending } = useUpdateBranch()
+  const saveGuard = useSubmissionGuard(`branch-update:${id}`)
+  const uploadKeys = useIdempotencyKeys()
   const tenantId = branch?.tenantId ?? ''
 
   const { data: tenant } = useQuery({
@@ -49,46 +52,44 @@ function EditBranchContent({ id }: { id: string }) {
   if (isLoading || !form) return <p className="p-6 text-[var(--fg-muted)]">{t('loadingBranchEllipsis')}</p>
   if (loadError || !branch) return <p className="p-6 text-[var(--danger-text)]">{t('branchNotFoundPeriod')}</p>
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (isPending || !form) return
-    const validationError = validateBranchForm(form)
-    if (validationError) {
-      setError(validationError)
-      toast.error(t(validationError))
-      return
-    }
-    setError(null)
-    const payload = branchFormToWriteRequest(form)
-    try {
-      const assets = await uploadImageFields(
-        [
-          { key: 'image_asset_id', field: form.image, purpose: 'branch_logo' },
-          { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover' },
-          { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero' },
-        ],
-        { tenantId, branchId: id, entityType: 'branch', entityId: id },
-      )
-      Object.assign(payload, assets)
-    } catch {
-      toast.error(t('uploadErrorUnknown'))
-      return
-    }
-    updateBranch(
-      {
-        id,
-        payload,
-      },
-      {
-        onSuccess: () => {
-          toast.success(t('branchUpdatedSuccessfully'))
-          router.push(`/console/branches/${id}`)
-        },
-        onError: (err) => {
-          toast.error(t(mapBranchUpdateError(err)))
-        },
-      },
-    )
+    void saveGuard.run(async ({ signal, isCurrent }) => {
+      if (!form) return
+      const validationError = validateBranchForm(form)
+      if (validationError) {
+        setError(validationError)
+        toast.error(t(validationError))
+        return
+      }
+      setError(null)
+      const payload = branchFormToWriteRequest(form)
+      try {
+        const assets = await uploadImageFields(
+          [
+            { key: 'image_asset_id', field: form.image, purpose: 'branch_logo', idempotencyKey: uploadKeys.keyFor('branch-logo', form.image.file) },
+            { key: 'cover_image_asset_id', field: form.coverImage, purpose: 'branch_cover', idempotencyKey: uploadKeys.keyFor('branch-cover', form.coverImage.file) },
+            { key: 'hero_image_asset_id', field: form.heroImage, purpose: 'branch_hero', idempotencyKey: uploadKeys.keyFor('branch-hero', form.heroImage.file) },
+          ],
+          { tenantId, branchId: id, entityType: 'branch', entityId: id, signal },
+        )
+        Object.assign(payload, assets)
+      } catch (err) {
+        if (!isCurrent()) return
+        toast.error(t('uploadErrorUnknown'))
+        return
+      }
+      if (!isCurrent()) return
+      try {
+        await updateBranch({ id, payload })
+        uploadKeys.reset()
+        toast.success(t('branchUpdatedSuccessfully'))
+        router.push(`/console/branches/${id}`)
+      } catch (err) {
+        if (!isCurrent()) return
+        toast.error(t(mapBranchUpdateError(err)))
+      }
+    })
   }
 
   return (
@@ -119,10 +120,10 @@ function EditBranchContent({ id }: { id: string }) {
           </button>
           <button
             type="submit"
-            disabled={isPending}
+            disabled={saveGuard.locked || isPending}
             className="px-6 py-2 text-sm bg-[var(--accent)] text-[var(--accent-fg)] rounded-lg font-medium hover:bg-[var(--accent-hover)] disabled:opacity-50 transition-colors"
           >
-            {isPending ? <>{t('savingEllipsis')}</> : t('saveChanges')}
+            {saveGuard.locked || isPending ? <>{t('savingEllipsis')}</> : t('saveChanges')}
           </button>
         </div>
       </form>

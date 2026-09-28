@@ -25,6 +25,9 @@ export interface TenantProvisionRequest {
    * Never nested under settings.theme / branding.
    */
   image?: File | null
+  /** Reused for retries of the same provision attempt. */
+  imageIdempotencyKey?: string
+  signal?: AbortSignal
   /** Optional public Tenant.description (Discover). */
   description?: string
   /** Additional feature flag overrides (highest priority). */

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import type { UploadSession } from '@/types/upload'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -19,6 +19,7 @@ import { userService } from '@/services/combined.service'
 import { COUNTRIES } from '@/data/countries'
 import { cn } from '@/utils'
 import { DirectUploadError } from '@/lib/upload-errors'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import toast from 'react-hot-toast'
 
 // Schema messages are `validation` namespace keys, resolved via
@@ -90,7 +91,8 @@ export default function SettingsPage() {
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [avatarSession, setAvatarSession] = useState<UploadSession | null>(null)
-  const avatarAbortRef = useRef<AbortController | null>(null)
+  const avatarGuard = useSubmissionGuard('user-avatar')
+  const uploadKeys = useIdempotencyKeys()
 
   useEffect(() => {
     setAvatarImage((prev) => ({
@@ -99,43 +101,58 @@ export default function SettingsPage() {
     }))
   }, [user?.avatar])
 
-  useEffect(() => {
-    return () => {
-      avatarAbortRef.current?.abort()
-    }
-  }, [])
-
-  const handleUploadAvatar = async () => {
-    if (!avatarImage.file) return
-    avatarAbortRef.current?.abort()
-    const controller = new AbortController()
-    avatarAbortRef.current = controller
-    setUploadState('uploading')
-    setUploadError(null)
-    try {
-      const { avatar_url } = await userService.uploadAvatar(avatarImage.file, {
-        signal: controller.signal,
-        onSession: setAvatarSession,
-      })
-      setUser({ ...user!, avatar: avatar_url })
-      toast.success(t('avatarUpdated'))
-      setUploadState('success')
-      setAvatarImage({ file: null, existingUrl: avatar_url, cleared: false })
-      setAvatarSession(null)
-    } catch (err: unknown) {
-      if (err instanceof DirectUploadError) {
-        setUploadError(tUpload(err.uploadError.messageKey))
-      } else {
-        const msg = err instanceof Error ? err.message : t('uploadFailedRetry')
-        setUploadError(msg)
+  const handleUploadAvatar = () => {
+    const file = avatarImage.file
+    if (!file) return
+    void avatarGuard.run(async ({ signal, isCurrent }) => {
+      setUploadState('uploading')
+      setUploadError(null)
+      try {
+        const { avatar_url } = await userService.uploadAvatar(file, {
+          signal,
+          idempotencyKey: uploadKeys.keyFor('avatar', file),
+          onSession: (session) => {
+            if (!isCurrent()) return
+            setAvatarSession(session)
+          },
+        })
+        if (!isCurrent()) return
+        setUser({ ...user!, avatar: avatar_url })
+        toast.success(t('avatarUpdated'))
+        setUploadState('success')
+        setAvatarImage({ file: null, existingUrl: avatar_url, cleared: false })
+        setAvatarSession(null)
+        uploadKeys.reset('avatar')
+      } catch (err: unknown) {
+        if (!isCurrent()) return
+        if (err instanceof DirectUploadError && err.uploadError.code === 'cancelled') {
+          setUploadState('idle')
+          return
+        }
+        if (err instanceof DirectUploadError) {
+          setUploadError(tUpload(err.uploadError.messageKey))
+        } else {
+          const msg = err instanceof Error ? err.message : t('uploadFailedRetry')
+          setUploadError(msg)
+        }
+        setUploadState('error')
       }
-      setUploadState('error')
-    }
+    })
   }
 
   const handleCancelAvatarUpload = () => {
-    avatarAbortRef.current?.abort()
+    avatarGuard.invalidate()
     setUploadState('idle')
+    setAvatarSession(null)
+  }
+
+  const handleAvatarFileChange = (image: ImageFieldValue) => {
+    avatarGuard.invalidate()
+    setAvatarImage(image)
+    setUploadError(null)
+    setUploadState('idle')
+    setAvatarSession(null)
+    if (!image.file) uploadKeys.reset('avatar')
   }
 
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileFormData>({
@@ -248,12 +265,7 @@ export default function SettingsPage() {
             session={avatarSession}
             onRetry={handleUploadAvatar}
             onCancelUpload={handleCancelAvatarUpload}
-            onChange={(image) => {
-              setAvatarImage(image)
-              setUploadError(null)
-              setUploadState('idle')
-              setAvatarSession(null)
-            }}
+            onChange={handleAvatarFileChange}
             error={uploadError}
           />
 
@@ -261,9 +273,10 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 size="sm"
+                type="button"
                 onClick={handleUploadAvatar}
-                loading={uploadState === 'uploading'}
-                disabled={uploadState === 'uploading'}
+                loading={avatarGuard.locked || uploadState === 'uploading'}
+                disabled={avatarGuard.locked || uploadState === 'uploading'}
                 leftIcon={<Upload className="h-3.5 w-3.5"/>}
               >
                 {uploadState === 'uploading' ? t('uploadingEllipsis') : t('upload')}

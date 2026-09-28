@@ -38,13 +38,13 @@ describe('Phase 3.6 — console/menu/page.tsx create-item mutation is branch-gua
     expect(block).toContain('!adminBranchId')
     // The guard must appear before the mutate() call, not after.
     const guardIndex = block.indexOf("if (branchState !== 'ready'")
-    const mutateIndex = block.indexOf('createMutation.mutate(')
+    const mutateIndex = block.indexOf('createMutation.mutateAsync(')
     expect(guardIndex).toBeGreaterThanOrEqual(0)
     expect(mutateIndex).toBeGreaterThan(guardIndex)
   })
 
   it('has exactly one call site for createMutation.mutate() and one for menuService.createItem() repo-wide', () => {
-    const menuPageMatches = src().match(/createMutation\.mutate\(/g) ?? []
+    const menuPageMatches = src().match(/createMutation\.mutateAsync\(/g) ?? []
     expect(menuPageMatches.length).toBe(1)
 
     const hooksSrc = readSrc('hooks/index.ts')

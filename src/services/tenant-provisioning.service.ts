@@ -15,6 +15,8 @@ import { uploadService } from '@/services/upload.service'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 200) => new Promise<void>((r) => setTimeout(r, ms))
+/** One provision at a time in this tab. Not a lock on other upload purposes. */
+let provisionInFlight = false
 
 // ── Seed data for clone source lookup in mock mode ────────────────────────────
 // Mirrors the slugs/IDs registered in tenant.service.ts MOCK_TENANTS.
@@ -382,6 +384,18 @@ export const tenantProvisioningService = {
     if (!validation.valid) {
       return { success: false, errors: validation.errors }
     }
+    if (provisionInFlight) {
+      return { success: false, errors: ['provision_in_progress'] }
+    }
+    provisionInFlight = true
+    try {
+      return await this.provisionTenantInner(req)
+    } finally {
+      provisionInFlight = false
+    }
+  },
+
+  async provisionTenantInner(req: TenantProvisionRequest): Promise<TenantProvisionResult> {
 
     if (USE_MOCK) {
       await delay()
@@ -431,7 +445,18 @@ export const tenantProvisioningService = {
       const settings = { featureFlags, theme: branding }
       let image_asset_id: string | undefined
       if (req.image instanceof File) {
-        const asset = await uploadService.uploadFile({ file: req.image, purpose: 'tenant_logo' })
+        if (req.signal?.aborted) {
+          return { success: false, errors: ['cancelled'] }
+        }
+        const asset = await uploadService.uploadFile({
+          file: req.image,
+          purpose: 'tenant_logo',
+          idempotencyKey: req.imageIdempotencyKey,
+          signal: req.signal,
+        })
+        if (req.signal?.aborted) {
+          return { success: false, errors: ['cancelled'] }
+        }
         image_asset_id = asset.assetId
       }
 

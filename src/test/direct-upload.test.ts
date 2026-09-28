@@ -277,7 +277,8 @@ describe('repository architecture invariants', () => {
     const src = read('src/app/console/branches/new/page.tsx')
     expect(src).toContain('uploadImageFields')
     expect(src).toContain('submitCreate')
-    expect(src).toContain('createInFlightRef')
+    expect(src).toContain('useSubmissionGuard')
+    expect(src).toContain('branch-create:')
     expect(src).toContain('readyAssetsRef')
   })
 

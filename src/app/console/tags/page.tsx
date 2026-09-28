@@ -31,6 +31,7 @@ import {
   type TagFormInput,
 } from '@/types'
 import { withUploadedImage } from '@/lib/image-asset-write'
+import { useIdempotencyKeys, useSubmissionGuard } from '@/hooks/use-submission-guard'
 import { ImageUploader, EMPTY_IMAGE_FIELD } from '@/components/ImageUploader'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import { PermissionGuard } from '@/components/auth/PermissionGuard'
@@ -129,6 +130,9 @@ export default function AdminTagsPage() {
   const createMutation = useCreateMenuTag(adminBranchId)
   const updateMutation = useUpdateMenuTag(adminBranchId)
   const deleteMutation = useDeleteMenuTag(adminBranchId)
+  const createGuard = useSubmissionGuard(adminBranchId ? `tag-create:${adminBranchId}` : undefined)
+  const editGuard = useSubmissionGuard('tag-edit')
+  const uploadKeys = useIdempotencyKeys()
 
   const openCreate = () => {
     setCreateForm(EMPTY_FORM)
@@ -136,21 +140,25 @@ export default function AdminTagsPage() {
     setCreateOpen(true)
   }
 
-  const submitCreate = async () => {
-    if (createMutation.isPending) return
-    const validationError = validateForm(createForm)
-    if (validationError) { setCreateError(validationError); return }
-    setCreateError(null)
-    const uploadCtx = {
-      tenantId: adminBranch?.tenantId,
-      branchId: adminBranchId,
-      entityType: 'branch',
-      entityId: adminBranchId,
-    }
-    createMutation.mutate(
-      await withUploadedImage(tagFormToWriteRequest(createForm), createForm.image, 'menu_tag', uploadCtx),
-      {
-      onSuccess: () => { setCreateOpen(false); setCreateForm(EMPTY_FORM) },
+  const submitCreate = () => {
+    void createGuard.run(async ({ signal, isCurrent }) => {
+      const validationError = validateForm(createForm)
+      if (validationError) { setCreateError(validationError); return }
+      setCreateError(null)
+      const uploadCtx = {
+        tenantId: adminBranch?.tenantId,
+        branchId: adminBranchId,
+        entityType: 'branch',
+        entityId: adminBranchId,
+        signal,
+        idempotencyKey: uploadKeys.keyFor('tag-create', createForm.image.file),
+      }
+      const payload = await withUploadedImage(tagFormToWriteRequest(createForm), createForm.image, 'menu_tag', uploadCtx)
+      if (!isCurrent()) return
+      await createMutation.mutateAsync(payload)
+      uploadKeys.reset('tag-create')
+      setCreateOpen(false)
+      setCreateForm(EMPTY_FORM)
     })
   }
 
@@ -161,24 +169,27 @@ export default function AdminTagsPage() {
     setEditOpen(true)
   }
 
-  const submitEdit = async () => {
-    if (!editTag || updateMutation.isPending) return
-    const validationError = validateForm(editForm)
-    if (validationError) { setEditError(validationError); return }
-    setEditError(null)
-    const uploadCtx = {
-      tenantId: adminBranch?.tenantId,
-      branchId: adminBranchId,
-      entityType: 'branch',
-      entityId: adminBranchId,
-    }
-    updateMutation.mutate(
-      {
-        id: editTag.id,
-        payload: await withUploadedImage(tagFormToWriteRequest(editForm), editForm.image, 'menu_tag', uploadCtx),
-      },
-      {
-      onSuccess: () => { setEditOpen(false); setEditTag(null) },
+  const submitEdit = () => {
+    void editGuard.run(async ({ signal, isCurrent }) => {
+      if (!editTag) return
+      const validationError = validateForm(editForm)
+      if (validationError) { setEditError(validationError); return }
+      setEditError(null)
+      const tagId = editTag.id
+      const uploadCtx = {
+        tenantId: adminBranch?.tenantId,
+        branchId: adminBranchId,
+        entityType: 'branch',
+        entityId: adminBranchId,
+        signal,
+        idempotencyKey: uploadKeys.keyFor(`tag-edit:${tagId}`, editForm.image.file),
+      }
+      const payload = await withUploadedImage(tagFormToWriteRequest(editForm), editForm.image, 'menu_tag', uploadCtx)
+      if (!isCurrent()) return
+      await updateMutation.mutateAsync({ id: tagId, payload })
+      uploadKeys.reset(`tag-edit:${tagId}`)
+      setEditOpen(false)
+      setEditTag(null)
     })
   }
 
@@ -423,8 +434,8 @@ export default function AdminTagsPage() {
             <TagFormFields form={createForm} onChange={setCreateForm} error={createError} autoSlug />
             <div className="flex gap-3 pt-2">
               <Button variant="secondary"onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
-              <Button onClick={submitCreate} disabled={createMutation.isPending} className="flex-1">
-                {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addTag')}
+              <Button type="button" onClick={submitCreate} disabled={createGuard.locked || createMutation.isPending} className="flex-1">
+                {createGuard.locked || createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addTag')}
               </Button>
             </div>
             {createMutation.isError && (
@@ -441,8 +452,8 @@ export default function AdminTagsPage() {
             <TagFormFields form={editForm} onChange={setEditForm} error={editError} />
             <div className="flex gap-3 pt-2">
               <Button variant="secondary"onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
-              <Button onClick={submitEdit} disabled={updateMutation.isPending} className="flex-1">
-                {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
+              <Button type="button" onClick={submitEdit} disabled={editGuard.locked || updateMutation.isPending} className="flex-1">
+                {editGuard.locked || updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('saveChanges')}
               </Button>
             </div>
             {updateMutation.isError && (

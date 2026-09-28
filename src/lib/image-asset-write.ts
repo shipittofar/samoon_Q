@@ -12,6 +12,8 @@ export interface UploadContextOptions {
   branchId?: string
   entityType?: string
   entityId?: string
+  /** Stable for one logical save/create, including retries of that action. */
+  idempotencyKey?: string
 }
 
 /** omitted = unchanged, null = remove, uuid = replace */
@@ -60,6 +62,7 @@ export async function uploadImageField(
       branchId: options?.branchId,
       entityType: options?.entityType,
       entityId: options?.entityId,
+      idempotencyKey: options?.idempotencyKey,
     })
     return result.assetId
   }
@@ -68,7 +71,7 @@ export async function uploadImageField(
 }
 
 export async function uploadImageFields(
-  slots: Array<{ key: string; field: ImageFieldValue; purpose: UploadPurpose }>,
+  slots: Array<{ key: string; field: ImageFieldValue; purpose: UploadPurpose; idempotencyKey?: string }>,
   options?: UploadContextOptions,
 ): Promise<Record<string, AssetWriteValue>> {
   const results: Record<string, AssetWriteValue> = {}
@@ -85,6 +88,7 @@ export async function uploadImageFields(
           branchId: options?.branchId,
           entityType: options?.entityType,
           entityId: options?.entityId,
+          idempotencyKey: slot.idempotencyKey,
         }),
     })),
     { limit: DEFAULT_UPLOAD_CONCURRENCY, signal: options?.signal },
