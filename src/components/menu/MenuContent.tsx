@@ -149,6 +149,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
   const categoriesButtonRef = useRef<HTMLButtonElement>(null)
   const [quickNavOpen, setQuickNavOpen] = useState(false)
   const [quickNavCategoryId, setQuickNavCategoryId] = useState('')
+  const [openQuickNavWhenReady, setOpenQuickNavWhenReady] = useState(false)
   const [scrollOffset, setScrollOffset] = useState(0)
   const recents = useRecentSearches('menu')
   const { items: recentlyViewed } = useRecentlyViewedStore()
@@ -264,10 +265,22 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
   }, [activeCategory, reduceMotion])
 
   useEffect(() => {
-    if (canQuickNav) return
+    if (canQuickNav || openQuickNavWhenReady) return
     setQuickNavOpen(false)
     setQuickNavCategoryId('')
-  }, [canQuickNav])
+  }, [canQuickNav, openQuickNavWhenReady])
+
+  useEffect(() => {
+    if (!openQuickNavWhenReady) return
+    if (activeCategory || categoriesError) {
+      setOpenQuickNavWhenReady(false)
+      return
+    }
+    if (!canQuickNav) return
+    setQuickNavCategoryId('')
+    setQuickNavOpen(true)
+    setOpenQuickNavWhenReady(false)
+  }, [openQuickNavWhenReady, canQuickNav, activeCategory, categoriesError])
 
   useLayoutEffect(() => {
     const toolbar = toolbarRef.current
@@ -332,6 +345,22 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
     setQuickNavOpen(false)
     scrollToCategorySection(categoryId)
     categoriesButtonRef.current?.focus({ preventScroll: true })
+  }
+
+  const handleCategoriesButtonClick = () => {
+    if (quickNavOpen) {
+      setQuickNavOpen(false)
+      setOpenQuickNavWhenReady(false)
+      return
+    }
+    if (activeCategory) {
+      handleCategoryChange('')
+      setQuickNavCategoryId('')
+      setOpenQuickNavWhenReady(true)
+      return
+    }
+    if (!canQuickNav) return
+    setQuickNavOpen(true)
   }
 
   const handleOpenDetail = (item: MenuItem) => {
@@ -452,8 +481,8 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 aria-expanded={quickNavOpen}
                 aria-controls="menu-category-quick-nav"
                 aria-label={t('categoriesNavAria')}
-                disabled={!canQuickNav}
-                onClick={() => setQuickNavOpen((open) => !open)}
+                disabled={!canQuickNav && !activeCategory && !openQuickNavWhenReady}
+                onClick={handleCategoriesButtonClick}
                 className={cn(
                   'inline-flex items-center justify-center gap-1 shrink-0 min-h-11 rounded-xl text-sm font-medium border',
                   'w-11 px-0 min-[480px]:w-auto min-[480px]:px-3',
