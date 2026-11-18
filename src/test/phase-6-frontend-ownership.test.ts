@@ -101,7 +101,7 @@ describe('Phase 6 — marketplace compose from Branch', () => {
       tenantContact: { contactEmail: tenant.settings?.contactEmail, contactPhone: tenant.settings?.contactPhone },
     })
     expect(meta.city).toBe('New York')
-    expect(meta.coverImage).toBeUndefined()
+    expect((meta as { coverImage?: unknown }).coverImage).toBeUndefined()
     expect(meta.branchCount).toBeGreaterThan(0)
     expect(meta.primaryBranchSlug).toBeTruthy()
     expect(typeof meta.openNow).toBe('boolean')

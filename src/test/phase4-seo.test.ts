@@ -326,7 +326,17 @@ describe('P4.4.6 — JSON-LD generation', () => {
     const ld = { '@context': 'https://schema.org', value: '</script>' }
     const serialized = serializeJsonLd(ld)
     expect(serialized).not.toContain('</script>')
-    expect(serialized).toContain('<\\/script>')
+    expect(serialized).not.toContain('<')
+    expect(serialized).toContain('\\u003c/script\\u003e')
+    expect(JSON.parse(serialized).value).toBe('</script>')
+  })
+
+  it('serializeJsonLd escapes HTML comment openers, ampersands and line separators', async () => {
+    const { serializeJsonLd } = await import('@/lib/json-ld')
+    const ld = { name: '<!-- x & y -->', sep: 'a\u2028b' }
+    const serialized = serializeJsonLd(ld)
+    expect(serialized).not.toMatch(/[<>&\u2028]/)
+    expect(JSON.parse(serialized)).toEqual(ld)
   })
 
   it('DEFAULT_RESTAURANT_JSON_LD is exported and has correct type', async () => {

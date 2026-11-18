@@ -176,9 +176,9 @@ describe('Phase Z.1 — tenant service boundary (getMyTenants / getPlatformTenan
     expect(src).not.toContain('useMyTenants')
   })
 
-  it('/console/tenants (platform-tenants surface) uses usePlatformTenants, not the ambiguous useTenants', () => {
+  it('/console/tenants (platform-tenants surface) uses useConsoleTenants, not the ambiguous useTenants', () => {
     const src = readSrc('app/console/tenants/page.tsx')
-    expect(src).toContain('usePlatformTenants')
+    expect(src).toContain('useConsoleTenants')
     expect(src).not.toMatch(/[^A-Za-z]useTenants\(/)
   })
 })
@@ -204,11 +204,12 @@ describe('Phase Z.1 — branch service boundary (getTenantBranches requires tena
     expect(src).not.toContain('async getTenantBranches(tenantId?: string)')
   })
 
-  it('useBranches() loads branches for the resolved tenant via branchService.getBranches', () => {
+  it('useBranches() loads branches for the resolved tenant via a tenant-scoped branch call', () => {
     const src = readSrc('hooks/index.ts')
     const fnIdx = src.indexOf('export function useBranches')
     const bodyEnd = src.indexOf('\n}', fnIdx)
     const body = src.slice(fnIdx, bodyEnd)
-    expect(body).toContain('branchService.getBranches')
+    expect(body).toContain('getTenantsBranches(tenantId)')
+    expect(body).toContain('if (!tenantId)')
   })
 })

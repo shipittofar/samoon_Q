@@ -143,7 +143,8 @@ describe('P10.8 — useVerifyOTP(): session bootstrap only runs for is_new_user:
 
     expect(useAuthStore.getState().user?.email).toBe('owner@samoon.com')
     expect(useAuthStore.getState().isAuthenticated).toBe(true)
-    const tenantId = useTenantStore.getState().tenant!.id
+    // Roles are seeded for the session's active membership (auth boundary), not a leftover store tenant.
+    const tenantId = useRbacStore.getState().activeMembership!.tenantId
     expect(useRbacStore.getState().getRolesForTenant(tenantId)).toEqual(['owner'])
   })
 })

@@ -873,12 +873,15 @@ describe('Y — Admin pages source checks', () => {
     expect(resPage()).toContain('branch_id')
   })
 
-  it('Y5: staff detail page has BranchAccessMatrix component', () => {
-    expect(staffPage()).toContain('BranchAccessMatrix')
+  // Branch access moved from an inline matrix on the staff page into the
+  // edit-assignment modal (location_ids / all_locations).
+  it('Y5: staff detail page delegates assignments to StaffAssignedRolesSection', () => {
+    expect(staffPage()).toContain('StaffAssignedRolesSection')
   })
 
-  it('Y6: BranchAccessMatrix uses useAdminBranches', () => {
-    expect(staffPage()).toContain('useAdminBranches')
+  it('Y6: branch access is edited via location assignments', () => {
+    const modal = fs.readFileSync(path.join(ROOT, 'src/components/admin/StaffEditAssignmentModal.tsx'), 'utf-8')
+    expect(modal).toContain('location_ids')
   })
 
   it('Y7: branch analytics page uses useBranchAnalytics', () => {

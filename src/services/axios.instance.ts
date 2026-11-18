@@ -115,7 +115,11 @@ const api: AxiosInstance = axios.create({
 // Node 19+ keeps HTTP sockets alive. A reused socket to this API often returns
 // status 200 and then aborts before the body arrives ("stream has been aborted").
 if (typeof window === 'undefined') {
+  // Server-only, lazily required: a static import would pull node:http(s)
+  // into the client bundle, which this isomorphic module is also part of.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const http = require('node:http') as typeof import('node:http')
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const https = require('node:https') as typeof import('node:https')
   api.defaults.httpAgent = new http.Agent({ keepAlive: false })
   api.defaults.httpsAgent = new https.Agent({ keepAlive: false })

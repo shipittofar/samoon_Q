@@ -142,16 +142,14 @@ describe('Step 6 wiring', () => {
   })
 
   it('provision request object does not include slug', () => {
-    const src = pageSrc()
-    expect(src).toContain(
-      'const req = { name, businessType, capabilityOverrides, branding, featureFlagOverrides, image: logoFile }',
-    )
-    const activeReqLine = src
-      .split('\n')
-      .map((l) => l.trim())
-      .find((l) => l.startsWith('const req = {') && !l.startsWith('//'))
-    expect(activeReqLine).toBeTruthy()
-    expect(activeReqLine).not.toContain('slug')
+    const src = pageSrc().replace(/\r\n/g, '\n')
+    const start = src.indexOf('const req = {')
+    expect(start).toBeGreaterThan(-1)
+    const reqLiteral = src.slice(start, src.indexOf('\n      }\n', start))
+    for (const field of ['businessType', 'capabilityOverrides', 'branding', 'featureFlagOverrides', 'image: logoFile']) {
+      expect(reqLiteral).toContain(field)
+    }
+    expect(reqLiteral).not.toMatch(/\bslug\b/)
   })
 })
 

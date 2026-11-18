@@ -483,12 +483,15 @@ export const tenantProvisioningService = {
     newName: string,
   ): Promise<TenantProvisionResult> {
     const slugErrors: string[] = []
-    // if (!newSlug || !SLUG_RE.test(newSlug)) {
-    //   slugErrors.push('slug must be 2–63 lowercase alphanumeric characters or hyphens')
-    // }
-    // if (newSlug && MOCK_EXISTING_SLUGS.has(newSlug)) {
-    //   slugErrors.push(`slug "${newSlug}" is already taken`)
-    // }
+    // Clone still sends a client-chosen slug to the backend (unlike provision,
+    // where the backend assigns one), so validate its format up front.
+    if (!newSlug || !SLUG_RE.test(newSlug)) {
+      slugErrors.push('slug must be 2–63 lowercase alphanumeric characters or hyphens')
+    }
+    // Uniqueness is only knowable locally in mock mode; the backend enforces it otherwise.
+    if (USE_MOCK && newSlug && MOCK_EXISTING_SLUGS.has(newSlug)) {
+      slugErrors.push(`slug "${newSlug}" is already taken`)
+    }
     if (!newName || newName.trim().length < 2) {
       slugErrors.push('name must be at least 2 characters')
     }

@@ -271,11 +271,11 @@ describe('P4.6.2 — Auth synchronization wiring', () => {
     expect(src).toContain('setSentryUser')
   })
 
-  it('providers/index.tsx imports clearSentryUser', async () => {
+  it('logout teardown (used by providers/index.tsx) imports clearSentryUser', async () => {
     const { readFileSync } = await import('fs')
     const { join } = await import('path')
-    const src = readFileSync(join(__dirname, '..', 'providers', 'index.tsx'), 'utf-8')
-    expect(src).toContain('clearSentryUser')
+    const src = readFileSync(join(__dirname, '..', 'lib', 'auth-session-teardown.ts'), 'utf-8')
+    expect(src).toMatch(/import \{ clearSentryUser \} from '@\/lib\/sentry'/)
   })
 
   it('providers/index.tsx calls setSentryUser after getMe()', async () => {
@@ -288,11 +288,13 @@ describe('P4.6.2 — Auth synchronization wiring', () => {
     expect(src).toContain('user.accountType')
   })
 
-  it('providers/index.tsx calls clearSentryUser on logout', async () => {
+  it('providers/index.tsx clears the Sentry user on logout via clearAuthenticatedClientState', async () => {
     const { readFileSync } = await import('fs')
     const { join } = await import('path')
-    const src = readFileSync(join(__dirname, '..', 'providers', 'index.tsx'), 'utf-8')
-    expect(src).toContain('clearSentryUser')
+    const providers = readFileSync(join(__dirname, '..', 'providers', 'index.tsx'), 'utf-8')
+    const teardown = readFileSync(join(__dirname, '..', 'lib', 'auth-session-teardown.ts'), 'utf-8')
+    expect(providers).toContain('clearAuthenticatedClientState(')
+    expect(teardown).toContain('clearSentryUser()')
   })
 
   it('providers/index.tsx imports setSentryTenant', async () => {

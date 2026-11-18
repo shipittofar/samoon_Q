@@ -99,7 +99,7 @@ describe('Phase Z.6.2 — getMarketplaceMeta()', () => {
   })
 
   it('returns undefined when marketplace is absent', () => {
-    expect(getMarketplaceMeta({ featureFlags: { a: true } })).toBeUndefined()
+    expect(getMarketplaceMeta({ featureFlags: { a: true } } as Parameters<typeof getMarketplaceMeta>[0])).toBeUndefined()
   })
 
   it('returns only tenant listing fields when present', () => {

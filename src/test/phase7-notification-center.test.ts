@@ -62,7 +62,7 @@ describe('P7.6 — Notification Types', () => {
     expect(n).toHaveProperty('message')
     expect(n).toHaveProperty('scope')
     expect(n).toHaveProperty('channels')
-    expect(n).toHaveProperty('createdAt')
+    expect(n).toHaveProperty('created_at')
   })
 
   it('NotificationDeepLink has type, id, href fields', async () => {
@@ -625,7 +625,7 @@ describe('P7.6 — Notification Preferences Service', () => {
       expect(p).toHaveProperty('enabled')
       expect(p).toHaveProperty('channels')
       expect(p).toHaveProperty('minPriority')
-      expect(p).toHaveProperty('updatedAt')
+      expect(p).toHaveProperty('updated_at')
     }
   })
 
@@ -1122,9 +1122,10 @@ describe('P7.6 — Regression Guard', () => {
     expect(logs.count).toBeGreaterThan(0)
   })
 
-  it('ALL_PERMISSIONS has 31 entries after P7.6 and P7.7 additions', async () => {
+  it('ALL_PERMISSIONS has the expected entry count', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(64)
+    // +rbac.manage_roles
+    expect(ALL_PERMISSIONS).toHaveLength(65)
   })
 
   it('notification permissions do not overlap with audit permissions', async () => {

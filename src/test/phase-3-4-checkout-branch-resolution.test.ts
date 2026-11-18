@@ -27,35 +27,35 @@ describe('Phase 3.4 — checkout/page.tsx has no hardcoded/default branch fallba
     expect(src()).not.toContain('activeBranch?.id ??')
   })
 
-  it('order creation reads branch_id from a guaranteed-non-null activeBranch.id', () => {
+  it('order creation reads branch_id from the guard-checked cart branch', () => {
     const content = src()
-    // Both branch_id assignments must use the narrowed, guard-checked
-    // `activeBranch.id` (no optional chaining fallback) — proves the
-    // value can only ever be a real, resolved branch id.
-    const occurrences = content.match(/branch_id:\s*activeBranch\.id/g) ?? []
+    // Orders are created for the cart's own branch (cartBranchId, resolved
+    // from the cart items) — never the route's activeBranch — and every
+    // branch_id assignment uses that guard-checked value.
+    const occurrences = content.match(/branch_id:\s*cartBranchId/g) ?? []
     expect(occurrences.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('blocks rendering entirely when activeBranch is null, before the order form exists', () => {
+  it('blocks rendering entirely when the cart has no resolvable branch, before the order form exists', () => {
     const content = src()
-    expect(content).toContain('if (!activeBranch)')
+    expect(content).toContain('if (!cartBranchId)')
     expect(content).toContain('noBranchSelectedTitle')
     expect(content).toContain('noBranchSelectedDesc')
   })
 
-  it('finaliseOrder() and onSubmit() each independently refuse to run without activeBranch (defense in depth)', () => {
+  it('finaliseOrder() and onSubmit() each independently refuse to run without a cart branch (defense in depth)', () => {
     const content = src()
     const finaliseOrderBlock = content.slice(
       content.indexOf('const finaliseOrder ='),
       content.indexOf('const onSubmit ='),
     )
-    expect(finaliseOrderBlock).toContain('if (!activeBranch)')
+    expect(finaliseOrderBlock).toContain('if (!cartBranchId)')
 
     const onSubmitBlock = content.slice(
       content.indexOf('const onSubmit ='),
       content.indexOf('const handlePaymentSuccess ='),
     )
-    expect(onSubmitBlock).toContain('if (!activeBranch)')
+    expect(onSubmitBlock).toContain('if (!cartBranchId)')
   })
 })
 

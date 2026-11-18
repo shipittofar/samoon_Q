@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Role } from '@/types/rbac'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { useRbacStore, useBranchStore } from '@/stores'
 import { authService } from '@/services/auth.service'
@@ -54,7 +55,7 @@ const memberships = [
     tenantId: 'tenant-a',
     tenantSlug: 'slug-a',
     tenantName: 'Tenant A',
-    roles: ['owner'],
+    roles: ['owner'] as Role[],
     branchAccess: { scope: 'all' as const },
     branches: [
       { id: 'branch-a', name: 'Branch A', slug: 'branch-a', status: 'active' as const, isDefault: true },
@@ -64,7 +65,7 @@ const memberships = [
     tenantId: 'tenant-b',
     tenantSlug: 'slug-b',
     tenantName: 'Tenant B',
-    roles: ['manager'],
+    roles: ['manager'] as Role[],
     branchAccess: { scope: 'all' as const },
     branches: [
       { id: 'branch-b', name: 'Branch B', slug: 'branch-b', status: 'active' as const, isDefault: true },
@@ -217,8 +218,8 @@ describe('switch-branch invariant — remaining race paths', () => {
       activeMembership: {
         tenantId: 'tenant-b',
         branchId: 'branch-b',
-        roles: ['manager'],
-        branchAccess: { scope: 'all' },
+        roles: ['manager'] as Role[],
+        branchAccess: { scope: 'all' as const },
       },
     } as never)
 
@@ -264,7 +265,7 @@ describe('switch-branch invariant — remaining race paths', () => {
             tenantId: 'tenant-c',
             tenantSlug: 'slug-c',
             tenantName: 'Tenant C',
-            roles: ['owner'],
+            roles: ['owner'] as Role[],
             branchAccess: { scope: 'all' as const },
             branches: [
               { id: 'branch-c', name: 'Branch C', slug: 'branch-c', status: 'active' as const, isDefault: true },
@@ -274,8 +275,8 @@ describe('switch-branch invariant — remaining race paths', () => {
         activeMembership: {
           tenantId: tid,
           branchId: tid === 'tenant-a' ? 'branch-a' : tid === 'tenant-b' ? 'branch-b' : 'branch-c',
-          roles: ['owner'],
-          branchAccess: { scope: 'all' },
+          roles: ['owner'] as Role[],
+          branchAccess: { scope: 'all' as const },
         },
       } as never
     })

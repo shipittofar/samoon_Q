@@ -93,9 +93,10 @@ describe('P8 — Manager tightened permissions', () => {
   // alongside its existing menu.view/menu.manage (docs/CATEGORY_MANAGEMENT_IMPLEMENTATION.md).
   // Extras Management: manager gained extras.view/create/update/delete
   // alongside category.*/menu.* (docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md).
-  it('manager has exactly 32 permissions', async () => {
+  // Tag Management: manager gained tag.view/create/update/delete.
+  it('manager has exactly 37 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.manager).toHaveLength(33)
+    expect(ROLE_PERMISSION_MAP.manager).toHaveLength(37)
   })
 })
 
@@ -322,9 +323,10 @@ describe('P8 — Waiter permissions unchanged', () => {
   // Category Management: waiter gained read-only category.view alongside its
   // existing menu.view (docs/CATEGORY_MANAGEMENT_IMPLEMENTATION.md).
   // Extras Management: waiter gained read-only extras.view alongside category.view/menu.view.
-  it('waiter still has 16 permissions', async () => {
+  // Tag Management: waiter gained read-only tag.view.
+  it('waiter has 18 permissions', async () => {
     const { ROLE_PERMISSION_MAP } = await import('@/services/permission.service')
-    expect(ROLE_PERMISSION_MAP.waiter).toHaveLength(17)
+    expect(ROLE_PERMISSION_MAP.waiter).toHaveLength(18)
   })
   it('waiter has menu.view', async () => {
     const { hasPermission } = await import('@/services/permission.service')

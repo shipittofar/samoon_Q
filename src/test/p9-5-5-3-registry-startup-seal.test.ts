@@ -65,7 +65,7 @@ describe('Platform configuration registry — startup vs seal', () => {
         version: '1.0.0',
         permissions: { view: 'settings.view', edit: 'settings.manage' },
         sections: [{ id: 'late.test.module.s', title: 'S', fields: [] }],
-      }),
+      } as unknown as Parameters<typeof platformConfigurationRegistry.register>[0]),
     ).toThrow(/called after the registry was sealed/)
   })
 

@@ -127,7 +127,7 @@ describe('runtime initiate payloads for fixed flows', () => {
     // Mirrors branches/new/page.tsx uploadImageFields call
     const imageField: ImageFieldValue = {
       file: makeJpeg('branch.jpg'),
-      existingUrl: null,
+      existingUrl: '',
       cleared: false,
     }
 
@@ -155,7 +155,7 @@ describe('runtime initiate payloads for fixed flows', () => {
   it('branch edit image initiates with branch_logo + tenant_id + branch_id', async () => {
     const imageField: ImageFieldValue = {
       file: makeJpeg('branch-edit.jpg'),
-      existingUrl: null,
+      existingUrl: '',
       cleared: false,
     }
 

@@ -46,6 +46,8 @@ function loginAsPlatformOwner() {
   useAuthStore.getState().setUser({
     id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     accountType: 'business', is_verified: true, created_at: '2024-01-01T00:00:00Z',
+    // Platform Configuration Studio requires Django is_superuser (not tenant RBAC).
+    is_superuser: true,
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
@@ -133,7 +135,7 @@ describe('seedAuthenticationMockOverrides (Phase N)', () => {
 
 describe('ConfigurationModulePage — Authentication (end-to-end render)', () => {
   it('renders every visible field with its title, grouped into the registry\'s own sections', () => {
-    render(<ConfigurationModulePage moduleId="authentication" />)
+    render(<ConfigurationModulePage permissionContext="platform" moduleId="authentication" />)
     expect(screen.getByText('Authentication Enabled')).toBeInTheDocument()
     expect(screen.getByText('Core Toggles')).toBeInTheDocument()
     expect(screen.getByText('OTP')).toBeInTheDocument()
@@ -142,7 +144,7 @@ describe('ConfigurationModulePage — Authentication (end-to-end render)', () =>
   })
 
   it('hides OTP-dependent fields immediately when OTP Login Enabled is toggled off, before saving', async () => {
-    render(<ConfigurationModulePage moduleId="authentication" />)
+    render(<ConfigurationModulePage permissionContext="platform" moduleId="authentication" />)
     expect(screen.getByText('OTP Code Length')).toBeInTheDocument()
 
     const otpRow = screen.getByText('OTP Login Enabled').closest('[data-field-id]') as HTMLElement
@@ -157,7 +159,7 @@ describe('ConfigurationModulePage — Authentication (end-to-end render)', () =>
   })
 
   it('shows an "Unsaved" badge and a sticky save bar once a field is dirty, and clears both after Save', async () => {
-    render(<ConfigurationModulePage moduleId="authentication" />)
+    render(<ConfigurationModulePage permissionContext="platform" moduleId="authentication" />)
     const otpRow = screen.getByText('OTP Login Enabled').closest('[data-field-id]') as HTMLElement
     fireEvent.click(within(otpRow).getByRole('switch'))
 
@@ -171,7 +173,7 @@ describe('ConfigurationModulePage — Authentication (end-to-end render)', () =>
   })
 
   it('search filters the visible field list live', () => {
-    render(<ConfigurationModulePage moduleId="authentication" />)
+    render(<ConfigurationModulePage permissionContext="platform" moduleId="authentication" />)
     const search = screen.getByPlaceholderText(/search authentication settings/i)
     fireEvent.change(search, { target: { value: 'brute force' } })
     expect(screen.getByText('Max Login Attempts')).toBeInTheDocument()
@@ -179,7 +181,7 @@ describe('ConfigurationModulePage — Authentication (end-to-end render)', () =>
   })
 
   it('renders "Unknown configuration module" for an unregistered module id instead of crashing', () => {
-    render(<ConfigurationModulePage moduleId="not-a-real-module" />)
+    render(<ConfigurationModulePage permissionContext="platform" moduleId="not-a-real-module" />)
     expect(screen.getByText(/unknown configuration module/i)).toBeInTheDocument()
   })
 })

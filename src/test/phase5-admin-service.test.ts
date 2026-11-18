@@ -21,6 +21,15 @@ const TENANT_SAMOON = 'tenant-samoon-01'
 const ROOT = path.join(__dirname, '..', '..')
 const readSrc = (rel: string) => fs.readFileSync(path.join(ROOT, 'src', rel), 'utf-8')
 
+/** Source of one exported function: from its declaration to the next top-level `}` (EOL-agnostic). */
+function fnBody(source: string, name: string): string {
+  const text = source.replace(/\r\n/g, '\n')
+  const start = text.indexOf(`export function ${name}(`)
+  if (start < 0) return ''
+  const end = text.indexOf('\n}\n', start)
+  return text.slice(start, end < 0 ? undefined : end + 2)
+}
+
 // ── ENDPOINTS additions ───────────────────────────────────────────────────────
 
 describe('endpoints.ts — P5.1 additions', () => {
@@ -440,13 +449,11 @@ describe('hooks/index.ts — P5.1 admin hooks source', () => {
   })
 
   it('useUpdateOrderStatus invalidates admin-orders', () => {
-    const block = src().slice(src().indexOf('useUpdateOrderStatus'))
-    expect(block.slice(0, 400)).toContain("'admin-orders'")
+    expect(fnBody(src(), 'useUpdateOrderStatus')).toContain("invalidateQueries({ queryKey: ['admin-orders'] })")
   })
 
   it('useUpdateOrderStatus invalidates orders', () => {
-    const block = src().slice(src().indexOf('useUpdateOrderStatus'))
-    expect(block.slice(0, 1100)).toContain("'orders'")
+    expect(fnBody(src(), 'useUpdateOrderStatus')).toContain("invalidateQueries({ queryKey: ['orders'] })")
   })
 
   it('useConfirmReservation invalidates admin-reservations', () => {
@@ -463,13 +470,17 @@ describe('hooks/index.ts — P5.1 admin hooks source', () => {
   // invalidate only the active branch's cached menu-items via a predicate,
   // not a blanket ['menu-items'] prefix that would touch every branch's cache.
   it('useCreateMenuItem invalidates menu-items scoped to the branch', () => {
-    const block = src().slice(src().indexOf('export function useCreateMenuItem'))
-    expect(block.slice(0, 600)).toContain('menuItemsQueryPredicate(branchId)')
+    // Invalidation goes through invalidateBranchMenuItemsQueries(), whose
+    // predicates include menuItemsQueryPredicate(branchId).
+    expect(fnBody(src(), 'useCreateMenuItem')).toContain('invalidateBranchMenuItemsQueries(qc, branchId)')
+    expect(src()).toMatch(/function branchMenuItemsQueryPredicates[\s\S]{0,200}menuItemsQueryPredicate\(branchId\)/)
   })
 
   it('useDeleteMenuItem invalidates menu-items scoped to the branch', () => {
-    const block = src().slice(src().indexOf('export function useDeleteMenuItem'))
-    expect(block.slice(0, 600)).toContain('menuItemsQueryPredicate(branchId)')
+    // Invalidation goes through invalidateBranchMenuItemsQueries(), whose
+    // predicates include menuItemsQueryPredicate(branchId).
+    expect(fnBody(src(), 'useDeleteMenuItem')).toContain('invalidateBranchMenuItemsQueries(qc, branchId)')
+    expect(src()).toMatch(/function branchMenuItemsQueryPredicates[\s\S]{0,200}menuItemsQueryPredicate\(branchId\)/)
   })
 
   it('useUpdateMenuItem invalidates specific menu-item query', () => {
@@ -497,8 +508,7 @@ describe('admin hooks — query keys', () => {
 
   it('useAdminReservations uses admin-reservations query key', async () => {
     const src = readSrc('hooks/index.ts')
-    const block = src.slice(src.indexOf('function useAdminReservations'))
-    expect(block.slice(0, 200)).toContain("'admin-reservations'")
+    expect(fnBody(src, 'useAdminReservations')).toContain("queryKey: ['admin-reservations'")
   })
 
   it('useAdminCustomers uses admin-customers query key', async () => {

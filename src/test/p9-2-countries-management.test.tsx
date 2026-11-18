@@ -40,6 +40,8 @@ function loginAsPlatformOwner() {
   useAuthStore.getState().setUser({
     id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     accountType: 'business', is_verified: true, created_at: '2024-01-01T00:00:00Z',
+    // Platform Configuration Studio requires Django is_superuser (not tenant RBAC).
+    is_superuser: true,
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
@@ -239,14 +241,14 @@ describe('useConfigurationBulkActions (framework, generic)', () => {
 
 describe('Countries Console page (collection dispatch, end-to-end)', () => {
   it('renders the countries module through the same ConfigurationModulePage as Authentication', () => {
-    render(<ConfigurationModulePage moduleId="countries" />)
+    render(<ConfigurationModulePage permissionContext="platform" moduleId="countries" />)
     expect(screen.getByRole('heading', { name: 'Countries' })).toBeInTheDocument()
     // The collection field renders as a table (entity id column header), not a single control.
     expect(screen.getByText('ISO Code')).toBeInTheDocument()
   })
 
   it('shows the fixed 176-country roster in the table body, including entities with zero stored overrides', () => {
-    render(<ConfigurationModulePage moduleId="countries" />)
+    render(<ConfigurationModulePage permissionContext="platform" moduleId="countries" />)
     const table = screen.getByRole('table')
     expect(within(table).getByText('United States')).toBeInTheDocument()
     expect(within(table).getByText('Germany')).toBeInTheDocument()
@@ -261,7 +263,7 @@ describe('Authentication regression (no framework change should affect it)', () 
   })
 
   it('ConfigurationModulePage still renders Authentication end-to-end', () => {
-    render(<ConfigurationModulePage moduleId="authentication" />)
+    render(<ConfigurationModulePage permissionContext="platform" moduleId="authentication" />)
     expect(screen.getByText('Authentication')).toBeInTheDocument()
   })
 })

@@ -66,7 +66,7 @@ describe('P4.7.1 — Image optimization: all Image usages have sizes prop', () =
 
   it('FoodCard compact Image has sizes prop', () => {
     const content = src('components/menu/FoodCard.tsx')
-    expect(content).toContain('sizes="80px"')
+    expect(content).toContain('sizes="64px"')
   })
 
   it('FoodCard standard Image has responsive sizes prop', () => {
@@ -95,7 +95,7 @@ describe('P4.7.1 — Image optimization: all Image usages have sizes prop', () =
   })
 
   it('homepage hero Image has sizes="100vw"', () => {
-    const content = src('app/page.tsx')
+    const content = src('components/home/HeroBackground.tsx')
     expect(content).toContain('sizes="100vw"')
   })
 
@@ -246,9 +246,10 @@ describe('P4.7.5 — Cart store debounced writes', () => {
     expect(content).toContain('createDebouncedStorage')
   })
 
-  it('cart store uses createDebouncedStorage', () => {
+  it('cart store persists synchronously (debounced writes lost items across auth redirects)', () => {
     const content = src('stores/index.ts')
-    expect(content).toContain('storage: createDebouncedStorage(50)')
+    expect(content).not.toContain('storage: createDebouncedStorage(')
+    expect(content).toContain('Synchronous writes')
   })
 
   it('createDebouncedStorage uses setTimeout for write deferral', () => {
@@ -431,8 +432,7 @@ describe('P4.7.8 — Regression checks', () => {
 
   it('cart store still persists with CART_KEY name', () => {
     const content = src('stores/index.ts')
-    expect(content).toContain('CART_KEY')
-    expect(content).toContain('storage: createDebouncedStorage(50)')
+    expect(content).toContain('name: CART_KEY')
   })
 
   it('auth store is unchanged (no persist, no debouncing)', () => {
@@ -463,7 +463,8 @@ describe('P4.7.8 — Regression checks', () => {
   it('providers/index.tsx Sentry integration unchanged', () => {
     const content = src('providers/index.tsx')
     expect(content).toContain('setSentryUser')
-    expect(content).toContain('clearSentryUser')
+    expect(content).toContain('clearAuthenticatedClientState')
+    expect(src('lib/auth-session-teardown.ts')).toContain('clearSentryUser')
     expect(content).toContain('setSentryTenant')
     expect(content).toContain('setEnvironmentTags')
   })

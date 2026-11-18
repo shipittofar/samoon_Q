@@ -32,7 +32,7 @@ const ROOT = path.resolve(__dirname, '../../')
 function src(rel: string) { return fs.readFileSync(path.join(ROOT, rel), 'utf8') }
 
 const page = src('src/app/console/menu/page.tsx')
-const hooks = src('src/hooks/index.ts')
+const hooks = src('src/hooks/index.ts').replace(/\r\n/g, '\n')
 
 // ── A. No MOCK_MENU_ITEMS ─────────────────────────────────────────────────────
 
@@ -181,15 +181,15 @@ describe('Hooks — query invalidation', () => {
   // invalidate only the active branch's cached menu-items via a predicate
   // keyed on branchId, never a blanket ['menu-items'] prefix.
   it('K: useCreateMenuItem invalidates menu-items scoped to the branch', () => {
-    expect(hooks).toMatch(/export function useCreateMenuItem[\s\S]{0,400}invalidateQueries[\s\S]{0,100}menuItemsQueryPredicate\(branchId\)/)
+    expect(hooks).toMatch(/export function useCreateMenuItem[\s\S]{0,1500}invalidateBranchMenuItemsQueries\(qc, branchId\)/)
   })
 
   it('K: useUpdateMenuItem invalidates menu-items scoped to the branch', () => {
-    expect(hooks).toMatch(/export function useUpdateMenuItem[\s\S]{0,1200}invalidateQueries[\s\S]{0,100}menuItemsQueryPredicate\(branchId\)/)
+    expect(hooks).toMatch(/export function useUpdateMenuItem[\s\S]{0,1500}invalidateBranchMenuItemsQueries\(qc, branchId\)/)
   })
 
   it('K: useDeleteMenuItem invalidates menu-items scoped to the branch', () => {
-    expect(hooks).toMatch(/export function useDeleteMenuItem[\s\S]{0,1000}invalidateQueries[\s\S]{0,100}menuItemsQueryPredicate\(branchId\)/)
+    expect(hooks).toMatch(/export function useDeleteMenuItem[\s\S]{0,1500}invalidateBranchMenuItemsQueries\(qc, branchId\)/)
   })
 })
 

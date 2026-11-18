@@ -406,7 +406,11 @@ async function fetchDiscoverTenantBySlug(slug: string): Promise<Tenant> {
     const match = (data.results ?? []).find((t) => t.slug === slug)
     if (!match?.id) throw new TenantNotFoundError(slug)
     const tenant = normalizeTenant(match as Tenant)
-    return match.branches ? { ...tenant, branches: match.branches } : tenant
+    if (!match.branches) return tenant
+    // Public branch rows ride along on the Tenant object; read back by
+    // src/lib/public-branches.ts. Not part of the canonical Tenant shape.
+    const withBranches: Tenant & { branches: typeof match.branches } = { ...tenant, branches: match.branches }
+    return withBranches
   } catch (err) {
     if (err instanceof TenantNotFoundError || err instanceof TenantForbiddenError) throw err
     const status = (err as { response?: { status?: number } })?.response?.status

@@ -77,7 +77,7 @@ describe('PostLoginRedirectHandler', () => {
   })
 
   it('does not redirect when accountType is missing from event payload', async () => {
-    const userWithoutType = { ...userWith('customer'), accountType: undefined } as User
+    const userWithoutType = { ...userWith('customer'), accountType: undefined } as unknown as User
 
     render(<PostLoginRedirectHandler><div /></PostLoginRedirectHandler>)
 

@@ -28,10 +28,10 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     expect(login.tokens.access).toBeTruthy()
     expect(login.p7Roles).toEqual([])
 
-    const otp = await authService.sendOTP('+14155550101')
+    const otp = await authService.sendOTP({ phone_number: '+14155550101', dialCode: '+1' })
     expect(otp.message).toBeTruthy()
 
-    const verify = await authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })
+    const verify = await authService.verifyOTP({ phone_number: '+14155550101', dialCode: '+1', otp: '123456' })
     expect(verify.is_new_user).toBe(false)
   })
 
@@ -41,9 +41,9 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
       fieldId: 'authentication.enabled', value: false, level: 'platform', scope: {}, actor, reason: 'test',
     })
     await expect(authService.login({ email: 'demo@samoon.com', password: 'password' })).rejects.toThrow('authentication_disabled')
-    await expect(authService.register({ email: 'a@b.com', password: 'password', confirm_password: 'password', first_name: 'A', last_name: 'B' })).rejects.toThrow('authentication_disabled')
-    await expect(authService.sendOTP('+14155550101')).rejects.toThrow('authentication_disabled')
-    await expect(authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })).rejects.toThrow('authentication_disabled')
+    await expect(authService.register({ password: 'password', confirm_password: 'password', first_name: 'A', last_name: 'B' })).rejects.toThrow('authentication_disabled')
+    await expect(authService.sendOTP({ phone_number: '+14155550101', dialCode: '+1' })).rejects.toThrow('authentication_disabled')
+    await expect(authService.verifyOTP({ phone_number: '+14155550101', dialCode: '+1', otp: '123456' })).rejects.toThrow('authentication_disabled')
   })
 
   it('rejects sendOTP/verifyOTP when authentication.otp.enabled is false', async () => {
@@ -51,8 +51,8 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     configurationService.updateField({
       fieldId: 'authentication.otp.enabled', value: false, level: 'platform', scope: {}, actor,
     })
-    await expect(authService.sendOTP('+14155550101')).rejects.toThrow('otp_disabled')
-    await expect(authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })).rejects.toThrow('otp_disabled')
+    await expect(authService.sendOTP({ phone_number: '+14155550101', dialCode: '+1' })).rejects.toThrow('otp_disabled')
+    await expect(authService.verifyOTP({ phone_number: '+14155550101', dialCode: '+1', otp: '123456' })).rejects.toThrow('otp_disabled')
   })
 
   it('rejects sendOTP when authentication.phone_login_enabled is false', async () => {
@@ -60,7 +60,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     configurationService.updateField({
       fieldId: 'authentication.phone_login_enabled', value: false, level: 'platform', scope: {}, actor,
     })
-    await expect(authService.sendOTP('+14155550101')).rejects.toThrow('phone_login_disabled')
+    await expect(authService.sendOTP({ phone_number: '+14155550101', dialCode: '+1' })).rejects.toThrow('phone_login_disabled')
   })
 
   it('rejects register when authentication.registration_enabled is false', async () => {
@@ -69,7 +69,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
       fieldId: 'authentication.registration_enabled', value: false, level: 'platform', scope: {}, actor,
     })
     await expect(
-      authService.register({ email: 'a@b.com', password: 'password', confirm_password: 'password', first_name: 'A', last_name: 'B' }),
+      authService.register({ password: 'password', confirm_password: 'password', first_name: 'A', last_name: 'B' }),
     ).rejects.toThrow('registration_disabled')
   })
 
@@ -86,7 +86,7 @@ describe('auth.service.ts — configuration-driven gates (P9.1.2)', () => {
     configurationService.updateField({
       fieldId: 'authentication.demo_login_enabled', value: false, level: 'platform', scope: {}, actor, reason: 'test',
     })
-    const result = await authService.verifyOTP({ phone_number: '+14155550101', otp: '123456' })
+    const result = await authService.verifyOTP({ phone_number: '+14155550101', dialCode: '+1', otp: '123456' })
     expect(result.is_new_user).toBe(true)
   })
 

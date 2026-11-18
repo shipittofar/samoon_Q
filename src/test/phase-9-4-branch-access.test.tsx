@@ -85,6 +85,8 @@ describe('Phase 9.4 — useBranchAccess() reads ONLY currentTenantSession.branch
   beforeEach(() => {
     useRbacStore.getState()._resetStore()
     useTenantStore.setState({ tenant: { id: 'tenant-1' } as never, tenantState: 'resolved' } as never)
+    // Console tenant = activeMembership (useBranchAccess compares the session against it).
+    useRbacStore.setState({ activeMembership: { tenantId: 'tenant-1' } })
   })
 
   it('Owner (scope: "all") can access every branch', () => {
@@ -119,6 +121,8 @@ describe('Phase 9.4 — AdminBranchSwitcher never renders a forbidden branch', (
   beforeEach(() => {
     useRbacStore.getState()._resetStore()
     useTenantStore.setState({ tenant: { id: 'tenant-1', name: 'Test Tenant' } as never, tenantState: 'resolved' } as never)
+    // Console tenant = activeMembership (useBranchAccess compares the session against it).
+    useRbacStore.setState({ activeMembership: { tenantId: 'tenant-1' } })
     const branches: AdminBranch[] = [
       { id: 'branch-1', name: 'Branch One', status: 'active', location: { address: '1 Main St' } } as never,
       { id: 'branch-2', name: 'Branch Two', status: 'active', location: { address: '2 Main St' } } as never,
@@ -162,6 +166,8 @@ describe('Phase 9.4 — direct URL to an inaccessible branch never fires the bra
     useBranchAnalyticsSpy.mockClear()
     useRbacStore.getState()._resetStore()
     useTenantStore.setState({ tenant: { id: 'tenant-1' } as never, tenantState: 'resolved' } as never)
+    // Console tenant = activeMembership (useBranchAccess compares the session against it).
+    useRbacStore.setState({ activeMembership: { tenantId: 'tenant-1' } })
   })
 
   it('navigating to branch-2 while only branch-1 is accessible never calls useAdminBranch()/useBranchAnalytics()', async () => {

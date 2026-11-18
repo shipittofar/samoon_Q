@@ -378,7 +378,7 @@ describe('P3.6.8 — UI regression guard', () => {
 
   it('OrderTracker still renders progress bar', () => {
     const content = src('components/order/OrderTracker.tsx')
-    expect(content).toContain('STATUS_ORDER')
+    expect(content).toContain('statusOrder')
     expect(content).toContain('STEPS')
   })
 

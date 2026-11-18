@@ -17,9 +17,9 @@ const __dirname = dirname(__filename)
 
 describe('P10.4.10 (superseded) — useHasDashboardAccess has no ownership fallback of any kind', () => {
   it('hooks/index.ts defines useHasDashboardAccess purely via usePermission', () => {
-    const src = readFileSync(join(__dirname, '..', 'hooks', 'index.ts'), 'utf-8')
+    const src = readFileSync(join(__dirname, '..', 'hooks', 'index.ts'), 'utf-8').replace(/\r\n/g, '\n')
     const start = src.indexOf('export function useHasDashboardAccess')
-    const block = src.slice(start, start + 600)
+    const block = src.slice(start, src.indexOf('\n}\n', start))
     expect(block).toContain("usePermission('dashboard:access')")
     expect(block).not.toContain('resolveOwnershipIdentity')
     expect(block).not.toContain('resolveOwnerPermissions')

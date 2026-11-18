@@ -110,16 +110,7 @@ function seedUserAAuthenticatedState() {
         status: 'active',
       },
     ],
-    {
-      tenantId: MOCK_TENANT_ID,
-      tenantName: 'Samoon Restaurant',
-      tenantSlug: 'samoon',
-      roles: ['owner'],
-      branchAccess: { scope: 'all' },
-      branches: [],
-      status: 'active',
-      branchId: 'branch-rest-01',
-    },
+    { tenantId: MOCK_TENANT_ID, branchId: 'branch-rest-01' },
   )
   useBranchStore.setState({
     selectedBranch: branchA,
@@ -178,10 +169,13 @@ describe('Auth boundary — clearAuthenticatedClientState (User A → logout →
   it('clears tenant, slug, admin branch, storefront branch, and workspace on logout', () => {
     const qc = new QueryClient()
     seedUserAAuthenticatedState()
-    useCartStore.getState().addItem(
-      { id: 'item-a', name: 'A', price: 10, category: 'x', description: '', image: '' } as never,
+    // The cart needs a branch context; without branch_id addItem() rejects
+    // with missing_context and the "cart preserved" assertion is vacuous.
+    const added = useCartStore.getState().addItem(
+      { id: 'item-a', branch_id: 'branch-rest-01', name: 'A', price: 10, category: 'x', description: '', image: '' } as never,
       1,
     )
+    expect(added.ok).toBe(true)
 
     clearAuthenticatedClientState({ queryClient: qc })
 
@@ -230,16 +224,7 @@ describe('Auth boundary — clearAuthenticatedClientState (User A → logout →
           status: 'active',
         },
       ],
-      {
-        tenantId: MOCK_BREW_CAFE_TENANT_ID,
-        tenantName: 'Brew Cafe',
-        tenantSlug: 'brew-cafe',
-        roles: ['cashier'],
-        branchAccess: { scope: 'selected', branchIds: ['branch-brewcafe-01'] },
-        branches: [],
-        status: 'active',
-        branchId: 'branch-brewcafe-01',
-      },
+      { tenantId: MOCK_BREW_CAFE_TENANT_ID, branchId: 'branch-brewcafe-01' },
     )
     // Correct seed key = activeMembership.tenantId (not leftover store tenant)
     const seedTenantId = useRbacStore.getState().activeMembership?.tenantId

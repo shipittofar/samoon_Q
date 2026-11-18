@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Role } from '@/types/rbac'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import {
   membershipBranchToBranch,
@@ -19,8 +20,8 @@ const membership = (tenantId: string, branches?: TenantMembership['branches']): 
   tenantId,
   tenantSlug: `slug-${tenantId}`,
   tenantName: `Tenant ${tenantId}`,
-  roles: ['owner'],
-  branchAccess: { scope: 'all' },
+  roles: ['owner'] as Role[],
+  branchAccess: { scope: 'all' as const },
   branches,
 })
 
@@ -113,8 +114,8 @@ describe('useConsoleWorkspaceStore.switchTenant', () => {
   it('does not activate a membership that is not activeMembership.tenantId', async () => {
     useRbacStore.getState().setSessionMemberships(
       [
-        { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
-        { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
+        { tenantId: 'tenant-a', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } },
+        { tenantId: 'tenant-b', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
       ],
       { tenantId: 'tenant-a' },
     )
@@ -128,7 +129,7 @@ describe('useConsoleWorkspaceStore.switchTenant', () => {
 
   it('clears the tenant record synchronously before async load begins', async () => {
     useRbacStore.getState().setSessionMemberships(
-      [{ tenantId: 'tenant-a', tenantSlug: 'a', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      [{ tenantId: 'tenant-a', tenantSlug: 'a', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       { tenantId: 'tenant-a' },
     )
     useTenantStore.setState({
@@ -158,8 +159,8 @@ describe('useConsoleWorkspaceStore.initializeFromSession', () => {
   it('marks workspace error when switchTenant guard fails', async () => {
     useRbacStore.getState().setSessionMemberships(
       [
-        { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
-        { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
+        { tenantId: 'tenant-a', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } },
+        { tenantId: 'tenant-b', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
       ],
       { tenantId: 'tenant-a' },
     )
@@ -387,8 +388,8 @@ describe('requestConsoleTenantSwitch', () => {
 
   it('calls switchActiveTenant then refreshes /auth/me without mutating activeMembership locally first', async () => {
     const memberships = [
-      { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
-      { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
+      { tenantId: 'tenant-a', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } },
+      { tenantId: 'tenant-b', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
     ]
     useRbacStore.getState().setSessionMemberships(memberships, { tenantId: 'tenant-a' })
 
@@ -411,8 +412,8 @@ describe('requestConsoleTenantSwitch', () => {
 
   it('leaves activeMembership unchanged when switchActiveTenant fails', async () => {
     const memberships = [
-      { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
-      { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
+      { tenantId: 'tenant-a', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } },
+      { tenantId: 'tenant-b', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
     ]
     useRbacStore.getState().setSessionMemberships(memberships, { tenantId: 'tenant-a' })
 
@@ -430,8 +431,8 @@ describe('requestConsoleTenantSwitch', () => {
 
   it('leaves activeMembership unchanged when getMe fails after successful switch', async () => {
     const memberships = [
-      { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
-      { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
+      { tenantId: 'tenant-a', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } },
+      { tenantId: 'tenant-b', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
     ]
     useRbacStore.getState().setSessionMemberships(memberships, { tenantId: 'tenant-a' })
 
@@ -456,8 +457,8 @@ describe('useConsoleTenantSwitch', () => {
 
   it('clears switchingToTenantId after switch failure so retry is possible', async () => {
     const memberships = [
-      { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
-      { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
+      { tenantId: 'tenant-a', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } },
+      { tenantId: 'tenant-b', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
     ]
     useRbacStore.getState().setSessionMemberships(memberships, { tenantId: 'tenant-a' })
 
@@ -475,9 +476,9 @@ describe('useConsoleTenantSwitch', () => {
 
   it('last concurrent switch request wins', async () => {
     const memberships = [
-      { tenantId: 'tenant-a', roles: ['owner'], branchAccess: { scope: 'all' } },
-      { tenantId: 'tenant-b', roles: ['manager'], branchAccess: { scope: 'all' } },
-      { tenantId: 'tenant-c', roles: ['manager'], branchAccess: { scope: 'all' } },
+      { tenantId: 'tenant-a', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } },
+      { tenantId: 'tenant-b', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
+      { tenantId: 'tenant-c', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
     ]
     useRbacStore.getState().setSessionMemberships(memberships, { tenantId: 'tenant-a' })
 
@@ -542,7 +543,7 @@ describe('requestConsoleBranchSwitch', () => {
       branchState: 'ready',
     } as never)
     useRbacStore.getState().setSessionMemberships(
-      [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      [{ tenantId: 't1', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       { tenantId: 't1' },
     )
     useTenantStore.setState({
@@ -567,7 +568,7 @@ describe('requestConsoleBranchSwitch', () => {
     const switchSpy = vi.spyOn(authService, 'switchActiveBranch').mockResolvedValue(undefined)
     const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
       user: { id: 'u1', email: 'a@b.com', first_name: 'A', last_name: 'B', accountType: 'business', is_verified: true, created_at: '' },
-      memberships: [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      memberships: [{ tenantId: 't1', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       activeMembership: { tenantId: 't1', branchId: 'branch-b' },
     } as never)
 
@@ -612,7 +613,7 @@ describe('requestConsoleBranchSwitch', () => {
       branchState: 'ready',
     } as never)
     useRbacStore.getState().setSessionMemberships(
-      [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      [{ tenantId: 't1', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       { tenantId: 't1' },
     )
 
@@ -645,7 +646,7 @@ describe('useConsoleBranchSwitch', () => {
       branchState: 'ready',
     } as never)
     useRbacStore.getState().setSessionMemberships(
-      [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      [{ tenantId: 't1', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       { tenantId: 't1' },
     )
 
@@ -674,7 +675,7 @@ describe('useConsoleBranchSwitch', () => {
       branchState: 'ready',
     } as never)
     useRbacStore.getState().setSessionMemberships(
-      [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      [{ tenantId: 't1', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       { tenantId: 't1' },
     )
 
@@ -686,7 +687,7 @@ describe('useConsoleBranchSwitch', () => {
     )
     const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
       user: { id: 'u1', email: 'a@b.com', first_name: 'A', last_name: 'B', accountType: 'business', is_verified: true, created_at: '' },
-      memberships: [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }],
+      memberships: [{ tenantId: 't1', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       activeMembership: { tenantId: 't1', branchId: 'branch-c' },
     } as never)
 

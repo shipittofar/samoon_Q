@@ -11,7 +11,7 @@ import {
   nextTenantSwitchGeneration,
 } from '@/lib/console-workspace-switch'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
-import { authService, MOCK_SESSION_MEMBERSHIPS_KEY } from '@/services/auth.service'
+import { authService, writeMockMembershipCache } from '@/services/auth.service'
 import type { GetMeResponse } from '@/services/auth.service'
 import { hasAnyMembership } from '@/services/permission.service'
 import { applyTenantSessionRbac } from '@/lib/auth-session-rbac'
@@ -213,9 +213,7 @@ export async function requestConsoleTenantSwitch(tenantId: string): Promise<void
 
   const generation = nextTenantSwitchGeneration()
 
-  if (typeof localStorage !== 'undefined' && memberships.length > 0) {
-    localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify(memberships))
-  }
+  writeMockMembershipCache(memberships)
 
   // Mark pending + discard Branch A before the backend tenant pointer moves.
   useConsoleWorkspaceStore.getState().beginTenantSwitch(tenantId)

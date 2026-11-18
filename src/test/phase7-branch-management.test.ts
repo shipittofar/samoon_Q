@@ -269,7 +269,7 @@ describe('H — updateBranch', () => {
   it('H1: updateBranch updates name', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
-    const updated = await branchManagementService.updateBranch(branches[0].id, { name: 'Updated Name' })
+    const updated = await branchManagementService.updateBranch(branches[0].id, 'tenant-samoon-01', { name: 'Updated Name' })
     expect(updated.name).toBe('Updated Name')
   })
 
@@ -278,8 +278,9 @@ describe('H — updateBranch', () => {
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const target = branches[0]
     const originalCity = target.location.city
-    const updated = await branchManagementService.updateBranch(target.id, {
-      location: { postalCode: '12345' },
+    const updated = await branchManagementService.updateBranch(target.id, 'tenant-samoon-01', {
+      // Partial location on purpose: the service merges it over the existing one.
+      location: { postalCode: '12345' } as never,
     })
     expect(updated.location.city).toBe(originalCity)
     expect(updated.location.postalCode).toBe('12345')
@@ -290,13 +291,13 @@ describe('H — updateBranch', () => {
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const target = branches[0]
     const originalUpdatedAt = target.updated_at
-    const updated = await branchManagementService.updateBranch(target.id, { name: 'Updated Name' })
+    const updated = await branchManagementService.updateBranch(target.id, 'tenant-samoon-01', { name: 'Updated Name' })
     expect(updated.updated_at).not.toBe(originalUpdatedAt)
   })
 
   it('H4: updateBranch throws on unknown id', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    await expect(branchManagementService.updateBranch('nonexistent-id', { name: 'x' })).rejects.toThrow()
+    await expect(branchManagementService.updateBranch('nonexistent-id', 'tenant-samoon-01', { name: 'x' })).rejects.toThrow()
   })
 })
 
@@ -310,13 +311,13 @@ describe('I — activateBranch', () => {
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const inactive = branches.find((b) => b.status !== 'active')
     expect(inactive).toBeDefined()
-    const updated = await branchManagementService.activateBranch(inactive!.id)
+    const updated = await branchManagementService.activateBranch(inactive!.id, 'tenant-samoon-01')
     expect(updated.status).toBe('active')
   })
 
   it('I2: activateBranch throws on unknown id', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    await expect(branchManagementService.activateBranch('nonexistent-id')).rejects.toThrow()
+    await expect(branchManagementService.activateBranch('nonexistent-id', 'tenant-samoon-01')).rejects.toThrow()
   })
 })
 
@@ -330,13 +331,13 @@ describe('J — deactivateBranch', () => {
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const active = branches.find((b) => b.status === 'active')
     expect(active).toBeDefined()
-    const updated = await branchManagementService.deactivateBranch(active!.id)
+    const updated = await branchManagementService.deactivateBranch(active!.id, 'tenant-samoon-01')
     expect(updated.status).toBe('inactive')
   })
 
   it('J2: deactivateBranch throws on unknown id', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    await expect(branchManagementService.deactivateBranch('nonexistent-id')).rejects.toThrow()
+    await expect(branchManagementService.deactivateBranch('nonexistent-id', 'tenant-samoon-01')).rejects.toThrow()
   })
 })
 
@@ -350,13 +351,13 @@ describe('K — setMaintenanceMode', () => {
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const active = branches.find((b) => b.status === 'active')
     expect(active).toBeDefined()
-    const updated = await branchManagementService.setMaintenanceMode(active!.id)
+    const updated = await branchManagementService.setMaintenanceMode(active!.id, 'tenant-samoon-01')
     expect(updated.status).toBe('maintenance')
   })
 
   it('K2: setMaintenanceMode throws on unknown id', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
-    await expect(branchManagementService.setMaintenanceMode('nonexistent-id')).rejects.toThrow()
+    await expect(branchManagementService.setMaintenanceMode('nonexistent-id', 'tenant-samoon-01')).rejects.toThrow()
   })
 })
 
@@ -386,26 +387,26 @@ describe('M — getBranchMetrics', () => {
   it('M1: getBranchMetrics returns metrics object', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
-    expect(await branchManagementService.getBranchMetrics(branches[0].id)).toBeDefined()
+    expect(await branchManagementService.getBranchMetrics(branches[0].id, 'tenant-samoon-01')).toBeDefined()
   })
 
   it('M2: metrics has branchId matching the branch', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
     const branch = branches[0]
-    expect((await branchManagementService.getBranchMetrics(branch.id)).branchId).toBe(branch.id)
+    expect((await branchManagementService.getBranchMetrics(branch.id, 'tenant-samoon-01')).branchId).toBe(branch.id)
   })
 
   it('M3: metrics has numeric totalOrders', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
-    expect(typeof (await branchManagementService.getBranchMetrics(branches[0].id)).totalOrders).toBe('number')
+    expect(typeof (await branchManagementService.getBranchMetrics(branches[0].id, 'tenant-samoon-01')).totalOrders).toBe('number')
   })
 
   it('M4: metrics has period field', async () => {
     const { branchManagementService } = await import('@/services/branch.service')
     const branches = await branchManagementService.getBranches('tenant-samoon-01')
-    expect(['day', 'week', 'month', 'all']).toContain((await branchManagementService.getBranchMetrics(branches[0].id)).period)
+    expect(['day', 'week', 'month', 'all']).toContain((await branchManagementService.getBranchMetrics(branches[0].id, 'tenant-samoon-01')).period)
   })
 })
 
@@ -786,16 +787,18 @@ describe('U — Admin pages source', () => {
 // ── V. Staff detail page integration ─────────────────────────────────────────
 
 describe('V — Staff detail page integration', () => {
-  it('V1: staff detail page imports useAdminBranch', () => {
-    expect(readSrc('app/console/staff/[id]/page.tsx')).toContain('useAdminBranch')
+  it('V1: staff detail page renders the assigned-roles section', () => {
+    expect(readSrc('app/console/staff/[id]/page.tsx')).toContain('<StaffAssignedRolesSection')
   })
 
-  it('V2: staff detail page has BranchBadge component', () => {
-    expect(readSrc('app/console/staff/[id]/page.tsx')).toContain('BranchBadge')
+  it('V2: assigned-roles section opens the edit-assignment modal', () => {
+    expect(readSrc('components/admin/StaffAssignedRolesSection.tsx')).toContain('<StaffEditAssignmentModal')
   })
 
-  it('V3: staff detail page links to /console/branches', () => {
-    expect(readSrc('app/console/staff/[id]/page.tsx')).toContain('/console/branches/')
+  it('V3: edit-assignment modal manages branch (location) access', () => {
+    const modal = readSrc('components/admin/StaffEditAssignmentModal.tsx')
+    expect(modal).toContain('location_ids')
+    expect(modal).toContain('all_locations')
   })
 })
 

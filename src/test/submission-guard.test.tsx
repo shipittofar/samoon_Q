@@ -124,7 +124,7 @@ describe('useSubmissionGuard', () => {
   })
 
   it('releases the lock when the business write fails and keeps a later retry to one operation', async () => {
-    const save = vi.fn(async () => {
+    const save = vi.fn(async (): Promise<void> => {
       throw new Error('create failed')
     })
     const view = renderWithIntl(

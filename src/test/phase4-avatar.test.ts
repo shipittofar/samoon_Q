@@ -4,6 +4,7 @@
  * Covers: service validation, mock upload, store propagation, UI source
  * structure, and regression checks for existing flows.
  */
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { DirectUploadError } from '@/lib/upload-errors'
 import * as fs from 'node:fs'
 import * as path from 'node:path'

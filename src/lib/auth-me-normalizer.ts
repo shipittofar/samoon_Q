@@ -156,10 +156,17 @@ export function mergeTenantRolePermissionsOntoMemberships(
   })
 }
 
-function normalizeBranchAccess(record: WireRecord): TenantMembership['branchAccess'] {
+/**
+ * Missing/malformed branchAccess never widens access — except for Owner, the
+ * one deliberate exception documented on resolveBranchAccess()
+ * (permission.service.ts): Owner already holds every permission, so
+ * branch-restricting it because of missing data only breaks Owner.
+ * An explicit value from the backend is always taken as-is.
+ */
+function normalizeBranchAccess(record: WireRecord, roles: readonly Role[]): TenantMembership['branchAccess'] {
   const raw = record.branchAccess ?? record.branch_access
   const access = asRecord(raw)
-  if (!access) return { scope: 'selected', branchIds: [] }
+  if (!access) return roles.includes('owner') ? { scope: 'all' } : { scope: 'selected', branchIds: [] }
 
   const scopeRaw = pickString(access, 'scope')
   if (scopeRaw === 'all') return { scope: 'all' }
@@ -220,7 +227,7 @@ export function normalizeWireMembership(raw: unknown): TenantMembership | null {
     tenantName: pickMembershipTenantName(record),
     tenantLogo: pickNullableString(record, 'tenantLogo', 'tenant_logo'),
     roles: pickRoles(record),
-    branchAccess: normalizeBranchAccess(record),
+    branchAccess: normalizeBranchAccess(record, pickRoles(record)),
     branchId: pickString(record, 'branchId', 'branch_id'),
     status: (() => {
       const status = pickString(record, 'status')
@@ -306,7 +313,7 @@ function normalizeActiveMembership(
     tenantName,
     tenantSlug,
     roles: pickRoles(record),
-    branchAccess: normalizeBranchAccess(record),
+    branchAccess: normalizeBranchAccess(record, pickRoles(record)),
     ...(branchId ? { branchId } : {}),
     ...(branchName !== undefined ? { branchName } : {}),
   }

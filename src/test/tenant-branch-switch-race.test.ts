@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Role } from '@/types/rbac'
 import { renderHook, act } from '@testing-library/react'
 import { useConsoleWorkspaceStore } from '@/stores/console-workspace'
 import { useRbacStore, useBranchStore } from '@/stores'
@@ -35,7 +36,7 @@ const memberships = [
     tenantId: 'tenant-a',
     tenantSlug: 'slug-a',
     tenantName: 'Tenant A',
-    roles: ['owner'],
+    roles: ['owner'] as Role[],
     branchAccess: { scope: 'all' as const },
     branches: [
       { id: 'branch-a', name: 'Branch A', slug: 'branch-a', status: 'active' as const, isDefault: true },
@@ -45,7 +46,7 @@ const memberships = [
     tenantId: 'tenant-b',
     tenantSlug: 'slug-b',
     tenantName: 'Tenant B',
-    roles: ['manager'],
+    roles: ['manager'] as Role[],
     branchAccess: { scope: 'all' as const },
     branches: [
       { id: 'branch-b', name: 'Branch B', slug: 'branch-b', status: 'active' as const, isDefault: true },
@@ -104,7 +105,7 @@ describe('tenant/branch switch race — stale branch prevention', () => {
         created_at: '',
       },
       memberships,
-      activeMembership: { tenantId: 'tenant-b', branchId: 'branch-b', roles: ['manager'], branchAccess: { scope: 'all' } },
+      activeMembership: { tenantId: 'tenant-b', branchId: 'branch-b', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
     } as never)
 
     const pending = requestConsoleTenantSwitch('tenant-b')
@@ -195,8 +196,8 @@ describe('tenant/branch switch race — stale branch prevention', () => {
       activeMembership: {
         tenantId: 'tenant-b',
         branchId: 'branch-b',
-        roles: ['manager'],
-        branchAccess: { scope: 'all' },
+        roles: ['manager'] as Role[],
+        branchAccess: { scope: 'all' as const },
       },
     } as never)
 
@@ -237,8 +238,8 @@ describe('tenant/branch switch race — stale branch prevention', () => {
         activeMembership: {
           tenantId: last === 'tenant-a' ? 'tenant-a' : 'tenant-b',
           branchId: last === 'tenant-a' ? 'branch-a' : 'branch-b',
-          roles: ['owner'],
-          branchAccess: { scope: 'all' },
+          roles: ['owner'] as Role[],
+          branchAccess: { scope: 'all' as const },
         },
       } as never
     })
@@ -290,8 +291,8 @@ describe('tenant/branch switch race — stale branch prevention', () => {
       activeMembership: {
         tenantId: 'tenant-a',
         branchId: 'branch-b-local',
-        roles: ['owner'],
-        branchAccess: { scope: 'all' },
+        roles: ['owner'] as Role[],
+        branchAccess: { scope: 'all' as const },
       },
     } as never)
 

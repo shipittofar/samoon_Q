@@ -29,7 +29,7 @@ describe('Phase 3.8 — activateTenant() rejects instead of fabricating DEFAULT_
   it('still resolves normally for a real tenant (no regression)', async () => {
     const svc = await freshTenantService()
     const updated = await svc.activateTenant('tenant-road-bites-01')
-    expect(updated.status).toBe('active')
+    expect(updated.status).toBe('ACTIVE')
   })
 })
 
@@ -42,7 +42,8 @@ describe('Phase 3.8 — suspendTenant() rejects instead of fabricating DEFAULT_T
   it('still resolves normally for a real tenant (no regression)', async () => {
     const svc = await freshTenantService()
     const updated = await svc.suspendTenant('tenant-samoon-01')
-    expect(updated.status).toBe('suspended')
+    // Operational status is ACTIVE | INACTIVE | CLOSED (backend contract).
+    expect(updated.status).toBe('CLOSED')
   })
 })
 
@@ -55,7 +56,8 @@ describe('Phase 3.8 — archiveTenant() rejects instead of fabricating DEFAULT_T
   it('still resolves normally for a real tenant (no regression)', async () => {
     const svc = await freshTenantService()
     const updated = await svc.archiveTenant('tenant-samoon-01')
-    expect(updated.status).toBe('archived')
+    expect(updated.status).toBe('CLOSED')
+    expect(updated.is_active).toBe(false)
   })
 })
 

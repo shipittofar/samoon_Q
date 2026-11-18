@@ -71,7 +71,7 @@ describe('Fix 5 — usePermissions unions session + store', () => {
   it('unions session and store permissions when both exist for active tenant', () => {
     useRbacStore.getState().setSessionMemberships([ownerMembership(TENANT_A)], { tenantId: TENANT_A })
     const { permissions } = normalizeTenantPermissions(
-      { memberships: [ownerMembership(TENANT_A)], activeMembership: { tenantId: TENANT_A } },
+      { memberships: [ownerMembership(TENANT_A)], activeMembership: ownerMembership(TENANT_A) },
       TENANT_A,
     )
     useRbacStore.getState().setCurrentTenantSession(TENANT_A, ['owner'], permissions, { scope: 'all' })
@@ -86,7 +86,7 @@ describe('Fix 5 — usePermissions unions session + store', () => {
     useRbacStore.getState().setSessionMemberships([ownerMembership(TENANT_A)], { tenantId: TENANT_A })
     applyTenantSessionRbac(TENANT_A, {
       memberships: [ownerMembership(TENANT_A)],
-      activeMembership: { tenantId: TENANT_A },
+      activeMembership: ownerMembership(TENANT_A),
     })
     usePermissionStore.getState().setPermissions(['orders.view', 'menu.view'], TENANT_A)
 
@@ -107,7 +107,7 @@ describe('Hard refresh simulation — dashboard access', () => {
     const memberships = [ownerMembership(TENANT_A)]
     applyTenantSessionRbac(TENANT_A, {
       memberships,
-      activeMembership: { tenantId: TENANT_A },
+      activeMembership: ownerMembership(TENANT_A),
     })
 
     const session = useRbacStore.getState().currentTenantSession
@@ -121,7 +121,7 @@ describe('Hard refresh simulation — dashboard access', () => {
     useRbacStore.getState().setSessionMemberships([ownerMembership(TENANT_A)], { tenantId: TENANT_A })
     applyTenantSessionRbac(TENANT_A, {
       memberships: [ownerMembership(TENANT_A)],
-      activeMembership: { tenantId: TENANT_A },
+      activeMembership: ownerMembership(TENANT_A),
     })
 
     const { result } = renderHook(() => useHasDashboardAccess())
@@ -137,7 +137,7 @@ describe('Tenant switch preserves RBAC for active tenant', () => {
     )
     applyTenantSessionRbac(TENANT_A, {
       memberships: [ownerMembership(TENANT_A), ownerMembership(TENANT_B)],
-      activeMembership: { tenantId: TENANT_A },
+      activeMembership: ownerMembership(TENANT_A),
     })
 
     const { result: permsA } = renderHook(() => usePermissions())
@@ -146,7 +146,7 @@ describe('Tenant switch preserves RBAC for active tenant', () => {
     useRbacStore.getState().clearCurrentTenantSession()
     applyTenantSessionRbac(TENANT_B, {
       memberships: [ownerMembership(TENANT_A), ownerMembership(TENANT_B)],
-      activeMembership: { tenantId: TENANT_B },
+      activeMembership: ownerMembership(TENANT_B),
     })
     useRbacStore.getState().setSessionMemberships(
       [ownerMembership(TENANT_A), ownerMembership(TENANT_B)],

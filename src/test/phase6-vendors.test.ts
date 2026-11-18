@@ -208,8 +208,8 @@ describe('D. vendorService.createVendor()', () => {
       contactEmail: 'new@example.com',
     })
     expect(vendor.id).toBeTruthy()
-    expect(vendor.createdAt).toBeTruthy()
-    expect(vendor.updatedAt).toBeTruthy()
+    expect(vendor.created_at).toBeTruthy()
+    expect(vendor.updated_at).toBeTruthy()
     expect(vendor.name).toBe('New Stall')
   })
 
@@ -260,8 +260,8 @@ describe('E. vendorService.updateVendor()', () => {
     await new Promise((r) => setTimeout(r, 2))
     await vendorService.updateVendor('vendor-2', TENANT_SAMOON, { featured: true })
     const after = await vendorService.getVendor('vendor-2', TENANT_SAMOON)
-    expect(new Date(after.updatedAt).getTime()).toBeGreaterThanOrEqual(
-      new Date(before.updatedAt).getTime(),
+    expect(new Date(after.updated_at).getTime()).toBeGreaterThanOrEqual(
+      new Date(before.updated_at).getTime(),
     )
   })
 

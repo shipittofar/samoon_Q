@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { Role } from '@/types/rbac'
 import { render, screen, waitFor } from '@testing-library/react'
 import { renderHook, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -105,8 +106,6 @@ function setWorkspace(opts: {
       ? {
           tenantId,
           branchId: branchId ?? undefined,
-          roles: ['owner'],
-          branchAccess: { scope: 'all' as const },
         }
       : null,
     sessionMemberships: tenantId
@@ -114,7 +113,7 @@ function setWorkspace(opts: {
           tenantId,
           tenantSlug: `slug-${tenantId}`,
           tenantName: `Tenant ${tenantId}`,
-          roles: ['owner'],
+          roles: ['owner'] as Role[],
           branchAccess: { scope: 'all' as const },
         }]
       : [],

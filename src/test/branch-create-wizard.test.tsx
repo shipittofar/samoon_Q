@@ -64,7 +64,7 @@ vi.mock('@/hooks', async (importOriginal) => {
     ...actual,
     useConsoleTenantId: () => 'tenant-samoon-01',
     useConsoleCreateBranch: () => ({
-      mutate: createMutate,
+      mutateAsync: (payload: unknown) => Promise.resolve(createMutate(payload)),
       isPending: false,
     }),
     useReverseGeocode: () => ({ mutate: vi.fn() }),
@@ -173,8 +173,8 @@ describe('Branch create wizard submission', () => {
   })
 
   it('unlocks after a failed create so retry is possible', async () => {
-    createMutate.mockImplementation((_payload: unknown, opts?: { onError?: (err: Error) => void }) => {
-      opts?.onError?.(new Error('nope'))
+    createMutate.mockImplementation(() => {
+      throw new Error('nope')
     })
     const view = renderWizard()
     await goToFinalStep(view)

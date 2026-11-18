@@ -21,7 +21,7 @@ const tenant = {
 describe('normalizeMenuItems contract', () => {
   it('rejects a response envelope instead of calling map on it', () => {
     expect(() => normalizeMenuItems({ tenant, results: [] } as never)).toThrow(
-      /expected an array of menu items, received object.*results array/s,
+      /expected an array of menu items, received object[\s\S]*results array/,
     )
   })
 })

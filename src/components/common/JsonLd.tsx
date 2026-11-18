@@ -1,4 +1,5 @@
 import type { MenuItem } from '@/types'
+import { serializeJsonLd } from '@/lib/json-ld'
 
 // ── Platform WebSite Schema ───────────────────────────────────────────────────
 // P8.8.1 — replaced single-restaurant RestaurantSchema with a platform-level
@@ -23,7 +24,7 @@ export function PlatformSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
     />
   )
 }
@@ -63,7 +64,7 @@ export function MenuItemSchema({ item }: { item: MenuItem }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
     />
   )
 }
@@ -88,7 +89,7 @@ export function BreadcrumbSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
     />
   )
 }
@@ -112,7 +113,7 @@ export function FAQSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
     />
   )
 }

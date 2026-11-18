@@ -115,6 +115,54 @@ export const MOCK_ACTIVE_TENANT_KEY = 'mock_active_tenant_id'
 export const MOCK_ACTIVE_BRANCH_KEY = 'mock_active_branch_id'
 export const MOCK_SESSION_MEMBERSHIPS_KEY = 'mock_session_memberships'
 
+/**
+ * Mock mode: the user created by register(), so the post-register GET /auth/me
+ * (establishAuthenticatedSession) returns that user rather than the demo
+ * MOCK_USER — mirroring a real backend, where /auth/me returns who just signed up.
+ */
+const MOCK_REGISTERED_USER_KEY = 'mock_registered_user'
+
+function rememberMockRegisteredUser(user: User): User {
+  if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_REGISTERED_USER_KEY, JSON.stringify(user))
+  return user
+}
+
+function readMockRegisteredUser(): User | null {
+  if (typeof localStorage === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(MOCK_REGISTERED_USER_KEY)
+    return raw ? (JSON.parse(raw) as User) : null
+  } catch {
+    return null
+  }
+}
+
+/** Cached mock memberships for `email`, or null when absent, stale or owned by another user. */
+function readMockMembershipCache(email: string): TenantMembership[] | null {
+  if (typeof localStorage === 'undefined') return null
+  const raw = localStorage.getItem(MOCK_SESSION_MEMBERSHIPS_KEY)
+  if (raw === null) return null
+  try {
+    const parsed = JSON.parse(raw) as { email?: unknown; memberships?: unknown }
+    if (parsed && parsed.email === email && Array.isArray(parsed.memberships)) {
+      return parsed.memberships as TenantMembership[]
+    }
+  } catch {
+    // Corrupt cache — fall through and rebuild from MOCK_CREDENTIALS.
+  }
+  localStorage.removeItem(MOCK_SESSION_MEMBERSHIPS_KEY)
+  return null
+}
+
+/** Caches mock memberships for the given (default: current) mock session user. */
+export function writeMockMembershipCache(
+  memberships: readonly TenantMembership[],
+  email: string | null = typeof localStorage !== 'undefined' ? localStorage.getItem(MOCK_SESSION_KEY) : null,
+): void {
+  if (typeof localStorage === 'undefined' || !email || memberships.length === 0) return
+  localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify({ email, memberships }))
+}
+
 function persistMockSessionEmail(email: string): void {
   if (typeof localStorage !== 'undefined') localStorage.setItem(MOCK_SESSION_KEY, email)
   try {
@@ -304,8 +352,7 @@ export const authService = {
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
       return {
-        // user: { ...MOCK_USER, email: data.email, first_name: data.first_name, last_name: data.last_name },
-        user: { ...MOCK_USER, first_name: data.first_name, last_name: data.last_name },
+        user: rememberMockRegisteredUser({ ...MOCK_USER, first_name: data.first_name, last_name: data.last_name }),
         tokens,
         p7Roles: [],
         ...deriveMockAuthSession([]),
@@ -337,6 +384,7 @@ export const authService = {
         localStorage.removeItem(MOCK_ACTIVE_TENANT_KEY)
         localStorage.removeItem(MOCK_ACTIVE_BRANCH_KEY)
         localStorage.removeItem(MOCK_SESSION_MEMBERSHIPS_KEY)
+        localStorage.removeItem(MOCK_REGISTERED_USER_KEY)
       }
     }
   },
@@ -362,11 +410,9 @@ export const authService = {
         if (email && MOCK_CREDENTIALS[email]) {
           const entry = MOCK_CREDENTIALS[email]
           const session = deriveMockAuthSession(entry.p7Roles)
-          const cachedMembershipsRaw = localStorage.getItem(MOCK_SESSION_MEMBERSHIPS_KEY)
-          const memberships =
-            cachedMembershipsRaw !== null
-              ? (JSON.parse(cachedMembershipsRaw) as TenantMembership[])
-              : session.memberships
+          // The cache is only valid for the user who wrote it — switching mock
+          // users without a full logout must not serve the previous user's roles.
+          const memberships = readMockMembershipCache(email) ?? session.memberships
           const pendingActiveTenantId = localStorage.getItem(MOCK_ACTIVE_TENANT_KEY)
           const pendingActiveBranchId = localStorage.getItem(MOCK_ACTIVE_BRANCH_KEY)
           const activeMembership = pendingActiveTenantId
@@ -397,13 +443,11 @@ export const authService = {
                 }
               : activeMembership,
           }
-          if (memberships.length > 0) {
-            localStorage.setItem(MOCK_SESSION_MEMBERSHIPS_KEY, JSON.stringify(memberships))
-          }
+          writeMockMembershipCache(memberships, email)
           return response
         }
       }
-      return { user: MOCK_USER, ...deriveMockAuthSession([]) }
+      return { user: readMockRegisteredUser() ?? MOCK_USER, ...deriveMockAuthSession([]) }
     }
     // Real mode: `memberships`/`activeMembership`/`ownership`/
     // `staffAssignments` are all optional — a backend that doesn't send

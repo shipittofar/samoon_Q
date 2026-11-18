@@ -98,7 +98,6 @@ describe('E2E: Auth Flow', () => {
   it('register creates a new mock user', async () => {
     const { authService } = await import('@/services/auth.service')
     const promise = authService.register({
-      email: 'new@test.com',
       password: 'pass123',
       confirm_password: 'pass123',
       first_name: 'New',
@@ -107,7 +106,7 @@ describe('E2E: Auth Flow', () => {
     })
     await vi.runAllTimersAsync()
     const result = await promise
-    expect(result.user.email).toBe('new@test.com')
+    expect(result.user.first_name).toBe('New')
     expect(result.user.first_name).toBe('New')
     const { MOCK_ACCESS_TOKEN } = await import('@/services/auth.service')
     expect(result.tokens.access).toBe(MOCK_ACCESS_TOKEN)

@@ -477,7 +477,8 @@ describe('P4.8.8 — Registration safety & regression checks', () => {
 
   it('providers still contain Sentry integration (no regression)', () => {
     expect(src('providers/index.tsx')).toContain('setSentryUser')
-    expect(src('providers/index.tsx')).toContain('clearSentryUser')
+    expect(src('providers/index.tsx')).toContain('clearAuthenticatedClientState')
+    expect(src('lib/auth-session-teardown.ts')).toContain('clearSentryUser')
   })
 
   it('providers still contain auth bootstrapper (no regression)', () => {

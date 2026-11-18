@@ -41,6 +41,8 @@ function loginAsPlatformOwner() {
   useAuthStore.getState().setUser({
     id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     accountType: 'business', is_verified: true, created_at: '2024-01-01T00:00:00Z',
+    // Platform Configuration Studio requires Django is_superuser (not tenant RBAC).
+    is_superuser: true,
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
@@ -137,19 +139,21 @@ describe('Platform Dashboard (Phase D, framework, generic)', () => {
   })
 
   it('renders widgets through the Studio emptyWorkspace slot without affecting the Configuration Studio default', () => {
-    render(<ConfigurationStudioLayout onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" onNavigate={vi.fn()} />)
     expect(screen.getByText('Select a module from the list to begin.')).toBeInTheDocument()
   })
 
   it('renders the dashboard when passed as emptyWorkspace', () => {
-    render(<ConfigurationStudioLayout onNavigate={vi.fn()} emptyWorkspace={<PlatformDashboard />} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" onNavigate={vi.fn()} emptyWorkspace={<PlatformDashboard />} />)
     expect(screen.getByText('Active Businesses')).toBeInTheDocument()
     expect(screen.getByText('Server Health')).toBeInTheDocument()
   })
 
   it('a scoped role only sees widgets its permissions actually grant', () => {
     usePlatformAdminStore.getState().setPlatformRole('platform_finance')
-    render(<ConfigurationStudioLayout onNavigate={vi.fn()} emptyWorkspace={<PlatformDashboard />} />)
+    // A scoped platform role, not a Django superuser (superusers see every widget).
+    useAuthStore.getState().setUser({ ...useAuthStore.getState().user!, is_superuser: false })
+    render(<ConfigurationStudioLayout permissionContext="platform" onNavigate={vi.fn()} emptyWorkspace={<PlatformDashboard />} />)
     // platform_finance has platform.subscriptions.view (MRR) but not platform.monitoring.view (Server Health)
     expect(screen.getByText('MRR')).toBeInTheDocument()
     expect(screen.queryByText('Server Health')).not.toBeInTheDocument()
@@ -173,7 +177,7 @@ describe('Platform Search (Phase F, framework, generic)', () => {
 
   it('command palette surfaces a Businesses search hit and can navigate to it', async () => {
     const onNavigate = vi.fn()
-    render(<ConfigurationStudioLayout onNavigate={onNavigate} emptyWorkspace={<PlatformDashboard />} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" onNavigate={onNavigate} emptyWorkspace={<PlatformDashboard />} />)
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
     const input = await screen.findByPlaceholderText('Go to a module, jump to a setting, or run a command…')
     fireEvent.change(input, { target: { value: 'Brew Cafe' } })
@@ -185,20 +189,20 @@ describe('Platform Search (Phase F, framework, generic)', () => {
 
 describe('Studio reuse — Tenants/Platform Users render through the exact same shell as Authentication/Countries', () => {
   it('renders the Tenants collection module', () => {
-    render(<ConfigurationStudioLayout activeModuleId="platform.tenants" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="platform.tenants" onNavigate={vi.fn()} />)
     expect(screen.getByText('Samoon Restaurant')).toBeInTheDocument()
     expect(screen.getByText('Slug')).toBeInTheDocument() // sanity: collection table header pattern reused (entityIdLabel)
   })
 
   it('renders the Platform Users collection module', () => {
-    render(<ConfigurationStudioLayout activeModuleId="platform.users" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="platform.users" onNavigate={vi.fn()} />)
     expect(screen.getByText('Pat Owner')).toBeInTheDocument()
   })
 })
 
 describe('Authentication/Countries regression (no framework change should affect them)', () => {
   it('Authentication still renders and saves through the Studio', async () => {
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={vi.fn()} />)
     const otpRow = screen.getByText('OTP Login Enabled').closest('[data-field-id]') as HTMLElement
     fireEvent.click(within(otpRow).getByRole('switch'))
     expect(await screen.findByText('1 unsaved')).toBeInTheDocument()
@@ -207,12 +211,12 @@ describe('Authentication/Countries regression (no framework change should affect
   })
 
   it('Countries still renders its 176-country roster', () => {
-    render(<ConfigurationStudioLayout activeModuleId="countries" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="countries" onNavigate={vi.fn()} />)
     expect(within(screen.getByRole('table')).getByText('Germany')).toBeInTheDocument()
   })
 
   it('every module in the registry is still listed in the nav', () => {
-    render(<ConfigurationStudioLayout onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" onNavigate={vi.fn()} />)
     for (const mod of platformConfigurationRegistry.getModules()) {
       expect(screen.getByRole('button', { name: mod.name })).toBeInTheDocument()
     }

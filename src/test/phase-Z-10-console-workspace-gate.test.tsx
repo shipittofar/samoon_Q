@@ -17,6 +17,7 @@
 //      ([tenantSlug]/layout.tsx) is untouched by this phase.
 // ============================================================
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { Role } from '@/types/rbac'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NextIntlClientProvider } from 'next-intl'
@@ -69,10 +70,10 @@ describe('Phase Z.10 — Scenario 1: business owner WITH a tenant', () => {
   it('business owner WITH a tenant: Console loads (children render) and dashboard:access-gated content is visible — permissions work', () => {
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
-    const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner', 'admin'] }, SAMOON.id)
+    const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner', 'admin'] as Role[] }, SAMOON.id)
     useRbacStore.getState().setCurrentTenantSession(SAMOON.id, roles, permissions, branchAccess)
     useRbacStore.getState().setHasTenantMembership(true)
-    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner', 'admin'], branchAccess: { scope: 'all' } }], { tenantId: SAMOON.id })
+    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner', 'admin'] as Role[], branchAccess: { scope: 'all' as const } }], { tenantId: SAMOON.id })
 
     render(withProviders(
       <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
@@ -84,10 +85,10 @@ describe('Phase Z.10 — Scenario 1: business owner WITH a tenant', () => {
   it('the tenant switcher (tenant.view-gated, owner role) appears in the workspace', async () => {
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
-    const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] }, SAMOON.id)
+    const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] as Role[] }, SAMOON.id)
     useRbacStore.getState().setCurrentTenantSession(SAMOON.id, roles, permissions, branchAccess)
     useRbacStore.getState().setHasTenantMembership(true)
-    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }], { tenantId: SAMOON.id })
+    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }], { tenantId: SAMOON.id })
 
     render(withProviders(
       <ConsoleWorkspaceGate><AdminTenantSwitcher /></ConsoleWorkspaceGate>,
@@ -101,7 +102,7 @@ describe('Phase Z.10 — Scenario 1: business owner WITH a tenant', () => {
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
     useRbacStore.getState().setHasTenantMembership(true)
-    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }], { tenantId: SAMOON.id })
+    useRbacStore.getState().setSessionMemberships([{ tenantId: SAMOON.id, roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }], { tenantId: SAMOON.id })
     // No currentTenantSession set — no permission grant.
 
     render(withProviders(
@@ -148,7 +149,7 @@ describe('Phase Z.10 — a real tenant-resolution failure (has membership, but t
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     useTenantStore.setState({ tenant: null, tenantState: 'not_found', lastAttemptedSlug: 'ghost' } as never)
     useRbacStore.getState().setHasTenantMembership(true)
-    useRbacStore.getState().setSessionMemberships([{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' } }], { tenantId: 't1' })
+    useRbacStore.getState().setSessionMemberships([{ tenantId: 't1', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }], { tenantId: 't1' })
 
     render(withProviders(
       <ConsoleWorkspaceGate><div>Console Workspace</div></ConsoleWorkspaceGate>,
@@ -165,11 +166,11 @@ describe('Phase Z.10 — tenant selection cases (activeMembership vs memberships
   it('Case 1: activeMembership.tenantId resolves and workspace renders when tenant is loaded', () => {
     useAuthStore.setState({ user: businessUser(), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     useTenantStore.setState({ tenant: SAMOON as never, tenantState: 'resolved' } as never)
-    const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] }, SAMOON.id)
+    const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] as Role[] }, SAMOON.id)
     useRbacStore.getState().setCurrentTenantSession(SAMOON.id, roles, permissions, branchAccess)
     useRbacStore.getState().setHasTenantMembership(true)
     useRbacStore.getState().setSessionMemberships(
-      [{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+      [{ tenantId: SAMOON.id, roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       { tenantId: SAMOON.id },
     )
 
@@ -185,8 +186,8 @@ describe('Phase Z.10 — tenant selection cases (activeMembership vs memberships
     useTenantStore.setState({ tenant: null, tenantState: 'not_found' } as never)
     useRbacStore.getState().setHasTenantMembership(true)
     const memberships = [
-      { tenantId: SAMOON.id, tenantName: 'Samoon Restaurant', tenantSlug: 'samoon', roles: ['owner'], branchAccess: { scope: 'all' } },
-      { tenantId: 'tenant-b-02', tenantName: 'Other Business', tenantSlug: 'other-business', roles: ['manager'], branchAccess: { scope: 'all' } },
+      { tenantId: SAMOON.id, tenantName: 'Samoon Restaurant', tenantSlug: 'samoon', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } },
+      { tenantId: 'tenant-b-02', tenantName: 'Other Business', tenantSlug: 'other-business', roles: ['manager'] as Role[], branchAccess: { scope: 'all' as const } },
     ]
     useRbacStore.getState().setSessionMemberships(memberships, null)
 
@@ -248,7 +249,7 @@ describe('Phase Z.10 — tenant selection cases (activeMembership vs memberships
 
     const getMeSpy = vi.spyOn(authService, 'getMe').mockResolvedValue({
       user: businessUser(),
-      memberships: [{ tenantId: SAMOON.id, roles: ['owner'], branchAccess: { scope: 'all' } }],
+      memberships: [{ tenantId: SAMOON.id, roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
       activeMembership: { tenantId: SAMOON.id },
     } as never)
 

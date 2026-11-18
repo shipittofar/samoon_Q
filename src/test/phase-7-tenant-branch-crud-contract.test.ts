@@ -58,6 +58,7 @@ describe('Phase 7 — Add Tenant payload', () => {
     tenantProvisioningService._resetMockSlugs()
     const result = await tenantProvisioningService.provisionTenant({
       name: 'Audit Cafe',
+      description: 'Audit cafe description',
       businessType: 'cafe',
       branding: { primaryColor: '#6f4e37' },
     })

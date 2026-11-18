@@ -70,6 +70,8 @@ describe('Phase 9.3 — accountType is not an authorization signal', () => {
   it('a tenant membership with roles:["manager"] GETS console access, regardless of accountType', () => {
     useAuthStore.setState({ user: userWith('customer'), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['manager'] }, 'tenant-1')
+    // The Console tenant comes from activeMembership (useConsoleTenantId).
+    useRbacStore.getState().setSessionMemberships([{ tenantId: 'tenant-1', roles, branchAccess }], { tenantId: 'tenant-1' })
     useRbacStore.getState().setCurrentTenantSession('tenant-1', roles, permissions, branchAccess)
     useTenantStore.setState({ tenant: { id: 'tenant-1' } as never, tenantState: 'resolved' } as never)
 
@@ -81,6 +83,8 @@ describe('Phase 9.3 — accountType is not an authorization signal', () => {
   it('a customer accountType WITH a real tenant membership still gets console access — accountType never overrides a real grant either', () => {
     useAuthStore.setState({ user: userWith('customer'), isAuthenticated: true, isLoading: false, sessionCheckFailed: false })
     const { roles, permissions, branchAccess } = normalizeTenantPermissions({ roles: ['owner'] }, 'tenant-1')
+    // The Console tenant comes from activeMembership (useConsoleTenantId).
+    useRbacStore.getState().setSessionMemberships([{ tenantId: 'tenant-1', roles, branchAccess }], { tenantId: 'tenant-1' })
     useRbacStore.getState().setCurrentTenantSession('tenant-1', roles, permissions, branchAccess)
     useTenantStore.setState({ tenant: { id: 'tenant-1' } as never, tenantState: 'resolved' } as never)
 

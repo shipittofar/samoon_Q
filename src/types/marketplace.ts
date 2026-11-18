@@ -251,7 +251,7 @@ export function hasActiveFilters(f: FilterState): boolean {
 export function getMarketplaceMeta(
   settings?: { marketplace?: TenantMarketplaceSettings | MarketplaceMeta },
 ): MarketplaceMeta | undefined {
-  return settings?.marketplace
+  return pickTenantMarketplace(settings?.marketplace)
 }
 
 /** Maps a canonical branch detail response into the public display shape. */

@@ -114,10 +114,23 @@ export function buildMenuItemJsonLd(options: JsonLdMenuItemOptions): Record<stri
 
 /**
  * Serialises a JSON-LD object to a string safe for use in
- * dangerouslySetInnerHTML. Escapes </script> sequences.
+ * dangerouslySetInnerHTML inside <script type="application/ld+json">.
+ *
+ * Escapes every `<`, `>` and `&` (not just `</script>`) so tenant-supplied
+ * text cannot close the script element, open an HTML comment (`<!--`), or
+ * otherwise break out. U+2028/U+2029 are escaped for older JS parsers.
+ * The output is still valid JSON and parses back to the same value.
  */
+const LINE_SEPARATOR = new RegExp(String.fromCharCode(0x2028), 'g')
+const PARAGRAPH_SEPARATOR = new RegExp(String.fromCharCode(0x2029), 'g')
+
 export function serializeJsonLd(ld: Record<string, unknown>): string {
-  return JSON.stringify(ld).replace(/<\/script>/gi, '<\\/script>')
+  return JSON.stringify(ld)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(LINE_SEPARATOR, '\\u2028')
+    .replace(PARAGRAPH_SEPARATOR, '\\u2029')
 }
 
 // ── Platform defaults ──────────────────────────────────────────────────────────

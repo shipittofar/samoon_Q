@@ -63,7 +63,6 @@ afterEach(() => {
 describe('P10.9 — authService.register() accepts country_code/phone_number, no password required', () => {
   it('registers successfully with only country_code, phone_number, first_name, last_name, email', async () => {
     const promise = authService.register({
-      email: 'new-phone-user@phone_number.samoon.local',
       country_code: '+1',
       phone_number: '4255552222',
       first_name: 'Ali',
@@ -82,7 +81,6 @@ describe('P10.9 — useRegister() hydrates session after successful registration
   it('calls setUser() with the returned user', async () => {
     const { result } = renderHook(() => useRegister(), { wrapper })
     const mutatePromise = result.current.mutateAsync({
-      email: 'hydrate-test@phone_number.samoon.local',
       country_code: '+44',
       phone_number: '7911123456',
       first_name: 'Jane',
@@ -98,7 +96,6 @@ describe('P10.9 — useRegister() hydrates session after successful registration
   it('does not throw and leaves tenantRoles empty for a brand-new customer (p7Roles: [])', async () => {
     const { result } = renderHook(() => useRegister(), { wrapper })
     const mutatePromise = result.current.mutateAsync({
-      email: 'hydrate-test-2@phone_number.samoon.local',
       country_code: '+61',
       phone_number: '412345678',
       first_name: 'Sam',

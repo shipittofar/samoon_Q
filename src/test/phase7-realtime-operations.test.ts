@@ -994,7 +994,7 @@ describe('K — RealtimeStatistics', () => {
   it('statistics updatedAt is valid ISO string', async () => {
     const { realtimeOperationsService } = await import('@/services/realtime-operations.service')
     const stats = await realtimeOperationsService.getRealtimeStatistics({ tenantId: 'tenant-samoon-01' })
-    expect(() => new Date(stats.updatedAt)).not.toThrow()
+    expect(() => new Date(stats.updated_at)).not.toThrow()
   })
 })
 
@@ -1325,9 +1325,10 @@ describe('R — Regression', () => {
     expect(count).toBeGreaterThanOrEqual(6)
   })
 
-  it('permission.service.ts has 31 total permissions', async () => {
+  it('permission.service.ts has the expected total permission count', async () => {
     const { ALL_PERMISSIONS } = await import('@/services/permission.service')
-    expect(ALL_PERMISSIONS).toHaveLength(64)
+    // +rbac.manage_roles
+    expect(ALL_PERMISSIONS).toHaveLength(65)
   })
 
   it('realtime types do not use any type', () => {

@@ -27,6 +27,8 @@ function loginAsPlatformOwner() {
   useAuthStore.getState().setUser({
     id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     accountType: 'business', is_verified: true, created_at: '2024-01-01T00:00:00Z',
+    // Platform Configuration Studio requires Django is_superuser (not tenant RBAC).
+    is_superuser: true,
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
@@ -181,13 +183,13 @@ describe('Permissions (Phase K) — Platform Admin only', () => {
 
 describe('Studio reuse — Language Management renders through the exact same shell as Countries/Platform Users (Phase C/D)', () => {
   it('renders the Languages collection module with zero new UI component code', () => {
-    render(<ConfigurationStudioLayout activeModuleId="platform.languages" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="platform.languages" onNavigate={vi.fn()} />)
     expect(screen.getByRole('table')).toBeInTheDocument()
     expect(within(screen.getByRole('table')).getByText('فارسی')).toBeInTheDocument()
   })
 
   it('the entity drawer opens with the generic tabs (Configuration/Overrides/Dependencies/Audit/Statistics/Inheritance/Preview)', async () => {
-    render(<ConfigurationStudioLayout activeModuleId="platform.languages" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="platform.languages" onNavigate={vi.fn()} />)
     const row = screen.getByText('فارسی').closest('tr') as HTMLElement
     fireEvent.click(row)
     expect(await screen.findByRole('button', { name: 'Preview' })).toBeInTheDocument()
@@ -196,12 +198,12 @@ describe('Studio reuse — Language Management renders through the exact same sh
 
 describe('Regression — no framework change affects Countries/Platform Users/Authentication', () => {
   it('Countries still renders its 176-country roster', () => {
-    render(<ConfigurationStudioLayout activeModuleId="countries" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="countries" onNavigate={vi.fn()} />)
     expect(within(screen.getByRole('table')).getByText('Germany')).toBeInTheDocument()
   })
 
   it('every module (including platform.languages) is listed in the nav exactly once', () => {
-    render(<ConfigurationStudioLayout onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" onNavigate={vi.fn()} />)
     const matches = screen.getAllByRole('button', { name: 'Language Management' })
     expect(matches).toHaveLength(1)
   })

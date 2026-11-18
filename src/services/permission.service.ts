@@ -368,6 +368,9 @@ export function resolveBranchAccess(
     return { scope: 'selected', branchIds: [] }
   }
 
+  // Missing/malformed explicit value: Owner is the one deliberate exception
+  // (see doc comment above) — never restrict an Owner via missing data.
+  if (roles.includes('owner')) return { scope: 'all' }
   return { scope: 'selected', branchIds: [] }
 }
 

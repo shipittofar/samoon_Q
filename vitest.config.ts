@@ -14,6 +14,10 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
+    // Several suites dynamically import src/hooks/index.ts (very large) or
+    // the full stores module; under a parallel full run that alone can take
+    // >5s (vitest's default), producing timeouts that aren't real failures.
+    testTimeout: 20_000,
     env: {
       NEXT_PUBLIC_USE_MOCK: 'true',
     },

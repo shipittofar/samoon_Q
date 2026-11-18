@@ -30,7 +30,7 @@ const ROOT = path.resolve(__dirname, '../../')
 function src(rel: string) { return fs.readFileSync(path.join(ROOT, rel), 'utf8') }
 
 const page = src('src/app/console/reservations/page.tsx')
-const hooks = src('src/hooks/index.ts')
+const hooks = src('src/hooks/index.ts').replace(/\r\n/g, '\n')
 
 // ── A. No MOCK_RESERVATIONS ───────────────────────────────────────────────────
 
@@ -205,8 +205,8 @@ describe('Hooks — optimistic updates', () => {
 // ── J. Branch filtering wired ─────────────────────────────────────────────────
 
 describe('Admin reservations page — branch integration', () => {
-  it('J: imports useBranches', () => {
-    expect(page).toMatch(/useBranches/)
+  it('J: loads tenant branches for the filter (useAdminBranches)', () => {
+    expect(page).toMatch(/useAdminBranches\(tenantId\)/)
   })
 
   it('J: uses getBranchName helper or equivalent lookup', () => {
@@ -234,8 +234,8 @@ describe('Admin reservations page — cancel flow', () => {
   })
 
   it('K: useCancelReservation uses reservationService.cancelReservation', () => {
-    const block = hooks.slice(hooks.indexOf('useCancelReservation'))
-    expect(block.slice(0, 300)).toMatch(/cancelReservation/)
+    const block = hooks.slice(hooks.indexOf('export function useCancelReservation'))
+    expect(block.slice(0, block.indexOf('\n}\n'))).toMatch(/reservationService\.cancelReservation\(/)
   })
 })
 
@@ -261,7 +261,7 @@ describe('Mock mode compatibility', () => {
   it('adminService.confirmReservation works in mock mode', async () => {
     process.env.NEXT_PUBLIC_USE_MOCK = 'true'
     const { adminService } = await import('@/services/admin.service')
-    const res = await adminService.confirmReservation('res-001')
+    const res = await adminService.confirmReservation('res-001', 'tenant-samoon-01')
     expect(res.status).toBe('confirmed')
     expect(res.confirmation_code).toMatch(/^SAV-/)
   })

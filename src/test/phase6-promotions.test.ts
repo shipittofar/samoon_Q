@@ -95,8 +95,8 @@ describe('B. isPromotionActive() — date range', () => {
       startAt: new Date(Date.now() - 86_400_000).toISOString(),
       endAt: new Date(Date.now() + 86_400_000).toISOString(),
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
     ...overrides,
   })
 
@@ -141,7 +141,7 @@ describe('C. isPromotionActive() — weekday filter', () => {
       id: 'w', name: 'W', description: 'W', type: 'happy_hour', discountPercent: 10,
       applicableItemIds: [], active: true,
       schedule: { startAt: new Date(Date.now() - 1000).toISOString() },
-      createdAt: '', updatedAt: '',
+      created_at: '', updated_at: '',
     }
     expect(isPromotionActive(promo)).toBe(true)
   })
@@ -157,7 +157,7 @@ describe('C. isPromotionActive() — weekday filter', () => {
         startAt: new Date('2025-01-01').toISOString(),
         weekdays: [2, 3, 4, 5, 6], // Tue–Sat only
       },
-      createdAt: '', updatedAt: '',
+      created_at: '', updated_at: '',
     }
     expect(isPromotionActive(promo, monday)).toBe(false)
   })
@@ -172,7 +172,7 @@ describe('C. isPromotionActive() — weekday filter', () => {
         startAt: new Date('2025-01-01').toISOString(),
         weekdays: [1, 2, 3], // Mon–Wed
       },
-      createdAt: '', updatedAt: '',
+      created_at: '', updated_at: '',
     }
     expect(isPromotionActive(promo, monday)).toBe(true)
   })
@@ -187,7 +187,7 @@ describe('C. isPromotionActive() — weekday filter', () => {
         startAt: new Date('2025-01-01').toISOString(),
         weekdays: [7],
       },
-      createdAt: '', updatedAt: '',
+      created_at: '', updated_at: '',
     }
     expect(isPromotionActive(promo, sunday)).toBe(true)
   })
@@ -203,7 +203,7 @@ describe('D. isPromotionActive() — time window', () => {
     id: 't', name: 'T', description: 'T', type: 'happy_hour', discountPercent: 20,
     applicableItemIds: [], active: true,
     schedule: { startAt: FAR_PAST, timeWindowStart, timeWindowEnd },
-    createdAt: '', updatedAt: '',
+    created_at: '', updated_at: '',
   })
 
   // Build test times from current date so they aren't affected by system timezone
@@ -436,8 +436,8 @@ describe('I. promotionService.createPromotion() — happy path', () => {
       schedule: { startAt: new Date().toISOString() },
     })
     expect(promo.id).toBeTruthy()
-    expect(promo.createdAt).toBeTruthy()
-    expect(promo.updatedAt).toBeTruthy()
+    expect(promo.created_at).toBeTruthy()
+    expect(promo.updated_at).toBeTruthy()
     expect(promo.name).toBe('New Promo')
   })
 })
@@ -518,8 +518,8 @@ describe('K. promotionService.updatePromotion()', () => {
     await new Promise((r) => setTimeout(r, 2))
     await promotionService.updatePromotion('promo-10-percent', TENANT_SAMOON, { discountPercent: 5 })
     const after = (await promotionService.getPromotions(TENANT_SAMOON)).find((p) => p.id === 'promo-10-percent')!
-    expect(new Date(after.updatedAt).getTime()).toBeGreaterThanOrEqual(
-      new Date(before.updatedAt).getTime(),
+    expect(new Date(after.updated_at).getTime()).toBeGreaterThanOrEqual(
+      new Date(before.updated_at).getTime(),
     )
   })
 })

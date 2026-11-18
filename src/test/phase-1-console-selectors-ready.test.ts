@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
+import type { Role } from '@/types/rbac'
 import { isConsoleSelectorsReady } from '@/lib/console-workspace'
 
 describe('isConsoleSelectorsReady', () => {
   const base = {
-    sessionMemberships: [{ tenantId: 't1', roles: ['owner'], branchAccess: { scope: 'all' as const } }],
+    sessionMemberships: [{ tenantId: 't1', roles: ['owner'] as Role[], branchAccess: { scope: 'all' as const } }],
     workspacePhase: 'ready' as const,
     tenantState: 'resolved' as const,
     branchState: 'empty' as const,

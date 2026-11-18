@@ -31,8 +31,8 @@ describe('DEFAULT_TENANT', () => {
       name: expect.any(String),
       slug: expect.any(String),
       businessTypes: expect.any(Array),
-      status: expect.stringMatching(/^(active|trial|suspended|churned)$/),
-      createdAt: expect.any(String),
+      status: expect.stringMatching(/^(ACTIVE|INACTIVE|CLOSED)$/),
+      created_at: expect.any(String),
     })
   })
 
@@ -41,7 +41,7 @@ describe('DEFAULT_TENANT', () => {
   })
 
   it('has active status', () => {
-    expect(DEFAULT_TENANT.status).toBe('active')
+    expect(DEFAULT_TENANT.status).toBe('ACTIVE')
   })
 })
 
@@ -67,7 +67,7 @@ describe('useTenantStore', () => {
       slug: 'acme',
       businessTypes: ['restaurant', 'cafe'],
       status: 'active',
-      createdAt: '2025-01-01T00:00:00.000Z',
+      created_at: '2025-01-01T00:00:00.000Z',
     }
     useTenantStore.getState().setTenant(next)
     expect(useTenantStore.getState().tenant).toEqual(next)
@@ -80,7 +80,7 @@ describe('useTenantStore', () => {
       slug: 'other',
       businessTypes: ['bar'],
       status: 'active',
-      createdAt: '2025-01-01T00:00:00.000Z',
+      created_at: '2025-01-01T00:00:00.000Z',
     }
     useTenantStore.getState().setTenant(other)
     useTenantStore.getState().reset()
@@ -103,7 +103,7 @@ describe('useTenantStore', () => {
     const { tenant } = useTenantStore.getState()
     expect(tenant).toMatchObject<Partial<Tenant>>({
       slug: 'default',
-      status: 'active',
+      status: 'ACTIVE',
     })
   })
 
@@ -115,7 +115,7 @@ describe('useTenantStore', () => {
       slug: 'stale',
       businessTypes: ['restaurant'],
       status: 'active',
-      createdAt: '2025-01-01T00:00:00.000Z',
+      created_at: '2025-01-01T00:00:00.000Z',
     }
     useTenantStore.getState().setTenant(stale)
     expect(useTenantStore.getState().tenant?.slug).toBe('stale')
@@ -395,7 +395,7 @@ describe('Backward compatibility', () => {
     await useTenantStore.getState().loadTenant('default')
     const { tenant, tenantState } = useTenantStore.getState()
     expect(tenantState).toBe<TenantLifecycle>('resolved')
-    expect(tenant?.status).toBe('active')
+    expect(tenant?.status).toBe('ACTIVE')
     expect(tenant?.businessTypes.length).toBeGreaterThan(0)
   })
 
@@ -420,7 +420,7 @@ describe('M-1 — loadTenant failure safety', () => {
       slug: 'stale',
       businessTypes: ['restaurant'],
       status: 'active',
-      createdAt: '2025-01-01T00:00:00.000Z',
+      created_at: '2025-01-01T00:00:00.000Z',
     }
     useTenantStore.getState().setTenant(stale)
 
@@ -545,7 +545,7 @@ describe("tenantState — 'loading' → 'resolved' transition", () => {
     expect(tenant).not.toBeNull()
     expect(tenant?.id).toBeTruthy()
     expect(tenant?.slug).toBeTruthy()
-    expect(tenant?.status).toMatch(/^(active|trial|suspended|churned)$/)
+    expect(tenant?.status).toMatch(/^(ACTIVE|INACTIVE|CLOSED)$/)
   })
 
   it('isLoading is false when resolved', async () => {

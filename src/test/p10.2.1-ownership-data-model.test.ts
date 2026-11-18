@@ -178,7 +178,7 @@ describe('P10.2.1 — StaffAssignment', () => {
       },
     ]
     const tenants: Tenant[] = [
-      { id: 'tenant-b', name: 'B', slug: 'b', businessTypes: ['restaurant'], status: 'active', createdAt: new Date().toISOString(), ownerId: 'owner-B' },
+      { id: 'tenant-b', name: 'B', slug: 'b', businessTypes: ['restaurant'], status: 'active', created_at: new Date().toISOString(), ownerId: 'owner-B' },
     ]
     const result = validateAssignment({ staffId: 'staff-x', tenantId: 'tenant-b' }, staff, tenants)
     expect(result.valid).toBe(false)
@@ -301,7 +301,7 @@ describe('P10.2.1 — resolveAssignmentStatus / isAssignmentEffective', () => {
 
 describe('P10.2.1 — ownerOwnsTenant / resolveAssignmentBranchIds', () => {
   const tenants: Tenant[] = [
-    { id: 't1', name: 'T1', slug: 't1', businessTypes: ['restaurant'], status: 'active', createdAt: new Date().toISOString(), ownerId: 'owner-A' },
+    { id: 't1', name: 'T1', slug: 't1', businessTypes: ['restaurant'], status: 'active', created_at: new Date().toISOString(), ownerId: 'owner-A' },
   ]
 
   it('true only when Tenant.ownerId matches', () => {
@@ -329,7 +329,7 @@ describe('P10.2.1 — ownerOwnsTenant / resolveAssignmentBranchIds', () => {
 describe('P10.2.1 — migration helpers (Phase G)', () => {
   it('backfillTenantOwnership derives ownerId from the legacy single owner-role staff member', () => {
     const tenants: Tenant[] = [
-      { id: 'tenant-x', name: 'X', slug: 'x', businessTypes: ['restaurant'], status: 'active', createdAt: new Date().toISOString() },
+      { id: 'tenant-x', name: 'X', slug: 'x', businessTypes: ['restaurant'], status: 'active', created_at: new Date().toISOString() },
     ]
     const staff: StaffMember[] = [
       {
@@ -354,7 +354,7 @@ describe('P10.2.1 — migration helpers (Phase G)', () => {
 
   it('flags tenants with zero owner-role holders as ambiguous, not auto-resolved', () => {
     const tenants: Tenant[] = [
-      { id: 'tenant-y', name: 'Y', slug: 'y', businessTypes: ['restaurant'], status: 'active', createdAt: new Date().toISOString() },
+      { id: 'tenant-y', name: 'Y', slug: 'y', businessTypes: ['restaurant'], status: 'active', created_at: new Date().toISOString() },
     ]
     const { tenants: result, report } = backfillTenantOwnership(tenants, [], [])
     expect(report.ambiguousTenantIds).toEqual(['tenant-y'])
@@ -363,7 +363,7 @@ describe('P10.2.1 — migration helpers (Phase G)', () => {
 
   it('flags tenants with more than one owner-role holder as ambiguous, not auto-resolved', () => {
     const tenants: Tenant[] = [
-      { id: 'tenant-z', name: 'Z', slug: 'z', businessTypes: ['restaurant'], status: 'active', createdAt: new Date().toISOString() },
+      { id: 'tenant-z', name: 'Z', slug: 'z', businessTypes: ['restaurant'], status: 'active', created_at: new Date().toISOString() },
     ]
     const staff: StaffMember[] = ['user-1', 'user-2'].map((uid, i) => ({
       id: `staff-z-${i}`,
@@ -384,7 +384,7 @@ describe('P10.2.1 — migration helpers (Phase G)', () => {
 
   it('reuses an existing Owner record for the resolved userId instead of duplicating it', () => {
     const tenants: Tenant[] = [
-      { id: 'tenant-w', name: 'W', slug: 'w', businessTypes: ['restaurant'], status: 'active', createdAt: new Date().toISOString() },
+      { id: 'tenant-w', name: 'W', slug: 'w', businessTypes: ['restaurant'], status: 'active', created_at: new Date().toISOString() },
     ]
     const staff: StaffMember[] = [
       {
@@ -401,7 +401,7 @@ describe('P10.2.1 — migration helpers (Phase G)', () => {
       },
     ]
     const existingOwners = [
-      { ownerId: 'owner-existing', userId: 'user-existing', status: 'active' as const, plan: 'starter', maxTenants: null, billing: { customerId: null, billingEmail: 'existing@w.com' }, createdAt: new Date().toISOString() },
+      { ownerId: 'owner-existing', userId: 'user-existing', status: 'active' as const, plan: 'starter', maxTenants: null, billing: { customerId: null, billingEmail: 'existing@w.com' }, created_at: new Date().toISOString() },
     ]
     const { tenants: result, owners, report } = backfillTenantOwnership(tenants, staff, existingOwners)
     expect(result[0].ownerId).toBe('owner-existing')
@@ -411,7 +411,7 @@ describe('P10.2.1 — migration helpers (Phase G)', () => {
 
   it('never touches a tenant that already has an ownerId', () => {
     const tenants: Tenant[] = [
-      { id: 'tenant-v', name: 'V', slug: 'v', businessTypes: ['restaurant'], status: 'active', createdAt: new Date().toISOString(), ownerId: 'owner-already' },
+      { id: 'tenant-v', name: 'V', slug: 'v', businessTypes: ['restaurant'], status: 'active', created_at: new Date().toISOString(), ownerId: 'owner-already' },
     ]
     const { tenants: result, report } = backfillTenantOwnership(tenants, [], [])
     expect(result[0].ownerId).toBe('owner-already')

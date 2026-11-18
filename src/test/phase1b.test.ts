@@ -254,16 +254,20 @@ describe('System readiness — full bootstrap lifecycle', () => {
   })
 
   it('canExecute requires BOTH rbacInitialized AND featureFlagsInitialized', async () => {
-    await useTenantStore.getState().loadTenant('default')
-    // Only RBAC
+    const canExecute = () => {
+      const st = useTenantStore.getState()
+      return st.tenantState !== 'loading' && st.rbacInitialized && st.featureFlagsInitialized
+    }
+    // Only RBAC (flags not resolved yet — no tenant loaded).
     useTenantStore.getState().setRbacInitialized(true)
-    const afterRbacOnly = useTenantStore.getState()
-    expect(afterRbacOnly.tenantState !== 'loading' && afterRbacOnly.rbacInitialized && afterRbacOnly.featureFlagsInitialized).toBe(false)
-    // Now feature flags too
-    const { tenant } = useTenantStore.getState()
-    useTenantStore.getState().setFeatureFlags(featureFlagsService.resolve(tenant))
-    useTenantStore.getState().setFeatureFlagsInitialized(true)
-    const after = useTenantStore.getState()
-    expect(after.tenantState !== 'loading' && after.rbacInitialized && after.featureFlagsInitialized).toBe(true)
+    expect(useTenantStore.getState().featureFlagsInitialized).toBe(false)
+    expect(canExecute()).toBe(false)
+    // loadTenant() resolves the tenant's feature flags as part of resolution.
+    await useTenantStore.getState().loadTenant('default')
+    expect(useTenantStore.getState().featureFlagsInitialized).toBe(true)
+    expect(canExecute()).toBe(true)
+    // Flags alone are not enough either.
+    useTenantStore.getState().setRbacInitialized(false)
+    expect(canExecute()).toBe(false)
   })
 })

@@ -30,6 +30,8 @@ function loginAsPlatformOwner() {
   useAuthStore.getState().setUser({
     id: 'u-owner', email: 'owner@samoon.com', first_name: 'Pat', last_name: 'Owner',
     accountType: 'business', is_verified: true, created_at: '2024-01-01T00:00:00Z',
+    // Platform Configuration Studio requires Django is_superuser (not tenant RBAC).
+    is_superuser: true,
   })
   useTenantStore.getState().setTenant(DEFAULT_TENANT)
   useRbacStore.getState().setTenantRoles(DEFAULT_TENANT.id, ['owner'])
@@ -54,7 +56,7 @@ beforeEach(() => {
 
 describe('ConfigurationStudioLayout — shell (framework, generic)', () => {
   it('renders the nav, toolbar breadcrumb, and workspace for the active module', () => {
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={vi.fn()} />)
     expect(screen.getByRole('navigation', { name: 'Configuration modules' })).toBeInTheDocument()
     const toolbar = screen.getByRole('banner', { name: 'Configuration toolbar' })
     expect(within(toolbar).getByText('Configuration')).toBeInTheDocument()
@@ -63,24 +65,24 @@ describe('ConfigurationStudioLayout — shell (framework, generic)', () => {
   })
 
   it('shows a prompt in the workspace when no module is selected', () => {
-    render(<ConfigurationStudioLayout onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" onNavigate={vi.fn()} />)
     expect(screen.getByText('Select a module from the list to begin.')).toBeInTheDocument()
   })
 
   it('calls onNavigate when a module is clicked in the nav', () => {
     const onNavigate = vi.fn()
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={onNavigate} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={onNavigate} />)
     fireEvent.click(screen.getByRole('button', { name: 'Countries' }))
     expect(onNavigate).toHaveBeenCalledWith('countries')
   })
 
   it('renders Countries through the exact same shell as Authentication (no module-specific branching)', () => {
-    render(<ConfigurationStudioLayout activeModuleId="countries" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="countries" onNavigate={vi.fn()} />)
     expect(screen.getByText('ISO Code')).toBeInTheDocument()
   })
 
   it('the Inspector shows an empty state until a field is selected, then shows the selected field', async () => {
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={vi.fn()} />)
     expect(screen.getByText('No field selected')).toBeInTheDocument()
 
     const inspectButtons = screen.getAllByRole('button', { name: 'Audit history and details' })
@@ -93,7 +95,7 @@ describe('ConfigurationStudioLayout — shell (framework, generic)', () => {
 
 describe('ConfigurationStudioToolbar — draft status + save wiring (framework, generic)', () => {
   it('shows an unsaved-changes badge and a working Save button once a field is dirty', async () => {
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={vi.fn()} />)
 
     // "OTP Login Enabled" doesn't require a reason, unlike the "Kill Switch"
     // authentication.enabled field — matching the field P9.1.3's own save-bar
@@ -112,7 +114,7 @@ describe('ConfigurationStudioToolbar — draft status + save wiring (framework, 
 describe('ConfigurationCommandPalette (framework, generic)', () => {
   it('opens with Ctrl+K and navigates to a module on selection', async () => {
     const onNavigate = vi.fn()
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={onNavigate} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={onNavigate} />)
 
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
     const input = await screen.findByPlaceholderText('Go to a module, jump to a setting, or run a command…')
@@ -124,7 +126,7 @@ describe('ConfigurationCommandPalette (framework, generic)', () => {
   })
 
   it('finds an individual field across the registry, not just modules', async () => {
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={vi.fn()} />)
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true })
     const input = await screen.findByPlaceholderText('Go to a module, jump to a setting, or run a command…')
     fireEvent.change(input, { target: { value: 'otp' } })
@@ -135,7 +137,7 @@ describe('ConfigurationCommandPalette (framework, generic)', () => {
 
 describe('ConfigurationInheritanceTree + History/Compare (framework, generic)', () => {
   it('inheritance tree renders one row per level in the resolution chain', async () => {
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={vi.fn()} />)
     fireEvent.click(screen.getAllByRole('button', { name: 'Audit history and details' })[0])
     fireEvent.click(await screen.findByRole('button', { name: 'Inheritance' }))
     expect(await screen.findByRole('list', { name: 'Inheritance chain' })).toBeInTheDocument()
@@ -143,7 +145,7 @@ describe('ConfigurationInheritanceTree + History/Compare (framework, generic)', 
   })
 
   it('history tab shows an empty state for a never-changed field', async () => {
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={vi.fn()} />)
     fireEvent.click(screen.getAllByRole('button', { name: 'Audit history and details' })[0])
     fireEvent.click(await screen.findByRole('button', { name: 'History' }))
     expect(await screen.findByText('No history yet')).toBeInTheDocument()
@@ -152,7 +154,7 @@ describe('ConfigurationInheritanceTree + History/Compare (framework, generic)', 
 
 describe('Registry-driven — every module registered renders through the Studio', () => {
   it('every module in the registry is listed in the nav', () => {
-    render(<ConfigurationStudioLayout activeModuleId="authentication" onNavigate={vi.fn()} />)
+    render(<ConfigurationStudioLayout permissionContext="platform" activeModuleId="authentication" onNavigate={vi.fn()} />)
     for (const mod of platformConfigurationRegistry.getModules()) {
       expect(screen.getByRole('button', { name: mod.name })).toBeInTheDocument()
     }

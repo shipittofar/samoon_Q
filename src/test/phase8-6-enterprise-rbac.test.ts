@@ -43,8 +43,8 @@ describe('B — CustomRoleTemplate store', () => {
       permissions: ['orders.view', 'orders.create'],
       tenantId: 't1',
       createdBy: 'admin',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       enabled: true,
     }
     useRbacStore.getState().addCustomRole(role)
@@ -61,8 +61,8 @@ describe('B — CustomRoleTemplate store', () => {
       permissions: [],
       tenantId: 't1',
       createdBy: 'admin',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       enabled: true,
     })
     useRbacStore.getState().updateCustomRole('cr-2', { name: 'Updated Role', enabled: false })
@@ -80,8 +80,8 @@ describe('B — CustomRoleTemplate store', () => {
       permissions: [],
       tenantId: 't1',
       createdBy: 'admin',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       enabled: true,
     })
     useRbacStore.getState().deleteCustomRole('cr-3')
@@ -97,8 +97,8 @@ describe('B — CustomRoleTemplate store', () => {
       permissions: [],
       tenantId: 't1',
       createdBy: 'admin',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       enabled: true,
     })
     useRbacStore.getState().addCustomRole({
@@ -109,8 +109,8 @@ describe('B — CustomRoleTemplate store', () => {
       permissions: [],
       tenantId: 't2',
       createdBy: 'admin',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       enabled: true,
     })
     expect(useRbacStore.getState().getCustomRoles('t1')).toHaveLength(1)
@@ -127,8 +127,8 @@ describe('B — CustomRoleTemplate store', () => {
       permissions: [],
       tenantId: 't1',
       createdBy: 'x',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       enabled: true,
     })
     useRbacStore.getState()._resetStore()
@@ -405,13 +405,13 @@ describe('J — P8.6 admin pages exist', () => {
   it('/console/roles/new/page.tsx exists and uses PermissionGuard', () => {
     const content = src('src/app/console/roles/new/page.tsx')
     expect(content).toContain('PermissionGuard')
-    expect(content).toContain('staff.manage')
+    expect(content).toContain('rbac.manage_roles')
   })
 
   it('/console/permissions/simulator/page.tsx exists and uses PermissionGuard', () => {
     const content = src('src/app/console/permissions/simulator/page.tsx')
     expect(content).toContain('PermissionGuard')
-    expect(content).toContain('staff.manage')
+    expect(content).toContain('rbac.manage_roles')
   })
 
   it('/console/users/page.tsx renders user list', () => {

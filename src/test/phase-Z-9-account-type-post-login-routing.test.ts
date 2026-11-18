@@ -50,29 +50,44 @@ describe('Phase Z.9 — getPostLoginRedirect(): accountType is authoritative for
   })
 })
 
-describe('Phase Z.9 — complete-profile/page.tsx honors accountType instead of hardcoding /dashboard', () => {
-  const src = readFileSync(join(__dirname, '..', 'app', 'complete-profile', 'page.tsx'), 'utf-8')
+// Post-auth navigation is centralized: useLogin()/useRegister()/useVerifyOTP()
+// call establishAuthenticatedSession(), which dispatches POST_LOGIN_REDIRECT_EVENT
+// after /auth/me hydrates; PostLoginRedirectHandler then navigates via
+// resolvePostAuthDestination() -> getPostLoginRedirect(accountType, roles).
+// Pages must not hardcode a destination of their own.
+const readApp = (...p: string[]) => readFileSync(join(__dirname, '..', ...p), 'utf-8')
 
-  it('imports getPostLoginRedirect', () => {
-    expect(src).toContain("getPostLoginRedirect")
-    expect(src).toMatch(/import\s*\{[^}]*getPostLoginRedirect[^}]*\}\s*from\s*['"]@\/utils\/auth-redirect['"]/)
+describe('Phase Z.9 — post-auth redirect is resolved in one place from accountType', () => {
+  it('PostLoginRedirectHandler navigates via resolvePostAuthDestination(accountType, roles)', () => {
+    const src = readApp('providers', 'PostLoginRedirectHandler.tsx')
+    expect(src).toContain('POST_LOGIN_REDIRECT_EVENT')
+    expect(src).toContain('resolvePostAuthDestination(user.accountType, p7Roles)')
   })
 
-  it('the register() onSuccess handler routes through getPostLoginRedirect, not a hardcoded /dashboard', () => {
-    const onSuccessBlock = src.slice(src.indexOf('onSuccess: (result)'), src.indexOf('onError:'))
-    expect(onSuccessBlock).toContain('getPostLoginRedirect(result.user.accountType, result.p7Roles)')
-    expect(onSuccessBlock).not.toMatch(/router\.push\(['"]\/dashboard['"]\)/)
-  })
-})
-
-describe('Phase Z.9 — LoginClientPage.tsx and verify/page.tsx already route through getPostLoginRedirect (no regression)', () => {
-  it('LoginClientPage.tsx uses getPostLoginRedirect with the login result', () => {
-    const src = readFileSync(join(__dirname, '..', 'app', 'login', 'LoginClientPage.tsx'), 'utf-8')
-    expect(src).toContain('getPostLoginRedirect(result.user.accountType, result.p7Roles)')
+  it('resolvePostAuthDestination falls back to getPostLoginRedirect', () => {
+    const src = readApp('utils', 'auth-redirect.ts')
+    expect(src).toMatch(/export function resolvePostAuthDestination[\s\S]*?return getPostLoginRedirect\(accountType, tenantRoles\)/)
   })
 
-  it('verify/page.tsx uses getPostLoginRedirect for the OTP-login (existing user) success path', () => {
-    const src = readFileSync(join(__dirname, '..', 'app', 'verify', 'page.tsx'), 'utf-8')
-    expect(src).toContain('getPostLoginRedirect')
+  it('login, register and OTP verify all establish the session through the shared helper', () => {
+    const hooks = readApp('hooks', 'index.ts').replace(/\r\n/g, '\n')
+    for (const name of ['useLogin', 'useRegister', 'useVerifyOTP']) {
+      const start = hooks.indexOf(`export function ${name}(`)
+      expect(start).toBeGreaterThan(-1)
+      const body = hooks.slice(start, hooks.indexOf('\n}\n', start))
+      expect(body).toContain('establishAuthenticatedSession(')
+    }
+    expect(hooks).toContain('dispatchPostLoginRedirect(data.user, p7Roles)')
+  })
+
+  it('complete-profile, login and verify pages never hardcode /dashboard or /console', () => {
+    for (const p of [
+      ['app', 'complete-profile', 'page.tsx'],
+      ['app', 'login', 'LoginClientPage.tsx'],
+      ['app', 'verify', 'page.tsx'],
+    ]) {
+      const src = readApp(...p)
+      expect(src).not.toMatch(/router\.(push|replace)\(['"]\/(dashboard|console)['"]\)/)
+    }
   })
 })

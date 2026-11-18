@@ -747,7 +747,7 @@ describe('T — mock data has required fields on all tenants', () => {
     const svc = await freshTenantService()
     const tenants = await svc.getTenants()
     for (const t of tenants) {
-      expect(t.createdAt).toBeTruthy()
+      expect(t.created_at).toBeTruthy()
     }
   })
 

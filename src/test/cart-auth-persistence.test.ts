@@ -14,10 +14,9 @@ function mockMenuItem(id: string, branchId = 'branch-1'): MenuItem {
     price: 10,
     image: '/img.png',
     category_id: 'cat-1',
-    is_available: true,
+    available: true,
     extras: [],
-    created_at: '2024-01-01T00:00:00.000Z',
-  }
+  } as unknown as MenuItem
 }
 
 describe('Cart auth persistence', () => {

@@ -23,15 +23,35 @@ function isProtectedRoute(pathname: string): boolean {
  *   2. NEXT_PUBLIC_TENANT_SLUG env var (development / local override).
  *   3. Returns undefined — caller falls back to DEFAULT_TENANT.
  */
+/** Subdomains that belong to the platform itself, never to a tenant. */
+const RESERVED_SUBDOMAINS = new Set(['www', 'api', 'app', 'admin', 'cdn', 'static', 'media', 'ws'])
+
+/** Same pattern the slug normalizers accept: lowercase letters, digits, hyphens. */
+const TENANT_SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
+
+function isIpAddress(hostname: string): boolean {
+  return /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname) || hostname.includes(':') || hostname.startsWith('[')
+}
+
 function resolveTenantSlug(request: NextRequest): string | undefined {
   const host = request.headers.get('host') ?? ''
   // Strip port for local dev (e.g. localhost:3000 → localhost)
-  const hostname = host.split(':')[0]
+  const hostname = host.split(':')[0].toLowerCase()
   const parts = hostname.split('.')
 
-  // Subdomain present and not 'www' → use as slug
-  if (parts.length >= 3 && parts[0] !== 'www') {
-    return parts[0]
+  // When the platform's root domain is configured, only a direct subdomain
+  // of it is a tenant (restaurant-a.samoon.app → restaurant-a). This avoids
+  // misreading multi-part public suffixes (samoon.co.uk → "samoon").
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN?.toLowerCase().replace(/^\./, '')
+
+  // Subdomain present and not reserved (www, api, …) → use as slug.
+  // IP hosts (77.221.156.197) have 4 dot-separated parts but no subdomain.
+  if (parts.length >= 3 && !isIpAddress(hostname)) {
+    const candidate = parts[0]
+    const underRoot = !rootDomain || hostname === `${candidate}.${rootDomain}`
+    if (underRoot && !RESERVED_SUBDOMAINS.has(candidate) && TENANT_SLUG_PATTERN.test(candidate)) {
+      return candidate
+    }
   }
 
   // Dev fallback: env var (set at build time, available in Edge runtime via process.env)
@@ -109,6 +129,9 @@ export function middleware(request: NextRequest): NextResponse {
   // ── Tenant resolution (P1B.3) ──────────────────────────────────────────────
   const slug = resolveTenantSlug(request)
   const requestHeaders = new Headers(request.headers)
+  // Never trust a client-supplied tenant header: the root layout reflects it
+  // into <meta name="x-tenant-slug">, which the browser then sends to the API.
+  requestHeaders.delete('x-tenant-slug')
   if (slug) {
     requestHeaders.set('x-tenant-slug', slug)
   }

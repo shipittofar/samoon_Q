@@ -49,6 +49,11 @@ async function samoonTenant(): Promise<Tenant> {
 
 function seedSession(tenantId: string, roles: Role[]) {
   const { permissions } = normalizeTenantPermissions(roles)
+  // The Console tenant comes from activeMembership (useConsoleTenantId).
+  useRbacStore.getState().setSessionMemberships(
+    [{ tenantId, roles, branchAccess: { scope: 'all' } }],
+    { tenantId },
+  )
   useRbacStore.getState().setCurrentTenantSession(tenantId, roles, permissions)
 }
 
@@ -71,7 +76,7 @@ function renderGuard(opts: {
 beforeEach(() => {
   tenantService._resetMockList()
   useAuthStore.getState().setUser(null)
-  useRbacStore.getState().clearCurrentTenantSession()
+  useRbacStore.getState()._resetStore()
 })
 
 afterEach(() => {

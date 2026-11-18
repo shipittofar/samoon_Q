@@ -110,7 +110,7 @@ describe('getMarketplaceMeta', () => {
   })
 
   it('returns undefined when settings.marketplace is absent', () => {
-    expect(getMarketplaceMeta({ theme: { primaryColor: '#fff' } })).toBeUndefined()
+    expect(getMarketplaceMeta({ theme: { primaryColor: '#fff' } } as Parameters<typeof getMarketplaceMeta>[0])).toBeUndefined()
   })
 
   it('returns tenant listing fields only when marketplace is present', () => {

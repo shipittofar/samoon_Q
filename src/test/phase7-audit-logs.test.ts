@@ -490,9 +490,11 @@ describe('P7.5 AuditLogService — mock mode', () => {
       'BRANCH_UPDATED', makeActor(), makeTarget({ type: 'branch' }), makeScope(),
       { before: null, after: null }, {},
     )
-    const fetched = await auditLogService.getAuditLog(created.id, 'tenant-samoon-01')
+    // makeScope() writes to tenant-test-01; reads are tenant-isolated.
+    const fetched = await auditLogService.getAuditLog(created.id, 'tenant-test-01')
     expect(fetched!.id).toBe(created.id)
     expect(fetched!.action).toBe('BRANCH_UPDATED')
+    expect(await auditLogService.getAuditLog(created.id, 'tenant-samoon-01')).toBeNull()
   })
 
   it('getAuditTimeline returns AuditTimelineItem[]', async () => {

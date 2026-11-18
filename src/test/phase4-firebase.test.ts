@@ -434,7 +434,6 @@ describe('authService regression — login/register still function', () => {
 
   it('register returns user and tokens', async () => {
     const p = authService.register({
-      email: 'new@samoon.app',
       password: 'demo1234',
       confirm_password: 'demo1234',
       first_name: 'Test',

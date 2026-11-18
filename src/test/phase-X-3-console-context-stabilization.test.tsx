@@ -127,9 +127,10 @@ describe('Phase X.3 — tenant selector switches through session refresh', () =>
   it('clicking another membership requests backend switch and refreshes activeMembership', async () => {
     seedOwnerSessionForSamoon('user-multi-01')
     if (typeof localStorage !== 'undefined') {
+      // Cache format: { email, memberships } — only honoured for that mock user.
       localStorage.setItem(
         'mock_session_memberships',
-        JSON.stringify(MULTI_MEMBERSHIPS),
+        JSON.stringify({ email: localStorage.getItem('mock_session_email'), memberships: MULTI_MEMBERSHIPS }),
       )
     }
 

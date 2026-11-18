@@ -2,3 +2,18 @@ node_modules
 .next
 .git
 *.md
+
+# Local env files must never be baked into the image (secrets, dev URLs).
+# Pass NEXT_PUBLIC_* as build args and server secrets as runtime env instead.
+.env
+.env.*
+!.env.example
+
+# Dev/test artifacts
+.codegraph
+.claude
+coverage
+test-results
+playwright-report
+tmp
+tsconfig.tsbuildinfo
