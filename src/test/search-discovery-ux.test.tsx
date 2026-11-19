@@ -43,6 +43,23 @@ vi.mock('@/components/layout/Footer', () => ({
   Footer: () => <footer />,
 }))
 
+// Phase L2 — the location chip (geolocation + its own query) is covered by
+// phase-l2-user-location.test.ts; stub it like the other layout pieces.
+vi.mock('@/hooks/location', () => ({
+  useUserLocation: () => ({
+    location: { point: { lat: 35.6892, lng: 51.389 }, accuracyM: null, timestamp: 0, source: 'default', confirmed: false },
+    status: 'idle',
+    mode: 'auto',
+    pending: null,
+  }),
+}))
+vi.mock('@/components/location/DiscoverMap', () => ({
+  DiscoverMap: () => <div data-testid="discover-map" />,
+}))
+vi.mock('@/components/location/LocationChip', () => ({
+  LocationChip: () => <div data-testid="location-chip" />,
+}))
+
 vi.mock('@/components/marketplace/BusinessCard', () => ({
   BusinessCard: ({ tenant }: { tenant: { name: string } }) => <div>{tenant.name}</div>,
 }))
@@ -200,6 +217,8 @@ describe('parseDiscoverQuery / serializeDiscoverQuery', () => {
       category: 'bar',
       openNow: true,
       sort: 'newest',
+      view: 'list',
+      near: false,
     })
     expect(qs).toBe('q=wine&category=bar&openNow=1&sort=newest')
     expect(parseDiscoverQuery(new URLSearchParams(qs))).toEqual({
@@ -207,6 +226,8 @@ describe('parseDiscoverQuery / serializeDiscoverQuery', () => {
       category: 'bar',
       openNow: true,
       sort: 'newest',
+      view: 'list',
+      near: false,
     })
   })
 
@@ -216,12 +237,16 @@ describe('parseDiscoverQuery / serializeDiscoverQuery', () => {
       category: '',
       openNow: false,
       sort: 'recommended',
+      view: 'list',
+      near: false,
     })
     expect(serializeDiscoverQuery({
       q: '',
       category: '',
       openNow: false,
       sort: 'recommended',
+      view: 'list',
+      near: false,
     })).toBe('')
   })
 })

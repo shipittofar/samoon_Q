@@ -3,7 +3,7 @@
  */
 
 import type { TenantStatus, TenantBranding, TenantTheme } from '@/types'
-import type { BranchCheckout, BranchBusinessHours } from '@/types/branch'
+import type { BranchCheckout, BranchBusinessHours, BranchServiceArea } from '@/types/branch'
 import type { TenantMarketplaceSettings } from '@/types/marketplace'
 
 /** Branch summary embedded in a discover tenant result. */
@@ -24,7 +24,14 @@ export interface DiscoverBranch {
     address: string
     city: string
     country?: string
+    /** Phase L3 — needed for distance / map pins. */
+    latitude?: number
+    longitude?: number
   }
+  /** Phase L1 — custom service area; omitted/null = fallback chain. */
+  serviceArea?: BranchServiceArea | null
+  /** Phase L2 — pin confirmation time; null = unverified. */
+  locationVerifiedAt?: string | null
   checkout?: BranchCheckout
   businessHours?: BranchBusinessHours[]
   currency?: string
@@ -33,6 +40,10 @@ export interface DiscoverBranch {
   maxCapacity?: number
   cuisines?: string[]
   amenities?: string[]
+  /** Phase L3 — menu item names (normalized server-side optional) for item search. */
+  menuItemNames?: string[]
+  /** Phase L3 — menu category names (e.g. "Pizza") for item search. */
+  menuCategoryNames?: string[]
 }
 
 /**

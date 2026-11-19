@@ -131,7 +131,52 @@ export const MOCK_SUGGESTIONS: AddressSuggestion[] = [
   },
 ]
 
+/**
+ * Phase L2 — mock cities for reverse geocoding, so the "near you: <city>"
+ * label is plausible in demos. The nearest city within 80 km wins; anything
+ * else keeps the original generic New York answer (unchanged behaviour).
+ */
+const MOCK_CITIES: ReadonlyArray<{ city: string; district?: string; province: string; country: string; lat: number; lng: number }> = [
+  { city: 'New York', district: 'Manhattan', province: 'NY', country: 'US', lat: 40.7128, lng: -74.006 },
+  { city: 'Tehran', district: 'Vanak', province: 'Tehran', country: 'IR', lat: 35.6892, lng: 51.389 },
+  { city: 'Karaj', province: 'Alborz', country: 'IR', lat: 35.8327, lng: 50.9915 },
+  { city: 'Isfahan', province: 'Isfahan', country: 'IR', lat: 32.6539, lng: 51.666 },
+  { city: 'Shiraz', province: 'Fars', country: 'IR', lat: 29.5918, lng: 52.5837 },
+  { city: 'Mashhad', province: 'Razavi Khorasan', country: 'IR', lat: 36.2605, lng: 59.6168 },
+  { city: 'Tabriz', province: 'East Azerbaijan', country: 'IR', lat: 38.0962, lng: 46.2738 },
+  { city: 'Rasht', province: 'Gilan', country: 'IR', lat: 37.2808, lng: 49.5832 },
+  { city: 'Salman Shahr', province: 'Mazandaran', country: 'IR', lat: 36.7006, lng: 51.2003 },
+  { city: 'Dubai', province: 'Dubai', country: 'AE', lat: 25.2048, lng: 55.2708 },
+]
+
+function nearestMockCity(lat: number, lng: number) {
+  const toRad = (d: number) => (d * Math.PI) / 180
+  let best: (typeof MOCK_CITIES)[number] | null = null
+  let bestKm = Infinity
+  for (const c of MOCK_CITIES) {
+    const dLat = toRad(c.lat - lat)
+    const dLng = toRad(c.lng - lng)
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat)) * Math.cos(toRad(c.lat)) * Math.sin(dLng / 2) ** 2
+    const km = 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)))
+    if (km < bestKm) { bestKm = km; best = c }
+  }
+  return best && bestKm <= 80 ? best : null
+}
+
 export function mockReverseGeocode(lat: number, lng: number): ReverseGeocodeResult {
+  const near = nearestMockCity(lat, lng)
+  if (near && near.city !== 'New York') {
+    return {
+      formatted_address: `${lat.toFixed(4)}, ${lng.toFixed(4)} — ${near.district ? `${near.district}, ` : ''}${near.city}, ${near.province}`,
+      country: near.country,
+      province: near.province,
+      city: near.city,
+      ...(near.district ? { district: near.district } : {}),
+      street: '',
+      latitude: lat,
+      longitude: lng,
+    }
+  }
   return {
     formatted_address: `${lat.toFixed(4)}, ${lng.toFixed(4)} — Sample St, New York, NY 10001, USA`,
     country: 'US',

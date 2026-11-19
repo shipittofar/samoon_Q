@@ -37,6 +37,7 @@ const RESERVED_PUBLIC_PATH_SEGMENTS = new Set([
   'menu',
   'offline',
   'order',
+  'plan',
   'platform-admin',
   'promotions',
   'register',

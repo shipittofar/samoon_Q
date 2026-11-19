@@ -23,6 +23,7 @@ import { BranchHeroFeatures } from '@/components/marketplace/BranchHeroFeatures'
 import { HeroBackground } from '@/components/home/HeroBackground'
 import { resolveHeroBackgroundImages } from '@/lib/hero-background'
 import { getMarketplaceMeta, gallerySrcList, type PublicBranchInfo } from '@/types/marketplace'
+import { DirectionsButton } from '@/components/location/DirectionsButton'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
 
@@ -244,9 +245,16 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
       <div className="space-y-3 text-sm">
         <div className="flex items-start gap-3 text-[var(--fg-muted)]">
           <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-[var(--accent)]"aria-hidden="true"/>
-          <div>
+          <div className="min-w-0 flex-1">
             <p>{branch.address}</p>
             <p>{branch.city}</p>
+            <DirectionsButton
+              latitude={branch.latitude}
+              longitude={branch.longitude}
+              name={branch.name}
+              address={[branch.address, branch.city].filter(Boolean).join(', ')}
+              className="mt-2"
+            />
           </div>
         </div>
         {branch.phone_number && (

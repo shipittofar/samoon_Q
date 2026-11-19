@@ -8,6 +8,7 @@ import { resolveBranchHoursStatus } from '@/lib/branch-hours'
 import type { DiscoverBranch, DiscoverResponse, DiscoverTenant } from '@/types/discover'
 import type { Branch } from '@/types/branch'
 import type { PaginatedResponse } from '@/types'
+import { MOCK_BRANCH_CATEGORIES, MOCK_BRANCH_ITEMS } from '@/lib/mock-data'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms))
@@ -33,7 +34,14 @@ function branchEntityToDiscoverBranch(branch: Branch): DiscoverBranch {
       address: branch.location.address,
       city: branch.location.city,
       country: branch.location.country,
+      latitude: branch.location.latitude,
+      longitude: branch.location.longitude,
     },
+    serviceArea: branch.serviceArea,
+    locationVerifiedAt: branch.locationVerifiedAt,
+    // Only branches with their own mock menu advertise items (no default fallback).
+    menuItemNames: MOCK_BRANCH_ITEMS[branch.id]?.filter((i) => i.available !== false).map((i) => i.name),
+    menuCategoryNames: MOCK_BRANCH_CATEGORIES[branch.id]?.map((c) => c.name),
     checkout: branch.checkout,
     businessHours: branch.businessHours,
     currency: branch.currency,

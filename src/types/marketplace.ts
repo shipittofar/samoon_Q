@@ -8,8 +8,9 @@
  * the Discover/public projection or a local presentation compose step.
  */
 
-import type { Branch, BranchCheckout, BranchBusinessHours } from '@/types/branch'
+import type { Branch, BranchCheckout, BranchBusinessHours, BranchServiceArea } from '@/types/branch'
 import { resolveBranchHoursStatus } from '@/lib/branch-hours'
+import { normalizeSearchText } from '@/lib/search-normalize'
 
 /** Public-facing branch summary shown on the tenant homepage. */
 export interface PublicBranchInfo {
@@ -51,6 +52,17 @@ export interface PublicBranchInfo {
   cuisines?: string[]
   /** Amenity labels for this location (branch-owned). */
   amenities?: string[]
+  /** Phase L3 — branch map pin (WGS84). Absent when the owner never placed it. */
+  latitude?: number
+  longitude?: number
+  /** Phase L1 — custom service area (absent = fallback chain in src/lib/geo.ts). */
+  serviceArea?: BranchServiceArea | null
+  /** Phase L2 — when the owner confirmed the pin; null = unverified. */
+  locationVerifiedAt?: string | null
+  /** Phase L3 — menu item names for "pizza near me" item search. */
+  menuItemNames?: string[]
+  /** Phase L3 — menu category names for item search. */
+  menuCategoryNames?: string[]
 }
 
 /** Persisted Tenant.settings.marketplace — tenant listing metadata only. */
@@ -205,6 +217,8 @@ export type SortOption =
   | 'alphabetical'
   | 'price_asc'
   | 'open_now'
+  /** Phase L3 — nearest first (needs the customer's location; ranked in Discover). */
+  | 'nearest'
 
 export interface FilterState {
   cuisines: string[]
@@ -284,6 +298,10 @@ export function publicBranchFromDetail(branch: Branch): PublicBranchInfo {
     maxCapacity: branch.maxCapacity,
     cuisines: branch.cuisines,
     amenities: branch.amenities,
+    latitude: branch.location.latitude,
+    longitude: branch.location.longitude,
+    serviceArea: branch.serviceArea,
+    locationVerifiedAt: branch.locationVerifiedAt,
   }
 }
 
@@ -341,7 +359,8 @@ export function collectBranchAmenities(branches?: PublicBranchInfo[]): string[] 
 
 /** Accent-strip + lowercase for accent-insensitive matching. */
 function normalize(s: string): string {
-  return s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '')
+  // Phase L3 — also folds Arabic/Persian letter variants, ZWNJ and digits.
+  return normalizeSearchText(s)
 }
 
 /**

@@ -1,4 +1,103 @@
 {
+  "planner": {
+    "title": "مسار يومي",
+    "intro": "أضف ما تريد فعله اليوم — نختار الأماكن والترتيب الذي يهدر أقل وقت.",
+    "tasksHeading": "المهام",
+    "addLabel": "أضف مهمة",
+    "addPlaceholder": "مثلًا بيتزا، قص شعر، طبيب، آش",
+    "add": "إضافة",
+    "addHint": "اكتب طعامًا أو خدمة، أو اختر فئة أو نشاطًا محددًا. حتى {max} محطات.",
+    "businessMatchesAria": "أنشطة مطابقة",
+    "candidates": "{count} أماكن قريبة",
+    "noCandidates": "لا توجد أماكن مطابقة",
+    "moveUp": "نقل لأعلى",
+    "moveDown": "نقل لأسفل",
+    "remove": "إزالة {label}",
+    "stayFor": "المدة",
+    "minShort": "د",
+    "atTime": "الساعة",
+    "optionsLegend": "خيارات الخطة",
+    "startTime": "البدء في",
+    "modeAuto": "تلقائي",
+    "optimizeOrder": "اعثر لي على أفضل ترتيب",
+    "returnToStart": "العودة إلى نقطة البداية",
+    "clearAll": "مسح الكل",
+    "resultHeading": "خطتك",
+    "approxStart": "موقعك تقريبي — حدّده للحصول على خطة دقيقة.",
+    "emptyState": "أضف بعض المهام لتظهر خطتك هنا.",
+    "finishAt": "تنتهي بحلول {time}",
+    "nothingFits": "لا شيء يناسب هذه الأوقات",
+    "summary": "{stops} محطات · {travel} في الطريق · {wait} انتظار",
+    "saved": "يوفّر {time} مقارنة بترتيبك",
+    "openAllInGoogle": "افتح المسار كاملًا في خرائط Google",
+    "mapAria": "خريطة مسار يومك",
+    "leg": "{time} في الطريق",
+    "sameSpot": "المكان نفسه",
+    "wait": "انتظار {time}",
+    "timeRange": "{start} – {end}",
+    "hoursUnknown": "ساعات العمل غير منشورة — اتصل قبل الذهاب.",
+    "backHome": "العودة إلى البداية: {time} · الوصول {at}",
+    "start": "البداية",
+    "skippedHeading": "تعذّر إدراجه",
+    "skip_no_candidates": "لا يوجد مكان مطابق قريب",
+    "skip_not_feasible": "مغلق أو يتعارض مع الأوقات الأخرى",
+    "minutes": "{minutes} د",
+    "hoursMinutes": "{hours} س {minutes} د"
+  },
+  "directions": {
+    "title": "الاتجاهات إلى {name}",
+    "travelModeAria": "وسيلة التنقل",
+    "mode_drive": "سيارة",
+    "mode_taxi": "تاكسي",
+    "mode_walk": "مشيًا",
+    "mode_bike": "دراجة",
+    "modeAuto": "اختيار تلقائي",
+    "mapAria": "خريطة المسار",
+    "needLocation": "حدّد موقعك لرؤية المسار والوقت.",
+    "useMyLocation": "استخدم موقعي",
+    "loadingRoute": "جارٍ إيجاد مسار…",
+    "durationMinutes": "~{minutes} دقيقة",
+    "durationHours": "~{hours} س {minutes} د",
+    "routeEstimate": "الوقت تقديري — الخط المتقطع دليل مباشر وليس مسار الطريق.",
+    "routeFallback": "خدمة المسارات غير متاحة — يُعرض تقدير.",
+    "routeLive": "مسار الطريق",
+    "routeError": "تعذّر الحصول على مسار الآن.",
+    "openIn": "افتح في {app}",
+    "openWith": "التنقل باستخدام",
+    "appsAria": "تطبيقات الملاحة",
+    "otherApp": "تطبيق آخر",
+    "rememberApp": "تذكّر اختياري",
+    "forgetApp": "اختر تطبيقًا آخر",
+    "privacyNote": "تُرسل الوجهة فقط إلى التطبيق."
+  },
+  "nearby": {
+    "planMyDay": "خطّط يومي",
+    "directions": "الاتجاهات",
+    "eta_taxi": "~{minutes} دقيقة بالتاكسي",
+    "distance_m": "{value} م",
+    "distance_km": "{value} كم",
+    "eta_walk": "~{minutes} دقيقة سيرًا",
+    "eta_drive": "~{minutes} دقيقة بالسيارة",
+    "eta_bike": "~{minutes} دقيقة بالدراجة",
+    "deliversToYou": "يوصّل إليك",
+    "comesToYou": "يأتي إليك",
+    "inYourArea": "في منطقتك",
+    "outsideDelivery": "خارج نطاق التوصيل",
+    "outsideService": "خارج نطاق الخدمة",
+    "approxLocation": "موقع تقريبي",
+    "menuMatches": "في القائمة: {items}",
+    "moreItems": "+{count} أخرى",
+    "nearYouRail": "بالقرب منك",
+    "servesMe": "يخدم منطقتي",
+    "showMap": "الخريطة",
+    "hideMap": "إخفاء الخريطة",
+    "showList": "القائمة",
+    "mapAria": "خريطة الأنشطة التجارية",
+    "youAreHere": "أنت هنا",
+    "searchThisArea": "ابحث في هذه المنطقة",
+    "searchingArea": "عرض النتائج حول منطقة الخريطة",
+    "resetArea": "العودة إلى موقعي"
+  },
   "common": {
     "appName": "سيفور",
     "loading": "جاري التحميل...",
@@ -871,6 +970,32 @@
     "must_accept_terms": "يجب أن تقبل الشروط"
   },
   "console": {
+    "serviceArea": {
+      "pinVerified": "تم تأكيد الدبوس كموقع دقيق",
+      "pinUnverified": "الدبوس غير مؤكد — قد يُوجَّه العملاء إلى مكان خاطئ.",
+      "confirmPin": "تأكيد دقة الدبوس",
+      "title": "نطاق الخدمة",
+      "hint": "المنطقة التي يخدم فيها هذا الفرع العملاء. تحدد من يرى الفرع في نتائج «بالقرب مني» وأين يتوفر التوصيل أو الخدمة في الموقع.",
+      "useDefault": "استخدام الإعداد الافتراضي لـ {vertical}",
+      "custom": "نطاق مخصص",
+      "mode": "نوع الخدمة",
+      "modes": {
+        "delivery": "توصيل",
+        "on_site": "خدمة في موقع العميل",
+        "visit_only": "يزور العملاء الفرع"
+      },
+      "radiusKm": "نصف القطر (كم)",
+      "maxRadiusHint": "الحد الأقصى للمنصة: {max} كم",
+      "effective": "النطاق الفعّال: {mode}، {radius} كم ({source})",
+      "sources": {
+        "custom": "مخصص",
+        "delivery": "من نطاق التوصيل",
+        "default": "افتراضي نوع النشاط"
+      },
+      "mapAria": "خريطة نطاق الخدمة",
+      "clickToMovePin": "انقر على الخريطة لنقل دبوس الفرع إلى موقعه الدقيق.",
+      "noLocation": "حدد موقع الفرع أولاً لعرض نطاق الخدمة على الخريطة."
+    },
     "adminNavGroups": {
       "Operations": "العمليات",
       "Content": "المحتوى",
@@ -3018,6 +3143,59 @@
     "selectBranchToManageMenu": "اختر فرعًا لإدارة القائمة الخاصة به"
   },
   "configFields": {
+    "maps": {
+      "routing_source": {
+        "title": "مصدر المسار داخل التطبيق"
+      },
+      "osrm_url": {
+        "title": "عنوان خادم OSRM"
+      },
+      "nav_neshan_url": {
+        "title": "قالب رابط نشان"
+      },
+      "nav_balad_url": {
+        "title": "قالب رابط بلد"
+      },
+      "name": "الخرائط والموقع",
+      "description": "مزوّد الخرائط، العرض الافتراضي، حدود نطاق الخدمة وإعدادات موقع العميل.",
+      "group": "البنية التحتية",
+      "provider": {
+        "title": "مزوّد الخرائط"
+      },
+      "fallback_provider": {
+        "title": "المزوّد الاحتياطي"
+      },
+      "osm_tile_url": {
+        "title": "رابط مربعات OpenStreetMap"
+      },
+      "neshan_web_key": {
+        "title": "مفتاح نشان للويب (المتصفح)"
+      },
+      "mapir_web_key": {
+        "title": "مفتاح Map.ir (المتصفح)"
+      },
+      "google_web_key": {
+        "title": "مفتاح JavaScript لخرائط Google (المتصفح)"
+      },
+      "default_center_lat": {
+        "title": "المركز الافتراضي — خط العرض"
+      },
+      "default_center_lng": {
+        "title": "المركز الافتراضي — خط الطول"
+      },
+      "default_zoom": {
+        "title": "التكبير الافتراضي"
+      },
+      "max_service_radius_km": {
+        "title": "أقصى نصف قطر للخدمة (كم)"
+      },
+      "geolocation_enabled": {
+        "title": "استخدام موقع الجهاز"
+      },
+      "min_location_accuracy_m": {
+        "title": "طلب تأكيد الموقع إذا تجاوز (متر)"
+      }
+    },
     "authentication": {
       "name": "المصادقة",
       "description": "قواعد تسجيل الدخول بالهاتف/رمز التحقق، سياسة التسجيل، وحدود قفل الحساب.",
@@ -4999,6 +5177,10 @@
     "title": "النظام"
   },
   "seo": {
+    "planner": {
+      "title": "مسار يومي — منصة سامون",
+      "description": "خطّط لعدة محطات في رحلة واحدة: طعام، صالون، عيادة والمزيد — بالترتيب الذي يوفّر أكبر قدر من الوقت."
+    },
     "root": {
       "title": "سافور — منصة الضيافة",
       "description": "اكتشف المطاعم والمقاهي والبارات وعربات الطعام والمزيد. تصفح القوائم، احجز الطاولات، واطلب من الأعمال المحلية على سافور.",
@@ -5348,6 +5530,7 @@
     "businessesCount": "{count} من الأعمال",
     "sortResults": "ترتيب النتائج",
     "sortOptions": {
+      "nearest": "الأقرب",
       "recommended": "موصى به",
       "highestRated": "الأعلى تقييماً",
       "mostReviewed": "الأكثر تقييماً",
@@ -5892,5 +6075,28 @@
         "reservations": "احجز"
       }
     }
+  },
+  "location": {
+    "placeWithArea": "{area}، {city}",
+    "nearYou": "بالقرب منك",
+    "nearYouIn": "بالقرب منك: {place}",
+    "chosenLocation": "الموقع المختار",
+    "chosenIn": "المختار: {place}",
+    "fromAddress": "عنوانك المحفوظ",
+    "fromAddressIn": "العنوان المحفوظ: {place}",
+    "defaultArea": "اختر موقعك",
+    "accuracy_m": "±{value} م",
+    "accuracy_km": "±{value} كم",
+    "useMyLocation": "استخدام موقعي",
+    "changeLocationAria": "تغيير موقعك",
+    "confirmNeeded": "أكّد موقعك",
+    "permissionDenied": "الوصول إلى الموقع محظور في إعدادات المتصفح.",
+    "pickerTitle": "موقعك",
+    "pickerHint": "انقر على الخريطة لتحديد موقعك الدقيق. تُرتَّب الأنشطة القريبة من هذه النقطة.",
+    "pickerMapAria": "خريطة لاختيار موقعك",
+    "confirmLowAccuracy": "أبلغ جهازك عن موقع غير دقيق. تحقق من الدبوس وحرّكه إذا لزم الأمر.",
+    "confirmJump": "تغيّر موقعك بشكل غير متوقع. يرجى تأكيد مكانك.",
+    "usePickedLocation": "استخدام هذا الموقع",
+    "confirmLocation": "تأكيد هذا الموقع"
   }
 }

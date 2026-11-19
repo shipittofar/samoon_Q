@@ -1,4 +1,103 @@
 {
+  "planner": {
+    "title": "My day route",
+    "intro": "Add what you want to do today — we pick the places and the order that wastes the least time.",
+    "tasksHeading": "Things to do",
+    "addLabel": "Add something to do",
+    "addPlaceholder": "e.g. pizza, haircut, doctor, آش",
+    "add": "Add",
+    "addHint": "Type a food or service, pick a category, or a specific business. Up to {max} stops.",
+    "businessMatchesAria": "Matching businesses",
+    "candidates": "{count, plural, one {# place nearby} other {# places nearby}}",
+    "noCandidates": "No matching places found",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Remove {label}",
+    "stayFor": "Stay",
+    "minShort": "min",
+    "atTime": "At",
+    "optionsLegend": "Plan options",
+    "startTime": "Start at",
+    "modeAuto": "Auto",
+    "optimizeOrder": "Find the best order for me",
+    "returnToStart": "Come back to my start point",
+    "clearAll": "Clear all",
+    "resultHeading": "Your plan",
+    "approxStart": "Your location is approximate — set it for an accurate plan.",
+    "emptyState": "Add a few things to do and your plan appears here.",
+    "finishAt": "Done by {time}",
+    "nothingFits": "Nothing fits with these times",
+    "summary": "{stops, plural, one {# stop} other {# stops}} · {travel} on the way · {wait} waiting",
+    "saved": "Saves {time} compared with your order",
+    "openAllInGoogle": "Open the whole route in Google Maps",
+    "mapAria": "Map of your day route",
+    "leg": "{time} on the way",
+    "sameSpot": "Same place",
+    "wait": "wait {time}",
+    "timeRange": "{start} – {end}",
+    "hoursUnknown": "Opening hours not published — call ahead.",
+    "backHome": "Back to start: {time} · arrive {at}",
+    "start": "Start",
+    "skippedHeading": "Could not fit",
+    "skip_no_candidates": "no matching place nearby",
+    "skip_not_feasible": "closed or clashes with the other times",
+    "minutes": "{minutes} min",
+    "hoursMinutes": "{hours} h {minutes} min"
+  },
+  "directions": {
+    "title": "Directions to {name}",
+    "travelModeAria": "Travel mode",
+    "mode_drive": "Car",
+    "mode_taxi": "Taxi",
+    "mode_walk": "Walk",
+    "mode_bike": "Bike",
+    "modeAuto": "Choose automatically",
+    "mapAria": "Route map",
+    "needLocation": "Set your location to see the route and time.",
+    "useMyLocation": "Use my location",
+    "loadingRoute": "Finding a route…",
+    "durationMinutes": "~{minutes} min",
+    "durationHours": "~{hours} h {minutes} min",
+    "routeEstimate": "Estimated time — the dashed line is a direct guide, not the road route.",
+    "routeFallback": "The route service is unavailable — showing an estimate.",
+    "routeLive": "Road route",
+    "routeError": "Could not get a route right now.",
+    "openIn": "Open in {app}",
+    "openWith": "Navigate with",
+    "appsAria": "Navigation apps",
+    "otherApp": "Another app",
+    "rememberApp": "Remember my choice",
+    "forgetApp": "Choose a different app",
+    "privacyNote": "Only the destination is sent to the app."
+  },
+  "nearby": {
+    "planMyDay": "Plan my day",
+    "directions": "Directions",
+    "eta_taxi": "~{minutes} min by taxi",
+    "distance_m": "{value} m",
+    "distance_km": "{value} km",
+    "eta_walk": "~{minutes} min walk",
+    "eta_drive": "~{minutes} min drive",
+    "eta_bike": "~{minutes} min by bike",
+    "deliversToYou": "Delivers to you",
+    "comesToYou": "Comes to you",
+    "inYourArea": "In your area",
+    "outsideDelivery": "Outside delivery area",
+    "outsideService": "Outside service area",
+    "approxLocation": "approximate location",
+    "menuMatches": "On the menu: {items}",
+    "moreItems": "+{count} more",
+    "nearYouRail": "Near you",
+    "servesMe": "Serves my area",
+    "showMap": "Map",
+    "hideMap": "Hide map",
+    "showList": "List",
+    "mapAria": "Map of businesses",
+    "youAreHere": "You are here",
+    "searchThisArea": "Search this area",
+    "searchingArea": "Showing results around the map area",
+    "resetArea": "Back to my location"
+  },
   "common": {
     "appName": "Samoon",
     "loading": "Loading...",
@@ -871,6 +970,32 @@
     "must_accept_terms": "You must accept the terms"
   },
   "console": {
+    "serviceArea": {
+      "pinVerified": "Pin confirmed as the exact location",
+      "pinUnverified": "Pin not confirmed — customers may be routed to the wrong spot.",
+      "confirmPin": "Confirm pin is exact",
+      "title": "Service area",
+      "hint": "Where this branch serves customers. It decides who sees the branch in \"near me\" results and where delivery or on-site service is offered.",
+      "useDefault": "Use the default for {vertical}",
+      "custom": "Custom area",
+      "mode": "Service type",
+      "modes": {
+        "delivery": "Delivery",
+        "on_site": "Service at customer's location",
+        "visit_only": "Customers visit the branch"
+      },
+      "radiusKm": "Radius (km)",
+      "maxRadiusHint": "Platform maximum: {max} km",
+      "effective": "Active area: {mode}, {radius} km ({source})",
+      "sources": {
+        "custom": "custom",
+        "delivery": "from the delivery radius",
+        "default": "business-type default"
+      },
+      "mapAria": "Service area map",
+      "clickToMovePin": "Click the map to move the branch pin to its exact location.",
+      "noLocation": "Set the branch location first to see its service area on the map."
+    },
     "adminNavGroups": {
       "Operations": "Operations",
       "Content": "Content",
@@ -3028,6 +3153,59 @@
     "selectBranchToManageMenu": "Select a branch to manage its menu"
   },
   "configFields": {
+    "maps": {
+      "routing_source": {
+        "title": "In-app Route Source"
+      },
+      "osrm_url": {
+        "title": "OSRM Server URL"
+      },
+      "nav_neshan_url": {
+        "title": "Neshan Link Template"
+      },
+      "nav_balad_url": {
+        "title": "Balad Link Template"
+      },
+      "name": "Maps & Location",
+      "description": "Map provider, default map view, service-area limits and customer location settings.",
+      "group": "Infrastructure",
+      "provider": {
+        "title": "Map Provider"
+      },
+      "fallback_provider": {
+        "title": "Fallback Provider"
+      },
+      "osm_tile_url": {
+        "title": "OpenStreetMap Tile URL"
+      },
+      "neshan_web_key": {
+        "title": "Neshan Web Key (browser)"
+      },
+      "mapir_web_key": {
+        "title": "Map.ir API Key (browser)"
+      },
+      "google_web_key": {
+        "title": "Google Maps JavaScript Key (browser)"
+      },
+      "default_center_lat": {
+        "title": "Default Center — Latitude"
+      },
+      "default_center_lng": {
+        "title": "Default Center — Longitude"
+      },
+      "default_zoom": {
+        "title": "Default Zoom"
+      },
+      "max_service_radius_km": {
+        "title": "Maximum Service Radius (km)"
+      },
+      "geolocation_enabled": {
+        "title": "Use Device Location"
+      },
+      "min_location_accuracy_m": {
+        "title": "Ask to Confirm Location Above (meters)"
+      }
+    },
     "authentication": {
       "name": "Authentication",
       "description": "Phone/OTP login rules, registration policy, and account lockout thresholds.",
@@ -5009,6 +5187,10 @@
     "title": "System"
   },
   "seo": {
+    "planner": {
+      "title": "My Day Route — Samoon Platform",
+      "description": "Plan several stops in one trip: food, salon, clinic and more — in the order that saves the most time."
+    },
     "root": {
       "title": "Samoon — Hospitality Platform",
       "description": "Discover restaurants, cafés, bars, food trucks, and more. Browse menus, book tables, and order from local businesses on Samoon.",
@@ -5358,6 +5540,7 @@
     "businessesCount": "{count, plural, one {# business} other {# businesses}}",
     "sortResults": "Sort results",
     "sortOptions": {
+      "nearest": "Nearest",
       "recommended": "Recommended",
       "highestRated": "Highest Rated",
       "mostReviewed": "Most Reviewed",
@@ -5902,5 +6085,28 @@
         "reservations": "Book"
       }
     }
+  },
+  "location": {
+    "placeWithArea": "{area}, {city}",
+    "nearYou": "Near you",
+    "nearYouIn": "Near you: {place}",
+    "chosenLocation": "Chosen location",
+    "chosenIn": "Chosen: {place}",
+    "fromAddress": "Your saved address",
+    "fromAddressIn": "Saved address: {place}",
+    "defaultArea": "Choose your location",
+    "accuracy_m": "±{value} m",
+    "accuracy_km": "±{value} km",
+    "useMyLocation": "Use my location",
+    "changeLocationAria": "Change your location",
+    "confirmNeeded": "Confirm your location",
+    "permissionDenied": "Location access is blocked in your browser settings.",
+    "pickerTitle": "Your location",
+    "pickerHint": "Tap the map to set your exact position. Nearby businesses are sorted from here.",
+    "pickerMapAria": "Map to choose your location",
+    "confirmLowAccuracy": "Your device reported an imprecise location. Check the pin and move it if needed.",
+    "confirmJump": "Your location jumped unexpectedly far. Please confirm where you are.",
+    "usePickedLocation": "Use this location",
+    "confirmLocation": "Confirm this location"
   }
 }

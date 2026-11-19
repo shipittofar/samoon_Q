@@ -1,4 +1,103 @@
 {
+  "planner": {
+    "title": "مسیر روز من",
+    "intro": "کارهایی را که امروز می‌خواهید انجام دهید اضافه کنید — ما مکان‌ها و ترتیبی را انتخاب می‌کنیم که کمترین وقت تلف شود.",
+    "tasksHeading": "کارهای امروز",
+    "addLabel": "افزودن کار",
+    "addPlaceholder": "مثلاً پیتزا، اصلاح مو، دکتر، آش",
+    "add": "افزودن",
+    "addHint": "یک غذا یا خدمت بنویسید، یک دسته انتخاب کنید یا یک کسب‌وکار مشخص. حداکثر {max} توقف.",
+    "businessMatchesAria": "کسب‌وکارهای مطابق",
+    "candidates": "{count} مکان نزدیک",
+    "noCandidates": "مکان مطابقی پیدا نشد",
+    "moveUp": "انتقال به بالا",
+    "moveDown": "انتقال به پایین",
+    "remove": "حذف {label}",
+    "stayFor": "مدت",
+    "minShort": "دقیقه",
+    "atTime": "ساعت",
+    "optionsLegend": "تنظیمات برنامه",
+    "startTime": "شروع از ساعت",
+    "modeAuto": "خودکار",
+    "optimizeOrder": "بهترین ترتیب را برایم پیدا کن",
+    "returnToStart": "برگشت به نقطه شروع",
+    "clearAll": "پاک کردن همه",
+    "resultHeading": "برنامه شما",
+    "approxStart": "موقعیت شما تقریبی است — برای برنامه دقیق آن را مشخص کنید.",
+    "emptyState": "چند کار اضافه کنید تا برنامه‌تان اینجا نمایش داده شود.",
+    "finishAt": "پایان تا ساعت {time}",
+    "nothingFits": "با این زمان‌ها هیچ کاری جا نمی‌شود",
+    "summary": "{stops} توقف · {travel} در راه · {wait} انتظار",
+    "saved": "{time} صرفه‌جویی نسبت به ترتیب شما",
+    "openAllInGoogle": "باز کردن کل مسیر در گوگل‌مپ",
+    "mapAria": "نقشه مسیر روز شما",
+    "leg": "{time} در راه",
+    "sameSpot": "همان مکان",
+    "wait": "{time} انتظار",
+    "timeRange": "{start} تا {end}",
+    "hoursUnknown": "ساعت کاری اعلام نشده — قبل از رفتن تماس بگیرید.",
+    "backHome": "برگشت به شروع: {time} · رسیدن {at}",
+    "start": "شروع",
+    "skippedHeading": "جا نشد",
+    "skip_no_candidates": "مکان مطابقی در نزدیکی نیست",
+    "skip_not_feasible": "بسته است یا با زمان‌های دیگر تداخل دارد",
+    "minutes": "{minutes} دقیقه",
+    "hoursMinutes": "{hours} ساعت و {minutes} دقیقه"
+  },
+  "directions": {
+    "title": "مسیر تا {name}",
+    "travelModeAria": "نحوه رفتن",
+    "mode_drive": "ماشین",
+    "mode_taxi": "تاکسی",
+    "mode_walk": "پیاده",
+    "mode_bike": "دوچرخه",
+    "modeAuto": "انتخاب خودکار",
+    "mapAria": "نقشه مسیر",
+    "needLocation": "برای دیدن مسیر و زمان، موقعیت خود را مشخص کنید.",
+    "useMyLocation": "استفاده از موقعیت من",
+    "loadingRoute": "در حال یافتن مسیر…",
+    "durationMinutes": "~{minutes} دقیقه",
+    "durationHours": "~{hours} ساعت و {minutes} دقیقه",
+    "routeEstimate": "زمان تخمینی است — خط‌چین راهنمای مستقیم است، نه مسیر خیابانی.",
+    "routeFallback": "سرویس مسیریابی در دسترس نیست — تخمین نمایش داده می‌شود.",
+    "routeLive": "مسیر خیابانی",
+    "routeError": "فعلاً امکان دریافت مسیر نیست.",
+    "openIn": "باز کردن در {app}",
+    "openWith": "مسیریابی با",
+    "appsAria": "برنامه‌های مسیریابی",
+    "otherApp": "برنامه دیگر",
+    "rememberApp": "انتخابم را به خاطر بسپار",
+    "forgetApp": "انتخاب برنامه دیگر",
+    "privacyNote": "فقط مقصد به برنامه ارسال می‌شود."
+  },
+  "nearby": {
+    "planMyDay": "برنامه‌ریزی روزم",
+    "directions": "مسیریابی",
+    "eta_taxi": "~{minutes} دقیقه با تاکسی",
+    "distance_m": "{value} متر",
+    "distance_km": "{value} کیلومتر",
+    "eta_walk": "~{minutes} دقیقه پیاده",
+    "eta_drive": "~{minutes} دقیقه با ماشین",
+    "eta_bike": "~{minutes} دقیقه با دوچرخه",
+    "deliversToYou": "به شما ارسال دارد",
+    "comesToYou": "به محل شما می‌آید",
+    "inYourArea": "در محدوده شما",
+    "outsideDelivery": "خارج از محدوده ارسال",
+    "outsideService": "خارج از محدوده خدمات",
+    "approxLocation": "موقعیت تقریبی",
+    "menuMatches": "در منو: {items}",
+    "moreItems": "+{count} مورد دیگر",
+    "nearYouRail": "نزدیک شما",
+    "servesMe": "محدوده من را پوشش می‌دهد",
+    "showMap": "نقشه",
+    "hideMap": "بستن نقشه",
+    "showList": "فهرست",
+    "mapAria": "نقشه کسب‌وکارها",
+    "youAreHere": "شما اینجا هستید",
+    "searchThisArea": "جستجو در این محدوده",
+    "searchingArea": "نمایش نتایج اطراف محدوده نقشه",
+    "resetArea": "بازگشت به موقعیت من"
+  },
   "common": {
     "appName": "ساور",
     "loading": "در حال بارگذاری...",
@@ -871,6 +970,32 @@
     "must_accept_terms": "باید شرایط را بپذیرید"
   },
   "console": {
+    "serviceArea": {
+      "pinVerified": "پین به‌عنوان موقعیت دقیق تأیید شده است",
+      "pinUnverified": "پین تأیید نشده است — ممکن است مشتریان به مکان اشتباه مسیریابی شوند.",
+      "confirmPin": "تأیید دقیق بودن پین",
+      "title": "محدوده‌ی خدمت‌رسانی",
+      "hint": "محدوده‌ای که این شعبه به مشتریان خدمت می‌دهد. تعیین می‌کند شعبه در نتایج «نزدیک من» چه کسانی دیده شود و ارسال یا خدمت در محل کجا ارائه شود.",
+      "useDefault": "استفاده از پیش‌فرض {vertical}",
+      "custom": "محدوده‌ی سفارشی",
+      "mode": "نوع خدمت",
+      "modes": {
+        "delivery": "ارسال",
+        "on_site": "خدمت در محل مشتری",
+        "visit_only": "مراجعه‌ی حضوری مشتری"
+      },
+      "radiusKm": "شعاع (کیلومتر)",
+      "maxRadiusHint": "حداکثر مجاز پلتفرم: {max} کیلومتر",
+      "effective": "محدوده‌ی فعال: {mode}، {radius} کیلومتر ({source})",
+      "sources": {
+        "custom": "سفارشی",
+        "delivery": "از شعاع ارسال",
+        "default": "پیش‌فرض نوع کسب‌وکار"
+      },
+      "mapAria": "نقشه‌ی محدوده‌ی خدمت‌رسانی",
+      "clickToMovePin": "برای قرار دادن پین شعبه در مکان دقیق، روی نقشه کلیک کنید.",
+      "noLocation": "ابتدا موقعیت شعبه را تعیین کنید تا محدوده روی نقشه نمایش داده شود."
+    },
     "adminNavGroups": {
       "Operations": "عملیات",
       "Content": "محتوا",
@@ -3018,6 +3143,59 @@
     "selectBranchToManageMenu": "برای مدیریت منو، شعبه‌ای انتخاب کنید"
   },
   "configFields": {
+    "maps": {
+      "routing_source": {
+        "title": "منبع مسیر درون‌برنامه"
+      },
+      "osrm_url": {
+        "title": "آدرس سرور OSRM"
+      },
+      "nav_neshan_url": {
+        "title": "قالب لینک نشان"
+      },
+      "nav_balad_url": {
+        "title": "قالب لینک بلد"
+      },
+      "name": "نقشه و موقعیت",
+      "description": "ارائه‌دهنده‌ی نقشه، نمای پیش‌فرض، محدودیت محدوده‌ی خدمت‌رسانی و تنظیمات موقعیت مشتری.",
+      "group": "زیرساخت",
+      "provider": {
+        "title": "ارائه‌دهنده‌ی نقشه"
+      },
+      "fallback_provider": {
+        "title": "ارائه‌دهنده‌ی جایگزین"
+      },
+      "osm_tile_url": {
+        "title": "آدرس تایل OpenStreetMap"
+      },
+      "neshan_web_key": {
+        "title": "کلید وب نشان (مرورگر)"
+      },
+      "mapir_web_key": {
+        "title": "کلید API مپ (Map.ir) (مرورگر)"
+      },
+      "google_web_key": {
+        "title": "کلید JavaScript گوگل‌مپ (مرورگر)"
+      },
+      "default_center_lat": {
+        "title": "مرکز پیش‌فرض — عرض جغرافیایی"
+      },
+      "default_center_lng": {
+        "title": "مرکز پیش‌فرض — طول جغرافیایی"
+      },
+      "default_zoom": {
+        "title": "زوم پیش‌فرض"
+      },
+      "max_service_radius_km": {
+        "title": "حداکثر شعاع خدمت‌رسانی (کیلومتر)"
+      },
+      "geolocation_enabled": {
+        "title": "استفاده از موقعیت دستگاه"
+      },
+      "min_location_accuracy_m": {
+        "title": "درخواست تأیید موقعیت بیش از (متر)"
+      }
+    },
     "authentication": {
       "name": "احراز هویت",
       "description": "قوانین ورود با شماره تلفن/رمز یکبار مصرف، سیاست ثبت‌نام و آستانه‌های قفل حساب.",
@@ -4999,6 +5177,10 @@
     "title": "سیستم"
   },
   "seo": {
+    "planner": {
+      "title": "مسیر روز من — پلتفرم سامون",
+      "description": "چند کار را در یک مسیر برنامه‌ریزی کنید: غذا، آرایشگاه، کلینیک و بیشتر — با ترتیبی که بیشترین صرفه‌جویی در وقت را دارد."
+    },
     "root": {
       "title": "ساوور — پلتفرم مهمان‌نوازی",
       "description": "رستوران‌ها، کافه‌ها، بارها، فودتراک‌ها و بیشتر را کشف کنید. منوها را مرور کنید، میز رزرو کنید و از کسب‌وکارهای محلی در ساوور سفارش دهید.",
@@ -5348,6 +5530,7 @@
     "businessesCount": "{count} کسب‌وکار",
     "sortResults": "مرتب‌سازی نتایج",
     "sortOptions": {
+      "nearest": "نزدیک‌ترین",
       "recommended": "پیشنهادی",
       "highestRated": "بیشترین امتیاز",
       "mostReviewed": "بیشترین نظر",
@@ -5892,5 +6075,28 @@
         "reservations": "نوبت‌گیری"
       }
     }
+  },
+  "location": {
+    "placeWithArea": "{area}، {city}",
+    "nearYou": "نزدیک شما",
+    "nearYouIn": "نزدیک شما: {place}",
+    "chosenLocation": "موقعیت انتخابی",
+    "chosenIn": "انتخابی: {place}",
+    "fromAddress": "آدرس ذخیره‌شده",
+    "fromAddressIn": "آدرس ذخیره‌شده: {place}",
+    "defaultArea": "موقعیت خود را انتخاب کنید",
+    "accuracy_m": "±{value} متر",
+    "accuracy_km": "±{value} کیلومتر",
+    "useMyLocation": "استفاده از موقعیت من",
+    "changeLocationAria": "تغییر موقعیت",
+    "confirmNeeded": "موقعیت خود را تأیید کنید",
+    "permissionDenied": "دسترسی به موقعیت در تنظیمات مرورگر مسدود است.",
+    "pickerTitle": "موقعیت شما",
+    "pickerHint": "برای تعیین موقعیت دقیق روی نقشه بزنید. کسب‌وکارهای نزدیک از این نقطه مرتب می‌شوند.",
+    "pickerMapAria": "نقشه‌ی انتخاب موقعیت",
+    "confirmLowAccuracy": "دستگاه شما موقعیت دقیقی گزارش نکرد. پین را بررسی و در صورت نیاز جابه‌جا کنید.",
+    "confirmJump": "موقعیت شما به‌طور غیرعادی جابه‌جا شد. لطفاً محل خود را تأیید کنید.",
+    "usePickedLocation": "استفاده از این موقعیت",
+    "confirmLocation": "تأیید این موقعیت"
   }
 }

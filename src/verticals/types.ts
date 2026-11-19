@@ -53,4 +53,9 @@ export interface VerticalDefinition {
   usesFoodFields: boolean
   /** Items can be added to a cart and ordered online. */
   supportsCart: boolean
+  /**
+   * Phase L1 — service area used when a branch hasn't configured one:
+   * the mode it gets and the radius it is shown within ("near me").
+   */
+  defaultServiceArea: { mode: 'delivery' | 'on_site' | 'visit_only'; radiusKm: number }
 }

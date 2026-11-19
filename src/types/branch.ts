@@ -75,6 +75,40 @@ export interface BranchCheckout {
   delivery: BranchCheckoutDelivery
 }
 
+// ── Service area (Phase L1 — docs/BUSINESS_SERVICES_ROADMAP.md) ──────────────
+
+/**
+ * What a branch offers inside its area:
+ *  - delivery   — sends orders to the customer (restaurants with delivery)
+ *  - on_site    — staff come to the customer (home hairdresser, home doctor)
+ *  - visit_only — customer comes to the branch; the area only decides whose
+ *                 "near me" results the branch appears in
+ */
+export type ServiceAreaMode = 'delivery' | 'on_site' | 'visit_only'
+
+export interface GeoPoint {
+  lat: number
+  lng: number
+}
+
+export type ServiceAreaShape =
+  | { type: 'circle'; radiusKm: number }
+  /** Closed polygon, vertices in order (first ≠ last; the ring closes implicitly). */
+  | { type: 'polygon'; points: GeoPoint[] }
+
+/** Optional distance bands with their own fee / ETA (e.g. 0–3 km free, 3–8 km $2). */
+export interface ServiceAreaZone {
+  upToKm: number
+  fee?: number
+  etaMinutes?: number
+}
+
+export interface BranchServiceArea {
+  mode: ServiceAreaMode
+  shape: ServiceAreaShape
+  zones?: ServiceAreaZone[]
+}
+
 export interface BranchMetrics {
   branchId: string
   totalOrders: number
@@ -127,6 +161,16 @@ export interface Branch {
   metadata?: Record<string, unknown>
   /** Stable QR payload from the backend. Encode `qr.url` only — never slugs. */
   qr?: QrCode | null
+  /**
+   * Phase L1 — where this branch serves customers. Absent → derived by
+   * resolveBranchServiceArea() (delivery radius, else the vertical default).
+   */
+  serviceArea?: BranchServiceArea
+  /**
+   * Phase L2 — when the owner last confirmed the map pin is exact (ISO).
+   * Null/absent → unverified (nearby results can flag it).
+   */
+  locationVerifiedAt?: string | null
 }
 
 export interface BranchAnalyticsSummary {

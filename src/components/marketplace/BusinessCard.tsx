@@ -14,6 +14,10 @@ import { resolveTenantBranding } from '@/lib/tenant-branding'
 import { deriveBrandTokens, isValidHexColor } from '@/lib/brand-color'
 import { getDiscoverCardPrimaryCta } from '@/lib/discover-card-cta'
 import { HighlightText } from '@/components/search/HighlightText'
+import { ProximityLine } from '@/components/location/ProximityLine'
+import type { BranchProximity } from '@/lib/nearby'
+import { DirectionsSheet } from '@/components/location/DirectionsSheet'
+import { resolveVertical } from '@/verticals'
 
 interface BusinessCardProps {
   tenant: Tenant
@@ -22,6 +26,11 @@ interface BusinessCardProps {
   branches?: PublicBranchInfo[]
   className?: string
   highlightQuery?: string
+  /** Phase L3 — nearest/best branch for the customer (Discover). */
+  proximity?: BranchProximity | null
+  /** Phase L3 — card ↔ map pin highlight. */
+  highlighted?: boolean
+  onHoverChange?: (hovering: boolean) => void
 }
 
 function StatusBadge({ meta }: { meta: MarketplaceMeta }) {
@@ -47,9 +56,19 @@ function PriceDots({ level }: { level?: number }) {
   )
 }
 
-export function BusinessCard({ tenant, meta, branches: branchesProp, className, highlightQuery }: BusinessCardProps) {
+export function BusinessCard({
+  tenant,
+  meta,
+  branches: branchesProp,
+  className,
+  highlightQuery,
+  proximity,
+  highlighted,
+  onHoverChange,
+}: BusinessCardProps) {
   const t = useTranslations('marketplace')
   const [branchesOpen, setBranchesOpen] = useState(false)
+  const [directionsOpen, setDirectionsOpen] = useState(false)
   const { data: resolvedBranches } = usePublicBranches(tenant.id, {
     enabled: branchesProp === undefined,
   })
@@ -95,9 +114,15 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className, 
         'group flex flex-col bg-[var(--card)] rounded-2xl border border-[var(--border)]',
         'overflow-hidden shadow-[var(--shadow-soft)] hover:shadow-md hover:-translate-y-0.5',
         'transition-all duration-200',
+        highlighted && 'ring-2 ring-[var(--accent)] -translate-y-0.5 shadow-md',
         className,
       )}
       aria-label={`${tenant.name} — ${label}`}
+      data-tenant-id={tenant.id}
+      onMouseEnter={onHoverChange ? () => onHoverChange(true) : undefined}
+      onMouseLeave={onHoverChange ? () => onHoverChange(false) : undefined}
+      onFocus={onHoverChange ? () => onHoverChange(true) : undefined}
+      onBlur={onHoverChange ? () => onHoverChange(false) : undefined}
     >
       {/* Cover image — H4: use Next.js Image for format negotiation + lazy loading */}
       <div className="relative h-48 overflow-hidden bg-[var(--bg-secondary)] shrink-0">
@@ -183,6 +208,27 @@ export function BusinessCard({ tenant, meta, branches: branchesProp, className, 
             </span>
           )}
         </div>
+
+        {proximity && (
+          <ProximityLine
+            proximity={proximity}
+            showBranchName={visibleBranches.length > 1}
+            className="mb-3"
+            onDirections={() => setDirectionsOpen(true)}
+          />
+        )}
+        {proximity && directionsOpen && (
+          <DirectionsSheet
+            open
+            onClose={() => setDirectionsOpen(false)}
+            destination={{
+              point: proximity.point,
+              name: visibleBranches.length > 1 ? `${tenant.name} — ${proximity.branchName}` : tenant.name,
+              address: branches.find((b) => b.id === proximity.branchId)?.address,
+              emoji: resolveVertical(tenant.businessTypes).emoji,
+            }}
+          />
+        )}
 
         {/* Service badges (amenities are branch-owned — not shown on tenant cards) */}
         {(hasReservations || hasLoyalty) && (

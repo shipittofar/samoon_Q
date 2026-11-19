@@ -11,6 +11,7 @@
 import { useTranslations } from 'next-intl'
 import { ImageUploader } from '@/components/ImageUploader'
 import { MapSelector } from '@/components/address/MapSelector'
+import { ServiceAreaEditor } from '@/components/console/ServiceAreaEditor'
 import { parseMapCoordinates } from '@/lib/coordinates'
 import { SelectableOptionRow } from '@/components/ui/SelectableOptionRow'
 import { useReverseGeocode } from '@/hooks/address'
@@ -201,6 +202,20 @@ export function BranchFormFields({
           />
         )}
       </fieldset>
+      )}
+
+      {show('location') && showMap && (
+        <ServiceAreaEditor
+          value={form.serviceArea}
+          checkout={form.checkout}
+          latitude={form.latitude}
+          longitude={form.longitude}
+          onChange={(serviceArea) => set('serviceArea', serviceArea)}
+          // Moving the pin invalidates a previous "exact location" confirmation.
+          onPinMove={({ lat, lng }) => onChange({ ...form, latitude: lat, longitude: lng, locationVerifiedAt: null })}
+          locationVerifiedAt={form.locationVerifiedAt}
+          onVerifyPin={() => set('locationVerifiedAt', new Date().toISOString())}
+        />
       )}
 
       {show('contact') && (

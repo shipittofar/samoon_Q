@@ -40,6 +40,13 @@ export interface BranchFormState {
   maxCapacity?: number
   cuisines: string[]
   amenities: string[]
+  /**
+   * Phase L1 — custom service area; null/undefined → use the default
+   * (delivery radius, else the vertical default). Optional for legacy callers.
+   */
+  serviceArea?: import('./branch').BranchServiceArea | null
+  /** Phase L2 — pin confirmed exact (ISO time); null = unverified. */
+  locationVerifiedAt?: string | null
 }
 
 const DAYS: BranchBusinessHours['day'][] = [
@@ -194,6 +201,10 @@ export interface BranchWriteRequest {
   language?: string
   cuisines?: string[]
   amenities?: string[]
+  /** Phase L1 — null clears a custom area (back to defaults). */
+  serviceArea?: import('./branch').BranchServiceArea | null
+  /** Phase L2 — ISO time the owner confirmed the pin; null marks it unverified. */
+  locationVerifiedAt?: string | null
 }
 
 /** Canonical console create payload — flattened checkout, no slug. */
@@ -226,6 +237,10 @@ export interface BranchCreateRequest {
   maxCapacity?: number
   cuisines?: string[]
   amenities?: string[]
+  /** Phase L1 — custom service area (omitted → backend default). */
+  serviceArea?: import('./branch').BranchServiceArea
+  /** Phase L2 — ISO time the owner confirmed the pin. */
+  locationVerifiedAt?: string
   image_asset_id?: import('@/types/upload').AssetId | null
   cover_image_asset_id?: import('@/types/upload').AssetId | null
   hero_image_asset_id?: import('@/types/upload').AssetId | null
@@ -333,6 +348,8 @@ export function branchFormToWriteRequest(form: BranchFormState): BranchWriteRequ
     cuisines: form.cuisines,
     amenities: form.amenities,
   }
+  if (form.serviceArea !== undefined) request.serviceArea = form.serviceArea
+  if (form.locationVerifiedAt !== undefined) request.locationVerifiedAt = form.locationVerifiedAt
   appendImagesFromForm(request, form)
   return request
 }
@@ -355,6 +372,8 @@ export function branchFormToCreateRequest(form: BranchFormState): BranchCreateRe
     cuisines: form.cuisines,
     amenities: form.amenities,
   }
+  if (form.serviceArea) request.serviceArea = form.serviceArea
+  if (form.locationVerifiedAt) request.locationVerifiedAt = form.locationVerifiedAt
   appendImagesFromForm(request, form)
   return request
 }
@@ -469,5 +488,7 @@ export function branchToFormInput(branch: Branch): BranchFormState {
     maxCapacity: branch.maxCapacity,
     cuisines: branch.cuisines ?? [],
     amenities: branch.amenities ?? [],
+    serviceArea: branch.serviceArea ?? null,
+    locationVerifiedAt: branch.locationVerifiedAt ?? null,
   }
 }

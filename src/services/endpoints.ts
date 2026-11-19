@@ -4,6 +4,11 @@ export const ENDPOINTS = {
     DISCOVER: '/public/discover/',
   },
 
+  // Phase L4 — server-side routing proxy (provider keys stay on the backend)
+  GEO: {
+    ROUTE: '/geo/route/',
+  },
+
   // Auth
   AUTH: {
     LOGIN: '/auth/password-login/',

@@ -419,6 +419,8 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     coverImage: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80',
     businessHours: defaultHours('09:00', '20:00'),
     ...mockCheckoutFields({ delivery: false, pickup: false, dineIn: false, reservationsEnabled: true, maxCapacity: 8 }),
+    // Phase L1 demo: stylists also work at the customer's home within 6 km.
+    serviceArea: { mode: 'on_site', shape: { type: 'circle', radiusKm: 6 } },
     amenities: ['WiFi', 'Accessible'],
     created_at: '2024-07-01T00:00:00Z',
     updated_at: '2024-07-01T00:00:00Z',
@@ -663,6 +665,8 @@ export const branchManagementService = {
         language: payload.language,
         cuisines: payload.cuisines ?? [],
         amenities: payload.amenities ?? [],
+        ...(payload.serviceArea ? { serviceArea: payload.serviceArea } : {}),
+        ...(payload.locationVerifiedAt ? { locationVerifiedAt: payload.locationVerifiedAt } : {}),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -708,6 +712,8 @@ export const branchManagementService = {
         isDefault: isFirstBranch || payload.isDefault,
         cuisines: payload.cuisines ?? [],
         amenities: payload.amenities ?? [],
+        ...(payload.serviceArea ? { serviceArea: payload.serviceArea } : {}),
+        ...(payload.locationVerifiedAt ? { locationVerifiedAt: payload.locationVerifiedAt } : {}),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -756,6 +762,8 @@ export const branchManagementService = {
       if (payload.language !== undefined) branch.language = payload.language
       if (payload.cuisines !== undefined) branch.cuisines = payload.cuisines
       if (payload.amenities !== undefined) branch.amenities = payload.amenities
+      if (payload.serviceArea !== undefined) branch.serviceArea = payload.serviceArea ?? undefined
+      if (payload.locationVerifiedAt !== undefined) branch.locationVerifiedAt = payload.locationVerifiedAt
       if (payload.isDefault) {
         MOCK_BRANCH_LIST.forEach((b) => { if (b.tenantId === branch.tenantId) b.isDefault = b.id === branch.id })
       }

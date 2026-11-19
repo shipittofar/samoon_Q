@@ -21,7 +21,7 @@ const FOOD_BASE = {
   attributes: [],
   usesFoodFields: true,
   supportsCart: true,
-} as const satisfies Omit<VerticalDefinition, 'key' | 'emoji'>
+} as const satisfies Omit<VerticalDefinition, 'key' | 'emoji' | 'defaultServiceArea'>
 
 /** Shared by appointment-style service verticals. */
 const SERVICE_ATTRIBUTES: readonly CatalogAttributeDefinition[] = [
@@ -31,14 +31,14 @@ const SERVICE_ATTRIBUTES: readonly CatalogAttributeDefinition[] = [
 ]
 
 export const VERTICALS: Readonly<Record<BusinessType, VerticalDefinition>> = Object.freeze({
-  restaurant: { key: 'restaurant', emoji: '🍽️', ...FOOD_BASE },
-  cafe: { key: 'cafe', emoji: '☕', ...FOOD_BASE },
-  bar: { key: 'bar', emoji: '🍸', ...FOOD_BASE },
-  food_court: { key: 'food_court', emoji: '🏬', ...FOOD_BASE },
-  food_truck: { key: 'food_truck', emoji: '🚚', ...FOOD_BASE },
-  mobile_cafe: { key: 'mobile_cafe', emoji: '🛺', ...FOOD_BASE },
-  hotel: { key: 'hotel', emoji: '🏨', ...FOOD_BASE },
-  other: { key: 'other', emoji: '🏪', ...FOOD_BASE },
+  restaurant: { key: 'restaurant', emoji: '🍽️', ...FOOD_BASE, defaultServiceArea: { mode: 'visit_only', radiusKm: 5 } },
+  cafe: { key: 'cafe', emoji: '☕', ...FOOD_BASE, defaultServiceArea: { mode: 'visit_only', radiusKm: 3 } },
+  bar: { key: 'bar', emoji: '🍸', ...FOOD_BASE, defaultServiceArea: { mode: 'visit_only', radiusKm: 5 } },
+  food_court: { key: 'food_court', emoji: '🏬', ...FOOD_BASE, defaultServiceArea: { mode: 'visit_only', radiusKm: 5 } },
+  food_truck: { key: 'food_truck', emoji: '🚚', ...FOOD_BASE, defaultServiceArea: { mode: 'visit_only', radiusKm: 3 } },
+  mobile_cafe: { key: 'mobile_cafe', emoji: '🛺', ...FOOD_BASE, defaultServiceArea: { mode: 'visit_only', radiusKm: 3 } },
+  hotel: { key: 'hotel', emoji: '🏨', ...FOOD_BASE, defaultServiceArea: { mode: 'visit_only', radiusKm: 20 } },
+  other: { key: 'other', emoji: '🏪', ...FOOD_BASE, defaultServiceArea: { mode: 'visit_only', radiusKm: 5 } },
   beauty_salon: {
     key: 'beauty_salon',
     family: 'service',
@@ -50,6 +50,7 @@ export const VERTICALS: Readonly<Record<BusinessType, VerticalDefinition>> = Obj
     ],
     usesFoodFields: false,
     supportsCart: false,
+    defaultServiceArea: { mode: 'visit_only', radiusKm: 5 },
   },
   clinic: {
     key: 'clinic',
@@ -63,6 +64,7 @@ export const VERTICALS: Readonly<Record<BusinessType, VerticalDefinition>> = Obj
     ],
     usesFoodFields: false,
     supportsCart: false,
+    defaultServiceArea: { mode: 'visit_only', radiusKm: 15 },
   },
 })
 
