@@ -103,6 +103,9 @@ function menuItemFromWriteRequest(
     extras: overrides.extras ?? [],
     discount: fields.discount,
     calories: fields.calories,
+    // Phase 1 — service verticals (absent for food payloads).
+    ...(fields.item_kind ? { item_kind: fields.item_kind } : {}),
+    ...(fields.attributes ? { attributes: fields.attributes } : {}),
   }
 }
 

@@ -161,12 +161,13 @@ describe('Tenant marketplace metadata', () => {
     })
   })
 
-  it('returns 5 public tenants (is_active, excludes hidden)', async () => {
+  // 5 food tenants + 2 Phase 1 service-vertical demo tenants (salon, clinic).
+  it('returns 7 public tenants (is_active, excludes hidden)', async () => {
     const all = await tenantService.getTenants()
     const pub = all.filter(
       (t) => t.slug !== 'default' && t.is_active === true,
     )
-    expect(pub.length).toBe(5)
+    expect(pub.length).toBe(7)
   })
 
   it('non-visible tenants are excluded from public list', async () => {

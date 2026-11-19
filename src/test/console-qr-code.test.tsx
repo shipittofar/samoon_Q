@@ -673,7 +673,9 @@ describe('QR management console page and edit surfaces', () => {
   it('sidebar maps the QR icon and localized nav label', () => {
     const sidebar = readFileSync(join(ROOT, 'components/admin/AdminSidebar.tsx'), 'utf8')
     expect(sidebar).toContain('QrCode')
-    expect(sidebar).toContain('item.labelKey ? t(item.labelKey) : item.label')
+    // An explicit labelKey wins; otherwise the route-derived adminNav.* key, then the English label.
+    expect(sidebar).toContain('? t(item.labelKey)')
+    expect(sidebar).toContain('t.has(adminNavLabelKey(item.href))')
     const breadcrumbs = readFileSync(join(ROOT, 'components/admin/AdminBreadcrumbs.tsx'), 'utf8')
     expect(breadcrumbs).toContain("qr:           'qr'")
   })

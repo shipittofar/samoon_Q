@@ -87,10 +87,16 @@ describe('B — ADMIN_TENANT_ROUTES constant', () => {
     expect(ADMIN_TENANT_ROUTES).toHaveLength(2)
   })
 
-  it('is spread into module routes (no per-module duplication)', () => {
-    const src = readSrc('modules/registry.ts')
-    const spreadCount = (src.match(/\.\.\.ADMIN_TENANT_ROUTES/g) ?? []).length
-    expect(spreadCount).toBe(6)
+  it('is spread into module routes (no per-module duplication)', async () => {
+    // Every business-type module carries the shared tenant admin routes.
+    // (Service verticals share one route list, so a source-text spread count
+    // no longer equals the module count — check the registry at runtime.)
+    const { getModules, ADMIN_TENANT_ROUTES } = await import('@/modules/registry')
+    const modules = getModules()
+    expect(modules.length).toBeGreaterThanOrEqual(8)
+    for (const mod of modules) {
+      for (const route of ADMIN_TENANT_ROUTES) expect(mod.routes).toContain(route)
+    }
   })
 })
 

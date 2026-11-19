@@ -87,6 +87,60 @@ function normalizeTenant(raw: Tenant & {
  */
 const MOCK_TENANTS: Record<string, Tenant> = {
   default: { ...DEFAULT_TENANT },
+  // ── Phase 1 — service verticals (demo) ─────────────────────────────────────
+  'glow-studio': {
+    id: 'tenant-glow-studio-01',
+    name: 'Glow Studio',
+    slug: 'glow-studio',
+    businessTypes: ['beauty_salon'],
+    is_active: true,
+    status: 'ACTIVE',
+    created_at: '2024-07-01T00:00:00.000Z',
+    heroImage: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80',
+    discoverCover: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80',
+    settings: {
+      featureFlags: { 'menu.enabled': true, 'ordering.enabled': false, 'reservations.enabled': true, 'reviews.enabled': true, 'promotions.enabled': true, 'analytics.enabled': true },
+      theme: { primaryColor: '#c2185b' },
+      contactEmail: 'hello@glowstudio.example',
+      contactPhone: '+1 (212) 555-1100',
+      marketplace: {
+        tags: ['Hair', 'Nails', 'Bridal'],
+        rating: 4.9,
+        reviewCount: 312,
+        featured: true,
+        tagline: 'Hair, nails and skin — by appointment.',
+        priceLevel: 2,
+        gallery: [
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80',
+          'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80',
+        ],
+      },
+    },
+  },
+  'mehr-clinic': {
+    id: 'tenant-mehr-clinic-01',
+    name: 'Mehr Clinic',
+    slug: 'mehr-clinic',
+    businessTypes: ['clinic'],
+    is_active: true,
+    status: 'ACTIVE',
+    created_at: '2024-07-15T00:00:00.000Z',
+    heroImage: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80',
+    discoverCover: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800&q=80',
+    settings: {
+      featureFlags: { 'menu.enabled': true, 'ordering.enabled': false, 'reservations.enabled': true, 'reviews.enabled': true, 'analytics.enabled': true },
+      theme: { primaryColor: '#00796b' },
+      contactEmail: 'care@mehrclinic.example',
+      contactPhone: '+1 (212) 555-1200',
+      marketplace: {
+        tags: ['General Practice', 'Dermatology', 'Online Consultation'],
+        rating: 4.7,
+        reviewCount: 188,
+        tagline: 'Family medicine and dermatology, in person or online.',
+        priceLevel: 2,
+      },
+    },
+  },
   samoon: {
     id: 'tenant-samoon-01',
     name: 'Samoon Restaurant',

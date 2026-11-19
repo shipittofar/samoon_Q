@@ -184,6 +184,8 @@ export const BUSINESS_TYPE_LABELS: Record<string, string> = {
   mobile_cafe: 'Mobile Café',
   hotel:       'Hotel',
   other:       'Other',
+  beauty_salon: 'Beauty Salon',
+  clinic:      'Clinic',
 }
 
 export const PRICE_LEVEL_LABELS: Record<number, string> = {

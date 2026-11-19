@@ -15,6 +15,9 @@ export const MOCK_BRANCH_TENANT_IDS: Record<string, string> = {
   'branch-bar-01': FALLBACK_TENANT,
   'branch-fc-01': FALLBACK_TENANT,
   'branch-fc-02': FALLBACK_TENANT,
+  // Phase 1 — service verticals (demo)
+  'branch-glow-01': 'tenant-glow-studio-01',
+  'branch-mehr-01': 'tenant-mehr-clinic-01',
 }
 
 export function mockBranchTenantId(branchId: string): string | undefined {

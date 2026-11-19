@@ -172,6 +172,45 @@ const TEMPLATES: Record<ProvisionableBusinessType, TenantTemplate> = {
     },
     brandingDefaults: { primaryColor: '#457b9d', fontBody: 'inter' },
   },
+  // Phase 1 — service verticals: appointment-style catalogs, no cart/ordering,
+  // no QR table ordering. Reservations are the booking channel until the
+  // dedicated appointments capability lands (Phase 3).
+  beauty_salon: {
+    businessType: 'beauty_salon',
+    name: 'Beauty Salon',
+    description: 'Hair, beauty and barber services with durations, starting prices and bookings.',
+    enabledCapabilities: ['reservations', 'reviews', 'promotions'],
+    defaultFeatureFlags: {
+      'menu.enabled': true,
+      'ordering.enabled': false,
+      'qr_table.enabled': false,
+      'delivery.enabled': false,
+      'reservations.enabled': true,
+      'reviews.enabled': true,
+      'promotions.enabled': true,
+      'analytics.enabled': true,
+      'notifications.enabled': true,
+    },
+    brandingDefaults: { primaryColor: '#c2185b', fontBody: 'inter' },
+  },
+  clinic: {
+    businessType: 'clinic',
+    name: 'Clinic',
+    description: 'Medical and wellness services with consultation fees, durations and appointments.',
+    enabledCapabilities: ['reservations', 'reviews'],
+    defaultFeatureFlags: {
+      'menu.enabled': true,
+      'ordering.enabled': false,
+      'qr_table.enabled': false,
+      'delivery.enabled': false,
+      'reservations.enabled': true,
+      'reviews.enabled': true,
+      'promotions.enabled': false,
+      'analytics.enabled': true,
+      'notifications.enabled': true,
+    },
+    brandingDefaults: { primaryColor: '#00796b', fontBody: 'inter' },
+  },
 }
 
 // ── Capability presets ────────────────────────────────────────────────────────
@@ -248,10 +287,30 @@ const CAPABILITY_PRESETS: Record<ProvisionableBusinessType, TenantCapabilityPres
       'mobile_cafe.daily_specials.enabled': false,
     },
   },
+  beauty_salon: {
+    businessType: 'beauty_salon',
+    required: ['menu.enabled'],
+    optional: {
+      'notifications.enabled': true,
+      'reservations.enabled': true,
+      'reviews.enabled': true,
+      'promotions.enabled': true,
+    },
+  },
+  clinic: {
+    businessType: 'clinic',
+    required: ['menu.enabled'],
+    optional: {
+      'notifications.enabled': true,
+      'reservations.enabled': true,
+      'reviews.enabled': true,
+    },
+  },
 }
 
 const VALID_BUSINESS_TYPES = new Set<string>([
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
+  'beauty_salon', 'clinic',
 ])
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -309,6 +368,8 @@ export const tenantProvisioningService = {
       food_court: 'food_court',
       food_truck: 'food_truck',
       mobile_cafe: 'mobile_cafe',
+      beauty_salon: 'beauty_salon',
+      clinic: 'clinic',
     }
     return { moduleKey: moduleKeyMap[businessType] }
   },

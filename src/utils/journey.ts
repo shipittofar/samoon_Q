@@ -33,6 +33,8 @@ export type PrimaryBusinessType =
   | 'mobile_cafe'
   | 'hotel'
   | 'other'
+  | 'beauty_salon'
+  | 'clinic'
 
 export interface CustomerJourney {
   /**
@@ -92,6 +94,9 @@ const SECTION_ORDER_BY_TYPE: Record<PrimaryBusinessType, SectionKey[]> = {
   mobile_cafe:['branches',     'featured_menu', 'promotions','about',   'reviews',  'gallery'],
   food_court: ['branches',     'featured_menu', 'about',     'reviews', 'gallery',  'promotions'],
   hotel:      ['about',        'featured_menu', 'reviews',   'gallery', 'promotions','branches'],
+  // Service verticals: the service list and social proof sell the booking.
+  beauty_salon: ['featured_menu', 'gallery', 'reviews',      'promotions', 'about', 'branches'],
+  clinic:       ['featured_menu', 'about',   'reviews',      'branches',   'gallery', 'promotions'],
   other:      DEFAULT_SECTION_ORDER,
 }
 
@@ -109,6 +114,8 @@ const NAV_PRIORITY_BY_TYPE: Record<PrimaryBusinessType, string[]> = {
   mobile_cafe: ['locations', 'menu',   'loyalty', 'order'],
   food_court:  ['locations', 'menu',   'gallery'],
   hotel:       ['menu',      'reservation', 'gallery'],
+  beauty_salon: ['menu',     'reservation', 'gallery', 'reviews'],
+  clinic:       ['menu',     'reservation', 'reviews'],
   other:       ['menu',      'reservation'],
 }
 
@@ -128,7 +135,8 @@ function orderCTAs(
 ): { primaryCTA: PublicCTALink | null; secondaryCTAs: PublicCTALink[] } {
   const locationFirst = primaryType === 'food_truck' || primaryType === 'mobile_cafe'
   const reservationFirst =
-    primaryType === 'restaurant' || primaryType === 'bar' || primaryType === 'hotel'
+    primaryType === 'restaurant' || primaryType === 'bar' || primaryType === 'hotel' ||
+    primaryType === 'beauty_salon' || primaryType === 'clinic'
 
   const priority: Array<PublicCTALink | null> = locationFirst
     ? [ctas.locations, ctas.menu, ctas.reservation, ctas.loyalty]

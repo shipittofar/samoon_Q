@@ -103,6 +103,9 @@ export const MOCK_TENANT_OWNER_MAP: Record<string, string> = {
   'tenant-central-fc-01': 'owner-003',
   'tenant-wheels-brews-01': 'owner-003',
   'tenant-road-bites-01': 'owner-004',
+  // Phase 1 — service vertical demo tenants
+  'tenant-glow-studio-01': 'owner-002',
+  'tenant-mehr-clinic-01': 'owner-004',
 }
 
 let _ownerStore: Owner[] = MOCK_OWNERS.map((o) => ({ ...o }))

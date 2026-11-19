@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui'
 import { MenuItemCartControls } from '@/components/menu/MenuItemCartControls'
 import { HighlightText } from '@/components/search/HighlightText'
 import type { MenuItem } from '@/types'
+import { useTenantVertical } from '@/hooks/verticals'
+import { ServiceItemFacts, useCatalogPriceLabel } from '@/components/menu/ServiceItemFacts'
 
 interface FoodCardProps {
   item: MenuItem
@@ -24,9 +26,14 @@ interface FoodCardProps {
 
 export function FoodCard({ item, onOpenDetail, compact = false, className, highlightQuery }: FoodCardProps) {
   const t = useTranslations('menu')
+  const vertical = useTenantVertical()
+  const priceLabel = useCatalogPriceLabel()
   const activeBranchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
+  const tenant = useTenantStore((s) => s.tenant)
+  // Phase 1 — service verticals (salon, clinic) have no cart.
   const orderingEnabled =
-    canOrderFromTenant(useTenantStore((s) => s.tenant)) &&
+    vertical.supportsCart &&
+    canOrderFromTenant(tenant) &&
     isBranchOrderingEnabled(activeBranchCheckout)
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const addRecentlyViewed = useRecentlyViewedStore((s) => s.addItem)
@@ -178,23 +185,29 @@ export function FoodCard({ item, onOpenDetail, compact = false, className, highl
               <span className="text-[var(--fg-subtle)]">{t('ratingCountShort', { count: item.rating_count })}</span>
             )}
           </span>
-          {/* H6: friendlier prep time label */}
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3"aria-hidden="true"/>
-            {t('prepTimeApprox', { min: item.preparation_time })}
-          </span>
-          {item.calories && (
-            <span className="flex items-center gap-1">
-              <Flame className="h-3 w-3"/>
-              {t('calories', { count: item.calories })}
-            </span>
+          {vertical.usesFoodFields ? (
+            <>
+              {/* H6: friendlier prep time label */}
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3"aria-hidden="true"/>
+                {t('prepTimeApprox', { min: item.preparation_time })}
+              </span>
+              {item.calories && (
+                <span className="flex items-center gap-1">
+                  <Flame className="h-3 w-3"/>
+                  {t('calories', { count: item.calories })}
+                </span>
+              )}
+            </>
+          ) : (
+            <ServiceItemFacts item={item} />
           )}
         </div>
 
         {/* Price + Add */}
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-lg font-bold text-[var(--fg)]">{formatCurrency(discountedPrice)}</span>
+            <span className="text-lg font-bold text-[var(--fg)]">{priceLabel(item, formatCurrency(discountedPrice))}</span>
             {item.discount && (
               <span className="text-xs text-[var(--fg-subtle)] line-through ms-1.5">
                 {formatCurrency(item.price)}

@@ -49,6 +49,8 @@ const TENANT_OAK_BAR = 'tenant-oak-bar-01'
 const TENANT_CENTRAL_FC = 'tenant-central-fc-01'
 const TENANT_WHEELS_BREWS = 'tenant-wheels-brews-01'
 const TENANT_ROAD_BITES = 'tenant-road-bites-01'
+const TENANT_GLOW_STUDIO = 'tenant-glow-studio-01'
+const TENANT_MEHR_CLINIC = 'tenant-mehr-clinic-01'
 
 // ── Default business hours helper ─────────────────────────────────────────────
 
@@ -401,6 +403,43 @@ const INITIAL_MOCK_BRANCHES: Branch[] = [
     amenities: [],
     created_at: '2024-05-01T00:00:00Z',
     updated_at: '2024-06-01T00:00:00Z',
+  },
+  // ── Phase 1 — service verticals (demo): no online order types ──────────────
+  {
+    id: 'branch-glow-01',
+    tenantId: TENANT_GLOW_STUDIO,
+    name: 'Glow Studio Downtown',
+    slug: 'main',
+    description: 'Hair, nails and skin care in a calm downtown studio.',
+    isDefault: true,
+    status: 'active',
+    type: 'physical',
+    location: { address: '18 Bloom Street', city: 'New York', country: 'US', latitude: 40.7306, longitude: -73.9866 },
+    contact: { phone_number: '+1 212 555 1100', email: 'downtown@glowstudio.example' },
+    coverImage: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80',
+    businessHours: defaultHours('09:00', '20:00'),
+    ...mockCheckoutFields({ delivery: false, pickup: false, dineIn: false, reservationsEnabled: true, maxCapacity: 8 }),
+    amenities: ['WiFi', 'Accessible'],
+    created_at: '2024-07-01T00:00:00Z',
+    updated_at: '2024-07-01T00:00:00Z',
+  },
+  {
+    id: 'branch-mehr-01',
+    tenantId: TENANT_MEHR_CLINIC,
+    name: 'Mehr Clinic — Main',
+    slug: 'main',
+    description: 'General practice and dermatology. Online consultations available.',
+    isDefault: true,
+    status: 'active',
+    type: 'physical',
+    location: { address: '240 Health Avenue', city: 'New York', country: 'US', latitude: 40.7484, longitude: -73.9857 },
+    contact: { phone_number: '+1 212 555 1200', email: 'care@mehrclinic.example' },
+    coverImage: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800&q=80',
+    businessHours: defaultHours('08:00', '18:00'),
+    ...mockCheckoutFields({ delivery: false, pickup: false, dineIn: false, reservationsEnabled: true, maxCapacity: 4 }),
+    amenities: ['Parking', 'Accessible'],
+    created_at: '2024-07-15T00:00:00Z',
+    updated_at: '2024-07-15T00:00:00Z',
   },
 ]
 

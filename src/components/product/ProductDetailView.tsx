@@ -28,6 +28,8 @@ import { buildRatingBreakdownFromReviews, getAssignedExtraGroups, formatNutritio
 import { formatCurrency, getDiscountedPrice } from '@/utils'
 import { isBranchOrderingEnabled } from '@/lib/branch-checkout'
 import { canOrderFromTenant } from '@/lib/tenant-state'
+import { useTenantVertical } from '@/hooks/verticals'
+import { ServiceItemFacts, useCatalogPriceLabel } from '@/components/menu/ServiceItemFacts'
 import type { MenuItem } from '@/types'
 import type { CartOwnershipInput } from '@/lib/active-cart'
 import toast from 'react-hot-toast'
@@ -65,9 +67,14 @@ export function ProductDetailView({
   const { addToCart } = useAddToCart()
   const tenant = useTenantStore((s) => s.tenant)
   const branchCheckout = useBranchStore((s) => s.activeBranch?.checkout)
-  const orderingEnabled = orderingContext
-    ? true
-    : canOrderFromTenant(tenant) && isBranchOrderingEnabled(branchCheckout)
+  // Phase 1 — service verticals (salon, clinic) have no cart in any context.
+  const vertical = useTenantVertical()
+  const priceLabel = useCatalogPriceLabel()
+  const orderingEnabled = !vertical.supportsCart
+    ? false
+    : orderingContext
+      ? true
+      : canOrderFromTenant(tenant) && isBranchOrderingEnabled(branchCheckout)
   const { favorited, isPending, handleFavorite } = useFavoriteAction(item.id)
   const activeBranchId = useActiveBranchId()
   const scopedBranchId = branchId ?? activeBranchId
@@ -235,15 +242,21 @@ export function ProductDetailView({
                   <strong className="text-[var(--fg)]">{item.rating}</strong>
                   <span>{t('reviewCount', { count: item.rating_count })}</span>
                 </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5"aria-hidden="true"/>
-                  {t('prepTime', { min: item.preparation_time })}
-                </span>
-                {item.calories != null && (
-                  <span className="flex items-center gap-1">
-                    <Flame className="h-3.5 w-3.5"aria-hidden="true"/>
-                    {t('calories', { count: item.calories })}
-                  </span>
+                {vertical.usesFoodFields ? (
+                  <>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5"aria-hidden="true"/>
+                      {t('prepTime', { min: item.preparation_time })}
+                    </span>
+                    {item.calories != null && (
+                      <span className="flex items-center gap-1">
+                        <Flame className="h-3.5 w-3.5"aria-hidden="true"/>
+                        {t('calories', { count: item.calories })}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <ServiceItemFacts item={item} />
                 )}
               </div>
 
@@ -254,6 +267,7 @@ export function ProductDetailView({
                 totalPrice={totalPrice}
                 showTotal={quantity > 1 || selectedExtras.length > 0}
                 totalLabel={t('totalLabel', { price: formatCurrency(totalPrice) })}
+                formatPrice={(formatted) => priceLabel(item, formatted)}
               />
 
               {!item.available && (

@@ -30,6 +30,9 @@ import { MenuTagMultiSelect } from '@/components/console/MenuTagMultiSelect'
 import { CategoryCreateModal } from '@/components/console/CategoryCreateModal'
 import { QrManagementPanel } from '@/components/qr/QrManagementPanel'
 import { APP_URL } from '@/constants'
+import { useCatalogTerms } from '@/hooks/verticals'
+import { CatalogAttributeFields } from '@/components/console/CatalogAttributeFields'
+import { numericAttribute, type VerticalDefinition } from '@/verticals'
 
 // ── Form state shape ──────────────────────────────────────────────────────────
 
@@ -44,6 +47,11 @@ const EMPTY_FORM: MenuItemFormInput = {
 export default function AdminMenuPage() {
   const t = useTranslations('console')
   const tCommon = useTranslations('common')
+  const tVerticals = useTranslations('verticals')
+  // Phase 1 — food tenants keep the original wording/fields; service
+  // verticals (salon, clinic) get service wording and schema-driven fields.
+  const { vertical, term } = useCatalogTerms()
+  const isFood = vertical.family === 'food'
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [page, setPage] = useState(1)
@@ -137,7 +145,7 @@ export default function AdminMenuPage() {
         signal,
         idempotencyKey: uploadKeys.keyFor('menu-create', createForm.image.file),
       }
-      const payload = await withUploadedImage(menuItemFormToWriteRequest(createForm), createForm.image, 'menu_item', uploadCtx)
+      const payload = await withUploadedImage(menuItemFormToWriteRequest(createForm, vertical), createForm.image, 'menu_item', uploadCtx)
       if (!isCurrent()) return
       const created = await createMutation.mutateAsync(payload)
       uploadKeys.reset('menu-create')
@@ -170,7 +178,7 @@ export default function AdminMenuPage() {
         signal,
         idempotencyKey: uploadKeys.keyFor(`menu-edit:${editItem.id}`, editForm.image.file),
       }
-      const payload = await withUploadedImage(menuItemFormToWriteRequest(editForm), editForm.image, 'menu_item', uploadCtx)
+      const payload = await withUploadedImage(menuItemFormToWriteRequest(editForm, vertical), editForm.image, 'menu_item', uploadCtx)
       if (!isCurrent()) return
       const itemId = editItem.id
       const groupIds = editForm.extra_group_ids
@@ -234,14 +242,14 @@ export default function AdminMenuPage() {
           <div className="py-6 flex items-center justify-between gap-4 flex-wrap">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{t('menuManagement')}</h1>
+                <h1 className="font-[var(--font-display)] text-3xl font-bold text-[var(--fg)]">{isFood ? t('menuManagement') : term('catalog')}</h1>
                 <Badge variant="secondary">{t('itemsCount', { count: totalCount })}</Badge>
               </div>
-              <p className="text-[var(--fg-muted)] mt-1">{t('menuPageSubtitle')}</p>
+              <p className="text-[var(--fg-muted)] mt-1">{isFood ? t('menuPageSubtitle') : term('pageSubtitle')}</p>
             </div>
             <div className="flex items-center gap-2">
-              <PreviewButton href="/menu"label={t('previewMenu')} size="sm"/>
-              <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={openCreate} disabled={!adminBranchId}>{t('addItem')}</Button>
+              <PreviewButton href="/menu"label={isFood ? t('previewMenu') : term('preview')} size="sm"/>
+              <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={openCreate} disabled={!adminBranchId}>{isFood ? t('addItem') : term('addItem')}</Button>
             </div>
           </div>
 
@@ -267,7 +275,7 @@ export default function AdminMenuPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={t('searchItemsPlaceholder')}
+                placeholder={isFood ? t('searchItemsPlaceholder') : term('searchPlaceholder')}
                 className="w-full h-10 ps-9 pe-4 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]/40 focus:border-[var(--focus-ring)]"
               />
             </div>
@@ -311,7 +319,7 @@ export default function AdminMenuPage() {
           {branchState === 'empty' && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <AlertCircle className="h-8 w-8 text-[var(--fg-muted)]"/>
-              <p className="text-sm text-[var(--fg-muted)]">{t('selectBranchToManageMenu')}</p>
+              <p className="text-sm text-[var(--fg-muted)]">{isFood ? t('selectBranchToManageMenu') : term('selectBranch')}</p>
             </div>
           )}
 
@@ -319,7 +327,7 @@ export default function AdminMenuPage() {
           {branchState === 'ready' && itemsLoading && (
             <div className="flex items-center justify-center py-24 gap-3 text-[var(--fg-muted)]">
               <Loader2 className="h-5 w-5 animate-spin"/>
-              <span className="text-sm">{t('loadingMenu')}</span>
+              <span className="text-sm">{isFood ? t('loadingMenu') : term('loading')}</span>
             </div>
           )}
 
@@ -327,7 +335,7 @@ export default function AdminMenuPage() {
           {branchState === 'ready' && itemsError && !itemsLoading && (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <AlertCircle className="h-8 w-8 text-[var(--danger-text)]"/>
-              <p className="text-sm text-[var(--fg-muted)]">{t('failedToLoadMenuItems')}</p>
+              <p className="text-sm text-[var(--fg-muted)]">{isFood ? t('failedToLoadMenuItems') : term('loadFailed')}</p>
               <Button variant="secondary"size="sm"onClick={() => refetch()}>{tCommon('retry')}</Button>
             </div>
           )}
@@ -349,7 +357,11 @@ export default function AdminMenuPage() {
                       className={`bg-[var(--card)] rounded-2xl border border-[var(--border)] overflow-hidden ${!item.is_active ? 'opacity-60' : ''}`}
                     >
                       <div className="relative h-36">
-                        <Image src={item.image} alt={item.name} fill className="object-cover"sizes="(max-width: 768px) 100vw, 25vw"/>
+                        {item.image ? (
+                          <Image src={item.image} alt={item.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 25vw"/>
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-3xl opacity-30" aria-hidden="true">{vertical.emoji}</div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"/>
                         <div className="absolute top-2 start-2 flex flex-col gap-1">
                           {item.is_featured && <Badge variant="default"className="text-[10px]">{t('featured')}</Badge>}
@@ -401,8 +413,17 @@ export default function AdminMenuPage() {
                         )}
                         <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)] mb-3">
                           <span className="flex items-center gap-0.5"><Star className="h-3 w-3 text-[var(--rating)] fill-[var(--rating)]"/>{item.rating}</span>
-                          <span className="flex items-center gap-0.5"><Clock className="h-3 w-3"/>{item.preparation_time}m</span>
-                          {item.calories && <span className="flex items-center gap-0.5"><Flame className="h-3 w-3"/>{item.calories}</span>}
+                          {isFood ? (
+                            <>
+                              <span className="flex items-center gap-0.5"><Clock className="h-3 w-3"/>{item.preparation_time}m</span>
+                              {item.calories && <span className="flex items-center gap-0.5"><Flame className="h-3 w-3"/>{item.calories}</span>}
+                            </>
+                          ) : numericAttribute(item.attributes, 'duration_minutes') !== undefined ? (
+                            <span className="flex items-center gap-0.5">
+                              <Clock className="h-3 w-3"/>
+                              {tVerticals('facts.durationMinutes', { minutes: numericAttribute(item.attributes, 'duration_minutes')! })}
+                            </span>
+                          ) : null}
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-[var(--fg)]">{formatCurrency(item.price)}</span>
@@ -431,7 +452,7 @@ export default function AdminMenuPage() {
               {filtered.length === 0 && (
                 <div className="py-20 text-center">
                   <span className="text-4xl block mb-4">🍽️</span>
-                  <p className="text-[var(--fg-muted)]">{t('noItemsFound')}</p>
+                  <p className="text-[var(--fg-muted)]">{isFood ? t('noItemsFound') : term('emptyState')}</p>
                 </div>
               )}
 
@@ -456,7 +477,7 @@ export default function AdminMenuPage() {
       </div>
 
       {/* Create Modal */}
-      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={t('addMenuItem')} size="lg">
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={isFood ? t('addMenuItem') : term('newItemTitle')} size="lg">
         <MenuItemFormFields
           form={createForm}
           onChange={setCreateForm}
@@ -466,6 +487,7 @@ export default function AdminMenuPage() {
           tagsLoading={tagsLoading}
           canCreateCategory={canCreateCategory}
           onCreateCategory={() => openCategoryCreate('create')}
+          vertical={vertical}
         />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary"onClick={() => setCreateOpen(false)} className="flex-1">{t('cancel')}</Button>
@@ -475,7 +497,7 @@ export default function AdminMenuPage() {
             disabled={createGuard.locked || createMutation.isPending}
             className="flex-1"
           >
-            {createGuard.locked || createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : t('addItem')}
+            {createGuard.locked || createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin"/> : (isFood ? t('addItem') : term('addItem'))}
           </Button>
         </div>
         {createMutation.isError && (
@@ -499,6 +521,7 @@ export default function AdminMenuPage() {
           tagsLoading={tagsLoading}
           canCreateCategory={canCreateCategory}
           onCreateCategory={() => openCategoryCreate('edit')}
+          vertical={vertical}
         />
         <div className="flex gap-3 pt-2">
           <Button variant="secondary"onClick={() => setEditOpen(false)} className="flex-1">{t('cancel')}</Button>
@@ -571,9 +594,12 @@ function MenuItemFormFields({
   tagsLoading,
   canCreateCategory,
   onCreateCategory,
+  vertical,
 }: {
   form: MenuItemFormInput
   onChange: (f: MenuItemFormInput) => void
+  /** Phase 1 — shapes which fields are shown (food vs service). */
+  vertical: VerticalDefinition
   categories: Category[]
   extraGroups: ExtraGroup[]
   branchTags: ConsoleMenuTag[]
@@ -582,7 +608,9 @@ function MenuItemFormFields({
   onCreateCategory?: () => void
 }) {
   const t = useTranslations('console')
-  const set = (field: Exclude<keyof MenuItemFormInput, 'image' | 'extra_group_ids'>) =>
+  const { term } = useCatalogTerms(vertical)
+  const isFood = vertical.family === 'food'
+  const set = (field: Exclude<keyof MenuItemFormInput, 'image' | 'extra_group_ids' | 'item_kind' | 'attributes'>) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       onChange({ ...form, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value })
 
@@ -599,7 +627,7 @@ function MenuItemFormFields({
     <div className="space-y-4 mb-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <Input label={t('itemNameLabel')} value={form.name} onChange={set('name')} />
+          <Input label={isFood ? t('itemNameLabel') : term('itemName')} value={form.name} onChange={set('name')} />
         </div>
         <div className="col-span-2">
           <label htmlFor="menu-category"className="block text-sm font-medium text-[var(--fg)] mb-1">{t('category')}</label>
@@ -628,9 +656,21 @@ function MenuItemFormFields({
         </div>
         <Input label={t('priceDollarLabel')} type="number"value={form.price} onChange={set('price')} leftIcon={<span className="text-xs">$</span>} />
         <Input label={t('discountPercentSignLabel')} type="number"value={form.discount} onChange={set('discount')} />
-        <Input label={t('caloriesLabel')} type="number"value={form.calories} onChange={set('calories')} />
-        <Input label={t('prepTimeMinLabel')} type="number"value={form.preparation_time} onChange={set('preparation_time')} />
+        {vertical.usesFoodFields && (
+          <>
+            <Input label={t('caloriesLabel')} type="number" value={form.calories} onChange={set('calories')} />
+            <Input label={t('prepTimeMinLabel')} type="number" value={form.preparation_time} onChange={set('preparation_time')} />
+          </>
+        )}
       </div>
+      {!isFood && (
+        <CatalogAttributeFields
+          vertical={vertical}
+          itemKind={form.item_kind}
+          attributes={form.attributes}
+          onChange={(next) => onChange({ ...form, ...next })}
+        />
+      )}
       <Textarea label={t('descriptionLabel')} value={form.description} onChange={set('description')} rows={3} />
       <MenuTagMultiSelect
         tags={branchTags}
@@ -662,8 +702,9 @@ function MenuItemFormFields({
         </label>
       </div>
 
-      {/* Extra Groups attach/detach — see docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md */}
-      <div>
+      {/* Extra Groups attach/detach — see docs/EXTRAS_MANAGEMENT_IMPLEMENTATION.md.
+          Phase 1: cart add-ons only exist for verticals with a cart. */}
+      {vertical.supportsCart && <div>
         <label className="block text-sm font-medium text-[var(--fg)] mb-1">{t('extraGroupsLabel')}</label>
         {extraGroups.length === 0 ? (
           <p className="text-xs text-[var(--fg-muted)]">{t('noExtraGroupsAvailable')}</p>
@@ -692,7 +733,7 @@ function MenuItemFormFields({
             {assignedGroups.map((g) => <Badge key={g.id} variant="secondary"className="text-[10px]">{g.name}</Badge>)}
           </div>
         )}
-      </div>
+      </div>}
     </div>
   )
 }

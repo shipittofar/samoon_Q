@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
+import { usePublicLinkLabel } from '@/hooks/verticals'
 import { Mail, Phone, Globe, Instagram, Twitter, MapPin } from 'lucide-react'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import { useTenantStore } from '@/stores'
@@ -16,6 +17,7 @@ interface TenantFooterProps {
 
 export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps) {
   const t = useTranslations('tenantFooter')
+  const publicLinkLabel = usePublicLinkLabel()
   const featureFlags = useTenantStore((s) => s.featureFlags)
   const tenantId = useTenantStore((s) => s.tenant?.id ?? '')
   const { data: publicBranches = [] } = usePublicBranches(tenantId)
@@ -24,7 +26,9 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
   const quickLinks = buildFooterLinks({
     tenantSlug,
     featureFlags,
-    meta,
+    // Listing metadata may not carry primaryBranchSlug; fall back to the
+    // first public branch so Menu / Reservations links still appear.
+    meta: { ...meta, primaryBranchSlug: meta.primaryBranchSlug ?? primaryBranch?.slug },
     branch: primaryBranch
       ? {
           orderingEnabled: primaryBranch.checkout?.orderingEnabled,
@@ -100,7 +104,7 @@ export function TenantFooter({ tenantName, tenantSlug, meta }: TenantFooterProps
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="hover:text-[var(--accent-text)] transition-colors">
-                    {link.label}
+                    {publicLinkLabel(link.label)}
                   </Link>
                 </li>
               ))}

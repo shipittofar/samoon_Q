@@ -14,6 +14,7 @@ import { useCategories, useMenuItems, useAvailableMenuTags, useActiveBranchId } 
 import { useRecentlyViewedStore, useCartItemCount } from '@/stores'
 import { cn, debounce } from '@/utils'
 import { useTranslations } from 'next-intl'
+import { useCatalogTerms } from '@/hooks/verticals'
 import { ChevronDown, CircleCheck, LayoutGrid } from 'lucide-react'
 import { CategoryQuickNav } from '@/components/menu/CategoryQuickNav'
 import type { MenuItem } from '@/types'
@@ -109,6 +110,9 @@ function parsePriceBands(raw: string | null): number[] {
 
 export function MenuContent({ branchId }: MenuContentProps = {}) {
   const t = useTranslations('menu')
+  // Phase 1 — service verticals (salon, clinic) word the catalog as services.
+  const { vertical, term } = useCatalogTerms()
+  const isFood = vertical.family === 'food'
   const tCommon = useTranslations('common')
   const tSearch = useTranslations('searchUi')
   const reduceMotion = useReducedMotion()
@@ -453,9 +457,9 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
                 setSearch('')
                 setDebouncedSearch('')
               }}
-              label={t('searchAriaLabel')}
+              label={isFood ? t('searchAriaLabel') : term('searchPlaceholder')}
               clearLabel={t('clearSearch')}
-              placeholder={t('searchPlaceholder')}
+              placeholder={isFood ? t('searchPlaceholder') : term('searchPlaceholder')}
             />
             <div className="flex items-center gap-2 shrink-0">
               <button
@@ -575,7 +579,7 @@ export function MenuContent({ branchId }: MenuContentProps = {}) {
           </div>
         ) : items.length === 0 ? (
           <EmptySearch
-            title={t('noDishesFound')}
+            title={isFood ? t('noDishesFound') : term('emptyState')}
             description={
               debouncedSearch
                 ? t('noResultsFor', { query: debouncedSearch })

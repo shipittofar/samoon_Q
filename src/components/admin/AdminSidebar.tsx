@@ -47,6 +47,7 @@ import {
   QrCode,
   Zap,
   Plus,
+  ClipboardList,
 } from 'lucide-react'
 import { cn } from '@/utils'
 import { useAdminModuleNav, useLogout, usePermissions } from '@/hooks'
@@ -87,6 +88,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   LayoutDashboard,
   QrCode,
   Zap,
+  ClipboardList,
 }
 
 // ── Quick Actions ─────────────────────────────────────────────────────────────
@@ -130,6 +132,18 @@ function QuickActions({ onClose }: { onClose: () => void }) {
 function NavIcon({ name, className }: { name?: string; className?: string }) {
   const Icon = name ? (ICON_MAP[name] ?? LayoutDashboard) : LayoutDashboard
   return <Icon className={className ?? 'h-3.5 w-3.5 shrink-0'} />
+}
+
+// ── Labels ────────────────────────────────────────────────────────────────────
+
+/**
+ * i18n key for an admin nav item, derived from its route so the module
+ * registry stays label-agnostic: /console/branches/analytics →
+ * adminNav.branches_analytics. Items with an explicit labelKey use that.
+ */
+export function adminNavLabelKey(href: string): string {
+  const path = href.replace(/^\/console\/?/, '') || 'dashboard'
+  return `adminNav.${path.replace(/[/-]/g, '_')}`
 }
 
 // ── Group ordering ────────────────────────────────────────────────────────────
@@ -299,7 +313,7 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
           {hideConsoleNav ? null : groups.map(({ group, items }) => (
             <div key={group} className="px-2 mb-3">
               <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-muted)] opacity-60 select-none">
-                {group}
+                {t.has(`adminNavGroups.${group}`) ? t(`adminNavGroups.${group}`) : group}
               </p>
               <div className="space-y-0.5">
                 {items.map((item) => {
@@ -324,7 +338,11 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
                           isActive ? 'text-[var(--accent-text)]' : 'text-[var(--fg-muted)]',
                         )}
                       />
-                      <span className="truncate flex-1">{item.labelKey ? t(item.labelKey) : item.label}</span>
+                      <span className="truncate flex-1">
+                        {item.labelKey
+                          ? t(item.labelKey)
+                          : t.has(adminNavLabelKey(item.href)) ? t(adminNavLabelKey(item.href)) : item.label}
+                      </span>
                       <ConsoleNavPendingBadge href={item.href} />
                     </Link>
                   )

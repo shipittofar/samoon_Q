@@ -859,6 +859,115 @@ export const MOBILE_CAFE_MODULE: Module = {
   enabled: true,
 }
 
+// ── Phase 1 — service verticals ───────────────────────────────────────────────
+//
+// Appointment-style businesses: the catalog is a list of services (duration,
+// starting price) with no cart, no kitchen and no QR table ordering. The
+// public menu route is reused for the service list; wording comes from
+// useCatalogTerms() (src/hooks/verticals.ts). Reservations are the booking
+// channel until a dedicated appointments capability lands (roadmap Phase 3).
+
+/** Same screen as MENU_NAV_ITEM, labelled for service catalogs. */
+const SERVICES_NAV_ITEM = {
+  ...MENU_NAV_ITEM,
+  label: 'Services',
+  labelKey: 'servicesNav',
+  icon: 'ClipboardList',
+} as const
+
+const SERVICE_VERTICAL_ROUTES: readonly string[] = [
+  '/menu',
+  '/reservation',
+  '/reviews',
+  '/promotions',
+  '/console/analytics',
+  ...ADMIN_TENANT_ROUTES,
+  ...ADMIN_STAFF_ROUTES,
+  ...ADMIN_BRANCHES_ROUTES,
+  ...ADMIN_BRANCH_ANALYTICS_ROUTES,
+  ...ADMIN_AUDIT_ROUTES,
+  ...ADMIN_NOTIFICATION_ROUTES,
+  ...ADMIN_SETTINGS_ROUTES,
+  ...ADMIN_USERS_ROUTES,
+  ...ADMIN_RBAC_ROUTES,
+  ...ADMIN_WEBSITE_ROUTES,
+]
+
+const SERVICE_VERTICAL_ADMIN_NAV: NavItem[] = [
+  ANALYTICS_NAV_ITEM,
+  SERVICES_NAV_ITEM,
+  CATEGORIES_NAV_ITEM,
+  TAGS_NAV_ITEM,
+  RESERVATIONS_NAV_ITEM,
+  CUSTOMERS_NAV_ITEM,
+  REVIEWS_NAV_ITEM,
+  PROMOTIONS_NAV_ITEM,
+  TENANTS_NAV_ITEM,
+  STAFF_NAV_ITEM,
+  BRANCHES_NAV_ITEM,
+  BRANCH_ANALYTICS_NAV_ITEM,
+  AUDIT_LOGS_NAV_ITEM,
+  RBAC_AUDIT_NAV_ITEM,
+  NOTIFICATIONS_NAV_ITEM,
+  SETTINGS_NAV_ITEM,
+  PLATFORM_CONFIGURATION_NAV_ITEM,
+  PERMISSIONS_NAV_ITEM,
+  ROLES_NAV_ITEM,
+  USERS_NAV_ITEM,
+  WEBSITE_BUILDER_NAV_ITEM,
+]
+
+const SERVICE_VERTICAL_FLAGS: Record<string, boolean> = {
+  'menu.enabled': true,
+  'ordering.enabled': false,
+  'qr_table.enabled': false,
+  'delivery.enabled': false,
+  'table_ordering.enabled': false,
+  'order_tracking.enabled': false,
+  'reservations.enabled': true,
+  'reviews.enabled': true,
+  'analytics.enabled': true,
+}
+
+const SERVICE_VERTICAL_NAV: NavItem[] = [
+  { href: '/menu', label: 'Services' },
+  { href: '/reservation', label: 'Book', featureFlagKey: 'reservations.enabled' },
+  { href: '/reviews', label: 'Reviews', featureFlagKey: 'reviews.enabled' },
+  { href: '/promotions', label: 'Offers', featureFlagKey: 'promotions.enabled' },
+]
+
+export const BEAUTY_SALON_MODULE: Module = {
+  key: 'beauty_salon',
+  name: 'Beauty Salon',
+  businessTypes: ['beauty_salon'],
+  capabilities: {
+    required: ['menu', 'notifications'],
+    optional: ['reservations', 'reviews', 'loyalty'],
+    defaultEnabled: ['reservations', 'reviews'],
+  },
+  routes: [...SERVICE_VERTICAL_ROUTES],
+  navItems: SERVICE_VERTICAL_NAV,
+  defaultFeatureFlags: { ...SERVICE_VERTICAL_FLAGS, 'promotions.enabled': true },
+  adminNavItems: SERVICE_VERTICAL_ADMIN_NAV,
+  enabled: true,
+}
+
+export const CLINIC_MODULE: Module = {
+  key: 'clinic',
+  name: 'Clinic',
+  businessTypes: ['clinic'],
+  capabilities: {
+    required: ['menu', 'notifications'],
+    optional: ['reservations', 'reviews'],
+    defaultEnabled: ['reservations', 'reviews'],
+  },
+  routes: [...SERVICE_VERTICAL_ROUTES],
+  navItems: SERVICE_VERTICAL_NAV,
+  defaultFeatureFlags: { ...SERVICE_VERTICAL_FLAGS, 'promotions.enabled': false },
+  adminNavItems: SERVICE_VERTICAL_ADMIN_NAV,
+  enabled: true,
+}
+
 /**
  * Dashboard module — a cross-cutting shell concern, not a business-type module.
  * Kept separate from INITIAL_MODULES so it is never mistakenly included in
@@ -891,6 +1000,8 @@ const INITIAL_MODULES: ReadonlyArray<Module> = Object.freeze([
   FOOD_COURT_MODULE,
   FOOD_TRUCK_MODULE,
   MOBILE_CAFE_MODULE,
+  BEAUTY_SALON_MODULE,
+  CLINIC_MODULE,
 ])
 
 let _modules: ReadonlyArray<Module> = INITIAL_MODULES

@@ -30,6 +30,8 @@ export interface TenantNavLink {
   isMarketplace?: boolean
   /** True for the multi-branch Locations item. */
   isLocations?: boolean
+  /** True when the owner renamed this item in Website Builder — render `label` verbatim. */
+  customLabel?: boolean
 }
 
 /** Primary and optional secondary action CTAs for hero sections. */
@@ -50,6 +52,8 @@ const BUSINESS_TYPE_EMOJIS: Record<string, string> = {
   bakery:      '🥐',
   pizzeria:    '🍕',
   hotel:       '🏨',
+  beauty_salon: '💇',
+  clinic:      '🩺',
 }
 
 const BUSINESS_TYPE_DISPLAY: Record<string, string> = {
@@ -62,6 +66,8 @@ const BUSINESS_TYPE_DISPLAY: Record<string, string> = {
   bakery:      'Bakery',
   pizzeria:    'Pizzeria',
   hotel:       'Hotel',
+  beauty_salon: 'Beauty Salon',
+  clinic:      'Clinic',
 }
 
 /**
@@ -179,7 +185,7 @@ export function buildTenantNavigation(opts: BuildTenantNavOptions): TenantNavLin
     // 4b. Apply custom labels (owner renames "Menu" → "Our Menu" etc.)
     businessItems = businessItems.map((item) => {
       const cfg = layoutNavConfig.find((c) => c.key === item.key)
-      return cfg?.label ? { ...item, label: cfg.label } : item
+      return cfg?.label ? { ...item, label: cfg.label, customLabel: true } : item
     })
 
     // 4c. Apply owner-defined ordering

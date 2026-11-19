@@ -81,6 +81,30 @@ export const MOCK_OWNER_USER: User = {
   created_at: '2024-01-01T00:00:00Z',
 }
 
+/** Phase 1 — owner of the Glow Studio demo salon (beauty_salon vertical). */
+export const MOCK_SALON_OWNER_USER: User = {
+  id: 'user-salon-owner-01',
+  email: 'salon@samoon.com',
+  phone_number: '+14155550111',
+  first_name: 'Sara',
+  last_name: 'Salon',
+  accountType: 'business',
+  is_verified: true,
+  created_at: '2024-07-01T00:00:00Z',
+}
+
+/** Phase 1 — owner of the Mehr Clinic demo clinic (clinic vertical). */
+export const MOCK_CLINIC_OWNER_USER: User = {
+  id: 'user-clinic-owner-01',
+  email: 'clinic@samoon.com',
+  phone_number: '+14155550112',
+  first_name: 'Kian',
+  last_name: 'Clinic',
+  accountType: 'business',
+  is_verified: true,
+  created_at: '2024-07-15T00:00:00Z',
+}
+
 export const MOCK_CASHIER_USER: User = {
   id: '5',
   email: 'cashier@samoon.com',
@@ -633,11 +657,103 @@ export const MOCK_AIRPORT_ITEMS: MenuItem[] = [
   },
 ]
 
+// ── Phase 1 — service vertical demo catalogs ─────────────────────────────────
+
+const SERVICE_ITEM_DEFAULTS = {
+  preparation_time: 0,
+  rating: 0,
+  rating_count: 0,
+  available: true,
+  is_active: true,
+  tags: [] as MenuItem['tags'],
+  extras: [] as MenuItem['extras'],
+}
+
+const GLOW_CATEGORIES: Category[] = [
+  { id: 'glow-cat-hair', branch_id: 'branch-glow-01', name: 'Hair', slug: 'hair', icon: '💇', sort_order: 1, items_count: 3, is_active: true, created_at: '2024-07-01T00:00:00Z' },
+  { id: 'glow-cat-nails', branch_id: 'branch-glow-01', name: 'Nails', slug: 'nails', icon: '💅', sort_order: 2, items_count: 2, is_active: true, created_at: '2024-07-01T00:00:00Z' },
+]
+
+const GLOW_ITEMS: MenuItem[] = [
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'glow-1', branch_id: 'branch-glow-01', category_id: 'glow-cat-hair', name: "Women's haircut", slug: 'womens-haircut',
+    description: 'Consultation, wash, cut and blow-dry.', price: 45,
+    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80', rating: 4.9, rating_count: 120, is_featured: true,
+    item_kind: 'service', attributes: { duration_minutes: 60, price_is_starting: true, requires_appointment: true, audience: 'women' },
+  },
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'glow-2', branch_id: 'branch-glow-01', category_id: 'glow-cat-hair', name: "Men's cut", slug: 'mens-cut',
+    description: 'Clipper and scissor cut with hot-towel finish.', price: 25,
+    image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80', rating: 4.8, rating_count: 86,
+    item_kind: 'service', attributes: { duration_minutes: 30, requires_appointment: true, audience: 'men' },
+  },
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'glow-3', branch_id: 'branch-glow-01', category_id: 'glow-cat-hair', name: 'Bridal package', slug: 'bridal-package',
+    description: 'Trial session, wedding-day styling and make-up.', price: 320,
+    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80',
+    item_kind: 'package', attributes: { duration_minutes: 240, price_is_starting: true, requires_appointment: true, audience: 'women' },
+  },
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'glow-4', branch_id: 'branch-glow-01', category_id: 'glow-cat-nails', name: 'Gel manicure', slug: 'gel-manicure',
+    description: 'Shaping, cuticle care and long-lasting gel colour.', price: 35,
+    image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&q=80', rating: 4.7, rating_count: 54,
+    item_kind: 'service', attributes: { duration_minutes: 45, requires_appointment: false, audience: 'all' },
+  },
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'glow-5', branch_id: 'branch-glow-01', category_id: 'glow-cat-nails', name: 'Nail care oil', slug: 'nail-care-oil',
+    description: 'Nourishing cuticle oil, 15 ml.', price: 12,
+    image: '', item_kind: 'product', attributes: {},
+  },
+]
+
+const MEHR_CATEGORIES: Category[] = [
+  { id: 'mehr-cat-gp', branch_id: 'branch-mehr-01', name: 'General practice', slug: 'general-practice', icon: '🩺', sort_order: 1, items_count: 2, is_active: true, created_at: '2024-07-15T00:00:00Z' },
+  { id: 'mehr-cat-derm', branch_id: 'branch-mehr-01', name: 'Dermatology', slug: 'dermatology', icon: '🧴', sort_order: 2, items_count: 2, is_active: true, created_at: '2024-07-15T00:00:00Z' },
+]
+
+const MEHR_ITEMS: MenuItem[] = [
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'mehr-1', branch_id: 'branch-mehr-01', category_id: 'mehr-cat-gp', name: 'General consultation', slug: 'general-consultation',
+    description: 'Visit with a general practitioner.', price: 40,
+    image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80', rating: 4.8, rating_count: 97, is_featured: true,
+    item_kind: 'service', attributes: { duration_minutes: 20, requires_appointment: true, consultation_mode: 'both' },
+  },
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'mehr-2', branch_id: 'branch-mehr-01', category_id: 'mehr-cat-gp', name: 'Annual check-up', slug: 'annual-check-up',
+    description: 'Full examination with routine blood work.', price: 150,
+    image: '', item_kind: 'package',
+    attributes: { duration_minutes: 60, price_is_starting: true, requires_appointment: true, consultation_mode: 'in_person', preparation_notes: 'Fast for 8 hours before the blood test.' },
+  },
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'mehr-3', branch_id: 'branch-mehr-01', category_id: 'mehr-cat-derm', name: 'Skin consultation', slug: 'skin-consultation',
+    description: 'Dermatologist assessment and treatment plan.', price: 60,
+    image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80', rating: 4.6, rating_count: 41,
+    item_kind: 'service', attributes: { duration_minutes: 30, requires_appointment: true, consultation_mode: 'both' },
+  },
+  {
+    ...SERVICE_ITEM_DEFAULTS,
+    id: 'mehr-4', branch_id: 'branch-mehr-01', category_id: 'mehr-cat-derm', name: 'Acne treatment session', slug: 'acne-treatment',
+    description: 'In-clinic treatment; course length set at consultation.', price: 80,
+    image: '', item_kind: 'service',
+    attributes: { duration_minutes: 45, price_is_starting: true, requires_appointment: true, consultation_mode: 'in_person' },
+  },
+]
+
 /** Resolves a branch's independent category set in mock/dev mode. Defaults to the primary branch for any unlisted branch id. */
 export const MOCK_BRANCH_CATEGORIES: Record<string, Category[]> = {
   'branch-rest-01': MOCK_CATEGORIES,
   'branch-rest-02': MOCK_DOWNTOWN_CATEGORIES,
   'branch-rest-03': MOCK_AIRPORT_CATEGORIES,
+  'branch-glow-01': GLOW_CATEGORIES,
+  'branch-mehr-01': MEHR_CATEGORIES,
 }
 
 /** Resolves a branch's independent item set in mock/dev mode. Defaults to the primary branch for any unlisted branch id. */
@@ -645,6 +761,8 @@ export const MOCK_BRANCH_ITEMS: Record<string, MenuItem[]> = {
   'branch-rest-01': MOCK_MENU_ITEMS,
   'branch-rest-02': MOCK_DOWNTOWN_ITEMS,
   'branch-rest-03': MOCK_AIRPORT_ITEMS,
+  'branch-glow-01': GLOW_ITEMS,
+  'branch-mehr-01': MEHR_ITEMS,
 }
 
 const DEFAULT_MOCK_AVAILABLE_TAGS: MenuTag[] = [

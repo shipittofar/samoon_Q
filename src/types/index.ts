@@ -260,6 +260,18 @@ export interface MenuItem {
   extra_group_ids?: string[]
   allergens?: string[]
   nutritional_info?: NutritionalInfo
+  /**
+   * Phase 1 — what this catalog entry is (product / service / package).
+   * Absent on legacy rows → treated as the vertical's default kind
+   * (`product` for food menus). See src/verticals/registry.ts.
+   */
+  item_kind?: import('@/verticals/types').CatalogItemKind
+  /**
+   * Phase 1 — vertical-specific fields (e.g. `duration_minutes` for a salon
+   * service). Keys are defined per vertical in src/verticals/registry.ts and
+   * documented in docs/PHASE1_CATALOG_API_CONTRACT.md.
+   */
+  attributes?: import('@/verticals/types').CatalogItemAttributes
 }
 
 export interface NutritionalInfo {
@@ -443,6 +455,9 @@ export type BusinessType =
   | 'mobile_cafe'
   | 'hotel'
   | 'other'
+  // Phase 1 — service verticals (src/verticals/registry.ts)
+  | 'beauty_salon'
+  | 'clinic'
 
 /**
  * Tenant operational state (not visibility).

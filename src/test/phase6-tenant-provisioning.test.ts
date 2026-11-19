@@ -25,9 +25,12 @@ async function freshService() {
   return mod.tenantProvisioningService
 }
 
-const BUSINESS_TYPES = [
+const FOOD_BUSINESS_TYPES = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
 ] as const
+// Phase 1 — service verticals (no cart / online ordering).
+const SERVICE_BUSINESS_TYPES = ['beauty_salon', 'clinic'] as const
+const BUSINESS_TYPES = [...FOOD_BUSINESS_TYPES, ...SERVICE_BUSINESS_TYPES] as const
 
 const VALID_TENANT_BASE = {
   description: 'Test tenant description',
@@ -97,9 +100,9 @@ describe('A — types', () => {
 // ── B: Templates ──────────────────────────────────────────────────────────────
 
 describe('B — templates', () => {
-  it('getTemplates returns 6 templates', async () => {
+  it('getTemplates returns one template per business type', async () => {
     const svc = await freshService()
-    expect(svc.getTemplates()).toHaveLength(6)
+    expect(svc.getTemplates()).toHaveLength(BUSINESS_TYPES.length)
   })
 
   it('each template has businessType, name, description, enabledCapabilities, defaultFeatureFlags', async () => {
@@ -178,7 +181,7 @@ describe('B — templates', () => {
     }
   })
 
-  it('templates cover all 6 business types', async () => {
+  it('templates cover all business types', async () => {
     const svc = await freshService()
     const types = svc.getTemplates().map((t) => t.businessType).sort()
     expect(types).toEqual([...BUSINESS_TYPES].sort())
@@ -265,7 +268,7 @@ describe('D — generateBrandingDefaults', () => {
     const svc = await freshService()
     const colors = BUSINESS_TYPES.map((bt) => svc.generateBrandingDefaults(bt).primaryColor)
     const unique = new Set(colors)
-    expect(unique.size).toBe(6)
+    expect(unique.size).toBe(BUSINESS_TYPES.length)
   })
 
   it('returns a copy — mutations do not affect internal state', async () => {
@@ -1086,10 +1089,17 @@ describe('X — feature flag invariants', () => {
     }
   })
 
-  it('all templates have ordering.enabled=true', async () => {
+  it('all food templates have ordering.enabled=true', async () => {
     const svc = await freshService()
-    for (const t of svc.getTemplates()) {
+    for (const t of svc.getTemplates().filter((t) => (FOOD_BUSINESS_TYPES as readonly string[]).includes(t.businessType))) {
       expect(t.defaultFeatureFlags['ordering.enabled']).toBe(true)
+    }
+  })
+
+  it('service templates (salon, clinic) have ordering.enabled=false', async () => {
+    const svc = await freshService()
+    for (const type of SERVICE_BUSINESS_TYPES) {
+      expect(svc.getTemplate(type).defaultFeatureFlags['ordering.enabled']).toBe(false)
     }
   })
 

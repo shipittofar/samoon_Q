@@ -871,6 +871,58 @@
     "must_accept_terms": "يجب أن تقبل الشروط"
   },
   "console": {
+    "adminNavGroups": {
+      "Operations": "العمليات",
+      "Content": "المحتوى",
+      "Customers": "العملاء",
+      "Analytics": "التحليلات",
+      "People": "الأشخاص",
+      "Platform": "المنصة",
+      "System": "النظام",
+      "Other": "أخرى"
+    },
+    "adminNav": {
+      "analytics": "التحليلات",
+      "orders": "الطلبات",
+      "menu": "القائمة",
+      "categories": "الفئات",
+      "tags": "الوسوم",
+      "extras": "الإضافات",
+      "loyalty": "الولاء",
+      "kitchen": "شاشة المطبخ",
+      "customers": "العملاء",
+      "reservations": "الحجوزات",
+      "reviews": "التقييمات",
+      "promotions": "العروض",
+      "website": "منشئ الموقع",
+      "tenants": "الأنشطة التجارية",
+      "staff": "الموظفون",
+      "branches": "الفروع",
+      "branches_analytics": "تحليلات الفروع",
+      "audit_logs": "سجلات التدقيق",
+      "rbac_audit": "تدقيق الصلاحيات",
+      "notifications": "الإشعارات",
+      "operations": "العمليات المباشرة",
+      "settings": "الإعدادات",
+      "settings_configuration": "إعدادات المنصة",
+      "permissions": "الصلاحيات",
+      "roles": "الأدوار",
+      "users": "المستخدمون",
+      "qr": "إدارة رموز QR",
+      "cafe_loyalty": "إدارة الولاء",
+      "cafe_happy_hour": "إعدادات الساعة السعيدة",
+      "bar_events": "إدارة الفعاليات",
+      "bar_happy_hour": "إعدادات الساعة السعيدة",
+      "food_court_vendors": "إدارة البائعين",
+      "food_court_seating": "إدارة الجلسات",
+      "food_truck_routes": "إدارة المسارات",
+      "food_truck_stops": "إدارة المحطات",
+      "mobile_cafe_routes": "إدارة المسارات",
+      "mobile_cafe_loyalty": "إدارة الولاء"
+    },
+    "servicesNav": "الخدمات",
+    "businessTypeClinic": "عيادة",
+    "businessTypeBeautySalon": "صالون تجميل",
     "changeLanguageAria": "تغيير اللغة",
     "title": "لوحة التحكم",
     "tenantNotFoundTitle": "لم يتم العثور على النشاط التجاري",
@@ -5265,7 +5317,9 @@
       "food_truck": "شاحنة طعام",
       "mobile_cafe": "مقهى متنقل",
       "hotel": "فندق",
-      "other": "أخرى"
+      "other": "أخرى",
+      "beauty_salon": "صالون تجميل",
+      "clinic": "عيادة"
     },
     "filterByBusinessTypeAria": "تصفية حسب نوع النشاط",
     "all": "الكل",
@@ -5492,6 +5546,18 @@
     "loyaltyProgram": "برنامج الولاء"
   },
   "header": {
+    "tenantNav": {
+      "marketplace": "استكشف الأنشطة",
+      "locations": "الفروع",
+      "reservation": "الحجوزات",
+      "reviews": "التقييمات",
+      "promotions": "العروض",
+      "loyalty": "الولاء",
+      "events": "الفعاليات",
+      "location": "الموقع المباشر",
+      "vendors": "البائعون",
+      "restaurant": "من نحن"
+    },
     "skipToMainContent": "الانتقال إلى المحتوى الرئيسي",
     "navDiscover": "اكتشف",
     "navReservations": "الحجوزات",
@@ -5709,5 +5775,122 @@
     "recent": "الأخيرة",
     "allCountries": "جميع البلدان",
     "phoneCountryAria": "بلد الهاتف: {name} {dialCode}"
+  },
+  "verticals": {
+    "labels": {
+      "restaurant": "مطعم",
+      "cafe": "مقهى",
+      "bar": "بار",
+      "food_court": "ساحة طعام",
+      "food_truck": "شاحنة طعام",
+      "mobile_cafe": "مقهى متنقل",
+      "hotel": "فندق",
+      "other": "أخرى",
+      "beauty_salon": "صالون تجميل",
+      "clinic": "عيادة"
+    },
+    "terms": {
+      "food": {
+        "catalog": "القائمة",
+        "catalogItem": "صنف",
+        "catalogItems": "الأصناف",
+        "addItem": "إضافة صنف",
+        "itemName": "اسم الصنف",
+        "newItemTitle": "إضافة صنف إلى القائمة",
+        "editItemTitle": "تعديل الصنف",
+        "emptyState": "لا توجد أصناف",
+        "searchPlaceholder": "ابحث في الأصناف…",
+        "pageSubtitle": "أضف أصناف القائمة وعدّلها وأدرها",
+        "preview": "معاينة القائمة",
+        "selectBranch": "اختر فرعًا لإدارة قائمته",
+        "loading": "جارٍ تحميل القائمة…",
+        "loadFailed": "تعذّر تحميل أصناف القائمة.",
+        "categoriesHint": "أنشئ أول فئة لبدء تنظيم قائمة هذا الفرع.",
+        "viewFull": "عرض القائمة كاملة"
+      },
+      "service": {
+        "catalog": "الخدمات",
+        "catalogItem": "خدمة",
+        "catalogItems": "الخدمات",
+        "addItem": "إضافة خدمة",
+        "itemName": "اسم الخدمة",
+        "newItemTitle": "إضافة خدمة",
+        "editItemTitle": "تعديل الخدمة",
+        "emptyState": "لا توجد خدمات بعد",
+        "searchPlaceholder": "ابحث في الخدمات…",
+        "pageSubtitle": "أضف الخدمات التي تقدمها وعدّلها وأدرها",
+        "preview": "معاينة الخدمات",
+        "selectBranch": "اختر فرعًا لإدارة خدماته",
+        "loading": "جارٍ تحميل الخدمات…",
+        "loadFailed": "تعذّر تحميل الخدمات.",
+        "categoriesHint": "أنشئ أول فئة لبدء تنظيم خدمات هذا الفرع.",
+        "viewFull": "عرض كل الخدمات"
+      },
+      "clinic": {
+        "catalog": "الخدمات والأسعار"
+      },
+      "bar": {
+        "catalog": "المشروبات"
+      }
+    },
+    "itemKindLabel": "النوع",
+    "itemKinds": {
+      "product": "منتج",
+      "service": "خدمة",
+      "package": "باقة"
+    },
+    "selectPlaceholder": "اختر…",
+    "attributes": {
+      "duration_minutes": "المدة (بالدقائق)",
+      "price_is_starting": "السعر سعر ابتدائي («من …»)",
+      "requires_appointment": "تتطلب موعدًا",
+      "audience": "مناسبة لـ",
+      "consultation_mode": "نوع الاستشارة",
+      "preparation_notes": "تعليمات التحضير للمريض"
+    },
+    "attributeOptions": {
+      "audience": {
+        "all": "الجميع",
+        "women": "النساء",
+        "men": "الرجال",
+        "kids": "الأطفال"
+      },
+      "consultation_mode": {
+        "in_person": "حضوري",
+        "online": "عبر الإنترنت",
+        "both": "حضوري أو عبر الإنترنت"
+      }
+    },
+    "facts": {
+      "durationMinutes": "{minutes} دقيقة",
+      "byAppointment": "بموعد مسبق",
+      "priceFrom": "من {price}"
+    },
+    "nav": {
+      "service": {
+        "reservation": "احجز",
+        "promotions": "العروض"
+      }
+    },
+    "publicLinks": {
+      "common": {
+        "orderOnline": "اطلب عبر الإنترنت",
+        "viewMenu": "عرض القائمة",
+        "reserve": "احجز طاولة",
+        "loyalty": "الولاء",
+        "chooseLocation": "اختر فرعًا",
+        "home": "الرئيسية",
+        "menu": "القائمة",
+        "reservations": "الحجوزات",
+        "locations": "الفروع",
+        "discoverMore": "اكتشف المزيد"
+      },
+      "service": {
+        "viewMenu": "عرض الخدمات",
+        "reserve": "احجز موعدًا",
+        "menu": "الخدمات",
+        "reservations": "احجز"
+      }
+    }
   }
 }

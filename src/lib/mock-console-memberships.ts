@@ -41,6 +41,37 @@ export function buildBrewCafeMembership(roles: Role[] = ['cashier']): TenantMemb
   }
 }
 
+// ── Phase 1 — service vertical demo owners ───────────────────────────────────
+
+export const MOCK_GLOW_STUDIO_TENANT_ID = 'tenant-glow-studio-01'
+export const MOCK_MEHR_CLINIC_TENANT_ID = 'tenant-mehr-clinic-01'
+
+export function buildGlowStudioMembership(roles: Role[] = ['owner']): TenantMembership {
+  return {
+    tenantId: MOCK_GLOW_STUDIO_TENANT_ID,
+    tenantName: 'Glow Studio',
+    tenantSlug: 'glow-studio',
+    tenantLogo: null,
+    roles,
+    branchAccess: resolveBranchAccess(undefined, roles),
+    branches: [{ id: 'branch-glow-01', name: 'Glow Studio Downtown', slug: 'main', status: 'active', isDefault: true }],
+    status: 'active',
+  }
+}
+
+export function buildMehrClinicMembership(roles: Role[] = ['owner']): TenantMembership {
+  return {
+    tenantId: MOCK_MEHR_CLINIC_TENANT_ID,
+    tenantName: 'Mehr Clinic',
+    tenantSlug: 'mehr-clinic',
+    tenantLogo: null,
+    roles,
+    branchAccess: resolveBranchAccess(undefined, roles),
+    branches: [{ id: 'branch-mehr-01', name: 'Mehr Clinic — Main', slug: 'main', status: 'active', isDefault: true }],
+    status: 'active',
+  }
+}
+
 /** Multi-tenant persona used by runtime audits and Phase X tests. */
 export const MOCK_MULTI_TENANT_MEMBERSHIPS: TenantMembership[] = [
   buildSamoonMembership(['manager']),

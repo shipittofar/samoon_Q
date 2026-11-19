@@ -93,6 +93,9 @@ export const DEMO_PHONE_TO_EMAIL: Record<string, string> = {
   '+14155550108': 'owner@samoon.com',
   '+14155550109': 'platform@samoon.com',
   '+14155550110': 'multirole@samoon.com',
+  // Phase 1 — service vertical demo owners
+  '+14155550111': 'salon@samoon.com',
+  '+14155550112': 'clinic@samoon.com',
 }
 
 /** Maps demo account email → the frontend route the user should land on after login. */
@@ -107,6 +110,8 @@ export const DEMO_EMAIL_REDIRECTS: Record<string, string> = {
   'owner@samoon.com':     '/console',
   'platform@samoon.com':  '/console/tenants',
   'multirole@samoon.com': '/console/orders',
+  'salon@samoon.com':     '/console',
+  'clinic@samoon.com':    '/console',
 }
 
 /**

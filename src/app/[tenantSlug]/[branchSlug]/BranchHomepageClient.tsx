@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useCatalogTerms, usePublicLinkLabel } from '@/hooks/verticals'
 import {
   Star, MapPin, Phone, Clock, ChevronRight,
   UtensilsCrossed, Tag, Share2, Check,
@@ -167,6 +168,7 @@ function QuickActions({
   ctas: PublicCTASet
 }) {
   const t = useTranslations('branch')
+  const publicLinkLabel = usePublicLinkLabel()
   const [copied, setCopied] = useState(false)
   const pageUrl = typeof window !== 'undefined' ? window.location.href : `/${tenantSlug}/${branchSlug}`
 
@@ -197,7 +199,7 @@ function QuickActions({
                 : 'border border-[var(--border)] font-medium text-[var(--fg)] hover:bg-[var(--card-hover)]',
             )}
           >
-            {ctaIcon(cta.href)}{cta.label}
+            {ctaIcon(cta.href)}{publicLinkLabel(cta.label)}
           </Link>
         ))}
 
@@ -381,6 +383,7 @@ function BranchSwitcher({
 
 function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuItem[]; tenantSlug: string; branchSlug: string }) {
   const t = useTranslations('branch')
+  const { vertical: catalogVertical, term: catalogTerm } = useCatalogTerms()
   const featured = items.filter((i) => i.is_featured || i.is_popular).slice(0, 6)
   if (!featured.length) return null
   return (
@@ -394,7 +397,7 @@ function FeaturedMenuSection({ items, tenantSlug, branchSlug }: { items: MenuIte
           {t('popularItems')}
         </h2>
         <Link href={`/${tenantSlug}/${branchSlug}/menu`} className="text-sm text-[var(--accent)] hover:underline flex items-center gap-1 font-medium">
-          {t('fullMenu')} <ChevronRight className="w-3.5 h-3.5"aria-hidden="true"/>
+          {catalogVertical.family === 'food' ? t('fullMenu') : catalogTerm('viewFull')} <ChevronRight className="w-3.5 h-3.5"aria-hidden="true"/>
         </Link>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

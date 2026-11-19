@@ -1,6 +1,16 @@
 import type { ImageFieldValue } from '@/components/ImageUploader'
 import type { MenuItem } from './index'
 import type { AssetId } from '@/types/upload'
+import {
+  DEFAULT_VERTICAL,
+  attributesToFormValues,
+  effectiveItemKind,
+  serializeAttributes,
+  type CatalogAttributeFormValues,
+  type CatalogItemAttributes,
+  type CatalogItemKind,
+  type VerticalDefinition,
+} from '@/verticals'
 
 /**
  * Menu item form input — separate from API response models.
@@ -21,6 +31,10 @@ export interface MenuItemFormInput {
   is_popular: boolean
   extra_group_ids: string[]
   tag_ids: number[]
+  /** Phase 1 — '' means "the vertical's default kind". Optional for legacy callers. */
+  item_kind?: CatalogItemKind | ''
+  /** Phase 1 — raw vertical attribute inputs, serialized on submit. */
+  attributes?: CatalogAttributeFormValues
 }
 
 /**
@@ -41,17 +55,35 @@ export interface MenuItemWriteRequest {
   is_popular?: boolean
   tag_ids?: number[]
   image_asset_id?: AssetId | null
+  /** Phase 1 — sent only for non-food verticals (see menuItemFormToWriteRequest). */
+  item_kind?: CatalogItemKind
+  attributes?: CatalogItemAttributes
 }
 
-/** Maps form text fields. Image files are uploaded separately before send. */
-export function menuItemFormToWriteRequest(form: MenuItemFormInput): MenuItemWriteRequest {
+/**
+ * Maps form text fields. Image files are uploaded separately before send.
+ *
+ * Phase 1: `vertical` shapes the payload. Food verticals (the default) send
+ * exactly the legacy payload — no item_kind/attributes — so existing tenants
+ * and backends are unaffected. Service verticals drop the food fields and
+ * send item_kind + typed attributes instead.
+ */
+export function menuItemFormToWriteRequest(
+  form: MenuItemFormInput,
+  vertical: VerticalDefinition = DEFAULT_VERTICAL,
+): MenuItemWriteRequest {
+  const foodFields = vertical.usesFoodFields
+    ? {
+        calories: form.calories ? parseInt(form.calories, 10) : undefined,
+        preparation_time: parseInt(form.preparation_time, 10) || 15,
+      }
+    : {}
   const request: MenuItemWriteRequest = {
     name: form.name,
     description: form.description,
     price: parseFloat(form.price) || 0,
     discount: form.discount ? parseFloat(form.discount) : undefined,
-    calories: form.calories ? parseInt(form.calories, 10) : undefined,
-    preparation_time: parseInt(form.preparation_time, 10) || 15,
+    ...foodFields,
     category_id: form.category_id,
     available: form.available,
     is_active: form.is_active,
@@ -62,6 +94,12 @@ export function menuItemFormToWriteRequest(form: MenuItemFormInput): MenuItemWri
 
   if (!form.image.file && form.image.cleared) {
     request.image_asset_id = null
+  }
+
+  if (vertical.family !== 'food') {
+    const kind = effectiveItemKind(vertical, form.item_kind)
+    request.item_kind = kind
+    request.attributes = serializeAttributes(vertical, kind, form.attributes ?? {})
   }
 
   return request
@@ -88,5 +126,7 @@ export function menuItemToFormInput(item: MenuItem): MenuItemFormInput {
     is_popular: item.is_popular ?? false,
     extra_group_ids: item.extra_group_ids ?? [],
     tag_ids: item.tags?.map((tag) => tag.id) ?? [],
+    item_kind: item.item_kind ?? '',
+    attributes: attributesToFormValues(item.attributes),
   }
 }

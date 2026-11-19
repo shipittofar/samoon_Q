@@ -30,6 +30,16 @@ export function registerServiceWorker(
 ): void {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return
 
+  // Never run the caching service worker in `next dev`: it caches dev bundles
+  // and keeps serving stale JS after code changes (a fresh dev server and
+  // hard reloads included). Also drop a worker left over from a prod build.
+  if (process.env.NODE_ENV === 'development') {
+    void navigator.serviceWorker.getRegistrations().then((regs) => {
+      for (const reg of regs) void reg.unregister()
+    })
+    return
+  }
+
   navigator.serviceWorker.register('/sw.js').then((registration) => {
     _registration = registration
 

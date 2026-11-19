@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Fragment, useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { useCatalogTerms, usePublicLinkLabel } from '@/hooks/verticals'
 import {
   Star, MapPin, Phone, Mail, Globe, Clock,
   UtensilsCrossed, Share2, Check, ExternalLink,
@@ -264,6 +265,8 @@ function QuickActions({
 }) {
   const t = useTranslations('tenant')
   const tMarketplace = useTranslations('marketplace')
+  const publicLinkLabel = usePublicLinkLabel()
+  const { vertical: catalogVertical } = useCatalogTerms()
   const branchCount = visibleBranches.length
   const hasMenu = featureFlags['menu.enabled'] === true
   const showViewMenu = branchCount === 1 && hasMenu && !!primaryBranch
@@ -278,7 +281,7 @@ function QuickActions({
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
           >
             <MapPin className="w-4 h-4"aria-hidden="true"/>
-            {locationsCTA.label}
+            {publicLinkLabel(locationsCTA.label)}
           </Link>
         )}
         {showViewMenu && (
@@ -287,7 +290,7 @@ function QuickActions({
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[var(--accent)] text-[var(--accent-fg)] text-sm font-semibold hover:bg-[var(--accent-hover)] transition-colors"
           >
             <UtensilsCrossed className="w-4 h-4"aria-hidden="true"/>
-            {tMarketplace('viewMenu')}
+            {catalogVertical.family === 'food' ? tMarketplace('viewMenu') : publicLinkLabel('View Menu')}
           </Link>
         )}
         <ShareButton tenant={tenant} />
@@ -529,6 +532,7 @@ function FeaturedItemsSection({
   primaryBranchSlug: string
 }) {
   const t = useTranslations('tenant')
+  const { vertical: catalogVertical, term: catalogTerm } = useCatalogTerms()
   const featured = items.filter((i) => i.is_featured || i.is_popular).slice(0, 4)
   if (featured.length === 0) return null
 
@@ -546,7 +550,7 @@ function FeaturedItemsSection({
           href={`/${tenantSlug}/${primaryBranchSlug}/menu`}
           className="text-sm text-[var(--accent)] hover:underline font-medium"
         >
-          {t('viewFullMenu')}
+          {catalogVertical.family === 'food' ? t('viewFullMenu') : catalogTerm('viewFull')}
         </Link>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

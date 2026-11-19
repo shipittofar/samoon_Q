@@ -18,6 +18,7 @@
  */
 
 import { DEFAULT_SECTIONS } from '@/types/website-builder'
+import { resolveVertical } from '@/verticals'
 import type { SectionConfig, SectionKey } from '@/types/website-builder'
 import type { MarketplaceMeta } from '@/types/marketplace'
 import { buildRestaurantJsonLd, serializeJsonLd } from '@/lib/json-ld'
@@ -109,9 +110,12 @@ export function resolveOrderingEnabled(
   featureFlags: Record<string, boolean>,
   hasMenu: boolean,
   branch?: BranchCapabilityInput,
-  tenant?: { status?: string | null } | null,
+  tenant?: { status?: string | null; businessTypes?: string[] } | null,
 ): boolean {
   if (tenant && !canOrderFromTenant(tenant)) return false
+  // Phase 1 — verticals without a cart (salon, clinic) never offer ordering,
+  // regardless of branch checkout settings or feature flags.
+  if (tenant?.businessTypes && !resolveVertical(tenant.businessTypes).supportsCart) return false
   if (!hasMenu) return false
   if (branch?.orderingEnabled !== undefined) return branch.orderingEnabled
   return featureFlags['ordering.enabled'] === true

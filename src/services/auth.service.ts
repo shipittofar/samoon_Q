@@ -12,8 +12,14 @@ import {
   MOCK_SUPPORT_USER,
   MOCK_MULTI_ROLE_USER,
   MOCK_PLATFORM_ADMIN_USER,
+  MOCK_SALON_OWNER_USER,
+  MOCK_CLINIC_OWNER_USER,
 } from '@/lib/mock-data'
-import { buildSamoonMembership } from '@/lib/mock-console-memberships'
+import {
+  buildSamoonMembership,
+  buildGlowStudioMembership,
+  buildMehrClinicMembership,
+} from '@/lib/mock-console-memberships'
 import { normalizeGetMeResponse, assertMembershipBranchIsolation } from '@/lib/auth-me-normalizer'
 import { MOCK_DELAY } from '@/constants'
 import { configurationService } from '@/config'
@@ -205,7 +211,17 @@ export const MOCK_REFRESH_TOKEN =
  * always applied against whatever tenant the frontend currently has
  * resolved, with no per-persona tenant selection.
  */
-export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> = {
+export interface MockCredentialEntry {
+  user: User
+  p7Roles: Role[]
+  /**
+   * Phase 1 — the tenant this persona belongs to. Omitted → the Samoon
+   * restaurant (the original single demo tenant).
+   */
+  buildMembership?: (roles: Role[]) => TenantMembership
+}
+
+export const MOCK_CREDENTIALS: Record<string, MockCredentialEntry> = {
   'demo@samoon.com':      { user: MOCK_USER,           p7Roles: [] },
   'staff@samoon.com':     { user: MOCK_STAFF_USER,     p7Roles: ['manager'] },
   'cashier@samoon.com':   { user: MOCK_CASHIER_USER,   p7Roles: ['cashier'] },
@@ -219,6 +235,9 @@ export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> =
   // Platform Admin: Django is_superuser on the user is the only grant.
   // Tenant `owner` here does not authorize /platform-admin for other owner personas.
   'platform@samoon.com':  { user: MOCK_PLATFORM_ADMIN_USER, p7Roles: ['owner'] },
+  // Phase 1 — service vertical demo owners (password: "password").
+  'salon@samoon.com':     { user: MOCK_SALON_OWNER_USER,  p7Roles: ['owner'], buildMembership: buildGlowStudioMembership },
+  'clinic@samoon.com':    { user: MOCK_CLINIC_OWNER_USER, p7Roles: ['owner'], buildMembership: buildMehrClinicMembership },
 }
 
 /**
@@ -236,9 +255,10 @@ export const MOCK_CREDENTIALS: Record<string, { user: User; p7Roles: Role[] }> =
  */
 function deriveMockAuthSession(
   p7Roles: Role[],
+  buildMembership: (roles: Role[]) => TenantMembership = buildSamoonMembership,
 ): { memberships: TenantMembership[]; activeMembership?: TenantMembership } {
   if (p7Roles.length === 0) return { memberships: [] }
-  const membership = buildSamoonMembership(p7Roles)
+  const membership = buildMembership(p7Roles)
   return { memberships: [membership], activeMembership: membership }
 }
 
@@ -287,7 +307,7 @@ export const authService = {
       const tokens: AuthTokens = { access: MOCK_ACCESS_TOKEN, refresh: MOCK_REFRESH_TOKEN }
       setTokens(tokens.access, tokens.refresh)
       persistMockSessionEmail(credentials.email ?? email!)
-      return { user: entry.user, tokens, p7Roles: entry.p7Roles, ...deriveMockAuthSession(entry.p7Roles) }
+      return { user: entry.user, tokens, p7Roles: entry.p7Roles, ...deriveMockAuthSession(entry.p7Roles, entry.buildMembership) }
     }
 
     const isPhoneLogin = !credentials.email && credentials.phone_number && credentials.country_code
@@ -409,7 +429,7 @@ export const authService = {
         const email = localStorage.getItem(MOCK_SESSION_KEY)
         if (email && MOCK_CREDENTIALS[email]) {
           const entry = MOCK_CREDENTIALS[email]
-          const session = deriveMockAuthSession(entry.p7Roles)
+          const session = deriveMockAuthSession(entry.p7Roles, entry.buildMembership)
           // The cache is only valid for the user who wrote it — switching mock
           // users without a full logout must not serve the previous user's roles.
           const memberships = readMockMembershipCache(email) ?? session.memberships
@@ -595,7 +615,7 @@ export const authService = {
         // is not complete — see the branch below.
         setTokens(tokens.access, tokens.refresh)
         persistMockSessionEmail(email)
-        return { user: entry.user, tokens, p7Roles: entry.p7Roles, is_new_user: false, ...deriveMockAuthSession(entry.p7Roles) }
+        return { user: entry.user, tokens, p7Roles: entry.p7Roles, is_new_user: false, ...deriveMockAuthSession(entry.p7Roles, entry.buildMembership) }
       }
 
       // P10.8 — unknown phone_number = new user. Registration is NOT

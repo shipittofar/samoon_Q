@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
+import { useCatalogTerms } from '@/hooks/verticals'
 import {
   Plus, Search, Edit2, Trash2, Eye, EyeOff, ArrowUp, ArrowDown,
   Loader2, AlertCircle, Layers,
@@ -37,6 +38,7 @@ import { EMPTY_CATEGORY_FORM, validateCategoryForm } from '@/lib/category-form'
 
 export default function AdminCategoriesPage() {
   const t = useTranslations('console')
+  const { vertical: catalogVertical, term: catalogTerm } = useCatalogTerms()
   const tCommon = useTranslations('common')
   const [search, setSearch] = useState('')
 
@@ -230,7 +232,7 @@ export default function AdminCategoriesPage() {
             <EmptyState
               icon={<Layers className="h-8 w-8"/>}
               title={t('noCategoriesFound')}
-              description={t('noCategoriesHint')}
+              description={catalogVertical.family === 'food' ? t('noCategoriesHint') : catalogTerm('categoriesHint')}
               action={canCreate ? <Button onClick={openCreate}>{t('addCategory')}</Button> : undefined}
             />
           )}

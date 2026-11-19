@@ -17,6 +17,7 @@ import { scrollWizardToTop } from '@/lib/wizard-scroll'
 
 const BUSINESS_TYPES: ProvisionableBusinessType[] = [
   'restaurant', 'cafe', 'bar', 'food_court', 'food_truck', 'mobile_cafe',
+  'beauty_salon', 'clinic',
 ]
 
 const BUSINESS_TYPE_LABEL_KEYS: Record<ProvisionableBusinessType, string> = {
@@ -26,6 +27,8 @@ const BUSINESS_TYPE_LABEL_KEYS: Record<ProvisionableBusinessType, string> = {
   food_court: 'businessTypeFoodCourt',
   food_truck: 'businessTypeFoodTruck',
   mobile_cafe: 'businessTypeMobileCafe',
+  beauty_salon: 'businessTypeBeautySalon',
+  clinic: 'businessTypeClinic',
 }
 
 const TOTAL_STEPS = 6

@@ -7,6 +7,8 @@ export type ProvisionableBusinessType =
   | 'food_court'
   | 'food_truck'
   | 'mobile_cafe'
+  | 'beauty_salon'
+  | 'clinic'
 
 /** Step 3 branding — maps to Tenant CRUD `settings.theme` (no logo fields). */
 export type TenantBrandingConfig = TenantBranding

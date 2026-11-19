@@ -871,6 +871,58 @@
     "must_accept_terms": "You must accept the terms"
   },
   "console": {
+    "adminNavGroups": {
+      "Operations": "Operations",
+      "Content": "Content",
+      "Customers": "Customers",
+      "Analytics": "Analytics",
+      "People": "People",
+      "Platform": "Platform",
+      "System": "System",
+      "Other": "Other"
+    },
+    "adminNav": {
+      "analytics": "Analytics",
+      "orders": "Orders",
+      "menu": "Menu",
+      "categories": "Categories",
+      "tags": "Tags",
+      "extras": "Extras",
+      "loyalty": "Loyalty",
+      "kitchen": "Kitchen Display",
+      "customers": "Customers",
+      "reservations": "Reservations",
+      "reviews": "Reviews",
+      "promotions": "Promotions",
+      "website": "Website Builder",
+      "tenants": "Businesses",
+      "staff": "Staff",
+      "branches": "Branches",
+      "branches_analytics": "Branch Analytics",
+      "audit_logs": "Audit Logs",
+      "rbac_audit": "RBAC Audit",
+      "notifications": "Notifications",
+      "operations": "Live Operations",
+      "settings": "Settings",
+      "settings_configuration": "Platform Configuration",
+      "permissions": "Permissions",
+      "roles": "Roles",
+      "users": "Users",
+      "qr": "QR Management",
+      "cafe_loyalty": "Loyalty Management",
+      "cafe_happy_hour": "Happy Hour Settings",
+      "bar_events": "Event Management",
+      "bar_happy_hour": "Happy Hour Settings",
+      "food_court_vendors": "Vendor Management",
+      "food_court_seating": "Seating Management",
+      "food_truck_routes": "Route Management",
+      "food_truck_stops": "Stop Management",
+      "mobile_cafe_routes": "Route Management",
+      "mobile_cafe_loyalty": "Loyalty Management"
+    },
+    "servicesNav": "Services",
+    "businessTypeClinic": "Clinic",
+    "businessTypeBeautySalon": "Beauty Salon",
     "changeLanguageAria": "Change Language",
     "title": "Console",
     "tenantNotFoundTitle": "Tenant not found",
@@ -5275,7 +5327,9 @@
       "food_truck": "Food Truck",
       "mobile_cafe": "Mobile Café",
       "hotel": "Hotel",
-      "other": "Other"
+      "other": "Other",
+      "beauty_salon": "Beauty Salon",
+      "clinic": "Clinic"
     },
     "filterByBusinessTypeAria": "Filter by business type",
     "all": "All",
@@ -5502,6 +5556,18 @@
     "loyaltyProgram": "Loyalty Program"
   },
   "header": {
+    "tenantNav": {
+      "marketplace": "Explore Businesses",
+      "locations": "Locations",
+      "reservation": "Reservations",
+      "reviews": "Reviews",
+      "promotions": "Promotions",
+      "loyalty": "Loyalty",
+      "events": "Events",
+      "location": "Live Location",
+      "vendors": "Vendors",
+      "restaurant": "About"
+    },
     "skipToMainContent": "Skip to main content",
     "navDiscover": "Discover",
     "navReservations": "Reservations",
@@ -5719,5 +5785,122 @@
     "recent": "Recent",
     "allCountries": "All countries",
     "phoneCountryAria": "Phone country: {name} {dialCode}"
+  },
+  "verticals": {
+    "labels": {
+      "restaurant": "Restaurant",
+      "cafe": "Café",
+      "bar": "Bar",
+      "food_court": "Food Court",
+      "food_truck": "Food Truck",
+      "mobile_cafe": "Mobile Café",
+      "hotel": "Hotel",
+      "other": "Other",
+      "beauty_salon": "Beauty Salon",
+      "clinic": "Clinic"
+    },
+    "terms": {
+      "food": {
+        "catalog": "Menu",
+        "catalogItem": "Menu item",
+        "catalogItems": "Menu items",
+        "addItem": "Add Item",
+        "itemName": "Item name",
+        "newItemTitle": "Add Menu Item",
+        "editItemTitle": "Edit Menu Item",
+        "emptyState": "No items found",
+        "searchPlaceholder": "Search items…",
+        "pageSubtitle": "Add, edit, and manage your menu offerings",
+        "preview": "Preview Menu",
+        "selectBranch": "Select a branch to manage its menu",
+        "loading": "Loading menu…",
+        "loadFailed": "Failed to load menu items.",
+        "categoriesHint": "Create your first category to start organizing this branch's menu.",
+        "viewFull": "View full menu"
+      },
+      "service": {
+        "catalog": "Services",
+        "catalogItem": "Service",
+        "catalogItems": "Services",
+        "addItem": "Add Service",
+        "itemName": "Service name",
+        "newItemTitle": "Add Service",
+        "editItemTitle": "Edit Service",
+        "emptyState": "No services yet",
+        "searchPlaceholder": "Search services…",
+        "pageSubtitle": "Add, edit, and manage the services you offer",
+        "preview": "Preview Services",
+        "selectBranch": "Select a branch to manage its services",
+        "loading": "Loading services…",
+        "loadFailed": "Failed to load services.",
+        "categoriesHint": "Create your first category to start organizing this branch's services.",
+        "viewFull": "View all services"
+      },
+      "clinic": {
+        "catalog": "Services & Fees"
+      },
+      "bar": {
+        "catalog": "Drinks"
+      }
+    },
+    "itemKindLabel": "Type",
+    "itemKinds": {
+      "product": "Product",
+      "service": "Service",
+      "package": "Package"
+    },
+    "selectPlaceholder": "Select…",
+    "attributes": {
+      "duration_minutes": "Duration (minutes)",
+      "price_is_starting": "Price is a starting price (\"From …\")",
+      "requires_appointment": "Requires an appointment",
+      "audience": "For",
+      "consultation_mode": "Consultation",
+      "preparation_notes": "Preparation notes for the patient"
+    },
+    "attributeOptions": {
+      "audience": {
+        "all": "Everyone",
+        "women": "Women",
+        "men": "Men",
+        "kids": "Kids"
+      },
+      "consultation_mode": {
+        "in_person": "In person",
+        "online": "Online",
+        "both": "In person or online"
+      }
+    },
+    "facts": {
+      "durationMinutes": "{minutes} min",
+      "byAppointment": "By appointment",
+      "priceFrom": "From {price}"
+    },
+    "nav": {
+      "service": {
+        "reservation": "Book",
+        "promotions": "Offers"
+      }
+    },
+    "publicLinks": {
+      "common": {
+        "orderOnline": "Order Online",
+        "viewMenu": "View Menu",
+        "reserve": "Reserve a Table",
+        "loyalty": "Loyalty",
+        "chooseLocation": "Choose a Location",
+        "home": "Home",
+        "menu": "Menu",
+        "reservations": "Reservations",
+        "locations": "Locations",
+        "discoverMore": "Discover More"
+      },
+      "service": {
+        "viewMenu": "View Services",
+        "reserve": "Book an Appointment",
+        "menu": "Services",
+        "reservations": "Book"
+      }
+    }
   }
 }

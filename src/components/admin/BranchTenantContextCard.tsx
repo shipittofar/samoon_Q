@@ -11,6 +11,8 @@ const BUSINESS_TYPE_LABEL_KEYS: Record<string, string> = {
   food_court: 'businessTypeFoodCourt',
   food_truck: 'businessTypeFoodTruck',
   mobile_cafe: 'businessTypeMobileCafe',
+  beauty_salon: 'businessTypeBeautySalon',
+  clinic: 'businessTypeClinic',
 }
 
 export function BranchTenantContextCard({

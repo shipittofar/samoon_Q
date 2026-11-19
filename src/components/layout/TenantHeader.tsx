@@ -44,6 +44,9 @@ import { useHomepageLayout } from '@/hooks'
 import toast from 'react-hot-toast'
 import { useTranslations } from 'next-intl'
 import { resolveSupportedLocales, getLanguageInfo } from '@/i18n/runtime'
+import { useCatalogTerms } from '@/hooks/verticals'
+import { isKnownVertical, VERTICALS } from '@/verticals'
+import type { TenantNavLink } from '@/utils/navigation'
 
 // P9.5.1A Phase C: sourced from the config-driven supported-locale list +
 // the language registry's native names, instead of a hardcoded literal.
@@ -56,6 +59,8 @@ const LANGUAGES = resolveSupportedLocales().map((code) => ({
 
 export function TenantHeader() {
   const t = useTranslations('header')
+  const tVerticals = useTranslations('verticals')
+  const { vertical, term } = useCatalogTerms()
   const pathname = usePathname()
   const { isAuthenticated, user } = useAuthStore()
   const { setOpen: setCartOpen } = useCartStore()
@@ -137,7 +142,22 @@ export function TenantHeader() {
   })
 
   // Phase F: business type badge (☕ Cafe, 🍽️ Restaurant, …)
-  const businessBadge = getBusinessTypeBadge(tenant.businessTypes ?? [])
+  // Phase 1 — localized badge for known verticals (falls back to the English helper).
+  const primaryType = tenant.businessTypes?.[0]
+  const businessBadge = primaryType && isKnownVertical(primaryType)
+    ? `${VERTICALS[primaryType].emoji} ${tVerticals(`labels.${primaryType}`)}`
+    : getBusinessTypeBadge(tenant.businessTypes ?? [])
+
+  // Phase 1 — nav labels are localized and vertical-aware ("Services" / "Book"
+  // for a salon). Labels the owner customized in Website Builder are kept verbatim.
+  const navLabel = (link: TenantNavLink): string => {
+    if (link.customLabel) return link.label
+    if (link.key === 'menu') return term('catalog')
+    const verticalKey = `nav.${vertical.family}.${link.key}`
+    if (tVerticals.has(verticalKey)) return tVerticals(verticalKey)
+    const key = `tenantNav.${link.key}`
+    return t.has(key) ? t(key) : link.label
+  }
 
   // Phase H: active state — exact for marketplace, prefix for business routes.
   const isActive = (href: string): boolean =>
@@ -235,7 +255,7 @@ export function TenantHeader() {
                         : 'text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--card-hover)]',
                   )}
                 >
-                  {link.label}
+                  {navLabel(link)}
                 </Link>
               ))}
             </nav>
@@ -444,7 +464,7 @@ export function TenantHeader() {
                           : 'text-[var(--fg)] hover:bg-[var(--card-hover)]',
                     )}
                   >
-                    {link.label}
+                    {navLabel(link)}
                   </Link>
                 ))}
 

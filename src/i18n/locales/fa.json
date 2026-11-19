@@ -871,6 +871,58 @@
     "must_accept_terms": "باید شرایط را بپذیرید"
   },
   "console": {
+    "adminNavGroups": {
+      "Operations": "عملیات",
+      "Content": "محتوا",
+      "Customers": "مشتریان",
+      "Analytics": "تحلیل",
+      "People": "افراد",
+      "Platform": "پلتفرم",
+      "System": "سیستم",
+      "Other": "سایر"
+    },
+    "adminNav": {
+      "analytics": "تحلیل‌ها",
+      "orders": "سفارش‌ها",
+      "menu": "منو",
+      "categories": "دسته‌بندی‌ها",
+      "tags": "برچسب‌ها",
+      "extras": "افزودنی‌ها",
+      "loyalty": "باشگاه مشتریان",
+      "kitchen": "نمایشگر آشپزخانه",
+      "customers": "مشتریان",
+      "reservations": "رزروها",
+      "reviews": "نظرات",
+      "promotions": "تخفیف‌ها",
+      "website": "سازنده وب‌سایت",
+      "tenants": "کسب‌وکارها",
+      "staff": "کارکنان",
+      "branches": "شعبه‌ها",
+      "branches_analytics": "تحلیل شعبه‌ها",
+      "audit_logs": "گزارش رویدادها",
+      "rbac_audit": "ممیزی دسترسی‌ها",
+      "notifications": "اعلان‌ها",
+      "operations": "عملیات زنده",
+      "settings": "تنظیمات",
+      "settings_configuration": "پیکربندی پلتفرم",
+      "permissions": "دسترسی‌ها",
+      "roles": "نقش‌ها",
+      "users": "کاربران",
+      "qr": "مدیریت QR",
+      "cafe_loyalty": "مدیریت باشگاه مشتریان",
+      "cafe_happy_hour": "تنظیمات ساعت خوش",
+      "bar_events": "مدیریت رویدادها",
+      "bar_happy_hour": "تنظیمات ساعت خوش",
+      "food_court_vendors": "مدیریت فروشندگان",
+      "food_court_seating": "مدیریت جایگاه‌ها",
+      "food_truck_routes": "مدیریت مسیرها",
+      "food_truck_stops": "مدیریت توقف‌ها",
+      "mobile_cafe_routes": "مدیریت مسیرها",
+      "mobile_cafe_loyalty": "مدیریت باشگاه مشتریان"
+    },
+    "servicesNav": "خدمات",
+    "businessTypeClinic": "کلینیک",
+    "businessTypeBeautySalon": "سالن زیبایی",
     "changeLanguageAria": "تغییر زبان",
     "title": "کنسول",
     "tenantNotFoundTitle": "کسب‌وکار یافت نشد",
@@ -5265,7 +5317,9 @@
       "food_truck": "فودتراک",
       "mobile_cafe": "کافه سیار",
       "hotel": "هتل",
-      "other": "سایر"
+      "other": "سایر",
+      "beauty_salon": "سالن زیبایی",
+      "clinic": "کلینیک"
     },
     "filterByBusinessTypeAria": "فیلتر بر اساس نوع کسب‌وکار",
     "all": "همه",
@@ -5492,6 +5546,18 @@
     "loyaltyProgram": "باشگاه مشتریان"
   },
   "header": {
+    "tenantNav": {
+      "marketplace": "کشف کسب‌وکارها",
+      "locations": "شعبه‌ها",
+      "reservation": "رزرو",
+      "reviews": "نظرات",
+      "promotions": "تخفیف‌ها",
+      "loyalty": "باشگاه مشتریان",
+      "events": "رویدادها",
+      "location": "موقعیت زنده",
+      "vendors": "فروشندگان",
+      "restaurant": "درباره ما"
+    },
     "skipToMainContent": "پرش به محتوای اصلی",
     "navDiscover": "کشف کنید",
     "navReservations": "رزروها",
@@ -5709,5 +5775,122 @@
     "recent": "اخیر",
     "allCountries": "همه کشورها",
     "phoneCountryAria": "کشور تلفن: {name} {dialCode}"
+  },
+  "verticals": {
+    "labels": {
+      "restaurant": "رستوران",
+      "cafe": "کافه",
+      "bar": "بار",
+      "food_court": "فودکورت",
+      "food_truck": "فودتراک",
+      "mobile_cafe": "کافه سیار",
+      "hotel": "هتل",
+      "other": "سایر",
+      "beauty_salon": "سالن زیبایی",
+      "clinic": "کلینیک"
+    },
+    "terms": {
+      "food": {
+        "catalog": "منو",
+        "catalogItem": "آیتم منو",
+        "catalogItems": "آیتم‌های منو",
+        "addItem": "افزودن آیتم",
+        "itemName": "نام آیتم",
+        "newItemTitle": "افزودن آیتم منو",
+        "editItemTitle": "ویرایش آیتم منو",
+        "emptyState": "آیتمی پیدا نشد",
+        "searchPlaceholder": "جستجوی آیتم‌ها…",
+        "pageSubtitle": "افزودن، ویرایش و مدیریت آیتم‌های منو",
+        "preview": "پیش‌نمایش منو",
+        "selectBranch": "برای مدیریت منو یک شعبه انتخاب کنید",
+        "loading": "در حال بارگذاری منو…",
+        "loadFailed": "بارگذاری آیتم‌های منو ناموفق بود.",
+        "categoriesHint": "اولین دسته‌بندی را بسازید تا منوی این شعبه را مرتب کنید.",
+        "viewFull": "مشاهده کامل منو"
+      },
+      "service": {
+        "catalog": "خدمات",
+        "catalogItem": "خدمت",
+        "catalogItems": "خدمات",
+        "addItem": "افزودن خدمت",
+        "itemName": "نام خدمت",
+        "newItemTitle": "افزودن خدمت",
+        "editItemTitle": "ویرایش خدمت",
+        "emptyState": "هنوز خدمتی ثبت نشده",
+        "searchPlaceholder": "جستجوی خدمات…",
+        "pageSubtitle": "افزودن، ویرایش و مدیریت خدماتی که ارائه می‌دهید",
+        "preview": "پیش‌نمایش خدمات",
+        "selectBranch": "برای مدیریت خدمات یک شعبه انتخاب کنید",
+        "loading": "در حال بارگذاری خدمات…",
+        "loadFailed": "بارگذاری خدمات ناموفق بود.",
+        "categoriesHint": "اولین دسته‌بندی را بسازید تا خدمات این شعبه را مرتب کنید.",
+        "viewFull": "مشاهده همه خدمات"
+      },
+      "clinic": {
+        "catalog": "خدمات و تعرفه‌ها"
+      },
+      "bar": {
+        "catalog": "نوشیدنی‌ها"
+      }
+    },
+    "itemKindLabel": "نوع",
+    "itemKinds": {
+      "product": "محصول",
+      "service": "خدمت",
+      "package": "پکیج"
+    },
+    "selectPlaceholder": "انتخاب کنید…",
+    "attributes": {
+      "duration_minutes": "مدت زمان (دقیقه)",
+      "price_is_starting": "قیمت، قیمت شروع است («از …»)",
+      "requires_appointment": "نیاز به نوبت دارد",
+      "audience": "مناسب برای",
+      "consultation_mode": "نوع مشاوره",
+      "preparation_notes": "توضیحات آمادگی برای بیمار"
+    },
+    "attributeOptions": {
+      "audience": {
+        "all": "همه",
+        "women": "بانوان",
+        "men": "آقایان",
+        "kids": "کودکان"
+      },
+      "consultation_mode": {
+        "in_person": "حضوری",
+        "online": "آنلاین",
+        "both": "حضوری یا آنلاین"
+      }
+    },
+    "facts": {
+      "durationMinutes": "{minutes} دقیقه",
+      "byAppointment": "با نوبت قبلی",
+      "priceFrom": "از {price}"
+    },
+    "nav": {
+      "service": {
+        "reservation": "نوبت‌گیری",
+        "promotions": "پیشنهادها"
+      }
+    },
+    "publicLinks": {
+      "common": {
+        "orderOnline": "سفارش آنلاین",
+        "viewMenu": "مشاهده منو",
+        "reserve": "رزرو میز",
+        "loyalty": "باشگاه مشتریان",
+        "chooseLocation": "انتخاب شعبه",
+        "home": "خانه",
+        "menu": "منو",
+        "reservations": "رزروها",
+        "locations": "شعبه‌ها",
+        "discoverMore": "کشف بیشتر"
+      },
+      "service": {
+        "viewMenu": "مشاهده خدمات",
+        "reserve": "گرفتن نوبت",
+        "menu": "خدمات",
+        "reservations": "نوبت‌گیری"
+      }
+    }
   }
 }

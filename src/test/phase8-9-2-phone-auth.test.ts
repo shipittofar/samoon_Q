@@ -178,7 +178,8 @@ describe('guessCountryFromLocale', () => {
 
 describe('DEMO_PHONE_TO_EMAIL', () => {
   it('has exactly 10 entries', () => {
-    expect(Object.keys(DEMO_PHONE_TO_EMAIL).length).toBe(10)
+    // 10 original personas + 2 Phase 1 service-vertical owners (salon, clinic)
+    expect(Object.keys(DEMO_PHONE_TO_EMAIL).length).toBe(12)
   })
 
   it('all keys are E.164 format', () => {
