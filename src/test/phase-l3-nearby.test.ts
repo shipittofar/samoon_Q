@@ -208,3 +208,42 @@ describe('discover URL state', () => {
     expect(parseDiscoverQuery(new URLSearchParams(qs))).toMatchObject({ sort: 'nearest', view: 'map', near: true })
   })
 })
+
+describe('area search bounds', () => {
+  it('isInBounds checks a [south, west, north, east] box (and antimeridian boxes)', async () => {
+    const { isInBounds } = await import('@/lib/geo')
+    expect(isInBounds({ lat: 35.75, lng: 51.4 }, [35.7, 51.3, 35.8, 51.5])).toBe(true)
+    expect(isInBounds({ lat: 40.75, lng: -73.98 }, [35.7, 51.3, 35.8, 51.5])).toBe(false)
+    expect(isInBounds({ lat: 0, lng: 179.5 }, [-1, 179, 1, -179])).toBe(true)
+  })
+
+})
+
+describe('branch-scoped results (a business has no location of its own)', () => {
+  it('serves-me keeps only serving branches and re-picks the best among them', async () => {
+    const { scopeResult } = await import('@/lib/nearby')
+    const tiny = { mode: 'delivery' as const, shape: { type: 'circle' as const, radiusKm: 0.3 } }
+    // nearest branch does NOT serve; a farther one does
+    const [r] = computeNearby([biz('chain', [branch('near', 1, { serviceArea: tiny }), branch('serves', 3), branch('far', 40)])], USER)
+    const scoped = scopeResult(r, (b) => b.inside)!
+    expect(scoped.branches.map((b) => b.branchId)).toEqual(['serves'])
+    expect(scoped.best?.branchId).toBe('serves')
+    expect(scopeResult(r, () => false)).toBeNull()
+  })
+
+  it('a chain is listed from its branch in your city, not its head-office city', async () => {
+    const { scopeResult } = await import('@/lib/nearby')
+    const [r] = computeNearby([biz('chain', [branch('ny', 9000, { city: 'New York' }), branch('thr', 1, { city: 'Tehran' })])], USER)
+    const scoped = scopeResult(r, (b) => b.distanceKm <= 20)!
+    expect(scoped.best).toMatchObject({ branchId: 'thr', city: 'Tehran' })
+  })
+
+  it('search and city filters use branch cities', async () => {
+    const { collectBranchCities, matchesFilters, DEFAULT_FILTERS } = await import('@/types/marketplace')
+    const meta = { city: 'New York', branches: [branch('a', 1, { city: 'New York' }), branch('b', 2, { city: 'Tehran' })] }
+    expect(collectBranchCities(meta.branches, meta.city).sort()).toEqual(['New York', 'Tehran'])
+    expect(collectBranchCities([], 'Shiraz')).toEqual(['Shiraz'])
+    expect(matchesSearch('Chain', meta, [], 'tehran')).toBe(true)
+    expect(matchesFilters(meta, {}, { ...DEFAULT_FILTERS, cities: ['Tehran'] })).toBe(true)
+  })
+})

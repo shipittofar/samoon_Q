@@ -9,7 +9,8 @@ import { List, Loader2, Map as MapIcon, Route, Store, X } from 'lucide-react'
 import { DiscoverMap } from '@/components/location/DiscoverMap'
 import { useUserLocation } from '@/hooks/location'
 import { useNavigationStore } from '@/stores/navigation-store'
-import { computeNearby, rankNearby, matchesMenuQuery, type NearbyResult } from '@/lib/nearby'
+import { computeNearby, rankNearby, matchesMenuQuery, scopeResult, type BranchProximity, type NearbyResult } from '@/lib/nearby'
+import { isInBounds, type GeoBounds } from '@/lib/geo'
 import { readMapsSettings } from '@/lib/maps/config'
 import type { GeoPoint } from '@/types/branch'
 import { Header } from '@/components/layout/Header'
@@ -28,6 +29,7 @@ import {
   getMarketplaceMeta,
   collectBranchCuisines,
   collectBranchAmenities,
+  collectBranchCities,
   BUSINESS_TYPE_LABELS,
 } from '@/types/marketplace'
 import type { FilterState, SortOption } from '@/types/marketplace'
@@ -81,7 +83,7 @@ export type DiscoverQueryState = {
   sort: SortOption
   /** Phase L3 — list (default) or split list + map. */
   view: 'list' | 'map'
-  /** Phase L3 — only businesses whose service area covers the customer. */
+  /** Phase L3 — only businesses with a branch whose service area covers the customer. */
   near: boolean
 }
 
@@ -199,14 +201,19 @@ export function DiscoverClientPage() {
 
   // Phase L3 — where to measure from: a map area the customer chose, else their location.
   const { location } = useUserLocation()
-  const maxRadiusKm = useMemo(() => readMapsSettings().maxServiceRadiusKm, [])
+  const { maxServiceRadiusKm: maxRadiusKm, nearbyRadiusKm } = useMemo(() => readMapsSettings(), [])
   // Phase L4 — a travel mode the customer picked in Directions changes card ETAs too.
   const travelPref = useNavigationStore((s) => s.travelMode)
   const travelMode = travelPref === 'auto' ? undefined : travelPref
-  const [areaCenter, setAreaCenter] = useState<GeoPoint | null>(null)
-  const origin = areaCenter ?? location.point
+  // "Search this area": the visible map area the customer chose.
+  const [area, setArea] = useState<{ center: GeoPoint; bounds: GeoBounds } | null>(null)
+  const areaCenter = area?.center ?? null
   // The platform default centre is a guess — don't print distances from it.
-  const located = areaCenter !== null || location.source !== 'default'
+  const deviceKnown = location.source !== 'default'
+  // Distances are always from the customer; a chosen map area only decides
+  // *which* businesses are listed (and is the reference when we don't know them).
+  const origin = deviceKnown ? location.point : (areaCenter ?? location.point)
+  const located = areaCenter !== null || deviceKnown
   const isMap = url.view === 'map'
   const [highlightedId, setHighlightedId] = useState<string | null>(null)
   const ignoreFocusRef = useRef(false)
@@ -276,7 +283,7 @@ export function DiscoverClientPage() {
 
   const availableCities = useMemo(() => {
     const seen = new Set<string>()
-    allWithMeta.forEach(({ meta }) => { if (meta.city) seen.add(meta.city) })
+    allWithMeta.forEach(({ branches, meta }) => collectBranchCities(branches ?? meta.branches, meta.city).forEach((c) => seen.add(c)))
     return Array.from(seen).sort()
   }, [allWithMeta])
 
@@ -301,7 +308,20 @@ export function DiscoverClientPage() {
   // Item search ("pizza") or a chosen map area ranks by distance unless the customer picked a sort.
   const rankByDistance = located && (sortBy === 'nearest' || (sortBy === 'recommended' && (isSearchMode || areaCenter !== null)))
 
-  const filtered = useMemo(() => {
+  // Everything geographic is decided per BRANCH (a business has no location):
+  //   where — inside the chosen map area, else within the nearby radius or
+  //           serving the customer;
+  //   serves me — the branch's service area covers the customer.
+  // A business is listed when at least one branch passes; its card, distance
+  // and map pins then use only those branches.
+  const whereScope = useMemo<((b: BranchProximity) => boolean) | null>(() => {
+    if (area) return (b) => isInBounds(b.point, area.bounds)
+    if (deviceKnown) return (b) => b.inside || b.distanceKm <= nearbyRadiusKm
+    return null
+  }, [area, deviceKnown, nearbyRadiusKm])
+  const servesMe = url.near && deviceKnown
+
+  const filteredState = useMemo(() => {
     let result = allWithMeta
     if (selectedCategory) {
       result = result.filter(({ tenant }) => matchesCategory(tenant.businessTypes, selectedCategory))
@@ -318,21 +338,53 @@ export function DiscoverClientPage() {
         return matchesFilters(meta, flags, filters)
       })
     }
-    if (url.near && located) {
-      result = result.filter(({ tenant }) => nearbyById.get(tenant.id)?.best?.inside === true)
+    // Per-branch scope. "Where" falls back to every area when nothing is
+    // around the customer (and says so); "serves me" never falls back.
+    const preferMenu = !!searchQuery
+    const scopeWith = (where: ((b: BranchProximity) => boolean) | null) => {
+      const keep = (b: BranchProximity) => (!where || where(b)) && (!servesMe || b.inside)
+      const map = new Map<string, NearbyResult<DiscoverItem>>()
+      for (const item of result) {
+        const r = nearbyById.get(item.tenant.id)
+        const s = r ? scopeResult(r, keep, preferMenu) : null
+        if (s) map.set(item.tenant.id, s)
+      }
+      return map
     }
-    if (rankByDistance) {
-      const keep = new Set(result)
-      return rankNearby(nearbyResults.filter((r) => keep.has(r.item))).map((r) => r.item)
+    let nearbyEmpty = false
+    let scoped: Map<string, NearbyResult<DiscoverItem>> | null = null
+    if (whereScope || servesMe) {
+      scoped = scopeWith(whereScope)
+      if (scoped.size === 0 && whereScope && !area && result.length > 0) {
+        nearbyEmpty = true
+        scoped = servesMe ? scopeWith(null) : null
+      }
+      if (scoped) {
+        const keepIds = scoped
+        result = result.filter((i) => keepIds.has(i.tenant.id))
+      }
     }
-    return sortItems(result, sortBy === 'nearest' ? 'recommended' : sortBy)
-  }, [allWithMeta, searchQuery, selectedCategory, filters, sortBy, url.near, located, nearbyById, nearbyResults, rankByDistance])
+    const scopedOf = (id: string) => scoped?.get(id) ?? nearbyById.get(id)
+    const sorted = rankByDistance
+      ? rankNearby(result.map((i) => scopedOf(i.tenant.id)).filter((r): r is NearbyResult<DiscoverItem> => !!r)).map((r) => r.item)
+      : sortItems(result, sortBy === 'nearest' ? 'recommended' : sortBy)
+    return { items: sorted, nearbyEmpty, scoped }
+  }, [allWithMeta, searchQuery, selectedCategory, filters, sortBy, nearbyById, rankByDistance, whereScope, servesMe, area])
+  const filtered = filteredState.items
+  const nearbyEmpty = filteredState.nearbyEmpty
 
-  const cardNearby = located ? nearbyById : undefined
-  const mapResults = useMemo(
-    () => filtered.map((i) => nearbyById.get(i.tenant.id)).filter((r): r is NearbyResult<DiscoverItem> => !!r),
-    [filtered, nearbyById],
-  )
+  // Cards and pins use the in-scope branches only (a chain's branches
+  // elsewhere, or ones that don't serve the customer, never show).
+  const scopedById = useMemo(() => {
+    const m = new Map<string, NearbyResult<DiscoverItem>>()
+    for (const i of filtered) {
+      const r = filteredState.scoped?.get(i.tenant.id) ?? nearbyById.get(i.tenant.id)
+      if (r) m.set(i.tenant.id, r)
+    }
+    return m
+  }, [filtered, filteredState.scoped, nearbyById])
+  const cardNearby = located ? scopedById : undefined
+  const mapResults = useMemo(() => [...scopedById.values()], [scopedById])
   const nearYou = useMemo(
     () =>
       located && !areaCenter
@@ -439,7 +491,7 @@ export function DiscoverClientPage() {
   function clearAll() {
     setDraftQuery('')
     setFilters(DEFAULT_FILTERS)
-    setAreaCenter(null)
+    setArea(null)
     replaceDiscoverQuery({ q: '', category: '', openNow: false, sort: 'recommended', near: false })
   }
 
@@ -519,8 +571,9 @@ export function DiscoverClientPage() {
               >
                 {tMarket('openNow')}
               </FilterChip>
-              {located && (
+              {deviceKnown && (
                 <FilterChip
+                  data-testid="serves-me-chip"
                   className="shrink-0"
                   selected={url.near}
                   onClick={() => replaceDiscoverQuery({ near: !url.near })}
@@ -538,12 +591,17 @@ export function DiscoverClientPage() {
                 {isMap ? tNear('hideMap') : tNear('showMap')}
               </button>
             </div>
+            {nearbyEmpty && (
+              <p className="text-xs text-[var(--warning-text)]" role="status" data-testid="nearby-empty">
+                {tNear('nothingWithin', { km: nearbyRadiusKm })}
+              </p>
+            )}
             {areaCenter && (
               <div className="flex items-center gap-2 text-xs text-[var(--fg-muted)]" data-testid="area-search">
                 <span>{tNear('searchingArea')}</span>
                 <button
                   type="button"
-                  onClick={() => setAreaCenter(null)}
+                  onClick={() => setArea(null)}
                   className="inline-flex items-center gap-1 text-[var(--accent-text)] hover:underline"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
@@ -583,13 +641,14 @@ export function DiscoverClientPage() {
               <div className="lg:sticky lg:top-56 h-[calc(100dvh-16rem)] min-h-[320px] lg:h-[calc(100dvh-15rem)]">
                 <DiscoverMap
                   results={mapResults}
-                  user={located ? origin : null}
+                  user={deviceKnown ? location.point : null}
                   highlightedTenantId={highlightedId}
                   onSelectTenant={selectFromMap}
-                  onSearchArea={(c) => {
-                    setAreaCenter(c)
+                  onSearchArea={(a) => {
+                    setArea(a)
                     setHighlightedId(null)
                   }}
+                  autoFit={!area}
                   className="h-full"
                 />
               </div>

@@ -37,6 +37,9 @@ export interface PlannerItem {
   branches: PublicBranchInfo[]
 }
 
+/** A day route stays in town: farther branches are never candidates. */
+export const MAX_CANDIDATE_KM = 40
+
 /** Typical visit length by vertical (minutes). */
 export const DEFAULT_VISIT_MINUTES: Record<string, number> = {
   restaurant: 45,
@@ -73,6 +76,7 @@ export function candidatesForTask(
   spec: PlanTaskSpec,
   start: GeoPoint,
   limit = MAX_CANDIDATES_PER_TASK,
+  maxKm = MAX_CANDIDATE_KM,
 ): PlanCandidate[] {
   const out: (PlanCandidate & { km: number })[] = []
   for (const item of items) {
@@ -97,6 +101,7 @@ export function candidatesForTask(
     }
   }
   return out
+    .filter((c) => c.km <= maxKm)
     .sort((a, b) => a.km - b.km)
     .slice(0, limit)
     .map(({ km: _km, ...c }) => c)

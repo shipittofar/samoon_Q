@@ -187,12 +187,14 @@ export function BranchFormFields({
             latitude={form.latitude}
             longitude={form.longitude}
             allowClear
-            onClear={() => onChange({ ...form, latitude: null, longitude: null })}
+            onClear={() => onChange({ ...form, latitude: null, longitude: null, locationVerifiedAt: null })}
             onCoords={({ latitude, longitude, address, city, country, postalCode }) => {
               onChange({
                 ...form,
                 latitude,
                 longitude,
+                // Moving the pin invalidates a previous "exact location" confirmation.
+                locationVerifiedAt: null,
                 address: form.address.trim() ? form.address : address,
                 city: form.city.trim() ? form.city : city,
                 country: form.country.trim() ? form.country : country,
@@ -211,8 +213,7 @@ export function BranchFormFields({
           latitude={form.latitude}
           longitude={form.longitude}
           onChange={(serviceArea) => set('serviceArea', serviceArea)}
-          // Moving the pin invalidates a previous "exact location" confirmation.
-          onPinMove={({ lat, lng }) => onChange({ ...form, latitude: lat, longitude: lng, locationVerifiedAt: null })}
+          // One place to move the pin: the map in the address section above.
           locationVerifiedAt={form.locationVerifiedAt}
           onVerifyPin={() => set('locationVerifiedAt', new Date().toISOString())}
         />

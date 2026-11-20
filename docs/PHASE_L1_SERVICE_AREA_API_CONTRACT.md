@@ -209,6 +209,28 @@ provider (Neshan / Map.ir / Google / OSRM), cached ~5 min on rounded coordinates
 `bbox` powers "Search this area". PostGIS: `ST_DWithin` prefilter, `ST_Distance` order.
 Coordinates are request parameters only — never stored or logged unrounded (L2 §4).
 
+## 5b. Where results come from (geographic scope) — always per BRANCH
+
+A business (tenant) has **no location of its own** (a head-office address, if ever stored, is
+never used for maps or nearby search). Every geographic decision is made per branch; a
+business is listed when at least one branch passes, and its card (city, distance, "serves you"),
+its "best branch" and its map pins use only the passing branches.
+
+- Customer located (GPS, chosen point or saved address) → branches **within
+  `maps.nearby_radius_km`** (platform setting, default 20) **or whose service area covers the
+  customer**. If no branch is in range the page says so and shows every area.
+- "Serves my area" (`near=1`) → only branches whose effective service area contains the
+  customer; never falls back.
+- "Search this area" → branches **inside the visible map bounds** (`bbox=s,w,n,e` for the backend
+  endpoint, §5). Distances stay measured from the customer. The button appears only after the
+  customer drags/zooms the map.
+- Search text and the city filter match **branch cities**.
+- When the customer is located the map centres on them (plus results within 25 km).
+- Day planner candidates: branches within 40 km of the start.
+
+Backend `GET /public/discover/nearby/` should return, per business, only the in-scope branches
+and the chosen `nearest` branch, computed the same way.
+
 ## 6. URL state
 
 `/discover?q=&category=&openNow=1&sort=nearest&near=1&view=map` — `near=1` = "Serves my area"

@@ -90,21 +90,6 @@ function TextInput({
   )
 }
 
-function NumberInput({ value, onChange, min = 0, max = 1, step = 0.05, placeholder }: {
-  value?: number; onChange: (v: number) => void; min?: number; max?: number; step?: number; placeholder?: string
-}) {
-  return (
-    <input
-      type="number"
-      className="w-full rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-      value={value ?? ''}
-      onChange={(e) => onChange(parseFloat(e.target.value))}
-      min={min} max={max} step={step}
-      placeholder={placeholder}
-    />
-  )
-}
-
 function SelectInput<T extends string>({
   value, onChange, options,
 }: {
@@ -568,13 +553,7 @@ function ContentTab({
           <Field label={t('youtubeLabel')}><TextInput value={contact.youtube} onChange={(v) => setContact('youtube', v)} placeholder="youtube.com/channel"/></Field>
           <Field label={t('telegramLabel')}><TextInput value={contact.telegram} onChange={(v) => setContact('telegram', v)} placeholder="t.me/channel"/></Field>
         </div>
-        <Field label={t('mapEmbedUrlLabel')}>
-          <TextInput value={contact.mapEmbedUrl} onChange={(v) => setContact('mapEmbedUrl', v)} placeholder="https://maps.google.com/embed?…"/>
-        </Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t('latitudeLabel')}><NumberInput value={contact.latitude} onChange={(v) => setContact('latitude', v)} min={-90} max={90} step={0.000001} placeholder="40.7128"/></Field>
-          <Field label={t('longitudeLabel')}><NumberInput value={contact.longitude} onChange={(v) => setContact('longitude', v)} min={-180} max={180} step={0.000001} placeholder="-74.0060"/></Field>
-        </div>
+        {/* Maps come from each branch's own pin (Branches → Location); a business has no location of its own. */}
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import type { DiscoverItem } from '@/lib/discover-adapter'
-import { collectBranchCuisines } from '@/types/marketplace'
+import { collectBranchCuisines, collectBranchCities } from '@/types/marketplace'
 import type { SuggestionGroup, SuggestionItem } from './SuggestionList'
 
 const MAX_PER_GROUP = 4
@@ -38,14 +38,15 @@ export function buildDiscoverSuggestions(query: string, items: DiscoverItem[]): 
         })
       }
     }
-    const city = meta.city
-    if (city && !citySet.has(city) && matches(city, q)) {
-      citySet.set(city, {
-        id: `city-${city}`,
-        kind: 'city',
-        label: city,
-        query: city,
-      })
+    for (const city of collectBranchCities(branches ?? meta.branches, meta.city)) {
+      if (!citySet.has(city) && matches(city, q)) {
+        citySet.set(city, {
+          id: `city-${city}`,
+          kind: 'city',
+          label: city,
+          query: city,
+        })
+      }
     }
   }
 

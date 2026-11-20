@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { Badge } from '@/components/ui'
+import { BranchMapPreview } from '@/components/location/BranchMapPreview'
 import { fetchPublicTenantBySlug } from '@/lib/public-tenant-resolution'
 import { resolvePublicBranchList } from '@/lib/public-branches'
 import { composeMarketplacePresentation, getMarketplaceMeta, gallerySrcList } from '@/types/marketplace'
@@ -45,6 +46,8 @@ export default async function RestaurantPage() {
     phone_number: b.phone_number,
     hours: b.todayHours ?? '',
     status: b.openNow ? 'open' : 'closed',
+    latitude: b.latitude,
+    longitude: b.longitude,
   }))
 
   return (
@@ -155,13 +158,13 @@ export default async function RestaurantPage() {
                     </div>
                   )}
                 </div>
-                {/* Map Placeholder */}
-                <div className="mt-4 h-24 rounded-xl bg-gradient-to-br from-[var(--accent-subtle)] to-[var(--card-hover)] flex items-center justify-center border border-[var(--accent-border)]/40">
-                  <div className="text-center">
-                    <MapPin className="h-5 w-5 text-[var(--accent-text)] mx-auto mb-1"/>
-                    <p className="text-xs text-[var(--accent-text)]">{t('viewOnMaps')}</p>
-                  </div>
-                </div>
+                <BranchMapPreview
+                  className="mt-4"
+                  latitude={branch.latitude}
+                  longitude={branch.longitude}
+                  name={branch.name}
+                  address={[branch.address, branch.city].filter(Boolean).join(', ')}
+                />
               </div>
             ))}
           </div>

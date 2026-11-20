@@ -364,6 +364,17 @@ function normalize(s: string): string {
 }
 
 /**
+ * Cities of a business = its branches' cities (a business has no location of
+ * its own). `fallback` covers listings that carry no branches.
+ */
+export function collectBranchCities(branches: readonly Pick<PublicBranchInfo, 'city'>[] | undefined, fallback?: string): string[] {
+  const out = new Set<string>()
+  for (const b of branches ?? []) if (b.city) out.add(b.city)
+  if (out.size === 0 && fallback) out.add(fallback)
+  return [...out]
+}
+
+/**
  * Client-side search: returns true if the tenant matches the query string.
  * Searches name, city, description, tagline, tags, business type labels,
  * branch names, and branch-owned cuisines/amenities (case + accent insensitive).
@@ -379,7 +390,7 @@ export function matchesSearch(
   const branches = meta.branches ?? []
   return (
     normalize(tenantName).includes(q) ||
-    normalize(meta.city ?? '').includes(q) ||
+    collectBranchCities(branches, meta.city).some((c) => normalize(c).includes(q)) ||
     normalize(meta.description ?? '').includes(q) ||
     (meta.tagline ? normalize(meta.tagline).includes(q) : false) ||
     (meta.tags ?? []).some((t) => normalize(t).includes(q)) ||
@@ -413,7 +424,7 @@ export function matchesFilters(
   const branchAmenities = collectBranchAmenities(meta.branches)
 
   if (filters.cuisines.length > 0 && !filters.cuisines.some((c) => branchCuisines.includes(c))) return false
-  if (filters.cities.length > 0 && !filters.cities.includes(meta.city ?? '')) return false
+  if (filters.cities.length > 0 && !collectBranchCities(meta.branches, meta.city).some((c) => filters.cities.includes(c))) return false
   if (filters.priceLevels.length > 0 && (!meta.priceLevel || !filters.priceLevels.includes(meta.priceLevel))) return false
   if (filters.openNow && !meta.openNow) return false
   if (filters.amenities.length > 0 && !filters.amenities.every((a) => branchAmenities.includes(a))) return false

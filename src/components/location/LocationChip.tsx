@@ -16,16 +16,17 @@ export function LocationChip({ className }: { className?: string }) {
   const t = useTranslations('location')
   const loc = useUserLocation({ watch: true })
   const [open, setOpen] = useState(false)
+  const [autoLocate, setAutoLocate] = useState(false)
   const { location, status, pending } = loc
 
-  // A doubtful fix opens the confirmation map once, automatically.
-  const [promptedFor, setPromptedFor] = useState<number | null>(null)
+  // A doubtful fix opens the confirmation map once, automatically — only when
+  // a question newly appears, not for every reading while it is pending.
+  const hasPending = pending !== null
+  const [wasPending, setWasPending] = useState(false)
   useEffect(() => {
-    if (pending && promptedFor !== pending.fix.timestamp) {
-      setPromptedFor(pending.fix.timestamp)
-      setOpen(true)
-    }
-  }, [pending, promptedFor])
+    if (hasPending && !wasPending) setOpen(true)
+    setWasPending(hasPending)
+  }, [hasPending, wasPending])
 
   const accuracy = describeAccuracy(location.source === 'gps' ? location.accuracyM : null)
   const place = location.area && location.city
@@ -38,13 +39,17 @@ export function LocationChip({ className }: { className?: string }) {
   else if (location.source === 'address') label = place ? t('fromAddressIn', { place }) : t('fromAddress')
   else label = t('defaultArea')
 
-  const canUseDevice = status === 'prompt' || status === 'idle' || status === 'unavailable'
+  // Always offer it (also after a denial — the customer may have re-allowed it).
+  const canUseDevice = status !== 'disabled' && status !== 'unsupported'
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2 text-sm', className)} data-testid="location-chip" data-location-source={location.source}>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setAutoLocate(false)
+          setOpen(true)
+        }}
         className={cn(
           'inline-flex min-h-[36px] items-center gap-1.5 rounded-full border px-3 py-1.5 transition-colors',
           pending
@@ -64,7 +69,12 @@ export function LocationChip({ className }: { className?: string }) {
       {location.source !== 'gps' && canUseDevice && (
         <button
           type="button"
-          onClick={loc.requestDeviceLocation}
+          onClick={() => {
+            // Open the picker and ask the device right away: the customer sees
+            // the result (or why it failed) and can retry.
+            setAutoLocate(true)
+            setOpen(true)
+          }}
           className="inline-flex min-h-[36px] items-center gap-1 rounded-full px-2 py-1.5 text-[var(--accent-text)] hover:underline"
         >
           <Crosshair className="h-4 w-4" aria-hidden="true" />
@@ -75,7 +85,16 @@ export function LocationChip({ className }: { className?: string }) {
         <span className="text-xs text-[var(--fg-muted)]">{t('permissionDenied')}</span>
       )}
 
-      <LocationPickerModal open={open} onClose={() => setOpen(false)} loc={loc} />
+      <LocationPickerModal
+        open={open}
+        onClose={() => {
+          setOpen(false)
+          // Closing an open question = "not now": stop asking this session.
+          if (loc.pending) loc.dismissPending()
+        }}
+        loc={loc}
+        autoLocate={autoLocate}
+      />
     </div>
   )
 }

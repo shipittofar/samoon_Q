@@ -18,6 +18,8 @@ export interface MapsSettings {
   defaultCenter: GeoPoint
   defaultZoom: number
   maxServiceRadiusKm: number
+  /** Discover "near me" list radius once the customer is located. */
+  nearbyRadiusKm: number
   geolocationEnabled: boolean
   minLocationAccuracyM: number
   /** Phase L4 */
@@ -34,6 +36,7 @@ const DEFAULTS: MapsSettings = {
   defaultCenter: { lat: 35.6892, lng: 51.389 },
   defaultZoom: 12,
   maxServiceRadiusKm: 50,
+  nearbyRadiusKm: 20,
   geolocationEnabled: true,
   minLocationAccuracyM: 1000,
   routingSource: 'estimate',
@@ -72,6 +75,7 @@ export function readMapsSettings(): MapsSettings {
     defaultCenter: isValidGeoPoint(center) ? center : DEFAULTS.defaultCenter,
     defaultZoom: read('maps.default_zoom', isFiniteNumber, DEFAULTS.defaultZoom),
     maxServiceRadiusKm: read('maps.max_service_radius_km', isFiniteNumber, DEFAULTS.maxServiceRadiusKm),
+    nearbyRadiusKm: read('maps.nearby_radius_km', isFiniteNumber, DEFAULTS.nearbyRadiusKm),
     geolocationEnabled: read('maps.geolocation_enabled', isBoolean, DEFAULTS.geolocationEnabled),
     minLocationAccuracyM: read('maps.min_location_accuracy_m', isFiniteNumber, DEFAULTS.minLocationAccuracyM),
     routingSource: read('maps.routing_source', isRoutingSource, DEFAULTS.routingSource),

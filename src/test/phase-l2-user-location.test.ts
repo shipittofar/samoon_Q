@@ -128,6 +128,37 @@ describe('useLocationStore', () => {
     expect(useLocationStore.getState()).toMatchObject({ mode: 'auto', manual: null })
   })
 
+  // Regression: desktop Wi-Fi/IP positions (±several km) re-opened the prompt on every reading.
+  it('does not re-ask while a rough reading is pending and new readings agree', () => {
+    const s = useLocationStore.getState()
+    s.applyFix({ point: TEHRAN, accuracyM: 4000, timestamp: 1 }, OPTS)
+    const first = useLocationStore.getState().pending
+    useLocationStore.getState().applyFix({ point: north(TEHRAN, 1500), accuracyM: 4200, timestamp: 2 }, OPTS)
+    expect(useLocationStore.getState().pending).toBe(first)
+  })
+
+  it('after confirming a rough position, agreeing rough readings are ignored', () => {
+    useLocationStore.getState().applyFix({ point: TEHRAN, accuracyM: 4000, timestamp: 1 }, OPTS)
+    useLocationStore.getState().confirmPending()
+    useLocationStore.getState().applyFix({ point: north(TEHRAN, 2000), accuracyM: 3500, timestamp: 60_000 }, OPTS)
+    expect(useLocationStore.getState().pending).toBeNull()
+    // …but a far-away rough reading is still a real question
+    useLocationStore.getState().applyFix({ point: north(TEHRAN, 30_000), accuracyM: 3500, timestamp: 120_000 }, OPTS)
+    expect(useLocationStore.getState().pending?.reason).toBe('low_accuracy')
+  })
+
+  it('closing a rough prompt stops further rough prompts until an accurate fix or a new request', () => {
+    useLocationStore.getState().applyFix({ point: TEHRAN, accuracyM: 4000, timestamp: 1 }, OPTS)
+    useLocationStore.getState().dismissPending()
+    useLocationStore.getState().applyFix({ point: north(TEHRAN, 30_000), accuracyM: 5000, timestamp: 2 }, OPTS)
+    expect(useLocationStore.getState().pending).toBeNull()
+    useLocationStore.getState().applyFix({ point: TEHRAN, accuracyM: 20, timestamp: 3 }, OPTS)
+    expect(useLocationStore.getState()).toMatchObject({ roughDeclined: false, live: { accuracyM: 20 } })
+    useLocationStore.getState().dismissPending()
+    useLocationStore.getState().followDevice()
+    expect(useLocationStore.getState().roughDeclined).toBe(false)
+  })
+
   it('persists only the customer choice, never live GPS', () => {
     useLocationStore.getState().applyFix({ point: TEHRAN, accuracyM: 20, timestamp: 1 }, OPTS)
     const persisted = JSON.parse(localStorage.getItem('samoon-location') ?? '{}').state
@@ -161,5 +192,78 @@ describe('branch pin verification', () => {
     const unverified = branchToFormInput(base)
     expect(unverified.locationVerifiedAt).toBeNull()
     expect(branchFormToWriteRequest(unverified).locationVerifiedAt).toBeNull()
+  })
+})
+
+describe('fresh device location ("Use my location")', () => {
+  const stubGeo = (impl: (ok: PositionCallback, err: PositionErrorCallback) => void) => {
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: { getCurrentPosition: impl, watchPosition: () => 1, clearWatch: () => {} },
+    })
+  }
+  const geoError = (code: number) => ({ code, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3, message: '' }) as GeolocationPositionError
+
+  it('returns a fresh fix, asking the device every time (maximumAge 0)', async () => {
+    const { locateOnce } = await import('@/hooks/location')
+    let opts: PositionOptions | undefined
+    stubGeo((ok, _err) => {
+      ok({ coords: { latitude: 35.75, longitude: 51.41, accuracy: 25 }, timestamp: 5 } as GeolocationPosition)
+    })
+    const spy = navigator.geolocation.getCurrentPosition
+    Object.defineProperty(navigator.geolocation, 'getCurrentPosition', {
+      value: (ok: PositionCallback, err: PositionErrorCallback, o?: PositionOptions) => { opts = o; spy(ok, err) },
+    })
+    expect(await locateOnce()).toEqual({ ok: true, fix: { point: { lat: 35.75, lng: 51.41 }, accuracyM: 25, timestamp: 5 } })
+    expect(opts).toMatchObject({ maximumAge: 0, enableHighAccuracy: true })
+  })
+
+  it('reports denied / timeout so the picker can explain and offer Try again', async () => {
+    const { locateOnce } = await import('@/hooks/location')
+    stubGeo((_ok, err) => err(geoError(1)))
+    expect(await locateOnce()).toEqual({ ok: false, reason: 'denied' })
+    stubGeo((_ok, err) => err(geoError(3)))
+    expect(await locateOnce()).toEqual({ ok: false, reason: 'timeout' })
+  })
+
+  it('falls back to a normal-accuracy (cached ok) reading when the precise one times out', async () => {
+    const { locateOnce } = await import('@/hooks/location')
+    const calls: PositionOptions[] = []
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: (ok: PositionCallback, err: PositionErrorCallback, o: PositionOptions) => {
+          calls.push(o)
+          if (o.enableHighAccuracy) err(geoError(3))
+          else ok({ coords: { latitude: 35.7, longitude: 51.4, accuracy: 1800 }, timestamp: 7 } as GeolocationPosition)
+        },
+        watchPosition: () => 1,
+        clearWatch: () => {},
+      },
+    })
+    expect(await locateOnce()).toEqual({ ok: true, fix: { point: { lat: 35.7, lng: 51.4 }, accuracyM: 1800, timestamp: 7 } })
+    expect(calls).toHaveLength(2)
+    expect(calls[1]).toMatchObject({ enableHighAccuracy: false })
+    expect(calls[1].maximumAge).toBeGreaterThan(0)
+  })
+
+  it('a denial is final: no second attempt', async () => {
+    const { locateOnce } = await import('@/hooks/location')
+    let n = 0
+    stubGeo((_ok, err) => {
+      n++
+      err(geoError(1))
+    })
+    expect(await locateOnce()).toEqual({ ok: false, reason: 'denied' })
+    expect(n).toBe(1)
+  })
+
+  it('accepting a fresh fix switches back to following the device', () => {
+    useLocationStore.getState()._reset()
+    useLocationStore.getState().setManual(TEHRAN, { city: 'Tehran' })
+    useLocationStore.getState().acceptDeviceFix({ point: north(TEHRAN, 3000), accuracyM: 2500, timestamp: 9 })
+    expect(useLocationStore.getState()).toMatchObject({
+      mode: 'auto', manual: null, pending: null, live: { source: 'gps', confirmed: true, accuracyM: 2500 },
+    })
   })
 })

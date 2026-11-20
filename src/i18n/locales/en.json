@@ -71,6 +71,7 @@
     "privacyNote": "Only the destination is sent to the app."
   },
   "nearby": {
+    "nothingWithin": "Nothing within {km} km of you yet — showing all areas.",
     "planMyDay": "Plan my day",
     "directions": "Directions",
     "eta_taxi": "~{minutes} min by taxi",
@@ -522,6 +523,7 @@
       "latitude": "Latitude",
       "longitude": "Longitude",
       "mapPreview": "Map preview",
+      "approximate": "This position is approximate — tap the map to correct it.",
       "noCoordinates": "Set coordinates or use current location",
       "noCoordinatesTitle": "No location set",
       "noCoordinatesHint": "Use your current location or enter coordinates in Additional Information",
@@ -872,8 +874,7 @@
     "phoneLabel": "Phone",
     "emailLabel": "Email",
     "websiteLabel": "Website",
-    "ourLocations": "Our Locations",
-    "viewOnMaps": "View on Maps"
+    "ourLocations": "Our Locations"
   },
   "notifications": {
     "title": "Notifications",
@@ -994,6 +995,7 @@
       },
       "mapAria": "Service area map",
       "clickToMovePin": "Click the map to move the branch pin to its exact location.",
+      "pinFromAddress": "Move the pin on the map in the Location section above.",
       "noLocation": "Set the branch location first to see its service area on the map."
     },
     "adminNavGroups": {
@@ -2014,9 +2016,6 @@
     "tiktokLabel": "TikTok",
     "youtubeLabel": "YouTube",
     "telegramLabel": "Telegram",
-    "mapEmbedUrlLabel": "Map Embed URL",
-    "latitudeLabel": "Latitude",
-    "longitudeLabel": "Longitude",
     "moduleFeatureReservationsDesc": "Table booking system",
     "moduleFeatureOnlineOrdering": "Online Ordering",
     "moduleFeatureOnlineOrderingDesc": "Order ahead / delivery",
@@ -3154,6 +3153,9 @@
   },
   "configFields": {
     "maps": {
+      "nearby_radius_km": {
+        "title": "Nearby Radius (km)"
+      },
       "routing_source": {
         "title": "In-app Route Source"
       },
@@ -5609,9 +5611,9 @@
     "businessNotFoundLongDesc": "We could not find a business at this URL. It may have moved or no longer be listed on Samoon."
   },
   "branch": {
+    "mapAria": "Map showing {name}",
     "openNow": "Open Now",
     "closed": "Closed",
-    "directions": "Directions",
     "quickActionsAria": "Quick actions",
     "call": "Call",
     "copiedExclaim": "Copied!",
@@ -5623,8 +5625,6 @@
     "cuisinesAria": "Cuisines",
     "amenitiesAria": "Amenities",
     "todayHours": "Today: {hours}",
-    "openInGoogleMapsAria": "Open in Google Maps",
-    "viewOnMap": "View on Map",
     "locations": "Locations",
     "youreHere": "You're here",
     "open": "Open",
@@ -6087,6 +6087,14 @@
     }
   },
   "location": {
+    "locating": "Locating…",
+    "locateAgain": "Try again",
+    "foundYou": "Found you here.",
+    "locateError_denied": "Location access is blocked. Allow location for this site in your browser settings, then tap Try again — or tap the map.",
+    "locateError_timeout": "We couldn't find your location in time. Computers have no GPS and depend on the browser's network location service, which can be slow or unavailable. Tap Try again, or tap the map to set your location — on a phone, turning on GPS works best.",
+    "locateError_unavailable": "Your device couldn't determine where you are. Tap Try again or tap the map.",
+    "locateError_unsupported": "This browser can't share your location. Tap the map to set it.",
+    "locateError_disabled": "Device location is turned off on this platform. Tap the map to set your location.",
     "placeWithArea": "{area}, {city}",
     "nearYou": "Near you",
     "nearYouIn": "Near you: {place}",

@@ -50,6 +50,12 @@ export function publicBranchFromDiscover(branch: DiscoverBranch): PublicBranchIn
     maxCapacity: branch.maxCapacity,
     cuisines: branch.cuisines,
     amenities: branch.amenities,
+    latitude: branch.location?.latitude,
+    longitude: branch.location?.longitude,
+    serviceArea: branch.serviceArea,
+    locationVerifiedAt: branch.locationVerifiedAt,
+    menuItemNames: branch.menuItemNames,
+    menuCategoryNames: branch.menuCategoryNames,
   }
 }
 

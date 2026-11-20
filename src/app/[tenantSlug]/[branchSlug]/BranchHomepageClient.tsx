@@ -24,6 +24,8 @@ import { HeroBackground } from '@/components/home/HeroBackground'
 import { resolveHeroBackgroundImages } from '@/lib/hero-background'
 import { getMarketplaceMeta, gallerySrcList, type PublicBranchInfo } from '@/types/marketplace'
 import { DirectionsButton } from '@/components/location/DirectionsButton'
+import { BranchMapPreview } from '@/components/location/BranchMapPreview'
+import { useTenantVertical } from '@/hooks/verticals'
 import type { Tenant, MenuItem, Category, PromotionRule } from '@/types'
 import { resolveTenantBranding } from '@/lib/tenant-branding'
 
@@ -213,14 +215,14 @@ function QuickActions({
             <Phone className="w-4 h-4"aria-hidden="true"/>{t('call')}
           </a>
         )}
-        <a
-          href={`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-medium text-[var(--fg)] hover:bg-[var(--card-hover)] transition-colors"
-        >
-          <MapPin className="w-4 h-4"aria-hidden="true"/>{t('directions')}
-        </a>
+        {/* Exact pin → in-app directions sheet; without a pin there is nothing to route to. */}
+        <DirectionsButton
+          latitude={branch.latitude}
+          longitude={branch.longitude}
+          name={branch.name}
+          address={[branch.address, branch.city].filter(Boolean).join(', ')}
+          className="min-h-[40px] rounded-xl px-4 py-2 text-[var(--fg)]"
+        />
         <button
           type="button"
           onClick={handleShare}
@@ -239,6 +241,7 @@ function QuickActions({
 
 function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
   const t = useTranslations('branch')
+  const vertical = useTenantVertical()
   return (
     <section aria-labelledby="branch-info-heading"className="bg-[var(--card)] rounded-2xl border border-[var(--border)] p-5 space-y-4">
       <h2 id="branch-info-heading"className="font-semibold text-[var(--fg)]">{t('branchInformation')}</h2>
@@ -248,13 +251,6 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
           <div className="min-w-0 flex-1">
             <p>{branch.address}</p>
             <p>{branch.city}</p>
-            <DirectionsButton
-              latitude={branch.latitude}
-              longitude={branch.longitude}
-              name={branch.name}
-              address={[branch.address, branch.city].filter(Boolean).join(', ')}
-              className="mt-2"
-            />
           </div>
         </div>
         {branch.phone_number && (
@@ -302,19 +298,13 @@ function BranchInfo({ branch }: { branch: PublicBranchInfo }) {
           </div>
         )}
       </div>
-      {/* H5: converted to <button> for keyboard accessibility, increased height */}
-      <button
-        type="button"
-        className="w-full h-48 rounded-xl bg-[var(--bg)] border border-[var(--border)] flex items-center justify-center text-[var(--fg-muted)] text-sm cursor-pointer hover:bg-[var(--card-hover)] transition-colors"
-        onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(`${branch.address}, ${branch.city}`)}`, '_blank')}
-        aria-label={t('openInGoogleMapsAria')}
-      >
-        <div className="text-center">
-          <MapPin className="w-8 h-8 mx-auto mb-1 text-[var(--accent)]"aria-hidden="true"/>
-          <p className="font-medium">{t('viewOnMap')}</p>
-          <p className="text-xs text-[var(--fg-subtle)] mt-0.5">{branch.address}</p>
-        </div>
-      </button>
+      <BranchMapPreview
+        latitude={branch.latitude}
+        longitude={branch.longitude}
+        name={branch.name}
+        address={[branch.address, branch.city].filter(Boolean).join(', ')}
+        emoji={vertical.emoji}
+      />
     </section>
   )
 }

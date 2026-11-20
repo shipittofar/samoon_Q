@@ -754,6 +754,10 @@ export const MOCK_BRANCH_CATEGORIES: Record<string, Category[]> = {
   'branch-rest-03': MOCK_AIRPORT_CATEGORIES,
   'branch-glow-01': GLOW_CATEGORIES,
   'branch-mehr-01': MEHR_CATEGORIES,
+  // Phase L — Tehran demo branches reuse the same menus.
+  'branch-rest-thr': MOCK_CATEGORIES,
+  'branch-glow-thr': GLOW_CATEGORIES,
+  'branch-mehr-thr': MEHR_CATEGORIES,
 }
 
 /** Resolves a branch's independent item set in mock/dev mode. Defaults to the primary branch for any unlisted branch id. */
@@ -763,6 +767,10 @@ export const MOCK_BRANCH_ITEMS: Record<string, MenuItem[]> = {
   'branch-rest-03': MOCK_AIRPORT_ITEMS,
   'branch-glow-01': GLOW_ITEMS,
   'branch-mehr-01': MEHR_ITEMS,
+  // Phase L — Tehran demo branches reuse the same menus.
+  'branch-rest-thr': MOCK_MENU_ITEMS,
+  'branch-glow-thr': GLOW_ITEMS,
+  'branch-mehr-thr': MEHR_ITEMS,
 }
 
 const DEFAULT_MOCK_AVAILABLE_TAGS: MenuTag[] = [

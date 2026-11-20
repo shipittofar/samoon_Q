@@ -10,7 +10,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { GeoPoint } from '@/types/branch'
-import { evaluateFix, type LocationFix, type UserLocation } from '@/lib/location/evaluate'
+import { evaluateFix, isConsistent, type LocationFix, type UserLocation } from '@/lib/location/evaluate'
 
 export type GeolocationStatus = 'idle' | 'prompt' | 'watching' | 'denied' | 'unavailable' | 'unsupported' | 'disabled'
 
@@ -27,6 +27,12 @@ interface LocationState {
   /** Customer-chosen location (persisted). */
   manual: UserLocation | null
   pending: PendingConfirmation | null
+  /**
+   * The customer closed a low-accuracy prompt this session: further rough
+   * readings are ignored (memory only) until an accurate fix arrives or they
+   * ask for their location again.
+   */
+  roughDeclined: boolean
   status: GeolocationStatus
 
   applyFix: (fix: LocationFix, options: { minAccuracyM: number }) => void
@@ -34,6 +40,8 @@ interface LocationState {
   setManual: (point: GeoPoint, meta?: { city?: string; area?: string }) => void
   /** Accept the pending fix exactly as reported. */
   confirmPending: () => void
+  /** The customer asked for and accepted a fresh device position. */
+  acceptDeviceFix: (fix: LocationFix) => void
   dismissPending: () => void
   /** Back to following the device. */
   followDevice: () => void
@@ -42,7 +50,7 @@ interface LocationState {
   _reset: () => void
 }
 
-const INITIAL = { mode: 'auto' as const, live: null, manual: null, pending: null, status: 'idle' as const }
+const INITIAL = { mode: 'auto' as const, live: null, manual: null, pending: null, roughDeclined: false, status: 'idle' as const }
 
 export const useLocationStore = create<LocationState>()(
   persist(
@@ -50,16 +58,20 @@ export const useLocationStore = create<LocationState>()(
       ...INITIAL,
 
       applyFix: (fix, options) => {
-        const { mode, live, manual } = get()
+        const { mode, live, manual, pending, roughDeclined } = get()
         const previous = mode === 'manual' ? manual : live
         const decision = evaluateFix(previous, fix, options)
         if (decision.action === 'update') {
           set({
             live: { ...fix, source: 'gps', confirmed: false, city: live?.city, area: live?.area },
             pending: null,
+            roughDeclined: false,
             status: 'watching',
           })
         } else if (decision.action === 'confirm') {
+          if (decision.reason === 'low_accuracy' && roughDeclined) return
+          // Same question already on screen and the reading agrees: don't re-ask.
+          if (pending && pending.reason === decision.reason && isConsistent(pending.fix, fix)) return
           set({ pending: { fix, reason: decision.reason }, status: 'watching' })
         }
       },
@@ -69,6 +81,7 @@ export const useLocationStore = create<LocationState>()(
           mode: 'manual',
           manual: { point, accuracyM: null, timestamp: Date.now(), source: 'manual', confirmed: true, ...meta },
           pending: null,
+          roughDeclined: false,
         })
       },
 
@@ -81,9 +94,23 @@ export const useLocationStore = create<LocationState>()(
         })
       },
 
-      dismissPending: () => set({ pending: null }),
+      acceptDeviceFix: (fix) => {
+        set({
+          mode: 'auto',
+          manual: null,
+          live: { ...fix, source: 'gps', confirmed: true },
+          pending: null,
+          roughDeclined: false,
+          status: 'watching',
+        })
+      },
 
-      followDevice: () => set({ mode: 'auto', manual: null, pending: null }),
+      dismissPending: () => {
+        const { pending } = get()
+        set({ pending: null, roughDeclined: get().roughDeclined || pending?.reason === 'low_accuracy' })
+      },
+
+      followDevice: () => set({ mode: 'auto', manual: null, pending: null, roughDeclined: false }),
 
       setStatus: (status) => set({ status }),
 

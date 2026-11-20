@@ -153,6 +153,17 @@ export const MAPS_MODULE: ConfigModuleDefinition = {
           permissions: PERMISSIONS,
           inheritance: PLATFORM_LOCKED,
         }),
+        defineField({
+          id: 'maps.nearby_radius_km',
+          title: 'Nearby Radius (km)',
+          description: 'Once the customer\'s location is known, Discover lists businesses within this distance (or whose service area covers them). The customer can switch to all areas.',
+          category: 'infrastructure',
+          type: 'number',
+          default: 20,
+          validation: { min: 1, max: 200 },
+          permissions: PERMISSIONS,
+          inheritance: PLATFORM_LOCKED,
+        }),
       ],
     },
     {

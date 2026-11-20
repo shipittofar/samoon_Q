@@ -21,6 +21,8 @@ export interface BranchProximity {
   branchId: string
   branchSlug: string
   branchName: string
+  /** The branch's own city (businesses have no location of their own). */
+  city?: string
   point: GeoPoint
   distanceKm: number
   /** Customer is inside the branch's effective service area. */
@@ -93,6 +95,7 @@ function proximityFor(
     branchId: branch.id,
     branchSlug: branch.slug,
     branchName: branch.name,
+    city: branch.city,
     point: { lat: Number(branch.latitude), lng: Number(branch.longitude) },
     distanceKm: check.distanceKm,
     inside: check.inside,
@@ -112,6 +115,27 @@ function branchScore(b: BranchProximity, preferMenu: boolean): number {
   return (preferMenu && b.menuMatches.length ? 4 : 0) + (b.inside ? 2 : 0) + (b.openNow ? 1 : 0)
 }
 
+/** The branch to show for a business: menu match (item search) → serving → open → nearest. */
+export function pickBestBranch(branches: readonly BranchProximity[], preferMenu = false): BranchProximity | null {
+  if (!branches.length) return null
+  return [...branches].sort((a, b) => branchScore(b, preferMenu) - branchScore(a, preferMenu) || a.distanceKm - b.distanceKm)[0]
+}
+
+/**
+ * Restrict a business to the branches that pass `keep` (e.g. "serves me",
+ * "inside this map area"): its best branch is re-picked among them only.
+ * Returns null when no branch qualifies.
+ */
+export function scopeResult<T extends NearbyInput>(
+  result: NearbyResult<T>,
+  keep: (b: BranchProximity) => boolean,
+  preferMenu = false,
+): NearbyResult<T> | null {
+  const branches = result.branches.filter(keep)
+  if (!branches.length) return null
+  return { ...result, branches, best: pickBestBranch(branches, preferMenu) }
+}
+
 export function computeNearby<T extends NearbyInput>(
   items: readonly T[],
   user: GeoPoint | null | undefined,
@@ -127,10 +151,7 @@ export function computeNearby<T extends NearbyInput>(
           .filter((b): b is BranchProximity => b !== null)
           .sort((a, b) => a.distanceKm - b.distanceKm)
       : []
-    const preferMenu = terms.length > 0
-    const best = branches.length
-      ? [...branches].sort((a, b) => branchScore(b, preferMenu) - branchScore(a, preferMenu) || a.distanceKm - b.distanceKm)[0]
-      : null
+    const best = pickBestBranch(branches, terms.length > 0)
     const menuMatch = terms.length > 0 && item.branches.some((b) => menuMatchesFor(b, terms).length > 0)
     return { item, branches, best, menuMatch }
   })

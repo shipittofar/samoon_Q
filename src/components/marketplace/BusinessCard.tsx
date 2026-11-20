@@ -195,10 +195,11 @@ export function BusinessCard({
               <span>({(meta.reviewCount ?? 0).toLocaleString()})</span>
             </span>
           )}
-          {meta.city && (
+          {/* The branch's city (the one shown/nearest), never a business-level location. */}
+          {(proximity?.city ?? meta.city) && (
             <span className="flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5"aria-hidden="true"/>
-              {meta.city}
+              {proximity?.city ?? meta.city}
             </span>
           )}
           {(meta.branchCount ?? 0) > 0 && (

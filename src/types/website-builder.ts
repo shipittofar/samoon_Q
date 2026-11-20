@@ -120,8 +120,11 @@ export interface ContactContent {
   tiktok?: string
   youtube?: string
   telegram?: string
+  /** @deprecated Not used — maps come from each branch's pin. Kept so saved settings round-trip. */
   mapEmbedUrl?: string
+  /** @deprecated Not used — a business has no location of its own. */
   latitude?: number
+  /** @deprecated Not used — a business has no location of its own. */
   longitude?: number
 }
 

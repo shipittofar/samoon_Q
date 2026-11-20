@@ -9,7 +9,7 @@
  * bundler, and vertical-aware (💇 🩺 🍽️) for free.
  */
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import { Circle, MapContainer, Marker, Polygon, Polyline, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import type { GeoPoint, ServiceAreaMode } from '@/types/branch'
@@ -60,14 +60,22 @@ export interface MapViewProps {
   fitToCircle?: boolean
   onMapClick?: (point: GeoPoint) => void
   onMarkerClick?: (id: string) => void
+  /**
+   * Picker mode: when `center` changes to a point already inside the visible
+   * area (the pin was tapped), leave the view alone; otherwise recentre
+   * without resetting the zoom the customer chose.
+   */
+  keepView?: boolean
+  /** false for maps embedded in a scrolling page, so the wheel scrolls the page. */
+  scrollWheelZoom?: boolean
   /** Phase L3 — fit the view to all markers whenever this key changes. */
   fitMarkersKey?: string
   /** Points to fit (default: every marker). */
   fitPoints?: GeoPoint[]
   /** Phase L3 — group nearby place markers into count bubbles. */
   cluster?: boolean
-  /** Phase L3 — the customer dragged the map (not programmatic moves). */
-  onUserPan?: (center: GeoPoint, zoom: number) => void
+  /** Phase L3 — the customer moved or zoomed the map (programmatic moves are ignored). */
+  onUserPan?: (center: GeoPoint, zoom: number, bounds: [number, number, number, number]) => void
   className?: string
   /** Accessible name for the map region. */
   ariaLabel?: string
@@ -106,22 +114,80 @@ function clusterIcon(count: number) {
   })
 }
 
+/**
+ * Maps moving because of our own setView/fitBounds, until when (ms epoch).
+ * A time window, not a one-shot flag: one refit can emit several moveend
+ * events (centre, then fit, then the zoom animation finishing).
+ */
+const programmaticUntil = new WeakMap<L.Map, number>()
+const PROGRAMMATIC_WINDOW_MS = 1200
+function moveProgrammatically(map: L.Map, move: () => void) {
+  programmaticUntil.set(map, Date.now() + PROGRAMMATIC_WINDOW_MS)
+  move()
+}
+/**
+ * A move that ends this soon after wheel/dblclick/key/zoom-button input is the
+ * customer's (zoom animations start on the next frame, which background tabs
+ * delay a lot).
+ */
+const USER_INPUT_WINDOW_MS = 3000
+const isProgrammatic = (map: L.Map) => (programmaticUntil.get(map) ?? 0) > Date.now()
+
 function ClickHandler({
   onMapClick,
   onUserPan,
 }: {
   onMapClick?: (p: GeoPoint) => void
-  onUserPan?: (center: GeoPoint, zoom: number) => void
+  onUserPan?: (center: GeoPoint, zoom: number, bounds: [number, number, number, number]) => void
 }) {
+  // A move counts as the customer's only right after they touched the map
+  // (pointer, wheel, touch, keyboard) — layout resizes and our own fitting
+  // also emit moveend and must not offer "Search this area".
+  const lastInputRef = useRef(0)
+  // Set when a movement *starts* because of the customer; reported when it
+  // ends (drag inertia and zoom animations can take a while).
+  const userMoveRef = useRef(false)
   const map = useMapEvents({
     click(e) {
       onMapClick?.({ lat: e.latlng.lat, lng: e.latlng.lng })
     },
-    dragend() {
+    dragstart() {
+      userMoveRef.current = true
+    },
+    moveend() {
+      const byInput = Date.now() - lastInputRef.current < USER_INPUT_WINDOW_MS && !isProgrammatic(map)
+      if (!userMoveRef.current && !byInput) return
+      userMoveRef.current = false
+      lastInputRef.current = 0
       const c = map.getCenter()
-      onUserPan?.({ lat: c.lat, lng: c.lng }, map.getZoom())
+      const b = map.getBounds()
+      onUserPan?.({ lat: c.lat, lng: c.lng }, map.getZoom(), [b.getSouth(), b.getWest(), b.getNorth(), b.getEast()])
     },
   })
+  useEffect(() => {
+    if (!onUserPan) return
+    const el = map.getContainer()
+    const mark = () => {
+      lastInputRef.current = Date.now()
+    }
+    // Inputs that zoom/pan without a drag: wheel, double-click, keyboard,
+    // pinch, and the +/− zoom buttons.
+    const onPointer = (e: Event) => {
+      if ((e.target as HTMLElement | null)?.closest?.('.leaflet-control-zoom')) mark()
+    }
+    const onTouch = (e: Event) => {
+      if ((e as TouchEvent).touches?.length > 1) mark()
+    }
+    const listeners: [string, (e: Event) => void][] = [
+      ['wheel', mark],
+      ['dblclick', mark],
+      ['keydown', mark],
+      ['pointerdown', onPointer],
+      ['touchstart', onTouch],
+    ]
+    listeners.forEach(([ev, fn]) => el.addEventListener(ev, fn, { passive: true }))
+    return () => listeners.forEach(([ev, fn]) => el.removeEventListener(ev, fn))
+  }, [map, onUserPan])
   return null
 }
 
@@ -131,13 +197,15 @@ function FitMarkers({ points, fitKey }: { points: GeoPoint[]; fitKey?: string })
   useEffect(() => {
     if (!fitKey || points.length === 0) return
     if (points.length === 1) {
-      map.setView([points[0].lat, points[0].lng], Math.max(map.getZoom(), 14))
+      moveProgrammatically(map, () => map.setView([points[0].lat, points[0].lng], 13))
       return
     }
-    map.fitBounds(L.latLngBounds(points.map((p) => [p.lat, p.lng] as [number, number])), {
-      padding: [40, 40],
-      maxZoom: 15,
-    })
+    moveProgrammatically(map, () =>
+      map.fitBounds(L.latLngBounds(points.map((p) => [p.lat, p.lng] as [number, number])), {
+        padding: [40, 40],
+        maxZoom: 15,
+      }),
+    )
   }, [map, fitKey]) // eslint-disable-line react-hooks/exhaustive-deps
   return null
 }
@@ -198,7 +266,7 @@ function PlaceMarkers({
             key={`cluster-${items.map((m) => m.id).join('|')}`}
             position={c}
             icon={clusterIcon(items.length)}
-            eventHandlers={{ click: () => map.fitBounds(bounds, { padding: [48, 48], maxZoom: 18 }) }}
+            eventHandlers={{ click: () => moveProgrammatically(map, () => map.fitBounds(bounds, { padding: [48, 48], maxZoom: 18 })) }}
           >
             <Tooltip direction="top" offset={[0, -18]}>{items.map((m) => m.label).filter(Boolean).join(' · ')}</Tooltip>
           </Marker>
@@ -209,14 +277,22 @@ function PlaceMarkers({
 }
 
 /** Keeps the view in sync when the centre / fitted circle changes. */
-function ViewSync({ center, zoom, fit }: { center: GeoPoint; zoom: number; fit?: MapAreaCircle }) {
+function ViewSync({ center, zoom, fit, keepView }: { center: GeoPoint; zoom: number; fit?: MapAreaCircle; keepView?: boolean }) {
   const map = useMap()
+  const firstRef = useRef(true)
   useEffect(() => {
+    const first = firstRef.current
+    firstRef.current = false
+    if (keepView && !first && !fit) {
+      if (map.getBounds().contains([center.lat, center.lng])) return
+      moveProgrammatically(map, () => map.setView([center.lat, center.lng], map.getZoom()))
+      return
+    }
     if (fit && fit.radiusKm > 0) {
       const [s, w, n, e] = circleBounds(fit.center, fit.radiusKm)
-      map.fitBounds([[s, w], [n, e]], { padding: [16, 16] })
+      moveProgrammatically(map, () => map.fitBounds([[s, w], [n, e]], { padding: [16, 16] }))
     } else {
-      map.setView([center.lat, center.lng], zoom)
+      moveProgrammatically(map, () => map.setView([center.lat, center.lng], zoom))
     }
   }, [map, center.lat, center.lng, zoom, fit?.center.lat, fit?.center.lng, fit?.radiusKm]) // eslint-disable-line react-hooks/exhaustive-deps
   return null
@@ -232,6 +308,8 @@ export default function MapView({
   fitToCircle = false,
   onMapClick,
   onMarkerClick,
+  keepView = false,
+  scrollWheelZoom = true,
   fitMarkersKey,
   fitPoints,
   cluster = false,
@@ -253,9 +331,9 @@ export default function MapView({
       aria-label={ariaLabel}
       data-map-provider={rendering.provider.id}
     >
-      <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom className="h-full w-full">
+      <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom={scrollWheelZoom} className="h-full w-full">
         <TileLayer url={tiles.url} attribution={tiles.attribution} maxZoom={tiles.maxZoom} {...(tiles.subdomains ? { subdomains: tiles.subdomains } : {})} />
-        <ViewSync center={center} zoom={zoom} fit={fitToCircle ? circles[0] : undefined} />
+        <ViewSync center={center} zoom={zoom} fit={fitToCircle ? circles[0] : undefined} keepView={keepView} />
         <FitMarkers points={fitPoints ?? markers.map((m) => m.position)} fitKey={fitMarkersKey} />
         <ClickHandler onMapClick={onMapClick} onUserPan={onUserPan} />
         {circles.map((c) => (

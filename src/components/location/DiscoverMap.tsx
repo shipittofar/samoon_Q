@@ -10,13 +10,17 @@ import { useTranslations } from 'next-intl'
 import { Search } from 'lucide-react'
 import { MapViewLazy, type MapMarker } from '@/components/maps'
 import type { GeoPoint } from '@/types/branch'
-import { distanceKm } from '@/lib/geo'
+import { distanceKm, type GeoBounds } from '@/lib/geo'
 import { resolveVertical } from '@/verticals'
 import type { NearbyInput, NearbyResult } from '@/lib/nearby'
 import { cn } from '@/utils'
 
-/** Include the customer in the initial fit only when they're near the results. */
-const FIT_USER_WITHIN_KM = 30
+/**
+ * When the customer is located the map is about *them*: fit their position
+ * plus the results within this distance; farther results stay reachable by
+ * panning but never pull the view away to another city.
+ */
+const FIT_AROUND_USER_KM = 25
 
 export interface DiscoverMapProps<T extends NearbyInput & { tenant: { name: string } }> {
   results: NearbyResult<T>[]
@@ -24,8 +28,10 @@ export interface DiscoverMapProps<T extends NearbyInput & { tenant: { name: stri
   userLabel?: string
   highlightedTenantId?: string | null
   onSelectTenant?: (tenantId: string) => void
-  /** Called with the map centre when the customer taps "Search this area". */
-  onSearchArea?: (center: GeoPoint) => void
+  /** Called with the visible area when the customer taps "Search this area". */
+  onSearchArea?: (area: { center: GeoPoint; bounds: GeoBounds }) => void
+  /** false while the customer is exploring an area they chose — keep their view. */
+  autoFit?: boolean
   className?: string
 }
 
@@ -36,10 +42,11 @@ export function DiscoverMap<T extends NearbyInput & { tenant: { name: string } }
   highlightedTenantId,
   onSelectTenant,
   onSearchArea,
+  autoFit = true,
   className,
 }: DiscoverMapProps<T>) {
   const t = useTranslations('nearby')
-  const [panned, setPanned] = useState<GeoPoint | null>(null)
+  const [panned, setPanned] = useState<{ center: GeoPoint; bounds: GeoBounds } | null>(null)
 
   const places = useMemo<MapMarker[]>(() => {
     const out: MapMarker[] = []
@@ -68,8 +75,8 @@ export function DiscoverMap<T extends NearbyInput & { tenant: { name: string } }
   const placeKey = useMemo(() => places.map((p) => p.id).sort().join(','), [places])
   const fitPoints = useMemo(() => {
     const pts = places.map((p) => p.position)
-    if (user && (pts.length === 0 || pts.some((p) => distanceKm(p, user) <= FIT_USER_WITHIN_KM))) pts.push(user)
-    return pts
+    if (!user) return pts
+    return [user, ...pts.filter((p) => distanceKm(p, user) <= FIT_AROUND_USER_KM)]
   }, [places, user])
 
   const center = user ?? places[0]?.position ?? { lat: 35.6892, lng: 51.389 }
@@ -81,13 +88,13 @@ export function DiscoverMap<T extends NearbyInput & { tenant: { name: string } }
         zoom={13}
         markers={markers}
         cluster
-        fitMarkersKey={`${placeKey}|${user ? `${user.lat.toFixed(3)},${user.lng.toFixed(3)}` : ''}`}
+        fitMarkersKey={autoFit ? `${placeKey}|${user ? `${user.lat.toFixed(3)},${user.lng.toFixed(3)}` : ''}` : undefined}
         fitPoints={fitPoints}
         onMarkerClick={(id) => {
           const tenantId = id.split('::')[0]
           if (tenantId && tenantId !== 'me') onSelectTenant?.(tenantId)
         }}
-        onUserPan={(c) => setPanned(c)}
+        onUserPan={(c, _zoom, bounds) => setPanned({ center: c, bounds })}
         className="h-full w-full overflow-hidden rounded-xl border border-[var(--border)]"
         ariaLabel={t('mapAria')}
       />

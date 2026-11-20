@@ -41,6 +41,14 @@ export const MAX_PLAUSIBLE_SPEED_MPS = 70
 /** Jumps shorter than this are never treated as implausible (GPS settling). */
 const MIN_JUMP_CHECK_M = 1000
 
+/**
+ * Two readings agree when they are closer than the larger uncertainty radius
+ * (or MIN_MOVE_M) — the device hasn't told us anything new.
+ */
+export function isConsistent(a: LocationFix, b: LocationFix, distanceM = distanceKm(a.point, b.point) * 1000): boolean {
+  return distanceM < Math.max(MIN_MOVE_M, a.accuracyM ?? 0, b.accuracyM ?? 0)
+}
+
 export type FixDecision =
   | { action: 'update'; distanceM: number | null }
   | { action: 'ignore'; reason: 'invalid' | 'small_move' | 'manual_preferred'; distanceM: number | null }
@@ -60,8 +68,10 @@ export function evaluateFix(
 
   const accuracyOk = fix.accuracyM !== null && fix.accuracyM <= options.minAccuracyM
   if (!accuracyOk) {
-    // Already showing a good GPS fix nearby? Keep it rather than nag.
-    if (previous?.source === 'gps' && distanceM !== null && distanceM < MIN_MOVE_M) {
+    // Already showing a GPS fix this rough reading agrees with? It adds no
+    // information (desktop Wi-Fi/IP positions jitter by kilometres) — keep it
+    // rather than nag again.
+    if (previous?.source === 'gps' && distanceM !== null && isConsistent(previous, fix, distanceM)) {
       return { action: 'ignore', reason: 'small_move', distanceM }
     }
     return { action: 'confirm', reason: 'low_accuracy', distanceM }

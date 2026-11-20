@@ -1,10 +1,23 @@
 'use client'
 
 import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useDragControls, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/utils'
 import { Button } from './Button'
+
+// ── Overlay portal ─────────────────────────────────────────────────────────────
+// Overlays render into document.body. Rendered in place, a `position: fixed`
+// overlay is trapped by any ancestor with transform / filter / backdrop-filter
+// (e.g. a blurred sticky bar or a hover-lifted card): it shrinks to that box and
+// stacks under the page. Nothing renders on the server (overlays are client-only).
+const subscribeNoop = () => () => {}
+function OverlayPortal({ children }: { children: ReactNode }) {
+  const isClient = useSyncExternalStore(subscribeNoop, () => true, () => false)
+  if (!isClient) return null
+  return createPortal(children, document.body)
+}
 
 // ── Modal ──────────────────────────────────────────────────────────────────────
 export interface ModalProps {
@@ -87,6 +100,7 @@ export function Modal({
   }, [open])
 
   return (
+    <OverlayPortal>
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 flex items-center justify-center p-4 overflow-hidden"style={{ zIndex }}>
@@ -149,6 +163,7 @@ export function Modal({
         </div>
       )}
     </AnimatePresence>
+    </OverlayPortal>
   )
 }
 
@@ -264,6 +279,7 @@ export function Drawer({
   const duration = reduceMotion ? 0.08 : 0.2
 
   return (
+    <OverlayPortal>
     <AnimatePresence>
       {open && (
         <div
@@ -362,5 +378,6 @@ export function Drawer({
         </div>
       )}
     </AnimatePresence>
+    </OverlayPortal>
   )
 }

@@ -71,6 +71,7 @@
     "privacyNote": "فقط مقصد به برنامه ارسال می‌شود."
   },
   "nearby": {
+    "nothingWithin": "هنوز موردی تا {km} کیلومتری شما نیست — همه مناطق نمایش داده می‌شود.",
     "planMyDay": "برنامه‌ریزی روزم",
     "directions": "مسیریابی",
     "eta_taxi": "~{minutes} دقیقه با تاکسی",
@@ -522,6 +523,7 @@
       "latitude": "عرض جغرافیایی",
       "longitude": "طول جغرافیایی",
       "mapPreview": "پیش‌نمایش نقشه",
+      "approximate": "این موقعیت تقریبی است — برای اصلاح روی نقشه بزنید.",
       "noCoordinates": "مختصات را تنظیم کنید",
       "noCoordinatesTitle": "موقعیتی تنظیم نشده",
       "noCoordinatesHint": "از موقعیت فعلی استفاده کنید یا مختصات را در بخش اطلاعات تکمیلی وارد کنید",
@@ -872,8 +874,7 @@
     "phoneLabel": "تلفن",
     "emailLabel": "ایمیل",
     "websiteLabel": "وب‌سایت",
-    "ourLocations": "مکان‌های ما",
-    "viewOnMaps": "مشاهده روی نقشه"
+    "ourLocations": "مکان‌های ما"
   },
   "notifications": {
     "title": "اعلان‌ها",
@@ -994,6 +995,7 @@
       },
       "mapAria": "نقشه‌ی محدوده‌ی خدمت‌رسانی",
       "clickToMovePin": "برای قرار دادن پین شعبه در مکان دقیق، روی نقشه کلیک کنید.",
+      "pinFromAddress": "برای جابه‌جایی پین، از نقشه‌ی بخش «موقعیت» در بالا استفاده کنید.",
       "noLocation": "ابتدا موقعیت شعبه را تعیین کنید تا محدوده روی نقشه نمایش داده شود."
     },
     "adminNavGroups": {
@@ -2014,9 +2016,6 @@
     "tiktokLabel": "تیک‌تاک",
     "youtubeLabel": "یوتیوب",
     "telegramLabel": "تلگرام",
-    "mapEmbedUrlLabel": "آدرس جاسازی نقشه",
-    "latitudeLabel": "عرض جغرافیایی",
-    "longitudeLabel": "طول جغرافیایی",
     "moduleFeatureReservationsDesc": "سیستم رزرو میز",
     "moduleFeatureOnlineOrdering": "سفارش آنلاین",
     "moduleFeatureOnlineOrderingDesc": "سفارش از پیش / تحویل",
@@ -3144,6 +3143,9 @@
   },
   "configFields": {
     "maps": {
+      "nearby_radius_km": {
+        "title": "شعاع «نزدیک من» (کیلومتر)"
+      },
       "routing_source": {
         "title": "منبع مسیر درون‌برنامه"
       },
@@ -5599,9 +5601,9 @@
     "businessNotFoundLongDesc": "کسب‌وکاری در این آدرس یافت نشد. ممکن است جابه‌جا شده یا دیگر در Samoon فهرست نشده باشد."
   },
   "branch": {
+    "mapAria": "نقشه‌ی محل {name}",
     "openNow": "اکنون باز",
     "closed": "بسته",
-    "directions": "مسیرها",
     "quickActionsAria": "اقدامات سریع",
     "call": "تماس",
     "copiedExclaim": "کپی شد!",
@@ -5613,8 +5615,6 @@
     "cuisinesAria": "انواع غذا",
     "amenitiesAria": "امکانات",
     "todayHours": "امروز: {hours}",
-    "openInGoogleMapsAria": "باز کردن در گوگل مپ",
-    "viewOnMap": "مشاهده روی نقشه",
     "locations": "شعب",
     "youreHere": "شما اینجا هستید",
     "open": "باز",
@@ -6077,6 +6077,14 @@
     }
   },
   "location": {
+    "locating": "در حال یافتن موقعیت…",
+    "locateAgain": "تلاش دوباره",
+    "foundYou": "موقعیت شما اینجاست.",
+    "locateError_denied": "دسترسی به موقعیت مسدود است. در تنظیمات مرورگر اجازه موقعیت را برای این سایت بدهید و «تلاش دوباره» را بزنید — یا روی نقشه بزنید.",
+    "locateError_timeout": "موقعیت شما به‌موقع پیدا نشد. رایانه‌ها GPS ندارند و به سرویس موقعیت‌یابی شبکه‌ی مرورگر وابسته‌اند که ممکن است کند یا در دسترس نباشد. «تلاش دوباره» را بزنید یا روی نقشه بزنید — روی گوشی با روشن کردن GPS بهترین نتیجه را می‌گیرید.",
+    "locateError_unavailable": "دستگاه نتوانست موقعیت شما را پیدا کند. «تلاش دوباره» را بزنید یا روی نقشه بزنید.",
+    "locateError_unsupported": "این مرورگر امکان ارسال موقعیت را ندارد. روی نقشه بزنید.",
+    "locateError_disabled": "موقعیت دستگاه در این پلتفرم غیرفعال است. روی نقشه بزنید.",
     "placeWithArea": "{area}، {city}",
     "nearYou": "نزدیک شما",
     "nearYouIn": "نزدیک شما: {place}",

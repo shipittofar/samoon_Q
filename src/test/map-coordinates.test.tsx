@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { render, screen } from '@testing-library/react'
 import { NextIntlClientProvider } from 'next-intl'
 import { parseMapCoordinates, toCoordinateNumber } from '@/lib/coordinates'
@@ -10,10 +12,17 @@ import {
   EMPTY_BRANCH_FORM,
 } from '@/types/branch-form'
 
-vi.mock('next/image', () => ({
-  default: function MockImage({ alt }: { alt?: string }) {
-    return <img alt={alt ?? ''} />
-  },
+// The shared map (Leaflet) needs a real browser; the stub exposes what MapSelector passes it.
+vi.mock('@/components/maps', () => ({
+  MapViewLazy: (props: { markers?: { id: string }[]; onMapClick?: (p: { lat: number; lng: number }) => void; ariaLabel?: string }) => (
+    <button
+      type="button"
+      data-testid="shared-map"
+      data-markers={(props.markers ?? []).map((m) => m.id).join(',')}
+      aria-label={props.ariaLabel}
+      onClick={() => props.onMapClick?.({ lat: 35.7, lng: 51.4 })}
+    />
+  ),
 }))
 
 const mapMessages = {
@@ -26,17 +35,27 @@ const mapMessages = {
       mapPreview: 'Map preview',
       noCoordinatesTitle: 'No coordinates',
       noCoordinatesHint: 'Pick a location',
+      approximate: 'approximate',
     },
+  },
+  location: {
+    accuracy_m: '±{value} m',
+    accuracy_km: '±{value} km',
+    locateError_denied: 'blocked',
+    locateError_timeout: 'timeout',
+    locateError_unavailable: 'unavailable',
+    locateError_unsupported: 'unsupported',
+    locateError_disabled: 'disabled',
   },
 }
 
-function renderMap(props: { latitude?: unknown; longitude?: unknown }) {
+function renderMap(props: { latitude?: unknown; longitude?: unknown; onChange?: (c: { latitude: number; longitude: number }) => void }) {
   return render(
     <NextIntlClientProvider locale="en" messages={mapMessages}>
       <MapSelector
         latitude={props.latitude}
         longitude={props.longitude}
-        onChange={() => {}}
+        onChange={props.onChange ?? (() => {})}
       />
     </NextIntlClientProvider>,
   )
@@ -281,5 +300,52 @@ describe('MapSelector coordinate rendering', () => {
     renderMap({ latitude: null, longitude: undefined })
     expect(screen.getByText('No coordinates')).toBeInTheDocument()
     spy.mockRestore()
+  })
+})
+
+describe('MapSelector on the shared map', () => {
+  it('shows the pin only when coordinates are valid (0,0 counts as unset)', () => {
+    renderMap({ latitude: 35.7219, longitude: 51.3347 })
+    expect(screen.getByTestId('shared-map').dataset.markers).toBe('pin')
+  })
+
+  it('no pin for missing or 0,0 coordinates', () => {
+    renderMap({ latitude: 0, longitude: 0 })
+    expect(screen.getByTestId('shared-map').dataset.markers).toBe('')
+    expect(screen.getByText('No coordinates')).toBeInTheDocument()
+  })
+
+  it('tapping the map places the pin (works without GPS)', () => {
+    const onChange = vi.fn()
+    renderMap({ latitude: null, longitude: null, onChange })
+    screen.getByTestId('shared-map').click()
+    expect(onChange).toHaveBeenCalledWith({ latitude: 35.7, longitude: 51.4 })
+  })
+
+  it('no longer uses the third-party static map image', () => {
+    const src = readFileSync(join(__dirname, '..', 'components', 'address', 'MapSelector.tsx'), 'utf8')
+    expect(src).not.toContain('staticmap.openstreetmap')
+    expect(src).not.toContain('next/image')
+    expect(src).toContain('MapViewLazy')
+  })
+})
+
+describe('no map bypasses the shared map system', () => {
+  const read = (rel: string) => readFileSync(join(__dirname, '..', rel), 'utf8')
+  it.each([
+    'app/[tenantSlug]/[branchSlug]/BranchHomepageClient.tsx',
+    'app/restaurant/page.tsx',
+    'app/console/website/page.tsx',
+    'components/address/MapSelector.tsx',
+  ])('%s has no hard-coded Google Maps links or embeds', (file) => {
+    const src = read(file)
+    expect(src).not.toMatch(/maps\.google\.com|google\.com\/maps|maps\/embed/)
+    expect(src).not.toContain('staticmap.')
+  })
+
+  it('a business (website builder) has no location inputs', () => {
+    const src = read('app/console/website/page.tsx')
+    expect(src).not.toContain("setContact('latitude'")
+    expect(src).not.toContain("setContact('mapEmbedUrl'")
   })
 })

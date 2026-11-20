@@ -71,6 +71,7 @@
     "privacyNote": "تُرسل الوجهة فقط إلى التطبيق."
   },
   "nearby": {
+    "nothingWithin": "لا شيء ضمن {km} كم منك بعد — تُعرض كل المناطق.",
     "planMyDay": "خطّط يومي",
     "directions": "الاتجاهات",
     "eta_taxi": "~{minutes} دقيقة بالتاكسي",
@@ -522,6 +523,7 @@
       "latitude": "خط العرض",
       "longitude": "خط الطول",
       "mapPreview": "معاينة الخريطة",
+      "approximate": "هذا الموقع تقريبي — اضغط على الخريطة لتصحيحه.",
       "noCoordinates": "حدد الإحداثيات",
       "noCoordinatesTitle": "لم يتم تحديد موقع",
       "noCoordinatesHint": "استخدم موقعك الحالي أو أدخل الإحداثيات في المعلومات الإضافية",
@@ -872,8 +874,7 @@
     "phoneLabel": "الهاتف",
     "emailLabel": "البريد الإلكتروني",
     "websiteLabel": "الموقع الإلكتروني",
-    "ourLocations": "مواقعنا",
-    "viewOnMaps": "عرض على الخريطة"
+    "ourLocations": "مواقعنا"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -994,6 +995,7 @@
       },
       "mapAria": "خريطة نطاق الخدمة",
       "clickToMovePin": "انقر على الخريطة لنقل دبوس الفرع إلى موقعه الدقيق.",
+      "pinFromAddress": "لنقل الدبوس، استخدم الخريطة في قسم «الموقع» أعلاه.",
       "noLocation": "حدد موقع الفرع أولاً لعرض نطاق الخدمة على الخريطة."
     },
     "adminNavGroups": {
@@ -2014,9 +2016,6 @@
     "tiktokLabel": "تيك توك",
     "youtubeLabel": "يوتيوب",
     "telegramLabel": "تلغرام",
-    "mapEmbedUrlLabel": "رابط تضمين الخريطة",
-    "latitudeLabel": "خط العرض",
-    "longitudeLabel": "خط الطول",
     "moduleFeatureReservationsDesc": "نظام حجز الطاولات",
     "moduleFeatureOnlineOrdering": "الطلب عبر الإنترنت",
     "moduleFeatureOnlineOrderingDesc": "الطلب المسبق / التوصيل",
@@ -3144,6 +3143,9 @@
   },
   "configFields": {
     "maps": {
+      "nearby_radius_km": {
+        "title": "نطاق «بالقرب مني» (كم)"
+      },
       "routing_source": {
         "title": "مصدر المسار داخل التطبيق"
       },
@@ -5599,9 +5601,9 @@
     "businessNotFoundLongDesc": "لم نتمكن من العثور على نشاط تجاري في هذا الرابط. ربما انتقل أو لم يعد مدرجاً في Samoon."
   },
   "branch": {
+    "mapAria": "خريطة تُظهر {name}",
     "openNow": "مفتوح الآن",
     "closed": "مغلق",
-    "directions": "الاتجاهات",
     "quickActionsAria": "إجراءات سريعة",
     "call": "اتصال",
     "copiedExclaim": "تم النسخ!",
@@ -5613,8 +5615,6 @@
     "cuisinesAria": "المطابخ",
     "amenitiesAria": "المرافق",
     "todayHours": "اليوم: {hours}",
-    "openInGoogleMapsAria": "فتح في خرائط جوجل",
-    "viewOnMap": "عرض على الخريطة",
     "locations": "المواقع",
     "youreHere": "أنت هنا",
     "open": "مفتوح",
@@ -6077,6 +6077,14 @@
     }
   },
   "location": {
+    "locating": "جارٍ تحديد الموقع…",
+    "locateAgain": "إعادة المحاولة",
+    "foundYou": "وجدناك هنا.",
+    "locateError_denied": "الوصول إلى الموقع محظور. اسمح بالموقع لهذا الموقع في إعدادات المتصفح ثم اضغط إعادة المحاولة — أو اضغط على الخريطة.",
+    "locateError_timeout": "تعذّر العثور على موقعك في الوقت المحدد. أجهزة الكمبيوتر لا تملك GPS وتعتمد على خدمة الموقع الشبكية في المتصفح، وقد تكون بطيئة أو غير متاحة. اضغط إعادة المحاولة أو اضغط على الخريطة — على الهاتف، تشغيل GPS يعطي أفضل نتيجة.",
+    "locateError_unavailable": "تعذّر على جهازك تحديد موقعك. اضغط إعادة المحاولة أو اضغط على الخريطة.",
+    "locateError_unsupported": "هذا المتصفح لا يدعم مشاركة الموقع. اضغط على الخريطة.",
+    "locateError_disabled": "موقع الجهاز معطّل على هذه المنصة. اضغط على الخريطة لتحديد موقعك.",
     "placeWithArea": "{area}، {city}",
     "nearYou": "بالقرب منك",
     "nearYouIn": "بالقرب منك: {place}",

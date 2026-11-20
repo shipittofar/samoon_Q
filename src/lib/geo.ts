@@ -138,6 +138,13 @@ export function checkServiceArea(
   return { distanceKm: km, inside: isInServiceArea(area, center, user), area, zone: zoneForDistance(area, km) }
 }
 
+/** [south, west, north, east] */
+export type GeoBounds = [number, number, number, number]
+
+export function isInBounds(p: GeoPoint, [s, w, n, e]: GeoBounds): boolean {
+  return p.lat >= s && p.lat <= n && (w <= e ? p.lng >= w && p.lng <= e : p.lng >= w || p.lng <= e)
+}
+
 /** Bounding box [south, west, north, east] covering a circle — for map fitting and bbox queries. */
 export function circleBounds(center: GeoPoint, radiusKm: number): [number, number, number, number] {
   const dLat = (radiusKm / EARTH_RADIUS_KM) * (180 / Math.PI)

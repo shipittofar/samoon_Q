@@ -139,7 +139,7 @@ export function ServiceAreaEditor({
             ariaLabel={t('serviceArea.mapAria')}
             className="h-72 w-full overflow-hidden rounded-xl border border-[var(--border)]"
           />
-          {onPinMove && <p className="text-xs text-[var(--fg-muted)]">{t('serviceArea.clickToMovePin')}</p>}
+          <p className="text-xs text-[var(--fg-muted)]">{t(onPinMove ? 'serviceArea.clickToMovePin' : 'serviceArea.pinFromAddress')}</p>
           {onVerifyPin && (
             <div className="flex flex-wrap items-center gap-3" data-testid="pin-verification">
               {locationVerifiedAt ? (

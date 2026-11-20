@@ -21,7 +21,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores'
 import { useLocationStore } from '@/stores/location-store'
 import { readMapsSettings } from '@/lib/maps/config'
-import { resolveFallbackLocation, type UserLocation } from '@/lib/location/evaluate'
+import { resolveFallbackLocation, type LocationFix, type UserLocation } from '@/lib/location/evaluate'
 import { distanceKm } from '@/lib/geo'
 import { addressService } from '@/services/address.service'
 import { STALE_TIME } from '@/constants'
@@ -33,6 +33,60 @@ function geolocationSupported(): boolean {
   return typeof navigator !== 'undefined' && 'geolocation' in navigator
 }
 
+export type LocateResult =
+  | { ok: true; fix: LocationFix }
+  | { ok: false; reason: 'denied' | 'unavailable' | 'timeout' | 'unsupported' | 'disabled' }
+
+function getPosition(options: PositionOptions): Promise<LocateResult> {
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          ok: true,
+          fix: {
+            point: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+            accuracyM: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
+            timestamp: pos.timestamp || Date.now(),
+          },
+        }),
+      (err) =>
+        resolve({
+          ok: false,
+          reason: err.code === err.PERMISSION_DENIED ? 'denied' : err.code === err.TIMEOUT ? 'timeout' : 'unavailable',
+        }),
+      options,
+    )
+  })
+}
+
+/** Stage timeouts (ms): precise first, then the quicker network estimate. */
+export const LOCATE_PRECISE_TIMEOUT_MS = 8_000
+export const LOCATE_COARSE_TIMEOUT_MS = 12_000
+/** A cached position up to this old is fine for the second stage. */
+export const LOCATE_COARSE_MAX_AGE_MS = 5 * 60_000
+
+/**
+ * A fresh reading on demand ("Use my location"); works while a watch is
+ * already running and is how the customer retries.
+ *
+ * 1. precise (GPS / high-accuracy) with no cache;
+ * 2. if that times out or is unavailable — common on computers, which have
+ *    no GPS and rely on the browser's network location service — a normal-
+ *    accuracy reading that may use a position cached in the last 5 minutes.
+ * A denial is final (asking again can't succeed until the customer allows it).
+ */
+export async function locateOnce(): Promise<LocateResult> {
+  if (!readMapsSettings().geolocationEnabled) return { ok: false, reason: 'disabled' }
+  if (!geolocationSupported()) return { ok: false, reason: 'unsupported' }
+  const precise = await getPosition({ enableHighAccuracy: true, maximumAge: 0, timeout: LOCATE_PRECISE_TIMEOUT_MS })
+  if (precise.ok || precise.reason === 'denied') return precise
+  const coarse = await getPosition({ enableHighAccuracy: false, maximumAge: LOCATE_COARSE_MAX_AGE_MS, timeout: LOCATE_COARSE_TIMEOUT_MS })
+  return coarse.ok || coarse.reason === 'denied' ? coarse : precise.reason === 'unavailable' ? precise : coarse
+}
+
+/** Readings the page already received this long ago still beat "not found". */
+const RECENT_READING_MS = 10 * 60_000
+
 export interface UseUserLocationResult {
   /** Best location to use right now (live → manual → address → default). */
   location: UserLocation
@@ -41,6 +95,10 @@ export interface UseUserLocationResult {
   pending: ReturnType<typeof useLocationStore.getState>['pending']
   /** Starts device location (shows the browser permission prompt if needed). */
   requestDeviceLocation: () => void
+  /** Fresh one-shot reading; does not change the location until accepted. */
+  locate: () => Promise<LocateResult>
+  /** Use a reading the customer accepted, then keep following the device. */
+  acceptDeviceFix: (fix: LocationFix) => void
   setManual: (point: GeoPoint) => void
   confirmPending: () => void
   dismissPending: () => void
@@ -179,5 +237,28 @@ export function useUserLocation({ watch = false }: { watch?: boolean } = {}): Us
 
   const setManual = useCallback((point: GeoPoint) => storeSetManual(point), [storeSetManual])
 
-  return { location, status, mode, pending, requestDeviceLocation, setManual, confirmPending, dismissPending }
+  const locate = useCallback(async (): Promise<LocateResult> => {
+    const result = await locateOnce()
+    if (!result.ok && result.reason !== 'denied') {
+      // Last resort: a reading the watcher received recently (even a rough one).
+      const { live, pending } = useLocationStore.getState()
+      const recent = [pending?.fix, live].filter(
+        (f): f is LocationFix => !!f && Date.now() - f.timestamp < RECENT_READING_MS,
+      )
+      if (recent.length) return { ok: true, fix: recent.sort((a, b) => b.timestamp - a.timestamp)[0] }
+    }
+    if (!result.ok) setStatus(result.reason === 'denied' ? 'denied' : result.reason === 'disabled' ? 'disabled' : result.reason === 'unsupported' ? 'unsupported' : 'unavailable')
+    return result
+  }, [setStatus])
+
+  const storeAcceptDeviceFix = useLocationStore((s) => s.acceptDeviceFix)
+  const acceptDeviceFix = useCallback(
+    (fix: LocationFix) => {
+      storeAcceptDeviceFix(fix)
+      startWatching()
+    },
+    [storeAcceptDeviceFix, startWatching],
+  )
+
+  return { location, status, mode, pending, requestDeviceLocation, locate, acceptDeviceFix, setManual, confirmPending, dismissPending }
 }

@@ -27,6 +27,8 @@ import {
 import { handleAddressMutationError } from '@/lib/address-errors'
 import { ENABLE_DELETED_ADDRESSES } from '@/lib/address-features'
 import { formatDate } from '@/utils'
+import { MapViewLazy } from '@/components/maps'
+import { isValidGeoPoint } from '@/lib/geo'
 
 export default function AddressDetailPage() {
   const params = useParams()
@@ -89,6 +91,16 @@ export default function AddressDetailPage() {
             <h2 className="text-sm font-semibold text-[var(--fg-muted)] uppercase tracking-wide mb-2 flex items-center gap-2">
               <MapPin className="h-4 w-4"/> {t('coordinates')}
             </h2>
+            {isValidGeoPoint({ lat: address.latitude, lng: address.longitude }) && (
+              <MapViewLazy
+                center={{ lat: address.latitude, lng: address.longitude }}
+                zoom={16}
+                markers={[{ id: 'address', position: { lat: address.latitude, lng: address.longitude } }]}
+                scrollWheelZoom={false}
+                ariaLabel={t('coordinates')}
+                className="mb-2 h-48 w-full overflow-hidden rounded-xl border border-[var(--border)]"
+              />
+            )}
             <p className="text-sm text-[var(--fg)] font-mono">
               {address.latitude.toFixed(6)}, {address.longitude.toFixed(6)}
             </p>

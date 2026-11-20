@@ -1,12 +1,22 @@
 'use client'
 
+/**
+ * MapSelector — pick a place on the map. Built on the shared MapView (the
+ * platform map provider and tile settings apply): tap the map to place the
+ * pin, or use the device location. Used by the address form and the branch
+ * form; the props are the contract both rely on.
+ */
 import { useCallback, useMemo, useState } from 'react'
-import Image from 'next/image'
-import { MapPin, Navigation } from 'lucide-react'
+import { Navigation } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
+import { MapViewLazy } from '@/components/maps'
 import { cn } from '@/utils'
 import { parseMapCoordinates, type CoordinateInput } from '@/lib/coordinates'
+import { isValidGeoPoint } from '@/lib/geo'
+import { readMapsSettings } from '@/lib/maps/config'
+import { describeAccuracy } from '@/lib/location/evaluate'
+import { locateOnce } from '@/hooks/location'
 
 export interface MapSelectorProps {
   latitude?: CoordinateInput
@@ -14,71 +24,48 @@ export interface MapSelectorProps {
   onChange: (coords: { latitude: number; longitude: number }) => void
   className?: string
   disabled?: boolean
+  /** Marker emoji (default 📍), e.g. the business vertical's icon. */
+  emoji?: string
 }
 
-function coordsOrNull(
-  lat: CoordinateInput,
-  lng: CoordinateInput,
-): { lat: number; lng: number } | null {
-  return parseMapCoordinates(lat, lng)
-}
+/** A reading worse than this is flagged as approximate (tap the map to correct). */
+const APPROXIMATE_ABOVE_M = 1000
 
-/** Static OSM tile preview — avoids iframe/X-Frame blocking and works in modals. */
-function buildStaticMapUrl(lat: number, lng: number, zoom = 15): string {
-  const size = '640x320'
-  const markers = `${lat},${lng},red-pushpin`
-  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=${zoom}&size=${size}&markers=${markers}`
-}
-
-export function MapSelector({ latitude, longitude, onChange, className, disabled }: MapSelectorProps) {
+export function MapSelector({ latitude, longitude, onChange, className, disabled, emoji = '📍' }: MapSelectorProps) {
   const t = useTranslations('address.map')
+  const tLoc = useTranslations('location')
   const [locating, setLocating] = useState(false)
   const [geoError, setGeoError] = useState<string | null>(null)
-  const [mapError, setMapError] = useState(false)
+  const [accuracyM, setAccuracyM] = useState<number | null>(null)
 
   const coords = useMemo(() => {
-    const parsed = coordsOrNull(latitude, longitude)
-    if (
-      !parsed ||
-      typeof parsed.lat !== 'number' ||
-      typeof parsed.lng !== 'number' ||
-      !Number.isFinite(parsed.lat) ||
-      !Number.isFinite(parsed.lng)
-    ) {
-      return null
-    }
-    return parsed
+    const parsed = parseMapCoordinates(latitude, longitude)
+    // 0,0 is "unset", never a place.
+    return parsed && isValidGeoPoint(parsed) ? parsed : null
   }, [latitude, longitude])
 
-  const mapUrl = coords ? buildStaticMapUrl(coords.lat, coords.lng) : null
+  const settings = useMemo(() => readMapsSettings(), [])
 
-  const applyCoords = useCallback(
-    (la: number, ln: number) => {
-      setMapError(false)
-      onChange({ latitude: la, longitude: ln })
+  const place = useCallback(
+    (p: { lat: number; lng: number }, accuracy: number | null) => {
+      setGeoError(null)
+      setAccuracyM(accuracy)
+      onChange({ latitude: p.lat, longitude: p.lng })
     },
     [onChange],
   )
 
-  const handleCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      setGeoError(t('geolocationUnsupported'))
-      return
-    }
+  const handleCurrentLocation = async () => {
     setLocating(true)
     setGeoError(null)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        applyCoords(pos.coords.latitude, pos.coords.longitude)
-        setLocating(false)
-      },
-      () => {
-        setGeoError(t('geolocationDenied'))
-        setLocating(false)
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    )
+    const result = await locateOnce()
+    setLocating(false)
+    if (result.ok) place(result.fix.point, result.fix.accuracyM)
+    else setGeoError(tLoc(`locateError_${result.reason}`))
   }
+
+  const acc = describeAccuracy(accuracyM)
+  const approximate = accuracyM !== null && accuracyM > APPROXIMATE_ABOVE_M
 
   return (
     <div className={cn('space-y-3', className)}>
@@ -88,70 +75,49 @@ export function MapSelector({ latitude, longitude, onChange, className, disabled
           type="button"
           variant="secondary"
           size="sm"
-          onClick={handleCurrentLocation}
+          onClick={() => void handleCurrentLocation()}
           loading={locating}
           disabled={disabled}
-          leftIcon={<Navigation className="h-4 w-4"/>}
+          leftIcon={<Navigation className="h-4 w-4" />}
         >
           {t('useCurrentLocation')}
         </Button>
       </div>
 
       {geoError && (
-        <p className="text-xs text-[var(--danger-text)]"role="alert">{geoError}</p>
+        <p className="text-xs text-[var(--danger-text)]" role="alert">
+          {geoError}
+        </p>
       )}
 
-      <div
-        className="relative rounded-xl border border-[var(--border)] overflow-hidden bg-[var(--card-hover)] aspect-[2/1] min-h-[180px]"
-        aria-label={t('mapPreview')}
-      >
+      <div className="relative" data-testid="map-selector">
+        <MapViewLazy
+          center={coords ?? settings.defaultCenter}
+          zoom={coords ? 16 : settings.defaultZoom}
+          keepView
+          markers={coords ? [{ id: 'pin', position: coords, emoji }] : []}
+          circles={
+            coords && accuracyM !== null && accuracyM > 50
+              ? [{ id: 'accuracy', center: coords, radiusKm: accuracyM / 1000, color: '#0ea5e9' }]
+              : []
+          }
+          onMapClick={disabled ? undefined : (p) => place(p, null)}
+          ariaLabel={t('mapPreview')}
+          className="aspect-[2/1] min-h-[220px] w-full overflow-hidden rounded-xl border border-[var(--border)]"
+        />
         {coords ? (
-          <>
-            {mapUrl && !mapError ? (
-              <Image
-                src={mapUrl}
-                alt={t('mapPreview')}
-                fill
-                unoptimized
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 640px"
-                onError={() => setMapError(true)}
-              />
-            ) : (
-              <div className="absolute inset-0 bg-[var(--card-hover)]" aria-hidden />
-            )}
-            {/* Pin overlay — visible even if the static map image fails */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="relative -mt-8">
-                <MapPin className="h-10 w-10 text-[var(--accent-text)] drop-shadow-lg"fill="currentColor"strokeWidth={1.5} />
-              </div>
-            </div>
-            <div className="absolute bottom-2 start-2 end-2 rounded-lg bg-[var(--card)]/90 backdrop-blur-sm border border-[var(--border)] px-3 py-1.5 text-xs font-mono text-[var(--fg-muted)]">
-              {`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`}
-            </div>
-          </>
+          <div className="pointer-events-none absolute bottom-2 start-2 end-2 z-[500] rounded-lg border border-[var(--border)] bg-[var(--card)]/90 px-3 py-1.5 text-xs font-mono text-[var(--fg-muted)] backdrop-blur-sm">
+            {`${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`}
+            {acc && <span className="ms-2 font-sans">{tLoc(`accuracy_${acc.unit}`, { value: acc.value })}</span>}
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full min-h-[180px] text-center px-6 gap-3">
-            <div className="h-14 w-14 rounded-2xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-center">
-              <MapPin className="h-7 w-7 text-[var(--fg-subtle)]"/>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-[var(--fg)]">{t('noCoordinatesTitle')}</p>
-              <p className="text-xs text-[var(--fg-muted)] mt-1">{t('noCoordinatesHint')}</p>
-            </div>
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={handleCurrentLocation}
-              loading={locating}
-              disabled={disabled}
-            >
-              {t('useCurrentLocation')}
-            </Button>
+          <div className="pointer-events-none absolute inset-x-2 top-2 z-[500] rounded-lg border border-[var(--border)] bg-[var(--card)]/90 px-3 py-2 text-center backdrop-blur-sm">
+            <p className="text-sm font-medium text-[var(--fg)]">{t('noCoordinatesTitle')}</p>
+            <p className="text-xs text-[var(--fg-muted)]">{t('noCoordinatesHint')}</p>
           </div>
         )}
       </div>
+      {approximate && <p className="text-xs text-[var(--warning-text)]">{t('approximate')}</p>}
     </div>
   )
 }

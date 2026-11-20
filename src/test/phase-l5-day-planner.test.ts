@@ -258,3 +258,17 @@ describe('day plan store + multi-stop link', () => {
     expect(buildMultiStopGoogleUrl([])).toBeNull()
   })
 })
+
+describe('candidate distance limit', () => {
+  it('never offers branches in another city', async () => {
+    const { MAX_CANDIDATE_KM } = await import('@/lib/planner/candidates')
+    const far = at(MAX_CANDIDATE_KM + 5)
+    const items: PlannerItem[] = [
+      { tenant: { id: 'x', name: 'X', businessTypes: ['clinic'] }, meta: {}, branches: [
+        { id: 'far', slug: 'far', name: 'far', address: '', city: '', openNow: true, latitude: far.lat, longitude: far.lng },
+        { id: 'near', slug: 'near', name: 'near', address: '', city: '', openNow: true, latitude: at(3).lat, longitude: at(3).lng },
+      ] },
+    ]
+    expect(candidatesForTask(items, { id: 't', kind: 'category', label: 'Clinic', businessType: 'clinic' }, HOME).map((c) => c.branchId)).toEqual(['near'])
+  })
+})
