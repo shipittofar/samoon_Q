@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # Samoon day-to-day commands (installed as /usr/local/bin/samoon by install.sh).
 #
-#   samoon status             containers, health, deployed commit
-#   samoon update             pull the branch from GitHub and redeploy
-#   samoon logs [service]     follow logs (default: app)
-#   samoon restart            restart the stack without rebuilding
-#   samoon admin-add          create a platform admin in the backend (asks for email/password)
+#   samoon status                      containers, health, deployed commits (frontend + backend)
+#   samoon update [backend|frontend]   pull from GitHub and redeploy (default: backend, then frontend)
+#   samoon logs [service]              follow logs (default: app; backend: samoon logs web)
+#   samoon restart                     restart the frontend stack without rebuilding
+#   samoon admin-add                   create a platform admin in the backend (asks for email/password)
 set -euo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/samoon}"
 ENV_FILE="${INSTALL_DIR}/.env"
+BACKEND_DIR="${BACKEND_DIR:-/opt/samoonbackend}"
+BACKEND_ENV="${BACKEND_DIR}/.env"
 
 say()  { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
@@ -19,45 +21,112 @@ cd "${INSTALL_DIR}"
 BRANCH="$(cat .deploy-branch 2>/dev/null || echo my-new-branch)"
 
 compose() { docker compose --env-file "${ENV_FILE}" "$@"; }
+backend_compose() { (cd "${BACKEND_DIR}" && docker compose --env-file "${BACKEND_ENV}" "$@"); }
+
+has_backend() { [ -d "${BACKEND_DIR}/.git" ]; }
 
 backend_name() {
   grep '^BACKEND_CONTAINER=' "${ENV_FILE}" 2>/dev/null | cut -d= -f2 || true
 }
 
+health_of() { docker inspect -f '{{.State.Health.Status}}' "$1" 2>/dev/null || echo unknown; }
+
+# Pull the current branch of a checkout; prints what changed. Refuses on local changes
+# to tracked files (the .env file is ignored by git and never touched).
+pull_checkout() {
+  local dir="$1" label="$2" branch before after
+  if [ -n "$(git -C "${dir}" status --porcelain --untracked-files=no)" ]; then
+    die "${label}: the checkout has local changes — refusing to update. Run 'git -C ${dir} status'."
+  fi
+  branch="${3:-$(git -C "${dir}" rev-parse --abbrev-ref HEAD)}"
+  [ "${branch}" != "HEAD" ] || die "${label}: the checkout is on a detached HEAD."
+  say "${label}: fetching ${branch} from GitHub"
+  git -C "${dir}" fetch origin "${branch}"
+  before="$(git -C "${dir}" rev-parse HEAD)"
+  git -C "${dir}" checkout -q "${branch}"
+  git -C "${dir}" pull --ff-only origin "${branch}"
+  after="$(git -C "${dir}" rev-parse HEAD)"
+  if [ "${before}" = "${after}" ]; then
+    say "${label}: already up to date (${after:0:7})"
+  else
+    say "${label}: updated ${before:0:7} → ${after:0:7}"
+    git -C "${dir}" log --oneline "${before}..${after}" | head -10 | sed 's/^/      /'
+  fi
+}
+
+wait_healthy() {
+  local container="$1" tries="$2"
+  for _ in $(seq 1 "${tries}"); do
+    [ "$(health_of "${container}")" = "healthy" ] && return 0
+    sleep "${SAMOON_HEALTH_INTERVAL:-3}"
+  done
+  return 1
+}
+
 cmd_status() {
-  echo "Branch : ${BRANCH}"
-  echo "Commit : $(git log -1 --format='%h %s (%cr)')"
+  echo "Frontend : ${BRANCH}  $(git log -1 --format='%h %s (%cr)')"
+  if has_backend; then
+    echo "Backend  : $(git -C "${BACKEND_DIR}" rev-parse --abbrev-ref HEAD)  $(git -C "${BACKEND_DIR}" log -1 --format='%h %s (%cr)')"
+  else
+    echo "Backend  : not installed in ${BACKEND_DIR}"
+  fi
+  echo
   compose ps
-  echo "Health : $(docker inspect -f '{{.State.Health.Status}}' samoon-app 2>/dev/null || echo unknown)"
+  if has_backend; then
+    echo
+    backend_compose ps
+  fi
+  echo
+  echo "Health   : frontend $(health_of samoon-app), backend $(health_of "$(backend_name)")"
+}
+
+update_backend() {
+  if ! has_backend; then
+    say "Backend: not installed in ${BACKEND_DIR} — skipping"
+    return 0
+  fi
+  pull_checkout "${BACKEND_DIR}" "Backend"
+  # Same services backend-up.sh starts; celery only if it is already running here.
+  local services=(web postgres redis)
+  if docker ps --format '{{.Names}}' | grep -qx 'smartrestaurant-celery'; then
+    services+=(celery celery-beat)
+  fi
+  say "Backend: rebuilding and restarting ${services[*]} (database migrations run when web starts)"
+  backend_compose up -d --build "${services[@]}"
+  say "Backend: waiting for it to be healthy"
+  wait_healthy smartrestaurant-web 100 \
+    || die "Backend is not healthy after the update — the frontend was NOT touched. Check: samoon logs web"
+  say "Backend: healthy."
+}
+
+update_frontend() {
+  if [ -n "$(git status --porcelain)" ]; then
+    die "Frontend: the checkout has local changes — refusing to update. Run 'git status' in ${INSTALL_DIR}."
+  fi
+  pull_checkout "${INSTALL_DIR}" "Frontend" "${BRANCH}"
+  say "Frontend: rebuilding and restarting (NEXT_PUBLIC_* values are compiled in, so a rebuild is required)"
+  compose up -d --build
+  wait_healthy samoon-app 60 || die "Frontend is not healthy after the update. Check: samoon logs app"
+  say "Frontend: healthy."
 }
 
 cmd_update() {
-  if [ -n "$(git status --porcelain)" ]; then
-    die "The checkout has local changes — refusing to update. Run 'git status' in ${INSTALL_DIR}."
-  fi
-  say "Fetching ${BRANCH} from GitHub"
-  git fetch origin "${BRANCH}"
-  local before after
-  before="$(git rev-parse HEAD)"
-  git checkout -q "${BRANCH}"
-  git pull --ff-only origin "${BRANCH}"
-  after="$(git rev-parse HEAD)"
-  if [ "${before}" = "${after}" ]; then
-    say "Already up to date (${after:0:7}). Rebuilding anyway so env changes apply."
-  else
-    say "Updated ${before:0:7} → ${after:0:7}"
-  fi
-  say "Rebuilding and restarting (NEXT_PUBLIC_* values are compiled in, so a rebuild is required)"
-  compose up -d --build
-  for _ in $(seq 1 60); do
-    [ "$(docker inspect -f '{{.State.Health.Status}}' samoon-app 2>/dev/null)" = "healthy" ] && { say "Healthy."; return 0; }
-    sleep 3
-  done
-  die "App is not healthy after the update. Check: samoon logs app"
+  case "${1:-all}" in
+    all)       update_backend; update_frontend ;;
+    backend)   update_backend ;;
+    frontend)  update_frontend ;;
+    *) die "Unknown target: $1 (use: samoon update [backend|frontend])" ;;
+  esac
 }
 
 cmd_logs() {
-  compose logs -f --tail=200 "${1:-app}"
+  local service="${1:-app}"
+  case "${service}" in
+    web|postgres|redis|celery|celery-beat|nginx-backend)
+      has_backend || die "Backend is not installed in ${BACKEND_DIR}."
+      backend_compose logs -f --tail=200 "${service}" ;;
+    *) compose logs -f --tail=200 "${service}" ;;
+  esac
 }
 
 cmd_restart() {
@@ -75,7 +144,7 @@ cmd_admin_add() {
 
 case "${1:-status}" in
   status)     cmd_status ;;
-  update)     cmd_update ;;
+  update)     shift || true; cmd_update "${1:-all}" ;;
   logs)       shift || true; cmd_logs "${1:-}" ;;
   restart)    cmd_restart ;;
   admin-add)  cmd_admin_add ;;
