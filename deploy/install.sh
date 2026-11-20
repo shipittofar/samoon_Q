@@ -48,7 +48,17 @@ else
 fi
 
 if ! command -v docker >/dev/null 2>&1; then
-  say "Installing Docker (official convenience script)"
+  # Distro packages first: some networks block download.docker.com (403).
+  say "Installing Docker from the distribution repositories"
+  if command -v apt-get >/dev/null 2>&1; then
+    apt-get install -y docker.io >/dev/null 2>&1 || true
+    apt-get install -y docker-compose-v2 >/dev/null 2>&1 || apt-get install -y docker-compose-plugin >/dev/null 2>&1 || true
+  elif command -v dnf >/dev/null 2>&1; then
+    dnf install -y docker docker-compose-plugin >/dev/null 2>&1 || true
+  fi
+fi
+if ! command -v docker >/dev/null 2>&1; then
+  warn "Distribution packages unavailable — trying the official Docker script"
   curl -fsSL https://get.docker.com | sh
 fi
 docker compose version >/dev/null 2>&1 || die "docker compose plugin missing — install docker-compose-plugin and re-run."
