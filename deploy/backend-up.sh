@@ -34,6 +34,8 @@ else
   git clone --branch "${BACKEND_BRANCH}" "${BACKEND_REPO}" "${BACKEND_DIR}"
 fi
 
+git -C "${BACKEND_DIR}" config core.fileMode false
+
 docker network inspect shared-net >/dev/null 2>&1 || { say "Creating docker network shared-net"; docker network create shared-net >/dev/null; }
 
 ENV_FILE="${BACKEND_DIR}/.env"

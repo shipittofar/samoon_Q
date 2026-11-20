@@ -81,6 +81,8 @@ else
   say "Cloning ${REPO_URL} (${BRANCH}) into ${INSTALL_DIR}"
   git clone --branch "${BRANCH}" "${REPO_URL}" "${INSTALL_DIR}"
 fi
+# chmod +x on scripts must not count as a local change (it would block `samoon update`).
+git -C "${INSTALL_DIR}" config core.fileMode false
 echo "${BRANCH}" > "${INSTALL_DIR}/.deploy-branch"
 
 # ── 4. environment file ─────────────────────────────────────────────────────

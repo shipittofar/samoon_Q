@@ -31,26 +31,29 @@ backend_name() {
 
 health_of() { docker inspect -f '{{.State.Health.Status}}' "$1" 2>/dev/null || echo unknown; }
 
-# Pull the current branch of a checkout; prints what changed. Refuses on local changes
-# to tracked files (the .env file is ignored by git and never touched).
+# Pull the current branch of a checkout; prints what changed. Refuses when tracked
+# FILE CONTENT was changed locally. Untracked files (.env, .deploy-branch) and
+# permission-only changes (chmod +x on a script) are not "local changes" and never
+# block an update.
 pull_checkout() {
   local dir="$1" label="$2" branch before after
-  if [ -n "$(git -C "${dir}" status --porcelain --untracked-files=no)" ]; then
+  local g=(git -C "${dir}" -c core.fileMode=false)
+  if [ -n "$("${g[@]}" status --porcelain --untracked-files=no)" ]; then
     die "${label}: the checkout has local changes — refusing to update. Run 'git -C ${dir} status'."
   fi
-  branch="${3:-$(git -C "${dir}" rev-parse --abbrev-ref HEAD)}"
+  branch="${3:-$("${g[@]}" rev-parse --abbrev-ref HEAD)}"
   [ "${branch}" != "HEAD" ] || die "${label}: the checkout is on a detached HEAD."
   say "${label}: fetching ${branch} from GitHub"
-  git -C "${dir}" fetch origin "${branch}"
-  before="$(git -C "${dir}" rev-parse HEAD)"
-  git -C "${dir}" checkout -q "${branch}"
-  git -C "${dir}" pull --ff-only origin "${branch}"
-  after="$(git -C "${dir}" rev-parse HEAD)"
+  "${g[@]}" fetch origin "${branch}"
+  before="$("${g[@]}" rev-parse HEAD)"
+  "${g[@]}" checkout -q "${branch}"
+  "${g[@]}" pull --ff-only origin "${branch}"
+  after="$("${g[@]}" rev-parse HEAD)"
   if [ "${before}" = "${after}" ]; then
     say "${label}: already up to date (${after:0:7})"
   else
     say "${label}: updated ${before:0:7} → ${after:0:7}"
-    git -C "${dir}" log --oneline "${before}..${after}" | head -10 | sed 's/^/      /'
+    "${g[@]}" log --oneline "${before}..${after}" | head -10 | sed 's/^/      /'
   fi
 }
 
@@ -100,9 +103,6 @@ update_backend() {
 }
 
 update_frontend() {
-  if [ -n "$(git status --porcelain)" ]; then
-    die "Frontend: the checkout has local changes — refusing to update. Run 'git status' in ${INSTALL_DIR}."
-  fi
   pull_checkout "${INSTALL_DIR}" "Frontend" "${BRANCH}"
   say "Frontend: rebuilding and restarting (NEXT_PUBLIC_* values are compiled in, so a rebuild is required)"
   compose up -d --build
