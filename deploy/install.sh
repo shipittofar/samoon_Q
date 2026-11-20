@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 # Samoon — one-time server install (Ubuntu/Debian/RHEL-like, run as root).
 #
-# The repository is PRIVATE, so the server needs read-only access first
-# (a GitHub deploy key) — see the README section "Server setup". Then:
+# The repository is PRIVATE, so the server needs read-only access first.
+# On the server, as root:
+#   ssh-keygen -t ed25519 -f /root/.ssh/samoon_deploy -N ""
+#   cat /root/.ssh/samoon_deploy.pub   # add it: GitHub repo → Settings → Deploy keys (read-only)
+#   append to /root/.ssh/config these three lines:
+#     Host github.com
+#       IdentityFile /root/.ssh/samoon_deploy
+#       IdentitiesOnly yes
+#   ssh -T git@github.com              # should greet you by the key name
+# Then:
 #
 #   git clone -b my-new-branch git@github.com:shipittofar/samoon_Q.git /opt/samoon
 #   DOMAIN=samoon.example.com bash /opt/samoon/deploy/install.sh
