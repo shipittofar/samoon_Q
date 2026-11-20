@@ -109,7 +109,8 @@ fi
 # ── 5. the backend must be running (nginx routes /api, /admin, /ws to it) ────
 docker network inspect shared-net >/dev/null 2>&1 || { say "Creating docker network shared-net"; docker network create shared-net >/dev/null; }
 if ! docker ps --format '{{.Names}}' | grep -qx "$(grep '^BACKEND_CONTAINER=' "${ENV_FILE}" | cut -d= -f2)"; then
-  die "The backend container is not running. Start the Django backend stack first (it must be on shared-net), then re-run."
+  say "Backend is not running — installing it from GitHub (deploy/backend-up.sh)"
+  ADDR="${ADDR}" bash "${INSTALL_DIR}/deploy/backend-up.sh"
 fi
 if ! docker volume inspect backend_static_volume >/dev/null 2>&1; then
   warn "Volume backend_static_volume not found — creating an empty one (the backend normally owns it)."
