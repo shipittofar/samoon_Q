@@ -1,19 +1,10 @@
 #!/usr/bin/env bash
 # Samoon — one-time server install (Ubuntu/Debian/RHEL-like, run as root).
 #
-# The repository is PRIVATE, so the server needs read-only access first.
-# On the server, as root:
-#   ssh-keygen -t ed25519 -f /root/.ssh/samoon_deploy -N ""
-#   cat /root/.ssh/samoon_deploy.pub   # add it: GitHub repo → Settings → Deploy keys (read-only)
-#   append to /root/.ssh/config these three lines:
-#     Host github.com
-#       IdentityFile /root/.ssh/samoon_deploy
-#       IdentitiesOnly yes
-#   ssh -T git@github.com              # should greet you by the key name
-# Then:
+# One command on a fresh server (as root):
 #
-#   git clone -b my-new-branch git@github.com:shipittofar/samoon_Q.git /opt/samoon
-#   DOMAIN=samoon.example.com bash /opt/samoon/deploy/install.sh
+#   curl -fsSL https://raw.githubusercontent.com/shipittofar/samoon_Q/my-new-branch/deploy/install.sh -o install.sh && DOMAIN=samoon.example.com bash install.sh
+#
 #
 # What it does, and what it deliberately does NOT do:
 #   - installs git, docker and the compose plugin if they are missing;
@@ -26,7 +17,7 @@
 # ufw when ufw is already active, and it refuses to start if 80/443 are taken.
 set -euo pipefail
 
-REPO_URL="${REPO_URL:-git@github.com:shipittofar/samoon_Q.git}"
+REPO_URL="${REPO_URL:-https://github.com/shipittofar/samoon_Q.git}"
 BRANCH="${BRANCH:-my-new-branch}"
 INSTALL_DIR="${INSTALL_DIR:-/opt/samoon}"
 SSL_DIR="${SSL_DIR:-/etc/samoon/ssl}"
