@@ -24,6 +24,7 @@ import toast from 'react-hot-toast'
 import { LOGIN_LIMIT } from '@/lib/rate-limit'
 import { ForgotPasswordPanel } from '@/app/login/ForgotPasswordPanel'
 import {
+  resolvePostAuthDestination,
   sanitizeAuthRedirectPath,
   shouldHoldLoginFormForSessionRestore,
   storeIntendedAuthRedirect,
@@ -84,6 +85,7 @@ export function LoginClientPage() {
   const { isActive: isLoginTransitionActive, labelKey: loginTransitionLabelKey, executeLogin, reset: resetLoginTransition } = loginTransition
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const isAuthLoading = useAuthStore((s) => s.isLoading)
+  const currentUser = useAuthStore((s) => s.user)
 
   // Preserve checkout (and other protected-route) intent across the full auth flow
   // (login → verify OTP → complete-profile). Middleware sets ?redirect=; we stash it
@@ -93,16 +95,21 @@ export function LoginClientPage() {
     if (redirect) storeIntendedAuthRedirect(redirect)
   }, [searchParams])
 
-  // Middleware-only URL: /login?redirect=… A second tab can land here when the
-  // session cookie was missing on the document request even though localStorage
-  // still has tokens. After AuthBootstrapper hydrates (and re-mirrors the cookie),
-  // continue to the intended protected route. Skip during an in-progress login
-  // so PostLoginRedirectHandler remains the post-submit owner.
+  // A signed-in user never stays on the login page. Two ways to land here
+  // with a live session:
+  //  - /login?redirect=… : the session cookie was missing (or held an expired
+  //    access token) on the document request while localStorage still had
+  //    tokens; AuthBootstrapper refreshes and re-mirrors the cookie.
+  //  - plain /login : a full reload of the page the tab first loaded. Chrome's
+  //    "Desktop site" toggle on a phone reloads that original URL, not the
+  //    page reached by client-side navigation after the code was entered.
+  // Either way, continue to the intended route or the account's home. Skip
+  // during an in-progress login so PostLoginRedirectHandler owns post-submit.
   useEffect(() => {
     if (isAuthLoading || !isAuthenticated || isLoginTransitionActive) return
     const dest = sanitizeAuthRedirectPath(searchParams.get('redirect'))
-    if (dest) router.replace(dest)
-  }, [isAuthLoading, isAuthenticated, isLoginTransitionActive, router, searchParams])
+    router.replace(dest ?? resolvePostAuthDestination(currentUser?.accountType ?? 'customer'))
+  }, [isAuthLoading, isAuthenticated, isLoginTransitionActive, router, searchParams, currentUser?.accountType])
 
   const { register, handleSubmit, formState: { errors }, setValue } = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),

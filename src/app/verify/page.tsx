@@ -19,6 +19,8 @@ import { useTranslations } from 'next-intl'
 import { OTPInput } from '@/components/ui/OTPInput'
 import { Button } from '@/components/ui/Button'
 import { useVerifyOTP, useSendOTP } from '@/hooks'
+import { useAuthStore } from '@/stores'
+import { resolvePostAuthDestination } from '@/utils/auth-redirect'
 import { useConfigurationField } from '@/hooks/use-platform-configuration'
 import toast from 'react-hot-toast'
 import type {
@@ -101,6 +103,18 @@ function VerifyPageInner() {
   useEffect(() => {
     if (!phone_number) router.replace('/login')
   }, [phone_number, router])
+
+  // Already signed in (e.g. a full reload of this page after the code was
+  // accepted — Chrome's "Desktop site" toggle reloads the URL the tab first
+  // loaded): go to the account's home instead of asking for a code again.
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isAuthLoading = useAuthStore((s) => s.isLoading)
+  const accountType = useAuthStore((s) => s.user?.accountType)
+  useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return
+    if (state === 'verifying' || state === 'success') return // the verify hook navigates
+    router.replace(resolvePostAuthDestination(accountType ?? 'customer'))
+  }, [isAuthLoading, isAuthenticated, accountType, state, router])
 
   // Mask phone_number for display: e.g. +1 •••• 0101
   const maskedPhone = phone_number.length > 6
