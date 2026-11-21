@@ -5,7 +5,8 @@
 #   samoon update [backend|frontend]   pull from GitHub and redeploy (default: backend, then frontend)
 #   samoon logs [service]              follow logs (default: app; backend: samoon logs web)
 #   samoon restart                     restart the frontend stack without rebuilding
-#   samoon admin-add                   create a platform admin in the backend (asks for email/password)
+#   samoon admin-add [mobile]          add a platform superuser: the first one directly; later ones
+#                                      need "Allow superuser requests" on and approval in /admin/
 set -euo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/samoon}"
@@ -138,8 +139,11 @@ cmd_admin_add() {
   backend="$(backend_name)"
   [ -n "${backend}" ] || die "BACKEND_CONTAINER is not set in ${ENV_FILE}."
   docker ps --format '{{.Names}}' | grep -qx "${backend}" || die "Backend container '${backend}' is not running."
-  say "Creating a platform admin in '${backend}'. The password is typed here and not stored."
-  docker exec -it "${backend}" python manage.py createsuperuser
+  say "Adding a platform superuser in '${backend}'. The password is typed here and not stored."
+  # The first superuser is created at once. After that this files a request that an existing
+  # superuser approves in Django admin -> Accounts -> Superuser requests (and only while
+  # "Allow superuser requests" is on in Accounts -> Platform security settings).
+  docker exec -it "${backend}" python manage.py admin_add "$@"
 }
 
 case "${1:-status}" in
@@ -147,8 +151,8 @@ case "${1:-status}" in
   update)     shift || true; cmd_update "${1:-all}" ;;
   logs)       shift || true; cmd_logs "${1:-}" ;;
   restart)    cmd_restart ;;
-  admin-add)  cmd_admin_add ;;
+  admin-add)  shift || true; cmd_admin_add "$@" ;;
   -h|--help|help)
-    sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//' ;;
+    sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//' ;;
   *) die "Unknown command: $1 (try: samoon help)" ;;
 esac
