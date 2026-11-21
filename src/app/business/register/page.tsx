@@ -75,10 +75,12 @@ function RequestStatusCard({ item }: { item: BusinessRequest }) {
             <>
               <p className="text-sm font-medium text-[var(--fg)]">{t('register.approvedTitle')}</p>
               <p className="text-sm text-[var(--fg-muted)]">{t('register.approvedDesc')}</p>
-              {/* Full navigation so the session (now a business account) reloads. */}
-              <a href="/console" className="inline-block pt-1">
-                <Button size="sm">{t('register.openConsole')}</Button>
-              </a>
+              {/* Full reload so the session (now a business account) is fetched again. */}
+              <div className="pt-1">
+                <Button size="sm" onClick={() => window.location.assign('/console')}>
+                  {t('register.openConsole')}
+                </Button>
+              </div>
             </>
           )}
           {item.status === 'rejected' && (
