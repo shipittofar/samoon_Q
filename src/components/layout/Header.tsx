@@ -9,6 +9,7 @@ import { useCartStore, useCartItemCount, useAuthStore, useNotificationStore, use
 import type { NavItem } from '@/types'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 import { UserMenuBusinessConsoleLink } from '@/components/layout/UserMenuBusinessConsoleLink'
+import { UserMenuPlatformLinks } from '@/components/layout/UserMenuPlatformLinks'
 
 // Platform-level nav shown on the root site (when no tenant is active).
 // Replaces restaurant-specific module nav on the public marketplace surface.
@@ -289,6 +290,7 @@ export function Header({ overlay = false }: HeaderProps) {
                         <p className="text-xs text-[var(--fg-muted)] truncate">{user?.email}</p>
                       </div>
                       <UserMenuBusinessConsoleLink />
+                      <UserMenuPlatformLinks />
                       {[
                         { href: '/dashboard', icon: User, labelKey: 'myAccount' },
                         { href: '/dashboard/orders', icon: Package, labelKey: 'myOrders' },

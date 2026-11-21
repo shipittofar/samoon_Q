@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { MenuTemplatesButton } from '@/components/superadmin/MenuTemplatesButton'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
@@ -45,6 +47,7 @@ const EMPTY_FORM: MenuItemFormInput = {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AdminMenuPage() {
+  const queryClient = useQueryClient()
   const t = useTranslations('console')
   const tCommon = useTranslations('common')
   const tVerticals = useTranslations('verticals')
@@ -249,6 +252,13 @@ export default function AdminMenuPage() {
             </div>
             <div className="flex items-center gap-2">
               <PreviewButton href="/menu"label={isFood ? t('previewMenu') : term('preview')} size="sm"/>
+              <MenuTemplatesButton
+                branchId={adminBranchId}
+                onApplied={() => {
+                  void queryClient.invalidateQueries({ queryKey: ['console-categories'] })
+                  void refetch()
+                }}
+              />
               <Button leftIcon={<Plus className="h-4 w-4"/>} onClick={openCreate} disabled={!adminBranchId}>{isFood ? t('addItem') : term('addItem')}</Button>
             </div>
           </div>

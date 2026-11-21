@@ -226,6 +226,8 @@ export interface TenantMembership {
   status?: 'active' | 'suspended' | 'revoked'
   /** Operational Tenant.status from /auth/me (ACTIVE | INACTIVE | CLOSED). */
   tenantStatus?: import('@/types').TenantStatus
+  /** A platform superuser opened this business without owning or working in it. */
+  platformAccess?: boolean
 }
 
 /**

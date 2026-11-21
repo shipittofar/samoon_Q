@@ -18,6 +18,7 @@ import { useEffect, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores'
 import { mayAccessConsoleByAccountType } from '@/lib/console-account-access'
+import { isPlatformSuperuser } from '@/lib/platform-admin-access'
 
 const CUSTOMER_CONSOLE_REDIRECT = '/dashboard'
 
@@ -26,7 +27,10 @@ export function ConsoleAccountTypeGuard({ children }: { children: ReactNode }) {
   const isLoading = useAuthStore((s) => s.isLoading)
   const router = useRouter()
 
-  const blocked = !isLoading && !!user && !mayAccessConsoleByAccountType(user)
+  // Platform superusers always get the console (the backend also reports
+  // them as business accounts).
+  const blocked =
+    !isLoading && !!user && !isPlatformSuperuser(user) && !mayAccessConsoleByAccountType(user)
 
   useEffect(() => {
     if (blocked) {

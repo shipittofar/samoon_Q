@@ -16,6 +16,7 @@ import { AdminBranchSwitcher } from './AdminBranchSwitcher'
 import { AdminTenantSwitcher } from './AdminTenantSwitcher'
 import { useConsoleSelectorsReady } from '@/hooks/console-workspace'
 import { cn } from '@/utils'
+import { SuperuserModeBadge } from '@/components/superadmin/SuperuserNav'
 
 function ConsoleSelectorSkeleton() {
   return (
@@ -39,6 +40,7 @@ export function AdminContextBar() {
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
+      <SuperuserModeBadge />
       <AdminTenantSwitcher />
       <AdminBranchSwitcher />
     </div>

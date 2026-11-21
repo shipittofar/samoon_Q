@@ -46,7 +46,10 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { cn } from '@/utils'
 import { useTranslations } from 'next-intl'
 import { RefreshCw } from 'lucide-react'
-import { useTenantStore, useRbacStore } from '@/stores'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useAuthStore, useTenantStore, useRbacStore } from '@/stores'
+import { isPlatformSuperuser } from '@/lib/platform-admin-access'
 import { useConsoleSessionRefresh, useHasDashboardAccess } from '@/hooks'
 import {
   isConsoleMembershipTenantInactive,
@@ -239,6 +242,9 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
   const hasDashboardAccess = useHasDashboardAccess()
   const { retryCount, retryNow } = useTenantAutoRetry(tenantState)
   const { refresh, refreshing } = useConsoleSessionRefresh()
+  const pathname = usePathname()
+  const isSuperuser = isPlatformSuperuser(useAuthStore((s) => s.user))
+  const tSuper = useTranslations('superadmin')
 
   const sessionMembershipCount =
     sessionMemberships === null ? null : sessionMemberships.length
@@ -274,6 +280,29 @@ export function ConsoleWorkspaceGate({ children }: { children: ReactNode }) {
       {t('refreshSessionCta')}
     </button>
   )
+
+  // The superuser part of the console (/console/platform/*) needs no business.
+  if (isSuperuser && pathname?.startsWith('/console/platform')) {
+    return <>{children}</>
+  }
+  // A superuser with no business open lands on the platform overview instead
+  // of the "no business" screens.
+  if (isSuperuser && (phase === 'onboarding' || phase === 'no_active_tenant' || phase === 'tenant_awaiting_selection')) {
+    return (
+      <TenantMessage
+        title={tSuper('overview.title')}
+        description={tSuper('businesses.subtitle')}
+        action={
+          <Link
+            href="/console/platform/businesses"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+          >
+            {tSuper('nav.businesses')}
+          </Link>
+        }
+      />
+    )
+  }
 
   switch (phase) {
     case 'membership_loading':

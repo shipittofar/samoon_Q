@@ -34,6 +34,7 @@ import {
 } from '@/stores'
 import { useLogout, useSetLocale, useModuleNav } from '@/hooks'
 import { UserMenuBusinessConsoleLink } from '@/components/layout/UserMenuBusinessConsoleLink'
+import { UserMenuPlatformLinks } from '@/components/layout/UserMenuPlatformLinks'
 import { cn, buildPublicCTAs, buildCustomerJourney } from '@/utils'
 import { buildTenantNavigation, getBusinessTypeBadge } from '@/utils/navigation'
 import { resolveTenantImage } from '@/lib/tenant-branding'
@@ -374,6 +375,7 @@ export function TenantHeader() {
                           <p className="text-xs text-[var(--fg-muted)] truncate">{user?.email}</p>
                         </div>
                         <UserMenuBusinessConsoleLink />
+                        <UserMenuPlatformLinks />
                         {[
                           { href: '/dashboard', icon: User, labelKey: 'myAccount' },
                           { href: '/dashboard/orders', icon: Package, labelKey: 'myOrders' },

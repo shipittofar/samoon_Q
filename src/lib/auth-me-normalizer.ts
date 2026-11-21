@@ -235,6 +235,7 @@ export function normalizeWireMembership(raw: unknown): TenantMembership | null {
     })(),
     tenantStatus: pickMembershipTenantStatus(record),
     branches: normalizeMembershipBranches(record.branches, tenantId),
+    platformAccess: record.platformAccess === true || record.platform_access === true,
   }
 
   const permissions = pickPermissions(record)

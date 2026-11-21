@@ -57,6 +57,7 @@ import { isConsoleMembershipTenantInactive } from '@/lib/console-tenant-access'
 import { Button } from '@/components/ui/Button'
 import { ConsoleNavPendingBadge } from '@/components/admin/ConsoleNavPendingBadge'
 import type { NavItem } from '@/types'
+import { SuperuserNavSection } from '@/components/superadmin/SuperuserNav'
 
 // ── Icon registry ─────────────────────────────────────────────────────────────
 
@@ -308,6 +309,9 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
               <span>{t('customerDashboard')}</span>
             </Link>
           </div>
+
+          {/* Platform superusers: search businesses, requests, ready-made menus */}
+          <SuperuserNavSection onNavigate={onClose} />
 
           {/* Grouped nav items */}
           {hideConsoleNav ? null : groups.map(({ group, items }) => (
