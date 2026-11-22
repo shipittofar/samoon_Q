@@ -651,7 +651,14 @@ export const authService = {
       await delay(MOCK_DELAY)
       return
     }
-    await api.post(ENDPOINTS.AUTH.CHANGE_PASSWORD, { old_password, new_password })
+    // The backend signs every session out on a password change and returns
+    // fresh tokens for this one; store them or the next request is a 401.
+    const { data } = await api.post<{ access?: string; refresh?: string }>(ENDPOINTS.AUTH.CHANGE_PASSWORD, {
+      old_password,
+      new_password,
+      confirm_password: new_password,
+    })
+    if (data?.access && data?.refresh) setTokens(data.access, data.refresh)
   },
 
   /**
