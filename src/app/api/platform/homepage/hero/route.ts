@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { API_BASE_URL } from '@/constants'
+import { serverApiBaseUrl } from '@/constants'
 import { ENDPOINTS } from '@/services/endpoints'
 import {
   getPlatformHomepageHero,
@@ -11,7 +11,7 @@ import { readBearerToken, requirePlatformSuperuser } from '@/lib/require-platfor
 async function tryUpstreamGet(): Promise<ReturnType<typeof normalizePlatformHomepageHero> | null> {
   if (process.env.NEXT_PUBLIC_USE_MOCK === 'true') return null
   try {
-    const res = await fetch(`${API_BASE_URL}${ENDPOINTS.PLATFORM_HOMEPAGE.HERO}`, { cache: 'no-store' })
+    const res = await fetch(`${serverApiBaseUrl()}${ENDPOINTS.PLATFORM_HOMEPAGE.HERO}`, { cache: 'no-store' })
     if (!res.ok) return null
     const data: unknown = await res.json()
     return normalizePlatformHomepageHero(data)
@@ -37,7 +37,7 @@ async function upstreamPut(
   const token = readBearerToken(request)
   if (!token) return { ok: false, status: 401, detail: 'Authentication required' }
   try {
-    const res = await fetch(`${API_BASE_URL}${ENDPOINTS.PLATFORM_HOMEPAGE.HERO}`, {
+    const res = await fetch(`${serverApiBaseUrl()}${ENDPOINTS.PLATFORM_HOMEPAGE.HERO}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,

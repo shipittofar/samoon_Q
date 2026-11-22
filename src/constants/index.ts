@@ -1,6 +1,18 @@
 import type { Tenant } from '@/types'
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'
+
+/**
+ * API base for calls made on the server (route handlers, server components,
+ * the server copy of the axios client). In Docker the app talks to Django
+ * directly over the shared network (INTERNAL_API_BASE_URL, e.g.
+ * http://smartrestaurant-web:8000/api): the public https://<ip>/api would go
+ * out through nginx and its self-signed certificate, which Node rejects.
+ * Read at runtime (not a NEXT_PUBLIC_ value), so it never reaches the browser.
+ */
+export function serverApiBaseUrl(): string {
+  return process.env.INTERNAL_API_BASE_URL || API_BASE_URL
+}
 export const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_BASE_URL || 'ws://localhost:8000/ws'
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Samoon'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

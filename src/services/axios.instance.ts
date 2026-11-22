@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
-import { API_BASE_URL, CSRF_COOKIE, CSRF_HEADER, JWT_ACCESS_KEY, JWT_REFRESH_KEY } from '@/constants'
+import { API_BASE_URL, CSRF_COOKIE, CSRF_HEADER, JWT_ACCESS_KEY, JWT_REFRESH_KEY, serverApiBaseUrl } from '@/constants'
 import { configurationService } from '@/config'
 import { resolveTenantSlugForApi } from '@/lib/tenant-request-context'
 
@@ -103,7 +103,8 @@ export function clearTokens() {
 
 // ── Axios instance ───────────────────────────────────────────────────────────
 const api: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  // Server renders reach Django on the internal network; browsers use the public URL.
+  baseURL: typeof window === 'undefined' ? serverApiBaseUrl() : API_BASE_URL,
   timeout: 15_000,
   headers: {
     'Content-Type': 'application/json',

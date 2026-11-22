@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { API_BASE_URL, JWT_ACCESS_KEY } from '@/constants'
+import { JWT_ACCESS_KEY, serverApiBaseUrl } from '@/constants'
 import { ENDPOINTS } from '@/services/endpoints'
 import { MOCK_CREDENTIALS, MOCK_SESSION_KEY } from '@/services/auth.service'
 import { normalizeGetMeResponse } from '@/lib/auth-me-normalizer'
@@ -53,7 +53,7 @@ export async function requirePlatformSuperuser(
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}${ENDPOINTS.AUTH.ME}`, {
+    const res = await fetch(`${serverApiBaseUrl()}${ENDPOINTS.AUTH.ME}`, {
       headers: { Authorization: `Bearer ${token}` },
       cache: 'no-store',
     })

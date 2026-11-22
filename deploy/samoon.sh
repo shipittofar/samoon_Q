@@ -7,6 +7,8 @@
 #   samoon restart                     restart the frontend stack without rebuilding
 #   samoon admin-add [mobile]          add a platform superuser: the first one directly; later ones
 #                                      need "Allow superuser requests" on and approval in /admin/
+#   samoon set-address <ip-or-domain>  move the site to a new IP or domain (frontend + backend
+#                                      settings, self-signed certificate) by re-running the install
 set -euo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/samoon}"
@@ -90,11 +92,9 @@ update_backend() {
     return 0
   fi
   pull_checkout "${BACKEND_DIR}" "Backend"
-  # Same services backend-up.sh starts; celery only if it is already running here.
-  local services=(web postgres redis)
-  if docker ps --format '{{.Names}}' | grep -qx 'smartrestaurant-celery'; then
-    services+=(celery celery-beat)
-  fi
+  # Same services backend-up.sh starts. celery processes uploaded images, so it
+  # is started here too on servers installed before it was part of the install.
+  local services=(web postgres redis celery celery-beat)
   say "Backend: rebuilding and restarting ${services[*]} (database migrations run when web starts)"
   backend_compose up -d --build "${services[@]}"
   say "Backend: waiting for it to be healthy"
@@ -134,6 +134,24 @@ cmd_restart() {
   compose restart
 }
 
+cmd_set_address() {
+  local addr="${1:-}"
+  [ -n "${addr}" ] || die "Usage: samoon set-address <ip-or-domain>"
+  [[ "${addr}" =~ ^[A-Za-z0-9.-]+$ ]] || die "That does not look like an IP address or a domain: ${addr}"
+  say "Moving the site to ${addr} (re-running the install; data and secrets are kept)"
+  # Run a copy: the install pulls the checkout, which may rewrite install.sh
+  # while bash is still reading it.
+  local script
+  script="$(mktemp)"
+  cp "${INSTALL_DIR}/deploy/install.sh" "${script}"
+  if [[ "${addr}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    SERVER_IP="${addr}" DOMAIN="" bash "${script}"
+  else
+    DOMAIN="${addr}" SERVER_IP="" bash "${script}"
+  fi
+  rm -f "${script}"
+}
+
 cmd_admin_add() {
   local backend
   backend="$(backend_name)"
@@ -152,7 +170,8 @@ case "${1:-status}" in
   logs)       shift || true; cmd_logs "${1:-}" ;;
   restart)    cmd_restart ;;
   admin-add)  shift || true; cmd_admin_add "$@" ;;
+  set-address) shift || true; cmd_set_address "${1:-}" ;;
   -h|--help|help)
-    sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//' ;;
+    sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//' ;;
   *) die "Unknown command: $1 (try: samoon help)" ;;
 esac

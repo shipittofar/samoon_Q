@@ -1,20 +1,32 @@
 #!/usr/bin/env bash
-# Samoon — one-time server install (Ubuntu/Debian/RHEL-like, run as root).
+# Samoon — server install (Ubuntu/Debian/RHEL-like, run as root).
 #
 # One command on a fresh server (as root). Use the server's public IP when
 # there is no domain yet, or DOMAIN=... once one points at the server:
 #
 #   curl -fsSL https://raw.githubusercontent.com/shipittofar/samoon_Q/my-new-branch/deploy/install.sh -o install.sh && SERVER_IP=203.0.113.10 bash install.sh
 #
+# Safe to run again on an installed server:
+#   - with no SERVER_IP/DOMAIN it reuses the address already in /opt/samoon/.env;
+#   - with a new SERVER_IP/DOMAIN it moves the whole site to that address
+#     (frontend and backend settings, and the self-signed certificate if that
+#     is what is in use) — `samoon set-address <ip-or-domain>` does the same.
+#
 # What it does, and what it deliberately does NOT do:
 #   - installs git, docker and the compose plugin if they are missing;
+#   - if Docker Hub is unreachable (blocked), configures registry mirrors for
+#     dockerd (DOCKER_MIRRORS) — only when no mirror is configured yet;
 #   - clones the branch into /opt/samoon (or fast-forwards an existing clone);
-#   - writes /opt/samoon/.env from deploy/env.example, filled from DOMAIN or SERVER_IP;
-#   - creates a self-signed TLS certificate only if none exists (replace it later);
+#   - writes /opt/samoon/.env from deploy/env.example, filled from the address;
+#   - brings up (or updates) the backend with deploy/backend-up.sh;
+#   - creates a self-signed TLS certificate only if none exists, or replaces
+#     its own self-signed one when the address changed (a real certificate
+#     you installed is never touched);
 #   - builds and starts the stack, waits for the app to be healthy;
-#   - installs the `samoon` command (update / status / logs / admin-add).
+#   - installs the `samoon` command (update / status / logs / admin-add / set-address).
 # It never changes SSH or any other listening port. It only opens 80 and 443 in
-# ufw when ufw is already active, and it refuses to start if 80/443 are taken.
+# ufw when ufw is already active, and it refuses to start if 80/443 are taken
+# by something other than this site's own nginx.
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/shipittofar/samoon_Q.git}"
@@ -23,15 +35,26 @@ INSTALL_DIR="${INSTALL_DIR:-/opt/samoon}"
 SSL_DIR="${SSL_DIR:-/etc/samoon/ssl}"
 DOMAIN="${DOMAIN:-}"
 SERVER_IP="${SERVER_IP:-}"
-
-# The address the site is served on: a domain when given, otherwise the IP.
-ADDR="${DOMAIN:-${SERVER_IP}}"
+# Tried in order when Docker Hub cannot be reached. Override with your own list.
+DOCKER_MIRRORS="${DOCKER_MIRRORS:-https://docker.arvancloud.ir https://registry.docker.ir}"
+ENV_FILE="${INSTALL_DIR}/.env"
+SELF_SIGNED_MARK="${SSL_DIR}/.samoon-self-signed"
 
 say()  { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31mxx\033[0m %s\n' "$*" >&2; exit 1; }
 
 [ "$(id -u)" -eq 0 ] || die "Run as root (sudo bash install.sh)."
+
+# The address the site is served on: a domain when given, otherwise the IP,
+# otherwise the one an earlier install wrote to .env.
+ADDR="${DOMAIN:-${SERVER_IP}}"
+if [ -z "${ADDR}" ] && [ -f "${ENV_FILE}" ]; then
+  ADDR="$(grep '^DOMAIN=' "${ENV_FILE}" | cut -d= -f2- || true)"
+  [ "${ADDR}" = "CHANGE_ME" ] && ADDR=""
+  [ -n "${ADDR}" ] && say "Using the address from ${ENV_FILE}: ${ADDR}"
+fi
+[ -n "${ADDR}" ] || die "Set SERVER_IP=<public IP> (or DOMAIN=<domain>) and run again."
 
 IS_IP=0
 if [[ "${ADDR}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then IS_IP=1; fi
@@ -40,9 +63,9 @@ if [[ "${ADDR}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then IS_IP=1; fi
 say "Installing base packages"
 if command -v apt-get >/dev/null 2>&1; then
   apt-get update -y >/dev/null
-  apt-get install -y git curl ca-certificates openssl iproute2 >/dev/null
+  apt-get install -y git curl ca-certificates openssl iproute2 python3 >/dev/null
 elif command -v dnf >/dev/null 2>&1; then
-  dnf install -y git curl ca-certificates openssl iproute >/dev/null
+  dnf install -y git curl ca-certificates openssl iproute python3 >/dev/null
 else
   die "Unsupported package manager (need apt or dnf)."
 fi
@@ -64,19 +87,56 @@ fi
 docker compose version >/dev/null 2>&1 || die "docker compose plugin missing — install docker-compose-plugin and re-run."
 systemctl enable --now docker >/dev/null 2>&1 || true
 
-# ── 2. ports 80/443 must be free (others are left alone) ─────────────────────
-for port in 80 443; do
-  if ss -ltnH "( sport = :${port} )" | grep -q .; then
-    die "Port ${port} is already in use — stop that service first (nothing was changed)."
+# ── 2. Docker Hub reachable? Otherwise configure registry mirrors ────────────
+# Images used by both stacks come from Docker Hub (node, python, nginx,
+# postgres, redis). Where Docker Hub is blocked, pulls fail with 403 or time
+# out; dockerd's registry-mirrors setting sends those pulls to a mirror.
+probe_pull() { timeout 90 docker pull -q nginx:alpine >/dev/null 2>&1; }
+if probe_pull; then
+  say "Docker Hub is reachable"
+else
+  DAEMON_JSON=/etc/docker/daemon.json
+  if [ -f "${DAEMON_JSON}" ] && grep -q '"registry-mirrors"' "${DAEMON_JSON}"; then
+    die "Cannot pull images from Docker Hub, and ${DAEMON_JSON} already lists registry mirrors (they do not work either). Fix the mirrors there, then re-run."
   fi
-done
+  warn "Docker Hub is not reachable — configuring registry mirrors: ${DOCKER_MIRRORS}"
+  mkdir -p /etc/docker
+  [ -f "${DAEMON_JSON}" ] && cp "${DAEMON_JSON}" "${DAEMON_JSON}.bak.$(date +%s)"
+  # Merge into any existing settings (keeps whatever else is configured there).
+  python3 - "${DAEMON_JSON}" ${DOCKER_MIRRORS} <<'PY'
+import json, os, sys
+path, mirrors = sys.argv[1], sys.argv[2:]
+data = {}
+if os.path.exists(path) and os.path.getsize(path) > 0:
+    with open(path) as f:
+        data = json.load(f)
+data["registry-mirrors"] = mirrors
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+PY
+  systemctl restart docker
+  probe_pull || die "Still cannot pull images through the mirrors (${DOCKER_MIRRORS}). Set DOCKER_MIRRORS=\"https://your-mirror ...\" and re-run (the previous ${DAEMON_JSON} was backed up)."
+  say "Pulling through the registry mirror works"
+fi
 
-# ── 3. code ─────────────────────────────────────────────────────────────────
+# ── 3. ports 80/443 must be free, or already ours ────────────────────────────
+if docker ps --format '{{.Names}}' | grep -qx samoon-nginx; then
+  say "Ports 80/443 are served by this site's nginx (samoon-nginx) — re-installing over it"
+else
+  for port in 80 443; do
+    if ss -ltnH "( sport = :${port} )" | grep -q .; then
+      die "Port ${port} is already in use — stop that service first (nothing was changed)."
+    fi
+  done
+fi
+
+# ── 4. code ─────────────────────────────────────────────────────────────────
 if [ -d "${INSTALL_DIR}/.git" ]; then
   say "Updating existing checkout in ${INSTALL_DIR}"
-  git -C "${INSTALL_DIR}" fetch origin "${BRANCH}"
-  git -C "${INSTALL_DIR}" checkout -q "${BRANCH}"
-  git -C "${INSTALL_DIR}" pull --ff-only origin "${BRANCH}"
+  git -C "${INSTALL_DIR}" -c core.fileMode=false fetch origin "${BRANCH}"
+  git -C "${INSTALL_DIR}" -c core.fileMode=false checkout -q "${BRANCH}"
+  git -C "${INSTALL_DIR}" -c core.fileMode=false pull --ff-only origin "${BRANCH}"
 else
   say "Cloning ${REPO_URL} (${BRANCH}) into ${INSTALL_DIR}"
   git clone --branch "${BRANCH}" "${REPO_URL}" "${INSTALL_DIR}"
@@ -85,63 +145,78 @@ fi
 git -C "${INSTALL_DIR}" config core.fileMode false
 echo "${BRANCH}" > "${INSTALL_DIR}/.deploy-branch"
 
-# ── 4. environment file ─────────────────────────────────────────────────────
-ENV_FILE="${INSTALL_DIR}/.env"
+# ── 5. environment file ─────────────────────────────────────────────────────
 if [ ! -f "${ENV_FILE}" ]; then
   cp "${INSTALL_DIR}/deploy/env.example" "${ENV_FILE}"
   chmod 600 "${ENV_FILE}"
   say "Created ${ENV_FILE}"
 fi
-if [ -n "${ADDR}" ]; then
-  # No tenant subdomains on a bare IP, so the root domain stays empty.
-  ROOT_DOMAIN_VALUE=""
-  [ "${IS_IP}" -eq 0 ] && ROOT_DOMAIN_VALUE="${ADDR}"
-  sed -i \
-    -e "s|^DOMAIN=.*|DOMAIN=${ADDR}|" \
-    -e "s|^NEXT_PUBLIC_APP_URL=.*|NEXT_PUBLIC_APP_URL=https://${ADDR}|" \
-    -e "s|^NEXT_PUBLIC_API_BASE_URL=.*|NEXT_PUBLIC_API_BASE_URL=https://${ADDR}/api|" \
-    -e "s|^NEXT_PUBLIC_WS_BASE_URL=.*|NEXT_PUBLIC_WS_BASE_URL=wss://${ADDR}/ws|" \
-    -e "s|^NEXT_PUBLIC_ROOT_DOMAIN=.*|NEXT_PUBLIC_ROOT_DOMAIN=${ROOT_DOMAIN_VALUE}|" \
-    "${ENV_FILE}"
-fi
-if [ -z "${ADDR}" ] || grep -q "CHANGE_ME" "${ENV_FILE}"; then
-  die "Set SERVER_IP=<public IP> (or DOMAIN=<domain>) and run again — or edit ${ENV_FILE} and replace every CHANGE_ME."
+# Keys added to env.example after the first install are appended once.
+while IFS= read -r line; do
+  key="${line%%=*}"
+  case "${key}" in ''|\#*) continue ;; esac
+  grep -q "^${key}=" "${ENV_FILE}" || { echo "${line}" >> "${ENV_FILE}"; say "Added ${key} to ${ENV_FILE}"; }
+done < "${INSTALL_DIR}/deploy/env.example"
+# No tenant subdomains on a bare IP, so the root domain stays empty.
+ROOT_DOMAIN_VALUE=""
+[ "${IS_IP}" -eq 0 ] && ROOT_DOMAIN_VALUE="${ADDR}"
+sed -i \
+  -e "s|^DOMAIN=.*|DOMAIN=${ADDR}|" \
+  -e "s|^NEXT_PUBLIC_APP_URL=.*|NEXT_PUBLIC_APP_URL=https://${ADDR}|" \
+  -e "s|^NEXT_PUBLIC_API_BASE_URL=.*|NEXT_PUBLIC_API_BASE_URL=https://${ADDR}/api|" \
+  -e "s|^NEXT_PUBLIC_WS_BASE_URL=.*|NEXT_PUBLIC_WS_BASE_URL=wss://${ADDR}/ws|" \
+  -e "s|^NEXT_PUBLIC_ROOT_DOMAIN=.*|NEXT_PUBLIC_ROOT_DOMAIN=${ROOT_DOMAIN_VALUE}|" \
+  "${ENV_FILE}"
+if grep -q "CHANGE_ME" "${ENV_FILE}"; then
+  die "Edit ${ENV_FILE} and replace every CHANGE_ME, then run again."
 fi
 
-# ── 5. the backend must be running (nginx routes /api, /admin, /ws to it) ────
+# ── 6. backend (nginx routes /api, /admin, /ws to it) ────────────────────────
+# Run every time: first install brings it up; later runs pull it, refresh its
+# address settings for ${ADDR} and restart what changed.
 docker network inspect shared-net >/dev/null 2>&1 || { say "Creating docker network shared-net"; docker network create shared-net >/dev/null; }
-if ! docker ps --format '{{.Names}}' | grep -qx "$(grep '^BACKEND_CONTAINER=' "${ENV_FILE}" | cut -d= -f2)"; then
-  say "Backend is not running — installing it from GitHub (deploy/backend-up.sh)"
-  ADDR="${ADDR}" bash "${INSTALL_DIR}/deploy/backend-up.sh"
-fi
+say "Bringing up / updating the backend (deploy/backend-up.sh)"
+ADDR="${ADDR}" bash "${INSTALL_DIR}/deploy/backend-up.sh"
 if ! docker volume inspect backend_static_volume >/dev/null 2>&1; then
   warn "Volume backend_static_volume not found — creating an empty one (the backend normally owns it)."
   docker volume create backend_static_volume >/dev/null
 fi
 
-# ── 6. TLS certificate (only if none exists) ────────────────────────────────
+# ── 7. TLS certificate ──────────────────────────────────────────────────────
+# A certificate this script generated carries a marker with its address; it is
+# replaced when the address changes. A certificate without the marker is
+# yours (e.g. Let's Encrypt) and is never touched.
 mkdir -p "${SSL_DIR}"
-if [ ! -f "${SSL_DIR}/fullchain.pem" ] || [ ! -f "${SSL_DIR}/privkey.pem" ]; then
-  warn "No certificate in ${SSL_DIR} — creating a self-signed one for ${ADDR}."
+make_self_signed() {
+  warn "Creating a self-signed certificate for ${ADDR} in ${SSL_DIR}."
   warn "Browsers will warn until you replace it with a real one (e.g. Let's Encrypt → copy to ${SSL_DIR})."
   if [ "${IS_IP}" -eq 1 ]; then SAN="IP:${ADDR}"; else SAN="DNS:${ADDR}"; fi
   openssl req -x509 -nodes -newkey rsa:2048 -days 825 -subj "/CN=${ADDR}" \
     -addext "subjectAltName=${SAN}" \
     -keyout "${SSL_DIR}/privkey.pem" -out "${SSL_DIR}/fullchain.pem" >/dev/null 2>&1
   chmod 600 "${SSL_DIR}/privkey.pem"
+  echo "${ADDR}" > "${SELF_SIGNED_MARK}"
+}
+if [ ! -f "${SSL_DIR}/fullchain.pem" ] || [ ! -f "${SSL_DIR}/privkey.pem" ]; then
+  make_self_signed
+elif [ -f "${SELF_SIGNED_MARK}" ] && [ "$(cat "${SELF_SIGNED_MARK}")" != "${ADDR}" ]; then
+  say "The address changed ($(cat "${SELF_SIGNED_MARK}") → ${ADDR}) — renewing the self-signed certificate"
+  make_self_signed
 fi
 
-# ── 7. firewall: only add 80/443, only if ufw is already on ──────────────────
+# ── 8. firewall: only add 80/443, only if ufw is already on ──────────────────
 if command -v ufw >/dev/null 2>&1 && ufw status | grep -q "Status: active"; then
   say "ufw is active — allowing 80/tcp and 443/tcp (no other rule changes)"
   ufw allow 80/tcp >/dev/null
   ufw allow 443/tcp >/dev/null
 fi
 
-# ── 8. build and start ──────────────────────────────────────────────────────
+# ── 9. build and start ──────────────────────────────────────────────────────
 cd "${INSTALL_DIR}"
 say "Building and starting (the first build takes several minutes)"
 docker compose --env-file "${ENV_FILE}" up -d --build
+# nginx reads the certificate only at start; pick up a renewed one.
+docker restart samoon-nginx >/dev/null 2>&1 || true
 
 say "Waiting for the app to become healthy"
 state=starting
@@ -152,8 +227,8 @@ for _ in $(seq 1 60); do
 done
 [ "${state}" = "healthy" ] || die "App did not become healthy. Check: docker compose logs app"
 
-# ── 9. install the `samoon` command ─────────────────────────────────────────
+# ── 10. install the `samoon` command ────────────────────────────────────────
 chmod +x "${INSTALL_DIR}/deploy/samoon.sh"
 ln -sf "${INSTALL_DIR}/deploy/samoon.sh" /usr/local/bin/samoon
-say "Installed. Commands:  samoon status | samoon update | samoon logs [service] | samoon admin-add"
-say "Site: https://${ADDR}   (self-signed certificate until a real one is installed in ${SSL_DIR})"
+say "Installed. Commands:  samoon status | samoon update | samoon logs [service] | samoon admin-add | samoon set-address <ip-or-domain>"
+say "Site: https://${ADDR}"
