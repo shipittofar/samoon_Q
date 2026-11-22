@@ -219,6 +219,12 @@ export const ENDPOINTS = {
     MEDIA_UPLOAD: (tenantId: string) => `/tenants/${tenantId}/website/media/`,
   },
 
+  // Platform-level overrides of Platform Configuration fields (src/config).
+  PLATFORM_CONFIG: {
+    OVERRIDES: '/platform/config/',
+    HISTORY: '/platform/config/history/',
+  },
+
   PLATFORM_HOMEPAGE: {
     HERO: '/platform/homepage/hero/',
     MEDIA_UPLOAD: '/platform/homepage/hero/media/',

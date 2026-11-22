@@ -1,0 +1,114 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { render } from '@testing-library/react'
+import React from 'react'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+const put = vi.fn()
+vi.mock('@/services/axios.instance', () => ({ default: { put: (...a: unknown[]) => put(...a) } }))
+
+import { configurationService } from '@/config'
+import { savePlatformConfigChanges } from '@/config/platform-overrides-client'
+import {
+  PlatformConfigHydrator,
+  __resetPlatformConfigHydratorForTests,
+} from '@/components/PlatformConfigHydrator'
+
+const value = (id: string) => configurationService.resolveField(id, {}).value
+const MAX = 'authentication.max_login_attempts' // platform, number, default 5
+
+describe('platform configuration persistence', () => {
+  beforeEach(() => {
+    configurationService.__resetForTests()
+    __resetPlatformConfigHydratorForTests()
+    put.mockReset()
+    vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'false')
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('hydrates saved platform values and clears them when the server drops them', () => {
+    expect(value(MAX)).toBe(5)
+    configurationService.hydratePlatformOverrides({ [MAX]: 7 })
+    expect(value(MAX)).toBe(7)
+    configurationService.hydratePlatformOverrides({})
+    expect(value(MAX)).toBe(5)
+  })
+
+  it('ignores unknown, tenant-level and secret fields from the server', () => {
+    configurationService.hydratePlatformOverrides({
+      'no.such_field': 1,
+      'payments.stripe_secret_key': 'sk_live_x',
+      'payments.stripe_publishable_key': 'pk',
+    })
+    expect(configurationService.getFieldLayers('payments.stripe_secret_key', {}).platform).toBeUndefined()
+    expect(configurationService.getFieldLayers('payments.stripe_publishable_key', {}).platform).toBeUndefined()
+  })
+
+  it('saves only persisted fields, sends defaults as a reset, applies the answer', async () => {
+    put.mockResolvedValue({ data: { overrides: { 'authentication.otp.resend_cooldown_seconds': 45 } } })
+    await savePlatformConfigChanges(
+      [
+        { fieldId: MAX, value: 5 },
+        { fieldId: 'authentication.otp.resend_cooldown_seconds', value: 45 },
+        { fieldId: 'payments.stripe_secret_key', value: 'sk_live_x' },
+      ],
+      'launch',
+    )
+    expect(put).toHaveBeenCalledTimes(1)
+    const [url, body] = put.mock.calls[0]
+    expect(url).toBe('/platform/config/')
+    expect(body).toEqual({
+      changes: [
+        { fieldId: MAX, reset: true },
+        { fieldId: 'authentication.otp.resend_cooldown_seconds', value: 45 },
+      ],
+      reason: 'launch',
+    })
+    expect(value('authentication.otp.resend_cooldown_seconds')).toBe(45)
+  })
+
+  it('a failed save throws and changes nothing', async () => {
+    put.mockRejectedValue(new Error('403'))
+    await expect(savePlatformConfigChanges([{ fieldId: MAX, value: 8 }])).rejects.toThrow('403')
+    expect(value(MAX)).toBe(5)
+  })
+
+  it('sends nothing in mock mode', async () => {
+    vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'true')
+    await savePlatformConfigChanges([{ fieldId: MAX, value: 8 }])
+    expect(put).not.toHaveBeenCalled()
+  })
+
+  it('hydrator applies the layout payload before children render, and never undoes a newer save', () => {
+    let seen: unknown
+    function Child() {
+      seen = value(MAX)
+      return null
+    }
+    const { rerender } = render(
+      <PlatformConfigHydrator overrides={{ [MAX]: 7 }}>
+        <Child />
+      </PlatformConfigHydrator>,
+    )
+    expect(seen).toBe(7)
+    // The superuser saves 9 in this tab (applied from the PUT answer)...
+    configurationService.hydratePlatformOverrides({ [MAX]: 9 })
+    // ...and a re-render with the layout's older payload must keep 9.
+    rerender(
+      <PlatformConfigHydrator overrides={{ [MAX]: 7 }}>
+        <Child />
+      </PlatformConfigHydrator>,
+    )
+    expect(seen).toBe(9)
+  })
+
+  it('root layout loads the overrides before reading configuration', () => {
+    const src = readFileSync(resolve(__dirname, '..', 'app/layout.tsx'), 'utf8')
+    const load = src.indexOf('await getPlatformConfigOverrides()')
+    expect(load).toBeGreaterThan(-1)
+    expect(load).toBeLessThan(src.indexOf('await getLocale()', src.indexOf('export default async function RootLayout')))
+    expect(src).toContain('<PlatformConfigHydrator overrides={platformOverrides}>')
+  })
+})

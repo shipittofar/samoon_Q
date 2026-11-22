@@ -21,6 +21,8 @@ import type { ConfigAuditEntry, ConfigInheritanceLevel, ConfigResolutionScope } 
 import { useAuthStore, useBranchStore } from '@/stores'
 import { useConfigurationModule } from './use-platform-configuration'
 import { useConsoleTenantId } from '@/hooks/console-workspace'
+import { platformConfigPersistenceEnabled, savePlatformConfigChanges } from '@/config/platform-overrides-client'
+import { apiErrorMessage } from '@/services/superadmin.service'
 
 export interface ConfigurationSaveResult {
   ok: boolean
@@ -101,10 +103,18 @@ export function useConfigurationDraft(moduleId: string) {
     setIsSaving(true)
     setLastError(null)
     try {
-      // ConfigurationService is synchronous (in-memory store) — this delay
-      // exists only to give the Console a realistic "Saving…" state in mock
-      // mode, matching the MOCK_DELAY convention used elsewhere.
-      await new Promise((resolve) => setTimeout(resolve, 400))
+      if (platformConfigPersistenceEnabled()) {
+        // Platform-owned fields are stored in Django first (all or nothing);
+        // if that fails nothing is applied here and the error is shown.
+        await savePlatformConfigChanges(
+          dirtyFieldIds.map((fieldId) => ({ fieldId, value: drafts[fieldId] })),
+          reason,
+        )
+      } else {
+        // Mock mode: in-memory only — this delay just gives the Console a
+        // realistic "Saving…" state, matching the MOCK_DELAY convention.
+        await new Promise((resolve) => setTimeout(resolve, 400))
+      }
 
       const actorName = actorUser ? `${actorUser.first_name} ${actorUser.last_name}`.trim() : 'Platform Administrator'
       for (const fieldId of dirtyFieldIds) {
@@ -122,7 +132,8 @@ export function useConfigurationDraft(moduleId: string) {
       setDrafts({})
       return { ok: true }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save changes.'
+      // An API error carries the server's message; anything else its own.
+      const message = apiErrorMessage(err, err instanceof Error ? err.message : 'Failed to save changes.')
       setLastError(message)
       return { ok: false, errors: { _save: [message] } }
     } finally {

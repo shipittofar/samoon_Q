@@ -3,6 +3,9 @@ import { getLocale, getMessages } from 'next-intl/server'
 import { headers } from 'next/headers'
 import localFont from 'next/font/local'
 import { Providers } from '@/providers'
+import { configurationService } from '@/config'
+import { getPlatformConfigOverrides } from '@/config/platform-overrides-server'
+import { PlatformConfigHydrator } from '@/components/PlatformConfigHydrator'
 import { getDirection } from '@/i18n/runtime'
 import { ClientIntlProvider } from '@/i18n/ClientIntlProvider'
 import { getLocalizedPageMetadata } from '@/lib/seo'
@@ -59,6 +62,10 @@ export const viewport: Viewport = {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Platform settings saved by superusers (Django), applied before anything
+  // below reads configuration (locale, text direction, sign-in flags, ...).
+  const platformOverrides = await getPlatformConfigOverrides()
+  configurationService.hydratePlatformOverrides(platformOverrides)
   const locale = await getLocale()
   const messages = await getMessages()
   const direction = getDirection(locale)
@@ -81,7 +88,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className={`${playfair.variable} ${dmSans.variable} antialiased`}>
         <ClientIntlProvider locale={locale} messages={messages} timeZone={timeZone}>
-          <Providers>{children}</Providers>
+          <PlatformConfigHydrator overrides={platformOverrides}>
+            <Providers>{children}</Providers>
+          </PlatformConfigHydrator>
         </ClientIntlProvider>
       </body>
     </html>

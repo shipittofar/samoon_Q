@@ -17,6 +17,9 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { configurationAudit, configurationService } from '@/config'
 import type { ConfigActor, ConfigAuditEntry } from '@/config'
+import toast from 'react-hot-toast'
+import { savePlatformConfigChanges } from '@/config/platform-overrides-client'
+import { apiErrorMessage } from '@/services/superadmin.service'
 
 export function formatTimestamp(iso: string): string {
   try {
@@ -31,16 +34,33 @@ export function formatTimestamp(iso: string): string {
  * `configurationService.updateField()` — the one rollback implementation
  * shared by this timeline and the Studio toolbar's module-wide history
  * drawer, so "roll back a change" is defined exactly once (Rule 3).
+ * Platform-level values are saved to Django first; if that fails nothing
+ * changes and the promise rejects.
  */
-export function rollbackAuditEntry(entry: ConfigAuditEntry, actor: ConfigActor): void {
+export async function rollbackAuditEntry(entry: ConfigAuditEntry, actor: ConfigActor): Promise<void> {
+  const reason = `Rollback to the value before ${formatTimestamp(entry.timestamp)}`
+  if (entry.level === 'platform') {
+    await savePlatformConfigChanges([{ fieldId: entry.fieldId, value: entry.previousValue }], reason)
+  }
   configurationService.updateField({
     fieldId: entry.fieldId,
     value: entry.previousValue,
     level: entry.level,
     scope: entry.scope,
     actor,
-    reason: `Rollback to the value before ${formatTimestamp(entry.timestamp)}`,
+    reason,
   })
+}
+
+/** Runs a rollback from a click handler: shows the server's error instead of throwing. */
+export async function rollbackAuditEntryWithFeedback(entry: ConfigAuditEntry, actor: ConfigActor): Promise<boolean> {
+  try {
+    await rollbackAuditEntry(entry, actor)
+    return true
+  } catch (err) {
+    toast.error(apiErrorMessage(err, err instanceof Error ? err.message : 'Rollback failed.'))
+    return false
+  }
 }
 
 export interface ConfigurationHistoryTimelineProps {
@@ -66,11 +86,10 @@ export function ConfigurationHistoryTimeline({ fieldId, actor, canEdit, onRolled
     )
   }, [allEntries, query])
 
-  function rollback(entry: ConfigAuditEntry) {
+  async function rollback(entry: ConfigAuditEntry) {
     setRollingBackId(entry.id)
     try {
-      rollbackAuditEntry(entry, actor)
-      onRolledBack?.(entry)
+      if (await rollbackAuditEntryWithFeedback(entry, actor)) onRolledBack?.(entry)
     } finally {
       setRollingBackId(null)
     }

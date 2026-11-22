@@ -27,7 +27,7 @@ import { Drawer } from '@/components/ui/Modal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { configurationAudit, configurationService, platformConfigurationRegistry } from '@/config'
 import type { ConfigActor, ConfigModuleDefinition } from '@/config'
-import { formatTimestamp, rollbackAuditEntry } from './ConfigurationHistoryTimeline'
+import { formatTimestamp, rollbackAuditEntryWithFeedback } from './ConfigurationHistoryTimeline'
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
@@ -161,7 +161,7 @@ export function ConfigurationStudioToolbar({
                       {entry.reason && <p className="mt-0.5 italic text-[var(--fg-muted)]">“{entry.reason}”</p>}
                       <p className="mt-0.5 text-[10px] text-[var(--fg-muted)] opacity-70">{formatTimestamp(entry.timestamp)}</p>
                     </div>
-                    <Button variant="ghost"size="sm"onClick={() => rollbackAuditEntry(entry, actor)} aria-label={t('rollbackAria', { field: fieldTitle })}>
+                    <Button variant="ghost"size="sm"onClick={() => void rollbackAuditEntryWithFeedback(entry, actor)} aria-label={t('rollbackAria', { field: fieldTitle })}>
                       <RotateCcw className="h-3.5 w-3.5"/>
                     </Button>
                   </div>

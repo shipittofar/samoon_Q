@@ -203,8 +203,61 @@ function canEdit(field: ConfigFieldDefinition, userPermissions: readonly string[
   return userPermissions.includes(field.permissions.edit)
 }
 
+/**
+ * Fields whose platform value is stored in Django (GET/PUT /platform/config/).
+ * Platform-owned only (tenant/branch/user layers stay in this process), and
+ * never secrets: platform configuration must not hold credentials.
+ */
+function isPersistedField(field: ConfigFieldDefinition | undefined): field is ConfigFieldDefinition {
+  return Boolean(field) && field!.inheritance.level === 'platform' && field!.type !== 'secret' && field!.type !== 'password'
+}
+
+/** Field ids whose platform layer came from the server (so a server-side reset clears them). */
+let serverPlatformFieldIds = new Set<string>()
+let lastHydratedJson = ''
+const hydrationListeners = new Set<() => void>()
+
+/**
+ * Replaces the platform layer with the overrides saved in Django. Idempotent
+ * (same payload → no-op), so it is safe to call on every render. Unknown or
+ * non-persisted field ids are ignored.
+ */
+function hydratePlatformOverrides(overrides: Record<string, unknown>): void {
+  const json = JSON.stringify(overrides ?? {})
+  if (json === lastHydratedJson) return
+  lastHydratedJson = json
+
+  const next: ConfigOverrideStore = { ...overrideStore }
+  const nextServerIds = new Set<string>()
+  for (const [fieldId, value] of Object.entries(overrides ?? {})) {
+    if (!isPersistedField(getField(fieldId))) continue
+    next[fieldId] = { ...next[fieldId], platform: value }
+    nextServerIds.add(fieldId)
+  }
+  for (const fieldId of serverPlatformFieldIds) {
+    if (nextServerIds.has(fieldId) || !next[fieldId]) continue
+    const { platform: _dropped, ...rest } = next[fieldId]
+    void _dropped
+    next[fieldId] = rest
+  }
+  overrideStore = next
+  serverPlatformFieldIds = nextServerIds
+  configurationCache.clear()
+  hydrationListeners.forEach((fn) => fn())
+}
+
+/** Notified after server overrides are (re)applied; returns an unsubscribe. */
+function onPlatformOverridesHydrated(listener: () => void): () => void {
+  hydrationListeners.add(listener)
+  return () => {
+    hydrationListeners.delete(listener)
+  }
+}
+
 function __resetForTests(): void {
   overrideStore = {}
+  serverPlatformFieldIds = new Set()
+  lastHydratedJson = ''
   configurationCache.clear()
   configurationAudit.__resetForTests()
   configurationVersionManager.__resetForTests()
@@ -220,5 +273,8 @@ export const configurationService = {
   getFieldLayers,
   canView,
   canEdit,
+  isPersistedField,
+  hydratePlatformOverrides,
+  onPlatformOverridesHydrated,
   __resetForTests,
 }
