@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/Button'
 import { configurationAudit, configurationService } from '@/config'
 import type { ConfigActor, ConfigAuditEntry } from '@/config'
 import toast from 'react-hot-toast'
-import { savePlatformConfigChanges } from '@/config/platform-overrides-client'
+import { saveConfigChanges } from '@/config/platform-overrides-client'
 import { apiErrorMessage } from '@/services/superadmin.service'
 
 export function formatTimestamp(iso: string): string {
@@ -34,13 +34,15 @@ export function formatTimestamp(iso: string): string {
  * `configurationService.updateField()` — the one rollback implementation
  * shared by this timeline and the Studio toolbar's module-wide history
  * drawer, so "roll back a change" is defined exactly once (Rule 3).
- * Platform-level values are saved to Django first; if that fails nothing
+ * Platform- and business-level values are saved to Django first; if that fails nothing
  * changes and the promise rejects.
  */
 export async function rollbackAuditEntry(entry: ConfigAuditEntry, actor: ConfigActor): Promise<void> {
   const reason = `Rollback to the value before ${formatTimestamp(entry.timestamp)}`
-  if (entry.level === 'platform') {
-    await savePlatformConfigChanges([{ fieldId: entry.fieldId, value: entry.previousValue }], reason)
+  if (entry.level === 'platform' || entry.level === 'tenant') {
+    await saveConfigChanges([{ fieldId: entry.fieldId, value: entry.previousValue }], reason, {
+      tenantId: entry.scope.tenantId,
+    })
   }
   configurationService.updateField({
     fieldId: entry.fieldId,

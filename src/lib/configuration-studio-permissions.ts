@@ -31,5 +31,9 @@ export function canEditStudioField(
   if (permissionContext === 'platform') {
     return isPlatformSuperuser(user)
   }
+  // Platform-wide fields are changed by platform superusers only (the API
+  // refuses anyone else); in a business's console they are read-only for
+  // its owner and settings managers, who edit the business-level fields.
+  if (field.inheritance?.level === 'platform' && !isPlatformSuperuser(user)) return false
   return configurationService.canEdit(field, tenantPermissions)
 }

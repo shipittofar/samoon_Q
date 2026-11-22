@@ -209,13 +209,36 @@ function canEdit(field: ConfigFieldDefinition, userPermissions: readonly string[
  * never secrets: platform configuration must not hold credentials.
  */
 function isPersistedField(field: ConfigFieldDefinition | undefined): field is ConfigFieldDefinition {
-  return Boolean(field) && field!.inheritance.level === 'platform' && field!.type !== 'secret' && field!.type !== 'password'
+  return persistedLevel(field) === 'platform'
+}
+
+/**
+ * Where a field's value is stored in Django: 'platform' (GET/PUT
+ * /platform/config/), 'tenant' (GET/PUT /tenants/<id>/config/), or null —
+ * branch/user-owned fields stay in this process, and secrets are never stored
+ * (platform configuration must not hold credentials).
+ */
+function persistedLevel(field: ConfigFieldDefinition | undefined): 'platform' | 'tenant' | null {
+  if (!field || field.type === 'secret' || field.type === 'password') return null
+  const level = field.inheritance.level
+  return level === 'platform' || level === 'tenant' ? level : null
 }
 
 /** Field ids whose platform layer came from the server (so a server-side reset clears them). */
 let serverPlatformFieldIds = new Set<string>()
 let lastHydratedJson = ''
+/** Per tenant: field ids whose tenant layer came from the server, and the last payload. */
+const serverTenantFieldIds = new Map<string, Set<string>>()
+const lastTenantJson = new Map<string, string>()
 const hydrationListeners = new Set<() => void>()
+/** Bumped on every applied hydration, for React subscriptions (useSyncExternalStore). */
+let overridesVersion = 0
+
+function notifyHydrated(): void {
+  overridesVersion += 1
+  configurationCache.clear()
+  hydrationListeners.forEach((fn) => fn())
+}
 
 /**
  * Replaces the platform layer with the overrides saved in Django. Idempotent
@@ -242,8 +265,40 @@ function hydratePlatformOverrides(overrides: Record<string, unknown>): void {
   }
   overrideStore = next
   serverPlatformFieldIds = nextServerIds
-  configurationCache.clear()
-  hydrationListeners.forEach((fn) => fn())
+  notifyHydrated()
+}
+
+/**
+ * Replaces one business's tenant layer with the values saved in Django
+ * (GET /tenants/<id>/config/). Same idempotence and clearing rules as
+ * hydratePlatformOverrides; other tenants' layers are untouched.
+ */
+function hydrateTenantOverrides(tenantId: string, overrides: Record<string, unknown>): void {
+  if (!tenantId) return
+  const json = JSON.stringify(overrides ?? {})
+  if (lastTenantJson.get(tenantId) === json) return
+  lastTenantJson.set(tenantId, json)
+
+  const next: ConfigOverrideStore = { ...overrideStore }
+  const nextServerIds = new Set<string>()
+  for (const [fieldId, value] of Object.entries(overrides ?? {})) {
+    if (persistedLevel(getField(fieldId)) !== 'tenant') continue
+    next[fieldId] = { ...next[fieldId], tenant: { ...next[fieldId]?.tenant, [tenantId]: value } }
+    nextServerIds.add(fieldId)
+  }
+  for (const fieldId of serverTenantFieldIds.get(tenantId) ?? []) {
+    if (nextServerIds.has(fieldId) || !next[fieldId]?.tenant) continue
+    const { [tenantId]: _dropped, ...others } = next[fieldId].tenant!
+    void _dropped
+    next[fieldId] = { ...next[fieldId], tenant: others }
+  }
+  overrideStore = next
+  serverTenantFieldIds.set(tenantId, nextServerIds)
+  notifyHydrated()
+}
+
+function getOverridesVersion(): number {
+  return overridesVersion
 }
 
 /** Notified after server overrides are (re)applied; returns an unsubscribe. */
@@ -258,6 +313,9 @@ function __resetForTests(): void {
   overrideStore = {}
   serverPlatformFieldIds = new Set()
   lastHydratedJson = ''
+  serverTenantFieldIds.clear()
+  lastTenantJson.clear()
+  overridesVersion = 0
   configurationCache.clear()
   configurationAudit.__resetForTests()
   configurationVersionManager.__resetForTests()
@@ -274,7 +332,12 @@ export const configurationService = {
   canView,
   canEdit,
   isPersistedField,
+  persistedLevel,
   hydratePlatformOverrides,
+  hydrateTenantOverrides,
   onPlatformOverridesHydrated,
+  /** Same listener list: fires after platform or tenant values are applied. */
+  onOverridesHydrated: onPlatformOverridesHydrated,
+  getOverridesVersion,
   __resetForTests,
 }

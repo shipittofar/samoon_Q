@@ -9,12 +9,13 @@
  * Scope (tenantId/branchId/userId) is derived automatically from the existing
  * tenant/branch/auth stores so callers never have to thread it through props.
  */
-import { useMemo } from 'react'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
 import { configurationService } from '@/config'
 import type { ConfigFieldPreview, ConfigModuleDefinition, ConfigResolutionScope, ResolvedConfigValue } from '@/config'
 import { useAuthStore, useBranchStore } from '@/stores'
 import { usePermissions } from '@/hooks'
 import { useConsoleTenantId } from '@/hooks/console-workspace'
+import { loadTenantConfigOverrides } from '@/config/platform-overrides-client'
 
 /** Exported (P9.3) so the Studio's Inspector/Inheritance components can resolve the same tenant/branch/user scope other hooks in this file use, without re-deriving it from the stores themselves. */
 export function useConfigScope(): ConfigResolutionScope {
@@ -22,6 +23,24 @@ export function useConfigScope(): ConfigResolutionScope {
   const branchId = useBranchStore((s) => s.adminActiveBranch?.id)
   const userId = useAuthStore((s) => s.user?.id)
   return useMemo(() => ({ tenantId, branchId, userId }), [tenantId, branchId, userId])
+}
+
+/**
+ * Re-renders when saved values arrive from Django (platform values at load,
+ * a business's values when it is opened, or a save's answer) and loads the
+ * given business's tenant-level values. Returns a version number to put in
+ * memo dependencies.
+ */
+export function useConfigOverridesVersion(tenantId?: string | null): number {
+  const version = useSyncExternalStore(
+    configurationService.onOverridesHydrated,
+    configurationService.getOverridesVersion,
+    configurationService.getOverridesVersion,
+  )
+  useEffect(() => {
+    void loadTenantConfigOverrides(tenantId)
+  }, [tenantId])
+  return version
 }
 
 /**
@@ -41,12 +60,13 @@ export function useConfigurationModule(moduleId: string): {
   values: Record<string, ResolvedConfigValue>
 } {
   const scope = useConfigScope()
+  const version = useConfigOverridesVersion(scope.tenantId)
   return useMemo(() => {
     const configModule = configurationService.getModule(moduleId)
     const values = configModule ? configurationService.resolveModule(moduleId, scope) : {}
     return { configModule, values }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moduleId, scope.tenantId, scope.branchId, scope.userId])
+  }, [moduleId, scope.tenantId, scope.branchId, scope.userId, version])
 }
 
 /**
@@ -60,12 +80,13 @@ export function useConfigurationField(fieldId: string): {
   resolved: ResolvedConfigValue | undefined
 } {
   const scope = useConfigScope()
+  const version = useConfigOverridesVersion(scope.tenantId)
   return useMemo(() => {
     const field = configurationService.getField(fieldId)
     const resolved = field ? configurationService.resolveField(fieldId, scope) : undefined
     return { field, resolved }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fieldId, scope.tenantId, scope.branchId, scope.userId])
+  }, [fieldId, scope.tenantId, scope.branchId, scope.userId, version])
 }
 
 /**

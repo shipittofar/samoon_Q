@@ -97,6 +97,14 @@ describe('canViewStudioField / canEditStudioField', () => {
     expect(canEditStudioField(field, 'tenant', ['settings.view'], user({ is_superuser: true }))).toBe(false)
     expect(canEditStudioField(field, 'tenant', ['settings.manage'], user())).toBe(true)
   })
+
+  it('tenant context: platform-wide fields are read-only for business managers, editable by superusers', () => {
+    const platformField = { ...field, inheritance: { level: 'platform' } } as typeof field
+    const businessField = { ...field, inheritance: { level: 'tenant' } } as typeof field
+    expect(canEditStudioField(platformField, 'tenant', ['settings.manage'], user())).toBe(false)
+    expect(canEditStudioField(platformField, 'tenant', ['settings.manage'], user({ is_superuser: true }))).toBe(true)
+    expect(canEditStudioField(businessField, 'tenant', ['settings.manage'], user())).toBe(true)
+  })
 })
 
 describe('Platform Admin Settings — permissionContext=platform', () => {

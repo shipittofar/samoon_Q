@@ -21,7 +21,7 @@ import type { ConfigAuditEntry, ConfigInheritanceLevel, ConfigResolutionScope } 
 import { useAuthStore, useBranchStore } from '@/stores'
 import { useConfigurationModule } from './use-platform-configuration'
 import { useConsoleTenantId } from '@/hooks/console-workspace'
-import { platformConfigPersistenceEnabled, savePlatformConfigChanges } from '@/config/platform-overrides-client'
+import { platformConfigPersistenceEnabled, saveConfigChanges } from '@/config/platform-overrides-client'
 import { apiErrorMessage } from '@/services/superadmin.service'
 
 export interface ConfigurationSaveResult {
@@ -104,11 +104,13 @@ export function useConfigurationDraft(moduleId: string) {
     setLastError(null)
     try {
       if (platformConfigPersistenceEnabled()) {
-        // Platform-owned fields are stored in Django first (all or nothing);
-        // if that fails nothing is applied here and the error is shown.
-        await savePlatformConfigChanges(
+        // Platform- and business-level fields are stored in Django first
+        // (each request all or nothing); if that fails nothing is applied
+        // here and the error is shown.
+        await saveConfigChanges(
           dirtyFieldIds.map((fieldId) => ({ fieldId, value: drafts[fieldId] })),
           reason,
+          { tenantId },
         )
       } else {
         // Mock mode: in-memory only — this delay just gives the Console a
@@ -139,7 +141,7 @@ export function useConfigurationDraft(moduleId: string) {
     } finally {
       setIsSaving(false)
     }
-  }, [dirtyFieldIds, drafts, scopeForLevel, actorUser, validateDrafts, requiresReason])
+  }, [dirtyFieldIds, drafts, scopeForLevel, actorUser, validateDrafts, requiresReason, tenantId])
 
   const auditHistoryFor = useCallback((fieldId: string): ConfigAuditEntry[] => configurationAudit.listForField(fieldId), [])
 

@@ -223,6 +223,7 @@ export const ENDPOINTS = {
   PLATFORM_CONFIG: {
     OVERRIDES: '/platform/config/',
     HISTORY: '/platform/config/history/',
+    TENANT: (tenantId: string) => `/tenants/${tenantId}/config/`,
   },
 
   PLATFORM_HOMEPAGE: {
