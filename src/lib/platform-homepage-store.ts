@@ -39,6 +39,9 @@ function normalizeImage(raw: unknown, order: number): HeroBackgroundImage | null
   if (!src) return null
   const id = typeof rec.id === 'string' && rec.id.trim() ? rec.id.trim() : `platform-hero-${order}`
   const altText = typeof rec.altText === 'string' ? rec.altText : undefined
+  // Kept so the backend can mark the upload as in use (otherwise the
+  // orphan-upload cleanup deletes the image a day later).
+  const assetId = typeof rec.assetId === 'string' && rec.assetId.trim() ? rec.assetId.trim() : undefined
   const POSITIONS = new Set<HeroObjectPosition>(['center', 'top', 'bottom', 'left', 'right'])
   const objectPosition =
     typeof rec.objectPosition === 'string' && POSITIONS.has(rec.objectPosition as HeroObjectPosition)
@@ -53,6 +56,7 @@ function normalizeImage(raw: unknown, order: number): HeroBackgroundImage | null
     src,
     order,
     enabled: rec.enabled !== false,
+    ...(assetId ? { assetId } : {}),
     ...(altText ? { altText } : {}),
     ...(objectPosition ? { objectPosition } : {}),
     ...(objectPositionMobile ? { objectPositionMobile } : {}),

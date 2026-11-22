@@ -37,16 +37,18 @@ website_media
 | `avatar` | `user_avatar` | none | `PATCH …/avatar/` with `avatar_asset_id` |
 | `menu_extra` | `menu_item` | `tenant_id` + `branch_id` | Extra API has **no** image field today; upload ignored on attach |
 
-## Platform homepage gap
+## Platform homepage hero
 
-Django `PurposeEnum` has **no** platform-scoped purpose. Platform homepage hero is a Next BFF (`/api/platform/homepage/hero/`) that stores CDN URLs; Django `/api/platform/homepage/hero/` returns 404.
+Django stores the hero: `GET /api/platform/homepage/hero/` (public; 404 until a
+superuser saves one, and the Next BFF then shows its built-in default) and
+`PUT` (platform superusers only), model `platform_settings.PlatformSetting`
+key `homepage.hero`.
 
-Frontend maps platform hero uploads to `website_media` (only freeform-media purpose in the enum). That purpose still requires `tenant_id` per initiate rules, so **platform-admin hero file upload remains incomplete** until the backend either:
-
-1. Adds `platform_hero` (recommended): platform superuser auth, **no** `tenant_id`, attach = platform homepage CMS; or
-2. Explicitly allows platform superusers to initiate `website_media` with `tenant_id=null` and `entity_type=platform`.
-
-Do **not** invent a fake tenant_id for platform assets.
+Hero images are uploaded with `purpose=website_media`, `entity_type=platform`,
+`entity_id=homepage` and **no** `tenant_id` (platform superusers only, see
+`uploads/authorization.py`). Each frame sends its `assetId`; saving the hero
+marks those uploads ATTACHED (so orphan cleanup never deletes them) and
+detaches the ones the new hero no longer uses.
 
 ## Branch direct upload
 

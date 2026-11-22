@@ -70,3 +70,32 @@ describe('Platform hero PUT — real mode upstream handling', () => {
     expect(getPlatformHomepageHero().backgroundImages[0].id).toBe('new-1')
   })
 })
+
+describe('Platform hero — upload asset ids reach the backend', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_USE_MOCK', 'false')
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
+  })
+
+  it('forwards assetId so Django can mark the upload as in use', async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => Response.json(JSON.parse(String(init?.body))))
+    vi.stubGlobal('fetch', fetchMock)
+    const body = {
+      backgroundImages: [{ id: 'u1', src: 'https://cdn.example/u1.webp', assetId: '0f8f5c3e-8d7e-4c55-9d43-5a1f0a0e6b11' }],
+    }
+    const res = await PUT(
+      new NextRequest('http://localhost/api/platform/homepage/hero/', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', authorization: 'Bearer real-token' },
+        body: JSON.stringify(body),
+      }),
+    )
+    expect(res.status).toBe(200)
+    const sent = JSON.parse(String(fetchMock.mock.calls[0][1]?.body))
+    expect(sent.backgroundImages[0].assetId).toBe('0f8f5c3e-8d7e-4c55-9d43-5a1f0a0e6b11')
+    expect((await res.json()).backgroundImages[0].assetId).toBe('0f8f5c3e-8d7e-4c55-9d43-5a1f0a0e6b11')
+  })
+})
